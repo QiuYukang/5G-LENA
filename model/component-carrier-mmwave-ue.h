@@ -74,6 +74,9 @@ public:
    */
   void SetMac (Ptr<MmWaveUeMac> s);
 
+  virtual void SetDlBandwidth (uint8_t bw) override { m_dlBandwidth = bw; }
+  virtual void SetUlBandwidth (uint8_t bw) override { m_ulBandwidth = bw; }
+
 protected:
   // inherited from Object
   virtual void DoInitialize (void);
