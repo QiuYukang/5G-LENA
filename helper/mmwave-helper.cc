@@ -434,7 +434,6 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
   for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
     {
       Ptr <ComponentCarrierMmWaveUe> cc =  CreateObject<ComponentCarrierMmWaveUe> ();
-      cc->SetType (ComponentCarrierType::MMWAVE);
       cc->SetUlBandwidth ( i->GetBandwidth ());
       cc->SetDlBandwidth ( i->GetBandwidth ());
       /*cc->SetDlEarfcn ( it->second.GetDlEarfcn ());
@@ -625,7 +624,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
     {
       Ptr<MmWavePhyMacCommon> phyCommonConf = it;
       Ptr <ComponentCarrierGnb> cc =  CreateObject<ComponentCarrierGnb> ();
-      cc->SetType (ComponentCarrierType::MMWAVE);
       cc->SetUlBandwidth (phyCommonConf->GetBandwidth ());
       cc->SetDlBandwidth (phyCommonConf->GetBandwidth ());
       //cc->SetDlEarfcn(it->second.GetDlEarfcn());
@@ -709,11 +707,11 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
 
   // Convert Enb carrier map to only PhyConf map
   // we want to make RRC to be generic, to be able to work with any type of carriers, not only strictly LTE carriers
-  std::map < uint8_t, Ptr<ComponentCarrier> > ccPhyConfMap;
+  std::map < uint8_t, Ptr<ComponentCarrierBaseStation> > ccPhyConfMap;
   for (auto i:ccMap)
     {
-      Ptr<ComponentCarrier> c = i.second;
-      ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrier> > (i.first,c));
+      Ptr<ComponentCarrierBaseStation> c = i.second;
+      ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrierBaseStation> > (i.first,c));
     }
 
   rrc->ConfigureCarriers (ccPhyConfMap);
@@ -722,7 +720,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
   rrc->SetLteCcmRrcSapProvider (ccmEnbManager->GetLteCcmRrcSapProvider ());
   ccmEnbManager->SetLteCcmRrcSapUser (rrc->GetLteCcmRrcSapUser ());
   ccmEnbManager->SetNumberOfComponentCarriers (m_noOfCcs);
-  ccmEnbManager->SetRrc (rrc);
 
   //mmwave module currently uses only RRC ideal mode
   bool useIdealRrc = true;
@@ -751,14 +748,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       // it does not make sense to use RLC/SM when also using the EPC
       if (epsBearerToRlcMapping.Get () == LteEnbRrc::RLC_SM_ALWAYS)
         {
-          if (m_rlcAmEnabled)
-            {
-              rrc->SetAttribute ("EpsBearerToRlcMapping", EnumValue (LteEnbRrc::RLC_AM_ALWAYS));
-            }
-          else
-            {
-              rrc->SetAttribute ("EpsBearerToRlcMapping", EnumValue (LteEnbRrc::RLC_UM_LOWLAT_ALWAYS));
-            }
+          rrc->SetAttribute ("EpsBearerToRlcMapping", EnumValue (LteEnbRrc::RLC_UM_ALWAYS));
         }
     }
 
