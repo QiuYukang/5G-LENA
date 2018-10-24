@@ -78,7 +78,7 @@ public:
    * \brief A wideband CQI has been reported for the specified UE
    * \param info WB CQI
    * \param ueInfo UE
-   * \param expirationTime expiration time of the CQI
+   * \param expirationTime expiration time of the CQI in number of slot
    *
    * Store the CQI information inside the m_dlCqi value of the UE, and then
    * calculate the corresponding MCS through MmWaveAmc. The information is

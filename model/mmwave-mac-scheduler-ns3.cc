@@ -478,7 +478,8 @@ MmWaveMacSchedulerNs3::DoSchedDlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
 
   NS_ASSERT (m_cqiTimersThreshold >= m_phyMacConfig->GetSlotPeriod ());
 
-  uint32_t expirationTime = static_cast<uint32_t> (m_cqiTimersThreshold / m_phyMacConfig->GetSlotPeriod ());
+  uint32_t expirationTime = static_cast<uint32_t> (m_cqiTimersThreshold.GetNanoSeconds () /
+                                                   m_phyMacConfig->GetSlotPeriod ().GetNanoSeconds ());
 
   for (const auto &cqi : params.m_cqiList)
     {
@@ -521,7 +522,8 @@ MmWaveMacSchedulerNs3::DoSchedUlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
 
   GetSecond UeInfoOf;
 
-  uint32_t expirationTime = static_cast<uint32_t> (m_cqiTimersThreshold / m_phyMacConfig->GetSlotPeriod ());
+  uint32_t expirationTime = static_cast<uint32_t> (m_cqiTimersThreshold.GetNanoSeconds () /
+                                                   m_phyMacConfig->GetSlotPeriod ().GetNanoSeconds ());
 
   switch (params.m_ulCqi.m_type)
     {
