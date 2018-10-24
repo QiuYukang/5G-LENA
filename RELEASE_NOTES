@@ -1,0 +1,34 @@
+
+		3GPP NR ns-3 module RELEASE NOTES
+
+This file contains release notes for the NR module (most recent releases first).  
+
+All of the ns-3 documentation is accessible from the ns-3 website: 
+http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
+
+Consult the file CHANGES.html for more detailed information about changed
+API and behavior across ns-3 releases.
+
+Release NR-dev
+=============
+
+Availability
+------------
+This release is not yet available.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note:  not all features available on all platforms):
+
+New user-visible features
+-------------------------
+
+Bugs fixed
+----------
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at http://www.nsnam.org/bugzilla/
+
