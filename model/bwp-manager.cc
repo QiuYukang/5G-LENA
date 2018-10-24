@@ -18,12 +18,8 @@
  * Author: Biljana Bojovic <bbojovic@cttc.cat>
  */
 
-#include <ns3/log.h>
-#include <ns3/random-variable-stream.h>
-#include <ns3/boolean.h>
-#include <ns3/double.h>
 #include "bwp-manager.h"
-#include "ns3/trace-helper.h"
+#include <ns3/log.h>
 #include <ns3/uinteger.h>
 
 namespace ns3 {
@@ -39,16 +35,7 @@ BwpManager::DoInitialize ()
 }
 
 BwpManager::BwpManager () :
-  m_gbr_conv_voice_bwp (0),
-  m_gbr_conv_video_bwp (0),
-  m_gbr_gaming_bwp (0),
-  m_gbr_non_conv_video_bwp (0),
-  m_ngbr_ims_bwp (0),
-  m_ngbr_video_tcp_operator_bwp (0),
-  m_ngbr_voice_video_gaming_bwp (0),
-  m_ngbr_video_tcp_premium_bwp (0),
-  m_ngbr_video_tcp_default_bwp (0),
-  m_gbr_ultra_low_lat_bwp (0)
+  RrComponentCarrierManager ()
 {
   NS_LOG_FUNCTION (this);
 }
@@ -58,6 +45,13 @@ BwpManager::~BwpManager ()
   NS_LOG_FUNCTION (this);
 }
 
+#define BWP_MANAGER_DECLARE_ATTR(NAME,DESC,SETTER)                         \
+  .AddAttribute (NAME,                                                     \
+                 DESC,                                                     \
+                 UintegerValue (0),                                        \
+                 MakeUintegerAccessor (&BwpManager::SETTER),               \
+                 MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
+
 TypeId
 BwpManager::GetTypeId ()
 {
@@ -65,60 +59,75 @@ BwpManager::GetTypeId ()
     .SetParent<NoOpComponentCarrierManager> ()
     .SetGroupName ("mmwave")
     .AddConstructor<BwpManager> ()
-    .AddAttribute ("GBR_CONV_VOICE",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_gbr_conv_voice_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("GBR_CONV_VIDEO",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_gbr_conv_video_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("GBR_GAMING",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci ype.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_gbr_gaming_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("GBR_NON_CONV_VIDEO",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_gbr_non_conv_video_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("NGBR_IMS",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_ngbr_ims_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("NGBR_VIDEO_TCP_OPERATOR",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_ngbr_video_tcp_operator_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("NGBR_VOICE_VIDEO_GAMING",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_ngbr_voice_video_gaming_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("NGBR_VIDEO_TCP_PREMIUM",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_ngbr_video_tcp_premium_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("NGBR_VIDEO_TCP_DEFAULT",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_ngbr_video_tcp_default_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
-    .AddAttribute ("GBR_ULTRA_LOW_LAT",
-                   "Defines the index of BWP to which it should be forwarded the flow of this Qci type.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&BwpManager::m_gbr_ultra_low_lat_bwp),
-                   MakeUintegerChecker<uint8_t> (0, MAX_NO_CC));
+    BWP_MANAGER_DECLARE_ATTR("GBR_CONV_VOICE",
+                             "BWP index to which flows of this Qci type should be forwarded.",
+                             SetConvVoiceBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_CONV_VIDEO",
+                             "BWP index to which flows of GBR_CONV_VIDEO Qci type should be forwarded.",
+                             SetConvVideoBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_GAMING",
+                             "BWP index to which flows of GBR_GAMING Qci type should be forwarded.",
+                             SetGamingBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_NON_CONV_VIDEO",
+                             "BWP index to which flows of GBR_NON_CONV_VIDEO Qci type should be forwarded.",
+                             SetNonConvVideoBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_MC_PUSH_TO_TALK",
+                             "BWP index to which flows of GBR_MC_PUSH_TO_TALK Qci type should be forwarded.",
+                             SetMcPttBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_NMC_PUSH_TO_TALK",
+                             "BWP index to which flows of GBR_NMC_PUSH_TO_TALK Qci type should be forwarded.",
+                             SetNmcPttBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_MC_VIDEO",
+                             "BWP index to which flows of GBR_MC_VIDEO Qci type should be forwarded.",
+                             SetMcVideoBwp)
+    BWP_MANAGER_DECLARE_ATTR("GBR_V2X",
+                             "BWP index to which flows of GBR_V2X Qci type should be forwarded.",
+                             SetGbrV2xBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_IMS",
+                             "BWP index to which flows of NGBR_IMS Qci type should be forwarded.",
+                             SetImsBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_VIDEO_TCP_OPERATOR",
+                             "BWP index to which flows of NGBR_VIDEO_TCP_OPERATOR Qci type should be forwarded.",
+                             SetVideoTcpOpBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_VOICE_VIDEO_GAMING",
+                             "BWP index to which flows of NGBR_VOICE_VIDEO_GAMING Qci type should be forwarded.",
+                             SetVideoGamingBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_VIDEO_TCP_PREMIUM",
+                             "BWP index to which flows of NGBR_VIDEO_TCP_PREMIUM Qci type should be forwarded.",
+                             SetVideoTcpPremiumBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_VIDEO_TCP_DEFAULT",
+                             "BWP index to which flows of NGBR_VIDEO_TCP_DEFAULT Qci type should be forwarded.",
+                             SetVideoTcpDefaultBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_MC_DELAY_SIGNAL",
+                             "BWP index to which flows of NGBR_MC_DELAY_SIGNAL Qci type should be forwarded.",
+                             SetMcDelaySignalBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_MC_DATA",
+                             "BWP index to which flows of NGBR_MC_DATA Qci type should be forwarded.",
+                             SetMcDataBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_V2X",
+                             "BWP index to which flows of NGBR_V2X Qci type should be forwarded.",
+                             SetNgbrV2xBwp)
+    BWP_MANAGER_DECLARE_ATTR("NGBR_LOW_LAT_EMBB",
+                             "BWP index to which flows of NGBR_LOW_LAT_EMBB Qci type should be forwarded.",
+                             SetLowLatEmbbBwp)
+    BWP_MANAGER_DECLARE_ATTR("DGBR_DISCRETE_AUT_SMALL",
+                             "BWP index to which flows of DGBR_DISCRETE_AUT_SMALL Qci type should be forwarded.",
+                             SetDiscreteAutSmallBwp)
+    BWP_MANAGER_DECLARE_ATTR("DGBR_DISCRETE_AUT_LARGE",
+                             "BWP index to which flows of DGBR_DISCRETE_AUT_LARGE Qci type should be forwarded.",
+                             SetDiscreteAutLargeBwp)
+    BWP_MANAGER_DECLARE_ATTR("DGBR_ITS",
+                             "BWP index to which flows of DGBR_ITS Qci type should be forwarded.",
+                             SetItsBwp)
+    BWP_MANAGER_DECLARE_ATTR("DGBR_ELECTRICITY",
+                             "BWP index to which flows of DGBR_ELECTRICITY Qci type should be forwarded.",
+                             SetElectricityBwp)
+    ;
   return tid;
 }
 
-bool BwpManager::IsGbr (LteMacSapProvider::ReportBufferStatusParameters params)
+bool
+BwpManager::IsGbr (LteMacSapProvider::ReportBufferStatusParameters params)
 {
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti) != m_rlcLcInstantiated.end (), "Trying to check the QoS of unknown UE");
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid) != m_rlcLcInstantiated.find (params.rnti)->second.end (), "Trying to check the QoS of unknown logical channel");
@@ -145,38 +154,10 @@ BwpManager::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameter
   uint8_t qci = m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid)->second.qci;
 
   uint8_t bwpIndex = 0;
-  switch (qci)
+
+  if (m_qciToBwpMap.find (qci) != m_qciToBwpMap.end ())
     {
-    case ns3::EpsBearer::GBR_CONV_VOICE:
-      bwpIndex = m_gbr_conv_voice_bwp;
-      break;
-    case ns3::EpsBearer::GBR_CONV_VIDEO:
-      bwpIndex = m_gbr_conv_video_bwp;
-      break;
-    case ns3::EpsBearer::GBR_GAMING:
-      bwpIndex = m_gbr_gaming_bwp;
-      break;
-    case ns3::EpsBearer::GBR_NON_CONV_VIDEO:
-      bwpIndex = m_gbr_non_conv_video_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_IMS:
-      bwpIndex = m_ngbr_ims_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VIDEO_TCP_OPERATOR:
-      bwpIndex = m_ngbr_video_tcp_operator_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VOICE_VIDEO_GAMING:
-      bwpIndex = m_ngbr_voice_video_gaming_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VIDEO_TCP_PREMIUM:
-      bwpIndex = m_ngbr_video_tcp_premium_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VIDEO_TCP_DEFAULT:
-      bwpIndex = m_ngbr_video_tcp_default_bwp;
-      break;
-    case ns3::EpsBearer::GBR_ULTRA_LOW_LAT:
-      bwpIndex = m_gbr_ultra_low_lat_bwp;
-      break;
+      bwpIndex = m_qciToBwpMap.at (qci);
     }
 
   if (m_macSapProvidersMap.find (bwpIndex) != m_macSapProvidersMap.end ())
@@ -191,18 +172,16 @@ BwpManager::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameter
 
 
 void
-BwpManager::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, uint8_t componentCarrierId, uint16_t rnti, uint8_t lcid)
+BwpManager::DoNotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters txOpParams)
 {
   NS_LOG_FUNCTION (this);
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_ueAttached.find (rnti);
-  NS_ASSERT_MSG (rntiIt != m_ueAttached.end (), "could not find RNTI" << rnti);
+  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_ueAttached.find (txOpParams.rnti);
+  NS_ASSERT_MSG (rntiIt != m_ueAttached.end (), "could not find RNTI" << txOpParams.rnti);
 
-  std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (lcid);
-  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID " << (uint16_t) lcid);
+  std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (txOpParams.lcid);
+  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID " << (uint16_t) txOpParams.lcid);
 
-  NS_LOG_DEBUG (this << " rnti= " << rnti << " lcid= " << (uint32_t) lcid << " layer= " << (uint32_t)layer << " ccId=" << (uint32_t)componentCarrierId);
-  (*lcidIt).second->NotifyTxOpportunity (bytes, layer, harqId, componentCarrierId, rnti, lcid);
-
+  (*lcidIt).second->NotifyTxOpportunity (txOpParams);
 }
 
 
@@ -223,52 +202,17 @@ BwpManager::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrierId
           // we do not consider first 3 lcids: signaling and default
           if (i.first > 3)
             {
-              if (i.second.qci  < qci)
-                {
-                  qci = i.second.qci;
-                }
-              else if (i.second.qci == ns3::EpsBearer::GBR_ULTRA_LOW_LAT)
-                {
-                  qci = i.second.qci;
-                  break;
-                }
+              qci = i.second.qci;
+              break;
             }
         }
     }
 
   uint8_t bwpIndex = 0;
-  switch (qci)
+
+  if (m_qciToBwpMap.find (qci) != m_qciToBwpMap.end ())
     {
-    case ns3::EpsBearer::GBR_CONV_VOICE:
-      bwpIndex = m_gbr_conv_voice_bwp;
-      break;
-    case ns3::EpsBearer::GBR_CONV_VIDEO:
-      bwpIndex = m_gbr_conv_video_bwp;
-      break;
-    case ns3::EpsBearer::GBR_GAMING:
-      bwpIndex = m_gbr_gaming_bwp;
-      break;
-    case ns3::EpsBearer::GBR_NON_CONV_VIDEO:
-      bwpIndex = m_gbr_non_conv_video_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_IMS:
-      bwpIndex = m_ngbr_ims_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VIDEO_TCP_OPERATOR:
-      bwpIndex = m_ngbr_video_tcp_operator_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VOICE_VIDEO_GAMING:
-      bwpIndex = m_ngbr_voice_video_gaming_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VIDEO_TCP_PREMIUM:
-      bwpIndex = m_ngbr_video_tcp_premium_bwp;
-      break;
-    case ns3::EpsBearer::NGBR_VIDEO_TCP_DEFAULT:
-      bwpIndex = m_ngbr_video_tcp_default_bwp;
-      break;
-    case ns3::EpsBearer::GBR_ULTRA_LOW_LAT:
-      bwpIndex = m_gbr_ultra_low_lat_bwp;
-      break;
+      bwpIndex = m_qciToBwpMap.at (qci);
     }
 
   if (m_ccmMacSapProviderMap.find (bwpIndex) != m_ccmMacSapProviderMap.end ())
@@ -279,8 +223,6 @@ BwpManager::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrierId
     {
       NS_ABORT_MSG ("Bwp index not valid.");
     }
-
-
 }
 
 
