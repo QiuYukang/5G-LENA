@@ -83,14 +83,18 @@ public:
   virtual Ptr<Node> GetPgwNode () const;
   virtual Ipv4InterfaceContainer AssignUeIpv4Address (NetDeviceContainer ueDevices);
   virtual Ipv4Address GetUeDefaultGatewayAddress ();
-
-
+  virtual Ipv6InterfaceContainer AssignUeIpv6Address (NetDeviceContainer ueDevices);
+  virtual Ipv6Address GetUeDefaultGatewayAddress6 ();
 
 private:
   /**
    * helper to assign addresses to UE devices as well as to the TUN device of the SGW/PGW
    */
   Ipv4AddressHelper m_ueAddressHelper;
+  /**
+   * helper to assign IPv6 addresses to UE devices as well as to the TUN device of the SGW/PGW
+   */
+  Ipv6AddressHelper m_uePgwAddressHelper6;
 
   /**
    * SGW-PGW network element

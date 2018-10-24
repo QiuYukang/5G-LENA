@@ -38,7 +38,7 @@
 #include <ns3/packet-socket-address.h>
 #include <ns3/epc-enb-application.h>
 #include <ns3/epc-sgw-pgw-application.h>
-
+#include <ns3/icmpv6-l4-protocol.h>
 #include <ns3/lte-enb-rrc.h>
 #include <ns3/epc-x2.h>
 #include <ns3/mmwave-enb-net-device.h>
@@ -221,9 +221,23 @@ MmWavePointToPointEpcHelper::AddEnb (Ptr<Node> enb, Ptr<NetDevice> lteEnbNetDevi
   retval = enbLteSocket->Connect (enbLteSocketConnectAddress);
   NS_ASSERT (retval == 0);
 
+  // create LTE socket for the ENB
+  Ptr<Socket> enbLteSocket6 = Socket::CreateSocket (enb, TypeId::LookupByName ("ns3::PacketSocketFactory"));
+  PacketSocketAddress enbLteSocketBindAddress6;
+  enbLteSocketBindAddress6.SetSingleDevice (lteEnbNetDevice->GetIfIndex ());
+  enbLteSocketBindAddress6.SetProtocol (Ipv6L3Protocol::PROT_NUMBER);
+  retval = enbLteSocket6->Bind (enbLteSocketBindAddress6);
+  NS_ASSERT (retval == 0);
+  PacketSocketAddress enbLteSocketConnectAddress6;
+  enbLteSocketConnectAddress6.SetPhysicalAddress (Mac48Address::GetBroadcast ());
+  enbLteSocketConnectAddress6.SetSingleDevice (lteEnbNetDevice->GetIfIndex ());
+  enbLteSocketConnectAddress6.SetProtocol (Ipv6L3Protocol::PROT_NUMBER);
+  retval = enbLteSocket6->Connect (enbLteSocketConnectAddress6);
+  NS_ASSERT (retval == 0);
+
 
   NS_LOG_INFO ("create EpcEnbApplication");
-  Ptr<EpcEnbApplication> enbApp = CreateObject<EpcEnbApplication> (enbLteSocket, enbS1uSocket, enbAddress, sgwAddress, cellId);
+  Ptr<EpcEnbApplication> enbApp = CreateObject<EpcEnbApplication> (enbLteSocket, enbLteSocket6, enbS1uSocket, enbAddress, sgwAddress, cellId);
   enb->AddApplication (enbApp);
   NS_ASSERT (enb->GetNApplications () == 1);
   NS_ASSERT_MSG (enb->GetApplication (0)->GetObject<EpcEnbApplication> () != 0, "cannot retrieve EpcEnbApplication");
@@ -347,6 +361,26 @@ MmWavePointToPointEpcHelper::GetUeDefaultGatewayAddress ()
 {
   // return the address of the tun device
   return m_sgwPgw->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
+}
+
+Ipv6Address
+MmWavePointToPointEpcHelper::GetUeDefaultGatewayAddress6 ()
+{
+  // return the address of the tun device
+  return m_sgwPgw->GetObject<Ipv6> ()->GetAddress (1, 1).GetAddress ();
+}
+
+Ipv6InterfaceContainer
+MmWavePointToPointEpcHelper::AssignUeIpv6Address (NetDeviceContainer ueDevices)
+{
+  for (NetDeviceContainer::Iterator iter = ueDevices.Begin ();
+      iter != ueDevices.End ();
+      iter ++)
+    {
+      Ptr<Icmpv6L4Protocol> icmpv6 = (*iter)->GetNode ()->GetObject<Icmpv6L4Protocol> ();
+      icmpv6->SetAttribute ("DAD", BooleanValue (false));
+    }
+  return m_uePgwAddressHelper6.Assign (ueDevices);
 }
 
 
