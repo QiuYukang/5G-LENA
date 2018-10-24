@@ -7,7 +7,7 @@
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('mmwave', ['core','network', 'spectrum', 'virtual-net-device','point-to-point','applications','internet', 'lte', 'propagation'])
+    module = bld.create_ns3_module('nr', ['core','network', 'spectrum', 'virtual-net-device','point-to-point','applications','internet', 'lte', 'propagation'])
     module.source = [
         'helper/mmwave-helper.cc',
         'helper/mmwave-phy-rx-trace.cc',
@@ -75,7 +75,7 @@ def build(bld):
         'model/mmwave-mac-scheduler-ue-info-pf.cc',
         ]
 
-    module_test = bld.create_ns3_module_test_library('mmwave')
+    module_test = bld.create_ns3_module_test_library('nr')
     module_test.source = [
         'test/mmwave-test-suite.cc',
         'test/mmwave-system-test-configurations.cc',
@@ -86,7 +86,7 @@ def build(bld):
         ]
 
     headers = bld(features='ns3header')
-    headers.module = 'mmwave'
+    headers.module = 'nr'
     headers.source = [
         'helper/mmwave-helper.h',
         'helper/mmwave-phy-rx-trace.h',
@@ -161,7 +161,6 @@ def build(bld):
 
     if bld.env.ENABLE_EXAMPLES:
         bld.recurse('examples')
-        bld.recurse('campaigns')
 
     # bld.ns3_python_bindings()
 
