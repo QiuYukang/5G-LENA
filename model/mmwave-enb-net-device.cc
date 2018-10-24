@@ -275,11 +275,11 @@ MmWaveEnbNetDevice::UpdateConfig (void)
           // we have to make sure that this function is called only once
           NS_ASSERT (!m_ccMap.empty ());
 
-          std::map < uint8_t, Ptr<ComponentCarrier> > ccPhyConfMap;
+          std::map < uint8_t, Ptr<ComponentCarrierBaseStation> > ccPhyConfMap;
           for (auto i:m_ccMap)
             {
-              Ptr<ComponentCarrier> c = i.second;
-              ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrier> > (i.first,c));
+              Ptr<ComponentCarrierBaseStation> c = i.second;
+              ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrierBaseStation> > (i.first,c));
             }
 
           m_rrc->ConfigureCell (ccPhyConfMap);
