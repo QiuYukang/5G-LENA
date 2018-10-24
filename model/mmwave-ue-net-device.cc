@@ -192,7 +192,7 @@ MmWaveUeNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t pro
       NS_LOG_INFO ("unsupported protocol " << protocolNumber << ", only IPv4 is supported");
       return false;
     }
-  return m_nas->Send (packet);
+  return m_nas->Send (packet, protocolNumber);
 }
 
 Ptr<MmWaveUePhy>
