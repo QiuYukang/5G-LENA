@@ -42,13 +42,6 @@ public:
     uint32_t  m_rlcRetransmissionQueueSize;              //!< The current size of the retransmission queue in byte.
     uint16_t  m_rlcRetransmissionHolDelay;               //!< Head of line delay of retransmissions in ms.
     uint16_t  m_rlcStatusPduSize;                        //!< The current size of the pending STATUS message in byte.
-
-    // CUSTOM values from NYU and its experts
-    std::list<uint32_t>     m_txPacketSizes;                 //!< TODO. Custom value.
-    std::list<uint32_t>     m_retxPacketSizes;               //!< TODO. Custom value.
-    std::list<double>       m_txPacketDelays;                  //!< TODO. Custom value.
-    std::list<double>       m_retxPacketDelays;                //!< TODO. Custom value.
-    double m_arrivalRate;
   };
 
   struct SchedDlCqiInfoReqParameters

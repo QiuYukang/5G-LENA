@@ -815,12 +815,6 @@ MmWaveEnbMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamet
   schedParams.m_rlcTransmissionQueueSize = params.txQueueSize;
   schedParams.m_rnti = params.rnti;
 
-  schedParams.m_txPacketSizes = params.txPacketSizes;
-  schedParams.m_txPacketDelays = params.txPacketDelays;
-  schedParams.m_retxPacketSizes = params.retxPacketSizes;
-  schedParams.m_retxPacketDelays = params.retxPacketDelays;
-  schedParams.m_arrivalRate = params.arrivalRate;
-
   m_macSchedSapProvider->SchedDlRlcBufferReq (schedParams);
 }
 
