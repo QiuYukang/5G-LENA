@@ -803,6 +803,11 @@ MmWaveUePhy::DoSetPa (double pa)
   NS_LOG_FUNCTION (this << pa);
 }
 
+void
+MmWaveUePhy::DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient)
+{
+  NS_LOG_FUNCTION (this << (uint16_t) (rsrpFilterCoefficient));
+}
 
 void
 MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
