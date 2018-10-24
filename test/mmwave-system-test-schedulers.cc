@@ -114,7 +114,7 @@ MmWaveSystemTestScheduling::DoRun (void)
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue (true));
     Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (10.0));
     Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));

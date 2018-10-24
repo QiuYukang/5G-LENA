@@ -113,7 +113,7 @@ main (int argc, char *argv[])
 	Config::SetDefault ("ns3::LteEnbRrc::SystemInformationPeriodicity", TimeValue (MilliSeconds (5.0)));
 	//Config::SetDefault ("ns3::MmWavePropagationLossModel::ChannelStates", StringValue ("n"));
 	Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
-	Config::SetDefault ("ns3::LteRlcUmLowLat::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
+	Config::SetDefault ("ns3::LteRlcUm::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
 	Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
 	Config::SetDefault ("ns3::LteEnbRrc::FirstSibTime", UintegerValue (2));
 

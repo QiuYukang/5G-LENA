@@ -110,7 +110,7 @@ main (int argc, char *argv[])
 
       //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
 
-      //LogComponentEnable ("LteRlcUmLowLat", LOG_LEVEL_LOGIC); // by defaul used in mmwave module
+      //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC); // by defaul used in mmwave module
 
       //LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
 
@@ -172,8 +172,8 @@ main (int argc, char *argv[])
 
   Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
 
-  Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue (9000000));
-  Config::SetDefault ("ns3::LteRlcUmLowLat::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
+  Config::SetDefault ("ns3::LteRlcUm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
 
 //  Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(1));
 //  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));

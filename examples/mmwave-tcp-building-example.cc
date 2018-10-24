@@ -284,7 +284,7 @@ main (int argc, char *argv[])
 //	Config::SetDefault ("ns3::VirtualNetDevice::Mtu", UintegerValue (3000));
 
 	Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (1024 * 1024));
-	Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue (1024 * 1024));
+	Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (1024 * 1024));
 	Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (131072*50));
 	Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (131072*50));
 	Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(rlcAmEnabled));
