@@ -1,0 +1,39 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    obj = bld.create_ns3_program('mmwave-example', ['mmwave'])
+    obj.source = 'mmwave-example.cc'
+    obj = bld.create_ns3_program('mmwave-tcp-example', ['mmwave'])
+    obj.source = 'mmwave-tcp-example.cc'
+    obj = bld.create_ns3_program('mmwave-simple-epc', ['mmwave'])
+    obj.source = 'mmwave-simple-epc.cc'
+    obj = bld.create_ns3_program('mmwave-epc-tdma', ['mmwave'])
+    obj.source = 'mmwave-epc-tdma.cc'   
+    obj = bld.create_ns3_program('mmwave-tdma', ['mmwave'])
+    obj.source = 'mmwave-tdma.cc'       
+    obj = bld.create_ns3_program('mmwave-simple-building-obstacle', ['mmwave'])
+    obj.source = 'mmwave-simple-building-obstacle.cc'
+    obj = bld.create_ns3_program('mmwave-tcp-building-example', ['mmwave'])
+    obj.source = 'mmwave-tcp-building-example.cc'
+    obj = bld.create_ns3_program('mmwave-amc-test', ['mmwave'])
+    obj.source = 'mmwave-amc-test.cc'
+    obj = bld.create_ns3_program('mmwave-amc-test2', ['mmwave'])
+    obj.source = 'mmwave-amc-test2.cc'
+    obj = bld.create_ns3_program('mmwave-epc-amc-test', ['mmwave'])
+    obj.source = 'mmwave-epc-amc-test.cc'    
+    obj = bld.create_ns3_program('mmwave-tcp-raytracing-example', ['mmwave'])
+    obj.source = 'mmwave-tcp-raytracing-example.cc'    
+    obj = bld.create_ns3_program('mmwave-3gpp-channel-test', ['mmwave'])
+    obj.source = 'mmwave-3gpp-channel-test.cc'
+    obj = bld.create_ns3_program('mmwave-tcp-multiflow', ['mmwave'])
+    obj.source = 'mmwave-tcp-multiflow.cc'
+    obj = bld.create_ns3_program('mmwave-tcp-multi-ue', ['mmwave'])
+    obj.source = 'mmwave-tcp-multi-ue.cc'
+    obj = bld.create_ns3_program('cttc-3gpp-channel-example', ['mmwave'])
+    obj.source = 'cttc-3gpp-channel-example.cc'
+    #obj = bld.create_ns3_program('cttc-3gpp-channel-nums', ['mmwave'])
+    #obj.source = 'cttc-3gpp-channel-nums.cc'
+    obj = bld.create_ns3_program('cttc-3gpp-channel-simple-ran', ['mmwave'])
+    obj.source = 'cttc-3gpp-channel-simple-ran.cc'
+    obj = bld.create_ns3_program('cttc-3gpp-channel-simple-fdm', ['mmwave'])
+    obj.source = 'cttc-3gpp-channel-simple-fdm.cc'

@@ -1,0 +1,240 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+/*
+ *   Copyright (c) 2017 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *   Author: Biljana Bojovic <bbojovic@cttc.es>
+ */
+
+/**
+ * This example describes how to setup a simulation using the 3GPP channel model
+ * from TR 38.900
+ */
+
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/config-store.h"
+#include "ns3/mmwave-helper.h"
+#include <ns3/buildings-helper.h>
+#include "ns3/log.h"
+#include <ns3/buildings-module.h>
+#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/network-module.h"
+#include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/internet-module.h"
+#include "ns3/eps-bearer-tag.h"
+
+using namespace ns3;
+
+
+static ns3::GlobalValue g_numerologyBwp1 ("numerologyBwp1",
+                                          "The numerology to be used in bandwidth part 1",
+                                           ns3::UintegerValue (4),
+                                           ns3::MakeUintegerChecker<uint32_t>());
+
+static ns3::GlobalValue g_frequencyBwp1 ("frequencyBwp1",
+                                         "The system frequency to be used in bandwidth part 1",
+                                          ns3::DoubleValue(28.1e9),
+                                          ns3::MakeDoubleChecker<double>(6e9,100e9));
+
+static ns3::GlobalValue g_bandwidthBwp1 ("bandwidthBwp1",
+                                        "The system bandwidth to be used in bandwidth part 1",
+                                         ns3::DoubleValue(100e6),
+                                         ns3::MakeDoubleChecker<double>());
+
+static ns3::GlobalValue g_numerologyBwp2 ("numerologyBwp2",
+                                          "The numerology to be used in bandwidth part 2",
+                                           ns3::UintegerValue (2),
+                                           ns3::MakeUintegerChecker<uint32_t>());
+
+static ns3::GlobalValue g_frequencyBwp2 ("frequencyBwp2",
+                                         "The system frequency to be used in bandwidth part 2",
+                                          ns3::DoubleValue(28.1e9),
+                                          ns3::MakeDoubleChecker<double>(6e9,100e9));
+
+static ns3::GlobalValue g_bandwidthBwp2 ("bandwidthBwp2",
+                                         "The system bandwidth to be used in bandwidth part 2",
+                                          ns3::DoubleValue(100e6),
+                                          ns3::MakeDoubleChecker<double>());
+
+static ns3::GlobalValue g_udpPacketSizeUll ("packetSize",
+                                            "packet size in bytes",
+                                            ns3::UintegerValue (1000),
+                                            ns3::MakeUintegerChecker<uint32_t>());
+
+static ns3::GlobalValue g_isUll ("isUll",
+                                 "wheter to configure flow as ull",
+                                 ns3::BooleanValue (false),
+                                 ns3::MakeBooleanChecker());
+
+
+static void SendPacket (Ptr<NetDevice> device, Address& addr)
+{
+  UintegerValue uintegerValue;
+  GlobalValue::GetValueByName("packetSize", uintegerValue); // use optional NLOS equation
+  uint16_t packetSize = uintegerValue.Get();
+
+  Ptr<Packet> pkt = Create<Packet> (packetSize);
+  EpsBearerTag tag (1, 1);
+  pkt->AddPacketTag (tag);
+  device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
+}
+
+void
+RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
+{
+  std::cout<<"\n Packet PDCP delay:"<<pdcpDelay<<"\n";
+}
+
+void
+RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t rlcDelay)
+{
+  std::cout<<"\n\n Data received by UE RLC at:"<<Simulator::Now()<<std::endl;
+  std::cout<<"\n rnti:"<<rnti<<std::endl;
+  std::cout<<"\n lcid:"<<(unsigned)lcid<<std::endl;
+  std::cout<<"\n bytes :"<< bytes<<std::endl;
+  std::cout<<"\n delay :"<< rlcDelay<<std::endl;
+}
+
+void
+ConnectPdcpRlcTraces ()
+{
+  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+                      MakeCallback (&RxPdcpPDU));
+
+  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+                      MakeCallback (&RxRlcPDU));
+
+}
+
+int 
+main (int argc, char *argv[])
+{
+
+  CommandLine cmd;
+  cmd.Parse (argc, argv);
+  ConfigStore inputConfig;
+  inputConfig.ConfigureDefaults ();
+  // parse again so you can override input file default values via command line
+  cmd.Parse (argc, argv);
+  Time sendPacketTime = Seconds(0.4);
+
+  UintegerValue uintegerValue;
+  DoubleValue doubleValue;
+  GlobalValue::GetValueByName("numerologyBwp1", uintegerValue); // use optional NLOS equation
+  uint16_t numerologyBwp1 = uintegerValue.Get();
+  GlobalValue::GetValueByName("frequencyBwp1", doubleValue); //
+  double frequencyBwp1 = doubleValue.Get();
+  GlobalValue::GetValueByName("bandwidthBwp1", doubleValue); //
+  double bandwidthBwp1 = doubleValue.Get();
+  GlobalValue::GetValueByName("numerologyBwp2", uintegerValue); // use optional NLOS equation
+  uint16_t numerologyBwp2 = uintegerValue.Get();
+  GlobalValue::GetValueByName("frequencyBwp2", doubleValue); //
+  double frequencyBwp2 = doubleValue.Get();
+  GlobalValue::GetValueByName("bandwidthBwp2", doubleValue); //
+  double bandwidthBwp2 = doubleValue.Get();
+  BooleanValue boolValue;
+  GlobalValue::GetValueByName("isUll", boolValue); //
+  double isUll = boolValue.Get();
+
+  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
+  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
+  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
+  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
+
+  Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
+
+  Config::SetDefault ("ns3::BwpManager::GBR_ULTRA_LOW_LAT", UintegerValue (0));
+  Config::SetDefault ("ns3::BwpManager::GBR_CONV_VOICE", UintegerValue (1));
+
+  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManager"));
+
+  Config::SetDefault("ns3::MmWaveFlexTtiMacScheduler::FixedMcsDl", BooleanValue (true));
+  Config::SetDefault("ns3::MmWaveFlexTtiMacScheduler::McsDefaultDl", UintegerValue (28));
+
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
+  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
+  Ptr<MmWavePointToPointEpcHelper> epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
+  mmWaveHelper->SetEpcHelper (epcHelper);
+
+  Ptr<BandwidthPartsPhyMacConf> bwpConf = CreateObject <BandwidthPartsPhyMacConf> ();
+
+  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
+  phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
+  phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
+  phyMacCommonBwp1->SetNumerology(numerologyBwp1);
+  phyMacCommonBwp1->SetCcId(0);
+  bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp1);
+
+  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
+  phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
+  phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
+  phyMacCommonBwp2->SetNumerology(numerologyBwp2);
+  phyMacCommonBwp1->SetCcId(1);
+  bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
+
+  mmWaveHelper->SetBandwidthPartMap (bwpConf);
+
+  Ptr<Node> ueNode = CreateObject<Node> ();
+  Ptr<Node> gNbNode = CreateObject<Node> ();
+
+  MobilityHelper mobility;
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install (gNbNode);
+  mobility.Install (ueNode);
+  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
+  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
+
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
+
+
+  InternetStackHelper internet;
+  internet.Install (ueNode);
+  Ipv4InterfaceContainer ueIpIface;
+  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+
+  Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress());
+
+  // attach UEs to the closest eNB
+  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+
+  enum EpsBearer::Qci q;
+
+  if (isUll)
+    {
+      q = EpsBearer::GBR_ULTRA_LOW_LAT;
+    }
+  else
+    {
+      q = EpsBearer::GBR_CONV_VOICE;
+    }
+
+  EpsBearer bearer (q);
+  mmWaveHelper->ActivateDataRadioBearer (ueNetDev, bearer);
+
+  Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
+
+  mmWaveHelper->EnableTraces();
+
+  Simulator::Stop (Seconds (1));
+  Simulator::Run ();
+  Simulator::Destroy ();
+}
+
+
