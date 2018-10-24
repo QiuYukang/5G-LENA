@@ -40,7 +40,7 @@ TypeId ComponentCarrierGnb::GetTypeId (void)
   static TypeId
     tid =
     TypeId ("ns3::ComponentCarrierGnb")
-    .SetParent<ComponentCarrier> ()
+    .SetParent<ComponentCarrierBaseStation> ()
     .AddConstructor<ComponentCarrierGnb> ()
     .AddAttribute ("MmWaveEnbPhy",
                    "The PHY associated to this EnbNetDevice",
@@ -102,12 +102,6 @@ ComponentCarrierGnb::DoInitialize (void)
   m_mac->Initialize ();
   m_scheduler->Initialize ();
 
-}
-
-uint16_t
-ComponentCarrierGnb::GetCellId ()
-{
-  return m_cellId;
 }
 
 Ptr<MmWaveEnbPhy>

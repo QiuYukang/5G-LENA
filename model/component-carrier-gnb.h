@@ -42,7 +42,7 @@ class MmWaveMacScheduler;
  * Defines a single carrier for gnb.
  *
  */
-class ComponentCarrierGnb : public ComponentCarrier
+class ComponentCarrierGnb : public ComponentCarrierBaseStation
 {
 public:
   /**
@@ -55,12 +55,6 @@ public:
 
   virtual ~ComponentCarrierGnb (void);
   virtual void DoDispose (void);
-
-  /**
-   * Get cell identifier
-   * \return cell identifer
-   */
-  uint16_t GetCellId ();
 
   /**
    * \return a pointer to the physical layer.
