@@ -117,7 +117,7 @@ public:
 
   virtual bool IsOmniTx () = 0;
 
-  virtual double GetRadiationPattern (double vangle, double hangle = 0) = 0;
+  virtual double GetRadiationPattern (double vangle, double hangle) = 0;
 
   virtual Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum) = 0;
 

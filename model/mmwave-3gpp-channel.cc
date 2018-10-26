@@ -1630,7 +1630,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
                       //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
                       rays += exp (std::complex<double> (0, initialPhase))
-                        * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                        * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
+                            txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian [nIndex][mIndex]))
                         * exp (std::complex<double> (0, rxPhaseDiff))
                         * exp (std::complex<double> (0, txPhaseDiff));
                       //*exp(std::complex<double>(0, doppler));
@@ -1672,7 +1673,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         case 18:
                           //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_phyMacConfig->GetCenterFrequency ();
                           raysSub2 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
+                                txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex],rayAod_radian [nIndex][mIndex]))
                             * exp (std::complex<double> (0, rxPhaseDiff))
                             * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
@@ -1684,7 +1686,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         case 16:
                           //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_phyMacConfig->GetCenterFrequency ();
                           raysSub3 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
+                                txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
                             * exp (std::complex<double> (0, rxPhaseDiff))
                             * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
@@ -1693,7 +1696,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         default://case 1,2,3,4,5,6,7,8,19,20
                           //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_phyMacConfig->GetCenterFrequency ();
                           raysSub1 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
+                                txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
                             * exp (std::complex<double> (0, rxPhaseDiff))
                             * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
@@ -1727,7 +1731,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
               //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
 
               ray = exp (std::complex<double> (0, losPhase))
-                * (rxAntenna->GetRadiationPattern (rxAngle.theta) * txAntenna->GetRadiationPattern (txAngle.theta))
+                * (rxAntenna->GetRadiationPattern (rxAngle.theta, rxAngle.phi) *
+                    txAntenna->GetRadiationPattern (txAngle.theta, txAngle.phi))
                 * exp (std::complex<double> (0, rxPhaseDiff))
                 * exp (std::complex<double> (0, txPhaseDiff));
               //*exp(std::complex<double>(0, doppler));
@@ -2220,7 +2225,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
                       //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
                       rays += exp (std::complex<double> (0, initialPhase))
-                        * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                        * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex],rayAoa_radian[nIndex][mIndex] ) *
+                            txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
                         * exp (std::complex<double> (0, rxPhaseDiff))
                         * exp (std::complex<double> (0, txPhaseDiff));
                       //*exp(std::complex<double>(0, doppler));
@@ -2259,7 +2265,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                         case 18:
                           //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_phyMacConfig->GetCenterFrequency ();
                           raysSub2 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
+                                txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
                             * exp (std::complex<double> (0, rxPhaseDiff))
                             * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
@@ -2271,7 +2278,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                         case 16:
                           //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_phyMacConfig->GetCenterFrequency ();
                           raysSub3 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex])
+                                * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
                             * exp (std::complex<double> (0, rxPhaseDiff))
                             * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
@@ -2280,7 +2288,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                         default://case 1,2,3,4,5,6,7,8,19,20
                           //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_phyMacConfig->GetCenterFrequency ();
                           raysSub1 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex]) * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex]))
+                            * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
+                                txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
                             * exp (std::complex<double> (0, rxPhaseDiff))
                             * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
@@ -2314,7 +2323,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
               //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
 
               ray = exp (std::complex<double> (0, losPhase))
-                * (rxAntenna->GetRadiationPattern (rxAngle.theta) * txAntenna->GetRadiationPattern (txAngle.theta))
+                * (rxAntenna->GetRadiationPattern (rxAngle.theta, rxAngle.phi) *
+                    txAntenna->GetRadiationPattern (txAngle.theta, txAngle.phi))
                 * exp (std::complex<double> (0, rxPhaseDiff))
                 * exp (std::complex<double> (0, txPhaseDiff));
               //*exp(std::complex<double>(0, doppler));
