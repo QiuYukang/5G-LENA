@@ -77,7 +77,6 @@ def build(bld):
 
     module_test = bld.create_ns3_module_test_library('nr')
     module_test.source = [
-        'test/mmwave-test-suite.cc',
         'test/mmwave-system-test-configurations.cc',
         'test/mmwave-test-numerology-delay.cc',
         'test/mmwave-test-fdm-of-numerologies.cc',
