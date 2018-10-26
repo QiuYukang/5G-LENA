@@ -75,6 +75,7 @@ MmWaveHelper::MmWaveHelper (void)
   m_enbAntennaModelFactory.SetTypeId (AntennaArrayModel::GetTypeId ());
   m_ueAntennaModelFactory.SetTypeId (AntennaArrayModel::GetTypeId ());
 
+  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 }
 
 MmWaveHelper::~MmWaveHelper (void)
@@ -501,7 +502,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       it->second->SetPhy (phy);
     }
   Ptr<LteUeComponentCarrierManager> ccmUe = m_ueComponentCarrierManagerFactory.Create<LteUeComponentCarrierManager> ();
-  ccmUe->SetNumberOfComponentCarriers (m_noOfCcs);
+
 
   Ptr<LteUeRrc> rrc = CreateObject<LteUeRrc> ();
   rrc->m_numberOfComponentCarriers = m_noOfCcs;
@@ -511,6 +512,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
   // setting ComponentCarrierManager SAP
   rrc->SetLteCcmRrcSapProvider (ccmUe->GetLteCcmRrcSapProvider ());
   ccmUe->SetLteCcmRrcSapUser (rrc->GetLteCcmRrcSapUser ());
+  ccmUe->SetNumberOfComponentCarriers (m_noOfCcs);
 
   bool useIdealRrc = true;
   if (useIdealRrc)
@@ -714,12 +716,14 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrierBaseStation> > (i.first,c));
     }
 
-  rrc->ConfigureCarriers (ccPhyConfMap);
-
   //ComponentCarrierManager SAP
   rrc->SetLteCcmRrcSapProvider (ccmEnbManager->GetLteCcmRrcSapProvider ());
   ccmEnbManager->SetLteCcmRrcSapUser (rrc->GetLteCcmRrcSapUser ());
+  // Set number of component carriers. Note: eNB CCM would also set the
+  // number of component carriers in eNB RRC
+
   ccmEnbManager->SetNumberOfComponentCarriers (m_noOfCcs);
+  rrc->ConfigureCarriers (ccPhyConfMap);
 
   //mmwave module currently uses only RRC ideal mode
   bool useIdealRrc = true;
@@ -761,8 +765,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
   // forward these calls to the specific MAC of some of the instances of component carriers. This
   // decision will depend on the specific implementation of the component carrier manager.
   rrc->SetLteMacSapProvider (ccmEnbManager->GetLteMacSapProvider ());
-
-  rrc->SetAttribute ("mmWaveDevice", BooleanValue (true));
 
   bool ccmTest;
   for (std::map<uint8_t,Ptr<ComponentCarrierGnb> >::iterator it = ccMap.begin (); it != ccMap.end (); ++it)
