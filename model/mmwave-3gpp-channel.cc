@@ -270,12 +270,12 @@ MmWave3gppChannel::SetBeamformingVector (Ptr<NetDevice> ueDevice, Ptr<NetDevice>
 
   uint8_t ccId = m_phyMacConfig->GetCcId ();
 
-  Ptr<AntennaArrayModel> ueAntennaArray = DynamicCast<AntennaArrayModel> (
+  Ptr<AntennaArrayBasicModel> ueAntennaArray = DynamicCast<AntennaArrayBasicModel> (
     UeDev->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-  Ptr<AntennaArrayModel> enbAntennaArray = DynamicCast<AntennaArrayModel> (
+  Ptr<AntennaArrayBasicModel> enbAntennaArray = DynamicCast<AntennaArrayBasicModel> (
     EnbDev->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
   complexVector_t dummy;
-  AntennaArrayModel::BeamId dummyId = std::make_pair (0,0);
+  AntennaArrayBasicModel::BeamId dummyId = std::make_pair (0,0);
   ueAntennaArray->SetBeamformingVector (dummy, dummyId);
   enbAntennaArray->SetBeamformingVector (dummy, dummyId, ueDevice);
 
@@ -355,7 +355,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
    * txAntennaNum[1]-number of horizontal antenna elements*/
   uint8_t txAntennaNum[2];
   uint8_t rxAntennaNum[2];
-  Ptr<AntennaArrayModel> txAntennaArray, rxAntennaArray;
+  Ptr<AntennaArrayBasicModel> txAntennaArray, rxAntennaArray;
 
   Vector locUT;
   if (txEnb != 0 && rxUe != 0)
@@ -366,9 +366,9 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       rxAntennaNum[0] = sqrt (rxUe->GetAntennaNum ());
       rxAntennaNum[1] = sqrt (rxUe->GetAntennaNum ());
 
-      txAntennaArray = DynamicCast<AntennaArrayModel> (
+      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-      rxAntennaArray = DynamicCast<AntennaArrayModel> (
+      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         rxUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       locUT = b->GetPosition ();
 
@@ -387,9 +387,9 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       rxAntennaNum[0] = sqrt (rxEnb->GetAntennaNum ());
       rxAntennaNum[1] = sqrt (rxEnb->GetAntennaNum ());
 
-      txAntennaArray = DynamicCast<AntennaArrayModel> (
+      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-      rxAntennaArray = DynamicCast<AntennaArrayModel> (
+      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         rxEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       locUT = a->GetPosition ();
 
@@ -561,14 +561,14 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       else
         {
           NS_LOG_INFO ("Not a connected pair");
-          AntennaArrayModel::BeamformingVector txBeamformingVector = txAntennaArray->GetCurrentBeamformingVector ();
-          AntennaArrayModel::BeamformingVector rxBeamformingVector = rxAntennaArray->GetCurrentBeamformingVector ();
+          AntennaArrayBasicModel::BeamformingVector txBeamformingVector = txAntennaArray->GetCurrentBeamformingVector ();
+          AntennaArrayBasicModel::BeamformingVector rxBeamformingVector = rxAntennaArray->GetCurrentBeamformingVector ();
 
-          channelParams->m_txW = AntennaArrayModel::GetVector (txBeamformingVector);
-          channelParams->m_txBeamId = AntennaArrayModel::GetBeamId (txBeamformingVector);
+          channelParams->m_txW = AntennaArrayBasicModel::GetVector (txBeamformingVector);
+          channelParams->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txBeamformingVector);
 
-          channelParams->m_rxW = AntennaArrayModel::GetVector (rxBeamformingVector);
-          channelParams->m_rxBeamId = AntennaArrayModel::GetBeamId (rxBeamformingVector);
+          channelParams->m_rxW = AntennaArrayBasicModel::GetVector (rxBeamformingVector);
+          channelParams->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxBeamformingVector);
 
           if (channelParams->m_txW.size () == 0 || channelParams->m_rxW.size () == 0)
             {
@@ -1064,7 +1064,7 @@ MmWave3gppChannel::DeleteChannel (Ptr<const MobilityModel> a, Ptr<const Mobility
 
 Ptr<Params3gpp>
 MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, bool los, bool o2i,
-                                  Ptr<AntennaArrayModel> txAntenna, Ptr<AntennaArrayModel> rxAntenna,
+                                  Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
                                   uint8_t *txAntennaNum, uint8_t *rxAntennaNum,  Angles &rxAngle, Angles &txAngle,
                                   Vector speed, double dis2D, double dis3D) const
 {
@@ -1820,7 +1820,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
 
 Ptr<Params3gpp>
 MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  table3gpp,
-                                  Ptr<AntennaArrayModel> txAntenna, Ptr<AntennaArrayModel> rxAntenna,
+                                  Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
                                   uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle) const
 {
   Ptr<Params3gpp> params = params3gpp;
@@ -2389,8 +2389,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
 }
 
 void
-MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayModel> txAntenna,
-                                          Ptr<AntennaArrayModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const
+MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayBasicModel> txAntenna,
+                                          Ptr<AntennaArrayBasicModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const
 {
   double max = 0, maxTx = 0, maxRx = 0, maxTxTheta = 0, maxRxTheta = 0;
   NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
@@ -2399,8 +2399,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Pa
       for (uint8_t tx = 0; tx <= txAntennaNum[1]; tx++)
         {
           txAntenna->SetSector (tx, txAntennaNum, txTheta);
-          params->m_txW = AntennaArrayModel::GetVector (txAntenna->GetCurrentBeamformingVector ());
-          params->m_txBeamId = AntennaArrayModel::GetBeamId (txAntenna->GetCurrentBeamformingVector ());
+          params->m_txW = AntennaArrayBasicModel::GetVector (txAntenna->GetCurrentBeamformingVector ());
+          params->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntenna->GetCurrentBeamformingVector ());
 
           for (uint16_t rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
             {
@@ -2412,8 +2412,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Pa
 
                   rxAntenna->SetSector (rx, rxAntennaNum, rxTheta);
 
-                  params->m_rxW = AntennaArrayModel::GetVector (rxAntenna->GetCurrentBeamformingVector ());
-                  params->m_rxBeamId = AntennaArrayModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ());
+                  params->m_rxW = AntennaArrayBasicModel::GetVector (rxAntenna->GetCurrentBeamformingVector ());
+                  params->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ());
 
                   CalLongTerm (params);
                   Ptr<SpectrumValue> bfPsd = CalBeamformingGain (txPsd, params, Vector (0,0,0));
@@ -2440,13 +2440,13 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Pa
   txAntenna->SetSector (maxTx, txAntennaNum, maxTxTheta);
   rxAntenna->SetSector (maxRx, rxAntennaNum, maxRxTheta);
 
-  NS_LOG_LOGIC (this << " TxBeamId: " << AntennaArrayModel::GetBeamId (txAntenna->GetCurrentBeamformingVector ()) <<
-                " RxBeamId: " << AntennaArrayModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ()));
+  NS_LOG_LOGIC (this << " TxBeamId: " << AntennaArrayBasicModel::GetBeamId (txAntenna->GetCurrentBeamformingVector ()) <<
+                " RxBeamId: " << AntennaArrayBasicModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ()));
 
-  params->m_txW = AntennaArrayModel::GetVector (txAntenna->GetCurrentBeamformingVector ());
-  params->m_txBeamId = AntennaArrayModel::GetBeamId (txAntenna->GetCurrentBeamformingVector ());
-  params->m_rxW = AntennaArrayModel::GetVector (rxAntenna->GetCurrentBeamformingVector ());
-  params->m_rxBeamId = AntennaArrayModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ());
+  params->m_txW = AntennaArrayBasicModel::GetVector (txAntenna->GetCurrentBeamformingVector ());
+  params->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntenna->GetCurrentBeamformingVector ());
+  params->m_rxW = AntennaArrayBasicModel::GetVector (rxAntenna->GetCurrentBeamformingVector ());
+  params->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ());
 }
 
 doubleVector_t

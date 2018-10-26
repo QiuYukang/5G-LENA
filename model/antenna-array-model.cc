@@ -96,7 +96,7 @@ TypeId
 AntennaArrayModel::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::AntennaArrayModel")
-    .SetParent<Object> ()
+    .SetParent<AntennaArrayBasicModel> ()
     .AddConstructor<AntennaArrayModel> ()
     .AddAttribute ("AntennaHorizontalSpacing",
                    "Horizontal spacing between antenna elements, in multiples of lambda",

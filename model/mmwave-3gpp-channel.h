@@ -41,6 +41,7 @@
 #include "mmwave-3gpp-propagation-loss-model.h"
 #include "mmwave-3gpp-buildings-propagation-loss-model.h"
 #include <ns3/antenna-array-model.h>
+#include "antenna-array-basic-model.h"
 
 #define AOA_INDEX 0
 #define ZOA_INDEX 1
@@ -64,8 +65,8 @@ typedef std::vector<doubleVector_t> double2DVector_t;
  */
 struct Params3gpp : public SimpleRefCount<Params3gpp>
 {
-  AntennaArrayModel::BeamId  m_txBeamId; //!< Tx antenna beam id
-  AntennaArrayModel::BeamId  m_rxBeamId; //!< Rx antenna beam id
+  AntennaArrayBasicModel::BeamId  m_txBeamId; //!< Tx antenna beam id
+  AntennaArrayBasicModel::BeamId  m_rxBeamId; //!< Rx antenna beam id
   complexVector_t     m_txW; // tx antenna weights.
   complexVector_t     m_rxW; // rx antenna weights.
   complex3DVector_t      m_channel; // channel matrix H[u][s][n], u - number of antennas of receiver, s - number of antennas of transmitter, n - number of clusters
@@ -245,7 +246,7 @@ private:
    * @returns the channel realization in a Params3gpp object
    */
   Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp, Vector locUT, bool los, bool o2i,
-                                 Ptr<AntennaArrayModel> txAntenna, Ptr<AntennaArrayModel> rxAntenna,
+                                 Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
                                  uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle,
                                  Vector speed, double dis2D, double dis3D) const;
 
@@ -263,7 +264,7 @@ private:
    * @returns the channel realization in a Params3gpp object
    */
   Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable> table3gpp,
-                                 Ptr<AntennaArrayModel> txAntenna, Ptr<AntennaArrayModel> rxAntenna,
+                                 Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
                                  uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle) const;
 
   /**
@@ -278,8 +279,8 @@ private:
    * The BF vector is stored in the Params3gpp object passed as parameter
    * @params the channel realizationin as a Params3gpp object
    */
-  void BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayModel> txAntenna,
-                              Ptr<AntennaArrayModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const;
+  void BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayBasicModel> txAntenna,
+                              Ptr<AntennaArrayBasicModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const;
 
 
   /**

@@ -28,92 +28,48 @@
 #include <complex>
 #include <ns3/net-device.h>
 #include <map>
+#include "antenna-array-basic-model.h"
 
 namespace ns3 {
 
-class AntennaArrayModel : public AntennaModel
+class AntennaArrayModel : public AntennaArrayBasicModel
 {
 public:
-  static TypeId GetTypeId ();
-  typedef std::vector< std::complex<double> > complexVector_t;
-  typedef std::pair<uint8_t, double> BeamId;
-  typedef std::pair<complexVector_t, BeamId>  BeamformingVector;
-
-  /*!
-   * \brief Get weight vector from a BeamformingVector
-   * \param v the BeamformingVector
-   * \return the weight vector
-   */
-  static complexVector_t GetVector (BeamformingVector v)
-  {
-    return v.first;
-  }
-  /*!
-   * \return the beam id
-   * \param v the beamforming vector
-   */
-  static BeamId GetBeamId (BeamformingVector v)
-  {
-    return v.second;
-  }
-  /*!
-   * \return The sector of the beam
-   * \param b beam
-   */
-  static uint8_t GetSector (BeamId b)
-  {
-    return b.first;
-  }
-  /*!
-   * \return the elevation of the beam
-   * \param b the beam
-   */
-  static double GetElevation (BeamId b)
-  {
-    return b.second;
-  }
-
-  /**
-   * \brief Calculate the Cantor function for two unsigned int
-   * \param x1 first value
-   * \param x2 second value
-   * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$
-   */
-  static constexpr uint32_t Cantor (uint32_t x1, uint32_t x2)
-  {
-    return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
-  }
-
-  /**
-   * \brief Calculate the hash of a BeamId
-   */
-  struct BeamIdHash
-  {
-    size_t operator() (const AntennaArrayModel::BeamId &x) const
-    {
-      return std::hash<uint32_t>()(Cantor (x.first, static_cast<uint32_t> (x.second)));
-    }
-  };
 
   AntennaArrayModel ();
+
   virtual ~AntennaArrayModel ();
+
+  static TypeId GetTypeId ();
+
   virtual double GetGainDb (Angles a);
-  void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
+
+  virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
                              Ptr<NetDevice> device = nullptr);
-  void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
+
+  virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
                                       Ptr<NetDevice> device = nullptr);
 
-  void ChangeBeamformingVector (Ptr<NetDevice> device);
-  void ChangeToOmniTx ();
-  BeamformingVector GetCurrentBeamformingVector ();
-  BeamformingVector GetBeamformingVector (Ptr<NetDevice> device);
-  void SetToSector (uint32_t sector, uint32_t antennaNum);
-  bool IsOmniTx ();
-  double GetRadiationPattern (double vangle, double hangle = 0);
-  Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum);
-  void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90);
+  virtual void ChangeBeamformingVector (Ptr<NetDevice> device);
+
+  virtual void ChangeToOmniTx ();
+
+  virtual BeamformingVector GetCurrentBeamformingVector ();
+
+  virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device);
+
+  virtual void SetToSector (uint32_t sector, uint32_t antennaNum);
+
+  virtual bool IsOmniTx ();
+
+  virtual double GetRadiationPattern (double vangle, double hangle = 0);
+
+  virtual Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum);
+
+  virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90);
 
 private:
+
   typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
   bool m_omniTx;
   double m_minAngle;
