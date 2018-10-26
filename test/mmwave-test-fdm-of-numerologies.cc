@@ -105,6 +105,7 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManager"));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
     // setup the mmWave simulation
     Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();

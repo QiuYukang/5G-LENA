@@ -120,6 +120,7 @@ MmWaveSystemTestScheduling::DoRun (void)
     Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
     Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (28));
     Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (28));
+    Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
     // setup the mmWave simulation
     Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();

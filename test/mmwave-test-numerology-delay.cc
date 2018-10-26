@@ -194,7 +194,7 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("n"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
-
+  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue(true));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::McsDefaultDl", UintegerValue (1));

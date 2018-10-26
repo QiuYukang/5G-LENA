@@ -88,6 +88,7 @@ MmwaveSystemTestConfigurationsTestCase1::DoRun (void)
   Config::SetDefault ("ns3::MmWave3gppChannel::Blockage", BooleanValue(true)); // use blockage or not
   Config::SetDefault ("ns3::MmWave3gppChannel::PortraitMode", BooleanValue(true)); // use blockage model with UT in portrait mode
   Config::SetDefault ("ns3::MmWave3gppChannel::NumNonselfBlocking", IntegerValue(4)); // number of non-self blocking obstacles
+  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   // default 28e9
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
