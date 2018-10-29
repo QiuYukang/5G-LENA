@@ -1,5 +1,7 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
+import os
+
 # def options(opt):
 #     pass
 
@@ -50,12 +52,6 @@ def build(bld):
         'model/mmwave-propagation-loss-model.cc',
         'model/antenna-array-model.cc',
         'model/mmwave-channel-raytracing.cc',
-        #'model/mmwave-enb-cmac-sap.cc',
-        #'model/mmwave-enb-rrc.cc',
-        #'model/mmwave-mac-sap.cc',
-        #'model/mmwave-rrc-sap.cc',
-        #'model/mmwave-rlc.cc',
-        #'model/mmwave-rlc-sap.cc',
         'model/mmwave-3gpp-propagation-loss-model.cc',
         'model/mmwave-3gpp-channel.cc', 
         'model/mmwave-3gpp-buildings-propagation-loss-model.cc',
@@ -129,12 +125,6 @@ def build(bld):
         'model/mmwave-propagation-loss-model.h',
         'model/antenna-array-model.h',
         'model/mmwave-channel-raytracing.h',
-        #'model/mmwave-enb-cmac-sap.h',
-        #'model/mmwave-enb-rrc.h',
-        #'model/mmwave-mac-sap.h',
-        #'model/mmwave-rrc-sap.h',
-        #'model/mmwave-rlc.h',
-        #'model/mmwave-rlc-sap.h',
         'model/mmwave-3gpp-propagation-loss-model.h',
         'model/mmwave-3gpp-channel.h',
         'model/mmwave-3gpp-buildings-propagation-loss-model.h',
@@ -160,6 +150,15 @@ def build(bld):
 
     if bld.env.ENABLE_EXAMPLES:
         bld.recurse('examples')
+        for dirname in os.listdir('src/nr'):
+            if dirname.startswith('.') or dirname == 'examples':
+                continue
+            path = os.path.join('.', dirname)
+            if not os.path.isdir(path):
+                continue
+            if os.path.exists(os.path.join(path, 'wscript')):
+                bld.recurse(path)
+
 
     # bld.ns3_python_bindings()
 
