@@ -153,11 +153,11 @@ def build(bld):
         for dirname in os.listdir('src/nr'):
             if dirname.startswith('.') or dirname == 'examples':
                 continue
-            path = os.path.join('.', dirname)
+            path = os.path.join('src/nr', dirname)
             if not os.path.isdir(path):
                 continue
             if os.path.exists(os.path.join(path, 'wscript')):
-                bld.recurse(path)
+                bld.recurse(dirname)
 
 
     # bld.ns3_python_bindings()
