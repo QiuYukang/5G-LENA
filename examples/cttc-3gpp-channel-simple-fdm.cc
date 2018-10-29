@@ -158,13 +158,12 @@ main (int argc, char *argv[])
 
   Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
 
-  Config::SetDefault ("ns3::BwpManager::GBR_ULTRA_LOW_LAT", UintegerValue (0));
+  Config::SetDefault ("ns3::BwpManager::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManager::GBR_CONV_VOICE", UintegerValue (1));
 
   Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManager"));
 
-  Config::SetDefault("ns3::MmWaveFlexTtiMacScheduler::FixedMcsDl", BooleanValue (true));
-  Config::SetDefault("ns3::MmWaveFlexTtiMacScheduler::McsDefaultDl", UintegerValue (28));
+  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
@@ -218,7 +217,7 @@ main (int argc, char *argv[])
 
   if (isUll)
     {
-      q = EpsBearer::GBR_ULTRA_LOW_LAT;
+      q = EpsBearer::NGBR_LOW_LAT_EMBB;
     }
   else
     {
