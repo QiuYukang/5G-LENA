@@ -20,22 +20,57 @@ $ git fetch -p --all   # fetch all the branches and update the refs
 $ git checkout nr      # checkout a local "nr" branch that points to mirror-gitlab-cttc/nr
 ```
 
+Or you can clone it entirely (not recommended, except for new installations):
+
+```
+$ git clone git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git
+```
+
+Note that on a computer that is outside the CTTC intranet, you must use
+the HTTPS address:
+[https://gitlab.cttc.es/ns3-new-radio/ns-3-dev.git](https://gitlab.cttc.es/ns3-new-radio/ns-3-dev.git).
+
 Then, your local git repo is ready to include our nr module:
 
 ```
-$ git submodule add git@gitlab.cttc.es:ns3-new-radio/nr.git
+$ cd src
+$ git clone git@gitlab.cttc.es:ns3-new-radio/nr.git
 $ cd ..
 ```
 
-Then, configure and build. Welcome to the NR world!
+Again, if you are outside the CTTC intranet, you must use the HTTPS address:
+[https://gitlab.cttc.es/ns3-new-radio/nr.git](https://gitlab.cttc.es/ns3-new-radio/nr.git).
 
-PS: The submodule thing is still to be worked. Probably it will change.
+Please note that the src/nr directory will be listed as "Untracked files" every
+time you do a `git status` command. Ignore it, as the directory lives as an
+independent module.
+
+Then, let's configure and build:
+
+```
+$ CXX="ccache g++" ./waf configure --enable-examples --enable-tests --disable-python --disable-gtk -d debug
+$ ./waf
+```
+
+We are using ccache, as compiling is costly and disk space is cheap. We also
+disable python (an useless waste of time, and its bindings as well) and GTK
+(source of plenty of valgrind errors). Then, use de `debug` configuration,
+but remember that for running extensive campaigns, `optimized` configuration is
+preferred.
+
+Welcome to the NR world!
 
 ## Features
 
 ## Papers
 
 ## Future work
+
+## Simulation campaigns
+
+Simulation campaigns are stored in another repository, as they are not part of
+our release. If you have the permissions, please check
+[https://gitlab.cttc.es/ns3-new-radio/sim-campaigns](https://gitlab.cttc.es/ns3-new-radio/sim-campaigns).
 
 ## About
 
