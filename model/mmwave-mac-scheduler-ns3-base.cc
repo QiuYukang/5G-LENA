@@ -16,6 +16,18 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+
+#define NS_LOG_APPEND_CONTEXT                                            \
+  do                                                                     \
+    {                                                                    \
+      if (m_phyMacConfig)                                                \
+        {                                                                \
+          std::clog << " [ccId "                                         \
+                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
+                    << "] ";                                             \
+        }                                                                \
+    }                                                                    \
+  while (false);
 #include "mmwave-mac-scheduler-ns3-base.h"
 #include "mmwave-mac-scheduler-harq-rr.h"
 #include <ns3/log.h>

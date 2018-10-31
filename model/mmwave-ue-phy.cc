@@ -26,6 +26,17 @@
  *                Biljana Bojovic <bbojovic@cttc.es>
  */
 
+#define NS_LOG_APPEND_CONTEXT                                            \
+  do                                                                     \
+    {                                                                    \
+      if (m_phyMacConfig)                                                \
+        {                                                                \
+          std::clog << " [ccId "                                         \
+                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
+                    << "] ";                                             \
+        }                                                                \
+    }                                                                    \
+  while (false);
 
 #include <ns3/object-factory.h>
 #include <ns3/log.h>

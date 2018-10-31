@@ -25,8 +25,17 @@
  *            Menglei Zhang <menglei@nyu.edu>
  */
 
-
-
+#define NS_LOG_APPEND_CONTEXT                                            \
+  do                                                                     \
+    {                                                                    \
+      if (m_phyMacConfig)                                                \
+        {                                                                \
+          std::clog << " [ccId "                                         \
+                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
+                    << "] ";                                             \
+        }                                                                \
+    }                                                                    \
+  while (false);
 #include <ns3/object-factory.h>
 #include <ns3/log.h>
 #include <cfloat>

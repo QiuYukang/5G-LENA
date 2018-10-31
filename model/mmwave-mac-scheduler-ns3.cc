@@ -18,9 +18,17 @@
  * Based on work done by CTTC/NYU
  */
 
-#define NS_LOG_APPEND_CONTEXT \
-  do { std::clog << " [ccId " << GetCcId () << "] "; } while (false);
-
+#define NS_LOG_APPEND_CONTEXT                                            \
+  do                                                                     \
+    {                                                                    \
+      if (m_phyMacConfig)                                                \
+        {                                                                \
+          std::clog << " [ccId "                                         \
+                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
+                    << "] ";                                             \
+        }                                                                \
+    }                                                                    \
+  while (false);
 #include "mmwave-mac-scheduler-ns3.h"
 #include "mmwave-mac-scheduler-harq-rr.h"
 
@@ -825,6 +833,10 @@ MmWaveMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeDlHarq,
           NS_ASSERT (schedInfo->m_dlHarq.Find (feedback.m_harqProcessId)->second.m_active);
           beamIterator->second.emplace_back (schedInfo->m_dlHarq.Find (feedback.m_harqProcessId));
         }
+      NS_LOG_INFO ("Received feedback for UE " << rnti << " ID " <<
+                   static_cast<uint32_t>(feedback.m_harqProcessId) <<
+                   " marked as active");
+      NS_ASSERT (schedInfo->m_dlHarq.Find (feedback.m_harqProcessId)->second.m_status == HarqProcess::RECEIVED_FEEDBACK);
     }
 
   SortDlHarq (activeDlHarq);

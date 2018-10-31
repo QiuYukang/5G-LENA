@@ -26,7 +26,17 @@
  *                Biljana Bojovic <bbojovic@cttc.es>
  */
 
-
+#define NS_LOG_APPEND_CONTEXT                                            \
+  do                                                                     \
+    {                                                                    \
+      if (m_phyMacConfig)                                                \
+        {                                                                \
+          std::clog << " [ccId "                                         \
+                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
+                    << "] ";                                             \
+        }                                                                \
+    }                                                                    \
+  while (false);
 #include <ns3/simulator.h>
 #include <ns3/callback.h>
 #include <ns3/node.h>
@@ -77,35 +87,30 @@ MmWaveMemberPhySapProvider::MmWaveMemberPhySapProvider (MmWavePhy* phy)
 void
 MmWaveMemberPhySapProvider::SendMacPdu (Ptr<Packet> p)
 {
-  NS_LOG_FUNCTION (this);
   m_phy->SetMacPdu (p);
 }
 
 void
 MmWaveMemberPhySapProvider::SendControlMessage (Ptr<MmWaveControlMessage> msg)
 {
-  NS_LOG_FUNCTION (this);
   m_phy->SetControlMessage (msg);  //May need to change
 }
 
 void
 MmWaveMemberPhySapProvider::SendRachPreamble (uint8_t PreambleId, uint8_t Rnti)
 {
-  NS_LOG_FUNCTION (this);
   m_phy->SendRachPreamble (PreambleId, Rnti);
 }
 
 void
 MmWaveMemberPhySapProvider::SetSlotAllocInfo (SlotAllocInfo slotAllocInfo)
 {
-  NS_LOG_FUNCTION (this);
   m_phy->SetSlotAllocInfo (slotAllocInfo);
 }
 
 AntennaArrayModel::BeamId
 MmWaveMemberPhySapProvider::GetBeamId (uint8_t rnti) const
 {
-  NS_LOG_FUNCTION (this);
   return m_phy->GetBeamId (rnti);
 }
 
@@ -281,6 +286,16 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
       m_packetBurstMap.erase (it);
     }
   return pburst;
+}
+
+uint32_t
+MmWavePhy::GetCcId() const
+{
+  if (m_phyMacConfig != nullptr)
+    {
+      return m_phyMacConfig->GetCcId ();
+    }
+  return 777;
 }
 
 void

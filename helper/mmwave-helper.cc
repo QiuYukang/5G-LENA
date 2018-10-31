@@ -736,7 +736,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       mac->SetConfigurationParameters (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first));
       schedFactory.SetTypeId (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first)->GetMacSchedType ());
       Ptr<MmWaveMacScheduler> sched = DynamicCast<MmWaveMacScheduler> (schedFactory.Create ());
-      sched->SetCcId (it->first);
 
       sched->ConfigureCommonParameters (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first));
       it->second->SetMac (mac);

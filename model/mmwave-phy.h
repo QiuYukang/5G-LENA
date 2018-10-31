@@ -122,6 +122,14 @@ public:
   //	virtual Ptr<PacketBurst> GetPacketBurst (void);
   virtual Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
+
+  /**
+   * \brief Get the component carrier ID
+   * \return the component carrier ID
+   *
+   * Take the value from PhyMacCommon. If it's not set, then return 777.
+   */
+  uint32_t GetCcId () const;
   void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 

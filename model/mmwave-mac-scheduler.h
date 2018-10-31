@@ -136,20 +136,6 @@ public:
   virtual void ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) = 0;
 
   /**
-   * \brief Get the Component Carrier ID of this scheduler
-   * \return the ccId
-   */
-  uint32_t GetCcId () const { return m_ccId; }
-
-  /**
-   * \brief Set the Component Carrier ID of this scheduler
-   * \param ccId the ccId
-   *
-   * Used to set the ccId to print in log messages.
-   */
-  void SetCcId (uint32_t ccId) { m_ccId = ccId; }
-
-  /**
    * \brief Set the MacSchedSapUser pointer
    * \param sap pointer to the mac sched sap user class
    */
