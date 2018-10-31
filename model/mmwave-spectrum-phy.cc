@@ -909,5 +909,12 @@ MmWaveSpectrumPhy::SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
   m_harqPhyModule = harq;
 }
 
+Ptr<mmWaveInterference>
+MmWaveSpectrumPhy::GetMmWaveInterference (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_interferenceData;
+}
+
 
 }
