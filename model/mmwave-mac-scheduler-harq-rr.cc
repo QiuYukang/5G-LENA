@@ -35,32 +35,6 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveMacSchedulerHarqRr");
 
-uint8_t
-MmWaveMacSchedulerHarqRr::GetMaxHarqSyms (const MmWaveMacSchedulerNs3::ActiveHarqMap &harqMap,
-                                          const uint8_t symAvail) const
-{
-  NS_LOG_FUNCTION (this);
-  uint32_t numSym = 0;
-  uint8_t ret = 0;
-
-  for (const auto &beam : harqMap)
-    {
-      NS_ABORT_IF (beam.second.size () > UINT8_MAX);
-
-      for (const auto &harq : beam.second)
-        {
-          NS_LOG_INFO ("Counting needed sym for DL Harq: process id " <<
-                       static_cast<uint32_t> (harq->second.m_dciElement->m_harqProcess) <<
-                       " for UE " << harq->second.m_dciElement->m_rnti <<
-                       " needs " << static_cast<uint32_t> (harq->second.m_dciElement->m_numSym) << " SYM");
-          numSym += harq->second.m_dciElement->m_numSym;
-        }
-    }
-  ret = std::min (numSym, static_cast<uint32_t> (UINT8_MAX));
-  ret = std::min (ret, symAvail);
-  return ret;
-}
-
 /**
  * \brief Schedule DL HARQ in RR fashion
  * \param startingPoint starting point of the first retransmission.

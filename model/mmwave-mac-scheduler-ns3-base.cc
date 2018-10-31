@@ -60,29 +60,6 @@ MmWaveMacSchedulerNs3Base::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> co
 }
 
 /**
- * \brief Get the maximum number of symbols for HARQ and Data
- * \param harq Map of the active HARQ processes
- * \param data Map of the UEs with data to transmit
- * \param symAvail Symbols available in the slot
- * \return the number of symbols for HARQ and data
- *
- * The function is coded as it was in the good, old days. It simply does not
- * perform any kind of decision: for HARQ it set the sum of the symbols
- * required by all the HARQs (capped at the symAvail value) and for data,
- * any remaining symbol, if there is data to transmit.
- */
-MmWaveMacSchedulerNs3::MaxAvailableSymbols
-MmWaveMacSchedulerNs3Base::GetMaxSyms (const ActiveHarqMap &harq, const ActiveUeMap &data,
-                                       const uint8_t symAvail) const
-{
-  NS_LOG_FUNCTION (this);
-  MmWaveMacSchedulerNs3::MaxAvailableSymbols ret (m_schedHarq->GetMaxHarqSyms (harq, symAvail));
-
-  ret.m_symData = (data.size () > 0) ? symAvail - ret.m_symHarq : 0;
-  return ret;
-}
-
-/**
  * \brief Invoke MmWaveMacSchedulerHarqRr::ScheduleDlHarq
  * \param startingPoint starting point of the first retransmission.
  * It should be set to the next available starting point

@@ -53,21 +53,7 @@ public:
   /**
     * \brief Default deconstructor
     */
-  ~MmWaveMacSchedulerHarqRr () = default;
-
-  /**
-   * \brief Calculate the number of symbols required to transmit the HARQ in the map
-   * \param harq HARQ map
-   * \param symAvail number of symbols available
-   * \return number of symbols that should be reserver for HARQ
-   *
-   * HARQ symbols are fixed; it is not possible to change the DCI previously sent.
-   * However, the function will not return a number greater than the symAvail
-   * parameter; so, when scheduling, it is necessary to queue the HARQ which
-   * can't be transmitted for a lack of available symbols.
-   */
-  virtual uint8_t GetMaxHarqSyms (const Ns3Sched::ActiveHarqMap &harq,
-                                  const uint8_t symAvail) const;
+  virtual ~MmWaveMacSchedulerHarqRr () = default;
 
   virtual uint8_t ScheduleDlHarq (MmWaveMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,

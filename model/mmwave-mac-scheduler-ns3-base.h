@@ -73,10 +73,6 @@ public:
   virtual void ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) override;
 
 protected:
-  virtual MaxAvailableSymbols
-  GetMaxSyms (const ActiveHarqMap &harq, const ActiveUeMap &data,
-              const uint8_t symAvail) const override;
-
   virtual uint8_t ScheduleDlHarq (MmWaveMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,
                                   const ActiveHarqMap &activeDlHarq,

@@ -345,48 +345,6 @@ protected:
   CreateUeRepresentation (const MmWaveMacCschedSapProvider::CschedUeConfigReqParameters& params) const = 0;
 
   /**
-   * \brief A struct containing max symbols number for all the possible phases.
-   */
-  struct MaxAvailableSymbols
-  {
-    /**
-     * \brief MaxAvailableSymbols default constructor (deleted)
-     */
-    MaxAvailableSymbols () = delete;
-    /**
-     * \brief MaxAvailableSymbols constructor with parameters
-     * \param harq HARQ symbols
-     * \param data Data symbols
-     */
-    MaxAvailableSymbols (uint8_t harq, uint8_t data)
-      : m_symHarq (harq),
-      m_symData (data)
-    {
-    }
-    /**
-     * \brief MaxAvailableSymbols constructo with one parameter
-     * \param harq HARQ symbols
-     */
-    MaxAvailableSymbols (uint8_t harq) : m_symHarq (harq)
-    {
-    }
-    const uint8_t m_symHarq;  //!< Symbols for HARQ, constant, it is fixed
-    uint8_t m_symData {0};    //!< Symbols for Data, can change
-  };
-
-
-  /**
-   * \brief Get the maximum number of symbols reserved
-   * \param ulHarq Map of the active HARQ processes
-   * \param ulData Map of the UEs with data to transmit
-   * \param symAvail available symbols
-   * \return the number of symbols for HARQ and data
-   */
-  virtual MaxAvailableSymbols GetMaxSyms (const ActiveHarqMap &ulHarq,
-                                          const ActiveUeMap &ulData,
-                                          const uint8_t symAvail) const = 0;
-
-  /**
    * \brief Giving the input, append to slotAlloc the allocations for the DL HARQ retransmissions
    * \param startingPoint starting point of the first retransmission.
    * It should be set to the next available starting point
@@ -662,7 +620,7 @@ private:
                           std::deque<VarTtiAllocInfo> *allocations) const;
 
 
-  void ComputeActiveUe (ActiveUeMap *activeDlUe, const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
+  void ComputeActiveUe (ActiveUeMap *activeDlUe, const SlotAllocInfo *alloc, const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
                         const std::string &mode) const;
   void ComputeActiveHarq (ActiveHarqMap *activeDlHarq, const std::vector <DlHarqInfo> &dlHarqFeedback) const;
   void ComputeActiveHarq (ActiveHarqMap *activeUlHarq, const std::vector <UlHarqInfo> &ulHarqFeedback) const;
@@ -673,13 +631,9 @@ private:
                             const ActiveUeMap &activeUl, SlotAllocInfo *slotAlloc) const;
   uint8_t DoScheduleUlSr (PointInFTPlane *spoint, uint32_t symAvail,
                           std::list<uint16_t> *rnti, SlotAllocInfo *slotAlloc) const;
-  uint8_t DoScheduleDl (const ActiveHarqMap &activeDlHarq,
-                        const std::vector <DlHarqInfo> &dlHarqFeedback,
-                        const ActiveUeMap &activeDlUe, const SfnSf &dlSfnSf,
+  uint8_t DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback, const SfnSf &dlSfnSf,
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
-  uint8_t DoScheduleUl (const ActiveHarqMap &activeUlHarq,
-                        const std::vector <UlHarqInfo> &ulHarqFeedback,
-                        const ActiveUeMap &activeUlUe, const SfnSf &ulSfn,
+  uint8_t DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback, const SfnSf &ulSfn,
                         SlotAllocInfo *allocInfo);
 
   static const unsigned m_macHdrSize = 0;  //!< Mac Header size
@@ -711,9 +665,6 @@ private:
   std::list<uint16_t> m_srList;  //!< List of RNTI of UEs that asked for a SR
 
   friend MmWaveSchedGeneralTestCase;
-  friend std::ostream & operator<< (std::ostream & os, MmWaveMacSchedulerNs3::MaxAvailableSymbols const & item);
 };
-
-std::ostream & operator<< (std::ostream & os, MmWaveMacSchedulerNs3::MaxAvailableSymbols const & item);
 
 } //namespace ns3

@@ -888,10 +888,12 @@ MmWaveMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeUlHarq,
  *
  * The function loops all available UEs and checks their LC. If one (or more)
  * LC contains bytes, they are marked active and inserted in one of the
- * list passed as input parameters.
+ * list passed as input parameters. The UE is not marked as active if
+ * there is already an allocation for him in the list of allocations.
  */
 void
 MmWaveMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
+                                        SlotAllocInfo const *alloc,
                                         const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
                                         const std::string &mode) const
 {
@@ -900,6 +902,21 @@ MmWaveMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
     {
       uint32_t totBuffer = 0;
       const auto & ue = ueInfo.second;
+      bool ueAlreadyScheduled = false;
+
+      for (const auto &allocation : alloc->m_varTtiAllocInfo)
+        {
+          if (allocation.m_dci->m_rnti == ue->m_rnti)
+            {
+              ueAlreadyScheduled = true;
+              break;
+            }
+        }
+      if (ueAlreadyScheduled)
+        {
+          // Do not schdule two times the same UE
+          continue;
+        }
 
       // compute total DL and UL bytes buffered
       for (const auto & lcgInfo : GetLCGFn (ue))
@@ -1398,8 +1415,6 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
  *
  * The process of scheduling DL data is defined as follows:
  *
- * - The first step is calculating active UE, flows, and HARQ (ComputeActiveUe(),
- * ComputeActiveHarq());
  * - Retrieve the allocation done in the past (UL) for this slot
  * - Prepend DL CTRL symbol to the allocation list;
  * - Perform a scheduling for DL HARQ/data for this (DoScheduleDl());
@@ -1421,12 +1436,6 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   NS_ASSERT (params.m_snfSf.m_slotNum <= UINT8_MAX);
   NS_LOG_INFO ("Scheduling invoked for slot " << params.m_snfSf);
 
-  // compute active ue in the current subframe, group them by BeamId
-  ActiveUeMap activeDlUe;
-  ActiveHarqMap activeDlHarq;
-  ComputeActiveUe (&activeDlUe, &MmWaveMacSchedulerUeInfo::GetDlLCG, "DL");
-  ComputeActiveHarq (&activeDlHarq, dlHarqFeedback);
-
   MmWaveMacSchedSapUser::SchedConfigIndParameters dlSlot (params.m_snfSf);
   dlSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
   NS_ASSERT (m_ulAllocationMap.find (params.m_snfSf.Encode ()) != m_ulAllocationMap.end ());
@@ -1438,8 +1447,7 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
                   &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetDlCtrlSymbols ();
 
-  DoScheduleDl (activeDlHarq, dlHarqFeedback, activeDlUe, params.m_snfSf,
-                ulAllocations, &dlSlot.m_slotAllocInfo);
+  DoScheduleDl (dlHarqFeedback, params.m_snfSf, ulAllocations, &dlSlot.m_slotAllocInfo);
 
   // if no UL allocation, then erase the element. If UL allocation, then
   // the element will be erased when the CQI for that UL allocation will be received
@@ -1481,8 +1489,6 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
  *
  * The process of scheduling UL data is defined as follows:
  *
- * - The first step is calculating active UE, flows, and HARQ (ComputeActiveUe(),
- * ComputeActiveHarq());
  * - Perform a scheduling for UL HARQ/data for this (DoScheduleUl());
  * - Append a UL CTRL symbol to the allocation list;
  * - Indicate to the MAC the decision for that slot through SchedConfigInd()
@@ -1503,17 +1509,11 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
   NS_ASSERT (params.m_snfSf.m_slotNum <= UINT8_MAX);
   NS_LOG_INFO ("Scheduling invoked for slot " << params.m_snfSf);
 
-  // compute active ue in the current subframe, group them by BeamId
-  ActiveUeMap activeUlUe;
-  ActiveHarqMap activeUlHarq;
-  ComputeActiveUe (&activeUlUe, &MmWaveMacSchedulerUeInfo::GetUlLCG, "UL");
-  ComputeActiveHarq (&activeUlHarq, ulHarqFeedback);
-
   MmWaveMacSchedSapUser::SchedConfigIndParameters ulSlot (params.m_snfSf);
   ulSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
 
   // Doing UL for slot ulSlot
-  DoScheduleUl (activeUlHarq, ulHarqFeedback, activeUlUe, params.m_snfSf, &ulSlot.m_slotAllocInfo);
+  DoScheduleUl (ulHarqFeedback, params.m_snfSf, &ulSlot.m_slotAllocInfo);
 
   // add slot for UL control, at last symbol (13 in most cases)
   AppendCtrlSym (static_cast<uint8_t> (m_phyMacConfig->GetSymbolsPerSlot () - 1),
@@ -1529,8 +1529,6 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
 /**
  * \brief Schedule UL HARQ and data
  * \param activeUlHarq List of active HARQ processes in UL
- * \param ulHarqFeedback List of UL HARQ feedback
- * \param activeUlUe List of active UE in UL
  * \param ulSfn Slot number
  * \param allocInfo Allocation info pointer (where to save the allocations)
  * \return the number of symbols used for the UL allocation
@@ -1545,22 +1543,15 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
  * are all the available data symbols in the slot. This opens up fairness problems
  * with DL, but how to balance UL and DL is still an open problem.
  *
- * Before starting the scheduling, the function GetMaxSyms() is called, to
- * know how many symbols should be used for the HARQ retransmissions and
- * how many should be used for the new data transmission.
- *
- * If there are HARQ to retransmit, and symbols are available for such retransmissions,
- * they will be retransmitted until the code runs out of available symbols or
- * available HARQ to retransmit with function ScheduleUlHarq().
+ * If there are HARQ to retransmit, they will be retransmitted in the function
+ * ScheduleUlHarq() until the code runs out of available symbols or
+ * available HARQ to retransmit. The UE that can be selected for such assignation
+ * are decided in the function ComputeActiveHarq.
  *
  * Then, for all the UE that requested a SR, it will be allocated one entire
  * symbol. After that, if any symbol remains, the function will schedule data.
- * Please note that GetMaxSyms currently do not know anything about scheduled
- * SR. It could be that the symbol for data will be less to what that function
- * thought. It is necessary to fix this behavior; it has not been fixed because
- * in the downlink there will be no SR, and therefore the function GetMaxSyms
- * should be split for UL and DL (something I hate to do).
- * The data allocation is made in DoScheduleUlData().
+ * The data allocation is made in DoScheduleUlData(), only for UEs that
+ * have been selected by the function ComputeActiveUe.
  *
  * If any assignation is made, then the member variable m_ulAllocationMap (SlotElem)
  * is updated by storing the total UL symbols used in this slot, and
@@ -1571,9 +1562,7 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
  * symbol to respect the final slot composition: DL CTRL, DL Data, UL Data, UL CTRL.
  */
 uint8_t
-MmWaveMacSchedulerNs3::DoScheduleUl (const ActiveHarqMap &activeUlHarq,
-                                     const std::vector <UlHarqInfo> &ulHarqFeedback,
-                                     const ActiveUeMap &activeUlUe,
+MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
                                      const SfnSf &ulSfn,
                                      SlotAllocInfo *allocInfo)
 {
@@ -1582,12 +1571,8 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const ActiveHarqMap &activeUlHarq,
   const uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () -
     m_phyMacConfig->GetDlCtrlSymbols () - m_phyMacConfig->GetUlCtrlSymbols ();
 
-  // Maximum symbols for UL. Always the entire number of symbols in the slot;
-  // UL is scheduled first and can use all the symbols. However, this introduce
-  // a fairness problem between UL and DL, but before there was the same
-  // problem between DL and UL. So, we switched the problem without resolving it :)
-  // TODO: We miss a count for SR request to serve
-  auto maxUlSyms = GetMaxSyms (activeUlHarq, activeUlUe, dataSymPerSlot);
+  ActiveHarqMap activeUlHarq;
+  ComputeActiveHarq (&activeUlHarq, ulHarqFeedback);
 
   // Start the assignation from the last available data symbol, and like a shrimp
   // go backward.
@@ -1601,16 +1586,14 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const ActiveHarqMap &activeUlHarq,
   NS_LOG_DEBUG ("Scheduling UL frame " << static_cast<uint32_t> (ulSfn.m_frameNum) <<
                 " subframe " << static_cast<uint32_t> (ulSfn.m_subframeNum) <<
                 " slot " << static_cast<uint32_t> (ulSfn.m_slotNum) <<
-                " Active Beams UL Ue: " << activeUlUe.size () <<
                 " UL HARQ to retransmit: " << ulHarqFeedback.size () <<
                 " Active Beams UL HARQ: " << activeUlHarq.size ());
 
-  if (maxUlSyms.m_symHarq > 0)
+  if (activeUlHarq.size () > 0)
     {
-      uint8_t usedHarq = ScheduleUlHarq (&ulAssignationStartPoint, maxUlSyms.m_symHarq,
+      uint8_t usedHarq = ScheduleUlHarq (&ulAssignationStartPoint, ulSymAvail,
                                          m_ueMap, &m_ulHarqToRetransmit, ulHarqFeedback,
                                          allocInfo);
-      NS_ASSERT (usedHarq <= maxUlSyms.m_symHarq);
       NS_ASSERT (ulSymAvail >= usedHarq);
       NS_LOG_INFO ("For the slot " << ulSfn << " reserved " <<
                    static_cast<uint32_t> (usedHarq) << " symbols for UL HARQ retx");
@@ -1629,21 +1612,20 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const ActiveHarqMap &activeUlHarq,
       ulSymAvail -= usedSr;
     }
 
-  if (maxUlSyms.m_symData > 0)
-    {
-      maxUlSyms.m_symData = std::min (ulSymAvail, maxUlSyms.m_symData);
 
-      // Now schedule data!
-      maxUlSyms.m_symData = std::min (ulSymAvail, maxUlSyms.m_symData);
-      uint8_t usedUl = DoScheduleUlData (&ulAssignationStartPoint, maxUlSyms.m_symData,
+  ActiveUeMap activeUlUe;
+  ComputeActiveUe (&activeUlUe, allocInfo, &MmWaveMacSchedulerUeInfo::GetUlLCG, "UL");
+
+  if (ulSymAvail > 0 && activeUlUe.size () > 0)
+    {
+      uint8_t usedUl = DoScheduleUlData (&ulAssignationStartPoint, ulSymAvail,
                                          activeUlUe, allocInfo);
-      NS_ASSERT (usedUl <= maxUlSyms.m_symData);
       NS_LOG_INFO ("For the slot " << ulSfn << " reserved " <<
                    static_cast<uint32_t> (usedUl) << " symbols for UL data tx");
       ulSymAvail -= usedUl;
     }
 
-  if (maxUlSyms.m_symHarq > 0 || maxUlSyms.m_symData > 0 || usedSr > 0)
+  if (allocInfo->m_varTtiAllocInfo.size () > 1)
     {
       auto & totUlSym = m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym;
       auto & allocations = m_ulAllocationMap.at (ulSfn.Encode ()).m_ulAllocations;
@@ -1677,9 +1659,6 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const ActiveHarqMap &activeUlHarq,
 
 /**
  * \brief Schedule DL HARQ and data
- * \param activeDlHarq List of active HARQ processes in DL
- * \param dlHarqFeedback List of DL HARQ feedback
- * \param activeDlUe List of active UE in DL
  * \param dlSfnSf Slot number
  * \param ulAllocations Uplink allocation for this slot
  * \param allocInfo Allocation info pointer (where to save the allocations)
@@ -1687,57 +1666,59 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const ActiveHarqMap &activeUlHarq,
  *
  * The DL phase can be OFDMA-based or TDMA-based. The method calculates the
  * number of available symbols as the total number of symbols in one slot
- * minus the number of symbols already allocated for UL. Then, it asks how
- * to divide the available symbols to the function GetMaxSyms(), and defines
+ * minus the number of symbols already allocated for UL. Then, it defines
  * the data starting point by keeping in consideration the number of symbols
  * previously allocated. In this way, DL and UL allocation will not overlap.
  *
  * HARQ retx processing is done in the function  ScheduleDlHarq(), while
- * DL new data processing in the function ScheduleDlData().
+ * DL new data processing in the function ScheduleDlData(). Before each phase,
+ * the UEs are selected: for HARQ, the function ComputeActiveHarq() is used.
+ * For data, the function ComputeActiveUe.
  *
  */
 uint8_t
-MmWaveMacSchedulerNs3::DoScheduleDl (const ActiveHarqMap &activeDlHarq,
-                                     const std::vector <DlHarqInfo> &dlHarqFeedback,
-                                     const ActiveUeMap &activeDlUe,
+MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback,
                                      const SfnSf &dlSfnSf,
                                      const SlotElem &ulAllocations,
                                      SlotAllocInfo *allocInfo)
 {
   NS_LOG_INFO (this);
 
+  // compute active ue in the current subframe, group them by BeamId
+  ActiveHarqMap activeDlHarq;
+  ComputeActiveHarq (&activeDlHarq, dlHarqFeedback);
+
   const uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () -
     m_phyMacConfig->GetDlCtrlSymbols () - m_phyMacConfig->GetUlCtrlSymbols ();
 
   uint8_t dlSymAvail = dataSymPerSlot - ulAllocations.m_totUlSym;
-  auto maxDlSyms = GetMaxSyms (activeDlHarq, activeDlUe, dlSymAvail);
   PointInFTPlane dlAssignationStartPoint (0, m_phyMacConfig->GetDlCtrlSymbols ());
 
   NS_LOG_DEBUG ("Scheduling DL frame " << static_cast<uint32_t> (dlSfnSf.m_frameNum) <<
                 " subframe " << static_cast<uint32_t> (dlSfnSf.m_subframeNum) <<
                 " slot " << static_cast<uint32_t> (dlSfnSf.m_slotNum) <<
-                " Active Beams DL Ue: " << activeDlUe.size () <<
                 " DL HARQ to retransmit: " << dlHarqFeedback.size () <<
                 " Active Beams DL HARQ: " << activeDlHarq.size () <<
                 " sym available: " << static_cast<uint32_t> (dlSymAvail) <<
                 " starting from sym " << static_cast<uint32_t> (m_phyMacConfig->GetDlCtrlSymbols ()));
 
-  if (maxDlSyms.m_symHarq > 0)
+  if (activeDlHarq.size () > 0)
     {
-      uint8_t usedHarq = ScheduleDlHarq (&dlAssignationStartPoint, maxDlSyms.m_symHarq,
+      uint8_t usedHarq = ScheduleDlHarq (&dlAssignationStartPoint, dlSymAvail,
                                          activeDlHarq, m_ueMap, &m_dlHarqToRetransmit,
                                          dlHarqFeedback, allocInfo);
-      NS_ASSERT (usedHarq <= maxDlSyms.m_symHarq);
       NS_ASSERT (dlSymAvail >= usedHarq);
       dlSymAvail -= usedHarq;
     }
 
   NS_ASSERT (dlAssignationStartPoint.m_rbg == 0);
 
-  if (maxDlSyms.m_symData > 0)
+  ActiveUeMap activeDlUe;
+  ComputeActiveUe (&activeDlUe, allocInfo, &MmWaveMacSchedulerUeInfo::GetDlLCG, "DL");
+
+  if (dlSymAvail > 0 && activeDlUe.size () > 0)
     {
-      maxDlSyms.m_symData = std::min (dlSymAvail, maxDlSyms.m_symData);
-      uint8_t usedDl = DoScheduleDlData (&dlAssignationStartPoint, maxDlSyms.m_symData,
+      uint8_t usedDl = DoScheduleDlData (&dlAssignationStartPoint, dlSymAvail,
                                          activeDlUe, allocInfo);
       NS_ASSERT (dlSymAvail >= usedDl);
       dlSymAvail -= usedDl;
@@ -1925,13 +1906,6 @@ MmWaveMacSchedulerNs3::DoSchedUlSrInfoReq (const MmWaveMacSchedSapProvider::Sche
       m_srList.push_back (ue);
     }
   NS_ASSERT (m_srList.size () >= params.m_srList.size ());
-}
-
-std::ostream &
-operator<< (std::ostream &os, const MmWaveMacSchedulerNs3::MaxAvailableSymbols &item)
-{
-  os << "(symHarq: " << item.m_symHarq << ", symData: " << item.m_symData << ")";
-  return os;
 }
 
 } // namespace ns3
