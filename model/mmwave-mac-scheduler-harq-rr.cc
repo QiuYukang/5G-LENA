@@ -103,7 +103,9 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
       for (auto it = beam.second.cbegin (); it != beam.second.cend (); ++it)
         {
           HarqProcess & harqProcess = (*it)->second;
-          NS_ASSERT(harqProcess.m_status == HarqProcess::RECEIVED_FEEDBACK);
+          NS_ASSERT_MSG (harqProcess.m_status == HarqProcess::RECEIVED_FEEDBACK,
+                         "Process " << static_cast<uint32_t> ((*it)->first) <<
+                         " is not in RECEIVED_FEEDBACK status");
 
           harqProcess.m_status = HarqProcess::WAITING_FEEDBACK;
 

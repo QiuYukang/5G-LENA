@@ -1786,21 +1786,50 @@ MmWaveMacSchedulerNs3::DoSchedDlTriggerReq (const MmWaveMacSchedSapProvider::Sch
                      " existing: " << existingSize << " received: " << inSize <<
                      " calculated: " << dlHarqFeedback.size ());
 
-      // if there are feedbacks for expired process, remove them
+      std::unordered_map<uint16_t, std::set<uint32_t>> feedbacksDup;
+
+      // Let's find out:
+      // 1) Feedback that arrived late (i.e., their process has been marked inactive
+      //    due to timings
+      // 2) Duplicated feedbacks (same UE, same process ID). I don't know why
+      //    these are generated.. but anyway..
       for (auto it = dlHarqFeedback.begin (); it != dlHarqFeedback.end (); /* no inc */)
         {
           auto & ueInfo = m_ueMap.find (it->m_rnti)->second;
           auto & process = ueInfo->m_dlHarq.Find (it->m_harqProcessId)->second;
+          NS_LOG_INFO ("Analyzing feedback for UE " << it->m_rnti << " process " <<
+                       static_cast<uint32_t> (it->m_harqProcessId));
           if (!process.m_active)
             {
               NS_LOG_INFO ("Feedback for UE " << it->m_rnti << " process " <<
                            static_cast<uint32_t> (it->m_harqProcessId) <<
                            " ignored because process is INACTIVE");
-              it = dlHarqFeedback.erase (it);
+              it = dlHarqFeedback.erase (it);    /* INC */
             }
           else
             {
-              ++it;
+              auto itDuplicated = feedbacksDup.find(it->m_rnti);
+              if (itDuplicated == feedbacksDup.end())
+                {
+                  feedbacksDup.insert(std::make_pair (it->m_rnti, std::set<uint32_t> ()));
+                  feedbacksDup.at(it->m_rnti).insert(it->m_harqProcessId);
+                  ++it; /* INC */
+                }
+              else
+                {
+                  if (itDuplicated->second.find(it->m_harqProcessId) == itDuplicated->second.end())
+                    {
+                      itDuplicated->second.insert(it->m_harqProcessId);
+                      ++it; /* INC */
+                    }
+                  else
+                    {
+                      NS_LOG_INFO ("Feedback for UE " << it->m_rnti << " process " <<
+                                   static_cast<uint32_t> (it->m_harqProcessId) <<
+                                   " ignored because is a duplicate of another feedback");
+                      it = dlHarqFeedback.erase (it); /* INC */
+                    }
+                }
             }
         }
 
