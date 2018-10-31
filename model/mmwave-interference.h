@@ -36,6 +36,8 @@
 #include <ns3/spectrum-value.h>
 #include <string.h>
 #include <ns3/mmwave-chunk-processor.h>
+#include <ns3/trace-source-accessor.h>
+#include <ns3/traced-callback.h>
 
 
 namespace ns3 {
@@ -61,6 +63,8 @@ private:
   std::list<Ptr<mmWaveChunkProcessor> > m_PowerChunkProcessorList;
   std::list<Ptr<mmWaveChunkProcessor> > m_sinrChunkProcessorList;
 
+
+  TracedCallback<double> m_snrPerProcessedChunk;
 
   bool m_receiving;
 

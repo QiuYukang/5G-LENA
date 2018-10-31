@@ -71,6 +71,10 @@ mmWaveInterference::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::mmWaveInterference")
     .SetParent<Object> ()
+    .AddTraceSource ("SnrPerProcessedChunk",
+                     "Snr per processed chunk",
+                     MakeTraceSourceAccessor (&mmWaveInterference::m_snrPerProcessedChunk),
+                     "ns3::SnrPerProcessedChunk::TracedCallback")
   ;
   return tid;
 }
@@ -189,6 +193,10 @@ mmWaveInterference::ConditionallyEvaluateChunk ()
       NS_LOG_LOGIC (this << " signal = " << *m_rxSignal << " allSignals = " << *m_allSignals << " noise = " << *m_noise);
       SpectrumValue interf =  (*m_allSignals) - (*m_rxSignal) + (*m_noise);
       SpectrumValue sinr = (*m_rxSignal) / interf;
+      SpectrumValue snr = (*m_rxSignal) / (*m_noise);
+      double avgSnr = Sum (snr) /(snr.GetSpectrumModel ()->GetNumBands ());
+      m_snrPerProcessedChunk (avgSnr);
+      NS_LOG_DEBUG ("All signals: "<<(*m_allSignals)[0]<<", rxSingal:"<<(*m_rxSignal)[0]<<" , noise:"<< (*m_noise)[0]);
       Time duration = Now () - m_lastChangeTime;
       for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
         {
@@ -230,7 +238,6 @@ mmWaveInterference::AddSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p)
   NS_LOG_FUNCTION (this << p);
   m_sinrChunkProcessorList.push_back (p);
 }
-
 
 } // namespace ns3
 
