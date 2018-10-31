@@ -54,6 +54,9 @@ using namespace ns3;
  * which a single UE is attached to a gNB.
  * UE performs a UDP full buffer downlink traffic.
  * gNB is configured to have 1 bandwidth part.
+ * Currently there are 2 types of antenna elements: omni and 3gpp directional,
+ * and they are implemented in different antenna array models:
+ * AntennaArrayModel and AntennaArray3gppModel.
  *
  */
 class TestAntenna3gppModelConf : public TestCase
@@ -65,7 +68,11 @@ public:
     DirectionGnbUe_45,
     DirectionGnbUe_135,
     DirectionGnbUe_225,
-    DirectionGnbUe_315
+    DirectionGnbUe_315,
+    DirectionGnbUe_0,
+    DirectionGnbUe_90,
+    DirectionGnbUe_180,
+    DirectionGnbUe_270,
   };
 
 
@@ -180,15 +187,6 @@ TestAntenna3gppModelConf::DoRun (void)
     // set LOS,NLOS condition
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue(m_losCondition));
 
-    //only disables HARQ feedback but not the HARQ process
-    //Config::SetDefault ("ns3::MmWaveHelper::HarqEnabled", BooleanValue (false));
-    //Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (5));
-    //Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (28));
-    /*Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue (true));
-    Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::McsDefaultDl", UintegerValue (28));
-    Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::FixedMcsUl", BooleanValue (true));
-    Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::McsDefaultUl", UintegerValue (28));
-*/
     // setup the mmWave simulation
     Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
     mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
@@ -229,7 +227,22 @@ TestAntenna3gppModelConf::DoRun (void)
     else if (m_conf == DirectionGnbUe_315)
       {
         uePositionAlloc->Add(Vector(20,-20,ueHeight));
-      }
+      } else   if (m_conf == DirectionGnbUe_0)
+        {
+          uePositionAlloc->Add(Vector(20,0,ueHeight));
+        }
+      else if (m_conf == DirectionGnbUe_90)
+        {
+          uePositionAlloc->Add(Vector(0,20,ueHeight));
+        }
+      else if (m_conf == DirectionGnbUe_180)
+        {
+          uePositionAlloc->Add(Vector(-20, 0,ueHeight));
+        }
+      else if (m_conf == DirectionGnbUe_270)
+        {
+          uePositionAlloc->Add(Vector(0,-20,ueHeight));
+        }
 
     mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
     mobility.SetPositionAllocator (gNbPositionAlloc);
@@ -321,9 +334,6 @@ TestAntenna3gppModelConf::DoRun (void)
         "\t Avg.SINR:"<< 10*log10(m_sinrCell1->getMean()) << "\t Avg.MCS:"<<m_mcsCell1->getMean()<<"\t Avg. RB Num:"<<m_rbNumCell1->getMean();
 
 
-//    NS_TEST_ASSERT_MSG_NE(throughput1 + throughput2, udpRate.GetBitRate()*2,
-  //            "In full overlap regime there should be some reduction in the throughput due to interference");
-
     Simulator::Destroy ();
 }
 
@@ -342,19 +352,24 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite ()
 : TestSuite ("test-antenna-3gpp-model-conf", SYSTEM)
 {
 
+
   std::list<TestAntenna3gppModelConf::DirectionGnbUeXYAngle> conf = { TestAntenna3gppModelConf::DirectionGnbUe_45,
                                                     TestAntenna3gppModelConf::DirectionGnbUe_135,
                                                     TestAntenna3gppModelConf::DirectionGnbUe_225,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_315
+                                                    TestAntenna3gppModelConf::DirectionGnbUe_315,
+                                                    TestAntenna3gppModelConf::DirectionGnbUe_0,
+                                                    TestAntenna3gppModelConf::DirectionGnbUe_90,
+                                                    TestAntenna3gppModelConf::DirectionGnbUe_180,
+                                                    TestAntenna3gppModelConf::DirectionGnbUe_270
   };
 
   std::list<uint8_t> ueNoOfAntennas = {16};
 
-  std::list<std::string> losConditions = {"l", "n"};
+  std::list<std::string> losConditions = {"l"};
 
-  std::list<TypeId> gNbantennaArrayModelTypes = {AntennaArrayModel::GetTypeId (), AntennaArray3gppModel::GetTypeId ()};
+  std::list<TypeId> gNbantennaArrayModelTypes = {AntennaArrayModel::GetTypeId(), AntennaArray3gppModel::GetTypeId ()};
 
-  std::list<TypeId> ueAntennaArrayModelTypes = {AntennaArrayModel::GetTypeId (), AntennaArray3gppModel::GetTypeId ()};
+  std::list<TypeId> ueAntennaArrayModelTypes = {AntennaArrayModel::GetTypeId(), AntennaArray3gppModel::GetTypeId ()};
 
 
   for (const auto & losCondition : losConditions)
@@ -385,6 +400,22 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite ()
                       else if (c == TestAntenna3gppModelConf::DirectionGnbUe_315)
                         {
                           ss << "DirectionGnbUe_315";
+                        }
+                      else if (c == TestAntenna3gppModelConf::DirectionGnbUe_0)
+                        {
+                          ss << "DirectionGnbUe_0";
+                        }
+                      else if (c == TestAntenna3gppModelConf::DirectionGnbUe_90)
+                        {
+                          ss << "DirectionGnbUe_90";
+                        }
+                      else if (c == TestAntenna3gppModelConf::DirectionGnbUe_180)
+                        {
+                          ss << "DirectionGnbUe_180";
+                        }
+                      else if (c == TestAntenna3gppModelConf::DirectionGnbUe_270)
+                        {
+                          ss << "DirectionGnbUe_270";
                         }
 
                       ss <<" , channelCondition: "<<losCondition;
