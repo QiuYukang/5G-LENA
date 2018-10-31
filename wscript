@@ -51,6 +51,8 @@ def build(bld):
         'model/mmwave-harq-phy.cc',
         'model/mmwave-propagation-loss-model.cc',
         'model/antenna-array-model.cc',
+        'model/antenna-array-basic-model.cc',
+        'model/antenna-array-3gpp-model.cc',
         'model/mmwave-channel-raytracing.cc',
         'model/mmwave-3gpp-propagation-loss-model.cc',
         'model/mmwave-3gpp-channel.cc', 
@@ -78,6 +80,7 @@ def build(bld):
         'test/mmwave-test-fdm-of-numerologies.cc',
         'test/mmwave-test-sched.cc',
         'test/mmwave-system-test-schedulers.cc',
+        'test/test-antenna-3gpp-model-conf.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -124,6 +127,8 @@ def build(bld):
         'model/mmwave-harq-phy.h',
         'model/mmwave-propagation-loss-model.h',
         'model/antenna-array-model.h',
+        'model/antenna-array-basic-model.h',
+        'model/antenna-array-3gpp-model.h',
         'model/mmwave-channel-raytracing.h',
         'model/mmwave-3gpp-propagation-loss-model.h',
         'model/mmwave-3gpp-channel.h',
