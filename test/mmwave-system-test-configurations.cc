@@ -106,8 +106,6 @@ MmwaveSystemTestConfigurationsTestCase1::DoRun (void)
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  //mmWaveHelper->SetSchedulerType ("ns3::MmWaveFlexTtiPfMacScheduler");
-  //mmwaveHelper->SetSchedulerType ("ns3::MmWaveFlexTtiMacScheduler");
   mmWaveHelper->SetSchedulerType (m_scheduler);
 
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
@@ -213,21 +211,17 @@ public:
 MmwaveSystemTestConfigurationsTestSuite::MmwaveSystemTestConfigurationsTestSuite ()
 : TestSuite ("mmwave-system-test-configurations", SYSTEM)
 {
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=rr", 0, "ns3::MmWaveFlexTtiMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=rr", 2, "ns3::MmWaveFlexTtiMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=rr", 4, "ns3::MmWaveFlexTtiMacScheduler"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=rr", 0, "ns3::MmWaveMacSchedulerTdmaRR"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=rr", 2, "ns3::MmWaveMacSchedulerTdmaRR"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=rr", 4, "ns3::MmWaveMacSchedulerTdmaRR"), QUICK);
 
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=pf", 0, "ns3::MmWaveFlexTtiPfMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=pf", 2, "ns3::MmWaveFlexTtiPfMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=pf", 4, "ns3::MmWaveFlexTtiPfMacScheduler"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=pf", 0, "ns3::MmWaveMacSchedulerTdmaPF"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=pf", 2, "ns3::MmWaveMacSchedulerTdmaPF"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=pf", 4, "ns3::MmWaveMacSchedulerTdmaPF"), QUICK);
 
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=mw", 0, "ns3::MmWaveFlexTtiMaxWeightMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=mw", 2, "ns3::MmWaveFlexTtiMaxWeightMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=mw", 4, "ns3::MmWaveFlexTtiMaxWeightMacScheduler"), QUICK);
-
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=mr", 0, "ns3::MmWaveFlexTtiMaxRateMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=mr", 2, "ns3::MmWaveFlexTtiMaxRateMacScheduler"), QUICK);
-  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=mr", 4, "ns3::MmWaveFlexTtiMaxRateMacScheduler"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=0, scheduler=mr", 0, "ns3::MmWaveMacSchedulerTdmaMR"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=2, scheduler=mr", 2, "ns3::MmWaveMacSchedulerTdmaMR"), QUICK);
+  AddTestCase (new MmwaveSystemTestConfigurationsTestCase1 ("num=4, scheduler=mr", 4, "ns3::MmWaveMacSchedulerTdmaMR"), QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
