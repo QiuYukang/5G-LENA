@@ -79,6 +79,18 @@ MmWaveUePhy::GetTypeId (void)
                    MakeDoubleAccessor (&MmWaveUePhy::SetTxPower,
                                        &MmWaveUePhy::GetTxPower),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("NoiseFigure",
+                   "Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver."
+                   " According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "
+                   "\"the difference in decibels (dB) between"
+                   " the noise output of the actual receiver to the noise output of an "
+                   " ideal receiver with the same overall gain and bandwidth when the receivers "
+                   " are connected to sources at the standard noise temperature T0.\" "
+                  "In this model, we consider T0 = 290K.",
+                   DoubleValue (5.0), // mmwave code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
+                   MakeDoubleAccessor (&LteUePhy::SetNoiseFigure,
+                   &LteUePhy::GetNoiseFigure),
+                   MakeDoubleChecker<double> ())
     .AddAttribute ("DlSpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
@@ -176,7 +188,7 @@ MmWaveUePhy::GetTxPower () const
 void
 MmWaveUePhy::SetNoiseFigure (double pf)
 {
-
+  m_noiseFigure = pf;
 }
 
 double
@@ -242,7 +254,6 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 {
   m_cellId = cellId;
   //TBD how to assign bandwitdh and earfcn
-  m_noiseFigure = 5.0;
   m_phyMacConfig = config;
 
   Ptr<SpectrumValue> noisePsd =
@@ -820,7 +831,6 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 
   m_cellId = cellId;
   //TBD how to assign bandwitdh and earfcn
-  m_noiseFigure = 5.0;
   // we will assign this already in mmwave-helper.cc
   //m_phyMacConfig = config;
 
