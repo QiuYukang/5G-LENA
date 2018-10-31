@@ -158,6 +158,36 @@ public:
    */
   std::string GetEnbComponentCarrierManagerType () const;
 
+
+
+  /**
+     * Set the type of antenna array type used by gNB devices
+     *
+     * \param type antenna array type to be configured
+     *
+     */
+  void SetGnbAntennaArrayModelType (TypeId type);
+
+  /**
+   *
+   * \return the antenna array model type used by gNB devices
+   */
+  TypeId GetGnbAntennaArrayModelType () const;
+
+  /**
+     * Set the type of antenna array type used by UE devices
+     *
+     * \param type antenna array type to be configured
+     *
+     */
+  void SetUeAntennaArrayModelType (TypeId type);
+
+  /**
+   *
+   * \return the antenna array model type used by UE devices
+   */
+  TypeId GetUeAntennaArrayModelType () const;
+
   /**
    * Set an attribute for the enb component carrier manager to be created.
    *

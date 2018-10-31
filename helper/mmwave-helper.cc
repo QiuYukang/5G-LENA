@@ -72,9 +72,6 @@ MmWaveHelper::MmWaveHelper (void)
   m_enbNetDeviceFactory.SetTypeId (MmWaveEnbNetDevice::GetTypeId ());
   m_ueNetDeviceFactory.SetTypeId (MmWaveUeNetDevice::GetTypeId ());
 
-  m_enbAntennaModelFactory.SetTypeId (AntennaArrayModel::GetTypeId ());
-  m_ueAntennaModelFactory.SetTypeId (AntennaArrayModel::GetTypeId ());
-
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 }
 
@@ -147,7 +144,25 @@ MmWaveHelper::GetTypeId (void)
                    "Bandwidth parts map",
                    PointerValue (),
                    MakePointerAccessor (&MmWaveHelper::SetBandwidthPartMap),
-                   MakePointerChecker<BandwidthPartsPhyMacConf>());
+                   MakePointerChecker<BandwidthPartsPhyMacConf>())
+     .AddAttribute ("GnbAntennaArrayModelType",
+                    "The type of antenna array to be used by gNBs. Currently are available "
+                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
+                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements",
+                    TypeIdValue (AntennaArrayModel::GetTypeId()),
+                    MakeTypeIdAccessor(&MmWaveHelper::SetGnbAntennaArrayModelType,
+                                       &MmWaveHelper::GetGnbAntennaArrayModelType),
+                    MakeTypeIdChecker())
+     .AddAttribute ("UeAntennaArrayModelType",
+                    "The type of antenna array to be used by UEs. Currently are available "
+                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
+                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements",
+                    TypeIdValue (AntennaArrayModel::GetTypeId()),
+                     MakeTypeIdAccessor(&MmWaveHelper::SetUeAntennaArrayModelType,
+                                       &MmWaveHelper::GetUeAntennaArrayModelType),
+                     MakeTypeIdChecker())
+      ;
+
   return tid;
 }
 
@@ -351,12 +366,38 @@ MmWaveHelper::GetEnbComponentCarrierManagerType () const
   return m_enbComponentCarrierManagerFactory.GetTypeId ().GetName ();
 }
 
+
 void
 MmWaveHelper::SetEnbComponentCarrierManagerType (std::string type)
 {
   NS_LOG_FUNCTION (this << type);
   m_enbComponentCarrierManagerFactory = ObjectFactory ();
   m_enbComponentCarrierManagerFactory.SetTypeId (type);
+}
+
+void MmWaveHelper::SetGnbAntennaArrayModelType (TypeId type)
+{
+  NS_LOG_FUNCTION (this << type);
+
+  m_enbAntennaModelFactory = ObjectFactory ();
+  m_enbAntennaModelFactory.SetTypeId (type);
+}
+
+TypeId MmWaveHelper::GetGnbAntennaArrayModelType () const
+{
+  return m_enbAntennaModelFactory.GetTypeId ();
+}
+
+
+void MmWaveHelper::SetUeAntennaArrayModelType (TypeId type)
+{
+  m_ueAntennaModelFactory = ObjectFactory ();
+  m_ueAntennaModelFactory.SetTypeId (type);
+}
+
+TypeId MmWaveHelper::GetUeAntennaArrayModelType () const
+{
+  return m_ueAntennaModelFactory.GetTypeId ();
 }
 
 void
