@@ -1568,6 +1568,8 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
 {
   NS_LOG_INFO (this);
 
+  NS_ASSERT (allocInfo->m_varTtiAllocInfo.size () == 0);
+
   const uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () -
     m_phyMacConfig->GetDlCtrlSymbols () - m_phyMacConfig->GetUlCtrlSymbols ();
 
@@ -1605,7 +1607,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
   // Now schedule SR if we have empty symbols
   uint8_t usedSr = 0;
 
-  if (ulSymAvail > 0)
+  if (ulSymAvail > 0 && m_srList.size () > 0)
     {
       usedSr = DoScheduleUlSr (&ulAssignationStartPoint, ulSymAvail,
                                &m_srList, allocInfo);
@@ -1625,7 +1627,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       ulSymAvail -= usedUl;
     }
 
-  if (allocInfo->m_varTtiAllocInfo.size () > 1)
+  if (allocInfo->m_varTtiAllocInfo.size () > 0)
     {
       auto & totUlSym = m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym;
       auto & allocations = m_ulAllocationMap.at (ulSfn.Encode ()).m_ulAllocations;
@@ -1634,6 +1636,10 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
           if (alloc.m_varTtiType == VarTtiAllocInfo::DATA && alloc.m_tddMode == VarTtiAllocInfo::UL)
             {
               // THIS DOESN'T WORK FOR UL OFDMA (IF EXISTS)
+              NS_LOG_INFO ("Placed an allocation in the map for the CQI, RNTI " <<
+                           alloc.m_dci->m_rnti << ", symStart " <<
+                           static_cast<uint32_t>(alloc.m_dci->m_symStart) <<
+                           " numSym " << alloc.m_dci->m_mcs);
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
                                                    m_phyMacConfig->GetBandwidthInRbs (), // Assume UL in TDMA
                                                    alloc.m_dci->m_tbSize,
