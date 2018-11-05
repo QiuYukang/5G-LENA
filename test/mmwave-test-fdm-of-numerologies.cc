@@ -100,9 +100,9 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
     Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
-    Config::SetDefault ("ns3::BwpManager::NGBR_LOW_LAT_EMBB", UintegerValue (0));
-    Config::SetDefault ("ns3::BwpManager::GBR_CONV_VOICE", UintegerValue (1));
-    Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManager"));
+    Config::SetDefault ("ns3::BwpManagerGnb::NGBR_LOW_LAT_EMBB", UintegerValue (0));
+    Config::SetDefault ("ns3::BwpManagerGnb::GBR_CONV_VOICE", UintegerValue (1));
+    Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManagerGnb"));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));

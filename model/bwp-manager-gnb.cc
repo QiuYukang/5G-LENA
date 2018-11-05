@@ -18,29 +18,29 @@
  * Author: Biljana Bojovic <bbojovic@cttc.cat>
  */
 
-#include "bwp-manager.h"
+#include "bwp-manager-gnb.h"
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("BwpManager");
-NS_OBJECT_ENSURE_REGISTERED (BwpManager);
+NS_LOG_COMPONENT_DEFINE ("BwpManagerGnb");
+NS_OBJECT_ENSURE_REGISTERED (BwpManagerGnb);
 
 void
-BwpManager::DoInitialize ()
+BwpManagerGnb::DoInitialize ()
 {
   NS_LOG_FUNCTION (this);
   RrComponentCarrierManager::DoInitialize ();
 }
 
-BwpManager::BwpManager () :
+BwpManagerGnb::BwpManagerGnb () :
   RrComponentCarrierManager ()
 {
   NS_LOG_FUNCTION (this);
 }
 
-BwpManager::~BwpManager ()
+BwpManagerGnb::~BwpManagerGnb ()
 {
   NS_LOG_FUNCTION (this);
 }
@@ -49,16 +49,16 @@ BwpManager::~BwpManager ()
   .AddAttribute (NAME,                                                     \
                  DESC,                                                     \
                  UintegerValue (0),                                        \
-                 MakeUintegerAccessor (&BwpManager::SETTER),               \
+                 MakeUintegerAccessor (&BwpManagerGnb::SETTER),               \
                  MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
 
 TypeId
-BwpManager::GetTypeId ()
+BwpManagerGnb::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::BwpManager")
     .SetParent<NoOpComponentCarrierManager> ()
     .SetGroupName ("mmwave")
-    .AddConstructor<BwpManager> ()
+    .AddConstructor<BwpManagerGnb> ()
     BWP_MANAGER_DECLARE_ATTR("GBR_CONV_VOICE",
                              "BWP index to which flows of this Qci type should be forwarded.",
                              SetConvVoiceBwp)
@@ -127,7 +127,7 @@ BwpManager::GetTypeId ()
 }
 
 bool
-BwpManager::IsGbr (LteMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerGnb::IsGbr (LteMacSapProvider::ReportBufferStatusParameters params)
 {
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti) != m_rlcLcInstantiated.end (), "Trying to check the QoS of unknown UE");
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid) != m_rlcLcInstantiated.find (params.rnti)->second.end (), "Trying to check the QoS of unknown logical channel");
@@ -135,7 +135,7 @@ BwpManager::IsGbr (LteMacSapProvider::ReportBufferStatusParameters params)
 }
 
 std::vector<LteCcmRrcSapProvider::LcsConfig>
-BwpManager::DoSetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint16_t rnti, uint8_t lcid, uint8_t lcGroup, LteMacSapUser* msu)
+BwpManagerGnb::DoSetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint16_t rnti, uint8_t lcid, uint8_t lcGroup, LteMacSapUser* msu)
 {
   NS_LOG_FUNCTION (this);
 
@@ -145,7 +145,7 @@ BwpManager::DoSetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint16_t
 
 
 void
-BwpManager::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerGnb::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
@@ -172,7 +172,7 @@ BwpManager::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameter
 
 
 void
-BwpManager::DoNotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters txOpParams)
+BwpManagerGnb::DoNotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters txOpParams)
 {
   NS_LOG_FUNCTION (this);
   std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_ueAttached.find (txOpParams.rnti);
@@ -186,7 +186,7 @@ BwpManager::DoNotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters txOpPa
 
 
 void
-BwpManager::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrierId)
+BwpManagerGnb::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrierId)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (bsr.m_macCeType == MacCeListElement_s::BSR, "Received a Control Message not allowed " << bsr.m_macCeType);

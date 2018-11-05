@@ -36,11 +36,11 @@ class LteCcmRrcSapProvider;
 /**
  * \brief Bandwidth part manager that coordinates traffic over different bandwidth parts.
  */
-class BwpManager : public RrComponentCarrierManager
+class BwpManagerGnb : public RrComponentCarrierManager
 {
 public:
-  BwpManager ();
-  virtual ~BwpManager () override;
+  BwpManagerGnb ();
+  virtual ~BwpManagerGnb () override;
   static TypeId GetTypeId ();
 
   /**
