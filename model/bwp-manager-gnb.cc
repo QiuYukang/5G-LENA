@@ -19,6 +19,8 @@
  */
 
 #include "bwp-manager-gnb.h"
+#include "bwp-manager-algorithm.h"
+
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
 
@@ -38,90 +40,24 @@ BwpManagerGnb::BwpManagerGnb () :
   RrComponentCarrierManager ()
 {
   NS_LOG_FUNCTION (this);
+  m_algorithm = new BwpManagerAlgorithmStatic (); // When we will have different types,
+                                                  // Then we will add an Attribute.
 }
 
 BwpManagerGnb::~BwpManagerGnb ()
 {
   NS_LOG_FUNCTION (this);
+  delete m_algorithm;
 }
 
-#define BWP_MANAGER_DECLARE_ATTR(NAME,DESC,SETTER)                         \
-  .AddAttribute (NAME,                                                     \
-                 DESC,                                                     \
-                 UintegerValue (0),                                        \
-                 MakeUintegerAccessor (&BwpManagerGnb::SETTER),               \
-                 MakeUintegerChecker<uint8_t> (0, MAX_NO_CC))
 
 TypeId
 BwpManagerGnb::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::BwpManager")
+  static TypeId tid = TypeId ("ns3::BwpManagerGnb")
     .SetParent<NoOpComponentCarrierManager> ()
     .SetGroupName ("mmwave")
     .AddConstructor<BwpManagerGnb> ()
-    BWP_MANAGER_DECLARE_ATTR("GBR_CONV_VOICE",
-                             "BWP index to which flows of this Qci type should be forwarded.",
-                             SetConvVoiceBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_CONV_VIDEO",
-                             "BWP index to which flows of GBR_CONV_VIDEO Qci type should be forwarded.",
-                             SetConvVideoBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_GAMING",
-                             "BWP index to which flows of GBR_GAMING Qci type should be forwarded.",
-                             SetGamingBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_NON_CONV_VIDEO",
-                             "BWP index to which flows of GBR_NON_CONV_VIDEO Qci type should be forwarded.",
-                             SetNonConvVideoBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_MC_PUSH_TO_TALK",
-                             "BWP index to which flows of GBR_MC_PUSH_TO_TALK Qci type should be forwarded.",
-                             SetMcPttBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_NMC_PUSH_TO_TALK",
-                             "BWP index to which flows of GBR_NMC_PUSH_TO_TALK Qci type should be forwarded.",
-                             SetNmcPttBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_MC_VIDEO",
-                             "BWP index to which flows of GBR_MC_VIDEO Qci type should be forwarded.",
-                             SetMcVideoBwp)
-    BWP_MANAGER_DECLARE_ATTR("GBR_V2X",
-                             "BWP index to which flows of GBR_V2X Qci type should be forwarded.",
-                             SetGbrV2xBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_IMS",
-                             "BWP index to which flows of NGBR_IMS Qci type should be forwarded.",
-                             SetImsBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_VIDEO_TCP_OPERATOR",
-                             "BWP index to which flows of NGBR_VIDEO_TCP_OPERATOR Qci type should be forwarded.",
-                             SetVideoTcpOpBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_VOICE_VIDEO_GAMING",
-                             "BWP index to which flows of NGBR_VOICE_VIDEO_GAMING Qci type should be forwarded.",
-                             SetVideoGamingBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_VIDEO_TCP_PREMIUM",
-                             "BWP index to which flows of NGBR_VIDEO_TCP_PREMIUM Qci type should be forwarded.",
-                             SetVideoTcpPremiumBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_VIDEO_TCP_DEFAULT",
-                             "BWP index to which flows of NGBR_VIDEO_TCP_DEFAULT Qci type should be forwarded.",
-                             SetVideoTcpDefaultBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_MC_DELAY_SIGNAL",
-                             "BWP index to which flows of NGBR_MC_DELAY_SIGNAL Qci type should be forwarded.",
-                             SetMcDelaySignalBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_MC_DATA",
-                             "BWP index to which flows of NGBR_MC_DATA Qci type should be forwarded.",
-                             SetMcDataBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_V2X",
-                             "BWP index to which flows of NGBR_V2X Qci type should be forwarded.",
-                             SetNgbrV2xBwp)
-    BWP_MANAGER_DECLARE_ATTR("NGBR_LOW_LAT_EMBB",
-                             "BWP index to which flows of NGBR_LOW_LAT_EMBB Qci type should be forwarded.",
-                             SetLowLatEmbbBwp)
-    BWP_MANAGER_DECLARE_ATTR("DGBR_DISCRETE_AUT_SMALL",
-                             "BWP index to which flows of DGBR_DISCRETE_AUT_SMALL Qci type should be forwarded.",
-                             SetDiscreteAutSmallBwp)
-    BWP_MANAGER_DECLARE_ATTR("DGBR_DISCRETE_AUT_LARGE",
-                             "BWP index to which flows of DGBR_DISCRETE_AUT_LARGE Qci type should be forwarded.",
-                             SetDiscreteAutLargeBwp)
-    BWP_MANAGER_DECLARE_ATTR("DGBR_ITS",
-                             "BWP index to which flows of DGBR_ITS Qci type should be forwarded.",
-                             SetItsBwp)
-    BWP_MANAGER_DECLARE_ATTR("DGBR_ELECTRICITY",
-                             "BWP index to which flows of DGBR_ELECTRICITY Qci type should be forwarded.",
-                             SetElectricityBwp)
     ;
   return tid;
 }
@@ -153,12 +89,9 @@ BwpManagerGnb::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParame
 
   uint8_t qci = m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid)->second.qci;
 
-  uint8_t bwpIndex = 0;
-
-  if (m_qciToBwpMap.find (qci) != m_qciToBwpMap.end ())
-    {
-      bwpIndex = m_qciToBwpMap.at (qci);
-    }
+  // Force a conversion between the uint8_t type that comes from the LcInfo
+  // struct (yeah, using the EpsBearer::Qci type was too hard ...)
+  uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
 
   if (m_macSapProvidersMap.find (bwpIndex) != m_macSapProvidersMap.end ())
     {
@@ -208,12 +141,7 @@ BwpManagerGnb::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrie
         }
     }
 
-  uint8_t bwpIndex = 0;
-
-  if (m_qciToBwpMap.find (qci) != m_qciToBwpMap.end ())
-    {
-      bwpIndex = m_qciToBwpMap.at (qci);
-    }
+  uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
 
   NS_LOG_DEBUG ("Routing BSR for UE " << bsr.m_rnti << " to CC id " <<
                 static_cast<uint32_t> (bwpIndex));
