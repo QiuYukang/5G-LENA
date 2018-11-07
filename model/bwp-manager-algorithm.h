@@ -19,7 +19,7 @@
 #ifndef BWPMANAGERALGORITHM_H
 #define BWPMANAGERALGORITHM_H
 
-#include <ns3/object-base.h>
+#include <ns3/object.h>
 #include <ns3/eps-bearer.h>
 
 namespace ns3 {
@@ -58,8 +58,12 @@ public:
    */
   static TypeId GetTypeId ();
 
+  virtual TypeId GetInstanceTypeId (void) const override { return BwpManagerAlgorithmStatic::GetTypeId (); }
+
   BwpManagerAlgorithmStatic () : BwpManagerAlgorithm ()
   {
+    ObjectBase::ConstructSelf (AttributeConstructionList ());
+    NS_ABORT_IF(m_qciToBwpMap.size() == 0);
   }
   virtual ~BwpManagerAlgorithmStatic () override
   {
@@ -76,12 +80,28 @@ public:
     m_qciToBwpMap[EpsBearer::GBR_CONV_VOICE] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetConvVoiceBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_CONV_VOICE);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetConvVideoBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::GBR_CONV_VIDEO] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetConvVideoBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_CONV_VIDEO);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -92,12 +112,28 @@ public:
     m_qciToBwpMap[EpsBearer::GBR_GAMING] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetGamingBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_GAMING);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetNonConvVideoBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::GBR_NON_CONV_VIDEO] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetNonConvVideoBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_NON_CONV_VIDEO);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -108,12 +144,28 @@ public:
     m_qciToBwpMap[EpsBearer::GBR_MC_PUSH_TO_TALK] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetMcPttBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_MC_PUSH_TO_TALK);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetNmcPttBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::GBR_NMC_PUSH_TO_TALK] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetNmcPttBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_NMC_PUSH_TO_TALK);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -124,12 +176,28 @@ public:
     m_qciToBwpMap[EpsBearer::GBR_MC_VIDEO] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetMcVideoBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_MC_VIDEO);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetGbrV2xBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::GBR_V2X] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetGbrV2xBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::GBR_V2X);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -140,12 +208,28 @@ public:
     m_qciToBwpMap[EpsBearer::NGBR_IMS] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetImsBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_IMS);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetVideoTcpOpBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::NGBR_VIDEO_TCP_OPERATOR] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetVideoTcpOpBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_VIDEO_TCP_OPERATOR);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -156,12 +240,28 @@ public:
     m_qciToBwpMap[EpsBearer::NGBR_VOICE_VIDEO_GAMING] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetVideoGamingBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_VOICE_VIDEO_GAMING);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetVideoTcpPremiumBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::NGBR_VIDEO_TCP_PREMIUM] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetVideoTcpPremiumBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -172,12 +272,28 @@ public:
     m_qciToBwpMap[EpsBearer::NGBR_VIDEO_TCP_DEFAULT] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetVideoTcpDefaultBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetMcDelaySignalBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::NGBR_MC_DELAY_SIGNAL] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetMcDelaySignalBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_MC_DELAY_SIGNAL);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -188,12 +304,28 @@ public:
     m_qciToBwpMap[EpsBearer::NGBR_MC_DATA] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetMcDataBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_MC_DATA);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetNgbrV2xBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::NGBR_V2X] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetNgbrV2xBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_V2X);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -204,12 +336,28 @@ public:
     m_qciToBwpMap[EpsBearer::NGBR_LOW_LAT_EMBB] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetLowLatEmbbBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::NGBR_LOW_LAT_EMBB);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetDiscreteAutSmallBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::DGBR_DISCRETE_AUT_SMALL] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetDiscreteAutSmallBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::DGBR_DISCRETE_AUT_SMALL);
   }
   /**
    * \brief Set BWP index of the QCI in the function name
@@ -220,6 +368,14 @@ public:
     m_qciToBwpMap[EpsBearer::DGBR_DISCRETE_AUT_LARGE] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetDiscreteAutLargeBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::DGBR_DISCRETE_AUT_LARGE);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
@@ -228,12 +384,28 @@ public:
     m_qciToBwpMap[EpsBearer::DGBR_ITS] = bwpIndex;
   }
   /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetItsBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::DGBR_ITS);
+  }
+  /**
    * \brief Set BWP index of the QCI in the function name
    * \param bwpIndex Bwp Index to be assigned to the selected QCI
    */
   void SetElectricityBwp (uint8_t bwpIndex)
   {
     m_qciToBwpMap[EpsBearer::DGBR_ELECTRICITY] = bwpIndex;
+  }
+  /**
+   * \brief Get the BWP index of the QCI in the function name
+   * \return the BWP index of the selected QCI
+   */
+  uint8_t GetElectricityBwp () const
+  {
+    return m_qciToBwpMap.at (EpsBearer::DGBR_ELECTRICITY);
   }
 
 private:
