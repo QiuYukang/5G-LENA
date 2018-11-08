@@ -63,14 +63,16 @@ MmWaveUePhy::MmWaveUePhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy)
+MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
+                          const Ptr<Node> &n)
   : MmWavePhy (dlPhy, ulPhy),
   m_rnti (0)
 {
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<MmWaveUePhy> (this);
-  Simulator::ScheduleNow (&MmWaveUePhy::SlotIndication, this, 0, 0, 0);
+  Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0),
+                                  &MmWaveUePhy::SlotIndication, this, 0, 0, 0);
 }
 
 MmWaveUePhy::~MmWaveUePhy ()

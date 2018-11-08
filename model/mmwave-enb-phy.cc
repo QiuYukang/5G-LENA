@@ -68,7 +68,8 @@ MmWaveEnbPhy::MmWaveEnbPhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy)
+MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
+                            const Ptr<Node> &n)
   : MmWavePhy (dlPhy, ulPhy),
   m_prevVarTti (0),
   m_prevVarTtiDir (VarTtiAllocInfo::NA),
@@ -76,7 +77,7 @@ MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy>
 {
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
 
-  Simulator::ScheduleNow (&MmWaveEnbPhy::StartSlot, this);
+  Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0), &MmWaveEnbPhy::StartSlot, this);
 }
 
 MmWaveEnbPhy::~MmWaveEnbPhy ()

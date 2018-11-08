@@ -50,8 +50,8 @@ class MmWaveEnbPhy : public MmWavePhy
 public:
   MmWaveEnbPhy ();
 
-  MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy>, Ptr<MmWaveSpectrumPhy>);
-  virtual ~MmWaveEnbPhy ();
+  MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy>, Ptr<MmWaveSpectrumPhy>, const Ptr<Node> &);
+  virtual ~MmWaveEnbPhy () override;
 
   static TypeId GetTypeId (void);
   virtual void DoInitialize (void) override;

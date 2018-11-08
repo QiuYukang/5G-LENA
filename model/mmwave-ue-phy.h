@@ -52,9 +52,9 @@ class MmWaveUePhy : public MmWavePhy
 public:
   MmWaveUePhy ();
 
-  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy);
+  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy, const Ptr<Node> &n);
 
-  virtual ~MmWaveUePhy ();
+  virtual ~MmWaveUePhy () override;
 
   // inherited from Object
   static TypeId GetTypeId (void);

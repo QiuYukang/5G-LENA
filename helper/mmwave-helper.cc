@@ -508,7 +508,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
 
       Ptr<MmWaveSpectrumPhy> ulPhy = CreateObject<MmWaveSpectrumPhy> ();
       Ptr<MmWaveSpectrumPhy> dlPhy = CreateObject<MmWaveSpectrumPhy> ();
-      Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (dlPhy, ulPhy);
+      Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (dlPhy, ulPhy, n);
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first)->GetNumHarqProcess ());
       dlPhy->SetHarqPhyModule (harq);
       //ulPhy->SetHarqPhyModule (harq);
@@ -705,7 +705,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       NS_LOG_DEBUG (this << "component carrier map size " << (uint16_t) ccMap.size ());
       Ptr<MmWaveSpectrumPhy> ulPhy = CreateObject<MmWaveSpectrumPhy> ();
       Ptr<MmWaveSpectrumPhy> dlPhy = CreateObject<MmWaveSpectrumPhy> ();
-      Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (dlPhy, ulPhy);
+      Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (dlPhy, ulPhy, n);
 
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first)->GetNumHarqProcess ());
       dlPhy->SetHarqPhyModule (harq);
