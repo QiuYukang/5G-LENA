@@ -21,8 +21,26 @@ Supported platforms
 This release is intended to work on systems with the following minimal
 requirements (Note:  not all features available on all platforms):
 
-New user-visible features
+- g++-4.9 or later
+- Apple LLVM version 7.0.2 or later
+- clang-3.3 or later
+
+In addition, Python 2.7 (Python 2 series) or Python 3.4-3.7 (Python 3 series)
+
+This release has been tested on the following platforms:
+- ArchLinux 2018.10.08 with g++-8.2.1 and Python 3.7.1
+- Ubuntu 16.04 (64 bit) with g++-5.4.0 and Python 2.7.12/3.5.2
+
+New user-visible features (old first)
 -------------------------
+
+- (mmwave) Removed any reference to Rlc Low Latency
+- (mmwave) The code that was previously under the directory src/mmwave has been
+  moved to src/nr.
+- (nr) Aligned ComponentCarrierGnb, MmWaveEnbMac, MmWaveUePhy to ns-3-dev
+- (nr) Aligned the BwpManager and the various helper/example to the bearer
+  definitions in Rel. 15
+
 
 Bugs fixed
 ----------
@@ -30,5 +48,5 @@ Bugs fixed
 Known issues
 ------------
 In general, known issues are tracked on the project tracker available
-at http://www.nsnam.org/bugzilla/
+at https://gitlab.cttc.es/ns3-new-radio/nr
 
