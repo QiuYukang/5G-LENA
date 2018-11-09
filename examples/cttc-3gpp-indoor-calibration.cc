@@ -188,30 +188,18 @@ Nr3gppIndoorCalibration::Run (void)
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(2));
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(40e6));
     // Shall be 4x8 = 32 antenna elements
-    Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNum", UintegerValue(36));
+    Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNumDim1", UintegerValue(4));
+    Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNumDim2", UintegerValue(8));
     // Shall be 2x4 = 8 antenna elements
-    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNum", UintegerValue(9));
-    // BS atnenna height is 3 meters
-    double gNbHeight = 3;
-    // UE antenna height is 1.5 meters
-    double ueHeight = 1.5;
+    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim1", UintegerValue(2));
+    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim2", UintegerValue(4));
     // UE antenna gain shall be set to 5 dBi
-
     // gNB noise figure shall be set to 7 dB
     Config::SetDefault("ns3::MmWaveEnbPhy::NoiseFigure", DoubleValue (7));
     // UE noise figure shall be set to 10 dB
     Config::SetDefault("ns3::MmWaveUePhy::NoiseFigure", DoubleValue (10));
-
-    // set the antenna array model type
-    //Config::SetDefault("ns3::MmWaveHelper::GnbAntennaArrayModelType", TypeIdValue(AntennaArrayModel::GetTypeId()));
-    //Config::SetDefault("ns3::MmWaveHelper::UeAntennaArrayModelType", TypeIdValue(AntennaArrayModel::GetTypeId()));
-
-    Config::SetDefault("ns3::MmWaveHelper::GnbAntennaArrayModelType", TypeIdValue(AntennaArray3gppModel::GetTypeId()));
-    Config::SetDefault("ns3::MmWaveHelper::UeAntennaArrayModelType", TypeIdValue(AntennaArray3gppModel::GetTypeId()));
-
     // set LOS,NLOS condition
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("a"));
-
     // setup the mmWave simulation
     Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
     mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
