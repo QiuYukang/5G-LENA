@@ -99,8 +99,8 @@ MmWaveUePhy::GetTypeId (void)
                    " are connected to sources at the standard noise temperature T0.\" "
                   "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0), // mmwave code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
-                   MakeDoubleAccessor (&LteUePhy::SetNoiseFigure,
-                   &LteUePhy::GetNoiseFigure),
+                   MakeDoubleAccessor (&MmWavePhy::SetNoiseFigure,
+                   &MmWavePhy::GetNoiseFigure),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("DlSpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
