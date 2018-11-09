@@ -82,11 +82,16 @@ MmWaveEnbNetDevice::GetTypeId ()
     .AddAttribute ("CellId", "Cell Identifier", UintegerValue (0),
                    MakeUintegerAccessor (&MmWaveEnbNetDevice::m_cellId),
                    MakeUintegerChecker<uint16_t> ())
-    .AddAttribute ("AntennaNum",
-                   "Antenna number of the device",
-                   UintegerValue (64),
-                   MakeUintegerAccessor (&MmWaveEnbNetDevice::SetAntennaNum,&MmWaveEnbNetDevice::GetAntennaNum),
-                   MakeUintegerChecker<uint8_t> ());
+  .AddAttribute ("AntennaNumDim1",
+                 "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                 UintegerValue (4),
+                 MakeUintegerAccessor (&MmWaveEnbNetDevice::SetAntennaNumDim1,&MmWaveEnbNetDevice::GetAntennaNumDim1),
+                 MakeUintegerChecker<uint8_t> ())
+  .AddAttribute ("AntennaNumDim2",
+                 "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                 UintegerValue (8),
+                 MakeUintegerAccessor (&MmWaveEnbNetDevice::SetAntennaNumDim2,&MmWaveEnbNetDevice::GetAntennaNumDim2),
+                 MakeUintegerChecker<uint8_t> ());
   return tid;
 }
 
@@ -244,14 +249,33 @@ MmWaveEnbNetDevice::GetRrc (void)
 }
 
 void
-MmWaveEnbNetDevice::SetAntennaNum (uint8_t antennaNum)
+MmWaveEnbNetDevice::SetAntennaNumDim1 (uint8_t antennaNum)
 {
-  m_antennaNum = antennaNum;
+  m_antennaNumDim1 = antennaNum;
 }
+
+void
+MmWaveEnbNetDevice::SetAntennaNumDim2 (uint8_t antennaNum)
+{
+  m_antennaNumDim2 = antennaNum;
+}
+
 uint8_t
 MmWaveEnbNetDevice::GetAntennaNum () const
 {
-  return m_antennaNum;
+  return m_antennaNumDim1 * m_antennaNumDim2;
+}
+
+uint8_t
+MmWaveEnbNetDevice::GetAntennaNumDim1 () const
+{
+  return m_antennaNumDim1;
+}
+
+uint8_t
+MmWaveEnbNetDevice::GetAntennaNumDim2 () const
+{
+  return m_antennaNumDim2;
 }
 
 bool
