@@ -317,9 +317,9 @@ MmWaveHelper::SetPathlossModelType (std::string type)
 }
 
 Ptr<PropagationLossModel>
-MmWaveHelper::GetPathLossModel ()
+MmWaveHelper::GetPathLossModel (uint8_t index)
 {
-  return m_pathlossModel->GetObject<PropagationLossModel> ();
+  return m_pathlossModel.at (index)->GetObject<PropagationLossModel> ();
 }
 
 void
@@ -887,7 +887,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
 
       double freq = m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first)->GetCenterFrequency ();   // TODO: Add CC map to phyMacCommon
       NS_LOG_LOGIC ("Channel frequency: " << freq);
-      bool freqOk = m_pathlossModel->SetAttributeFailSafe ("Frequency", DoubleValue (freq));
+      bool freqOk = m_pathlossModel.at(it->first)->SetAttributeFailSafe ("Frequency", DoubleValue (freq));
       if (!freqOk)
         {
           NS_LOG_WARN ("Propagation model does not have a Frequency attribute");

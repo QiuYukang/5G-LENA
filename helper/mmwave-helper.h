@@ -234,7 +234,7 @@ public:
   void SetSnrTest (bool snrTest);
   bool GetSnrTest ();
   Ptr<PropagationLossModel>
-  GetPathLossModel (void);
+  GetPathLossModel (uint8_t index);
   void SetBandwidthPartMap (Ptr<BandwidthPartsPhyMacConf> bwpConf);
 
   /**
@@ -304,8 +304,8 @@ private:
   std::vector<Ptr<MmWaveChannelMatrix> > m_channelMatrix;   //channel matrix per bandwidth part
   std::vector<Ptr<MmWaveChannelRaytracing> >m_raytracing;   //raytracing per bandwidth part
   std::vector<Ptr<MmWave3gppChannel> > m_3gppChannel;   //3gpp channel per bandwidth part
-
-  Ptr<Object> m_pathlossModel;
+  
+  std::map< uint8_t, Ptr<Object> > m_pathlossModel;
   std::string m_pathlossModelType;
 
   std::string m_channelModelType;
