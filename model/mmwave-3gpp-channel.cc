@@ -179,7 +179,7 @@ MmWave3gppChannel::GetTypeId (void)
     .SetParent<Object> ()
     .AddAttribute ("UpdatePeriod",
                    "Enable spatially-consistent UT mobility modeling procedure A, the update period unit is in ms, set to 0 ms to disable update",
-                   TimeValue (MilliSeconds (0)),
+                   TimeValue (MilliSeconds (1)),
                    MakeTimeAccessor (&MmWave3gppChannel::m_updatePeriod),
                    MakeTimeChecker ())
     .AddAttribute ("CellScan",
