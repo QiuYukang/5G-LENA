@@ -148,7 +148,7 @@ main (int argc, char *argv[])
 
   mmwHelper->Initialize();
   mmwHelper->SetHarqEnabled (harqEnabled);
-  Ptr<MmWavePropagationLossModel> lossModel = mmwHelper->GetPathLossModel ()->GetObject<MmWavePropagationLossModel> ();
+  Ptr<MmWavePropagationLossModel> lossModel = mmwHelper->GetPathLossModel (0)->GetObject<MmWavePropagationLossModel> ();
 
   NodeContainer enbNodes;
   NodeContainer ueNodes;

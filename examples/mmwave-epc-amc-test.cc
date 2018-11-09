@@ -144,7 +144,7 @@ main (int argc, char *argv[])
   Ptr<MmWaveHelper> mmwHelper = CreateObject<MmWaveHelper> ();
 
   mmwHelper->Initialize();
-  Ptr<MmWavePropagationLossModel> lossModel = mmwHelper->GetPathLossModel ()->GetObject<MmWavePropagationLossModel> ();
+  Ptr<MmWavePropagationLossModel> lossModel = mmwHelper->GetPathLossModel (0)->GetObject<MmWavePropagationLossModel> ();
   Ptr<MmWavePointToPointEpcHelper>  epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
   mmwHelper->SetEpcHelper (epcHelper);
 
