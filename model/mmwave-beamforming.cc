@@ -349,13 +349,16 @@ MmWaveBeamforming::LoadUeSpatialSignature ()
 void
 MmWaveBeamforming::Initial (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices)
 {
+  m_longTermUpdatePeriod = MilliSeconds (100.0);
+  NS_LOG_INFO ("Update channel matrix and bf vector, update after " << m_longTermUpdatePeriod);
   for (NetDeviceContainer::Iterator i = ueDevices.Begin (); i != ueDevices.End (); i++)
     {
       for (NetDeviceContainer::Iterator j = enbDevices.Begin (); j != enbDevices.End (); j++)
         {
           if (m_update)
             {
-              SetChannelMatrix (*i,*j);
+              SetChannelMatrix (*i,*j);                   // this call is independent on the subclass of NetDevice
+              SetBeamformingVector (*i,*j);                  // possible beamforming vector for all the UE eNB pairs
             }
         }
 
