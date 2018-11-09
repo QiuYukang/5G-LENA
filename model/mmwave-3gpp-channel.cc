@@ -212,6 +212,11 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (10),
                    MakeDoubleAccessor (&MmWave3gppChannel::m_beamSearchAngleStep),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("Speed",
+                   "The speed of UEs m/s to be used in model instead of the real relative speed. If set to 0 the real speed calculated from the mobility models of tx and rx device will be used.",
+                    DoubleValue (0),
+                    MakeDoubleAccessor (&MmWave3gppChannel::m_ueSpeed),
+                    MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -413,9 +418,18 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0, "the position of tx and rx devices cannot be the same");
 
-  Vector rxSpeed = b->GetVelocity ();
-  Vector txSpeed = a->GetVelocity ();
-  Vector relativeSpeed (rxSpeed.x - txSpeed.x,rxSpeed.y - txSpeed.y,rxSpeed.z - txSpeed.z);
+  Vector relativeSpeed;
+  
+  if (m_ueSpeed == 0)
+    {
+       Vector rxSpeed = b->GetVelocity ();
+       Vector txSpeed = a->GetVelocity ();
+       relativeSpeed = Vector(rxSpeed.x - txSpeed.x,rxSpeed.y - txSpeed.y,rxSpeed.z - txSpeed.z);
+    }
+  else
+    {
+       relativeSpeed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
+    }
 
   key_t key = std::make_pair (txDevice,rxDevice);
   key_t keyReverse = std::make_pair (rxDevice,txDevice);

@@ -353,6 +353,7 @@ private:
   std::string m_scenario;
   double m_blockerSpeed;
   double m_beamSearchAngleStep;
+  double m_ueSpeed;
 };
 
 
