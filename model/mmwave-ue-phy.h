@@ -52,7 +52,7 @@ class MmWaveUePhy : public MmWavePhy
 public:
   MmWaveUePhy ();
 
-  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> ulPhy, Ptr<MmWaveSpectrumPhy> dlPhy);
+  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy);
 
   virtual ~MmWaveUePhy ();
 
