@@ -25,12 +25,10 @@
  *                        Menglei Zhang <menglei@nyu.edu>
  */
 
-
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_ENB_MAC_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_ENB_MAC_H_
+#ifndef SRC_MMWAVE_MODEL_MMWAVE_ENB_MAC_H
+#define SRC_MMWAVE_MODEL_MMWAVE_ENB_MAC_H
 
 #include "mmwave-mac.h"
-#include "mmwave-enb-mac.h"
 #include <ns3/lte-enb-cmac-sap.h>
 #include <ns3/lte-mac-sap.h>
 #include "mmwave-phy-mac-common.h"
@@ -130,6 +128,12 @@ struct AllocateNcRaPreambleReturnValue
   void ReceiveBsrMessage  (MacCeElement bsr);
 
   void DoReportMacCeToScheduler (MacCeListElement_s bsr);
+
+  /**
+   * \brief Called by CCM to inform us that we are the addressee of a SR.
+   * \param rnti RNTI that requested to be scheduled
+   */
+  void DoReportSrToScheduler (uint16_t rnti);
 
   void DoReceivePhyPdu (Ptr<Packet> p);
 
@@ -272,6 +276,4 @@ private:
 
 }
 
-
-
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_ENB_MAC_H_ */
+#endif /* SRC_MMWAVE_MODEL_MMWAVE_ENB_MAC_H */

@@ -360,6 +360,8 @@ MmWaveUeMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamete
 
   auto it = m_ulBsrReceived.find (params.lcid);
 
+  NS_LOG_INFO ("Received BSR for LC Id" << static_cast<uint32_t>(params.lcid));
+
   if (it != m_ulBsrReceived.end ())
     {
       // update entry
@@ -370,7 +372,7 @@ MmWaveUeMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamete
       it = m_ulBsrReceived.insert (std::make_pair (params.lcid, params)).first;
     }
 
-  if (m_srState == INACTIVE)
+  if (m_srState == INACTIVE && m_componentCarrierId == 0)
     {
       NS_LOG_INFO ("RNTI " << m_rnti << " INACTIVE -> ACTIVE, bufSize " << GetTotalBufSize ());
       // The SR message is put in a list, that will be sent only when

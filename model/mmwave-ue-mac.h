@@ -86,6 +86,17 @@ private:
 
   void SendSR () const;
   void DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params);
+
+  /**
+   * \brief Called by CCM
+   * \param params the BSR params
+   *
+   * The CCM is calling this function for all the MAC of the UE. This method
+   * will send SR only for CC ID = 0 (BwpManager will take care of
+   * routing the SR to the appropriate MAC).
+   *
+   * \see DoSlotIndication
+   */
   void DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params);
 
   // forwarded from PHY SAP
@@ -156,9 +167,8 @@ private:
    * queue. In this way, along with the data, a BSR will be sent.
    *
    * At the start of each VarTti (each different DCI) the PHY is calling
-   * DoSlotIndication. In this function, if the m_componentCarrierId is 0
-   * and the check with the Sfnsf at the front of the Sfnsf queue is true,
-   * then the BSR is sent only if we have data in the queue.
+   * DoSlotIndication. In this function, if the Sfnsf at the front of the Sfnsf
+   * queue is true, then the BSR is sent only if we have data in the queue.
    *
    * If the BSR is not sent (we don't have any data in the queue) and we don't
    * have any more reserved space to send BSR, then the state goes back to the

@@ -625,6 +625,14 @@ MmWaveEnbMac::DoReportMacCeToScheduler (MacCeListElement_s bsr)
 }
 
 void
+MmWaveEnbMac::DoReportSrToScheduler(uint16_t rnti)
+{
+  NS_LOG_FUNCTION (this);
+  m_srRntiList.push_back (rnti);
+  m_srCallback (m_componentCarrierId, rnti);
+}
+
+void
 MmWaveEnbMac::DoReceivePhyPdu (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this);
@@ -735,9 +743,9 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
     {
     case (MmWaveControlMessage::SR):
       {
+        // Report it to the CCM. Then he will call the right MAC
         Ptr<MmWaveSRMessage> sr = DynamicCast<MmWaveSRMessage> (msg);
-        m_srRntiList.push_back(sr->GetRNTI ());
-        m_srCallback (m_componentCarrierId, sr->GetRNTI ());
+        m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), m_componentCarrierId);
         break;
       }
     case (MmWaveControlMessage::DL_CQI):
