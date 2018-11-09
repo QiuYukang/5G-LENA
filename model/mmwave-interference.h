@@ -64,7 +64,8 @@ private:
   std::list<Ptr<mmWaveChunkProcessor> > m_sinrChunkProcessorList;
 
 
-  TracedCallback<double> m_snrPerProcessedChunk;
+  TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
+  TracedCallback<double> m_rssiPerProcessedChunk;  ///<! Trace for RSSI pre processed chunk.
 
   bool m_receiving;
 
