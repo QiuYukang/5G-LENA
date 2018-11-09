@@ -157,7 +157,7 @@ BwpManagerGnb::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrie
 }
 
 void
-BwpManager::DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId)
+BwpManagerGnb::DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId)
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (componentCarrierId);
@@ -176,12 +176,7 @@ BwpManager::DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId)
         }
     }
 
-  uint8_t bwpIndex = 0;
-
-  if (m_qciToBwpMap.find (qci) != m_qciToBwpMap.end ())
-    {
-      bwpIndex = m_qciToBwpMap.at (qci);
-    }
+  uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
 
   NS_LOG_DEBUG ("Routing SR for UE " << rnti << " to CC id " <<
                 static_cast<uint32_t> (bwpIndex));
