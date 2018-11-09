@@ -220,15 +220,21 @@ MmWaveHelper::DoInitialize ()
 
   if (!m_pathlossModelType.empty ())
     {
-      m_pathlossModel = m_pathlossModelFactory.Create ();
-      Ptr<PropagationLossModel> splm = m_pathlossModel->GetObject<PropagationLossModel> ();
-      if ( splm )
+      uint32_t k = 0;
+      for (auto conf:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
         {
-          NS_LOG_LOGIC (this << " using a PropagationLossModel");
-          for (auto i:m_channel)
-            {
-              i->AddPropagationLossModel (splm);
+          Ptr<Object> pathlossModel = m_pathlossModelFactory.Create ();
+          Ptr<PropagationLossModel> splm = pathlossModel->GetObject<PropagationLossModel> ();
+          if ( splm )
+            {         
+              NS_LOG_LOGIC (this << " using a PropagationLossModel");
+              for (auto i:m_channel)
+                {
+                  i->AddPropagationLossModel (splm);
+                }
+              splm->SetAttributeFailSafe("Frequency", DoubleValue(conf->GetCenterFrequency()));
             }
+          m_pathlossModel [k++] = pathlossModel;
         }
     }
   else
@@ -275,20 +281,18 @@ MmWaveHelper::DoInitialize ()
       for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
         {
           Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
-          m_channel.at (k++)->AddSpectrumPropagationLossModel (channel);
+          m_channel.at (k)->AddSpectrumPropagationLossModel (channel);
           channel->SetConfigurationParameters (i);
-          if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
+           if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
             {
-              Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue (i->GetCenterFrequency ()));
-              Config::SetDefault ("ns3::MmWave3gppBuildingsPropagationLossModel::Frequency", DoubleValue (i->GetCenterFrequency ()));
-              Ptr<PropagationLossModel> pl = m_pathlossModel->GetObject<PropagationLossModel> ();
-              channel->SetPathlossModel (pl);
+              channel->SetPathlossModel (m_pathlossModel.at (k)->GetObject<PropagationLossModel> ());
             }
           else
             {
               NS_FATAL_ERROR ("The 3GPP channel and propagation loss should be enabled at the same time");
             }
           m_3gppChannel.push_back (channel);
+          k++;
         }
     }
 
