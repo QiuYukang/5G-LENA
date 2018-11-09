@@ -64,6 +64,12 @@ us a note on ns-developers mailing list.</p>
 <h2>Changed behavior:</h2>
 <ul>
   <li>
+    The SR is now sent only for Component Carrier ID == 0. The Enb Mac
+    will receive it and forward to the CC manager; then, the CCM will
+    route it to the most appropriate MAC, so the assignation for the SR will be
+    done on the appropriate CC.
+  </li>
+  <li>
     In any given slot, the scheduler will now ignore UEs with new data to
     transmit if it assigned resources for retransmitting an HARQ process.
   </li>
