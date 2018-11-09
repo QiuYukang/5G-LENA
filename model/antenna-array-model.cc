@@ -29,7 +29,7 @@
 #include <ns3/math.h>
 #include <ns3/simulator.h>
 #include "ns3/double.h"
-
+#include "ns3/enum.h"
 
 NS_LOG_COMPONENT_DEFINE ("AntennaArrayModel");
 
@@ -108,6 +108,12 @@ AntennaArrayModel::GetTypeId ()
                    DoubleValue (0.5),
                    MakeDoubleAccessor (&AntennaArrayModel::m_disV),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("AntennaOrientation",
+                   "The orentation of the antenna",
+                   EnumValue (AntennaOrientation::X0),
+                   MakeEnumAccessor(&AntennaArrayModel::m_orientation),
+                   MakeEnumChecker(AntennaOrientation::X0, "X0",
+                                   AntennaOrientation::Z0, "Z0"))
   ;
   return tid;
 }
@@ -225,6 +231,7 @@ AntennaArrayModel::GetBeamformingVector (Ptr<NetDevice> device)
 void
 AntennaArrayModel::SetToSector (uint32_t sector, uint32_t antennaNum)
 {
+  NS_LOG_LOGIC(this);
   m_omniTx = false;
   complexVector_t cmplxVector;
   switch (antennaNum)
@@ -385,11 +392,27 @@ AntennaArrayModel::GetRadiationPattern (double vAngle, double hAngle)
 Vector
 AntennaArrayModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
 {
-  //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the y-z plane.
   Vector loc;
-  loc.x = 0;
-  loc.y = m_disH * (index % antennaNum[0]);
-  loc.z = m_disV * (index / antennaNum[1]);
+
+  if (m_orientation == AntennaOrientation::X0)
+    {
+      //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the y-z plane.
+      loc.x = 0;
+      loc.y = m_disH * (index % antennaNum[0]);
+      loc.z = m_disV * floor (index / antennaNum[0]);
+    }
+  else if (m_orientation == AntennaOrientation::Z0)
+    {
+      //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the x-y plane.
+      loc.z = 0;
+      loc.x = m_disH * (index % antennaNum[0]);
+      loc.y = m_disV * floor (index / antennaNum[0]);
+    }
+  else
+    {
+      NS_ABORT_MSG("Not defined antenna orientation");
+    }
+
   return loc;
 }
 

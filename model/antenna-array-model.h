@@ -36,6 +36,11 @@ class AntennaArrayModel : public AntennaArrayBasicModel
 {
 public:
 
+  enum AntennaOrientation{
+    X0,
+    Z0
+  };
+
   AntennaArrayModel ();
 
   virtual ~AntennaArrayModel ();
@@ -79,6 +84,7 @@ private:
 
   double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
   double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
+  AntennaOrientation m_orientation; // antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);
