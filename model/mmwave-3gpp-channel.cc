@@ -366,10 +366,10 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   if (txEnb != 0 && rxUe != 0)
     {
       NS_LOG_INFO ("this is downlink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-      txAntennaNum[0] = sqrt (txEnb->GetAntennaNum ());
-      txAntennaNum[1] = sqrt (txEnb->GetAntennaNum ());
-      rxAntennaNum[0] = sqrt (rxUe->GetAntennaNum ());
-      rxAntennaNum[1] = sqrt (rxUe->GetAntennaNum ());
+      txAntennaNum[0] = txEnb->GetAntennaNumDim1 ();
+      txAntennaNum[1] = txEnb->GetAntennaNumDim2 ();
+      rxAntennaNum[0] = rxUe->GetAntennaNumDim1 ();
+      rxAntennaNum[1] = rxUe->GetAntennaNumDim2 ();
 
       txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
@@ -387,10 +387,10 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       Ptr<MmWaveEnbNetDevice> rxEnb =
         DynamicCast<MmWaveEnbNetDevice> (rxDevice);
 
-      txAntennaNum[0] = sqrt (txUe->GetAntennaNum ());
-      txAntennaNum[1] = sqrt (txUe->GetAntennaNum ());
-      rxAntennaNum[0] = sqrt (rxEnb->GetAntennaNum ());
-      rxAntennaNum[1] = sqrt (rxEnb->GetAntennaNum ());
+      txAntennaNum[0] = txUe->GetAntennaNumDim1 ();
+      txAntennaNum[1] = txUe->GetAntennaNumDim2 ();
+      rxAntennaNum[0] = rxEnb->GetAntennaNumDim1 ();
+      rxAntennaNum[1] = rxEnb->GetAntennaNumDim2 ();
 
       txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
