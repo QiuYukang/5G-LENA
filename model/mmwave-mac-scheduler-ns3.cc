@@ -1332,36 +1332,48 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
   NS_ASSERT (symAvail > 0);
   NS_ASSERT (spoint->m_rbg == 0);
   uint8_t usedSym = 0;
+  std::list<uint16_t> notScheduled;
 
   while (symAvail > 0 && rntiList->size () > 0)
     {
       uint16_t rnti = rntiList->front ();
       rntiList->pop_front ();
-      NS_ASSERT (m_ueMap.find (rnti) != m_ueMap.end ());
+      NS_ABORT_UNLESS (m_ueMap.find (rnti) != m_ueMap.end ());
 
       // Assign an entire symbol
       auto & ue = m_ueMap.find (rnti)->second;
       NS_ASSERT (ue->m_ulRBG == 0);
       uint32_t tbs = 0;
+      uint32_t assignedSym = 0;
       do
         {
           ue->m_ulRBG += m_phyMacConfig->GetBandwidthInRbg ();
 
-          // Update things to outer-loop correctly
-          usedSym++;
-          symAvail--;
+          assignedSym++;
           tbs = m_amc->GetTbSizeFromMcsSymbols (ue->m_ulMcs,
                                                 ue->m_ulRBG * m_phyMacConfig->GetNumRbPerRbg ()) / 8;
         }
-      while (tbs < 4 && symAvail > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
+      while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
 
-      NS_ABORT_IF (tbs == 0);
+      if (tbs < 4)
+        {
+          // Our try is a fail: we can't schedule this SR
+          notScheduled.push_back (rnti);
+          ue->ResetUlSchedInfo ();
+          continue;
+        }
+
+      NS_ASSERT (symAvail >= assignedSym);
+
+      usedSym += assignedSym;
+      symAvail -= assignedSym;
 
       // Create DCI
       std::shared_ptr<DciInfoElementTdma> dci = CreateUlDci (spoint, ue);
       NS_ASSERT (dci != nullptr);
 
-      NS_ASSERT (ue->m_ulHarq.CanInsert ());
+      NS_ABORT_MSG_UNLESS (ue->m_ulHarq.CanInsert (), " UE " << ue->m_rnti <<
+                           " can't insert an HARQ for SR");
       HarqProcess harqProcess (true, HarqProcess::WAITING_FEEDBACK, 0, dci);
       uint8_t id;
       bool ret = ue->m_ulHarq.Insert (&id, harqProcess);
@@ -1384,6 +1396,11 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
       ue->ResetUlSchedInfo ();
       slotAlloc->m_varTtiAllocInfo.emplace_front (slotInfo);
       slotAlloc->m_numSymAlloc += usedSym;
+    }
+
+  for (const auto & rnti : notScheduled)
+    {
+      rntiList->push_back (rnti);
     }
 
   return usedSym;
