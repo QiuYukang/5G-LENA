@@ -228,10 +228,7 @@ MmWaveHelper::DoInitialize ()
           if ( splm )
             {         
               NS_LOG_LOGIC (this << " using a PropagationLossModel at component carrier:"<<k);
-              for (auto i:m_channel)
-                {
-                  i->AddPropagationLossModel (splm);
-                }
+              m_channel.at(k)->AddPropagationLossModel(splm);
               splm->SetAttributeFailSafe("Frequency", DoubleValue(conf->GetCenterFrequency()));
             }
           m_pathlossModel [k++] = pathlossModel;
