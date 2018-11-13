@@ -21,6 +21,8 @@ to support the NR module, you can do the following:
 
 ```
 $ git clone git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git
+$ cd ns-3-dev
+$ git checkout nr
 ```
 
 Note that on a computer that is outside the CTTC intranet, you must use
