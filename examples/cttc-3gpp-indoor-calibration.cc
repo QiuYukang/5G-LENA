@@ -241,7 +241,7 @@ Nr3gppIndoorCalibration::~Nr3gppIndoorCalibration ()
  * \param ueNodes - container of UE nodes
  * \param gnbNodes - container of gNB nodes
  * \param minimumDistance - the minimum that shall be between UE and gNB
- * \param numberOfUesToBeSelected -
+ * \param numberOfUesToBeSelected -the number of UE nodes to be selected from the original container
  */
 
 NodeContainer
@@ -267,7 +267,7 @@ Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes, const
           if (distance < minDistance)
             {
               correctDistance = false;
-              std::cout<<"\n The UE node "<<(*itUe)->GetId() << " has wrong position, discarded.";
+              //NS_LOG("The UE node "<<(*itUe)->GetId() << " has wrong position, discarded.");
               break;
             }
           else
