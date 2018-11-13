@@ -62,25 +62,39 @@ us a note on ns-developers mailing list.</p>
   </li>
   <li>
     The Ue NoiseFigure is not anymore hard-coded value, instead can be 
-    through the new MmWaveUePhy attribute called "NoiseFigure".
+    configured through the new MmWaveUePhy attribute called "NoiseFigure".
   </li>
   <li>
     MmWaveEnbDevice and MmWaveUeDevice have new attributes AntennaNumDim1 and 
     AntennaNumDim2 that allow the configuration of a rectangular antenna. 
     Previously only squared antenna was supported.
   </li>
-  <li>    
+  <li>
     A new AntennaArray3gppModel is introduced that inherits all the features of 
     the AntennaArrayModel, but it considers 3GPP directional antenna elements 
     instead of ISO antenna elements.
   </li>
   <li>
-    3gppChannelModel has a new attribute for configuring the speed. Previous and 
-    the default behaviour is that 3gppChannelModel calculates the relative speed 
-    between the transmitter and the receiver based on their positions. However, 
-    this parameter can be configured when the static scenario is being used but 
-    is desired to imitate small scale fading effects that would exist in a 
-    mobile scenario. 
+    GnbAntennaArrayModelType and UeAntennaArrayModelType attributes are 
+    added to MmWaveHelper that allow the configuration of the antenna type 
+    (ISO vs 3gppp) of gNb and UE, respectively.
+  </li>
+  <li>
+    3gppChannelModel has a new attribute "speed" for configuring the speed. 
+    Previous and currently the default behaviour is that 3gppChannelModel 
+    calculates the relative speed between the transmitter and the receiver 
+    based on their positions. However, this parameter can be configured when 
+    the static scenario is being used but is desired to imitate small scale 
+    fading effects that would exist in a mobile scenario. 
+  </li>
+  <li>
+    AntennaArrayModel has a new attribute AntennaOrientation that can be used 
+    to configure the antenna orientation which can be horizontal in XY 
+    plane, or vertical in ZY plane.
+  </li>
+  <li>
+    New traces sources are added to the Interference class for collecting 
+    the SNR and RSSI values.
   </li>
 </ul>
 <h2>Changed behavior:</h2>
@@ -101,6 +115,15 @@ us a note on ns-developers mailing list.</p>
     execution since the channel matrix will be updated every 1 ms. Previously, 
     the default parameter was 0, which means that unless configured differently 
     the channel matrix was not being updated.
+  </li>
+  <li>
+    Previously there was a single propagation loss model, no matter how many 
+    BWPs there are in the simulation. Now, there is a propagation loss model 
+    instance per BWP. Long story short. MmWaveHelper instantiates a channel 
+    instance per BWP. The channel of each BWP is configured by using its own 
+    instance of the MmWavePhyMacCommon channel parameters. Since different BWPs 
+    are on different frequencies each BWP shall have its own propagation loss 
+    model that is configured with the frequency of the corresponding BWP.
   </li>
 </ul>
 
