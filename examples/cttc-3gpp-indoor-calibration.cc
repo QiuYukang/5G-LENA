@@ -49,20 +49,18 @@ using namespace ns3;
 
 
 /**
- * \brief Simulation script for NR-MIMO Phase 1 system-level calibration
+ * \brief Simulation script for the NR-MIMO Phase 1 system-level calibration
  *
  * The scenario implemented in the present simulation script is according to
- * topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
+ * the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
  * "Layout of indoor office scenarios".
  *
  * The simulation assumptions and the configuration parameters follow
- * the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88 and which
- * are summarised in R1-1703534 Table 1.
- * In the following figure is illustrated the scenario with the gNB positions
- * which are represented with "x".
- * The UE nodes are randomly uniformly dropped in the area. There
- * are 10 UEs per gNB.
- *
+ * the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
+ * and which are summarised in R1-1703534 Table 1.
+ * In the following Figure is illustrated the scenario with the gNB positions
+ * which are represented with "x". The UE nodes are randomly uniformly dropped
+ * in the area. There are 10 UEs per gNB.
  *
  *
  *   +----------------------120 m------------------ +
@@ -99,52 +97,120 @@ using namespace ns3;
  * string that briefly describes the configuration parameters that are being
  * set in the specific simulation execution.
  */
-
 class Nr3gppIndoorCalibration
 {
 
 public:
 
+  /**
+   * \brief This function converts a linear SINR value that is encapsulated in params
+   * structure to dBs, and then it prints the dB value to an output file
+   * containing SINR values.
+   * @param params RxPacketTraceParams structure that contains different
+   * attributes that define the reception of the packet
+   *
+   */
   void UeReception (RxPacketTraceParams params);
-  void UeSnrPerProcessedChunk (double snr);//, Ptr<MobilityModel> mm, uint32_t nodeId);
+
+  /**
+   * \brief This function converts a linear SNR value to dBs and prints it to
+   * the output file containing SNR values.
+   * @param snr SNR value in linear units
+   */
+  void UeSnrPerProcessedChunk (double snr);
+
+  /**
+   * \brief This function prints out the RSSI value in dBm to file.
+   * @param rssidBm RSSI value in dBm
+   */
   void UeRssiPerProcessedChunk (double rssidBm);
-  Nr3gppIndoorCalibration ();
+
+  /**
+   * Function that will actually configure all the simulation parameters,
+   * topology and run the simulation by using the parameters that are being
+   * configured for the specific run.
+   *
+   * @param shadowing boolean value that determines whether the shadowing will
+   * be enabled in the 3gpp channel model
+   * @param antOrientation the parameter thar specifies the antenna orientation,
+   * e.g. can be horizontal when Z=0, or vertical when X=0
+   * @param gNbAntennaModel antenna model to be used by gNB device, can be ISO
+   * directional 3GPP
+   * @param ueAntennaModel antenna model to be used by gNB device, can be ISO
+   * directional 3GPP
+   * @param scenario defines the indoor scenario to be used in the simulation
+   * campaign, currently the two different indoor scenarios are considered:
+   * InH-OfficeOpen and InH-OfficeMixed
+   * @param speed - the speed of UEs in km/h
+   * @param resultsDirPath - results directory path
+   */
   void Run (bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation, TypeId gNbAntennaModel,
             TypeId ueAntennaModel, std::string scenario, double speed, std::string resultsDirPath);
+  /**
+   * \brief Destructor that closes the output file stream and finished the
+   * writing into the files.
+   */
   ~Nr3gppIndoorCalibration ();
+
+  /**
+   * \brief Function selects UE nodes that are placed with a minimum
+   * distance from its closest gNB.
+   * \param ueNodes - container of UE nodes
+   * \param gnbNodes - container of gNB nodes
+   * \param minimumDistance - the minimum that shall be between UE and gNB
+   * \param numberOfUesToBeSelected -the number of UE nodes to be selected from the original container
+   */
   NodeContainer SelectWellPlacedUes (const NodeContainer ueNodes, const NodeContainer gnbNodes,
                                      double min3DDistance, uint32_t numberOfUesToBeSelected);
 
 private:
 
-  Ptr<MinMaxAvgTotalCalculator<double> > m_sinrCell;
-  Ptr<MinMaxAvgTotalCalculator<double> > m_mcsCell;
-  Ptr<MinMaxAvgTotalCalculator<double> > m_rbNumCell;
-  std::ofstream m_outSinrFile;
-  std::ofstream m_outSnrFile;
-  std::ofstream m_outRssiFile;
-  std::ofstream m_outUePositionsFile;
-  std::ofstream m_outGnbPositionsFile;
-  std::ofstream m_outDistancesFile;
+  std::ofstream m_outSinrFile;         //!< the output file stream for the SINR file
+  std::ofstream m_outSnrFile;          //!< the output file stream for the SNR file
+  std::ofstream m_outRssiFile;         //!< the output file stream for the RSSI file
+  std::ofstream m_outUePositionsFile;  //!< the output file stream for the UE positions file
+  std::ofstream m_outGnbPositionsFile; //!< the output file stream for the gNB positions file
+  std::ofstream m_outDistancesFile;    //!< the output file stream for the distances file
 
 };
 
+/**
+ * Function that creates the output file name for the results.
+ * @param directoryName Directory name
+ * @param filePrefix The prefix for the file name, e.g. sinr, snr,..
+ * @param tag A tag that contains some simulation run specific values in order to be
+ * able to distinguish the results file for different runs for different parameters
+ * configuration
+ * @return returns The full path file name string
+ */
 std::string
-BuildFileNameString (std::string directoryName, std::string fileName, std::string tag)
+BuildFileNameString (std::string directoryName, std::string filePrefix, std::string tag)
 {
   std::ostringstream oss;
-  oss << directoryName << fileName<< "-" << tag;
+  oss << directoryName << filePrefix<<tag;
   return oss.str ();
 }
 
-
+/**
+ * Creates a string tag that contains some simulation run specific values in
+ * order to be able to distinguish the results files for different runs for
+ * different parameters.
+ * @param shadowing whether the shadowing is enabled
+ * @param antOrientation antenna orientation
+ * @param gNbAntennaModel gNb antenna model
+ * @param ueAntennaModel UE antenna model
+ * @param scenario The indoor scenario to be used
+ * @param speed The speed of UEs in km/h
+ * @return
+ */
 std::string
 BuildTag(bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation,
          TypeId gNbAntennaModel, TypeId ueAntennaModel, std::string scenario, double speed = 0.0)
 {
-  std::ostringstream oss;
 
+  std::ostringstream oss;
   std::string ao;
+
   if (antOrientation == AntennaArrayModel::X0)
     {
       ao = "X0";
@@ -181,32 +247,43 @@ BuildTag(bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation,
   oss <<"-sh"<<shadowing<<"-ao"<<ao<<"-amGnb"<<gnbAm<<"-amUE"<<ueAm<<
       "-sc"<<scenario<<"-sp"<<speed;
 
-
   return oss.str ();
 }
 
-
+/**
+ * A callback function that redirects a call to the scenario instance.
+ * @param scenario A pointer to a simulation instance
+ * @param params RxPacketTraceParams structure containing RX parameters
+ */
 void UeReceptionTrace (Nr3gppIndoorCalibration* scenario, RxPacketTraceParams params)
 {
   scenario->UeReception(params);
  }
 
+/**
+ * A callback function that redirects a call to the scenario instance.
+ * @param scenario A pointer to a simulation instance
+ * @param snr SNR value
+ */
 void UeSnrPerProcessedChunkTrace (Nr3gppIndoorCalibration* scenario, double snr)
 {
   scenario->UeSnrPerProcessedChunk (snr);
 }
 
+/**
+ * A callback function that redirects a call to the scenario instance.
+ * @param scenario A pointer to a simulation instance
+ * @param rssidBm rssidBm RSSI value in dBm
+ */
 void UeRssiPerProcessedChunkTrace (Nr3gppIndoorCalibration* scenario, double rssidBm)
 {
   scenario->UeRssiPerProcessedChunk (rssidBm);
 }
 
+
 void
 Nr3gppIndoorCalibration::UeReception (RxPacketTraceParams params)
 {
-  m_sinrCell-> Update (params.m_sinr);
-  m_mcsCell->Update (params.m_mcs);
-  m_rbNumCell->Update (params.m_rbAssignedNum);
   m_outSinrFile<<params.m_cellId<<params.m_rnti<<"\t"<<10*log10(params.m_sinr)<<std::endl;
 }
 
@@ -223,26 +300,12 @@ Nr3gppIndoorCalibration::UeRssiPerProcessedChunk (double rssidBm)
   m_outRssiFile<<rssidBm<<std::endl;
 }
 
-Nr3gppIndoorCalibration::Nr3gppIndoorCalibration ()
-{
-  m_sinrCell = Create<MinMaxAvgTotalCalculator<double> >();
-  m_mcsCell = Create<MinMaxAvgTotalCalculator<double> >();
-  m_rbNumCell = Create<MinMaxAvgTotalCalculator<double> >();
-}
-
 Nr3gppIndoorCalibration::~Nr3gppIndoorCalibration ()
 {
   m_outSinrFile.close();
+  m_outSnrFile.close();
+  m_outRssiFile.close();
 }
-
-/*
- * \brief Function selects UE nodes from the list that are placed with a minimum
- * distance from the closes gNB
- * \param ueNodes - container of UE nodes
- * \param gnbNodes - container of gNB nodes
- * \param minimumDistance - the minimum that shall be between UE and gNB
- * \param numberOfUesToBeSelected -the number of UE nodes to be selected from the original container
- */
 
 NodeContainer
 Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes, const NodeContainer gnbNodes, double minDistance, uint32_t numberOfUesToBeSelected)
@@ -299,9 +362,10 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Time udpAppStopTimeDl = MilliSeconds (200);
     uint32_t packetSize = 1000;
     DataRate udpRate = DataRate ("0.1kbps");
-    // initially created UE 240 nodes, out of which will be selected 120 UE that
+    // initially created 240 UE nodes, out of which will be selected 120 UEs that
     // are well placed respecting the minimum distance parameter that is configured
     uint16_t ueCount = 240;
+    // the minimum distance parameter
     double minDistance = 0;
     // BS atnenna height is 3 meters
     double gNbHeight = 3;
@@ -309,7 +373,6 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     double ueHeight = 1.5;
 
     std::string tag = BuildTag(shadowing, antOrientation, gNbAntennaModel, ueAntennaModel, scenario, speed);
-
     std::string filenameSinr = BuildFileNameString ( resultsDirPath , "sinrs", tag);
     std::string filenameSnr = BuildFileNameString ( resultsDirPath , "snrs", tag);
     std::string filenameRssi = BuildFileNameString ( resultsDirPath , "rssi", tag);
@@ -365,7 +428,6 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
          NS_ABORT_MSG("Can't open file " << filenameDistances);
        }
 
-
     Config::SetDefault ("ns3::AntennaArrayModel::AntennaOrientation", EnumValue (antOrientation));
     Config::SetDefault("ns3::MmWaveHelper::GnbAntennaArrayModelType", TypeIdValue(gNbAntennaModel));
     Config::SetDefault("ns3::MmWaveHelper::UeAntennaArrayModelType", TypeIdValue(ueAntennaModel));
@@ -373,23 +435,18 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(shadowing));
 
     // Default scenario configuration that are summarised in to R1-1703534 3GPP TSG RAN WG1 Meeting #88
-
     Config::SetDefault ("ns3::MmWave3gppChannel::Speed", DoubleValue (speed*1000/3600));
-
     Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaPF")));
     // Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     // Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
-
     Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue (false));
-    Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (30.0));
-
+    //Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (30.0));
     Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
     // Parameters according to R1-1703534
     // 3GPP TSG RAN WG1 Meetging #88, 2017
     // Evaluation assumptions for Phase 1 NR MIMO system level calibration,
     Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(23));
     Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(30e9));
-
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(2));
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(40e6));
     // Shall be 4x8 = 32 antenna elements
@@ -422,28 +479,30 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     gNbNodes.Create (12);
     ueNodes.Create (ueCount);
 
-    // The indoor scenario for the system level calibration Phase 1 - R11700144
+    // Creating positions of the gNB according to the 3gpp TR 38.900 Figure 7.2.-1
     Ptr<ListPositionAllocator> gNbPositionAlloc = CreateObject<ListPositionAllocator> ();
 
     for (uint8_t j = 0; j < 2; j++)
-        {
-          for (uint8_t i = 0; i < 6; i++)
-            {
-              gNbPositionAlloc->Add(Vector( i*20, j*20, gNbHeight));
-            }
-         }
+      {
+        for (uint8_t i = 0; i < 6; i++)
+          {
+            gNbPositionAlloc->Add(Vector( i*20, j*20, gNbHeight));
+          }
+      }
+
     mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
     mobility.SetPositionAllocator (gNbPositionAlloc);
     mobility.Install (gNbNodes);
-
 
     double minBigBoxX = -10.0;
     double minBigBoxY = -15.0;
     double maxBigBoxX = 110.0;
     double maxBigBoxY =  35.0;
 
-    NodeContainer selectedUeNodes;
+    // Creating positions of the gNB according to the 3gpp TR 38.900 and
+    // R11700144, uniformly randombly distributed in the rectangular area
 
+    NodeContainer selectedUeNodes;
     for (uint8_t j = 0; j < 2; j++)
       {
         double minSmallBoxY = minBigBoxY + j * (maxBigBoxY-minBigBoxY)/2;
@@ -451,7 +510,6 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
         for (uint8_t i = 0; i < 6; i++)
           {
             double minSmallBoxX = minBigBoxX + i * (maxBigBoxX - minBigBoxX)/6;
-
             Ptr<UniformRandomVariable> ueRandomVarX = CreateObject<UniformRandomVariable>();
 
             double minX = minSmallBoxX;
@@ -594,20 +652,21 @@ int
 main (int argc, char *argv[])
 {
   Nr3gppIndoorCalibration phase1CalibrationScenario;
-
-  std::string scenario = "InH-OfficeMixed";
+  std::string scenario = "InH-OfficeMixed"; // can be InH-OfficeMixed or InH-OfficeOpen
   std::string resultsDir = "";
-
   bool shadowing = true;
+
+  //AntennaArray3gppModel model implements the 3GPP antenna elements
+  //AntennaArrayModel model implements the ISO antenna elements
   TypeId antennaModelGnb = AntennaArray3gppModel::GetTypeId();
   TypeId antennaModelUe = AntennaArrayModel::GetTypeId();
+  // Antenna orientation can be set to AntennaArrayModel::X0 or AntennaArrayModel::Z0
   AntennaArrayModel::AntennaOrientation antennaOrientation = AntennaArrayModel::Z0;
-  double speed = 3.0;
+  double speed = 3.0; // speed in km/h
 
   phase1CalibrationScenario.Run(shadowing, antennaOrientation, antennaModelGnb, antennaModelUe,
              scenario, speed, resultsDir);
 
   return 0;
 }
-
 
