@@ -66,12 +66,21 @@ us a note on ns-developers mailing list.</p>
   </li>
   <li>
     MmWaveEnbDevice and MmWaveUeDevice have new attributes AntennaNumDim1 and 
-    AntennaNumDim2 that allow the configuration of a rectangular antenna.
+    AntennaNumDim2 that allow the configuration of a rectangular antenna. 
+    Previously only squared antenna was supported.
   </li>
   <li>    
     A new AntennaArray3gppModel is introduced that inherits all the features of 
-    the AntennaArrayModel, but it considers 3GPP directional antenna elements
+    the AntennaArrayModel, but it considers 3GPP directional antenna elements 
     instead of ISO antenna elements.
+  </li>
+  <li>
+    3gppChannelModel has a new attribute for configuring the speed. Previous and 
+    the default behaviour is that 3gppChannelModel calculates the relative speed 
+    between the transmitter and the receiver based on their positions. However, 
+    this parameter can be configured when the static scenario is being used but 
+    is desired to imitate small scale fading effects that would exist in a 
+    mobile scenario. 
   </li>
 </ul>
 <h2>Changed behavior:</h2>
@@ -83,8 +92,15 @@ us a note on ns-developers mailing list.</p>
     done on the appropriate CC.
   </li>
   <li>
-    In any given slot, the scheduler will now ignore UEs with new data to
+    In any given slot, the scheduler will now ignore UEs with new data to 
     transmit if it assigned resources for retransmitting an HARQ process.
+  </li>
+  <li>
+    Default value of the UpdatePeriod parameter of the MmWave3gppChannel is 
+    changed to be 1 ms. Note that this dramatically slows down the simulation 
+    execution since the channel matrix will be updated every 1 ms. Previously, 
+    the default parameter was 0, which means that unless configured differently 
+    the channel matrix was not being updated.
   </li>
 </ul>
 
