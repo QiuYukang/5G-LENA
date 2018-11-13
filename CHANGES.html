@@ -60,6 +60,19 @@ us a note on ns-developers mailing list.</p>
   <li>
     The supported bearers QCI are only the ones defined in Rel. 15.
   </li>
+  <li>
+    The Ue NoiseFigure is not anymore hard-coded value, instead can be 
+    through the new MmWaveUePhy attribute called "NoiseFigure".
+  </li>
+  <li>
+    MmWaveEnbDevice and MmWaveUeDevice have new attributes AntennaNumDim1 and 
+    AntennaNumDim2 that allow the configuration of a rectangular antenna.
+  </li>
+  <li>    
+    A new AntennaArray3gppModel is introduced that inherits all the features of 
+    the AntennaArrayModel, but it considers 3GPP directional antenna elements
+    instead of ISO antenna elements.
+  </li>
 </ul>
 <h2>Changed behavior:</h2>
 <ul>
