@@ -28,7 +28,6 @@ class BwpManagerAlgorithm;
 class BwpManagerUe : public SimpleUeComponentCarrierManager
 {
 public:
-
   static TypeId GetTypeId ();
 
   BwpManagerUe ();
@@ -40,7 +39,7 @@ protected:
 
 private:
   BwpManagerAlgorithm *m_algorithm;
-  std::unordered_map<uint8_t, uint8_t> m_lcToBearerMap; //!< Map from LCID to bearer ID
+  std::unordered_map<uint8_t, EpsBearer::Qci> m_lcToBearerMap; //!< Map from LCID to bearer ID
 };
 
 } // namespace ns3
