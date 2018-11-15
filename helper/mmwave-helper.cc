@@ -994,12 +994,21 @@ MmWaveHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer en
     }
   NS_ASSERT (closestEnbDevice != 0);
 
-  uint16_t cellId = closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId ();
-  Ptr<MmWavePhyMacCommon> configParams = closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetPhy ()->GetConfigurationParameters ();
+  auto enbNetDev = closestEnbDevice->GetObject<MmWaveEnbNetDevice> ();
+  auto ueNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
 
-  closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetPhy ()->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
-  ueDevice->GetObject<MmWaveUeNetDevice> ()->GetPhy ()->RegisterToEnb (cellId, configParams);
-  closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetMac ()->AssociateUeMAC (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi ());
+  NS_ABORT_IF (enbNetDev == nullptr || ueNetDev == nullptr);
+
+  uint16_t cellId = enbNetDev->GetCellId ();
+
+  for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
+    {
+
+      Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
+      enbNetDev->GetPhy (i)->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
+      ueNetDev->GetPhy (i)->RegisterToEnb (cellId, configParams);
+      enbNetDev->GetMac(i)->AssociateUeMAC (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi ());
+    }
 
   Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
   ueNas->Connect (closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (),

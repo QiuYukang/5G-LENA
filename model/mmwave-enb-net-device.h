@@ -67,8 +67,6 @@ public:
 
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
-  Ptr<MmWaveEnbPhy> GetPhy (void) const;
-
   Ptr<MmWaveEnbMac> GetMac (uint8_t index);
 
   Ptr<MmWaveEnbPhy> GetPhy (uint8_t index);
@@ -82,10 +80,6 @@ public:
   void SetEarfcn (uint16_t earfcn);
 
   uint16_t GetEarfcn () const;
-
-  void SetMac (Ptr<MmWaveEnbMac> mac);
-
-  Ptr<MmWaveEnbMac> GetMac (void);
 
   void SetRrc (Ptr<LteEnbRrc> rrc);
 
@@ -129,10 +123,6 @@ protected:
   UpdateConfig ();
 
 private:
-  Ptr<MmWaveEnbPhy> m_phy;
-
-  Ptr<MmWaveEnbMac> m_mac;
-
   Ptr<MmWaveMacScheduler> m_scheduler;
 
   Ptr<LteEnbRrc> m_rrc;

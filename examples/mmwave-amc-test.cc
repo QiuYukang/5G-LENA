@@ -56,7 +56,7 @@ void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<SpectrumMode
 //  Ptr<MobilityModel> mobModel = ue->GetObject<MobilityModel> ();
 //  mobModel->SetPosition (Vector (dist, 0.0, 0.0));
 
-	Ptr<MmWavePhyMacCommon> config = enbDev->GetPhy ()->GetConfigurationParameters ();
+	Ptr<MmWavePhyMacCommon> config = enbDev->GetPhy (0)->GetConfigurationParameters ();
 
 	SpectrumValue specVals (model);
 	Values::iterator specIt = specVals.ValuesBegin();
@@ -85,11 +85,11 @@ void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<SpectrumMode
   	mcsOrig = mcsTmp;
   	mcsTmp = mcs;
   }
-  enbDev->GetMac()->SetMcs (mcs);
+  enbDev->GetMac(0)->SetMcs (mcs);
   std::cout << "************* SINR changing to " << snrInit << " (MCS = " << mcs << " ) *************" << std::endl;
 
   Simulator::Schedule (MicroSeconds(3*100), &MmWaveSpectrumPhy::UpdateSinrPerceived,
-											 enbDev->GetPhy()->GetDlSpectrumPhy (), specVals);
+											 enbDev->GetPhy(0)->GetDlSpectrumPhy (), specVals);
 
   //enbPhy->GenerateDataCqiReport(specVals);
 

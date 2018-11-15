@@ -58,12 +58,6 @@ MmWaveEnbNetDevice::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::MmWaveEnbNetDevice").SetParent<MmWaveNetDevice> ()
     .AddConstructor<MmWaveEnbNetDevice> ()
-    .AddAttribute ("MmWaveEnbPhy", "The PHY associated to this EnbNetDevice",
-                   PointerValue (), MakePointerAccessor (&MmWaveEnbNetDevice::m_phy),
-                   MakePointerChecker<MmWaveEnbPhy> ())
-    .AddAttribute ("MmWaveEnbMac", "The MAC associated to this EnbNetDevice",
-                   PointerValue (), MakePointerAccessor (&MmWaveEnbNetDevice::m_mac),
-                   MakePointerChecker<MmWaveEnbMac> ())
     .AddAttribute ("mmWaveScheduler", "The Scheduler associated with the MAC",
                    PointerValue (), MakePointerAccessor (&MmWaveEnbNetDevice::m_scheduler),
                    MakePointerChecker<MmWaveMacScheduler> ())
@@ -169,13 +163,6 @@ MmWaveEnbNetDevice::DoDispose ()
   MmWaveNetDevice::DoDispose ();
 }
 
-Ptr<MmWaveEnbPhy>
-MmWaveEnbNetDevice::GetPhy (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_ccMap.at (0)->GetPhy ();
-}
-
 Ptr<MmWaveEnbMac>
 MmWaveEnbNetDevice::GetMac (uint8_t index)
 {
@@ -222,18 +209,6 @@ MmWaveEnbNetDevice::GetEarfcn () const
   NS_LOG_FUNCTION (this);
   return m_Earfcn;
 
-}
-
-void
-MmWaveEnbNetDevice::SetMac (Ptr<MmWaveEnbMac> mac)
-{
-  m_mac = mac;
-}
-
-Ptr<MmWaveEnbMac>
-MmWaveEnbNetDevice::GetMac (void)
-{
-  return m_ccMap.at (0)->GetMac ();
 }
 
 void

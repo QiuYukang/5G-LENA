@@ -144,6 +144,13 @@ MmWaveUeNetDevice::GetCcMap ()
   return m_ccMap;
 }
 
+uint32_t
+MmWaveUeNetDevice::GetCcMapSize() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ccMap.size ();
+}
+
 void
 MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> > ccm)
 {
@@ -201,13 +208,6 @@ MmWaveUeNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t pro
 }
 
 Ptr<MmWaveUePhy>
-MmWaveUeNetDevice::GetPhy (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_ccMap.at (0)->GetPhy ();
-}
-
-Ptr<MmWaveUePhy>
 MmWaveUeNetDevice::GetPhy (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
@@ -219,14 +219,6 @@ MmWaveUeNetDevice::GetComponentCarrierManager (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_componentCarrierManager;
-}
-
-
-Ptr<MmWaveUeMac>
-MmWaveUeNetDevice::GetMac (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_ccMap.at (0)->GetMac ();
 }
 
 Ptr<EpcUeNas>

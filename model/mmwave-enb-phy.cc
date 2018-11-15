@@ -198,7 +198,7 @@ AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint8_t rnti) const
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
-      uint64_t ueRnti = ueDev->GetPhy ()->GetRnti ();
+      uint64_t ueRnti = ueDev->GetPhy (0)->GetRnti ();
 
       if (ueRnti == rnti)
         {
@@ -571,7 +571,7 @@ MmWaveEnbPhy::StartVarTti (void)
       for (uint8_t i = 0; i < m_deviceMap.size (); i++)
         {
           Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
-          uint64_t ueRnti = ueDev->GetPhy ()->GetRnti ();
+          uint64_t ueRnti = ueDev->GetPhy (0)->GetRnti ();
           if (currVarTti.m_dci->m_rnti == ueRnti)
             {
               Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
@@ -689,7 +689,7 @@ MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAl
       for (uint8_t i = 0; i < m_deviceMap.size (); i++)
         {
           Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (m_deviceMap.at (i));
-          uint64_t ueRnti = ueDev->GetPhy ()->GetRnti ();
+          uint64_t ueRnti = ueDev->GetPhy (0)->GetRnti ();
           //NS_LOG_UNCOND ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
           if (varTtiInfo.m_dci->m_rnti == ueRnti)
             {
@@ -698,7 +698,6 @@ MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAl
               antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
               break;
             }
-
         }
     }
 
