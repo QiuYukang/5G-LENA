@@ -27,7 +27,6 @@
 
 #include "mmwave-3gpp-propagation-loss-model.h"
 #include <ns3/buildings-propagation-loss-model.h>
-#include "mmwave-beamforming.h"
 #include <ns3/simulator.h>
 #include <fstream>
 

@@ -46,7 +46,6 @@
 #include <ns3/packet-burst.h>
 #include "mmwave-spectrum-signal-parameters.h"
 #include "ns3/random-variable-stream.h"
-#include "ns3/mmwave-beamforming.h"
 #include "mmwave-interference.h"
 #include "mmwave-control-messages.h"
 #include "mmwave-harq-phy.h"

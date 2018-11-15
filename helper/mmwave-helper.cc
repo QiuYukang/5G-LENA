@@ -176,16 +176,7 @@ MmWaveHelper::DoDispose (void)
     }
   m_channel.clear ();
   m_bandwidthPartsConf = 0;
-  for (auto i:m_beamforming)
-    {
-      i = 0;
-    }
-  m_beamforming.clear ();
-  for (auto i:m_channelMatrix)
-    {
-      i = 0;
-    }
-  m_channelMatrix.clear ();
+
   for (auto i:m_raytracing)
     {
       i = 0;
@@ -239,29 +230,7 @@ MmWaveHelper::DoInitialize ()
       NS_LOG_UNCOND ("MmWaveHelper: No PropagationLossModel!");
     }
 
-  if (m_channelModelType == "ns3::MmWaveBeamforming")
-    {
-      uint32_t k = 0;
-      for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
-        {
-          Ptr<MmWaveBeamforming> beamforming = CreateObject<MmWaveBeamforming> (m_noTxAntenna, m_noRxAntenna);
-          m_channel.at (k++)->AddSpectrumPropagationLossModel (beamforming);
-          beamforming->SetConfigurationParameters (i);
-          m_beamforming.push_back (beamforming);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWaveChannelMatrix")
-    {
-      uint32_t k = 0;
-      for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
-        {
-          Ptr<MmWaveChannelMatrix> channelMatrix = CreateObject<MmWaveChannelMatrix> ();
-          m_channel.at (k++)->AddSpectrumPropagationLossModel (channelMatrix);
-          channelMatrix->SetConfigurationParameters (i);
-          m_channelMatrix.push_back (channelMatrix);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
+  if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
     {
       uint32_t k = 0;
       for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
@@ -944,21 +913,7 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
       AttachToClosestEnb (*i, enbDevices);
     }
 
-  if (m_channelModelType == "ns3::MmWaveBeamforming")
-    {
-      for (auto i:m_beamforming)
-        {
-          i->Initial (ueDevices,enbDevices);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWaveChannelMatrix")
-    {
-      for (auto i:m_channelMatrix)
-        {
-          i->Initial (ueDevices,enbDevices);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
+  if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
     {
       for (auto i:m_raytracing)
         {
