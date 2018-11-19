@@ -47,6 +47,7 @@
 #include <ns3/mmwave-beamforming.h>
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/antenna-array-model.h>
+#include <ns3/antenna-array-3gpp-model.h>
 #include <ns3/mmwave-rrc-protocol-ideal.h>
 #include "mmwave-phy-rx-trace.h"
 #include <ns3/epc-helper.h>

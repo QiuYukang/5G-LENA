@@ -52,7 +52,7 @@ AntennaArray3gppModel::GetTypeId ()
 }
 
 void
-AntennaArray3gppModel::Set3gppParameters (bool isUe)
+AntennaArray3gppModel::SetIsUe (bool isUe)
 {
   if (isUe)
     {

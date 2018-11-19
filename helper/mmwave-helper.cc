@@ -538,6 +538,11 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       /* Antenna model */
       Ptr<AntennaModel> antenna = (m_ueAntennaModelFactory.Create ())->GetObject<AntennaModel> ();
       NS_ASSERT_MSG (antenna, "error in creating the AntennaModel object");
+      Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (antenna);
+      if (antenna3gpp)
+        {
+          antenna3gpp->SetIsUe(true);
+        }
       dlPhy->SetAntenna (antenna);
       ulPhy->SetAntenna (antenna);
 
@@ -730,6 +735,11 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       /* Antenna model */
       Ptr<AntennaModel> antenna = (m_enbAntennaModelFactory.Create ())->GetObject<AntennaModel> ();
       NS_ASSERT_MSG (antenna, "error in creating the AntennaModel object");
+      Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (antenna);
+      if (antenna3gpp)
+        {
+           antenna3gpp->SetIsUe(false);
+        }
       dlPhy->SetAntenna (antenna);
       ulPhy->SetAntenna (antenna);
 

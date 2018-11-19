@@ -35,12 +35,13 @@ public:
 
   static TypeId GetTypeId ();
 
-  void Set3gppParameters (bool isUe);
+  void SetIsUe (bool isUe);
 
   virtual double GetRadiationPattern (double vAngle, double hAngle = 0) override;
 
 private:
 
+  bool m_isUe; ///<! the attribute that is saying if the antenna is of UE or gNB
   double m_hpbw;  //HPBW value of each antenna element
   double m_gMax; //directivity value expressed in dBi and valid only for TRP (see table A.1.6-3 in 38.802)
 
