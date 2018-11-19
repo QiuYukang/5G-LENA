@@ -111,9 +111,11 @@ AntennaArrayModel::GetTypeId ()
     .AddAttribute ("AntennaOrientation",
                    "The orentation of the antenna",
                    EnumValue (AntennaOrientation::X0),
-                   MakeEnumAccessor(&AntennaArrayModel::m_orientation),
+                   MakeEnumAccessor(&AntennaArrayModel::SetAntennaOrientation,
+                                    &AntennaArrayModel::GetAntennaOrientation),
                    MakeEnumChecker(AntennaOrientation::X0, "X0",
-                                   AntennaOrientation::Z0, "Z0"))
+                                   AntennaOrientation::Z0, "Z0",
+                                   AntennaOrientation::Y0, "Y0"))
   ;
   return tid;
 }
@@ -440,6 +442,18 @@ std::ostream &operator<< (std::ostream &os, const AntennaArrayModel::BeamId &ite
   os << "[Sector: " << static_cast<uint32_t> (AntennaArrayModel::GetSector (item))
      << " elevation: " << AntennaArrayModel::GetElevation (item) << "]";
   return os;
+}
+
+
+void AntennaArrayModel::SetAntennaOrientation (enum AntennaArrayModel::AntennaOrientation orientation)
+{
+  m_orientation = orientation;
+}
+
+enum AntennaArrayModel::AntennaOrientation
+AntennaArrayModel::GetAntennaOrientation () const
+{
+  return m_orientation;
 }
 
 

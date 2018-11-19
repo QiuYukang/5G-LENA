@@ -36,9 +36,13 @@ class AntennaArrayModel : public AntennaArrayBasicModel
 {
 public:
 
+  /**
+   * \brief Predefined antenna orientation options
+   */
   enum AntennaOrientation{
-    X0,
-    Z0
+    X0,//!< X0 Means that antenna's X axis is set to 0, hence the antenna is placed in Z-Y plane
+    Z0,//!< Z0 Means that antenna's Z axis is set to 0, hence the antenna is placed in X-Y plane
+    Y0 //!< Y0 Means that antenna's Y axis is set to 0, hence the antenna is placed in X-Z plane
   };
 
   AntennaArrayModel ();
@@ -72,6 +76,11 @@ public:
   virtual Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum);
 
   virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90);
+
+  void SetAntennaOrientation (enum AntennaArrayModel::AntennaOrientation orientation);
+
+  enum AntennaArrayModel::AntennaOrientation GetAntennaOrientation () const;
+
 
 private:
 
