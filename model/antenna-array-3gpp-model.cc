@@ -51,19 +51,17 @@ AntennaArray3gppModel::GetTypeId ()
   return tid;
 }
 
+double
+AntennaArray3gppModel::GetGainDb (Angles a)
+{
+  return 0;
+}
+
 void
 AntennaArray3gppModel::SetIsUe (bool isUe)
 {
-  if (isUe)
-    {
-      m_hpbw = 90;           //HPBW value of each antenna element
-      m_gMax = 5;           //directivity value expressed in dBi and valid only for TRP (see table A.1.6-3 in 38.802
-    }
-  else
-    {
-      m_hpbw = 65;           //HPBW value of each antenna element
-      m_gMax = 8;           //directivity value expressed in dBi and valid only for TRP (see table A.1.6-3 in 38.802
-    }
+  NS_LOG_INFO("Set 3GPP antenna model parameters for "<< ((isUe)?"UE":"gNB"));
+  m_isUe = isUe;
 }
 
 
@@ -81,20 +79,38 @@ AntennaArray3gppModel::GetRadiationPattern (double vAngleRadian, double hAngleRa
 
   double vAngle = vAngleRadian * 180 / M_PI;
   double hAngle = hAngleRadian * 180 / M_PI;
-  //NS_LOG_INFO(" it is " << vAngle);
-  NS_ASSERT_MSG (vAngle >= 0&&vAngle <= 180, "the vertical angle should be the range of [0,180]");
-  //NS_LOG_INFO(" it is " << hAngle);
-  NS_ASSERT_MSG (hAngle >= -180&&hAngle <= 180, "the horizontal angle should be the range of [-180,180]");
 
-  double A_M = 30;       //front-back ratio expressed in dB
-  double SLA = 30;       //side-lobe level limit expressed in dB
+  NS_ASSERT_MSG (vAngle >= 0 && vAngle <= 180, "The vertical angle should be in the range of [0,180]");
+  NS_ASSERT_MSG (hAngle >= -180 && hAngle <= 180, "The horizontal angle should be in the range of [-180,180]");
 
-  double A_v = -1 * std::min (SLA,12 * pow ((vAngle - 90) / m_hpbw,2));      //TODO: check position of z-axis zero
-  double A_h = -1 * std::min (A_M,12 * pow (hAngle / m_hpbw,2));
-  double A = m_gMax - 1 * std::min (A_M,-1 * A_v - 1 * A_h);
+  double A = 0 ;
 
-  return sqrt (pow (10,A / 10));     //filed factor term converted to linear;
+  if (m_isUe)
+    {
+      double gMax = 5;  // maximum directional gain of an antenna element in dBi according to UE antenna radiation pattern in 38.802 table A.2.1-8
+      double hpbw = 90; //HPBW value of each antenna element
+      double A_M = 25;  //front-back ratio expressed in dB
+      double SLA = 25;  //side-lobe level limit expressed in dB
+      double A_v= -1 * std::min (12 * pow ((vAngle - 90) / hpbw, 2), SLA);
+      double A_h = -1 * std::min (12 * pow (hAngle / hpbw, 2), A_M);
+
+      A = gMax - 1 * std::min (-1 * A_v - 1 * A_h, A_M);
+    }
+  else
+    {
+      double gMax = 5;  // maximum directional gain of an antenna element of Wall Mount radiation pattern (38.802 table A.2.1.7)
+      double hpbw = 90; //HPBW value of each antenna element
+      double A_M = 25;  //front-back ratio expressed in dB
+      double SLA = 25;  //side-lobe level limit expressed in dB
+      double A_v= -1 * std::min (12 * pow ((vAngle - 90) / hpbw, 2), SLA);
+      double A_h = -1 * std::min (12 * pow (hAngle / hpbw, 2), A_M);
+
+      A = gMax - 1 * std::min (A_M, -1 * A_v - 1 * A_h);
+    }
+
+  return sqrt (pow (10, A / 10)); //field factor term converted to linear;
 }
+
 
 
 } /* namespace ns3 */

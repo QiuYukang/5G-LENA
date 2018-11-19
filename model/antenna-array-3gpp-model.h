@@ -35,6 +35,14 @@ public:
 
   static TypeId GetTypeId ();
 
+  /**
+   * \brief Must override the function to set 0 gain,
+   * since the gain is already accounted for with GetRadiationPattern function
+   * @param angles angles of gain
+   * @return gain which is in this case always 0
+   */
+  virtual double GetGainDb (Angles a) override;
+
   void SetIsUe (bool isUe);
 
   virtual double GetRadiationPattern (double vAngle, double hAngle = 0) override;
@@ -42,9 +50,6 @@ public:
 private:
 
   bool m_isUe; ///<! the attribute that is saying if the antenna is of UE or gNB
-  double m_hpbw;  //HPBW value of each antenna element
-  double m_gMax; //directivity value expressed in dBi and valid only for TRP (see table A.1.6-3 in 38.802)
-
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);
