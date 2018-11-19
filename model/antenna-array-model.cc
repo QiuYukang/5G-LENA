@@ -354,18 +354,8 @@ AntennaArrayModel::GetRadiationPattern (double vAngle, double hAngle)
   NS_ASSERT_MSG (vAngle >= 0&&vAngle <= 180, "the vertical angle should be the range of [0,180]");
   NS_ASSERT_MSG (hAngle >= -180&&vAngle <= 180, "the vertical angle should be the range of [0,180]");
   return 1;       //for testing
-  /*double A_EV = -1*std::min(12*pow((vAngle-90)/65,2),30.0);
-  if(hAngle != 0)
-  {
-          double A_EH = -1*std::min(12*pow(hAngle/65,2),30.0);
-          double A = -1*std::min(-1*A_EV-1*A_EH,30.0);
-          return pow(10,A/10); //convert to linear;
-  }
-  else
-  {
-          return pow(10,A_EV/10); //convert to linear;
-  }*/
 }
+
 Vector
 AntennaArrayModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
 {
