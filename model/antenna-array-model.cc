@@ -116,6 +116,11 @@ AntennaArrayModel::GetTypeId ()
                    MakeEnumChecker(AntennaOrientation::X0, "X0",
                                    AntennaOrientation::Z0, "Z0",
                                    AntennaOrientation::Y0, "Y0"))
+    .AddAttribute ("AntennaGain",
+                   "Antenna gain in dBi",
+                   DoubleValue (0),
+                   MakeDoubleAccessor (&AntennaArrayModel::m_antennaGain),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -123,37 +128,7 @@ AntennaArrayModel::GetTypeId ()
 double
 AntennaArrayModel::GetGainDb (Angles a)
 {
-  /*NS_ASSERT (m_minAngle<=m_maxAngle);
-  double gain;
-  if (m_maxAngle <= M_PI)
-  {
-          if(a.phi < m_minAngle || a.phi > m_maxAngle)
-          {
-                  gain = -500;
-                  //NS_LOG_UNCOND ("++++++++++++++++++++++blocked");
-          }
-          else
-          {
-                  gain = 0;
-          }
-  }
-  else
-  {
-          double maxAngle = m_maxAngle - 2*M_PI;
-          if(a.phi < m_minAngle || a.phi > maxAngle)
-          {
-                  gain = -500;
-                  //NS_LOG_UNCOND ("++++++++++++++++++++++blocked");
-                  }
-          else
-          {
-                  gain = 0;
-          }
-
-  }
-
-  return gain;*/
-  return 0;
+  return m_antennaGain;
 }
 void
 AntennaArrayModel::SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
