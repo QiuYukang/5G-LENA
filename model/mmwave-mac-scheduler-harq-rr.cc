@@ -209,6 +209,10 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
   uint8_t symUsed = 0;
   NS_ASSERT (startingPoint->m_rbg == 0);
 
+  NS_LOG_INFO ("Scheduling UL HARQ starting from sym " << +startingPoint->m_sym <<
+               " and RBG " << +startingPoint->m_rbg << ". Available symbols: " <<
+               symAvail << " number of feedback: " << ulHarqFeedback.size ());
+
   for (uint16_t i = 0; i < ulHarqFeedback.size () && symAvail > 0; i++)
     {
       UlHarqInfo harqInfo = ulHarqFeedback.at (i);
@@ -223,6 +227,9 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
 
       harqProcess.m_status = HarqProcess::WAITING_FEEDBACK;
       auto & dciInfoReTx = harqProcess.m_dciElement;
+
+      NS_LOG_INFO ("Feedback is for UE " << rnti << " process " << +harqId <<
+                   " sym: " << +dciInfoReTx->m_numSym);
 
       if (symAvail >= dciInfoReTx->m_numSym)
         {
@@ -244,7 +251,6 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
                         " RETX");
           slotAlloc->m_varTtiAllocInfo.push_front (slotInfo);
           slotAlloc->m_numSymAlloc += dciInfoReTx->m_numSym;
-          symAvail -= dciInfoReTx->m_numSym;
 
           ueMap.find (rnti)->second->m_ulMRBRetx = dciInfoReTx->m_numSym * m_phyMacConfig->GetBandwidthInRbg ();
         }
