@@ -58,6 +58,7 @@ public:
 
   virtual double GetRadiationPattern (double vAngle, double hAngle = 0) override;
 
+  Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum) override;
 private:
 
   bool m_isUe; ///<! the attribute that is saying if the antenna is of UE or gNB
