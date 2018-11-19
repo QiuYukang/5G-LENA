@@ -22,6 +22,7 @@
 #include <ns3/simulator.h>
 #include "antenna-array-3gpp-model.h"
 #include "ns3/double.h"
+#include "ns3/enum.h"
 
 
 NS_LOG_COMPONENT_DEFINE ("AntennaArray3gppModel");
@@ -47,7 +48,12 @@ AntennaArray3gppModel::GetTypeId ()
   static TypeId tid = TypeId ("ns3::AntennaArray3gppModel")
     .SetParent<AntennaArrayModel> ()
     .AddConstructor<AntennaArray3gppModel> ()
-  ;
+    .AddAttribute("GnbAntennaMountType",
+                  "How the gNb antenna is mounted, can be Wall Mount or Single Sector according to 38.802. table A.2.1.7",
+                  EnumValue(AntennaArray3gppModel::GnbWallMount),
+                  MakeEnumAccessor(&AntennaArray3gppModel::m_antennaMount),
+                  MakeEnumChecker(AntennaArray3gppModel::GnbWallMount, "GnbWallMount",
+                                  AntennaArray3gppModel::GnbSingleSector, "GnbSingleSector"));
   return tid;
 }
 

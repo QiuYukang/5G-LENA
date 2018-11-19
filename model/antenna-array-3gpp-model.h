@@ -29,6 +29,12 @@ class AntennaArray3gppModel : public AntennaArrayModel
 {
 public:
 
+  enum GnbAntennaMount
+  {
+    GnbWallMount,
+    GnbSingleSector
+  };
+
   AntennaArray3gppModel ();
 
   virtual ~AntennaArray3gppModel ();
@@ -55,6 +61,8 @@ public:
 private:
 
   bool m_isUe; ///<! the attribute that is saying if the antenna is of UE or gNB
+  GnbAntennaMount m_antennaMount; ///<! the type of gNb antenna mount
+
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);
