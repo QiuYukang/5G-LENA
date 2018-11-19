@@ -1049,7 +1049,7 @@ MmWave3gppChannel::Get3gppTable (bool los, bool o2i, double hBS, double hUT, dou
             }
         }
     }
-  else if (m_scenario == "InH-OfficeMixed"||m_scenario == "InH-OfficeOpen")
+  else if (m_scenario == "InH-OfficeMixed"||m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
     {
       NS_ASSERT_MSG (!o2i, "The indoor scenario does out support outdoor to indoor");
       if (los)
@@ -2584,7 +2584,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
           //draw value from table 7.6.4.1-2 Blocking region parameters
           doubleVector_t table;
           table.push_back (m_normalRvBlockage->GetValue ()); //phi_k: store the normal RV that will be mapped to uniform (0,360) later.
-          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen")
+          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
             {
               table.push_back (m_uniformRvBlockage->GetValue (15, 45)); //x_k
               table.push_back (90); //Theta_k
@@ -2609,7 +2609,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
         {
           double corrDis;
           //draw value from table 7.6.4.1-4: Spatial correlation distance for different scenarios.
-          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen")
+          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
             {
               //InH, correlation distance = 5;
               corrDis = 5;
