@@ -40,6 +40,7 @@ New user-visible features (old first)
 - (nr) Aligned ComponentCarrierGnb, MmWaveEnbMac, MmWaveUePhy to ns-3-dev
 - (nr) Aligned the BwpManager and the various helper/example to the bearer
   definitions in Rel. 15
+- (nr) Removed unsupported MmWaveBeamforming and MmWaveChannelMatrix classes.
 
 
 Bugs fixed

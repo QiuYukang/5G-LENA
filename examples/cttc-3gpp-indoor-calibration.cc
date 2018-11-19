@@ -635,7 +635,7 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     for (uint32_t i = 0 ; i < ueNetDevs.GetN(); i ++)
       {
         Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
-        (ueNetDevs.Get(i))->GetPhy()->GetDlSpectrumPhy();
+        (ueNetDevs.Get(i))->GetPhy(0)->GetDlSpectrumPhy();
         ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe", MakeBoundCallback(&UeReceptionTrace, this));
         Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference();
         NS_ABORT_IF(!ue1SpectrumPhyInterference);

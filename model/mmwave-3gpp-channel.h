@@ -59,6 +59,9 @@ namespace ns3 {
 
 typedef std::vector<double> doubleVector_t;
 typedef std::vector<doubleVector_t> double2DVector_t;
+typedef std::vector< std::complex<double> > complexVector_t;
+typedef std::vector<complexVector_t> complex2DVector_t;
+typedef std::vector<complex2DVector_t> complex3DVector_t;
 
 /**
  * Data structure that stores a channel realization

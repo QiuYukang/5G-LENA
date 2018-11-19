@@ -44,7 +44,6 @@
 #include <ns3/mmwave-ue-phy.h>
 #include <ns3/mmwave-enb-phy.h>
 #include <ns3/mmwave-spectrum-value-helper.h>
-#include <ns3/mmwave-beamforming.h>
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/antenna-array-model.h>
 #include <ns3/antenna-array-3gpp-model.h>
@@ -57,8 +56,6 @@
 #include <ns3/boolean.h>
 #include <ns3/epc-helper.h>
 #include <ns3/lte-ffr-algorithm.h>
-#include <ns3/mmwave-beamforming.h>
-#include <ns3/mmwave-channel-matrix.h>
 #include <ns3/mmwave-bearer-stats-calculator.h>
 #include <ns3/mmwave-bearer-stats-connector.h>
 #include <ns3/propagation-loss-model.h>
@@ -301,8 +298,6 @@ private:
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
 
   std::vector<Ptr<SpectrumChannel> >m_channel;
-  std::vector<Ptr<MmWaveBeamforming> > m_beamforming;   // beamforming per bandwidth part
-  std::vector<Ptr<MmWaveChannelMatrix> > m_channelMatrix;   //channel matrix per bandwidth part
   std::vector<Ptr<MmWaveChannelRaytracing> >m_raytracing;   //raytracing per bandwidth part
   std::vector<Ptr<MmWave3gppChannel> > m_3gppChannel;   //3gpp channel per bandwidth part
   

@@ -26,7 +26,6 @@
 #define BUILDINGS_OBSTACLE_PROPAGATION_LOSS_MODEL_H_
 
 #include <ns3/buildings-propagation-loss-model.h>
-#include "mmwave-beamforming.h"
 #include <ns3/simulator.h>
 
 

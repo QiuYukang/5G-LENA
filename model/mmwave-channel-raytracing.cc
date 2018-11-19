@@ -226,6 +226,8 @@ MmWaveChannelRaytracing::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
   Ptr<AntennaArrayModel> txAntennaArray, rxAntennaArray;
 
+  uint8_t ccId = m_phyMacConfig->GetCcId ();
+
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
   Ptr<MmWaveEnbNetDevice> txEnb =
@@ -248,9 +250,9 @@ MmWaveChannelRaytracing::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> 
       rxAntennaNum[1] = sqrt (rxUe->GetAntennaNum ());
 
       txAntennaArray = DynamicCast<AntennaArrayModel> (
-        txEnb->GetPhy ()->GetDlSpectrumPhy ()->GetRxAntenna ());
+        txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       rxAntennaArray = DynamicCast<AntennaArrayModel> (
-        rxUe->GetPhy ()->GetDlSpectrumPhy ()->GetRxAntenna ());
+        rxUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
     }
   else if (txEnb == 0 && rxUe == 0 )
     {
@@ -269,9 +271,9 @@ MmWaveChannelRaytracing::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> 
 
 
       txAntennaArray = DynamicCast<AntennaArrayModel> (
-        txUe->GetPhy ()->GetDlSpectrumPhy ()->GetRxAntenna ());
+        txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       rxAntennaArray = DynamicCast<AntennaArrayModel> (
-        rxEnb->GetPhy ()->GetDlSpectrumPhy ()->GetRxAntenna ());
+        rxEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
     }
   else
     {

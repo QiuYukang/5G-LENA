@@ -1613,7 +1613,8 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       uint8_t usedHarq = ScheduleUlHarq (&ulAssignationStartPoint, ulSymAvail,
                                          m_ueMap, &m_ulHarqToRetransmit, ulHarqFeedback,
                                          allocInfo);
-      NS_ASSERT (ulSymAvail >= usedHarq);
+      NS_ASSERT_MSG (ulSymAvail >= usedHarq, "Available: " << +ulSymAvail <<
+                     " used by HARQ: " << +usedHarq);
       NS_LOG_INFO ("For the slot " << ulSfn << " reserved " <<
                    static_cast<uint32_t> (usedHarq) << " symbols for UL HARQ retx");
       ulSymAvail -= usedHarq;

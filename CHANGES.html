@@ -96,6 +96,13 @@ us a note on ns-developers mailing list.</p>
     New traces sources are added to the Interference class for collecting 
     the SNR and RSSI values.
   </li>
+  <li>
+    The attributes <i>MmWaveEnbNetDevice::MmWaveEnbPhy<i> and
+    <i>MmWaveEnbNetDevice::MmWaveEnbMac</i> have been removed as they are
+    replaced by the component carrier map. GetPhy () and GetMac () for UE
+    and gNB NetDevices are now deleted, instead it is necessary to use the
+    version with the ccId.
+  </li>
 </ul>
 <h2>Changed behavior:</h2>
 <ul>

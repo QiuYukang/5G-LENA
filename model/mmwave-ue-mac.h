@@ -92,7 +92,7 @@ private:
    * \param params the BSR params
    *
    * The CCM is calling this function for all the MAC of the UE. This method
-   * will send SR only for CC ID = 0 (BwpManager will take care of
+   * will send SR only for CC ID = 0 (BwpManagerGnb will take care of
    * routing the SR to the appropriate MAC).
    *
    * \see DoSlotIndication

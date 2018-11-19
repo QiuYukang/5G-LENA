@@ -73,13 +73,9 @@ public:
 
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
-  Ptr<MmWaveUePhy> GetPhy (void) const;
-
   Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
 
   Ptr<LteUeComponentCarrierManager> GetComponentCarrierManager (void) const;
-
-  Ptr<MmWaveUeMac> GetMac (void) const;
 
   uint64_t GetImsi () const;
 
@@ -129,6 +125,12 @@ public:
    * \returns the map of ComponentCarrierUe
    */
   std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> >  GetCcMap (void);
+
+  /**
+   * \brief Get the size of the component carriers map
+   * \return the number of cc that we have
+   */
+  uint32_t GetCcMapSize () const;
 
 protected:
   // inherited from Object
