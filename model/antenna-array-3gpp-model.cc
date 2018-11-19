@@ -72,6 +72,11 @@ AntennaArray3gppModel::SetIsUe (bool isUe)
   m_isUe = isUe;
 }
 
+bool
+AntennaArray3gppModel::GetIsUe ()
+{
+  return m_isUe;
+}
 
 double
 AntennaArray3gppModel::GetRadiationPattern (double vAngleRadian, double hAngleRadian)
