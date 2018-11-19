@@ -54,6 +54,8 @@ AntennaArray3gppModel::GetTypeId ()
 double
 AntennaArray3gppModel::GetGainDb (Angles a)
 {
+  // 3gpp antenna model shall have this gain always set to 0
+  //since its antenna gain is already included in GetRadiationPattern calculation
   return 0;
 }
 

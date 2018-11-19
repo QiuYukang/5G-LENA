@@ -43,6 +43,11 @@ public:
    */
   virtual double GetGainDb (Angles a) override;
 
+  /**
+   * \brief Function sets the attribute m_isUe that is used to determine
+   * which configuration parameter for antenna will be used, i.e. for UE or gNB
+   * @param isUe whether the antenna is of UE or gNB
+   */
   void SetIsUe (bool isUe);
 
   virtual double GetRadiationPattern (double vAngle, double hAngle = 0) override;
