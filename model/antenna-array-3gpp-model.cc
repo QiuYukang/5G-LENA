@@ -106,14 +106,30 @@ AntennaArray3gppModel::GetRadiationPattern (double vAngleRadian, double hAngleRa
     }
   else
     {
-      double gMax = 5;  // maximum directional gain of an antenna element of Wall Mount radiation pattern (38.802 table A.2.1.7)
-      double hpbw = 90; //HPBW value of each antenna element
-      double A_M = 25;  //front-back ratio expressed in dB
-      double SLA = 25;  //side-lobe level limit expressed in dB
-      double A_v= -1 * std::min (12 * pow ((vAngle - 90) / hpbw, 2), SLA);
-      double A_h = -1 * std::min (12 * pow (hAngle / hpbw, 2), A_M);
+      if (m_antennaMount == GnbAntennaMount::GnbWallMount)
+        {
+          double gMax = 5;  // maximum directional gain of an antenna element of Wall Mount radiation pattern (38.802 table A.2.1.7)
+          double hpbw = 90; //HPBW value of each antenna element
+          double A_M = 25;  //front-back ratio expressed in dB
+          double SLA = 25;  //side-lobe level limit expressed in dB
+          double A_v= -1 * std::min (12 * pow ((vAngle - 90) / hpbw, 2), SLA);
+          double A_h = -1 * std::min (12 * pow (hAngle / hpbw, 2), A_M);
 
-      A = gMax - 1 * std::min (A_M, -1 * A_v - 1 * A_h);
+          A = gMax - 1 * std::min (A_M, -1 * A_v - 1 * A_h);
+        }
+      else if (m_antennaMount == GnbAntennaMount::GnbSingleSector)
+        {
+          double gMax = 5;  // maximum directional gain of an antenna element of Single Sector Mount radiation pattern (38.802 table A.2.1.7)
+          double hpbw = 65; //HPBW value of each antenna element
+          double SLA = 25;  //side-lobe level limit expressed in dB
+          double A_v = -1 * std::min (12 * pow ((vAngle - 90) / hpbw, 2), SLA);
+
+          A = gMax + A_v;
+        }
+      else
+        {
+          NS_ABORT_MSG("Unknown antenna mount type.");
+        }
     }
 
   return sqrt (pow (10, A / 10)); //field factor term converted to linear;
