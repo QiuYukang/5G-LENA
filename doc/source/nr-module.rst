@@ -581,7 +581,7 @@ was enough to transmit it.
 
 cttc-3gpp-channel-nums.cc
 ============================================
-The program ``scratch/cttc-3gpp-channel-nums.cc``
+The program ``examples/cttc-3gpp-channel-nums.cc``
 allows users to select the numerology and test the end-to-end performance.
 Figure :ref:`fig-end-to-end` shows the simulation setup. 
 The user can run this example with UDP full buffer traffic and can specify the 
@@ -607,12 +607,18 @@ The program runs for 0.4 seconds and one single packet is to be transmitted.
 The packet size can be toggled by the argument, 
 e.g. ``'--packetSize=1'``.
 
-This produces the following output:
+This simulation prints the output to the terminal and also to the file which 
+is named by default ``cttc-3gpp-channel-nums-fdm-output`` and which is by 
+default placed in the root directory of the project. 
+To run the simulation with the default 
+configuration one shall run the following in the command line
 
-::
-  
+::  
   ./waf --run cttc-3gpp-channel-nums
 
+
+The example of the output is the following:
+:: 
 
   Flow 1 (1.0.0.2:49153 -> 7.0.0.2:1234) proto UDP
   Tx Packets: 56254
@@ -626,7 +632,8 @@ This produces the following output:
   Rx Packets: 47485
  Total UDP throughput (bps):6.33133e+08
 
-The output of this simulation represents the metrics calculated by the flow monitor tool. 
+The output of this simulation represents the metrics that are collected 
+by the flow-monitor ns-3 tool. 
 
 By default, the example runs with numerology 0.
 To run with different numerology:
@@ -658,7 +665,7 @@ while the delay is lower for the higher value of numerology. Also UPT throughput
 cttc-3gpp-channel-simple-fdm.cc
 ============================================
 
-The program ``scratch/cttc-3gpp-channel-simple-fdm.cc`` can be used to simulate FDM in scenario with a single UE and gNB.
+The program ``examples/cttc-3gpp-channel-simple-fdm.cc`` can be used to simulate FDM in scenario with a single UE and gNB.
 In this program the packet is directly injected to the gNB, so this program can be used only for simulation of the RAN part.
 This program allows the user to configure 2 bandwidth parts (BWPs). The user can also configure the size of the packet by 
 using the global variable ``packetSize``, and can also specify an indicator that tells whether the traffic flow is URLLC or 
@@ -715,7 +722,7 @@ This example considers a fixed MCS (Modulation and Coding Scheme) of 28.
 cttc-3gpp-channel-nums-fdm.cc
 ============================================
 
-The program ``scratch/cttc-3gpp-channel-nums-fdm.cc`` allows the user to configure 2 UEs and 1 or 2 bandwidth parts (BWPs) and test the end-to-end performance.
+The program ``examples/cttc-3gpp-channel-nums-fdm.cc`` allows the user to configure 2 UEs and 1 or 2 bandwidth parts (BWPs) and test the end-to-end performance.
 This example is designed to expect the full configuration of each BWP. The configuration of BWP is composed of the following parameters:
 central carrier frequency, bandwidth and numerology. There are 2 UEs, and each UE has one flow. 
 One flow is of URLLC traffic type, while the another is eMBB.
@@ -735,6 +742,43 @@ The total transmission power :math:`P_{(i)}` depends on the bandwidth of each BW
 
 
 If the user configures only 1 BWP, then the configuration for the first BWP will be used. 
+
+
+cttc-3gpp-indoor-calibration.cc
+=====================================
+
+The program ``examples/cttc-3gpp-indoor-calibration`` is the simulation 
+script created for the NR-MIMO Phase 1 system-level calibration. 
+The scenario implemented in this simulation script is according to 
+the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1: 
+"Layout of indoor office scenarios".
+The simulation assumptions and the configuration parameters follow 
+the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88, 
+and which are summarised in R1-1703534 Table 1. 
+In the following Figure is illustrated the scenario with the gNB positions 
+which are represented with "x". The UE nodes are randomly uniformly dropped 
+in the area. There are 10 UEs per gNB.
+
+The results of the simulation are files containing data that is being 
+collected over the course of the simulation execution:
+
+ - SINR values for all the 120 UEs
+ - SNR values for all the 120 UEs
+ - RSSI values for all the 120 UEs
+ 
+Additionally there are files that contain:
+  - UE positions
+  - gNB positions
+  - distances of UEs from the gNBs to which they are attached
+
+The file names are created by default in the root project directory if not 
+configured differently by setting resultsDirPath parameter of the Run() 
+function.
+
+The file names by default start with the prefixes such as "sinrs", "snrs",
+"rssi", "gnb-positions,", "ue-positions" which are followed by the 
+string that briefly describes the configuration parameters that are being 
+set in the specific simulation execution.
 
 
 Simulation campaigns
