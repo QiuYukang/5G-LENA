@@ -320,6 +320,12 @@ struct DciInfoElementTdma
 
   DciInfoElementTdma () = delete;
 
+  /**
+   * \brief Constructor used in MmWaveUePhy to build local DCI for DL and UL control
+   * \param symStart Sym start
+   * \param numSym Num sym
+   * \param rbgBitmask Bitmask of RBG
+   */
   DciInfoElementTdma (uint8_t symStart, uint8_t numSym,
                       const std::vector<uint8_t> &rbgBitmask)
     : m_symStart (symStart),
@@ -328,6 +334,19 @@ struct DciInfoElementTdma
   {
   }
 
+  /**
+   * \brief Construct to build brand new DCI. Please remember to update manually
+   * the HARQ process ID and the RBG bitmask
+   *
+   * \param rnti
+   * \param format
+   * \param symStart
+   * \param numSym
+   * \param mcs
+   * \param tbs
+   * \param ndi
+   * \param rv
+   */
   DciInfoElementTdma (uint16_t rnti, DciFormat format, uint8_t symStart,
                       uint8_t numSym, uint8_t mcs, uint32_t tbs, uint8_t ndi,
                       uint8_t rv)
@@ -336,28 +355,38 @@ struct DciInfoElementTdma
   {
   }
 
-  void Erase ()
+
+  /**
+   * \brief Copy constructor except for some values that have to be overwritten
+   * \param symStart Sym start
+   * \param numSym Num sym
+   * \param ndi New Data Indicator: 0 for Retx, 1 for New Data
+   * \param rv Retransmission value
+   * \param o Other object from which copy all that is not specified as parameter
+   */
+  DciInfoElementTdma (uint8_t symStart, uint8_t numSym, uint8_t ndi, uint8_t rv,
+                      const DciInfoElementTdma &o)
+    : m_rnti (o.m_rnti),
+      m_format (o.m_format),
+      m_symStart (symStart),
+      m_numSym (numSym),
+      m_mcs (o.m_mcs),
+      m_tbSize (o.m_tbSize),
+      m_ndi (ndi),
+      m_rv (rv),
+      m_harqProcess (o.m_harqProcess),
+      m_rbgBitmask (o.m_rbgBitmask)
   {
-    m_rnti = 0;
-    m_format = DL;
-    m_symStart = 0;
-    m_numSym = 0;
-    m_mcs = 0;
-    m_tbSize = 0;
-    m_ndi = 0;
-    m_rv = 0;
-    m_harqProcess = 0;
-    m_rbgBitmask.clear ();
   }
 
-  uint16_t m_rnti       {0};
-  DciFormat m_format    {DL};
-  uint8_t m_symStart    {0};   // starting symbol index for flexible TTI scheme
-  uint8_t m_numSym      {0};   // number of symbols for flexible TTI scheme
-  uint8_t m_mcs         {0};
-  uint32_t m_tbSize     {0};
-  uint8_t m_ndi         {0};   // By default is retransmission
-  uint8_t m_rv          {0};   // not used for UL DCI
+  const uint16_t m_rnti       {0};
+  const DciFormat m_format    {DL};
+  const uint8_t m_symStart    {0};   // starting symbol index for flexible TTI scheme
+  const uint8_t m_numSym      {0};   // number of symbols for flexible TTI scheme
+  const uint8_t m_mcs         {0};
+  const uint32_t m_tbSize     {0};
+  const uint8_t m_ndi         {0};   // By default is retransmission
+  const uint8_t m_rv          {0};   // not used for UL DCI
   uint8_t m_harqProcess {0};
   std::vector<uint8_t> m_rbgBitmask  {};   //!< RBG mask: 0 if the RBG is not used, 1 otherwise
 };
