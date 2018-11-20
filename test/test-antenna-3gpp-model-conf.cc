@@ -167,7 +167,6 @@ TestAntenna3gppModelConf::DoRun (void)
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue (true));
     Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (30.0));
 
@@ -178,7 +177,8 @@ TestAntenna3gppModelConf::DoRun (void)
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(20e6));
 
     // set the number of antenna elements of UE
-    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNum", UintegerValue(m_ueNoOfAntennas));
+    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim1", UintegerValue(sqrt(m_ueNoOfAntennas)));
+    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim2", UintegerValue(sqrt(m_ueNoOfAntennas)));
 
     // set the antenna array model type
     Config::SetDefault("ns3::MmWaveHelper::GnbAntennaArrayModelType", TypeIdValue(m_gnbAntennaArrayModelType));
