@@ -144,8 +144,6 @@ private:
   std::map<uint8_t, Ptr<ComponentCarrierGnb> > m_ccMap; /**< ComponentCarrier map */
 
   Ptr<LteEnbComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager of this eNb
-
-  Ptr<MmWavePhyMacCommon> m_phyMacCommon;
 };
 
 }

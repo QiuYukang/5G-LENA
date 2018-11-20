@@ -123,12 +123,6 @@ MmWaveEnbNetDevice::DoInitialize (void)
   m_isConstructed = true;
   UpdateConfig ();
 
-  if (!m_phyMacCommon)
-    {
-      m_phyMacCommon = CreateObject <MmWavePhyMacCommon> ();
-      m_phyMacCommon->DoInitialize ();
-    }
-
   std::map<uint8_t, Ptr<ComponentCarrierGnb> >::iterator it;
   for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
     {
@@ -148,8 +142,6 @@ MmWaveEnbNetDevice::DoDispose ()
 
   m_rrc->Dispose ();
   m_rrc = 0;
-
-  m_phyMacCommon = 0;
 
   m_componentCarrierManager->Dispose ();
   m_componentCarrierManager = 0;

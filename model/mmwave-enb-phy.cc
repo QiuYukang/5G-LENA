@@ -77,6 +77,8 @@ MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy>
 {
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
 
+  m_phyMacConfig = nullptr;
+
   Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0), &MmWaveEnbPhy::StartSlot, this);
 }
 
@@ -137,6 +139,9 @@ void
 MmWaveEnbPhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
+
+  NS_ABORT_IF (m_phyMacConfig == nullptr);
+
   Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
 
@@ -565,6 +570,7 @@ MmWaveEnbPhy::StartVarTti (void)
                                             currVarTti.m_dci->m_harqProcess, currVarTti.m_dci->m_rv, false,
                                             currVarTti.m_dci->m_symStart, currVarTti.m_dci->m_numSym);
 
+      bool found = false;
       for (uint8_t i = 0; i < m_deviceMap.size (); i++)
         {
           Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
@@ -573,9 +579,11 @@ MmWaveEnbPhy::StartVarTti (void)
             {
               Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
               antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
+              found = true;
               break;
             }
         }
+      NS_ASSERT (found);
 
       NS_LOG_DEBUG ("ENB RXing UL DATA frame " << m_frameNum <<
                     " subframe " << static_cast<uint32_t> (m_subframeNum) <<

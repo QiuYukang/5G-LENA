@@ -56,8 +56,10 @@ TypeId ComponentCarrierMmWaveUe::GetTypeId (void)
   return tid;
 }
 ComponentCarrierMmWaveUe::ComponentCarrierMmWaveUe ()
+  : ComponentCarrier()
 {
   NS_LOG_FUNCTION (this);
+  m_phy = nullptr;
 }
 
 ComponentCarrierMmWaveUe::~ComponentCarrierMmWaveUe (void)
@@ -90,6 +92,7 @@ void
 ComponentCarrierMmWaveUe::SetPhy (Ptr<MmWaveUePhy> s)
 {
   NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_phy != nullptr);
   m_phy = s;
 }
 

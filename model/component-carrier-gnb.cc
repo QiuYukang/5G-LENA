@@ -61,8 +61,10 @@ TypeId ComponentCarrierGnb::GetTypeId (void)
   return tid;
 }
 ComponentCarrierGnb::ComponentCarrierGnb ()
+  : ComponentCarrierBaseStation ()
 {
   NS_LOG_FUNCTION (this);
+  m_phy = nullptr;
 }
 
 ComponentCarrierGnb::~ComponentCarrierGnb (void)
@@ -101,7 +103,7 @@ ComponentCarrierGnb::DoInitialize (void)
   m_phy->Initialize ();
   m_mac->Initialize ();
   m_scheduler->Initialize ();
-
+  ComponentCarrierBaseStation::DoInitialize ();
 }
 
 Ptr<MmWaveEnbPhy>
@@ -115,6 +117,7 @@ void
 ComponentCarrierGnb::SetPhy (Ptr<MmWaveEnbPhy> s)
 {
   NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_phy != nullptr);
   m_phy = s;
 }
 

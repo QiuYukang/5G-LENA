@@ -693,6 +693,8 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
 
       phy->SetConfigurationParameters (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first));
 
+      NS_ABORT_IF(m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first)->GetCcId() != it->first);
+
       ulPhy->SetChannel (m_channel.at (it->first));
       dlPhy->SetChannel (m_channel.at (it->first));
 

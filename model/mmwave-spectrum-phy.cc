@@ -85,13 +85,15 @@ static const double EffectiveCodingRate[29] = {
 };
 
 MmWaveSpectrumPhy::MmWaveSpectrumPhy ()
-  : m_cellId (0),
+  : SpectrumPhy (),
+    m_cellId (0),
   m_state (IDLE)
 {
   m_interferenceData = CreateObject<mmWaveInterference> ();
   m_random = CreateObject<UniformRandomVariable> ();
   m_random->SetAttribute ("Min", DoubleValue (0.0));
   m_random->SetAttribute ("Max", DoubleValue (1.0));
+  m_antenna = nullptr;
 }
 MmWaveSpectrumPhy::~MmWaveSpectrumPhy ()
 {
@@ -189,6 +191,7 @@ MmWaveSpectrumPhy::GetRxAntenna ()
 void
 MmWaveSpectrumPhy::SetAntenna (Ptr<AntennaModel> a)
 {
+  NS_ABORT_IF (m_antenna != nullptr);
   m_antenna = a;
 }
 

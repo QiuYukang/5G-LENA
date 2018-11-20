@@ -82,7 +82,9 @@ static const double All90DegreeBFVectorImag[2][4] = {
 
 
 AntennaArrayModel::AntennaArrayModel ()
-  : m_minAngle (0),m_maxAngle (2 * M_PI)
+  : AntennaArrayBasicModel (),
+    m_minAngle (0),
+    m_maxAngle (2 * M_PI)
 {
   m_omniTx = false;
 }
