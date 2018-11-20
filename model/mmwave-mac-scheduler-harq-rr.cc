@@ -85,8 +85,8 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
 
           auto & dciInfoReTx = harqProcess.m_dciElement;
 
-          unsigned long rbgAssigned = std::count (dciInfoReTx->m_rbgBitmask.begin (),
-                                                  dciInfoReTx->m_rbgBitmask.end (), 1) * dciInfoReTx->m_numSym;
+          long rbgAssigned = std::count (dciInfoReTx->m_rbgBitmask.begin (),
+                                         dciInfoReTx->m_rbgBitmask.end (), 1) * dciInfoReTx->m_numSym;
           uint32_t rbgAvail = (m_phyMacConfig->GetBandwidthInRbg () - startingPoint->m_rbg) * symPerBeam;
 
           NS_LOG_INFO ("Evaluating space to retransmit HARQ PID=" <<
@@ -116,10 +116,15 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
 
           allocatedUe.push_back (dciInfoReTx->m_rnti);
 
-          dciInfoReTx->m_symStart = startingPoint->m_sym;
-          dciInfoReTx->m_numSym = symPerBeam;
-          dciInfoReTx->m_rv++;
-          dciInfoReTx->m_ndi = 0;
+          auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,
+                                                           startingPoint->m_sym, symPerBeam,
+                                                           dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
+                                                           0, dciInfoReTx->m_rv + 1);
+          dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
+          dci->m_harqProcess = dciInfoReTx->m_harqProcess;
+
+          harqProcess.m_dciElement = dci;
+          dciInfoReTx = harqProcess.m_dciElement;
 
           if (rbgAssigned % dciInfoReTx->m_numSym == 0)
             {
@@ -131,7 +136,7 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
               ++rbgAssigned;
             }
 
-          NS_ABORT_IF (rbgAssigned > dciInfoReTx->m_rbgBitmask.size ());
+          NS_ABORT_IF (static_cast<unsigned long> (rbgAssigned) > dciInfoReTx->m_rbgBitmask.size ());
 
           for (unsigned int i = 0; i < dciInfoReTx->m_rbgBitmask.size (); ++i)
             {
@@ -235,9 +240,16 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
         {
           symAvail -= dciInfoReTx->m_numSym;
           symUsed += dciInfoReTx->m_numSym;
-          dciInfoReTx->m_symStart = startingPoint->m_sym - dciInfoReTx->m_numSym;
-          dciInfoReTx->m_rv++;
-          dciInfoReTx->m_ndi = 0;
+
+          auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,
+                                                           startingPoint->m_sym - dciInfoReTx->m_numSym,
+                                                           dciInfoReTx->m_numSym,
+                                                           dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
+                                                           0, dciInfoReTx->m_rv + 1);
+          dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
+          dci->m_harqProcess = harqId;
+          harqProcess.m_dciElement = dci;
+          dciInfoReTx = harqProcess.m_dciElement;
 
           startingPoint->m_sym -= dciInfoReTx->m_numSym;
 
