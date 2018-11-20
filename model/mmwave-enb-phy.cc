@@ -139,9 +139,6 @@ MmWaveEnbPhy::DoInitialize (void)
   NS_LOG_FUNCTION (this);
   Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  //m_numRbg = m_phyMacConfig->GetNumRb() / m_phyMacConfig->GetNumRbPerRbg();
-  //m_ctrlPeriod = NanoSeconds (1000 * m_phyMacConfig->GetCtrlSymbols() * m_phyMacConfig->GetSymbolPeriod());
-  //m_dataPeriod = NanoSeconds (1000 * (m_phyMacConfig->GetSymbPerVarTti() - m_phyMacConfig->GetCtrlSymbols()) * m_phyMacConfig->GetSymbolPeriod());
 
   for (unsigned i = 0; i < m_phyMacConfig->GetL1L2CtrlLatency (); i++)
     {   // push elements onto queue for initial scheduling delay
@@ -487,7 +484,7 @@ MmWaveEnbPhy::StartVarTti (void)
       ctrlMsgs.merge (RetrieveMsgsFromDCIs (sfn));
 
       // TX control period
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ());
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
 
       NS_LOG_DEBUG ("ENB TXing DL CTRL frame " << m_frameNum <<
                     " subframe " << static_cast<uint32_t> (m_subframeNum) <<
@@ -501,7 +498,7 @@ MmWaveEnbPhy::StartVarTti (void)
     }
   else if (m_varTtiNum == m_currSfNumVarTtis - 1)   // UL control var tti
     {
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ());
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
 
       NS_LOG_DEBUG ("ENB RXng UL CTRL frame " << m_frameNum <<
                     " subframe " << static_cast<uint32_t> (m_subframeNum) <<
@@ -513,7 +510,7 @@ MmWaveEnbPhy::StartVarTti (void)
     }
   else if (currVarTti.m_tddMode == VarTtiAllocInfo::DL)      // transmit DL var tti
     {
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * currVarTti.m_dci->m_numSym);
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * currVarTti.m_dci->m_numSym;
       NS_ASSERT (currVarTti.m_tddMode == VarTtiAllocInfo::DL);
 
       Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, currVarTti.m_dci->m_symStart));
@@ -559,7 +556,7 @@ MmWaveEnbPhy::StartVarTti (void)
                                                     currVarTti.m_dci->m_rbgBitmask.end (), 1U)) ==
                  currVarTti.m_dci->m_rbgBitmask.size ());
 
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * currVarTti.m_dci->m_numSym);
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * currVarTti.m_dci->m_numSym;
 
       //NS_LOG_DEBUG ("Var tti " << (uint8_t)m_varTtiNum << " scheduled for Uplink");
       m_downlinkSpectrumPhy->AddExpectedTb (currVarTti.m_dci->m_rnti, currVarTti.m_dci->m_ndi,
@@ -630,8 +627,7 @@ MmWaveEnbPhy::EndVarTti (void)
         }
       else
         {
-          auto nextVarTtiStart = Seconds (m_phyMacConfig->GetSymbolPeriod () *
-                                          currentDci->m_symStart);
+          auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
 
           NS_LOG_INFO ("DCI " << static_cast <uint32_t> (m_varTtiNum) <<
                        " of " << m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1 <<

@@ -196,9 +196,6 @@ protected:
   uint8_t m_slotNum;
   uint8_t m_varTtiNum;
 
-  Time m_ctrlPeriod;
-  Time m_dataPeriod;
-
   std::map<uint32_t, TddVarTtiTypeList> m_tddPatternForVarTtiMap;
 
   std::map<uint32_t, SlotAllocInfo> m_varTtiAllocInfoMap;

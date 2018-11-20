@@ -85,11 +85,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    MakeUintegerAccessor (&MmWavePhyMacCommon::SetNumerology,
                                          &MmWavePhyMacCommon::GetNumerology),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("WbCqiPeriod",
-                   "Microseconds between wideband DL-CQI reports",
-                   UintegerValue (500),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_wbCqiPeriodUs),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("NumHarqProcess",
                    "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
                    UintegerValue (20),
@@ -160,7 +155,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_l1L2CtrlLatency (2),
   m_l1L2DataLatency (2),
   m_ulSchedDelay (1),
-  m_wbCqiPeriodUs (500),
   m_tbDecodeLatencyUs (100.0),
   m_maxTbSizeBytes (0x7FFF),
   m_componentCarrierId (0)
@@ -184,10 +178,9 @@ MmWavePhyMacCommon::~MmWavePhyMacCommon (void)
 {
 }
 
-double
-MmWavePhyMacCommon::GetSymbolPeriod (void) const
+Time MmWavePhyMacCommon::GetSymbolPeriod(void) const
 {
-  return m_symbolPeriod.GetSeconds ();
+  return m_symbolPeriod;
 }
 
 uint32_t
@@ -324,12 +317,6 @@ uint32_t
 MmWavePhyMacCommon::GetL1L2DataLatency (void) const
 {
   return m_l1L2DataLatency;
-}
-
-double
-MmWavePhyMacCommon::GetWbCqiPeriodUs (void) const
-{
-  return m_wbCqiPeriodUs;
 }
 
 uint32_t
@@ -495,12 +482,6 @@ void
 MmWavePhyMacCommon::SetL1L2DataLatency (uint32_t delayVarTtis)
 {
   m_l1L2DataLatency = delayVarTtis;
-}
-
-void
-MmWavePhyMacCommon::SetWbCqiPeriodUs (double us)
-{
-  m_wbCqiPeriodUs = us;
 }
 
 void

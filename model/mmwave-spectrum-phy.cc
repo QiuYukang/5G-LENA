@@ -832,7 +832,7 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (std::list<Ptr<MmWaveControlMessage> >
     {
     case RX_DATA:
     case RX_CTRL:
-      NS_FATAL_ERROR ("cannot TX while RX: Cannot transmit while receiving");
+      NS_FATAL_ERROR (Simulator::Now() << "cannot TX while RX: Cannot transmit while receiving.");
       break;
     case TX:
       NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");

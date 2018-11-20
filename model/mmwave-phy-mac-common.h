@@ -683,7 +683,7 @@ public:
 
   static TypeId GetTypeId (void);
 
-  double GetSymbolPeriod (void) const;
+  Time GetSymbolPeriod (void) const;
 
   uint32_t GetCtrlSymbols (void) const;
 
@@ -732,8 +732,6 @@ public:
   uint16_t GetL1L2CtrlLatency (void) const;
 
   uint32_t GetL1L2DataLatency (void) const;
-
-  double GetWbCqiPeriodUs (void) const;
 
   uint32_t GetNumHarqProcess (void) const;
 
@@ -793,8 +791,6 @@ public:
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
   void SetL1L2DataLatency (uint32_t delayVarTtis);
-
-  void SetWbCqiPeriodUs (double us);
 
   void SetNumHarqProcess (uint32_t numProcess);
 

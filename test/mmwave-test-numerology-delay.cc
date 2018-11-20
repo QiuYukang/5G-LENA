@@ -185,7 +185,7 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr)
 void
 MmwaveTestNumerologyDelayCase1::DoRun (void)
 {
-  m_sendPacketTime = Seconds(0.4);
+  m_sendPacketTime = MilliSeconds(400);
 
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(28e9));
@@ -242,11 +242,11 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/DlSpectrumPhy/TxPacketTraceEnb",
                        MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
 
-  Simulator::Schedule(Seconds(0.2), &ConnectRlcPdcpTraces, this);
+  Simulator::Schedule(MilliSeconds(200), &ConnectRlcPdcpTraces, this);
 
   mmWaveHelper->EnableTraces();
 
-  Simulator::Stop (Seconds (1));
+  Simulator::Stop (MilliSeconds (1000));
   Simulator::Run ();
   Simulator::Destroy ();
 }
@@ -303,8 +303,8 @@ MmwaveTestNumerologyDelayCase1::DlSpectrumEnbStartTx (EnbPhyPacketCountParameter
   std::cout<<"\n cell id :"<<params.m_cellId<<std::endl;
   std::cout<<"\n no of bytes :"<<(unsigned)params.m_noBytes<<std::endl;
   std::cout<<"\n subframe no:"<<params.m_subframeno<<std::endl;*/
-  Time delay = Seconds(m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod());
-  Time ctrlDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod());
+  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod();
+  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod();
   // first there is L1L2 processing delay
   // the, before it start the transmission of the DATA symbol, there is 1 DL CTRL symbol
   // and then we are here already in the following nano second
@@ -325,9 +325,9 @@ MmwaveTestNumerologyDelayCase1::DlSpectrumUeEndRx (RxPacketTraceParams params)
   std::cout<<"\n slot :"<<(unsigned int)params.m_slotNum<<std::endl;
   std::cout<<"\n rnti:"<<params.m_rnti<<std::endl;*/
 
-  Time delay = Seconds(m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod());
-  Time ctrlDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod());
-  Time dataDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod() * params.m_numSym) - NanoSeconds(1);
+  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod ();
+  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod ();
+  Time dataDuration = (m_mmWavePhyMacCommon->GetSymbolPeriod () * params.m_numSym) - NanoSeconds (1);
 
 /*  std::cout<<"\n symbol duration:"<<  Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod());
   std::cout<<"\n symbols:" << (unsigned) params.m_numSym;
@@ -354,9 +354,9 @@ MmwaveTestNumerologyDelayCase1::RxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t 
   std::cout<<"\n bytes :"<< bytes<<std::endl;
   std::cout<<"\n delay :"<< rlcDelay<<std::endl;*/
 
-  Time delay = Seconds(m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod());
-  Time ctrlDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod());
-  Time dataDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod() * m_numSym) - NanoSeconds(1);
+  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod();
+  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod();
+  Time dataDuration = (m_mmWavePhyMacCommon->GetSymbolPeriod() * m_numSym) - NanoSeconds(1);
   Time tbDecodeDelay = MicroSeconds(m_mmWavePhyMacCommon->GetTbDecodeLatency());
 
   if (m_firstRxPlcPDU)
@@ -376,9 +376,9 @@ MmwaveTestNumerologyDelayCase1::RxPdcpPDU (uint16_t rnti, uint8_t lcid, uint32_t
   std::cout<<"\n bytes :"<< bytes<<std::endl;
   std::cout<<"\n delay :"<<pdcpDelay<<std::endl;*/
 
-  Time delay = Seconds(m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod());
-  Time ctrlDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod());
-  Time dataDuration = Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod() * m_numSym) - NanoSeconds(1);
+  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod();
+  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod();
+  Time dataDuration = (m_mmWavePhyMacCommon->GetSymbolPeriod() * m_numSym) - NanoSeconds(1);
   Time tbDecodeDelay = MicroSeconds(m_mmWavePhyMacCommon->GetTbDecodeLatency());
 
   NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_lastDlReceptionFinished + tbDecodeDelay,

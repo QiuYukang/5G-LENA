@@ -543,7 +543,7 @@ MmWaveUePhy::StartVarTti ()
 
   if (m_varTtiNum == 0)    // reserved DL control
     {
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ());
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
 
       NS_LOG_DEBUG ("UE" << m_rnti <<
                     " RXing DL CTRL frame for"
@@ -561,7 +561,8 @@ MmWaveUePhy::StartVarTti ()
         }
 
       SetSubChannelsForTransmission (channelRbs);
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ());
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
+
       std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
       NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                     (unsigned)currSlot.m_dci->m_symStart << "-" <<
@@ -572,7 +573,8 @@ MmWaveUePhy::StartVarTti ()
   else if (currSlot.m_dci->m_format == DciInfoElementTdma::DL)    // scheduled DL data slot
     {
       m_receptionEnabled = true;
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * currSlot.m_dci->m_numSym);
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * currSlot.m_dci->m_numSym;
+
       m_downlinkSpectrumPhy->AddExpectedTb (currSlot.m_dci->m_rnti, currSlot.m_dci->m_ndi, currSlot.m_dci->m_tbSize, currSlot.m_dci->m_mcs,
                                             FromRBGBitmaskToRBAssignment (currSlot.m_dci->m_rbgBitmask),
                                             currSlot.m_dci->m_harqProcess, currSlot.m_dci->m_rv, true,
@@ -589,7 +591,7 @@ MmWaveUePhy::StartVarTti ()
   else if (currSlot.m_dci->m_format == DciInfoElementTdma::UL)   // scheduled UL data slot
     {
       SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (currSlot.m_dci->m_rbgBitmask));
-      varTtiPeriod = Seconds (m_phyMacConfig->GetSymbolPeriod () * currSlot.m_dci->m_numSym);
+      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * currSlot.m_dci->m_numSym;
       std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
       Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, currSlot.m_dci->m_symStart));
       if (pktBurst && pktBurst->GetNPackets () > 0)
@@ -633,6 +635,7 @@ MmWaveUePhy::StartVarTti ()
 
       Simulator::Schedule (NanoSeconds (1.0), &MmWaveUePhy::SendDataChannels, this, pktBurst, ctrlMsg, varTtiPeriod - NanoSeconds (2.0), m_varTtiNum);
     }
+
   Simulator::Schedule (varTtiPeriod, &MmWaveUePhy::EndVarTti, this);
 }
 
@@ -674,10 +677,9 @@ MmWaveUePhy::EndVarTti ()
     }
   else
     {
-      Time nextVarTtiStart;
       m_varTtiNum++;
-      nextVarTtiStart = Seconds (m_phyMacConfig->GetSymbolPeriod () *
-                                 m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci->m_symStart);
+      Time nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () *
+                             m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci->m_symStart;
 
       Simulator::Schedule (nextVarTtiStart + m_lastSlotStart - Simulator::Now (), &MmWaveUePhy::StartVarTti, this);
     }
