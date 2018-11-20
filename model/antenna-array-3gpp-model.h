@@ -29,21 +29,48 @@ class AntennaArray3gppModel : public AntennaArrayModel
 {
 public:
 
+  enum GnbAntennaMount
+  {
+    GnbWallMount,
+    GnbSingleSector
+  };
+
   AntennaArray3gppModel ();
 
   virtual ~AntennaArray3gppModel ();
 
   static TypeId GetTypeId ();
 
+  /**
+   * \brief Must override the function to set 0 gain,
+   * since the gain is already accounted for with GetRadiationPattern function
+   * @param angles angles of gain
+   * @return gain which is in this case always 0
+   */
+  virtual double GetGainDb (Angles a) override;
+
+  /**
+   * \brief Function sets the attribute m_isUe that is used to determine
+   * which configuration parameter for antenna will be used, i.e. for UE or gNB
+   * @param isUe whether the antenna is of UE or gNB
+   */
   void SetIsUe (bool isUe);
 
+  /**
+   * \brief Function returns a boolean that determines whether the the antenna
+   * if of UE or gNB
+   * @return boolean value where true means UE, false gNB
+   */
+  bool GetIsUe ();
+
   virtual double GetRadiationPattern (double vAngle, double hAngle = 0) override;
+
+  Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum) override;
 
 private:
 
   bool m_isUe; ///<! the attribute that is saying if the antenna is of UE or gNB
-  double m_hpbw;  //HPBW value of each antenna element
-  double m_gMax; //directivity value expressed in dBi and valid only for TRP (see table A.1.6-3 in 38.802)
+  GnbAntennaMount m_antennaMount; ///<! the type of gNb antenna mount
 
 };
 

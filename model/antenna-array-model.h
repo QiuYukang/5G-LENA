@@ -91,6 +91,7 @@ private:
   BeamformingVector m_currentBeamformingVector;
   BeamformingStorage m_beamformingVectorMap;
 
+protected:
   double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
   double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
   AntennaOrientation m_orientation; // antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane

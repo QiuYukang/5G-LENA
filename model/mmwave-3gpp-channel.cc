@@ -39,6 +39,7 @@
 #include <random>       // std::default_random_engine
 #include <ns3/boolean.h>
 #include <ns3/integer.h>
+#include "antenna-array-3gpp-model.h"
 #include "mmwave-spectrum-value-helper.h"
 
 
@@ -157,7 +158,34 @@ static const double sqrtC_office_NLOS[6][6] = {
   {-0.1, -0.173205, 0.315691, -0.134243, 0.283816, 0.872792},
 };
 
+/**
+ * \brief This function is used to randomly select antenna orientation from
+ * a set of predefined antenna orientations: X0, Z0 and Y0
+ * @return a random antenna orientation
+ */
+AntennaArrayModel::AntennaOrientation GetRandomAntennaOrientation ()
+{
+  Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable>();
+  r->SetAttribute ("Min", DoubleValue (0.0));
+  r->SetAttribute ("Max", DoubleValue (1.0));
+  double throwADice = r->GetValue();
+  AntennaArrayModel::AntennaOrientation randomOrientation;
 
+  if (throwADice <= 1.0/3)
+    {
+      randomOrientation = AntennaArrayModel::X0;
+    }
+  else if ((throwADice > 1.0/3 ) and (throwADice <= 2.0/3))
+    {
+      randomOrientation = AntennaArrayModel::Y0;
+    }
+  else
+    {
+      randomOrientation = AntennaArrayModel::Z0;
+    }
+
+  return randomOrientation;
+}
 
 MmWave3gppChannel::MmWave3gppChannel ()
 {
@@ -1021,7 +1049,7 @@ MmWave3gppChannel::Get3gppTable (bool los, bool o2i, double hBS, double hUT, dou
             }
         }
     }
-  else if (m_scenario == "InH-OfficeMixed"||m_scenario == "InH-OfficeOpen")
+  else if (m_scenario == "InH-OfficeMixed"||m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
     {
       NS_ASSERT_MSG (!o2i, "The indoor scenario does out support outdoor to indoor");
       if (los)
@@ -1612,6 +1640,28 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
           H_usn.at (uIndex).at (sIndex).resize (numReducedCluster);
         }
     }
+
+ Ptr<AntennaArray3gppModel> rx3gppAntenna = DynamicCast<AntennaArray3gppModel> (rxAntenna);
+ Ptr<AntennaArray3gppModel> tx3gppAntenna = DynamicCast<AntennaArray3gppModel> (txAntenna);
+
+ AntennaArrayModel::AntennaOrientation randomUeOrientation = GetRandomAntennaOrientation();
+
+ if (rx3gppAntenna != 0)
+   {
+     if (rx3gppAntenna->GetIsUe ())
+       {
+         rx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
+       }
+   }
+
+ if (tx3gppAntenna != 0)
+    {
+      if (tx3gppAntenna->GetIsUe ())
+        {
+          tx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
+        }
+    }
+
   // The following for loops computes the channel coefficients
   for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
     {
@@ -2206,6 +2256,28 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
           H_usn.at (uIndex).at (sIndex).resize (params->m_numCluster);
         }
     }
+
+  Ptr<AntennaArray3gppModel> rx3gppAntenna = DynamicCast<AntennaArray3gppModel> (rxAntenna);
+  Ptr<AntennaArray3gppModel> tx3gppAntenna = DynamicCast<AntennaArray3gppModel> (txAntenna);
+
+  AntennaArrayModel::AntennaOrientation randomUeOrientation = GetRandomAntennaOrientation();
+
+  if (rx3gppAntenna != 0)
+    {
+      if (rx3gppAntenna->GetIsUe ())
+        {
+          rx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
+        }
+    }
+
+  if (tx3gppAntenna != 0)
+     {
+       if (tx3gppAntenna->GetIsUe ())
+         {
+           tx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
+         }
+     }
+
   //double varTtiTime = Simulator::Now ().GetSeconds ();
   // The following for loops computes the channel coefficients
   for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
@@ -2512,7 +2584,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
           //draw value from table 7.6.4.1-2 Blocking region parameters
           doubleVector_t table;
           table.push_back (m_normalRvBlockage->GetValue ()); //phi_k: store the normal RV that will be mapped to uniform (0,360) later.
-          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen")
+          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
             {
               table.push_back (m_uniformRvBlockage->GetValue (15, 45)); //x_k
               table.push_back (90); //Theta_k
@@ -2537,7 +2609,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
         {
           double corrDis;
           //draw value from table 7.6.4.1-4: Spatial correlation distance for different scenarios.
-          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen")
+          if (m_scenario == "InH-OfficeMixed" || m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
             {
               //InH, correlation distance = 5;
               corrDis = 5;
