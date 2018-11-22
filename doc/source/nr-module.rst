@@ -788,7 +788,8 @@ In this section, we describe briefly the simulation campaigns that we have carri
 We have created different simulation campaign scripts, where each script has different objectives. 
 All simulation campaing scripts can be found in the folder src/mmwave/campaigns. In this folder, we group scripts by evaluated functionality, under different conditions.
 For example, ``3gpp-nr-numerologies`` sub-folder contains simulation campaigns related to the evaluation of frame structure/numerologies, and 
-``3gpp-nr-fdm`` sub-folder contains simulation campaigns related to the evaluation of FDM of numerologies.
+``3gpp-nr-fdm`` sub-folder contains simulation campaigns related to the evaluation of FDM of numerologies. Additionally, 
+the simulation campaign scripts for the 3gpp calibration phase 1 are placed in ``3gpp-calibration`` sub-folder.
 If the simulation campaign is relatively small (it is not run for many different parameters) the output of campaign is printed on the screen, 
 while in case of large campaigns, the results are written to results file in ``campaigns/*/results`` folder. 
 The name of the file is normally composed to reveal with which values of the parameters is executed the simulation. 
@@ -921,6 +922,93 @@ However, there is almost no impact of FDM of numerologies on the performance of 
    Mean throughput per UDP flow
 
 
+3gpp Indoor Calibration Phase 1
+================================
+
+In this subsection, we describe the simulation campaign that is desidned for 
+the 3gpp calibration Phase 1. The simulation script that implements
+ the indoor scenario acoording to 3gpp phase 1 calibration is placed in  
+``cttc-3gpp-indoor-calibration.cc``. 
+The main script simulation campaign is 
+``run-calibration.sh`` which laverages the parameter configuration 
+defined in the config file which is placed in the root of the same directory.
+
+We have run the simulation campaigns for different configurations:
+
+- Different 3gpp indoor pathloss models: InH office-mixed, InH office-open, 
+InH shopping-mall 
+- Shadowing: enabled and disabled
+- Different gNB antenna orientation: 
+    a) Z = 0 (XY plane) 
+    b) X = 0 (ZY plane)
+- Beamforming method: 
+    a) optimal 
+    b) beam search method for different beamsearching 
+method angle setups, i.e. 5, 10, 30 degrees 
+- gNB element antenna model according to 3gpp 38.802. Table 8.2.1-7: 
+    a) 3GPP single-sector, 
+    b) 3GPP wall-mount, 
+    c) Isotropic
+- UE antenna radiation pattern: 
+    a) 3GPP directional antenna according to 38.802. Table A.2.1-8 
+    b) Table 8.2.1-7 and isotropic
+
+The rest of the parameters is in the following trying to be the closest possible 
+to 3gpp calibration phase 1 simulation assumptions:
+
+- Carrier frequency: 30 GHz
+- Mode: DL only
+- Bandwidth: 40 MHz
+- SCS: 60 kHz (μ=2)
+- Channel model: Indoor TR 38.900
+- BS Tx Power: 23 dBm
+- BS antenna configuration: M=4, N=8 (32 antenna elements), 1 sector, vertical polarization 
+- UE antenna configuration: M=2, N=4 (8 antenna elements), 1 panel, vertical polarization 
+- BS antenna height: 3 mt
+- UE antenna height: 1,5 mt
+- BS noise figure: 7 dB
+- UE noise figure: 10 dB
+- UE speed: 3 km/h 
+- scheduler: TDMA PF
+- traffic model: full buffer
+
+The deployment scenario is composed of 12 sites at 20 meters distance, 
+and 120 UEs (100% indoor) randomly dropped in a 50 x 120 meters area. 
+
+As reference curves, we use the results provided by the companies in R1-1709828. 
+We consider the CDF of the wideband SINR with beamforming, and the CDF of the 
+wideband SNR with step b (i.e., with analog TX/RX beamforming, 
+using a single digital TX/RX port). For each case, we depict as reference the 
+average of the companies contributing to 3GPP as well as the company that gets 
+the minimum and the maximum of the average wideband SNR/SINR, so that a region 
+for calibration is defined.
+
+In Figures :ref:`snr` and :ref:`sinr`, we display the CDF of wideband SNR and 
+SINR of one of the confiugurations that match 3GPP calibration region. The simulation 
+configuration is the folliowing:
+ - pathloss model is indoor shopping-mall, 
+ - shadowing is enabled, 
+ - gNB antenna orientation is XY (Z=0),
+ - beam search method is optimal,
+ - gNB 3GPP wall-mount, 
+ - UE 3GPP (see Figure 12 and Figure 13)
+
+
+.. _fig-snr:
+
+.. figure:: figures/snrs-r1-sh1-aoZ0-amGnb3GPP-amUe3GPP-scInH-ShoppingMall-sp3-bs0-ang10-gmWALL.*
+   :align: center
+   :scale: 60 %
+
+   SNR
+ 
+.. _fig-sinr:
+
+.. figure:: figures/sinrs-r1-sh1-aoZ0-amGnb3GPP-amUe3GPP-scInH-ShoppingMall-sp3-bs0-ang10-gmWALL.*
+   :align: center
+   :scale: 60 %
+
+   SINR
 
 
 Helpers
