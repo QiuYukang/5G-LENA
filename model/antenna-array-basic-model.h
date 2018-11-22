@@ -183,17 +183,6 @@ public:
 
   virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90) = 0;
 
-private:
-
-  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
-  bool m_omniTx;
-  double m_minAngle;
-  double m_maxAngle;
-  BeamformingVector m_currentBeamformingVector;
-  BeamformingStorage m_beamformingVectorMap;
-
-  double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
-  double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayBasicModel::BeamId const & item);
