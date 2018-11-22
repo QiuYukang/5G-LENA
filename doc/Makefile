@@ -30,7 +30,8 @@ IMAGES_EPS = \
         $(FIGURES)/ca-enb-data-plane-v6.eps\
 	$(FIGURES)/nr-schedulers.eps\
 	$(FIGURES)/nr-scheduler-collab.eps\
-        
+	$(FIGURES)/sinrs-r1-sh1-aoZ0-amGnb3GPP-amUe3GPP-scInH-ShoppingMall-sp3-bs0-ang10-gmWALL.eps\
+	$(FIGURES)/snrs-r1-sh1-aoZ0-amGnb3GPP-amUe3GPP-scInH-ShoppingMall-sp3-bs0-ang10-gmWALL.eps\
 
 # rescale pdf figures as necessary
 #$(FIGURES)/lte-unlicensed-interference-test-scenario.pdf_width = 8cm

@@ -97,11 +97,41 @@ public:
   };
 
 
-  virtual double GetGainDb (Angles a);
+  /**
+    * \brief This method in inherited from the AntennaModel. It is
+    * designed to return the power gain in dBi of the antenna
+    * radiation pattern at the specified angles;
+    * dBi means dB with respect to the gain of an isotropic radiator.
+    * Since a power gain is used, the efficiency of
+    * the antenna is expected to be included in the gain value.
+    *
+    * \param a the spherical angles at which the radiation pattern should
+    * be evaluated
+    *
+    * \return the power gain in dBi
+    */
+  virtual double GetGainDb (Angles a) = 0;
 
+  /**
+   * \brief Function sets the beamforming weights of the antenna
+   * for transmission or reception to/from a specified connected device
+   * using the beam that is specified by the beamId
+   * @param antennaWeights the weights of the beamforming vector
+   * @param beamId the unique identifier of the beam
+   * @param device device to which it is being transmitted, or from which is
+   * being received
+   */
   virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
                              Ptr<NetDevice> device = nullptr) = 0 ;
 
+  /**
+   * \brief Function that schedules the call to SetBeamformingVector witha a
+   * predefined delay of 8 ms.
+   * @param antennaWeights the weights of the beamforming vector
+   * @param beamId the unique identifier of the beam
+   * @param device device to which it is being transmitted, or from which is
+   * being received
+   */
   virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
                                       Ptr<NetDevice> device = nullptr) = 0;
 
@@ -109,31 +139,50 @@ public:
 
   virtual void ChangeToOmniTx () = 0;
 
+  /**
+   * \brief Function that returns the beamforming vector that is currently being
+   * used by the antenna.
+   * @return the current beamforming vector
+   */
   virtual BeamformingVector GetCurrentBeamformingVector () = 0;
 
+  /**
+   * \brief Function that returns the beamforming vector weights that is used to
+   * communicated with a specified device
+   * @return the current beamforming vector
+   */
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) = 0;
 
   virtual void SetToSector (uint32_t sector, uint32_t antennaNum) = 0;
 
+  /**
+   * Returns a bool that says if the current transmission is configured to be
+   * omni.
+   * @return whether the transmission is set to omni
+   */
   virtual bool IsOmniTx () = 0;
 
+  /**
+   * Function returns the radiation pattern for the specified vertical
+   * and the horizontal angle.
+   * @param vangle vertical angle
+   * @param hangle horizontal angle
+   * @return returns the radiation pattern
+   */
   virtual double GetRadiationPattern (double vangle, double hangle) = 0;
 
+  /**
+   * Function returns the location of the antenna element inside of the
+   * sector assuming the left bottom corner is (0,0,0).
+   * @param index index of the antenna element
+   * @param antennaNum total number of antenna elements in the panel
+   * @return returns the 3D vector that represents the position of the antenna
+   * by specifing x, y and z coordinate
+   */
   virtual Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum) = 0;
 
   virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90) = 0;
 
-private:
-
-  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
-  bool m_omniTx;
-  double m_minAngle;
-  double m_maxAngle;
-  BeamformingVector m_currentBeamformingVector;
-  BeamformingStorage m_beamformingVectorMap;
-
-  double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
-  double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayBasicModel::BeamId const & item);
