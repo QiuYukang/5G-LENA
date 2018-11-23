@@ -136,6 +136,13 @@ us a note on ns-developers mailing list.</p>
     are on different frequencies each BWP shall have its own propagation loss 
     model that is configured with the frequency of the corresponding BWP.
   </li>
+  <li>
+    The default value of the UpdatePeriod parameter of the MmWave3gppChannel is 
+    returned to 0 ms. This is because it is detected that there are many 
+    occasions when the update of the channel matrix is not needed in the 
+    simulation example or the test, hence when the update is enabled by 
+    default the execution time of these simulations unnecessarily is slowed down. 
+  </li>
 </ul>
 
 <hr>
