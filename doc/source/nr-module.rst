@@ -766,7 +766,8 @@ collected over the course of the simulation execution:
  - SNR values for all the 120 UEs
  - RSSI values for all the 120 UEs
  
-Additionally there are files that contain:
+Additionally, there are files that contain:
+
   - UE positions
   - gNB positions
   - distances of UEs from the gNBs to which they are attached
@@ -871,15 +872,18 @@ The expected use of this example is with 2 BWPs, but 1 BWP can also be used for 
 BWP, they will be served through the same BWP. The input parameter of this script is the configuration of BWP and also the 
 configuration of traffic for both flows.
 
-Script ``run-e2e-wns3-2bwps-symload.sh`` is used  to simulate FDM of numerologies, when the bandwidth is uniformly divided between 
-the BWPs.
+Script ``run-e2e-wns3-2bwps-symload.sh`` is used  to simulate FDM of numerologies, 
+when the bandwidth is uniformly divided between the BWPs.
 
-Script `run-e2e-bwps-opt-asymload.sh` can be used to configure different partitions of bandwidth among BWPs, and differently from 
- two  simulations, the load of different BWPs is asymmetric. Finally, ``run-e2e-bwps-uni-asymload.sh`` has the 
-uniform partition of the bandwidth, but has still and asymmetric load. 
 
-We present another simulation configuration, we evaluate the performance of FDM of numerologies when the total 
-system bandwidth is divided in 2 BWPs of equal size. There are two BWPs, of 100 MHz bandwidth each. 
+Script ``run-e2e-bwps-opt-asymload.sh`` can be used to configure different partitions 
+of bandwidth among BWPs, and differently from two  simulations, 
+the load of different BWPs is asymmetric. Finally, ``run-e2e-bwps-uni-asymload.sh`` 
+has the uniform partition of the bandwidth, but has still and asymmetric load. 
+
+We present the results of a simulation configuration in which we evaluate 
+the performance of FDM of numerologies when the total system bandwidth is 
+divided in 2 BWPs of equal size. There are two BWPs, of 100 MHz bandwidth each. 
 The total transmission power is 4 dBm, which is uniformly distributed among the two BWPs, 
 so that each BWP disposes of  1 dBm. 
 The central carrier frequencies are 28.1 GHz and 28 GHz.
@@ -926,32 +930,39 @@ However, there is almost no impact of FDM of numerologies on the performance of 
 ================================
 
 In this subsection, we describe the simulation campaign that is desidned for 
-the 3gpp calibration Phase 1. The simulation script that implements
- the indoor scenario acoording to 3gpp phase 1 calibration is placed in  
-``cttc-3gpp-indoor-calibration.cc``. 
-The main script simulation campaign is 
+the 3gpp calibration Phase 1. The simulation script that implements the indoor 
+scenario acoording to 3gpp phase 1 calibration is placed in  
+``cttc-3gpp-indoor-calibration.cc``. The main script simulation campaign is 
 ``run-calibration.sh`` which laverages the parameter configuration 
 defined in the config file which is placed in the root of the same directory.
 
 We have run the simulation campaigns for different configurations:
 
-- Different 3gpp indoor pathloss models: InH office-mixed, InH office-open, 
-InH shopping-mall 
-- Shadowing: enabled and disabled
-- Different gNB antenna orientation: 
+ - Different 3gpp indoor pathloss models: 
+    a) InH office-mixed, 
+    b) InH office-open, 
+    c) InH shopping-mall
+
+ - Shadowing: 
+    a) Enabled 
+    b) Disabled
+
+ - Different gNB antenna orientation:
     a) Z = 0 (XY plane) 
     b) X = 0 (ZY plane)
-- Beamforming method: 
-    a) optimal 
-    b) beam search method for different beamsearching 
-method angle setups, i.e. 5, 10, 30 degrees 
-- gNB element antenna model according to 3gpp 38.802. Table 8.2.1-7: 
-    a) 3GPP single-sector, 
-    b) 3GPP wall-mount, 
+
+ - Beamforming method:
+    a) Optimal 
+    b) Beam search method for different beamsearching method angle, i.e. 5, 10, 30 degrees
+
+ - gNB antenna radiation pattern:
+    a) 3GPP single-sector according to 3gpp 38.802. Table 8.2.1-7, 
+    b) 3GPP wall-mount according to 3gpp 38.802. Table 8.2.1-7, 
     c) Isotropic
-- UE antenna radiation pattern: 
-    a) 3GPP directional antenna according to 38.802. Table A.2.1-8 
-    b) Table 8.2.1-7 and isotropic
+
+ - UE antenna radiation pattern:
+    a) 3GPP directional antenna according to 38.802. Table A.2.1-8:
+    b) Isotropic
 
 The rest of the parameters is in the following trying to be the closest possible 
 to 3gpp calibration phase 1 simulation assumptions:
@@ -969,8 +980,8 @@ to 3gpp calibration phase 1 simulation assumptions:
 - BS noise figure: 7 dB
 - UE noise figure: 10 dB
 - UE speed: 3 km/h 
-- scheduler: TDMA PF
-- traffic model: full buffer
+- Scheduler: TDMA PF
+- Traffic model: full buffer
 
 The deployment scenario is composed of 12 sites at 20 meters distance, 
 and 120 UEs (100% indoor) randomly dropped in a 50 x 120 meters area. 
@@ -986,7 +997,7 @@ for calibration is defined.
 In Figures :ref:`snr` and :ref:`sinr`, we display the CDF of wideband SNR and 
 SINR of one of the confiugurations that match 3GPP calibration region. The simulation 
 configuration is the folliowing:
- - pathloss model is indoor shopping-mall, 
+ - pathloss model is the indoor shopping-mall, 
  - shadowing is enabled, 
  - gNB antenna orientation is XY (Z=0),
  - beam search method is optimal,
