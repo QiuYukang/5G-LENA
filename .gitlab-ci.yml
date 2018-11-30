@@ -1,0 +1,24 @@
+
+image: ubuntu 
+
+
+before_script:
+- apt-get update
+- DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+- apt-get install -y doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra
+- sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
+- sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
+
+pages:
+  script:
+    - doxygen doc/doxygen.conf
+    - mv doc/html/ public/
+    - cd doc && make latexpdf
+    - cd ..
+    - mv doc/build/latex/*.pdf public
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
+
