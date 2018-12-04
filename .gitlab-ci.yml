@@ -1,18 +1,20 @@
 
 image: ubuntu 
 
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
 
 before_script:
 - apt-get update
 - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-- apt-get install -y doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra
+- apt-get install -y doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra texlive-base python-jinja2 python-pygments
 - sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
 - sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
 
 pages:
   script:
-    - doxygen doc/doxygen.conf
-    - mv doc/html/ public/
+    - python doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf
+    - mv doc/doc/html/ public/
     - cd doc && make latexpdf
     - cd ..
     - mv doc/build/latex/*.pdf public
