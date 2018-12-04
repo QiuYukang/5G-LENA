@@ -1,4 +1,4 @@
 [submodule "doc/m.css"]
 	path = doc/m.css
-  url = git@gitlab.com:cttc-lena/m.css.git
+  url = https://gitlab.com/cttc-lena/m.css
   branch = cttc
