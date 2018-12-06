@@ -25,8 +25,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Schedule the HARQ retransmission
- * \ingroup mmwave-sched
  *
  * The class manages, in a round-robin fashion, the retransmission to be
  * performed. It implements ScheduleDlHarq and ScheduleUlHarq that

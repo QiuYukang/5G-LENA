@@ -23,8 +23,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief UE representation for a proportional fair scheduler
- * \ingroup mmwave-sched
  *
  * The representation stores the current throughput, the average throughput,
  * and the last average throughput, as well as providing comparison functions

@@ -26,8 +26,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Represent a DL Logical Channel of an UE
- * \ingroup mmwave-sched
  *
  * The scheduler stores here the information that comes from BSR, arriving
  * from the gNB.
@@ -114,13 +114,13 @@ public:
 
 /**
  * \brief Unique pointer to an instance of MmWaveMacSchedulerLC
- * \ingroup mmwave-sched
+ * \ingroup mac-schedulers
  */
 typedef std::unique_ptr<MmWaveMacSchedulerLC> LCPtr;
 
 /**
+ * \ingroup mac-schedulers
  * \brief Represent an UE LCG (can be DL or UL)
- * \ingroup mmwave-sched
  *
  * A Logical Channel Group has an id (represented by m_id) and can contain
  * logical channels. The LC are stored inside an unordered map, indexed
@@ -289,7 +289,7 @@ private:
 
 /**
  * \brief LCGPtr unique pointer to a LCG
- * \ingroup mmwave-sched
+ * \ingroup mac-schedulers
  */
 typedef std::unique_ptr<MmWaveMacSchedulerLCG> LCGPtr;
 

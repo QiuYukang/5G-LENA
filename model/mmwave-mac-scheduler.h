@@ -27,26 +27,27 @@
 namespace ns3 {
 
 /**
-  * \defgroup mmwave-sched
+  * \defgroup mac-schedulers
+  *
+  * \brief NR-enabled schedulers module
   *
   * This group contains the copy of FAPI documentation that was included
   * in the original "LTE MAC Scheduler Interface v1.11" document by FemtoForum
   * (Document number: FF_Tech_001_v1.11 , Date issued: 12-10-2010,
   * Document status: Document for public distribution).
   *
-  * \par Scope (FAPI documentation)
+  * \section what Description of the module
   * This group specifies the MAC Scheduler interface and their implementation.
   * The goal of this interface specification is to allow the use of a wide range
   * of schedulers which can be plugged into the eNodeB and to allow for
   * standardized interference coordination interface to the scheduler.
   *
-  * \par CTTC addition
   * Not only the interface between the MAC and the scheduler is standardized,
   * but also the internals of the scheduler. The objective is to be able
   * to write new kind of schedulers with minimum efforts and the minimum
   * amount of code, re-using existing classes and methods.
   *
-  * \par Interface overview (FAPI documentation)
+  * \section interface FAPI interface overview
   *
   * The MAC scheduler is part of MAC from a logical view and the MAC scheduler
   * should be independent from the PHY interface.
@@ -80,12 +81,13 @@ namespace ns3 {
   * scheduler every TTI and receives the scheduler results. The control block
   * forwards control information to the MAC scheduler as necessary.
   *
-  * \par CTTC implementation
+  * \note CTTC implementation
   * The documentation of the implementation starts with class MmWaveMacScheduler.
+  * Please start your journey into the scheduler documentation from there.
   */
 /**
+ * \ingroup mac-schedulers
  * \brief Interface for all the mmWave schedulers
- * \ingroup mmwave-sched
  *
  * TODO: Add description of SAP user/providers
  *

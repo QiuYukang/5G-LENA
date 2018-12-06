@@ -25,8 +25,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief The base for all the TDMA schedulers
- * \ingroup mmwave-sched
  *
  * An example of TDMA-based scheduling is the following:
  * <pre>
@@ -85,7 +85,7 @@ public:
    */
   MmWaveMacSchedulerTdma ();
   /**
-   * \brief ~MmWaveMacSchedulerTdma deconstructor
+   * \brief MmWaveMacSchedulerTdma deconstructor
    */
   virtual ~MmWaveMacSchedulerTdma () override;
 

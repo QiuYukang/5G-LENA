@@ -22,8 +22,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Assign frequencies in a proportional fair fashion
- * \ingroup mmwave-sched
  *
  * Sort the UE by their current throughput. Number of symbols is fixed depending
  * on the beam requirements.

@@ -23,8 +23,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Assign frequencies in a round-robin fashion
- * \ingroup mmwave-sched
  *
  * Each UE will receive a proportional number of frequencies, with a fixed
  * number of symbols depending on the requirements of each beam. With \f$n\f$ UE,

@@ -244,7 +244,7 @@ MmWaveMacSchedulerTdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activ
  * \param activeDl active DL flows and UE
  * \return a map between the beam and the symbols assigned to each one
  *
- * The function will prepare all the needed callbacks to return UE YL parameters
+ * The function will prepare all the needed callbacks to return UE UL parameters
  * (e.g., the UL TBS, the UL RBG) and then will call MmWaveMacSchedulerTdma::AssignRBGTDMA.
  */
 MmWaveMacSchedulerTdma::BeamSymbolMap

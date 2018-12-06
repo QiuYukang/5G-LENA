@@ -23,8 +23,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Assign entire symbols in a round-robin fashion
- * \ingroup mmwave-sched
  *
  * Each UE will receive a proportional number of symbols. With \f$n\f$ UE,
  * each one will receive:

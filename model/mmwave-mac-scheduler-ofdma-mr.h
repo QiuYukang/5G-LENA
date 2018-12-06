@@ -23,8 +23,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Assign frequencies in a maximum-rate fashion
- * \ingroup mmwave-sched
  *
  * The UEs will be sorted by their MCS. Higher MCS will always be scheduled
  * before lower MCS, until they do not have any more bytes to transmit.

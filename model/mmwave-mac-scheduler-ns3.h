@@ -33,8 +33,8 @@ namespace ns3 {
 
 class MmWaveSchedGeneralTestCase;
 /**
+ * \ingroup mac-schedulers
  * \brief A general scheduler for mmWave in NS3
- * \ingroup mmwave-sched
  *
  * This abstract class is taking care of creating a solid base for any schedulers
  * in the mmWave world. The class implements all the API from the FemtoForum API,

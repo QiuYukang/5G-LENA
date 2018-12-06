@@ -23,8 +23,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief UE representation for a round-robin scheduler
- * \ingroup mmwave-sched
  *
  * The UE representation does not store any additional information,
  * but provides a way for a RR scheduler to order the UE based on the assigned

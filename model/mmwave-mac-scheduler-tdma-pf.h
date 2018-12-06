@@ -22,8 +22,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief Assign entire symbols in a proportional fair fashion
- * \ingroup mmwave-sched
  *
  * Sort the UE by their current throughput. Details in the class
  * MmWaveMacSchedulerUeInfoPF.

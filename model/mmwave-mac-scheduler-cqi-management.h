@@ -27,8 +27,8 @@ namespace ns3 {
 class MmWaveAmc;
 
 /**
+ * \ingroup mac-schedulers
  * \brief CQI management for schedulers.
- * \ingroup mmwave-sched
  *
  * The scheduler will call either DlWBCQIReported or DlSBCQIReported to calculate
  * a new DL MCS. For UL, only the method UlSBCQIReported is implemented,

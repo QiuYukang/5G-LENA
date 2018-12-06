@@ -23,8 +23,8 @@
 namespace ns3 {
 
 /**
+ * \ingroup mac-schedulers
  * \brief The base for all the OFDMA schedulers
- * \ingroup mmwave-sched
  *
  * An example of OFDMA-based scheduling is the following:
  * <pre>

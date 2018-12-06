@@ -35,8 +35,8 @@ class MmWaveMacSchedulerUeInfo;
 typedef std::shared_ptr<MmWaveMacSchedulerUeInfo> UePtr;
 
 /**
+ * \ingroup mac-schedulers
  * \brief The representation of an user for any Mac scheduler
- * \ingroup mmwave-sched
  *
  * Basic representation for an UE inside any scheduler. The class is responsible
  * to store all the UE-related field that can be used by any scheduler.
