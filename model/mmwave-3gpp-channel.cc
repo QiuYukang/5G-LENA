@@ -372,6 +372,63 @@ MmWave3gppChannel::Initial (NetDeviceContainer ueDevices, NetDeviceContainer enb
 }
 
 
+bool MmWave3gppChannel::GetTxRxAntennaArray (Ptr<const MobilityModel> a,
+                                             Ptr<const MobilityModel> b,
+                                             Ptr<AntennaArrayBasicModel>& txAntennaArray,
+                                             Ptr<AntennaArrayBasicModel>& rxAntennaArray,
+                                             Vector& locUT,
+                                             key_t& key,
+                                             key_t& keyReverse) const
+{
+
+  uint8_t ccId = m_phyMacConfig->GetCcId ();
+
+  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+
+  key = std::make_pair (txDevice,rxDevice);
+  keyReverse = std::make_pair (rxDevice,txDevice);
+
+  Ptr<MmWaveEnbNetDevice> txEnb = DynamicCast<MmWaveEnbNetDevice> (txDevice);
+  Ptr<MmWaveUeNetDevice> rxUe = DynamicCast<MmWaveUeNetDevice> (rxDevice);
+
+  if (txEnb != 0 && rxUe != 0)
+    {
+      NS_LOG_INFO ("this is the downlink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
+
+      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
+          txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
+
+      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
+          rxUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
+
+      locUT = b->GetPosition ();
+      return true;
+    }
+  else if (txEnb == 0 && rxUe == 0 )
+    {
+      NS_LOG_INFO ("this is the uplink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
+
+      Ptr<MmWaveUeNetDevice> txUe =
+          DynamicCast<MmWaveUeNetDevice> (txDevice);
+      Ptr<MmWaveEnbNetDevice> rxEnb =
+          DynamicCast<MmWaveEnbNetDevice> (rxDevice);
+
+      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
+          txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
+      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
+          rxEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
+      locUT = a->GetPosition ();
+      return true;
+    }
+  else
+    {
+      NS_LOG_INFO ("enb to enb or ue to ue transmission, skip beamforming a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
+      return false;
+    }
+}
+
+
 Ptr<SpectrumValue>
 MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
                                                  Ptr<const MobilityModel> a,
@@ -380,66 +437,33 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   NS_LOG_FUNCTION (this);
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
-  uint8_t ccId = m_phyMacConfig->GetCcId ();
-
-  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
-  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
-  Ptr<MmWaveEnbNetDevice> txEnb =
-    DynamicCast<MmWaveEnbNetDevice> (txDevice);
-  Ptr<MmWaveUeNetDevice> rxUe =
-    DynamicCast<MmWaveUeNetDevice> (rxDevice);
-
   /* txAntennaNum[0]-number of vertical antenna elements
    * txAntennaNum[1]-number of horizontal antenna elements*/
   uint8_t txAntennaNum[2];
   uint8_t rxAntennaNum[2];
-  Ptr<AntennaArrayBasicModel> txAntennaArray, rxAntennaArray;
-
   Vector locUT;
-  if (txEnb != 0 && rxUe != 0)
+  Ptr<AntennaArrayBasicModel> txAntennaArray, rxAntennaArray;
+  key_t key, keyReverse;
+
+  bool beamforming = GetTxRxAntennaArray (a, b, txAntennaArray, rxAntennaArray, locUT, key, keyReverse);
+
+  if (!beamforming)
     {
-      NS_LOG_INFO ("this is downlink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-
-      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-      txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-
-      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1();
-      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2();
-
-      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-        rxUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-      locUT = b->GetPosition ();
-
-      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
-      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
-
+      return rxPsd;
     }
-  else if (txEnb == 0 && rxUe == 0 )
+
+  if (txAntennaArray!=0 && rxAntennaArray!=0)
     {
-      NS_LOG_INFO ("this is uplink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-
-      Ptr<MmWaveUeNetDevice> txUe =
-        DynamicCast<MmWaveUeNetDevice> (txDevice);
-      Ptr<MmWaveEnbNetDevice> rxEnb =
-        DynamicCast<MmWaveEnbNetDevice> (rxDevice);
-
-      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-        txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-        rxEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-      locUT = a->GetPosition ();
-
       txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
       txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
       rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
       rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
-
     }
   else
     {
-      NS_LOG_INFO ("enb to enb or ue to ue transmission, skip beamforming a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-      return rxPsd;
+      NS_ABORT_MSG("Tx and Rx antenna arrays are empty");
     }
+
 
   if (txAntennaArray->IsOmniTx () || rxAntennaArray->IsOmniTx () )
     {
@@ -466,9 +490,6 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
     {
        relativeSpeed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
     }
-
-  key_t key = std::make_pair (txDevice,rxDevice);
-  key_t keyReverse = std::make_pair (rxDevice,txDevice);
 
   std::map< key_t, Ptr<Params3gpp> >::iterator it = m_channelMap.find (key);
   std::map< key_t, Ptr<Params3gpp> >::iterator itReverse = m_channelMap.find (keyReverse);
@@ -541,14 +562,16 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       double y = a->GetPosition ().y - b->GetPosition ().y;
       double distance2D = sqrt (x * x + y * y);
       double hUT, hBS;
-      if (rxUe != 0)
+      hUT = locUT.z;
+
+      if (locUT.x == b->GetPosition().x &&
+          locUT.y == b->GetPosition().y &&
+          locUT.z == b->GetPosition().z) // if UE is the receiver (rxUe != 0)
         {
-          hUT = b->GetPosition ().z;
           hBS = a->GetPosition ().z;
         }
       else
         {
-          hUT = a->GetPosition ().z;
           hBS = b->GetPosition ().z;
         }
       //Draw parameters from table 7.5-6 and 7.5-7 to 7.5-10.
@@ -605,6 +628,10 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
               NS_LOG_ERROR ("long term cov. matrix...");
               LongTermCovMatrixBeamforming (channelParams);
             }
+
+          Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+          Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+
           txAntennaArray->SetBeamformingVector (channelParams->m_txW, channelParams->m_txBeamId, rxDevice);
           rxAntennaArray->SetBeamformingVector (channelParams->m_rxW, channelParams->m_rxBeamId, txDevice);
         }
