@@ -164,16 +164,10 @@ main (int argc, char *argv[])
 
   // default 28e9
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequencyInGHz)); // check MmWavePhyMacCommon for other PHY layer parameters
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Scheduler", TypeIdValue (TypeId::LookupByName ("ns3::MmWaveFlexTtiMacScheduler")));
   Config::SetDefault ("ns3::UdpClient::PacketSize", UintegerValue(1500));
  // Config::SetDefault ("ns3::UdpClient::MaxPackets", UintegerValue(10));
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
-
-  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
-
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
-  Config::SetDefault ("ns3::LteRlcUm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
 
 //  Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(1));
 //  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
