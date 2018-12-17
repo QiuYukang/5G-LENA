@@ -183,6 +183,28 @@ public:
 
   virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90) = 0;
 
+  /**
+   * \brief Returns the number of antenna elements in the first dimension.
+   */
+  virtual uint8_t GetAntennaNumDim1 () const = 0;
+
+  /**
+   * \brief Returns the number of antenna elements in the second dimension.
+   */
+  virtual uint8_t GetAntennaNumDim2 () const = 0;
+
+  /**
+   * \brief Set the number of antenna elements in the first dimension
+   * \param antennaNum the number of antenna elements in the first dimension
+   */
+  virtual void SetAntennaNumDim1 (uint8_t antennaNum) = 0;
+
+  /**
+   * \brief Set the number of antenna elements in the second dimension
+   * \param antennaNum the number of antenna elements in the second dimension
+   */
+  virtual void SetAntennaNumDim2 (uint8_t antennaNum) = 0;
+
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayBasicModel::BeamId const & item);

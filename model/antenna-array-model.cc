@@ -30,6 +30,7 @@
 #include <ns3/simulator.h>
 #include "ns3/double.h"
 #include "ns3/enum.h"
+#include <ns3/uinteger.h>
 
 NS_LOG_COMPONENT_DEFINE ("AntennaArrayModel");
 
@@ -123,6 +124,16 @@ AntennaArrayModel::GetTypeId ()
                    DoubleValue (0),
                    MakeDoubleAccessor (&AntennaArrayModel::m_antennaGain),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("AntennaNumDim1",
+                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                    UintegerValue (4),
+                    MakeUintegerAccessor (&AntennaArrayModel::SetAntennaNumDim1,&AntennaArrayModel::GetAntennaNumDim1),
+                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("AntennaNumDim2",
+                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                    UintegerValue (8),
+                    MakeUintegerAccessor (&AntennaArrayModel::SetAntennaNumDim2,&AntennaArrayModel::GetAntennaNumDim2),
+                    MakeUintegerChecker<uint8_t> ())
   ;
   return tid;
 }
@@ -421,6 +432,30 @@ enum AntennaArrayModel::AntennaOrientation
 AntennaArrayModel::GetAntennaOrientation () const
 {
   return m_orientation;
+}
+
+uint8_t
+AntennaArrayModel::GetAntennaNumDim1 () const
+{
+  return m_antennaNumDim1;
+}
+
+uint8_t
+AntennaArrayModel::GetAntennaNumDim2 () const
+{
+  return m_antennaNumDim2;
+}
+
+void
+AntennaArrayModel::SetAntennaNumDim1 (uint8_t antennaNum)
+{
+  m_antennaNumDim1 = antennaNum;
+}
+
+void
+AntennaArrayModel::SetAntennaNumDim2 (uint8_t antennaNum)
+{
+  m_antennaNumDim2 = antennaNum;
 }
 
 
