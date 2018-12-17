@@ -181,14 +181,12 @@ main (int argc, char *argv[])
   // default 28e9
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequencyInGHz)); // check MmWavePhyMacCommon for other PHY layer parameters
   Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaRR")));
-
   Config::SetDefault ("ns3::UdpClient::PacketSize", UintegerValue(1500));
   //Config::SetDefault ("ns3::UdpClient::MaxPackets", UintegerValue(10));
-
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
   Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
   //Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(1)); // by default is disabled
-
+//  Config::SetDefault ("ns3::LteRlcAm::PollRetransmitTimer", TimeValue(MilliSeconds(1.0)));
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
   double hBS; //base station antenna height in meters;
   double hUT; //user antenna height in meters;
