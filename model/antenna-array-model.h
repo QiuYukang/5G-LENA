@@ -81,6 +81,27 @@ public:
 
   enum AntennaArrayModel::AntennaOrientation GetAntennaOrientation () const;
 
+  /**
+   * \brief Returns the number of antenna elements in the first dimension.
+   */
+  virtual uint8_t GetAntennaNumDim1 () const override;
+
+  /**
+   * \brief Returns the number of antenna elements in the second dimension.
+   */
+  virtual uint8_t GetAntennaNumDim2 () const override;
+
+  /**
+   * \brief Set the number of antenna elements in the first dimension
+   * \param antennaNum the number of antenna elements in the first dimension
+   */
+  virtual void SetAntennaNumDim1 (uint8_t antennaNum) override;
+   /**
+    * \brief Set the number of antenna elements in the second dimension
+    * \param antennaNum the number of antenna elements in the second dimension
+    */
+  virtual void SetAntennaNumDim2 (uint8_t antennaNum) override;
+
 
 private:
 
@@ -96,6 +117,9 @@ protected:
   double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
   AntennaOrientation m_orientation; // antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane
   double m_antennaGain; //antenna gain
+
+  uint8_t m_antennaNumDim1; //!< The number of antenna elements in the first dimension.
+  uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);

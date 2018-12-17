@@ -394,16 +394,19 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   if (txEnb != 0 && rxUe != 0)
     {
       NS_LOG_INFO ("this is downlink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-      txAntennaNum[0] = txEnb->GetAntennaNumDim1 ();
-      txAntennaNum[1] = txEnb->GetAntennaNumDim2 ();
-      rxAntennaNum[0] = rxUe->GetAntennaNumDim1 ();
-      rxAntennaNum[1] = rxUe->GetAntennaNumDim2 ();
 
       txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-        txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
+      txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
+
+      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1();
+      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2();
+
       rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         rxUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       locUT = b->GetPosition ();
+
+      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
+      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
 
     }
   else if (txEnb == 0 && rxUe == 0 )
@@ -415,16 +418,16 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       Ptr<MmWaveEnbNetDevice> rxEnb =
         DynamicCast<MmWaveEnbNetDevice> (rxDevice);
 
-      txAntennaNum[0] = txUe->GetAntennaNumDim1 ();
-      txAntennaNum[1] = txUe->GetAntennaNumDim2 ();
-      rxAntennaNum[0] = rxEnb->GetAntennaNumDim1 ();
-      rxAntennaNum[1] = rxEnb->GetAntennaNumDim2 ();
-
       txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
         rxEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       locUT = a->GetPosition ();
+
+      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
+      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
+      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
+      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
 
     }
   else
@@ -809,16 +812,14 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
 
   Ptr<SpectrumValue> tempPsd = Copy<SpectrumValue> (txPsd);
 
-  //NS_ASSERT_MSG (params->m_delay.size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
-  //NS_ASSERT_MSG (params->m_txW.size()==params->m_channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
-  //NS_ASSERT_MSG (params->m_rxW.size()==params->m_channel.size(), "the rx antenna size of channel and antenna weights should be the same");
-  //NS_ASSERT_MSG (params->m_angle.at(0).size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
-  //NS_ASSERT_MSG (params->m_angle.at(1).size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
+  NS_ASSERT_MSG (params->m_delay.size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
+  NS_ASSERT_MSG (params->m_txW.size()==params->m_channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
+  NS_ASSERT_MSG (params->m_rxW.size()==params->m_channel.size(), "the rx antenna size of channel and antenna weights should be the same");
+  NS_ASSERT_MSG (params->m_angle.at(0).size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
+  NS_ASSERT_MSG (params->m_angle.at(1).size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
 
   //channel[rx][tx][cluster]
   uint8_t numCluster = params->m_delay.size ();
-  //uint8_t txAntenna = params->m_txW.size();
-  //uint8_t rxAntenna = params->m_rxW.size();
   //the update of Doppler is simplified by only taking the center angle of each cluster in to consideration.
   Values::iterator vit = tempPsd->ValuesBegin ();
   uint16_t iSubband = 0;
