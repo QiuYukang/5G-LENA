@@ -298,7 +298,6 @@ private:
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
 
   std::vector<Ptr<SpectrumChannel> >m_channel;
-  std::vector<Ptr<MmWaveChannelRaytracing> >m_raytracing;   //raytracing per bandwidth part
   std::vector<Ptr<MmWave3gppChannel> > m_3gppChannel;   //3gpp channel per bandwidth part
   
   std::map< uint8_t, Ptr<Object> > m_pathlossModel;

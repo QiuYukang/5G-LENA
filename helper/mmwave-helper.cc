@@ -177,11 +177,6 @@ MmWaveHelper::DoDispose (void)
   m_channel.clear ();
   m_bandwidthPartsConf = 0;
 
-  for (auto i:m_raytracing)
-    {
-      i = 0;
-    }
-  m_raytracing.clear ();
   for (auto i:m_3gppChannel)
     {
       i = 0;
@@ -230,18 +225,7 @@ MmWaveHelper::DoInitialize ()
       NS_LOG_UNCOND ("MmWaveHelper: No PropagationLossModel!");
     }
 
-  if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
-    {
-      uint32_t k = 0;
-      for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
-        {
-          Ptr<MmWaveChannelRaytracing> raytracing = CreateObject<MmWaveChannelRaytracing> ();
-          m_channel.at (k++)->AddSpectrumPropagationLossModel (raytracing);
-          raytracing->SetConfigurationParameters (i);
-          m_raytracing.push_back (raytracing);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWave3gppChannel")
+  if (m_channelModelType == "ns3::MmWave3gppChannel")
     {
       uint32_t k = 0;
       for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
@@ -915,14 +899,7 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
       AttachToClosestEnb (*i, enbDevices);
     }
 
-  if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
-    {
-      for (auto i:m_raytracing)
-        {
-          i->Initial (ueDevices,enbDevices);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWave3gppChannel")
+  if (m_channelModelType == "ns3::MmWave3gppChannel")
     {
       for (auto i: m_3gppChannel)
         {
