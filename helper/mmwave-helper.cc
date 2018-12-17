@@ -236,6 +236,7 @@ MmWaveHelper::DoInitialize ()
            if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
             {
               channel->SetPathlossModel (m_pathlossModel.at (k)->GetObject<PropagationLossModel> ());
+              channel->SetAttribute("CenterFrequency", DoubleValue (i->GetCenterFrequency()));
             }
           else
             {

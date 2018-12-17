@@ -245,7 +245,12 @@ MmWave3gppChannel::GetTypeId (void)
                     DoubleValue (0),
                     MakeDoubleAccessor (&MmWave3gppChannel::m_ueSpeed),
                     MakeDoubleChecker<double> ())
-  ;
+    .AddAttribute ("CenterFrequency",
+                   "The center frequency in Hz of this spectrum channel matrix",
+                   DoubleValue (28e9),
+                   MakeDoubleAccessor (&MmWave3gppChannel::m_centerFrequency),
+                   MakeDoubleChecker<double> ())
+    ;
   return tid;
 }
 
@@ -810,6 +815,12 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
 {
   NS_LOG_FUNCTION (this);
 
+  double spectrumValueCenterFrequency = txPsd->GetSpectrumModel()->Begin()->fl +
+      ((txPsd->GetSpectrumModel()->End()-1)->fh - txPsd->GetSpectrumModel()->Begin()->fl)/2;
+
+  NS_ABORT_MSG_IF (spectrumValueCenterFrequency!= m_centerFrequency,
+                   "Can't calculate beamforming gain for a spectrum value with that does not have the same central carrier frequency as the channel map");
+
   Ptr<SpectrumValue> tempPsd = Copy<SpectrumValue> (txPsd);
 
   NS_ASSERT_MSG (params->m_delay.size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
@@ -822,6 +833,8 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
   uint8_t numCluster = params->m_delay.size ();
   //the update of Doppler is simplified by only taking the center angle of each cluster in to consideration.
   Values::iterator vit = tempPsd->ValuesBegin ();
+  Bands::const_iterator sbit = tempPsd->ConstBandsBegin(); // sub band iterator
+
   uint16_t iSubband = 0;
   double varTtiTime = Simulator::Now ().GetSeconds ();
   complexVector_t doppler;
@@ -830,7 +843,8 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
       //cluster angle angle[direction][n],where, direction = 0(aoa), 1(zoa).
       double temp_doppler = 2 * M_PI * (sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.x
                                         + sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * sin (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.y
-                                        + cos (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * speed.z) * varTtiTime * m_phyMacConfig->GetCenterFrequency () / 3e8;
+                                        + cos (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * speed.z) * varTtiTime *
+                                            m_centerFrequency / 3e8;
       doppler.push_back (exp (std::complex<double> (0, temp_doppler)));
 
     }
@@ -840,8 +854,8 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
       std::complex<double> subsbandGain (0.0,0.0);
       if ((*vit) != 0.00)
         {
-          double fsb = m_phyMacConfig->GetCenterFrequency () - m_phyMacConfig->GetBandwidth () / 2 + m_phyMacConfig->GetSubcarrierSpacing () * m_phyMacConfig->GetNumScsPerRb () * iSubband;
-          for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
+          double fsb = (*sbit).fc; // take the carrier frequency of the band for which we al calculating the gain
+          for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++) // calculate for this subband for all the clusters
             {
               double delay = -2 * M_PI * fsb * (params->m_delay.at (cIndex));
               std::complex<double> txSum (0,0);
@@ -850,6 +864,7 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
           *vit = (*vit) * (norm (subsbandGain));
         }
       vit++;
+      sbit++;
       iSubband++;
     }
   return tempPsd;
@@ -906,7 +921,7 @@ MmWave3gppChannel::CalLongTerm (Ptr<Params3gpp> params) const
 Ptr<ParamsTable>
 MmWave3gppChannel::Get3gppTable (bool los, bool o2i, double hBS, double hUT, double distance2D) const
 {
-  double fcGHz = m_phyMacConfig->GetCenterFrequency () / 1e9;
+  double fcGHz = m_centerFrequency / 1e9;
   Ptr<ParamsTable> table3gpp = CreateObject<ParamsTable> ();
   // table3gpp includes the following parameters:
   // numOfCluster, raysPerCluster, uLgDS, sigLgDS, uLgASD, sigLgASD,
@@ -1693,7 +1708,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                       //Doppler is computed in the CalBeamformingGain function and is simplified to only account for the center anngle of each cluster.
                       //double doppler = 2*M_PI*(sin(rayZoa_radian[nIndex][mIndex])*cos(rayAoa_radian[nIndex][mIndex])*relativeSpeed.x
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
-                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
+                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
                       rays += exp (std::complex<double> (0, initialPhase))
                         * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
                             txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian [nIndex][mIndex]))
@@ -1726,7 +1741,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                                                        + cos (rayZod_radian[nIndex][mIndex]) * sLoc.z);
                       //double doppler = 2*M_PI*(sin(rayZoa_radian[nIndex][mIndex])*cos(rayAoa_radian[nIndex][mIndex])*relativeSpeed.x
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
-                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
+                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
                       //double delaySpread;
                       switch (mIndex)
                         {
@@ -1736,7 +1751,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         case 12:
                         case 17:
                         case 18:
-                          //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_phyMacConfig->GetCenterFrequency ();
+                          //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_centerFrequency;
                           raysSub2 += exp (std::complex<double> (0, initialPhase))
                             * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
                                 txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex],rayAod_radian [nIndex][mIndex]))
@@ -1749,7 +1764,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         case 14:
                         case 15:
                         case 16:
-                          //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_phyMacConfig->GetCenterFrequency ();
+                          //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_centerFrequency;
                           raysSub3 += exp (std::complex<double> (0, initialPhase))
                             * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
                                 txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
@@ -1759,7 +1774,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                           //raysSub3 +=1;
                           break;
                         default://case 1,2,3,4,5,6,7,8,19,20
-                          //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_phyMacConfig->GetCenterFrequency ();
+                          //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_centerFrequency;
                           raysSub1 += exp (std::complex<double> (0, initialPhase))
                             * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
                                 txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
@@ -1793,7 +1808,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                                                + cos (txAngle.theta) * sLoc.z);
               //double doppler = 2*M_PI*(sin(rxAngle.theta)*cos(rxAngle.phi)*relativeSpeed.x
               //              + sin(rxAngle.theta)*sin(rxAngle.phi)*relativeSpeed.y
-              //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
+              //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
 
               ray = exp (std::complex<double> (0, losPhase))
                 * (rxAntenna->GetRadiationPattern (rxAngle.theta, rxAngle.phi) *
@@ -2310,7 +2325,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                       //Doppler is computed in the CalBeamformingGain function and is simplified to only account for the center anngle of each cluster.
                       //double doppler = 2*M_PI*(sin(rayZoa_radian[nIndex][mIndex])*cos(rayAoa_radian[nIndex][mIndex])*relativeSpeed.x
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
-                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
+                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
                       rays += exp (std::complex<double> (0, initialPhase))
                         * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex],rayAoa_radian[nIndex][mIndex] ) *
                             txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
@@ -2340,7 +2355,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                                                        + cos (rayZod_radian[nIndex][mIndex]) * sLoc.z);
                       //double doppler = 2*M_PI*(sin(rayZoa_radian[nIndex][mIndex])*cos(rayAoa_radian[nIndex][mIndex])*relativeSpeed.x
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
-                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
+                      //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
                       //double delaySpread;
                       switch (mIndex)
                         {
@@ -2350,7 +2365,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                         case 12:
                         case 17:
                         case 18:
-                          //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_phyMacConfig->GetCenterFrequency ();
+                          //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_centerFrequency;
                           raysSub2 += exp (std::complex<double> (0, initialPhase))
                             * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
                                 txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
@@ -2363,7 +2378,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                         case 14:
                         case 15:
                         case 16:
-                          //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_phyMacConfig->GetCenterFrequency ();
+                          //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_centerFrequency;
                           raysSub3 += exp (std::complex<double> (0, initialPhase))
                             * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex])
                                 * txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
@@ -2373,7 +2388,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                           //raysSub3 +=1;
                           break;
                         default://case 1,2,3,4,5,6,7,8,19,20
-                          //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_phyMacConfig->GetCenterFrequency ();
+                          //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_centerFrequency;
                           raysSub1 += exp (std::complex<double> (0, initialPhase))
                             * (rxAntenna->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
                                 txAntenna->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
@@ -2407,7 +2422,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
                                                + cos (txAngle.theta) * sLoc.z);
               //double doppler = 2*M_PI*(sin(rxAngle.theta)*cos(rxAngle.phi)*relativeSpeed.x
               //              + sin(rxAngle.theta)*sin(rxAngle.phi)*relativeSpeed.y
-              //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_phyMacConfig->GetCenterFrequency ()/3e8;
+              //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
 
               ray = exp (std::complex<double> (0, losPhase))
                 * (rxAntenna->GetRadiationPattern (rxAngle.theta, rxAngle.phi) *
@@ -2743,7 +2758,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
                 {
                   signZ2 = 1;
                 }
-              double lambda = 3e8 / m_phyMacConfig->GetCenterFrequency ();
+              double lambda = 3e8 / m_centerFrequency;
               double F_A1 = atan (signA1 * M_PI / 2 * sqrt (M_PI / lambda *
                                                             params->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (A1 * M_PI / 180) - 1))) / M_PI; //(7.6-23)
               double F_A2 = atan (signA2 * M_PI / 2 * sqrt (M_PI / lambda *
