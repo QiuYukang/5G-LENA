@@ -325,7 +325,7 @@ private:
                       Ptr<const MobilityModel> b) const;
   /*
    * Returns the attenuation of each cluster in dB after applying blockage model
-   * @params the channel realizationin as a Params3gpp object
+   * @params the channel realization as a Params3gpp object
    * @params cluster azimuth angle of arrival
    * @params cluster zenith angle of arrival
    */
@@ -355,8 +355,9 @@ private:
   bool m_portraitMode; //true (portrait mode); false (landscape mode).
   std::string m_scenario;
   double m_blockerSpeed;
-  double m_beamSearchAngleStep;
-  double m_ueSpeed;
+  double m_beamSearchAngleStep; //!< The size of the angle to be used in beam search method
+  double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
+  double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
 };
 
 
