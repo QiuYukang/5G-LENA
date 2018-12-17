@@ -219,6 +219,34 @@ public:
    */
   void SetPathlossModel (Ptr<PropagationLossModel> pathloss);
 
+public:
+
+  typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
+
+protected:
+
+  /**
+   * This updates the values of the input parameters txAntennaArray
+   * and rxAntennaArray with the transmitter and receiver antenna
+   *
+   * @param a Mobility model of the transmitter device
+   * @param b Mobility model of the receiver device
+   * @param txAntennaArray of the transmitter
+   * @param rxAntennaArray of the receiver
+   * @param locUT the position of the UE
+   * @param key the key to the map consisting from the transmitter and receiver ID
+   * @param keyReverse the reverse of a key consisting from the transmitter and receiver ID
+   * @returns returns true if the beamforming is between UE and BS,
+   * and false if is between UEs or BSs
+   */
+  virtual bool GetTxRxAntennaArray (Ptr<const MobilityModel> a,
+                                    Ptr<const MobilityModel> b,
+                                    Ptr<AntennaArrayBasicModel>& txAntennaArray,
+                                    Ptr<AntennaArrayBasicModel>& rxAntennaArray,
+                                    Vector& locUT,
+                                    key_t& key,
+                                    key_t& keyReverse) const;
+
 private:
   /**
    * Inherited from SpectrumPropagationLossModel, it returns the PSD at the receiver
@@ -332,7 +360,7 @@ private:
   doubleVector_t CalAttenuationOfBlockage (Ptr<Params3gpp> params,
                                            doubleVector_t clusterAOA, doubleVector_t clusterZOA) const;
 
-  typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
+private:
 
   mutable std::map< key_t, int > m_connectedPair;
   mutable std::map< key_t, Ptr<Params3gpp> > m_channelMap;
