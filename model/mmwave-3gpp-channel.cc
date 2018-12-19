@@ -634,7 +634,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           if (m_cellScan)
             {
               NS_LOG_ERROR ("beam search method ...");
-              BeamSearchBeamforming (rxPsd, channelParams,txAntennaArray,rxAntennaArray);
+              BeamSearchBeamforming (channelParams,txAntennaArray,rxAntennaArray);
             }
           else
             {
@@ -2541,11 +2541,20 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
 }
 
 void
-MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd,
-                                          Ptr<Params3gpp> params,
+MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params,
                                           Ptr<AntennaArrayBasicModel> txAntenna,
                                           Ptr<AntennaArrayBasicModel> rxAntenna) const
 {
+
+  std::vector<int> listOfSubchannels;
+  for (unsigned i = 0; i < m_phyMacConfig->GetBandwidthInRbs (); i++)
+     {
+       listOfSubchannels.push_back (i);
+     }
+
+  Ptr<const SpectrumValue> fakePsd =
+           MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, 0, listOfSubchannels);
+
 
   /* txAntennaNum[0]-number of vertical antenna elements
    * txAntennaNum[1]-number of horizontal antenna elements*/
@@ -2590,9 +2599,9 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd,
                   params->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntenna->GetCurrentBeamformingVector ());
 
                   CalLongTerm (params);
-                  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (txPsd, params, Vector (0,0,0));
+                  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd, params, Vector (0,0,0));
 
-                  SpectrumValue bfGain = (*bfPsd) / (*txPsd);
+                  SpectrumValue bfGain = (*bfPsd) / (*fakePsd);
                   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
                   double power = Sum (bfGain) / nbands;
 
