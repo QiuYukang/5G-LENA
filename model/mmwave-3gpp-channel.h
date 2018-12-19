@@ -312,16 +312,22 @@ private:
    * The vector is stored in the Params3gpp object passed as parameter
    * @params the channel realizationin as a Params3gpp object
    */
-  void LongTermCovMatrixBeamforming (Ptr<Params3gpp> params) const;
+  void LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
+                                     Ptr<NetDevice> rxDevice,
+                                     Ptr<Params3gpp> params,
+                                     Ptr<AntennaArrayBasicModel>& txAntennaArray,
+                                     Ptr<AntennaArrayBasicModel>& rxAntennaArray) const;
 
   /**
    * Scan all sectors with predefined code book and select the one returns maximum gain.
    * The BF vector is stored in the Params3gpp object passed as parameter
    * @params the channel realizationin as a Params3gpp object
    */
-  void BeamSearchBeamforming (Ptr<Params3gpp> params,
-                              Ptr<AntennaArrayBasicModel> txAntenna,
-                              Ptr<AntennaArrayBasicModel> rxAntenna) const;
+  void BeamSearchBeamforming (Ptr<NetDevice> txDevice,
+                              Ptr<NetDevice> rxDevice,
+                              Ptr<Params3gpp> params,
+                              Ptr<AntennaArrayBasicModel>& txAntennaArray,
+                              Ptr<AntennaArrayBasicModel>& rxAntennaArray) const;
 
 
   /**
