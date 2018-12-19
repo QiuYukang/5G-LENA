@@ -319,8 +319,10 @@ private:
    * The BF vector is stored in the Params3gpp object passed as parameter
    * @params the channel realizationin as a Params3gpp object
    */
-  void BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayBasicModel> txAntenna,
-                              Ptr<AntennaArrayBasicModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const;
+  void BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd,
+                              Ptr<Params3gpp> params,
+                              Ptr<AntennaArrayBasicModel> txAntenna,
+                              Ptr<AntennaArrayBasicModel> rxAntenna) const;
 
 
   /**
