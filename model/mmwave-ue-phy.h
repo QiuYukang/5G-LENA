@@ -85,7 +85,7 @@ public:
   void DoSendControlMessage (Ptr<MmWaveControlMessage> msg);
 
   void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
-  Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const;
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override;
   Ptr<MmWaveSpectrumPhy> GetUlSpectrumPhy () const;
 
   void ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > msgList);

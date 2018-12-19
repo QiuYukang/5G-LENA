@@ -938,10 +938,9 @@ MmWaveHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer en
 
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
-
       Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
-      enbNetDev->GetPhy (i)->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
-      ueNetDev->GetPhy (i)->RegisterToEnb (cellId, configParams);
+      (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
+      (DynamicCast<MmWaveUePhy>(ueNetDev->GetPhy (i)))->RegisterToEnb (cellId, configParams);
       enbNetDev->GetMac(i)->AssociateUeMAC (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi ());
     }
 
