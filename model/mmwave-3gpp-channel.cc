@@ -428,6 +428,26 @@ bool MmWave3gppChannel::GetTxRxAntennaArray (Ptr<const MobilityModel> a,
     }
 }
 
+char
+MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
+                                          Ptr<const MobilityModel> b) const
+{
+
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+    {
+      return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
+          ->GetChannelCondition (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
+    }
+  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+    {
+      return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
+          ->GetChannelCondition (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
+    }
+  else
+    {
+      NS_FATAL_ERROR ("unkown pathloss model");
+    }
+}
 
 Ptr<SpectrumValue>
 MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
@@ -479,7 +499,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0, "the position of tx and rx devices cannot be the same");
 
   Vector relativeSpeed;
-  
+
   if (m_ueSpeed == 0)
     {
        Vector rxSpeed = b->GetVelocity ();
@@ -491,32 +511,13 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
        relativeSpeed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
     }
 
-  std::map< key_t, Ptr<Params3gpp> >::iterator it = m_channelMap.find (key);
-  std::map< key_t, Ptr<Params3gpp> >::iterator itReverse = m_channelMap.find (keyReverse);
-
-  Ptr<Params3gpp> channelParams;
-
-  bool reverseLink = false;
 
   //Step 2: Assign propagation condition (LOS/NLOS).
 
-  char condition;
-  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
-    {
-      condition = m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
-        ->GetChannelCondition (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
-    }
-  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
-    {
-      condition = m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
-        ->GetChannelCondition (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
-    }
-  else
-    {
-      NS_FATAL_ERROR ("unkonw pathloss model");
-    }
-  bool los = false;
-  bool o2i = false;
+  char condition = DoGetChannelCondition(a,b);
+
+  bool los = false, o2i = false;
+
   if (condition == 'l')
     {
       los = true;
@@ -536,7 +537,12 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   //When there is a LOS/NLOS switch, a new uncorrelated channel is created.
   //Therefore, LOS/NLOS condition of updating is always consistent with the previous channel.
 
-  //I only update the fowrad channel.
+  Ptr<Params3gpp> channelParams;
+  std::map< key_t, Ptr<Params3gpp> >::iterator it = m_channelMap.find (key);
+  std::map< key_t, Ptr<Params3gpp> >::iterator itReverse = m_channelMap.find (keyReverse);
+  bool reverseLink = false;
+
+  //I only update the forward channel.
   if ((it == m_channelMap.end () && itReverse == m_channelMap.end ())
       || (it != m_channelMap.end () && it->second->m_channel.size () == 0)
       || (it != m_channelMap.end () && it->second->m_los != los))
@@ -566,7 +572,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
       if (locUT.x == b->GetPosition().x &&
           locUT.y == b->GetPosition().y &&
-          locUT.z == b->GetPosition().z) // if UE is the receiver (rxUe != 0)
+          locUT.z == b->GetPosition().z) // if UE is the receiver
         {
           hBS = a->GetPosition ().z;
         }
@@ -616,6 +622,13 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
                                          txAntennaNum, rxAntennaNum, rxAngle, txAngle, relativeSpeed, distance2D, distance3D);
         }
       std::map< key_t, int >::iterator it1 = m_connectedPair.find (key);
+
+
+      // first step in desconnecting beamforming from the channel 3gpp
+      // beamforming method does not need to know all the 3gpp channel parameters
+      // instead of providing channel parameters limit to minimum set of necessary variables
+
+
       if (it1 != m_connectedPair.end ())
         {
           if (m_cellScan)
@@ -654,7 +667,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
               m_channelMap[key] = channelParams;
               return rxPsd;
             }
-        }
+        } //in not connected pair
 
       CalLongTerm (channelParams);
       m_channelMap[key] = channelParams;
