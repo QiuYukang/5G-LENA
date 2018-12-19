@@ -248,6 +248,16 @@ protected:
                                     key_t& keyReverse) const;
 
 private:
+
+
+  /**
+   * Returns the channel condition for the given transmitter and receiver
+   * @param a Mobility model of the transmitter
+   * @param b Mobility model of the receiver
+   * @return the channel condition based on the used propagation loss model
+   */
+  char DoGetChannelCondition (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
+
   /**
    * Inherited from SpectrumPropagationLossModel, it returns the PSD at the receiver
    * @params the transmitted PSD
@@ -297,7 +307,6 @@ private:
   Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable> table3gpp,
                                  Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
                                  uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle) const;
-
   /**
    * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
    * The vector is stored in the Params3gpp object passed as parameter
