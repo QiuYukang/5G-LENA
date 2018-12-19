@@ -634,7 +634,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           if (m_cellScan)
             {
               NS_LOG_ERROR ("beam search method ...");
-              BeamSearchBeamforming (rxPsd, channelParams,txAntennaArray,rxAntennaArray, txAntennaNum, rxAntennaNum);
+              BeamSearchBeamforming (rxPsd, channelParams,txAntennaArray,rxAntennaArray);
             }
           else
             {
@@ -2541,9 +2541,31 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
 }
 
 void
-MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayBasicModel> txAntenna,
-                                          Ptr<AntennaArrayBasicModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const
+MmWave3gppChannel::BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd,
+                                          Ptr<Params3gpp> params,
+                                          Ptr<AntennaArrayBasicModel> txAntenna,
+                                          Ptr<AntennaArrayBasicModel> rxAntenna) const
 {
+
+  /* txAntennaNum[0]-number of vertical antenna elements
+   * txAntennaNum[1]-number of horizontal antenna elements*/
+  uint8_t txAntennaNum[2];
+  uint8_t rxAntennaNum[2];
+
+  Ptr<AntennaArrayBasicModel> txAntennaArray, rxAntennaArray;
+
+  if (txAntennaArray!=0 && rxAntennaArray!=0)
+    {
+      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
+      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
+      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
+      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
+    }
+  else
+    {
+      NS_ABORT_MSG("Tx and Rx antenna arrays are empty");
+    }
+
   double max = 0, maxTx = 0, maxRx = 0, maxTxTheta = 0, maxRxTheta = 0;
   NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
   for (uint16_t txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
