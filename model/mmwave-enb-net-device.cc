@@ -151,9 +151,10 @@ MmWaveEnbNetDevice::GetMac (uint8_t index)
   return m_ccMap.at (index)->GetMac ();
 }
 
-Ptr<MmWaveEnbPhy>
-MmWaveEnbNetDevice::GetPhy (uint8_t index)
+Ptr<MmWavePhy>
+MmWaveEnbNetDevice::GetPhy (uint8_t index) const
 {
+  NS_LOG_FUNCTION (this);
   return m_ccMap.at (index)->GetPhy ();
 }
 

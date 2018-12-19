@@ -99,7 +99,8 @@ public:
 
   void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time varTtiPeriod);
 
-  Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const;
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override;
+
   Ptr<MmWaveSpectrumPhy> GetUlSpectrumPhy () const;
 
   /**virtual void SendIdealControlMessage(Ptr<IdealControlMessage> msg);

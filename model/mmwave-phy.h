@@ -168,6 +168,9 @@ public:
   */
   uint8_t GetComponentCarrierId ();
 
+
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
+
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
   Ptr<MmWaveSpectrumPhy> m_spectrumPhy;

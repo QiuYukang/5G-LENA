@@ -69,7 +69,7 @@ public:
 
   Ptr<MmWaveEnbMac> GetMac (uint8_t index);
 
-  Ptr<MmWaveEnbPhy> GetPhy (uint8_t index);
+  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const override;
 
   uint16_t GetCellId () const;
 

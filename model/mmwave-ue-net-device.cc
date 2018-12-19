@@ -197,12 +197,13 @@ MmWaveUeNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t pro
   return m_nas->Send (packet, protocolNumber);
 }
 
-Ptr<MmWaveUePhy>
+Ptr<MmWavePhy>
 MmWaveUeNetDevice::GetPhy (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
   return m_ccMap.at (index)->GetPhy ();
 }
+
 
 Ptr<LteUeComponentCarrierManager>
 MmWaveUeNetDevice::GetComponentCarrierManager (void) const

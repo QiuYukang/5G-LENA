@@ -73,7 +73,7 @@ public:
 
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
-  Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
+  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const override;
 
   Ptr<LteUeComponentCarrierManager> GetComponentCarrierManager (void) const;
 
