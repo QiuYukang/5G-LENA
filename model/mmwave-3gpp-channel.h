@@ -239,13 +239,13 @@ protected:
    * @returns returns true if the beamforming is between UE and BS,
    * and false if is between UEs or BSs
    */
-  virtual bool GetTxRxAntennaArray (Ptr<const MobilityModel> a,
-                                    Ptr<const MobilityModel> b,
-                                    Ptr<AntennaArrayBasicModel>& txAntennaArray,
-                                    Ptr<AntennaArrayBasicModel>& rxAntennaArray,
-                                    Vector& locUT,
-                                    key_t& key,
-                                    key_t& keyReverse) const;
+  virtual void GetParameters (Ptr<const MobilityModel> a,
+                              Ptr<const MobilityModel> b,
+                              Vector& locUT,
+                              key_t& key,
+                              key_t& keyReverse,
+                              bool& isBeamforming,
+                              bool& isOmni) const;
 
 private:
 
@@ -256,7 +256,8 @@ private:
    * @param b Mobility model of the receiver
    * @return the channel condition based on the used propagation loss model
    */
-  char DoGetChannelCondition (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
+  char DoGetChannelCondition (Ptr<const MobilityModel> a,
+                              Ptr<const MobilityModel> b) const;
 
   /**
    * Inherited from SpectrumPropagationLossModel, it returns the PSD at the receiver
@@ -286,9 +287,15 @@ private:
    * @params the 3D distance between tx and rx
    * @returns the channel realization in a Params3gpp object
    */
-  Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp, Vector locUT, bool los, bool o2i,
-                                 Ptr<NetDevice> txDevice, Ptr<NetDevice> rxDevice,
-                                 Vector speed, double dis2D, double dis3D) const;
+  Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp,
+                                 Ptr<const MobilityModel> a,
+                                 Ptr<const MobilityModel> b,
+                                 Vector locUT,
+                                 bool los,
+                                 bool o2i,
+                                 Vector speed,
+                                 double dis2D,
+                                 double dis3D) const;
 
   /**
    * Update the channel realization with procedure A of TR 38.900 Sec 7.6.3.2
@@ -303,16 +310,18 @@ private:
    * @params the txAngle
    * @returns the channel realization in a Params3gpp object
    */
-  Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable> table3gpp,
-                                 Ptr<NetDevice> txDevice, Ptr<NetDevice> rxDevice) const;
+  Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp,
+                                 Ptr<ParamsTable> table3gpp,
+                                 Ptr<const MobilityModel> a,
+                                 Ptr<const MobilityModel> b) const;
   /**
    * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
    * The vector is stored in the Params3gpp object passed as parameter
    * @params the channel realizationin as a Params3gpp object
    */
-  void LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
-                                     Ptr<NetDevice> rxDevice,
-                                     Ptr<Params3gpp> params) const;
+  void LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
+                                     Ptr<const MobilityModel> a,
+                                     Ptr<const MobilityModel> b) const;
 
 
   Ptr<AntennaArrayBasicModel> GetAntennaArray (Ptr<NetDevice> device) const;
@@ -322,9 +331,9 @@ private:
    * The BF vector is stored in the Params3gpp object passed as parameter
    * @params the channel realizationin as a Params3gpp object
    */
-  void BeamSearchBeamforming (Ptr<NetDevice> txDevice,
-                              Ptr<NetDevice> rxDevice,
-                              Ptr<Params3gpp> params) const;
+  void BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
+                              Ptr<const MobilityModel> a,
+                              Ptr<const MobilityModel> b) const;
 
 
   /**
@@ -341,7 +350,9 @@ private:
    * @params the relative speed between UE and eNB
    * @returns the rx PSD
    */
-  Ptr<SpectrumValue> CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Vector speed) const;
+  Ptr<SpectrumValue> CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
+                                         Ptr<Params3gpp> params3gpp,
+                                         Vector speed) const;
 
   /**
    * Returns the ParamsTable with the parameters of TR 38.900 Table 7.5-6
@@ -353,8 +364,11 @@ private:
    * @params the 2D distance
    * @return the ParamsTable structure
    */
-  Ptr<ParamsTable> Get3gppTable (bool los, bool o2i,
-                                 double hBS, double hUT, double distance2D) const;
+  Ptr<ParamsTable> Get3gppTable (bool los,
+                                 bool o2i,
+                                 double hBS,
+                                 double hUT,
+                                 double distance2D) const;
 
   /**
    * Delete the m_channel entry associated to the Params3gpp object of pair (a,b)
@@ -371,7 +385,8 @@ private:
    * @params cluster zenith angle of arrival
    */
   doubleVector_t CalAttenuationOfBlockage (Ptr<Params3gpp> params,
-                                           doubleVector_t clusterAOA, doubleVector_t clusterZOA) const;
+                                           doubleVector_t clusterAOA,
+                                           doubleVector_t clusterZOA) const;
 
 private:
 

@@ -373,17 +373,15 @@ MmWave3gppChannel::Initial (NetDeviceContainer ueDevices, NetDeviceContainer enb
 }
 
 
-bool MmWave3gppChannel::GetTxRxAntennaArray (Ptr<const MobilityModel> a,
-                                             Ptr<const MobilityModel> b,
-                                             Ptr<AntennaArrayBasicModel>& txAntennaArray,
-                                             Ptr<AntennaArrayBasicModel>& rxAntennaArray,
-                                             Vector& locUT,
-                                             key_t& key,
-                                             key_t& keyReverse) const
+void MmWave3gppChannel::GetParameters (Ptr<const MobilityModel> a,
+                                       Ptr<const MobilityModel> b,
+                                       Vector& locUT,
+                                       key_t& key,
+                                       key_t& keyReverse,
+                                       bool& isBeamforming,
+                                       bool& isOmni
+                                       ) const
 {
-
-  uint8_t ccId = m_phyMacConfig->GetCcId ();
-
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
@@ -396,36 +394,24 @@ bool MmWave3gppChannel::GetTxRxAntennaArray (Ptr<const MobilityModel> a,
   if (txEnb != 0 && rxUe != 0)
     {
       NS_LOG_INFO ("this is the downlink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-
-      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-          txEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-
-      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-          rxUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-
       locUT = b->GetPosition ();
-      return true;
+      isBeamforming = true;
     }
   else if (txEnb == 0 && rxUe == 0 )
     {
       NS_LOG_INFO ("this is the uplink case, a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-
-      Ptr<MmWaveUeNetDevice> txUe =
-          DynamicCast<MmWaveUeNetDevice> (txDevice);
-      Ptr<MmWaveEnbNetDevice> rxEnb =
-          DynamicCast<MmWaveEnbNetDevice> (rxDevice);
-
-      txAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-          txUe->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
-      rxAntennaArray = DynamicCast<AntennaArrayBasicModel> (
-          rxEnb->GetPhy (ccId)->GetDlSpectrumPhy ()->GetRxAntenna ());
       locUT = a->GetPosition ();
-      return true;
+      isBeamforming = true;
     }
   else
     {
       NS_LOG_INFO ("enb to enb or ue to ue transmission, skip beamforming a tx " << a->GetPosition () << " b rx " << b->GetPosition ());
-      return false;
+      isBeamforming = false;
+    }
+
+  if (GetAntennaArray(txDevice)->IsOmniTx () || GetAntennaArray(rxDevice)->IsOmniTx())
+    {
+      isOmni = true;
     }
 }
 
@@ -446,7 +432,7 @@ MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
     }
   else
     {
-      NS_FATAL_ERROR ("unkown pathloss model");
+      NS_FATAL_ERROR ("unknown pathloss model");
     }
 }
 
@@ -456,55 +442,23 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
                                                  Ptr<const MobilityModel> b) const
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0, "the position of tx and rx devices cannot be the same");
+  Vector locUT;
+  key_t key, keyReverse;
+  bool isBeamforming = false, isOmni = false, los = false, o2i = false;
 
-  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
-  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+  GetParameters (a, b, locUT, key, keyReverse, isBeamforming, isOmni);
 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
-  Vector locUT;
-  Ptr<AntennaArrayBasicModel> txAntennaArray, rxAntennaArray;
-  key_t key, keyReverse;
-
-  bool beamforming = GetTxRxAntennaArray (a, b, txAntennaArray, rxAntennaArray, locUT, key, keyReverse);
-
-  if (!beamforming)
+  if (!isBeamforming || isOmni)
     {
       return rxPsd;
     }
-
-  if (txAntennaArray->IsOmniTx () || rxAntennaArray->IsOmniTx () )
-    {
-      //omi transmission, do nothing.
-      return rxPsd;
-    }
-
-  /*txAntennaNum[0] = 1;
-       txAntennaNum[1] = 1;
-       rxAntennaNum[0] = 1;
-       rxAntennaNum[1] = 1;*/
-
-  NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0, "the position of tx and rx devices cannot be the same");
-
-  Vector relativeSpeed;
-
-  if (m_ueSpeed == 0)
-    {
-       Vector rxSpeed = b->GetVelocity ();
-       Vector txSpeed = a->GetVelocity ();
-       relativeSpeed = Vector(rxSpeed.x - txSpeed.x,rxSpeed.y - txSpeed.y,rxSpeed.z - txSpeed.z);
-    }
-  else
-    {
-       relativeSpeed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
-    }
-
 
   //Step 2: Assign propagation condition (LOS/NLOS).
 
   char condition = DoGetChannelCondition(a,b);
-
-  bool los = false, o2i = false;
 
   if (condition == 'l')
     {
@@ -519,6 +473,19 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       // in this special case, we condiser los + outdoor to indoor.
       los = true;
       o2i = true;
+    }
+
+  Vector relativeSpeed;
+
+  if (m_ueSpeed == 0)
+    {
+       Vector rxSpeed = b->GetVelocity ();
+       Vector txSpeed = a->GetVelocity ();
+       relativeSpeed = Vector(rxSpeed.x - txSpeed.x,rxSpeed.y - txSpeed.y,rxSpeed.z - txSpeed.z);
+    }
+  else
+    {
+       relativeSpeed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
     }
 
   //Every m_updatedPeriod, the channel matrix is deleted and a consistent channel update is triggered.
@@ -543,8 +510,6 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
       //Step 1: The parameters are configured in the example code.
       /*make sure txAngle rxAngle exist, i.e., the position of tx and rx cannot be the same*/
-      Angles txAngle (b->GetPosition (), a->GetPosition ());
-      Angles rxAngle (a->GetPosition (), b->GetPosition ());
 
       //Step 2: Assign propagation condition (LOS/NLOS).
       //los, o2i condition is computed above.
@@ -593,7 +558,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           it->second->m_locUT = locUT;
           it->second->m_los = los;
           it->second->m_o2i = o2i;
-          channelParams = UpdateChannel (it->second, table3gpp, txDevice, rxDevice);
+          channelParams = UpdateChannel (it->second, table3gpp, a, b);
           it->second->m_dis3D = distance3D;
           it->second->m_dis2D = distance2D;
           it->second->m_speed = relativeSpeed;
@@ -605,7 +570,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
         {
           //if the channel map is empty, we create a new channel.
           NS_LOG_INFO ("Create new channel");
-          channelParams = GetNewChannel (table3gpp, locUT, los, o2i, txDevice, rxDevice, relativeSpeed, distance2D, distance3D);
+          channelParams = GetNewChannel (table3gpp, a, b, locUT, los, o2i, relativeSpeed, distance2D, distance3D);
         }
       std::map< key_t, int >::iterator it1 = m_connectedPair.find (key);
 
@@ -620,16 +585,23 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           if (m_cellScan)
             {
               NS_LOG_ERROR ("beam search method ...");
-              BeamSearchBeamforming (txDevice, rxDevice, channelParams);
+              BeamSearchBeamforming (channelParams, a, b);
             }
           else
             {
               NS_LOG_ERROR ("long term cov. matrix...");
-              LongTermCovMatrixBeamforming (txDevice, rxDevice, channelParams);
+              LongTermCovMatrixBeamforming (channelParams, a, b);
             }
         }
       else
         {
+
+          Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+          Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+
+          Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
+          Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
+
           NS_LOG_INFO ("Not a connected pair");
           AntennaArrayBasicModel::BeamformingVector txBeamformingVector = txAntennaArray->GetCurrentBeamformingVector ();
           AntennaArrayBasicModel::BeamformingVector rxBeamformingVector = rxAntennaArray->GetCurrentBeamformingVector ();
@@ -678,17 +650,20 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 }
 
 void
-MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
-                                                 Ptr<NetDevice> rxDevice,
-                                                 Ptr<Params3gpp> params) const
+MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
+                                                 Ptr<const MobilityModel> a,
+                                                 Ptr<const MobilityModel> b) const
 {
+
+  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
 
   //generate transmitter side spatial correlation matrix
-  uint8_t txSize = params->m_channel.at (0).size ();
-  uint8_t rxSize = params->m_channel.size ();
+  uint8_t txSize = params3gpp->m_channel.at (0).size ();
+  uint8_t rxSize = params3gpp->m_channel.size ();
   complex2DVector_t txQ;
   txQ.resize (txSize);
 
@@ -705,10 +680,10 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
           for (uint8_t rxIndex = 0; rxIndex < rxSize; rxIndex++)
             {
               std::complex<double> cSum (0,0);
-              for (uint8_t cIndex = 0; cIndex < params->m_channel.at (rxIndex).at (t1Index).size (); cIndex++)
+              for (uint8_t cIndex = 0; cIndex < params3gpp->m_channel.at (rxIndex).at (t1Index).size (); cIndex++)
                 {
-                  cSum = cSum + std::conj (params->m_channel.at (rxIndex).at (t1Index).at (cIndex)) *
-                    (params->m_channel.at (rxIndex).at (t2Index).at (cIndex));
+                  cSum = cSum + std::conj (params3gpp->m_channel.at (rxIndex).at (t1Index).at (cIndex)) *
+                    (params3gpp->m_channel.at (rxIndex).at (t2Index).at (cIndex));
                 }
               txQ[t1Index][t2Index] += cSum;
             }
@@ -761,7 +736,7 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
       antennaWeights = antennaWeights_New;
     }
 
-  params->m_txW = antennaWeights;
+  params3gpp->m_txW = antennaWeights;
 
   //compute the receiver side spatial correlation matrix rxQ = HH*, where H is the sum of H_n over n clusters.
   complex2DVector_t rxQ;
@@ -778,10 +753,10 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
           for (uint8_t txIndex = 0; txIndex < txSize; txIndex++)
             {
               std::complex<double> cSum (0,0);
-              for (uint8_t cIndex = 0; cIndex < params->m_channel.at (r1Index).at (txIndex).size (); cIndex++)
+              for (uint8_t cIndex = 0; cIndex < params3gpp->m_channel.at (r1Index).at (txIndex).size (); cIndex++)
                 {
-                  cSum = cSum + params->m_channel.at (r1Index).at (txIndex).at (cIndex) *
-                    std::conj (params->m_channel.at (r2Index).at (txIndex).at (cIndex));
+                  cSum = cSum + params3gpp->m_channel.at (r1Index).at (txIndex).at (cIndex) *
+                    std::conj (params3gpp->m_channel.at (r2Index).at (txIndex).at (cIndex));
                 }
               rxQ[r1Index][r2Index] += cSum;
             }
@@ -833,11 +808,11 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
       antennaWeights = antennaWeights_New;
     }
 
-  params->m_rxW = antennaWeights;
+  params3gpp->m_rxW = antennaWeights;
 
 
-  txAntennaArray->SetBeamformingVector (params->m_txW, params->m_txBeamId, rxDevice);
-  rxAntennaArray->SetBeamformingVector (params->m_rxW, params->m_rxBeamId, txDevice);
+  txAntennaArray->SetBeamformingVector (params3gpp->m_txW, params3gpp->m_txBeamId, rxDevice);
+  rxAntennaArray->SetBeamformingVector (params3gpp->m_rxW, params3gpp->m_rxBeamId, txDevice);
 
 }
 
@@ -919,17 +894,16 @@ MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
     }
 }
 
-
 void
-MmWave3gppChannel::CalLongTerm (Ptr<Params3gpp> params) const
+MmWave3gppChannel::CalLongTerm (Ptr<Params3gpp> params3gpp) const
 {
-  uint8_t txAntenna = params->m_txW.size ();
-  uint8_t rxAntenna = params->m_rxW.size ();
+  uint8_t txAntenna = params3gpp->m_txW.size ();
+  uint8_t rxAntenna = params3gpp->m_rxW.size ();
 
   //store the long term part to reduce computation load
   //only the small scale fading is need to be updated if the large scale parameters and antenna weights remain unchanged.
   complexVector_t longTerm;
-  uint8_t numCluster = params->m_delay.size ();
+  uint8_t numCluster = params3gpp->m_delay.size ();
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
@@ -939,13 +913,13 @@ MmWave3gppChannel::CalLongTerm (Ptr<Params3gpp> params) const
           std::complex<double> rxSum (0,0);
           for (uint8_t rxIndex = 0; rxIndex < rxAntenna; rxIndex++)
             {
-              rxSum = rxSum + std::conj (params->m_rxW.at (rxIndex)) * params->m_channel.at (rxIndex).at (txIndex).at (cIndex);
+              rxSum = rxSum + std::conj (params3gpp->m_rxW.at (rxIndex)) * params3gpp->m_channel.at (rxIndex).at (txIndex).at (cIndex);
             }
-          txSum = txSum + params->m_txW.at (txIndex) * rxSum;
+          txSum = txSum + params3gpp->m_txW.at (txIndex) * rxSum;
         }
       longTerm.push_back (txSum);
     }
-  params->m_longTerm = longTerm;
+  params3gpp->m_longTerm = longTerm;
 
 }
 
@@ -1138,7 +1112,8 @@ MmWave3gppChannel::Get3gppTable (bool los, bool o2i, double hBS, double hUT, dou
 }
 
 void
-MmWave3gppChannel::DeleteChannel (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const
+MmWave3gppChannel::DeleteChannel (Ptr<const MobilityModel> a,
+                                  Ptr<const MobilityModel> b) const
 {
   Ptr<NetDevice> dev1 = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
@@ -1152,35 +1127,44 @@ MmWave3gppChannel::DeleteChannel (Ptr<const MobilityModel> a, Ptr<const Mobility
 }
 
 Ptr<Params3gpp>
-MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, bool los, bool o2i,
-                                  Ptr<NetDevice> txDevice, Ptr<NetDevice> rxDevice,
-                                  Vector speed, double dis2D, double dis3D) const
+MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
+                                  Ptr<const MobilityModel> a,
+                                  Ptr<const MobilityModel> b,
+                                  Vector locUT,
+                                  bool los,
+                                  bool o2i,
+                                  Vector speed,
+                                  double dis2D,
+                                  double dis3D) const
 {
 
-    Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
-    Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
+  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
-    Vector txPos = txDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
-    Vector rxPos = rxDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
+  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
 
-    Angles txAngle (rxPos, txPos);
-    Angles rxAngle (txPos, rxPos);
+  Vector txPos = txDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
+  Vector rxPos = rxDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
+
+  Angles txAngle (rxPos, txPos);
+  Angles rxAngle (txPos, rxPos);
 
 
-    uint8_t txAntennaNum[2];
-    uint8_t rxAntennaNum[2];
+  uint8_t txAntennaNum[2];
+  uint8_t rxAntennaNum[2];
 
-     if (txAntennaArray!=0 && rxAntennaArray!=0)
-       {
-         txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
-         txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
-         rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
-         rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
-       }
-     else
-       {
-         NS_ABORT_MSG("Tx and Rx antenna arrays are empty");
-       }
+  if (txAntennaArray!=0 && rxAntennaArray!=0)
+    {
+      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
+      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
+      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
+      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
+    }
+  else
+    {
+      NS_ABORT_MSG("Tx and Rx antenna arrays are empty");
+    }
 
   uint8_t numOfCluster = table3gpp->m_numOfCluster;
   uint8_t raysPerCluster = table3gpp->m_raysPerCluster;
@@ -1280,7 +1264,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
   for (uint8_t cIndex = 0; cIndex < numOfCluster; cIndex++)
     {
       double power = exp (-1 * clusterDelay.at (cIndex) * (table3gpp->m_rTau - 1) / table3gpp->m_rTau / DS) *
-        pow (10,-1 * m_normalRv->GetValue () * table3gpp->m_shadowingStd / 10); //(7.5-5)
+          pow (10,-1 * m_normalRv->GetValue () * table3gpp->m_shadowingStd / 10); //(7.5-5)
       powerSum += power;
       clusterPower.push_back (power);
     }
@@ -1356,7 +1340,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
   //According to table 7.5-6, only cluster number equals to 8, 10, 11, 12, 19 and 20 is valid.
   //Not sure why the other cases are in Table 7.5-2.
   switch (numOfCluster) // Table 7.5-2
-    {
+  {
     case 4:
       C_NLOS = 0.779;
       break;
@@ -1392,7 +1376,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
       break;
     default:
       NS_FATAL_ERROR ("Invalide cluster number");
-    }
+  }
 
   if (los)
     {
@@ -1405,7 +1389,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
 
   double C_theta;
   switch (numOfCluster) //Table 7.5-4
-    {
+  {
     case 8:
       C_NLOS = 0.889;
       break;
@@ -1426,7 +1410,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
       break;
     default:
       NS_FATAL_ERROR ("Invalide cluster number");
-    }
+  }
 
   if (los)
     {
@@ -1572,7 +1556,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
   for (uint8_t ind = 0; ind < 4; ind++)
     {
       switch (ind)
-        {
+      {
         case 0:
           angle_degree = clusterAoa;
           break;
@@ -1587,7 +1571,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
           break;
         default:
           NS_FATAL_ERROR ("Programming Error");
-        }
+      }
 
       for (uint8_t nIndex = 0; nIndex < sizeTemp; nIndex++)
         {
@@ -1610,7 +1594,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
             }
         }
       switch (ind)
-        {
+      {
         case 0:
           clusterAoa = angle_degree;
           break;
@@ -1625,7 +1609,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
           break;
         default:
           NS_FATAL_ERROR ("Programming Error");
-        }
+      }
     }
 
   doubleVector_t attenuation_dB;
@@ -1713,20 +1697,20 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
         }
     }
 
- Ptr<AntennaArray3gppModel> rx3gppAntenna = DynamicCast<AntennaArray3gppModel> (rxAntennaArray);
- Ptr<AntennaArray3gppModel> tx3gppAntenna = DynamicCast<AntennaArray3gppModel> (txAntennaArray);
+  Ptr<AntennaArray3gppModel> rx3gppAntenna = DynamicCast<AntennaArray3gppModel> (rxAntennaArray);
+  Ptr<AntennaArray3gppModel> tx3gppAntenna = DynamicCast<AntennaArray3gppModel> (txAntennaArray);
 
- AntennaArrayModel::AntennaOrientation randomUeOrientation = GetRandomAntennaOrientation();
+  AntennaArrayModel::AntennaOrientation randomUeOrientation = GetRandomAntennaOrientation();
 
- if (rx3gppAntenna != 0)
-   {
-     if (rx3gppAntenna->GetIsUe ())
-       {
-         rx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
-       }
-   }
+  if (rx3gppAntenna != 0)
+    {
+      if (rx3gppAntenna->GetIsUe ())
+        {
+          rx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
+        }
+    }
 
- if (tx3gppAntenna != 0)
+  if (tx3gppAntenna != 0)
     {
       if (tx3gppAntenna->GetIsUe ())
         {
@@ -1755,21 +1739,21 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                       double initialPhase = clusterPhase.at (nIndex).at (mIndex);
                       //lambda_0 is accounted in the antenna spacing uLoc and sLoc.
                       double rxPhaseDiff = 2 * M_PI * (sin (rayZoa_radian[nIndex][mIndex]) * cos (rayAoa_radian[nIndex][mIndex]) * uLoc.x
-                                                       + sin (rayZoa_radian[nIndex][mIndex]) * sin (rayAoa_radian[nIndex][mIndex]) * uLoc.y
-                                                       + cos (rayZoa_radian[nIndex][mIndex]) * uLoc.z);
+                          + sin (rayZoa_radian[nIndex][mIndex]) * sin (rayAoa_radian[nIndex][mIndex]) * uLoc.y
+                          + cos (rayZoa_radian[nIndex][mIndex]) * uLoc.z);
 
                       double txPhaseDiff = 2 * M_PI * (sin (rayZod_radian[nIndex][mIndex]) * cos (rayAod_radian[nIndex][mIndex]) * sLoc.x
-                                                       + sin (rayZod_radian[nIndex][mIndex]) * sin (rayAod_radian[nIndex][mIndex]) * sLoc.y
-                                                       + cos (rayZod_radian[nIndex][mIndex]) * sLoc.z);
+                          + sin (rayZod_radian[nIndex][mIndex]) * sin (rayAod_radian[nIndex][mIndex]) * sLoc.y
+                          + cos (rayZod_radian[nIndex][mIndex]) * sLoc.z);
                       //Doppler is computed in the CalBeamformingGain function and is simplified to only account for the center anngle of each cluster.
                       //double doppler = 2*M_PI*(sin(rayZoa_radian[nIndex][mIndex])*cos(rayAoa_radian[nIndex][mIndex])*relativeSpeed.x
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
                       //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
                       rays += exp (std::complex<double> (0, initialPhase))
-                        * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
-                            txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian [nIndex][mIndex]))
-                        * exp (std::complex<double> (0, rxPhaseDiff))
-                        * exp (std::complex<double> (0, txPhaseDiff));
+                            * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
+                                txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian [nIndex][mIndex]))
+                                * exp (std::complex<double> (0, rxPhaseDiff))
+                                * exp (std::complex<double> (0, txPhaseDiff));
                       //*exp(std::complex<double>(0, doppler));
                       //rays += 1;
                     }
@@ -1790,17 +1774,17 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
 
                       double initialPhase = clusterPhase.at (nIndex).at (mIndex);
                       double rxPhaseDiff = 2 * M_PI * (sin (rayZoa_radian[nIndex][mIndex]) * cos (rayAoa_radian[nIndex][mIndex]) * uLoc.x
-                                                       + sin (rayZoa_radian[nIndex][mIndex]) * sin (rayAoa_radian[nIndex][mIndex]) * uLoc.y
-                                                       + cos (rayZoa_radian[nIndex][mIndex]) * uLoc.z);
+                          + sin (rayZoa_radian[nIndex][mIndex]) * sin (rayAoa_radian[nIndex][mIndex]) * uLoc.y
+                          + cos (rayZoa_radian[nIndex][mIndex]) * uLoc.z);
                       double txPhaseDiff = 2 * M_PI * (sin (rayZod_radian[nIndex][mIndex]) * cos (rayAod_radian[nIndex][mIndex]) * sLoc.x
-                                                       + sin (rayZod_radian[nIndex][mIndex]) * sin (rayAod_radian[nIndex][mIndex]) * sLoc.y
-                                                       + cos (rayZod_radian[nIndex][mIndex]) * sLoc.z);
+                          + sin (rayZod_radian[nIndex][mIndex]) * sin (rayAod_radian[nIndex][mIndex]) * sLoc.y
+                          + cos (rayZod_radian[nIndex][mIndex]) * sLoc.z);
                       //double doppler = 2*M_PI*(sin(rayZoa_radian[nIndex][mIndex])*cos(rayAoa_radian[nIndex][mIndex])*relativeSpeed.x
                       //              + sin(rayZoa_radian[nIndex][mIndex])*sin(rayAoa_radian[nIndex][mIndex])*relativeSpeed.y
                       //              + cos(rayZoa_radian[nIndex][mIndex])*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
                       //double delaySpread;
                       switch (mIndex)
-                        {
+                      {
                         case 9:
                         case 10:
                         case 11:
@@ -1809,10 +1793,10 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         case 18:
                           //delaySpread= -2*M_PI*(clusterDelay.at(nIndex)+1.28*c_DS)*m_centerFrequency;
                           raysSub2 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
-                                txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex],rayAod_radian [nIndex][mIndex]))
-                            * exp (std::complex<double> (0, rxPhaseDiff))
-                            * exp (std::complex<double> (0, txPhaseDiff));
+                          * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian [nIndex][mIndex]) *
+                              txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex],rayAod_radian [nIndex][mIndex]))
+                              * exp (std::complex<double> (0, rxPhaseDiff))
+                              * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
                           //raysSub2 +=1;
                           break;
@@ -1822,24 +1806,24 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
                         case 16:
                           //delaySpread = -2*M_PI*(clusterDelay.at(nIndex)+2.56*c_DS)*m_centerFrequency;
                           raysSub3 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
-                                txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
-                            * exp (std::complex<double> (0, rxPhaseDiff))
-                            * exp (std::complex<double> (0, txPhaseDiff));
+                          * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
+                              txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
+                              * exp (std::complex<double> (0, rxPhaseDiff))
+                              * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
                           //raysSub3 +=1;
                           break;
                         default://case 1,2,3,4,5,6,7,8,19,20
                           //delaySpread = -2*M_PI*clusterDelay.at(nIndex)*m_centerFrequency;
                           raysSub1 += exp (std::complex<double> (0, initialPhase))
-                            * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
-                                txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
-                            * exp (std::complex<double> (0, rxPhaseDiff))
-                            * exp (std::complex<double> (0, txPhaseDiff));
+                          * (rxAntennaArray->GetRadiationPattern (rayZoa_radian[nIndex][mIndex], rayAoa_radian[nIndex][mIndex]) *
+                              txAntennaArray->GetRadiationPattern (rayZod_radian[nIndex][mIndex], rayAod_radian[nIndex][mIndex]))
+                              * exp (std::complex<double> (0, rxPhaseDiff))
+                              * exp (std::complex<double> (0, txPhaseDiff));
                           //*exp(std::complex<double>(0, doppler));
                           //raysSub1 +=1;
                           break;
-                        }
+                      }
                     }
                   //raysSub1 *= sqrt(clusterPower.at(nIndex))/raysPerCluster;
                   //raysSub2 *= sqrt(clusterPower.at(nIndex))/raysPerCluster;
@@ -1857,20 +1841,20 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
             {
               std::complex<double> ray (0,0);
               double rxPhaseDiff = 2 * M_PI * (sin (rxAngle.theta) * cos (rxAngle.phi) * uLoc.x
-                                               + sin (rxAngle.theta) * sin (rxAngle.phi) * uLoc.y
-                                               + cos (rxAngle.theta) * uLoc.z);
+                  + sin (rxAngle.theta) * sin (rxAngle.phi) * uLoc.y
+                  + cos (rxAngle.theta) * uLoc.z);
               double txPhaseDiff = 2 * M_PI * (sin (txAngle.theta) * cos (txAngle.phi) * sLoc.x
-                                               + sin (txAngle.theta) * sin (txAngle.phi) * sLoc.y
-                                               + cos (txAngle.theta) * sLoc.z);
+                  + sin (txAngle.theta) * sin (txAngle.phi) * sLoc.y
+                  + cos (txAngle.theta) * sLoc.z);
               //double doppler = 2*M_PI*(sin(rxAngle.theta)*cos(rxAngle.phi)*relativeSpeed.x
-              //              + sin(rxAngle.theta)*sin(rxAngle.phi)*relativeSpeed.y
+                  //              + sin(rxAngle.theta)*sin(rxAngle.phi)*relativeSpeed.y
               //              + cos(rxAngle.theta)*relativeSpeed.z)*varTtiTime*m_centerFrequency/3e8;
 
               ray = exp (std::complex<double> (0, losPhase))
-                * (rxAntennaArray->GetRadiationPattern (rxAngle.theta, rxAngle.phi) *
-                    txAntennaArray->GetRadiationPattern (txAngle.theta, txAngle.phi))
-                * exp (std::complex<double> (0, rxPhaseDiff))
-                * exp (std::complex<double> (0, txPhaseDiff));
+                    * (rxAntennaArray->GetRadiationPattern (rxAngle.theta, rxAngle.phi) *
+                        txAntennaArray->GetRadiationPattern (txAngle.theta, txAngle.phi))
+                        * exp (std::complex<double> (0, rxPhaseDiff))
+                        * exp (std::complex<double> (0, txPhaseDiff));
               //*exp(std::complex<double>(0, doppler));
 
               double K_linear = pow (10,K_factor / 10);
@@ -1960,9 +1944,14 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp, Vector locUT, boo
 }
 
 Ptr<Params3gpp>
-MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  table3gpp,
-                                  Ptr<NetDevice> txDevice, Ptr<NetDevice> rxDevice) const
+MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
+                                  Ptr<ParamsTable> table3gpp,
+                                  Ptr<const MobilityModel> a,
+                                  Ptr<const MobilityModel> b) const
 {
+
+  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
@@ -2590,9 +2579,9 @@ MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
 
 
 void
-MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
-                                          Ptr<NetDevice> rxDevice,
-                                          Ptr<Params3gpp> params
+MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
+                                          Ptr<const MobilityModel> a,
+                                          Ptr<const MobilityModel> b
                                           ) const
 {
 
@@ -2604,6 +2593,10 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
 
   Ptr<const SpectrumValue> fakePsd =
            MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, 0, listOfSubchannels);
+
+
+  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
@@ -2632,8 +2625,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
       for (uint8_t tx = 0; tx <= txAntennaNum[1]; tx++)
         {
           txAntennaArray->SetSector (tx, txAntennaNum, txTheta);
-          params->m_txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
-          params->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ());
+          params3gpp->m_txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
+          params3gpp->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ());
 
           for (uint16_t rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
             {
@@ -2645,11 +2638,11 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
 
                   rxAntennaArray->SetSector (rx, rxAntennaNum, rxTheta);
 
-                  params->m_rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
-                  params->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ());
+                  params3gpp->m_rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
+                  params3gpp->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ());
 
-                  CalLongTerm (params);
-                  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd, params, Vector (0,0,0));
+                  CalLongTerm (params3gpp);
+                  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd, params3gpp, Vector (0,0,0));
 
                   SpectrumValue bfGain = (*bfPsd) / (*fakePsd);
                   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
@@ -2676,18 +2669,18 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
   NS_LOG_LOGIC (this << " TxBeamId: " << AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ()) <<
                 " RxBeamId: " << AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ()));
 
-  params->m_txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
-  params->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ());
-  params->m_rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
-  params->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ());
+  params3gpp->m_txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
+  params3gpp->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ());
+  params3gpp->m_rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
+  params3gpp->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ());
 
 
-  txAntennaArray->SetBeamformingVector (params->m_txW, params->m_txBeamId, rxDevice);
-  rxAntennaArray->SetBeamformingVector (params->m_rxW, params->m_rxBeamId, txDevice);
+  txAntennaArray->SetBeamformingVector (params3gpp->m_txW, params3gpp->m_txBeamId, rxDevice);
+  rxAntennaArray->SetBeamformingVector (params3gpp->m_rxW, params3gpp->m_rxBeamId, txDevice);
 }
 
 doubleVector_t
-MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
+MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params3gpp,
                                              doubleVector_t clusterAOA, doubleVector_t clusterZOA) const
 {
   doubleVector_t powerAttenuation;
@@ -2718,7 +2711,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
     }
 
   //generate or update non-self blocking
-  if (params->m_nonSelfBlocking.size () == 0)//generate new blocking regions
+  if (params3gpp->m_nonSelfBlocking.size () == 0)//generate new blocking regions
     {
       for (uint16_t blockInd = 0; blockInd < m_numNonSelfBloking; blockInd++)
         {
@@ -2739,12 +2732,12 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
               table.push_back (5); //y_k
               table.push_back (10); //r
             }
-          params->m_nonSelfBlocking.push_back (table);
+          params3gpp->m_nonSelfBlocking.push_back (table);
         }
     }
   else
     {
-      double deltaX = sqrt (pow (params->m_preLocUT.x - params->m_locUT.x, 2) + pow (params->m_preLocUT.y - params->m_locUT.y, 2));
+      double deltaX = sqrt (pow (params3gpp->m_preLocUT.x - params3gpp->m_locUT.x, 2) + pow (params3gpp->m_preLocUT.y - params3gpp->m_locUT.y, 2));
       //if deltaX and speed are both 0, the autocorrelation is 1, skip updating
       if (deltaX > 1e-6 || m_blockerSpeed > 1e-6)
         {
@@ -2757,7 +2750,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
             }
           else
             {
-              if (params->m_o2i)// outdoor to indoor
+              if (params3gpp->m_o2i)// outdoor to indoor
                 {
                   corrDis = 5;
                 }
@@ -2770,7 +2763,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
           if (m_blockerSpeed > 1e-6) // speed not equal to 0
             {
               double corrT = corrDis / m_blockerSpeed;
-              R = exp (-1 * (deltaX / corrDis + (Now ().GetSeconds () - params->m_generatedTime.GetSeconds ()) / corrT));
+              R = exp (-1 * (deltaX / corrDis + (Now ().GetSeconds () - params3gpp->m_generatedTime.GetSeconds ()) / corrT));
             }
           else
             {
@@ -2778,7 +2771,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
             }
 
           NS_LOG_INFO ("Distance change:" << deltaX << " Speed:" << m_blockerSpeed
-                                          << " Time difference:" << Now ().GetSeconds () - params->m_generatedTime.GetSeconds ()
+                                          << " Time difference:" << Now ().GetSeconds () - params3gpp->m_generatedTime.GetSeconds ()
                                           << " correlation:" << R);
 
           //In order to generate correlated uniform random variables, we first generate correlated normal random variables and map the normal RV to uniform RV.
@@ -2796,8 +2789,8 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
             {
 
               //Generate a new correlated normal RV with the following formula
-              params->m_nonSelfBlocking.at (blockInd).at (PHI_INDEX) =
-                R * params->m_nonSelfBlocking.at (blockInd).at (PHI_INDEX) + sqrt (1 - R * R) * m_normalRvBlockage->GetValue ();
+              params3gpp->m_nonSelfBlocking.at (blockInd).at (PHI_INDEX) =
+                R * params3gpp->m_nonSelfBlocking.at (blockInd).at (PHI_INDEX) + sqrt (1 - R * R) * m_normalRvBlockage->GetValue ();
             }
         }
 
@@ -2824,7 +2817,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
       for (uint16_t blockInd = 0; blockInd < m_numNonSelfBloking; blockInd++)
         {
           //The normal RV is transformed to uniform RV with the desired correlation.
-          phiK = (0.5 * erfc (-1 * params->m_nonSelfBlocking.at (blockInd).at (PHI_INDEX) / sqrt (2))) * 360;
+          phiK = (0.5 * erfc (-1 * params3gpp->m_nonSelfBlocking.at (blockInd).at (PHI_INDEX) / sqrt (2))) * 360;
           while (phiK > 360)
             {
               phiK -= 360;
@@ -2835,9 +2828,9 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
               phiK += 360;
             }
 
-          xK = params->m_nonSelfBlocking.at (blockInd).at (X_INDEX);
-          thetaK = params->m_nonSelfBlocking.at (blockInd).at (THETA_INDEX);
-          yK = params->m_nonSelfBlocking.at (blockInd).at (Y_INDEX);
+          xK = params3gpp->m_nonSelfBlocking.at (blockInd).at (X_INDEX);
+          thetaK = params3gpp->m_nonSelfBlocking.at (blockInd).at (THETA_INDEX);
+          yK = params3gpp->m_nonSelfBlocking.at (blockInd).at (Y_INDEX);
           NS_LOG_INFO ("AOA=" << clusterAOA.at (cInd) << " Block Region[" << phiK - xK << "," << phiK + xK << "]");
           NS_LOG_INFO ("ZOA=" << clusterZOA.at (cInd) << " Block Region[" << thetaK - yK << "," << thetaK + yK << "]");
 
@@ -2885,13 +2878,13 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params,
                 }
               double lambda = 3e8 / m_centerFrequency;
               double F_A1 = atan (signA1 * M_PI / 2 * sqrt (M_PI / lambda *
-                                                            params->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (A1 * M_PI / 180) - 1))) / M_PI; //(7.6-23)
+                                                            params3gpp->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (A1 * M_PI / 180) - 1))) / M_PI; //(7.6-23)
               double F_A2 = atan (signA2 * M_PI / 2 * sqrt (M_PI / lambda *
-                                                            params->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (A2 * M_PI / 180) - 1))) / M_PI;
+                                                            params3gpp->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (A2 * M_PI / 180) - 1))) / M_PI;
               double F_Z1 = atan (signZ1 * M_PI / 2 * sqrt (M_PI / lambda *
-                                                            params->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (Z1 * M_PI / 180) - 1))) / M_PI;
+                                                            params3gpp->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (Z1 * M_PI / 180) - 1))) / M_PI;
               double F_Z2 = atan (signZ2 * M_PI / 2 * sqrt (M_PI / lambda *
-                                                            params->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (Z2 * M_PI / 180) - 1))) / M_PI;
+                                                            params3gpp->m_nonSelfBlocking.at (blockInd).at (R_INDEX) * (1 / cos (Z2 * M_PI / 180) - 1))) / M_PI;
               double L_dB = -20 * log10 (1 - (F_A1 + F_A2) * (F_Z1 + F_Z2)); //(7.6-22)
               powerAttenuation.at (cInd) += L_dB;
               NS_LOG_INFO ("Cluster[" << (int)cInd << "] is blocked by no-self blocking, the loss is [" << L_dB << "]" << " dB");
