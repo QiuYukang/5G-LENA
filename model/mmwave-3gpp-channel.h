@@ -314,9 +314,10 @@ private:
    */
   void LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
                                      Ptr<NetDevice> rxDevice,
-                                     Ptr<Params3gpp> params,
-                                     Ptr<AntennaArrayBasicModel>& txAntennaArray,
-                                     Ptr<AntennaArrayBasicModel>& rxAntennaArray) const;
+                                     Ptr<Params3gpp> params) const;
+
+
+  Ptr<AntennaArrayBasicModel> GetAntennaArray (Ptr<NetDevice> device) const;
 
   /**
    * Scan all sectors with predefined code book and select the one returns maximum gain.
@@ -325,9 +326,7 @@ private:
    */
   void BeamSearchBeamforming (Ptr<NetDevice> txDevice,
                               Ptr<NetDevice> rxDevice,
-                              Ptr<Params3gpp> params,
-                              Ptr<AntennaArrayBasicModel>& txAntennaArray,
-                              Ptr<AntennaArrayBasicModel>& rxAntennaArray) const;
+                              Ptr<Params3gpp> params) const;
 
 
   /**
