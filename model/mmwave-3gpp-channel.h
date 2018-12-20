@@ -287,8 +287,7 @@ private:
    * @returns the channel realization in a Params3gpp object
    */
   Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp, Vector locUT, bool los, bool o2i,
-                                 Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
-                                 uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle,
+                                 Ptr<NetDevice> txDevice, Ptr<NetDevice> rxDevice,
                                  Vector speed, double dis2D, double dis3D) const;
 
   /**
@@ -305,8 +304,7 @@ private:
    * @returns the channel realization in a Params3gpp object
    */
   Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable> table3gpp,
-                                 Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
-                                 uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle) const;
+                                 Ptr<NetDevice> txDevice, Ptr<NetDevice> rxDevice) const;
   /**
    * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
    * The vector is stored in the Params3gpp object passed as parameter
