@@ -30,6 +30,7 @@
 #include <ns3/mmwave-phy.h>
 #include <ns3/mmwave-net-device.h>
 #include <ns3/node.h>
+#include <ns3/mmwave-net-device.h>
 #include <ns3/mmwave-ue-net-device.h>
 #include <ns3/mmwave-enb-net-device.h>
 #include <ns3/mmwave-ue-phy.h>
@@ -637,12 +638,12 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           if (m_cellScan)
             {
               NS_LOG_ERROR ("beam search method ...");
-              BeamSearchBeamforming (txDevice, rxDevice, channelParams,txAntennaArray,rxAntennaArray);
+              BeamSearchBeamforming (txDevice, rxDevice, channelParams);
             }
           else
             {
               NS_LOG_ERROR ("long term cov. matrix...");
-              LongTermCovMatrixBeamforming (txDevice, rxDevice, channelParams, txAntennaArray, rxAntennaArray);
+              LongTermCovMatrixBeamforming (txDevice, rxDevice, channelParams);
             }
         }
       else
@@ -697,10 +698,12 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 void
 MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<NetDevice> txDevice,
                                                  Ptr<NetDevice> rxDevice,
-                                                 Ptr<Params3gpp> params,
-                                                 Ptr<AntennaArrayBasicModel>& txAntennaArray,
-                                                 Ptr<AntennaArrayBasicModel>& rxAntennaArray) const
+                                                 Ptr<Params3gpp> params) const
 {
+
+  Ptr<AntennaArrayBasicModel> txAntennaArray = DynamicCast<AntennaArrayBasicModel>(((DynamicCast<MmWaveNetDevice>(txDevice))->GetPhy(m_phyMacConfig->GetCcId()))->GetDlSpectrumPhy()->GetRxAntenna());
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = DynamicCast<AntennaArrayBasicModel>(((DynamicCast<MmWaveNetDevice>(rxDevice))->GetPhy(m_phyMacConfig->GetCcId()))->GetDlSpectrumPhy()->GetRxAntenna());
+
   //generate transmitter side spatial correlation matrix
   uint8_t txSize = params->m_channel.at (0).size ();
   uint8_t rxSize = params->m_channel.size ();
@@ -2546,12 +2549,19 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable>  
 
 }
 
+
+Ptr<AntennaArrayBasicModel>
+MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
+{
+  return DynamicCast<AntennaArrayBasicModel>(((DynamicCast<MmWaveNetDevice>(device))->GetPhy(m_phyMacConfig->GetCcId()))->GetDlSpectrumPhy()->GetRxAntenna());
+}
+
+
 void
 MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
                                           Ptr<NetDevice> rxDevice,
-                                          Ptr<Params3gpp> params,
-                                          Ptr<AntennaArrayBasicModel>& txAntennaArray,
-                                          Ptr<AntennaArrayBasicModel>& rxAntennaArray) const
+                                          Ptr<Params3gpp> params
+                                          ) const
 {
 
   std::vector<int> listOfSubchannels;
@@ -2563,6 +2573,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<NetDevice> txDevice,
   Ptr<const SpectrumValue> fakePsd =
            MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, 0, listOfSubchannels);
 
+  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
   /* txAntennaNum[0]-number of vertical antenna elements
    * txAntennaNum[1]-number of horizontal antenna elements*/
