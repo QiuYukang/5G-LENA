@@ -253,7 +253,11 @@ protected:
 
 private:
 
-
+  /**
+   * Returns a reference to the channel map that corresponding to central carrier
+   * frequency of this instance of MmWave3gppChannel
+   * @return reference to the channel map
+   */
   std::map< key_t, Ptr<Params3gpp> >& GetChannelMap() const;
 
   /**
@@ -278,20 +282,16 @@ private:
 
   /**
    * Get a new realization of the channel
-   * @params the ParamsTable for the specific scenario
-   * @params the location of UT
-   * @params the los condition
-   * @params the o2i condition
-   * @params the ArrayAntennaModel for the txAntenna
-   * @params the ArrayAntennaModel for the rxAntenna
-   * @params the number of txAntenna per row
-   * @params the number of rxAntenna per row
-   * @params the rxAngle
-   * @params the txAngle
-   * @params the relative speed between tx and rx
-   * @params the 2D distance between tx and rx
-   * @params the 3D distance between tx and rx
-   * @returns the channel realization in a Params3gpp object
+   * @param table3gpp the ParamsTable for the specific scenario
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
+   * @param locUT location of UT
+   * @param los los condition
+   * @param o2i o2i condition
+   * @param speed relative speed between tx and rx
+   * @param dis2D the 2D distance between tx and rx
+   * @param dis3D the 3D distance between tx and rx
+   * @return a new realization of the channel
    */
   Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp,
                                  Ptr<const MobilityModel> a,
@@ -306,36 +306,45 @@ private:
   /**
    * Update the channel realization with procedure A of TR 38.900 Sec 7.6.3.2
    * for the spatial consistency
-   * @params the previous channel realization in a Params3gpp object
-   * @params the ParamsTable for the specific scenario
-   * @params the ArrayAntennaModel for the txAntenna
-   * @params the ArrayAntennaModel for the rxAntenna
-   * @params the number of txAntenna per row
-   * @params the number of rxAntenna per row
-   * @params the rxAngle
-   * @params the txAngle
-   * @returns the channel realization in a Params3gpp object
+   * @param params3gpp the previous channel realization in a Params3gpp object
+   * @param table3gpp the ParamsTable for the specific scenario
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
+   * @return
    */
   Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp,
                                  Ptr<ParamsTable> table3gpp,
                                  Ptr<const MobilityModel> a,
                                  Ptr<const MobilityModel> b) const;
+
   /**
    * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
    * The vector is stored in the Params3gpp object passed as parameter
-   * @params the channel realizationin as a Params3gpp object
+   * @param params3gpp
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
    */
   void LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
                                      Ptr<const MobilityModel> a,
                                      Ptr<const MobilityModel> b) const;
 
 
+  /**
+   * Get the antenna array of the device, this function is technology specific
+   * and thus the implementation will be moved to the corresponding child class
+   * or will be made generic but requiring that the provided device implements
+   * some additional interface
+   * @param device
+   * @return
+   */
   Ptr<AntennaArrayBasicModel> GetAntennaArray (Ptr<NetDevice> device) const;
 
   /**
    * Scan all sectors with predefined code book and select the one returns maximum gain.
    * The BF vector is stored in the Params3gpp object passed as parameter
-   * @params the channel realizationin as a Params3gpp object
+   * @param params3gpp the channel realization in a Params3gpp object
+   * @param a mobility model of the transmitter
+   * @param b mobility model of the receiver
    */
   void BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
                               Ptr<const MobilityModel> a,
@@ -384,7 +393,8 @@ private:
    */
   void DeleteChannel (Ptr<const MobilityModel> a,
                       Ptr<const MobilityModel> b) const;
-  /*
+
+  /**
    * Returns the attenuation of each cluster in dB after applying blockage model
    * @params the channel realization as a Params3gpp object
    * @params cluster azimuth angle of arrival
@@ -396,7 +406,7 @@ private:
 
 private:
 
-  static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency;
+  static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency; //!< A static map of channel maps per carrier frequency
   mutable std::map< key_t, int > m_connectedPair;
   
   Ptr<UniformRandomVariable> m_uniformRv;
