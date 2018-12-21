@@ -192,14 +192,19 @@ public:
    * @param a NetDeviceContainer for the UEs
    * @param a NetDeviceContainer for the eNBs
    */
-  void Initial (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+  void CreateInitialBeamformingVectors (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
 
   /**
-   * Set the initial BF vector between two devices
-   * @param a pointer to a NetDevice for the UE
-   * @param a pointer to a NetDevice for the eNB
+   * Sets the center frequency of the channel map of this instance of MmWave3gppChannel
+   * @param centerFrequency center frequency of the channel map of this instance of MmWave3gppChannel
    */
-  void SetBeamformingVector (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice);
+  void SetCenterFrequency (double centerFrequency);
+
+  /**
+   * Get center frequency of the channel map of this instance of MmWave3gppChannel
+   * @return centerFrequency of the channel map of this instance of MmWave3gppChannel
+   */
+  double GetCenterFrequency () const;
 
   /**
    * Set the MmWavePhyMacCommon object with the parameters of the scenario
@@ -219,9 +224,8 @@ public:
    */
   void SetPathlossModel (Ptr<PropagationLossModel> pathloss);
 
-public:
-
   typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
+  typedef std::map< key_t, Ptr<Params3gpp> > channelMap_t;
 
 protected:
 
@@ -249,6 +253,8 @@ protected:
 
 private:
 
+
+  std::map< key_t, Ptr<Params3gpp> >& GetChannelMap() const;
 
   /**
    * Returns the channel condition for the given transmitter and receiver
@@ -390,16 +396,14 @@ private:
 
 private:
 
+  static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency;
   mutable std::map< key_t, int > m_connectedPair;
-  mutable std::map< key_t, Ptr<Params3gpp> > m_channelMap;
-
+  
   Ptr<UniformRandomVariable> m_uniformRv;
   Ptr<UniformRandomVariable> m_uniformRvBlockage;
 
   Ptr<NormalRandomVariable> m_normalRv; //there is a bug in the NormalRandomVariable::GetValue() function.
   Ptr<NormalRandomVariable> m_normalRvBlockage;
-
-
   Ptr<ExponentialRandomVariable> m_expRv;
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
   Ptr<PropagationLossModel> m_3gppPathloss;

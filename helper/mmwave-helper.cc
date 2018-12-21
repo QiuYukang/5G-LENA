@@ -904,7 +904,7 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
     {
       for (auto i: m_3gppChannel)
         {
-          i->Initial (ueDevices,enbDevices);
+          i->CreateInitialBeamformingVectors (ueDevices,enbDevices);
         }
     }
 }
