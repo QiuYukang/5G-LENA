@@ -178,14 +178,14 @@ AntennaArrayModel::ChangeBeamformingVector (Ptr<NetDevice> device)
 {
   m_omniTx = false;
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
-  NS_ASSERT_MSG (it != m_beamformingVectorMap.end (), "could not find");
+  NS_ASSERT_MSG (it != m_beamformingVectorMap.end (), "could not find the beamforming vector for the provided device");
   m_currentBeamformingVector = it->second;
 }
 
 AntennaArrayModel::BeamformingVector
 AntennaArrayModel::GetCurrentBeamformingVector ()
 {
-  NS_ABORT_MSG_IF (m_omniTx, "omi transmission do not need beamforming vector");
+  NS_ABORT_MSG_IF (m_omniTx, "omni transmission do not need beamforming vector");
   return m_currentBeamformingVector;
 }
 
