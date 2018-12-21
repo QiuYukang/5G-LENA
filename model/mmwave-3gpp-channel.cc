@@ -588,7 +588,36 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
       if (it1 != m_connectedPair.end ())
         {
-          if (m_cellScan)
+          /*
+          Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
+          Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+
+          Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
+          Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
+
+          channelParams->m_txW.push_back(1);
+          channelParams->m_rxW.push_back(1);
+
+          for (uint8_t eIndex = 1; eIndex < txAntennaArray->GetAntennaNumDim1()*txAntennaArray->GetAntennaNumDim2(); eIndex++)
+            {
+              channelParams->m_txW.push_back(0);
+            }
+          for (uint8_t eIndex = 1; eIndex < rxAntennaArray->GetAntennaNumDim1()*rxAntennaArray->GetAntennaNumDim2(); eIndex++)
+            {
+              channelParams->m_rxW.push_back(0);
+            }
+
+          complexVector_t empty;
+          AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
+
+          if(Simulator::Now() == NanoSeconds(0)) //Give initial bfs
+            {
+              txAntennaArray->SetBeamformingVector (channelParams->m_txW, emptyId, rxDevice);
+              rxAntennaArray->SetBeamformingVector (channelParams->m_rxW, emptyId, txDevice);
+            }*/
+
+
+           if (m_cellScan)
             {
               NS_LOG_ERROR ("beam search method ...");
               BeamSearchBeamforming (channelParams, a, b);
@@ -627,7 +656,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
             }
         } //in not connected pair
 
-      CalLongTerm (channelParams);
+      channelParams->m_longTerm = CalLongTerm (channelParams->m_txW, channelParams->m_rxW, channelParams->m_delay, channelParams->m_channel);
       GetChannelMap()[key] = channelParams;
     }
   else if (itReverse == GetChannelMap().end ()) //Find channel matrix in the forward link
@@ -640,7 +669,14 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       channelParams = (*itReverse).second;
     }
 
-  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (rxPsd, channelParams, relativeSpeed);
+  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (rxPsd,
+                                                 channelParams->m_channel,
+                                                 channelParams->m_longTerm,
+                                                 channelParams->m_txW,
+                                                 channelParams->m_rxW,
+                                                 channelParams->m_delay,
+                                                 channelParams->m_angle,
+                                                 relativeSpeed);
 
   SpectrumValue bfGain = (*bfPsd) / (*rxPsd);
   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
@@ -823,7 +859,14 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
 }
 
 Ptr<SpectrumValue>
-MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Vector speed) const
+MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
+                                       complex3DVector_t channel,
+                                       complexVector_t longTerm,
+                                       complexVector_t txW,
+                                       complexVector_t rxW,
+                                       doubleVector_t delaySpread,
+                                       double2DVector_t angle,
+                                       Vector speed) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -835,14 +878,14 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
 
   Ptr<SpectrumValue> tempPsd = Copy<SpectrumValue> (txPsd);
 
-  NS_ASSERT_MSG (params->m_delay.size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
-  NS_ASSERT_MSG (params->m_txW.size()==params->m_channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
-  NS_ASSERT_MSG (params->m_rxW.size()==params->m_channel.size(), "the rx antenna size of channel and antenna weights should be the same");
-  NS_ASSERT_MSG (params->m_angle.at(0).size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
-  NS_ASSERT_MSG (params->m_angle.at(1).size()==params->m_channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
+  NS_ASSERT_MSG (delaySpread.size()==channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
+  NS_ASSERT_MSG (txW.size()==channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
+  NS_ASSERT_MSG (rxW.size()==channel.size(), "the rx antenna size of channel and antenna weights should be the same");
+  NS_ASSERT_MSG (angle.at(0).size()==channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
+  NS_ASSERT_MSG (angle.at(1).size()==channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
 
   //channel[rx][tx][cluster]
-  uint8_t numCluster = params->m_delay.size ();
+  uint8_t numCluster = delaySpread.size ();
   //the update of Doppler is simplified by only taking the center angle of each cluster in to consideration.
   Values::iterator vit = tempPsd->ValuesBegin ();
   Bands::const_iterator sbit = tempPsd->ConstBandsBegin(); // sub band iterator
@@ -853,9 +896,9 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
       //cluster angle angle[direction][n],where, direction = 0(aoa), 1(zoa).
-      double temp_doppler = 2 * M_PI * (sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.x
-                                        + sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * sin (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.y
-                                        + cos (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * speed.z) * varTtiTime *
+      double temp_doppler = 2 * M_PI * (sin (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.x
+                                        + sin (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * sin (angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.y
+                                        + cos (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * speed.z) * varTtiTime *
                                             m_centerFrequency / 3e8;
       doppler.push_back (exp (std::complex<double> (0, temp_doppler)));
 
@@ -869,9 +912,9 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
           double fsb = (*sbit).fc; // take the carrier frequency of the band for which we al calculating the gain
           for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++) // calculate for this subband for all the clusters
             {
-              double delay = -2 * M_PI * fsb * (params->m_delay.at (cIndex));
+              double delay = -2 * M_PI * fsb * (delaySpread.at (cIndex));
               std::complex<double> txSum (0,0);
-              subsbandGain = subsbandGain + params->m_longTerm.at (cIndex) * doppler.at (cIndex) * exp (std::complex<double> (0, delay));
+              subsbandGain = subsbandGain + longTerm.at (cIndex) * doppler.at (cIndex) * exp (std::complex<double> (0, delay));
             }
           *vit = (*vit) * (norm (subsbandGain));
         }
@@ -900,33 +943,32 @@ MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
     }
 }
 
-void
-MmWave3gppChannel::CalLongTerm (Ptr<Params3gpp> params3gpp) const
+complexVector_t
+MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const
 {
-  uint8_t txAntenna = params3gpp->m_txW.size ();
-  uint8_t rxAntenna = params3gpp->m_rxW.size ();
 
+  uint8_t txAntennaNum = txW.size ();
+  uint8_t rxAntennaNum = rxW.size ();
   //store the long term part to reduce computation load
   //only the small scale fading is need to be updated if the large scale parameters and antenna weights remain unchanged.
   complexVector_t longTerm;
-  uint8_t numCluster = params3gpp->m_delay.size ();
+  uint8_t numCluster = delayClusters.size ();
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
       std::complex<double> txSum (0,0);
-      for (uint8_t txIndex = 0; txIndex < txAntenna; txIndex++)
+      for (uint8_t txIndex = 0; txIndex < txAntennaNum; txIndex++)
         {
           std::complex<double> rxSum (0,0);
-          for (uint8_t rxIndex = 0; rxIndex < rxAntenna; rxIndex++)
+          for (uint8_t rxIndex = 0; rxIndex < rxAntennaNum; rxIndex++)
             {
-              rxSum = rxSum + std::conj (params3gpp->m_rxW.at (rxIndex)) * params3gpp->m_channel.at (rxIndex).at (txIndex).at (cIndex);
+              rxSum = rxSum + std::conj (rxW.at (rxIndex)) * Husn.at (rxIndex).at (txIndex).at (cIndex);
             }
-          txSum = txSum + params3gpp->m_txW.at (txIndex) * rxSum;
+          txSum = txSum + txW.at (txIndex) * rxSum;
         }
       longTerm.push_back (txSum);
     }
-  params3gpp->m_longTerm = longTerm;
-
+  return longTerm;
 }
 
 Ptr<ParamsTable>
@@ -2637,8 +2679,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
       for (uint8_t tx = 0; tx <= txAntennaNum[1]; tx++)
         {
           txAntennaArray->SetSector (tx, txAntennaNum, txTheta);
-          params3gpp->m_txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
-          params3gpp->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ());
+
+          complexVector_t txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
 
           for (uint16_t rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
             {
@@ -2650,11 +2692,19 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
 
                   rxAntennaArray->SetSector (rx, rxAntennaNum, rxTheta);
 
-                  params3gpp->m_rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
-                  params3gpp->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ());
+                  complexVector_t rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
 
-                  CalLongTerm (params3gpp);
-                  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd, params3gpp, Vector (0,0,0));
+
+                  params3gpp->m_longTerm = CalLongTerm (txW, rxW, params3gpp->m_delay, params3gpp->m_channel);
+
+                  Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd,
+                                                                 params3gpp->m_channel,
+                                                                 params3gpp->m_longTerm,
+                                                                 txW,
+                                                                 rxW,
+                                                                 params3gpp->m_delay,
+                                                                 params3gpp->m_angle,
+                                                                 Vector (0,0,0));
 
                   SpectrumValue bfGain = (*bfPsd) / (*fakePsd);
                   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();

@@ -352,21 +352,35 @@ private:
 
 
   /**
-   * Compute and store the long term fading params in order to decrease the computational load
-   * @params the channel realizationin as a Params3gpp object
+   * Compute and store the long term fading parameters in order to decrease the computational load
+   * @param txW beamforming vector of the transmitter antenna
+   * @param rxW beamforming vector of the receiver antenna
+   * @param delayClusters
+   * @param Husn the channel realization
+   * @return long term fading parameters
    */
-  void CalLongTerm (Ptr<Params3gpp> params) const;
+  complexVector_t CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const;
 
   /**
    * Compute the BF gain, apply frequency selectivity by phase-shifting with the cluster delays
    * and scale the txPsd to get the rxPsd
-   * @params the tx PSD
-   * @params the channel realizationin as a Params3gpp object
-   * @params the relative speed between UE and eNB
-   * @returns the rx PSD
+   * @param txPsd tx PSD
+   * @param channel the channel realization
+   * @param longTerm the long term fading
+   * @param txW antenna weights of the transmitter antenna
+   * @param rxW antenna weights of the receiver antenna
+   * @param delay delay clusters
+   * @param angle angles
+   * @param speed relative speed
+   * @return the rx PSD
    */
   Ptr<SpectrumValue> CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
-                                         Ptr<Params3gpp> params3gpp,
+                                         complex3DVector_t channel,
+                                         complexVector_t longTerm,
+                                         complexVector_t txW,
+                                         complexVector_t rxW,
+                                         doubleVector_t delay,
+                                         double2DVector_t angle,
                                          Vector speed) const;
 
   /**
