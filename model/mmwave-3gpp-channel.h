@@ -62,38 +62,86 @@ typedef std::vector<doubleVector_t> double2DVector_t;
 typedef std::vector< std::complex<double> > complexVector_t;
 typedef std::vector<complexVector_t> complex2DVector_t;
 typedef std::vector<complex2DVector_t> complex3DVector_t;
+typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
+
+struct InputParams3gpp
+{
+  bool m_los {false};
+  bool m_o2i {false};
+  Vector m_speed {0,0,0};
+  double m_dis2D {0};
+  double m_dis3D {0};
+  Vector m_locUT {0,0,0}; //!< location of UT
+  key_t m_key {0,0}; //!< the key formed of the pointers to the TX and RX device, respectively
+  key_t m_keyReverse {0,0}; //!< //!< the key formed of the pointers to the RX and TX device, respectively
+
+  bool m_initialized {false};
+
+public:
+
+  inline InputParams3gpp()
+   {
+    m_initialized = false;
+   }
+  inline InputParams3gpp (bool los, bool o2i, Vector speed, double dis2D, double dis3D, Vector locUT, key_t key, key_t keyReverse):
+    m_los(los), m_o2i(o2i), m_speed(speed), m_dis2D (dis2D), m_dis3D (dis3D), m_locUT (locUT), m_key(key), m_keyReverse (keyReverse)
+  {
+    m_initialized = true;
+  }
+
+  inline InputParams3gpp (const InputParams3gpp &p)
+   {
+     m_los = p.m_los;
+     m_o2i = p.m_o2i;
+     m_speed = p.m_speed;
+     m_dis2D = p.m_dis2D;
+     m_dis3D = p.m_dis3D;
+     m_locUT = p.m_locUT;
+     m_key = p.m_key;
+     m_keyReverse = p.m_keyReverse;
+     m_initialized = p.m_initialized;
+   }
+
+  inline bool GetLos () const {return m_los;}
+  inline bool Geto2i () const {return m_o2i;}
+  inline Vector GetSpeed ()const {return m_speed;}
+  inline double GetDis2D () const {return m_dis2D;}
+  inline double GetDis3D () const {return m_dis3D;}
+  inline Vector GetLocUT () const {return m_locUT;}
+  inline key_t GetKey () const {return m_key;}
+  inline key_t GetKeyReverse () const {return m_keyReverse;}
+  inline bool IsInitialized ()const {return m_initialized;}
+
+};
+
 
 /**
  * Data structure that stores a channel realization
  */
 struct Params3gpp : public SimpleRefCount<Params3gpp>
 {
+  InputParams3gpp m_input;
+
   AntennaArrayBasicModel::BeamId  m_txBeamId; //!< Tx antenna beam id
   AntennaArrayBasicModel::BeamId  m_rxBeamId; //!< Rx antenna beam id
-  complexVector_t     m_txW; // tx antenna weights.
-  complexVector_t     m_rxW; // rx antenna weights.
+  complexVector_t     m_txW; //!< tx antenna weights.
+  complexVector_t     m_rxW; //!< rx antenna weights.
   complex3DVector_t      m_channel; // channel matrix H[u][s][n], u - number of antennas of receiver, s - number of antennas of transmitter, n - number of clusters
-  doubleVector_t      m_delay; // cluster delay.
-  double2DVector_t    m_angle; //cluster angle angle[direction][n], where direction = 0(aoa), 1(zoa), 2(aod), 3(zod) in degree.
-  complexVector_t     m_longTerm; // long term component per cluster
+  doubleVector_t      m_delay; //!< cluster delay.
+  double2DVector_t    m_angle; //!<cluster angle angle[direction][n], where direction = 0(aoa), 1(zoa), 2(aod), 3(zod) in degree.
+  complexVector_t     m_longTerm; //!< long term component per cluster
 
-  double2DVector_t    m_nonSelfBlocking; // store the blockages
-
+  double2DVector_t    m_nonSelfBlocking; //!< store the blockages
   /*The following parameters are stored for spatial consistent updating*/
-  Vector m_preLocUT; // location of UT when generating the previous channel
-  Vector m_locUT; // location of UT
-  double2DVector_t m_norRvAngles; //stores the normal variable for random angles angle[cluster][id] generated for equation (7.6-11)-(7.6-14), where id = 0(aoa),1(zoa),2(aod),3(zod)
+  Vector m_preLocUT; //!< location of UT when generating the previous channel
+  double2DVector_t m_norRvAngles; //!< stores the normal variable for random angles angle[cluster][id] generated for equation (7.6-11)-(7.6-14), where id = 0(aoa),1(zoa),2(aod),3(zod)
   Time m_generatedTime;
-  double m_DS; // delay spread
-  double m_K; //K factor
-  uint8_t m_numCluster; // reduced cluster number;
+  double m_DS; //!< delay spread
+  double m_K; //!< K factor
+  uint8_t m_numCluster; //!< reduced cluster number;
   double2DVector_t m_clusterPhase;
   double m_losPhase;
-  bool m_los;
-  bool m_o2i;
-  Vector m_speed;
-  double m_dis2D;
-  double m_dis3D;
+
 };
 
 /**
@@ -166,6 +214,9 @@ struct ParamsTable : public Object
 class MmWave3gppChannel : public SpectrumPropagationLossModel
 {
 public:
+
+  typedef std::map< key_t, Ptr<Params3gpp> > channelMap_t;
+
   /**
     * Constructor
     */
@@ -224,34 +275,28 @@ public:
    */
   void SetPathlossModel (Ptr<PropagationLossModel> pathloss);
 
-  typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
-  typedef std::map< key_t, Ptr<Params3gpp> > channelMap_t;
-
 protected:
 
   /**
-   * This updates the values of the input parameters txAntennaArray
-   * and rxAntennaArray with the transmitter and receiver antenna
-   *
+   * This function prepares 3gpp parameters that are necessary for the channel
+   * realization calculation or update
    * @param a Mobility model of the transmitter device
    * @param b Mobility model of the receiver device
-   * @param txAntennaArray of the transmitter
-   * @param rxAntennaArray of the receiver
-   * @param locUT the position of the UE
-   * @param key the key to the map consisting from the transmitter and receiver ID
-   * @param keyReverse the reverse of a key consisting from the transmitter and receiver ID
-   * @returns returns true if the beamforming is between UE and BS,
-   * and false if is between UEs or BSs
+   * @param input3gppParams structure that contains a bunch of 3gpp parameter
+   * @return returns true if there is beamforming, based on the type of devices (only among UE and BS),
+   * and only if both are transmitting directionally
    */
-  virtual void GetParameters (Ptr<const MobilityModel> a,
-                              Ptr<const MobilityModel> b,
-                              Vector& locUT,
-                              key_t& key,
-                              key_t& keyReverse,
-                              bool& isBeamforming,
-                              bool& isOmni) const;
+  bool GetInput3gppParameters (Ptr<const MobilityModel> a,
+                               Ptr<const MobilityModel> b,
+                               InputParams3gpp& input3gppParams
+                              ) const;
 
 private:
+
+  Ptr<Params3gpp> DoCreateOrUpdateChannelMap (Ptr<const MobilityModel> a,
+                                              Ptr<const MobilityModel> b,
+                                              InputParams3gpp input3gppParams
+                                              ) const;
 
   /**
    * Returns a reference to the channel map that corresponding to central carrier
@@ -285,23 +330,13 @@ private:
    * @param table3gpp the ParamsTable for the specific scenario
    * @param a mobility model of the transmitter node
    * @param b mobility model of the receiver node
-   * @param locUT location of UT
-   * @param los los condition
-   * @param o2i o2i condition
-   * @param speed relative speed between tx and rx
-   * @param dis2D the 2D distance between tx and rx
-   * @param dis3D the 3D distance between tx and rx
+   * @param inputParams input 3gpp params
    * @return a new realization of the channel
    */
   Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp,
                                  Ptr<const MobilityModel> a,
                                  Ptr<const MobilityModel> b,
-                                 Vector locUT,
-                                 bool los,
-                                 bool o2i,
-                                 Vector speed,
-                                 double dis2D,
-                                 double dis3D) const;
+                                 InputParams3gpp inputParams) const;
 
   /**
    * Update the channel realization with procedure A of TR 38.900 Sec 7.6.3.2
