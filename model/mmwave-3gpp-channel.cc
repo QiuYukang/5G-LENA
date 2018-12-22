@@ -283,7 +283,7 @@ void MmWave3gppChannel::SetCenterFrequency (double centerFrequency)
 
   if (m_channelMapPerCentralCarrierFrequency.find (m_centerFrequency) == m_channelMapPerCentralCarrierFrequency.find (m_centerFrequency))
     {
-      std::map< MmWave3gppChannel::key_t, Ptr<Params3gpp> > initMap;
+      channelMap_t initMap;
       m_channelMapPerCentralCarrierFrequency.insert(std::make_pair(m_centerFrequency, initMap));
     }
 }
@@ -374,15 +374,25 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (NetDeviceContainer ueDevices
 }
 
 
-void MmWave3gppChannel::GetParameters (Ptr<const MobilityModel> a,
-                                       Ptr<const MobilityModel> b,
-                                       Vector& locUT,
-                                       key_t& key,
-                                       key_t& keyReverse,
-                                       bool& isBeamforming,
-                                       bool& isOmni
-                                       ) const
+bool MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
+                                                Ptr<const MobilityModel> b,
+                                                InputParams3gpp& input3gppParams
+                                              ) const
 {
+
+  bool isBeamforming = false;
+
+  // obligatory parameters to be set throught the constructro of the InputParams3gpp structure
+  bool los;
+  bool o2i;
+  Vector locUT;
+  Vector speed;
+  double dis2D;
+  double dis3D;
+  key_t key;
+  key_t keyReverse;
+
+
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
@@ -412,8 +422,55 @@ void MmWave3gppChannel::GetParameters (Ptr<const MobilityModel> a,
 
   if (GetAntennaArray(txDevice)->IsOmniTx () || GetAntennaArray(rxDevice)->IsOmniTx())
     {
-      isOmni = true;
+      isBeamforming = false;
     }
+
+  if (isBeamforming) // if is beamforming continue to gather parameters
+    {
+  //Step 2: Assign propagation condition (LOS/NLOS).
+  //los, o2i condition is computed above.
+
+    //Step 3: The propagation loss is handled in the mmWavePropagationLossModel class.
+    char condition = DoGetChannelCondition(a,b);
+
+    if (condition == 'l')
+      {
+        los = true;
+      }
+    else if (condition == 'i')
+      {
+        o2i = true;
+      }
+    else if (condition == 's')
+      {
+        // in this special case, we condiser los + outdoor to indoor.
+        los = true;
+        o2i = true;
+      }
+
+    if (m_ueSpeed == 0)
+      {
+        Vector rxSpeed = b->GetVelocity ();
+        Vector txSpeed = a->GetVelocity ();
+        speed = Vector(rxSpeed.x - txSpeed.x,rxSpeed.y - txSpeed.y,rxSpeed.z - txSpeed.z);
+      }
+    else
+      {
+        speed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
+      }
+
+    double x = a->GetPosition ().x - b->GetPosition ().x;
+    double y = a->GetPosition ().y - b->GetPosition ().y;
+
+    dis2D = sqrt (x * x + y * y);
+    dis3D = a->GetDistanceFrom(b);
+
+    InputParams3gpp params = InputParams3gpp (los, o2i, speed, dis2D, dis3D, locUT, key, keyReverse);
+
+    input3gppParams = params;
+
+    }
+  return isBeamforming;
 }
 
 MmWave3gppChannel::channelMap_t & MmWave3gppChannel::GetChannelMap() const
@@ -449,6 +506,76 @@ MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
     }
 }
 
+Ptr<Params3gpp>
+MmWave3gppChannel::DoCreateOrUpdateChannelMap (Ptr<const MobilityModel> a,
+                                               Ptr<const MobilityModel> b,
+                                               InputParams3gpp input3gppParameters
+                                               ) const
+{
+
+
+  Ptr<Params3gpp> channelParams = Create <Params3gpp>();
+
+  MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
+  MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
+
+  NS_LOG_INFO ("Update or create the forward channel");
+  NS_LOG_LOGIC ("it == GetChannelMap().end () " << (it == GetChannelMap().end ()));
+  NS_LOG_LOGIC ("itReverse == GetChannelMap().end () " << (itReverse == GetChannelMap().end ()));
+  NS_LOG_LOGIC ("it->second->m_channel.size() == 0 " << (it->second->m_channel.size () == 0));
+  NS_LOG_LOGIC ("it->second->m_los != los" << (it->second->m_input.GetLos() != input3gppParameters.GetLos()));
+
+  double hUT, hBS;
+  hUT = input3gppParameters.GetLocUT().z;
+
+  if (input3gppParameters.GetLocUT().x == b->GetPosition().x &&
+      input3gppParameters.GetLocUT().y == b->GetPosition().y &&
+      input3gppParameters.GetLocUT().z == b->GetPosition().z) // if UE is the receiver
+    {
+      hBS = a->GetPosition ().z;
+    }
+  else
+    {
+      hBS = b->GetPosition ().z;
+    }
+  //Draw parameters from table 7.5-6 and 7.5-7 to 7.5-10.
+  Ptr<ParamsTable> table3gpp = Get3gppTable (input3gppParameters.GetLos(),
+                                             input3gppParameters.Geto2i(),
+                                             hBS,
+                                             hUT,
+                                             input3gppParameters.GetDis2D());
+
+  // Step 4-11 are performed in function GetNewChannel()
+  if ((it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
+      || (it != GetChannelMap().end () && it->second->m_channel.size () == 0))
+    {
+      //delete the channel parameter to cause the channel to be updated again.
+      //The m_updatePeriod can be configured to be relatively large in order to disable updates.
+      if (m_updatePeriod.GetMilliSeconds () > 0)
+        {
+          NS_LOG_INFO ("Time " << Simulator::Now ().GetSeconds () << " schedule delete for a " << a->GetPosition () << " b " << b->GetPosition ());
+          Simulator::Schedule (m_updatePeriod, &MmWave3gppChannel::DeleteChannel,this,a,b);
+        }
+    }
+
+  if (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
+    {
+      //if the channel map is not empty, we only update the channel.
+      NS_LOG_DEBUG ("Update forward channel consistently");
+      it->second->m_input=input3gppParameters;
+      channelParams = UpdateChannel (it->second, table3gpp, a, b);
+      it->second->m_generatedTime = Now ();
+    }
+  else
+    {
+      //if the channel map is empty, we create a new channel.
+      NS_LOG_INFO ("Create new channel");
+      channelParams = GetNewChannel (table3gpp, a, b, input3gppParameters);
+    }
+
+  return channelParams;
+}
+
 Ptr<SpectrumValue>
 MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
                                                  Ptr<const MobilityModel> a,
@@ -456,51 +583,16 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0, "the position of tx and rx devices cannot be the same");
-  Vector locUT;
-  key_t key, keyReverse;
-  bool isBeamforming = false, isOmni = false, los = false, o2i = false;
 
-  GetParameters (a, b, locUT, key, keyReverse, isBeamforming, isOmni);
+  InputParams3gpp input3gppParameters;
+
+  bool isBeamforming = GetInput3gppParameters (a, b, input3gppParameters);
 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
-  if (!isBeamforming || isOmni)
+  if (!isBeamforming)
     {
       return rxPsd;
-    }
-
-  //Step 2: Assign propagation condition (LOS/NLOS).
-  //los, o2i condition is computed above.
-
-  //Step 3: The propagation loss is handled in the mmWavePropagationLossModel class.
-  char condition = DoGetChannelCondition(a,b);
-
-  if (condition == 'l')
-    {
-      los = true;
-    }
-  else if (condition == 'i')
-    {
-      o2i = true;
-    }
-  else if (condition == 's')
-    {
-      // in this special case, we condiser los + outdoor to indoor.
-      los = true;
-      o2i = true;
-    }
-
-  Vector relativeSpeed;
-
-  if (m_ueSpeed == 0)
-    {
-       Vector rxSpeed = b->GetVelocity ();
-       Vector txSpeed = a->GetVelocity ();
-       relativeSpeed = Vector(rxSpeed.x - txSpeed.x,rxSpeed.y - txSpeed.y,rxSpeed.z - txSpeed.z);
-    }
-  else
-    {
-       relativeSpeed = Vector(sqrt(m_ueSpeed), sqrt(m_ueSpeed), 0);
     }
 
   // Every m_updatedPeriod, the channel matrix is deleted and a consistent channel update is triggered.
@@ -508,83 +600,22 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   // Therefore, LOS/NLOS condition of updating is always consistent with the previous channel.
 
   Ptr<Params3gpp> channelParams;
-  MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (key);
-  MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (keyReverse);
+  MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
+  MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
   bool reverseLink = false;
 
   //I only update the forward channel.
   if ((it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
       || (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
-      || (it != GetChannelMap().end () && it->second->m_los != los))
+      || (it != GetChannelMap().end () && it->second->m_input.GetLos() != input3gppParameters.GetLos()))
     {
-      NS_LOG_INFO ("Update or create the forward channel");
-      NS_LOG_LOGIC ("it == GetChannelMap().end () " << (it == GetChannelMap().end ()));
-      NS_LOG_LOGIC ("itReverse == GetChannelMap().end () " << (itReverse == GetChannelMap().end ()));
-      NS_LOG_LOGIC ("it->second->m_channel.size() == 0 " << (it->second->m_channel.size () == 0));
-      NS_LOG_LOGIC ("it->second->m_los != los" << (it->second->m_los != los));
 
-      double x = a->GetPosition ().x - b->GetPosition ().x;
-      double y = a->GetPosition ().y - b->GetPosition ().y;
-      double distance2D = sqrt (x * x + y * y);
-      double hUT, hBS;
-      hUT = locUT.z;
+      channelParams = DoCreateOrUpdateChannelMap (a, b, input3gppParameters);
 
-      if (locUT.x == b->GetPosition().x &&
-          locUT.y == b->GetPosition().y &&
-          locUT.z == b->GetPosition().z) // if UE is the receiver
-        {
-          hBS = a->GetPosition ().z;
-        }
-      else
-        {
-          hBS = b->GetPosition ().z;
-        }
-      //Draw parameters from table 7.5-6 and 7.5-7 to 7.5-10.
-      Ptr<ParamsTable> table3gpp = Get3gppTable (los, o2i, hBS, hUT, distance2D);
-
-      // Step 4-11 are performed in function GetNewChannel()
-      if ((it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
-          || (it != GetChannelMap().end () && it->second->m_channel.size () == 0))
-        {
-          //delete the channel parameter to cause the channel to be updated again.
-          //The m_updatePeriod can be configured to be relatively large in order to disable updates.
-          if (m_updatePeriod.GetMilliSeconds () > 0)
-            {
-              NS_LOG_INFO ("Time " << Simulator::Now ().GetSeconds () << " schedule delete for a " << a->GetPosition () << " b " << b->GetPosition ());
-              Simulator::Schedule (m_updatePeriod, &MmWave3gppChannel::DeleteChannel,this,a,b);
-            }
-        }
-
-      double distance3D = a->GetDistanceFrom (b);
-
-      if (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
-        {
-          //if the channel map is not empty, we only update the channel.
-          NS_LOG_DEBUG ("Update forward channel consistently");
-          it->second->m_locUT = locUT;
-          it->second->m_los = los;
-          it->second->m_o2i = o2i;
-          channelParams = UpdateChannel (it->second, table3gpp, a, b);
-          it->second->m_dis3D = distance3D;
-          it->second->m_dis2D = distance2D;
-          it->second->m_speed = relativeSpeed;
-          it->second->m_generatedTime = Now ();
-          it->second->m_preLocUT = locUT;
-
-        }
-      else
-        {
-          //if the channel map is empty, we create a new channel.
-          NS_LOG_INFO ("Create new channel");
-          channelParams = GetNewChannel (table3gpp, a, b, locUT, los, o2i, relativeSpeed, distance2D, distance3D);
-        }
-      std::map< key_t, int >::iterator it1 = m_connectedPair.find (key);
-
-
-      // first step in desconnecting beamforming from the channel 3gpp
+      std::map< key_t, int >::iterator it1 = m_connectedPair.find (input3gppParameters.GetKey());
+      // first step in disconnecting beamforming from the channel 3gpp
       // beamforming method does not need to know all the 3gpp channel parameters
       // instead of providing channel parameters limit to minimum set of necessary variables
-
 
       if (it1 != m_connectedPair.end ())
         {
@@ -617,7 +648,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
             }*/
 
 
-           if (m_cellScan)
+          if (m_cellScan)
             {
               NS_LOG_ERROR ("beam search method ...");
               BeamSearchBeamforming (channelParams, a, b);
@@ -651,13 +682,13 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
             {
               NS_LOG_INFO ("channelParams->m_txW.size() == 0 " << (channelParams->m_txW.size () == 0));
               NS_LOG_INFO ("channelParams->m_rxW.size() == 0 " << (channelParams->m_rxW.size () == 0));
-              GetChannelMap()[key] = channelParams;
+              GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
               return rxPsd;
             }
         } //in not connected pair
 
       channelParams->m_longTerm = CalLongTerm (channelParams->m_txW, channelParams->m_rxW, channelParams->m_delay, channelParams->m_channel);
-      GetChannelMap()[key] = channelParams;
+      GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
     }
   else if (itReverse == GetChannelMap().end ()) //Find channel matrix in the forward link
     {
@@ -676,7 +707,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
                                                  channelParams->m_rxW,
                                                  channelParams->m_delay,
                                                  channelParams->m_angle,
-                                                 relativeSpeed);
+                                                 input3gppParameters.GetSpeed());
 
   SpectrumValue bfGain = (*bfPsd) / (*rxPsd);
   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
@@ -1178,12 +1209,7 @@ Ptr<Params3gpp>
 MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
                                   Ptr<const MobilityModel> a,
                                   Ptr<const MobilityModel> b,
-                                  Vector locUT,
-                                  bool los,
-                                  bool o2i,
-                                  Vector speed,
-                                  double dis2D,
-                                  double dis3D) const
+                                  InputParams3gpp input3gppParameters) const
 {
 
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
@@ -1221,18 +1247,15 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
   uint8_t raysPerCluster = table3gpp->m_raysPerCluster;
   Ptr<Params3gpp> channelParams = Create<Params3gpp> ();
   //for new channel, the previous and current location is the same.
-  channelParams->m_preLocUT = locUT;
-  channelParams->m_locUT = locUT;
-  channelParams->m_los = los;
-  channelParams->m_o2i = o2i;
+
+  channelParams->m_input = input3gppParameters;
+  channelParams->m_preLocUT = input3gppParameters.GetLocUT();
   channelParams->m_generatedTime = Now ();
-  channelParams->m_speed = speed;
-  channelParams->m_dis2D = dis2D;
-  channelParams->m_dis3D = dis3D;
+
   //Step 4: Generate large scale parameters. All LSPS are uncorrelated.
   doubleVector_t LSPsIndep, LSPs;
   uint8_t paramNum;
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       paramNum = 7;
     }
@@ -1259,7 +1282,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
    * therefore it is generated separately in the 3GPP propagation loss model.*/
 
   double DS,ASD,ASA,ZSA,ZSD,K_factor = 0;
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       K_factor = LSPs.at (1) * table3gpp->m_sigK + table3gpp->m_uK;
       DS = pow (10, LSPs.at (2) * table3gpp->m_sigLgDS + table3gpp->m_uLgDS);
@@ -1327,7 +1350,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
     }
 
   doubleVector_t clusterPowerForAngles; // this power is only for equation (7.5-9) and (7.5-14), not for (7.5-22)
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       double K_linear = pow (10,K_factor / 10);
 
@@ -1375,7 +1398,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 
   channelParams->m_numCluster = numReducedCluster;
   // Resume step 5 to compute the delay for LoS condition.
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       double C_tau = 0.7705 - 0.0433 * K_factor + 2e-4 * pow (K_factor,2) + 17e-6 * pow (K_factor,3); //(7.5-3)
       for (uint8_t cIndex = 0; cIndex < numReducedCluster; cIndex++)
@@ -1429,7 +1452,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
       NS_FATAL_ERROR ("Invalide cluster number");
   }
 
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       C_phi = C_NLOS * (1.1035 - 0.028 * K_factor - 2e-3 * pow (K_factor,2) + 1e-4 * pow (K_factor,3)); //(7.5-10))
     }
@@ -1463,7 +1486,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
       NS_FATAL_ERROR ("Invalide cluster number");
   }
 
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       C_theta = C_NLOS * (1.3086 + 0.0339 * K_factor - 0.0077 * pow (K_factor,2) + 2e-4 * pow (K_factor,3)); //(7.5-15)
     }
@@ -1496,7 +1519,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
         }
       clusterAoa.at (cIndex) = clusterAoa.at (cIndex) * Xn + (m_normalRv->GetValue () * ASA / 7) + rxAngle.phi * 180 / M_PI; //(7.5-11)
       clusterAod.at (cIndex) = clusterAod.at (cIndex) * Xn + (m_normalRv->GetValue () * ASD / 7) + txAngle.phi * 180 / M_PI;
-      if (o2i)
+      if (channelParams->m_input.Geto2i())
         {
           clusterZoa.at (cIndex) = clusterZoa.at (cIndex) * Xn + (m_normalRv->GetValue () * ZSA / 7) + 90; //(7.5-16)
         }
@@ -1508,7 +1531,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 
     }
 
-  if (los)
+  if (channelParams->m_input.GetLos())
     {
       //The 7.5-12 can be rewrite as Theta_n,ZOA = Theta_n,ZOA - (Theta_1,ZOA - Theta_LOS,ZOA) = Theta_n,ZOA - diffZOA,
       //Similar as AOD, ZSA and ZSD.
@@ -1888,7 +1911,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 
                 }
             }
-          if (los) //(7.5-29) && (7.5-30)
+          if (channelParams->m_input.GetLos()) //(7.5-29) && (7.5-30)
             {
               std::complex<double> ray (0,0);
               double rxPhaseDiff = 2 * M_PI * (sin (rxAngle.theta) * cos (rxAngle.phi) * uLoc.x
@@ -2049,7 +2072,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
       clusterDelay.push_back (params->m_delay.at (cInd));
     }
   //If LOS condition, we need to revert the tau^LOS_n back to tau_n.
-  if (params->m_los)
+  if (params->m_input.GetLos())
     {
       double C_tau = 0.7705 - 0.0433 * K_factor + 2e-4 * pow (K_factor,2) + 17e-6 * pow (K_factor,3); //(7.5-3)
       for (uint8_t cIndex = 0; cIndex < params->m_numCluster; cIndex++)
@@ -2060,8 +2083,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
   //update delay based on equation (7.6-9)
   for (uint8_t cIndex = 0; cIndex < params->m_numCluster; cIndex++)
     {
-      clusterDelay.at (cIndex) -= (sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * params->m_speed.x
-                                   + sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * sin (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * params->m_speed.y) * m_updatePeriod.GetSeconds () / 3e8; //(7.6-9)
+      clusterDelay.at (cIndex) -= (sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * params->m_input.GetSpeed().x
+                                   + sin (params->m_angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * sin (params->m_angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * params->m_input.GetSpeed().y) * m_updatePeriod.GetSeconds () / 3e8; //(7.6-9)
     }
 
   /* since the scaled Los delays are not to be used in cluster power generation,
@@ -2085,7 +2108,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
     }
 
   // Resume step 5 to compute the delay for LoS condition.
-  if (params->m_los)
+  if (params->m_input.GetLos())
     {
       double C_tau = 0.7705 - 0.0433 * K_factor + 2e-4 * pow (K_factor,2) + 17e-6 * pow (K_factor,3); //(7.5-3)
       for (uint8_t cIndex = 0; cIndex < params->m_numCluster; cIndex++)
@@ -2108,7 +2131,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
       clusterAod.push_back (params->m_angle.at (AOD_INDEX).at (cIndex));
       clusterZod.push_back (params->m_angle.at (ZOD_INDEX).at (cIndex));
     }
-  double v = sqrt (params->m_speed.x * params->m_speed.x + params->m_speed.y * params->m_speed.y);
+  double v = sqrt (params->m_input.GetSpeed().x * params->m_input.GetSpeed().x + params->m_input.GetSpeed().y * params->m_input.GetSpeed().y);
   if (v > 1e-6)//Update the angles only when the speed is not 0.
     {
       if (params->m_norRvAngles.size () == 0)
@@ -2128,7 +2151,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
         {
           double  timeDiff = Now ().GetSeconds () - params->m_generatedTime.GetSeconds ();
           double ranPhiAOD, ranThetaZOD, ranPhiAOA, ranThetaZOA;
-          if (params->m_los && cInd == 0)//These angles equal 0 for LOS path.
+          if (params->m_input.GetLos() && cInd == 0)//These angles equal 0 for LOS path.
             {
               ranPhiAOD = 0;
               ranThetaZOD = 0;
@@ -2137,7 +2160,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
             }
           else
             {
-              double deltaX = sqrt (pow (params->m_preLocUT.x - params->m_locUT.x, 2) + pow (params->m_preLocUT.y - params->m_locUT.y, 2));
+              double deltaX = sqrt (pow (params->m_preLocUT.x - params->m_input.GetLocUT().x, 2) + pow (params->m_preLocUT.y - params->m_input.GetLocUT().y, 2));
               double R_phi = exp (-1 * deltaX / 50); // 50 m is the correlation distance as specified in TR 38.900 Sec 7.6.3.2
               double R_theta = exp (-1 * deltaX / 100); // 100 m is the correlation distance as specified in TR 38.900 Sec 7.6.3.2
 
@@ -2170,13 +2193,13 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
               ranThetaZOA = (0.5 * erfc (-1 * params->m_norRvAngles.at (cInd).at (ZOA_INDEX) / sqrt (2))) * M_PI - 0.5 * M_PI;
             }
           clusterAod.at (cInd) += v * timeDiff *
-            sin (atan (params->m_speed.y / params->m_speed.x) - clusterAod.at (cInd) * M_PI / 180 + ranPhiAOD) * 180 / (M_PI * params->m_dis2D);
+            sin (atan (params->m_input.GetSpeed().y / params->m_input.GetSpeed().x) - clusterAod.at (cInd) * M_PI / 180 + ranPhiAOD) * 180 / (M_PI * params->m_input.GetDis2D());
           clusterZod.at (cInd) -= v * timeDiff *
-            cos (atan (params->m_speed.y / params->m_speed.x) - clusterAod.at (cInd) * M_PI / 180 + ranThetaZOD) * 180 / (M_PI * params->m_dis3D);
+            cos (atan (params->m_input.GetSpeed().y / params->m_input.GetSpeed().x) - clusterAod.at (cInd) * M_PI / 180 + ranThetaZOD) * 180 / (M_PI * params->m_input.GetDis3D());
           clusterAoa.at (cInd) -= v * timeDiff *
-            sin (atan (params->m_speed.y / params->m_speed.x) - clusterAoa.at (cInd) * M_PI / 180 + ranPhiAOA) * 180 / (M_PI * params->m_dis2D);
+            sin (atan (params->m_input.GetSpeed().y / params->m_input.GetSpeed().x) - clusterAoa.at (cInd) * M_PI / 180 + ranPhiAOA) * 180 / (M_PI * params->m_input.GetDis2D());
           clusterZoa.at (cInd) -= v * timeDiff *
-            cos (atan (params->m_speed.y / params->m_speed.x) - clusterAoa.at (cInd) * M_PI / 180 + ranThetaZOA) * 180 / (M_PI * params->m_dis3D);
+            cos (atan (params->m_input.GetSpeed().y / params->m_input.GetSpeed().x) - clusterAoa.at (cInd) * M_PI / 180 + ranThetaZOA) * 180 / (M_PI * params->m_input.GetDis3D());
         }
     }
 
@@ -2535,7 +2558,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 
                 }
             }
-          if (params->m_los) //(7.5-29) && (7.5-30)
+          if (params->m_input.GetLos()) //(7.5-29) && (7.5-30)
             {
               std::complex<double> ray (0,0);
               double rxPhaseDiff = 2 * M_PI * (sin (rxAngle.theta) * cos (rxAngle.phi) * uLoc.x
@@ -2799,7 +2822,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params3gpp,
     }
   else
     {
-      double deltaX = sqrt (pow (params3gpp->m_preLocUT.x - params3gpp->m_locUT.x, 2) + pow (params3gpp->m_preLocUT.y - params3gpp->m_locUT.y, 2));
+      double deltaX = sqrt (pow (params3gpp->m_preLocUT.x - params3gpp->m_input.GetLocUT().x, 2) + pow (params3gpp->m_preLocUT.y - params3gpp->m_input.GetLocUT().y, 2));
       //if deltaX and speed are both 0, the autocorrelation is 1, skip updating
       if (deltaX > 1e-6 || m_blockerSpeed > 1e-6)
         {
@@ -2812,7 +2835,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params3gpp,
             }
           else
             {
-              if (params3gpp->m_o2i)// outdoor to indoor
+              if (params3gpp->m_input.Geto2i())// outdoor to indoor
                 {
                   corrDis = 5;
                 }
