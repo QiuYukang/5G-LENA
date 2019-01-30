@@ -10,9 +10,9 @@ be discussed below).
 We try to keep in sync with the latest advancements in ns-3-dev. However, in
 between our upstreamed patched are submitted and accepted, there will be a time
 in which it will be necessary to use patches "on top of" of ns-3-dev. Technically,
-these patches are maintained as a "branch" of the ns-3-dev development, and are
-hosted internally at CTTC. The repository is
-[ns-3-dev](https://gitlab.cttc.es/ns3-new-radio/ns-3-dev/tree/nr).
+these patches are maintained as a "branch" of the ns-3-dev development.
+The repository is
+[ns-3-dev](https://gitlab.com/cttc-lena/ns-3-dev/tree/nr).
 
 ### Brand new installation of ns-3-dev repository
 
@@ -20,15 +20,11 @@ To download a working copy of the ns-3-dev repository with the latest changes
 to support the NR module, you can do the following:
 
 ```
-$ git clone git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git
+$ git clone git@gitlab.com:cttc-lena/ns-3-dev.git
 $ cd ns-3-dev
 $ git checkout nr
 ```
 
-Note that on a computer that is outside the CTTC intranet, you must use
-the HTTPS address:
-[https://gitlab.cttc.es/ns3-new-radio/ns-3-dev.git](https://gitlab.cttc.es/ns3-new-radio/ns-3-dev.git)
-instead of the address `git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git`.
 Provide your username and password when asked.
 
 ### Adding the repository to an existing installation
@@ -38,12 +34,10 @@ add the branch that make ns-3-dev supporting the NR module is easy as doing:
 
 ```
 $ cd your-local-ns-3-dev-git
-$ git remote add mirror-gitlab-cttc git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git
+$ git remote add mirror-cttc-public git@gitlab.com:cttc-lena/ns-3-dev.git 
 $ git fetch -p --all   # fetch all the branches and update the refs
-$ git checkout nr      # checkout a local "nr" branch that points to mirror-gitlab-cttc/nr
+$ git checkout nr      # checkout a local "nr" branch that points to mirror-cttc-public/nr
 ```
-
-Again, use the HTTPS address if you are outside the CTTC intranet. 
 
 
 ### Test the installation
@@ -61,16 +55,13 @@ A success for both previous commands indicates an overall success.
 
 As a precondition to the following steps, you must have a working local git
 repository. If that is the case, then, your local git repo is ready to include
-our nr module:
+our nr module (only for authorized users):
 
 ```
 $ cd src
-$ git clone git@gitlab.cttc.es:ns3-new-radio/nr.git
+$ git clone git@gitlab.com:cttc-lena/nr.git
 $ cd ..
 ```
-
-Again, if you are outside the CTTC intranet, you must use the HTTPS address:
-[https://gitlab.cttc.es/ns3-new-radio/nr.git](https://gitlab.cttc.es/ns3-new-radio/nr.git).
 
 Please note that the src/nr directory will be listed as "Untracked files" every
 time you do a `git status` command. Ignore it, as the directory lives as an
@@ -97,7 +88,11 @@ If that command returns successfully, Welcome to the NR world !
 
 ## Features
 
+To see the features, please go to the [official webpage](https://cttc-lena.gitlab.io/5g-lena-website/features/).
+
 ## Papers
+
+An updated list of published papers that are based on the outcome of this module is available [here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
 
 ## Future work
 
@@ -108,6 +103,10 @@ our release. If you have the permissions, please check
 [https://gitlab.cttc.es/ns3-new-radio/sim-campaigns](https://gitlab.cttc.es/ns3-new-radio/sim-campaigns).
 
 ## About
+
+The Mobile Networks group in CTTC is a group of 10 highly skilled researchers, with expertise in the area of mobile and computer networks, ML/AI based network management, SDN/NFV, energy management, performance evaluation. Our work on performance evaluation started with the design and development of the LTE module of ns-3.
+
+We are [on the web](https://cttc-lena.gitlab.io/5g-lena-website/about/).
 
 ## Authors ##
 
