@@ -21,7 +21,10 @@
 
 /**
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900
+ * from TR 38.900. This example consists of a simple topology of 1 UE and 1 gNb,
+ * and only NR RAN part is simulated. A packet is created and directly sent to
+ * gNb device by SendPacket function. Then several functions are connected to
+ * PDCP and RLC traces and the delay is printed.
  */
 
 #include "ns3/core-module.h"
@@ -136,8 +139,8 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
 
-  Config::SetDefault("ns3::MmWaveFlexTtiMacScheduler::FixedMcsDl", BooleanValue (true));
-  Config::SetDefault("ns3::MmWaveFlexTtiMacScheduler::McsDefaultDl", UintegerValue (28));
+  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue (true));
+  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::McsDefaultDl", UintegerValue (28));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
