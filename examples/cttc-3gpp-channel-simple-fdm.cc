@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2017 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -20,8 +20,12 @@
  */
 
 /**
- * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900
+ * This example describes how to setup a simulation with frequency division
+ * multiplexing. Simulation example allow configuration of two bandwidth parts
+ * where each is dedicated to different traffic type.
+ * The topology is a simple topology that consists of 1 UE and 1 eNB. There
+ * is one data bearer active and it will be multiplexed over a specific bandwidth
+ * part depending on whether it is LOW LATENCY or not.
  */
 
 #include "ns3/core-module.h"
@@ -77,8 +81,8 @@ static ns3::GlobalValue g_udpPacketSizeUll ("packetSize",
                                             ns3::MakeUintegerChecker<uint32_t>());
 
 static ns3::GlobalValue g_isUll ("isUll",
-                                 "wheter to configure flow as ull",
-                                 ns3::BooleanValue (false),
+                                 "Whether the flow is a low latency type of traffic.",
+                                 ns3::BooleanValue (true),
                                  ns3::MakeBooleanChecker());
 
 
@@ -124,7 +128,6 @@ ConnectPdcpRlcTraces ()
 int 
 main (int argc, char *argv[])
 {
-
   CommandLine cmd;
   cmd.Parse (argc, argv);
   ConfigStore inputConfig;
@@ -155,15 +158,12 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
-
   Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
-
-  Config::SetDefault ("ns3::BwpManager::NGBR_LOW_LAT_EMBB", UintegerValue (0));
-  Config::SetDefault ("ns3::BwpManager::GBR_CONV_VOICE", UintegerValue (1));
-
-  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManager"));
-
+  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
+  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
+  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManagerGnb"));
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
+  Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
@@ -184,7 +184,7 @@ main (int argc, char *argv[])
   phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
   phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
   phyMacCommonBwp2->SetNumerology(numerologyBwp2);
-  phyMacCommonBwp1->SetCcId(1);
+  phyMacCommonBwp2->SetCcId(1);
   bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
 
   mmWaveHelper->SetBandwidthPartMap (bwpConf);
@@ -201,7 +201,6 @@ main (int argc, char *argv[])
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
-
 
   InternetStackHelper internet;
   internet.Install (ueNode);
