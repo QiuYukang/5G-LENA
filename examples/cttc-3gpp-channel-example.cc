@@ -80,7 +80,6 @@ static ns3::GlobalValue g_losCondition("losCondition",
                                        ns3::StringValue("a"), ns3::MakeStringChecker());
 static ns3::GlobalValue g_optionNlos("optionNlos", "If true, use the optional NLOS pathloss equation from 3GPP TR 38.900",
                                      ns3::BooleanValue(false), ns3::MakeBooleanChecker());
-
 static ns3::GlobalValue g_frequency("frequency",
                                     "The frequency in GHz",
                                      ns3::DoubleValue(28e9),
@@ -90,12 +89,12 @@ int
 main (int argc, char *argv[])
 {
 
-    CommandLine cmd;
-    cmd.Parse (argc, argv);
-    ConfigStore inputConfig;
-    inputConfig.ConfigureDefaults ();
-    // parse again so you can override input file default values via command line
-    cmd.Parse (argc, argv);
+  CommandLine cmd;
+  cmd.Parse (argc, argv);
+  ConfigStore inputConfig;
+  inputConfig.ConfigureDefaults ();
+  // parse again so you can override input file default values via command line
+  cmd.Parse (argc, argv);
 
   // enable logging or not
   bool logging = true;
@@ -104,18 +103,11 @@ main (int argc, char *argv[])
       //LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
       //LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
       //LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
-
-    //  LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
-    //  LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-
+      //LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
+      //LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
-
-      //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC); // by defaul used in mmwave module
-
+      //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
       //LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
-
-
-
     }
 
   // set simulation time and mobility
@@ -148,13 +140,10 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(frequencyInGHz));
   Config::SetDefault ("ns3::MmWave3gppBuildingsPropagationLossModel::Frequency", DoubleValue(frequencyInGHz));
 
-
   // other parameters of buildings model
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(true)); // enable or disable the shadowing effect
   Config::SetDefault ("ns3::MmWave3gppBuildingsPropagationLossModel::UpdateCondition", BooleanValue(true)); // enable or disable the LOS/NLOS update when the UE moves
 
-  Config::SetDefault ("ns3::AntennaArrayModel::AntennaHorizontalSpacing", DoubleValue(0.5));
-  Config::SetDefault ("ns3::AntennaArrayModel::AntennaVerticalSpacing", DoubleValue(0.5));
   Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(100))); // interval after which the channel for a moving user is updated, 
   // with spatial consistency procedure. If 0, spatial consistency is not used
   Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue(false)); // Set true to use cell scanning method, false to use the default power method.
@@ -164,20 +153,14 @@ main (int argc, char *argv[])
 
   // default 28e9
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequencyInGHz)); // check MmWavePhyMacCommon for other PHY layer parameters
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Scheduler", TypeIdValue (TypeId::LookupByName ("ns3::MmWaveFlexTtiMacScheduler")));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaRR")));
+
   Config::SetDefault ("ns3::UdpClient::PacketSize", UintegerValue(1500));
- // Config::SetDefault ("ns3::UdpClient::MaxPackets", UintegerValue(10));
+  //Config::SetDefault ("ns3::UdpClient::MaxPackets", UintegerValue(10));
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
-
   Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
-
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
-  Config::SetDefault ("ns3::LteRlcUm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
-
-//  Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(1));
-//  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
-//  Config::SetDefault ("ns3::LteRlcAm::PollRetransmitTimer", TimeValue(MilliSeconds(1.0)));
+  //Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(1)); // by default is disabled
 
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
   double hBS; //base station antenna height in meters;
