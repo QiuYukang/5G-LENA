@@ -40,7 +40,11 @@
 
 using namespace ns3;
 
-/*
+/**
+ * \file mmwave-system-test-schedulers.cc
+ * \ingroup test
+ * \brief System test for the scheduler classes
+ *
  * This test case checks if the throughput obtained is as expected for the scheduling logic.
  * The test scenario consists of a scenario in which various UEs are attached to a single gNB.
  * UEs perform UDP full buffer downlink and/or uplink traffic.

@@ -95,7 +95,7 @@ protected:
    */
   virtual void NotAssignedDlResources (const UePtrAndBufferReq &ue,
                                        const FTResources &notAssigned,
-                                       const FTResources &totalAssigned) const override;
+                                       const FTResources &totAssigned) const override;
   virtual void
   BeforeDlSched (const UePtrAndBufferReq &ue,
                  const FTResources &assignableInIteration) const override;

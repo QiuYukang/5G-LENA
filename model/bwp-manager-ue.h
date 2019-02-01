@@ -25,6 +25,10 @@ namespace ns3 {
 
 class BwpManagerAlgorithm;
 
+/**
+ * \ingroup bwp
+ * \brief The BwpManagerUe class
+ */
 class BwpManagerUe : public SimpleUeComponentCarrierManager
 {
 public:

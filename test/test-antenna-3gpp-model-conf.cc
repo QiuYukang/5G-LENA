@@ -47,6 +47,9 @@
 using namespace ns3;
 
 /**
+ * \ingroup test
+ * \file test-antenna-3gpp-model-conf.cc
+ * \brief Test the 3GPP Antenna
  *
  * This test case checks if the throughput/SINR/MCS
  * obtained is as expected for the configured antenna model and for
@@ -59,6 +62,8 @@ using namespace ns3;
  * AntennaArrayModel and AntennaArray3gppModel.
  *
  */
+
+
 class TestAntenna3gppModelConf : public TestCase
 {
 public:

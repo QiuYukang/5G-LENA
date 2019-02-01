@@ -21,6 +21,13 @@
 #include <ns3/mmwave-mac-scheduler-ns3.h>
 #include <ns3/mmwave-mac-sched-sap.h>
 
+/**
+ * \file mmwave-test-sched.cc
+ * \ingroup test
+ * \brief Unit-testing the Scheduler interface class.
+ *
+ * TODO
+ */
 namespace ns3 {
 
 /**
@@ -78,18 +85,18 @@ public:
   void SchedConfigInd (const struct MmWaveMacSchedSapUser::SchedConfigIndParameters& params);
 
 protected:
-  void TestSAPInterface (const Ptr<MmWaveMacScheduler> &sched) const;
-  void TestAddingRemovingUsersNoData (const Ptr<MmWaveMacSchedulerNs3> &sched) const;
-  void TestSchedNewData (const Ptr<MmWaveMacSchedulerNs3> &sched) const;
-  void TestSchedNewDlData (const Ptr<MmWaveMacSchedulerNs3> &sched) const;
-  void TestSchedNewUlData (const Ptr<MmWaveMacSchedulerNs3> &sched)const ;
-  void TestSchedNewDlUlData (const Ptr<MmWaveMacSchedulerNs3> &sched) const;
+  void TestSAPInterface (const Ptr<MmWaveMacScheduler> &sched);
+  void TestAddingRemovingUsersNoData (const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void TestSchedNewData (const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void TestSchedNewDlData (const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void TestSchedNewUlData (const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void TestSchedNewDlUlData (const Ptr<MmWaveMacSchedulerNs3> &sched);
 
 protected:
-  void AddOneUser (uint16_t rnti, const Ptr<MmWaveMacSchedulerNs3> &sched) const;
-  void TestingRemovingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched) const;
-  void TestingAddingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched) const;
-  void LcConfigFor (uint16_t rnti, uint32_t bytes, const Ptr<MmWaveMacSchedulerNs3> &sched) const;
+  void AddOneUser (uint16_t rnti, const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void TestingRemovingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void TestingAddingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched);
+  void LcConfigFor (uint16_t rnti, uint32_t bytes, const Ptr<MmWaveMacSchedulerNs3> &sched);
 
 private:
   virtual void DoRun (void) override;
@@ -116,7 +123,7 @@ private:
 };
 
 void
-MmWaveSchedGeneralTestCase::TestSAPInterface (const Ptr<MmWaveMacScheduler> &sched) const
+MmWaveSchedGeneralTestCase::TestSAPInterface (const Ptr<MmWaveMacScheduler> &sched)
 {
   NS_ABORT_IF (sched->GetMacSchedSapProvider() == nullptr);
   NS_ABORT_IF (sched->GetMacCschedSapProvider () == nullptr);
@@ -131,7 +138,7 @@ MmWaveSchedGeneralTestCase::SchedConfigInd (const struct MmWaveMacSchedSapUser::
 }
 
 void
-MmWaveSchedGeneralTestCase::AddOneUser(uint16_t rnti, const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::AddOneUser(uint16_t rnti, const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
   params.m_rnti = rnti;
@@ -140,7 +147,7 @@ MmWaveSchedGeneralTestCase::AddOneUser(uint16_t rnti, const Ptr<MmWaveMacSchedul
 }
 
 void
-MmWaveSchedGeneralTestCase::TestingAddingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestingAddingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   for (uint16_t i = 0; i < 80; ++i)
   {
@@ -151,7 +158,7 @@ MmWaveSchedGeneralTestCase::TestingAddingUsers (const Ptr<MmWaveMacSchedulerNs3>
 }
 
 void
-MmWaveSchedGeneralTestCase::TestingRemovingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestingRemovingUsers (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   for (uint16_t i = 80; i > 0; --i)
   {
@@ -165,7 +172,7 @@ MmWaveSchedGeneralTestCase::TestingRemovingUsers (const Ptr<MmWaveMacSchedulerNs
 }
 
 void
-MmWaveSchedGeneralTestCase::TestAddingRemovingUsersNoData (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestAddingRemovingUsersNoData (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   NS_TEST_ASSERT_MSG_EQ(sched->m_ueMap.size(), 0, "some UE are in the map");
   TestingAddingUsers (sched);
@@ -174,7 +181,7 @@ MmWaveSchedGeneralTestCase::TestAddingRemovingUsersNoData (const Ptr<MmWaveMacSc
 }
 
 void
-MmWaveSchedGeneralTestCase::TestSchedNewData (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestSchedNewData (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   TestSchedNewDlData(sched);
   TestSchedNewUlData(sched);
@@ -183,7 +190,7 @@ MmWaveSchedGeneralTestCase::TestSchedNewData (const Ptr<MmWaveMacSchedulerNs3> &
 
 void
 MmWaveSchedGeneralTestCase::LcConfigFor (uint16_t rnti, uint32_t bytes,
-                                         const Ptr<MmWaveMacSchedulerNs3> &sched) const
+                                         const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   MmWaveMacCschedSapProvider::CschedLcConfigReqParameters params;
   LogicalChannelConfigListElement_s lc;
@@ -195,20 +202,20 @@ MmWaveSchedGeneralTestCase::LcConfigFor (uint16_t rnti, uint32_t bytes,
 }
 
 void
-MmWaveSchedGeneralTestCase::TestSchedNewDlData (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestSchedNewDlData (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
   // Add 80 users
   TestingAddingUsers (sched);
 }
 
 void
-MmWaveSchedGeneralTestCase::TestSchedNewUlData (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestSchedNewUlData (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
 
 }
 
 void
-MmWaveSchedGeneralTestCase::TestSchedNewDlUlData (const Ptr<MmWaveMacSchedulerNs3> &sched) const
+MmWaveSchedGeneralTestCase::TestSchedNewDlUlData (const Ptr<MmWaveMacSchedulerNs3> &sched)
 {
 
 }

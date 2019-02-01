@@ -17,7 +17,6 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *  
  *   Author: Biljana Bojovic <bbojovic@cttc.es>
-
  */
 
 #include "ns3/mmwave-helper.h"
@@ -44,9 +43,14 @@
 using namespace ns3;
 
 
-// In this test case we want to observe delays of a single UDP packet, and to track its
-// eNB processing time, air time, UE time depending on the numerology.
-
+/**
+  * \file mmwave-test-numerology-delay.cc
+  * \ingroup test
+  * \brief Check each numerology delay
+  *
+  * In this test case we want to observe delays of a single UDP packet, and to track its
+  * eNB processing time, air time, UE time depending on the numerology.
+  */
 
 static uint32_t packetSize = 1000;
 

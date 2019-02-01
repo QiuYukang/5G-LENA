@@ -216,7 +216,7 @@ public:
 
   /**
    * \brief Update the LCG with just the LCG occupancy. Used in UL case when a BSR is received.
-   * \param txQueueSize Sum of the size of all components in B
+   * \param lcgQueueSize Sum of the size of all components in B
    *
    * Used in the UL case, in which only the sum of the components are
    * available. For the LC, only the value m_rlcTransmissionQueueSize is updated.

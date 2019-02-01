@@ -20,6 +20,11 @@
  */
 
 /**
+ *
+ * \file cttc-3gpp-channel-simple-fdm.cc
+ * \ingroup examples
+ * \brief Simple FDM
+ *
  * This example describes how to setup a simulation with frequency division
  * multiplexing. Simulation example allow configuration of two bandwidth parts
  * where each is dedicated to different traffic type.

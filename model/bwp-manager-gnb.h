@@ -35,6 +35,7 @@ class LteCcmRrcSapProvider;
 class BwpManagerAlgorithm;
 
 /**
+ * \ingroup bwp
  * \brief Bandwidth part manager that coordinates traffic over different bandwidth parts.
  */
 class BwpManagerGnb : public RrComponentCarrierManager

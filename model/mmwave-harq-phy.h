@@ -70,16 +70,14 @@ public:
   * \brief Return the cumulated MI of the HARQ procId in case of retranmissions
   * for DL (asynchronous)
   * \param harqProcId the HARQ proc id
-  * \param layer layer no. (for MIMO spatial multiplexing)
   * \return the MI accumulated
   */
-  double GetAccumulatedMiDl (uint16_t rnti, uint8_t harqId);
+  double GetAccumulatedMiDl (uint16_t rnti, uint8_t harqProcId);
 
   /**
   * \brief Return the info of the HARQ procId in case of retranmissions
   * for DL (asynchronous)
   * \param harqProcId the HARQ proc id
-  * \param layer layer no. (for MIMO spatail multiplexing)
   * \return the vector of the info related to HARQ proc Id
   */
   MmWaveHarqProcessInfoList_t GetHarqProcessInfoDl (uint16_t rnti, uint8_t harqProcId);
@@ -104,7 +102,6 @@ public:
   * \brief Update the Info associated to the decodification of an HARQ process
   * for DL (asynchronous)
   * \param id the HARQ proc id
-  * \param layer layer no. (for MIMO spatail multiplexing)
   * \param mi the new MI
   * \param infoBytes the no. of bytes of info
   * \param mi the total no. of bytes txed

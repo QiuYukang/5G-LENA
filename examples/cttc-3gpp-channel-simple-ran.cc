@@ -19,14 +19,6 @@
  *   Author: Biljana Bojovic <bbojovic@cttc.es>
  */
 
-/**
- * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of a simple topology of 1 UE and 1 gNb,
- * and only NR RAN part is simulated. A packet is created and directly sent to
- * gNb device by SendPacket function. Then several functions are connected to
- * PDCP and RLC traces and the delay is printed.
- */
-
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
@@ -42,6 +34,18 @@
 #include "ns3/eps-bearer-tag.h"
 
 using namespace ns3;
+
+/**
+ * \ingroup examples
+ * \file cttc-3gpp-channel-simple-ran.cc
+ * \brief Simple RAN
+ *
+ * This example describes how to setup a simulation using the 3GPP channel model
+ * from TR 38.900. This example consists of a simple topology of 1 UE and 1 gNb,
+ * and only NR RAN part is simulated. A packet is created and directly sent to
+ * gNb device by SendPacket function. Then several functions are connected to
+ * PDCP and RLC traces and the delay is printed.
+ */
 
 
 static ns3::GlobalValue g_numerology ("numerology",

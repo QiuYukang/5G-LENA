@@ -45,6 +45,58 @@
 
 using namespace ns3;
 
+/**
+ * \ingroup examples
+ * \file cttc-3gpp-indoor-calibration.cc
+ * \brief Simulation script for the NR-MIMO Phase 1 system-level calibration
+ *
+ * The scenario implemented in the present simulation script is according to
+ * the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
+ * "Layout of indoor office scenarios".
+ *
+ * The simulation assumptions and the configuration parameters follow
+ * the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
+ * and which are summarised in R1-1703534 Table 1.
+ * In the following Figure is illustrated the scenario with the gNB positions
+ * which are represented with "x". The UE nodes are randomly uniformly dropped
+ * in the area. There are 10 UEs per gNB.
+ *
+ * <pre>
+ *   +----------------------120 m------------------ +
+ *   |                                              |
+ *   |                                              |
+ *   |      x      x      x      x      x-20m-x     |
+ *   |                                        |     |
+ *   50m                                     20m    |
+     |                                        |     |
+ *   |      x      x      x      x      x     x     |
+ *   |                                              |
+ *   |                                              |
+ *   +----------------------------------------------+
+ * </pre>
+ * The results of the simulation are files containing data that is being
+ * collected over the course of the simulation execution:
+ *
+ * - SINR values for all the 120 UEs
+ * - SNR values for all the 120 UEs
+ * - RSSI values for all the 120 UEs
+ *
+ * Additionally there are files that contain:
+ *
+ * - UE positions
+ * - gNB positions
+ * - distances of UEs from the gNBs to which they are attached
+ *
+ * The file names are created by default in the root project directory if not
+ * configured differently by setting resultsDirPath parameter of the Run()
+ * function.
+ *
+ * The file names by default start with the prefixes such as "sinrs", "snrs",
+ * "rssi", "gnb-positions,", "ue-positions" which are followed by the
+ * string that briefly describes the configuration parameters that are being
+ * set in the specific simulation execution.
+ */
+
 enum AntennaModelEnum{
   _ISO,
   _3GPP,
@@ -121,55 +173,8 @@ static ns3::GlobalValue g_gNbAntennaMount ("gnbAntennaMount",
                                            ns3::MakeEnumChecker (ns3::AntennaArray3gppModel::GnbWallMount, "WALL",
                                                                  ns3::AntennaArray3gppModel::GnbSingleSector, "SECT"));
 
-
 /**
- * \brief Simulation script for the NR-MIMO Phase 1 system-level calibration
- *
- * The scenario implemented in the present simulation script is according to
- * the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
- * "Layout of indoor office scenarios".
- *
- * The simulation assumptions and the configuration parameters follow
- * the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
- * and which are summarised in R1-1703534 Table 1.
- * In the following Figure is illustrated the scenario with the gNB positions
- * which are represented with "x". The UE nodes are randomly uniformly dropped
- * in the area. There are 10 UEs per gNB.
- *
- *
- *   +----------------------120 m------------------ +
- *   |                                              |
- *   |                                              |
- *   |      x      x      x      x      x-20m-x     |
- *   |                                        |     |
- *   50m                                     20m    |
-     |                                        |     |
- *   |      x      x      x      x      x     x     |
- *   |                                              |
- *   |                                              |
- *   +----------------------------------------------+
- *
- * The results of the simulation are files containing data that is being
- * collected over the course of the simulation execution:
- *
- * - SINR values for all the 120 UEs
- * - SNR values for all the 120 UEs
- * - RSSI values for all the 120 UEs
- *
- * Additionally there are files that contain:
- *
- * - UE positions
- * - gNB positions
- * - distances of UEs from the gNBs to which they are attached
- *
- * The file names are created by default in the root project directory if not
- * configured differently by setting resultsDirPath parameter of the Run()
- * function.
- *
- * The file names by default start with the prefixes such as "sinrs", "snrs",
- * "rssi", "gnb-positions,", "ue-positions" which are followed by the
- * string that briefly describes the configuration parameters that are being
- * set in the specific simulation execution.
+ * \brief Main class
  */
 class Nr3gppIndoorCalibration
 {

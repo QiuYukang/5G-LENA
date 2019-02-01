@@ -241,7 +241,7 @@ MmWaveMacSchedulerTdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activ
 /**
  * \brief Assign the available UL RBG to the UEs
  * \param symAvail Number of available symbols
- * \param activeDl active DL flows and UE
+ * \param activeUl active DL flows and UE
  * \return a map between the beam and the symbols assigned to each one
  *
  * The function will prepare all the needed callbacks to return UE UL parameters
@@ -311,7 +311,6 @@ MmWaveMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
  * \brief Create a UL DCI starting from spoint and spanning maxSym symbols
  * \param spoint Starting point of the DCI
  * \param ueInfo UE representation
- * \param maxSym Maximum number of symbols for the creation of the DCI
  * \return a pointer to the newly created DCI
  *
  * The method calculates the TBS and the real number of symbols needed, and

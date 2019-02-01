@@ -25,6 +25,7 @@
 namespace ns3 {
 
 /**
+ * \ingroup bwp
  * \brief Interface for a Bwp selection algorithm based on the bearer
  *
  * \see GetBwpForEpsBearer
@@ -49,6 +50,12 @@ public:
   virtual uint8_t GetBwpForEpsBearer (const EpsBearer::Qci &v) const = 0;
 };
 
+/**
+ * \ingroup bwp
+ * \brief The BwpManagerAlgorithmStatic class
+ *
+ * A static manager: it gets the association through a series of Attributes.
+ */
 class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
 {
 public:

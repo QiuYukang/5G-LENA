@@ -53,13 +53,13 @@ MmWaveHarqPhy::~MmWaveHarqPhy ()
 
 
 double
-MmWaveHarqPhy::GetAccumulatedMiDl (uint16_t rnti, uint8_t harqId)
+MmWaveHarqPhy::GetAccumulatedMiDl (uint16_t rnti, uint8_t harqProcId)
 {
-  NS_LOG_FUNCTION (this << (uint16_t)rnti << (uint16_t)harqId);
+  NS_LOG_FUNCTION (this << (uint16_t)rnti << (uint16_t)harqProcId);
   std::map <uint16_t, std::vector <MmWaveHarqProcessInfoList_t> >::iterator it;
   it = m_miDlHarqProcessesInfoMap.find (rnti);
   NS_ASSERT_MSG (it != m_miDlHarqProcessesInfoMap.end (), " Does not find MI for RNTI");
-  MmWaveHarqProcessInfoList_t list = (*it).second.at (harqId);
+  MmWaveHarqProcessInfoList_t list = (*it).second.at (harqProcId);
   double mi = 0.0;
   for (uint8_t i = 0; i < list.size (); i++)
     {

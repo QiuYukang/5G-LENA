@@ -20,6 +20,10 @@
  */
 
 /**
+ * \file cttc-3gpp-channel-example.cc
+ * \ingroup examples
+ * \brief Channel Example
+ *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.900
  */

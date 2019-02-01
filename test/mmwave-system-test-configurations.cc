@@ -42,6 +42,12 @@
 
 using namespace ns3;
 
+/**
+ * \file mmwave-system-test-configurations.cc
+ * \ingroup test
+ * \brief Test the configuration for 5G-LENA
+ */
+
 // This is an example TestCase.
 class MmwaveSystemTestConfigurationsTestCase1 : public TestCase
 {
