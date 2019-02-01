@@ -66,7 +66,8 @@ $ cd ..
 Please note that the src/nr directory will be listed as "Untracked files" every
 time you do a `git status` command. Ignore it, as the directory lives as an
 independent module. As a result, we have now two parallel repository, but one
-lives inside the other.
+lives inside the other. We are working in getting nr working in the contrib/
+directory, as per standard ns-3 rules.
 
 ### Test the NR installation
 
