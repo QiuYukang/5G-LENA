@@ -21,6 +21,29 @@
  *
  */
 
+
+
+/**
+ *
+ * \file cttc-3gpp-channel-nums-fdm.cc
+ * \ingroup examples
+ * \brief Frequency division multiplexing example.
+ *
+ * The simulation program allows the user to configure 2 UEs and 1 or 2 bandwidth parts (BWPs) and test the end-to-end performance.
+ * This example is designed to expect the full configuration of each BWP. The configuration of BWP is composed of the following parameters:
+ * central carrier frequency, bandwidth and numerology. There are 2 UEs, and each UE has one flow. One flow is of URLLC traffic type, while the another is eMBB.
+ * URLLC is configured to be transmitted over the first BWP, and the eMBB over the second BWP.
+ * Hence, in this example it is expected to configure the first BWP to use a higher numerology than the second BWP.
+ * The simulation topology is as the one used in "cttc-3gpp-channel-nums.cc".
+ * The user can run this example with UDP full buffer traffic or can specify the UDP packet interval and UDP packet size per type of traffic.
+ * "--udpIntervalUll" and "--packetSizeUll" parameters are used to configure the UDP traffic of URLLC flow,
+ * while "--udpIntervalBe" and "--packetSizeBe" parameters are used to configure the UDP traffic of eMBB flow.
+ * If UDP full buffer traffic is configured, the packet interval for each flow is calculated based on approximated value of saturation rate for the bandwidth to
+ * which the flow is mapped, and taking into account the packet size of the flow.
+ * The total transmission power for each BWP depends on how the bandwidth is divided among BWP, and will be proportionally assigned to each BWP.
+ * If the user configures only 1 BWP, then the configuration for the first BWP will be used.
+ */
+
 #include "ns3/core-module.h"
 #include "ns3/config-store.h"
 #include "ns3/network-module.h"
@@ -42,44 +65,65 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmBandwidthPartsExample");
 
+/**
+ * \brief Global variable used to configure whether to configure a full buffer UDP traffic. It is accessible as "--udpFullBuffer" from CommandLine.
+ */
 static ns3::GlobalValue g_udpRate ("udpFullBuffer",
                                    "Whether to set the full buffer traffic; if this parameter is set then the udpInterval parameter"
                                    "will be neglected.",
                                    ns3::BooleanValue (false),
                                    ns3::MakeBooleanChecker());
 
+/**
+ * \brief Global variable used to configure whether to setup a single UE topology. It is accessible as "--singleUeTopology" from CommandLine.
+ */
 static ns3::GlobalValue g_singleUeTopology ("singleUeTopology",
                                             "When true the example uses a single UE topology, when false use topology with variable number of UEs"
                                             "will be neglected.",
                                             ns3::BooleanValue (false),
                                             ns3::MakeBooleanChecker());
 
+/**
+ * \brief Global variable used to configure whether to use the fixed MCS. It is accessible as "--useFixedMcs" from CommandLine.
+ */
 static ns3::GlobalValue g_useFixedMcs ("useFixedMcs",
                                        "Whether to use fixed mcs, normally used for testing purposes",
                                         ns3::BooleanValue (false),
                                         ns3::MakeBooleanChecker());
-
+/**
+ * \brief Global variable used to configure the value of fixed MCS in the case it is used. It is accessible as "--fixedMcs" from CommandLine.
+ */
 static ns3::GlobalValue g_fixedMcs ("fixedMcs",
                                     "The MCS that will be used in this example",
                                     ns3::UintegerValue (1),
                                     ns3::MakeUintegerChecker<uint32_t>());
-
+/**
+ * \brief Global variable used to configure the number of gNBs. It is accessible as "--gNbNum" from CommandLine.
+ */
 static ns3::GlobalValue g_gNbNum ("gNbNum",
                                   "The number of gNbs in multiple-ue topology",
                                    ns3::UintegerValue (1),
                                    ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the number of UEs per gNB. It is accessible as "--ueNumPergNb" from CommandLine.
+ */
 static ns3::GlobalValue g_ueNum ("ueNumPergNb",
                                   "The number of UE per gNb in multiple-ue topology",
                                   ns3::UintegerValue (2),
                                   ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the beamforming method. It is accessible as "--cellScan" from CommandLine.
+ */
 static ns3::GlobalValue g_cellScan ("cellScan",
                                     "Use beam search method to determine beamforming vector, the default is long-term covariance matrix method"
                                     "true to use cell scanning method, false to use the default power method.",
                                     ns3::BooleanValue (false),
                                     ns3::MakeBooleanChecker());
-
+/**
+ * \brief Global variable used to configure the beam searcg angle step. It is accessible as "--beamSearchAngleStep" from CommandLine.
+ */
 static ns3::GlobalValue g_beamSearchAngleStep ("beamSearchAngleStep",
                                       "Beam search angle step for beam search method",
                                       ns3::DoubleValue (10),
@@ -87,72 +131,111 @@ static ns3::GlobalValue g_beamSearchAngleStep ("beamSearchAngleStep",
 
 /******************************** FDM parameters ******************************************/
 
+/**
+ * \brief Global variable used to configure the numerology for BWP 1. It is accessible as "--numerologyBwp1" from CommandLine.
+ */
 static ns3::GlobalValue g_numerologyBwp1 ("numerologyBwp1",
                                           "The numerology to be used in bandwidth part 1",
                                            ns3::UintegerValue (4),
                                            ns3::MakeUintegerChecker<uint32_t>());
-
+/**
+ * \brief Global variable used to configure the central system frequency for BWP 1. It is accessible as "--frequencyBwp1" from CommandLine.
+ */
 static ns3::GlobalValue g_frequencyBwp1 ("frequencyBwp1",
                                          "The system frequency to be used in bandwidth part 1",
                                           ns3::DoubleValue(28e9),
                                           ns3::MakeDoubleChecker<double>(6e9,100e9));
-
+/**
+ * \brief Global variable used to configure the bandwidth for BWP 1. This value is expressed in Hz.It is accessible as "--bandwidthBwp1" from CommandLine.
+ */
 static ns3::GlobalValue g_bandwidthBwp1 ("bandwidthBwp1",
                                         "The system bandwidth to be used in bandwidth part 1",
                                          ns3::DoubleValue(100e6),
                                          ns3::MakeDoubleChecker<double>());
 
+/**
+ * \brief Global variable used to configure the numerology for BWP 2. It is accessible as "--numerologyBwp2" from CommandLine.
+ */
 static ns3::GlobalValue g_numerologyBwp2 ("numerologyBwp2",
                                           "The numerology to be used in bandwidth part 2",
                                            ns3::UintegerValue (2),
                                            ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the central system frequency for BWP 2. It is accessible as "--frequencyBwp2" from CommandLine.
+ */
 static ns3::GlobalValue g_frequencyBwp2 ("frequencyBwp2",
                                          "The system frequency to be used in bandwidth part 2",
                                           ns3::DoubleValue(28.2e9),
                                           ns3::MakeDoubleChecker<double>(6e9,100e9));
 
+/**
+ * \brief Global variable used to configure the bandwidth for BWP 2. This value is expressed in Hz.It is accessible as "--bandwidthBwp2" from CommandLine.
+ */
 static ns3::GlobalValue g_bandwidthBwp2 ("bandwidthBwp2",
                                          "The system bandwidth to be used in bandwidth part 2",
                                           ns3::DoubleValue(100e6),
                                           ns3::MakeDoubleChecker<double>());
 
+/**
+ * \brief Global variable used to configure the packet size for ULL  type of traffic . This value is expressed in bytes. It is accessible as "--packetSizeUll" from CommandLine.
+ */
 static ns3::GlobalValue g_udpPacketSizeUll ("packetSizeUll",
                                             "packet size in bytes to be used by ultra low latency traffic",
                                             ns3::UintegerValue (100),
                                             ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the packet size for BE  type of traffic . This value is expressed in bytes. It is accessible as "--packetSizeBe" from CommandLine.
+ */
 static ns3::GlobalValue g_udpPacketSizeBe ("packetSizeBe",
                                            "packet size in bytes to be used by best effort traffic",
                                            ns3::UintegerValue (1252),
                                            ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the lambda parameter for ULL type of traffic . This value is expressed in bytes. It is accessible as "--lambdaUll" from CommandLine.
+ */
 static ns3::GlobalValue g_udpIntervalUll ("lambdaUll",
                                           "Number of UDP packets in one second for ultra low latency traffic",
                                           ns3::UintegerValue (10),
                                           ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the lambda parameter for BE type of traffic . This value is expressed in bytes. It is accessible as "--lambdaBe" from CommandLine.
+ */
 static ns3::GlobalValue g_udpIntervalBe ("lambdaBe",
                                          "Number of UDP packets in one second for best effor traffic",
                                          ns3::UintegerValue (1),
                                          ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the simulation tag. This value is expressed in bytes. It is accessible as "--simTag" from CommandLine.
+ */
 static ns3::GlobalValue g_simTag ("simTag",
                                   "tag to be appended to output filenames to distinguish simulation campaigns",
                                   ns3::StringValue ("cttc-3gpp-channel-nums-fdm-output"),
                                   ns3::MakeStringChecker ());
 
+/**
+ * \brief Global variable used to configure the output results folder. This value is expressed in bytes. It is accessible as "--outputDir" from CommandLine.
+ */
 static ns3::GlobalValue g_outputDir ("outputDir",
                                      "directory where to store simulation results",
                                      ns3::StringValue ("./"),
                                      ns3::MakeStringChecker ());
 
+/**
+ * \brief Global variable used to configure the total TX power. This value is expressed in bytes. It is accessible as "--totalTxPower" from CommandLine.
+ */
 static ns3::GlobalValue g_totalTxPower ("totalTxPower",
                                        "total tx power that will be proportionally assigned to bandwidth parts depending on each BWP bandwidth ",
                                         ns3::DoubleValue (4),
                                         ns3::MakeDoubleChecker<double>());
 
-
+/**
+ * \brief Global variable used to configure whether to use on 1 BWP. This value is expressed in bytes. It is accessible as "--singleBwp" from CommandLine.
+ */
 static ns3::GlobalValue g_singleBwp ("singleBwp",
                                      "Simulate with single BWP, BWP1 configuration will be used",
                                      ns3::BooleanValue (true),
