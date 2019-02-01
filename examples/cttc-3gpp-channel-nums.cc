@@ -44,11 +44,30 @@
  * This example allows users to configure the numerology and test the end-to-end
  * performance for different numerologies. In the following figure we illustrate the simulation setup.
  *
- * @image html fig-end-to-end.png
- * @image pdf fig-end-end.png
+ * @image html end-to-end.png
+ * @image pdf end-end.png
+ *
+ * For example, UDP interval can be configured by setting
+ * "--udpInterval=0.001". The numerology can be toggled by the argument,
+ * e.g. "--numerology=1". Additionally, in this example two arguments
+ * are added "bandwidth" and "frequency". The modulation scheme of
+ * this example is in test mode, and it is fixed to 28.
+ *
+ * By default, the program uses the 3GPP channel model, without shadowing and with
+ * line of sight ('l') option. The program runs for 0.4 seconds and one single packet
+ * is to be transmitted. The packet size can be configured by using  the
+ * following parameter: "--packetSize=1000".
+ *
+ * This simulation prints the output to the terminal and also to the file which
+ * is named by default "cttc-3gpp-channel-nums-fdm-output" and which is by
+ * default placed in the root directory of the project.
+ *
+ * To run the simulation with the default configuration one shall run the
+ * following in the command line:
+ *
+ * ./waf --run cttc-3gpp-channel-nums
  *
  */
-
 
 using namespace ns3;
 
