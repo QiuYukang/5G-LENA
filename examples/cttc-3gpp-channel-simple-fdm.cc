@@ -111,7 +111,7 @@ static ns3::GlobalValue g_bandwidthBwp2 ("bandwidthBwp2",
                                           ns3::MakeDoubleChecker<double>());
 
 /**
- * \brief Global variable used to configure the bandwidth for packet size. This value is expressed in bytes. It is accessible as "--packetSize" from CommandLine.
+ * \brief Global variable used to configure the packet size. This value is expressed in bytes. It is accessible as "--packetSize" from CommandLine.
  */
 static ns3::GlobalValue g_udpPacketSizeUll ("packetSize",
                                             "packet size in bytes",

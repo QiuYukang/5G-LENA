@@ -287,7 +287,7 @@ BuildFileNameString (std::string directoryName, std::string filePrefix, std::str
  * @param ueAntennaModel UE antenna model
  * @param scenario The indoor scenario to be used
  * @param speed The speed of UEs in km/h
- * @return
+ * @return the parameter specific simulation name
  */
 std::string
 BuildTag(bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation,
