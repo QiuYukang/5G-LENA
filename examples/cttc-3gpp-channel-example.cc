@@ -25,7 +25,8 @@
  * \brief Channel Example
  *
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900
+ * from TR 38.900. Topology consists by default of 2 UEs and 2 gNbs, and can be
+ * configured to be either mobile or static scenario.
  */
 
 #include "ns3/core-module.h"
@@ -45,6 +46,9 @@
 
 using namespace ns3;
 
+/**
+ * Prints out to file buildings.txt the locations of the buildings.
+ */
 void
 TraceBuildingLoc()
 {
@@ -74,16 +78,35 @@ TraceBuildingLoc()
 }
 
 // parameters that can be set from the command line
+
+/**
+ * \brief Global variable used to configure the type of 3gpp scenario. It is accessible as "--scenario" from CommandLine.
+ */
 static ns3::GlobalValue g_scenario("scenario",
                                    "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen', 'InH-ShoppingMall'",
                                    ns3::StringValue("UMa"), ns3::MakeStringChecker());
+/**
+ * \brief Global variable used to configure whether the buildings are used in the scenario. It is accessible as "--enableBuildings" from CommandLine.
+ */
 static ns3::GlobalValue g_enableBuildings("enableBuildings", "If true, use MmWave3gppBuildingsPropagationLossModel, else use MmWave3gppPropagationLossModel",
                                           ns3::BooleanValue(true), ns3::MakeBooleanChecker());
+
+/**
+ * \brief Global variable used to configure LOS condition. It is accessible as "--losCondition" from CommandLine.
+ */
 static ns3::GlobalValue g_losCondition("losCondition",
                                        "The LOS condition for the simulation, if MmWave3gppPropagationLossModel is used. Choose 'l' for LOS only, 'n' for NLOS only, 'a' for the probabilistic model",
                                        ns3::StringValue("a"), ns3::MakeStringChecker());
+
+/**
+ * \brief Global variable used to configure optional NLOS equation from 3GPP TR 38.900. It is accessible as "--optionNlos" from CommandLine.
+ */
 static ns3::GlobalValue g_optionNlos("optionNlos", "If true, use the optional NLOS pathloss equation from 3GPP TR 38.900",
                                      ns3::BooleanValue(false), ns3::MakeBooleanChecker());
+
+/**
+ * \brief Global variable used to configure central carrier frequency. It is accessible as "--frequency" from CommandLine.
+ */
 static ns3::GlobalValue g_frequency("frequency",
                                     "The frequency in GHz",
                                      ns3::DoubleValue(28e9),
