@@ -123,7 +123,7 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     phyMacCommonBwp2->SetCentreFrequency(28.2e9);
     phyMacCommonBwp2->SetBandwidth (m_bw2);
     phyMacCommonBwp2->SetNumerology(m_numerology);
-    phyMacCommonBwp1->SetCcId(1);
+    phyMacCommonBwp2->SetCcId(1);
     bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
     mmWaveHelper->SetBandwidthPartMap (bwpConf);
 
