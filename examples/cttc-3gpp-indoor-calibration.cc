@@ -243,7 +243,7 @@ public:
    * distance from its closest gNB.
    * \param ueNodes - container of UE nodes
    * \param gnbNodes - container of gNB nodes
-   * \param minimumDistance - the minimum that shall be between UE and gNB
+   * \param min3DDistance - the minimum that shall be between UE and gNB
    * \param numberOfUesToBeSelected -the number of UE nodes to be selected from the original container
    */
   NodeContainer SelectWellPlacedUes (const NodeContainer ueNodes, const NodeContainer gnbNodes,
