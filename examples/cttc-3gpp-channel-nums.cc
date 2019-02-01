@@ -36,6 +36,20 @@
 #include "ns3/log.h"
 
 
+/**
+ * \file cttc-3gpp-channel-nums.cc
+ * \ingroup examples
+ * \brief Simple topology numerologies example.
+ *
+ * This example allows users to configure the numerology and test the end-to-end
+ * performance for different numerologies. In the following figure we illustrate the simulation setup.
+ *
+ * @image html fig-end-to-end.png
+ * @image pdf fig-end-end.png
+ *
+ */
+
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelNumerologiesExample");
