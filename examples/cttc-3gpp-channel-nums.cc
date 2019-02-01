@@ -44,9 +44,6 @@
  * This example allows users to configure the numerology and test the end-to-end
  * performance for different numerologies. In the following figure we illustrate the simulation setup.
  *
- * @image html end-to-end.png
- * @image pdf end-end.png
- *
  * For example, UDP interval can be configured by setting
  * "--udpInterval=0.001". The numerology can be toggled by the argument,
  * e.g. "--numerology=1". Additionally, in this example two arguments
@@ -76,85 +73,85 @@ NS_LOG_COMPONENT_DEFINE ("3gppChannelNumerologiesExample");
 static ns3::GlobalValue g_frequency("frequency",
                                     "The system frequency",
                                      ns3::DoubleValue(28e9),
-                                     ns3::MakeDoubleChecker<double>(6e9,100e9));
+                                     ns3::MakeDoubleChecker<double>(6e9,100e9));//!< Global variable used to configure the frequency. It is accessible as "--frequency" from CommandLine.
 
 static ns3::GlobalValue g_bandwidth("bandwidth",
                                     "The system bandwidth",
                                      ns3::DoubleValue(200e6),
-                                     ns3::MakeDoubleChecker<double>());
+                                     ns3::MakeDoubleChecker<double>()); //!< Global variable used to configure the bandwidth. It is accessible as "--bandwidth" from CommandLine.
 
 static ns3::GlobalValue g_numerology ("numerology",
                                       "The default 3GPP NR numerology to be used",
                                       ns3::UintegerValue (0),
-                                      ns3::MakeUintegerChecker<uint32_t>());
+                                      ns3::MakeUintegerChecker<uint32_t>());//!< Global variable used to configure the numerology. It is accessible as "--numerology" from CommandLine.
 
 static ns3::GlobalValue g_udpInterval ("udpInterval",
                                       "Udp interval for UDP application packet arrival, in seconds",
                                       ns3::DoubleValue (0.001),
-                                      ns3::MakeDoubleChecker<double>());
+                                      ns3::MakeDoubleChecker<double>());//!< Global variable used to configure the UDP packet interval. It is accessible as "--udpInterval" from CommandLine.
 
 static ns3::GlobalValue g_udpPacketSize ("udpPacketSize",
                                          "Udp packet size in bytes",
                                          ns3::UintegerValue (1000),
-                                         ns3::MakeUintegerChecker<uint32_t>());
+                                         ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure the UDP packet size. It is accessible as "--udpPacketSize" from CommandLine.
 
 static ns3::GlobalValue g_udpRate ("udpFullBuffer",
                                    "Whether to set the full buffer traffic; if this parameter is set then the udpInterval parameter"
                                    "will be neglected.",
                                    ns3::BooleanValue (true),
-                                   ns3::MakeBooleanChecker());
+                                   ns3::MakeBooleanChecker()); //!< Global variable used to configure whether the traffic is the full buffer traffic. It is accessible as "--udpFullBuffer" from CommandLine.
 
 static ns3::GlobalValue g_singleUeTopology ("singleUeTopology",
                                             "When true the example uses a single UE topology, when false use topology with variable number of UEs"
                                             "will be neglected.",
                                             ns3::BooleanValue (true),
-                                            ns3::MakeBooleanChecker());
+                                            ns3::MakeBooleanChecker()); //!< Global variable used to configure whether topology is with single of various number of UEs. It is accessible as "--singleUeTopology" from CommandLine.
 
 static ns3::GlobalValue g_useFixedMcs ("useFixedMcs",
                                        "Whether to use fixed mcs, normally used for testing purposes",
                                         ns3::BooleanValue (true),
-                                        ns3::MakeBooleanChecker());
+                                        ns3::MakeBooleanChecker()); //!< Global variable used to configure whether to use fixed MCS. It is accessible as "--useFixedMcs" from CommandLine.
 
 static ns3::GlobalValue g_fixedMcs ("fixedMcs",
                                     "The MCS that will be used in this example",
                                     ns3::UintegerValue (28),
-                                    ns3::MakeUintegerChecker<uint32_t>());
+                                    ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure fixed MCS. It is accessible as "--fixedMcs" from CommandLine.
 
 static ns3::GlobalValue g_gNbNum ("gNbNum",
                                   "The number of gNbs in multiple-ue topology",
                                    ns3::UintegerValue (1),
-                                   ns3::MakeUintegerChecker<uint32_t>());
+                                   ns3::MakeUintegerChecker<uint32_t>());//!< Global variable used to configure the number of gNbs in multi-UE topology. It is accessible as "--gNbNum" from CommandLine.
 
 static ns3::GlobalValue g_ueNum ("ueNumPergNb",
                                   "The number of UE per gNb in multiple-ue topology",
                                   ns3::UintegerValue (1),
-                                  ns3::MakeUintegerChecker<uint32_t>());
+                                  ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure the number of UEs in multi-UE topology. It is accessible as "--ueNumPergNb" from CommandLine.
 
 static ns3::GlobalValue g_cellScan ("cellScan",
                                     "Use beam search method to determine beamforming vector, the default is long-term covariance matrix method"
                                     "true to use cell scanning method, false to use the default power method.",
                                     ns3::BooleanValue (false),
-                                    ns3::MakeBooleanChecker());
+                                    ns3::MakeBooleanChecker()); //!< Global variable used to configure whether to use Beam Search of Long-Term Cov. matrix for beamforming. It is accessible as "--cellScan" from CommandLine.
 
 static ns3::GlobalValue g_beamSearchAngleStep ("beamSearchAngleStep",
                                                "Beam search angle step for beam search method",
                                                ns3::DoubleValue (10),
-                                               ns3::MakeDoubleChecker<double>());
+                                               ns3::MakeDoubleChecker<double>()); //!< Global variable used to configure beam search angle step in the case that beam search method is used. It is accessible as "--beamSearchAngleStep" from CommandLine.
 
 static ns3::GlobalValue g_txPower ("txPower",
                                    "Tx power",
                                     ns3::DoubleValue (1),
-                                    ns3::MakeDoubleChecker<double>());
+                                    ns3::MakeDoubleChecker<double>()); //!< Global variable used to configure gNb TX power. It is accessible as "--txPower" from CommandLine.
 
 static ns3::GlobalValue g_simTag ("simTag",
                                   "tag to be appended to output filenames to distinguish simulation campaigns",
                                   ns3::StringValue ("default"),
-                                  ns3::MakeStringChecker ());
+                                  ns3::MakeStringChecker ()); //!< Global variable used to configure simulation output tag that helps distinguishing different simulation campaigns. It is accessible as "--simTag" from CommandLine.
 
 static ns3::GlobalValue g_outputDir ("outputDir",
                                      "directory where to store simulation results",
                                      ns3::StringValue ("./"),
-                                     ns3::MakeStringChecker ());
+                                     ns3::MakeStringChecker ());  //!< Global variable used to configure simulation output folder. It is accessible as "--outputDir" from CommandLine.
 
 int 
 main (int argc, char *argv[])
