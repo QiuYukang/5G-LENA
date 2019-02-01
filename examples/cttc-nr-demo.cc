@@ -175,8 +175,6 @@ main (int argc, char *argv[])
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
-  Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize",
-                      UintegerValue(999999999));
 
   Config::SetDefault("ns3::MmWavePointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
   Config::SetDefault("ns3::MmWavePointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
@@ -195,11 +193,10 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
     }
 
+  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
+  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
-  Config::SetDefault ("ns3::BwpManager::GBR_ULTRA_LOW_LAT", UintegerValue (0));
-  Config::SetDefault ("ns3::BwpManager::GBR_CONV_VOICE", UintegerValue (1));
-
-  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManager"));
+  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManagerGnb"));
 
   // create base stations and mobile terminals
   NodeContainer gNbNodes;
@@ -274,6 +271,7 @@ main (int argc, char *argv[])
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+  phyMacCommonBwp1->SetCcId(0);
 
   bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp1);
 
@@ -285,6 +283,7 @@ main (int argc, char *argv[])
       phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
       phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
       phyMacCommonBwp2->SetNumerology(numerologyBwp2);
+      phyMacCommonBwp2->SetCcId(1);
       bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
     }
 
@@ -432,7 +431,7 @@ main (int argc, char *argv[])
 
       if (j % 2 == 0)
         {
-          q = EpsBearer::GBR_ULTRA_LOW_LAT;
+          q = EpsBearer::NGBR_LOW_LAT_EMBB;
         }
       else
         {
@@ -525,7 +524,7 @@ main (int argc, char *argv[])
 
           outFile << "  Throughput: " << i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000  << " Mbps\n";
           outFile << "  Mean delay:  " << 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets << " ms\n";
-          outFile << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 << " Mbps \n";
+          //outFile << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 << " Mbps \n";
           outFile << "  Mean jitter:  " << 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets  << " ms\n";
         }
       else
