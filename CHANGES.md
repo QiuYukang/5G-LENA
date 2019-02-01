@@ -81,7 +81,7 @@ Removed attribute _PhyMacCommon::WbCqiPeriod_ as it was unused.
 
 ## Changes from NR-v0.0 to NR-v0.1
 
-We did not track changes since the beginning. However, the main features we added to the mmWave module (from which we forked) are the FDM of numerologies and a new and improved MAC layer.
+We did not track changes since the beginning. However, the main features we added to the mmWave module (from which we forked) are the FDM of numerologies and a new and improved MAC scheduling layer.
 
 ### New API:
 

@@ -48,15 +48,11 @@ To download a working copy of the ns-3-dev repository with the latest changes
 to support the NR module, you can do the following:
 
 \code{.sh}
-$ git clone git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git
+$ git clone git@gitlab.com:cttc-lena/ns-3-dev.git
 $ cd ns-3-dev
 $ git checkout nr
 \endcode
 
-Note that on a computer that is outside the CTTC intranet, you must use
-the HTTPS address:
-`https://gitlab.cttc.es/ns3-new-radio/ns-3-dev.git`
-instead of the address `git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git`.
 Provide your username and password when asked.
 
 In case you are already using the git mirror of ns-3-dev, hosted at GitHub or GitLab,
@@ -64,12 +60,10 @@ add the branch that make ns-3-dev supporting the NR module is easy as doing:
 
 \code{.sh}
 $ cd your-local-ns-3-dev-git
-$ git remote add mirror-gitlab-cttc git@gitlab.cttc.es:ns3-new-radio/ns-3-dev.git
+$ git remote add mirror-gitlab-cttc git@gitlab.com:cttc-lena/ns-3-dev.git
 $ git fetch -p --all   # fetch all the branches and update the refs
 $ git checkout nr      # checkout a local "nr" branch that points to mirror-gitlab-cttc/nr
 \endcode
-
-Again, use the HTTPS address if you are outside the CTTC intranet.
 
 \subsection test-ns3 Test the installation
 
@@ -91,12 +85,10 @@ our nr module:
 
 \code{.sh}
 cd src
-git clone git@gitlab.cttc.es:ns3-new-radio/nr.git
+git clone git@gitlab.com:cttc-lena/nr.git
 cd ..
 \endcode
 
-Again, if you are outside the CTTC intranet, you must use the HTTPS address:
-`https://gitlab.cttc.es/ns3-new-radio/nr.git`.
 Please note that the src/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
 independent module. As a result, we have now two parallel repository, but one

@@ -15,7 +15,7 @@ http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
-Release NR-dev
+Release NR-v0.2
 --------------
 
 Availability
@@ -47,7 +47,8 @@ New user-visible features (old first)
 - (nr) Aligned the BwpManager and the various helper/example to the bearer
   definitions in Rel. 15
 - (nr) Removed unsupported MmWaveBeamforming and MmWaveChannelMatrix classes.
-
+- (nr) Added a 3GPP-compliant antenna class.
+- (nr) Added a 3GPP-compliant UL scheduling request feature.
 
 Bugs fixed
 ----------
