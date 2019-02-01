@@ -1,16 +1,22 @@
+<!--
+/**
+ * \page releasenotes Release Notes
+ * \brief Release notes of 5G-LENA
+ */
+-->
 
-		3GPP NR ns-3 module RELEASE NOTES
+# 3GPP NR ns-3 module RELEASE NOTES
 
 This file contains release notes for the NR module (most recent releases first).  
 
-All of the ns-3 documentation is accessible from the ns-3 website: 
+All of the ns-3 documentation is accessible from the ns-3 website:
 http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
 
-Consult the file CHANGES.html for more detailed information about changed
-API and behavior across ns-3 releases.
+Consult the file CHANGES.md for more detailed information about changed
+API and behavior across releases.
 
 Release NR-dev
-=============
+--------------
 
 Availability
 ------------
@@ -50,4 +56,3 @@ Known issues
 ------------
 In general, known issues are tracked on the project tracker available
 at https://gitlab.cttc.es/ns3-new-radio/nr
-

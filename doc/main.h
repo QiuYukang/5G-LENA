@@ -24,7 +24,8 @@
  *
  * \section mainpage-whats-new What's new?
  *
- *Curious about what was added or improved recently? Check out the \ref changelog "Changelog".
+ * Curious about what was added or improved recently? Check out the CHANGES.md file.
+ * We also maintain a RELEASE_NOTES.md file.
  *
  * \section mainpage-getting-started Getting started
  *
@@ -70,16 +71,6 @@
  * >
  *
  */
-
-/**
- * \page changelog Changelog
- * \htmlinclude ../CHANGES.html
- */
-
-/**
-  * \page releasenotes Release Notes
-  * \include ../RELEASE_NOTES
-  */
 
 /**
  * \dir examples
