@@ -92,7 +92,8 @@ cd ..
 Please note that the src/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
 independent module. As a result, we have now two parallel repository, but one
-lives inside the other.
+lives inside the other. We are working to be able to put nr inside the
+contrib/ directory, as per standard ns-3 rules.
 
 To test the resulting repository, let's configure the project again:
 \code{.sh}
