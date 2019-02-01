@@ -48,22 +48,38 @@ using namespace ns3;
  */
 
 
+/**
+ * \brief Global variable used to configure the numerology. It is accessible as "--numerology" from CommandLine.
+ */
 static ns3::GlobalValue g_numerology ("numerology",
                                       "The default 3GPP NR numerology to be used",
                                       ns3::UintegerValue (0),
                                       ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the bandwidth for packet size. This value is expressed in bytes. It is accessible as "--packetSize" from CommandLine.
+ */
 
 static ns3::GlobalValue g_udpInterval ("packetSize",
                                       "packet size in bytes",
                                       ns3::UintegerValue (1000),
                                       ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global boolean variable used to configure whether the UE performs the uplink traffic. It is accessible as "--isUplink" from CommandLine.
+ */
 static ns3::GlobalValue g_isUplink ("isUplink",
                                  "whether to perform uplink",
                                  ns3::BooleanValue (false),
                                  ns3::MakeBooleanChecker());
 
+
+/**
+ * Function creates a single packet and directly calls the function send
+ * of a device to send the packet to the destination address.
+ * @param device Device that will send the packet to the destination address.
+ * @param addr Destination address for a packet.
+ */
 static void SendPacket (Ptr<NetDevice> device, Address& addr)
 {
   UintegerValue uintegerValue;
@@ -79,12 +95,31 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr)
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
 
+/**
+ * Function that prints out PDCP delay. This function is designed as a callback
+ * for PDCP trace source.
+ * @param path The path that matches the trace source
+ * @param rnti RNTI of UE
+ * @param lcid logical channel id
+ * @param bytes PDCP PDU size in bytes
+ * @param pdcpDelay PDCP delay
+ */
 void
 RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
 {
   std::cout<<"\n Packet PDCP delay:"<<pdcpDelay<<"\n";
 }
 
+/**
+ * Function that prints out RLC statistics, such as RNTI, lcId, RLC PDU size,
+ * delay. This function is designed as a callback
+ * for RLC trace source.
+ * @param path The path that matches the trace source
+ * @param rnti RNTI of UE
+ * @param lcid logical channel id
+ * @param bytes RLC PDU size in bytes
+ * @param rlcDelay RLC PDU delay
+ */
 void
 RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t rlcDelay)
 {
@@ -95,6 +130,9 @@ RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_
   std::cout<<"\n delay :"<< rlcDelay<<std::endl;
 }
 
+/**
+ * Function that connects PDCP and RLC traces to the corresponding trace sources.
+ */
 void
 ConnectPdcpRlcTraces ()
 {
@@ -105,6 +143,9 @@ ConnectPdcpRlcTraces ()
                       MakeCallback (&RxRlcPDU));
 }
 
+/**
+ * Function that connects UL PDCP and RLC traces to the corresponding trace sources.
+ */
 void
 ConnectUlPdcpRlcTraces ()
 {
