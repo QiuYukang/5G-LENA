@@ -31,6 +31,18 @@
  * The topology is a simple topology that consists of 1 UE and 1 eNB. There
  * is one data bearer active and it will be multiplexed over a specific bandwidth
  * part depending on whether it is configured as low latency traffic.
+ *
+ * This example can be run from the command line in the following way:
+ *
+ * ./waf --run cttc-3gpp-channel-simple-fdm
+ *
+ * Bellow are described the global variables that are accessible through the
+ * command line. E.g. the numerology of the BWP 1 can be configured by using
+ * as --numerologyBwp1=4, so if use would like to specify this parameter
+ * the program would be run in the following way:
+ *
+ * ./waf --run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=3"
+ *
  */
 
 #include "ns3/core-module.h"
@@ -51,45 +63,64 @@ using namespace ns3;
 
 
 /**
- * \brief Global variable used to configure the numerology for BWP 1.
- *
- * This is accessible as "--numerologyBwp1" from CommandLine.
+ * \brief Global variable used to configure the numerology for BWP 1. It is accessible as "--numerologyBwp1" from CommandLine.
  */
 static ns3::GlobalValue g_numerologyBwp1 ("numerologyBwp1",
                                           "The numerology to be used in bandwidth part 1",
                                            ns3::UintegerValue (4),
                                            ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the central system frequency for BWP 1. It is accessible as "--frequencyBwp1" from CommandLine.
+ */
 static ns3::GlobalValue g_frequencyBwp1 ("frequencyBwp1",
                                          "The system frequency to be used in bandwidth part 1",
                                           ns3::DoubleValue(28.1e9),
                                           ns3::MakeDoubleChecker<double>(6e9,100e9));
 
+/**
+ * \brief Global variable used to configure the bandwidth for BWP 1. This value is expressed in Hz.It is accessible as "--bandwidthBwp1" from CommandLine.
+ */
 static ns3::GlobalValue g_bandwidthBwp1 ("bandwidthBwp1",
                                         "The system bandwidth to be used in bandwidth part 1",
                                          ns3::DoubleValue(100e6),
                                          ns3::MakeDoubleChecker<double>());
 
+/**
+ * \brief Global variable used to configure the numerology for BWP 2. It is accessible as "--numerologyBwp2" from CommandLine.
+ */
 static ns3::GlobalValue g_numerologyBwp2 ("numerologyBwp2",
                                           "The numerology to be used in bandwidth part 2",
                                            ns3::UintegerValue (2),
                                            ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \brief Global variable used to configure the central system frequency for BWP 2. It is accessible as "--frequencyBwp2" from CommandLine.
+ */
 static ns3::GlobalValue g_frequencyBwp2 ("frequencyBwp2",
                                          "The system frequency to be used in bandwidth part 2",
                                           ns3::DoubleValue(28.1e9),
                                           ns3::MakeDoubleChecker<double>(6e9,100e9));
 
+/**
+ * \brief Global variable used to configure the bandwidth for BWP 2. This value is expressed in Hz.It is accessible as "--bandwidthBwp2" from CommandLine.
+ */
 static ns3::GlobalValue g_bandwidthBwp2 ("bandwidthBwp2",
                                          "The system bandwidth to be used in bandwidth part 2",
                                           ns3::DoubleValue(100e6),
                                           ns3::MakeDoubleChecker<double>());
 
+/**
+ * \brief Global variable used to configure the bandwidth for packet size. This value is expressed in bytes. It is accessible as "--packetSize" from CommandLine.
+ */
 static ns3::GlobalValue g_udpPacketSizeUll ("packetSize",
                                             "packet size in bytes",
                                             ns3::UintegerValue (1000),
                                             ns3::MakeUintegerChecker<uint32_t>());
 
+/**
+ * \related Global boolean variable used to configure whether the flow is a low latency. It is accessible as "--isUll" from CommandLine.
+ */
 static ns3::GlobalValue g_isUll ("isUll",
                                  "Whether the flow is a low latency type of traffic.",
                                  ns3::BooleanValue (true),
