@@ -45,8 +45,6 @@
 #include <ns3/mmwave-enb-phy.h>
 #include <ns3/mmwave-spectrum-value-helper.h>
 #include <ns3/mmwave-phy-mac-common.h>
-#include <ns3/antenna-array-model.h>
-#include <ns3/antenna-array-3gpp-model.h>
 #include <ns3/mmwave-rrc-protocol-ideal.h>
 #include "mmwave-phy-rx-trace.h"
 #include <ns3/epc-helper.h>
@@ -130,7 +128,6 @@ public:
 
   void ConfigureCarriers (std::map<uint8_t, Ptr<ComponentCarrierEnb> > ccPhyConf);
 
-  void SetAntenna (uint16_t Nrx, uint16_t Ntx);
   void SetPathlossModelType (std::string type);
   void SetChannelModelType (std::string type);
 
@@ -156,36 +153,6 @@ public:
    */
   std::string GetEnbComponentCarrierManagerType () const;
 
-
-
-  /**
-     * Set the type of antenna array type used by gNB devices
-     *
-     * \param type antenna array type to be configured
-     *
-     */
-  void SetGnbAntennaArrayModelType (TypeId type);
-
-  /**
-   *
-   * \return the antenna array model type used by gNB devices
-   */
-  TypeId GetGnbAntennaArrayModelType () const;
-
-  /**
-     * Set the type of antenna array type used by UE devices
-     *
-     * \param type antenna array type to be configured
-     *
-     */
-  void SetUeAntennaArrayModelType (TypeId type);
-
-  /**
-   *
-   * \return the antenna array model type used by UE devices
-   */
-  TypeId GetUeAntennaArrayModelType () const;
-
   /**
    * Set an attribute for the enb component carrier manager to be created.
    *
@@ -201,7 +168,6 @@ public:
    *
    */
   void SetUeComponentCarrierManagerType (std::string type);
-
 
   /**
    *
@@ -318,16 +284,11 @@ private:
   uint64_t m_imsiCounter;
   uint16_t m_cellIdCounter;
 
-  uint16_t m_noTxAntenna;
-  uint16_t m_noRxAntenna;
-
   Ptr<MmWavePhyRxTrace> m_phyStats;
 
   //Ptr<MmWavePhyMacCommon> m_phyMacCommon;
 
   ObjectFactory m_ffrAlgorithmFactory;
-  ObjectFactory m_enbAntennaModelFactory;
-  ObjectFactory m_ueAntennaModelFactory;
 
   Ptr<EpcHelper> m_epcHelper;
 

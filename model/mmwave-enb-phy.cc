@@ -127,10 +127,21 @@ MmWaveEnbPhy::GetTypeId (void)
                      "UL SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveEnbPhy::m_ulSinrTrace),
                      "ns3::UlSinr::TracedCallback")
-    .AddAttribute ("MmWavePhyMacCommon", "The associated MmWavePhyMacCommon",
-                   PointerValue (), MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
+    .AddAttribute ("MmWavePhyMacCommon",
+                   "The associated MmWavePhyMacCommon",
+                   PointerValue (),
+                   MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
-  ;
+    .AddAttribute ("AntennaArray",
+                   "AntennaArray of this enb phy. There are two types of antenna array available: "
+                   "a) AntennaArrayModel which is using isotropic antenna elements, and "
+                   "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
+                   "Another important parameters to specify is the number of antenna elements by "
+                   "dimension.",
+                   StringValue("ns3::AntennaArrayModel[AntennaNumDim1=4|AntennaNumDim2=8]"),
+                   MakePointerAccessor (&MmWavePhy::SetAntennaArray,
+                                        &MmWavePhy::GetAntennaArray),
+                   MakePointerChecker<AntennaArrayBasicModel> ());
   return tid;
 
 }
@@ -172,7 +183,21 @@ MmWaveEnbPhy::DoInitialize (void)
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
+  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
+  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
+  if (antenna3gpp)
+    {
+      antenna3gpp->SetIsUe(false);
+    }
+
+  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+
+  NS_LOG_INFO ("eNb antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
+                       ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
+
   MmWavePhy::DoInitialize ();
+
 }
 void
 MmWaveEnbPhy::DoDispose (void)

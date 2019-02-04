@@ -206,13 +206,6 @@ MmWaveEnbNetDevice::GetRrc (void)
   return m_rrc;
 }
 
-uint8_t
-MmWaveEnbNetDevice::GetAntennaNum () const
-{
-  NS_ABORT_MSG("This function is not anymore used, and will be deleted");
-  return 0;
-}
-
 bool
 MmWaveEnbNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {

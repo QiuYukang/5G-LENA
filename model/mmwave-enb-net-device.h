@@ -84,10 +84,6 @@ public:
   void SetRrc (Ptr<LteEnbRrc> rrc);
 
   Ptr<LteEnbRrc> GetRrc (void);
-  /**
-  * \brief Returns the total number of antenna elements.
-  */
-  uint8_t GetAntennaNum () const;
 
   void SetCcMap (std::map<uint8_t, Ptr<ComponentCarrierGnb> > ccm);
 
@@ -118,10 +114,10 @@ private:
 
   bool m_isConfigured;
 
-
   std::map<uint8_t, Ptr<ComponentCarrierGnb> > m_ccMap; /**< ComponentCarrier map */
 
   Ptr<LteEnbComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager of this eNb
+
 };
 
 }

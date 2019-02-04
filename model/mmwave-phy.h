@@ -43,6 +43,7 @@
 #include "mmwave-phy-mac-common.h"
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-phy-sap.h"
+#include "antenna-array-basic-model.h"
 #include <string>
 #include <map>
 
@@ -171,6 +172,17 @@ public:
 
   virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
 
+  /**
+   * @return The antena array that is being used by this PHY
+   */
+  Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
+
+  /**
+   * Sets the antenna array to be used by this PHY
+   * @param antennaArray Antennarray instance to be used by this PHY
+   */
+  void SetAntennaArray (const Ptr<AntennaArrayBasicModel> antennaArray);
+
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
   Ptr<MmWaveSpectrumPhy> m_spectrumPhy;
@@ -215,6 +227,7 @@ private:
   /// component carrier Id used to address sap
   uint8_t m_componentCarrierId;
 
+  Ptr<AntennaArrayBasicModel> m_antennaArray;
 };
 
 }

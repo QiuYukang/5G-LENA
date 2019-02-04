@@ -116,6 +116,16 @@ MmWaveUePhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveUePhy::GetUlSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
+     .AddAttribute ("AntennaArray",
+                    "AntennaArray of this enb phy. There are two types of antenna array available: "
+                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
+                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
+                    "Another important parameters to specify is the number of antenna elements by "
+                    "dimension.",
+                    StringValue("ns3::AntennaArrayModel[AntennaNumDim1=2|AntennaNumDim2=4]"),
+                    MakePointerAccessor (&MmWaveUePhy::SetAntennaArray,
+                                         &MmWaveUePhy::GetAntennaArray),
+                    MakePointerChecker<AntennaArrayBasicModel> ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -163,7 +173,19 @@ MmWaveUePhy::DoInitialize (void)
 
   m_slotPeriod = m_phyMacConfig->GetSlotPeriod ();
 
-  MmWavePhy::DoInitialize ();
+  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
+  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
+
+  if (antenna3gpp)
+    {
+      antenna3gpp->SetIsUe(true);
+    }
+
+  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+
+  NS_LOG_INFO ("UE antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
+                         ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
 }
 
 void

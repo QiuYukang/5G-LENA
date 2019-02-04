@@ -92,11 +92,6 @@ public:
   Ptr<MmWaveEnbNetDevice> GetTargetEnb (void);
 
   /**
-  * \brief Returns the total number of antenna elements.
-  */
-  uint8_t GetAntennaNum () const;
-
-  /**
    * \brief Set the ComponentCarrier Map for the UE
    * \param ccm the map of ComponentCarrierUe
    */
@@ -126,8 +121,10 @@ private:
   uint16_t m_earfcn;
   uint32_t m_csgId;
   bool m_isConstructed;
+
   std::map < uint8_t, Ptr<ComponentCarrierMmWaveUe> > m_ccMap; ///< component carrier map
   Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
+
 };
 
 }

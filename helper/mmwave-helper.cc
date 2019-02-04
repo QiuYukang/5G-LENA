@@ -61,8 +61,6 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveHelper);
 MmWaveHelper::MmWaveHelper (void)
   : m_imsiCounter (0),
   m_cellIdCounter {1},
-  m_noTxAntenna (64),
-  m_noRxAntenna (16),
   m_harqEnabled (false),
   m_rlcAmEnabled (false),
   m_snrTest (false)
@@ -144,25 +142,7 @@ MmWaveHelper::GetTypeId (void)
                    "Bandwidth parts map",
                    PointerValue (),
                    MakePointerAccessor (&MmWaveHelper::SetBandwidthPartMap),
-                   MakePointerChecker<BandwidthPartsPhyMacConf>())
-     .AddAttribute ("GnbAntennaArrayModelType",
-                    "The type of antenna array to be used by gNBs. Currently are available "
-                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
-                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements",
-                    TypeIdValue (AntennaArrayModel::GetTypeId()),
-                    MakeTypeIdAccessor(&MmWaveHelper::SetGnbAntennaArrayModelType,
-                                       &MmWaveHelper::GetGnbAntennaArrayModelType),
-                    MakeTypeIdChecker())
-     .AddAttribute ("UeAntennaArrayModelType",
-                    "The type of antenna array to be used by UEs. Currently are available "
-                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
-                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements",
-                    TypeIdValue (AntennaArrayModel::GetTypeId()),
-                     MakeTypeIdAccessor(&MmWaveHelper::SetUeAntennaArrayModelType,
-                                       &MmWaveHelper::GetUeAntennaArrayModelType),
-                     MakeTypeIdChecker())
-      ;
-
+                   MakePointerChecker<BandwidthPartsPhyMacConf>());
   return tid;
 }
 
@@ -253,13 +233,6 @@ MmWaveHelper::DoInitialize ()
 }
 
 void
-MmWaveHelper::SetAntenna (uint16_t Nrx, uint16_t Ntx)
-{
-  m_noTxAntenna = Ntx;
-  m_noRxAntenna = Nrx;
-}
-
-void
 MmWaveHelper::SetPathlossModelType (std::string type)
 {
   NS_LOG_FUNCTION (this << type);
@@ -328,31 +301,6 @@ MmWaveHelper::SetEnbComponentCarrierManagerType (std::string type)
   NS_LOG_FUNCTION (this << type);
   m_enbComponentCarrierManagerFactory = ObjectFactory ();
   m_enbComponentCarrierManagerFactory.SetTypeId (type);
-}
-
-void MmWaveHelper::SetGnbAntennaArrayModelType (TypeId type)
-{
-  NS_LOG_FUNCTION (this << type);
-
-  m_enbAntennaModelFactory = ObjectFactory ();
-  m_enbAntennaModelFactory.SetTypeId (type);
-}
-
-TypeId MmWaveHelper::GetGnbAntennaArrayModelType () const
-{
-  return m_enbAntennaModelFactory.GetTypeId ();
-}
-
-
-void MmWaveHelper::SetUeAntennaArrayModelType (TypeId type)
-{
-  m_ueAntennaModelFactory = ObjectFactory ();
-  m_ueAntennaModelFactory.SetTypeId (type);
-}
-
-TypeId MmWaveHelper::GetUeAntennaArrayModelType () const
-{
-  return m_ueAntennaModelFactory.GetTypeId ();
 }
 
 void
@@ -488,17 +436,6 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
 
       dlPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
       dlPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::ReceiveControlMessageList, phy));
-
-      /* Antenna model */
-      Ptr<AntennaModel> antenna = (m_ueAntennaModelFactory.Create ())->GetObject<AntennaModel> ();
-      NS_ASSERT_MSG (antenna, "error in creating the AntennaModel object");
-      Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (antenna);
-      if (antenna3gpp)
-        {
-          antenna3gpp->SetIsUe(true);
-        }
-      dlPhy->SetAntenna (antenna);
-      ulPhy->SetAntenna (antenna);
 
       it->second->SetPhy (phy);
     }
@@ -687,17 +624,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallEnbDevice ()");
       dlPhy->SetMobility (mm);
       ulPhy->SetMobility (mm);
-
-      /* Antenna model */
-      Ptr<AntennaModel> antenna = (m_enbAntennaModelFactory.Create ())->GetObject<AntennaModel> ();
-      NS_ASSERT_MSG (antenna, "error in creating the AntennaModel object");
-      Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (antenna);
-      if (antenna3gpp)
-        {
-           antenna3gpp->SetIsUe(false);
-        }
-      dlPhy->SetAntenna (antenna);
-      ulPhy->SetAntenna (antenna);
 
       Ptr<MmWaveEnbMac> mac = CreateObject<MmWaveEnbMac> ();
       mac->SetConfigurationParameters (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first));

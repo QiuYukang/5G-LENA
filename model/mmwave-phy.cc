@@ -432,4 +432,15 @@ MmWavePhy::GetComponentCarrierId ()
   return m_componentCarrierId;
 }
 
+Ptr<AntennaArrayBasicModel>
+MmWavePhy::GetAntennaArray () const
+{
+  return m_antennaArray;
+}
+
+void
+MmWavePhy::SetAntennaArray (const Ptr<AntennaArrayBasicModel> antennaArray)
+{
+  m_antennaArray = antennaArray;
+}
 }

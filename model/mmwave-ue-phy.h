@@ -37,7 +37,7 @@
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/mmwave-harq-phy.h>
-
+#include <ns3/antenna-array-3gpp-model.h>
 
 namespace ns3 {
 

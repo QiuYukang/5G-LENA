@@ -262,12 +262,4 @@ MmWaveUeNetDevice::GetTargetEnb (void)
   return m_targetEnb;
 }
 
-
-uint8_t
-MmWaveUeNetDevice::GetAntennaNum () const
-{
-  NS_ABORT_MSG("This function is not anymore used, and will be deleted");
-  return 0;
-}
-
 }
