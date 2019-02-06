@@ -182,12 +182,12 @@ TestAntenna3gppModelConf::DoRun (void)
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(20e6));
 
     // set the number of antenna elements of UE
-    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim1", UintegerValue(sqrt(m_ueNoOfAntennas)));
-    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim2", UintegerValue(sqrt(m_ueNoOfAntennas)));
+    Config::SetDefault("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue(sqrt(m_ueNoOfAntennas)));
+    Config::SetDefault("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue(sqrt(m_ueNoOfAntennas)));
 
     // set the antenna array model type
-    Config::SetDefault("ns3::MmWaveHelper::GnbAntennaArrayModelType", TypeIdValue(m_gnbAntennaArrayModelType));
-    Config::SetDefault("ns3::MmWaveHelper::UeAntennaArrayModelType", TypeIdValue(m_ueAntennaArrayModelType));
+    Config::SetDefault("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(m_gnbAntennaArrayModelType));
+    Config::SetDefault("ns3::MmWaveUePhy::AntennaArrayType", TypeIdValue(m_ueAntennaArrayModelType));
 
     // set LOS,NLOS condition
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue(m_losCondition));

@@ -132,16 +132,28 @@ MmWaveEnbPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
-    .AddAttribute ("AntennaArray",
+    .AddAttribute ("AntennaArrayType",
                    "AntennaArray of this enb phy. There are two types of antenna array available: "
                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
                    "Another important parameters to specify is the number of antenna elements by "
                    "dimension.",
-                   StringValue("ns3::AntennaArrayModel[AntennaNumDim1=4|AntennaNumDim2=8]"),
-                   MakePointerAccessor (&MmWavePhy::SetAntennaArray,
-                                        &MmWavePhy::GetAntennaArray),
-                   MakePointerChecker<AntennaArrayBasicModel> ());
+                   TypeIdValue(ns3::AntennaArrayModel::GetTypeId()),
+                   MakeTypeIdAccessor (&MmWavePhy::SetAntennaArrayType,
+                                       &MmWavePhy::GetAntennaArrayType),
+                   MakeTypeIdChecker())
+    .AddAttribute ("AntennaNumDim1",
+                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim1,
+                                         &MmWavePhy::GetAntennaNumDim1),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("AntennaNumDim2",
+                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (8),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
+                                         &MmWavePhy::GetAntennaNumDim2),
+                   MakeUintegerChecker<uint8_t> ());
   return tid;
 
 }
@@ -183,6 +195,7 @@ MmWaveEnbPhy::DoInitialize (void)
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
+  MmWavePhy::InstallAntenna();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
   Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
   if (antenna3gpp)

@@ -573,9 +573,14 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(40e6));
 
     // Should be 4x8 = 32 antenna elements
-    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArray", StringValue(gNbAntennaModel.GetName()+"[AntennaNumDim1=4|AntennaNumDim2=8]"));
+    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(gNbAntennaModel));
+    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue(4));
+    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue(8));
+
     // Should be 2x4 = 8 antenna elements
-    Config::SetDefault ("ns3::MmWaveUePhy::AntennaArray", StringValue(ueAntennaModel.GetName()+"[AntennaNumDim1=2|AntennaNumDim2=4]"));
+    Config::SetDefault ("ns3::MmWaveUePhy::AntennaArrayType", TypeIdValue(ueAntennaModel));
+    Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue(2));
+    Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue(4));
 
     // UE antenna gain shall be set to 5 dBi
     // gNB noise figure shall be set to 7 dB

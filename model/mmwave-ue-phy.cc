@@ -116,16 +116,28 @@ MmWaveUePhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveUePhy::GetUlSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
-     .AddAttribute ("AntennaArray",
-                    "AntennaArray of this enb phy. There are two types of antenna array available: "
+    .AddAttribute ("AntennaArrayType",
+                    "AntennaArray of this UE phy. There are two types of antenna array available: "
                     "a) AntennaArrayModel which is using isotropic antenna elements, and "
                     "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
                     "Another important parameters to specify is the number of antenna elements by "
                     "dimension.",
-                    StringValue("ns3::AntennaArrayModel[AntennaNumDim1=2|AntennaNumDim2=4]"),
-                    MakePointerAccessor (&MmWaveUePhy::SetAntennaArray,
-                                         &MmWaveUePhy::GetAntennaArray),
-                    MakePointerChecker<AntennaArrayBasicModel> ())
+                    TypeIdValue(ns3::AntennaArrayModel::GetTypeId()),
+                    MakeTypeIdAccessor (&MmWavePhy::SetAntennaArrayType,
+                                        &MmWavePhy::GetAntennaArrayType),
+                    MakeTypeIdChecker())
+    .AddAttribute ("AntennaNumDim1",
+                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (2),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim1,
+                                         &MmWavePhy::GetAntennaNumDim1),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("AntennaNumDim2",
+                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
+                                         &MmWavePhy::GetAntennaNumDim2),
+                   MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -137,9 +149,7 @@ MmWaveUePhy::GetTypeId (void)
     .AddTraceSource ("ReportDownlinkTbSize",
                      "Report allocated downlink TB size for trace.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportDlTbSize),
-                     "ns3::DlTbSize::TracedCallback")
-  ;
-
+                     "ns3::DlTbSize::TracedCallback");
   return tid;
 }
 
@@ -173,6 +183,7 @@ MmWaveUePhy::DoInitialize (void)
 
   m_slotPeriod = m_phyMacConfig->GetSlotPeriod ();
 
+  MmWavePhy::InstallAntenna ();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
   Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
 
@@ -186,6 +197,7 @@ MmWaveUePhy::DoInitialize (void)
 
   NS_LOG_INFO ("UE antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
                          ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
+
 }
 
 void

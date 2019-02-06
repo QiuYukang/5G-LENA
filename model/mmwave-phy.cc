@@ -164,10 +164,14 @@ MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy
   m_subframeNum (0),
   m_slotNum (0),
   m_varTtiNum (0),
-  m_slotAllocInfoUpdated (false)
+  m_slotAllocInfoUpdated (false),
+  m_antennaNumDim1 (0),
+  m_antennaNumDim2 (0),
+  m_antennaArrayType (AntennaArrayBasicModel::GetTypeId())
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
+  m_antennaArray = nullptr;
 }
 
 MmWavePhy::~MmWavePhy ()
@@ -180,6 +184,16 @@ void
 MmWavePhy::DoInitialize ()
 {
   NS_LOG_FUNCTION (this);
+}
+
+void
+MmWavePhy::InstallAntenna ()
+{
+  ObjectFactory antennaFactory = ObjectFactory ();
+  antennaFactory.SetTypeId (m_antennaArrayType);
+  m_antennaArray = antennaFactory.Create<AntennaArrayBasicModel>();
+  m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
+  m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
 }
 
 void
@@ -439,8 +453,45 @@ MmWavePhy::GetAntennaArray () const
 }
 
 void
-MmWavePhy::SetAntennaArray (const Ptr<AntennaArrayBasicModel> antennaArray)
+MmWavePhy::SetAntennaArrayType (const TypeId antennaArrayTypeId)
 {
-  m_antennaArray = antennaArray;
+  NS_ABORT_MSG_IF (m_antennaArray !=nullptr, "Antenna's array type has been already configured. "
+      "To change antenna's attributes once that the anntena is created, use antenna object instead.");
+  m_antennaArrayType = antennaArrayTypeId ;
 }
+
+TypeId
+MmWavePhy::GetAntennaArrayType () const
+{
+  return m_antennaArrayType;
+}
+
+void
+MmWavePhy::SetAntennaNumDim1 (uint8_t antennaNumDim1)
+{
+  NS_ABORT_MSG_IF (m_antennaArray !=nullptr, "Antenna's NumDim1 has been already configured"
+                   "To change antenna's attributes once that the anntena is created, use antenna object instead.");
+  m_antennaNumDim1 = antennaNumDim1;
+}
+
+uint8_t
+MmWavePhy::GetAntennaNumDim1 () const
+{
+  return m_antennaNumDim1;
+}
+
+void
+MmWavePhy::SetAntennaNumDim2 (uint8_t antennaNumDim2)
+{
+  NS_ABORT_MSG_IF (m_antennaArray !=nullptr, "Antenna's NumDim2 has been already configured"
+                   "To change antenna's attributes once that the anntena is created, use antenna object instead.");
+  m_antennaNumDim2 = antennaNumDim2;
+}
+
+uint8_t
+MmWavePhy::GetAntennaNumDim2 () const
+{
+  return m_antennaNumDim2;
+}
+
 }

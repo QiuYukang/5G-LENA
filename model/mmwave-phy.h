@@ -46,6 +46,7 @@
 #include "antenna-array-basic-model.h"
 #include <string>
 #include <map>
+#include <inttypes.h>
 
 namespace ns3 {
 
@@ -101,6 +102,7 @@ public:
 
   virtual void DoInitialize (void);
 
+  void InstallAntenna ();
   /*	*
    * \returns transmission time interval
 
@@ -178,10 +180,40 @@ public:
   Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
 
   /**
-   * Sets the antenna array to be used by this PHY
-   * @param antennaArray Antennarray instance to be used by this PHY
+   * \brief Sets the antenna array type used by this PHY
+   * @param antennaArrayTypeId antennaArray to be used by this PHY
+   * */
+  void SetAntennaArrayType (const TypeId antennaArrayTypeId);
+
+  /**
+   * \brief Returns the antenna array TypeId
+   * @return antenna array TypeId
    */
-  void SetAntennaArray (const Ptr<AntennaArrayBasicModel> antennaArray);
+  TypeId GetAntennaArrayType () const;
+
+  /**
+   * \brief Set the first dimension of panel/sector in number of antenna elements
+   * @param antennaNumDim1 the size of the first dimension of the panel/sector
+   */
+  void SetAntennaNumDim1 (uint8_t antennaNumDim1);
+
+  /**
+   * \brief Returns the size of the first dimension of the panel/sector in the number of antenna elements
+   * @return the size of the first dimension
+   */
+  uint8_t GetAntennaNumDim1 () const;
+
+  /**
+   * \brief Set the second dimension of panel sector in number of antenna elements
+   * @param antennaNumDim2 the size of the second dimension of the panel/sector
+   */
+  void SetAntennaNumDim2 (uint8_t antennaNumDim2);
+
+  /**
+   * \brief Returns the size of the second dimension of the panel/sector in the number of antenna elements
+   * @return the size of the second dimension
+   */
+  uint8_t GetAntennaNumDim2 () const;
 
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
@@ -224,10 +256,14 @@ protected:
 private:
   std::map <SfnSf,SlotAllocInfo> m_slotAllocInfo;   // maps subframe num to allocation info
 
+  uint8_t m_antennaNumDim1 {0};
+  uint8_t m_antennaNumDim2 {0};
+  TypeId m_antennaArrayType {AntennaArrayModel::GetTypeId()};
+
   /// component carrier Id used to address sap
   uint8_t m_componentCarrierId;
 
-  Ptr<AntennaArrayBasicModel> m_antennaArray;
+  Ptr<AntennaArrayBasicModel> m_antennaArray {nullptr};
 };
 
 }
