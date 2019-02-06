@@ -31,6 +31,7 @@
 #include "ns3/double.h"
 #include "ns3/enum.h"
 #include <ns3/uinteger.h>
+#include <ns3/node.h>
 
 NS_LOG_COMPONENT_DEFINE ("AntennaArrayModel");
 
@@ -156,6 +157,8 @@ void
 AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
                                          Ptr<NetDevice> device)
 {
+  NS_LOG_INFO ("SetBeamformingVector for BeamId:"<<(unsigned)beamId.first<<" "<<beamId.second << " node id: "<<device->GetNode()->GetId()<<
+                 " at:"<<Simulator::Now().GetSeconds());
   m_omniTx = false;
   if (device != nullptr)
     {
@@ -169,6 +172,7 @@ AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId 
           m_beamformingVectorMap.insert (std::make_pair (device,
                                                          std::make_pair (antennaWeights, beamId)));
         }
+      m_beamformingVectorUpdateTimes [device] = Simulator::Now();
     }
   m_currentBeamformingVector = std::make_pair (antennaWeights, beamId);
 }
@@ -216,6 +220,14 @@ AntennaArrayModel::GetBeamformingVector (Ptr<NetDevice> device)
       beamformingVector = m_currentBeamformingVector;
     }
   return beamformingVector;
+}
+
+Time 
+AntennaArrayModel::GetBeamformingVectorUpdateTime (Ptr<NetDevice> device)
+{
+  BeamformingStorageUpdateTimes::iterator it = m_beamformingVectorUpdateTimes.find (device);
+  NS_ABORT_MSG_IF (it == m_beamformingVectorUpdateTimes.end (), "The beamforming vector for the given device does not exist." );
+  return it->second;
 }
 
 void

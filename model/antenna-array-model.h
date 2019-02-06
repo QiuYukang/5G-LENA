@@ -29,6 +29,7 @@
 #include <ns3/net-device.h>
 #include <map>
 #include "antenna-array-basic-model.h"
+#include <ns3/nstime.h>
 
 namespace ns3 {
 
@@ -54,10 +55,10 @@ public:
   virtual double GetGainDb (Angles a) override;
 
   virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
-                             Ptr<NetDevice> device = nullptr);
+                                     Ptr<NetDevice> device);
 
   virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
-                                      Ptr<NetDevice> device = nullptr);
+                                              Ptr<NetDevice> device);
 
   virtual void ChangeBeamformingVector (Ptr<NetDevice> device);
 
@@ -66,6 +67,13 @@ public:
   virtual BeamformingVector GetCurrentBeamformingVector ();
 
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device);
+
+  /**
+   * Returns the time at which was the last time updated the beamforming vector for the given device.
+   * @param device for which is used the beamforming vector whose last update time is needed
+   * @return the time at which the beamforming vector was being updated
+   */
+  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device);
 
   virtual void SetToSector (uint32_t sector, uint32_t antennaNum);
 
@@ -105,12 +113,16 @@ public:
 
 private:
 
-  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
+  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage; /*!< A type represents a map where the key is a pointer
+                                                                               to the device and the value is the BeamformingVector element */
+  typedef std::map<Ptr<NetDevice>, Time> BeamformingStorageUpdateTimes;  /*!< A type that represents a map in which are pairs of the pointer to the
+                                                                               the device and the time at which is updated the beamforming vector for that device*/
   bool m_omniTx;
   double m_minAngle;
   double m_maxAngle;
   BeamformingVector m_currentBeamformingVector;
   BeamformingStorage m_beamformingVectorMap;
+  BeamformingStorageUpdateTimes m_beamformingVectorUpdateTimes;
 
 protected:
   double m_disV;       //antenna spacing in the vertical direction in terms of wave length.

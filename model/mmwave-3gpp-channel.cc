@@ -335,7 +335,7 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (NetDeviceContainer ueDevices
 
           complexVector_t empty;
           AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
-          GetAntennaArray(*i)->SetBeamformingVector (empty, emptyId);
+          GetAntennaArray(*i)->SetBeamformingVector (empty, emptyId, targetBs);
           GetAntennaArray(targetBs)->SetBeamformingVector (empty, emptyId, *i);
 
 /*          // get the mobility objects
