@@ -121,21 +121,17 @@ public:
 struct Params3gpp : public SimpleRefCount<Params3gpp>
 {
   InputParams3gpp m_input;
-
-  AntennaArrayBasicModel::BeamId  m_txBeamId; //!< Tx antenna beam id
-  AntennaArrayBasicModel::BeamId  m_rxBeamId; //!< Rx antenna beam id
-  complexVector_t     m_txW; //!< tx antenna weights.
-  complexVector_t     m_rxW; //!< rx antenna weights.
   complex3DVector_t      m_channel; // channel matrix H[u][s][n], u - number of antennas of receiver, s - number of antennas of transmitter, n - number of clusters
   doubleVector_t      m_delay; //!< cluster delay.
   double2DVector_t    m_angle; //!<cluster angle angle[direction][n], where direction = 0(aoa), 1(zoa), 2(aod), 3(zod) in degree.
   complexVector_t     m_longTerm; //!< long term component per cluster
+  Time m_longTermUpdateTime {0}; //!< the last time at which the long term matrix was updated
+  Time m_generatedTime {0}; //!< the last time at which the channel matrix was updated
 
   double2DVector_t    m_nonSelfBlocking; //!< store the blockages
   /*The following parameters are stored for spatial consistent updating*/
   Vector m_preLocUT; //!< location of UT when generating the previous channel
   double2DVector_t m_norRvAngles; //!< stores the normal variable for random angles angle[cluster][id] generated for equation (7.6-11)-(7.6-14), where id = 0(aoa),1(zoa),2(aod),3(zod)
-  Time m_generatedTime;
   double m_DS; //!< delay spread
   double m_K; //!< K factor
   uint8_t m_numCluster; //!< reduced cluster number;
@@ -275,7 +271,17 @@ public:
    */
   void SetPathlossModel (Ptr<PropagationLossModel> pathloss);
 
-protected:
+
+  /**
+   * Perform the configured beamforming method, e.g. beam search beamforming or
+   * long-term covariation matrix method
+   * @param a MobilityModel of the transmitter
+   * @param b MobilityModel of the receiver
+   */
+  void PerformBeamforming(Ptr<const MobilityModel> a,
+                          Ptr<const MobilityModel> b) const;
+
+private:
 
   /**
    * This function prepares 3gpp parameters that are necessary for the channel
@@ -291,12 +297,11 @@ protected:
                                InputParams3gpp& input3gppParams
                               ) const;
 
-private:
+  void DoUpdateLongTerm (Ptr<const MobilityModel> a,
+                         Ptr<const MobilityModel> b) const;
 
-  Ptr<Params3gpp> DoCreateOrUpdateChannelMap (Ptr<const MobilityModel> a,
-                                              Ptr<const MobilityModel> b,
-                                              InputParams3gpp input3gppParams
-                                              ) const;
+  Ptr<Params3gpp> DoGetChannel (Ptr<const MobilityModel> a,
+                                   Ptr<const MobilityModel> b) const;
 
   /**
    * Returns a reference to the channel map that corresponding to central carrier
@@ -355,12 +360,10 @@ private:
   /**
    * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
    * The vector is stored in the Params3gpp object passed as parameter
-   * @param params3gpp
    * @param a mobility model of the transmitter node
    * @param b mobility model of the receiver node
    */
-  void LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
-                                     Ptr<const MobilityModel> a,
+  void LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
                                      Ptr<const MobilityModel> b) const;
 
 
@@ -374,15 +377,24 @@ private:
    */
   Ptr<AntennaArrayBasicModel> GetAntennaArray (Ptr<NetDevice> device) const;
 
+
+  /**
+   * Checks if a is transmitter and b receiver or is a "reverse link" meaning oposite,
+   * i.e. that b is transmitter and a receiver.
+   * @param a mobility model of the first node
+   * @param b mobility model of the second node
+   * @return boolean that says if the a and b are tx and rx or opposite.
+   */
+  bool IsReverseLink (Ptr<const MobilityModel> a,
+                      Ptr<const MobilityModel> b) const;
+
   /**
    * Scan all sectors with predefined code book and select the one returns maximum gain.
    * The BF vector is stored in the Params3gpp object passed as parameter
-   * @param params3gpp the channel realization in a Params3gpp object
    * @param a mobility model of the transmitter
    * @param b mobility model of the receiver
    */
-  void BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
-                              Ptr<const MobilityModel> a,
+  void BeamSearchBeamforming (Ptr<const MobilityModel> a,
                               Ptr<const MobilityModel> b) const;
 
 
@@ -477,6 +489,7 @@ private:
   double m_beamSearchAngleStep; //!< The size of the angle to be used in beam search method
   double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
+  bool m_updateBeamformingVectorIdeally; //!< Update the beamforming vectors ideally
 };
 
 

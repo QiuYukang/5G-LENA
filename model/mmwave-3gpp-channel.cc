@@ -256,6 +256,12 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (28e9),
                    MakeDoubleAccessor(&MmWave3gppChannel::SetCenterFrequency, &MmWave3gppChannel::GetCenterFrequency),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("UpdateBeamformingVectorsIdeally",
+                   "If true the beamforming vectors will be updated when the channel is updated, "
+                   "if false the channel update will not trigger the beamforming vectors update",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&MmWave3gppChannel::m_updateBeamformingVectorIdeally),
+                   MakeBooleanChecker ())
     ;
   return tid;
 }
@@ -382,9 +388,9 @@ bool MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
 
   bool isBeamforming = false;
 
-  // obligatory parameters to be set throught the constructro of the InputParams3gpp structure
-  bool los;
-  bool o2i;
+  // obligatory parameters to be set through the constructor of the InputParams3gpp structure
+  bool los = false;
+  bool o2i = false;
   Vector locUT;
   Vector speed;
   double dis2D;
@@ -481,7 +487,7 @@ MmWave3gppChannel::channelMap_t & MmWave3gppChannel::GetChannelMap() const
     }
   else
     {
-      NS_ABORT_MSG("Channel map does not exist for the center frequency: "<<m_centerFrequency);
+      NS_ABORT_MSG ("Channel map does not exist for the center frequency: "<<m_centerFrequency);
     }
 }
 
@@ -506,73 +512,105 @@ MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
     }
 }
 
-Ptr<Params3gpp>
-MmWave3gppChannel::DoCreateOrUpdateChannelMap (Ptr<const MobilityModel> a,
-                                               Ptr<const MobilityModel> b,
-                                               InputParams3gpp input3gppParameters
-                                               ) const
+void MmWave3gppChannel::PerformBeamforming (Ptr<const MobilityModel> a,
+                                              Ptr<const MobilityModel> b) const
 {
+  if (m_cellScan)
+    {
+      NS_LOG_ERROR ("beam search method ...");
+      BeamSearchBeamforming (a, b);
+    }
+  else
+    {
+      NS_LOG_ERROR ("long term cov. matrix...");
+      LongTermCovMatrixBeamforming (a, b);
+    }
+}
 
-
-  Ptr<Params3gpp> channelParams = Create <Params3gpp>();
+Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
+                                                 Ptr<const MobilityModel> b) const
+{
+  Ptr<Params3gpp> channelParams;
+  InputParams3gpp input3gppParameters;
+  GetInput3gppParameters (a, b, input3gppParameters);
 
   MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
   MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
 
-  NS_LOG_INFO ("Update or create the forward channel");
-  NS_LOG_LOGIC ("it == GetChannelMap().end () " << (it == GetChannelMap().end ()));
-  NS_LOG_LOGIC ("itReverse == GetChannelMap().end () " << (itReverse == GetChannelMap().end ()));
-  NS_LOG_LOGIC ("it->second->m_channel.size() == 0 " << (it->second->m_channel.size () == 0));
-  NS_LOG_LOGIC ("it->second->m_los != los" << (it->second->m_input.GetLos() != input3gppParameters.GetLos()));
-
-  double hUT, hBS;
-  hUT = input3gppParameters.GetLocUT().z;
-
-  if (input3gppParameters.GetLocUT().x == b->GetPosition().x &&
-      input3gppParameters.GetLocUT().y == b->GetPosition().y &&
-      input3gppParameters.GetLocUT().z == b->GetPosition().z) // if UE is the receiver
-    {
-      hBS = a->GetPosition ().z;
-    }
-  else
-    {
-      hBS = b->GetPosition ().z;
-    }
-  //Draw parameters from table 7.5-6 and 7.5-7 to 7.5-10.
-  Ptr<ParamsTable> table3gpp = Get3gppTable (input3gppParameters.GetLos(),
-                                             input3gppParameters.Geto2i(),
-                                             hBS,
-                                             hUT,
-                                             input3gppParameters.GetDis2D());
-
-  // Step 4-11 are performed in function GetNewChannel()
+  //I only update the forward channel.
   if ((it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
-      || (it != GetChannelMap().end () && it->second->m_channel.size () == 0))
+      || (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
+      || (it != GetChannelMap().end () && it->second->m_input.GetLos() != input3gppParameters.GetLos()))
     {
-      //delete the channel parameter to cause the channel to be updated again.
-      //The m_updatePeriod can be configured to be relatively large in order to disable updates.
-      if (m_updatePeriod.GetMilliSeconds () > 0)
+      channelParams = Create <Params3gpp>();
+
+      MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
+      MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
+
+      NS_LOG_INFO ("Update or create the forward channel");
+      NS_LOG_LOGIC ("it == GetChannelMap().end () " << (it == GetChannelMap().end ()));
+      NS_LOG_LOGIC ("itReverse == GetChannelMap().end () " << (itReverse == GetChannelMap().end ()));
+      NS_LOG_LOGIC ("it->second->m_channel.size() == 0 " << (it->second->m_channel.size () == 0));
+      NS_LOG_LOGIC ("it->second->m_los != los" << (it->second->m_input.GetLos() != input3gppParameters.GetLos()));
+
+      double hUT, hBS;
+      hUT = input3gppParameters.GetLocUT().z;
+
+      if (input3gppParameters.GetLocUT().x == b->GetPosition().x &&
+          input3gppParameters.GetLocUT().y == b->GetPosition().y &&
+          input3gppParameters.GetLocUT().z == b->GetPosition().z) // if UE is the receiver
         {
-          NS_LOG_INFO ("Time " << Simulator::Now ().GetSeconds () << " schedule delete for a " << a->GetPosition () << " b " << b->GetPosition ());
-          Simulator::Schedule (m_updatePeriod, &MmWave3gppChannel::DeleteChannel,this,a,b);
+          hBS = a->GetPosition ().z;
         }
-    }
+      else
+        {
+          hBS = b->GetPosition ().z;
+        }
+      //Draw parameters from table 7.5-6 and 7.5-7 to 7.5-10.
+      Ptr<ParamsTable> table3gpp = Get3gppTable (input3gppParameters.GetLos(),
+                                                 input3gppParameters.Geto2i(),
+                                                 hBS,
+                                                 hUT,
+                                                 input3gppParameters.GetDis2D());
 
-  if (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
-    {
-      //if the channel map is not empty, we only update the channel.
-      NS_LOG_DEBUG ("Update forward channel consistently");
-      it->second->m_input=input3gppParameters;
-      channelParams = UpdateChannel (it->second, table3gpp, a, b);
-      it->second->m_generatedTime = Now ();
-    }
-  else
-    {
-      //if the channel map is empty, we create a new channel.
-      NS_LOG_INFO ("Create new channel");
-      channelParams = GetNewChannel (table3gpp, a, b, input3gppParameters);
-    }
 
+      if ((it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
+          || (it != GetChannelMap().end () && it->second->m_channel.size () == 0))
+        {
+          //delete the channel parameter to cause the channel to be updated again.
+          //The m_updatePeriod can be configured to be relatively large in order to disable updates.
+          if (m_updatePeriod.GetMilliSeconds () > 0)
+            {
+              NS_LOG_INFO ("Time " << Simulator::Now ().GetSeconds () << " schedule delete for a " << a->GetPosition () << " b " << b->GetPosition ());
+              Simulator::Schedule (m_updatePeriod, &MmWave3gppChannel::DeleteChannel,this,a,b);
+            }
+        }
+
+      if (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
+        {
+          //if the channel map is not empty, we only update the channel.
+          NS_LOG_DEBUG ("Update forward channel consistently");
+          it->second->m_input = input3gppParameters;
+          channelParams = UpdateChannel (it->second, table3gpp, a, b);
+        }
+      else
+        {
+          //if the channel map is empty, we create a new channel.
+          // Step 4-11 are performed in function GetNewChannel()
+          NS_LOG_INFO ("Create new channel");
+          channelParams = GetNewChannel (table3gpp, a, b, input3gppParameters);
+        }
+      // update the channel map with the new channel params
+      GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
+    }
+  else if (itReverse == GetChannelMap().end ()) //Find channel matrix in the forward link
+    {
+      channelParams = it->second;
+    }
+  else //Find channel matrix in the Reverse link
+    {
+      channelParams = itReverse->second;
+    }
   return channelParams;
 }
 
@@ -599,119 +637,120 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   // When there is a LOS/NLOS switch, a new uncorrelated channel is created.
   // Therefore, LOS/NLOS condition of updating is always consistent with the previous channel.
 
-  Ptr<Params3gpp> channelParams;
-  MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
-  MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
-  bool reverseLink = false;
+  Ptr<Params3gpp> channelParams = DoGetChannel (a,b);
 
-  //I only update the forward channel.
-  if ((it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
-      || (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
-      || (it != GetChannelMap().end () && it->second->m_input.GetLos() != input3gppParameters.GetLos()))
+  Ptr<NetDevice> txDevice;
+  Ptr<NetDevice> rxDevice;
+
+  if (IsReverseLink(a,b))
     {
+      txDevice = b->GetObject<Node> ()->GetDevice (0);
+      rxDevice = a->GetObject<Node> ()->GetDevice (0);
+    }
+  else
+    {
+      txDevice = a->GetObject<Node> ()->GetDevice (0);
+      rxDevice = b->GetObject<Node> ()->GetDevice (0);
+    }
 
-      channelParams = DoCreateOrUpdateChannelMap (a, b, input3gppParameters);
+  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
-      std::map< key_t, int >::iterator it1 = m_connectedPair.find (input3gppParameters.GetKey());
-      // first step in disconnecting beamforming from the channel 3gpp
-      // beamforming method does not need to know all the 3gpp channel parameters
-      // instead of providing channel parameters limit to minimum set of necessary variables
+  std::map< key_t, int >::iterator it = m_connectedPair.find (input3gppParameters.GetKey());
+  std::map< key_t, int >::iterator itReverse = m_connectedPair.find (input3gppParameters.GetKeyReverse());
 
-      if (it1 != m_connectedPair.end ())
+  bool updateLongTerm = false;
+  bool performBeamforming = false;
+
+  // the following code is expected to optimise the updates of the long
+  // term matrix, i.e. to perform it only when is absolutely necessary
+  if ( it != m_connectedPair.end() || itReverse != m_connectedPair.end()) // if connected pair
+    {
+      if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
+          rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)
         {
-          /*
-          Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
-          Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
-
-          Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
-          Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
-
-          channelParams->m_txW.push_back(1);
-          channelParams->m_rxW.push_back(1);
-
-          for (uint8_t eIndex = 1; eIndex < txAntennaArray->GetAntennaNumDim1()*txAntennaArray->GetAntennaNumDim2(); eIndex++)
-            {
-              channelParams->m_txW.push_back(0);
-            }
-          for (uint8_t eIndex = 1; eIndex < rxAntennaArray->GetAntennaNumDim1()*rxAntennaArray->GetAntennaNumDim2(); eIndex++)
-            {
-              channelParams->m_rxW.push_back(0);
-            }
-
-          complexVector_t empty;
-          AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
-
-          if(Simulator::Now() == NanoSeconds(0)) //Give initial bfs
-            {
-              txAntennaArray->SetBeamformingVector (channelParams->m_txW, emptyId, rxDevice);
-              rxAntennaArray->SetBeamformingVector (channelParams->m_rxW, emptyId, txDevice);
-            }*/
-
-
-          if (m_cellScan)
-            {
-              NS_LOG_ERROR ("beam search method ...");
-              BeamSearchBeamforming (channelParams, a, b);
-            }
-          else
-            {
-              NS_LOG_ERROR ("long term cov. matrix...");
-              LongTermCovMatrixBeamforming (channelParams, a, b);
-            }
+          NS_LOG_WARN ("Perform the beamforming method since there are not yet any beamforming vectors configured between transmitter and receiver.");
+          performBeamforming = true;
+          updateLongTerm = true;
         }
       else
         {
+          Time txWUpdateTime = txAntennaArray->GetBeamformingVectorUpdateTime (rxDevice);
+          Time rxWUpdateTime = rxAntennaArray->GetBeamformingVectorUpdateTime (txDevice);
 
-          Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
-          Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+          NS_ABORT_MSG_IF (txWUpdateTime != rxWUpdateTime, "Beamforming vector update times of the connected pair shall be the same.");
 
-          Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
-          Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
-
-          NS_LOG_INFO ("Not a connected pair");
-          AntennaArrayBasicModel::BeamformingVector txBeamformingVector = txAntennaArray->GetCurrentBeamformingVector ();
-          AntennaArrayBasicModel::BeamformingVector rxBeamformingVector = rxAntennaArray->GetCurrentBeamformingVector ();
-
-          channelParams->m_txW = AntennaArrayBasicModel::GetVector (txBeamformingVector);
-          channelParams->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txBeamformingVector);
-
-          channelParams->m_rxW = AntennaArrayBasicModel::GetVector (rxBeamformingVector);
-          channelParams->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxBeamformingVector);
-
-          if (channelParams->m_txW.size () == 0 || channelParams->m_rxW.size () == 0)
+          // channel or the beamforming vector changed -> update the long term matrix
+          // start of the simulation
+          if ((channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
+              || (channelParams->m_longTermUpdateTime < txWUpdateTime))
             {
-              NS_LOG_INFO ("channelParams->m_txW.size() == 0 " << (channelParams->m_txW.size () == 0));
-              NS_LOG_INFO ("channelParams->m_rxW.size() == 0 " << (channelParams->m_rxW.size () == 0));
-              GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
-              return rxPsd;
-            }
-        } //in not connected pair
+              if (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
+                {
+                  NS_LOG_INFO ("Update the beamforming vectors!");
+                  performBeamforming = true;
+                }
+              else
+                {
+                  NS_LOG_INFO ("Channel has changed but the beamforming vectors were not updated yet!");
+                }
 
-      channelParams->m_longTerm = CalLongTerm (channelParams->m_txW, channelParams->m_rxW, channelParams->m_delay, channelParams->m_channel);
-      GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
+              NS_LOG_INFO ("Update the long term matrix because the channel changed or the beamforming vectors are updated!");
+              updateLongTerm = true;
+            }
+        }
     }
-  else if (itReverse == GetChannelMap().end ()) //Find channel matrix in the forward link
+  else // if not connected pair
     {
-      channelParams = (*it).second;
+       if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
+           rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)
+        {
+          NS_LOG_INFO ("txW.size() == 0 " << (txAntennaArray->GetCurrentBeamformingVector ().first.size () == 0));
+          NS_LOG_INFO ("rxW.size() == 0 " << (rxAntennaArray->GetCurrentBeamformingVector ().first.size () == 0));
+          GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
+          return rxPsd;
+        }
+        
+      NS_LOG_INFO ("Update the long term matrix of not connected pair");
+      updateLongTerm = true;
     }
-  else //Find channel matrix in the Reverse link
+
+  // long-term channel map is not initialised yet, do it
+  if (channelParams->m_longTerm.size() == 0)
     {
-      reverseLink = true;
-      channelParams = (*itReverse).second;
+      updateLongTerm = true;
+      NS_LOG_INFO ("Calculate long-term map for the first time. Later on will be updated.");
+    }
+
+  if (performBeamforming)
+    {
+      PerformBeamforming (a, b);
+    }
+
+  NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector ().first.size()==0 ||
+                   rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0, "Beamforming vectors not properly calculated!");
+
+  if (updateLongTerm)
+    {
+      channelParams->m_longTerm = CalLongTerm (txAntennaArray->GetCurrentBeamformingVector ().first,
+                                               rxAntennaArray->GetCurrentBeamformingVector ().first,
+                                               channelParams->m_delay,
+                                               channelParams->m_channel);
+      channelParams->m_longTermUpdateTime = Now ();
     }
 
   Ptr<SpectrumValue> bfPsd = CalBeamformingGain (rxPsd,
                                                  channelParams->m_channel,
                                                  channelParams->m_longTerm,
-                                                 channelParams->m_txW,
-                                                 channelParams->m_rxW,
+                                                 txAntennaArray->GetCurrentBeamformingVector ().first,
+                                                 rxAntennaArray->GetCurrentBeamformingVector ().first,
                                                  channelParams->m_delay,
                                                  channelParams->m_angle,
                                                  input3gppParameters.GetSpeed());
 
   SpectrumValue bfGain = (*bfPsd) / (*rxPsd);
   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
-  if (reverseLink == false)
+  if (!IsReverseLink (a, b ))
     {
       NS_LOG_DEBUG ("****** DL BF gain == " << Sum (bfGain) / nbands << " RX PSD " << Sum (*rxPsd) / nbands); // print avg bf gain
     }
@@ -723,16 +762,27 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 }
 
 void
-MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
-                                                 Ptr<const MobilityModel> a,
+MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
                                                  Ptr<const MobilityModel> b) const
 {
+  Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 
-  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
-  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+  Ptr<NetDevice> txDevice;
+  Ptr<NetDevice> rxDevice;
 
-  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
-  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
+  if (IsReverseLink(a,b))
+    {
+      txDevice = b->GetObject<Node> ()->GetDevice (0);
+      rxDevice = a->GetObject<Node> ()->GetDevice (0);
+    }
+  else
+    {
+      txDevice = a->GetObject<Node> ()->GetDevice (0);
+      rxDevice = b->GetObject<Node> ()->GetDevice (0);
+    }
+
+  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
   //generate transmitter side spatial correlation matrix
   uint8_t txSize = params3gpp->m_channel.at (0).size ();
@@ -809,7 +859,7 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
       antennaWeights = antennaWeights_New;
     }
 
-  params3gpp->m_txW = antennaWeights;
+  complexVector_t txW = antennaWeights;
 
   //compute the receiver side spatial correlation matrix rxQ = HH*, where H is the sum of H_n over n clusters.
   complex2DVector_t rxQ;
@@ -881,11 +931,12 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<Params3gpp> params3gpp,
       antennaWeights = antennaWeights_New;
     }
 
-  params3gpp->m_rxW = antennaWeights;
+  complexVector_t rxW = antennaWeights;
 
+  AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
 
-  txAntennaArray->SetBeamformingVector (params3gpp->m_txW, params3gpp->m_txBeamId, rxDevice);
-  rxAntennaArray->SetBeamformingVector (params3gpp->m_rxW, params3gpp->m_rxBeamId, txDevice);
+  txAntennaArray->SetBeamformingVector (txW, emptyId, rxDevice);
+  rxAntennaArray->SetBeamformingVector (rxW, emptyId, txDevice);
 
 }
 
@@ -901,6 +952,11 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
 {
   NS_LOG_FUNCTION (this);
 
+  NS_ABORT_MSG_IF (channel.size()==0, "Channel matrix is empty.");
+  NS_ABORT_MSG_IF (longTerm.size()==0, "Long-term matrix is empty.");
+  NS_ABORT_MSG_IF (txW.size()==0, "Tx beamforming vector is emtpy.");
+  NS_ABORT_MSG_IF (rxW.size()==0, "Rx beamforming vector is emtpy.");
+
   double spectrumValueCenterFrequency = txPsd->GetSpectrumModel()->Begin()->fl +
       ((txPsd->GetSpectrumModel()->End()-1)->fh - txPsd->GetSpectrumModel()->Begin()->fl)/2;
 
@@ -909,11 +965,11 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
 
   Ptr<SpectrumValue> tempPsd = Copy<SpectrumValue> (txPsd);
 
-  NS_ASSERT_MSG (delaySpread.size()==channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
-  NS_ASSERT_MSG (txW.size()==channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
-  NS_ASSERT_MSG (rxW.size()==channel.size(), "the rx antenna size of channel and antenna weights should be the same");
-  NS_ASSERT_MSG (angle.at(0).size()==channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
-  NS_ASSERT_MSG (angle.at(1).size()==channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
+  NS_ABORT_MSG_UNLESS (delaySpread.size()==channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
+  NS_ABORT_MSG_UNLESS (txW.size()==channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
+  NS_ABORT_MSG_UNLESS (rxW.size()==channel.size(), "the rx antenna size of channel and antenna weights should be the same");
+  NS_ABORT_MSG_UNLESS (angle.at(0).size()==channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
+  NS_ABORT_MSG_UNLESS (angle.at(1).size()==channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
 
   //channel[rx][tx][cluster]
   uint8_t numCluster = delaySpread.size ();
@@ -977,7 +1033,6 @@ MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
 complexVector_t
 MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const
 {
-
   uint8_t txAntennaNum = txW.size ();
   uint8_t rxAntennaNum = rxW.size ();
   //store the long term part to reduce computation load
@@ -999,6 +1054,7 @@ MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW, double
         }
       longTerm.push_back (txSum);
     }
+  NS_ABORT_MSG_IF (longTerm.size() == 0,"Long-term matrix is empty.");
   return longTerm;
 }
 
@@ -1151,7 +1207,7 @@ MmWave3gppChannel::Get3gppTable (bool los, bool o2i, double hBS, double hUT, dou
     }
   else if (m_scenario == "InH-OfficeMixed"||m_scenario == "InH-OfficeOpen" || m_scenario == "InH-ShoppingMall")
     {
-      NS_ASSERT_MSG (!o2i, "The indoor scenario does out support outdoor to indoor");
+      NS_ASSERT_MSG (!o2i, "The indoor scenario does not support outdoor to indoor");
       if (los)
         {
           table3gpp->SetParams (8, 20, -0.01 * log10 (1 + fcGHz) - 7.79, -0.16 * log10 (1 + fcGHz) + 0.50, 1.60, 0.18,
@@ -1215,8 +1271,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
-  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
-  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
+  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
   Vector txPos = txDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
   Vector rxPos = rxDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -2024,11 +2080,13 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
                                   Ptr<const MobilityModel> b) const
 {
 
+  NS_LOG_INFO ("Update channel at"<<Simulator::Now());
+
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
-  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray(txDevice);
-  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray(rxDevice);
+  Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
+  Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
   Vector txPos = txDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
   Vector rxPos = rxDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -2643,6 +2701,9 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
   params->m_angle.push_back (clusterZod);
   //update the previous location.
 
+
+  params->m_generatedTime = Now (); //update the time at which the channel is being generated
+
   return params;
 
 }
@@ -2655,12 +2716,28 @@ MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
 }
 
 
+bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
+                                       Ptr<const MobilityModel> b) const
+{
+
+  Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
+  key_t keyReverse = std::make_pair (b->GetObject<Node> ()->GetDevice (0), a->GetObject<Node> ()->GetDevice (0));
+  bool reverseLink = false;
+
+  if (GetChannelMap().find (keyReverse) != GetChannelMap().end ())
+    {
+      reverseLink = true;
+    }
+  return reverseLink;
+}
+
 void
-MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
-                                          Ptr<const MobilityModel> a,
+MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
                                           Ptr<const MobilityModel> b
                                           ) const
 {
+
+  Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 
   std::vector<int> listOfSubchannels;
   for (unsigned i = 0; i < m_phyMacConfig->GetBandwidthInRbs (); i++)
@@ -2671,9 +2748,19 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
   Ptr<const SpectrumValue> fakePsd =
            MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, 0, listOfSubchannels);
 
+  Ptr<NetDevice> txDevice;
+  Ptr<NetDevice> rxDevice;
 
-  Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
-  Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
+  if (IsReverseLink(a,b))
+    {
+      txDevice = b->GetObject<Node> ()->GetDevice (0);
+      rxDevice = a->GetObject<Node> ()->GetDevice (0);
+    }
+  else
+    {
+      txDevice = a->GetObject<Node> ()->GetDevice (0);
+      rxDevice = b->GetObject<Node> ()->GetDevice (0);
+    }
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
@@ -2692,7 +2779,7 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
     }
   else
     {
-      NS_ABORT_MSG("Tx and Rx antenna arrays are empty");
+      NS_ABORT_MSG ("Tx and Rx antenna arrays are empty");
     }
 
   double max = 0, maxTx = 0, maxRx = 0, maxTxTheta = 0, maxRxTheta = 0;
@@ -2717,9 +2804,11 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
 
                   complexVector_t rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
 
+                  NS_ABORT_MSG_IF (txW.size()==0 || rxW.size()==0, "Beamforming vectors must be initialized in order to caclulate the long term matrix.");
 
                   params3gpp->m_longTerm = CalLongTerm (txW, rxW, params3gpp->m_delay, params3gpp->m_channel);
-
+                  params3gpp->m_longTermUpdateTime = Now ();
+                  
                   Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd,
                                                                  params3gpp->m_channel,
                                                                  params3gpp->m_longTerm,
@@ -2746,22 +2835,19 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<Params3gpp> params3gpp,
             }
         }
     }
+
   NS_LOG_LOGIC ("maxTx " << maxTx << " txAntennaNum[1] " << (uint16_t)txAntennaNum[1]);
   NS_LOG_LOGIC ("max gain " << max << " maxTx " << (M_PI * (double)maxTx / (double)txAntennaNum[1] - 0.5 * M_PI) / (M_PI) * 180 << " maxRx " << (M_PI * (double)maxRx / (double)rxAntennaNum[1] - 0.5 * M_PI) / (M_PI) * 180 << " maxTxTheta " << maxTxTheta << " maxRxTheta " << maxRxTheta);
   txAntennaArray->SetSector (maxTx, txAntennaNum, maxTxTheta);
   rxAntennaArray->SetSector (maxRx, rxAntennaNum, maxRxTheta);
 
-  NS_LOG_LOGIC (this << " TxBeamId: " << AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ()) <<
-                " RxBeamId: " << AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ()));
+  txAntennaArray->SetBeamformingVector (txAntennaArray->GetCurrentBeamformingVector().first, txAntennaArray->GetCurrentBeamformingVector().second, rxDevice);
+  rxAntennaArray->SetBeamformingVector (rxAntennaArray->GetCurrentBeamformingVector().first, rxAntennaArray->GetCurrentBeamformingVector().second, txDevice);
 
-  params3gpp->m_txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
-  params3gpp->m_txBeamId = AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ());
-  params3gpp->m_rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
-  params3gpp->m_rxBeamId = AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ());
+  NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector().first.size()==0 || rxAntennaArray->GetCurrentBeamformingVector().first.size()==0, "Beamforming vectors must be initialized.");
 
-
-  txAntennaArray->SetBeamformingVector (params3gpp->m_txW, params3gpp->m_txBeamId, rxDevice);
-  rxAntennaArray->SetBeamformingVector (params3gpp->m_rxW, params3gpp->m_rxBeamId, txDevice);
+  NS_LOG_INFO (this << " TxBeamId: " << AntennaArrayBasicModel::GetBeamId (txAntennaArray->GetCurrentBeamformingVector ()) <<
+                        " RxBeamId: " << AntennaArrayBasicModel::GetBeamId (rxAntennaArray->GetCurrentBeamformingVector ()));
 }
 
 doubleVector_t
