@@ -57,7 +57,6 @@
 #include <ns3/mmwave-bearer-stats-calculator.h>
 #include <ns3/mmwave-bearer-stats-connector.h>
 #include <ns3/propagation-loss-model.h>
-#include <ns3/mmwave-channel-raytracing.h>
 #include <ns3/mmwave-3gpp-channel.h>
 #include <ns3/component-carrier-gnb.h>
 #include <ns3/component-carrier-mmwave-ue.h>
