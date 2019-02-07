@@ -254,8 +254,8 @@ MmWaveMacSchedulerOfdma::CreateDlDci (MmWaveMacSchedulerNs3::PointInFTPlane *spo
 {
   NS_LOG_FUNCTION (this);
 
-  uint32_t tbs = m_amc->GetTbSizeFromMcsSymbols (ueInfo->m_dlMcs,
-                                                 ueInfo->m_dlRBG * m_phyMacConfig->GetNumRbPerRbg ()) / 8;
+  uint32_t tbs = m_amc->CalculateTbSize (ueInfo->m_dlMcs,
+                                         ueInfo->m_dlRBG * m_phyMacConfig->GetNumRbPerRbg ());
   NS_ASSERT_MSG (ueInfo->m_dlRBG % maxSym == 0, " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
   NS_ASSERT (ueInfo->m_dlRBG <= maxSym * m_phyMacConfig->GetBandwidthInRbg ());
   NS_ABORT_IF (maxSym > UINT8_MAX);

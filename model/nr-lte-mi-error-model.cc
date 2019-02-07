@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License version 2 as
@@ -15,31 +14,17 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program; if not, write to the Free Software
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
 */
 
-
-#ifndef MMWAVE_MI_ERROR_MODEL_H
-#define MMWAVE_MI_ERROR_MODEL_H
-
-
-#include <list>
-#include <vector>
-#include <ns3/ptr.h>
-#include <stdint.h>
-#include <ns3/spectrum-value.h>
-#include "mmwave-harq-phy.h"
-
-
+#include <cmath>
+#include <algorithm>
+#include <ns3/log.h>
+#include "nr-lte-mi-error-model.h"
 
 namespace ns3 {
+
+NS_LOG_COMPONENT_DEFINE ("NrLteMiErrorModel");
+NS_OBJECT_ENSURE_REGISTERED (NrLteMiErrorModel);
 
 const uint16_t PDCCH_PCFICH_CURVE_SIZE = 46;
 const uint16_t MI_MAP_QPSK_SIZE = 797;
@@ -51,13 +36,6 @@ const uint16_t MI_64QAM_MAX_ID = 28;    // 29,30 and 31 are reserved
 const uint16_t MI_QPSK_BLER_MAX_ID = 12;   // MI_QPSK_MAX_ID + 3 RETX
 const uint16_t MI_16QAM_BLER_MAX_ID = 22;
 const uint16_t MI_64QAM_BLER_MAX_ID = 37;
-
-struct TbStats_t
-{
-  double tbler;
-  double mi;
-  double miTotal;
-};
 
 // global table of the effective code rates (ECR)s that have BLER performance curves
 static const double BlerCurvesEcrMap[38] = {
@@ -83,17 +61,7 @@ static const uint8_t McsEcrBlerTableMapping[29] = {
 static const double McsEcrTable [29] = {0.08, 0.1, 0.11, 0.15, 0.19, 0.24, 0.3, 0.37, 0.44, 0.51, 0.3, 0.33, 0.37, 0.42, 0.48, 0.54, 0.6, 0.43, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.89, 0.92
 };
 
-#if 0 // currently unused
-// Table with ECRs obtained with retransmissions with BLER curves
-static const double HarqRetxEcr[9] = {0.00064, 0.000512, 0.000041, 0.09, 0.027, 0.0081, 0.185, 0.079, 0.034
-};
-#endif
-
-#if 0 // currently unused
-static const int TbsIndex[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 11, 12, 13, 14, 15, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, -1, -1, -1};
-#endif
-
-static const uint16_t cbSizeTable[188] = {   // as K column of table 5.1.3-3 of TS 36,212
+static const std::vector<uint16_t> cbSizeTable = {   // as K column of table 5.1.3-3 of TS 36,212
 
   40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152,
   160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 264,
@@ -104,8 +72,11 @@ static const uint16_t cbSizeTable[188] = {   // as K column of table 5.1.3-3 of 
   928, 944, 960, 976, 992, 1008, 1024, 1056, 1088, 1120, 1152, 1184, 1216,
   1248, 1280, 1312, 1344, 1376, 1408, 1440, 1472, 1504, 1536, 1568, 1600,
   1632, 1664, 1696, 1728, 1760, 1792, 1824, 1856, 1888, 1920, 1952, 1984,
-  2016, 2048, 2112, 2176, 2240, 2304, 2368, 2432, 2496, 2560, 2624, 2688,    2752, 2816, 2880, 2944, 3008, 3072, 3136, 3200, 3264, 3328, 3392, 3456,
-  3520, 3584, 3648, 3712, 3776, 3840, 3904, 3968, 4032, 4096, 4160, 4224,    4288, 4352, 4416, 4480, 4544, 4608, 4672, 4736, 4800, 4864, 4928, 4992,    5056, 5120, 5184, 5248, 5312, 5376, 5440, 5504, 5568, 5632, 5696, 5760,
+  2016, 2048, 2112, 2176, 2240, 2304, 2368, 2432, 2496, 2560, 2624, 2688,
+  2752, 2816, 2880, 2944, 3008, 3072, 3136, 3200, 3264, 3328, 3392, 3456,
+  3520, 3584, 3648, 3712, 3776, 3840, 3904, 3968, 4032, 4096, 4160, 4224,
+  4288, 4352, 4416, 4480, 4544, 4608, 4672, 4736, 4800, 4864, 4928, 4992,
+  5056, 5120, 5184, 5248, 5312, 5376, 5440, 5504, 5568, 5632, 5696, 5760,
   5824, 5888, 5952, 6016, 6080, 6144
 };
 
@@ -139,9 +110,6 @@ static const double MI_map_64qam[MI_MAP_64QAM_SIZE] = {
 static const double MI_map_64qam_axis[MI_MAP_64QAM_SIZE] = {
   0.250000, 0.460000, 0.670000, 0.880000, 1.090000, 1.300000, 1.510000, 1.720000, 1.930000, 2.140000, 2.350000, 2.560000, 2.770000, 2.980000, 3.190000, 3.400000, 3.610000, 3.820000, 4.030000, 4.240000, 4.450000, 4.660000, 4.870000, 5.080000, 5.290000, 5.500000, 5.710000, 5.920000, 6.130000, 6.340000, 6.550000, 6.760000, 6.970000, 7.180000, 7.390000, 7.600000, 7.810000, 8.020000, 8.230000, 8.440000, 8.650000, 8.860000, 9.070000, 9.280000, 9.490000, 9.700000, 9.910000, 10.120000, 10.330000, 10.540000, 10.750000, 10.960000, 11.170000, 11.380000, 11.590000, 11.800000, 12.010000, 12.220000, 12.430000, 12.640000, 12.850000, 13.060000, 13.270000, 13.480000, 13.690000, 13.900000, 14.110000, 14.320000, 14.530000, 14.740000, 14.950000, 15.160000, 15.370000, 15.580000, 15.790000, 16.000000, 16.210000, 16.420000, 16.630000, 16.840000, 17.050000, 17.260000, 17.470000, 17.680000, 17.890000, 18.100000, 18.310000, 18.520000, 18.730000, 18.940000, 19.150000, 19.360000, 19.570000, 19.780000, 19.990000, 20.200000, 20.410000, 20.620000, 20.830000, 21.040000, 21.250000, 21.460000, 21.670000, 21.880000, 22.090000, 22.300000, 22.510000, 22.720000, 22.930000, 23.140000, 23.350000, 23.560000, 23.770000, 23.980000, 24.190000, 24.400000, 24.610000, 24.820000, 25.030000, 25.240000, 25.450000, 25.660000, 25.870000, 26.080000, 26.290000, 26.500000, 26.710000, 26.920000, 27.130000, 27.340000, 27.550000, 27.760000, 27.970000, 28.180000, 28.390000, 28.600000, 28.810000, 29.020000, 29.230000, 29.440000, 29.650000, 29.860000, 30.070000, 30.280000, 30.490000, 30.700000, 30.910000, 31.120000, 31.330000, 31.540000, 31.750000, 31.960000, 32.170000, 32.380000, 32.590000, 32.800000, 33.010000, 33.220000, 33.430000, 33.640000, 33.850000, 34.060000, 34.270000, 34.480000, 34.690000, 34.900000, 35.110000, 35.320000, 35.530000, 35.740000, 35.950000, 36.160000, 36.370000, 36.580000, 36.790000, 37.000000, 37.210000, 37.420000, 37.630000, 37.840000, 38.050000, 38.260000, 38.470000, 38.680000, 38.890000, 39.100000, 39.310000, 39.520000, 39.730000, 39.940000, 40.150000, 40.360000, 40.570000, 40.780000, 40.990000, 41.200000, 41.410000, 41.620000, 41.830000, 42.040000, 42.250000, 42.460000, 42.670000, 42.880000, 43.090000, 43.300000, 43.510000, 43.720000, 43.930000, 44.140000, 44.350000, 44.560000, 44.770000, 44.980000, 45.190000, 45.400000, 45.610000, 45.820000, 46.030000, 46.240000, 46.450000, 46.660000, 46.870000, 47.080000, 47.290000, 47.500000, 47.710000, 47.920000, 48.130000, 48.340000, 48.550000, 48.760000, 48.970000, 49.180000, 49.390000, 49.600000, 49.810000, 50.020000, 50.230000, 50.440000, 50.650000, 50.860000, 51.070000, 51.280000, 51.490000, 51.700000, 51.910000, 52.120000, 52.330000, 52.540000, 52.750000, 52.960000, 53.170000, 53.380000, 53.590000, 53.800000, 54.010000, 54.220000, 54.430000, 54.640000, 54.850000, 55.060000, 55.270000, 55.480000, 55.690000, 55.900000, 56.110000, 56.320000, 56.530000, 56.740000, 56.950000, 57.160000, 57.370000, 57.580000, 57.790000, 58.000000, 58.210000, 58.420000, 58.630000, 58.840000, 59.050000, 59.260000, 59.470000, 59.680000, 59.890000, 60.100000, 60.310000, 60.520000, 60.730000, 60.940000, 61.150000, 61.360000, 61.570000, 61.780000, 61.990000, 62.200000, 62.410000, 62.620000, 62.830000, 63.040000, 63.250000, 63.460000, 63.670000, 63.880000, 64.090000, 64.300000, 64.510000, 64.720000, 64.930000, 65.140000, 65.350000, 65.560000, 65.770000, 65.980000, 66.190000, 66.400000, 66.610000, 66.820000, 67.030000, 67.240000, 67.450000, 67.660000, 67.870000, 68.080000, 68.290000, 68.500000, 68.710000, 68.920000, 69.130000, 69.340000, 69.550000, 69.760000, 69.970000, 70.180000, 70.390000, 70.600000, 70.810000, 71.020000, 71.230000, 71.440000, 71.650000, 71.860000, 72.070000, 72.280000, 72.490000, 72.700000, 72.910000, 73.120000, 73.330000, 73.540000, 73.750000, 73.960000, 74.170000, 74.380000, 74.590000, 74.800000, 75.010000, 75.220000, 75.430000, 75.640000, 75.850000, 76.060000, 76.270000, 76.480000, 76.690000, 76.900000, 77.110000, 77.320000, 77.530000, 77.740000, 77.950000, 78.160000, 78.370000, 78.580000, 78.790000, 79.000000, 79.210000, 79.420000, 79.630000, 79.840000, 80.050000, 80.260000, 80.470000, 80.680000, 80.890000, 81.100000, 81.310000, 81.520000, 81.730000, 81.940000, 82.150000, 82.360000, 82.570000, 82.780000, 82.990000, 83.200000, 83.410000, 83.620000, 83.830000, 84.040000, 84.250000, 84.460000, 84.670000, 84.880000, 85.090000, 85.300000, 85.510000, 85.720000, 85.930000, 86.140000, 86.350000, 86.560000, 86.770000, 86.980000, 87.190000, 87.400000, 87.610000, 87.820000, 88.030000, 88.240000, 88.450000, 88.660000, 88.870000, 89.080000, 89.290000, 89.500000, 89.710000, 89.920000, 90.130000, 90.340000, 90.550000, 90.760000, 90.970000, 91.180000, 91.390000, 91.600000, 91.810000, 92.020000, 92.230000, 92.440000, 92.650000, 92.860000, 93.070000, 93.280000, 93.490000, 93.700000, 93.910000, 94.120000, 94.330000, 94.540000, 94.750000, 94.960000, 95.170000, 95.380000, 95.590000, 95.800000, 96.010000, 96.220000, 96.430000, 96.640000, 96.850000, 97.060000, 97.270000, 97.480000, 97.690000, 97.900000, 98.110000, 98.320000, 98.530000, 98.740000, 98.950000, 99.160000, 99.370000, 99.580000, 99.790000, 100.000000, 100.210000, 100.420000, 100.630000, 100.840000, 101.050000, 101.260000, 101.470000, 101.680000, 101.890000, 102.100000, 102.310000, 102.520000, 102.730000, 102.940000, 103.150000, 103.360000, 103.570000, 103.780000, 103.990000, 104.200000, 104.410000, 104.620000, 104.830000, 105.040000, 105.250000, 105.460000, 105.670000, 105.880000, 106.090000, 106.300000, 106.510000, 106.720000, 106.930000, 107.140000, 107.350000, 107.560000, 107.770000, 107.980000, 108.190000, 108.400000, 108.610000, 108.820000, 109.030000, 109.240000, 109.450000, 109.660000, 109.870000, 110.080000, 110.290000, 110.500000, 110.710000, 110.920000, 111.130000, 111.340000, 111.550000, 111.760000, 111.970000, 112.180000, 112.390000, 112.600000, 112.810000, 113.020000, 113.230000, 113.440000, 113.650000, 113.860000, 114.070000, 114.280000, 114.490000, 114.700000, 114.910000, 115.120000, 115.330000, 115.540000, 115.750000, 115.960000, 116.170000, 116.380000, 116.590000, 116.800000, 117.010000, 117.220000, 117.430000, 117.640000, 117.850000, 118.060000, 118.270000, 118.480000, 118.690000, 118.900000, 119.110000, 119.320000, 119.530000, 119.740000, 119.950000, 120.160000, 120.370000, 120.580000, 120.790000, 121.000000, 121.210000, 121.420000, 121.630000, 121.840000, 122.050000, 122.260000, 122.470000, 122.680000, 122.890000, 123.100000, 123.310000, 123.520000, 123.730000, 123.940000, 124.150000, 124.360000, 124.570000, 124.780000, 124.990000, 125.200000, 125.410000, 125.620000, 125.830000, 126.040000, 126.250000, 126.460000, 126.670000, 126.880000, 127.090000, 127.300000, 127.510000, 127.720000, 127.930000, 128.140000, 128.350000, 128.560000, 128.770000, 128.980000, 129.190000, 129.400000, 129.610000, 129.820000, 130.030000, 130.240000, 130.450000, 130.660000, 130.870000, 131.080000, 131.290000, 131.500000, 131.710000, 131.920000, 132.130000, 132.340000, 132.550000, 132.760000, 132.970000, 133.180000, 133.390000, 133.600000, 133.810000, 134.020000, 134.230000, 134.440000, 134.650000, 134.860000, 135.070000, 135.280000, 135.490000, 135.700000, 135.910000, 136.120000, 136.330000, 136.540000, 136.750000, 136.960000, 137.170000, 137.380000, 137.590000, 137.800000, 138.010000, 138.220000, 138.430000, 138.640000, 138.850000, 139.060000, 139.270000, 139.480000, 139.690000, 139.900000, 140.110000, 140.320000, 140.530000, 140.740000, 140.950000, 141.160000, 141.370000, 141.580000, 141.790000, 142.000000, 142.210000, 142.420000, 142.630000, 142.840000, 143.050000, 143.260000, 143.470000, 143.680000, 143.890000, 144.100000, 144.310000, 144.520000, 144.730000, 144.940000, 145.150000, 145.360000, 145.570000, 145.780000, 145.990000, 146.200000, 146.410000, 146.620000, 146.830000, 147.040000, 147.250000, 147.460000, 147.670000, 147.880000, 148.090000, 148.300000, 148.510000, 148.720000, 148.930000, 149.140000, 149.350000, 149.560000, 149.770000, 149.980000, 150.190000, 150.400000, 150.610000, 150.820000, 151.030000, 151.240000, 151.450000, 151.660000, 151.870000, 152.080000, 152.290000, 152.500000, 152.710000, 152.920000, 153.130000, 153.340000, 153.550000, 153.760000, 153.970000, 154.180000, 154.390000, 154.600000, 154.810000, 155.020000, 155.230000, 155.440000, 155.650000, 155.860000, 156.070000, 156.280000, 156.490000, 156.700000, 156.910000, 157.120000, 157.330000, 157.540000, 157.750000, 157.960000
 };
-
-
-
 
 static const double bEcrTable [9][38] = {
 // CB of 40 bits
@@ -310,51 +278,422 @@ static const double cEcrTable [9][38] = {
     0.00303, 0.00377, 0.00507, // 64QAM retx
     0.0060, 0.00609, 0.0061, 0.0066, 0.0069, 0.0080, 0.0081, 0.0080, 0.0077, 0.0068, 0.0066, 0.0058 // 64QAM
   }
-
 };
 
-/**
- * This class provides the BLER estimation based on mutual information metrics
- */
-class MmWaveMiErrorModel
+static const double SpectralEfficiencyForCqi[16] = {
+  0.0,     // out of range
+  0.15, 0.23, 0.38, 0.6, 0.88, 1.18,
+  1.48, 1.91, 2.41,
+  2.73, 3.32, 3.9, 4.52, 5.12, 5.55
+};
+
+static const double SpectralEfficiencyForMcs[32] = {
+  0.15, 0.19, 0.23, 0.31, 0.38, 0.49, 0.6, 0.74, 0.88, 1.03, 1.18,
+  1.33, 1.48, 1.7, 1.91, 2.16, 2.41, 2.57,
+  2.73, 3.03, 3.32, 3.61, 3.9, 4.21, 4.52, 4.82, 5.12, 5.33, 5.55,
+  0, 0, 0
+};
+
+static const uint8_t ModulationSchemeForMcs[32] = {
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  4, 4, 4, 4, 4, 4, 4,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+  2,      // reserved
+  4,      // reserved
+  6,      // reserved
+};
+
+NrLteMiErrorModel::NrLteMiErrorModel () : NrErrorModel ()
 {
+  NS_LOG_FUNCTION (this);
+}
 
-public:
-  /**
-   * \brief find the mmib (mean mutual information per bit) for different modulations of the specified TB
-   * \param sinr the perceived sinrs in the whole bandwidth
-   * \param map the actives RBs for the TB
-   * \param mcs the MCS of the TB
-   * \return the mmib
-   */
-  static double Mib (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs);
-  /**
-   * \brief map the mmib (mean mutual information per bit) for different MCS
-   * \param mib mean mutual information per bit of a code-block
-   * \param ecrId Effective Code Rate ID
-   * \param cbSize the size of the CB
-   * \return the code block error rate
-   */
-  static double MappingMiBler (double mib, uint8_t ecrId, uint32_t cbSize);
+NrLteMiErrorModel::~NrLteMiErrorModel ()
+{
+  NS_LOG_FUNCTION (this);
+}
 
-  /**
-   * \brief run the error-model algorithm for the specified TB
-   * \param sinr the perceived sinrs in the whole bandwidth
-   * \param map the actives RBs for the TB
-   * \param size the size in bytes of the TB
-   * \param mcs the MCS of the TB
-   * \return the TB error rate and MI
-   */
-  static TbStats_t GetTbDecodificationStats (const SpectrumValue& sinr, const std::vector<int>& map, uint32_t size, uint8_t mcs, MmWaveHarqProcessInfoList_t miHistory);
+TypeId
+NrLteMiErrorModel::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::NrLteMiErrorModel")
+    .SetParent<NrErrorModel> ()
+    .AddConstructor<NrLteMiErrorModel> ()
+  ;
+  return tid;
+}
+
+TypeId
+NrLteMiErrorModel::GetInstanceTypeId() const
+{
+  return NrLteMiErrorModel::GetTypeId ();
+}
+
+double
+NrLteMiErrorModel::Mib (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs)
+{
+  NS_LOG_FUNCTION (sinr << &map << (uint32_t) mcs);
+
+  double MI;
+  double MIsum = 0.0;
+  SpectrumValue sinrCopy = sinr;
+
+  for (uint32_t i = 0; i < map.size (); i++)
+    {
+      double sinrLin = sinrCopy[map.at (i)];
+      if (mcs <= MI_QPSK_MAX_ID) // QPSK
+        {
+
+          if (sinrLin > MI_map_qpsk_axis[MI_MAP_QPSK_SIZE - 1])
+            {
+              MI = 1;
+            }
+          else
+            {
+              // since the values in MI_map_qpsk_axis are uniformly spaced, we have
+              // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
+              // the scaling coefficient is always the same, so we use a static const
+              // to speed up the calculation
+              static const double scalingCoeffQpsk =
+                (MI_MAP_QPSK_SIZE - 1) / (MI_map_qpsk_axis[MI_MAP_QPSK_SIZE - 1] - MI_map_qpsk_axis[0]);
+              double sinrIndexDouble = (sinrLin -  MI_map_qpsk_axis[0]) * scalingCoeffQpsk + 1;
+              uint32_t sinrIndex = std::max (0.0, std::floor (sinrIndexDouble));
+              NS_ASSERT_MSG (sinrIndex < MI_MAP_QPSK_SIZE, "MI map out of data");
+              MI = MI_map_qpsk[sinrIndex];
+            }
+        }
+      else
+        {
+          if (mcs > MI_QPSK_MAX_ID && mcs <= MI_16QAM_MAX_ID )  // 16-QAM
+            {
+              if (sinrLin > MI_map_16qam_axis[MI_MAP_16QAM_SIZE - 1])
+                {
+                  MI = 1;
+                }
+              else
+                {
+                  // since the values in MI_map_16QAM_axis are uniformly spaced, we have
+                  // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
+                  // the scaling coefficient is always the same, so we use a static const
+                  // to speed up the calculation
+                  static const double scalingCoeff16qam =
+                    (MI_MAP_16QAM_SIZE - 1) / (MI_map_16qam_axis[MI_MAP_16QAM_SIZE - 1] - MI_map_16qam_axis[0]);
+                  double sinrIndexDouble = (sinrLin -  MI_map_16qam_axis[0]) * scalingCoeff16qam + 1;
+                  uint32_t sinrIndex = std::max (0.0, std::floor (sinrIndexDouble));
+                  NS_ASSERT_MSG (sinrIndex < MI_MAP_16QAM_SIZE, "MI map out of data");
+                  MI = MI_map_16qam[sinrIndex];
+                }
+            }
+          else // 64-QAM
+            {
+              if (sinrLin > MI_map_64qam_axis[MI_MAP_64QAM_SIZE - 1])
+                {
+                  MI = 1;
+                }
+              else
+                {
+                  // since the values in MI_map_64QAM_axis are uniformly spaced, we have
+                  // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
+                  // the scaling coefficient is always the same, so we use a static const
+                  // to speed up the calculation
+                  static const double scalingCoeff64qam =
+                    (MI_MAP_64QAM_SIZE - 1) / (MI_map_64qam_axis[MI_MAP_64QAM_SIZE - 1] - MI_map_64qam_axis[0]);
+                  double sinrIndexDouble = (sinrLin -  MI_map_64qam_axis[0]) * scalingCoeff64qam + 1;
+                  uint32_t sinrIndex = std::max (0.0, std::floor (sinrIndexDouble));
+                  NS_ASSERT_MSG (sinrIndex < MI_MAP_64QAM_SIZE, "MI map out of data");
+                  MI = MI_map_64qam[sinrIndex];
+                }
+            }
+        }
+      NS_LOG_LOGIC (" RB " << map.at (i) << "Minimum SNR = " << 10 * std::log10 (sinrLin) << " dB, " << sinrLin << " V, MCS = " << (uint16_t)mcs << ", MI = " << MI);
+      MIsum += MI;
+    }
+  if (map.size () == 0)
+    {
+      MI = 0;
+    }
+  else
+    {
+      MI = MIsum / map.size ();
+    }
+
+  NS_LOG_LOGIC (" MI = " << MI);
+  return MI;
+}
 
 
-//private:
+double
+NrLteMiErrorModel::MappingMiBler (double mib, uint8_t ecrId, uint32_t cbSize)
+{
+  NS_LOG_FUNCTION (mib << (uint32_t) ecrId << (uint32_t) cbSize);
+  double b = 0;
+  double c = 0;
 
+  NS_ASSERT_MSG (ecrId <= MI_64QAM_BLER_MAX_ID, "ECR out of range [0..37]: " << (uint16_t) ecrId);
+  int cbIndex = 1;
+  while ((cbIndex < 9)&&(cbMiSizeTable[cbIndex] <= cbSize))
+    {
+      cbIndex++;
+    }
+  cbIndex--;
+  NS_LOG_LOGIC (" ECRid " << (uint16_t)ecrId << " ECR " << BlerCurvesEcrMap[ecrId] << " CB size " << cbSize << " CB size curve " << cbMiSizeTable[cbIndex]);
 
+  b = bEcrTable[cbIndex][ecrId];
+  if (b < 0.0)
+    {
+      //take the lowest CB size including this CB for removing CB size
+      //quatization errors
+      int i = cbIndex;
+      while ((i < 9)&&(b < 0))
+        {
+          b = bEcrTable[i++][ecrId];
+        }
+    }
+  c = cEcrTable[cbIndex][ecrId];
+  if (c < 0.0)
+    {
+      //take the lowest CB size including this CB for removing CB size
+      //quatization errors
+      int i = cbIndex;
+      while ((i < 9)&&(c < 0))
+        {
+          c = cEcrTable[i++][ecrId];
+        }
+    }
+  // see IEEE802.16m EMD formula 55 of section 4.3.2.1
+  double bler = 0.5 * ( 1 - erf ((mib - b) / (sqrt (2) * c)) );
+  NS_LOG_LOGIC ("MIB: " << mib << " BLER:" << bler << " b:" << b << " c:" << c);
+  return bler;
+}
 
-};
+Ptr<NrErrorModelOutput>
+NrLteMiErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr,
+                                             const std::vector<int>& map,
+                                             uint32_t size, uint8_t mcs,
+                                             const NrErrorModel::NrErrorModelHistory &history)
+{
+  return GetTbBitDecodificationStats (sinr, map, size * 8, mcs, history);
+}
 
+Ptr<NrErrorModelOutput>
+NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
+                                                const std::vector<int>& map,
+                                                uint32_t size, uint8_t mcs,
+                                                const NrErrorModel::NrErrorModelHistory &history)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_IF (mcs > GetMaxMcs (),
+                   "MiErrorModel only works with MCS <= 28");
+
+  double tbMi = Mib (sinr, map, mcs);
+  double MI = tbMi;
+  double Reff = 0.0;
+  uint32_t infoBits = 0;
+
+  if (history.size () > 0)
+    {
+      uint32_t codeBitsSum = 0;
+      double miSum = 0.0;
+
+      for (const Ptr<NrErrorModelOutput> & output : history)
+        {
+          Ptr<NrLteMiErrorModelOutput> miHistory = DynamicCast<NrLteMiErrorModelOutput> (output);
+          NS_ASSERT (miHistory != nullptr);
+
+          NS_LOG_DEBUG (" Sum MI " << miHistory->m_mi << " Ci " << miHistory->m_codeBits <<
+                        " infoBits: " << miHistory->m_infoBits);
+
+          codeBitsSum += miHistory->m_codeBits;
+          miSum += (miHistory->m_mi * miHistory->m_codeBits);
+          infoBits = miHistory->m_infoBits;
+        }
+
+      codeBitsSum += size / McsEcrTable [mcs];
+      miSum += tbMi * (size / McsEcrTable [mcs]);
+      Reff = infoBits / static_cast<double> (codeBitsSum); // information bits are the size of the first TB
+      MI = miSum / static_cast<double> (codeBitsSum);
+    }
+
+  NS_LOG_DEBUG (" MI " << MI << " Reff " << Reff << " HARQ " << history.size ());
+
+  // estimate CB size (according to sec 5.1.2 of TS 36.212)
+  uint16_t Z = 6144; // max size of a codeblock (including CRC)
+  uint32_t B = size;
+//   B = 1234;
+  uint32_t L = 0;
+  uint32_t C = 0; // no. of codeblocks
+  uint32_t Cplus = 0; // no. of codeblocks with size K+
+  uint32_t Kplus = 0; // no. of codeblocks with size K+
+  uint32_t Cminus = 0; // no. of codeblocks with size K+
+  uint32_t Kminus = 0; // no. of codeblocks with size K+
+  uint32_t B1 = 0;
+  uint32_t deltaK = 0;
+  if (B <= Z)
+    {
+      // only one codeblock
+      L = 0;
+      C = 1;
+      B1 = B;
+    }
+  else
+    {
+      L = 24;
+      C = static_cast<uint32_t> (ceil (static_cast<double> (B) / (static_cast<double> (Z - L))));
+      B1 = B + C * L;
+    }
+
+  // first segmentation: K+ = minimum K in table such that C * K >= B1
+
+  // Returns an iterator pointing to the first element in the range [first,last)
+  // which compares greater than the third parameter.
+  std::vector<uint16_t>::const_iterator KplusIt = std::upper_bound (cbSizeTable.begin (), cbSizeTable.end (), (static_cast<double> (B1) / C) + 0.001);
+  Kplus = *KplusIt;
+
+  if (C == 1)
+    {
+      Cplus = 1;
+      Cminus = 0;
+      Kminus = 0;
+    }
+  else
+    {
+      auto KMinusIt = KplusIt;
+      // second segmentation size: K- = maximum K in table such that K < K+
+      Kminus = (KMinusIt == cbSizeTable.begin ()) ? *KMinusIt : *(KMinusIt--);
+      NS_ASSERT (Kplus >= Kminus);
+      deltaK = Kplus - Kminus;
+      Cminus = floor ((((double) C * Kplus) - (double)B1) / (double)deltaK);
+      Cplus = C - Cminus;
+    }
+  NS_LOG_INFO ("TB size of " << B << " needs of " << B1 <<
+               " bits reparted in " << C << " CBs as " << Cplus <<
+               " block(s) of " << Kplus << " and " << Cminus <<
+               " of " << Kminus);
+
+  double errorRate = 1.0;
+  uint8_t ecrId = 0;
+  if (history.size () == 0)
+    {
+      // first tx -> get ECR from MCS
+      ecrId = McsEcrBlerTableMapping[mcs];
+      NS_LOG_DEBUG ("NO HARQ MCS " << static_cast<uint16_t> (mcs) <<
+                    " ECR id " << static_cast<uint16_t> (ecrId));
+    }
+  else
+    {
+      NS_LOG_DEBUG ("HARQ block no. " << history.size ());
+      // harq retx -> get closest ECR to Reff from available ones
+      if (mcs <= MI_QPSK_MAX_ID)
+        {
+          // Modulation order 2
+          uint8_t i = MI_QPSK_MAX_ID;
+          while ((BlerCurvesEcrMap[i] > Reff)&&(i > 0))
+            {
+              i--;
+            }
+          ecrId = i;
+        }
+      else if (mcs <= MI_16QAM_MAX_ID)
+        {
+          // Modulation order 4
+          uint8_t i = MI_16QAM_MAX_ID;
+          while ((BlerCurvesEcrMap[i] > Reff)&&(i > MI_QPSK_MAX_ID + 1))
+            {
+              i--;
+            }
+          ecrId = i;
+        }
+      else
+        {
+          // Modulation order 6
+          uint8_t i = MI_64QAM_MAX_ID;
+          while ((BlerCurvesEcrMap[i] > Reff)&&(i > MI_16QAM_MAX_ID + 1))
+            {
+              i--;
+            }
+          ecrId = i;
+        }
+      NS_LOG_DEBUG ("HARQ ECR " << static_cast<uint16_t> (ecrId));
+    }
+
+  if (C != 1)
+    {
+      double cbler = MappingMiBler (MI, ecrId, Kplus);
+      errorRate *= pow (1.0 - cbler, Cplus);
+      cbler = MappingMiBler (MI, ecrId, Kminus);
+      errorRate *= pow (1.0 - cbler, Cminus);
+      errorRate = 1.0 - errorRate;
+    }
+  else
+    {
+      errorRate = MappingMiBler (MI, ecrId, Kplus);
+    }
+
+  NS_LOG_LOGIC (" Error rate " << errorRate);
+  Ptr<NrLteMiErrorModelOutput> ret = Create<NrLteMiErrorModelOutput> (errorRate);
+  ret->m_mi = tbMi;
+  ret->m_miTotal = MI;
+  ret->m_infoBits = size;
+  if (history.size () > 0)
+    {
+      ret->m_codeBits = size / Reff;
+    }
+  else
+    {
+      ret->m_codeBits = static_cast<uint32_t> (size / (BlerCurvesEcrMap[ecrId]));
+    }
+
+  return ret;
+}
+
+double
+NrLteMiErrorModel::GetSpectralEfficiencyForCqi (uint8_t cqi)
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_ABORT_MSG_UNLESS (cqi >= 0 && cqi <= 15, "CQI must be in [0..15] = " << cqi);
+  return SpectralEfficiencyForCqi[cqi];
+}
+
+double
+NrLteMiErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (mcs > GetMaxMcs ());
+
+  return SpectralEfficiencyForMcs[mcs];
+}
+
+uint32_t
+NrLteMiErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum) const
+{
+  NS_LOG_FUNCTION (this);
+  const uint32_t rscElement = usefulSC * rbNum;
+  const double Rcode = McsEcrTable[mcs];
+  const uint8_t Qm = ModulationSchemeForMcs[mcs];
+  const double spectralEfficiency = rscElement * Qm * Rcode;
+
+  NS_LOG_INFO (" mcs:" << mcs <<
+               " subcarriers" << usefulSC <<
+               " rsc element:" << rscElement);
+
+  return static_cast<uint32_t> (spectralEfficiency / 8);
+}
+
+uint32_t
+NrLteMiErrorModel::GetMaxCbSize (uint32_t tbSize, uint8_t mcs) const
+{
+  NS_UNUSED (tbSize);
+  NS_UNUSED (mcs);
+
+  return cbSizeTable.back () / 8;
+}
+
+uint8_t
+NrLteMiErrorModel::GetMaxMcs ()
+{
+  return 28;
+}
 
 } // namespace ns3
 
-#endif /* MMWAVE_MI_ERROR_MODEL_H */

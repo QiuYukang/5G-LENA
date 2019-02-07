@@ -32,7 +32,7 @@
 #include <ns3/mmwave-phy.h>
 #include "mmwave-phy-mac-common.h"
 #include <ns3/ptr.h>
-#include "mmwave-amc.h"
+#include "nr-amc.h"
 #include <map>
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
@@ -156,7 +156,7 @@ private:
   LteUeCphySapProvider* m_ueCphySapProvider;
   LteUeCphySapUser* m_ueCphySapUser;
 
-  Ptr<MmWaveAmc> m_amc;
+  Ptr<NrAmc> m_amc;
   std::vector <int> m_subChannelsforRx;
 
   uint32_t m_numRbg;

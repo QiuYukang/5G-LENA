@@ -107,7 +107,7 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
   NS_LOG_FUNCTION (this << config);
   m_phyMacConfig = config;
 
-  m_amc = CreateObject<MmWaveAmc> (config);
+  m_amc = CreateObject<NrAmc> (config);
   m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
                                              m_startMcsDl, m_startMcsUl);
 
@@ -134,7 +134,7 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
   for (uint32_t mcs = 0; mcs < 29; ++mcs)
     {
       std::stringstream ss;
-      ss << "\nMCS " << mcs << " TBS 1 RBG " << m_amc->GetTbSizeFromMcsSymbols(mcs, m_phyMacConfig->GetNumRbPerRbg ()) << " 1 sym " << m_amc->GetTbSizeFromMcsSymbols(mcs, m_phyMacConfig->GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ());
+      ss << "\nMCS " << mcs << " TBS 1 RBG " << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg ()) << " 1 sym " << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ());
       tbs += ss.str ();
     }
   NS_LOG_DEBUG (tbs);
@@ -563,8 +563,8 @@ MmWaveMacSchedulerNs3::DoSchedUlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
                 NS_ASSERT (allocation.m_numSym > 0);
                 NS_ASSERT (allocation.m_tbs > 0);
 
-                m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_numSym,
-                                                 allocation.m_tbs, params, UeInfoOf (*itUe));
+                m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_tbs,
+                                                 params, UeInfoOf (*itUe));
                 found = true;
                 ulAllocations.erase (it);
                 break;
@@ -1350,8 +1350,8 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
           ue->m_ulRBG += m_phyMacConfig->GetBandwidthInRbg ();
 
           assignedSym++;
-          tbs = m_amc->GetTbSizeFromMcsSymbols (ue->m_ulMcs,
-                                                ue->m_ulRBG * m_phyMacConfig->GetNumRbPerRbg ()) / 8;
+          tbs = m_amc->CalculateTbSize (ue->m_ulMcs,
+                                        ue->m_ulRBG * m_phyMacConfig->GetNumRbPerRbg ());
         }
       while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
 

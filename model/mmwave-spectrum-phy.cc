@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -15,27 +14,16 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                        Sourjya Dutta <sdutta@nyu.edu>
- *                        Russell Ford <russell.ford@nyu.edu>
- *                        Menglei Zhang <menglei@nyu.edu>
  */
 
-
+#include "mmwave-spectrum-phy.h"
 
 #include <ns3/object-factory.h>
 #include <ns3/log.h>
-#include <ns3/ptr.h>
 #include <ns3/boolean.h>
 #include <cmath>
-#include <ns3/simulator.h>
 #include <ns3/trace-source-accessor.h>
 #include <ns3/antenna-model.h>
-#include "mmwave-spectrum-phy.h"
 #include "mmwave-phy-mac-common.h"
 #include <ns3/mmwave-enb-net-device.h>
 #include <ns3/mmwave-ue-net-device.h>
@@ -43,46 +31,14 @@
 #include "mmwave-radio-bearer-tag.h"
 #include <stdio.h>
 #include <ns3/double.h>
-#include <ns3/mmwave-mi-error-model.h>
 #include "mmwave-mac-pdu-tag.h"
+#include "nr-lte-mi-error-model.h"
+#include <functional>
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveSpectrumPhy");
-
 NS_OBJECT_ENSURE_REGISTERED (MmWaveSpectrumPhy);
-
-static const double EffectiveCodingRate[29] = {
-  0.08,
-  0.1,
-  0.11,
-  0.15,
-  0.19,
-  0.24,
-  0.3,
-  0.37,
-  0.44,
-  0.51,
-  0.3,
-  0.33,
-  0.37,
-  0.42,
-  0.48,
-  0.54,
-  0.6,
-  0.43,
-  0.45,
-  0.5,
-  0.55,
-  0.6,
-  0.65,
-  0.7,
-  0.75,
-  0.8,
-  0.85,
-  0.89,
-  0.92
-};
 
 MmWaveSpectrumPhy::MmWaveSpectrumPhy ()
   : SpectrumPhy (),
@@ -124,6 +80,11 @@ MmWaveSpectrumPhy::GetTypeId (void)
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWaveSpectrumPhy::m_dataErrorModelEnabled),
                    MakeBooleanChecker ())
+    .AddAttribute ("ErrorModelType",
+                   "Type of the Error Model to apply to TBs of PDSCH and PUSCH",
+                   TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
+                   MakeTypeIdAccessor (&MmWaveSpectrumPhy::m_errorModelType),
+                   MakeTypeIdChecker ())
   ;
 
   return tid;
@@ -240,20 +201,21 @@ MmWaveSpectrumPhy::SetPhyRxCtrlEndOkCallback (MmWavePhyRxCtrlEndOkCallback c)
 
 void
 MmWaveSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t mcs,
-                                  std::vector<int> rbMap, uint8_t harqId, uint8_t rv, bool downlink,
+                                  const std::vector<int> &rbMap, uint8_t harqId, uint8_t rv, bool downlink,
                                   uint8_t symStart, uint8_t numSym)
 {
-  //layer = layer;
-  ExpectedTbMap_t::iterator it;
-  it = m_expectedTbs.find (rnti);
-  if (it != m_expectedTbs.end ())
+  NS_LOG_FUNCTION (this);
+  auto it = m_transportBlocks.find (rnti);
+  if (it != m_transportBlocks.end ())
     {
-      m_expectedTbs.erase (it);
+      // migth be a TB of an unreceived packet (due to high progpalosses)
+      m_transportBlocks.erase (it);
     }
-  // insert new entry
-  //ExpectedTbInfo_t tbInfo = {ndi, size, mcs, rbMap, harqId, rv, 0.0, downlink, false, false, 0};
-  ExpectedTbInfo_t tbInfo = {ndi, size, mcs, rbMap, harqId, rv, 0.0, downlink, false, false, 0, symStart, numSym};
-  m_expectedTbs.insert (std::pair<uint16_t, ExpectedTbInfo_t> (rnti,tbInfo));
+
+  m_transportBlocks.emplace (std::make_pair(rnti, TransportBlockInfo(ExpectedTb (ndi, size, mcs,
+                                                                                rbMap, harqId, rv,
+                                                                                downlink, symStart,
+                                                                                numSym))));
 }
 
 void
@@ -273,7 +235,6 @@ MmWaveSpectrumPhy::SetPhyUlHarqFeedbackCallback (MmWavePhyUlHarqFeedbackCallback
 void
 MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 {
-
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveEnbNetDevice> EnbTx =
@@ -351,9 +312,9 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 void
 MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> params)
 {
-  m_interferenceData->StartRx (params->psd);
-
   NS_LOG_FUNCTION (this);
+
+  m_interferenceData->StartRx (params->psd);
 
   Ptr<MmWaveEnbNetDevice> enbRx =
     DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
@@ -498,6 +459,7 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
 void
 MmWaveSpectrumPhy::EndRxData ()
 {
+  NS_LOG_FUNCTION (this);
   m_interferenceData->EndRx ();
 
   double sinrAvg = Sum (m_sinrPerceived) / (m_sinrPerceived.GetSpectrumModel ()->GetNumBands ());
@@ -514,196 +476,213 @@ MmWaveSpectrumPhy::EndRxData ()
   Ptr<MmWaveUeNetDevice> ueRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
 
   NS_ASSERT (m_state = RX_DATA);
-  ExpectedTbMap_t::iterator itTb = m_expectedTbs.begin ();
-  while (itTb != m_expectedTbs.end ())
-    {
-      if ((m_dataErrorModelEnabled)&&(m_rxPacketBurstList.size () > 0))
-        {
-          MmWaveHarqProcessInfoList_t harqInfoList;
-          uint8_t rv = 0;
-          if (itTb->second.ndi == 0)
-            {
-              // TB retxed: retrieve HARQ history
-              if (itTb->second.downlink)
-                {
-                  harqInfoList = m_harqPhyModule->GetHarqProcessInfoDl (itTb->first, itTb->second.harqProcessId);
-                }
-              else
-                {
-                  harqInfoList = m_harqPhyModule->GetHarqProcessInfoUl (itTb->first, itTb->second.harqProcessId);
-                }
-              if (harqInfoList.size () > 0)
-                {
-                  rv = harqInfoList.back ().m_rv;
-                }
-            }
 
-          TbStats_t tbStats = MmWaveMiErrorModel::GetTbDecodificationStats (m_sinrPerceived,
-                                                                            itTb->second.rbBitmap, itTb->second.size, itTb->second.mcs, harqInfoList);
-          itTb->second.tbler = tbStats.tbler;
-          itTb->second.mi = tbStats.miTotal;
-          itTb->second.corrupt = m_random->GetValue () > tbStats.tbler ? false : true;
-          if (itTb->second.corrupt)
-            {
-              NS_LOG_INFO (this << " RNTI " << itTb->first << " size " << itTb->second.size << " mcs " << (uint32_t)itTb->second.mcs << " bitmap " << itTb->second.rbBitmap.size () << " rv " << rv << " TBLER " << tbStats.tbler << " corrupted " << itTb->second.corrupt);
-            }
+  GetSecond GetTBInfo;
+  GetFirst GetRnti;
+
+  for (auto &tbIt : m_transportBlocks)
+    {
+      if ((!m_dataErrorModelEnabled) || (m_rxPacketBurstList.empty ()))
+        {
+          continue;
         }
-      itTb++;
+
+      uint32_t rv = 0;
+
+      std::function < const NrErrorModel::NrErrorModelHistory & (uint16_t, uint8_t) > RetrieveHistory;
+
+      if (GetTBInfo (tbIt).m_expected.m_isDownlink)
+        {
+          RetrieveHistory = std::bind (&MmWaveHarqPhy::GetHarqProcessInfoDl, m_harqPhyModule,
+                                       std::placeholders::_1, std::placeholders::_2);
+        }
+      else
+        {
+          RetrieveHistory = std::bind (&MmWaveHarqPhy::GetHarqProcessInfoUl, m_harqPhyModule,
+                                       std::placeholders::_1, std::placeholders::_2);
+        }
+
+      const NrErrorModel::NrErrorModelHistory & harqInfoList = RetrieveHistory (GetRnti (tbIt),
+                                                                                GetTBInfo (tbIt).m_expected.m_harqProcessId);
+
+      if (harqInfoList.size () > 0)
+        {
+          rv = static_cast<uint32_t> (harqInfoList.size ());
+        }
+      NS_ABORT_MSG_IF (!m_errorModelType.IsChildOf(NrErrorModel::GetTypeId()),
+                       "The error model must be a child of NrErrorModel");
+
+      ObjectFactory emFactory;
+      emFactory.SetTypeId (m_errorModelType);
+      Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
+      NS_ABORT_IF (em == nullptr);
+
+      // Output is the output of the error model. From the TBLER we decide
+      // if the entire TB is corrupted or not
+
+      GetTBInfo(tbIt).m_outputOfEM = em->GetTbDecodificationStats (m_sinrPerceived,
+                                                                   GetTBInfo(tbIt).m_expected.m_rbBitmap,
+                                                                   GetTBInfo(tbIt).m_expected.m_tbSize,
+                                                                   GetTBInfo(tbIt).m_expected.m_mcs,
+                                                                   harqInfoList);
+      GetTBInfo (tbIt).m_isCorrupted = m_random->GetValue () > GetTBInfo(tbIt).m_outputOfEM->m_tbler ? false : true;
+
+      if (GetTBInfo (tbIt).m_isCorrupted)
+        {
+          NS_LOG_INFO (" RNTI " << GetRnti (tbIt) << " size " <<
+                       GetTBInfo (tbIt).m_expected.m_tbSize << " mcs " <<
+                       (uint32_t)GetTBInfo (tbIt).m_expected.m_mcs << " bitmap " <<
+                       GetTBInfo (tbIt).m_expected.m_rbBitmap.size () << " rv " << rv <<
+                       " TBLER " << GetTBInfo(tbIt).m_outputOfEM->m_tbler << " corrupted " <<
+                       GetTBInfo (tbIt).m_isCorrupted);
+        }
+
     }
 
   std::map <uint16_t, DlHarqInfo> harqDlInfoMap;
-  for (std::list<Ptr<PacketBurst> >::const_iterator i = m_rxPacketBurstList.begin ();
-       i != m_rxPacketBurstList.end (); ++i)
+
+  for (auto packetBurst : m_rxPacketBurstList)
     {
-      for (std::list<Ptr<Packet> >::const_iterator j = (*i)->Begin (); j != (*i)->End (); ++j)
+      uint16_t rnti = 0;
+      for (auto packet : packetBurst->GetPackets ())
         {
-          if ((*j)->GetSize () == 0)
+          if (packet->GetSize () == 0)
             {
               continue;
             }
 
           LteRadioBearerTag bearerTag;
-          if ((*j)->PeekPacketTag (bearerTag) == false)
+          if (packet->PeekPacketTag (bearerTag) == false)
             {
               NS_FATAL_ERROR ("No radio bearer tag found");
             }
-          uint16_t rnti = bearerTag.GetRnti ();
-          itTb = m_expectedTbs.find (rnti);
-          if (itTb != m_expectedTbs.end ())
+
+          if (rnti != 0)
             {
-              if (!itTb->second.corrupt)
-                {
-                  m_phyRxDataEndOkCallback (*j);
-                }
-              else
-                {
-                  NS_LOG_INFO ("TB failed");
-                }
+              NS_ASSERT (bearerTag.GetRnti () == rnti);
+            }
 
-              MmWaveMacPduTag pduTag;
-              if ((*j)->PeekPacketTag (pduTag) == false)
-                {
-                  NS_FATAL_ERROR ("No radio bearer tag found");
-                }
+          rnti = bearerTag.GetRnti ();
 
-              RxPacketTraceParams traceParams;
-              traceParams.m_tbSize = itTb->second.size;
-              traceParams.m_frameNum = pduTag.GetSfn ().m_frameNum;
-              traceParams.m_subframeNum = pduTag.GetSfn ().m_subframeNum;
-              traceParams.m_slotNum = pduTag.GetSfn ().m_slotNum;
-              traceParams.m_varTtiNum = pduTag.GetSfn ().m_varTtiNum;
-              traceParams.m_rnti = rnti;
-              traceParams.m_mcs = itTb->second.mcs;
-              traceParams.m_rv = itTb->second.rv;
-              traceParams.m_sinr = sinrAvg;
-              traceParams.m_sinrMin = itTb->second.mi;  //sinrMin;
-              traceParams.m_tbler = itTb->second.tbler;
-              traceParams.m_corrupt = itTb->second.corrupt;
-              traceParams.m_symStart = itTb->second.symStart;
-              traceParams.m_numSym = itTb->second.numSym;
-              traceParams.m_ccId = m_componentCarrierId;
-              traceParams.m_rbAssignedNum = static_cast<uint32_t> (itTb->second.rbBitmap.size ());
+          auto itTb = m_transportBlocks.find (rnti);
 
-              if (enbRx)
-                {
-                  traceParams.m_cellId = enbRx->GetCellId ();
-                  m_rxPacketTraceEnb (traceParams);
-                }
-              else if (ueRx)
-                {
-                  traceParams.m_cellId = ueRx->GetTargetEnb ()->GetCellId ();
-                  m_rxPacketTraceUe (traceParams);
-                }
+          if (itTb == m_transportBlocks.end ())
+            {
+              // Packet for other device... I really don't understand why?!
+              // TODO this must be removed.
+              continue;
+            }
 
-              // send HARQ feedback (if not already done for this TB)
-              if (!itTb->second.harqFeedbackSent)
-                {
-                  itTb->second.harqFeedbackSent = true;
-                  if (!itTb->second.downlink)    // UPLINK TB
-                    {
-                      UlHarqInfo harqUlInfo;
-                      harqUlInfo.m_rnti = rnti;
-                      harqUlInfo.m_tpc = 0;
-                      harqUlInfo.m_harqProcessId = itTb->second.harqProcessId;
-                      harqUlInfo.m_numRetx = itTb->second.rv;
-                      if (itTb->second.corrupt)
-                        {
-                          harqUlInfo.m_receptionStatus = UlHarqInfo::NotOk;
-                          NS_LOG_DEBUG ("UE" << rnti << " send UL-HARQ-NACK" << " harqId " << (unsigned)itTb->second.harqProcessId <<
-                                        " size " << itTb->second.size << " mcs " << (unsigned)itTb->second.mcs <<
-                                        " mi " << itTb->second.mi << " tbler " << itTb->second.tbler << " SINRavg " << sinrAvg);
-                          m_harqPhyModule->UpdateUlHarqProcessStatus (rnti, itTb->second.harqProcessId, itTb->second.mi, itTb->second.size, itTb->second.size / EffectiveCodingRate [itTb->second.mcs]);
-                        }
-                      else
-                        {
-                          harqUlInfo.m_receptionStatus = UlHarqInfo::Ok;
-                          //							NS_LOG_DEBUG ("UE" << rnti << " send UL-HARQ-ACK" << " harqId " << (unsigned)itTb->second.harqProcessId <<
-                          //														" size " << itTb->second.size << " mcs " << (unsigned)itTb->second.mcs <<
-                          //														" mi " << itTb->second.mi << " tbler " << itTb->second.tbler << " SINRavg " << sinrAvg);
-                          m_harqPhyModule->ResetUlHarqProcessStatus (rnti, itTb->second.harqProcessId);
-                        }
-                      if (!m_phyUlHarqFeedbackCallback.IsNull ())
-                        {
-                          m_phyUlHarqFeedbackCallback (harqUlInfo);
-                        }
-                    }
-                  else
-                    {
-                      std::map <uint16_t, DlHarqInfo>::iterator itHarq = harqDlInfoMap.find (rnti);
-                      if (itHarq == harqDlInfoMap.end ())
-                        {
-                          DlHarqInfo harqDlInfo;
-                          harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
-                          harqDlInfo.m_rnti = rnti;
-                          harqDlInfo.m_harqProcessId = itTb->second.harqProcessId;
-                          harqDlInfo.m_numRetx = itTb->second.rv;
-                          if (itTb->second.corrupt)
-                            {
-                              harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
-                              NS_LOG_DEBUG ("UE" << rnti << " send DL-HARQ-NACK" << " harqId " << (unsigned)itTb->second.harqProcessId <<
-                                            " size " << itTb->second.size << " mcs " << (unsigned)itTb->second.mcs <<
-                                            " mi " << itTb->second.mi << " tbler " << itTb->second.tbler << " SINRavg " << sinrAvg);
-                              m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, itTb->second.harqProcessId, itTb->second.mi, itTb->second.size, itTb->second.size / EffectiveCodingRate [itTb->second.mcs]);
-                            }
-                          else
-                            {
-                              harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
-                              //								NS_LOG_DEBUG ("UE" << rnti << " send DL-HARQ-ACK" << " harqId " << (unsigned)itTb->second.harqProcessId <<
-                              //															" size " << itTb->second.size << " mcs " << (unsigned)itTb->second.mcs <<
-                              //															" mi " << itTb->second.mi << " tbler " << itTb->second.tbler << " SINRavg " << sinrAvg);
-                              m_harqPhyModule->ResetDlHarqProcessStatus (rnti, itTb->second.harqProcessId);
-                            }
-                          harqDlInfoMap.insert (std::pair <uint16_t, DlHarqInfo> (rnti, harqDlInfo));
-                        }
-                      else
-                        {
-                          if (itTb->second.corrupt)
-                            {
-                              (*itHarq).second.m_harqStatus = DlHarqInfo::NACK;
-                              NS_LOG_DEBUG ("UE" << rnti << " send DL-HARQ-NACK" << " harqId " << (unsigned)itTb->second.harqProcessId <<
-                                            " size " << itTb->second.size << " mcs " << (unsigned)itTb->second.mcs <<
-                                            " mi " << itTb->second.mi << " tbler " << itTb->second.tbler << " SINRavg " << sinrAvg);
-                              m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, itTb->second.harqProcessId, itTb->second.mi, itTb->second.size, itTb->second.size / EffectiveCodingRate [itTb->second.mcs]);
-                            }
-                          else
-                            {
-                              (*itHarq).second.m_harqStatus = DlHarqInfo::ACK;
-                              //								NS_LOG_DEBUG ("UE" << rnti << " send DL-HARQ-ACK" << " harqId " << (unsigned)itTb->second.harqProcessId <<
-                              //								              " size " << itTb->second.size << " mcs " << (unsigned)itTb->second.mcs <<
-                              //								              " mi " << itTb->second.mi << " tbler " << itTb->second.tbler << " SINRavg " << sinrAvg);
-                              m_harqPhyModule->ResetDlHarqProcessStatus (rnti, itTb->second.harqProcessId);
-                            }
-                        }
-                    }   // end if (itTb->second.downlink) HARQ
-                }   // end if (!itTb->second.harqFeedbackSent)
+          if (! GetTBInfo (*itTb).m_isCorrupted)
+            {
+              m_phyRxDataEndOkCallback (packet);
             }
           else
             {
-              //				NS_FATAL_ERROR ("End of the tbMap");
-              // Packet is for other device
+              NS_LOG_INFO ("TB failed");
             }
 
+          MmWaveMacPduTag pduTag;
+          if (packet->PeekPacketTag (pduTag) == false)
+            {
+              NS_FATAL_ERROR ("No radio bearer tag found");
+            }
 
+          RxPacketTraceParams traceParams;
+          traceParams.m_tbSize = GetTBInfo(*itTb).m_expected.m_tbSize;
+          traceParams.m_frameNum = pduTag.GetSfn ().m_frameNum;
+          traceParams.m_subframeNum = pduTag.GetSfn ().m_subframeNum;
+          traceParams.m_slotNum = pduTag.GetSfn ().m_slotNum;
+          traceParams.m_varTtiNum = pduTag.GetSfn ().m_varTtiNum;
+          traceParams.m_rnti = rnti;
+          traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
+          traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;
+          traceParams.m_sinr = sinrAvg;
+          traceParams.m_sinrMin = sinrMin;
+          traceParams.m_tbler = GetTBInfo(*itTb).m_outputOfEM->m_tbler;
+          traceParams.m_corrupt = GetTBInfo(*itTb).m_isCorrupted;
+          traceParams.m_symStart = GetTBInfo(*itTb).m_expected.m_symStart;
+          traceParams.m_numSym = GetTBInfo(*itTb).m_expected.m_numSym;
+          traceParams.m_ccId = m_componentCarrierId;
+          traceParams.m_rbAssignedNum = static_cast<uint32_t> (GetTBInfo(*itTb).m_expected.m_rbBitmap.size ());
+
+          if (enbRx)
+            {
+              traceParams.m_cellId = enbRx->GetCellId ();
+              m_rxPacketTraceEnb (traceParams);
+            }
+          else if (ueRx)
+            {
+              traceParams.m_cellId = ueRx->GetTargetEnb ()->GetCellId ();
+              m_rxPacketTraceUe (traceParams);
+            }
+
+          // send HARQ feedback (if not already done for this TB)
+          if (! GetTBInfo(*itTb).m_harqFeedbackSent)
+            {
+              GetTBInfo(*itTb).m_harqFeedbackSent = true;
+              if (! GetTBInfo(*itTb).m_expected.m_isDownlink)    // UPLINK TB
+                {
+                  UlHarqInfo harqUlInfo;
+                  harqUlInfo.m_rnti = rnti;
+                  harqUlInfo.m_tpc = 0;
+                  harqUlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
+                  harqUlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                  if (GetTBInfo(*itTb).m_isCorrupted)
+                    {
+                      harqUlInfo.m_receptionStatus = UlHarqInfo::NotOk;
+                      m_harqPhyModule->UpdateUlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
+                                                                  GetTBInfo(*itTb).m_outputOfEM);
+                    }
+                  else
+                    {
+                      harqUlInfo.m_receptionStatus = UlHarqInfo::Ok;
+                      m_harqPhyModule->ResetUlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
+                    }
+                  if (!m_phyUlHarqFeedbackCallback.IsNull ())
+                    {
+                      m_phyUlHarqFeedbackCallback (harqUlInfo);
+                    }
+                }
+              else
+                {
+                  auto itHarq = harqDlInfoMap.find (rnti);
+                  if (itHarq == harqDlInfoMap.end ())
+                    {
+                      DlHarqInfo harqDlInfo;
+                      harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
+                      harqDlInfo.m_rnti = rnti;
+                      harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
+                      harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                      if (GetTBInfo(*itTb).m_isCorrupted)
+                        {
+                          harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
+                          m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
+                                                                      GetTBInfo(*itTb).m_outputOfEM);
+                        }
+                      else
+                        {
+                          harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
+                          m_harqPhyModule->ResetDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
+                        }
+                      harqDlInfoMap.insert (std::pair <uint16_t, DlHarqInfo> (rnti, harqDlInfo));
+                    }
+                  else
+                    {
+                      if (GetTBInfo(*itTb).m_isCorrupted)
+                        {
+                          (*itHarq).second.m_harqStatus = DlHarqInfo::NACK;
+                          m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
+                                                                      GetTBInfo(*itTb).m_outputOfEM);
+                        }
+                      else
+                        {
+                          (*itHarq).second.m_harqStatus = DlHarqInfo::ACK;
+                          m_harqPhyModule->ResetDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
+                        }
+                    }
+                }   // end if (itTb->second.downlink) HARQ
+            }   // end if (!itTb->second.harqFeedbackSent)
         }
     }
 
@@ -725,7 +704,7 @@ MmWaveSpectrumPhy::EndRxData ()
 
   m_state = IDLE;
   m_rxPacketBurstList.clear ();
-  m_expectedTbs.clear ();
+  m_transportBlocks.clear ();
   m_rxControlMessageList.clear ();
 }
 

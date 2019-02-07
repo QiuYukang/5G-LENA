@@ -55,7 +55,19 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+* Added NrErrorModel as interface for any error model. It is used by NrAmc and
+MmWaveSpectrumPhy.
+* Added attribute *ErrorModelType* to the class NrAmc, which must be kept in
+sync with the attribute *ErrorModelType* of MmWaveSpectrumPhy
+* Added attribute *ErrorModelType* to the class MmWaveSpectrumPhy
+* Added class NrEesmErrorModel to model the NR PHY abstraction according to LDPC
+coding, block segmentation, and including MCS/CQI table 1 and 2.
+
 ### Changes to existing API:
+
+* Renamed MmWaveAmc into NrAmc
+* Renamed MmWaveMiErrorModel in NrLteMiErrorModel, and adapted it to the new
+NrErrorModel interface
 
 ### Changed behavior:
 

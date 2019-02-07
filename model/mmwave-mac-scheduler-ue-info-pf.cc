@@ -37,7 +37,7 @@ void
 MmWaveMacSchedulerUeInfoPF::UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTResources &totAssigned,
                                               double timeWindow,
                                               const Ptr<MmWavePhyMacCommon> &config,
-                                              const Ptr<MmWaveAmc> &amc)
+                                              const Ptr<NrAmc> &amc)
 {
   NS_LOG_FUNCTION (this);
   MmWaveMacSchedulerUeInfo::UpdateDlMetric (config, amc);
@@ -56,12 +56,11 @@ MmWaveMacSchedulerUeInfoPF::UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTRes
 void
 MmWaveMacSchedulerUeInfoPF::CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
                                                     const Ptr<MmWavePhyMacCommon> &config,
-                                                    const Ptr<MmWaveAmc> &amc)
+                                                    const Ptr<NrAmc> &amc)
 {
   NS_LOG_FUNCTION (this);
   uint32_t rbsAssignable = assignableInIteration.m_rbg * config->GetNumRbPerRbg ();
-  m_potentialTput =  amc->GetSpectralEfficiency (m_dlMcs, rbsAssignable);
-  m_potentialTput /= 8.0;
+  m_potentialTput =  amc->GetPayloadSize (m_dlMcs, rbsAssignable);
   m_potentialTput /= assignableInIteration.m_sym * config->GetSymbolPeriod ().GetMilliSeconds ();
   NS_LOG_INFO ("UE " << m_rnti << " potentialTput " << m_potentialTput <<
                " lastAvgTh " << m_lastAvgTputDl << " metric: " << m_potentialTput / std::max (1E-9, m_avgTputDl));

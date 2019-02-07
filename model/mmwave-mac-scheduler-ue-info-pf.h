@@ -75,10 +75,10 @@ public:
   void UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTResources &totAssigned,
                          double timeWindow,
                          const Ptr<MmWavePhyMacCommon> &config,
-                         const Ptr<MmWaveAmc> &amc);
+                         const Ptr<NrAmc> &amc);
   void CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
                                const Ptr<MmWavePhyMacCommon> &config,
-                               const Ptr<MmWaveAmc> &amc);
+                               const Ptr<NrAmc> &amc);
 
   /**
    * \brief comparison function object (i.e. an object that satisfies the

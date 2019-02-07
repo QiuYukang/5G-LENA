@@ -24,7 +24,7 @@
 
 namespace ns3 {
 
-class MmWaveAmc;
+class NrAmc;
 
 /**
  * \ingroup mac-schedulers
@@ -57,7 +57,7 @@ public:
   ~MmWaveMacSchedulerCQIManagement () = default;
 
   /**
-   * \brief Set the pointer to the MmWaveAmc model
+   * \brief Set the pointer to the NrAmc model
    * \param config PhyMac config
    * \param amc AMC model to calculate CQI
    * \param startMcsDl Default MCS when a CQI is reset (DL)
@@ -65,7 +65,7 @@ public:
    */
   void
   ConfigureCommonParameters (const Ptr<MmWavePhyMacCommon> &config,
-                             const Ptr<MmWaveAmc> &amc,
+                             const Ptr<NrAmc> &amc,
                              uint8_t startMcsDl, uint8_t startMcsUl)
   {
     m_phyMacConfig = config;
@@ -81,7 +81,7 @@ public:
    * \param expirationTime expiration time of the CQI in number of slot
    *
    * Store the CQI information inside the m_dlCqi value of the UE, and then
-   * calculate the corresponding MCS through MmWaveAmc. The information is
+   * calculate the corresponding MCS through NrAmc. The information is
    * contained in the structure DlCqiInfo, so no need to make calculation
    * here.
    */
@@ -99,7 +99,6 @@ public:
   /**
    * \brief An UL SB CQI has been reported for the specified UE
    * \param expirationTime expiration time (in slot) of the CQI value
-   * \param numSym symbols allocated
    * \param tbs TBS of the allocation
    * \param params parameters of the received CQI
    * \param ueInfo UE info
@@ -110,11 +109,11 @@ public:
    * parameters as input.
    *
    * From a vector of SINR (along the entire band) a SpectrumValue is calculated
-   * and then passed as input to MmWaveAmc::CreateCqiFeedbackWbTdma. From this
+   * and then passed as input to NrAmc::CreateCqiFeedbackWbTdma. From this
    * function, we have as a result an updated value of CQI, as well as an updated
    * version of MCS for the UL.
    */
-  void UlSBCQIReported (uint32_t expirationTime, uint8_t numSym, uint32_t tbs,
+  void UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                         const MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                         const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const;
 
@@ -142,7 +141,7 @@ public:
 
 private:
   Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< PhyMac config
-  Ptr<MmWaveAmc> m_amc;                   //!< MmWaveAmc model pointer
+  Ptr<NrAmc> m_amc;                   //!< NrAmc model pointer
   uint8_t m_startMcsDl {0};
   uint8_t m_startMcsUl {0};
 };

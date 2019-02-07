@@ -123,8 +123,8 @@ main (int argc, char *argv[])
 		Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::McsDefaultDl", UintegerValue(mcsDl));
 	}
 
-	//Config::SetDefault ("ns3::MmWaveAmc::AmcModel", EnumValue (MmWaveAmc::PiroEW2010));
-	Config::SetDefault ("ns3::MmWaveAmc::Ber", DoubleValue (0.01));
+	//Config::SetDefault ("ns3::NrAmc::AmcModel", EnumValue (NrAmc::PiroEW2010));
+	Config::SetDefault ("ns3::NrAmc::Ber", DoubleValue (0.01));
 	Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::HarqEnabled", BooleanValue(harqEnabled));
 //	Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::UlSchedOnly", BooleanValue(true));
 	Config::SetDefault ("ns3::MmWaveBeamforming::LongTermUpdatePeriod", TimeValue (Seconds (2*simTime)));
