@@ -319,6 +319,11 @@ double MmWave3gppChannel::GetCenterFrequency () const
   return m_centerFrequency;
 }
 
+uint8_t MmWave3gppChannel::GetCcId ()
+{
+  return m_ccId;
+}
+
 void
 MmWave3gppChannel::ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2)
 {
@@ -440,15 +445,21 @@ MmWave3gppChannel::GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel
 
 
 void
-MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice, Ptr<NetDevice> bsDevice)
+MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
+                                                    Ptr<AntennaArrayBasicModel> ueDeviceAntenna,
+                                                    Ptr<NetDevice> bsDevice,
+                                                    Ptr<AntennaArrayBasicModel> bsDeviceAntenna)
 {
   ConnectDevices (ueDevice, bsDevice);
   ConnectDevices (bsDevice, ueDevice);
   m_ueDevices.insert(ueDevice);
   complexVector_t empty;
   AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
-  GetAntennaArray (ueDevice)->SetBeamformingVector (empty, emptyId, bsDevice);
-  GetAntennaArray(bsDevice)->SetBeamformingVector (empty, emptyId, ueDevice);
+  ueDeviceAntenna->SetBeamformingVector (empty, emptyId, bsDevice);
+  bsDeviceAntenna->SetBeamformingVector (empty, emptyId, ueDevice);
+
+  m_deviceToAntennaArray.insert(std::make_pair(ueDevice, ueDeviceAntenna));
+  m_deviceToAntennaArray.insert(std::make_pair(bsDevice, bsDeviceAntenna));
 }
 
 
@@ -2757,7 +2768,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 Ptr<AntennaArrayBasicModel>
 MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
 {
-  return (DynamicCast<MmWaveNetDevice>(device))->GetPhy(m_ccId)->GetAntennaArray();
+  NS_ABORT_MSG_IF (m_deviceToAntennaArray.find (device) == m_deviceToAntennaArray.end(), "AntennaArray object for this device does not exist");
+  return m_deviceToAntennaArray.find (device)->second;
 }
 
 

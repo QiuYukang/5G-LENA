@@ -841,8 +841,10 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
 
                if (ueDev->GetTargetEnb ())
                  {
-                   Ptr<NetDevice> targetBs = ueDev->GetTargetEnb ();
-                   i->CreateInitialBeamformingVectors(ueDev, targetBs);
+                    Ptr<NetDevice> targetBs = ueDev->GetTargetEnb ();
+                    Ptr<AntennaArrayBasicModel> ueAntenna = (DynamicCast<MmWaveNetDevice>(ueDev))->GetPhy(i->GetCcId())->GetAntennaArray();
+                    Ptr<AntennaArrayBasicModel> bsAntenna = (DynamicCast<MmWaveNetDevice>(targetBs))->GetPhy(i->GetCcId())->GetAntennaArray();
+                    i->CreateInitialBeamformingVectors(ueDev, ueAntenna, targetBs, bsAntenna);
                  }
             }
         }

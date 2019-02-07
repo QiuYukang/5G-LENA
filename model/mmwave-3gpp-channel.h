@@ -37,7 +37,6 @@
 #include <ns3/angles.h>
 #include <ns3/net-device-container.h>
 #include <ns3/random-variable-stream.h>
-#include "mmwave-phy-mac-common.h"
 #include "mmwave-3gpp-propagation-loss-model.h"
 #include "mmwave-3gpp-buildings-propagation-loss-model.h"
 #include <ns3/antenna-array-model.h>
@@ -280,24 +279,27 @@ public:
   Vector GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 
   /**
-   * Register the connection between all the devices in the NetDeviceContainer given
-   * as input
-   * @param a NetDeviceContainer for the UEs
-   * @param a NetDeviceContainer for the eNBs
-   */
-  //void CreateInitialBeamformingVectors (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
-
-  /**
    * Register the connection between the UE and BS device
-   * @param ueDevice - UE device
-   * @param bsDevice - BS device
+   * @param ueDevice The UE device
+   * @param ueDeviceAntenna The UE antenna array
+   * @param bsDevice The BS device
+   * @param bsDeviceAntenna The BS antenna array model
    */
-  void CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice, Ptr<NetDevice> bsDevice);
+  void CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
+                                        Ptr<AntennaArrayBasicModel> ueDeviceAntenna,
+                                        Ptr<NetDevice> bsDevice,
+                                        Ptr<AntennaArrayBasicModel> bsDeviceAntenna);
   /**
    * Sets the center frequency of the channel map of this instance of MmWave3gppChannel
    * @param centerFrequency center frequency of the channel map of this instance of MmWave3gppChannel
    */
   void SetCenterFrequency (double centerFrequency);
+
+  /**
+   *
+   * @return ccId of this 3gpp channel instance
+   */
+  uint8_t GetCcId ();
 
   /**
    * Get center frequency of the channel map of this instance of MmWave3gppChannel
@@ -541,6 +543,7 @@ private:
   double m_bandwidth; //!< The total bandwidth for this channel
   double m_scs; //!< The subcarrier spacing
   uint8_t m_ccId; //!< The component carrier id for this channel instance
+  std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
 };
 
 
