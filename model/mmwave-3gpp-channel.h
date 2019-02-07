@@ -35,7 +35,6 @@
 #include <ns3/net-device.h>
 #include <map>
 #include <ns3/angles.h>
-#include <ns3/net-device-container.h>
 #include <ns3/random-variable-stream.h>
 #include "mmwave-3gpp-propagation-loss-model.h"
 #include "mmwave-3gpp-buildings-propagation-loss-model.h"

@@ -31,11 +31,10 @@
 #include <ns3/mmwave-net-device.h>
 #include <ns3/node.h>
 #include <ns3/double.h>
+#include <ns3/integer.h>
+#include <ns3/boolean.h>
 #include <algorithm>
 #include <random>       // std::default_random_engine
-#include <ns3/boolean.h>
-#include <ns3/integer.h>
-#include "antenna-array-3gpp-model.h"
 #include "mmwave-spectrum-value-helper.h"
 
 
@@ -153,35 +152,6 @@ static const double sqrtC_office_NLOS[6][6] = {
   {0, -0.11547, 0.398372, 0.0289317, 0.909466, 0},
   {-0.1, -0.173205, 0.315691, -0.134243, 0.283816, 0.872792},
 };
-
-/**
- * \brief This function is used to randomly select antenna orientation from
- * a set of predefined antenna orientations: X0, Z0 and Y0
- * @return a random antenna orientation
- */
-AntennaArrayModel::AntennaOrientation GetRandomAntennaOrientation ()
-{
-  Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable>();
-  r->SetAttribute ("Min", DoubleValue (0.0));
-  r->SetAttribute ("Max", DoubleValue (1.0));
-  double throwADice = r->GetValue();
-  AntennaArrayModel::AntennaOrientation randomOrientation;
-
-  if (throwADice <= 1.0/3)
-    {
-      randomOrientation = AntennaArrayModel::X0;
-    }
-  else if ((throwADice > 1.0/3 ) and (throwADice <= 2.0/3))
-    {
-      randomOrientation = AntennaArrayModel::Y0;
-    }
-  else
-    {
-      randomOrientation = AntennaArrayModel::Z0;
-    }
-
-  return randomOrientation;
-}
 
 
 std::map <double, MmWave3gppChannel::channelMap_t > MmWave3gppChannel::m_channelMapPerCentralCarrierFrequency;
@@ -1852,27 +1822,6 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
         }
     }
 
-  Ptr<AntennaArray3gppModel> rx3gppAntenna = DynamicCast<AntennaArray3gppModel> (rxAntennaArray);
-  Ptr<AntennaArray3gppModel> tx3gppAntenna = DynamicCast<AntennaArray3gppModel> (txAntennaArray);
-
-  AntennaArrayModel::AntennaOrientation randomUeOrientation = GetRandomAntennaOrientation();
-
-  if (rx3gppAntenna != 0)
-    {
-      if (rx3gppAntenna->GetIsUe ())
-        {
-          rx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
-        }
-    }
-
-  if (tx3gppAntenna != 0)
-    {
-      if (tx3gppAntenna->GetIsUe ())
-        {
-          tx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
-        }
-    }
-
   // The following for loops computes the channel coefficients
   for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
     {
@@ -2499,27 +2448,6 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
           H_usn.at (uIndex).at (sIndex).resize (params->m_numCluster);
         }
     }
-
-  Ptr<AntennaArray3gppModel> rx3gppAntenna = DynamicCast<AntennaArray3gppModel> (rxAntennaArray);
-  Ptr<AntennaArray3gppModel> tx3gppAntenna = DynamicCast<AntennaArray3gppModel> (txAntennaArray);
-
-  AntennaArrayModel::AntennaOrientation randomUeOrientation = GetRandomAntennaOrientation();
-
-  if (rx3gppAntenna != 0)
-    {
-      if (rx3gppAntenna->GetIsUe ())
-        {
-          rx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
-        }
-    }
-
-  if (tx3gppAntenna != 0)
-     {
-       if (tx3gppAntenna->GetIsUe ())
-         {
-           tx3gppAntenna->SetAntennaOrientation (randomUeOrientation);
-         }
-     }
 
   //double varTtiTime = Simulator::Now ().GetSeconds ();
   // The following for loops computes the channel coefficients
