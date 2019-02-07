@@ -71,7 +71,6 @@ struct InputParams3gpp
   Vector m_speed {0,0,0};
   double m_dis2D {0};
   double m_dis3D {0};
-  Vector m_locUT {0,0,0}; //!< location of UT
   key_t m_key {0,0}; //!< the key formed of the pointers to the TX and RX device, respectively
   key_t m_keyReverse {0,0}; //!< //!< the key formed of the pointers to the RX and TX device, respectively
 
@@ -83,8 +82,8 @@ public:
    {
     m_initialized = false;
    }
-  inline InputParams3gpp (bool los, bool o2i, Vector speed, double dis2D, double dis3D, Vector locUT, key_t key, key_t keyReverse):
-    m_los(los), m_o2i(o2i), m_speed(speed), m_dis2D (dis2D), m_dis3D (dis3D), m_locUT (locUT), m_key(key), m_keyReverse (keyReverse)
+  inline InputParams3gpp (bool los, bool o2i, Vector speed, double dis2D, double dis3D, key_t key, key_t keyReverse):
+    m_los(los), m_o2i(o2i), m_speed(speed), m_dis2D (dis2D), m_dis3D (dis3D), m_key(key), m_keyReverse (keyReverse)
   {
     m_initialized = true;
   }
@@ -96,7 +95,6 @@ public:
      m_speed = p.m_speed;
      m_dis2D = p.m_dis2D;
      m_dis3D = p.m_dis3D;
-     m_locUT = p.m_locUT;
      m_key = p.m_key;
      m_keyReverse = p.m_keyReverse;
      m_initialized = p.m_initialized;
@@ -107,7 +105,6 @@ public:
   inline Vector GetSpeed ()const {return m_speed;}
   inline double GetDis2D () const {return m_dis2D;}
   inline double GetDis3D () const {return m_dis3D;}
-  inline Vector GetLocUT () const {return m_locUT;}
   inline key_t GetKey () const {return m_key;}
   inline key_t GetKeyReverse () const {return m_keyReverse;}
   inline bool IsInitialized ()const {return m_initialized;}
@@ -130,7 +127,7 @@ struct Params3gpp : public SimpleRefCount<Params3gpp>
 
   double2DVector_t    m_nonSelfBlocking; //!< store the blockages
   /*The following parameters are stored for spatial consistent updating*/
-  Vector m_preLocUT; //!< location of UT when generating the previous channel
+  Vector m_preLocUT {0,0,0}; //!< location of UT when generating the previous channel
   double2DVector_t m_norRvAngles; //!< stores the normal variable for random angles angle[cluster][id] generated for equation (7.6-11)-(7.6-14), where id = 0(aoa),1(zoa),2(aod),3(zod)
   double m_DS; //!< delay spread
   double m_K; //!< K factor
@@ -234,13 +231,68 @@ public:
   void ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2);
 
   /**
+   * Check if the devices are connected
+   * @param a The first device's mobility model
+   * @param b The second device's mobility model
+   * @return boolean value true if the devices are connected and false if they are not
+   */
+  bool AreConnected (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
+
+  /**
+   * Check if the channel matrix between a and b exists
+   * @param a MobilityModel of the first device
+   * @param b MobilityModel of the second device
+   * @return boolean value true if there is channel matrix, and false if there is no channel matrix
+   */
+  bool ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
+
+  /**
+   * Check if the channel matrix needs an update
+   * @param a MobilityModel of the first device
+   * @param b MobilityModel of the second device
+   * @param los whether the link is LOS
+   * @return true if the channel matrix needs to be updated, otherwise false
+   */
+  bool ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b, bool los) const;
+  /**
+   * Checks if there is beamforming between the two devices
+   * @param dev1 The first device
+   * @param dev2 The second device
+   * @return booleean value true if there is beamforming, otherwise it returns false
+   */
+  bool IsBeamforming (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
+
+  /**
+   * Checks if the device a UE device
+   * @param dev1 pointer to the NetDevice object
+   * @return true if the device is a UE device, otherwise it returns false
+   */
+  bool IsUeDevice (Ptr<NetDevice> dev1) const;
+
+  /**
+   * Get position of the UE device. It is expected that one of the
+   * two device is the UE device, otherwise this function will call
+   * NS_ABORT_MSG.
+   * @param a mobility model of the first device
+   * @param b mobility model of the second deviec
+   * @return Position of the
+   */
+  Vector GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
+
+  /**
    * Register the connection between all the devices in the NetDeviceContainer given
    * as input
    * @param a NetDeviceContainer for the UEs
    * @param a NetDeviceContainer for the eNBs
    */
-  void CreateInitialBeamformingVectors (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+  //void CreateInitialBeamformingVectors (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
 
+  /**
+   * Register the connection between the UE and BS device
+   * @param ueDevice - UE device
+   * @param bsDevice - BS device
+   */
+  void CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice, Ptr<NetDevice> bsDevice);
   /**
    * Sets the center frequency of the channel map of this instance of MmWave3gppChannel
    * @param centerFrequency center frequency of the channel map of this instance of MmWave3gppChannel
@@ -276,14 +328,11 @@ private:
    * realization calculation or update
    * @param a Mobility model of the transmitter device
    * @param b Mobility model of the receiver device
-   * @param input3gppParams structure that contains a bunch of 3gpp parameter
-   * @return returns true if there is beamforming, based on the type of devices (only among UE and BS),
-   * and only if both are transmitting directionally
+   * @return Input3gppParams structure that contains input parameter for 3gpp channel calculations
+   *
    */
-  bool GetInput3gppParameters (Ptr<const MobilityModel> a,
-                               Ptr<const MobilityModel> b,
-                               InputParams3gpp& input3gppParams
-                              ) const;
+  InputParams3gpp GetInput3gppParameters (Ptr<const MobilityModel> a,
+                                          Ptr<const MobilityModel> b) const;
 
   void DoUpdateLongTerm (Ptr<const MobilityModel> a,
                          Ptr<const MobilityModel> b) const;
@@ -455,15 +504,18 @@ private:
    * @params the channel realization as a Params3gpp object
    * @params cluster azimuth angle of arrival
    * @params cluster zenith angle of arrival
+   * @params locUT UE location
    */
   doubleVector_t CalAttenuationOfBlockage (Ptr<Params3gpp> params,
                                            doubleVector_t clusterAOA,
-                                           doubleVector_t clusterZOA) const;
+                                           doubleVector_t clusterZOA,
+                                           Vector locUT) const;
 
 private:
 
   static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency; //!< A static map of channel maps per carrier frequency
   mutable std::map< key_t, int > m_connectedPair;
+  mutable std::set <Ptr<NetDevice> > m_ueDevices;
   
   Ptr<UniformRandomVariable> m_uniformRv;
   Ptr<UniformRandomVariable> m_uniformRvBlockage;

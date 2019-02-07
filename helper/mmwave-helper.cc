@@ -835,7 +835,16 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
     {
       for (auto i: m_3gppChannel)
         {
-          i->CreateInitialBeamformingVectors (ueDevices,enbDevices);
+          for (NetDeviceContainer::Iterator ue = ueDevices.Begin (); ue != ueDevices.End (); ue++)
+             {
+               Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (*ue);
+
+               if (ueDev->GetTargetEnb ())
+                 {
+                   Ptr<NetDevice> targetBs = ueDev->GetTargetEnb ();
+                   i->CreateInitialBeamformingVectors(ueDev, targetBs);
+                 }
+            }
         }
     }
 }
