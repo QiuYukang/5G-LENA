@@ -40,6 +40,10 @@ This release has been tested on the following platforms:
 New user-visible features (old first)
 -------------------------
 
+- (error model) Added the NrEesmErrorModel class. It models the NR PHY
+abstraction according to LDPC coding, block segmentation, and including
+MCS/CQI table 1 and 2.
+
 Bugs fixed
 ----------
 

@@ -20,7 +20,7 @@
 #include "mmwave-mac-scheduler-ue-info.h"
 #include "mmwave-mac-scheduler-ns3.h"
 #include "mmwave-phy-mac-common.h"
-#include "mmwave-amc.h"
+#include "nr-amc.h"
 
 namespace ns3 {
 
@@ -44,7 +44,7 @@ public:
    * \param config Mac-Phy config
    * \param amc AMC
    */
-  MmWaveMacSchedulerHarqRr (const Ptr<MmWavePhyMacCommon> &config, const Ptr<MmWaveAmc> &amc)
+  MmWaveMacSchedulerHarqRr (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
   {
     m_phyMacConfig = config;
     m_amc = amc;
@@ -73,7 +73,7 @@ public:
 
 protected:
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;  //!< phy mac config
-  Ptr<MmWaveAmc> m_amc;                    //!< AMC
+  Ptr<NrAmc> m_amc;                    //!< AMC
 
 protected:
   void BufferHARQFeedback (const std::vector <DlHarqInfo> &dlHarqFeedback,
