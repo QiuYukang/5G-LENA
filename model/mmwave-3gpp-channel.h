@@ -296,12 +296,6 @@ public:
   void SetCenterFrequency (double centerFrequency);
 
   /**
-   *
-   * @return ccId of this 3gpp channel instance
-   */
-  uint8_t GetCcId ();
-
-  /**
    * Get center frequency of the channel map of this instance of MmWave3gppChannel
    * @return centerFrequency of the channel map of this instance of MmWave3gppChannel
    */

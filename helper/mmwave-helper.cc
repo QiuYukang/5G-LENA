@@ -221,7 +221,6 @@ MmWaveHelper::DoInitialize ()
               channel->SetAttribute ("ScsPerRb", UintegerValue (i->GetNumScsPerRb ()));
               channel->SetAttribute ("Bandwidth", DoubleValue (i->GetBandwidth ()));
               channel->SetAttribute ("NumberOfRbs", UintegerValue (i->GetBandwidthInRbs()));
-              channel->SetAttribute ("CcId", UintegerValue (i->GetCcId ()));
             }
           else
             {
@@ -833,18 +832,20 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
 
   if (m_channelModelType == "ns3::MmWave3gppChannel")
     {
-      for (auto i: m_3gppChannel)
+      for (auto it:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
         {
+          uint32_t ccid = it->GetCcId();
+          Ptr<MmWave3gppChannel> channel3gpp = m_3gppChannel.at(ccid);
+          NS_ABORT_MSG_IF( channel3gpp == nullptr , "3gpp channel does not exist for the specified CCID");
           for (NetDeviceContainer::Iterator ue = ueDevices.Begin (); ue != ueDevices.End (); ue++)
              {
                Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (*ue);
-
                if (ueDev->GetTargetEnb ())
                  {
                     Ptr<NetDevice> targetBs = ueDev->GetTargetEnb ();
-                    Ptr<AntennaArrayBasicModel> ueAntenna = (DynamicCast<MmWaveNetDevice>(ueDev))->GetPhy(i->GetCcId())->GetAntennaArray();
-                    Ptr<AntennaArrayBasicModel> bsAntenna = (DynamicCast<MmWaveNetDevice>(targetBs))->GetPhy(i->GetCcId())->GetAntennaArray();
-                    i->CreateInitialBeamformingVectors(ueDev, ueAntenna, targetBs, bsAntenna);
+                    Ptr<AntennaArrayBasicModel> ueAntenna = (DynamicCast<MmWaveNetDevice>(ueDev))->GetPhy(it->GetCcId())->GetAntennaArray();
+                    Ptr<AntennaArrayBasicModel> bsAntenna = (DynamicCast<MmWaveNetDevice>(targetBs))->GetPhy(it->GetCcId())->GetAntennaArray();
+                    channel3gpp->CreateInitialBeamformingVectors(ueDev, ueAntenna, targetBs, bsAntenna);
                  }
             }
         }

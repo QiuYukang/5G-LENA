@@ -276,13 +276,7 @@ MmWave3gppChannel::GetTypeId (void)
                    "if false the channel update will not trigger the beamforming vectors update",
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWave3gppChannel::m_updateBeamformingVectorIdeally),
-                   MakeBooleanChecker ())
-    .AddAttribute ("CcId",
-                   "The ccId",
-                   UintegerValue (0),
-                   MakeUintegerAccessor(&MmWave3gppChannel::m_ccId),
-                   MakeUintegerChecker<uint32_t> ())
-   ;
+                   MakeBooleanChecker ());
   return tid;
 }
 
@@ -317,11 +311,6 @@ void MmWave3gppChannel::SetCenterFrequency (double centerFrequency)
 double MmWave3gppChannel::GetCenterFrequency () const
 {
   return m_centerFrequency;
-}
-
-uint8_t MmWave3gppChannel::GetCcId ()
-{
-  return m_ccId;
 }
 
 void
@@ -461,29 +450,6 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
   m_deviceToAntennaArray.insert(std::make_pair(ueDevice, ueDeviceAntenna));
   m_deviceToAntennaArray.insert(std::make_pair(bsDevice, bsDeviceAntenna));
 }
-
-
-/*void
-MmWave3gppChannel::CreateInitialBeamformingVectors (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices)
-{
-  NS_LOG_INFO (&ueDevices << &enbDevices);
-
-  for (NetDeviceContainer::Iterator i = ueDevices.Begin (); i != ueDevices.End (); i++)
-    {
-      Ptr<MmWaveUeNetDevice> UeDev = DynamicCast<MmWaveUeNetDevice> (*i);
-      if (UeDev->GetTargetEnb ())
-        {
-          Ptr<NetDevice> targetBs = UeDev->GetTargetEnb ();
-          ConnectDevices (*i, targetBs);
-          ConnectDevices (targetBs, *i);
-          m_ueDevices.insert(UeDev);
-          complexVector_t empty;
-          AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
-          GetAntennaArray(*i)->SetBeamformingVector (empty, emptyId, targetBs);
-          GetAntennaArray(targetBs)->SetBeamformingVector (empty, emptyId, *i);
-        }
-    }
-}*/
 
 InputParams3gpp
 MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
