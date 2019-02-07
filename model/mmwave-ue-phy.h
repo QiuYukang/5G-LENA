@@ -71,9 +71,6 @@ public:
   double GetNoiseFigure () const;
 
   bool SendPacket (Ptr<Packet> packet);
-
-  virtual Ptr<SpectrumValue> CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const override;
-
   void DoSetSubChannels ();
 
   void SetSubChannelsForReception (std::vector <int> mask);

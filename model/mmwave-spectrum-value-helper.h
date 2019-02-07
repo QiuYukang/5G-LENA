@@ -30,7 +30,6 @@
 #define MMWAVE_SPECTRUM_VALUE_HELPER_H
 
 #include <ns3/spectrum-value.h>
-#include <ns3/mmwave-phy-mac-common.h>
 #include <vector>
 
 
@@ -45,20 +44,13 @@ namespace ns3 {
 class MmWaveSpectrumValueHelper
 {
 public:
-  static Ptr<SpectrumModel> GetSpectrumModel (Ptr<MmWavePhyMacCommon> ptrConfig);
 
-  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (Ptr<MmWavePhyMacCommon> ptrConfig,
-                                                          double powerTx,
-                                                          std::vector <int> activeRbs);
+  static Ptr<SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs);
 
-
-  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (Ptr<MmWavePhyMacCommon> ptrConfig,
-                                                          double powerTx,
-                                                          std::map<int, double> powerTxMap,
-                                                          std::vector <int> activeRbs);
-
-  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (Ptr<MmWavePhyMacCommon> ptrConfig, double noiseFigure);
-
+  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (double powerTx,
+                                                          std::vector <int> activeRbs,
+                                                          Ptr<SpectrumModel> spectrumModel,
+                                                          double bandwidth);
 
   static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (double noiseFigure, Ptr<SpectrumModel> spectrumModel);
 

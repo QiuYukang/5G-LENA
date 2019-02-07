@@ -256,13 +256,38 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (28e9),
                    MakeDoubleAccessor(&MmWave3gppChannel::SetCenterFrequency, &MmWave3gppChannel::GetCenterFrequency),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("NumberOfRbs",
+                   "The number of RBs that will exist in this spectrum channel matrix",
+                    UintegerValue (0),
+                    MakeUintegerAccessor(&MmWave3gppChannel::m_numRbs),
+                    MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("ScsPerRb",
+                   "The number of SCs per RB",
+                   UintegerValue (0),
+                   MakeUintegerAccessor(&MmWave3gppChannel::m_scsPerRb),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("Scs",
+                   "The suvcarrrier spacing in Hz of this spectrum channel matrix",
+                   DoubleValue (0),
+                   MakeDoubleAccessor(&MmWave3gppChannel::m_scs),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("Bandwidth",
+                   "The bandwidth in Hz of this spectrum channel matrix",
+                   DoubleValue (0),
+                   MakeDoubleAccessor(&MmWave3gppChannel::m_bandwidth),
+                   MakeDoubleChecker<double> ())
     .AddAttribute ("UpdateBeamformingVectorsIdeally",
                    "If true the beamforming vectors will be updated when the channel is updated, "
                    "if false the channel update will not trigger the beamforming vectors update",
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWave3gppChannel::m_updateBeamformingVectorIdeally),
                    MakeBooleanChecker ())
-    ;
+    .AddAttribute ("CcId",
+                   "The ccId",
+                   UintegerValue (0),
+                   MakeUintegerAccessor(&MmWave3gppChannel::m_ccId),
+                   MakeUintegerChecker<uint32_t> ())
+   ;
   return tid;
 }
 
@@ -300,19 +325,6 @@ double MmWave3gppChannel::GetCenterFrequency () const
 }
 
 void
-MmWave3gppChannel::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
-{
-  m_phyMacConfig = ptrConfig;
-}
-
-Ptr<MmWavePhyMacCommon>
-MmWave3gppChannel::GetConfigurationParameters (void) const
-{
-  return m_phyMacConfig;
-}
-
-
-void
 MmWave3gppChannel::ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2)
 {
   key_t key = std::make_pair (dev1,dev2);
@@ -343,37 +355,6 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (NetDeviceContainer ueDevices
           AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
           GetAntennaArray(*i)->SetBeamformingVector (empty, emptyId, targetBs);
           GetAntennaArray(targetBs)->SetBeamformingVector (empty, emptyId, *i);
-
-/*          // get the mobility objects
-          Ptr<const MobilityModel> a = targetBs->GetNode ()->GetObject<MobilityModel> ();
-          Ptr<const MobilityModel> b = UeDev->GetNode ()->GetObject<MobilityModel> ();
-          NS_LOG_INFO ("a " << a << " b " << b);
-
-          // initialize the pathloss and channel condition
-          if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
-            {
-              m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
-              ->GetLoss (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
-            }                     // the GetObject trick is a trick against the const keyword
-          else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
-            {
-              m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
-              ->GetLoss (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
-            }
-          else
-            {
-              NS_FATAL_ERROR ("unknown pathloss model");
-            }*/
-
-
-/*          std::vector<int> listOfSubchannels;
-          for (unsigned i = 0; i < m_phyMacConfig->GetBandwidthInRbs (); i++)
-            {
-              listOfSubchannels.push_back (i);
-            }
-          Ptr<const SpectrumValue> fakePsd =
-            MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, 0, listOfSubchannels);
-          DoCalcRxPowerSpectralDensity (fakePsd, a, b);*/
         }
     }
 
@@ -382,7 +363,7 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (NetDeviceContainer ueDevices
 
 bool MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
                                                 Ptr<const MobilityModel> b,
-                                                InputParams3gpp& input3gppParams
+                                                InputParams3gpp& input3gppParams        
                                               ) const
 {
 
@@ -2712,7 +2693,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 Ptr<AntennaArrayBasicModel>
 MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
 {
-  return DynamicCast<AntennaArrayBasicModel>(((DynamicCast<MmWaveNetDevice>(device))->GetPhy(m_phyMacConfig->GetCcId()))->GetDlSpectrumPhy()->GetRxAntenna());
+  return (DynamicCast<MmWaveNetDevice>(device))->GetPhy(m_ccId)->GetAntennaArray();
 }
 
 
@@ -2731,6 +2712,20 @@ bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
   return reverseLink;
 }
 
+
+Ptr<const SpectrumValue>
+MmWave3gppChannel::GetPsd (double powerTx) const
+{
+  std::vector<int> listOfSubchannels;
+  for (unsigned i = 0; i < m_numRbs; i++)
+     {
+       listOfSubchannels.push_back (i);
+     }
+
+  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel (m_numRbs,m_centerFrequency, m_scsPerRb, m_scs);
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (powerTx, listOfSubchannels, sm, m_bandwidth);
+}
+
 void
 MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
                                           Ptr<const MobilityModel> b
@@ -2739,14 +2734,7 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
   Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 
-  std::vector<int> listOfSubchannels;
-  for (unsigned i = 0; i < m_phyMacConfig->GetBandwidthInRbs (); i++)
-     {
-       listOfSubchannels.push_back (i);
-     }
-
-  Ptr<const SpectrumValue> fakePsd =
-           MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, 0, listOfSubchannels);
+  Ptr<const SpectrumValue> fakePsd = GetPsd(0.0);
 
   Ptr<NetDevice> txDevice;
   Ptr<NetDevice> rxDevice;

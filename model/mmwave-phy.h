@@ -47,6 +47,7 @@
 #include <string>
 #include <map>
 #include <inttypes.h>
+#include "mmwave-spectrum-value-helper.h"
 
 namespace ns3 {
 
@@ -86,18 +87,6 @@ public:
 
   void SetChannel (Ptr<SpectrumChannel> c);
 
-  /**
-   * \brief Create Tx Power Spectral Density
-   * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
-   * in which there is a transmission
-   * \return A SpectrumValue array representing the TX Power Spectral Density
-   * in W/Hz for each Resource Block, in which each array value
-   * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
-   * or is left untouched otherwise.
-   * \see MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity
-   */
-  virtual Ptr<SpectrumValue> CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const = 0;
-
   void DoDispose ();
 
   virtual void DoInitialize (void);
@@ -125,6 +114,23 @@ public:
   //	virtual Ptr<PacketBurst> GetPacketBurst (void);
   virtual Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
+  /**
+   * \brief Create Noise Power Spectral density
+   * \return A SpectrumValue array with fixed size, in which a value is
+   * update to a particular value of the noise
+   */
+  Ptr<SpectrumValue> GetNoisePowerSpectralDensity ();
+
+  /**
+   * Create Tx Power Spectral Density
+   * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
+   * in which there is a transmission
+   * \return A SpectrumValue array with fixed size, in which each value
+   * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
+   * or is left untouched otherwise.
+   * \see MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity
+   */
+  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
 
   /**
    * \brief Get the component carrier ID

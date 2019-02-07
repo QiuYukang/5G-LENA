@@ -49,7 +49,6 @@
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
-#include "mmwave-spectrum-value-helper.h"
 #include "mmwave-radio-bearer-tag.h"
 
 #include <ns3/node-list.h>
@@ -165,8 +164,7 @@ MmWaveEnbPhy::DoInitialize (void)
 
   NS_ABORT_IF (m_phyMacConfig == nullptr);
 
-  Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
   for (unsigned i = 0; i < m_phyMacConfig->GetL1L2CtrlLatency (); i++)
     {   // push elements onto queue for initial scheduling delay
@@ -276,17 +274,10 @@ MmWaveEnbPhy::CalcChannelQualityForUe (std::vector <double> sinr, Ptr<MmWaveSpec
 {
 
 }
-
-Ptr<SpectrumValue>
-MmWaveEnbPhy::CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
-{
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, m_txPower, rbIndexVector);
-}
-
 void
 MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
 {
-  Ptr<SpectrumValue> txPsd = CreateTxPowerSpectralDensity (rbIndexVector);
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
   NS_ASSERT (txPsd);
   m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }

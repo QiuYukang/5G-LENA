@@ -254,18 +254,6 @@ public:
   double GetCenterFrequency () const;
 
   /**
-   * Set the MmWavePhyMacCommon object with the parameters of the scenario
-   * @param a pointer to the MmWavePhyMacCommon configuration
-   */
-  void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
-
-  /**
-   * Get the MmWavePhyMacCommon object with the parameters of the scenario
-   * @returns a pointer to the MmWavePhyMacCommon configuration
-   */
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
-
-  /**
    * Set the pathloss model associated to this class
    * @param a pointer to the pathloss model, which has to implement the PropagationLossModel interface
    */
@@ -397,6 +385,13 @@ private:
   void BeamSearchBeamforming (Ptr<const MobilityModel> a,
                               Ptr<const MobilityModel> b) const;
 
+  /**
+   * Creates power spectral density for the given power and
+   * channel specific parameters (central frequency and the number of RB)
+   * @param powerTx power transmitted
+   * @return SpectrumValue representing PSD
+   */
+  Ptr<const SpectrumValue> GetPsd (double powerTx) const;
 
   /**
    * Compute and store the long term fading parameters in order to decrease the computational load
@@ -476,7 +471,6 @@ private:
   Ptr<NormalRandomVariable> m_normalRv; //there is a bug in the NormalRandomVariable::GetValue() function.
   Ptr<NormalRandomVariable> m_normalRvBlockage;
   Ptr<ExponentialRandomVariable> m_expRv;
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
   Ptr<PropagationLossModel> m_3gppPathloss;
   Ptr<ParamsTable> m_table3gpp;
   Time m_updatePeriod;
@@ -490,6 +484,11 @@ private:
   double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
   bool m_updateBeamformingVectorIdeally; //!< Update the beamforming vectors ideally
+  uint32_t m_numRbs; //!< Number of RBs
+  uint32_t m_scsPerRb; //!< Number of SCS per RB
+  double m_bandwidth; //!< The total bandwidth for this channel
+  double m_scs; //!< The subcarrier spacing
+  uint8_t m_ccId; //!< The component carrier id for this channel instance
 };
 
 

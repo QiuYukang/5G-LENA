@@ -212,11 +212,16 @@ MmWaveHelper::DoInitialize ()
         {
           Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
           m_channel.at (k)->AddSpectrumPropagationLossModel (channel);
-          channel->SetConfigurationParameters (i);
-           if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
+
+          if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
             {
               channel->SetPathlossModel (m_pathlossModel.at (k)->GetObject<PropagationLossModel> ());
-              channel->SetAttribute("CenterFrequency", DoubleValue (i->GetCenterFrequency()));
+              channel->SetAttribute ("CenterFrequency", DoubleValue (i->GetCenterFrequency()));
+              channel->SetAttribute ("Scs", DoubleValue (i->GetSubcarrierSpacing ()));
+              channel->SetAttribute ("ScsPerRb", UintegerValue (i->GetNumScsPerRb ()));
+              channel->SetAttribute ("Bandwidth", DoubleValue (i->GetBandwidth ()));
+              channel->SetAttribute ("NumberOfRbs", UintegerValue (i->GetBandwidthInRbs()));
+              channel->SetAttribute ("CcId", UintegerValue (i->GetCcId ()));
             }
           else
             {

@@ -302,6 +302,28 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
   return pburst;
 }
 
+Ptr<SpectrumValue>
+MmWavePhy::GetNoisePowerSpectralDensity ()
+{
+  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                      m_phyMacConfig->GetCenterFrequency(),
+                                                                      m_phyMacConfig->GetNumScsPerRb(),
+                                                                      m_phyMacConfig->GetSubcarrierSpacing());
+
+  return MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity(m_noiseFigure, sm);
+}
+
+Ptr<SpectrumValue>
+MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
+{
+  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                      m_phyMacConfig->GetCenterFrequency(),
+                                                                      m_phyMacConfig->GetNumScsPerRb(),
+                                                                      m_phyMacConfig->GetSubcarrierSpacing());
+
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
+}
+
 uint32_t
 MmWavePhy::GetCcId() const
 {

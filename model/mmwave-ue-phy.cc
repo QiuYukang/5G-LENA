@@ -244,14 +244,6 @@ MmWaveUePhy::GetNoiseFigure () const
   return m_noiseFigure;
 }
 
-Ptr<SpectrumValue>
-MmWaveUePhy::CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
-{
-  Ptr<SpectrumValue> psd =
-    MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, m_txPower, rbIndexVector);
-  return psd;
-}
-
 void
 MmWaveUePhy::DoSetSubChannels ()
 {
@@ -275,7 +267,7 @@ MmWaveUePhy::GetSubChannelsForReception (void)
 void
 MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
 {
-  Ptr<SpectrumValue> txPsd = CreateTxPowerSpectralDensity (mask);
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
   NS_ASSERT (txPsd);
   m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
@@ -303,8 +295,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   //TBD how to assign bandwitdh and earfcn
   m_phyMacConfig = config;
 
-  Ptr<SpectrumValue> noisePsd =
-    MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
+  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
   m_downlinkSpectrumPhy->SetCellId (m_cellId);
@@ -883,8 +874,7 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   // we will assign this already in mmwave-helper.cc
   //m_phyMacConfig = config;
 
-  Ptr<SpectrumValue> noisePsd =
-    MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
+  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
   m_downlinkSpectrumPhy->SetCellId (m_cellId);

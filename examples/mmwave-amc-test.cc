@@ -215,7 +215,12 @@ main (int argc, char *argv[])
 
   Ptr<MmWaveAmc> amc = CreateObject <MmWaveAmc> (mmWavePhyMacCommon);
 
-  Simulator::Schedule (MilliSeconds(0), &updateSnr, snrMinDb, enbMmwDev, MmWaveSpectrumValueHelper::GetSpectrumModel (mmWavePhyMacCommon),amc);
+  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel (mmWavePhyMacCommon->GetBandwidthInRbs(),
+                                                                       mmWavePhyMacCommon->GetCenterFrequency(),
+                                                                       mmWavePhyMacCommon->GetNumScsPerRb(),
+                                                                       mmWavePhyMacCommon->GetSubcarrierSpacing());
+
+  Simulator::Schedule (MilliSeconds(0), &updateSnr, snrMinDb, enbMmwDev, sm ,amc);
 
   Simulator::Stop (Seconds (simTime));
 	NS_LOG_UNCOND ("Simulation running for " << simTime << " seconds");
