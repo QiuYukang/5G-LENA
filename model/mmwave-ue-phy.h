@@ -37,7 +37,7 @@
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/mmwave-harq-phy.h>
-
+#include <ns3/antenna-array-3gpp-model.h>
 
 namespace ns3 {
 
@@ -71,9 +71,6 @@ public:
   double GetNoiseFigure () const;
 
   bool SendPacket (Ptr<Packet> packet);
-
-  virtual Ptr<SpectrumValue> CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const override;
-
   void DoSetSubChannels ();
 
   void SetSubChannelsForReception (std::vector <int> mask);
@@ -85,7 +82,7 @@ public:
   void DoSendControlMessage (Ptr<MmWaveControlMessage> msg);
 
   void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
-  Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const;
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override;
   Ptr<MmWaveSpectrumPhy> GetUlSpectrumPhy () const;
 
   void ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > msgList);

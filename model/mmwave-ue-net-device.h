@@ -73,7 +73,7 @@ public:
 
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
-  Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
+  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const override;
 
   Ptr<LteUeComponentCarrierManager> GetComponentCarrierManager (void) const;
 
@@ -91,29 +91,6 @@ public:
 
   Ptr<MmWaveEnbNetDevice> GetTargetEnb (void);
 
-  /**
-   * \brief Set the number of antenna elements in the first dimension
-   * \param antennaNum the number of antenna elements in the first dimension
-   */
-  void SetAntennaNumDim1 (uint8_t antennaNum);
-  /**
-   * \brief Set the number of antenna elements in the second dimension.
-   * \param antennaNum the number of antenna elements in the second dimension
-   */
-  void SetAntennaNumDim2 (uint8_t antennaNum);
-
-  /**
-  * \brief Returns the total number of antenna elements.
-  */
-  uint8_t GetAntennaNum () const;
-  /**
-  * \brief Returns the number of antenna elements in the first dimension.
-  */
-  uint8_t GetAntennaNumDim1 () const;
-  /**
-  * \brief Returns the number of antenna elements in the second dimension.
-  */
-  uint8_t GetAntennaNumDim2 () const;
   /**
    * \brief Set the ComponentCarrier Map for the UE
    * \param ccm the map of ComponentCarrierUe
@@ -144,10 +121,10 @@ private:
   uint16_t m_earfcn;
   uint32_t m_csgId;
   bool m_isConstructed;
-  uint8_t m_antennaNumDim1;  //!< The number of antenna elements in the first dimension.
-  uint8_t m_antennaNumDim2;  //!< The number of antenna elements in the second dimension.
+
   std::map < uint8_t, Ptr<ComponentCarrierMmWaveUe> > m_ccMap; ///< component carrier map
   Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
+
 };
 
 }

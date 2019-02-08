@@ -30,6 +30,8 @@
 #include <ns3/simulator.h>
 #include "ns3/double.h"
 #include "ns3/enum.h"
+#include <ns3/uinteger.h>
+#include <ns3/node.h>
 
 NS_LOG_COMPONENT_DEFINE ("AntennaArrayModel");
 
@@ -123,6 +125,16 @@ AntennaArrayModel::GetTypeId ()
                    DoubleValue (0),
                    MakeDoubleAccessor (&AntennaArrayModel::m_antennaGain),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("AntennaNumDim1",
+                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                    UintegerValue (4),
+                    MakeUintegerAccessor (&AntennaArrayModel::SetAntennaNumDim1,&AntennaArrayModel::GetAntennaNumDim1),
+                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("AntennaNumDim2",
+                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                    UintegerValue (8),
+                    MakeUintegerAccessor (&AntennaArrayModel::SetAntennaNumDim2,&AntennaArrayModel::GetAntennaNumDim2),
+                    MakeUintegerChecker<uint8_t> ())
   ;
   return tid;
 }
@@ -145,6 +157,8 @@ void
 AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
                                          Ptr<NetDevice> device)
 {
+  NS_LOG_INFO ("SetBeamformingVector for BeamId:"<<(unsigned)beamId.first<<" "<<beamId.second << " node id: "<<device->GetNode()->GetId()<<
+                 " at:"<<Simulator::Now().GetSeconds());
   m_omniTx = false;
   if (device != nullptr)
     {
@@ -158,6 +172,7 @@ AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId 
           m_beamformingVectorMap.insert (std::make_pair (device,
                                                          std::make_pair (antennaWeights, beamId)));
         }
+      m_beamformingVectorUpdateTimes [device] = Simulator::Now();
     }
   m_currentBeamformingVector = std::make_pair (antennaWeights, beamId);
 }
@@ -167,14 +182,14 @@ AntennaArrayModel::ChangeBeamformingVector (Ptr<NetDevice> device)
 {
   m_omniTx = false;
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
-  NS_ASSERT_MSG (it != m_beamformingVectorMap.end (), "could not find");
+  NS_ASSERT_MSG (it != m_beamformingVectorMap.end (), "could not find the beamforming vector for the provided device");
   m_currentBeamformingVector = it->second;
 }
 
 AntennaArrayModel::BeamformingVector
 AntennaArrayModel::GetCurrentBeamformingVector ()
 {
-  NS_ABORT_MSG_IF (m_omniTx, "omi transmission do not need beamforming vector");
+  NS_ABORT_MSG_IF (m_omniTx, "omni transmission do not need beamforming vector");
   return m_currentBeamformingVector;
 }
 
@@ -205,6 +220,14 @@ AntennaArrayModel::GetBeamformingVector (Ptr<NetDevice> device)
       beamformingVector = m_currentBeamformingVector;
     }
   return beamformingVector;
+}
+
+Time 
+AntennaArrayModel::GetBeamformingVectorUpdateTime (Ptr<NetDevice> device)
+{
+  BeamformingStorageUpdateTimes::iterator it = m_beamformingVectorUpdateTimes.find (device);
+  NS_ABORT_MSG_IF (it == m_beamformingVectorUpdateTimes.end (), "The beamforming vector for the given device does not exist." );
+  return it->second;
 }
 
 void
@@ -422,6 +445,46 @@ AntennaArrayModel::GetAntennaOrientation () const
 {
   return m_orientation;
 }
+
+uint8_t
+AntennaArrayModel::GetAntennaNumDim1 () const
+{
+  return m_antennaNumDim1;
+}
+
+uint8_t
+AntennaArrayModel::GetAntennaNumDim2 () const
+{
+  return m_antennaNumDim2;
+}
+
+void
+AntennaArrayModel::SetAntennaNumDim1 (uint8_t antennaNum)
+{
+  m_antennaNumDim1 = antennaNum;
+}
+
+void
+AntennaArrayModel::SetAntennaNumDim2 (uint8_t antennaNum)
+{
+  m_antennaNumDim2 = antennaNum;
+}
+
+
+Ptr<const SpectrumModel>
+AntennaArrayModel::GetSpectrumModel () const
+{
+  return m_spectrumModel;
+
+}
+
+void
+AntennaArrayModel::SetSpectrumModel (Ptr<const SpectrumModel> sm)
+{
+  m_spectrumModel = sm;
+}
+
+
 
 
 

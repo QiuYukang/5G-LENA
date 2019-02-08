@@ -44,11 +44,13 @@ using namespace ns3;
  * \file mmwave-system-test-schedulers.cc
  * \ingroup test
  * \brief System test for the scheduler classes
- *
- * This test case checks if the throughput obtained is as expected for the scheduling logic.
+ * This test case checks if the throughput obtained per UE is as expected for
+ * the specified scheduling logic.
  * The test scenario consists of a scenario in which various UEs are attached to a single gNB.
  * UEs perform UDP full buffer downlink and/or uplink traffic.
  * gNB is configured to have 1 bandwidth part.
+ * UEs can belong to the same or different beams.
+ * This examples uses beam search beamforming method.
  * The traffic is full buffer traffic.
  */
 class MmWaveSystemTestScheduling : public TestCase
@@ -77,14 +79,25 @@ private:
   double m_bw1; // bandwidth of bandwidth part 1
   bool m_isDownlink; // whether to generate the downlink traffic
   bool m_isUplink; // whether to generate the uplink traffic
-  uint32_t m_usersNum; // number of users
+  uint32_t m_usersPerBeamNum; // number of users
   uint32_t m_beamsNum; // currently the test is supposed to work with maximum 4 beams per gNb
   std::string m_schedulerType;
   std::string m_name;
 
 };
 
-MmWaveSystemTestScheduling::MmWaveSystemTestScheduling (const std::string & name, uint32_t usersNum,
+/**
+ * MmWaveSystemTestScheduling is a test constructor which is used to initialise the test parameters.  
+ * @param name A unique test configuration name
+ * @param usersPerBeamNum How many users will be installed per beam
+ * @param beamsNum Into how many beams of gNB will be distributed UEs attached to it. The maximum for this test case is 4. 
+ * @param numerology The numerology to be used in the simulation
+ * @param bw1 The system bandwidth
+ * @param isDownlnk Is the downlink traffic going to be present in the test case
+ * @param isUplink Is the uplink traffic going to be present in the test case
+ * @param schedulerType Which scheduler is going to be used in the test case Ofdma/Tdma" and the scheduling logic RR, PF, of MR
+ */
+MmWaveSystemTestScheduling::MmWaveSystemTestScheduling (const std::string & name, uint32_t usersPerBeamNum,
                                                         uint32_t beamsNum, uint32_t numerology,
                                                         double bw1, bool isDownlnk, bool isUplink,
                                                         const std::string & schedulerType)
@@ -94,7 +107,7 @@ MmWaveSystemTestScheduling::MmWaveSystemTestScheduling (const std::string & name
   m_bw1 = bw1;
   m_isDownlink = isDownlnk;
   m_isUplink = isUplink;
-  m_usersNum = usersNum;
+  m_usersPerBeamNum = usersPerBeamNum;
   NS_ABORT_MSG_UNLESS (beamsNum <=4, "Test program is designed to support up to 4 beams per gNB" );
   m_beamsNum = beamsNum;
   m_schedulerType = schedulerType;
@@ -111,7 +124,6 @@ MmWaveSystemTestScheduling::~MmWaveSystemTestScheduling ()
 void
 MmWaveSystemTestScheduling::DoRun (void)
 {
-    std::cout<<"\n\n\n"<<m_name<<std::endl;
     NS_ABORT_IF(!m_isUplink && !m_isDownlink);
 
    // set simulation time and mobility
@@ -163,7 +175,7 @@ MmWaveSystemTestScheduling::DoRun (void)
     double gNbHeight = 10;
     double ueHeight = 1.5;
     gNbNodes.Create (gNbNum);
-    ueNodes.Create (m_usersNum * m_beamsNum * gNbNum);
+    ueNodes.Create (m_usersPerBeamNum * m_beamsNum * gNbNum);
 
     Ptr<ListPositionAllocator> apPositionAlloc = CreateObject<ListPositionAllocator> ();
     Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
@@ -177,23 +189,23 @@ MmWaveSystemTestScheduling::DoRun (void)
 
         for (uint beam = 1; beam <= m_beamsNum ; beam ++)
           {
-            for (uint ueBeam = 0; ueBeam < m_usersNum ; ueBeam ++)
+            for (uint uePerBeamIndex = 0; uePerBeamIndex < m_usersPerBeamNum ; uePerBeamIndex ++)
               {
                 if (beam == 1)
                   {
-                    staPositionAlloc->Add (Vector (gNbx + 1 + 0.1*ueBeam , gNby + 10 + 0.1*ueBeam, ueHeight));
+                    staPositionAlloc->Add (Vector (gNbx + 1 + 0.1*uePerBeamIndex , gNby + 10 + 0.1*uePerBeamIndex, ueHeight));
                   }
                 else if (beam == 2)
                   {
-                    staPositionAlloc->Add (Vector (gNbx + 10 + 0.1*ueBeam , gNby - 1  + 0.1*ueBeam, ueHeight));
+                    staPositionAlloc->Add (Vector (gNbx + 10 + 0.1*uePerBeamIndex , gNby - 1  + 0.1*uePerBeamIndex, ueHeight));
                   }
                 else if (beam == 3)
                   {
-                    staPositionAlloc->Add (Vector (gNbx - 1 + 0.1*ueBeam  , gNby - 10  + 0.1*ueBeam, ueHeight));
+                    staPositionAlloc->Add (Vector (gNbx - 1 + 0.1*uePerBeamIndex  , gNby - 10  + 0.1*uePerBeamIndex, ueHeight));
                   }
                 else if (beam ==4 )
                   {
-                    staPositionAlloc->Add (Vector (gNbx - 10  + 0.1*ueBeam , gNby + 1 + 0.1*ueBeam, ueHeight));
+                    staPositionAlloc->Add (Vector (gNbx - 10  + 0.1*uePerBeamIndex , gNby + 1 + 0.1*uePerBeamIndex, ueHeight));
                   }
               }
 
@@ -364,12 +376,12 @@ MmWaveSystemTestSchedulingTestSuite::MmWaveSystemTestSchedulingTestSuite ()
     DL_UL
   };
 
-  std::list<std::string> subdivision = {"Ofdma", "Tdma"};
-  std::list<std::string> scheds       = {"RR", "PF", "MR"};
-  std::list<TxMode> mode             = {DL, UL, DL_UL};
-  std::list<uint32_t>    ues         = {1, 2, 4, 8};
-  std::list<uint32_t>    beams       = {1, 2};
-  std::list<uint32_t>    numerologies = {0, 1, 2, 3, 4};
+  std::list<std::string> subdivision     = {"Ofdma", "Tdma"};
+  std::list<std::string> scheds          = {"RR", "PF", "MR"};
+  std::list<TxMode> mode                 = {DL, UL, DL_UL};
+  std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 8};
+  std::list<uint32_t>    beams           = {1, 2};
+  std::list<uint32_t>    numerologies    = {0, 1, 2, 3, 4};
 
   // Three QUICK test cases
   AddTestCase (new MmWaveSystemTestScheduling ("DL, num 0 Tdma RR 1 2", 1, 2, 0, 20e6, true, false,
@@ -387,7 +399,7 @@ MmWaveSystemTestSchedulingTestSuite::MmWaveSystemTestSchedulingTestSuite ()
             {
               for (const auto & modeType : mode)
                 {
-                  for (const auto & ue : ues)
+                  for (const auto & uesPerBeam : uesPerBeamList)
                     {
                       for (const auto & beam : beams)
                         {
@@ -405,13 +417,13 @@ MmWaveSystemTestSchedulingTestSuite::MmWaveSystemTestSchedulingTestSuite ()
                               ss << "DL_UL";
                             }
                           ss << ", Num " << num << ", " << subType << " " << sched << ", "
-                             << ue << " UE per beam, " << beam << " beam";
+                             << uesPerBeam << " UE per beam, " << beam << " beam";
                           const bool isDl = modeType == DL || modeType == DL_UL;
                           const bool isUl = modeType == UL || modeType == DL_UL;
 
                           schedName << "ns3::MmWaveMacScheduler" << subType << sched;
 
-                          AddTestCase (new MmWaveSystemTestScheduling (ss.str(), ue, beam, num,
+                          AddTestCase (new MmWaveSystemTestScheduling (ss.str(), uesPerBeam, beam, num,
                                                                        20e6, isDl, isUl,
                                                                        schedName.str()),
                                        TestCase::EXTENSIVE);

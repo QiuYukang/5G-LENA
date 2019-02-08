@@ -76,16 +76,6 @@ MmWaveUeNetDevice::GetTypeId (void)
                    UintegerValue (0),
                    MakeUintegerAccessor (&MmWaveUeNetDevice::m_imsi),
                    MakeUintegerChecker<uint64_t> ())
-    .AddAttribute ("AntennaNumDim1",
-                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
-                   UintegerValue (2),
-                   MakeUintegerAccessor (&MmWaveUeNetDevice::SetAntennaNumDim1, &MmWaveUeNetDevice::GetAntennaNumDim1),
-                   MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("AntennaNumDim2",
-                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
-                   UintegerValue (4),
-                   MakeUintegerAccessor (&MmWaveUeNetDevice::SetAntennaNumDim2, &MmWaveUeNetDevice::GetAntennaNumDim2),
-                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("LteUeRrc",
                    "The RRC layer associated with the ENB",
                    PointerValue (),
@@ -207,12 +197,13 @@ MmWaveUeNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t pro
   return m_nas->Send (packet, protocolNumber);
 }
 
-Ptr<MmWaveUePhy>
+Ptr<MmWavePhy>
 MmWaveUeNetDevice::GetPhy (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
   return m_ccMap.at (index)->GetPhy ();
 }
+
 
 Ptr<LteUeComponentCarrierManager>
 MmWaveUeNetDevice::GetComponentCarrierManager (void) const
@@ -269,37 +260,6 @@ MmWaveUeNetDevice::GetTargetEnb (void)
 {
   NS_LOG_FUNCTION (this);
   return m_targetEnb;
-}
-
-void
-MmWaveUeNetDevice::SetAntennaNumDim1 (uint8_t antennaNum)
-{
-  m_antennaNumDim1 = antennaNum;
-}
-
-void
-MmWaveUeNetDevice::SetAntennaNumDim2 (uint8_t antennaNum)
-{
-  m_antennaNumDim2 = antennaNum;
-}
-
-
-uint8_t
-MmWaveUeNetDevice::GetAntennaNum () const
-{
-  return m_antennaNumDim1 * m_antennaNumDim2;
-}
-
-uint8_t
-MmWaveUeNetDevice::GetAntennaNumDim1 () const
-{
-  return m_antennaNumDim1;
-}
-
-uint8_t
-MmWaveUeNetDevice:: GetAntennaNumDim2 () const
-{
-  return m_antennaNumDim2;
 }
 
 }

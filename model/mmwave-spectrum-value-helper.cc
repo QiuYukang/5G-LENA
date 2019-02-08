@@ -94,60 +94,49 @@ operator < (const MmWaveSpectrumModelId& a, const MmWaveSpectrumModelId& b)
 
 static std::map<MmWaveSpectrumModelId, Ptr<SpectrumModel> > g_mmWaveSpectrumModelMap; ///< mmwave spectrum model map
 
-Ptr<SpectrumModel>
-MmWaveSpectrumValueHelper::GetSpectrumModel (Ptr<MmWavePhyMacCommon> ptrConfig)
+Ptr<const SpectrumModel> MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs)
 {
-  NS_LOG_FUNCTION (ptrConfig->GetCenterFrequency () << (uint32_t) ptrConfig->GetBandwidthInRbs ());
+  NS_LOG_FUNCTION (centerFrequency << numRbs << scsPerRb << scs);
 
-  MmWaveSpectrumModelId modelId = MmWaveSpectrumModelId (ptrConfig->GetCenterFrequency (), ptrConfig->GetBandwidthInRbs ());
-
-  /*if (m_model != 0 && m_model->GetNumBands () != 0)
-  {
-        return m_model;
-  }*/
+  MmWaveSpectrumModelId modelId = MmWaveSpectrumModelId (centerFrequency, numRbs);
 
   if (g_mmWaveSpectrumModelMap.find (modelId) != g_mmWaveSpectrumModelMap.end ())
     {
       return g_mmWaveSpectrumModelMap.find (modelId)->second;
     }
 
-  double fc = ptrConfig->GetCenterFrequency ();
   double f = 0.00;
 
-  NS_ASSERT_MSG (fc != 0, "The carrier frequency cannot be set to 0");
+  NS_ASSERT_MSG (centerFrequency != 0, "The carrier frequency cannot be set to 0");
 
-  f = fc - (ptrConfig->GetBandwidthInRbs () * ptrConfig->GetSubcarrierSpacing () * ptrConfig->GetNumScsPerRb () / 2.0);
+  f = centerFrequency - (numRbs * scs * scsPerRb / 2.0);
 
-  Bands rbs; // A vector representing each resource block
-  for (uint32_t numrb = 0; numrb < ptrConfig->GetBandwidthInRbs (); ++numrb)
+  Bands rbs; // A vector representing all resource blocks
+  for (uint32_t numrb = 0; numrb < numRbs; ++numrb)
     {
       BandInfo rb;
       rb.fl = f;
-      f += ptrConfig->GetSubcarrierSpacing () * ptrConfig->GetNumScsPerRb () / 2;
+      f += scs * scsPerRb / 2;
       rb.fc = f;
-      f += ptrConfig->GetSubcarrierSpacing () * ptrConfig->GetNumScsPerRb () / 2;
+      f += scs * scsPerRb / 2;
       rb.fh = f;
-
       rbs.push_back (rb);
     }
 
   Ptr<SpectrumModel> model = Create<SpectrumModel> (rbs);
-
+  // save this model to the map of spectrum models
   g_mmWaveSpectrumModelMap.insert (std::pair<MmWaveSpectrumModelId, Ptr<SpectrumModel> > (modelId, model));
 
   return model;
 }
 
 Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (Ptr<MmWavePhyMacCommon> ptrConfig, double powerTx, std::vector <int> activeRbs)
+MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, std::vector <int> activeRbs, Ptr<const SpectrumModel> spectrumModel, double bandwidth)
 {
-  Ptr<SpectrumModel> model = GetSpectrumModel (ptrConfig);
-  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (model);
-
+  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (spectrumModel);
   double powerTxW = std::pow (10., (powerTx - 30) / 10);
-
   double txPowerDensity = 0;
-  txPowerDensity = (powerTxW / (ptrConfig->GetBandwidth ()));
+  txPowerDensity = powerTxW / bandwidth;
 
   for (std::vector <int>::iterator it = activeRbs.begin (); it != activeRbs.end (); it++)
     {
@@ -162,24 +151,7 @@ MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (Ptr<MmWavePhyMacCommon>
 }
 
 Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (Ptr<MmWavePhyMacCommon> ptrConfig, double powerTx, std::map<int, double> powerTxMap, std::vector <int> activeRbs)
-{
-  Ptr<SpectrumValue> dummy;
-  return dummy;
-}
-
-
-
-Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (Ptr<MmWavePhyMacCommon> ptrConfig, double noiseFigure)
-{
-  Ptr<SpectrumModel> model = GetSpectrumModel (ptrConfig);
-  Ptr<SpectrumValue> noisePsd = CreateNoisePowerSpectralDensity (noiseFigure, model);
-  return noisePsd;
-}
-
-Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<SpectrumModel> spectrumModel)
+MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<const SpectrumModel> spectrumModel)
 {
   NS_LOG_FUNCTION (noiseFigureDb << spectrumModel);
   const double kT_dBm_Hz = -174.0;  // dBm/Hz

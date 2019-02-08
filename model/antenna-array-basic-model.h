@@ -20,6 +20,8 @@
 
 #include <ns3/antenna-model.h>
 #include <complex>
+#include <ns3/nstime.h>
+#include <ns3/spectrum-model.h>
 
 namespace ns3 {
 
@@ -160,7 +162,7 @@ public:
    * being received
    */
   virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
-                                     Ptr<NetDevice> device = nullptr) = 0 ;
+                                     Ptr<NetDevice> device) = 0 ;
 
   /**
    * \brief Function that schedules the call to SetBeamformingVector witha a
@@ -171,7 +173,7 @@ public:
    * being received
    */
   virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
-                                              Ptr<NetDevice> device = nullptr) = 0;
+                                              Ptr<NetDevice> device) = 0;
 
   /**
    * \brief Change the beamforming vector for a device
@@ -197,6 +199,13 @@ public:
    * \return the current beamforming vector
    */
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) = 0;
+
+  /**
+   * \brief Function that returns the last time at which the beamforming vector was updated
+   * @param device the device to which is connected the device of this antenna array
+   * @return the last time at which the beamforming vector has been updated
+   */
+  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device) = 0;
 
   virtual void SetToSector (uint32_t sector, uint32_t antennaNum) = 0;
 
@@ -233,6 +242,40 @@ public:
    * \param elevation Elevation
    */
   virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90) = 0;
+
+  /**
+   * \brief Returns the number of antenna elements in the first dimension.
+   */
+  virtual uint8_t GetAntennaNumDim1 () const = 0;
+
+  /**
+   * \brief Returns the number of antenna elements in the second dimension.
+   */
+  virtual uint8_t GetAntennaNumDim2 () const = 0;
+
+  /**
+   * \brief Set the number of antenna elements in the first dimension
+   * \param antennaNum the number of antenna elements in the first dimension
+   */
+  virtual void SetAntennaNumDim1 (uint8_t antennaNum) = 0;
+
+  /**
+   * \brief Set the number of antenna elements in the second dimension
+   * \param antennaNum the number of antenna elements in the second dimension
+   */
+  virtual void SetAntennaNumDim2 (uint8_t antennaNum) = 0;
+
+  /**
+   * Get SpectrumModel corresponding to this antenna instance
+   * @return SpectrumModel
+   */
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+
+  /**
+   * Set SpectrumModel that will be used by this antenna instancew
+   * @param sm SpectrumModel to be used
+   */
+  virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm) = 0;
 
 };
 

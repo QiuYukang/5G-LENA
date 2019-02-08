@@ -35,9 +35,7 @@
 #include <ns3/net-device.h>
 #include <map>
 #include <ns3/angles.h>
-#include <ns3/net-device-container.h>
 #include <ns3/random-variable-stream.h>
-#include "mmwave-phy-mac-common.h"
 #include "mmwave-3gpp-propagation-loss-model.h"
 #include "mmwave-3gpp-buildings-propagation-loss-model.h"
 #include <ns3/antenna-array-model.h>
@@ -62,38 +60,79 @@ typedef std::vector<doubleVector_t> double2DVector_t;
 typedef std::vector< std::complex<double> > complexVector_t;
 typedef std::vector<complexVector_t> complex2DVector_t;
 typedef std::vector<complex2DVector_t> complex3DVector_t;
+typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
+
+struct InputParams3gpp
+{
+  bool m_los {false};
+  bool m_o2i {false};
+  Vector m_speed {0,0,0};
+  double m_dis2D {0};
+  double m_dis3D {0};
+  key_t m_key {0,0}; //!< the key formed of the pointers to the TX and RX device, respectively
+  key_t m_keyReverse {0,0}; //!< //!< the key formed of the pointers to the RX and TX device, respectively
+
+  bool m_initialized {false};
+
+public:
+
+  inline InputParams3gpp()
+   {
+    m_initialized = false;
+   }
+  inline InputParams3gpp (bool los, bool o2i, Vector speed, double dis2D, double dis3D, key_t key, key_t keyReverse):
+    m_los(los), m_o2i(o2i), m_speed(speed), m_dis2D (dis2D), m_dis3D (dis3D), m_key(key), m_keyReverse (keyReverse)
+  {
+    m_initialized = true;
+  }
+
+  inline InputParams3gpp (const InputParams3gpp &p)
+   {
+     m_los = p.m_los;
+     m_o2i = p.m_o2i;
+     m_speed = p.m_speed;
+     m_dis2D = p.m_dis2D;
+     m_dis3D = p.m_dis3D;
+     m_key = p.m_key;
+     m_keyReverse = p.m_keyReverse;
+     m_initialized = p.m_initialized;
+   }
+
+  inline bool GetLos () const {return m_los;}
+  inline bool Geto2i () const {return m_o2i;}
+  inline Vector GetSpeed ()const {return m_speed;}
+  inline double GetDis2D () const {return m_dis2D;}
+  inline double GetDis3D () const {return m_dis3D;}
+  inline key_t GetKey () const {return m_key;}
+  inline key_t GetKeyReverse () const {return m_keyReverse;}
+  inline bool IsInitialized ()const {return m_initialized;}
+
+};
+
 
 /**
  * Data structure that stores a channel realization
  */
 struct Params3gpp : public SimpleRefCount<Params3gpp>
 {
-  AntennaArrayBasicModel::BeamId  m_txBeamId; //!< Tx antenna beam id
-  AntennaArrayBasicModel::BeamId  m_rxBeamId; //!< Rx antenna beam id
-  complexVector_t     m_txW; // tx antenna weights.
-  complexVector_t     m_rxW; // rx antenna weights.
+  InputParams3gpp m_input;
   complex3DVector_t      m_channel; // channel matrix H[u][s][n], u - number of antennas of receiver, s - number of antennas of transmitter, n - number of clusters
-  doubleVector_t      m_delay; // cluster delay.
-  double2DVector_t    m_angle; //cluster angle angle[direction][n], where direction = 0(aoa), 1(zoa), 2(aod), 3(zod) in degree.
-  complexVector_t     m_longTerm; // long term component per cluster
+  doubleVector_t      m_delay; //!< cluster delay.
+  double2DVector_t    m_angle; //!<cluster angle angle[direction][n], where direction = 0(aoa), 1(zoa), 2(aod), 3(zod) in degree.
+  complexVector_t     m_longTerm; //!< long term component per cluster
+  Time m_longTermUpdateTime {0}; //!< the last time at which the long term matrix was updated
+  Time m_generatedTime {0}; //!< the last time at which the channel matrix was updated
 
-  double2DVector_t    m_nonSelfBlocking; // store the blockages
-
+  double2DVector_t    m_nonSelfBlocking; //!< store the blockages
   /*The following parameters are stored for spatial consistent updating*/
-  Vector m_preLocUT; // location of UT when generating the previous channel
-  Vector m_locUT; // location of UT
-  double2DVector_t m_norRvAngles; //stores the normal variable for random angles angle[cluster][id] generated for equation (7.6-11)-(7.6-14), where id = 0(aoa),1(zoa),2(aod),3(zod)
-  Time m_generatedTime;
-  double m_DS; // delay spread
-  double m_K; //K factor
-  uint8_t m_numCluster; // reduced cluster number;
+  Vector m_preLocUT {0,0,0}; //!< location of UT when generating the previous channel
+  double2DVector_t m_norRvAngles; //!< stores the normal variable for random angles angle[cluster][id] generated for equation (7.6-11)-(7.6-14), where id = 0(aoa),1(zoa),2(aod),3(zod)
+  double m_DS; //!< delay spread
+  double m_K; //!< K factor
+  uint8_t m_numCluster; //!< reduced cluster number;
   double2DVector_t m_clusterPhase;
   double m_losPhase;
-  bool m_los;
-  bool m_o2i;
-  Vector m_speed;
-  double m_dis2D;
-  double m_dis3D;
+
 };
 
 /**
@@ -166,6 +205,9 @@ struct ParamsTable : public Object
 class MmWave3gppChannel : public SpectrumPropagationLossModel
 {
 public:
+
+  typedef std::map< key_t, Ptr<Params3gpp> > channelMap_t;
+
   /**
     * Constructor
     */
@@ -187,31 +229,76 @@ public:
   void ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2);
 
   /**
-   * Register the connection between all the devices in the NetDeviceContainer given
-   * as input
-   * @param a NetDeviceContainer for the UEs
-   * @param a NetDeviceContainer for the eNBs
+   * Check if the devices are connected
+   * @param a The first device's mobility model
+   * @param b The second device's mobility model
+   * @return boolean value true if the devices are connected and false if they are not
    */
-  void Initial (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+  bool AreConnected (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
 
   /**
-   * Set the initial BF vector between two devices
-   * @param a pointer to a NetDevice for the UE
-   * @param a pointer to a NetDevice for the eNB
+   * Check if the channel matrix between a and b exists
+   * @param a MobilityModel of the first device
+   * @param b MobilityModel of the second device
+   * @return boolean value true if there is channel matrix, and false if there is no channel matrix
    */
-  void SetBeamformingVector (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice);
+  bool ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
 
   /**
-   * Set the MmWavePhyMacCommon object with the parameters of the scenario
-   * @param a pointer to the MmWavePhyMacCommon configuration
+   * Check if the channel matrix needs an update
+   * @param a MobilityModel of the first device
+   * @param b MobilityModel of the second device
+   * @param los whether the link is LOS
+   * @return true if the channel matrix needs to be updated, otherwise false
    */
-  void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
+  bool ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b, bool los) const;
+  /**
+   * Checks if there is beamforming between the two devices
+   * @param dev1 The first device
+   * @param dev2 The second device
+   * @return booleean value true if there is beamforming, otherwise it returns false
+   */
+  bool IsBeamforming (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
 
   /**
-   * Get the MmWavePhyMacCommon object with the parameters of the scenario
-   * @returns a pointer to the MmWavePhyMacCommon configuration
+   * Checks if the device a UE device
+   * @param dev1 pointer to the NetDevice object
+   * @return true if the device is a UE device, otherwise it returns false
    */
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
+  bool IsUeDevice (Ptr<NetDevice> dev1) const;
+
+  /**
+   * Get position of the UE device. It is expected that one of the
+   * two device is the UE device, otherwise this function will call
+   * NS_ABORT_MSG.
+   * @param a mobility model of the first device
+   * @param b mobility model of the second deviec
+   * @return Position of the
+   */
+  Vector GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
+
+  /**
+   * Register the connection between the UE and BS device
+   * @param ueDevice The UE device
+   * @param ueDeviceAntenna The UE antenna array
+   * @param bsDevice The BS device
+   * @param bsDeviceAntenna The BS antenna array model
+   */
+  void CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
+                                        Ptr<AntennaArrayBasicModel> ueDeviceAntenna,
+                                        Ptr<NetDevice> bsDevice,
+                                        Ptr<AntennaArrayBasicModel> bsDeviceAntenna);
+  /**
+   * Sets the center frequency of the channel map of this instance of MmWave3gppChannel
+   * @param centerFrequency center frequency of the channel map of this instance of MmWave3gppChannel
+   */
+  void SetCenterFrequency (double centerFrequency);
+
+  /**
+   * Get center frequency of the channel map of this instance of MmWave3gppChannel
+   * @return centerFrequency of the channel map of this instance of MmWave3gppChannel
+   */
+  double GetCenterFrequency () const;
 
   /**
    * Set the pathloss model associated to this class
@@ -219,7 +306,51 @@ public:
    */
   void SetPathlossModel (Ptr<PropagationLossModel> pathloss);
 
+
+  /**
+   * Perform the configured beamforming method, e.g. beam search beamforming or
+   * long-term covariation matrix method
+   * @param a MobilityModel of the transmitter
+   * @param b MobilityModel of the receiver
+   */
+  void PerformBeamforming(Ptr<const MobilityModel> a,
+                          Ptr<const MobilityModel> b) const;
+
 private:
+
+  /**
+   * This function prepares 3gpp parameters that are necessary for the channel
+   * realization calculation or update
+   * @param a Mobility model of the transmitter device
+   * @param b Mobility model of the receiver device
+   * @return Input3gppParams structure that contains input parameter for 3gpp channel calculations
+   *
+   */
+  InputParams3gpp GetInput3gppParameters (Ptr<const MobilityModel> a,
+                                          Ptr<const MobilityModel> b) const;
+
+  void DoUpdateLongTerm (Ptr<const MobilityModel> a,
+                         Ptr<const MobilityModel> b) const;
+
+  Ptr<Params3gpp> DoGetChannel (Ptr<const MobilityModel> a,
+                                   Ptr<const MobilityModel> b) const;
+
+  /**
+   * Returns a reference to the channel map that corresponding to central carrier
+   * frequency of this instance of MmWave3gppChannel
+   * @return reference to the channel map
+   */
+  std::map< key_t, Ptr<Params3gpp> >& GetChannelMap() const;
+
+  /**
+   * Returns the channel condition for the given transmitter and receiver
+   * @param a Mobility model of the transmitter
+   * @param b Mobility model of the receiver
+   * @return the channel condition based on the used propagation loss model
+   */
+  char DoGetChannelCondition (Ptr<const MobilityModel> a,
+                              Ptr<const MobilityModel> b) const;
+
   /**
    * Inherited from SpectrumPropagationLossModel, it returns the PSD at the receiver
    * @params the transmitted PSD
@@ -233,74 +364,111 @@ private:
 
   /**
    * Get a new realization of the channel
-   * @params the ParamsTable for the specific scenario
-   * @params the location of UT
-   * @params the los condition
-   * @params the o2i condition
-   * @params the ArrayAntennaModel for the txAntenna
-   * @params the ArrayAntennaModel for the rxAntenna
-   * @params the number of txAntenna per row
-   * @params the number of rxAntenna per row
-   * @params the rxAngle
-   * @params the txAngle
-   * @params the relative speed between tx and rx
-   * @params the 2D distance between tx and rx
-   * @params the 3D distance between tx and rx
-   * @returns the channel realization in a Params3gpp object
+   * @param table3gpp the ParamsTable for the specific scenario
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
+   * @param inputParams input 3gpp params
+   * @return a new realization of the channel
    */
-  Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp, Vector locUT, bool los, bool o2i,
-                                 Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
-                                 uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle,
-                                 Vector speed, double dis2D, double dis3D) const;
+  Ptr<Params3gpp> GetNewChannel (Ptr<ParamsTable> table3gpp,
+                                 Ptr<const MobilityModel> a,
+                                 Ptr<const MobilityModel> b,
+                                 InputParams3gpp inputParams) const;
 
   /**
    * Update the channel realization with procedure A of TR 38.900 Sec 7.6.3.2
    * for the spatial consistency
-   * @params the previous channel realization in a Params3gpp object
-   * @params the ParamsTable for the specific scenario
-   * @params the ArrayAntennaModel for the txAntenna
-   * @params the ArrayAntennaModel for the rxAntenna
-   * @params the number of txAntenna per row
-   * @params the number of rxAntenna per row
-   * @params the rxAngle
-   * @params the txAngle
-   * @returns the channel realization in a Params3gpp object
+   * @param params3gpp the previous channel realization in a Params3gpp object
+   * @param table3gpp the ParamsTable for the specific scenario
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
+   * @return
    */
-  Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp, Ptr<ParamsTable> table3gpp,
-                                 Ptr<AntennaArrayBasicModel> txAntenna, Ptr<AntennaArrayBasicModel> rxAntenna,
-                                 uint8_t *txAntennaNum, uint8_t *rxAntennaNum, Angles &rxAngle, Angles &txAngle) const;
+  Ptr<Params3gpp> UpdateChannel (Ptr<Params3gpp> params3gpp,
+                                 Ptr<ParamsTable> table3gpp,
+                                 Ptr<const MobilityModel> a,
+                                 Ptr<const MobilityModel> b) const;
 
   /**
    * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
    * The vector is stored in the Params3gpp object passed as parameter
-   * @params the channel realizationin as a Params3gpp object
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
    */
-  void LongTermCovMatrixBeamforming (Ptr<Params3gpp> params) const;
+  void LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
+                                     Ptr<const MobilityModel> b) const;
+
+
+  /**
+   * Get the antenna array of the device, this function is technology specific
+   * and thus the implementation will be moved to the corresponding child class
+   * or will be made generic but requiring that the provided device implements
+   * some additional interface
+   * @param device
+   * @return
+   */
+  Ptr<AntennaArrayBasicModel> GetAntennaArray (Ptr<NetDevice> device) const;
+
+
+  /**
+   * Checks if a is transmitter and b receiver or is a "reverse link" meaning oposite,
+   * i.e. that b is transmitter and a receiver.
+   * @param a mobility model of the first node
+   * @param b mobility model of the second node
+   * @return boolean that says if the a and b are tx and rx or opposite.
+   */
+  bool IsReverseLink (Ptr<const MobilityModel> a,
+                      Ptr<const MobilityModel> b) const;
 
   /**
    * Scan all sectors with predefined code book and select the one returns maximum gain.
    * The BF vector is stored in the Params3gpp object passed as parameter
-   * @params the channel realizationin as a Params3gpp object
+   * @param a mobility model of the transmitter
+   * @param b mobility model of the receiver
    */
-  void BeamSearchBeamforming (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Ptr<AntennaArrayBasicModel> txAntenna,
-                              Ptr<AntennaArrayBasicModel> rxAntenna, uint8_t *txAntennaNum, uint8_t *rxAntennaNum) const;
-
+  void BeamSearchBeamforming (Ptr<const MobilityModel> a,
+                              Ptr<const MobilityModel> b) const;
 
   /**
-   * Compute and store the long term fading params in order to decrease the computational load
-   * @params the channel realizationin as a Params3gpp object
+   * Creates power spectral density for the given power and
+   * channel specific parameters (central frequency and the number of RB)
+   * @param powerTx power transmitted
+   * @param txSm SpectrumModel of the transmitted
+   * @return SpectrumValue representing PSD
    */
-  void CalLongTerm (Ptr<Params3gpp> params) const;
+  Ptr<const SpectrumValue> GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const;
+
+  /**
+   * Compute and store the long term fading parameters in order to decrease the computational load
+   * @param txW beamforming vector of the transmitter antenna
+   * @param rxW beamforming vector of the receiver antenna
+   * @param delayClusters
+   * @param Husn the channel realization
+   * @return long term fading parameters
+   */
+  complexVector_t CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const;
 
   /**
    * Compute the BF gain, apply frequency selectivity by phase-shifting with the cluster delays
    * and scale the txPsd to get the rxPsd
-   * @params the tx PSD
-   * @params the channel realizationin as a Params3gpp object
-   * @params the relative speed between UE and eNB
-   * @returns the rx PSD
+   * @param txPsd tx PSD
+   * @param channel the channel realization
+   * @param longTerm the long term fading
+   * @param txW antenna weights of the transmitter antenna
+   * @param rxW antenna weights of the receiver antenna
+   * @param delay delay clusters
+   * @param angle angles
+   * @param speed relative speed
+   * @return the rx PSD
    */
-  Ptr<SpectrumValue> CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Params3gpp> params, Vector speed) const;
+  Ptr<SpectrumValue> CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
+                                         complex3DVector_t channel,
+                                         complexVector_t longTerm,
+                                         complexVector_t txW,
+                                         complexVector_t rxW,
+                                         doubleVector_t delay,
+                                         double2DVector_t angle,
+                                         Vector speed) const;
 
   /**
    * Returns the ParamsTable with the parameters of TR 38.900 Table 7.5-6
@@ -312,8 +480,11 @@ private:
    * @params the 2D distance
    * @return the ParamsTable structure
    */
-  Ptr<ParamsTable> Get3gppTable (bool los, bool o2i,
-                                 double hBS, double hUT, double distance2D) const;
+  Ptr<ParamsTable> Get3gppTable (bool los,
+                                 bool o2i,
+                                 double hBS,
+                                 double hUT,
+                                 double distance2D) const;
 
   /**
    * Delete the m_channel entry associated to the Params3gpp object of pair (a,b)
@@ -323,29 +494,31 @@ private:
    */
   void DeleteChannel (Ptr<const MobilityModel> a,
                       Ptr<const MobilityModel> b) const;
-  /*
+
+  /**
    * Returns the attenuation of each cluster in dB after applying blockage model
-   * @params the channel realizationin as a Params3gpp object
+   * @params the channel realization as a Params3gpp object
    * @params cluster azimuth angle of arrival
    * @params cluster zenith angle of arrival
+   * @params locUT UE location
    */
   doubleVector_t CalAttenuationOfBlockage (Ptr<Params3gpp> params,
-                                           doubleVector_t clusterAOA, doubleVector_t clusterZOA) const;
+                                           doubleVector_t clusterAOA,
+                                           doubleVector_t clusterZOA,
+                                           Vector locUT) const;
 
-  typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
+private:
 
+  static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency; //!< A static map of channel maps per carrier frequency
   mutable std::map< key_t, int > m_connectedPair;
-  mutable std::map< key_t, Ptr<Params3gpp> > m_channelMap;
-
+  mutable std::set <Ptr<NetDevice> > m_ueDevices;
+  
   Ptr<UniformRandomVariable> m_uniformRv;
   Ptr<UniformRandomVariable> m_uniformRvBlockage;
 
   Ptr<NormalRandomVariable> m_normalRv; //there is a bug in the NormalRandomVariable::GetValue() function.
   Ptr<NormalRandomVariable> m_normalRvBlockage;
-
-
   Ptr<ExponentialRandomVariable> m_expRv;
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
   Ptr<PropagationLossModel> m_3gppPathloss;
   Ptr<ParamsTable> m_table3gpp;
   Time m_updatePeriod;
@@ -355,8 +528,12 @@ private:
   bool m_portraitMode; //true (portrait mode); false (landscape mode).
   std::string m_scenario;
   double m_blockerSpeed;
-  double m_beamSearchAngleStep;
-  double m_ueSpeed;
+  double m_beamSearchAngleStep; //!< The size of the angle to be used in beam search method
+  double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
+  double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
+  bool m_updateBeamformingVectorIdeally; //!< Update the beamforming vectors ideally
+  double m_bandwidth; //!< The total bandwidth for this channel
+  std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
 };
 
 

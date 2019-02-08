@@ -69,18 +69,6 @@ public:
   double GetNoiseFigure () const;
 
   void CalcChannelQualityForUe (std::vector <double> sinr, Ptr<MmWaveSpectrumPhy> ue);
-
-  /**
-   * \brief Create Tx Power Spectral Density
-   * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
-   * in which there is a transmission
-   * \return A SpectrumValue array with fixed size, in which each value
-   * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
-   * or is left untouched otherwise.
-   * \see MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity
-   */
-  virtual Ptr<SpectrumValue> CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const override;
-
   /**
    * \brief Set the Tx power spectral density based on the RB index vector
    * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
@@ -99,7 +87,8 @@ public:
 
   void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time varTtiPeriod);
 
-  Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const;
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override;
+
   Ptr<MmWaveSpectrumPhy> GetUlSpectrumPhy () const;
 
   /**virtual void SendIdealControlMessage(Ptr<IdealControlMessage> msg);

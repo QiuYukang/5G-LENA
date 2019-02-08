@@ -350,10 +350,17 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::MmWavePointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
   Config::SetDefault("ns3::MmWavePointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
 
-  //Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim1", UintegerValue (4));
-  //Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim2", UintegerValue (4));
-  //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNumDim1", UintegerValue (16));
-  //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNumDim2", UintegerValue (16));
+  // Should be 8x8 = 64 antenna elements
+  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(ns3::AntennaArrayModel::GetTypeId()));
+  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue (8));
+  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue (8));
+  // Should be 4x4 = 16 antenna elements
+  Config::SetDefault ("ns3::MmWaveUePhy::AntennaArrayType", TypeIdValue(ns3::AntennaArrayModel::GetTypeId()));
+  Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue (4));
+  Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue (4));
+
+
+
   //Config::SetDefault("ns3::MmWaveEnbPhy::TxPower", DoubleValue (txPower));
 
 

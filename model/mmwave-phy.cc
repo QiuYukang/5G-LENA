@@ -164,10 +164,14 @@ MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy
   m_subframeNum (0),
   m_slotNum (0),
   m_varTtiNum (0),
-  m_slotAllocInfoUpdated (false)
+  m_slotAllocInfoUpdated (false),
+  m_antennaNumDim1 (0),
+  m_antennaNumDim2 (0),
+  m_antennaArrayType (AntennaArrayBasicModel::GetTypeId())
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
+  m_antennaArray = nullptr;
 }
 
 MmWavePhy::~MmWavePhy ()
@@ -180,6 +184,22 @@ void
 MmWavePhy::DoInitialize ()
 {
   NS_LOG_FUNCTION (this);
+}
+
+void
+MmWavePhy::InstallAntenna ()
+{
+  ObjectFactory antennaFactory = ObjectFactory ();
+  antennaFactory.SetTypeId (m_antennaArrayType);
+  m_antennaArray = antennaFactory.Create<AntennaArrayBasicModel>();
+  m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
+  m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
+
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                            m_phyMacConfig->GetCenterFrequency(),
+                                                                            m_phyMacConfig->GetNumScsPerRb(),
+                                                                            m_phyMacConfig->GetSubcarrierSpacing());
+  m_antennaArray->SetSpectrumModel (sm);
 }
 
 void
@@ -286,6 +306,28 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
       m_packetBurstMap.erase (it);
     }
   return pburst;
+}
+
+Ptr<SpectrumValue>
+MmWavePhy::GetNoisePowerSpectralDensity ()
+{
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                      m_phyMacConfig->GetCenterFrequency(),
+                                                                      m_phyMacConfig->GetNumScsPerRb(),
+                                                                      m_phyMacConfig->GetSubcarrierSpacing());
+
+  return MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity(m_noiseFigure, sm);
+}
+
+Ptr<SpectrumValue>
+MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
+{
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                           m_phyMacConfig->GetCenterFrequency(),
+                                                                           m_phyMacConfig->GetNumScsPerRb(),
+                                                                           m_phyMacConfig->GetSubcarrierSpacing());
+
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
 }
 
 uint32_t
@@ -430,6 +472,61 @@ MmWavePhy::GetComponentCarrierId ()
 {
   NS_LOG_FUNCTION (this);
   return m_componentCarrierId;
+}
+
+Ptr<AntennaArrayBasicModel>
+MmWavePhy::GetAntennaArray () const
+{
+  return m_antennaArray;
+}
+
+void
+MmWavePhy::SetAntennaArrayType (const TypeId antennaArrayTypeId)
+{
+  NS_ABORT_MSG_IF (m_antennaArray != nullptr, "Antenna's array type has been already configured. "
+      "Antenna's type cannot be changed once that the anntena is created");
+  m_antennaArrayType = antennaArrayTypeId ;
+}
+
+TypeId
+MmWavePhy::GetAntennaArrayType () const
+{
+  return m_antennaArrayType;
+}
+
+void
+MmWavePhy::SetAntennaNumDim1 (uint8_t antennaNumDim1)
+{
+  m_antennaNumDim1 = antennaNumDim1;
+  // if the antennaArray is already created then forward the value to the antenna object
+  if (m_antennaArray != nullptr)
+    {
+      m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
+    }
+
+}
+
+uint8_t
+MmWavePhy::GetAntennaNumDim1 () const
+{
+  return m_antennaNumDim1;
+}
+
+void
+MmWavePhy::SetAntennaNumDim2 (uint8_t antennaNumDim2)
+{
+  m_antennaNumDim2 = antennaNumDim2;
+  // if the antennaArray is already created then forward the value to the antenna object
+  if (m_antennaArray != nullptr)
+    {
+      return m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
+    }
+}
+
+uint8_t
+MmWavePhy::GetAntennaNumDim2 () const
+{
+  return m_antennaNumDim2;
 }
 
 }

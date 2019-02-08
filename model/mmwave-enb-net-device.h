@@ -69,7 +69,7 @@ public:
 
   Ptr<MmWaveEnbMac> GetMac (uint8_t index);
 
-  Ptr<MmWaveEnbPhy> GetPhy (uint8_t index);
+  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const override;
 
   uint16_t GetCellId () const;
 
@@ -84,29 +84,6 @@ public:
   void SetRrc (Ptr<LteEnbRrc> rrc);
 
   Ptr<LteEnbRrc> GetRrc (void);
-
-  /**
-  * \brief Set the number of antenna elements in the first dimension
-  * \param antennaNum the number of antenna elements in the first dimension
-  */
-  void SetAntennaNumDim1 (uint8_t antennaNum);
-  /**
-   * \brief Set the number of antenna elements in the second dimension
-   * \param antennaNum the number of antenna elements in the second dimension
-   */
-  void SetAntennaNumDim2 (uint8_t antennaNum);
-  /**
-  * \brief Returns the total number of antenna elements.
-  */
-  uint8_t GetAntennaNum () const;
- /**
-  * \brief Returns the number of antenna elements in the first dimension.
-  */
-  uint8_t GetAntennaNumDim1 () const;
- /**
-  * \brief Returns the number of antenna elements in the second dimension.
-  */
-  uint8_t GetAntennaNumDim2 () const;
 
   void SetCcMap (std::map<uint8_t, Ptr<ComponentCarrierGnb> > ccm);
 
@@ -137,13 +114,10 @@ private:
 
   bool m_isConfigured;
 
-  uint8_t m_antennaNumDim1; //!< The number of antenna elements in the first dimension.
-  uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
-
-
   std::map<uint8_t, Ptr<ComponentCarrierGnb> > m_ccMap; /**< ComponentCarrier map */
 
   Ptr<LteEnbComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager of this eNb
+
 };
 
 }

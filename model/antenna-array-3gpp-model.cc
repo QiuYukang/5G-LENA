@@ -23,6 +23,8 @@
 #include "antenna-array-3gpp-model.h"
 #include "ns3/double.h"
 #include "ns3/enum.h"
+#include <ns3/boolean.h>
+#include <ns3/random-variable-stream.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("AntennaArray3gppModel");
@@ -30,6 +32,35 @@ NS_LOG_COMPONENT_DEFINE ("AntennaArray3gppModel");
 namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED (AntennaArray3gppModel);
+
+/**
+ * \brief This function is used to randomly select antenna orientation from
+ * a set of predefined antenna orientations: X0, Z0 and Y0
+ * @return a random antenna orientation
+ */
+AntennaArrayModel::AntennaOrientation GetRandomAntennaOrientation ()
+{
+  Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable>();
+  r->SetAttribute ("Min", DoubleValue (0.0));
+  r->SetAttribute ("Max", DoubleValue (1.0));
+  double throwADice = r->GetValue();
+  AntennaArrayModel::AntennaOrientation randomOrientation;
+
+  if (throwADice <= 1.0/3)
+    {
+      randomOrientation = AntennaArrayModel::X0;
+    }
+  else if ((throwADice > 1.0/3 ) and (throwADice <= 2.0/3))
+    {
+      randomOrientation = AntennaArrayModel::Y0;
+    }
+  else
+    {
+      randomOrientation = AntennaArrayModel::Z0;
+    }
+
+  return randomOrientation;
+}
 
 
 AntennaArray3gppModel::AntennaArray3gppModel ()
@@ -53,7 +84,12 @@ AntennaArray3gppModel::GetTypeId ()
                   EnumValue(AntennaArray3gppModel::GnbWallMount),
                   MakeEnumAccessor(&AntennaArray3gppModel::m_antennaMount),
                   MakeEnumChecker(AntennaArray3gppModel::GnbWallMount, "GnbWallMount",
-                                  AntennaArray3gppModel::GnbSingleSector, "GnbSingleSector"));
+                                  AntennaArray3gppModel::GnbSingleSector, "GnbSingleSector"))
+    .AddAttribute ("RandomUeorientation",
+                   "If set to true UE antennas will have a random 3D orientation",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&AntennaArray3gppModel::m_randomUeOrientation),
+                   MakeBooleanChecker ());
   return tid;
 }
 
@@ -70,12 +106,11 @@ AntennaArray3gppModel::SetIsUe (bool isUe)
 {
   NS_LOG_INFO("Set 3GPP antenna model parameters for "<< ((isUe)?"UE":"gNB"));
   m_isUe = isUe;
-}
 
-bool
-AntennaArray3gppModel::GetIsUe ()
-{
-  return m_isUe;
+  if (m_isUe && m_randomUeOrientation)
+    {
+      SetAntennaOrientation (GetRandomAntennaOrientation ());
+    }
 }
 
 double
@@ -172,6 +207,5 @@ AntennaArray3gppModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
 
   return loc;
 }
-
 
 } /* namespace ns3 */

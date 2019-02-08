@@ -116,6 +116,28 @@ MmWaveUePhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveUePhy::GetUlSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
+    .AddAttribute ("AntennaArrayType",
+                    "AntennaArray of this UE phy. There are two types of antenna array available: "
+                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
+                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
+                    "Another important parameters to specify is the number of antenna elements by "
+                    "dimension.",
+                    TypeIdValue(ns3::AntennaArrayModel::GetTypeId()),
+                    MakeTypeIdAccessor (&MmWavePhy::SetAntennaArrayType,
+                                        &MmWavePhy::GetAntennaArrayType),
+                    MakeTypeIdChecker())
+    .AddAttribute ("AntennaNumDim1",
+                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (2),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim1,
+                                         &MmWavePhy::GetAntennaNumDim1),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("AntennaNumDim2",
+                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
+                                         &MmWavePhy::GetAntennaNumDim2),
+                   MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -127,9 +149,7 @@ MmWaveUePhy::GetTypeId (void)
     .AddTraceSource ("ReportDownlinkTbSize",
                      "Report allocated downlink TB size for trace.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportDlTbSize),
-                     "ns3::DlTbSize::TracedCallback")
-  ;
-
+                     "ns3::DlTbSize::TracedCallback");
   return tid;
 }
 
@@ -163,7 +183,21 @@ MmWaveUePhy::DoInitialize (void)
 
   m_slotPeriod = m_phyMacConfig->GetSlotPeriod ();
 
-  MmWavePhy::DoInitialize ();
+  MmWavePhy::InstallAntenna ();
+  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
+  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
+
+  if (antenna3gpp)
+    {
+      antenna3gpp->SetIsUe(true);
+    }
+
+  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+
+  NS_LOG_INFO ("UE antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
+                         ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
+
 }
 
 void
@@ -210,14 +244,6 @@ MmWaveUePhy::GetNoiseFigure () const
   return m_noiseFigure;
 }
 
-Ptr<SpectrumValue>
-MmWaveUePhy::CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
-{
-  Ptr<SpectrumValue> psd =
-    MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, m_txPower, rbIndexVector);
-  return psd;
-}
-
 void
 MmWaveUePhy::DoSetSubChannels ()
 {
@@ -241,7 +267,7 @@ MmWaveUePhy::GetSubChannelsForReception (void)
 void
 MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
 {
-  Ptr<SpectrumValue> txPsd = CreateTxPowerSpectralDensity (mask);
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
   NS_ASSERT (txPsd);
   m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
@@ -269,11 +295,12 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   //TBD how to assign bandwitdh and earfcn
   m_phyMacConfig = config;
 
-  Ptr<SpectrumValue> noisePsd =
-    MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
+  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
   m_downlinkSpectrumPhy->SetCellId (m_cellId);
+
+  GetAntennaArray()->SetSpectrumModel (m_downlinkSpectrumPhy->GetRxSpectrumModel());
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -849,8 +876,7 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   // we will assign this already in mmwave-helper.cc
   //m_phyMacConfig = config;
 
-  Ptr<SpectrumValue> noisePsd =
-    MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
+  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
   m_downlinkSpectrumPhy->SetCellId (m_cellId);

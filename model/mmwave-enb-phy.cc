@@ -49,7 +49,6 @@
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
-#include "mmwave-spectrum-value-helper.h"
 #include "mmwave-radio-bearer-tag.h"
 
 #include <ns3/node-list.h>
@@ -127,10 +126,33 @@ MmWaveEnbPhy::GetTypeId (void)
                      "UL SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveEnbPhy::m_ulSinrTrace),
                      "ns3::UlSinr::TracedCallback")
-    .AddAttribute ("MmWavePhyMacCommon", "The associated MmWavePhyMacCommon",
-                   PointerValue (), MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
+    .AddAttribute ("MmWavePhyMacCommon",
+                   "The associated MmWavePhyMacCommon",
+                   PointerValue (),
+                   MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
-  ;
+    .AddAttribute ("AntennaArrayType",
+                   "AntennaArray of this enb phy. There are two types of antenna array available: "
+                   "a) AntennaArrayModel which is using isotropic antenna elements, and "
+                   "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
+                   "Another important parameters to specify is the number of antenna elements by "
+                   "dimension.",
+                   TypeIdValue(ns3::AntennaArrayModel::GetTypeId()),
+                   MakeTypeIdAccessor (&MmWavePhy::SetAntennaArrayType,
+                                       &MmWavePhy::GetAntennaArrayType),
+                   MakeTypeIdChecker())
+    .AddAttribute ("AntennaNumDim1",
+                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim1,
+                                         &MmWavePhy::GetAntennaNumDim1),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("AntennaNumDim2",
+                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
+                   UintegerValue (8),
+                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
+                                         &MmWavePhy::GetAntennaNumDim2),
+                   MakeUintegerChecker<uint8_t> ());
   return tid;
 
 }
@@ -142,8 +164,7 @@ MmWaveEnbPhy::DoInitialize (void)
 
   NS_ABORT_IF (m_phyMacConfig == nullptr);
 
-  Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_phyMacConfig, m_noiseFigure);
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
   for (unsigned i = 0; i < m_phyMacConfig->GetL1L2CtrlLatency (); i++)
     {   // push elements onto queue for initial scheduling delay
@@ -172,7 +193,22 @@ MmWaveEnbPhy::DoInitialize (void)
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
+  MmWavePhy::InstallAntenna();
+  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
+  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
+  if (antenna3gpp)
+    {
+      antenna3gpp->SetIsUe(false);
+    }
+
+  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+
+  NS_LOG_INFO ("eNb antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
+                       ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
+
   MmWavePhy::DoInitialize ();
+
 }
 void
 MmWaveEnbPhy::DoDispose (void)
@@ -200,7 +236,7 @@ AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint8_t rnti) const
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
-      uint64_t ueRnti = ueDev->GetPhy (0)->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
 
       if (ueRnti == rnti)
         {
@@ -238,17 +274,10 @@ MmWaveEnbPhy::CalcChannelQualityForUe (std::vector <double> sinr, Ptr<MmWaveSpec
 {
 
 }
-
-Ptr<SpectrumValue>
-MmWaveEnbPhy::CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
-{
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (m_phyMacConfig, m_txPower, rbIndexVector);
-}
-
 void
 MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
 {
-  Ptr<SpectrumValue> txPsd = CreateTxPowerSpectralDensity (rbIndexVector);
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
   NS_ASSERT (txPsd);
   m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
@@ -574,7 +603,7 @@ MmWaveEnbPhy::StartVarTti (void)
       for (uint8_t i = 0; i < m_deviceMap.size (); i++)
         {
           Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
-          uint64_t ueRnti = ueDev->GetPhy (0)->GetRnti ();
+          uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
           if (currVarTti.m_dci->m_rnti == ueRnti)
             {
               Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
@@ -694,7 +723,7 @@ MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAl
       for (uint8_t i = 0; i < m_deviceMap.size (); i++)
         {
           Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (m_deviceMap.at (i));
-          uint64_t ueRnti = ueDev->GetPhy (0)->GetRnti ();
+          uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
           //NS_LOG_UNCOND ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
           if (varTtiInfo.m_dci->m_rnti == ueRnti)
             {

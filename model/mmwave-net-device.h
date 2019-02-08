@@ -80,6 +80,8 @@ public:
   virtual bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
 
+  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const = 0;
+
   Ipv4Address GetPacketDestination (Ptr<Packet> packet);
 
   void Receive (Ptr<Packet> p);

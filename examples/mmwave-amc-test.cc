@@ -50,7 +50,7 @@ bool smallScale = true;
 double speed = 1.0;
 
 
-void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<SpectrumModel> model, Ptr<NrAmc> amc)
+void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<const SpectrumModel> model, Ptr<NrAmc> amc)
 {
 //  std::cout << "************* distance changing to " << dist << " *************" << std::endl;
 //  Ptr<MobilityModel> mobModel = ue->GetObject<MobilityModel> ();
@@ -215,7 +215,12 @@ main (int argc, char *argv[])
 
   Ptr<NrAmc> amc = CreateObject <NrAmc> (mmWavePhyMacCommon);
 
-  Simulator::Schedule (MilliSeconds (0), &updateSnr, snrMinDb, enbMmwDev, MmWaveSpectrumValueHelper::GetSpectrumModel (mmWavePhyMacCommon),amc);
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel (mmWavePhyMacCommon->GetBandwidthInRbs(),
+                                                                             mmWavePhyMacCommon->GetCenterFrequency(),
+                                                                             mmWavePhyMacCommon->GetNumScsPerRb(),
+                                                                             mmWavePhyMacCommon->GetSubcarrierSpacing());
+
+  Simulator::Schedule (MilliSeconds(0), &updateSnr, snrMinDb, enbMmwDev, sm ,amc);
 
   Simulator::Stop (Seconds (simTime));
   NS_LOG_UNCOND ("Simulation running for " << simTime << " seconds");

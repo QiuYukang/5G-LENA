@@ -548,8 +548,6 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Config::SetDefault ("ns3::AntennaArrayModel::AntennaOrientation", EnumValue (antOrientation));
     // configure antenna gain for the ISO antenna
     Config::SetDefault ("ns3::AntennaArrayModel::AntennaGain", DoubleValue (5));
-    Config::SetDefault("ns3::MmWaveHelper::GnbAntennaArrayModelType", TypeIdValue(gNbAntennaModel));
-    Config::SetDefault("ns3::MmWaveHelper::UeAntennaArrayModelType", TypeIdValue(ueAntennaModel));
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue(scenario));
     Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(shadowing));
 
@@ -573,12 +571,17 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(30e9));
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(2));
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(40e6));
-    // Shall be 4x8 = 32 antenna elements
-    Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNumDim1", UintegerValue(4));
-    Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNumDim2", UintegerValue(8));
-    // Shall be 2x4 = 8 antenna elements
-    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim1", UintegerValue(2));
-    Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNumDim2", UintegerValue(4));
+
+    // Should be 4x8 = 32 antenna elements
+    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(gNbAntennaModel));
+    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue(4));
+    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue(8));
+
+    // Should be 2x4 = 8 antenna elements
+    Config::SetDefault ("ns3::MmWaveUePhy::AntennaArrayType", TypeIdValue(ueAntennaModel));
+    Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue(2));
+    Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue(4));
+
     // UE antenna gain shall be set to 5 dBi
     // gNB noise figure shall be set to 7 dB
     Config::SetDefault("ns3::MmWaveEnbPhy::NoiseFigure", DoubleValue (7));

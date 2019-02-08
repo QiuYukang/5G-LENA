@@ -29,6 +29,7 @@
 #include <ns3/net-device.h>
 #include <map>
 #include "antenna-array-basic-model.h"
+#include <ns3/nstime.h>
 
 namespace ns3 {
 
@@ -54,10 +55,10 @@ public:
   virtual double GetGainDb (Angles a) override;
 
   virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
-                             Ptr<NetDevice> device = nullptr);
+                                     Ptr<NetDevice> device);
 
   virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
-                                      Ptr<NetDevice> device = nullptr);
+                                              Ptr<NetDevice> device);
 
   virtual void ChangeBeamformingVector (Ptr<NetDevice> device);
 
@@ -66,6 +67,13 @@ public:
   virtual BeamformingVector GetCurrentBeamformingVector ();
 
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device);
+
+  /**
+   * Returns the time at which was the last time updated the beamforming vector for the given device.
+   * @param device for which is used the beamforming vector whose last update time is needed
+   * @return the time at which the beamforming vector was being updated
+   */
+  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device);
 
   virtual void SetToSector (uint32_t sector, uint32_t antennaNum);
 
@@ -81,21 +89,62 @@ public:
 
   enum AntennaArrayModel::AntennaOrientation GetAntennaOrientation () const;
 
+  /**
+   * \brief Returns the number of antenna elements in the first dimension.
+   */
+  virtual uint8_t GetAntennaNumDim1 () const override;
+
+  /**
+   * \brief Returns the number of antenna elements in the second dimension.
+   */
+  virtual uint8_t GetAntennaNumDim2 () const override;
+
+  /**
+   * \brief Set the number of antenna elements in the first dimension
+   * \param antennaNum the number of antenna elements in the first dimension
+   */
+  virtual void SetAntennaNumDim1 (uint8_t antennaNum) override;
+   /**
+    * \brief Set the number of antenna elements in the second dimension
+    * \param antennaNum the number of antenna elements in the second dimension
+    */
+  virtual void SetAntennaNumDim2 (uint8_t antennaNum) override;
+
+  /**
+  * Get SpectrumModel corresponding to this antenna instance
+  * @return SpectrumModel
+  */
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const;
+
+  /**
+   * Set SpectrumModel that will be used by this antenna instancew
+   * @param sm SpectrumModel to be used
+   */
+  virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm);
 
 private:
 
-  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
+  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage; /*!< A type represents a map where the key is a pointer
+                                                                               to the device and the value is the BeamformingVector element */
+  typedef std::map<Ptr<NetDevice>, Time> BeamformingStorageUpdateTimes;  /*!< A type that represents a map in which are pairs of the pointer to the
+                                                                               the device and the time at which is updated the beamforming vector for that device*/
   bool m_omniTx;
   double m_minAngle;
   double m_maxAngle;
   BeamformingVector m_currentBeamformingVector;
   BeamformingStorage m_beamformingVectorMap;
+  BeamformingStorageUpdateTimes m_beamformingVectorUpdateTimes;
 
 protected:
   double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
   double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
   AntennaOrientation m_orientation; // antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane
   double m_antennaGain; //antenna gain
+
+  uint8_t m_antennaNumDim1; //!< The number of antenna elements in the first dimension.
+  uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
+
+  Ptr<const SpectrumModel> m_spectrumModel;
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);

@@ -71,6 +71,7 @@ private:
 
   bool m_isUe; ///<! the attribute that is saying if the antenna is of UE or gNB
   GnbAntennaMount m_antennaMount; ///<! the type of gNb antenna mount
+  bool m_randomUeOrientation; ///<! if the random orientation for UE antenna
 
 };
 

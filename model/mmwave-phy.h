@@ -43,8 +43,11 @@
 #include "mmwave-phy-mac-common.h"
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-phy-sap.h"
+#include "antenna-array-basic-model.h"
 #include <string>
 #include <map>
+#include <inttypes.h>
+#include "mmwave-spectrum-value-helper.h"
 
 namespace ns3 {
 
@@ -84,22 +87,11 @@ public:
 
   void SetChannel (Ptr<SpectrumChannel> c);
 
-  /**
-   * \brief Create Tx Power Spectral Density
-   * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
-   * in which there is a transmission
-   * \return A SpectrumValue array representing the TX Power Spectral Density
-   * in W/Hz for each Resource Block, in which each array value
-   * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
-   * or is left untouched otherwise.
-   * \see MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity
-   */
-  virtual Ptr<SpectrumValue> CreateTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const = 0;
-
   void DoDispose ();
 
   virtual void DoInitialize (void);
 
+  void InstallAntenna ();
   /*	*
    * \returns transmission time interval
 
@@ -122,6 +114,23 @@ public:
   //	virtual Ptr<PacketBurst> GetPacketBurst (void);
   virtual Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
+  /**
+   * \brief Create Noise Power Spectral density
+   * \return A SpectrumValue array with fixed size, in which a value is
+   * update to a particular value of the noise
+   */
+  Ptr<SpectrumValue> GetNoisePowerSpectralDensity ();
+
+  /**
+   * Create Tx Power Spectral Density
+   * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
+   * in which there is a transmission
+   * \return A SpectrumValue array with fixed size, in which each value
+   * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
+   * or is left untouched otherwise.
+   * \see MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity
+   */
+  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
 
   /**
    * \brief Get the component carrier ID
@@ -168,6 +177,50 @@ public:
   */
   uint8_t GetComponentCarrierId ();
 
+
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
+
+  /**
+   * @return The antena array that is being used by this PHY
+   */
+  Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
+
+  /**
+   * \brief Sets the antenna array type used by this PHY
+   * @param antennaArrayTypeId antennaArray to be used by this PHY
+   * */
+  void SetAntennaArrayType (const TypeId antennaArrayTypeId);
+
+  /**
+   * \brief Returns the antenna array TypeId
+   * @return antenna array TypeId
+   */
+  TypeId GetAntennaArrayType () const;
+
+  /**
+   * \brief Set the first dimension of panel/sector in number of antenna elements
+   * @param antennaNumDim1 the size of the first dimension of the panel/sector
+   */
+  void SetAntennaNumDim1 (uint8_t antennaNumDim1);
+
+  /**
+   * \brief Returns the size of the first dimension of the panel/sector in the number of antenna elements
+   * @return the size of the first dimension
+   */
+  uint8_t GetAntennaNumDim1 () const;
+
+  /**
+   * \brief Set the second dimension of panel sector in number of antenna elements
+   * @param antennaNumDim2 the size of the second dimension of the panel/sector
+   */
+  void SetAntennaNumDim2 (uint8_t antennaNumDim2);
+
+  /**
+   * \brief Returns the size of the second dimension of the panel/sector in the number of antenna elements
+   * @return the size of the second dimension
+   */
+  uint8_t GetAntennaNumDim2 () const;
+
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
   Ptr<MmWaveSpectrumPhy> m_spectrumPhy;
@@ -209,9 +262,14 @@ protected:
 private:
   std::map <SfnSf,SlotAllocInfo> m_slotAllocInfo;   // maps subframe num to allocation info
 
+  uint8_t m_antennaNumDim1 {0};
+  uint8_t m_antennaNumDim2 {0};
+  TypeId m_antennaArrayType {AntennaArrayModel::GetTypeId()};
+
   /// component carrier Id used to address sap
   uint8_t m_componentCarrierId;
 
+  Ptr<AntennaArrayBasicModel> m_antennaArray {nullptr};
 };
 
 }

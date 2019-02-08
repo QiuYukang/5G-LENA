@@ -61,8 +61,6 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveHelper);
 MmWaveHelper::MmWaveHelper (void)
   : m_imsiCounter (0),
   m_cellIdCounter {1},
-  m_noTxAntenna (64),
-  m_noRxAntenna (16),
   m_harqEnabled (false),
   m_rlcAmEnabled (false),
   m_snrTest (false)
@@ -144,25 +142,7 @@ MmWaveHelper::GetTypeId (void)
                    "Bandwidth parts map",
                    PointerValue (),
                    MakePointerAccessor (&MmWaveHelper::SetBandwidthPartMap),
-                   MakePointerChecker<BandwidthPartsPhyMacConf>())
-     .AddAttribute ("GnbAntennaArrayModelType",
-                    "The type of antenna array to be used by gNBs. Currently are available "
-                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
-                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements",
-                    TypeIdValue (AntennaArrayModel::GetTypeId()),
-                    MakeTypeIdAccessor(&MmWaveHelper::SetGnbAntennaArrayModelType,
-                                       &MmWaveHelper::GetGnbAntennaArrayModelType),
-                    MakeTypeIdChecker())
-     .AddAttribute ("UeAntennaArrayModelType",
-                    "The type of antenna array to be used by UEs. Currently are available "
-                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
-                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements",
-                    TypeIdValue (AntennaArrayModel::GetTypeId()),
-                     MakeTypeIdAccessor(&MmWaveHelper::SetUeAntennaArrayModelType,
-                                       &MmWaveHelper::GetUeAntennaArrayModelType),
-                     MakeTypeIdChecker())
-      ;
-
+                   MakePointerChecker<BandwidthPartsPhyMacConf>());
   return tid;
 }
 
@@ -177,11 +157,6 @@ MmWaveHelper::DoDispose (void)
   m_channel.clear ();
   m_bandwidthPartsConf = 0;
 
-  for (auto i:m_raytracing)
-    {
-      i = 0;
-    }
-  m_raytracing.clear ();
   for (auto i:m_3gppChannel)
     {
       i = 0;
@@ -230,28 +205,19 @@ MmWaveHelper::DoInitialize ()
       NS_LOG_UNCOND ("MmWaveHelper: No PropagationLossModel!");
     }
 
-  if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
-    {
-      uint32_t k = 0;
-      for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
-        {
-          Ptr<MmWaveChannelRaytracing> raytracing = CreateObject<MmWaveChannelRaytracing> ();
-          m_channel.at (k++)->AddSpectrumPropagationLossModel (raytracing);
-          raytracing->SetConfigurationParameters (i);
-          m_raytracing.push_back (raytracing);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWave3gppChannel")
+  if (m_channelModelType == "ns3::MmWave3gppChannel")
     {
       uint32_t k = 0;
       for (auto i:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
         {
           Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
           m_channel.at (k)->AddSpectrumPropagationLossModel (channel);
-          channel->SetConfigurationParameters (i);
-           if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
+
+          if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
             {
               channel->SetPathlossModel (m_pathlossModel.at (k)->GetObject<PropagationLossModel> ());
+              channel->SetAttribute ("CenterFrequency", DoubleValue (i->GetCenterFrequency()));
+              channel->SetAttribute ("Bandwidth", DoubleValue (i->GetBandwidth ()));
             }
           else
             {
@@ -265,13 +231,6 @@ MmWaveHelper::DoInitialize ()
   m_phyStats = CreateObject<MmWavePhyRxTrace> ();
 
   Object::DoInitialize ();
-}
-
-void
-MmWaveHelper::SetAntenna (uint16_t Nrx, uint16_t Ntx)
-{
-  m_noTxAntenna = Ntx;
-  m_noRxAntenna = Nrx;
 }
 
 void
@@ -343,31 +302,6 @@ MmWaveHelper::SetEnbComponentCarrierManagerType (std::string type)
   NS_LOG_FUNCTION (this << type);
   m_enbComponentCarrierManagerFactory = ObjectFactory ();
   m_enbComponentCarrierManagerFactory.SetTypeId (type);
-}
-
-void MmWaveHelper::SetGnbAntennaArrayModelType (TypeId type)
-{
-  NS_LOG_FUNCTION (this << type);
-
-  m_enbAntennaModelFactory = ObjectFactory ();
-  m_enbAntennaModelFactory.SetTypeId (type);
-}
-
-TypeId MmWaveHelper::GetGnbAntennaArrayModelType () const
-{
-  return m_enbAntennaModelFactory.GetTypeId ();
-}
-
-
-void MmWaveHelper::SetUeAntennaArrayModelType (TypeId type)
-{
-  m_ueAntennaModelFactory = ObjectFactory ();
-  m_ueAntennaModelFactory.SetTypeId (type);
-}
-
-TypeId MmWaveHelper::GetUeAntennaArrayModelType () const
-{
-  return m_ueAntennaModelFactory.GetTypeId ();
 }
 
 void
@@ -503,17 +437,6 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
 
       dlPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
       dlPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::ReceiveControlMessageList, phy));
-
-      /* Antenna model */
-      Ptr<AntennaModel> antenna = (m_ueAntennaModelFactory.Create ())->GetObject<AntennaModel> ();
-      NS_ASSERT_MSG (antenna, "error in creating the AntennaModel object");
-      Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (antenna);
-      if (antenna3gpp)
-        {
-          antenna3gpp->SetIsUe(true);
-        }
-      dlPhy->SetAntenna (antenna);
-      ulPhy->SetAntenna (antenna);
 
       it->second->SetPhy (phy);
     }
@@ -702,17 +625,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallEnbDevice ()");
       dlPhy->SetMobility (mm);
       ulPhy->SetMobility (mm);
-
-      /* Antenna model */
-      Ptr<AntennaModel> antenna = (m_enbAntennaModelFactory.Create ())->GetObject<AntennaModel> ();
-      NS_ASSERT_MSG (antenna, "error in creating the AntennaModel object");
-      Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (antenna);
-      if (antenna3gpp)
-        {
-           antenna3gpp->SetIsUe(false);
-        }
-      dlPhy->SetAntenna (antenna);
-      ulPhy->SetAntenna (antenna);
 
       Ptr<MmWaveEnbMac> mac = CreateObject<MmWaveEnbMac> ();
       mac->SetConfigurationParameters (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first));
@@ -915,18 +827,24 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
       AttachToClosestEnb (*i, enbDevices);
     }
 
-  if (m_channelModelType == "ns3::MmWaveChannelRaytracing")
+  if (m_channelModelType == "ns3::MmWave3gppChannel")
     {
-      for (auto i:m_raytracing)
+      for (auto it:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
         {
-          i->Initial (ueDevices,enbDevices);
-        }
-    }
-  else if (m_channelModelType == "ns3::MmWave3gppChannel")
-    {
-      for (auto i: m_3gppChannel)
-        {
-          i->Initial (ueDevices,enbDevices);
+          uint32_t ccid = it->GetCcId();
+          Ptr<MmWave3gppChannel> channel3gpp = m_3gppChannel.at(ccid);
+          NS_ABORT_MSG_IF( channel3gpp == nullptr , "3gpp channel does not exist for the specified CCID");
+          for (NetDeviceContainer::Iterator ue = ueDevices.Begin (); ue != ueDevices.End (); ue++)
+             {
+               Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (*ue);
+               if (ueDev->GetTargetEnb ())
+                 {
+                    Ptr<NetDevice> targetBs = ueDev->GetTargetEnb ();
+                    Ptr<AntennaArrayBasicModel> ueAntenna = (DynamicCast<MmWaveNetDevice>(ueDev))->GetPhy(it->GetCcId())->GetAntennaArray();
+                    Ptr<AntennaArrayBasicModel> bsAntenna = (DynamicCast<MmWaveNetDevice>(targetBs))->GetPhy(it->GetCcId())->GetAntennaArray();
+                    channel3gpp->CreateInitialBeamformingVectors(ueDev, ueAntenna, targetBs, bsAntenna);
+                 }
+            }
         }
     }
 }
@@ -960,10 +878,9 @@ MmWaveHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer en
 
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
-
       Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
-      enbNetDev->GetPhy (i)->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
-      ueNetDev->GetPhy (i)->RegisterToEnb (cellId, configParams);
+      (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
+      (DynamicCast<MmWaveUePhy>(ueNetDev->GetPhy (i)))->RegisterToEnb (cellId, configParams);
       enbNetDev->GetMac(i)->AssociateUeMAC (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi ());
     }
 

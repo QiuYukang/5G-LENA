@@ -79,7 +79,10 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
     }
 
 
-  SpectrumValue specVals (MmWaveSpectrumValueHelper::GetSpectrumModel (m_phyMacConfig));
+  SpectrumValue specVals (MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbg(),
+                                                                      m_phyMacConfig->GetCenterFrequency(),
+                                                                      m_phyMacConfig->GetNumScsPerRb(),
+                                                                      m_phyMacConfig->GetSubcarrierSpacing()));
   Values::iterator specIt = specVals.ValuesBegin ();
   for (uint32_t ichunk = 0; ichunk < m_phyMacConfig->GetBandwidthInRbs (); ichunk++)
     {
