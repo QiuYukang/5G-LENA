@@ -58,7 +58,8 @@ BwpManagerUe::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamet
   uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (m_lcToBearerMap.at (params.lcid));
 
   NS_LOG_DEBUG ("BSR of size " << params.txQueueSize << " from RLC for LCID = " <<
-                static_cast<uint32_t> (params.lcid) << " reported to CcId " <<
+                static_cast<uint32_t> (params.lcid) << " traffic type " <<
+                m_lcToBearerMap.at (params.lcid) << " reported to CcId " <<
                 static_cast<uint32_t> (bwpIndex));
 
   m_componentCarrierLcMap.at (bwpIndex).at (params.lcid)->ReportBufferStatus (params);
