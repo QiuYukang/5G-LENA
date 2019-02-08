@@ -50,7 +50,7 @@ bool smallScale = true;
 double speed = 1.0;
 
 
-void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<SpectrumModel> model, Ptr<NrAmc> amc)
+void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<const SpectrumModel> model, Ptr<NrAmc> amc)
 {
 //  std::cout << "************* distance changing to " << dist << " *************" << std::endl;
 //  Ptr<MobilityModel> mobModel = ue->GetObject<MobilityModel> ();

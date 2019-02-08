@@ -344,7 +344,6 @@ MmWave3gppChannel::ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<co
   Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
 
   MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (std::make_pair (dev1, dev2));
-  MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (std::make_pair (dev2, dev1));
 
   if ((it != GetChannelMap().end () && it->second->m_channel.size () == 0)
         || (it != GetChannelMap().end () && it->second->m_input.GetLos() != los))
