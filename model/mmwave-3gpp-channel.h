@@ -436,7 +436,7 @@ private:
    * @param txSm SpectrumModel of the transmitted
    * @return SpectrumValue representing PSD
    */
-  Ptr<const SpectrumValue> GetTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const;
+  Ptr<const SpectrumValue> GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const;
 
   /**
    * Compute and store the long term fading parameters in order to decrease the computational load
@@ -532,11 +532,7 @@ private:
   double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
   bool m_updateBeamformingVectorIdeally; //!< Update the beamforming vectors ideally
-  uint32_t m_numRbs; //!< Number of RBs
-  uint32_t m_scsPerRb; //!< Number of SCS per RB
   double m_bandwidth; //!< The total bandwidth for this channel
-  double m_scs; //!< The subcarrier spacing
-  uint8_t m_ccId; //!< The component carrier id for this channel instance
   std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
 };
 

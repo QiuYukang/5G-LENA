@@ -221,21 +221,6 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (28e9),
                    MakeDoubleAccessor(&MmWave3gppChannel::SetCenterFrequency, &MmWave3gppChannel::GetCenterFrequency),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("NumberOfRbs",
-                   "The number of RBs that will exist in this spectrum channel matrix",
-                    UintegerValue (0),
-                    MakeUintegerAccessor(&MmWave3gppChannel::m_numRbs),
-                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("ScsPerRb",
-                   "The number of SCs per RB",
-                   UintegerValue (0),
-                   MakeUintegerAccessor(&MmWave3gppChannel::m_scsPerRb),
-                   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("Scs",
-                   "The suvcarrrier spacing in Hz of this spectrum channel matrix",
-                   DoubleValue (0),
-                   MakeDoubleAccessor(&MmWave3gppChannel::m_scs),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("Bandwidth",
                    "The bandwidth in Hz of this spectrum channel matrix",
                    DoubleValue (0),
@@ -2683,10 +2668,10 @@ bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
 
 
 Ptr<const SpectrumValue>
-MmWave3gppChannel::GetTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const
+MmWave3gppChannel::GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const
 {
   std::vector<int> listOfSubchannels;
-  for (unsigned i = 0; i < m_numRbs; i++)
+  for (unsigned i = 0; i < txSm->GetNumBands (); i++)
      {
        listOfSubchannels.push_back (i);
      }
@@ -2724,7 +2709,7 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
   NS_ABORT_MSG_IF (txSm != rxSm, "BeamSearcBeamforming is expected to be done between the transmitter and receiver"
       " using the same spectrum model!");
 
-  Ptr<const SpectrumValue> fakePsd = GetTxPowerSpectralDensity (0.0, txSm);
+  Ptr<const SpectrumValue> fakePsd = GetFakeTxPowerSpectralDensity (0.0, txSm);
 
 
   /* txAntennaNum[0]-number of vertical antenna elements

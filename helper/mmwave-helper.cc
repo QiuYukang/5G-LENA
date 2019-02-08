@@ -217,10 +217,7 @@ MmWaveHelper::DoInitialize ()
             {
               channel->SetPathlossModel (m_pathlossModel.at (k)->GetObject<PropagationLossModel> ());
               channel->SetAttribute ("CenterFrequency", DoubleValue (i->GetCenterFrequency()));
-              channel->SetAttribute ("Scs", DoubleValue (i->GetSubcarrierSpacing ()));
-              channel->SetAttribute ("ScsPerRb", UintegerValue (i->GetNumScsPerRb ()));
               channel->SetAttribute ("Bandwidth", DoubleValue (i->GetBandwidth ()));
-              channel->SetAttribute ("NumberOfRbs", UintegerValue (i->GetBandwidthInRbs()));
             }
           else
             {
