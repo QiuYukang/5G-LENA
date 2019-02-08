@@ -35,11 +35,11 @@ def build(bld):
         'model/mmwave-control-messages.cc',
         'model/mmwave-spectrum-signal-parameters.cc',
         'model/mmwave-radio-bearer-tag.cc',
-        'model/mmwave-amc.cc',
+        'model/nr-amc.cc',
         'model/mmwave-phy-mac-common.cc',
         'model/mmwave-mac-sched-sap.cc',
         'model/mmwave-phy-sap.cc',
-        'model/mmwave-mi-error-model.cc',
+        'model/nr-lte-mi-error-model.cc',
         'model/mmwave-enb-mac.cc',
         'model/mmwave-ue-mac.cc',
         'model/mmwave-rrc-protocol-ideal.cc',
@@ -70,6 +70,8 @@ def build(bld):
         'model/mmwave-mac-scheduler-ofdma-mr.cc',
         'model/mmwave-mac-scheduler-tdma-mr.cc',
         'model/mmwave-mac-scheduler-ue-info-pf.cc',
+        'model/nr-eesm-error-model.cc',
+        'model/nr-error-model.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -80,6 +82,7 @@ def build(bld):
         'test/mmwave-test-sched.cc',
         'test/mmwave-system-test-schedulers.cc',
         'test/test-antenna-3gpp-model-conf.cc',
+        'test/nr-test-l2sm-eesm.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -110,11 +113,11 @@ def build(bld):
         'model/mmwave-control-messages.h',
         'model/mmwave-spectrum-signal-parameters.h',
         'model/mmwave-radio-bearer-tag.h',
-        'model/mmwave-amc.h',
+        'model/nr-amc.h',
         'model/mmwave-mac-sched-sap.h',
         'model/mmwave-mac-csched-sap.h',        
         'model/mmwave-phy-sap.h',
-        'model/mmwave-mi-error-model.h',
+        'model/nr-lte-mi-error-model.h',
         'model/mmwave-enb-mac.h',
         'model/mmwave-ue-mac.h',
         'model/mmwave-rrc-protocol-ideal.h',
@@ -149,6 +152,8 @@ def build(bld):
         'model/mmwave-mac-scheduler-ue-info-rr.h',
         'model/mmwave-mac-scheduler-ue-info-pf.h',
         'model/mmwave-mac-scheduler-ue-info.h',
+        'model/nr-eesm-error-model.h',
+        'model/nr-error-model.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

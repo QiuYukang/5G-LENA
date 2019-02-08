@@ -56,7 +56,18 @@ using namespace ns3;
 class MmWaveSystemTestScheduling : public TestCase
 {
 public:
-  MmWaveSystemTestScheduling (const std::string & name, uint32_t usersNum, uint32_t beamsNum,
+  /**
+   * \brief MmWaveSystemTestScheduling is a test constructor which is used to initialise the test parameters.
+   * @param name A unique test configuration name
+   * @param usersPerBeamNum How many users will be installed per beam
+   * @param beamsNum Into how many beams of gNB will be distributed UEs attached to it. The maximum for this test case is 4.
+   * @param numerology The numerology to be used in the simulation
+   * @param bw1 The system bandwidth
+   * @param isDownlnk Is the downlink traffic going to be present in the test case
+   * @param isUplink Is the uplink traffic going to be present in the test case
+   * @param schedulerType Which scheduler is going to be used in the test case Ofdma/Tdma" and the scheduling logic RR, PF, of MR
+   */
+  MmWaveSystemTestScheduling (const std::string & name, uint32_t usersPerBeamNum, uint32_t beamsNum,
                               uint32_t numerology, double bw1, bool isDownlink,
                               bool isUplink, const std::string & schedulerType);
   virtual ~MmWaveSystemTestScheduling ();
@@ -74,7 +85,6 @@ private:
   std::string m_name;
 
 };
-
 
 /**
  * MmWaveSystemTestScheduling is a test constructor which is used to initialise the test parameters.  

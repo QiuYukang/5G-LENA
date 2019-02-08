@@ -24,7 +24,7 @@
 #include "mmwave-mac-scheduler-ue-info.h"
 #include "mmwave-mac-scheduler-lcg.h"
 #include "mmwave-mac-scheduler-cqi-management.h"
-#include "mmwave-amc.h"
+#include "nr-amc.h"
 #include <memory>
 #include <functional>
 #include <list>
@@ -522,7 +522,7 @@ protected:
 
 protected:
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;   //!< Phy-mac config
-  Ptr<MmWaveAmc> m_amc;                     //!< AMC pointer
+  Ptr<NrAmc> m_amc;                     //!< AMC pointer
 
 private:
   /**

@@ -762,7 +762,7 @@ MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
 {
   if (!m_amc)
     {
-      m_amc = CreateObject <MmWaveAmc> (m_phyMacConfig);
+      m_amc = CreateObject <NrAmc> (m_phyMacConfig);
     }
   NS_LOG_FUNCTION (this);
   SpectrumValue newSinr = sinr;
@@ -776,7 +776,7 @@ MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
   std::vector<int> cqi;
 
   uint8_t mcs;
-  dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, m_currNumSym, m_currTbs, mcs);
+  dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, m_currTbs, mcs);
 
   msg->SetDlCqi (dlcqi);
   return msg;

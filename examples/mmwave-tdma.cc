@@ -113,7 +113,7 @@ main (int argc, char *argv[])
 	Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::UlSchedOnly", BooleanValue(true));
 	Config::SetDefault ("ns3::MmWaveBeamforming::LongTermUpdatePeriod", TimeValue (Seconds (2*simTime)));
 	Config::SetDefault ("ns3::LteEnbRrc::SystemInformationPeriodicity", TimeValue (MilliSeconds (1.0)));
-	Config::SetDefault ("ns3::MmWaveAmc::Ber", DoubleValue (0.001));
+	Config::SetDefault ("ns3::NrAmc::Ber", DoubleValue (0.001));
 	Config::SetDefault ("ns3::MmWavePropagationLossModel::ChannelStates", StringValue (channelState));
 	Config::SetDefault ("ns3::MmWaveBeamforming::SmallScaleFading", BooleanValue (smallScale));
 	Config::SetDefault ("ns3::MmWaveBeamforming::FixSpeed", BooleanValue (true));

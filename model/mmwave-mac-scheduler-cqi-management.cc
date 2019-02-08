@@ -30,7 +30,7 @@
   while (false);
 #include "mmwave-mac-scheduler-cqi-management.h"
 #include "mmwave-spectrum-value-helper.h"
-#include "mmwave-amc.h"
+#include "nr-amc.h"
 
 #include <ns3/log.h>
 
@@ -51,7 +51,6 @@ MmWaveMacSchedulerCQIManagement::DlSBCQIReported (const DlCqiInfo &info,
 
 void
 MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
-                                                  uint8_t numSym,
                                                   uint32_t tbs,
                                                   const MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                                                   const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const
@@ -93,8 +92,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
     }
 
   // MCS updated inside the function; crappy API... but we can't fix everything
-  ueInfo->m_ulCqi.m_cqi = m_amc->CreateCqiFeedbackWbTdma (specVals, numSym,
-                                                          tbs, ueInfo->m_ulMcs);
+  ueInfo->m_ulCqi.m_cqi = m_amc->CreateCqiFeedbackWbTdma (specVals, tbs, ueInfo->m_ulMcs);
 }
 
 void

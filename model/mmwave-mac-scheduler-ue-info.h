@@ -22,7 +22,7 @@
 #include "mmwave-mac-sched-sap.h"
 #include "mmwave-mac-harq-vector.h"
 #include "mmwave-mac-scheduler-lcg.h"
-#include "mmwave-amc.h"
+#include "nr-amc.h"
 #include <unordered_map>
 #include <functional>
 
@@ -169,10 +169,9 @@ public:
    *
    * The amount of assigned resources is stored inside m_dlRBG by the scheduler.
    */
-  virtual void UpdateDlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<MmWaveAmc> &amc)
+  virtual void UpdateDlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
   {
-    m_dlTbSize = static_cast<uint32_t> (amc->GetSpectralEfficiency (m_dlMcs,
-                                                                    m_dlRBG * config->GetNumRbPerRbg ()) / 8);
+    m_dlTbSize = amc->GetPayloadSize (m_dlMcs, m_dlRBG * config->GetNumRbPerRbg ());
   }
 
   /**
@@ -192,10 +191,9 @@ public:
    *
    * The amount of assigned resources is stored inside m_ulRBG by the scheduler.
    */
-  virtual void UpdateUlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<MmWaveAmc> &amc)
+  virtual void UpdateUlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
   {
-    m_ulTbSize = static_cast<uint32_t> (amc->GetSpectralEfficiency (m_ulMcs,
-                                                                    m_ulRBG * config->GetNumRbPerRbg ()) / 8);
+    m_ulTbSize = amc->GetPayloadSize (m_ulMcs, m_ulRBG * config->GetNumRbPerRbg ());
   }
 
   /**
