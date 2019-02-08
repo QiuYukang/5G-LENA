@@ -3063,11 +3063,11 @@ NrEesmErrorModel::SinrEff (const SpectrumValue& sinr, const std::vector<int>& ma
   for (uint32_t i = 0; i < map.size (); i++)
     {
       double sinrLin = sinrCopy[map.at (i)];
-      SINR = exp ( sinrLin / beta );
+      SINR = exp ( -sinrLin / beta );
       SINRsum += SINR;
     }
 
-  SINR = beta * log ( SINRsum / map.size () );
+  SINR = -beta * log ( SINRsum / map.size () );
 
   NS_LOG_INFO (" Effective SINR = " << SINR);
 
