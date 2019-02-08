@@ -1333,12 +1333,16 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
   NS_ASSERT (spoint->m_rbg == 0);
   uint8_t usedSym = 0;
   std::list<uint16_t> notScheduled;
+  std::set<uint16_t> scheduled;
 
   while (symAvail > 0 && rntiList->size () > 0)
     {
       uint16_t rnti = rntiList->front ();
       rntiList->pop_front ();
-      NS_ABORT_UNLESS (m_ueMap.find (rnti) != m_ueMap.end ());
+      NS_ASSERT (m_ueMap.find (rnti) != m_ueMap.end ());
+      NS_ABORT_MSG_UNLESS (scheduled.find(rnti) == scheduled.end(),
+                           "RNTI " << rnti << " already scheduled for a SR..");
+      scheduled.insert (rnti);
 
       // Assign an entire symbol
       auto & ue = m_ueMap.find (rnti)->second;
