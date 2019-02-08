@@ -94,7 +94,7 @@ operator < (const MmWaveSpectrumModelId& a, const MmWaveSpectrumModelId& b)
 
 static std::map<MmWaveSpectrumModelId, Ptr<SpectrumModel> > g_mmWaveSpectrumModelMap; ///< mmwave spectrum model map
 
-Ptr<SpectrumModel> MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs)
+Ptr<const SpectrumModel> MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs)
 {
   NS_LOG_FUNCTION (centerFrequency << numRbs << scsPerRb << scs);
 
@@ -131,7 +131,7 @@ Ptr<SpectrumModel> MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs,
 }
 
 Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, std::vector <int> activeRbs, Ptr<SpectrumModel> spectrumModel, double bandwidth)
+MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, std::vector <int> activeRbs, Ptr<const SpectrumModel> spectrumModel, double bandwidth)
 {
   Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (spectrumModel);
   double powerTxW = std::pow (10., (powerTx - 30) / 10);
@@ -151,7 +151,7 @@ MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, std::ve
 }
 
 Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<SpectrumModel> spectrumModel)
+MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<const SpectrumModel> spectrumModel)
 {
   NS_LOG_FUNCTION (noiseFigureDb << spectrumModel);
   const double kT_dBm_Hz = -174.0;  // dBm/Hz

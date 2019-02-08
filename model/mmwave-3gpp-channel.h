@@ -433,9 +433,10 @@ private:
    * Creates power spectral density for the given power and
    * channel specific parameters (central frequency and the number of RB)
    * @param powerTx power transmitted
+   * @param txSm SpectrumModel of the transmitted
    * @return SpectrumValue representing PSD
    */
-  Ptr<const SpectrumValue> GetPsd (double powerTx) const;
+  Ptr<const SpectrumValue> GetTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const;
 
   /**
    * Compute and store the long term fading parameters in order to decrease the computational load

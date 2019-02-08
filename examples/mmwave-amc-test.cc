@@ -50,7 +50,7 @@ bool smallScale = true;
 double speed = 1.0;
 
 
-void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<SpectrumModel> model, Ptr<MmWaveAmc> amc)
+void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<const SpectrumModel> model, Ptr<MmWaveAmc> amc)
 {
 //  std::cout << "************* distance changing to " << dist << " *************" << std::endl;
 //  Ptr<MobilityModel> mobModel = ue->GetObject<MobilityModel> ();
@@ -215,10 +215,10 @@ main (int argc, char *argv[])
 
   Ptr<MmWaveAmc> amc = CreateObject <MmWaveAmc> (mmWavePhyMacCommon);
 
-  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel (mmWavePhyMacCommon->GetBandwidthInRbs(),
-                                                                       mmWavePhyMacCommon->GetCenterFrequency(),
-                                                                       mmWavePhyMacCommon->GetNumScsPerRb(),
-                                                                       mmWavePhyMacCommon->GetSubcarrierSpacing());
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel (mmWavePhyMacCommon->GetBandwidthInRbs(),
+                                                                             mmWavePhyMacCommon->GetCenterFrequency(),
+                                                                             mmWavePhyMacCommon->GetNumScsPerRb(),
+                                                                             mmWavePhyMacCommon->GetSubcarrierSpacing());
 
   Simulator::Schedule (MilliSeconds(0), &updateSnr, snrMinDb, enbMmwDev, sm ,amc);
 

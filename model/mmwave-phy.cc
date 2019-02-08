@@ -194,6 +194,12 @@ MmWavePhy::InstallAntenna ()
   m_antennaArray = antennaFactory.Create<AntennaArrayBasicModel>();
   m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
   m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
+
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                            m_phyMacConfig->GetCenterFrequency(),
+                                                                            m_phyMacConfig->GetNumScsPerRb(),
+                                                                            m_phyMacConfig->GetSubcarrierSpacing());
+  m_antennaArray->SetSpectrumModel (sm);
 }
 
 void
@@ -305,7 +311,7 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
 Ptr<SpectrumValue>
 MmWavePhy::GetNoisePowerSpectralDensity ()
 {
-  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
                                                                       m_phyMacConfig->GetCenterFrequency(),
                                                                       m_phyMacConfig->GetNumScsPerRb(),
                                                                       m_phyMacConfig->GetSubcarrierSpacing());
@@ -316,10 +322,10 @@ MmWavePhy::GetNoisePowerSpectralDensity ()
 Ptr<SpectrumValue>
 MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
 {
-  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                      m_phyMacConfig->GetCenterFrequency(),
-                                                                      m_phyMacConfig->GetNumScsPerRb(),
-                                                                      m_phyMacConfig->GetSubcarrierSpacing());
+  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
+                                                                           m_phyMacConfig->GetCenterFrequency(),
+                                                                           m_phyMacConfig->GetNumScsPerRb(),
+                                                                           m_phyMacConfig->GetSubcarrierSpacing());
 
   return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
 }

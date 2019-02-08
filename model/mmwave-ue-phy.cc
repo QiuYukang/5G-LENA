@@ -299,6 +299,8 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
   m_downlinkSpectrumPhy->SetCellId (m_cellId);
+
+  GetAntennaArray()->SetSpectrumModel (m_downlinkSpectrumPhy->GetRxSpectrumModel());
 }
 
 Ptr<MmWaveSpectrumPhy>

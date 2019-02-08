@@ -471,5 +471,21 @@ AntennaArrayModel::SetAntennaNumDim2 (uint8_t antennaNum)
 }
 
 
+Ptr<const SpectrumModel>
+AntennaArrayModel::GetSpectrumModel () const
+{
+  return m_spectrumModel;
+
+}
+
+void
+AntennaArrayModel::SetSpectrumModel (Ptr<const SpectrumModel> sm)
+{
+  m_spectrumModel = sm;
+}
+
+
+
+
 
 } /* namespace ns3 */

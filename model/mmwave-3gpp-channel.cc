@@ -2684,16 +2684,14 @@ bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
 
 
 Ptr<const SpectrumValue>
-MmWave3gppChannel::GetPsd (double powerTx) const
+MmWave3gppChannel::GetTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const
 {
   std::vector<int> listOfSubchannels;
   for (unsigned i = 0; i < m_numRbs; i++)
      {
        listOfSubchannels.push_back (i);
      }
-
-  Ptr<SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel (m_numRbs,m_centerFrequency, m_scsPerRb, m_scs);
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (powerTx, listOfSubchannels, sm, m_bandwidth);
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (powerTx, listOfSubchannels, txSm, m_bandwidth);
 }
 
 void
@@ -2703,8 +2701,6 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 {
 
   Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
-
-  Ptr<const SpectrumValue> fakePsd = GetPsd(0.0);
 
   Ptr<NetDevice> txDevice;
   Ptr<NetDevice> rxDevice;
@@ -2722,6 +2718,15 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
+
+  Ptr<const SpectrumModel> txSm = txAntennaArray->GetSpectrumModel ();
+  Ptr<const SpectrumModel> rxSm = rxAntennaArray->GetSpectrumModel ();
+
+  NS_ABORT_MSG_IF (txSm == rxSm, "BeamSearcBeamforming is expected to be done between transmitter and receiver"
+      "using the same spectrum model!");
+
+  Ptr<const SpectrumValue> fakePsd = GetTxPowerSpectralDensity (0.0, txSm);
+
 
   /* txAntennaNum[0]-number of vertical antenna elements
    * txAntennaNum[1]-number of horizontal antenna elements*/

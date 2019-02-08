@@ -21,6 +21,7 @@
 #include <ns3/antenna-model.h>
 #include <complex>
 #include <ns3/nstime.h>
+#include <ns3/spectrum-model.h>
 
 namespace ns3 {
 
@@ -263,6 +264,18 @@ public:
    * \param antennaNum the number of antenna elements in the second dimension
    */
   virtual void SetAntennaNumDim2 (uint8_t antennaNum) = 0;
+
+  /**
+   * Get SpectrumModel corresponding to this antenna instance
+   * @return SpectrumModel
+   */
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+
+  /**
+   * Set SpectrumModel that will be used by this antenna instancew
+   * @param sm SpectrumModel to be used
+   */
+  virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm) = 0;
 
 };
 

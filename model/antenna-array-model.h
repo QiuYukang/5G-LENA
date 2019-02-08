@@ -110,6 +110,17 @@ public:
     */
   virtual void SetAntennaNumDim2 (uint8_t antennaNum) override;
 
+  /**
+  * Get SpectrumModel corresponding to this antenna instance
+  * @return SpectrumModel
+  */
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const;
+
+  /**
+   * Set SpectrumModel that will be used by this antenna instancew
+   * @param sm SpectrumModel to be used
+   */
+  virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm);
 
 private:
 
@@ -132,6 +143,8 @@ protected:
 
   uint8_t m_antennaNumDim1; //!< The number of antenna elements in the first dimension.
   uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
+
+  Ptr<const SpectrumModel> m_spectrumModel;
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);

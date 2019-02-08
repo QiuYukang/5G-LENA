@@ -45,14 +45,14 @@ class MmWaveSpectrumValueHelper
 {
 public:
 
-  static Ptr<SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs);
+  static Ptr<const SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs);
 
   static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (double powerTx,
                                                           std::vector <int> activeRbs,
-                                                          Ptr<SpectrumModel> spectrumModel,
+                                                          Ptr<const SpectrumModel> spectrumModel,
                                                           double bandwidth);
 
-  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (double noiseFigure, Ptr<SpectrumModel> spectrumModel);
+  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (double noiseFigure, Ptr<const SpectrumModel> spectrumModel);
 
 private:
   //static Ptr<SpectrumModel> m_model;
