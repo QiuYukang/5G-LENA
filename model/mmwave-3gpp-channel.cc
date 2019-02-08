@@ -2721,8 +2721,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
   Ptr<const SpectrumModel> txSm = txAntennaArray->GetSpectrumModel ();
   Ptr<const SpectrumModel> rxSm = rxAntennaArray->GetSpectrumModel ();
 
-  NS_ABORT_MSG_IF (txSm == rxSm, "BeamSearcBeamforming is expected to be done between transmitter and receiver"
-      "using the same spectrum model!");
+  NS_ABORT_MSG_IF (txSm != rxSm, "BeamSearcBeamforming is expected to be done between the transmitter and receiver"
+      " using the same spectrum model!");
 
   Ptr<const SpectrumValue> fakePsd = GetTxPowerSpectralDensity (0.0, txSm);
 
