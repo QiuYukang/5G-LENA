@@ -483,8 +483,8 @@ MmWavePhy::GetAntennaArray () const
 void
 MmWavePhy::SetAntennaArrayType (const TypeId antennaArrayTypeId)
 {
-  NS_ABORT_MSG_IF (m_antennaArray !=nullptr, "Antenna's array type has been already configured. "
-      "To change antenna's attributes once that the anntena is created, use antenna object instead.");
+  NS_ABORT_MSG_IF (m_antennaArray != nullptr, "Antenna's array type has been already configured. "
+      "Antenna's type cannot be changed once that the anntena is created");
   m_antennaArrayType = antennaArrayTypeId ;
 }
 
@@ -497,9 +497,13 @@ MmWavePhy::GetAntennaArrayType () const
 void
 MmWavePhy::SetAntennaNumDim1 (uint8_t antennaNumDim1)
 {
-  NS_ABORT_MSG_IF (m_antennaArray !=nullptr, "Antenna's NumDim1 has been already configured"
-                   "To change antenna's attributes once that the anntena is created, use antenna object instead.");
   m_antennaNumDim1 = antennaNumDim1;
+  // if the antennaArray is already created then forward the value to the antenna object
+  if (m_antennaArray != nullptr)
+    {
+      m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
+    }
+
 }
 
 uint8_t
@@ -511,9 +515,12 @@ MmWavePhy::GetAntennaNumDim1 () const
 void
 MmWavePhy::SetAntennaNumDim2 (uint8_t antennaNumDim2)
 {
-  NS_ABORT_MSG_IF (m_antennaArray !=nullptr, "Antenna's NumDim2 has been already configured"
-                   "To change antenna's attributes once that the anntena is created, use antenna object instead.");
   m_antennaNumDim2 = antennaNumDim2;
+  // if the antennaArray is already created then forward the value to the antenna object
+  if (m_antennaArray != nullptr)
+    {
+      return m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
+    }
 }
 
 uint8_t
