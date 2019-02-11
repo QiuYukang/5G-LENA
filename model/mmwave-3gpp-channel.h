@@ -316,6 +316,24 @@ public:
   void PerformBeamforming(Ptr<const MobilityModel> a,
                           Ptr<const MobilityModel> b) const;
 
+  /**
+   * Scan all sectors with predefined code book and select the one returns maximum gain.
+   * The BF vector is stored in the Params3gpp object passed as parameter
+   * @param a mobility model of the transmitter
+   * @param b mobility model of the receiver
+   */
+  void BeamSearchBeamforming (Ptr<const MobilityModel> a,
+                              Ptr<const MobilityModel> b) const;
+
+  /**
+   * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
+   * The vector is stored in the Params3gpp object passed as parameter
+   * @param a mobility model of the transmitter node
+   * @param b mobility model of the receiver node
+   */
+  void LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
+                                     Ptr<const MobilityModel> b) const;
+
 private:
 
   /**
@@ -390,16 +408,6 @@ private:
                                  Ptr<const MobilityModel> b) const;
 
   /**
-   * Compute the optimal BF vector with the Power Method (Maximum Ratio Transmission method).
-   * The vector is stored in the Params3gpp object passed as parameter
-   * @param a mobility model of the transmitter node
-   * @param b mobility model of the receiver node
-   */
-  void LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
-                                     Ptr<const MobilityModel> b) const;
-
-
-  /**
    * Get the antenna array of the device, this function is technology specific
    * and thus the implementation will be moved to the corresponding child class
    * or will be made generic but requiring that the provided device implements
@@ -419,15 +427,6 @@ private:
    */
   bool IsReverseLink (Ptr<const MobilityModel> a,
                       Ptr<const MobilityModel> b) const;
-
-  /**
-   * Scan all sectors with predefined code book and select the one returns maximum gain.
-   * The BF vector is stored in the Params3gpp object passed as parameter
-   * @param a mobility model of the transmitter
-   * @param b mobility model of the receiver
-   */
-  void BeamSearchBeamforming (Ptr<const MobilityModel> a,
-                              Ptr<const MobilityModel> b) const;
 
   /**
    * Creates power spectral density for the given power and
@@ -507,7 +506,6 @@ private:
                                            doubleVector_t clusterZOA,
                                            Vector locUT) const;
 
-private:
 
   static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency; //!< A static map of channel maps per carrier frequency
   mutable std::map< key_t, int > m_connectedPair;
