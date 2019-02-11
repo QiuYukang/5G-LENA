@@ -204,6 +204,7 @@ struct ParamsTable : public Object
  */
 class MmWave3gppChannel : public SpectrumPropagationLossModel
 {
+
 public:
 
   typedef std::map< key_t, Ptr<Params3gpp> > channelMap_t;
@@ -507,7 +508,7 @@ private:
                                            Vector locUT) const;
 
 
-  static std::map <double, channelMap_t > m_channelMapPerCentralCarrierFrequency; //!< A static map of channel maps per carrier frequency
+  mutable MmWave3gppChannel::channelMap_t m_channelMap;
   mutable std::map< key_t, int > m_connectedPair;
   mutable std::set <Ptr<NetDevice> > m_ueDevices;
   

@@ -154,8 +154,6 @@ static const double sqrtC_office_NLOS[6][6] = {
 };
 
 
-std::map <double, MmWave3gppChannel::channelMap_t > MmWave3gppChannel::m_channelMapPerCentralCarrierFrequency;
-
 MmWave3gppChannel::MmWave3gppChannel ()
 {
   m_uniformRv = CreateObject<UniformRandomVariable> ();
@@ -167,8 +165,10 @@ MmWave3gppChannel::MmWave3gppChannel ()
   m_normalRvBlockage = CreateObject<NormalRandomVariable> ();
   m_normalRvBlockage->SetAttribute ("Mean", DoubleValue (0));
   m_normalRvBlockage->SetAttribute ("Variance", DoubleValue (1));
+
   MmWave3gppChannel::channelMap_t initMap;
-  m_channelMapPerCentralCarrierFrequency.insert(std::make_pair(m_centerFrequency, initMap));
+  m_channelMap = initMap;
+
 }
 
 TypeId
@@ -255,12 +255,6 @@ MmWave3gppChannel::DoDispose ()
 void MmWave3gppChannel::SetCenterFrequency (double centerFrequency)
 {
   m_centerFrequency = centerFrequency;
-
-  if (m_channelMapPerCentralCarrierFrequency.find (m_centerFrequency) == m_channelMapPerCentralCarrierFrequency.find (m_centerFrequency))
-    {
-      channelMap_t initMap;
-      m_channelMapPerCentralCarrierFrequency.insert(std::make_pair(m_centerFrequency, initMap));
-    }
 }
 
 double MmWave3gppChannel::GetCenterFrequency () const
@@ -477,14 +471,7 @@ MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
 
 MmWave3gppChannel::channelMap_t & MmWave3gppChannel::GetChannelMap() const
 {
-  if (m_channelMapPerCentralCarrierFrequency.find(m_centerFrequency) != m_channelMapPerCentralCarrierFrequency.end())
-    {
-      return m_channelMapPerCentralCarrierFrequency.find(m_centerFrequency)->second;
-    }
-  else
-    {
-      NS_ABORT_MSG ("Channel map does not exist for the center frequency: "<<m_centerFrequency);
-    }
+  return m_channelMap;
 }
 
 char
