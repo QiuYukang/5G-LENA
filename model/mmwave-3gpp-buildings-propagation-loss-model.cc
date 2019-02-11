@@ -31,10 +31,9 @@
 #include <ns3/building-list.h>
 #include <ns3/angles.h>
 #include "ns3/config-store.h"
-#include <ns3/mmwave-ue-net-device.h>
-#include <ns3/mmwave-enb-net-device.h>
 #include <ns3/node.h>
 #include "ns3/boolean.h"
+#include "ns3/string.h"
 
 NS_LOG_COMPONENT_DEFINE ("MmWave3gppBuildingsPropagationLossModel");
 
@@ -110,18 +109,14 @@ MmWave3gppBuildingsPropagationLossModel::DoCalcRxPower (double txPowerDbm, Ptr<M
   return txPowerDbm - GetLoss (a, b);
 }
 
-double
-MmWave3gppBuildingsPropagationLossModel::GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const
-{
-  NS_ASSERT_MSG ((a->GetPosition ().z >= 0) && (b->GetPosition ().z >= 0),
-                 "MmWave3gppBuildingsPropagationLossModel does not support underground nodes (placed at z < 0)");
 
-  // get the MobilityBuildingInfo pointers
+channelConditionMap_t::const_iterator
+MmWave3gppBuildingsPropagationLossModel::CreateNewOrUpdateChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const
+{
   Ptr<MobilityBuildingInfo> a1 = a->GetObject<MobilityBuildingInfo> ();
   Ptr<MobilityBuildingInfo> b1 = b->GetObject<MobilityBuildingInfo> ();
   NS_ASSERT_MSG ((a1 != 0) && (b1 != 0), "MmWave3gppBuildingsPropagationLossModel only works with MobilityBuildingInfo");
 
-  double loss = 0.0;
   channelConditionMap_t::const_iterator it;
   it = m_conditionMap.find (std::make_pair (a,b));
   //it == m_conditionMap.end () check whether it is the first transmission, if yes determine the channel condition
@@ -254,8 +249,25 @@ MmWave3gppBuildingsPropagationLossModel::GetLoss (Ptr<MobilityModel> a, Ptr<Mobi
           m_conditionMap.insert (std::make_pair (std::make_pair (b,a), condition));
           it = m_conditionMap.find (std::make_pair (a,b));
         }
-
     }
+  return it;
+}
+
+double
+MmWave3gppBuildingsPropagationLossModel::GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const
+{
+  NS_ASSERT_MSG ((a->GetPosition ().z >= 0) && (b->GetPosition ().z >= 0),
+                 "MmWave3gppBuildingsPropagationLossModel does not support underground nodes (placed at z < 0)");
+
+  // get the MobilityBuildingInfo pointers
+  Ptr<MobilityBuildingInfo> a1 = a->GetObject<MobilityBuildingInfo> ();
+  Ptr<MobilityBuildingInfo> b1 = b->GetObject<MobilityBuildingInfo> ();
+  NS_ASSERT_MSG ((a1 != 0) && (b1 != 0), "MmWave3gppBuildingsPropagationLossModel only works with MobilityBuildingInfo");
+
+  double loss = 0.0;
+
+
+  channelConditionMap_t::const_iterator it = CreateNewOrUpdateChannelCondition (a, b);
 
   if ((*it).second.m_channelCondition == 'l')
     {
@@ -288,31 +300,24 @@ MmWave3gppBuildingsPropagationLossModel::GetLoss (Ptr<MobilityModel> a, Ptr<Mobi
   if (Now ().GetSeconds () - m_prevTime.GetSeconds () < 0.00009)
     {
       Vector ueLoc, enbLoc;
-      if (DynamicCast<MmWaveUeNetDevice> (a->GetObject<Node> ()->GetDevice (0)) != 0)
-        {
-          /*if(DynamicCast<MmWaveEnbNetDevice> (b->GetObject<Node> ()->GetDevice (0)) !=0)
-          {
-                  NS_LOG_INFO("UE->ENB Link");
-                  ueLoc = a->GetPosition();
-                  enbLoc = b->GetPosition();
-                  LocationTrace(enbLoc, ueLoc, (*it).second.m_channelCondition == 'l');
 
-          }*/
-        }
-      else
+      if (m_3gppLos->IsUeMobilityModel(a) && !m_3gppLos->IsUeMobilityModel(b))
         {
-          if (DynamicCast<MmWaveUeNetDevice> (b->GetObject<Node> ()->GetDevice (0)) != 0)
-            {
-              NS_LOG_INFO ("ENB->UE Link");
-              enbLoc = a->GetPosition ();
-              ueLoc = b->GetPosition ();
-              LocationTrace (enbLoc, ueLoc, (*it).second.m_channelCondition == 'l');
-            }
+        /*
+          NS_LOG_INFO("UE->ENB Link");
+          ueLoc = a->GetPosition ();
+          enbLoc = b->GetPosition ();
+          LocationTrace(enbLoc, ueLoc, (*it).second.m_channelCondition == 'l');
+          */
         }
-
+      else if (!m_3gppLos->IsUeMobilityModel(a) && m_3gppLos->IsUeMobilityModel(b))
+       {
+          NS_LOG_INFO ("ENB->UE Link");
+          enbLoc = a->GetPosition ();
+          ueLoc = b->GetPosition ();
+          LocationTrace (enbLoc, ueLoc, (*it).second.m_channelCondition == 'l');
+       }
     }
-
-
   return loss;
 }
 
@@ -415,6 +420,12 @@ MmWave3gppBuildingsPropagationLossModel::GetScenario ()
   return m_3gppLos->GetScenario ();
 }
 
+void MmWave3gppBuildingsPropagationLossModel::AddUeMobilityModel (Ptr<MobilityModel> a) const
+{
+  m_3gppLos->AddUeMobilityModel (a);
+  m_3gppNlos->AddUeMobilityModel (a);
+}
+
 char
 MmWave3gppBuildingsPropagationLossModel::GetChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b)
 {
@@ -422,7 +433,14 @@ MmWave3gppBuildingsPropagationLossModel::GetChannelCondition (Ptr<MobilityModel>
   it = m_conditionMap.find (std::make_pair (a,b));
   if (it == m_conditionMap.end ())
     {
-      NS_FATAL_ERROR ("Cannot find the link in the map");
+      if (m_3gppLos->IsValidLink (a, b))
+        {
+          it = CreateNewOrUpdateChannelCondition (a, b);
+        }
+      else
+        {
+          NS_FATAL_ERROR ("Cannot find the link in the map");
+        }
     }
   return (*it).second.m_channelCondition;
 

@@ -35,6 +35,7 @@
 #include "ns3/random-variable-stream.h"
 #include <ns3/vector.h>
 #include <map>
+#include <set>
 
 /*
  * This 3GPP channel model is implemented base on the 3GPP TR 38.900 v14.1.0 (2016-09).
@@ -47,7 +48,7 @@
  * */
 
 
-using namespace ns3;
+namespace ns3 {
 
 struct channelCondition
 {
@@ -63,6 +64,9 @@ typedef std::map< std::pair< Ptr<MobilityModel>, Ptr<MobilityModel> >, channelCo
 
 class MmWave3gppPropagationLossModel : public PropagationLossModel
 {
+  friend class MmWave3gppChannel;
+  friend class MmWave3gppBuildingsPropagationLossModel;
+
 public:
   static TypeId GetTypeId (void);
   MmWave3gppPropagationLossModel ();
@@ -99,6 +103,52 @@ public:
   double GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 
 private:
+
+  /**
+   * Checks whether the mobility model belong to UE device.
+   * @param a mobility model
+   * @return bool value which is true if the mobility model belongs to UE device,
+   * and false if it is not UE device
+   */
+  bool IsUeMobilityModel (Ptr<MobilityModel> a) const;
+
+  /**
+  * Adds the mobility model to the list of UE mobility models. This function
+  * is crucial for the correct functioning of this propagation loss model.It
+  * is normally called by the 3gppChannelModel.
+  * @param a Mobility model to be added to the list of mobility models
+  */
+  void AddUeMobilityModel (Ptr<MobilityModel> a);
+
+  /**
+   * Function checks if the link is between UE and BS, if it is then it returns
+   * true. Otherwise if the link is between two UEs or two BS it returns false.
+   * @param a Mobility model of the first device
+   * @param b Mobility model of the second device
+   * @return whether the link is a valid link, and the valid link is considered
+   * when it is betwen UE and BS
+   */
+  bool IsValidLink (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
+
+
+  /**
+   * Calculates loss between UE and BS.
+   * @param ueMob UE mobility model
+   * @param enbMob BS mobility model.
+   * @return Loss value
+   */
+  double CalculateLoss (Ptr<MobilityModel> ueMob, Ptr<MobilityModel> enbMob) const;
+
+  /**
+   * Creates channel condition for the pair of the devices whoes mobilities
+   * models are provided as inputs to this function.
+   * @param ueMob The mobility model of the UE
+   * @param enbMob The mobility model of the BS
+   * @return A pointer to the map of channnel conditions
+   */
+  channelConditionMap_t::const_iterator
+  CreateNewChannelCondition (Ptr<MobilityModel> ueMob, Ptr<MobilityModel> enbMob) const;
+
   MmWave3gppPropagationLossModel (const MmWave3gppPropagationLossModel &o);
   MmWave3gppPropagationLossModel & operator = (const MmWave3gppPropagationLossModel &o);
   virtual double DoCalcRxPower (double txPowerDbm,
@@ -119,6 +169,10 @@ private:
   bool m_shadowingEnabled;
   bool m_inCar;
 
+  std::set <Ptr<MobilityModel> > m_ueMobilityModels; //!< List of mobility models belonging to the UEs. This map is used internally to understand if the mobility model corresponds to UE device.
+
 };
+
+}//namespace ns-3
 
 #endif

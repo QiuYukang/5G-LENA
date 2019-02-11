@@ -403,6 +403,18 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
 
   m_deviceToAntennaArray.insert(std::make_pair(ueDevice, ueDeviceAntenna));
   m_deviceToAntennaArray.insert(std::make_pair(bsDevice, bsDeviceAntenna));
+
+  // propagation loss model needs to be able to distinguish whether the device is UE or BS
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+    {
+      return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
+          ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
+    }
+  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+    {
+      return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
+          ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
+    }
 }
 
 InputParams3gpp
@@ -426,7 +438,7 @@ MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
   //los, o2i condition is computed above.
 
   //Step 3: The propagation loss is handled in the mmWavePropagationLossModel class.
-  char condition = DoGetChannelCondition(a,b);
+  char condition = DoGetChannelCondition (a,b);
 
   if (condition == 'l')
     {

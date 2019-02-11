@@ -35,6 +35,7 @@ namespace ns3 {
 
 class MmWave3gppBuildingsPropagationLossModel : public BuildingsPropagationLossModel
 {
+  friend class MmWave3gppChannel;
 
 public:
   static TypeId GetTypeId (void);
@@ -48,6 +49,21 @@ public:
   char GetChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b);
 
 private:
+
+  /**
+   * Adds the mobility model to the list of UE mobility models
+   * @param a Mobility model to be added to the list of mobility models
+   */
+  void AddUeMobilityModel (Ptr<MobilityModel> a) const;
+
+  /**
+   * Created new channel condition element corresponding to the link between the two devices
+   * @param a MobilityModel of the first device
+   * @param b MobilityModel of the second device
+   * @return
+   */
+  channelConditionMap_t::const_iterator CreateNewOrUpdateChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
+
   //The IsLineIntersectBuildings method is based on
   //ISLineInBox method implemented in Bounding Box Types.
   //Link: http://www.3dkingdoms.com/weekly/weekly.php?a=21.
