@@ -27,16 +27,12 @@
 #include <ns3/log.h>
 #include <ns3/math.h>
 #include <ns3/simulator.h>
-#include <ns3/mmwave-phy.h>
-#include <ns3/mmwave-net-device.h>
 #include <ns3/node.h>
 #include <ns3/double.h>
 #include <ns3/integer.h>
 #include <ns3/boolean.h>
 #include <algorithm>
 #include <random>       // std::default_random_engine
-#include "mmwave-spectrum-value-helper.h"
-
 
 namespace ns3 {
 
@@ -248,6 +244,9 @@ MmWave3gppChannel::DoDispose ()
   m_expRv = 0;
   m_normalRv = 0;
   m_normalRvBlockage = 0;
+
+  m_channelMap.clear();
+
   SpectrumPropagationLossModel::DoDispose ();
   NS_LOG_FUNCTION (this);
 }
@@ -306,13 +305,13 @@ MmWave3gppChannel::ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const Mo
   MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (std::make_pair (dev1, dev2));
   MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (std::make_pair (dev2, dev1));
 
-  if (it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
+  if (it != GetChannelMap().end () || itReverse != GetChannelMap().end ())
     {
-      return false;
+      return true;
     }
   else
     {
-      return true;
+      return false;
     }
 }
 
@@ -741,6 +740,9 @@ void
 MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
                                                  Ptr<const MobilityModel> b) const
 {
+
+  NS_ABORT_MSG_IF (a->GetDistanceFrom(b) == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
+
   Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 
   Ptr<NetDevice> txDevice;
@@ -2669,12 +2671,18 @@ bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
 Ptr<const SpectrumValue>
 MmWave3gppChannel::GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const
 {
+  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (txSm);
+  double powerTxW = std::pow (10., (powerTx - 30) / 10);
+  double txPowerDensity = 0;
+  txPowerDensity = powerTxW / m_bandwidth;
+
   std::vector<int> listOfSubchannels;
-  for (unsigned i = 0; i < txSm->GetNumBands (); i++)
-     {
-       listOfSubchannels.push_back (i);
-     }
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (powerTx, listOfSubchannels, txSm, m_bandwidth);
+  for (unsigned rbId = 0; rbId < txSm->GetNumBands (); rbId++)
+    {
+      (*txPsd)[rbId] = txPowerDensity;
+    }
+  NS_LOG_LOGIC (*txPsd);
+  return txPsd;
 }
 
 void
@@ -2682,6 +2690,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
                                           Ptr<const MobilityModel> b
                                           ) const
 {
+
+  NS_ABORT_MSG_IF (a->GetDistanceFrom(b) == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
   Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 

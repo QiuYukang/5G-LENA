@@ -31,14 +31,13 @@
 #include <complex>
 #include <ns3/spectrum-signal-parameters.h>
 #include <ns3/mobility-model.h>
-#include <ns3/spectrum-propagation-loss-model.h>
 #include <ns3/net-device.h>
 #include <map>
 #include <ns3/angles.h>
 #include <ns3/random-variable-stream.h>
+#include <ns3/spectrum-propagation-loss-model.h>
 #include "mmwave-3gpp-propagation-loss-model.h"
 #include "mmwave-3gpp-buildings-propagation-loss-model.h"
-#include <ns3/antenna-array-model.h>
 #include "antenna-array-basic-model.h"
 
 #define AOA_INDEX 0
