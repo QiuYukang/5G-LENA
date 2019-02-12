@@ -204,6 +204,8 @@ struct ParamsTable : public Object
 class MmWave3gppChannel : public SpectrumPropagationLossModel
 {
 
+  friend class NrTest3gppChannelTestCase;
+
 public:
 
   typedef std::map< key_t, Ptr<Params3gpp> > channelMap_t;

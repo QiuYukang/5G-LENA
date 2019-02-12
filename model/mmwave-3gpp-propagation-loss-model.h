@@ -66,6 +66,7 @@ class MmWave3gppPropagationLossModel : public PropagationLossModel
 {
   friend class MmWave3gppChannel;
   friend class MmWave3gppBuildingsPropagationLossModel;
+  friend class NrTest3gppChannelTestCase;
 
 public:
   static TypeId GetTypeId (void);
