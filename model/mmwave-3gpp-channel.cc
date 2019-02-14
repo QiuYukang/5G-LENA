@@ -27,16 +27,12 @@
 #include <ns3/log.h>
 #include <ns3/math.h>
 #include <ns3/simulator.h>
-#include <ns3/mmwave-phy.h>
-#include <ns3/mmwave-net-device.h>
 #include <ns3/node.h>
 #include <ns3/double.h>
 #include <ns3/integer.h>
 #include <ns3/boolean.h>
 #include <algorithm>
 #include <random>       // std::default_random_engine
-#include "mmwave-spectrum-value-helper.h"
-
 
 namespace ns3 {
 
@@ -154,8 +150,6 @@ static const double sqrtC_office_NLOS[6][6] = {
 };
 
 
-std::map <double, MmWave3gppChannel::channelMap_t > MmWave3gppChannel::m_channelMapPerCentralCarrierFrequency;
-
 MmWave3gppChannel::MmWave3gppChannel ()
 {
   m_uniformRv = CreateObject<UniformRandomVariable> ();
@@ -167,8 +161,10 @@ MmWave3gppChannel::MmWave3gppChannel ()
   m_normalRvBlockage = CreateObject<NormalRandomVariable> ();
   m_normalRvBlockage->SetAttribute ("Mean", DoubleValue (0));
   m_normalRvBlockage->SetAttribute ("Variance", DoubleValue (1));
+
   MmWave3gppChannel::channelMap_t initMap;
-  m_channelMapPerCentralCarrierFrequency.insert(std::make_pair(m_centerFrequency, initMap));
+  m_channelMap = initMap;
+
 }
 
 TypeId
@@ -248,6 +244,9 @@ MmWave3gppChannel::DoDispose ()
   m_expRv = 0;
   m_normalRv = 0;
   m_normalRvBlockage = 0;
+
+  m_channelMap.clear();
+
   SpectrumPropagationLossModel::DoDispose ();
   NS_LOG_FUNCTION (this);
 }
@@ -255,12 +254,6 @@ MmWave3gppChannel::DoDispose ()
 void MmWave3gppChannel::SetCenterFrequency (double centerFrequency)
 {
   m_centerFrequency = centerFrequency;
-
-  if (m_channelMapPerCentralCarrierFrequency.find (m_centerFrequency) == m_channelMapPerCentralCarrierFrequency.find (m_centerFrequency))
-    {
-      channelMap_t initMap;
-      m_channelMapPerCentralCarrierFrequency.insert(std::make_pair(m_centerFrequency, initMap));
-    }
 }
 
 double MmWave3gppChannel::GetCenterFrequency () const
@@ -312,13 +305,13 @@ MmWave3gppChannel::ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const Mo
   MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (std::make_pair (dev1, dev2));
   MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (std::make_pair (dev2, dev1));
 
-  if (it == GetChannelMap().end () && itReverse == GetChannelMap().end ())
+  if (it != GetChannelMap().end () || itReverse != GetChannelMap().end ())
     {
-      return false;
+      return true;
     }
   else
     {
-      return true;
+      return false;
     }
 }
 
@@ -403,6 +396,18 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
 
   m_deviceToAntennaArray.insert(std::make_pair(ueDevice, ueDeviceAntenna));
   m_deviceToAntennaArray.insert(std::make_pair(bsDevice, bsDeviceAntenna));
+
+  // propagation loss model needs to be able to distinguish whether the device is UE or BS
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+    {
+      return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
+          ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
+    }
+  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+    {
+      return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
+          ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
+    }
 }
 
 InputParams3gpp
@@ -426,7 +431,7 @@ MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
   //los, o2i condition is computed above.
 
   //Step 3: The propagation loss is handled in the mmWavePropagationLossModel class.
-  char condition = DoGetChannelCondition(a,b);
+  char condition = DoGetChannelCondition (a,b);
 
   if (condition == 'l')
     {
@@ -465,14 +470,7 @@ MmWave3gppChannel::GetInput3gppParameters (Ptr<const MobilityModel> a,
 
 MmWave3gppChannel::channelMap_t & MmWave3gppChannel::GetChannelMap() const
 {
-  if (m_channelMapPerCentralCarrierFrequency.find(m_centerFrequency) != m_channelMapPerCentralCarrierFrequency.end())
-    {
-      return m_channelMapPerCentralCarrierFrequency.find(m_centerFrequency)->second;
-    }
-  else
-    {
-      NS_ABORT_MSG ("Channel map does not exist for the center frequency: "<<m_centerFrequency);
-    }
+  return m_channelMap;
 }
 
 char
@@ -742,6 +740,9 @@ void
 MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
                                                  Ptr<const MobilityModel> b) const
 {
+
+  NS_ABORT_MSG_IF (a->GetDistanceFrom(b) == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
+
   Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 
   Ptr<NetDevice> txDevice;
@@ -1262,21 +1263,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 
   Vector locUT = GetLocUT (a,b);
 
-
-  uint8_t txAntennaNum[2];
-  uint8_t rxAntennaNum[2];
-
-  if (txAntennaArray!=0 && rxAntennaArray!=0)
-    {
-      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
-      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
-      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
-      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
-    }
-  else
-    {
-      NS_ABORT_MSG("Tx and Rx antenna arrays are empty");
-    }
+  NS_ABORT_MSG_IF (txAntennaArray == 0 || rxAntennaArray == 0, "Cannot create a channel if antenna weights are not set.");
 
   uint8_t numOfCluster = table3gpp->m_numOfCluster;
   uint8_t raysPerCluster = table3gpp->m_raysPerCluster;
@@ -1768,8 +1755,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 
   complex3DVector_t H_NLOS; // channel coefficients H_NLOS [u][s][n],
   // where u and s are receive and transmit antenna element, n is cluster index.
-  uint16_t uSize = rxAntennaNum[0] * rxAntennaNum[1];
-  uint16_t sSize = txAntennaNum[0] * txAntennaNum[1];
+  uint16_t uSize = rxAntennaArray->GetAntennaNumDim1() * rxAntennaArray->GetAntennaNumDim2();
+  uint16_t sSize = txAntennaArray->GetAntennaNumDim1() * txAntennaArray->GetAntennaNumDim2();
 
   uint8_t cluster1st = 0, cluster2nd = 0; // first and second strongest cluster;
   double maxPower = 0;
@@ -1809,12 +1796,12 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
   // The following for loops computes the channel coefficients
   for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
     {
-      Vector uLoc = rxAntennaArray->GetAntennaLocation (uIndex,rxAntennaNum);
+      Vector uLoc = rxAntennaArray->GetAntennaLocation (uIndex);
 
       for (uint16_t sIndex = 0; sIndex < sSize; sIndex++)
         {
 
-          Vector sLoc = txAntennaArray->GetAntennaLocation (sIndex,txAntennaNum);
+          Vector sLoc = txAntennaArray->GetAntennaLocation (sIndex);
 
           for (uint8_t nIndex = 0; nIndex < numReducedCluster; nIndex++)
             {
@@ -2055,16 +2042,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
   Angles txAngle (rxPos, txPos);
   Angles rxAngle (txPos, rxPos);
 
-
-  uint8_t txAntennaNum[2];
-  uint8_t rxAntennaNum[2];
-
-  NS_ABORT_MSG_IF (txAntennaArray==0 || rxAntennaArray==0,"Tx and Rx antenna arrays are empty");
-
-  txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
-  txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
-  rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
-  rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
+  NS_ABORT_MSG_IF (txAntennaArray == nullptr || rxAntennaArray == nullptr,"Tx and Rx antenna arrays are empty");
 
   Vector locUT = GetLocUT (a,b);
 
@@ -2395,8 +2373,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 
   complex3DVector_t H_NLOS; // channel coefficients H_NLOS [u][s][n],
   // where u and s are receive and transmit antenna element, n is cluster index.
-  uint16_t uSize = rxAntennaNum[0] * rxAntennaNum[1];
-  uint16_t sSize = txAntennaNum[0] * txAntennaNum[1];
+  uint16_t uSize = rxAntennaArray->GetAntennaNumDim1 () * rxAntennaArray->GetAntennaNumDim2 ();
+  uint16_t sSize = txAntennaArray->GetAntennaNumDim1 () * txAntennaArray->GetAntennaNumDim2 ();
 
   uint8_t cluster1st = 0, cluster2nd = 0; // first and second strongest cluster;
   double maxPower = 0;
@@ -2437,12 +2415,12 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
   // The following for loops computes the channel coefficients
   for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
     {
-      Vector uLoc = rxAntennaArray->GetAntennaLocation (uIndex,rxAntennaNum);
+      Vector uLoc = rxAntennaArray->GetAntennaLocation (uIndex);
 
       for (uint16_t sIndex = 0; sIndex < sSize; sIndex++)
         {
 
-          Vector sLoc = txAntennaArray->GetAntennaLocation (sIndex,txAntennaNum);
+          Vector sLoc = txAntennaArray->GetAntennaLocation (sIndex);
 
           for (uint8_t nIndex = 0; nIndex < params->m_numCluster; nIndex++)
             {
@@ -2670,12 +2648,18 @@ bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
 Ptr<const SpectrumValue>
 MmWave3gppChannel::GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm) const
 {
+  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (txSm);
+  double powerTxW = std::pow (10., (powerTx - 30) / 10);
+  double txPowerDensity = 0;
+  txPowerDensity = powerTxW / m_bandwidth;
+
   std::vector<int> listOfSubchannels;
-  for (unsigned i = 0; i < txSm->GetNumBands (); i++)
-     {
-       listOfSubchannels.push_back (i);
-     }
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (powerTx, listOfSubchannels, txSm, m_bandwidth);
+  for (unsigned rbId = 0; rbId < txSm->GetNumBands (); rbId++)
+    {
+      (*txPsd)[rbId] = txPowerDensity;
+    }
+  NS_LOG_LOGIC (*txPsd);
+  return txPsd;
 }
 
 void
@@ -2683,6 +2667,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
                                           Ptr<const MobilityModel> b
                                           ) const
 {
+
+  NS_ABORT_MSG_IF (a->GetDistanceFrom(b) == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
   Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
 
@@ -2712,42 +2698,27 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
   Ptr<const SpectrumValue> fakePsd = GetFakeTxPowerSpectralDensity (0.0, txSm);
 
 
-  /* txAntennaNum[0]-number of vertical antenna elements
-   * txAntennaNum[1]-number of horizontal antenna elements*/
-  uint8_t txAntennaNum[2];
-  uint8_t rxAntennaNum[2];
-
-  if (txAntennaArray!=0 && rxAntennaArray!=0)
-    {
-      txAntennaNum[0] = txAntennaArray->GetAntennaNumDim1 ();
-      txAntennaNum[1] = txAntennaArray->GetAntennaNumDim2 ();
-      rxAntennaNum[0] = rxAntennaArray->GetAntennaNumDim1 ();
-      rxAntennaNum[1] = rxAntennaArray->GetAntennaNumDim2 ();
-    }
-  else
-    {
-      NS_ABORT_MSG ("Tx and Rx antenna arrays are empty");
-    }
+  NS_ABORT_MSG_IF (txAntennaArray == nullptr || rxAntennaArray == nullptr, "Tx or Rx antenna arrays are not set");
 
   double max = 0, maxTx = 0, maxRx = 0, maxTxTheta = 0, maxRxTheta = 0;
   NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
   for (uint16_t txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-      for (uint8_t tx = 0; tx <= txAntennaNum[1]; tx++)
+      for (uint8_t tx = 0; tx <= txAntennaArray->GetAntennaNumDim2(); tx++)
         {
-          txAntennaArray->SetSector (tx, txAntennaNum, txTheta);
+          txAntennaArray->SetSector (tx, txTheta);
 
           complexVector_t txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
 
           for (uint16_t rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
             {
-              for (uint16_t rx = 0; rx <= rxAntennaNum[1]; rx++)
+              for (uint16_t rx = 0; rx <= rxAntennaArray->GetAntennaNumDim2(); rx++)
                 {
                   NS_LOG_LOGIC ("txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
-                                (M_PI * (double)tx / (double)txAntennaNum[1] - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
-                                (M_PI * (double)rx / (double)rxAntennaNum[1] - 0.5 * M_PI) / (M_PI) * 180);
+                                (M_PI * (double)tx / (double)txAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
+                                (M_PI * (double)rx / (double)rxAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) / (M_PI) * 180);
 
-                  rxAntennaArray->SetSector (rx, rxAntennaNum, rxTheta);
+                  rxAntennaArray->SetSector (rx, rxTheta);
 
                   complexVector_t rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
 
@@ -2783,10 +2754,12 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
         }
     }
 
-  NS_LOG_LOGIC ("maxTx " << maxTx << " txAntennaNum[1] " << (uint16_t)txAntennaNum[1]);
-  NS_LOG_LOGIC ("max gain " << max << " maxTx " << (M_PI * (double)maxTx / (double)txAntennaNum[1] - 0.5 * M_PI) / (M_PI) * 180 << " maxRx " << (M_PI * (double)maxRx / (double)rxAntennaNum[1] - 0.5 * M_PI) / (M_PI) * 180 << " maxTxTheta " << maxTxTheta << " maxRxTheta " << maxRxTheta);
-  txAntennaArray->SetSector (maxTx, txAntennaNum, maxTxTheta);
-  rxAntennaArray->SetSector (maxRx, rxAntennaNum, maxRxTheta);
+  NS_LOG_LOGIC ("maxTx " << maxTx << " txAntennaNum[1] " << (uint16_t)txAntennaArray->GetAntennaNumDim2());
+  NS_LOG_LOGIC ("max gain " << max << " maxTx " << (M_PI * (double)maxTx / (double)txAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) /
+                (M_PI) * 180 << " maxRx " << (M_PI * (double)maxRx / (double)rxAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) /
+                (M_PI) * 180 << " maxTxTheta " << maxTxTheta << " maxRxTheta " << maxRxTheta);
+  txAntennaArray->SetSector (maxTx, maxTxTheta);
+  rxAntennaArray->SetSector (maxRx, maxRxTheta);
 
   txAntennaArray->SetBeamformingVector (txAntennaArray->GetCurrentBeamformingVector().first, txAntennaArray->GetCurrentBeamformingVector().second, rxDevice);
   rxAntennaArray->SetBeamformingVector (rxAntennaArray->GetCurrentBeamformingVector().first, rxAntennaArray->GetCurrentBeamformingVector().second, txDevice);

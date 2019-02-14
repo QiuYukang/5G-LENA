@@ -176,7 +176,7 @@ AntennaArray3gppModel::GetRadiationPattern (double vAngleRadian, double hAngleRa
 }
 
 Vector
-AntennaArray3gppModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
+AntennaArray3gppModel::GetAntennaLocation (uint8_t index)
 {
   Vector loc;
 
@@ -184,21 +184,21 @@ AntennaArray3gppModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
     {
       //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the y-z plane.
       loc.x = 0;
-      loc.y = m_disH * (index % antennaNum[0]);
-      loc.z = m_disV * floor (index / antennaNum[0]);
+      loc.y = m_disH * (index % m_antennaNumDim1);
+      loc.z = m_disV * floor (index / m_antennaNumDim1);
     }
   else if (m_orientation == AntennaOrientation::Z0)
     {
       //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the x-y plane.
       loc.z = 0;
-      loc.x = m_disH * (index % antennaNum[0]);
-      loc.y = m_disV * floor (index / antennaNum[0]);
+      loc.x = m_disH * (index % m_antennaNumDim1);
+      loc.y = m_disV * floor (index / m_antennaNumDim1);
     }
   else if (m_orientation == AntennaOrientation::Y0)
     {
       loc.y = 0;
-      loc.z = m_disH * (index % antennaNum[0]);
-      loc.x = m_disV * floor (index / antennaNum[0]);
+      loc.z = m_disH * (index % m_antennaNumDim1);
+      loc.x = m_disV * floor (index / m_antennaNumDim1);
     }
   else
     {

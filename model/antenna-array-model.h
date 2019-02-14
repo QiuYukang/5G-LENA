@@ -75,15 +75,15 @@ public:
    */
   virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device);
 
-  virtual void SetToSector (uint32_t sector, uint32_t antennaNum);
-
   virtual bool IsOmniTx ();
 
   virtual double GetRadiationPattern (double vangle, double hangle = 0);
 
-  virtual Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum);
+  virtual Vector GetAntennaLocation (uint8_t index);
 
-  virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90);
+  virtual void SetSector (uint32_t sector);
+
+  virtual void SetSector (uint8_t sector, double elevation = 90);
 
   void SetAntennaOrientation (enum AntennaArrayModel::AntennaOrientation orientation);
 

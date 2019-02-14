@@ -71,6 +71,14 @@ public:
 
   virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const override;
 
+  /**
+   * Returns the PHY instance that is configured to operate on the provided
+   * central carrier frequency
+   * @param centerFrequency The central carrier frequency in Hz
+   * @return A pointer to the PHY instance it it exist, otherwise a nullptr
+   */
+  virtual Ptr<MmWavePhy> GetPhyOnCenterFreq (double centerFrequency) const override;
+
   uint16_t GetCellId () const;
 
   uint8_t GetBandwidth () const;

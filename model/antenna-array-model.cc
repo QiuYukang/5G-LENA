@@ -231,11 +231,13 @@ AntennaArrayModel::GetBeamformingVectorUpdateTime (Ptr<NetDevice> device)
 }
 
 void
-AntennaArrayModel::SetToSector (uint32_t sector, uint32_t antennaNum)
+AntennaArrayModel::SetSector (uint32_t sector)
 {
   NS_LOG_LOGIC(this);
   m_omniTx = false;
   complexVector_t cmplxVector;
+  uint32_t antennaNum = GetAntennaNumDim1() * GetAntennaNumDim2();
+
   switch (antennaNum)
     {
     case 64:
@@ -382,7 +384,7 @@ AntennaArrayModel::GetRadiationPattern (double vAngle, double hAngle)
 }
 
 Vector
-AntennaArrayModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
+AntennaArrayModel::GetAntennaLocation (uint8_t index)
 {
   Vector loc;
 
@@ -390,15 +392,15 @@ AntennaArrayModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
     {
       //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the y-z plane.
       loc.x = 0;
-      loc.y = m_disH * (index % antennaNum[0]);
-      loc.z = m_disV * floor (index / antennaNum[0]);
+      loc.y = m_disH * (index % m_antennaNumDim1);
+      loc.z = m_disV * floor (index / m_antennaNumDim1);
     }
   else if (m_orientation == AntennaOrientation::Z0)
     {
       //assume the left bottom corner is (0,0,0), and the rectangular antenna array is on the x-y plane.
       loc.z = 0;
-      loc.x = m_disH * (index % antennaNum[0]);
-      loc.y = m_disV * floor (index / antennaNum[0]);
+      loc.x = m_disH * (index % m_antennaNumDim1);
+      loc.y = m_disV * floor (index / m_antennaNumDim1);
     }
   else
     {
@@ -409,16 +411,16 @@ AntennaArrayModel::GetAntennaLocation (uint8_t index, uint8_t* antennaNum)
 }
 
 void
-AntennaArrayModel::SetSector (uint8_t sector, uint8_t *antennaNum, double elevation)
+AntennaArrayModel::SetSector (uint8_t sector, double elevation)
 {
   complexVector_t tempVector;
-  double hAngle_radian = M_PI * (double)sector / (double)antennaNum[1] - 0.5 * M_PI;
+  double hAngle_radian = M_PI * (double)sector / (double)m_antennaNumDim2 - 0.5 * M_PI;
   double vAngle_radian = elevation * M_PI / 180;
-  uint16_t size = antennaNum[0] * antennaNum[1];
+  uint16_t size = m_antennaNumDim1 * m_antennaNumDim2;
   double power = 1 / sqrt (size);
   for (int ind = 0; ind < size; ind++)
     {
-      Vector loc = GetAntennaLocation (ind, antennaNum);
+      Vector loc = GetAntennaLocation (ind);
       double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
                                   + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
                                   + cos (vAngle_radian) * loc.z);
