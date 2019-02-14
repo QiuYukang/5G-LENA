@@ -63,25 +63,15 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
                    MakeTimeAccessor (&MmWaveMacSchedulerNs3::m_cqiTimersThreshold),
                    MakeTimeChecker ())
     .AddAttribute ("FixedMcsDl",
-                   "Fix MCS to value set in McsDlDefault",
+                   "Fix MCS to value set in StartingMcsDl",
                    BooleanValue (false),
                    MakeBooleanAccessor (&MmWaveMacSchedulerNs3::m_fixedMcsDl),
                    MakeBooleanChecker ())
-    .AddAttribute ("McsDefaultDl",
-                   "Fixed DL MCS",
-                   UintegerValue (1),
-                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::m_mcsDefaultDl),
-                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("FixedMcsUl",
-                   "Fix MCS to value set in McsUlDefault (for testing)",
+                   "Fix MCS to value set in StartingMcsUl",
                    BooleanValue (false),
                    MakeBooleanAccessor (&MmWaveMacSchedulerNs3::m_fixedMcsUl),
                    MakeBooleanChecker ())
-    .AddAttribute ("McsDefaultUl",
-                   "Fixed UL MCS (for testing)",
-                   UintegerValue (1),
-                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::m_mcsDefaultUl),
-                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("StartingMcsDl",
                    "Starting MCS for DL",
                    UintegerValue (0),
@@ -153,8 +143,8 @@ MmWaveMacSchedulerNs3::DoSchedSetMcs (uint32_t mcs)
   NS_LOG_FUNCTION (this);
   m_fixedMcsDl = true;
   m_fixedMcsUl = true;
-  m_mcsDefaultDl = static_cast<uint8_t> (mcs);
-  m_mcsDefaultUl = static_cast<uint8_t> (mcs);
+  m_startMcsDl = static_cast<uint8_t> (mcs);
+  m_startMcsUl = static_cast<uint8_t> (mcs);
 }
 
 /**
@@ -204,14 +194,6 @@ MmWaveMacSchedulerNs3::DoCschedUeConfigReq (const MmWaveMacCschedSapProvider::Cs
       UeInfoOf (*itUe)->m_ulHarq.SetMaxSize (static_cast<uint8_t> (m_phyMacConfig->GetNumHarqProcess ()));
       UeInfoOf (*itUe)->m_dlMcs = m_startMcsDl;
       UeInfoOf (*itUe)->m_ulMcs = m_startMcsUl;
-      if (m_fixedMcsDl)
-        {
-          UeInfoOf (*itUe)->m_dlMcs = m_mcsDefaultDl;
-        }
-      if (m_fixedMcsUl)
-        {
-          UeInfoOf (*itUe)->m_ulMcs = m_mcsDefaultUl;
-        }
     }
   else
     {

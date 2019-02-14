@@ -201,7 +201,7 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue(true));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::McsDefaultDl", UintegerValue (1));
+  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (1));
 
   ns3::SeedManager::SetRun(5);
 

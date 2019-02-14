@@ -62,26 +62,26 @@ sync with the attribute *ErrorModelType* of MmWaveSpectrumPhy
 * Added attribute *ErrorModelType* to the class MmWaveSpectrumPhy
 * Added class NrEesmErrorModel to model the NR PHY abstraction according to LDPC
 coding, block segmentation, and including MCS/CQI table 1 and 2.
-* Added attributes AntennaNumDim1, AntennaNumDim2, AntennaArrayType to 
-MmWaveEnbPhy and MmWaveUePhy. And these two classes are responsible for an 
-antenna array installation. This means that there is an instance of 
-AntennaArrayBasicModel per MmWavePhy. 
-* MmWavePhy has new functions Set/Get functions for configuring and 
-obtaining AntennaNumDim1, AntennaNumDim2, AntennaArrayType attributes. The 
-configuration of these parameters is allowed through MmWavePhy object since 
-we would like to have access to these attributes through the Config system 
-and that we can specify different values for an antenna for MmWaveUePhy and 
-MmWaveEnbPhy. Function to set AntennaArrayType can be called only for the 
-initial configuration. If it is called after the antenna object is created the 
+* Added attributes AntennaNumDim1, AntennaNumDim2, AntennaArrayType to
+MmWaveEnbPhy and MmWaveUePhy. And these two classes are responsible for an
+antenna array installation. This means that there is an instance of
+AntennaArrayBasicModel per MmWavePhy.
+* MmWavePhy has new functions Set/Get functions for configuring and
+obtaining AntennaNumDim1, AntennaNumDim2, AntennaArrayType attributes. The
+configuration of these parameters is allowed through MmWavePhy object since
+we would like to have access to these attributes through the Config system
+and that we can specify different values for an antenna for MmWaveUePhy and
+MmWaveEnbPhy. Function to set AntennaArrayType can be called only for the
+initial configuration. If it is called after the antenna object is created the
 program will be halted and the user will be informed of the error.
-* AntennaArray3gppModel has new attribute RandomUeorientation. If set to true 
-the 3D antenna orientation will be generated randomly throwing a dice by 
-using a UniformRandomVariable. 
-* 3gppChannelModel has a new attribute UpdateBeamformingVectorsIdeally which 
-determines if the update of the beamforming vectors will be ideal, i.e. if 
+* AntennaArray3gppModel has new attribute RandomUeorientation. If set to true
+the 3D antenna orientation will be generated randomly throwing a dice by
+using a UniformRandomVariable.
+* 3gppChannelModel has a new attribute UpdateBeamformingVectorsIdeally which
+determines if the update of the beamforming vectors will be ideal, i.e. if
 the beamforming vectors will be adjusted every time that the channel is updated.
-* AntennaArrayBasicModel has a new function GetBeamformingVectorUpdateTime 
-that returns the last time at which the beamforming vector toward a specified 
+* AntennaArrayBasicModel has a new function GetBeamformingVectorUpdateTime
+that returns the last time at which the beamforming vector toward a specified
 device has been updated.
 
 ### Changes to existing API:
@@ -89,38 +89,38 @@ device has been updated.
 * Renamed MmWaveAmc into NrAmc
 * Renamed MmWaveMiErrorModel in NrLteMiErrorModel, and adapted it to the new
 NrErrorModel interface
-* MmWave3ppChannelModel does not anymore have an attribute for 
-MmWavePhyMacCommon class and thus it does not have any more the corresponding 
-functions to Set/Get the corresponding instance, SetConfigurationParameters 
-and GetConfigurationParameters, respectively. It instead has a new attribute 
-that needs to be configured at the beginning of the simulation. 
-This attribute is Bandwidth. The two most important attributes of this class 
+* MmWave3ppChannelModel does not anymore have an attribute for
+MmWavePhyMacCommon class and thus it does not have any more the corresponding
+functions to Set/Get the corresponding instance, SetConfigurationParameters
+and GetConfigurationParameters, respectively. It instead has a new attribute
+that needs to be configured at the beginning of the simulation.
+This attribute is Bandwidth. The two most important attributes of this class
 are now CenterFrequency and Bandwidth.
 * AntennaArrayBasicModel has now a pointer to a SpectrumModel.
 * MmWaveSpectrumValueHelper.
-* Common functions of MmWaveEnbPhy and MmWaveUePhy, 
-CreateTxPowerSpectralDensity and CreateNoisePowerSpectralDensity are moved to 
-MmWaveUePhy and renamed to GetNoisePowerSpectralDensity and 
-GetTxPowerSpectralDensity to distinguish them from the original functions that 
+* Common functions of MmWaveEnbPhy and MmWaveUePhy,
+CreateTxPowerSpectralDensity and CreateNoisePowerSpectralDensity are moved to
+MmWaveUePhy and renamed to GetNoisePowerSpectralDensity and
+GetTxPowerSpectralDensity to distinguish them from the original functions that
 belong to MmWaveSpectrumValueHelper.
-* MmWaveSpectrumValueHelper does not depend any more on MmWavePhyMacCommon 
-class. Functions that had up to know this class as an input, now have the 
-minimum subset of parameters that are used in the corresponding function. 
-* MmWaveSpectrumValueHelper does not have anymore empty function for 
+* MmWaveSpectrumValueHelper does not depend any more on MmWavePhyMacCommon
+class. Functions that had up to know this class as an input, now have the
+minimum subset of parameters that are used in the corresponding function.
+* MmWaveSpectrumValueHelper does not have anymore empty function for
 CreateTxPowerSpectralDensity that had as an input a power map (powerTxMap).
-* 3gppChannelModel can now be used by any other module, it is not any more 
-only mmwave specific spectrum propagation model. This means that any subclass 
-of NetDevice can be attached to a channel using this SpectrumPropagationModel. 
-An additional requirement is that the technology uses AntennaModel that is 
-implementing AntennaArrayBasicModel interface. The 
-dependencies from mmwave module-specific classes are removed, e.g. dependency on 
- MmWaveEnbNetDevice, MmWaveUeNetDevice, MmWaveUePhy, MmWaveEnbPhy.
+* 3gppChannelModel can now be used by any other module, it is not any more
+only mmwave specific spectrum propagation model. This means that any subclass
+of NetDevice can be attached to a channel using this SpectrumPropagationModel.
+An additional requirement is that the technology uses AntennaModel that is
+implementing AntennaArrayBasicModel interface. The
+dependencies from mmwave module-specific classes are removed, e.g. dependency on MmWaveEnbNetDevice, MmWaveUeNetDevice, MmWaveUePhy, MmWaveEnbPhy.
+* Removed MmWaveMacSchedulerNs3 attribute McsDefaultDl/McsDefaultUl. Its functionality is now taken by the attribute StartingMcsDl/StartingMcsUl
 
 ### Changed behavior:
-* BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of 
-3gppChannelModel can now be called from the outside of this class. This means 
-that the update of the beamforming vectors can be triggered at any time and 
-does not have to be related to the channel update event. 
+* BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of
+3gppChannelModel can now be called from the outside of this class. This means
+that the update of the beamforming vectors can be triggered at any time and
+does not have to be related to the channel update event.
 
 ---
 
@@ -130,7 +130,7 @@ does not have to be related to the channel update event.
 
 * A new AntennaArray3gppModel is introduced that inherits all the features of the AntennaArrayModel, but it considers 3GPP directional antenna elements instead of ISO antenna elements.
 * 3gppChannelModel has a new attribute "speed" for configuring the speed. Previous and currently the default behaviour is that 3gppChannelModel calculates the relative speed between the transmitter and the receiver based on their positions. However, this parameter can be configured when the static scenario is being used but is desired to imitate small scale fading effects that would exist in a mobile scenario.
-* New traces sources are added to the Interference class for collecting the SNR and RSSI values. 
+* New traces sources are added to the Interference class for collecting the SNR and RSSI values.
 
 ### Changes to existing API:
 

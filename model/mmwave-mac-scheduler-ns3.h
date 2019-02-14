@@ -650,10 +650,8 @@ private:
 
   bool    m_fixedMcsDl {false}; //!< Fixed MCS for *all* UE in DL
   bool    m_fixedMcsUl {false}; //!< Fixed MCS for *all* UE in UL
-  uint8_t m_mcsDefaultDl {1};   //!< Value of fixed MCS if m_fixedMcsDl is true
-  uint8_t m_mcsDefaultUl {1};   //!< Value of fixed MCS if m_fixedMcsUl is true
-  uint8_t m_startMcsDl   {0};   //!< Starting value for DL MCS
-  uint8_t m_startMcsUl   {0};   //!< Starting value for UL MCS
+  uint8_t m_startMcsDl   {0};   //!< Starting (or fixed) value for DL MCS
+  uint8_t m_startMcsUl   {0};   //!< Starting (or fixed) value for UL MCS
   Time    m_cqiTimersThreshold; //!< The time while a CQI is valid
 
   MmWaveMacSchedulerCQIManagement m_cqiManagement; //!< CQI Management

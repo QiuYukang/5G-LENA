@@ -44,16 +44,17 @@ New user-visible features (old first)
 abstraction according to LDPC coding, block segmentation, and including
 MCS/CQI table 1 and 2.
 
-- (3gpp channel model) 3gppChannelModel can now be used by any other module, 
-i.e. it is not any more mmwave specific spectrum propagation model. This means 
-that any subclass of NetDevice can be attached to a channel using this 
-SpectrumPropagationModel. An additional requirement is that the technology uses 
-AntennaModel that is implementing AntennaArrayBasicModel interface. This 
-feature is a basic prerequisite for simulating co-existence of different 
+- (3gpp channel model) 3gppChannelModel can now be used by any other module,
+i.e. it is not any more mmwave specific spectrum propagation model. This means
+that any subclass of NetDevice can be attached to a channel using this
+SpectrumPropagationModel. An additional requirement is that the technology uses
+AntennaModel that is implementing AntennaArrayBasicModel interface. This
+feature is a basic prerequisite for simulating co-existence of different
 technologies that are using the 3gpp channel model implementation.
 
 Bugs fixed
 ----------
+- (scheduler) Fixed the use of a static MCS value in the schedulers
 
 Known issues
 ------------
