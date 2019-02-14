@@ -58,7 +58,10 @@ static const uint8_t McsEcrBlerTableMapping[29] = {
 };
 
 // Table of ECR of the standard MCSs
-static const double McsEcrTable [29] = {0.08, 0.1, 0.11, 0.15, 0.19, 0.24, 0.3, 0.37, 0.44, 0.51, 0.3, 0.33, 0.37, 0.42, 0.48, 0.54, 0.6, 0.43, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.89, 0.92
+static const double McsEcrTable [29] = {
+  0.08, 0.1, 0.11, 0.15, 0.19, 0.24, 0.3, 0.37, 0.44, 0.51, 0.3, 0.33, 0.37,
+  0.42, 0.48, 0.54, 0.6, 0.43, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8,
+  0.85, 0.89, 0.92
 };
 
 static const std::vector<uint16_t> cbSizeTable = {   // as K column of table 5.1.3-3 of TS 36,212
@@ -485,6 +488,8 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   NS_ABORT_MSG_IF (mcs > GetMaxMcs (),
                    "MiErrorModel only works with MCS <= 28");
 
+  NS_LOG_DEBUG (" mcs " << static_cast<uint32_t>(mcs) << " TBSize in bit " << size);
+
   double tbMi = Mib (sinr, map, mcs);
   double MI = tbMi;
   double Reff = 0.0;
@@ -514,7 +519,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
       MI = miSum / static_cast<double> (codeBitsSum);
     }
 
-  NS_LOG_DEBUG (" MI " << MI << " Reff " << Reff << " HARQ " << history.size ());
+  NS_LOG_INFO (" MI " << MI << " Reff " << Reff << " HARQ " << history.size ());
 
   // estimate CB size (according to sec 5.1.2 of TS 36.212)
   uint16_t Z = 6144; // max size of a codeblock (including CRC)
@@ -576,12 +581,12 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
     {
       // first tx -> get ECR from MCS
       ecrId = McsEcrBlerTableMapping[mcs];
-      NS_LOG_DEBUG ("NO HARQ MCS " << static_cast<uint16_t> (mcs) <<
+      NS_LOG_INFO ("NO HARQ MCS " << static_cast<uint16_t> (mcs) <<
                     " ECR id " << static_cast<uint16_t> (ecrId));
     }
   else
     {
-      NS_LOG_DEBUG ("HARQ block no. " << history.size ());
+      NS_LOG_INFO ("HARQ block no. " << history.size ());
       // harq retx -> get closest ECR to Reff from available ones
       if (mcs <= MI_QPSK_MAX_ID)
         {
@@ -613,7 +618,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
             }
           ecrId = i;
         }
-      NS_LOG_DEBUG ("HARQ ECR " << static_cast<uint16_t> (ecrId));
+      NS_LOG_INFO ("HARQ ECR " << static_cast<uint16_t> (ecrId));
     }
 
   if (C != 1)
@@ -629,7 +634,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
       errorRate = MappingMiBler (MI, ecrId, Kplus);
     }
 
-  NS_LOG_LOGIC (" Error rate " << errorRate);
+  NS_LOG_DEBUG (" Error rate " << errorRate);
   Ptr<NrLteMiErrorModelOutput> ret = Create<NrLteMiErrorModelOutput> (errorRate);
   ret->m_mi = tbMi;
   ret->m_miTotal = MI;
