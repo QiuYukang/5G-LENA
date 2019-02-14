@@ -122,6 +122,12 @@ public:
    */
   uint8_t GetMcsFromSpectralEfficiency (double s);
 
+ /**
+  * \brief Get the maximum MCS (depends on the underlying error model)
+  * \return the maximum MCS
+  */
+  uint32_t GetMaxMcs () const;
+
 private:
   double m_ber;             //!< Piro model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
