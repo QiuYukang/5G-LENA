@@ -88,7 +88,7 @@ MmWaveUePhy::GetTypeId (void)
     .AddConstructor<MmWaveUePhy> ()
     .AddAttribute ("TxPower",
                    "Transmission power in dBm",
-                   DoubleValue (30.0),          //TBD zml
+                   DoubleValue (2.0),
                    MakeDoubleAccessor (&MmWaveUePhy::SetTxPower,
                                        &MmWaveUePhy::GetTxPower),
                    MakeDoubleChecker<double> ())

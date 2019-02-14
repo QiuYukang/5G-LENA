@@ -121,7 +121,8 @@ dependencies from mmwave module-specific classes are removed, e.g. dependency on
 3gppChannelModel can now be called from the outside of this class. This means
 that the update of the beamforming vectors can be triggered at any time and
 does not have to be related to the channel update event.
-
+* TxPower default value for a UE passed from 30.0 dBm to 2.0 dBm
+* TxPower default value for a gNb passed from 30.0 dBm to 2.0 dBm
 ---
 
 ## Changes from NR-v0.1 to NR-v0.2

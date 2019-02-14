@@ -94,7 +94,7 @@ MmWaveEnbPhy::GetTypeId (void)
     .AddConstructor<MmWaveEnbPhy> ()
     .AddAttribute ("TxPower",
                    "Transmission power in dBm",
-                   DoubleValue (30.0),
+                   DoubleValue (4.0),
                    MakeDoubleAccessor (&MmWaveEnbPhy::SetTxPower,
                                        &MmWaveEnbPhy::GetTxPower),
                    MakeDoubleChecker<double> ())
