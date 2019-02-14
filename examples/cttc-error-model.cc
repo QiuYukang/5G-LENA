@@ -122,8 +122,11 @@ main (int argc, char *argv[])
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
 
-  double simTime = 10; // seconds
+  double simTime = 5; // seconds
   double udpAppStartTime = 1.0; //seconds
+
+  std::string errorModel = "ns3::NrEesmErrorModel";
+  uint32_t eesmTable = 1;
 
   uint32_t mode = DELAY;
 
@@ -155,6 +158,12 @@ main (int argc, char *argv[])
   cmd.AddValue("mode",
                "Mode: 0 for DELAY, 1 for THROUGHPUT",
                mode);
+  cmd.AddValue("errorModelType",
+               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
+               errorModel);
+  cmd.AddValue("eesmTable",
+               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
+               eesmTable);
 
   cmd.Parse (argc, argv);
 
@@ -187,10 +196,24 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (mcs));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
 
-  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (NrEesmErrorModel::GetTypeId()));
+  if (eesmTable == 1)
+    {
+      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
+    }
+  else if (eesmTable == 2)
+    {
+      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
+    }
+
+  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::PiroEW2010));
 
-  Config::SetDefault("ns3::MmWaveSpectrumPhy::ErrorModelType", TypeIdValue (NrEesmErrorModel::GetTypeId()));
+  Config::SetDefault("ns3::MmWaveSpectrumPhy::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+
 
   // create base stations and mobile terminals
   NodeContainer gNbNodes;
