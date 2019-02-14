@@ -207,8 +207,6 @@ public:
    */
   virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device) = 0;
 
-  virtual void SetToSector (uint32_t sector, uint32_t antennaNum) = 0;
-
   /**
    * Returns a bool that says if the current transmission is configured to be
    * omni.
@@ -229,19 +227,19 @@ public:
    * Function returns the location of the antenna element inside of the
    * sector assuming the left bottom corner is (0,0,0).
    * \param index index of the antenna element
-   * \param antennaNum total number of antenna elements in the panel
    * \return returns the 3D vector that represents the position of the antenna
    * by specifing x, y and z coordinate
    */
-  virtual Vector GetAntennaLocation (uint8_t index, uint8_t* antennaNum) = 0;
+  virtual Vector GetAntennaLocation (uint8_t index) = 0;
+
+  virtual void SetSector (uint32_t sector) = 0;
 
   /**
    * \brief Manually set the sector on the antenna
    * \param sector Sector
-   * \param antennaNum Number of antenna
    * \param elevation Elevation
    */
-  virtual void SetSector (uint8_t sector, uint8_t *antennaNum, double elevation = 90) = 0;
+  virtual void SetSector (uint8_t sector, double elevation = 90) = 0;
 
   /**
    * \brief Returns the number of antenna elements in the first dimension.
