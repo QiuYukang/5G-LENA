@@ -3103,6 +3103,8 @@ NrEesmErrorModel::MappingSinrBler (double sinr, uint8_t mcs, uint32_t cbSizeBit)
   GraphType bg_type = GetBaseGraphType (cbSizeBit, mcs);
 
   // Get the index of CBSIZE in the map
+  NS_LOG_DEBUG ("For sinr " << sinr << " and mcs " << static_cast<uint32_t>(mcs) <<
+                " CbSizebit " << cbSizeBit << " we got bg type " << bg_type);
   auto cbMap = m_simulatedBlerFromSINR->at (bg_type).at (mcs);
   auto cbIt = cbMap.upper_bound (cbSizeBit);
 
