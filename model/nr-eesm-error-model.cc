@@ -54,11 +54,11 @@ static const std::vector<double> BetaTable2 = {
  */
 static const std::vector<double> McsEcrTable1 = {
   // QPSK (M=2)
-  0.08, 0.1, 0.11, 0.15, 0.19, 0.24, 0.3, 0.37, 0.44, 0.51, // ECRs of MCSs
+  0.11, 0.15, 0.18, 0.24, 0.30, 0.37, 0.43, 0.51, 0.58, 0.66, // ECRs of MCSs
   // 16QAM (M=4)
-  0.3, 0.33, 0.37, 0.42, 0.48, 0.54, 0.6, // ECRs of MCSs
+  0.33, 0.36, 0.42, 0.47, 0.54, 0.60, 0.64, // ECRs of MCSs
   // 64QAM (M=6)
-  0.43, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.89, 0.92 // ECRs of MCSs
+  0.42, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.88, 0.92 // ECRs of MCSs
 };
 
 /**
@@ -87,6 +87,7 @@ static const std::vector<uint8_t> McsMTable1 = {
   // 64QAM (M=6)
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
 };
+
 
 /**
  * \brief Table of modulation order of the standard MCSs: 28 MCSs as per Table2
@@ -3013,6 +3014,9 @@ static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr2 = {
   }
 };
 
+std::vector<std::string>
+NrEesmErrorModel::m_bgTypeName = { "BG1" , "BG2" };
+
 NrEesmErrorModel::NrEesmErrorModel () : NrErrorModel ()
 {
   NS_LOG_FUNCTION (this);
@@ -3103,8 +3107,8 @@ NrEesmErrorModel::MappingSinrBler (double sinr, uint8_t mcs, uint32_t cbSizeBit)
   GraphType bg_type = GetBaseGraphType (cbSizeBit, mcs);
 
   // Get the index of CBSIZE in the map
-  NS_LOG_DEBUG ("For sinr " << sinr << " and mcs " << static_cast<uint32_t>(mcs) <<
-                " CbSizebit " << cbSizeBit << " we got bg type " << bg_type);
+  NS_LOG_INFO ("For sinr " << sinr << " and mcs " << static_cast<uint32_t>(mcs) <<
+                " CbSizebit " << cbSizeBit << " we got bg type " << m_bgTypeName[bg_type]);
   auto cbMap = m_simulatedBlerFromSINR->at (bg_type).at (mcs);
   auto cbIt = cbMap.upper_bound (cbSizeBit);
 
@@ -3173,6 +3177,8 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (mcs > GetMaxMcs ());
+
+  NS_LOG_DEBUG (" mcs " << static_cast<uint32_t>(mcs) << " TBSize in bit " << sizeBit);
 
   double tbSinr = SinrEff (sinr, map, mcs);
   double SINR = tbSinr;
@@ -3299,7 +3305,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
       errorRate = MappingSinrBler (SINR, mcs, K);
     }
 
-  NS_LOG_LOGIC (" Error rate " << errorRate);
+  NS_LOG_DEBUG ("Calculated Error rate " << errorRate);
   NS_ASSERT (m_mcsEcrTable != nullptr);
 
   Ptr<NrEesmErrorModelOutput> ret = Create<NrEesmErrorModelOutput> (errorRate);
@@ -3308,6 +3314,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   ret->m_sinrEff = SINR;
   ret->m_infoBits = sizeBit;
   ret->m_codeBits = (sizeBit) / m_mcsEcrTable->at (mcs); // CC combining
+
   return ret;
 }
 
@@ -3341,9 +3348,6 @@ NrEesmErrorModel::GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum
   uint8_t Qm = m_mcsMTable->at (mcs);
 
   const double spectralEfficiency = rscElement * Qm * Rcode;
-
-  NS_LOG_INFO (" mcs:" << mcs << " subcarriers" << usefulSc <<
-               " rsc element:" << rscElement);
 
   return static_cast<uint32_t> (std::floor (spectralEfficiency / 8));
 }

@@ -144,6 +144,8 @@ public:
 
 
 private:
+  static std::vector<std::string> m_bgTypeName;
+
   McsTable m_mcsTable {McsTable1};
   const std::vector<double> *m_betaTable {nullptr};
   const std::vector<double> *m_mcsEcrTable {nullptr};
