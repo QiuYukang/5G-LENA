@@ -3168,6 +3168,19 @@ NrEesmErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr, const std
   return GetTbBitDecodificationStats (sinr, map, size * 8, mcs, sinrHistory);
 }
 
+static std::string
+PrintMap (const std::vector<int> &map)
+{
+  std::stringstream ss;
+
+  for (const auto &v : map)
+    {
+      ss << v << ", ";
+    }
+
+  return ss.str ();
+
+}
 Ptr<NrErrorModelOutput>
 NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
                                                const std::vector<int>& map,
@@ -3177,10 +3190,13 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (mcs > GetMaxMcs ());
 
-  NS_LOG_DEBUG (" mcs " << static_cast<uint32_t>(mcs) << " TBSize in bit " << sizeBit);
-
   double tbSinr = SinrEff (sinr, map, mcs);
   double SINR = tbSinr;
+
+  NS_LOG_DEBUG (" mcs " << static_cast<uint32_t>(mcs) << " TBSize in bit " << sizeBit <<
+                " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
+                tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
+                "SINR: " << sinr);
 
   if (sinrHistory.size () > 0)
     {
@@ -3188,10 +3204,17 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
       // first step: create map_sum as the sum of all the allocated RBs in
       // different transmissions...
-      std::vector<int> map_sum;
+      std::vector<int> map_sum = map;
+      NS_ASSERT(map_sum.size () == map.size ());
+
       for (const auto & output : sinrHistory)
         {
           Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
+
+          NS_LOG_DEBUG ("Summing: " << std::endl << PrintMap (eesmOutput->m_map) <<
+                        std::endl << " to " << std::endl <<
+                        PrintMap (map_sum));
+
           map_sum.insert (map_sum.end (), eesmOutput->m_map.begin (), eesmOutput->m_map.end ());
         }
       // sort the resulting map
@@ -3201,20 +3224,30 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
       // dups now in [pte, map_sum.end()]
       map_sum.erase (pte, map_sum.end ());
 
+      NS_LOG_DEBUG ("Result: " << std::endl << PrintMap (map_sum) << std::endl);
+
       // second step: create sinr_sum (vector of retransmission's SINR sum)
-      SpectrumValue sinr_sum;
+      SpectrumValue sinr_sum = sinr;
+      NS_LOG_DEBUG ("starting sing_sum: " << sinr_sum);
       for (const auto & output : sinrHistory)
         {
           Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
           sinr_sum += eesmOutput->m_sinr;
+          NS_LOG_DEBUG ("SINR of the tx: " << tbSinr << ", SINR of the retx: " <<
+                        SinrEff(eesmOutput->m_sinr, eesmOutput->m_map, mcs) <<
+                        ", sum: " << SinrEff (sinr_sum, map_sum, mcs));
+          NS_LOG_DEBUG ("sinr_sum: " << sinr_sum);
         }
 
       // compute effective SINR with the sinr_sum vector and map_sum RB map
       SINR = SinrEff (sinr_sum, map_sum, mcs);
     }
 
-  NS_LOG_DEBUG (" SINR after retx " << SINR << " SINR last tx" << tbSinr <<
-                " HARQ " << sinrHistory.size ());
+  // If recombining gives a lower performance (= SinrEff value) than the current
+  // transmission, just ignore the history and use the last tx value.
+  SINR = std::max (tbSinr, SINR);
+
+  NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
 
   // selection of LDPC base graph type (1 or 2), as per TS 38.212
   GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
