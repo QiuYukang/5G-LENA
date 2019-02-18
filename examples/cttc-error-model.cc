@@ -39,66 +39,15 @@ static Ptr<ListPositionAllocator>
 GetGnbPositions(uint32_t gnbNum, double gNbHeight = 10.0)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
-  double yValue = 0.0;
-
-  for (uint32_t i = 1; i <= gnbNum; ++i)
-    {
-      // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
-      if (i % 2 != 0)
-        {
-          yValue = static_cast<int>(i) * 30;
-        }
-      else
-        {
-          yValue = -yValue;
-        }
-
-      pos->Add (Vector (0.0, yValue, gNbHeight));
-    }
-
+  pos->Add (Vector (0.0, 0.0, gNbHeight));
   return pos;
 }
 
 static Ptr<ListPositionAllocator>
-GetUePositions(uint32_t gnbNum, uint32_t ueNumPergNb,
-               double ueHeight = 1.5)
+GetUePositions(double ueY, double ueHeight = 1.5)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
-  // 1.0, -1.0, 3.0, -3.0, 5.0, -5.0, ...
-  double xValue = 0.0;
-  double yValue = 0.0;
-  for (uint32_t i = 1; i <= gnbNum; ++i)
-    {
-      if (i % 2 != 0)
-        {
-          yValue = static_cast<int>(i) * 30;
-        }
-      else
-        {
-          yValue = -yValue;
-        }
-
-      for (uint32_t j = 1; j <= ueNumPergNb; ++j)
-        {
-          if (j % 2 != 0)
-            {
-              xValue = j;
-            }
-          else
-            {
-              xValue = -xValue;
-            }
-
-          if (yValue > 0)
-            {
-              pos->Add (Vector (xValue, 10, ueHeight));
-            }
-          else
-            {
-              pos->Add (Vector (xValue, -10, ueHeight));
-            }
-        }
-    }
+  pos->Add (Vector (0.0, ueY, ueHeight));
 
   return pos;
 }
@@ -120,7 +69,8 @@ main (int argc, char *argv[])
   double totalTxPower = 4;
   uint16_t numerologyBwp1 = 4;
   double frequencyBwp1 = 28e9;
-  double bandwidthBwp1 = 100e6;
+  double bandwidthBwp1 = 100e6;\
+  double ueY = 300.0;
 
   double simTime = 5; // seconds
   double udpAppStartTime = 1.0; //seconds
@@ -164,6 +114,9 @@ main (int argc, char *argv[])
   cmd.AddValue("eesmTable",
                "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
                eesmTable);
+  cmd.AddValue("ueY",
+               "Y position of any UE",
+               ueY);
 
   cmd.Parse (argc, argv);
 
@@ -227,8 +180,7 @@ main (int argc, char *argv[])
   ueNodes.Create (ueNumPergNb * gNbNum);
 
   Ptr<ListPositionAllocator> apPositionAlloc = GetGnbPositions(gNbNum, gNbHeight);
-  Ptr<ListPositionAllocator> staPositionAlloc = GetUePositions(gNbNum, ueNumPergNb,
-                                                               ueHeight);
+  Ptr<ListPositionAllocator> staPositionAlloc = GetUePositions(ueY, ueHeight);
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (apPositionAlloc);
@@ -340,9 +292,9 @@ main (int argc, char *argv[])
         }
       else
         {
-          dlClient.SetAttribute ("MaxPackets", UintegerValue(8000));
+          dlClient.SetAttribute ("MaxPackets", UintegerValue(80000000));
           dlClient.SetAttribute("PacketSize", UintegerValue(1000));
-          dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(1)));
+          dlClient.SetAttribute ("Interval", TimeValue (NanoSeconds(1)));
         }
 
       clientApps.Add (dlClient.Install (remoteHost));
@@ -365,9 +317,9 @@ main (int argc, char *argv[])
 
   for (auto it = serverApps.Begin(); it != serverApps.End(); ++it)
     {
-      NS_LOG_UNCOND ("Lost: " << DynamicCast<UdpServer> (*it)->GetLost ());
       uint64_t recv = DynamicCast<UdpServer> (*it)->GetReceived ();
-      double throughput = recv * 1000 / 9.0;
+      NS_LOG_UNCOND ("Sent: 10 Lost: " << 10 - recv);
+      double throughput = recv * 1000 / (simTime - udpAppStartTime);
       NS_LOG_UNCOND ("Throughput: " << throughput / 1e6 << " Mbps");
     }
 
