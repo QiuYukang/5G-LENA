@@ -714,6 +714,11 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       channelParams->m_longTermUpdateTime = Now ();
     }
 
+  NS_LOG_INFO ("Calculating beamforming gain for signal " << *rxPsd <<
+               " beamTx " << txAntennaArray->GetCurrentBeamformingVector().second <<
+               " beamRx " << rxAntennaArray->GetCurrentBeamformingVector().second <<
+               " speed " << input3gppParameters.GetSpeed());
+
   Ptr<SpectrumValue> bfPsd = CalBeamformingGain (rxPsd,
                                                  channelParams->m_channel,
                                                  channelParams->m_longTerm,

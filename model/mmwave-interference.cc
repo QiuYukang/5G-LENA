@@ -90,7 +90,7 @@ mmWaveInterference::StartRx (Ptr<const SpectrumValue> rxPsd)
   NS_LOG_FUNCTION (this << *rxPsd);
   if (m_receiving == false)
     {
-      NS_LOG_LOGIC ("first signal");
+      NS_LOG_INFO ("first signal: " << *rxPsd);
       m_rxSignal = rxPsd->Copy ();
       m_lastChangeTime = Now ();
       m_receiving = true;
@@ -105,7 +105,7 @@ mmWaveInterference::StartRx (Ptr<const SpectrumValue> rxPsd)
     }
   else
     {
-      NS_LOG_LOGIC ("additional signal" << *m_rxSignal);
+      NS_LOG_INFO ("additional signal " << *m_rxSignal);
       // receiving multiple simultaneous signals, make sure they are synchronized
       NS_ASSERT (m_lastChangeTime == Now ());
       // make sure they use orthogonal resource blocks
