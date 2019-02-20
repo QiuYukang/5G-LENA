@@ -40,6 +40,19 @@ NS_LOG_COMPONENT_DEFINE ("MmWave3gppChannel");
 
 NS_OBJECT_ENSURE_REGISTERED (MmWave3gppChannel);
 
+template <class RandomAccessIterator>
+  static void shuffle (RandomAccessIterator first, RandomAccessIterator last,
+                       uint32_t randomStreamNumber)
+{
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  x->SetStream (randomStreamNumber);
+
+  for (auto i = (last-first) -1 ; i > 0; --i)
+    {
+      std::swap (first[i], first[x->GetInteger (0, i)]);
+    }
+}
+
 //Table 7.5-3: Ray offset angles within a cluster, given for rms angle spread normalized to 1.
 static const double offSetAlpha[20] = {
   0.0447,-0.0447,0.1413,-0.1413,0.2492,-0.2492,0.3715,-0.3715,0.5129,-0.5129,0.6797,-0.6797,0.8844,-0.8844,1.1481,-1.1481,1.5195,-1.5195,2.1551,-2.1551
@@ -1421,6 +1434,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
           clusterDelay.erase (clusterDelay.begin () + cIndex - 1);
         }
     }
+  NS_ASSERT(clusterPower.size () < UINT8_MAX);
+
   uint8_t numReducedCluster = clusterPower.size ();
 
   channelParams->m_numCluster = numReducedCluster;
@@ -1732,10 +1747,18 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
   //shuffle all the arrays to perform random coupling
   for (uint8_t cIndex = 0; cIndex < numReducedCluster; cIndex++)
     {
-      std::shuffle (&rayAod_radian[cIndex][0],&rayAod_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 100));
-      std::shuffle (&rayAoa_radian[cIndex][0],&rayAoa_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 200));
-      std::shuffle (&rayZod_radian[cIndex][0],&rayZod_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 300));
-      std::shuffle (&rayZoa_radian[cIndex][0],&rayZoa_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 400));
+      shuffle (&rayAod_radian[cIndex][0],
+               &rayAod_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 100);
+      shuffle (&rayAoa_radian[cIndex][0],
+               &rayAoa_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 200);
+      shuffle (&rayZod_radian[cIndex][0],
+               &rayZod_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 300);
+      shuffle (&rayZoa_radian[cIndex][0],
+               &rayZoa_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 400);
     }
 
   //Step 9: Generate the cross polarization power ratios
@@ -2360,10 +2383,18 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 
   for (uint8_t cIndex = 0; cIndex < params->m_numCluster; cIndex++)
     {
-      std::shuffle (&rayAod_radian[cIndex][0],&rayAod_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 100));
-      std::shuffle (&rayAoa_radian[cIndex][0],&rayAoa_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 200));
-      std::shuffle (&rayZod_radian[cIndex][0],&rayZod_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 300));
-      std::shuffle (&rayZoa_radian[cIndex][0],&rayZoa_radian[cIndex][raysPerCluster],std::default_random_engine (cIndex * 1000 + 400));
+      shuffle (&rayAod_radian[cIndex][0],
+               &rayAod_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 100);
+      shuffle (&rayAoa_radian[cIndex][0],
+               &rayAoa_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 200);
+      shuffle (&rayZod_radian[cIndex][0],
+               &rayZod_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 300);
+      shuffle (&rayZoa_radian[cIndex][0],
+               &rayZoa_radian[cIndex][raysPerCluster],
+               cIndex * 1000 + 400);
     }
 
   //Step 9: Generate the cross polarization power ratios
