@@ -121,10 +121,14 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
   NS_LOG_DEBUG ("RB per RBG " << m_phyMacConfig->GetNumRbPerRbg () <<
                 " total RBG " << m_phyMacConfig->GetBandwidthInRbg ());
   std::string tbs;
-  for (uint32_t mcs = 0; mcs < 29; ++mcs)
+
+  for (uint32_t mcs = 0; mcs <= m_amc->GetMaxMcs (); ++mcs)
     {
       std::stringstream ss;
-      ss << "\nMCS " << mcs << " TBS 1 RBG " << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg ()) << " 1 sym " << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ());
+      ss << "\nMCS " << mcs <<
+            " TBS in 1 RBG: [" << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg ()) <<
+            "] TBS in 1 sym: [" << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ()) <<
+            "]";
       tbs += ss.str ();
     }
   NS_LOG_DEBUG (tbs);

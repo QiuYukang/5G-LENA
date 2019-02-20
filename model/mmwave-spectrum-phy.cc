@@ -216,6 +216,10 @@ MmWaveSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uin
                                                                                 rbMap, harqId, rv,
                                                                                 downlink, symStart,
                                                                                 numSym))));
+  NS_LOG_INFO ("Add expected TB for rnti " << rnti << " size=" << size <<
+               " mcs=" << static_cast<uint32_t> (mcs) << " symstart=" <<
+               static_cast<uint32_t> (symStart) << " numSym=" <<
+               static_cast<uint32_t> (numSym));
 }
 
 void
@@ -272,6 +276,9 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
        if (isAllocated)
         {*/
       m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
+      NS_LOG_INFO ("Start Rxing a signal: " << mmwaveDataRxParams->psd <<
+                   " duration= " << mmwaveDataRxParams->duration << " cellId " <<
+                   mmwaveDataRxParams->cellId << " this cellId: " << m_cellId);
       if (mmwaveDataRxParams->cellId == m_cellId)
         {
           //m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
@@ -471,6 +478,8 @@ MmWaveSpectrumPhy::EndRxData ()
           sinrMin = *it;
         }
     }
+
+  NS_LOG_INFO ("Finishing RX, sinrAvg=" << sinrAvg << " sinrMin=" << sinrMin);
 
   Ptr<MmWaveEnbNetDevice> enbRx = DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
   Ptr<MmWaveUeNetDevice> ueRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
@@ -882,6 +891,7 @@ void
 MmWaveSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
 {
   NS_LOG_FUNCTION (this << sinr);
+  NS_LOG_INFO ("Update SINR perceived with this value: " << sinr);
   m_sinrPerceived = sinr;
 }
 

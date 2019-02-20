@@ -121,10 +121,11 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
 {
   NS_LOG_FUNCTION (this << static_cast<uint32_t> (mcs) << nprb);
 
-  NS_ASSERT_MSG (mcs <= m_errorModel->GetMaxMcs (), "MCS=" << mcs);
+  NS_ASSERT_MSG (mcs <= m_errorModel->GetMaxMcs (), "MCS=" << static_cast<uint32_t> (mcs) <<
+                 " while maximum MCS is " << static_cast<uint32_t> (m_errorModel->GetMaxMcs ()));
 
-  uint32_t tbSize = 0;
   uint32_t payloadSize = GetPayloadSize (mcs, nprb);
+  uint32_t tbSize = payloadSize;
 
   uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code-block (including m_crcLen)
 
@@ -286,6 +287,13 @@ NrAmc::GetMcsFromSpectralEfficiency (double s)
     }
   NS_LOG_LOGIC ("cqi = " << mcs);
   return mcs;
+}
+
+uint32_t
+NrAmc::GetMaxMcs() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_errorModel->GetMaxMcs ();
 }
 
 } // namespace ns3

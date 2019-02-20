@@ -205,7 +205,7 @@ NrL2smEesmTestCase::DoRun()
 class NrTestL2smEesm : public TestSuite
 {
 public:
-  NrTestL2smEesm () : TestSuite ("Nr-test-l2sm-eesm", SYSTEM)
+  NrTestL2smEesm () : TestSuite ("Nr-test-l2sm-eesm", UNIT)
     {
       AddTestCase(new NrL2smEesmTestCase ("First test"), QUICK);
     }

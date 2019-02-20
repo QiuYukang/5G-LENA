@@ -54,11 +54,11 @@ static const std::vector<double> BetaTable2 = {
  */
 static const std::vector<double> McsEcrTable1 = {
   // QPSK (M=2)
-  0.08, 0.1, 0.11, 0.15, 0.19, 0.24, 0.3, 0.37, 0.44, 0.51, // ECRs of MCSs
+  0.12, 0.15, 0.19, 0.25, 0.30, 0.37, 0.44, 0.51, 0.59, 0.66, // ECRs of MCSs
   // 16QAM (M=4)
-  0.3, 0.33, 0.37, 0.42, 0.48, 0.54, 0.6, // ECRs of MCSs
+  0.33, 0.37, 0.42, 0.48, 0.54, 0.60, 0.64, // ECRs of MCSs
   // 64QAM (M=6)
-  0.43, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.89, 0.92 // ECRs of MCSs
+  0.43, 0.46, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.89, 0.93 // ECRs of MCSs
 };
 
 /**
@@ -66,13 +66,13 @@ static const std::vector<double> McsEcrTable1 = {
  */
 static const std::vector<double> McsEcrTable2 = {
   // QPSK (M=2)
-  0.11, 0.18, 0.30, 0.43, 0.58, // ECRs of MCSs
+  0.12, 0.19, 0.30, 0.44, 0.59, // ECRs of MCSs
   // 16QAM (M=4)
-  0.36, 0.42, 0.47, 0.54, 0.60, 0.64, // ECRs of MCSs
+  0.37, 0.42, 0.48, 0.54, 0.60, 0.64, // ECRs of MCSs
   // 64QAM (M=6)
-  0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, // ECRs of MCSs
+  0.46, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, // ECRs of MCSs
   // 256QAM (M=8)
-  0.66, 0.69, 0.73, 0.77, 0.82, 0.86, 0.89, 0.92 // ECRs of MCSs
+  0.67, 0.69, 0.74, 0.77, 0.82, 0.86, 0.90, 0.93 // ECRs of MCSs
 };
 
 /**
@@ -87,6 +87,7 @@ static const std::vector<uint8_t> McsMTable1 = {
   // 64QAM (M=6)
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
 };
+
 
 /**
  * \brief Table of modulation order of the standard MCSs: 28 MCSs as per Table2
@@ -117,12 +118,11 @@ static const std::vector<uint16_t> LiftingSizeTableBG = {
  */
 static const std::vector<double> SpectralEfficiencyForMcs1 = {
   // QPSK (M=2)
-  0.2344, 0.3066, 0.377, 0.4902, 0.616, 0.7402, 0.877, 1.0273, 1.1758, 1.3262, // SEs of MCSs
+  0.23, 0.31, 0.38, 0.49, 0.6, 0.74, 0.88, 1.03, 1.18, 1.33, // SEs of MCSs
   // 16QAM (M=4)
-  1.3281, 1.4766, 1.6953, 1.9141, 2.1602, 2.4063, 2.5703, // SEs of MCSs
+  1.33, 1.48, 1.70, 1.91, 2.16, 2.41, 2.57, // SEs of MCSs
   // 64QAM (M=6)
-  2.5664, 2.7305, 3.0293, 3.3223, 3.6094, 3.9023, 4.2129, 4.5234, 4.8164,
-  5.1152, 5.3320, 5.5547  // SEs of MCSs
+  2.57, 2.73, 3.03, 3.32, 3.61, 3.90, 4.21, 4.52, 4.82, 5.12, 5.33, 5.55  // SEs of MCSs
 };
 
 /**
@@ -130,13 +130,13 @@ static const std::vector<double> SpectralEfficiencyForMcs1 = {
  */
 static const std::vector<double> SpectralEfficiencyForMcs2 = {
   // QPSK (M=2)
-  0.2344, 0.3770, 0.6016, 0.8770, 1.1758, // SEs of MCSs
+  0.23, 0.38, 0.60, 0.88, 1.18, // SEs of MCSs
   // 16QAM (M=4)
-  1.4766, 1.6953, 1.9141, 2.1602, 2.4063, 2.5703, // SEs of MCSs
+  1.48, 1.70, 1.91, 2.16, 2.41, 2.57, // SEs of MCSs
   // 64QAM (M=6)
-  2.7305, 3.0293, 3.3223, 3.6094, 3.9023, 4.2129, 4.5234, 4.8164, 5.1152, // SEs of MCSs
+  2.73, 3.03, 3.32, 3.61, 3.90, 4.21, 4.52, 4.82, 5.12, // SEs of MCSs
   // 256QAM (M=8)
-  5.3320, 5.5547, 5.8906, 6.2266, 6.5703, 6.9141, 7.1602, 7.4063 // SEs of MCSs
+  5.33, 5.55, 5.89, 6.23, 6.57, 6.91, 7.16, 7.41 // SEs of MCSs
 };
 
 /**
@@ -154,10 +154,10 @@ static const std::vector<double> SpectralEfficiencyForCqi1 = {
  */
 static const std::vector<double> SpectralEfficiencyForCqi2 = {
   0.0,     // out of range
-  0.15, 0.37, 0.87,
-  1.47, 1.91, 2.40,
-  2.73, 3.32, 3.90, 4.52, 5.11,
-  5.55, 6.22, 6.91, 7.40
+  0.15, 0.38, 0.88,
+  1.48, 1.91, 2.41,
+  2.73, 3.32, 3.90, 4.52, 5.12,
+  5.55, 6.23, 6.91, 7.41
 };
 
 
@@ -3013,6 +3013,9 @@ static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr2 = {
   }
 };
 
+std::vector<std::string>
+NrEesmErrorModel::m_bgTypeName = { "BG1" , "BG2" };
+
 NrEesmErrorModel::NrEesmErrorModel () : NrErrorModel ()
 {
   NS_LOG_FUNCTION (this);
@@ -3103,6 +3106,8 @@ NrEesmErrorModel::MappingSinrBler (double sinr, uint8_t mcs, uint32_t cbSizeBit)
   GraphType bg_type = GetBaseGraphType (cbSizeBit, mcs);
 
   // Get the index of CBSIZE in the map
+  NS_LOG_INFO ("For sinr " << sinr << " and mcs " << static_cast<uint32_t>(mcs) <<
+                " CbSizebit " << cbSizeBit << " we got bg type " << m_bgTypeName[bg_type]);
   auto cbMap = m_simulatedBlerFromSINR->at (bg_type).at (mcs);
   auto cbIt = cbMap.upper_bound (cbSizeBit);
 
@@ -3163,6 +3168,19 @@ NrEesmErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr, const std
   return GetTbBitDecodificationStats (sinr, map, size * 8, mcs, sinrHistory);
 }
 
+static std::string
+PrintMap (const std::vector<int> &map)
+{
+  std::stringstream ss;
+
+  for (const auto &v : map)
+    {
+      ss << v << ", ";
+    }
+
+  return ss.str ();
+
+}
 Ptr<NrErrorModelOutput>
 NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
                                                const std::vector<int>& map,
@@ -3175,16 +3193,28 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   double tbSinr = SinrEff (sinr, map, mcs);
   double SINR = tbSinr;
 
+  NS_LOG_DEBUG (" mcs " << static_cast<uint32_t>(mcs) << " TBSize in bit " << sizeBit <<
+                " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
+                tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
+                "SINR: " << sinr);
+
   if (sinrHistory.size () > 0)
     {
       // evaluate SINR_eff: as per Chase Combining
 
       // first step: create map_sum as the sum of all the allocated RBs in
       // different transmissions...
-      std::vector<int> map_sum;
+      std::vector<int> map_sum = map;
+      NS_ASSERT(map_sum.size () == map.size ());
+
       for (const auto & output : sinrHistory)
         {
           Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
+
+          NS_LOG_DEBUG ("Summing: " << std::endl << PrintMap (eesmOutput->m_map) <<
+                        std::endl << " to " << std::endl <<
+                        PrintMap (map_sum));
+
           map_sum.insert (map_sum.end (), eesmOutput->m_map.begin (), eesmOutput->m_map.end ());
         }
       // sort the resulting map
@@ -3194,20 +3224,30 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
       // dups now in [pte, map_sum.end()]
       map_sum.erase (pte, map_sum.end ());
 
+      NS_LOG_DEBUG ("Result: " << std::endl << PrintMap (map_sum) << std::endl);
+
       // second step: create sinr_sum (vector of retransmission's SINR sum)
-      SpectrumValue sinr_sum;
+      SpectrumValue sinr_sum = sinr;
+      NS_LOG_DEBUG ("starting sing_sum: " << sinr_sum);
       for (const auto & output : sinrHistory)
         {
           Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
           sinr_sum += eesmOutput->m_sinr;
+          NS_LOG_DEBUG ("SINR of the tx: " << tbSinr << ", SINR of the retx: " <<
+                        SinrEff(eesmOutput->m_sinr, eesmOutput->m_map, mcs) <<
+                        ", sum: " << SinrEff (sinr_sum, map_sum, mcs));
+          NS_LOG_DEBUG ("sinr_sum: " << sinr_sum);
         }
 
       // compute effective SINR with the sinr_sum vector and map_sum RB map
       SINR = SinrEff (sinr_sum, map_sum, mcs);
     }
 
-  NS_LOG_DEBUG (" SINR after retx " << SINR << " SINR last tx" << tbSinr <<
-                " HARQ " << sinrHistory.size ());
+  // If recombining gives a lower performance (= SinrEff value) than the current
+  // transmission, just ignore the history and use the last tx value.
+  SINR = std::max (tbSinr, SINR);
+
+  NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
 
   // selection of LDPC base graph type (1 or 2), as per TS 38.212
   GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
@@ -3297,7 +3337,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
       errorRate = MappingSinrBler (SINR, mcs, K);
     }
 
-  NS_LOG_LOGIC (" Error rate " << errorRate);
+  NS_LOG_DEBUG ("Calculated Error rate " << errorRate);
   NS_ASSERT (m_mcsEcrTable != nullptr);
 
   Ptr<NrEesmErrorModelOutput> ret = Create<NrEesmErrorModelOutput> (errorRate);
@@ -3306,6 +3346,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   ret->m_sinrEff = SINR;
   ret->m_infoBits = sizeBit;
   ret->m_codeBits = (sizeBit) / m_mcsEcrTable->at (mcs); // CC combining
+
   return ret;
 }
 
@@ -3339,9 +3380,6 @@ NrEesmErrorModel::GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum
   uint8_t Qm = m_mcsMTable->at (mcs);
 
   const double spectralEfficiency = rscElement * Qm * Rcode;
-
-  NS_LOG_INFO (" mcs:" << mcs << " subcarriers" << usefulSc <<
-               " rsc element:" << rscElement);
 
   return static_cast<uint32_t> (std::floor (spectralEfficiency / 8));
 }

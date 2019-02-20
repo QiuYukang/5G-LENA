@@ -31,6 +31,7 @@
 
 #include <ns3/log.h>
 #include <ns3/spectrum-value.h>
+#include <ns3/simulator.h>
 
 NS_LOG_COMPONENT_DEFINE ("mmWaveChunkProcessor");
 
@@ -59,6 +60,7 @@ mmWaveChunkProcessor::Start ()
   NS_LOG_FUNCTION (this);
   m_sumValues = 0;
   m_totDuration = MicroSeconds (0);
+  NS_LOG_INFO ("Starting a chunk processing at time " << Simulator::Now ());
 }
 
 
@@ -72,6 +74,10 @@ mmWaveChunkProcessor::EvaluateChunk (const SpectrumValue& sinr, Time duration)
     }
   (*m_sumValues) += sinr * duration.GetSeconds ();
   m_totDuration += duration;
+
+  NS_LOG_INFO ("Evaluating chunk sinr " << sinr << " of duration " <<
+               duration.GetNanoSeconds() << " ns, sum sinr " << m_sumValues <<
+               " tot duration " << m_totDuration);
 }
 
 void
