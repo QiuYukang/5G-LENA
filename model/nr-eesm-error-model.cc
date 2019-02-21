@@ -1,6 +1,8 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2018 CTTC Sandra Lagen  <sandra.lagen@cttc.es>
+*   Copyright (c) 2019 CTTC Sandra Lagen  <sandra.lagen@cttc.es>
+*   Copyright (c) 2019 Interdigital <kevin.wanuga@interdigital.com> tables
+*   BlerForSinr1 and BlerForSinr2
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License version 2 as
@@ -3201,6 +3203,78 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   if (sinrHistory.size () > 0)
     {
       // evaluate SINR_eff: as per Chase Combining
+
+/*
+      // TEST SANDRA
+      std::vector<uint16_t> Ntemp;
+      Ntemp.at(0) = map.size ();
+      std::vector<uint16_t> indexes;
+      indexes.at(0) = 0;
+
+      uint8_t ii = 1;
+      for (const auto & output : sinrHistory)
+        {
+          Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
+          Ntemp.at(ii)=eesmOutput->m_map.size();
+          indexes.at(ii) = 0;
+          ii++;
+        }
+
+      uint16_t N = *std::max_element(std::begin(Ntemp), std::end(Ntemp));
+
+      ii = 0;
+      std::vector<int> map_sum = {};
+      while (ii < N)
+        {
+          map_sum.insert(map_sum.end(),ii);
+          ii++;
+        }
+
+      SpectrumValue sinr_sum;
+      ii = 0;
+
+      while (ii < N)
+        {
+          // last transmission
+          sinr_sum[ii]=sinr_sum[ii]+sinr[map.at(indexes.at(0))];
+
+          if (indexes.at(0) == (map.size()-1) )
+            {
+              indexes.at(0)=0;
+            }
+          else
+            {
+              indexes.at(0)=indexes.at(0)+1;
+            }
+          // through history
+          uint8_t jj = 1;
+          for (const auto & output : sinrHistory)
+            {
+              Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
+
+              sinr_sum[ii]=sinr_sum[ii]+eesmOutput->m_sinr[eesmOutput->m_map.at(indexes.at(jj))];
+
+              if (indexes.at(jj) == (eesmOutput->m_map.size()-1) )
+                {
+                  indexes.at(jj)=0;
+                }
+              else
+                {
+                  indexes.at(jj)=indexes.at(jj)+1;
+                }
+              jj++;
+            }
+          ii++;
+        }
+
+      // compute effective SINR with the sinr_sum vector and map_sum RB map
+      SINR = SinrEff (sinr_sum, map_sum, mcs);
+    }
+
+  // If recombining gives a lower performance (= SinrEff value) than the current
+  // transmission, just ignore the history and use the last tx value.
+  SINR = std::max (tbSinr, SINR);
+*/
 
       // first step: create map_sum as the sum of all the allocated RBs in
       // different transmissions...
