@@ -619,12 +619,14 @@ MmWaveSpectrumPhy::EndRxData ()
               m_rxPacketTraceUe (traceParams);
             }
 
+
           // send HARQ feedback (if not already done for this TB)
           if (! GetTBInfo(*itTb).m_harqFeedbackSent)
             {
               GetTBInfo(*itTb).m_harqFeedbackSent = true;
               if (! GetTBInfo(*itTb).m_expected.m_isDownlink)    // UPLINK TB
                 {
+                  // Generate the feedback
                   UlHarqInfo harqUlInfo;
                   harqUlInfo.m_rnti = rnti;
                   harqUlInfo.m_tpc = 0;
@@ -633,70 +635,69 @@ MmWaveSpectrumPhy::EndRxData ()
                   if (GetTBInfo(*itTb).m_isCorrupted)
                     {
                       harqUlInfo.m_receptionStatus = UlHarqInfo::NotOk;
-                      m_harqPhyModule->UpdateUlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
-                                                                  GetTBInfo(*itTb).m_outputOfEM);
                     }
                   else
                     {
                       harqUlInfo.m_receptionStatus = UlHarqInfo::Ok;
-                      m_harqPhyModule->ResetUlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
                     }
+
+                  // Send the feedback
                   if (!m_phyUlHarqFeedbackCallback.IsNull ())
                     {
                       m_phyUlHarqFeedbackCallback (harqUlInfo);
                     }
-                }
-              else
-                {
-                  auto itHarq = harqDlInfoMap.find (rnti);
-                  if (itHarq == harqDlInfoMap.end ())
+
+                  // Arrange the history
+                  if (! GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)
                     {
-                      DlHarqInfo harqDlInfo;
-                      harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
-                      harqDlInfo.m_rnti = rnti;
-                      harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
-                      harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
-                      if (GetTBInfo(*itTb).m_isCorrupted)
-                        {
-                          harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
-                          m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
-                                                                      GetTBInfo(*itTb).m_outputOfEM);
-                        }
-                      else
-                        {
-                          harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
-                          m_harqPhyModule->ResetDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
-                        }
-                      harqDlInfoMap.insert (std::pair <uint16_t, DlHarqInfo> (rnti, harqDlInfo));
+                      m_harqPhyModule->ResetUlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
                     }
                   else
                     {
-                      if (GetTBInfo(*itTb).m_isCorrupted)
-                        {
-                          (*itHarq).second.m_harqStatus = DlHarqInfo::NACK;
-                          m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
-                                                                      GetTBInfo(*itTb).m_outputOfEM);
-                        }
-                      else
-                        {
-                          (*itHarq).second.m_harqStatus = DlHarqInfo::ACK;
-                          m_harqPhyModule->ResetDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
-                        }
+                      m_harqPhyModule->UpdateUlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
+                                                                  GetTBInfo(*itTb).m_outputOfEM);
+                    }
+                }
+              else
+                {
+                  // Generate the feedback
+                  DlHarqInfo harqDlInfo;
+                  harqDlInfo.m_rnti = rnti;
+                  harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
+                  harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                  if (GetTBInfo(*itTb).m_isCorrupted)
+                    {
+                      harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
+                    }
+                  else
+                    {
+                      harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
+                    }
+
+                  NS_ASSERT (harqDlInfoMap.find(rnti) == harqDlInfoMap.end());
+                  harqDlInfoMap.insert(std::make_pair (rnti, harqDlInfo));
+
+                  // Send the feedback
+                  if (!m_phyDlHarqFeedbackCallback.IsNull ())
+                    {
+                      m_phyDlHarqFeedbackCallback (harqDlInfo);
+                    }
+
+                  // Arrange the history
+                  if (! GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)
+                    {
+                      m_harqPhyModule->ResetDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
+                    }
+                  else
+                    {
+                      m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
+                                                                  GetTBInfo(*itTb).m_outputOfEM);
                     }
                 }   // end if (itTb->second.downlink) HARQ
             }   // end if (!itTb->second.harqFeedbackSent)
         }
     }
 
-  // send DL HARQ feedback to LtePhy
-  std::map <uint16_t, DlHarqInfo>::iterator itHarq;
-  for (itHarq = harqDlInfoMap.begin (); itHarq != harqDlInfoMap.end (); itHarq++)
-    {
-      if (!m_phyDlHarqFeedbackCallback.IsNull ())
-        {
-          m_phyDlHarqFeedbackCallback ((*itHarq).second);
-        }
-    }
   // forward control messages of this frame to MmWavePhy
 
   if (!m_rxControlMessageList.empty () && !m_phyRxCtrlEndOkCallback.IsNull ())

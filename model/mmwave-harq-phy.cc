@@ -99,11 +99,6 @@ MmWaveHarqPhy::UpdateDlHarqProcessStatus (uint16_t rnti, uint8_t harqProcId,
     }
   else
     {
-      if (it->second.at (harqProcId).size () == 3)   // MAX HARQ RETX
-        {
-          // HARQ should be disabled -> discard info
-          return;
-        }
       it->second.at (harqProcId).emplace_back (output);
     }
 }
@@ -146,11 +141,6 @@ MmWaveHarqPhy::UpdateUlHarqProcessStatus (uint16_t rnti, uint8_t harqProcId,
     }
   else
     {
-      if (it->second.at (harqProcId).size () == 3)   // MAX HARQ RETX
-        {
-          // HARQ should be disabled -> discard info
-          return;
-        }
       it->second.at (harqProcId).emplace_back (output);
     }
 }
