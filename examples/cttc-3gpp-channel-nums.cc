@@ -247,7 +247,7 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue (useFixedMcs));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::McsDefaultDl", UintegerValue (fixedMcs));
+  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (fixedMcs));
 
   //Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNum", UintegerValue (4));
   //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNum", UintegerValue (16));
