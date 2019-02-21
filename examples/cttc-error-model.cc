@@ -70,7 +70,7 @@ main (int argc, char *argv[])
   uint16_t numerologyBwp1 = 4;
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;\
-  double ueY = 300.0;
+  double ueY = 30.0;
 
   double simTime = 5; // seconds
   double udpAppStartTime = 1.0; //seconds
@@ -109,7 +109,7 @@ main (int argc, char *argv[])
                "Mode: 0 for DELAY, 1 for THROUGHPUT",
                mode);
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
+               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
                errorModel);
   cmd.AddValue("eesmTable",
                "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
@@ -126,7 +126,7 @@ main (int argc, char *argv[])
     }
 
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
-                      StringValue("l"));
+                      StringValue("a"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
                       StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing",
