@@ -496,8 +496,6 @@ MmWaveSpectrumPhy::EndRxData ()
           continue;
         }
 
-      uint32_t rv = 0;
-
       std::function < const NrErrorModel::NrErrorModelHistory & (uint16_t, uint8_t) > RetrieveHistory;
 
       if (GetTBInfo (tbIt).m_expected.m_isDownlink)
@@ -514,10 +512,6 @@ MmWaveSpectrumPhy::EndRxData ()
       const NrErrorModel::NrErrorModelHistory & harqInfoList = RetrieveHistory (GetRnti (tbIt),
                                                                                 GetTBInfo (tbIt).m_expected.m_harqProcessId);
 
-      if (harqInfoList.size () > 0)
-        {
-          rv = static_cast<uint32_t> (harqInfoList.size ());
-        }
       NS_ABORT_MSG_IF (!m_errorModelType.IsChildOf(NrErrorModel::GetTypeId()),
                        "The error model must be a child of NrErrorModel");
 
@@ -541,15 +535,15 @@ MmWaveSpectrumPhy::EndRxData ()
           NS_LOG_INFO (" RNTI " << GetRnti (tbIt) << " size " <<
                        GetTBInfo (tbIt).m_expected.m_tbSize << " mcs " <<
                        (uint32_t)GetTBInfo (tbIt).m_expected.m_mcs << " bitmap " <<
-                       GetTBInfo (tbIt).m_expected.m_rbBitmap.size () << " rv " << rv <<
-                       " TBLER " << GetTBInfo(tbIt).m_outputOfEM->m_tbler << " corrupted " <<
+                       GetTBInfo (tbIt).m_expected.m_rbBitmap.size () << " rv from MAC: " <<
+                       GetTBInfo (tbIt).m_expected.m_rv << " elements in the history: " <<
+                       harqInfoList.size () << " TBLER " <<
+                       GetTBInfo(tbIt).m_outputOfEM->m_tbler << " corrupted " <<
                        GetTBInfo (tbIt).m_isCorrupted);
         }
-
     }
 
   std::map <uint16_t, DlHarqInfo> harqDlInfoMap;
-
   for (auto packetBurst : m_rxPacketBurstList)
     {
       uint16_t rnti = 0;
@@ -577,8 +571,7 @@ MmWaveSpectrumPhy::EndRxData ()
 
           if (itTb == m_transportBlocks.end ())
             {
-              // Packet for other device... I really don't understand why?!
-              // TODO this must be removed.
+              // Packet for other device...
               continue;
             }
 
