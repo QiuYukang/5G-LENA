@@ -3202,124 +3202,75 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
   if (sinrHistory.size () > 0)
     {
-      // evaluate SINR_eff: as per Chase Combining
+      // Make a vector of history that contains the last tx (but without modifying
+      // sinrHistory, as it will be modified by the caller when it will be the time)
+      Ptr<NrEesmErrorModelOutput> last = Create<NrEesmErrorModelOutput> (0.0);
+      last->m_map = map;
+      last->m_sinr = sinr;
 
-/*
-      // TEST SANDRA
-      std::vector<uint16_t> Ntemp;
-      Ntemp.at(0) = map.size ();
-      std::vector<uint16_t> indexes;
-      indexes.at(0) = 0;
+      NrErrorModelHistory total = sinrHistory;
+      total.push_back (last);
 
-      uint8_t ii = 1;
-      for (const auto & output : sinrHistory)
+      // evaluate SINR_eff over "total", as per Chase Combining
+
+      NS_ASSERT (sinr.GetSpectrumModel()->GetNumBands() == sinr.GetValuesN());
+
+      SpectrumValue sinr_sum (sinr.GetSpectrumModel());
+      uint32_t historySize = static_cast<uint32_t> (total.size ());
+      uint32_t maxRBUsed = 0;
+      for (uint32_t i = 0; i < historySize; ++i)
         {
-          Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
-          Ntemp.at(ii)=eesmOutput->m_map.size();
-          indexes.at(ii) = 0;
-          ii++;
+          Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (total.at(i));
+          maxRBUsed = std::max (maxRBUsed, static_cast<uint32_t> (output->m_map.size ()));
         }
 
-      uint16_t N = *std::max_element(std::begin(Ntemp), std::end(Ntemp));
+      std::vector<int> map_sum;
+      map_sum.reserve (maxRBUsed);
 
-      ii = 0;
-      std::vector<int> map_sum = {};
-      while (ii < N)
+      for (uint32_t i = 0 ; i < maxRBUsed; ++i)
         {
-          map_sum.insert(map_sum.end(),ii);
-          ii++;
+          sinr_sum[i] = 0;
+          map_sum.push_back (static_cast<int> (i));
         }
 
-      SpectrumValue sinr_sum;
-      ii = 0;
-
-      while (ii < N)
+      /* Combine at the bit level. Example:
+       * SINR{1}=[0 0 10 20 10 0 0];
+       * SINR{2}=[1 2 1 2 1 0 3];
+       * SINR{3}=[5 0 0 0 0 0 0];
+       *
+       * map{1}=[2 3 4];
+       * map{2}=[0 1 2 3 4 6];
+       * map{3}=[0];
+       *
+       * MAP_SUM = [0 1 2 3 4 5]
+       * SINR_SUM = [16 27 16 17 26 18]
+       *
+       * (the value at SINR_SUM[0] is SINR{1}[2] + SINR{2}[0] + SINR{3}[0]
+       */
+      for (uint32_t i = 0; i < historySize; ++i)
         {
-          // last transmission
-          sinr_sum[ii]=sinr_sum[ii]+sinr[map.at(indexes.at(0))];
-
-          if (indexes.at(0) == (map.size()-1) )
+          Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (total.at(i));
+          uint32_t size = output->m_map.size ();
+          for (uint32_t j = 0 ; j < maxRBUsed; ++j)
             {
-              indexes.at(0)=0;
+              sinr_sum[j] += output->m_sinr [ output->m_map [ j % size ] ];
             }
-          else
-            {
-              indexes.at(0)=indexes.at(0)+1;
-            }
-          // through history
-          uint8_t jj = 1;
-          for (const auto & output : sinrHistory)
-            {
-              Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
-
-              sinr_sum[ii]=sinr_sum[ii]+eesmOutput->m_sinr[eesmOutput->m_map.at(indexes.at(jj))];
-
-              if (indexes.at(jj) == (eesmOutput->m_map.size()-1) )
-                {
-                  indexes.at(jj)=0;
-                }
-              else
-                {
-                  indexes.at(jj)=indexes.at(jj)+1;
-                }
-              jj++;
-            }
-          ii++;
         }
+
+      NS_LOG_INFO ("\tHISTORY:");
+      for (const auto & element : total)
+        {
+          Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (element);
+          NS_LOG_INFO ("\tMAP:" << PrintMap (output->m_map));
+          NS_LOG_INFO ("\tSINR: " << output->m_sinr);
+        }
+
+      NS_LOG_INFO ("MAP_SUM: " << PrintMap (map_sum));
+      NS_LOG_INFO ("SINR_SUM: " << sinr_sum);
 
       // compute effective SINR with the sinr_sum vector and map_sum RB map
       SINR = SinrEff (sinr_sum, map_sum, mcs);
     }
-
-  // If recombining gives a lower performance (= SinrEff value) than the current
-  // transmission, just ignore the history and use the last tx value.
-  SINR = std::max (tbSinr, SINR);
-*/
-
-      // first step: create map_sum as the sum of all the allocated RBs in
-      // different transmissions...
-      std::vector<int> map_sum = map;
-      NS_ASSERT(map_sum.size () == map.size ());
-
-      for (const auto & output : sinrHistory)
-        {
-          Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
-
-          NS_LOG_DEBUG ("Summing: " << std::endl << PrintMap (eesmOutput->m_map) <<
-                        std::endl << " to " << std::endl <<
-                        PrintMap (map_sum));
-
-          map_sum.insert (map_sum.end (), eesmOutput->m_map.begin (), eesmOutput->m_map.end ());
-        }
-      // sort the resulting map
-      std::sort (map_sum.begin (), map_sum.end ());
-      // Rremove duplicate elements
-      auto pte = std::unique (map_sum.begin (), map_sum.end ());
-      // dups now in [pte, map_sum.end()]
-      map_sum.erase (pte, map_sum.end ());
-
-      NS_LOG_DEBUG ("Result: " << std::endl << PrintMap (map_sum) << std::endl);
-
-      // second step: create sinr_sum (vector of retransmission's SINR sum)
-      SpectrumValue sinr_sum = sinr;
-      NS_LOG_DEBUG ("starting sing_sum: " << sinr_sum);
-      for (const auto & output : sinrHistory)
-        {
-          Ptr<NrEesmErrorModelOutput> eesmOutput = DynamicCast<NrEesmErrorModelOutput> (output);
-          sinr_sum += eesmOutput->m_sinr;
-          NS_LOG_DEBUG ("SINR of the tx: " << tbSinr << ", SINR of the retx: " <<
-                        SinrEff(eesmOutput->m_sinr, eesmOutput->m_map, mcs) <<
-                        ", sum: " << SinrEff (sinr_sum, map_sum, mcs));
-          NS_LOG_DEBUG ("sinr_sum: " << sinr_sum);
-        }
-
-      // compute effective SINR with the sinr_sum vector and map_sum RB map
-      SINR = SinrEff (sinr_sum, map_sum, mcs);
-    }
-
-  // If recombining gives a lower performance (= SinrEff value) than the current
-  // transmission, just ignore the history and use the last tx value.
-  SINR = std::max (tbSinr, SINR);
 
   NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
 
