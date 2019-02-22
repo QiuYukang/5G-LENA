@@ -413,13 +413,17 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
   // propagation loss model needs to be able to distinguish whether the device is UE or BS
   if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
     {
-      return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
+      m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
           ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
     }
   else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
     {
-      return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
+      m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
           ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
+    }
+  else
+    {
+      NS_ABORT_MSG ("Pathloss model unknown");
     }
 }
 
