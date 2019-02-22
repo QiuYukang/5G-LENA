@@ -192,6 +192,8 @@ private:
                                           //    Filled at the end of data rx/tx
     bool m_harqFeedbackSent {false};      //!< Indicate if the feedback has been sent for an entire TB
     Ptr<NrErrorModelOutput> m_outputOfEM; //!< Output of the Error Model (depends on the EM type)
+    double m_sinrAvg {0.0};               //!< AVG SINR (only for the RB used to transmit the TB)
+    double m_sinrMin {0.0};               //!< MIN SINR (only between the RB used to transmit the TB)
   };
 
   //typedef std::unordered_map<uint16_t, TransportBlockInfo> TBMap; //!< Transport map with RNTI as key

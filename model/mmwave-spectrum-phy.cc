@@ -469,18 +469,6 @@ MmWaveSpectrumPhy::EndRxData ()
   NS_LOG_FUNCTION (this);
   m_interferenceData->EndRx ();
 
-  double sinrAvg = Sum (m_sinrPerceived) / (m_sinrPerceived.GetSpectrumModel ()->GetNumBands ());
-  double sinrMin = 99999999999;
-  for (Values::const_iterator it = m_sinrPerceived.ConstValuesBegin (); it != m_sinrPerceived.ConstValuesEnd (); it++)
-    {
-      if (*it < sinrMin)
-        {
-          sinrMin = *it;
-        }
-    }
-
-  NS_LOG_INFO ("Finishing RX, sinrAvg=" << sinrAvg << " sinrMin=" << sinrMin);
-
   Ptr<MmWaveEnbNetDevice> enbRx = DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
   Ptr<MmWaveUeNetDevice> ueRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
 
@@ -491,6 +479,22 @@ MmWaveSpectrumPhy::EndRxData ()
 
   for (auto &tbIt : m_transportBlocks)
     {
+      GetTBInfo(tbIt).m_sinrAvg = 0.0;
+      GetTBInfo(tbIt).m_sinrMin = 99999999999;
+      for (const auto & rbIndex : GetTBInfo(tbIt).m_expected.m_rbBitmap)
+        {
+          GetTBInfo(tbIt).m_sinrAvg += m_sinrPerceived.ValuesAt (rbIndex);
+          if (m_sinrPerceived.ValuesAt (rbIndex) < GetTBInfo(tbIt).m_sinrMin)
+            {
+              GetTBInfo(tbIt).m_sinrMin = m_sinrPerceived.ValuesAt (rbIndex);
+            }
+        }
+
+      GetTBInfo(tbIt).m_sinrAvg = GetTBInfo(tbIt).m_sinrAvg / GetTBInfo(tbIt).m_expected.m_rbBitmap.size ();
+
+      NS_LOG_INFO ("Finishing RX, sinrAvg=" << GetTBInfo(tbIt).m_sinrAvg <<
+                   " sinrMin=" << GetTBInfo(tbIt).m_sinrMin);
+
       if ((!m_dataErrorModelEnabled) || (m_rxPacketBurstList.empty ()))
         {
           continue;
@@ -599,8 +603,8 @@ MmWaveSpectrumPhy::EndRxData ()
           traceParams.m_rnti = rnti;
           traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
           traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;
-          traceParams.m_sinr = sinrAvg;
-          traceParams.m_sinrMin = sinrMin;
+          traceParams.m_sinr = GetTBInfo(*itTb).m_sinrAvg;
+          traceParams.m_sinrMin = GetTBInfo(*itTb).m_sinrMin;
           traceParams.m_tbler = GetTBInfo(*itTb).m_outputOfEM->m_tbler;
           traceParams.m_corrupt = GetTBInfo(*itTb).m_isCorrupted;
           traceParams.m_symStart = GetTBInfo(*itTb).m_expected.m_symStart;
