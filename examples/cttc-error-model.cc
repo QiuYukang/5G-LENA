@@ -82,11 +82,11 @@ main (int argc, char *argv[])
   double ueY = 30.0;
 
   double simTime = 50.0; // seconds
-  uint32_t packets = 400;
   uint32_t pktSize = 500;
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
   Time updateChannelInterval = MilliSeconds (150);
+  uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
 
 
   std::string errorModel = "ns3::NrEesmErrorModel";
@@ -336,19 +336,21 @@ main (int argc, char *argv[])
       sum += v;
     }
 
-  std::cout << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
+  std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
 
   for (auto it = serverApps.Begin(); it != serverApps.End(); ++it)
     {
       uint64_t recv = DynamicCast<UdpServer> (*it)->GetReceived ();
-      std::cout << "Lost: " << packets - recv << " pkts over " << packets << " pkts, ( "
-                << (static_cast<double> (packets - recv) / packets) * 100.0 << " % )" << std::endl;
+      std::cerr << "Sent: " << packets << " Recv: " << recv << " Lost: "
+                << packets - recv << " pkts, ( "
+                << (static_cast<double> (packets - recv) / packets) * 100.0
+                << " % )" << std::endl;
     }
 
 
   Simulator::Destroy ();
 
-  std::cout << "Running time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
+  std::cerr << "Running time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
             << " s." << std::endl;
   return 0;
 }
