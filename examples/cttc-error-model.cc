@@ -87,6 +87,7 @@ main (int argc, char *argv[])
   Time packetInterval = MilliSeconds (200);
   Time updateChannelInterval = MilliSeconds (150);
   uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
+  NS_ABORT_IF (packets == 0);
 
 
   std::string errorModel = "ns3::NrEesmErrorModel";
@@ -336,7 +337,15 @@ main (int argc, char *argv[])
       sum += v;
     }
 
-  std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
+  if (packetsTime.size () > 0)
+    {
+      std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
+    }
+  else
+    {
+      std::cerr << "Average e2e latency: Not Available" << std::endl;
+    }
+
 
   for (auto it = serverApps.Begin(); it != serverApps.End(); ++it)
     {
