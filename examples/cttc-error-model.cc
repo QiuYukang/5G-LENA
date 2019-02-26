@@ -30,6 +30,8 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
 
+#include <chrono>
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("CttcErrorModelExample");
@@ -52,15 +54,22 @@ GetUePositions(double ueY, double ueHeight = 1.5)
   return pos;
 }
 
+static std::vector<uint64_t> packetsTime;
+
+static void
+PrintRxPkt (std::string context, Ptr<const Packet> pkt)
+{
+  NS_UNUSED(context);
+  // ASSUMING ONE UE!!!!
+
+  SeqTsHeader seqTs;
+  pkt->PeekHeader (seqTs);
+  packetsTime.push_back ((Simulator::Now () - seqTs.GetTs()).GetMicroSeconds ());
+}
+
 int
 main (int argc, char *argv[])
 {
-  enum Mode
-  {
-    DELAY,
-    THROUGHPUT
-  };
-
   uint32_t mcs = 13;
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
@@ -69,16 +78,19 @@ main (int argc, char *argv[])
   double totalTxPower = 4;
   uint16_t numerologyBwp1 = 4;
   double frequencyBwp1 = 28e9;
-  double bandwidthBwp1 = 100e6;\
+  double bandwidthBwp1 = 100e6;
   double ueY = 30.0;
 
-  double simTime = 5; // seconds
-  double udpAppStartTime = 1.0; //seconds
+  double simTime = 50.0; // seconds
+  uint32_t packets = 400;
+  uint32_t pktSize = 500;
+  Time udpAppStartTime = MilliSeconds (1000);
+  Time packetInterval = MilliSeconds (200);
+  Time updateChannelInterval = MilliSeconds (150);
+
 
   std::string errorModel = "ns3::NrEesmErrorModel";
   uint32_t eesmTable = 1;
-
-  uint32_t mode = DELAY;
 
   CommandLine cmd;
 
@@ -105,9 +117,6 @@ main (int argc, char *argv[])
                 "total tx power that will be proportionally assigned to"
                 " bandwidth parts depending on each BWP bandwidth ",
                 totalTxPower);
-  cmd.AddValue("mode",
-               "Mode: 0 for DELAY, 1 for THROUGHPUT",
-               mode);
   cmd.AddValue("errorModelType",
                "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
                errorModel);
@@ -117,13 +126,11 @@ main (int argc, char *argv[])
   cmd.AddValue("ueY",
                "Y position of any UE",
                ueY);
+  cmd.AddValue("pktSize",
+               "Packet Size",
+               pktSize);
 
   cmd.Parse (argc, argv);
-
-  if (mode == DELAY)
-    {
-      LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-    }
 
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
                       StringValue("a"));
@@ -136,6 +143,8 @@ main (int argc, char *argv[])
                       BooleanValue(cellScan));
   Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
                       DoubleValue(beamSearchAngleStep));
+  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
+                      TimeValue (updateChannelInterval));
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
@@ -284,25 +293,25 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      if (mode == DELAY)
-        {
-          dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
-          dlClient.SetAttribute("PacketSize", UintegerValue(500));
-          dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(200)));
-        }
-      else
-        {
-          dlClient.SetAttribute ("MaxPackets", UintegerValue(80000000));
-          dlClient.SetAttribute("PacketSize", UintegerValue(1000));
-          dlClient.SetAttribute ("Interval", TimeValue (NanoSeconds(1)));
-        }
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(packets));
+      dlClient.SetAttribute("PacketSize", UintegerValue(pktSize));
+      dlClient.SetAttribute ("Interval", TimeValue (packetInterval));
 
       clientApps.Add (dlClient.Install (remoteHost));
     }
 
+  for (uint32_t j = 0; j < serverApps.GetN (); ++j)
+    {
+      Ptr<UdpServer> client = DynamicCast<UdpServer> (serverApps.Get (j));
+      NS_ASSERT(client != nullptr);
+      std::stringstream ss;
+      ss << j;
+      client->TraceConnect("Rx", ss.str(), MakeCallback (&PrintRxPkt));
+    }
+
   // start UDP server and client apps
-  serverApps.Start(Seconds(udpAppStartTime));
-  clientApps.Start(Seconds(udpAppStartTime));
+  serverApps.Start(udpAppStartTime);
+  clientApps.Start(udpAppStartTime);
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime));
 
@@ -313,18 +322,34 @@ main (int argc, char *argv[])
   //mmWaveHelper->EnableTraces();
 
   Simulator::Stop (Seconds (simTime));
+
+  auto start = std::chrono::steady_clock::now();
+
   Simulator::Run ();
+
+  auto end = std::chrono::steady_clock::now();
+
+
+  uint64_t sum = 0;
+  for (auto & v : packetsTime)
+    {
+      sum += v;
+    }
+
+  std::cout << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
 
   for (auto it = serverApps.Begin(); it != serverApps.End(); ++it)
     {
       uint64_t recv = DynamicCast<UdpServer> (*it)->GetReceived ();
-      NS_LOG_UNCOND ("Sent: 10 Lost: " << 10 - recv);
-      double throughput = recv * 1000 / (simTime - udpAppStartTime);
-      NS_LOG_UNCOND ("Throughput: " << throughput / 1e6 << " Mbps");
+      std::cout << "Lost: " << packets - recv << " pkts over " << packets << " pkts, ( "
+                << (static_cast<double> (packets - recv) / packets) * 100.0 << " % )" << std::endl;
     }
 
 
   Simulator::Destroy ();
+
+  std::cout << "Running time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
+            << " s." << std::endl;
   return 0;
 }
 
