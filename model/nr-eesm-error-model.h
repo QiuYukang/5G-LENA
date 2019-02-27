@@ -82,6 +82,14 @@ public:
     McsTable1 = 0,  //!< NR MCS/CQI Table1 (corresponds to tables 5.1.3.1-1 and 5.2.2.1-2 in TS38.214)
     McsTable2 = 1   //!< NR MCS/CQI Table2 (refers to tables 5.1.3.1-2 and 5.2.2.1-3 in TS38.214)
   };
+  /**
+   * \brief HARQ method used for PHY abstraction retransmissions combining
+   */
+  enum HarqMethod
+  {
+    HarqCc = 0,  //!< HARC Chase Combining
+    HarqIr = 1   //!< HARQ Incremental Redundancy
+  };
 
   /**
    * \brief Get an output for the decodification error probability of a given
@@ -138,6 +146,15 @@ public:
    */
   McsTable GetMcsTable () const;
 
+  /**
+   * \brief Set the HARQ method, based on m_harqMethod parameter.
+   */
+  void SetHarqMethod (HarqMethod input);
+  /**
+   * \brief Get the HARQ method
+   */
+  HarqMethod GetHarqMethod () const;
+
   typedef std::vector<double> DoubleVector;
   typedef std::tuple<DoubleVector, DoubleVector> DoubleTuple;
   typedef std::vector<std::vector<std::map<uint32_t, DoubleTuple> > > SimulatedBlerFromSINR;
@@ -147,6 +164,7 @@ private:
   static std::vector<std::string> m_bgTypeName;
 
   McsTable m_mcsTable {McsTable1};
+  HarqMethod m_harqMethod {HarqCc};
   const std::vector<double> *m_betaTable {nullptr};
   const std::vector<double> *m_mcsEcrTable {nullptr};
   const SimulatedBlerFromSINR *m_simulatedBlerFromSINR {nullptr};

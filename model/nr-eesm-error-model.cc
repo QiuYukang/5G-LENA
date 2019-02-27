@@ -3041,6 +3041,13 @@ NrEesmErrorModel::GetTypeId (void)
                                      &NrEesmErrorModel::SetMcsTable),
                    MakeEnumChecker (NrEesmErrorModel::McsTable1, "McsTable1",
                                     NrEesmErrorModel::McsTable2, "McsTable2"))
+    .AddAttribute ("HarqMethod",
+                   "HARQ method for PHY abstraction of HARQ",
+                   EnumValue (NrEesmErrorModel::HarqCc),
+                   MakeEnumAccessor (&NrEesmErrorModel::GetHarqMethod,
+                                     &NrEesmErrorModel::SetHarqMethod),
+                   MakeEnumChecker (NrEesmErrorModel::HarqCc, "HarqCc",
+                                    NrEesmErrorModel::HarqIr, "HarqIr"))
   ;
   return tid;
 }
@@ -3108,7 +3115,7 @@ NrEesmErrorModel::MappingSinrBler (double sinr, uint8_t mcs, uint32_t cbSizeBit)
   GraphType bg_type = GetBaseGraphType (cbSizeBit, mcs);
 
   // Get the index of CBSIZE in the map
-  NS_LOG_INFO ("For sinr " << sinr << " and mcs " << static_cast<uint32_t>(mcs) <<
+  NS_LOG_INFO ("For sinr " << sinr << " and mcs " << static_cast<uint8_t>(mcs) <<
                 " CbSizebit " << cbSizeBit << " we got bg type " << m_bgTypeName[bg_type]);
   auto cbMap = m_simulatedBlerFromSINR->at (bg_type).at (mcs);
   auto cbIt = cbMap.upper_bound (cbSizeBit);
@@ -3195,87 +3202,143 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   double tbSinr = SinrEff (sinr, map, mcs);
   double SINR = tbSinr;
 
-  NS_LOG_DEBUG (" mcs " << static_cast<uint32_t>(mcs) << " TBSize in bit " << sizeBit <<
+  NS_LOG_DEBUG (" mcs " << static_cast<uint8_t>(mcs) << " TBSize in bit " << sizeBit <<
                 " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
                 tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
                 "SINR: " << sinr);
 
+  double Reff = 0.0;
+
   if (sinrHistory.size () > 0)
     {
-      // Make a vector of history that contains the last tx (but without modifying
-      // sinrHistory, as it will be modified by the caller when it will be the time)
-      Ptr<NrEesmErrorModelOutput> last = Create<NrEesmErrorModelOutput> (0.0);
-      last->m_map = map;
-      last->m_sinr = sinr;
 
-      NrErrorModelHistory total = sinrHistory;
-      total.push_back (last);
-
-      // evaluate SINR_eff over "total", as per Chase Combining
-
-      NS_ASSERT (sinr.GetSpectrumModel()->GetNumBands() == sinr.GetValuesN());
-
-      SpectrumValue sinr_sum (sinr.GetSpectrumModel());
-      uint32_t historySize = static_cast<uint32_t> (total.size ());
-      uint32_t maxRBUsed = 0;
-      for (uint32_t i = 0; i < historySize; ++i)
+      if (m_harqMethod == HarqCc)
         {
-          Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (total.at(i));
-          maxRBUsed = std::max (maxRBUsed, static_cast<uint32_t> (output->m_map.size ()));
-        }
+          // HARQ CHASE COMBINING: update SINReff, but not ECR after retx
+          // repetition of coded bits
 
-      std::vector<int> map_sum;
-      map_sum.reserve (maxRBUsed);
+          // make a vector of history that contains the last tx (but without modifying
+          // sinrHistory, as it will be modified by the caller when it will be the time)
+          Ptr<NrEesmErrorModelOutput> last = Create<NrEesmErrorModelOutput> (0.0);
+          last->m_map = map;
+          last->m_sinr = sinr;
 
-      for (uint32_t i = 0 ; i < maxRBUsed; ++i)
-        {
-          sinr_sum[i] = 0;
-          map_sum.push_back (static_cast<int> (i));
-        }
+          NrErrorModelHistory total = sinrHistory;
+          total.push_back (last);
 
-      /* Combine at the bit level. Example:
-       * SINR{1}=[0 0 10 20 10 0 0];
-       * SINR{2}=[1 2 1 2 1 0 3];
-       * SINR{3}=[5 0 0 0 0 0 0];
-       *
-       * map{1}=[2 3 4];
-       * map{2}=[0 1 2 3 4 6];
-       * map{3}=[0];
-       *
-       * MAP_SUM = [0 1 2 3 4 5]
-       * SINR_SUM = [16 27 16 17 26 18]
-       *
-       * (the value at SINR_SUM[0] is SINR{1}[2] + SINR{2}[0] + SINR{3}[0]
-       */
-      for (uint32_t i = 0; i < historySize; ++i)
-        {
-          Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (total.at(i));
-          uint32_t size = output->m_map.size ();
-          for (uint32_t j = 0 ; j < maxRBUsed; ++j)
+          // evaluate SINR_eff over "total", as per Chase Combining
+
+          NS_ASSERT (sinr.GetSpectrumModel()->GetNumBands() == sinr.GetValuesN());
+
+          SpectrumValue sinr_sum (sinr.GetSpectrumModel());
+          uint32_t historySize = static_cast<uint32_t> (total.size ());
+          uint32_t maxRBUsed = 0;
+          for (uint32_t i = 0; i < historySize; ++i)
             {
-              sinr_sum[j] += output->m_sinr [ output->m_map [ j % size ] ];
+              Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (total.at(i));
+              maxRBUsed = std::max (maxRBUsed, static_cast<uint32_t> (output->m_map.size ()));
             }
-        }
 
-      NS_LOG_INFO ("\tHISTORY:");
-      for (const auto & element : total)
+          std::vector<int> map_sum;
+          map_sum.reserve (maxRBUsed);
+
+          for (uint32_t i = 0 ; i < maxRBUsed; ++i)
+            {
+              sinr_sum[i] = 0;
+              map_sum.push_back (static_cast<int> (i));
+            }
+
+          /* combine at the bit level. Example:
+           * SINR{1}=[0 0 10 20 10 0 0];
+           * SINR{2}=[1 2 1 2 1 0 3];
+           * SINR{3}=[5 0 0 0 0 0 0];
+           *
+           * map{1}=[2 3 4];
+           * map{2}=[0 1 2 3 4 6];
+           * map{3}=[0];
+           *
+           * MAP_SUM = [0 1 2 3 4 5]
+           * SINR_SUM = [16 27 16 17 26 18]
+           *
+           * (the value at SINR_SUM[0] is SINR{1}[2] + SINR{2}[0] + SINR{3}[0])
+           */
+          for (uint32_t i = 0; i < historySize; ++i)
+            {
+              Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (total.at(i));
+              uint32_t size = output->m_map.size ();
+              for (uint32_t j = 0 ; j < maxRBUsed; ++j)
+                {
+                  sinr_sum[j] += output->m_sinr [ output->m_map [ j % size ] ];
+                }
+            }
+
+          NS_LOG_INFO ("\tHISTORY:");
+          for (const auto & element : total)
+            {
+              Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (element);
+              NS_LOG_INFO ("\tMAP:" << PrintMap (output->m_map));
+              NS_LOG_INFO ("\tSINR: " << output->m_sinr);
+            }
+
+          NS_LOG_INFO ("MAP_SUM: " << PrintMap (map_sum));
+          NS_LOG_INFO ("SINR_SUM: " << sinr_sum);
+
+          // compute effective SINR with the sinr_sum vector and map_sum RB map
+          SINR = SinrEff (sinr_sum, map_sum, mcs);
+        }
+      else
         {
-          Ptr<NrEesmErrorModelOutput> output = DynamicCast<NrEesmErrorModelOutput> (element);
-          NS_LOG_INFO ("\tMAP:" << PrintMap (output->m_map));
-          NS_LOG_INFO ("\tSINR: " << output->m_sinr);
+          // HARQ INCREMENTAL REDUNDANCY: update SINReff and ECR after retx
+          // no repetition of coded bits
+
+          NS_ASSERT (m_harqMethod == HarqIr);
+          std::vector<int> map_sum = map;
+
+          // evaluate SINR_eff over "total", as per Incremental Redundancy.
+          // combine at the bit level.
+          SpectrumValue sinr_sum = sinr;
+          double SINReff_previousTx = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.back ())->m_sinrEff;
+          NS_LOG_INFO ("\tHISTORY:");
+          NS_LOG_INFO ("\tSINReff: " << SINReff_previousTx);
+
+          for (uint32_t i = 0; i < map.size (); i++)
+             {
+                sinr_sum[i] += SINReff_previousTx;
+             }
+
+          NS_LOG_INFO ("MAP_SUM: " << PrintMap (map_sum));
+          NS_LOG_INFO ("SINR_SUM: " << sinr_sum);
+
+          // compute equivalent effective code rate after retransmissions
+          uint32_t codeBitsSum = 0;
+          uint32_t infoBits = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.front ())->m_infoBits;
+
+          for (const Ptr<NrErrorModelOutput> & output : sinrHistory)
+            {
+              Ptr<NrEesmErrorModelOutput> sinrHistorytemp = DynamicCast<NrEesmErrorModelOutput> (output);
+              NS_ASSERT (sinrHistorytemp != nullptr);
+
+              NS_LOG_DEBUG (" Effective SINR " << sinrHistorytemp->m_sinrEff << " codeBits " << sinrHistorytemp->m_codeBits <<
+                            " infoBits: " << sinrHistorytemp->m_infoBits);
+
+              codeBitsSum += sinrHistorytemp->m_codeBits;
+            }
+
+          codeBitsSum += sizeBit / m_mcsEcrTable->at (mcs);;
+          Reff = infoBits / static_cast<double> (codeBitsSum); // information bits are the size of the first TB
+
+          NS_LOG_INFO (" Reff " << Reff << " HARQ history (previous) " << sinrHistory.size ());
+
+          // compute effective SINR with the sinr_sum vector and map_sum RB map
+          SINR = SinrEff (sinr_sum, map_sum, mcs);
         }
-
-      NS_LOG_INFO ("MAP_SUM: " << PrintMap (map_sum));
-      NS_LOG_INFO ("SINR_SUM: " << sinr_sum);
-
-      // compute effective SINR with the sinr_sum vector and map_sum RB map
-      SINR = SinrEff (sinr_sum, map_sum, mcs);
     }
 
   NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
 
   // selection of LDPC base graph type (1 or 2), as per TS 38.212
   GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
+  NS_LOG_INFO ("BG type selection: " << bg_type);
 
   uint16_t Kcb;
   uint8_t Kb;
@@ -3348,18 +3411,37 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
     }
 
   NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " needs of " << B1 <<
-               " bits distributed in " << C << " CBs of " << K );
+               " bits distributed in " << C << " CBs of " << K << " bits");
+
+  // PHY abstraction for HARQ-IR retx -> get closest ECR to Reff from the
+  // available ones that belong to the same modulation order
+  uint8_t mcs_eq = mcs;
+  if ((sinrHistory.size () > 0) && (m_harqMethod == HarqIr))
+    {
+      uint8_t ModOrder = m_mcsMTable->at (mcs);
+
+      for (uint8_t mcsindex = GetMaxMcs (); mcsindex >= 0; mcsindex--)
+        {
+          if ((m_mcsMTable->at (mcsindex) == ModOrder) &&
+              (m_mcsEcrTable->at (mcsindex) > Reff))
+            {
+              mcs_eq--;
+            }
+        }
+     }
+
+  NS_LOG_DEBUG (" MCS of tx " << mcs <<
+                " Equivalent MCS for PHY abstraction (just for HARQ-IR) " << mcs_eq);
 
   double errorRate = 1.0;
-
   if (C != 1)
     {
-      double cbler = MappingSinrBler (SINR, mcs, K);
+      double cbler = MappingSinrBler (SINR, mcs_eq, K);
       errorRate = 1.0 - pow (1.0 - cbler, C);
     }
   else
     {
-      errorRate = MappingSinrBler (SINR, mcs, K);
+      errorRate = MappingSinrBler (SINR, mcs_eq, K);
     }
 
   NS_LOG_DEBUG ("Calculated Error rate " << errorRate);
@@ -3370,7 +3452,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   ret->m_map = map;
   ret->m_sinrEff = SINR;
   ret->m_infoBits = sizeBit;
-  ret->m_codeBits = (sizeBit) / m_mcsEcrTable->at (mcs); // CC combining
+  ret->m_codeBits = (sizeBit) / m_mcsEcrTable->at (mcs);
 
   return ret;
 }
@@ -3461,6 +3543,30 @@ NrEesmErrorModel::GetMcsTable () const
   NS_LOG_FUNCTION (this);
   return m_mcsTable;
 }
+
+void
+NrEesmErrorModel::SetHarqMethod (NrEesmErrorModel::HarqMethod input)
+{
+  NS_LOG_FUNCTION (this << input);
+
+  if (input == HarqCc)
+    {
+      m_harqMethod = HarqCc;
+    }
+  else
+    {
+      NS_ASSERT (input == HarqIr);
+      m_harqMethod = HarqIr;
+    }
+}
+
+NrEesmErrorModel::HarqMethod
+NrEesmErrorModel::GetHarqMethod () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_harqMethod;
+}
+
 
 } // namespace ns3
 
