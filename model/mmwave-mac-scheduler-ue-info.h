@@ -171,7 +171,7 @@ public:
    */
   virtual void UpdateDlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
   {
-    m_dlTbSize = amc->GetPayloadSize (m_dlMcs, m_dlRBG * config->GetNumRbPerRbg ());
+    m_dlTbSize = amc->CalculateTbSize (m_dlMcs, m_dlRBG * config->GetNumRbPerRbg ());
   }
 
   /**
@@ -193,7 +193,7 @@ public:
    */
   virtual void UpdateUlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
   {
-    m_ulTbSize = amc->GetPayloadSize (m_ulMcs, m_ulRBG * config->GetNumRbPerRbg ());
+    m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * config->GetNumRbPerRbg ());
   }
 
   /**
