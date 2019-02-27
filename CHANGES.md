@@ -151,6 +151,7 @@ Removed attribute _PhyMacCommon::WbCqiPeriod_ as it was unused.
 * Previously there was a single propagation loss model, no matter how many BWPs there are in the simulation. Now, there is a propagation loss model instance per BWP. Long story short. MmWaveHelper instantiates a channel instance per BWP. The channel of each BWP is configured by using its own instance of the MmWavePhyMacCommon channel parameters. Since different BWPs are on different frequencies each BWP shall have its own propagation loss model that is configured with the frequency of the corresponding BWP.
 * The default value of the UpdatePeriod parameter of the MmWave3gppChannel is returned to 0 ms. This is because it is detected that there are many occasions when the update of the channel matrix is not needed in the simulation example or the test, hence when the update is enabled by default the execution time of these simulations unnecessarily is slowed down.
 * The SINR traces in MmWaveSpectrumPhy are now printed based on the TB of the UE, and not the entire band as it was before.
+* The scheduler now assigns the maximum amount of data that is possible to the various LCs. Before, if there was only one LC with only 3 bytes, the assignation would have been of 3 bytes, despite of the TBS. Now, all the TBS can be assigned to him. We also manage cases in which multiple LC or LCG are active, but (as before) only in a round-robin fashion.
 
 ---
 

@@ -960,34 +960,40 @@ MmWaveMacSchedulerNs3::AssignBytesToLC (const std::unordered_map<uint8_t, LCGPtr
 
   std::vector<Assignation> ret;
 
-  NS_LOG_INFO ("To distribute: " << tbs << " bytes");
+  NS_LOG_INFO ("To distribute: " << tbs << " bytes over " << ueLCG.size () << " LCG");
+
+  uint32_t activeLc = 0;
   for (const auto & lcg : ueLCG)
     {
-      uint32_t lcgTotalSize = GetLCG (lcg)->GetTotalSize ();
-      if (lcgTotalSize > 0)
+      std::vector<uint8_t> lcs = GetLCG (lcg)->GetLCId ();
+      for (const auto & lcId : lcs)
         {
-          std::vector<uint8_t> lcs = GetLCG (lcg)->GetLCId ();
-          for (const auto & lcId : lcs)
+          if (GetLCG (lcg)->GetTotalSizeOfLC (lcId) > 0)
             {
-              if (GetLCG (lcg)->GetTotalSizeOfLC (lcId) > 0 && lcgTotalSize > 0)
-                {
-                  uint32_t amount = std::min (tbs, lcgTotalSize);
-                  amount = std::min (amount, GetLCG (lcg)->GetTotalSizeOfLC (lcId));
+              ++activeLc;
+            }
+        }
+    }
 
-                  tbs -= amount;
-                  lcgTotalSize -= amount;
+  if (activeLc == 0)
+    {
+      return ret;
+    }
 
-                  NS_LOG_INFO ("Assigned to LCID " << static_cast<uint32_t> (lcId) <<
-                               " inside LCG " << static_cast<uint32_t> (GetLCGID (lcg)) <<
-                               " an amount of " << amount << " B, remaining in the LCG " <<
-                               lcgTotalSize);
-                  ret.emplace_back (Assignation (GetLCGID (lcg), lcId, amount));
+  uint32_t amountPerLC = tbs / activeLc;
+  NS_LOG_INFO ("Total LC: " << activeLc << " each one will receive " << amountPerLC << " bytes");
 
-                  if (tbs == 0 || lcgTotalSize == 0)
-                    {
-                      break;
-                    }
-                }
+  for (const auto & lcg : ueLCG)
+    {
+      std::vector<uint8_t> lcs = GetLCG (lcg)->GetLCId ();
+      for (const auto & lcId : lcs)
+        {
+          if (GetLCG (lcg)->GetTotalSizeOfLC (lcId) > 0)
+            {
+              NS_LOG_INFO ("Assigned to LCID " << static_cast<uint32_t> (lcId) <<
+                           " inside LCG " << static_cast<uint32_t> (GetLCGID (lcg)) <<
+                           " an amount of " << amountPerLC << " B");
+              ret.emplace_back (Assignation (GetLCGID (lcg), lcId, amountPerLC));
             }
         }
     }
