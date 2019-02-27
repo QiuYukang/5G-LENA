@@ -69,11 +69,20 @@ MmWaveMacSchedulerLCG::AssignedData (uint8_t lcId, uint32_t size)
         }
       else
         {
+          NS_ASSERT (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize > size);
           m_lcMap.at (lcId)->m_rlcTransmissionQueueSize -= size; //- rlcOverhead;
         }
     }
 
-  m_totalSize -= size;
+  if (m_totalSize >= size)
+    {
+      m_totalSize -= size;
+    }
+  else
+    {
+      m_totalSize = 0;
+    }
+
 }
 
 } // namespace ns3
