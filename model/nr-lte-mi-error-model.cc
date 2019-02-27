@@ -493,12 +493,12 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   double tbMi = Mib (sinr, map, mcs);
   double MI = tbMi;
   double Reff = 0.0;
-  uint32_t infoBits = 0;
 
   if (history.size () > 0)
     {
       uint32_t codeBitsSum = 0;
       double miSum = 0.0;
+      uint32_t infoBits = DynamicCast<NrLteMiErrorModelOutput> (history.front ())->m_infoBits;
 
       for (const Ptr<NrErrorModelOutput> & output : history)
         {
@@ -510,7 +510,6 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
           codeBitsSum += miHistory->m_codeBits;
           miSum += (miHistory->m_mi * miHistory->m_codeBits);
-          infoBits = miHistory->m_infoBits;
         }
 
       codeBitsSum += size / McsEcrTable [mcs];
