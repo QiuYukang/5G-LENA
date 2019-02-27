@@ -639,14 +639,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   ret->m_mi = tbMi;
   ret->m_miTotal = MI;
   ret->m_infoBits = size;
-  if (history.size () > 0)
-    {
-      ret->m_codeBits = size / Reff;
-    }
-  else
-    {
-      ret->m_codeBits = static_cast<uint32_t> (size / (BlerCurvesEcrMap[ecrId]));
-    }
+  ret->m_codeBits = size / McsEcrTable [mcs];
 
   return ret;
 }
