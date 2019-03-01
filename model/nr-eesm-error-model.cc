@@ -3303,7 +3303,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
           for (uint32_t i = 0; i < map.size (); i++)
              {
-                sinr_sum[i] += SINReff_previousTx;
+                sinr_sum[map.at(i)] += SINReff_previousTx;
              }
 
           NS_LOG_INFO ("MAP_SUM: " << PrintMap (map_sum));
@@ -3311,7 +3311,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
           // compute equivalent effective code rate after retransmissions
           uint32_t codeBitsSum = 0;
-          uint32_t infoBits = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.front ())->m_infoBits;
+          uint32_t infoBits = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.front ())->m_infoBits;  // information bits of the first TB
 
           for (const Ptr<NrErrorModelOutput> & output : sinrHistory)
             {
@@ -3325,7 +3325,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
             }
 
           codeBitsSum += sizeBit / m_mcsEcrTable->at (mcs);;
-          Reff = infoBits / static_cast<double> (codeBitsSum); // information bits are the size of the first TB
+          Reff = infoBits / static_cast<double> (codeBitsSum);
 
           NS_LOG_INFO (" Reff " << Reff << " HARQ history (previous) " << sinrHistory.size ());
 
@@ -3451,8 +3451,8 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   ret->m_sinr = sinr;
   ret->m_map = map;
   ret->m_sinrEff = SINR;
-  ret->m_infoBits = sizeBit;
-  ret->m_codeBits = (sizeBit) / m_mcsEcrTable->at (mcs);
+  ret->m_infoBits = sizeBit * m_mcsEcrTable->at (mcs);
+  ret->m_codeBits = sizeBit;
 
   return ret;
 }
