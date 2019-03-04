@@ -637,8 +637,8 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   Ptr<NrLteMiErrorModelOutput> ret = Create<NrLteMiErrorModelOutput> (errorRate);
   ret->m_mi = tbMi;
   ret->m_miTotal = MI;
-  ret->m_infoBits = size * McsEcrTable [mcs];
-  ret->m_codeBits = size;
+  ret->m_infoBits = size;
+  ret->m_codeBits = size / McsEcrTable [mcs];
 
   return ret;
 }

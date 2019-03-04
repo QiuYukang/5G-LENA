@@ -3451,8 +3451,8 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   ret->m_sinr = sinr;
   ret->m_map = map;
   ret->m_sinrEff = SINR;
-  ret->m_infoBits = sizeBit * m_mcsEcrTable->at (mcs);
-  ret->m_codeBits = sizeBit;
+  ret->m_infoBits = sizeBit;
+  ret->m_codeBits = sizeBit / m_mcsEcrTable->at (mcs);
 
   return ret;
 }
