@@ -420,7 +420,7 @@ MmWave3gppBuildingsPropagationLossModel::GetScenario ()
   return m_3gppLos->GetScenario ();
 }
 
-void MmWave3gppBuildingsPropagationLossModel::AddUeMobilityModel (Ptr<MobilityModel> a) const
+void MmWave3gppBuildingsPropagationLossModel::AddUeMobilityModel (Ptr<const MobilityModel> a) const
 {
   m_3gppLos->AddUeMobilityModel (a);
   m_3gppNlos->AddUeMobilityModel (a);
@@ -444,6 +444,12 @@ MmWave3gppBuildingsPropagationLossModel::GetChannelCondition (Ptr<MobilityModel>
     }
   return (*it).second.m_channelCondition;
 
+}
+
+bool
+MmWave3gppBuildingsPropagationLossModel::IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const
+{
+  return m_3gppLos->IsValidLink (a, b);
 }
 
 

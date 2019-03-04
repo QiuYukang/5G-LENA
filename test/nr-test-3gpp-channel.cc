@@ -452,59 +452,111 @@ NrTest3gppChannelTestCase::DoRun()
   channel->SetAttribute ("CenterFrequency", DoubleValue (m_centerFrequency));
   channel->SetAttribute ("Bandwidth", DoubleValue (m_bandwidth));
 
-  Ptr<Node> ueNode = CreateObject<Node>();
-  Ptr<Node> gnbNode = CreateObject<Node>();
+  Ptr<Node> ueNode1 = CreateObject<Node>();
+  Ptr<Node> gnbNode1 = CreateObject<Node>();
+
+  Ptr<Node> ueNode2 = CreateObject<Node>();
+  Ptr<Node> gnbNode2 = CreateObject<Node>();
 
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 1.5));
   positionAlloc->Add (Vector (0.0, 10.0, 10 ));
 
+  positionAlloc->Add (Vector (1.0, 0.0, 1.5));
+  positionAlloc->Add (Vector (1.0, 10.0, 10 ));
+
   MobilityHelper mobility;
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positionAlloc);
-  mobility.Install (ueNode);
-  mobility.Install (gnbNode);
+  mobility.Install (ueNode1);
+  mobility.Install (gnbNode1);
+  mobility.Install (ueNode2);
+  mobility.Install (gnbNode2);
 
-  Ptr<SimpleNetDevice> ueDev =  CreateObject<SimpleNetDevice> ();
-  Ptr<SimpleNetDevice> gnbDev =  CreateObject<SimpleNetDevice> ();
+  Ptr<SimpleNetDevice> ueDev1 =  CreateObject<SimpleNetDevice> ();
+  Ptr<SimpleNetDevice> gnbDev1 =  CreateObject<SimpleNetDevice> ();
 
-  ueNode->AddDevice(ueDev);
-  gnbNode->AddDevice(gnbDev);
+  Ptr<SimpleNetDevice> ueDev2 =  CreateObject<SimpleNetDevice> ();
+  Ptr<SimpleNetDevice> gnbDev2 =  CreateObject<SimpleNetDevice> ();
 
-  ueDev->SetNode (ueNode);
-  gnbDev->SetNode (gnbNode);
+  ueNode1->AddDevice(ueDev1);
+  gnbNode1->AddDevice(gnbDev1);
+  ueDev1->SetNode (ueNode1);
+  gnbDev1->SetNode (gnbNode1);
 
-  Ptr<AntennaArrayModel> ueAnt = CreateObject<AntennaArrayModel>();
-  Ptr<AntennaArrayModel> gnbAnt = CreateObject<AntennaArrayModel>();
+
+  ueNode2->AddDevice(ueDev2);
+  gnbNode2->AddDevice(gnbDev2);
+  ueDev2->SetNode (ueNode2);
+  gnbDev2->SetNode (gnbNode2);
+
+  Ptr<AntennaArrayModel> ueAnt1 = CreateObject<AntennaArrayModel>();
+  Ptr<AntennaArrayModel> gnbAnt1 = CreateObject<AntennaArrayModel>();
+
+  Ptr<AntennaArrayModel> ueAnt2 = CreateObject<AntennaArrayModel>();
+  Ptr<AntennaArrayModel> gnbAnt2 = CreateObject<AntennaArrayModel>();
 
   TestParams testParams;
-  testParams.ueMm = ueNode->GetObject<MobilityModel>();
-  testParams.gnbMm = gnbNode->GetObject<MobilityModel>();
-  testParams.ueDevice = ueDev;
-  testParams.gnbDevice = gnbDev;
-  testParams.gnbAnt = gnbAnt;
-  testParams.ueAnt = ueAnt;
+  testParams.ueMm = ueNode1->GetObject<MobilityModel>();
+  testParams.gnbMm = gnbNode1->GetObject<MobilityModel>();
+  testParams.ueDevice = ueDev1;
+  testParams.gnbDevice = gnbDev1;
+  testParams.gnbAnt = gnbAnt1;
+  testParams.ueAnt = ueAnt1;
 
-  TestCreateInitialBeamformingVectors (channel, ueDev, ueAnt, gnbDev, gnbAnt);
+  TestCreateInitialBeamformingVectors (channel, ueDev1, ueAnt1, gnbDev1, gnbAnt1);
+
+  TestCreateInitialBeamformingVectors (channel, ueDev2, ueAnt2, gnbDev2, gnbAnt2);
 
   pathLoss->m_channelConditions = m_channelCondition;
-  TestDoGetChannelCondition (channel, ueNode->GetObject<MobilityModel>(), gnbNode->GetObject<MobilityModel>(), m_channelCondition);
+  TestDoGetChannelCondition (channel, ueNode1->GetObject<MobilityModel>(), gnbNode1->GetObject<MobilityModel>(), m_channelCondition);
 
   Simulator::Schedule (Seconds (1), &NrTest3gppChannelTestCase::TestBeamSearchBeamforming, this, channel, testParams);
 
   Simulator::Schedule (Seconds (2), &NrTest3gppChannelTestCase::TestLongTermCovMatrixBeamforming, this, channel, testParams);
 
 
-  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode->GetObject<MobilityModel>(),
-                                                    gnbNode->GetObject<MobilityModel>()), false, "Channel matrix should not exist yet");
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode1->GetObject<MobilityModel>(),
+                                                    gnbNode1->GetObject<MobilityModel>()), false, "Channel matrix should not exist yet");
 
-  channel->DoGetChannel (ueNode->GetObject<MobilityModel>(), gnbNode->GetObject<MobilityModel>());
+  channel->DoGetChannel (ueNode1->GetObject<MobilityModel>(), gnbNode1->GetObject<MobilityModel>());
 
+  channel->DoGetChannel (ueNode1->GetObject<MobilityModel>(), gnbNode2->GetObject<MobilityModel>());
 
-  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode->GetObject<MobilityModel>(),
-                                                     gnbNode->GetObject<MobilityModel>()), true, "Channel matrix should exist at this point");
+  channel->DoGetChannel (ueNode2->GetObject<MobilityModel>(), gnbNode1->GetObject<MobilityModel>());
 
-  TestDoCalcRxPowerSpectralDensity (channel, ueNode->GetObject<MobilityModel>(), gnbNode->GetObject<MobilityModel>(), ueDev, gnbDev, m_rxNumerology, m_txNumerology);
+  channel->DoGetChannel (ueNode2->GetObject<MobilityModel>(), gnbNode2->GetObject<MobilityModel>());
+
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode1->GetObject<MobilityModel>(),
+                                                     gnbNode1->GetObject<MobilityModel>()), true, "Channel matrix should exist at this point");
+
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode1->GetObject<MobilityModel>(),
+                                                     gnbNode2->GetObject<MobilityModel>()), true, "Channel matrix should exist at this point");
+
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode2->GetObject<MobilityModel>(),
+                                                     gnbNode1->GetObject<MobilityModel>()), true, "Channel matrix should exist at this point");
+
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode2->GetObject<MobilityModel>(),
+                                                     gnbNode2->GetObject<MobilityModel>()), true, "Channel matrix should exist at this point");
+
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(gnbNode1->GetObject<MobilityModel>(),
+                                                    gnbNode2->GetObject<MobilityModel>()), false, "Channel matrix between eNbs should not exist");
+
+  NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode1->GetObject<MobilityModel>(),
+                                                    ueNode2->GetObject<MobilityModel>()), false, "Channel matrix between UEs should not exist");
+
+  NS_TEST_ASSERT_MSG_EQ (channel->IsValidLink(ueNode1->GetObject<MobilityModel>(), ueNode2->GetObject<MobilityModel>()), false, "Ue<->Ue 3gpp channel link is currently not supported");
+
+  NS_TEST_ASSERT_MSG_EQ (channel->IsValidLink(gnbNode1->GetObject<MobilityModel>(), gnbNode2->GetObject<MobilityModel>()), false, "gnb<->gnb 3gpp channel link is currently not supported");
+
+  NS_TEST_ASSERT_MSG_EQ (channel->IsValidLink(ueNode1->GetObject<MobilityModel>(), gnbNode1->GetObject<MobilityModel>()), true, "Ue<->gNb 3gpp is a valid link");
+
+  NS_TEST_ASSERT_MSG_EQ (channel->IsValidLink(ueNode2->GetObject<MobilityModel>(), gnbNode2->GetObject<MobilityModel>()), true, "Ue<->gNb 3gpp is a valid link");
+
+  TestDoCalcRxPowerSpectralDensity (channel, ueNode1->GetObject<MobilityModel>(), gnbNode1->GetObject<MobilityModel>(), ueDev1, gnbDev1, m_rxNumerology, m_txNumerology);
+
+  TestDoCalcRxPowerSpectralDensity (channel, ueNode1->GetObject<MobilityModel>(), gnbNode2->GetObject<MobilityModel>(), ueDev1, gnbDev2, m_rxNumerology, m_txNumerology);
+
 
 }
 

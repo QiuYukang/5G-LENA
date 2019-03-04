@@ -648,13 +648,13 @@ MmWave3gppPropagationLossModel::CalculateLoss (Ptr<MobilityModel> ueMob, Ptr<Mob
 }
 
 
-void MmWave3gppPropagationLossModel::AddUeMobilityModel (Ptr<MobilityModel> a)
+void MmWave3gppPropagationLossModel::AddUeMobilityModel (Ptr<const MobilityModel> a)
 {
   m_ueMobilityModels.insert(a);
 
 }
 
-bool MmWave3gppPropagationLossModel::IsUeMobilityModel (Ptr<MobilityModel> a) const
+bool MmWave3gppPropagationLossModel::IsUeMobilityModel (Ptr<const MobilityModel> a) const
 {
   if (m_ueMobilityModels.size()==0)
     {
@@ -671,7 +671,7 @@ bool MmWave3gppPropagationLossModel::IsUeMobilityModel (Ptr<MobilityModel> a) co
 }
 
 bool
-MmWave3gppPropagationLossModel::IsValidLink (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const
+MmWave3gppPropagationLossModel::IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const
 {
   if (IsUeMobilityModel(a) && IsUeMobilityModel(b))
     {

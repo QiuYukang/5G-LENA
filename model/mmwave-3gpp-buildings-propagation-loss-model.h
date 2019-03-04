@@ -51,10 +51,20 @@ public:
 private:
 
   /**
+   * Function checks if the link is between UE and BS, if it is then it returns
+   * true. Otherwise if the link is between two UEs or two BS it returns false.
+   * @param a Mobility model of the first device
+   * @param b Mobility model of the second device
+   * @return whether the link is a valid link, and the valid link is considered
+   * when it is between UE and BS
+   */
+  bool IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
+
+  /**
    * Adds the mobility model to the list of UE mobility models
    * @param a Mobility model to be added to the list of mobility models
    */
-  void AddUeMobilityModel (Ptr<MobilityModel> a) const;
+  void AddUeMobilityModel (Ptr<const MobilityModel> a) const;
 
   /**
    * Created new channel condition element corresponding to the link between the two devices
