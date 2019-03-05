@@ -106,12 +106,12 @@ public:
 private:
 
   /**
-   * Checks whether the mobility model belong to UE device.
+   * Checks whether the mobility model belongs to UE device.
    * @param a mobility model
    * @return bool value which is true if the mobility model belongs to UE device,
    * and false if it is not UE device
    */
-  bool IsUeMobilityModel (Ptr<MobilityModel> a) const;
+  bool IsUeMobilityModel (Ptr<const MobilityModel> a) const;
 
   /**
   * Adds the mobility model to the list of UE mobility models. This function
@@ -119,7 +119,7 @@ private:
   * is normally called by the 3gppChannelModel.
   * @param a Mobility model to be added to the list of mobility models
   */
-  void AddUeMobilityModel (Ptr<MobilityModel> a);
+  void AddUeMobilityModel (Ptr<const MobilityModel> a);
 
   /**
    * Function checks if the link is between UE and BS, if it is then it returns
@@ -127,9 +127,9 @@ private:
    * @param a Mobility model of the first device
    * @param b Mobility model of the second device
    * @return whether the link is a valid link, and the valid link is considered
-   * when it is betwen UE and BS
+   * when it is between UE and BS
    */
-  bool IsValidLink (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
+  bool IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 
 
   /**
@@ -170,7 +170,7 @@ private:
   bool m_shadowingEnabled;
   bool m_inCar;
 
-  std::set <Ptr<MobilityModel> > m_ueMobilityModels; //!< List of mobility models belonging to the UEs. This map is used internally to understand if the mobility model corresponds to UE device.
+  std::set <Ptr<const MobilityModel> > m_ueMobilityModels; //!< List of mobility models belonging to the UEs. This map is used internally to understand if the mobility model corresponds to UE device.
 
 };
 

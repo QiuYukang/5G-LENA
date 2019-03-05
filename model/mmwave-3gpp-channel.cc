@@ -354,8 +354,7 @@ MmWave3gppChannel::IsBeamforming (Ptr<const MobilityModel> a , Ptr<const Mobilit
   Ptr<NetDevice> dev1 = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
 
-  if (!AreConnected (a, b) ||
-      GetAntennaArray(dev1)->IsOmniTx () ||
+  if (GetAntennaArray(dev1)->IsOmniTx () ||
       GetAntennaArray(dev2)->IsOmniTx())
     {
       return false;
@@ -425,6 +424,27 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
     {
       NS_ABORT_MSG ("Pathloss model unknown");
     }
+}
+
+bool
+MmWave3gppChannel::IsValidLink (Ptr<const MobilityModel> a,
+                                Ptr<const MobilityModel> b) const
+{
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+     {
+       return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
+           ->IsValidLink (a, b);
+     }
+   else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+     {
+       return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
+           ->IsValidLink (a, b);
+     }
+   else
+     {
+       NS_ABORT_MSG ("Pathloss model unknown");
+       return 0;
+     }
 }
 
 InputParams3gpp
@@ -623,7 +643,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
-  if (!IsBeamforming(a, b))
+  if (!IsBeamforming(a, b) or !IsValidLink(a,b))
     {
       NS_LOG_INFO ("!IsBeamForming, returning");
       return rxPsd;

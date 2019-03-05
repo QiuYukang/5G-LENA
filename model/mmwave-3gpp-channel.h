@@ -349,6 +349,17 @@ private:
   InputParams3gpp GetInput3gppParameters (Ptr<const MobilityModel> a,
                                           Ptr<const MobilityModel> b) const;
 
+  /**
+   * Function checks if the link is between UE and BS, if it is then it returns
+   * true. Otherwise if the link is between two UEs or two BS it returns false.
+   * @param a Mobility model of the first device
+   * @param b Mobility model of the second device
+   * @return whether the link is a valid link, and the valid link is considered
+   * when it is between UE and BS
+   */
+  bool IsValidLink (Ptr<const MobilityModel> a,
+                    Ptr<const MobilityModel> b) const;
+
   void DoUpdateLongTerm (Ptr<const MobilityModel> a,
                          Ptr<const MobilityModel> b) const;
 
