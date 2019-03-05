@@ -617,12 +617,15 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
                                                  Ptr<const MobilityModel> b) const
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0, "the position of tx and rx devices cannot be the same");
+  NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0,
+                 "the position of tx and rx devices cannot be the same. Tx " << a->GetPosition () <<
+                 " rx " << b->GetPosition ());
 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
   if (!IsBeamforming(a, b))
     {
+      NS_LOG_INFO ("!IsBeamForming, returning");
       return rxPsd;
     }
 
@@ -700,6 +703,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           NS_LOG_INFO ("txW.size() == 0 " << (txAntennaArray->GetCurrentBeamformingVector ().first.size () == 0));
           NS_LOG_INFO ("rxW.size() == 0 " << (rxAntennaArray->GetCurrentBeamformingVector ().first.size () == 0));
           GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
+          NS_LOG_INFO ("Not connected pair, do not do anything");
           return rxPsd;
         }
         
