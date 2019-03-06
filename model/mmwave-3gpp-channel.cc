@@ -424,6 +424,12 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
     {
       NS_ABORT_MSG ("Pathloss model unknown");
     }
+
+  if (m_updateBeamformingVectorIdeally)
+    {
+      PerformBeamforming (ueDevice->GetNode()->GetObject<MobilityModel>(),
+                          bsDevice->GetNode()->GetObject<MobilityModel>());
+    }
 }
 
 bool
