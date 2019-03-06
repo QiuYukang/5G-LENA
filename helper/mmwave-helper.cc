@@ -826,27 +826,6 @@ MmWaveHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContain
     {
       AttachToClosestEnb (*i, enbDevices);
     }
-
-  if (m_channelModelType == "ns3::MmWave3gppChannel")
-    {
-      for (auto it:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
-        {
-          uint32_t ccid = it->GetCcId();
-          Ptr<MmWave3gppChannel> channel3gpp = m_3gppChannel.at(ccid);
-          NS_ABORT_MSG_IF( channel3gpp == nullptr , "3gpp channel does not exist for the specified CCID");
-          for (NetDeviceContainer::Iterator ue = ueDevices.Begin (); ue != ueDevices.End (); ue++)
-             {
-               Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (*ue);
-               if (ueDev->GetTargetEnb ())
-                 {
-                    Ptr<NetDevice> targetBs = ueDev->GetTargetEnb ();
-                    Ptr<AntennaArrayBasicModel> ueAntenna = (DynamicCast<MmWaveNetDevice>(ueDev))->GetPhy(it->GetCcId())->GetAntennaArray();
-                    Ptr<AntennaArrayBasicModel> bsAntenna = (DynamicCast<MmWaveNetDevice>(targetBs))->GetPhy(it->GetCcId())->GetAntennaArray();
-                    channel3gpp->CreateInitialBeamformingVectors(ueDev, ueAntenna, targetBs, bsAntenna);
-                 }
-            }
-        }
-    }
 }
 
 void
@@ -869,7 +848,15 @@ MmWaveHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer en
     }
   NS_ASSERT (closestEnbDevice != 0);
 
-  auto enbNetDev = closestEnbDevice->GetObject<MmWaveEnbNetDevice> ();
+  AttachToEnb (ueDevice, closestEnbDevice);
+}
+
+
+void
+MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
+                           const Ptr<NetDevice> &gnbDevice)
+{
+  auto enbNetDev = gnbDevice->GetObject<MmWaveEnbNetDevice> ();
   auto ueNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
 
   NS_ABORT_IF (enbNetDev == nullptr || ueNetDev == nullptr);
@@ -885,8 +872,8 @@ MmWaveHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer en
     }
 
   Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
-  ueNas->Connect (closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (),
-                  closestEnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn ());
+  ueNas->Connect (gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (),
+                  gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn ());
 
   if (m_epcHelper != 0)
     {
@@ -897,10 +884,24 @@ MmWaveHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer en
   // tricks needed for the simplified LTE-only simulations
   //if (m_epcHelper == 0)
   //{
-  ueDevice->GetObject<MmWaveUeNetDevice> ()->SetTargetEnb (closestEnbDevice->GetObject<MmWaveEnbNetDevice> ());
+  ueNetDev->SetTargetEnb (enbNetDev);
   //}
 
+  if (m_channelModelType == "ns3::MmWave3gppChannel")
+    {
+      for (auto it:m_bandwidthPartsConf->GetBandwidhtPartsConf ())
+        {
+          uint32_t ccid = it->GetCcId();
+          Ptr<MmWave3gppChannel> channel3gpp = m_3gppChannel.at(ccid);
+          NS_ABORT_MSG_IF( channel3gpp == nullptr , "3gpp channel does not exist for the specified CCID");
+
+          Ptr<AntennaArrayBasicModel> ueAntenna = ueNetDev->GetPhy(it->GetCcId())->GetAntennaArray();
+          Ptr<AntennaArrayBasicModel> bsAntenna = enbNetDev->GetPhy(it->GetCcId())->GetAntennaArray();
+          channel3gpp->CreateInitialBeamformingVectors(ueNetDev, ueAntenna, enbNetDev, bsAntenna);
+        }
+    }
 }
+
 
 
 uint8_t

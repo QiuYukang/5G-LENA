@@ -184,6 +184,8 @@ public:
 
 
   void AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+  void AttachToEnb (const Ptr<NetDevice> &ueDevice, const Ptr<NetDevice> &gnbDevice);
+
   void EnableTraces ();
 
   void SetSchedulerType (std::string type);
