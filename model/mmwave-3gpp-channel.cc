@@ -720,8 +720,15 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
        if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
            rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)
         {
-          NS_LOG_INFO ("txW.size() == 0 " << (txAntennaArray->GetCurrentBeamformingVector ().first.size () == 0));
-          NS_LOG_INFO ("rxW.size() == 0 " << (rxAntennaArray->GetCurrentBeamformingVector ().first.size () == 0));
+          if (txAntennaArray->GetCurrentBeamformingVector ().first.size () == 0)
+            {
+               NS_LOG_INFO ("txW.size() == 0 ");
+            }
+          if (rxAntennaArray->GetCurrentBeamformingVector ().first.size () == 0)
+            {
+              NS_LOG_INFO ("rxW.size() == 0");
+            }
+
           GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
           NS_LOG_INFO ("Not connected pair, do not do anything");
           return rxPsd;
