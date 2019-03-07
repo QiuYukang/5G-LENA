@@ -979,6 +979,10 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
   txAntennaArray->SetBeamformingVector (txW, emptyId, rxDevice);
   rxAntennaArray->SetBeamformingVector (rxW, emptyId, txDevice);
 
+  params3gpp->m_longTerm = CalLongTerm (txW, rxW,
+                                        params3gpp->m_delay, params3gpp->m_channel);
+  params3gpp->m_longTermUpdateTime = Now ();
+
 }
 
 Ptr<SpectrumValue>
@@ -2846,6 +2850,11 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
   txAntennaArray->SetBeamformingVector (txAntennaArray->GetCurrentBeamformingVector().first, txAntennaArray->GetCurrentBeamformingVector().second, rxDevice);
   rxAntennaArray->SetBeamformingVector (rxAntennaArray->GetCurrentBeamformingVector().first, rxAntennaArray->GetCurrentBeamformingVector().second, txDevice);
+
+  params3gpp->m_longTerm = CalLongTerm (txAntennaArray->GetCurrentBeamformingVector().first,
+                                        rxAntennaArray->GetCurrentBeamformingVector().first,
+                                        params3gpp->m_delay, params3gpp->m_channel);
+  params3gpp->m_longTermUpdateTime = Now ();
 
   NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector().first.size()==0 || rxAntennaArray->GetCurrentBeamformingVector().first.size()==0, "Beamforming vectors must be initialized.");
 
