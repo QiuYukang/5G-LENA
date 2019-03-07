@@ -230,7 +230,7 @@ public:
    * \return returns the 3D vector that represents the position of the antenna
    * by specifing x, y and z coordinate
    */
-  virtual Vector GetAntennaLocation (uint8_t index) = 0;
+  virtual Vector GetAntennaLocation (uint32_t index) = 0;
 
   virtual void SetSector (uint32_t sector) = 0;
 

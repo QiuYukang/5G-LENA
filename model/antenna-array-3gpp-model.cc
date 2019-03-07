@@ -176,7 +176,7 @@ AntennaArray3gppModel::GetRadiationPattern (double vAngleRadian, double hAngleRa
 }
 
 Vector
-AntennaArray3gppModel::GetAntennaLocation (uint8_t index)
+AntennaArray3gppModel::GetAntennaLocation (uint32_t index)
 {
   Vector loc;
 

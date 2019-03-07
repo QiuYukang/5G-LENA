@@ -384,7 +384,7 @@ AntennaArrayModel::GetRadiationPattern (double vAngle, double hAngle)
 }
 
 Vector
-AntennaArrayModel::GetAntennaLocation (uint8_t index)
+AntennaArrayModel::GetAntennaLocation (uint32_t index)
 {
   Vector loc;
 

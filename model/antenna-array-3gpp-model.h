@@ -65,7 +65,7 @@ public:
 
   virtual double GetRadiationPattern (double vAngle, double hAngle = 0) override;
 
-  Vector GetAntennaLocation (uint8_t index) override;
+  Vector GetAntennaLocation (uint32_t index) override;
 
 private:
 

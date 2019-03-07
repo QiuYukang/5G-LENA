@@ -55,35 +55,35 @@ public:
   virtual double GetGainDb (Angles a) override;
 
   virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
-                                     Ptr<NetDevice> device);
+                                     Ptr<NetDevice> device) override;
 
   virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
-                                              Ptr<NetDevice> device);
+                                              Ptr<NetDevice> device) override;
 
-  virtual void ChangeBeamformingVector (Ptr<NetDevice> device);
+  virtual void ChangeBeamformingVector (Ptr<NetDevice> device) override;
 
-  virtual void ChangeToOmniTx ();
+  virtual void ChangeToOmniTx () override;
 
-  virtual BeamformingVector GetCurrentBeamformingVector ();
+  virtual BeamformingVector GetCurrentBeamformingVector () override;
 
-  virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device);
+  virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) override;
 
   /**
    * Returns the time at which was the last time updated the beamforming vector for the given device.
    * @param device for which is used the beamforming vector whose last update time is needed
    * @return the time at which the beamforming vector was being updated
    */
-  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device);
+  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device) override;
 
-  virtual bool IsOmniTx ();
+  virtual bool IsOmniTx () override;
 
-  virtual double GetRadiationPattern (double vangle, double hangle = 0);
+  virtual double GetRadiationPattern (double vangle, double hangle = 0) override;
 
-  virtual Vector GetAntennaLocation (uint8_t index);
+  virtual Vector GetAntennaLocation (uint32_t index) override;
 
-  virtual void SetSector (uint32_t sector);
+  virtual void SetSector (uint32_t sector) override;
 
-  virtual void SetSector (uint8_t sector, double elevation = 90);
+  virtual void SetSector (uint8_t sector, double elevation = 90) override;
 
   void SetAntennaOrientation (enum AntennaArrayModel::AntennaOrientation orientation);
 
@@ -114,13 +114,13 @@ public:
   * Get SpectrumModel corresponding to this antenna instance
   * @return SpectrumModel
   */
-  virtual Ptr<const SpectrumModel> GetSpectrumModel () const;
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
 
   /**
    * Set SpectrumModel that will be used by this antenna instancew
    * @param sm SpectrumModel to be used
    */
-  virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm);
+  virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm) override;
 
 private:
 

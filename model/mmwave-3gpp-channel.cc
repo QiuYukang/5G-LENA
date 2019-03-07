@@ -821,25 +821,25 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
   //generate transmitter side spatial correlation matrix
-  uint8_t txSize = params3gpp->m_channel.at (0).size ();
-  uint8_t rxSize = params3gpp->m_channel.size ();
+  size_t txSize = params3gpp->m_channel.at (0).size ();
+  size_t rxSize = params3gpp->m_channel.size ();
   complex2DVector_t txQ;
   txQ.resize (txSize);
 
-  for (uint8_t txIndex = 0; txIndex < txSize; txIndex++)
+  for (size_t txIndex = 0; txIndex < txSize; txIndex++)
     {
       txQ.at (txIndex).resize (txSize);
     }
 
   //compute the transmitter side spatial correlation matrix txQ = H*H, where H is the sum of H_n over n clusters.
-  for (uint8_t t1Index = 0; t1Index < txSize; t1Index++)
+  for (size_t t1Index = 0; t1Index < txSize; t1Index++)
     {
-      for (uint8_t t2Index = 0; t2Index < txSize; t2Index++)
+      for (size_t t2Index = 0; t2Index < txSize; t2Index++)
         {
-          for (uint8_t rxIndex = 0; rxIndex < rxSize; rxIndex++)
+          for (size_t rxIndex = 0; rxIndex < rxSize; rxIndex++)
             {
               std::complex<double> cSum (0,0);
-              for (uint8_t cIndex = 0; cIndex < params3gpp->m_channel.at (rxIndex).at (t1Index).size (); cIndex++)
+              for (size_t cIndex = 0; cIndex < params3gpp->m_channel.at (rxIndex).at (t1Index).size (); cIndex++)
                 {
                   cSum = cSum + std::conj (params3gpp->m_channel.at (rxIndex).at (t1Index).at (cIndex)) *
                     (params3gpp->m_channel.at (rxIndex).at (t2Index).at (cIndex));
@@ -853,8 +853,8 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
 
   //calculate beamforming vector from spatial correlation matrix.
   complexVector_t antennaWeights;
-  uint8_t txAntenna = txQ.size ();
-  for (uint8_t eIndex = 0; eIndex < txAntenna; eIndex++)
+  size_t txAntenna = txQ.size ();
+  for (size_t eIndex = 0; eIndex < txAntenna; eIndex++)
     {
       antennaWeights.push_back (txQ.at (0).at (eIndex));
     }
@@ -866,10 +866,10 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
     {
       complexVector_t antennaWeights_New;
 
-      for (uint8_t row = 0; row < txAntenna; row++)
+      for (size_t row = 0; row < txAntenna; row++)
         {
           std::complex<double> sum (0,0);
-          for (uint8_t col = 0; col < txAntenna; col++)
+          for (size_t col = 0; col < txAntenna; col++)
             {
               sum += txQ.at (row).at (col) * antennaWeights.at (col);
             }
@@ -878,16 +878,16 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
         }
       //normalize antennaWeights;
       double weightSum = 0;
-      for (uint8_t i = 0; i < txAntenna; i++)
+      for (size_t i = 0; i < txAntenna; i++)
         {
           weightSum += norm (antennaWeights_New.at (i));
         }
-      for (uint8_t i = 0; i < txAntenna; i++)
+      for (size_t i = 0; i < txAntenna; i++)
         {
           antennaWeights_New.at (i) = antennaWeights_New.at (i) / sqrt (weightSum);
         }
       diff = 0;
-      for (uint8_t i = 0; i < txAntenna; i++)
+      for (size_t i = 0; i < txAntenna; i++)
         {
           diff += std::norm (antennaWeights_New.at (i) - antennaWeights.at (i));
         }
@@ -900,19 +900,19 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
   //compute the receiver side spatial correlation matrix rxQ = HH*, where H is the sum of H_n over n clusters.
   complex2DVector_t rxQ;
   rxQ.resize (rxSize);
-  for (uint8_t r1Index = 0; r1Index < rxSize; r1Index++)
+  for (size_t r1Index = 0; r1Index < rxSize; r1Index++)
     {
       rxQ.at (r1Index).resize (rxSize);
     }
 
-  for (uint8_t r1Index = 0; r1Index < rxSize; r1Index++)
+  for (size_t r1Index = 0; r1Index < rxSize; r1Index++)
     {
-      for (uint8_t r2Index = 0; r2Index < rxSize; r2Index++)
+      for (size_t r2Index = 0; r2Index < rxSize; r2Index++)
         {
-          for (uint8_t txIndex = 0; txIndex < txSize; txIndex++)
+          for (size_t txIndex = 0; txIndex < txSize; txIndex++)
             {
               std::complex<double> cSum (0,0);
-              for (uint8_t cIndex = 0; cIndex < params3gpp->m_channel.at (r1Index).at (txIndex).size (); cIndex++)
+              for (size_t cIndex = 0; cIndex < params3gpp->m_channel.at (r1Index).at (txIndex).size (); cIndex++)
                 {
                   cSum = cSum + params3gpp->m_channel.at (r1Index).at (txIndex).at (cIndex) *
                     std::conj (params3gpp->m_channel.at (r2Index).at (txIndex).at (cIndex));
@@ -925,8 +925,8 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
 
   //calculate beamforming vector from spatial correlation matrix.
   antennaWeights.clear ();
-  uint8_t rxAntenna = rxQ.size ();
-  for (uint8_t eIndex = 0; eIndex < rxAntenna; eIndex++)
+  size_t rxAntenna = rxQ.size ();
+  for (size_t eIndex = 0; eIndex < rxAntenna; eIndex++)
     {
       antennaWeights.push_back (rxQ.at (0).at (eIndex));
     }
@@ -937,10 +937,10 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
     {
       complexVector_t antennaWeights_New;
 
-      for (uint8_t row = 0; row < rxAntenna; row++)
+      for (size_t row = 0; row < rxAntenna; row++)
         {
           std::complex<double> sum (0,0);
-          for (uint8_t col = 0; col < rxAntenna; col++)
+          for (size_t col = 0; col < rxAntenna; col++)
             {
               sum += rxQ.at (row).at (col) * antennaWeights.at (col);
             }
@@ -950,16 +950,16 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
 
       //normalize antennaWeights;
       double weightSum = 0;
-      for (uint8_t i = 0; i < rxAntenna; i++)
+      for (size_t i = 0; i < rxAntenna; i++)
         {
           weightSum += norm (antennaWeights_New.at (i));
         }
-      for (uint8_t i = 0; i < rxAntenna; i++)
+      for (size_t i = 0; i < rxAntenna; i++)
         {
           antennaWeights_New.at (i) = antennaWeights_New.at (i) / sqrt (weightSum);
         }
       diff = 0;
-      for (uint8_t i = 0; i < rxAntenna; i++)
+      for (size_t i = 0; i < rxAntenna; i++)
         {
           diff += std::norm (antennaWeights_New.at (i) - antennaWeights.at (i));
         }
@@ -1008,7 +1008,7 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
   NS_ABORT_MSG_UNLESS (angle.at(1).size()==channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
 
   //channel[rx][tx][cluster]
-  uint8_t numCluster = delaySpread.size ();
+  size_t numCluster = delaySpread.size ();
   //the update of Doppler is simplified by only taking the center angle of each cluster in to consideration.
   Values::iterator vit = tempPsd->ValuesBegin ();
   Bands::const_iterator sbit = tempPsd->ConstBandsBegin(); // sub band iterator
@@ -1016,7 +1016,7 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
   uint16_t iSubband = 0;
   double varTtiTime = Simulator::Now ().GetSeconds ();
   complexVector_t doppler;
-  for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
+  for (size_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
       //cluster angle angle[direction][n],where, direction = 0(aoa), 1(zoa).
       double temp_doppler = 2 * M_PI * (sin (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.x
@@ -1033,10 +1033,9 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
       if ((*vit) != 0.00)
         {
           double fsb = (*sbit).fc; // take the carrier frequency of the band for which we al calculating the gain
-          for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++) // calculate for this subband for all the clusters
+          for (size_t cIndex = 0; cIndex < numCluster; cIndex++) // calculate for this subband for all the clusters
             {
               double delay = -2 * M_PI * fsb * (delaySpread.at (cIndex));
-              std::complex<double> txSum (0,0);
               subsbandGain = subsbandGain + longTerm.at (cIndex) * doppler.at (cIndex) * exp (std::complex<double> (0, delay));
             }
           *vit = (*vit) * (norm (subsbandGain));
@@ -1052,11 +1051,11 @@ void
 MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
 {
   m_3gppPathloss = pathloss;
-  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != nullptr)
     {
       m_scenario = m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()->GetScenario ();
     }
-  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != nullptr)
     {
       m_scenario = m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()->GetScenario ();
     }
@@ -1069,20 +1068,20 @@ MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
 complexVector_t
 MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const
 {
-  uint8_t txAntennaNum = txW.size ();
-  uint8_t rxAntennaNum = rxW.size ();
+  size_t txAntennaNum = txW.size ();
+  size_t rxAntennaNum = rxW.size ();
   //store the long term part to reduce computation load
   //only the small scale fading is need to be updated if the large scale parameters and antenna weights remain unchanged.
   complexVector_t longTerm;
-  uint8_t numCluster = delayClusters.size ();
+  size_t numCluster = delayClusters.size ();
 
-  for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
+  for (size_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
       std::complex<double> txSum (0,0);
-      for (uint8_t txIndex = 0; txIndex < txAntennaNum; txIndex++)
+      for (size_t txIndex = 0; txIndex < txAntennaNum; txIndex++)
         {
           std::complex<double> rxSum (0,0);
-          for (uint8_t rxIndex = 0; rxIndex < rxAntennaNum; rxIndex++)
+          for (size_t rxIndex = 0; rxIndex < rxAntennaNum; rxIndex++)
             {
               rxSum = rxSum + std::conj (rxW.at (rxIndex)) * Husn.at (rxIndex).at (txIndex).at (cIndex);
             }
@@ -1474,7 +1473,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
           clusterDelay.erase (clusterDelay.begin () + cIndex - 1);
         }
     }
-  NS_ASSERT(clusterPower.size () < UINT8_MAX);
+  NS_ASSERT (clusterPower.size () < UINT8_MAX);
 
   uint8_t numReducedCluster = clusterPower.size ();
 
@@ -1708,7 +1707,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
         }
     }
   doubleVector_t angle_degree;
-  double sizeTemp = clusterZoa.size ();
+  size_t sizeTemp = clusterZoa.size ();
   for (uint8_t ind = 0; ind < 4; ind++)
     {
       switch (ind)
@@ -1729,7 +1728,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
           NS_FATAL_ERROR ("Programming Error");
       }
 
-      for (uint8_t nIndex = 0; nIndex < sizeTemp; nIndex++)
+      for (size_t nIndex = 0; nIndex < sizeTemp; nIndex++)
         {
           while (angle_degree[nIndex] > 360)
             {
@@ -1823,8 +1822,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 
   complex3DVector_t H_NLOS; // channel coefficients H_NLOS [u][s][n],
   // where u and s are receive and transmit antenna element, n is cluster index.
-  uint16_t uSize = rxAntennaArray->GetAntennaNumDim1() * rxAntennaArray->GetAntennaNumDim2();
-  uint16_t sSize = txAntennaArray->GetAntennaNumDim1() * txAntennaArray->GetAntennaNumDim2();
+  size_t uSize = rxAntennaArray->GetAntennaNumDim1() * rxAntennaArray->GetAntennaNumDim2();
+  size_t sSize = txAntennaArray->GetAntennaNumDim1() * txAntennaArray->GetAntennaNumDim2();
 
   uint8_t cluster1st = 0, cluster2nd = 0; // first and second strongest cluster;
   double maxPower = 0;
@@ -1852,21 +1851,21 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
   //Since each of the strongest 2 clusters are divided into 3 sub-clusters, the total cluster will be numReducedCLuster + 4.
 
   H_usn.resize (uSize);
-  for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
+  for (size_t uIndex = 0; uIndex < uSize; uIndex++)
     {
       H_usn.at (uIndex).resize (sSize);
-      for (uint16_t sIndex = 0; sIndex < sSize; sIndex++)
+      for (size_t sIndex = 0; sIndex < sSize; sIndex++)
         {
           H_usn.at (uIndex).at (sIndex).resize (numReducedCluster);
         }
     }
 
   // The following for loops computes the channel coefficients
-  for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
+  for (size_t uIndex = 0; uIndex < uSize; uIndex++)
     {
       Vector uLoc = rxAntennaArray->GetAntennaLocation (uIndex);
 
-      for (uint16_t sIndex = 0; sIndex < sSize; sIndex++)
+      for (size_t sIndex = 0; sIndex < sSize; sIndex++)
         {
 
           Vector sLoc = txAntennaArray->GetAntennaLocation (sIndex);
@@ -2003,8 +2002,8 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
               double K_linear = pow (10,K_factor / 10);
               // the LOS path should be attenuated if blockage is enabled.
               H_usn.at (uIndex).at (sIndex).at (0) = sqrt (1 / (K_linear + 1)) * H_usn.at (uIndex).at (sIndex).at (0) + sqrt (K_linear / (1 + K_linear)) * ray / pow (10,attenuation_dB.at (0) / 10);  //(7.5-30) for tau = tau1
-              double tempSize = H_usn.at (uIndex).at (sIndex).size ();
-              for (uint8_t nIndex = 1; nIndex < tempSize; nIndex++)
+              size_t tempSize = H_usn.at (uIndex).at (sIndex).size ();
+              for (size_t nIndex = 1; nIndex < tempSize; nIndex++)
                 {
                   H_usn.at (uIndex).at (sIndex).at (nIndex) *= sqrt (1 / (K_linear + 1)); //(7.5-30) for tau = tau2...taunN
                 }
@@ -2032,7 +2031,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
     }
   else
     {
-      double min, max;
+      uint8_t min, max;
       if (cluster1st < cluster2nd)
         {
           min = cluster1st;
@@ -2340,7 +2339,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
     }
 
   doubleVector_t angle_degree;
-  double sizeTemp = clusterZoa.size ();
+  uint8_t sizeTemp = clusterZoa.size ();
   for (uint8_t ind = 0; ind < 4; ind++)
     {
       switch (ind)
@@ -2449,8 +2448,8 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 
   complex3DVector_t H_NLOS; // channel coefficients H_NLOS [u][s][n],
   // where u and s are receive and transmit antenna element, n is cluster index.
-  uint16_t uSize = rxAntennaArray->GetAntennaNumDim1 () * rxAntennaArray->GetAntennaNumDim2 ();
-  uint16_t sSize = txAntennaArray->GetAntennaNumDim1 () * txAntennaArray->GetAntennaNumDim2 ();
+  size_t uSize = rxAntennaArray->GetAntennaNumDim1 () * rxAntennaArray->GetAntennaNumDim2 ();
+  size_t sSize = txAntennaArray->GetAntennaNumDim1 () * txAntennaArray->GetAntennaNumDim2 ();
 
   uint8_t cluster1st = 0, cluster2nd = 0; // first and second strongest cluster;
   double maxPower = 0;
@@ -2478,10 +2477,10 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
   //Since each of the strongest 2 clusters are divided into 3 sub-clusters, the total cluster will be numReducedCLuster + 4.
 
   H_usn.resize (uSize);
-  for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
+  for (size_t uIndex = 0; uIndex < uSize; uIndex++)
     {
       H_usn.at (uIndex).resize (sSize);
-      for (uint16_t sIndex = 0; sIndex < sSize; sIndex++)
+      for (size_t sIndex = 0; sIndex < sSize; sIndex++)
         {
           H_usn.at (uIndex).at (sIndex).resize (params->m_numCluster);
         }
@@ -2489,11 +2488,11 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 
   //double varTtiTime = Simulator::Now ().GetSeconds ();
   // The following for loops computes the channel coefficients
-  for (uint16_t uIndex = 0; uIndex < uSize; uIndex++)
+  for (size_t uIndex = 0; uIndex < uSize; uIndex++)
     {
       Vector uLoc = rxAntennaArray->GetAntennaLocation (uIndex);
 
-      for (uint16_t sIndex = 0; sIndex < sSize; sIndex++)
+      for (size_t sIndex = 0; sIndex < sSize; sIndex++)
         {
 
           Vector sLoc = txAntennaArray->GetAntennaLocation (sIndex);
@@ -2627,7 +2626,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
               double K_linear = pow (10,K_factor / 10);
 
               H_usn.at (uIndex).at (sIndex).at (0) = sqrt (1 / (K_linear + 1)) * H_usn.at (uIndex).at (sIndex).at (0) + sqrt (K_linear / (1 + K_linear)) * ray / pow (10,attenuation_dB.at (0) / 10);  //(7.5-30) for tau = tau1
-              double tempSize = H_usn.at (uIndex).at (sIndex).size ();
+              size_t tempSize = H_usn.at (uIndex).at (sIndex).size ();
               for (uint8_t nIndex = 1; nIndex < tempSize; nIndex++)
                 {
                   H_usn.at (uIndex).at (sIndex).at (nIndex) *= sqrt (1 / (K_linear + 1)); //(7.5-30) for tau = tau2...taunN
@@ -2649,7 +2648,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
     }
   else
     {
-      double min, max;
+      uint8_t min, max;
       if (cluster1st < cluster2nd)
         {
           min = cluster1st;
@@ -2730,7 +2729,7 @@ MmWave3gppChannel::GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const Spec
   txPowerDensity = powerTxW / m_bandwidth;
 
   std::vector<int> listOfSubchannels;
-  for (unsigned rbId = 0; rbId < txSm->GetNumBands (); rbId++)
+  for (size_t rbId = 0; rbId < txSm->GetNumBands (); rbId++)
     {
       (*txPsd)[rbId] = txPowerDensity;
     }
@@ -2776,25 +2775,28 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
   NS_ABORT_MSG_IF (txAntennaArray == nullptr || rxAntennaArray == nullptr, "Tx or Rx antenna arrays are not set");
 
-  double max = 0, maxTx = 0, maxRx = 0, maxTxTheta = 0, maxRxTheta = 0;
+  double max = 0, maxTxTheta = 0, maxRxTheta = 0;
+  size_t maxTx = 0, maxRx = 0;
   NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
   for (uint16_t txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-      for (uint8_t tx = 0; tx <= txAntennaArray->GetAntennaNumDim2(); tx++)
+      for (size_t tx = 0; tx <= txAntennaArray->GetAntennaNumDim2(); tx++)
         {
-          txAntennaArray->SetSector (tx, txTheta);
+          NS_ASSERT(tx < UINT8_MAX);
+          txAntennaArray->SetSector (static_cast<uint8_t> (tx), txTheta);
 
           complexVector_t txW = AntennaArrayBasicModel::GetVector (txAntennaArray->GetCurrentBeamformingVector ());
 
           for (uint16_t rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
             {
-              for (uint16_t rx = 0; rx <= rxAntennaArray->GetAntennaNumDim2(); rx++)
+              for (size_t rx = 0; rx <= rxAntennaArray->GetAntennaNumDim2(); rx++)
                 {
                   NS_LOG_LOGIC ("txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
                                 (M_PI * (double)tx / (double)txAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
                                 (M_PI * (double)rx / (double)rxAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) / (M_PI) * 180);
 
-                  rxAntennaArray->SetSector (rx, rxTheta);
+                  NS_ASSERT(rx < UINT8_MAX);
+                  rxAntennaArray->SetSector (static_cast<uint8_t> (rx), rxTheta);
 
                   complexVector_t rxW = AntennaArrayBasicModel::GetVector (rxAntennaArray->GetCurrentBeamformingVector ());
 
@@ -2813,7 +2815,7 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
                                                                  Vector (0,0,0));
 
                   SpectrumValue bfGain = (*bfPsd) / (*fakePsd);
-                  uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
+                  size_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
                   double power = Sum (bfGain) / nbands;
 
                   NS_LOG_LOGIC ("gain " << power);
@@ -2834,8 +2836,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
   NS_LOG_LOGIC ("max gain " << max << " maxTx " << (M_PI * (double)maxTx / (double)txAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) /
                 (M_PI) * 180 << " maxRx " << (M_PI * (double)maxRx / (double)rxAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) /
                 (M_PI) * 180 << " maxTxTheta " << maxTxTheta << " maxRxTheta " << maxRxTheta);
-  txAntennaArray->SetSector (maxTx, maxTxTheta);
-  rxAntennaArray->SetSector (maxRx, maxRxTheta);
+  txAntennaArray->SetSector (static_cast<uint8_t> (maxTx), maxTxTheta);
+  rxAntennaArray->SetSector (static_cast<uint8_t> (maxRx), maxRxTheta);
 
   txAntennaArray->SetBeamformingVector (txAntennaArray->GetCurrentBeamformingVector().first, txAntennaArray->GetCurrentBeamformingVector().second, rxDevice);
   rxAntennaArray->SetBeamformingVector (rxAntennaArray->GetCurrentBeamformingVector().first, rxAntennaArray->GetCurrentBeamformingVector().second, txDevice);
@@ -2853,7 +2855,7 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params3gpp,
                                              Vector locUT) const
 {
   doubleVector_t powerAttenuation;
-  uint8_t clusterNum = clusterAOA.size ();
+  size_t clusterNum = clusterAOA.size ();
   for (uint8_t cInd = 0; cInd < clusterNum; cInd++)
     {
       powerAttenuation.push_back (0); //Initial power attenuation for all clusters to be 0 dB;
