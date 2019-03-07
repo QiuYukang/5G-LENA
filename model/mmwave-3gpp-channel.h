@@ -61,6 +61,12 @@ typedef std::vector<complexVector_t> complex2DVector_t;
 typedef std::vector<complex2DVector_t> complex3DVector_t;
 typedef std::pair<Ptr<NetDevice>, Ptr<NetDevice> > key_t;
 
+std::ostream & operator<< (std::ostream & os, doubleVector_t const & item);
+std::ostream & operator<< (std::ostream & os, double2DVector_t const & item);
+std::ostream & operator<< (std::ostream & os, complexVector_t const & item);
+std::ostream & operator<< (std::ostream & os, complex2DVector_t const & item);
+std::ostream & operator<< (std::ostream & os, complex3DVector_t const & item);
+
 struct InputParams3gpp
 {
   bool m_los {false};
@@ -529,7 +535,6 @@ private:
 
   Ptr<NormalRandomVariable> m_normalRv; //there is a bug in the NormalRandomVariable::GetValue() function.
   Ptr<NormalRandomVariable> m_normalRvBlockage;
-  Ptr<ExponentialRandomVariable> m_expRv;
   Ptr<PropagationLossModel> m_3gppPathloss;
   Ptr<ParamsTable> m_table3gpp;
   Time m_updatePeriod;

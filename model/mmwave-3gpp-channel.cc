@@ -166,7 +166,6 @@ MmWave3gppChannel::MmWave3gppChannel ()
 {
   m_uniformRv = CreateObject<UniformRandomVariable> ();
   m_uniformRvBlockage = CreateObject<UniformRandomVariable> ();
-  m_expRv = CreateObject<ExponentialRandomVariable> ();
   m_normalRv = CreateObject<NormalRandomVariable> ();
   m_normalRv->SetAttribute ("Mean", DoubleValue (0));
   m_normalRv->SetAttribute ("Variance", DoubleValue (1));
@@ -251,11 +250,10 @@ MmWave3gppChannel::~MmWave3gppChannel ()
 void
 MmWave3gppChannel::DoDispose ()
 {
-  m_uniformRv = 0;
-  m_uniformRvBlockage = 0;
-  m_expRv = 0;
-  m_normalRv = 0;
-  m_normalRvBlockage = 0;
+  m_uniformRv = nullptr;
+  m_uniformRvBlockage = nullptr;
+  m_normalRv = nullptr;
+  m_normalRvBlockage = nullptr;
 
   m_channelMap.clear();
 
@@ -541,12 +539,12 @@ void MmWave3gppChannel::PerformBeamforming (Ptr<const MobilityModel> a,
 {
   if (m_cellScan)
     {
-      NS_LOG_ERROR ("beam search method ...");
+      NS_LOG_INFO ("beam search method ...");
       BeamSearchBeamforming (a, b);
     }
   else
     {
-      NS_LOG_ERROR ("long term cov. matrix...");
+      NS_LOG_INFO ("long term cov. matrix...");
       LongTermCovMatrixBeamforming (a, b);
     }
 }
@@ -761,7 +759,10 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
     }
 
   NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector ().first.size()==0 ||
-                   rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0, "Beamforming vectors not properly calculated!");
+                   rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0,
+                   "Beamforming vectors not properly calculated. Tx elements: " <<
+                   txAntennaArray->GetCurrentBeamformingVector ().first.size() <<
+                   " rx elements: " << rxAntennaArray->GetCurrentBeamformingVector ().first.size());
 
   if (updateLongTerm)
     {
@@ -997,6 +998,11 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
 {
   NS_LOG_FUNCTION (this);
 
+  NS_LOG_DEBUG ("CalBeamGain: txW " << txW << std::endl << " rxW " << rxW << std::endl <<
+                " delay " << delaySpread << std::endl << " angle " << angle << std::endl <<
+                " speed " << speed);
+
+
   NS_ABORT_MSG_IF (channel.size()==0, "Channel matrix is empty.");
   NS_ABORT_MSG_IF (longTerm.size()==0, "Long-term matrix is empty.");
   NS_ABORT_MSG_IF (txW.size()==0, "Tx beamforming vector is emtpy.");
@@ -1075,8 +1081,12 @@ MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
 }
 
 complexVector_t
-MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const
+MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW,
+                                doubleVector_t delayClusters, complex3DVector_t& Husn) const
 {
+  NS_LOG_INFO ("CalLongTerm with params: txW " << txW << std::endl <<
+               " rxW " << rxW);
+
   size_t txAntennaNum = txW.size ();
   size_t rxAntennaNum = rxW.size ();
   //store the long term part to reduce computation load
@@ -1099,6 +1109,8 @@ MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW, double
       longTerm.push_back (txSum);
     }
   NS_ABORT_MSG_IF (longTerm.size() == 0,"Long-term matrix is empty.");
+
+  NS_LOG_INFO ("Resulting longTerm matrix: " << longTerm);
   return longTerm;
 }
 
@@ -3079,6 +3091,69 @@ MmWave3gppChannel::CalAttenuationOfBlockage (Ptr<Params3gpp> params3gpp,
     }
   return powerAttenuation;
 }
+
+std::ostream &
+operator<<(std::ostream &os, const doubleVector_t &item)
+{
+  os << "[ ";
+  for (const auto & v : item)
+    {
+      os << " " << v << ",";
+    }
+  os << " ]";
+  return os;
+}
+
+std::ostream &
+operator<<(std::ostream &os, const double2DVector_t &item)
+{
+  os << "[ ";
+  for (const auto & v : item)
+    {
+      os << v;
+    }
+  os << " ]";
+  return os;
+}
+
+std::ostream &
+operator<<(std::ostream &os, const complexVector_t &item)
+{
+  os << "[ ";
+  for (const auto & v : item)
+    {
+      os << " " << v << ",";
+    }
+  os << " ]";
+  return os;
+}
+
+std::ostream &
+operator<<(std::ostream &os, const complex2DVector_t &item)
+{
+  os << "[ ";
+  for (const auto & v : item)
+    {
+      os << " " << v << ",";
+    }
+  os << " ]";
+
+  return os;
+}
+
+std::ostream &
+operator<<(std::ostream &os, const complex3DVector_t &item)
+{
+  os << "[ ";
+  for (const auto & v : item)
+    {
+      os << " " << v << ",";
+    }
+  os << " ]";
+
+  return os;
+}
+
 
 
 
