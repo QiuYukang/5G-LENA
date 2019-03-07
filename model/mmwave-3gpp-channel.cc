@@ -32,7 +32,6 @@
 #include <ns3/integer.h>
 #include <ns3/boolean.h>
 #include <algorithm>
-#include <random>       // std::default_random_engine
 
 namespace ns3 {
 
@@ -427,8 +426,8 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
 
   if (m_updateBeamformingVectorIdeally)
     {
-      PerformBeamforming (ueDevice->GetNode()->GetObject<MobilityModel>(),
-                          bsDevice->GetNode()->GetObject<MobilityModel>());
+      PerformBeamforming (bsDevice->GetNode()->GetObject<MobilityModel>(),
+                          ueDevice->GetNode()->GetObject<MobilityModel>());
     }
 }
 
