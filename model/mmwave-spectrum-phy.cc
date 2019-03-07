@@ -493,7 +493,8 @@ MmWaveSpectrumPhy::EndRxData ()
       GetTBInfo(tbIt).m_sinrAvg = GetTBInfo(tbIt).m_sinrAvg / GetTBInfo(tbIt).m_expected.m_rbBitmap.size ();
 
       NS_LOG_INFO ("Finishing RX, sinrAvg=" << GetTBInfo(tbIt).m_sinrAvg <<
-                   " sinrMin=" << GetTBInfo(tbIt).m_sinrMin);
+                   " sinrMin=" << GetTBInfo(tbIt).m_sinrMin <<
+                   " SinrAvg (dB) " << 10 * log (GetTBInfo(tbIt).m_sinrAvg) / log (10));
 
       if ((!m_dataErrorModelEnabled) || (m_rxPacketBurstList.empty ()))
         {
