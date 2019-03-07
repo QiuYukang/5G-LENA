@@ -606,7 +606,14 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
             }
         }
 
-      if (it != GetChannelMap().end () && it->second->m_channel.size () == 0)
+      if (it == GetChannelMap().end ())
+        {
+          //if the channel map is empty, we create a new channel.
+          // Step 4-11 are performed in function GetNewChannel()
+          NS_LOG_INFO ("Create new channel");
+          channelParams = GetNewChannel (table3gpp, a, b, input3gppParameters);
+        }
+      else if (it->second->m_channel.size () == 0)
         {
           //if the channel map is not empty, we only update the channel.
           NS_LOG_DEBUG ("Update forward channel consistently");
@@ -615,11 +622,9 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
         }
       else
         {
-          //if the channel map is empty, we create a new channel.
-          // Step 4-11 are performed in function GetNewChannel()
-          NS_LOG_INFO ("Create new channel");
-          channelParams = GetNewChannel (table3gpp, a, b, input3gppParameters);
+          NS_FATAL_ERROR ("AI Programming Error");
         }
+
       // update the channel map with the new channel params
       GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
     }
