@@ -34,7 +34,6 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
-#include "ns3/flow-monitor-module.h"
 #include "ns3/test.h"
 
 using namespace ns3;
