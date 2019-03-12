@@ -39,7 +39,7 @@
 #include "ns3/log.h"
 #include "ns3/mmwave-propagation-loss-model.h"
 #include "ns3/point-to-point-helper.h"
-#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 
 using namespace ns3;
 
@@ -145,7 +145,7 @@ main (int argc, char *argv[])
 
   mmwHelper->Initialize();
   Ptr<MmWavePropagationLossModel> lossModel = mmwHelper->GetPathLossModel (0)->GetObject<MmWavePropagationLossModel> ();
-  Ptr<MmWavePointToPointEpcHelper>  epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
+  Ptr<NrPointToPointEpcHelper>  epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmwHelper->SetEpcHelper (epcHelper);
 
   ConfigStore inputConfig;

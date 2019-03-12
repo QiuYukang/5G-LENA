@@ -36,7 +36,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 //#include "ns3/gtk-config-store.h"
 
 using namespace ns3;
@@ -118,7 +118,7 @@ main (int argc, char *argv[])
 
   Ptr<MmWaveHelper> mmwaveHelper = CreateObject<MmWaveHelper> ();
 	mmwaveHelper->SetSchedulerType ("ns3::MmWaveFlexTtiMacScheduler");
-  Ptr<MmWavePointToPointEpcHelper>  epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
+  Ptr<NrPointToPointEpcHelper>  epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmwaveHelper->SetEpcHelper (epcHelper);
 	mmwaveHelper->SetHarqEnabled (harqEnabled);
 

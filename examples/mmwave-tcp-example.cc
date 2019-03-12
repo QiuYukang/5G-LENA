@@ -29,7 +29,7 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/mmwave-helper.h"
 #include "ns3/epc-helper.h"
-#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
@@ -183,7 +183,7 @@ main (int argc, char *argv[])
 	Ptr<MmWaveHelper> mmwaveHelper = CreateObject<MmWaveHelper> ();
 	//mmwaveHelper->SetSchedulerType ("ns3::MmWaveFlexTtiMaxWeightMacScheduler");
 	mmwaveHelper->SetSchedulerType ("ns3::MmWaveFlexTtiMacScheduler");
-	Ptr<MmWavePointToPointEpcHelper>  epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
+	Ptr<NrPointToPointEpcHelper>  epcHelper = CreateObject<NrPointToPointEpcHelper> ();
 	mmwaveHelper->SetEpcHelper (epcHelper);
 
 	ConfigStore inputConfig;

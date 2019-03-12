@@ -38,7 +38,7 @@
 #include <ns3/buildings-helper.h>
 #include "ns3/log.h"
 #include <ns3/buildings-module.h>
-#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
@@ -176,7 +176,7 @@ main (int argc, char *argv[])
 	  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   }
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
-  Ptr<MmWavePointToPointEpcHelper> epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
   mmWaveHelper->Initialize();
 

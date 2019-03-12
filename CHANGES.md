@@ -114,7 +114,12 @@ of NetDevice can be attached to a channel using this SpectrumPropagationModel.
 An additional requirement is that the technology uses AntennaModel that is
 implementing AntennaArrayBasicModel interface. The
 dependencies from mmwave module-specific classes are removed, e.g. dependency on MmWaveEnbNetDevice, MmWaveUeNetDevice, MmWaveUePhy, MmWaveEnbPhy.
-* Removed MmWaveMacSchedulerNs3 attribute McsDefaultDl/McsDefaultUl. Its functionality is now taken by the attribute StartingMcsDl/StartingMcsUl
+* Removed MmWaveMacSchedulerNs3 attribute McsDefaultDl/McsDefaultUl. Its
+functionality is now taken by the attribute StartingMcsDl/StartingMcsUl
+* Renamed MmWavePointToPointEpcHelper into NrPointToPointEpcHelper. All
+attributes that before were in the form "ns3::MmWavePointToPointEpcHelper"
+must now be referred to "ns3::PointToPointEpcHelper". In fact, NrPointToPointEpcHelper
+is now inheriting from PointToPointEpcHelper.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of

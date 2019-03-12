@@ -13,7 +13,7 @@ def build(bld):
     module.source = [
         'helper/mmwave-helper.cc',
         'helper/mmwave-phy-rx-trace.cc',
-        'helper/mmwave-point-to-point-epc-helper.cc',
+        'helper/nr-point-to-point-epc-helper.cc',
         'helper/mmwave-bearer-stats-calculator.cc',        
         'helper/mmwave-bearer-stats-connector.cc',           
         'model/mmwave-net-device.cc',
@@ -91,7 +91,7 @@ def build(bld):
     headers.source = [
         'helper/mmwave-helper.h',
         'helper/mmwave-phy-rx-trace.h',
-        'helper/mmwave-point-to-point-epc-helper.h',
+        'helper/nr-point-to-point-epc-helper.h',
         'helper/mmwave-bearer-stats-calculator.h',        
         'helper/mmwave-bearer-stats-connector.h',        
         'model/mmwave-net-device.h',

@@ -33,7 +33,7 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/mmwave-helper.h"
-#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
@@ -176,8 +176,8 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
 
-  Config::SetDefault("ns3::MmWavePointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
-  Config::SetDefault("ns3::MmWavePointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
+  Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
+  Config::SetDefault("ns3::PointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
 
   //Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNum", UintegerValue (4));
   //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNum", UintegerValue (16));
@@ -290,7 +290,7 @@ main (int argc, char *argv[])
   mmWaveHelper->SetBandwidthPartMap (bwpConf);
 
 
-  Ptr<MmWavePointToPointEpcHelper> epcHelper = CreateObject<MmWavePointToPointEpcHelper> ();
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
   mmWaveHelper->Initialize();
 

@@ -26,7 +26,7 @@
 #include "ns3/log.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/mmwave-helper.h"
-#include "ns3/mmwave-point-to-point-epc-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
 
