@@ -30,45 +30,89 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
 #include "ns3/antenna-array-model.h"
+#include "ns3/sqlite-output.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("CttcSimpleInterferenceExample");
 
-
+/**
+ * \brief Represents a scenario with gnb (or base stations) and UEs (or users)
+ */
 class Scenario
 {
 public:
-  virtual ~Scenario () { }
-  virtual const NodeContainer & GetGnbs () const = 0;
-  virtual const NodeContainer & GetUes () const = 0;
+  /**
+   * \brief ~Scenario
+   */
+  virtual ~Scenario ();
+  /**
+   * \brief Get the list of gnb/base station nodes
+   * \return A NodeContainer with all the Gnb (or base stations)
+   */
+  const NodeContainer & GetGnbs () const;
+  /**
+   * \brief Get the list of user nodes
+   * \return A NodeContainer with all the users
+   */
+  const NodeContainer & GetUes () const;
+
+protected:
+  NodeContainer m_gNb; //!< GNB (or base stations)
+  NodeContainer m_ue;  //!< users
 };
 
+Scenario::~Scenario ()
+{
+}
+
+const NodeContainer &
+Scenario::GetGnbs () const
+{
+  return m_gNb;
+}
+
+const NodeContainer &
+Scenario::GetUes () const
+{
+  return m_ue;
+}
+
+/**
+ * \brief The most easy interference scenario: with a very strong interference
+ *
+ * Please note that this scenario considers one UE per each GNB.
+ *
+ * \verbatim
+
+                  d = ueY
+          |----------------------|
+    GNB_i                          UE_i
+ \endverbatim
+ *
+ * The distance between each GNB is \f$ GNB_{i+1}_{x} = GNB_{i}_{x} \f$ ,
+ * \f$ GNB_{i+1}_{z} = GNB_{i}_{z} \f$ and \f$ GNB_{i+1}_{y} = GNB_{i}_{y} + 0.5 \f$
+ */
 class SimpleInterferenceScenario : public Scenario
 {
 public:
-  enum ScenarioMode
-  {
-    BASIC = 0,
-    NO_INTERF = 1,
-  };
-
-  SimpleInterferenceScenario (uint32_t gnbNum, const Vector& gnbReferencePos, double ueY,
-                              ScenarioMode scenario);
-  ~SimpleInterferenceScenario () { }
-
-  virtual const NodeContainer & GetGnbs () const { return m_gNb; }
-  virtual const NodeContainer & GetUes () const { return m_ue; }
-
-private:
-  NodeContainer m_gNb;
-  NodeContainer m_ue;
+  /**
+   * \brief SimpleInterferenceScenario constructor: initialize the node position
+   * \param gnbNum Number of gnb (or base stations)
+   * \param gnbReferencePos reference position for the first GNB (other position
+   * will be derived from this information)
+   * \param ueY Distance between GNB and UE in meters
+   */
+  SimpleInterferenceScenario (uint32_t gnbNum, const Vector& gnbReferencePos, double ueY);
+  /**
+    * \brief destructor
+    */
+  ~SimpleInterferenceScenario ();
 };
 
 SimpleInterferenceScenario::SimpleInterferenceScenario (uint32_t gnbNum,
                                                         const Vector& gnbReferencePos,
-                                                        double ueX,
-                                                        ScenarioMode scenario)
+                                                        double ueX)
 {
   // create base stations and mobile terminals
   static MobilityHelper mobility;
@@ -78,56 +122,44 @@ SimpleInterferenceScenario::SimpleInterferenceScenario (uint32_t gnbNum,
 
   for (uint32_t i = 0; i < gnbNum; ++i)
     {
-      std::stringstream ss;
-      ss << "gNb" << m_gNb.Get(i)->GetId();
-      Names::Add(ss.str(), m_gNb.Get(i));
-      std::cout << " GNB ID " << m_gNb.Get(i)->GetId() << std::endl;
-    }
+      std::stringstream ssGnb, ssUe;
+      ssGnb << "gNb" << m_gNb.Get(i)->GetId();
+      ssUe << "UE" << m_ue.Get(i)->GetId();
 
-  for (uint32_t i = 0; i < gnbNum; ++i)
-    {
-      std::stringstream ss;
-      ss << "UE" << m_ue.Get(i)->GetId();
-      Names::Add(ss.str(), m_ue.Get(i));
+      Names::Add (ssGnb.str(), m_gNb.Get(i));
+      Names::Add(ssUe.str(), m_ue.Get(i));
+
+      std::cout << " GNB ID " << m_gNb.Get(i)->GetId() << std::endl;
       std::cout << " UE ID " << m_ue.Get(i)->GetId() << std::endl;
     }
 
   Ptr<ListPositionAllocator> gnbPos = CreateObject<ListPositionAllocator> ();
   Ptr<ListPositionAllocator> uePos = CreateObject<ListPositionAllocator> ();
 
-  if (scenario == BASIC || scenario == NO_INTERF)
-    {
-      double delta = 0.0;
-      for (uint32_t i = 0; i < gnbNum; ++i)
-        {
-          Vector pos (gnbReferencePos);
-          pos.y = pos.y + delta;
-          delta += 0.5;
-          std::cout << "gnb " << i << " pos " << pos << std::endl;
-          gnbPos->Add (pos);
-        }
-    }
+  // GNB positions:
+  {
+    double delta = 0.0;
+    for (uint32_t i = 0; i < gnbNum; ++i)
+      {
+        Vector pos (gnbReferencePos);
+        pos.y = pos.y + delta;
+        delta += 0.5;
+        std::cout << "gnb " << i << " pos " << pos << std::endl;
+        gnbPos->Add (pos);
+      }
+  }
 
-  if (scenario == BASIC)
-    {
-      double delta = 0.0;
-      for (uint32_t i = 0; i < gnbNum; ++i)
-        {
-          Vector pos (gnbReferencePos.x + ueX, gnbReferencePos.y + delta, 1.5);
-          delta += 0.5;
-          std::cout << "ue " << i << " pos " << pos << std::endl;
-          uePos->Add(pos);
-        }
-    }
-  else if (scenario == NO_INTERF)
-    {
-      uePos->Add (Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5));
-      std::cout << "ue2 " " pos " << Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5) << std::endl;
-      uePos->Add (Vector (20, 20, 1.5));
-      std::cout << "ue3 " " pos " << Vector (20, 20, 1.5) << std::endl;
-    }
-
-
+  // UE positions:
+  {
+    double delta = 0.0;
+    for (uint32_t i = 0; i < gnbNum; ++i)
+      {
+        Vector pos (gnbReferencePos.x + ueX, gnbReferencePos.y + delta, 1.5);
+        delta += 0.5;
+        std::cout << "ue " << i << " pos " << pos << std::endl;
+        uePos->Add(pos);
+      }
+  }
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (gnbPos);
@@ -137,71 +169,411 @@ SimpleInterferenceScenario::SimpleInterferenceScenario (uint32_t gnbNum,
   mobility.Install (m_ue);
 }
 
-class NrSetup
+SimpleInterferenceScenario::~SimpleInterferenceScenario ()
+{
+
+}
+
+/**
+ * \brief No interference (or very little, depends) scenario (limited to 2 GNB and UE)
+ *
+ * Please note that this scenario considers one UE per each GNB.
+ *
+ * \verbatim
+
+                  d = ueY
+          |----------------------|
+    GNB_i                          UE_i
+    GNB_i+1
+           \
+            \
+             \
+              \
+               \
+               UE_i+1   (position fixed at 20, 20, 1.5)
+ \endverbatim
+ *
+ */
+class NoInterferenceScenario : public Scenario
 {
 public:
-  virtual ~NrSetup () { }
-  virtual Ptr<NrPointToPointEpcHelper> GetEpcHelper () const = 0;
-  virtual const NetDeviceContainer & GetUeDev () const = 0;
-  virtual const NetDeviceContainer & GetGnbDev () const = 0;
+  /**
+   * \brief SimpleInterferenceScenario constructor: initialize the node position
+   * \param
+   * \param gnbReferencePos reference position for the first GNB (other position
+   * will be derived from this information)
+   * \param ueY Distance between GNB and UE in meters
+   */
+  NoInterferenceScenario (const Vector& gnbReferencePos, double ueY);
+  /**
+    * \brief destructor
+    */
+  ~NoInterferenceScenario ();
 };
 
+NoInterferenceScenario::NoInterferenceScenario (const Vector& gnbReferencePos,
+                                                double ueX)
+{
+  // create base stations and mobile terminals
+  static MobilityHelper mobility;
+
+  uint32_t gnbNum = 2;
+
+  m_gNb.Create (gnbNum);
+  m_ue.Create (gnbNum);
+
+  for (uint32_t i = 0; i < gnbNum; ++i)
+    {
+      std::stringstream ssGnb, ssUe;
+      ssGnb << "gNb" << m_gNb.Get(i)->GetId();
+      ssUe << "UE" << m_ue.Get(i)->GetId();
+
+      Names::Add (ssGnb.str(), m_gNb.Get(i));
+      Names::Add(ssUe.str(), m_ue.Get(i));
+
+      std::cout << "GNB ID " << m_gNb.Get(i)->GetId() << std::endl;
+      std::cout << "UE ID " << m_ue.Get(i)->GetId() << std::endl;
+    }
+
+  Ptr<ListPositionAllocator> gnbPos = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> uePos = CreateObject<ListPositionAllocator> ();
+
+  // GNB positions:
+  {
+    double delta = 0.0;
+    for (uint32_t i = 0; i < gnbNum; ++i)
+      {
+        Vector pos (gnbReferencePos);
+        pos.y = pos.y + delta;
+        delta += 0.5;
+        std::cout << "gnb " << i << " pos " << pos << std::endl;
+        gnbPos->Add (pos);
+      }
+  }
+
+  // UE positions:
+  {
+    uePos->Add (Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5));
+    std::cout << "ue0 pos " << Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5) << std::endl;
+    uePos->Add (Vector (20, 20, 1.5));
+    std::cout << "ue1 pos " << Vector (20, 20, 1.5) << std::endl;
+  }
+
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.SetPositionAllocator (gnbPos);
+  mobility.Install (m_gNb);
+
+  mobility.SetPositionAllocator (uePos);
+  mobility.Install (m_ue);
+}
+
+
+NoInterferenceScenario::~NoInterferenceScenario ()
+{
+
+}
+
+/**
+ * \brief The OutputManager interface for retrieve the data and storing it
+ */
 class OutputManager
 {
 public:
-  OutputManager (const std::string &prefix)
-  {
-    m_outSinrFile.open ((prefix + "-sinr.txt").c_str (), std::ios::trunc);
-  }
+  /**
+   * \brief ~OutputManager
+   */
+  virtual ~OutputManager ();
 
-  void UeReceive (RxPacketTraceParams params);
-  void UeSnrPerProcessedChunk (double snr);
-
-private:
-  std::string m_prefix;
-  std::ofstream m_outSinrFile;
-  std::ofstream m_outSnrFile;
-  std::ofstream m_outRssiFile;
+  /**
+   * \brief Store a SINR value
+   * \param networkId Network id (e.g., cellId)
+   * \param nodeId Node id
+   * \param sinr Value of SINR
+   */
+  virtual void SinrStore (uint32_t networkId, uint32_t nodeId, double sinr) = 0;
+  /**
+   * \brief Store a SNR value
+   * \param networkId Network id (e.g., cellId)
+   * \param nodeId Node id
+   * \param sinr Value of SNR
+   */
+  virtual void SnrStore (uint32_t networkId, uint32_t nodeId, double snr) = 0;
 };
 
-void OutputManager::UeReceive (RxPacketTraceParams params)
+OutputManager::~OutputManager ()
 {
-  m_outSinrFile << params.m_cellId << " " << params.m_rnti
-                << " " << params.m_sinr
-                << std::endl;
+
+}
+
+/**
+ * \brief Store the values in files (slow and old, just for testing)
+ */
+class FileOutputManager : public OutputManager
+{
+public:
+  FileOutputManager (const std::string &prefix);
+  virtual ~FileOutputManager () override;
+
+  virtual void SinrStore (uint32_t networkId, uint32_t nodeId, double sinr) override;
+  virtual void SnrStore (uint32_t networkId, uint32_t nodeId, double snr) override;
+
+private:
+  std::string m_prefix;          //!< File prefix
+  std::ofstream m_outSinrFile;   //!< SINR file
+  std::ofstream m_outSnrFile;    //!< SNR file
+  std::ofstream m_outRssiFile;   //!< RSSI file
+};
+
+FileOutputManager::FileOutputManager (const std::string &prefix)
+{
+  m_outSinrFile.open ((prefix + "-sinr.txt").c_str (), std::ios::trunc);
+}
+
+FileOutputManager::~FileOutputManager ()
+{
+  m_outSinrFile.close ();
 }
 
 void
-OutputManager::UeSnrPerProcessedChunk (double snr)
+FileOutputManager::SinrStore (uint32_t networkId, uint32_t nodeId, double sinr)
 {
-  m_outSnrFile << 10*log10(snr) << std::endl;
+  m_outSinrFile << networkId << " " << nodeId
+                << " " << sinr << std::endl;
 }
 
-class NrSingleBwpSetup : public NrSetup
+void
+FileOutputManager::SnrStore (uint32_t networkId, uint32_t nodeId, double snr)
+{
+  m_outSinrFile << networkId << " " << nodeId
+                << " " << 10*log10(snr) << std::endl;
+}
+
+/**
+ * \brief Store the values in files (slow and old, just for testing)
+ */
+class SqliteOutputManager : public OutputManager
 {
 public:
-  NrSingleBwpSetup (const Scenario &scenario, double freq, double bw,
-                    uint32_t num, double txPower, OutputManager *manager);
+  SqliteOutputManager (const std::string &dbName, const std::string &dbLockName,
+                       uint32_t seed, uint32_t run);
+  virtual ~SqliteOutputManager () override;
+
+  virtual void SinrStore (uint32_t networkId, uint32_t nodeId, double sinr) override;
+  virtual void SnrStore (uint32_t networkId, uint32_t nodeId, double snr) override;
+private:
+  void DeleteWhere (uint32_t seed, uint32_t run, const std::string &table);
+private:
+  SQLiteOutput m_dbOutput;
+  std::string m_dbName {""};
+  uint32_t m_seed {0};
+  uint32_t m_run  {0};
+};
+
+SqliteOutputManager::SqliteOutputManager (const std::string &dbName, const std::string &dbLockName,
+                                          uint32_t seed, uint32_t run)
+  : m_dbOutput (dbName, dbLockName),
+    m_dbName (dbName),
+    m_seed (seed),
+    m_run (run)
+{
+  m_dbOutput.WaitExec ("CREATE TABLE IF NOT EXISTS \"sinr_results\" "
+                       "(NETID                   INT    NOT NULL, "
+                       "UID                     INT    NOT NULL, "
+                       "SINR                    DOUBLE NOT NULL, "
+                       "SEED                    INT    NOT NULL, "
+                       "RUN                     INT    NOT NULL"
+                       ");");
+
+  m_dbOutput.WaitExec ("CREATE TABLE IF NOT EXISTS \"snr_results\" "
+                       "(NETID                   INT    NOT NULL, "
+                       "UID                     INT    NOT NULL, "
+                       "SNR                    DOUBLE NOT NULL, "
+                       "SEED                    INT    NOT NULL, "
+                       "RUN                     INT    NOT NULL"
+                       ");");
+
+
+  DeleteWhere (seed, run, "sinr_results");
+  DeleteWhere (seed, run, "snr_results");
+}
+
+SqliteOutputManager::~SqliteOutputManager ()
+{
+}
+
+void
+SqliteOutputManager::DeleteWhere (uint32_t seed, uint32_t run, const std::string &table)
+{
+  bool ret;
+  sqlite3_stmt *stmt;
+  ret = m_dbOutput.WaitPrepare (&stmt, "DELETE FROM \"" + table + "\" WHERE SEED = ? AND RUN = ?;");
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 1, seed);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 2, run);
+
+  ret = m_dbOutput.WaitExec (stmt);
+  NS_ABORT_IF (ret == false);
+}
+
+void
+SqliteOutputManager::SinrStore (uint32_t networkId, uint32_t nodeId, double sinr)
+{
+  bool ret;
+  sqlite3_stmt *stmt;
+  ret = m_dbOutput.WaitPrepare (&stmt, "INSERT INTO sinr_results VALUES (?,?,?,?,?);");
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 1, networkId);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 2, nodeId);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 3, sinr);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 4, m_seed);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 5, m_run);
+  NS_ABORT_IF (ret == false);
+
+  ret = m_dbOutput.WaitExec (stmt);
+  NS_ABORT_IF (ret == false);
+}
+
+void SqliteOutputManager::SnrStore(uint32_t networkId, uint32_t nodeId, double snr)
+{
+  bool ret;
+  sqlite3_stmt *stmt;
+  ret = m_dbOutput.WaitPrepare (&stmt, "INSERT INTO sinr_results VALUES (?,?,?,?,?);");
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 1, networkId);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 2, nodeId);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 3, snr);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 4, m_seed);
+  NS_ABORT_IF (ret == false);
+  ret = m_dbOutput.Bind (stmt, 5, m_run);
+  NS_ABORT_IF (ret == false);
+
+  ret = m_dbOutput.WaitExec (stmt);
+  NS_ABORT_IF (ret == false);
+}
+
+/**
+ * \brief Interface for constructing everything for the L2 devices (NR, wifi, whatever..)
+ */
+class L2Setup
+{
+public:
+  /**
+   * \brief L2Setup constructor
+   * \param manager Output manager
+   */
+  L2Setup (Scenario *scenario, OutputManager *manager);
+  /**
+   * \brief ~L2Setup
+   */
+  virtual ~L2Setup ();
+  /**
+   * \brief Get a container of user devices
+   * \return A user device container
+   */
+  virtual const NetDeviceContainer & GetUeDev () const;
+  /**
+   * \brief Get a container of gnb devices
+   * \return A gnb device container
+   */
+  virtual const NetDeviceContainer & GetGnbDev () const;
+
+protected:
+  /**
+   * \brief Retrieve GNB node list from the scenario
+   * \return the GNB node container
+   */
+  const NodeContainer & GetGnbNodes () const;
+  /**
+   * \brief Retrieve UE node list from the scenario
+   * \return the UE node container
+   */
+  const NodeContainer & GetUeNodes () const;
+
+  virtual void Init () = 0;
+
+protected:
+  NetDeviceContainer m_ueDev; //!< user net devices
+  NetDeviceContainer m_gnbDev;//!< gnb net devices
+  OutputManager *m_manager; //!< Output manager
+
+private:
+  Scenario *m_scenario;
+};
+
+L2Setup::L2Setup (Scenario *scenario, OutputManager *manager)
+  : m_manager (manager),
+    m_scenario (scenario)
+{
+}
+
+L2Setup::~L2Setup ()
+{
+}
+
+const NetDeviceContainer &
+L2Setup::GetUeDev() const
+{
+  return m_ueDev;
+}
+
+const NetDeviceContainer &
+L2Setup::GetGnbDev() const
+{
+  return m_gnbDev;
+}
+
+const NodeContainer &
+L2Setup::GetGnbNodes () const
+{
+  return m_scenario->GetGnbs ();
+}
+
+const NodeContainer &
+L2Setup::GetUeNodes () const
+{
+  return m_scenario->GetUes ();
+}
+
+/**
+ * \brief Setup NR as L2 technology with one bandwith part
+ */
+class NrSingleBwpSetup : public L2Setup
+{
+public:
+  NrSingleBwpSetup (Scenario *scenario, OutputManager *manager, double freq,
+                    double bw, uint32_t num, double txPower,
+                    const std::unordered_map<uint32_t, uint32_t> &GnbUeMap);
+  virtual ~NrSingleBwpSetup ();
 
   virtual Ptr<NrPointToPointEpcHelper> GetEpcHelper () const { return m_epcHelper; }
   virtual Ptr<MmWaveHelper> GetHelper () const { return m_helper; }
-  virtual const NetDeviceContainer & GetUeDev () const { return m_ueDev; }
-  virtual const NetDeviceContainer & GetGnbDev () const { return m_gnbDev; }
+
+  virtual void Init () override;
+
+private:
+  void UeReception (RxPacketTraceParams params);
 
 private:
   Ptr<MmWaveHelper> m_helper;
   Ptr<NrPointToPointEpcHelper> m_epcHelper;
-  NetDeviceContainer m_ueDev;
-  NetDeviceContainer m_gnbDev;
-  OutputManager *m_manager;
+  std::unordered_map<uint32_t, uint32_t> m_ueGnbMap;
 };
 
-NrSingleBwpSetup::NrSingleBwpSetup (const Scenario &scenario, double freq,
-                                    double bw, uint32_t num, double txPower,
-                                    OutputManager *manager)
+NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
+                                    double freq, double bw, uint32_t num, double txPower,
+                                    const std::unordered_map<uint32_t, uint32_t> &ueGnbMap)
+  : L2Setup (scenario, manager),
+    m_ueGnbMap (ueGnbMap)
 {
-  m_manager = manager;
-  // setup the mmWave simulation
+  // setup the NR simulation
   m_helper = CreateObject<MmWaveHelper> ();
   m_helper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   m_helper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
@@ -224,10 +596,10 @@ NrSingleBwpSetup::NrSingleBwpSetup (const Scenario &scenario, double freq,
   m_helper->Initialize();
 
   // install mmWave net devices
-  m_gnbDev = m_helper->InstallEnbDevice (scenario.GetGnbs());
-  m_ueDev = m_helper->InstallUeDevice (scenario.GetUes());
+  m_gnbDev = m_helper->InstallEnbDevice (GetGnbNodes());
+  m_ueDev = m_helper->InstallUeDevice (GetUeNodes());
 
-  double x = pow(10, txPower/10);
+  double x = pow (10, txPower/10);
 
   double totalBandwidth = bw;
 
@@ -254,7 +626,8 @@ NrSingleBwpSetup::NrSingleBwpSetup (const Scenario &scenario, double freq,
     {
       Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
       (m_ueDev.Get(i))->GetPhy(0)->GetDlSpectrumPhy();
-      ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe", MakeCallback (&OutputManager::UeReceive, m_manager));
+      ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe",
+                                                 MakeCallback (&NrSingleBwpSetup::UeReception, this));
       Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference();
       NS_ABORT_IF(!ue1SpectrumPhyInterference);
       //ue1SpectrumPhyInterference->TraceConnectWithoutContext("SnrPerProcessedChunk", MakeBoundCallback (&UeSnrPerProcessedChunkTrace, this));
@@ -265,9 +638,40 @@ NrSingleBwpSetup::NrSingleBwpSetup (const Scenario &scenario, double freq,
   // m_helper->EnableTraces();
 }
 
+void
+NrSingleBwpSetup::Init ()
+{
+  // attach UEs to the closest eNB
+  for (const auto & v : m_ueGnbMap)
+    {
+      std::cout << GetUeDev().GetN() << " " << GetGnbDev().GetN() << std::endl;
+      if (v.first < GetUeDev().GetN() && v.second < GetGnbDev().GetN())
+        {
+          std::cout << " attaching " << v.first << " to " << v.second << std::endl;
+          m_helper->AttachToEnb (GetUeDev().Get(v.first), GetGnbDev().Get(v.second));
+        }
+      else
+        {
+          std::cout << " cannot connect " << v.first << " with " << v.second << std::endl;
+        }
+    }
+}
+
+NrSingleBwpSetup::~NrSingleBwpSetup ()
+{
+
+}
+
+void
+NrSingleBwpSetup::UeReception (RxPacketTraceParams params)
+{
+  // RNTI to NodeId conversion??
+  m_manager->SinrStore (params.m_cellId, params.m_rnti, params.m_sinr);
+}
+
 static void
 ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
-                        uint32_t eesmTable = 1, uint32_t mcs = 13,
+                        uint32_t eesmTable = 1,
                         const std::string &errorModel = "ns3::NrEesmErrorModel")
 {
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
@@ -326,7 +730,6 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
 int
 main (int argc, char *argv[])
 {
-  uint32_t mcs = 13;
   uint16_t gNbNum = 1;
   bool cellScan = false;
   double beamSearchAngleStep = 30.0;
@@ -338,6 +741,9 @@ main (int argc, char *argv[])
 
   double simTime = 5; // seconds
   double udpAppStartTime = 1.0; //seconds
+  uint32_t scenarioId = 0;
+  uint32_t runId = 0;
+  uint32_t seed = 1;
 
   std::string errorModel = "ns3::NrLteMiErrorModel";
   uint32_t eesmTable = 1;
@@ -345,9 +751,6 @@ main (int argc, char *argv[])
   CommandLine cmd;
 
   cmd.AddValue ("simTime", "Simulation time", simTime);
-  cmd.AddValue ("mcs",
-                "The MCS that will be used in this example",
-                mcs);
   cmd.AddValue ("gNbNum",
                 "The number of gNbs in multiple-ue topology",
                 gNbNum);
@@ -373,17 +776,38 @@ main (int argc, char *argv[])
   cmd.AddValue("ueY",
                "Y position of any UE",
                ueY);
+  cmd.AddValue("scenario",
+               "Scenario (0 = simple interference, 1 = no interf.",
+               scenarioId);
+  cmd.AddValue ("seed", "Simulation seed", seed);
+  cmd.AddValue ("runId", "Simulation Run ID", runId);
 
   cmd.Parse (argc, argv);
 
-  ConfigureDefaultValues(cellScan, beamSearchAngleStep, eesmTable, mcs, errorModel);
+  RngSeedManager::SetSeed (seed);
+  RngSeedManager::SetRun (runId);
+  ConfigureDefaultValues (cellScan, beamSearchAngleStep, eesmTable, errorModel);
 
-  SimpleInterferenceScenario scenario (gNbNum, Vector(0, 0, 10), ueY, SimpleInterferenceScenario::BASIC);
+  Scenario *scenario;
+  if (scenarioId == 0)
+    {
+      scenario = new SimpleInterferenceScenario (gNbNum, Vector (0, 0, 10), ueY);
+    }
+  else if (scenarioId == 1)
+    {
+      scenario = new NoInterferenceScenario (Vector (0,0, 10), ueY);
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Scenario no recognized");
+    }
+
   std::stringstream ss;
-  ss << "cttc-simple-interference-scenario-" << ueY;
-  OutputManager manager (ss.str ());
+  ss << "cttc-simple-interference-scenario-nr-" << ueY;
+  SqliteOutputManager manager (ss.str(), "cttc-simple-interf", seed, runId);
 
-  NrSingleBwpSetup setup (scenario, frequencyBwp1, bandwidthBwp1, numerologyBwp1, 4.0, &manager);
+  NrSingleBwpSetup setup (scenario, &manager, frequencyBwp1, bandwidthBwp1,
+                          numerologyBwp1, 4.0, { {0, 0}, {1, 1}});
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost
@@ -406,26 +830,28 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
-  internet.Install (scenario.GetUes());
+  internet.Install (scenario->GetUes());
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = setup.GetEpcHelper()->AssignUeIpv4Address (setup.GetUeDev());
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < scenario.GetUes().GetN(); ++j)
+  for (uint32_t j = 0; j < scenario->GetUes().GetN(); ++j)
     {
-      auto ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (scenario.GetUes().Get(j)->GetObject<Ipv4> ());
+      auto ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (scenario->GetUes().Get(j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (setup.GetEpcHelper()->GetUeDefaultGatewayAddress (), 1);
     }
+
+  setup.Init ();
 
   // assign IP address to UEs, and install UDP downlink applications
   uint16_t dlPort = 1234;
   ApplicationContainer clientApps, serverApps;
 
   UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (scenario.GetUes()));
+  serverApps.Add (dlPacketSinkHelper.Install (scenario->GetUes()));
 
   // configure here UDP traffic
-  for (uint32_t j = 0; j < scenario.GetUes().GetN(); ++j)
+  for (uint32_t j = 0; j < scenario->GetUes().GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
       dlClient.SetAttribute ("MaxPackets", UintegerValue(2));
@@ -439,12 +865,6 @@ main (int argc, char *argv[])
   clientApps.Start(Seconds(udpAppStartTime));
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime));
-
-  // attach UEs to the closest eNB
-  for (uint32_t i = 0; i < gNbNum ; ++i)
-    {
-      setup.GetHelper()->AttachToEnb (setup.GetUeDev().Get(i), setup.GetGnbDev().Get(i));
-    }
 
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();
