@@ -190,7 +190,7 @@ SimpleInterferenceScenario::~SimpleInterferenceScenario ()
              \
               \
                \
-               UE_i+1   (position fixed at 20, 20, 1.5)
+               UE_i+1   (position fixed)
  \endverbatim
  *
  */
@@ -253,10 +253,13 @@ NoInterferenceScenario::NoInterferenceScenario (const Vector& gnbReferencePos,
 
   // UE positions:
   {
-    uePos->Add (Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5));
-    std::cout << "ue0 pos " << Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5) << std::endl;
-    uePos->Add (Vector (20, 20, 1.5));
-    std::cout << "ue1 pos " << Vector (20, 20, 1.5) << std::endl;
+    Vector ue1Pos = Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5);
+    Vector ue2Pos = Vector (sqrt(0.5) * gnbReferencePos.x + ueX, sqrt(0.5) * gnbReferencePos.y, 1.5);
+
+    uePos->Add (ue1Pos);
+    std::cout << "ue0 pos " << ue1Pos << std::endl;
+    uePos->Add (ue2Pos);
+    std::cout << "ue1 pos " << ue2Pos << std::endl;
   }
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -269,6 +272,94 @@ NoInterferenceScenario::NoInterferenceScenario (const Vector& gnbReferencePos,
 
 
 NoInterferenceScenario::~NoInterferenceScenario ()
+{
+
+}
+
+
+/**
+ * \brief Raying interference scenario (limited to 2 GNB and UE)
+ *
+ * Please note that this scenario considers one UE per each GNB.
+ */
+class RayingInterferenceScenario : public Scenario
+{
+public:
+  /**
+   * \brief RayingInterferenceScenario constructor: initialize the node position
+   * \param
+   * \param gnbReferencePos reference position for the first GNB (other position
+   * will be derived from this information)
+   * \param ueY Distance between GNB and UE in meters
+   */
+  RayingInterferenceScenario (const Vector& gnbReferencePos, double ueY);
+  /**
+    * \brief destructor
+    */
+  ~RayingInterferenceScenario ();
+};
+
+RayingInterferenceScenario::RayingInterferenceScenario (const Vector& gnbReferencePos,
+                                                        double ueX)
+{
+  // create base stations and mobile terminals
+  static MobilityHelper mobility;
+
+  uint32_t gnbNum = 2;
+
+  m_gNb.Create (gnbNum);
+  m_ue.Create (gnbNum);
+
+  for (uint32_t i = 0; i < gnbNum; ++i)
+    {
+      std::stringstream ssGnb, ssUe;
+      ssGnb << "gNb" << m_gNb.Get(i)->GetId();
+      ssUe << "UE" << m_ue.Get(i)->GetId();
+
+      Names::Add (ssGnb.str(), m_gNb.Get(i));
+      Names::Add(ssUe.str(), m_ue.Get(i));
+
+      std::cout << "GNB ID " << m_gNb.Get(i)->GetId() << std::endl;
+      std::cout << "UE ID " << m_ue.Get(i)->GetId() << std::endl;
+    }
+
+  Ptr<ListPositionAllocator> gnbPos = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> uePos = CreateObject<ListPositionAllocator> ();
+
+  // GNB positions:
+  {
+    double delta = 0.0;
+    for (uint32_t i = 0; i < gnbNum; ++i)
+      {
+        Vector pos (gnbReferencePos);
+        pos.y = pos.y + delta;
+        delta += 0.5;
+        std::cout << "gnb " << i << " pos " << pos << std::endl;
+        gnbPos->Add (pos);
+      }
+  }
+
+  // UE positions:
+  {
+    Vector ue1Pos = Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5);
+    Vector ue2Pos = Vector (sqrt(0.5) * gnbReferencePos.x + ueX, sqrt(0.5) * gnbReferencePos.y, 1.5);
+
+    uePos->Add (ue1Pos);
+    std::cout << "ue0 pos " << ue1Pos << std::endl;
+    uePos->Add (ue2Pos);
+    std::cout << "ue1 pos " << ue2Pos << std::endl;
+  }
+
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.SetPositionAllocator (gnbPos);
+  mobility.Install (m_gNb);
+
+  mobility.SetPositionAllocator (uePos);
+  mobility.Install (m_ue);
+}
+
+
+RayingInterferenceScenario::~RayingInterferenceScenario ()
 {
 
 }
@@ -684,7 +775,7 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
   Config::SetDefault ("ns3::MmWave3gppChannel::CellScan",
                       BooleanValue(cellScan));
   Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
-                      TimeValue(MilliSeconds(200)));
+                      TimeValue(MilliSeconds(100)));
   Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
                       DoubleValue(beamSearchAngleStep));
 
@@ -730,7 +821,6 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
 int
 main (int argc, char *argv[])
 {
-  uint16_t gNbNum = 1;
   bool cellScan = false;
   double beamSearchAngleStep = 30.0;
   double totalTxPower = 4;
@@ -791,9 +881,17 @@ main (int argc, char *argv[])
   Scenario *scenario;
   if (scenarioId == 0)
     {
-      scenario = new SimpleInterferenceScenario (gNbNum, Vector (0, 0, 10), ueY);
+      scenario = new SimpleInterferenceScenario (1, Vector (0, 0, 10), ueY);
     }
   else if (scenarioId == 1)
+    {
+      scenario = new SimpleInterferenceScenario (2, Vector (0, 0, 10), ueY);
+    }
+  else if (scenarioId == 2)
+    {
+
+    }
+  else if (scenarioId == 3)
     {
       scenario = new NoInterferenceScenario (Vector (0,0, 10), ueY);
     }
@@ -803,7 +901,7 @@ main (int argc, char *argv[])
     }
 
   std::stringstream ss;
-  ss << "cttc-simple-interference-scenario-nr-" << ueY;
+  ss << "cttc-simple-interference-scenario-example-" << scenarioId << "-" << ueY;
   SqliteOutputManager manager (ss.str(), "cttc-simple-interf", seed, runId);
 
   NrSingleBwpSetup setup (scenario, &manager, frequencyBwp1, bandwidthBwp1,
@@ -854,7 +952,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < scenario->GetUes().GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(2));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
       dlClient.SetAttribute("PacketSize", UintegerValue(500));
       dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(10)));
       clientApps.Add (dlClient.Install (remoteHost));
