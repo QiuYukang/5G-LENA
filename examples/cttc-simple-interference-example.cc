@@ -254,7 +254,8 @@ NoInterferenceScenario::NoInterferenceScenario (const Vector& gnbReferencePos,
   // UE positions:
   {
     Vector ue1Pos = Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5);
-    Vector ue2Pos = Vector (sqrt(0.5) * gnbReferencePos.x + ueX, sqrt(0.5) * gnbReferencePos.y, 1.5);
+    Vector ue2Pos = Vector (gnbReferencePos.x + sqrt(0.5) * ueX,
+                            gnbReferencePos.y + sqrt(0.5) * ueX, 1.5);
 
     uePos->Add (ue1Pos);
     std::cout << "ue0 pos " << ue1Pos << std::endl;
@@ -332,7 +333,7 @@ RayingInterferenceScenario::RayingInterferenceScenario (const Vector& gnbReferen
       {
         Vector pos (gnbReferencePos);
         pos.y = (i * 0.5) + pos.y;
-        pos.x = ueX - 50;
+        pos.x = pos.x + (i * (ueX - 50));
         std::cout << "gnb " << i << " pos " << pos << std::endl;
         gnbPos->Add (pos);
       }
@@ -378,7 +379,7 @@ public:
    * \brief Store a SINR value
    * \param networkId Network id (e.g., cellId)
    * \param nodeId Node id
-   * \param sinr Value of SINR
+   * \param sinr Value of SINR in dB
    */
   virtual void SinrStore (uint32_t networkId, uint32_t nodeId, double sinr) = 0;
   /**
@@ -428,7 +429,7 @@ void
 FileOutputManager::SinrStore (uint32_t networkId, uint32_t nodeId, double sinr)
 {
   m_outSinrFile << networkId << " " << nodeId
-                << " " << sinr << std::endl;
+                << " " << 10 * log (sinr) / log (10) << std::endl;
 }
 
 void
@@ -445,7 +446,7 @@ class SqliteOutputManager : public OutputManager
 {
 public:
   SqliteOutputManager (const std::string &dbName, const std::string &dbLockName,
-                       uint32_t seed, uint32_t run);
+                       double ueX, uint32_t seed, uint32_t run);
   virtual ~SqliteOutputManager () override;
 
   virtual void SinrStore (uint32_t networkId, uint32_t nodeId, double sinr) override;
@@ -455,18 +456,26 @@ private:
 private:
   SQLiteOutput m_dbOutput;
   std::string m_dbName {""};
+  std::string m_sinrTableName {""};
+  std::string m_snrTableName {""};
   uint32_t m_seed {0};
   uint32_t m_run  {0};
 };
 
 SqliteOutputManager::SqliteOutputManager (const std::string &dbName, const std::string &dbLockName,
-                                          uint32_t seed, uint32_t run)
+                                          double ueX, uint32_t seed, uint32_t run)
   : m_dbOutput (dbName, dbLockName),
     m_dbName (dbName),
     m_seed (seed),
     m_run (run)
 {
-  m_dbOutput.WaitExec ("CREATE TABLE IF NOT EXISTS \"sinr_results\" "
+  std::stringstream ss;
+  ss << ueX;
+
+  m_sinrTableName = "sinr_results_" + ss.str();
+  m_snrTableName = "snr_results_" + ss.str();
+
+  m_dbOutput.WaitExec ("CREATE TABLE IF NOT EXISTS \"" + m_sinrTableName + "\" "
                        "(NETID                   INT    NOT NULL, "
                        "UID                     INT    NOT NULL, "
                        "SINR                    DOUBLE NOT NULL, "
@@ -474,7 +483,7 @@ SqliteOutputManager::SqliteOutputManager (const std::string &dbName, const std::
                        "RUN                     INT    NOT NULL"
                        ");");
 
-  m_dbOutput.WaitExec ("CREATE TABLE IF NOT EXISTS \"snr_results\" "
+  m_dbOutput.WaitExec ("CREATE TABLE IF NOT EXISTS \"" + m_snrTableName + "\" "
                        "(NETID                   INT    NOT NULL, "
                        "UID                     INT    NOT NULL, "
                        "SNR                    DOUBLE NOT NULL, "
@@ -483,8 +492,8 @@ SqliteOutputManager::SqliteOutputManager (const std::string &dbName, const std::
                        ");");
 
 
-  DeleteWhere (seed, run, "sinr_results");
-  DeleteWhere (seed, run, "snr_results");
+  DeleteWhere (seed, run, m_sinrTableName);
+  DeleteWhere (seed, run, m_snrTableName);
 }
 
 SqliteOutputManager::~SqliteOutputManager ()
@@ -511,13 +520,13 @@ SqliteOutputManager::SinrStore (uint32_t networkId, uint32_t nodeId, double sinr
 {
   bool ret;
   sqlite3_stmt *stmt;
-  ret = m_dbOutput.WaitPrepare (&stmt, "INSERT INTO sinr_results VALUES (?,?,?,?,?);");
+  ret = m_dbOutput.WaitPrepare (&stmt, "INSERT INTO " + m_sinrTableName + " VALUES (?,?,?,?,?);");
   NS_ABORT_IF (ret == false);
   ret = m_dbOutput.Bind (stmt, 1, networkId);
   NS_ABORT_IF (ret == false);
   ret = m_dbOutput.Bind (stmt, 2, nodeId);
   NS_ABORT_IF (ret == false);
-  ret = m_dbOutput.Bind (stmt, 3, sinr);
+  ret = m_dbOutput.Bind (stmt, 3, 10 * log (sinr) / log (10));
   NS_ABORT_IF (ret == false);
   ret = m_dbOutput.Bind (stmt, 4, m_seed);
   NS_ABORT_IF (ret == false);
@@ -532,13 +541,13 @@ void SqliteOutputManager::SnrStore(uint32_t networkId, uint32_t nodeId, double s
 {
   bool ret;
   sqlite3_stmt *stmt;
-  ret = m_dbOutput.WaitPrepare (&stmt, "INSERT INTO sinr_results VALUES (?,?,?,?,?);");
+  ret = m_dbOutput.WaitPrepare (&stmt, "INSERT INTO " + m_snrTableName + " VALUES (?,?,?,?,?);");
   NS_ABORT_IF (ret == false);
   ret = m_dbOutput.Bind (stmt, 1, networkId);
   NS_ABORT_IF (ret == false);
   ret = m_dbOutput.Bind (stmt, 2, nodeId);
   NS_ABORT_IF (ret == false);
-  ret = m_dbOutput.Bind (stmt, 3, snr);
+  ret = m_dbOutput.Bind (stmt, 3, 10 * log (snr) / log (10));
   NS_ABORT_IF (ret == false);
   ret = m_dbOutput.Bind (stmt, 4, m_seed);
   NS_ABORT_IF (ret == false);
@@ -641,7 +650,7 @@ public:
   NrSingleBwpSetup (Scenario *scenario, OutputManager *manager, double freq,
                     double bw, uint32_t num, double txPower,
                     const std::unordered_map<uint32_t, uint32_t> &GnbUeMap);
-  virtual ~NrSingleBwpSetup ();
+  virtual ~NrSingleBwpSetup () override;
 
   virtual Ptr<NrPointToPointEpcHelper> GetEpcHelper () const { return m_epcHelper; }
   virtual Ptr<MmWaveHelper> GetHelper () const { return m_helper; }
@@ -740,10 +749,6 @@ NrSingleBwpSetup::Init ()
           std::cout << " attaching " << v.first << " to " << v.second << std::endl;
           m_helper->AttachToEnb (GetUeDev().Get(v.first), GetGnbDev().Get(v.second));
         }
-      else
-        {
-          std::cout << " cannot connect " << v.first << " with " << v.second << std::endl;
-        }
     }
 }
 
@@ -774,7 +779,7 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
   Config::SetDefault ("ns3::MmWave3gppChannel::CellScan",
                       BooleanValue(cellScan));
   Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
-                      TimeValue(MilliSeconds(100)));
+                      TimeValue(MilliSeconds(0)));
   Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
                       DoubleValue(beamSearchAngleStep));
 
@@ -828,7 +833,7 @@ main (int argc, char *argv[])
   double bandwidthBwp1 = 100e6;
   double ueX = 300.0;
 
-  double simTime = 5; // seconds
+  double simTime = 2; // seconds
   double udpAppStartTime = 1.0; //seconds
   uint32_t scenarioId = 0;
   uint32_t runId = 0;
@@ -898,8 +903,8 @@ main (int argc, char *argv[])
     }
 
   std::stringstream ss;
-  ss << "cttc-simple-interference-scenario-example-" << scenarioId << "-" << ueX;
-  SqliteOutputManager manager (ss.str(), "cttc-simple-interf", seed, runId);
+  ss << "cttc-simple-interference-scenario-example-" << scenarioId << ".db";
+  SqliteOutputManager manager (ss.str(), ss.str (), ueX, seed, runId);
 
   NrSingleBwpSetup setup (scenario, &manager, frequencyBwp1, bandwidthBwp1,
                           numerologyBwp1, 4.0, { {0, 0}, {1, 1}});
@@ -949,7 +954,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < scenario->GetUes().GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(1));
       dlClient.SetAttribute("PacketSize", UintegerValue(500));
       dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(10)));
       clientApps.Add (dlClient.Install (remoteHost));
