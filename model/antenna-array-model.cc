@@ -413,6 +413,8 @@ AntennaArrayModel::GetAntennaLocation (uint32_t index)
 void
 AntennaArrayModel::SetSector (uint8_t sector, double elevation)
 {
+  NS_LOG_INFO ("Set sector to :"<< (unsigned)sector<< ", and elevation to:"<< elevation);
+  m_omniTx = false;
   complexVector_t tempVector;
   double hAngle_radian = M_PI * (double)sector / (double)m_antennaNumDim2 - 0.5 * M_PI;
   double vAngle_radian = elevation * M_PI / 180;
@@ -485,9 +487,5 @@ AntennaArrayModel::SetSpectrumModel (Ptr<const SpectrumModel> sm)
 {
   m_spectrumModel = sm;
 }
-
-
-
-
 
 } /* namespace ns3 */
