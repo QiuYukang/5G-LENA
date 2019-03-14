@@ -328,12 +328,11 @@ RayingInterferenceScenario::RayingInterferenceScenario (const Vector& gnbReferen
 
   // GNB positions:
   {
-    double delta = 0.0;
-    for (uint32_t i = 0; i < gnbNum; ++i)
+    for (int32_t i = 0; i < static_cast<int32_t> (gnbNum); ++i)
       {
         Vector pos (gnbReferencePos);
-        pos.y = pos.y + delta;
-        delta += 0.5;
+        pos.y = (i * 0.5) + pos.y;
+        pos.x = ueX - 50;
         std::cout << "gnb " << i << " pos " << pos << std::endl;
         gnbPos->Add (pos);
       }
@@ -342,7 +341,7 @@ RayingInterferenceScenario::RayingInterferenceScenario (const Vector& gnbReferen
   // UE positions:
   {
     Vector ue1Pos = Vector (gnbReferencePos.x + ueX, gnbReferencePos.y, 1.5);
-    Vector ue2Pos = Vector (sqrt(0.5) * gnbReferencePos.x + ueX, sqrt(0.5) * gnbReferencePos.y, 1.5);
+    Vector ue2Pos = Vector (gnbReferencePos.x + ueX, gnbReferencePos.y + 0.5, 1.5);
 
     uePos->Add (ue1Pos);
     std::cout << "ue0 pos " << ue1Pos << std::endl;
@@ -827,7 +826,7 @@ main (int argc, char *argv[])
   uint16_t numerologyBwp1 = 0;
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
-  double ueY = 300.0;
+  double ueX = 300.0;
 
   double simTime = 5; // seconds
   double udpAppStartTime = 1.0; //seconds
@@ -841,9 +840,6 @@ main (int argc, char *argv[])
   CommandLine cmd;
 
   cmd.AddValue ("simTime", "Simulation time", simTime);
-  cmd.AddValue ("gNbNum",
-                "The number of gNbs in multiple-ue topology",
-                gNbNum);
   cmd.AddValue ("cellScan",
                 "Use beam search method to determine beamforming vector,"
                 " the default is long-term covariance matrix method"
@@ -863,9 +859,9 @@ main (int argc, char *argv[])
   cmd.AddValue("eesmTable",
                "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
                eesmTable);
-  cmd.AddValue("ueY",
-               "Y position of any UE",
-               ueY);
+  cmd.AddValue("ueX",
+               "X position of any UE",
+               ueX);
   cmd.AddValue("scenario",
                "Scenario (0 = simple interference, 1 = no interf.",
                scenarioId);
@@ -881,19 +877,20 @@ main (int argc, char *argv[])
   Scenario *scenario;
   if (scenarioId == 0)
     {
-      scenario = new SimpleInterferenceScenario (1, Vector (0, 0, 10), ueY);
+      scenario = new SimpleInterferenceScenario (1, Vector (0, 0, 10), ueX);
     }
   else if (scenarioId == 1)
     {
-      scenario = new SimpleInterferenceScenario (2, Vector (0, 0, 10), ueY);
+      scenario = new SimpleInterferenceScenario (2, Vector (0, 0, 10), ueX);
     }
   else if (scenarioId == 2)
     {
+      scenario = new RayingInterferenceScenario (Vector (0,0, 10), ueX);
 
     }
   else if (scenarioId == 3)
     {
-      scenario = new NoInterferenceScenario (Vector (0,0, 10), ueY);
+      scenario = new NoInterferenceScenario (Vector (0,0, 10), ueX);
     }
   else
     {
@@ -901,7 +898,7 @@ main (int argc, char *argv[])
     }
 
   std::stringstream ss;
-  ss << "cttc-simple-interference-scenario-example-" << scenarioId << "-" << ueY;
+  ss << "cttc-simple-interference-scenario-example-" << scenarioId << "-" << ueX;
   SqliteOutputManager manager (ss.str(), "cttc-simple-interf", seed, runId);
 
   NrSingleBwpSetup setup (scenario, &manager, frequencyBwp1, bandwidthBwp1,
