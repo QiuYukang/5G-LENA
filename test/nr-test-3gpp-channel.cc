@@ -25,6 +25,8 @@
 #include "ns3/mobility-module.h"
 #include <ns3/spectrum-converter.h>
 #include <ns3/antenna-array-model.h>
+#include "ns3/config-store.h"
+#include "ns3/core-module.h"
 
 /**
  * \file nr-test-3gpp-channel.cc
@@ -445,6 +447,8 @@ NrTest3gppChannelTestCase::TestLongTermCovMatrixBeamforming (Ptr<MmWave3gppChann
 void
 NrTest3gppChannelTestCase::DoRun()
 {
+  Config::SetDefault ("ns3::MmWave3gppChannel::UpdateBeamformingVectorsIdeally", BooleanValue (false));
+
   Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
   Ptr<MmWave3gppPropagationLossModel> pathLoss = CreateObject<MmWave3gppPropagationLossModel>();
 
