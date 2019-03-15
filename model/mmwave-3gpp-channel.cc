@@ -346,23 +346,6 @@ MmWave3gppChannel::ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<co
 
 
 bool
-MmWave3gppChannel::IsBeamforming (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const
-{
-  Ptr<NetDevice> dev1 = a->GetObject<Node> ()->GetDevice (0);
-  Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
-
-  if (GetAntennaArray(dev1)->IsOmniTx () ||
-      GetAntennaArray(dev2)->IsOmniTx())
-    {
-      return false;
-    }
-  else
-    {
-      return true;
-    }
-}
-
-bool
 MmWave3gppChannel::IsUeDevice (Ptr<NetDevice> dev1) const
 {
   return m_ueDevices.find(dev1)!= m_ueDevices.end();
@@ -651,10 +634,10 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
-  if (!IsBeamforming(a, b) or !IsValidLink(a,b))
+  if (!IsValidLink (a, b))
     {
-      NS_LOG_INFO ("!IsBeamForming, returning");
-      return rxPsd;
+      NS_LOG_INFO ("UE<->UE or gNB<->gNB, returning");
+     return rxPsd;
     }
 
   InputParams3gpp input3gppParameters = GetInput3gppParameters (a, b);
@@ -681,6 +664,12 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
+
+  if (txAntennaArray->IsOmniTx() && rxAntennaArray-> IsOmniTx())
+    {
+      NS_LOG_INFO ("RX and TX are omni, returning");
+      return rxPsd;
+    }
 
   bool updateLongTerm = false;
   bool performBeamforming = false;
@@ -755,6 +744,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   if (performBeamforming)
     {
+      NS_ABORT_MSG_IF (txAntennaArray->IsOmniTx() || rxAntennaArray-> IsOmniTx(), "Beamforming should be done between directional pairs.");
       PerformBeamforming (a, b);
     }
 

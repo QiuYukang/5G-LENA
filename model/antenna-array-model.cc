@@ -139,6 +139,46 @@ AntennaArrayModel::GetTypeId ()
   return tid;
 }
 
+
+void
+AntennaArrayModel::DoInitialize (void)
+{
+  // we configure omni beamforming vector for each antenna only once, and we use it when the antenna is in omni mode
+  complexVector_t tempVector;
+  uint16_t size = m_antennaNumDim1 * m_antennaNumDim2;
+  double power = 1 / sqrt (size);
+  for (int ind = 0; ind < m_antennaNumDim1; ind++)
+    {
+      std::complex<double> c = 0.0;
+      if (m_antennaNumDim1 % 2 == 0)
+        {
+          c = exp(std::complex<double> (0, M_PI*ind*ind/m_antennaNumDim1));
+        }
+      else
+        {
+          c = exp(std::complex<double> (0, M_PI*ind*(ind+1)/m_antennaNumDim1));
+        }
+
+      for (int ind2 = 0; ind2 < m_antennaNumDim2; ind2++)
+        {
+          std::complex<double> d = 0.0;
+          if (m_antennaNumDim2 % 2 == 0)
+            {
+              d = exp(std::complex<double> (0, M_PI*ind2*ind2/m_antennaNumDim2));
+            }
+          else
+            {
+              d = exp(std::complex<double> (0, M_PI*ind2*(ind2+1)/m_antennaNumDim2));
+            }
+
+          tempVector.push_back (c * d * power);
+        }
+    }
+
+  m_omniTxRxW = std::make_pair (tempVector, std::make_pair (-1, -1));;
+
+}
+
 double
 AntennaArrayModel::GetGainDb (Angles a)
 {
@@ -189,8 +229,14 @@ AntennaArrayModel::ChangeBeamformingVector (Ptr<NetDevice> device)
 AntennaArrayModel::BeamformingVector
 AntennaArrayModel::GetCurrentBeamformingVector ()
 {
-  NS_ABORT_MSG_IF (m_omniTx, "omni transmission do not need beamforming vector");
-  return m_currentBeamformingVector;
+  if (m_omniTx)
+    {
+      return m_omniTxRxW;
+    }
+  else
+    {
+      return m_currentBeamformingVector;
+    }
 }
 
 void
@@ -209,17 +255,24 @@ AntennaArrayModel::IsOmniTx ()
 AntennaArrayModel::BeamformingVector
 AntennaArrayModel::GetBeamformingVector (Ptr<NetDevice> device)
 {
-  AntennaArrayModel::BeamformingVector beamformingVector;
-  BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
-  if (it != m_beamformingVectorMap.end ())
+  if (m_omniTx)
     {
-      beamformingVector = it->second;
+      return m_omniTxRxW;
     }
   else
     {
-      beamformingVector = m_currentBeamformingVector;
+      AntennaArrayModel::BeamformingVector beamformingVector;
+      BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
+      if (it != m_beamformingVectorMap.end ())
+        {
+          beamformingVector = it->second;
+        }
+      else
+        {
+          beamformingVector = m_currentBeamformingVector;
+        }
+      return beamformingVector;
     }
-  return beamformingVector;
 }
 
 Time 

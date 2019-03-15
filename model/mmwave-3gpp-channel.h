@@ -260,13 +260,6 @@ public:
    * @return true if the channel matrix needs to be updated, otherwise false
    */
   bool ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b, bool los) const;
-  /**
-   * Checks if there is beamforming between the two devices
-   * @param dev1 The first device
-   * @param dev2 The second device
-   * @return booleean value true if there is beamforming, otherwise it returns false
-   */
-  bool IsBeamforming (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
 
   /**
    * Checks if the device a UE device

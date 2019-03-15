@@ -50,6 +50,8 @@ public:
 
   virtual ~AntennaArrayModel ();
 
+  virtual void DoInitialize (void);
+
   static TypeId GetTypeId ();
 
   virtual double GetGainDb (Angles a) override;
@@ -145,6 +147,8 @@ protected:
   uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
 
   Ptr<const SpectrumModel> m_spectrumModel;
+
+  BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);
