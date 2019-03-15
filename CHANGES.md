@@ -77,7 +77,7 @@ program will be halted and the user will be informed of the error.
 * AntennaArray3gppModel has new attribute RandomUeorientation. If set to true
 the 3D antenna orientation will be generated randomly throwing a dice by
 using a UniformRandomVariable.
-* 3gppChannelModel has a new attribute UpdateBeamformingVectorsIdeally which
+* MmWave3gppChannel has a new attribute UpdateBeamformingVectorsIdeally which
 determines if the update of the beamforming vectors will be ideal, i.e. if
 the beamforming vectors will be adjusted every time that the channel is updated.
 * AntennaArrayBasicModel has a new function GetBeamformingVectorUpdateTime
@@ -108,7 +108,7 @@ class. Functions that had up to know this class as an input, now have the
 minimum subset of parameters that are used in the corresponding function.
 * MmWaveSpectrumValueHelper does not have anymore empty function for
 CreateTxPowerSpectralDensity that had as an input a power map (powerTxMap).
-* 3gppChannelModel can now be used by any other module, it is not any more
+* MmWave3gppChannel can now be used by any other module, it is not any more
 only mmwave specific spectrum propagation model. This means that any subclass
 of NetDevice can be attached to a channel using this SpectrumPropagationModel.
 An additional requirement is that the technology uses AntennaModel that is
@@ -120,6 +120,8 @@ functionality is now taken by the attribute StartingMcsDl/StartingMcsUl
 attributes that before were in the form "ns3::MmWavePointToPointEpcHelper"
 must now be referred to "ns3::PointToPointEpcHelper". In fact, NrPointToPointEpcHelper
 is now inheriting from PointToPointEpcHelper.
+* AntennaArrayModel has the beamforming vector that emulates omni reception and 
+transmission.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of
@@ -128,6 +130,9 @@ that the update of the beamforming vectors can be triggered at any time and
 does not have to be related to the channel update event.
 * TxPower default value for a UE passed from 30.0 dBm to 2.0 dBm
 * TxPower default value for a gNb passed from 30.0 dBm to 2.0 dBm
+* MmWave3gppChannel supports calculation of the beamforming gain when one of 
+devices is in omni mode. This is possible because AntennaArrayModel has new 
+beamforming vector that emulates omni reception and transmission.
 ---
 
 ## Changes from NR-v0.1 to NR-v0.2
