@@ -188,11 +188,6 @@ MmWave3gppChannel::GetTypeId (void)
                    TimeValue (MilliSeconds (0)),
                    MakeTimeAccessor (&MmWave3gppChannel::m_updatePeriod),
                    MakeTimeChecker ())
-    .AddAttribute ("CellScan",
-                   "Use beam search method to determine beamforming vector, the default is long-term covariance matrix method",
-                   BooleanValue (false),
-                   MakeBooleanAccessor (&MmWave3gppChannel::m_cellScan),
-                   MakeBooleanChecker ())
     .AddAttribute ("Blockage",
                    "Enable blockage model A (sec 7.6.4.1)",
                    BooleanValue (false),
@@ -233,9 +228,21 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (0),
                    MakeDoubleAccessor(&MmWave3gppChannel::m_bandwidth),
                    MakeDoubleChecker<double> ())
+     .AddAttribute ("BeamformingEnabled",
+                    "If true, perform beamforming feature for connected pairs is enabled, "
+                    "if false, perform beamforming feature for connected pairs is disabled.",
+                    BooleanValue (true),
+                    MakeBooleanAccessor (&MmWave3gppChannel::m_beamformingEnabled),
+                    MakeBooleanChecker ())
+    .AddAttribute ("CellScan",
+                   "If true, use beam search method to determine beamforming vector,"
+                   "if false, the long-term covariance matrix method is used.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&MmWave3gppChannel::m_cellScan),
+                    MakeBooleanChecker ())
     .AddAttribute ("UpdateBeamformingVectorsIdeally",
-                   "If true the beamforming vectors will be updated when the channel is updated, "
-                   "if false the channel update will not trigger the beamforming vectors update",
+                   "If true, the beamforming vectors will be updated when the channel is updated, "
+                   "if false, the channel update will not trigger the beamforming vectors update",
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWave3gppChannel::m_updateBeamformingVectorIdeally),
                    MakeBooleanChecker ());
@@ -405,7 +412,7 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
       NS_ABORT_MSG ("Pathloss model unknown");
     }
 
-  if (m_updateBeamformingVectorIdeally)
+  if (m_beamformingEnabled)
     {
       PerformBeamforming (bsDevice->GetNode()->GetObject<MobilityModel>(),
                           ueDevice->GetNode()->GetObject<MobilityModel>());
@@ -520,6 +527,9 @@ MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
 void MmWave3gppChannel::PerformBeamforming (Ptr<const MobilityModel> a,
                                               Ptr<const MobilityModel> b) const
 {
+  NS_ABORT_MSG_IF( !m_beamformingEnabled,
+                   "PerformBeamforming should not be called if beamforming is disabled.");
+
   if (m_cellScan)
     {
       NS_LOG_INFO ("beam search method ...");
@@ -671,45 +681,22 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
       return rxPsd;
     }
 
-  bool updateLongTerm = false;
-  bool performBeamforming = false;
-
   // the following code is expected to optimise the updates of the long
   // term matrix, i.e. to perform it only when is absolutely necessary
   if (AreConnected(a, b))
     {
-      if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
-          rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)
+      if (m_beamformingEnabled)
         {
-          NS_LOG_WARN ("Perform the beamforming method since there are not yet any beamforming vectors configured between transmitter and receiver.");
-          performBeamforming = true;
-          updateLongTerm = true;
-        }
-      else
-        {
-          Time txWUpdateTime = txAntennaArray->GetBeamformingVectorUpdateTime (rxDevice);
-          Time rxWUpdateTime = rxAntennaArray->GetBeamformingVectorUpdateTime (txDevice);
+            if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
+                 rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
+                 (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime))
+              {
+                NS_LOG_INFO ("Perform the beamforming method since there are not yet any beamforming vectors between transmitter and receiver, "
+                    "or the channel has updated.");
 
-          NS_ABORT_MSG_IF (txWUpdateTime != rxWUpdateTime, "Beamforming vector update times of the connected pair shall be the same.");
-
-          // channel or the beamforming vector changed -> update the long term matrix
-          // start of the simulation
-          if ((channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
-              || (channelParams->m_longTermUpdateTime < txWUpdateTime))
-            {
-              if (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
-                {
-                  NS_LOG_INFO ("Update the beamforming vectors!");
-                  performBeamforming = true;
-                }
-              else
-                {
-                  NS_LOG_INFO ("Channel has changed but the beamforming vectors were not updated yet!");
-                }
-
-              NS_LOG_INFO ("Update the long term matrix because the channel changed or the beamforming vectors are updated!");
-              updateLongTerm = true;
-            }
+                NS_ABORT_MSG_IF (txAntennaArray->IsOmniTx() || rxAntennaArray-> IsOmniTx(), "Beamforming should be done between directional pairs.");
+                PerformBeamforming (a, b);
+              }
         }
     }
   else // if not connected pair
@@ -717,49 +704,37 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
        if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
            rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)
         {
-          if (txAntennaArray->GetCurrentBeamformingVector ().first.size () == 0)
-            {
-               NS_LOG_INFO ("txW.size() == 0 ");
-            }
-          if (rxAntennaArray->GetCurrentBeamformingVector ().first.size () == 0)
-            {
-              NS_LOG_INFO ("rxW.size() == 0");
-            }
+          NS_LOG_INFO ("txW.size ==0 || rxW.size() == 0");
 
           GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
-          NS_LOG_INFO ("Not connected pair, do not do anything");
+          NS_LOG_INFO ("Not connected pair, and one or both beams are not configured yet, do not anything");
           return rxPsd;
         }
-        
-      NS_LOG_INFO ("Update the long term matrix of not connected pair");
-      updateLongTerm = true;
     }
 
-  // long-term channel map is not initialised yet, do it
-  if (channelParams->m_longTerm.size() == 0)
-    {
-      updateLongTerm = true;
-      NS_LOG_INFO ("Calculate long-term map for the first time. Later on will be updated.");
-    }
-
-  if (performBeamforming)
-    {
-      NS_ABORT_MSG_IF (txAntennaArray->IsOmniTx() || rxAntennaArray-> IsOmniTx(), "Beamforming should be done between directional pairs.");
-      PerformBeamforming (a, b);
-    }
-
-  NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector ().first.size()==0 ||
-                   rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0,
-                   "Beamforming vectors not properly calculated. Tx elements: " <<
-                   txAntennaArray->GetCurrentBeamformingVector ().first.size() <<
+  NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector ().first.size()==0 || rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0,
+                   "Beamforming vectors not properly calculated. Tx elements: " << txAntennaArray->GetCurrentBeamformingVector ().first.size() <<
                    " rx elements: " << rxAntennaArray->GetCurrentBeamformingVector ().first.size());
 
-  if (updateLongTerm)
+
+  // if some of beamforming vectors has changed then the long term matrix must be updated also
+  if (channelParams->m_txW != txAntennaArray->GetCurrentBeamformingVector().first
+      || channelParams->m_rxW != rxAntennaArray->GetCurrentBeamformingVector().first
+      || channelParams->m_longTerm.size() == 0
+      || channelParams->m_longTermUpdateTime < channelParams->m_generatedTime
+      ) // long-term channel map is not initialised yet, do it
     {
+      NS_LOG_INFO ("Update the long term matrix because the beamforming vectors are updated"
+                   " long-term still is not initialised, or long-term matrix should be updated "
+                   "since the channel was updated");
+
       channelParams->m_longTerm = CalLongTerm (txAntennaArray->GetCurrentBeamformingVector ().first,
                                                rxAntennaArray->GetCurrentBeamformingVector ().first,
                                                channelParams->m_delay,
                                                channelParams->m_channel);
+      channelParams->m_txW = txAntennaArray->GetCurrentBeamformingVector ().first;
+      channelParams->m_rxW = rxAntennaArray->GetCurrentBeamformingVector ().first;
+
       channelParams->m_longTermUpdateTime = Now ();
     }
 
@@ -972,6 +947,8 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
 
   params3gpp->m_longTerm = CalLongTerm (txW, rxW,
                                         params3gpp->m_delay, params3gpp->m_channel);
+  params3gpp->m_txW = txW;
+  params3gpp->m_rxW = rxW;
   params3gpp->m_longTermUpdateTime = Now ();
 
 }
@@ -2778,7 +2755,7 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
   Ptr<const SpectrumModel> txSm = txAntennaArray->GetSpectrumModel ();
   Ptr<const SpectrumModel> rxSm = rxAntennaArray->GetSpectrumModel ();
 
-  NS_ABORT_MSG_IF (txSm != rxSm, "BeamSearcBeamforming is expected to be done between the transmitter and receiver"
+  NS_ABORT_MSG_IF (txSm != rxSm, "BeamSearchBeamforming is expected to be done between the transmitter and receiver"
       " using the same spectrum model!");
 
   Ptr<const SpectrumValue> fakePsd = GetFakeTxPowerSpectralDensity (0.0, txSm);
@@ -2788,6 +2765,8 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   size_t maxTx = 0, maxRx = 0;
+  complexVector_t  maxLongTerm, maxTxW, maxRxW;
+
   NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
   for (uint16_t txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
@@ -2813,12 +2792,11 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
                   NS_ABORT_MSG_IF (txW.size()==0 || rxW.size()==0, "Beamforming vectors must be initialized in order to caclulate the long term matrix.");
 
-                  params3gpp->m_longTerm = CalLongTerm (txW, rxW, params3gpp->m_delay, params3gpp->m_channel);
-                  params3gpp->m_longTermUpdateTime = Now ();
-                  
+                  complexVector_t tempLongTerm = CalLongTerm (txW, rxW, params3gpp->m_delay, params3gpp->m_channel);
+
                   Ptr<SpectrumValue> bfPsd = CalBeamformingGain (fakePsd,
                                                                  params3gpp->m_channel,
-                                                                 params3gpp->m_longTerm,
+                                                                 tempLongTerm,
                                                                  txW,
                                                                  rxW,
                                                                  params3gpp->m_delay,
@@ -2837,6 +2815,9 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
                       maxRx = rx;
                       maxTxTheta = txTheta;
                       maxRxTheta = rxTheta;
+                      maxLongTerm = tempLongTerm;
+                      maxTxW = txW;
+                      maxRxW = rxW;
                     }
                 }
             }
@@ -2847,16 +2828,14 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
   NS_LOG_LOGIC ("max gain " << max << " maxTx " << (M_PI * (double)maxTx / (double)txAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) /
                 (M_PI) * 180 << " maxRx " << (M_PI * (double)maxRx / (double)rxAntennaArray->GetAntennaNumDim2() - 0.5 * M_PI) /
                 (M_PI) * 180 << " maxTxTheta " << maxTxTheta << " maxRxTheta " << maxRxTheta);
-  txAntennaArray->SetSector (static_cast<uint8_t> (maxTx), maxTxTheta);
-  rxAntennaArray->SetSector (static_cast<uint8_t> (maxRx), maxRxTheta);
 
-  txAntennaArray->SetBeamformingVector (txAntennaArray->GetCurrentBeamformingVector().first, txAntennaArray->GetCurrentBeamformingVector().second, rxDevice);
-  rxAntennaArray->SetBeamformingVector (rxAntennaArray->GetCurrentBeamformingVector().first, rxAntennaArray->GetCurrentBeamformingVector().second, txDevice);
+  txAntennaArray->SetBeamformingVector (maxTxW, std::make_pair (maxTx, maxTxTheta), rxDevice);
+  rxAntennaArray->SetBeamformingVector (maxRxW, std::make_pair (maxRx, maxRxTheta), txDevice);
 
-  params3gpp->m_longTerm = CalLongTerm (txAntennaArray->GetCurrentBeamformingVector().first,
-                                        rxAntennaArray->GetCurrentBeamformingVector().first,
-                                        params3gpp->m_delay, params3gpp->m_channel);
+  params3gpp->m_longTerm = maxLongTerm;
   params3gpp->m_longTermUpdateTime = Now ();
+  params3gpp->m_txW = maxTxW;
+  params3gpp->m_rxW = maxRxW;
 
   NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector().first.size()==0 || rxAntennaArray->GetCurrentBeamformingVector().first.size()==0, "Beamforming vectors must be initialized.");
 

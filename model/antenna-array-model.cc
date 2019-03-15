@@ -212,7 +212,6 @@ AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId 
           m_beamformingVectorMap.insert (std::make_pair (device,
                                                          std::make_pair (antennaWeights, beamId)));
         }
-      m_beamformingVectorUpdateTimes [device] = Simulator::Now();
     }
   m_currentBeamformingVector = std::make_pair (antennaWeights, beamId);
 }
@@ -273,14 +272,6 @@ AntennaArrayModel::GetBeamformingVector (Ptr<NetDevice> device)
         }
       return beamformingVector;
     }
-}
-
-Time 
-AntennaArrayModel::GetBeamformingVectorUpdateTime (Ptr<NetDevice> device)
-{
-  BeamformingStorageUpdateTimes::iterator it = m_beamformingVectorUpdateTimes.find (device);
-  NS_ABORT_MSG_IF (it == m_beamformingVectorUpdateTimes.end (), "The beamforming vector for the given device does not exist." );
-  return it->second;
 }
 
 void
@@ -464,7 +455,7 @@ AntennaArrayModel::GetAntennaLocation (uint32_t index)
 }
 
 void
-AntennaArrayModel::SetSector (uint8_t sector, double elevation)
+AntennaArrayModel::SetSector (uint8_t sector, double elevation, Ptr<NetDevice> netDevice)
 {
   NS_LOG_INFO ("Set sector to :"<< (unsigned)sector<< ", and elevation to:"<< elevation);
   m_omniTx = false;
@@ -481,6 +472,23 @@ AntennaArrayModel::SetSector (uint8_t sector, double elevation)
                                   + cos (vAngle_radian) * loc.z);
       tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
     }
+
+
+  if (netDevice != nullptr)
+     {
+       BeamformingStorage::iterator iter = m_beamformingVectorMap.find (netDevice);
+       if (iter != m_beamformingVectorMap.end ())
+         {
+           (*iter).second = std::make_pair (tempVector, std::make_pair (sector, elevation));
+         }
+       else
+         {
+           m_beamformingVectorMap.insert (std::make_pair (netDevice,
+                                                          std::make_pair (tempVector, std::make_pair (sector, elevation))));
+         }
+     }
+
+
   m_currentBeamformingVector = std::make_pair (tempVector, std::make_pair (sector, elevation));
 }
 

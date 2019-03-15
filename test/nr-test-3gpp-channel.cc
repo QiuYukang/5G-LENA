@@ -285,31 +285,18 @@ NrTest3gppChannelTestCase::TestBeamSearchBeamforming(Ptr<MmWave3gppChannel>& cha
                                                      TestParams& testParams)
 {
 
-  Ptr<AntennaArrayBasicModel> ueAnt =  testParams.ueAnt;
-  Ptr<AntennaArrayBasicModel> gnbAnt =  testParams.gnbAnt;
-  Ptr<SimpleNetDevice> ueDev = testParams.ueDevice;
-  Ptr<SimpleNetDevice> gnbDev = testParams.gnbDevice;
-  Ptr<MobilityModel> ueMm = testParams.ueMm;
-  Ptr<MobilityModel> gnbMm = testParams.gnbMm;
-  complexVector_t ueAntVectorBefore =  ueAnt->GetBeamformingVector(gnbDev).first;
-  complexVector_t gnbAntVectorBefore =  gnbAnt->GetBeamformingVector(ueDev).first;
 
-  Time ueAntUpdateTimeBefore = ueAnt->GetBeamformingVectorUpdateTime(gnbDev);
-  Time gnbAntUpdateTimeBefore = gnbAnt->GetBeamformingVectorUpdateTime(ueDev);
+  complexVector_t ueAntVectorBefore =  testParams.ueAnt->GetBeamformingVector(testParams.gnbDevice).first;
+  complexVector_t gnbAntVectorBefore =  testParams.gnbAnt->GetBeamformingVector(testParams.ueDevice).first;
 
-  channel->BeamSearchBeamforming(ueMm, gnbMm);
+  channel->BeamSearchBeamforming(testParams.ueMm, testParams.gnbMm);
 
-  complexVector_t ueAntVectorAfter =  ueAnt->GetBeamformingVector(gnbDev).first;
-  complexVector_t gnbAntVectorAfter =  gnbAnt->GetBeamformingVector(ueDev).first;
-
-  Time ueAntUpdateTimeAfter = ueAnt->GetBeamformingVectorUpdateTime(gnbDev);
-  Time gnbAntUpdateTimeAfter = gnbAnt->GetBeamformingVectorUpdateTime(ueDev);
+  complexVector_t ueAntVectorAfter =  testParams.ueAnt->GetBeamformingVector(testParams.gnbDevice).first;
+  complexVector_t gnbAntVectorAfter =  testParams.gnbAnt->GetBeamformingVector(testParams.ueDevice).first;
 
   NS_TEST_ASSERT_MSG_EQ (CompareBeamformingVectors (ueAntVectorBefore,ueAntVectorAfter), false, "UE antenna beamforming vectors not updated!");
   NS_TEST_ASSERT_MSG_EQ (CompareBeamformingVectors (gnbAntVectorBefore, gnbAntVectorAfter), false, "gnb antenna beamforming vectors not updated!");
 
-  NS_TEST_ASSERT_MSG_NE (ueAntUpdateTimeBefore, ueAntUpdateTimeAfter, "UE antenna beamforming vector update time not updated!");
-  NS_TEST_ASSERT_MSG_NE (gnbAntUpdateTimeBefore, gnbAntUpdateTimeAfter, "gnb antenna beamforming vector update time not updated!");
 }
 
 
@@ -425,29 +412,21 @@ NrTest3gppChannelTestCase::TestLongTermCovMatrixBeamforming (Ptr<MmWave3gppChann
   complexVector_t ueAntVectorBefore =  ueAnt->GetBeamformingVector(gnbDev).first;
   complexVector_t gnbAntVectorBefore =  gnbAnt->GetBeamformingVector(ueDev).first;
 
-  Time ueAntUpdateTimeBefore = ueAnt->GetBeamformingVectorUpdateTime(gnbDev);
-  Time gnbAntUpdateTimeBefore = gnbAnt->GetBeamformingVectorUpdateTime(ueDev);
-
   channel->LongTermCovMatrixBeamforming (ueMm, gnbMm);
 
   complexVector_t ueAntVectorAfter =  ueAnt->GetBeamformingVector(gnbDev).first;
   complexVector_t gnbAntVectorAfter =  gnbAnt->GetBeamformingVector(ueDev).first;
 
-  Time ueAntUpdateTimeAfter = ueAnt->GetBeamformingVectorUpdateTime(gnbDev);
-  Time gnbAntUpdateTimeAfter = gnbAnt->GetBeamformingVectorUpdateTime(ueDev);
-
   NS_TEST_ASSERT_MSG_EQ (CompareBeamformingVectors (ueAntVectorBefore,ueAntVectorAfter), false, "UE antenna beamforming vectors not updated!");
   NS_TEST_ASSERT_MSG_EQ (CompareBeamformingVectors (gnbAntVectorBefore, gnbAntVectorAfter), false, "gnb antenna beamforming vectors not updated!");
 
-  NS_TEST_ASSERT_MSG_NE (ueAntUpdateTimeBefore, ueAntUpdateTimeAfter, "UE antenna beamforming vector update time not updated!");
-  NS_TEST_ASSERT_MSG_NE (gnbAntUpdateTimeBefore, gnbAntUpdateTimeAfter, "gnb antenna beamforming vector update time not updated!");
 }
 
 
 void
 NrTest3gppChannelTestCase::DoRun()
 {
-  Config::SetDefault ("ns3::MmWave3gppChannel::UpdateBeamformingVectorsIdeally", BooleanValue (false));
+  Config::SetDefault ("ns3::MmWave3gppChannel::BeamformingEnabled", BooleanValue (false));
 
   Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
   Ptr<MmWave3gppPropagationLossModel> pathLoss = CreateObject<MmWave3gppPropagationLossModel>();
@@ -497,6 +476,12 @@ NrTest3gppChannelTestCase::DoRun()
   Ptr<AntennaArrayModel> ueAnt1 = CreateObject<AntennaArrayModel>();
   Ptr<AntennaArrayModel> gnbAnt1 = CreateObject<AntennaArrayModel>();
 
+  ChannelPhyConf rxPhyConf = ChannelPhyConf (m_centerFrequency, m_bandwidth, m_rxNumerology);
+  Ptr<const SpectrumModel> spectrumModel =  rxPhyConf.GetSpectrumModel ();
+
+  ueAnt1->SetSpectrumModel (spectrumModel);
+  gnbAnt1->SetSpectrumModel (spectrumModel);
+
   Ptr<AntennaArrayModel> ueAnt2 = CreateObject<AntennaArrayModel>();
   Ptr<AntennaArrayModel> gnbAnt2 = CreateObject<AntennaArrayModel>();
 
@@ -514,11 +499,6 @@ NrTest3gppChannelTestCase::DoRun()
 
   pathLoss->m_channelConditions = m_channelCondition;
   TestDoGetChannelCondition (channel, ueNode1->GetObject<MobilityModel>(), gnbNode1->GetObject<MobilityModel>(), m_channelCondition);
-
-  Simulator::Schedule (Seconds (1), &NrTest3gppChannelTestCase::TestBeamSearchBeamforming, this, channel, testParams);
-
-  Simulator::Schedule (Seconds (2), &NrTest3gppChannelTestCase::TestLongTermCovMatrixBeamforming, this, channel, testParams);
-
 
   NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode1->GetObject<MobilityModel>(),
                                                     gnbNode1->GetObject<MobilityModel>()), false, "Channel matrix should not exist yet");
@@ -548,6 +528,11 @@ NrTest3gppChannelTestCase::DoRun()
 
   NS_TEST_ASSERT_MSG_EQ(channel->ChannelMatrixExist(ueNode1->GetObject<MobilityModel>(),
                                                     ueNode2->GetObject<MobilityModel>()), false, "Channel matrix between UEs should not exist");
+
+
+  TestBeamSearchBeamforming (channel, testParams);
+
+  TestLongTermCovMatrixBeamforming (channel, testParams);
 
   NS_TEST_ASSERT_MSG_EQ (channel->IsValidLink(ueNode1->GetObject<MobilityModel>(), ueNode2->GetObject<MobilityModel>()), false, "Ue<->Ue 3gpp channel link is currently not supported");
 
