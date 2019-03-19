@@ -77,11 +77,8 @@ static const double All90DegreeBFVectorImag[2][4] = {
 
 
 AntennaArrayModel::AntennaArrayModel ()
-  : AntennaArrayBasicModel (),
-    m_minAngle (0),
-    m_maxAngle (2 * M_PI)
+  : AntennaArrayBasicModel ()
 {
-  m_omniTx = false;
 }
 
 AntennaArrayModel::~AntennaArrayModel ()
@@ -178,14 +175,6 @@ AntennaArrayModel::GetGainDb (Angles a)
   NS_UNUSED (a);
   return m_antennaGain;
 }
-void
-AntennaArrayModel::SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
-                                                  Ptr<NetDevice> device)
-{
-  Simulator::Schedule (MilliSeconds (8), &AntennaArrayModel::SetBeamformingVector,
-                       this, antennaWeights, beamId, device);
-}
-
 
 void
 AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
@@ -213,7 +202,6 @@ AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId 
 void
 AntennaArrayModel::ChangeBeamformingVector (Ptr<NetDevice> device)
 {
-  m_omniTx = false;
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
   NS_ASSERT_MSG (it != m_beamformingVectorMap.end (), "could not find the beamforming vector for the provided device");
   m_currentBeamformingVector = it->second;
@@ -222,57 +210,37 @@ AntennaArrayModel::ChangeBeamformingVector (Ptr<NetDevice> device)
 AntennaArrayModel::BeamformingVector
 AntennaArrayModel::GetCurrentBeamformingVector ()
 {
-  if (m_omniTx)
-    {
-      return m_omniTxRxW;
-    }
-  else
-    {
-      return m_currentBeamformingVector;
-    }
+  return m_currentBeamformingVector;
 }
 
 void
 AntennaArrayModel::ChangeToOmniTx ()
 {
-  m_omniTx = true;
+  m_currentBeamformingVector = m_omniTxRxW;
 }
-
-bool
-AntennaArrayModel::IsOmniTx ()
-{
-  return m_omniTx;
-}
-
 
 AntennaArrayModel::BeamformingVector
 AntennaArrayModel::GetBeamformingVector (Ptr<NetDevice> device)
 {
-  if (m_omniTx)
+  NS_LOG_FUNCTION (this);
+  AntennaArrayModel::BeamformingVector beamformingVector;
+  BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
+  if (it != m_beamformingVectorMap.end ())
     {
-      return m_omniTxRxW;
+      beamformingVector = it->second;
     }
   else
     {
-      AntennaArrayModel::BeamformingVector beamformingVector;
-      BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
-      if (it != m_beamformingVectorMap.end ())
-        {
-          beamformingVector = it->second;
-        }
-      else
-        {
-          beamformingVector = m_currentBeamformingVector;
-        }
-      return beamformingVector;
+      beamformingVector = m_currentBeamformingVector;
     }
+  return beamformingVector;
 }
 
 void
 AntennaArrayModel::SetSector (uint32_t sector)
 {
   NS_LOG_LOGIC(this);
-  m_omniTx = false;
+
   complexVector_t cmplxVector;
   uint32_t antennaNum = GetAntennaNumDim1() * GetAntennaNumDim2();
 
@@ -452,7 +420,6 @@ void
 AntennaArrayModel::SetSector (uint8_t sector, double elevation, Ptr<NetDevice> netDevice)
 {
   NS_LOG_INFO ("Set sector to :"<< (unsigned)sector<< ", and elevation to:"<< elevation);
-  m_omniTx = false;
   complexVector_t tempVector;
   double hAngle_radian = M_PI * (double)sector / (double)m_antennaNumDim2 - 0.5 * M_PI;
   double vAngle_radian = elevation * M_PI / 180;

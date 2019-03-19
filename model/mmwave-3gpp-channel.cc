@@ -675,12 +675,6 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
-  if (txAntennaArray->IsOmniTx() || rxAntennaArray-> IsOmniTx())
-    {
-      NS_LOG_INFO ("RX and TX are omni, returning");
-      return rxPsd;
-    }
-
   // the following code is expected to optimise the updates of the long
   // term matrix, i.e. to perform it only when is absolutely necessary
   if (AreConnected(a, b))

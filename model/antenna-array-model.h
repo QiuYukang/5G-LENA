@@ -59,8 +59,6 @@ public:
 
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) override;
 
-  virtual bool IsOmniTx () override;
-
   virtual double GetRadiationPattern (double vangle, double hangle = 0) override;
 
   virtual Vector GetAntennaLocation (uint32_t index) override;
@@ -96,38 +94,39 @@ public:
 
   /**
   * Get SpectrumModel corresponding to this antenna instance
-  * @return SpectrumModel
+  * \return SpectrumModel
   */
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
 
   /**
    * Set SpectrumModel that will be used by this antenna instancew
-   * @param sm SpectrumModel to be used
+   * \param sm SpectrumModel to be used
    */
   virtual void SetSpectrumModel (Ptr<const SpectrumModel> sm) override;
 
-private:
+
+protected:
 
   typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage; /*!< A type represents a map where the key is a pointer
                                                                                to the device and the value is the BeamformingVector element */
-  bool m_omniTx;
-  double m_minAngle;
-  double m_maxAngle;
-  BeamformingVector m_currentBeamformingVector;
-  BeamformingStorage m_beamformingVectorMap;
 
-protected:
-  double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
-  double m_disH;       //antenna spacing in the horizontal direction in terms of wave length.
-  AntennaOrientation m_orientation; // antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane
-  double m_antennaGain; //antenna gain
+  double m_disV {0.0};       //!< antenna spacing in the vertical direction in terms of wave length.
+  double m_disH {0.0};       //!< antenna spacing in the horizontal direction in terms of wave length.
+  AntennaOrientation m_orientation {X0}; //!< antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane
+  double m_antennaGain {0.0}; //!< antenna gain
 
-  uint8_t m_antennaNumDim1; //!< The number of antenna elements in the first dimension.
-  uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
+  uint8_t m_antennaNumDim1 {0}; //!< The number of antenna elements in the first dimension.
+  uint8_t m_antennaNumDim2 {0}; //!< The number of antenna elements in the first dimension.
 
   Ptr<const SpectrumModel> m_spectrumModel;
 
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
+
+private:
+  double m_minAngle {0.0};
+  double m_maxAngle {2 * M_PI};
+  BeamformingVector m_currentBeamformingVector;
+  BeamformingStorage m_beamformingVectorMap;
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);

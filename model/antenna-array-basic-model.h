@@ -190,13 +190,6 @@ public:
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) = 0;
 
   /**
-   * Returns a bool that says if the current transmission is configured to be
-   * omni.
-   * \return whether the transmission is set to omni
-   */
-  virtual bool IsOmniTx () = 0;
-
-  /**
    * Function returns the radiation pattern for the specified vertical
    * and the horizontal angle.
    * \param vangle vertical angle
