@@ -903,7 +903,17 @@ main (int argc, char *argv[])
     }
 
   std::stringstream ss;
-  ss << "cttc-simple-interference-scenario-example-" << scenarioId << ".db";
+  ss << "cttc-simple-interference-scenario-example-" << scenarioId;
+  if (cellScan)
+    {
+      ss << "-with-cellscan-" << beamSearchAngleStep;
+    }
+  else
+    {
+      ss << "-without-cellscan";
+    }
+  ss << ".db";
+
   SqliteOutputManager manager (ss.str(), ss.str (), ueX, seed, runId);
 
   NrSingleBwpSetup setup (scenario, &manager, frequencyBwp1, bandwidthBwp1,
