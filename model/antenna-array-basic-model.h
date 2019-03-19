@@ -201,13 +201,6 @@ public:
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) = 0;
 
   /**
-   * \brief Function that returns the last time at which the beamforming vector was updated
-   * @param device the device to which is connected the device of this antenna array
-   * @return the last time at which the beamforming vector has been updated
-   */
-  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device) = 0;
-
-  /**
    * Returns a bool that says if the current transmission is configured to be
    * omni.
    * \return whether the transmission is set to omni
@@ -238,8 +231,9 @@ public:
    * \brief Manually set the sector on the antenna
    * \param sector Sector
    * \param elevation Elevation
+   * \param netDevice NetDevice for which is used this beamforming vector, if any
    */
-  virtual void SetSector (uint8_t sector, double elevation = 90) = 0;
+  virtual void SetSector (uint8_t sector, double elevation = 90, Ptr<NetDevice> netDevice = nullptr) = 0;
 
   /**
    * \brief Returns the number of antenna elements in the first dimension.

@@ -50,6 +50,8 @@ public:
 
   virtual ~AntennaArrayModel ();
 
+  virtual void DoInitialize (void);
+
   static TypeId GetTypeId ();
 
   virtual double GetGainDb (Angles a) override;
@@ -68,13 +70,6 @@ public:
 
   virtual BeamformingVector GetBeamformingVector (Ptr<NetDevice> device) override;
 
-  /**
-   * Returns the time at which was the last time updated the beamforming vector for the given device.
-   * @param device for which is used the beamforming vector whose last update time is needed
-   * @return the time at which the beamforming vector was being updated
-   */
-  virtual Time GetBeamformingVectorUpdateTime (Ptr<NetDevice> device) override;
-
   virtual bool IsOmniTx () override;
 
   virtual double GetRadiationPattern (double vangle, double hangle = 0) override;
@@ -83,7 +78,7 @@ public:
 
   virtual void SetSector (uint32_t sector) override;
 
-  virtual void SetSector (uint8_t sector, double elevation = 90) override;
+  virtual void SetSector (uint8_t sector, double elevation = 90, Ptr<NetDevice> netDevice = nullptr) override;
 
   void SetAntennaOrientation (enum AntennaArrayModel::AntennaOrientation orientation);
 
@@ -126,14 +121,11 @@ private:
 
   typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage; /*!< A type represents a map where the key is a pointer
                                                                                to the device and the value is the BeamformingVector element */
-  typedef std::map<Ptr<NetDevice>, Time> BeamformingStorageUpdateTimes;  /*!< A type that represents a map in which are pairs of the pointer to the
-                                                                               the device and the time at which is updated the beamforming vector for that device*/
   bool m_omniTx;
   double m_minAngle;
   double m_maxAngle;
   BeamformingVector m_currentBeamformingVector;
   BeamformingStorage m_beamformingVectorMap;
-  BeamformingStorageUpdateTimes m_beamformingVectorUpdateTimes;
 
 protected:
   double m_disV;       //antenna spacing in the vertical direction in terms of wave length.
@@ -145,6 +137,8 @@ protected:
   uint8_t m_antennaNumDim2; //!< The number of antenna elements in the first dimension.
 
   Ptr<const SpectrumModel> m_spectrumModel;
+
+  BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
 };
 
 std::ostream & operator<< (std::ostream & os, AntennaArrayModel::BeamId const & item);

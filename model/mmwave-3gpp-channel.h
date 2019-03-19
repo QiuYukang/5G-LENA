@@ -125,6 +125,8 @@ struct Params3gpp : public SimpleRefCount<Params3gpp>
   doubleVector_t      m_delay; //!< cluster delay.
   double2DVector_t    m_angle; //!<cluster angle angle[direction][n], where direction = 0(aoa), 1(zoa), 2(aod), 3(zod) in degree.
   complexVector_t     m_longTerm; //!< long term component per cluster
+  complexVector_t m_txW; //!< transmit beamforming vector for which is calculated this long-term matrix
+  complexVector_t m_rxW; //!< receive beamforming vector for which is calculated this long-term matrix
   Time m_longTermUpdateTime {0}; //!< the last time at which the long term matrix was updated
   Time m_generatedTime {0}; //!< the last time at which the channel matrix was updated
 
@@ -260,13 +262,6 @@ public:
    * @return true if the channel matrix needs to be updated, otherwise false
    */
   bool ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b, bool los) const;
-  /**
-   * Checks if there is beamforming between the two devices
-   * @param dev1 The first device
-   * @param dev2 The second device
-   * @return booleean value true if there is beamforming, otherwise it returns false
-   */
-  bool IsBeamforming (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
 
   /**
    * Checks if the device a UE device
@@ -538,7 +533,6 @@ private:
   Ptr<PropagationLossModel> m_3gppPathloss;
   Ptr<ParamsTable> m_table3gpp;
   Time m_updatePeriod;
-  bool m_cellScan;
   bool m_blockage;
   uint16_t m_numNonSelfBloking; //number of non-self-blocking regions.
   bool m_portraitMode; //true (portrait mode); false (landscape mode).
@@ -548,6 +542,8 @@ private:
   double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
   bool m_updateBeamformingVectorIdeally; //!< Update the beamforming vectors ideally
+  bool m_beamformingEnabled; //!< Whether perform beamforming is enabled, if false antenna array should have the beamforming vectors configured externally
+  bool m_cellScan; //!< If true beam search beamforming is enabled, if false the long term cov. matrix is used
   double m_bandwidth; //!< The total bandwidth for this channel
   std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
 };
