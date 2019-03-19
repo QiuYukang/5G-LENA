@@ -37,7 +37,7 @@ public:
 
   AntennaArray3gppModel ();
 
-  virtual ~AntennaArray3gppModel ();
+  virtual ~AntennaArray3gppModel () override;
 
   static TypeId GetTypeId ();
 

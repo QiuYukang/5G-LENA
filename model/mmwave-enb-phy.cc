@@ -342,7 +342,7 @@ MmWaveEnbPhy::StartSlot (void)
       if (m_subframeNum == 0)   // send MIB at the beginning of each frame
         {
           LteRrcSap::MasterInformationBlock mib;
-          mib.dlBandwidth = (uint8_t)4;
+          mib.dlBandwidth = 4U;
           mib.systemFrameNumber = 1;
           Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
           mibMsg->SetMib (mib);

@@ -165,17 +165,6 @@ public:
                                      Ptr<NetDevice> device) = 0 ;
 
   /**
-   * \brief Function that schedules the call to SetBeamformingVector witha a
-   * predefined delay of 8 ms.
-   * \param antennaWeights the weights of the beamforming vector
-   * \param beamId the unique identifier of the beam
-   * \param device device to which it is being transmitted, or from which is
-   * being received
-   */
-  virtual void SetBeamformingVectorWithDelay (complexVector_t antennaWeights, BeamId beamId,
-                                              Ptr<NetDevice> device) = 0;
-
-  /**
    * \brief Change the beamforming vector for a device
    * \param device Device to change the beamforming vector for
    */

@@ -1,28 +1,21 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*
-*   Author: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                Sourjya Dutta <sdutta@nyu.edu>
-*                Russell Ford <russell.ford@nyu.edu>
-*                Menglei Zhang <menglei@nyu.edu>
-*/
-
-
+ *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
 #include "antenna-array-model.h"
 #include <ns3/log.h>
@@ -143,11 +136,12 @@ AntennaArrayModel::GetTypeId ()
 void
 AntennaArrayModel::DoInitialize (void)
 {
+  NS_LOG_FUNCTION (this);
   // we configure omni beamforming vector for each antenna only once, and we use it when the antenna is in omni mode
   complexVector_t tempVector;
   uint16_t size = m_antennaNumDim1 * m_antennaNumDim2;
   double power = 1 / sqrt (size);
-  for (int ind = 0; ind < m_antennaNumDim1; ind++)
+  for (auto ind = 0; ind < m_antennaNumDim1; ind++)
     {
       std::complex<double> c = 0.0;
       if (m_antennaNumDim1 % 2 == 0)
@@ -159,7 +153,7 @@ AntennaArrayModel::DoInitialize (void)
           c = exp(std::complex<double> (0, M_PI*ind*(ind+1)/m_antennaNumDim1));
         }
 
-      for (int ind2 = 0; ind2 < m_antennaNumDim2; ind2++)
+      for (auto ind2 = 0; ind2 < m_antennaNumDim2; ind2++)
         {
           std::complex<double> d = 0.0;
           if (m_antennaNumDim2 % 2 == 0)
@@ -176,12 +170,12 @@ AntennaArrayModel::DoInitialize (void)
     }
 
   m_omniTxRxW = std::make_pair (tempVector, std::make_pair (-1, -1));;
-
 }
 
 double
 AntennaArrayModel::GetGainDb (Angles a)
 {
+  NS_UNUSED (a);
   return m_antennaGain;
 }
 void
@@ -197,9 +191,9 @@ void
 AntennaArrayModel::SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
                                          Ptr<NetDevice> device)
 {
-  NS_LOG_INFO ("SetBeamformingVector for BeamId:"<<(unsigned)beamId.first<<" "<<beamId.second << " node id: "<<device->GetNode()->GetId()<<
-                 " at:"<<Simulator::Now().GetSeconds());
-  m_omniTx = false;
+  NS_LOG_INFO ("SetBeamformingVector for BeamId:" << beamId <<
+               " node id: " << device->GetNode()->GetId());
+
   if (device != nullptr)
     {
       BeamformingStorage::iterator iter = m_beamformingVectorMap.find (device);
@@ -464,7 +458,7 @@ AntennaArrayModel::SetSector (uint8_t sector, double elevation, Ptr<NetDevice> n
   double vAngle_radian = elevation * M_PI / 180;
   uint16_t size = m_antennaNumDim1 * m_antennaNumDim2;
   double power = 1 / sqrt (size);
-  for (int ind = 0; ind < size; ind++)
+  for (auto ind = 0; ind < size; ind++)
     {
       Vector loc = GetAntennaLocation (ind);
       double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
@@ -535,12 +529,10 @@ AntennaArrayModel::SetAntennaNumDim2 (uint8_t antennaNum)
   m_antennaNumDim2 = antennaNum;
 }
 
-
 Ptr<const SpectrumModel>
 AntennaArrayModel::GetSpectrumModel () const
 {
   return m_spectrumModel;
-
 }
 
 void
