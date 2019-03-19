@@ -675,7 +675,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
 
-  if (txAntennaArray->IsOmniTx() && rxAntennaArray-> IsOmniTx())
+  if (txAntennaArray->IsOmniTx() || rxAntennaArray-> IsOmniTx())
     {
       NS_LOG_INFO ("RX and TX are omni, returning");
       return rxPsd;
@@ -687,16 +687,17 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
     {
       if (m_beamformingEnabled)
         {
-            if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
-                 rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
-                 (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime))
-              {
-                NS_LOG_INFO ("Perform the beamforming method since there are not yet any beamforming vectors between transmitter and receiver, "
-                    "or the channel has updated.");
+          NS_ABORT_MSG_IF( txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
+                           rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ,
+                           "According to the current implementation if devices are connected, and m_beamforming is Enabled we should already have "
+                           "some beamforming vectors configured.");
 
-                NS_ABORT_MSG_IF (txAntennaArray->IsOmniTx() || rxAntennaArray-> IsOmniTx(), "Beamforming should be done between directional pairs.");
-                PerformBeamforming (a, b);
-              }
+          // if the channel has been updated
+          if (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
+            {
+              NS_LOG_INFO ("Perform the beamforming method since the channel has been updated.");
+              PerformBeamforming (a, b);
+            }
         }
     }
   else // if not connected pair
