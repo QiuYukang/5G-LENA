@@ -27,6 +27,7 @@
 #include <ns3/lte-enb-phy-sap.h>
 #include <ns3/lte-enb-cphy-sap.h>
 #include <ns3/mmwave-harq-phy.h>
+#include <functional>
 
 namespace ns3 {
 
@@ -99,6 +100,16 @@ public:
 
   void ReceiveUlHarqFeedback (UlHarqInfo mes);
 
+  /**
+   * \brief Signature for a "PerformBeamforming" function
+   */
+  typedef std::function<void (const Ptr<NetDevice> &a, const Ptr<NetDevice> &b)> PerformBeamformingFn;
+
+  /**
+   * \brief Install the function to perform a beamforming between two devices
+   * \param fn Function to install
+   */
+  void SetPerformBeamformingFn (const PerformBeamformingFn &fn);
 
 private:
   std::list <Ptr<MmWaveControlMessage> > RetrieveMsgsFromDCIs (const SfnSf &sfn);
@@ -124,6 +135,14 @@ private:
    * The map will be used to change the subchannels each time the beam is changed.
    */
   void StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci);
+
+  /**
+   * \brief The beamforming timer has expired; at the next slot, perform beamforming.
+   *
+   * This function just set to true a boolean variable that will be checked in
+   * StartVarTti().
+   */
+  void ExpireBeamformingTimer ();
 
   std::list<TbAllocInfo> DequeueUlTbAlloc ();
 
@@ -158,6 +177,11 @@ private:
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_ulSinrTrace;
 
   std::unordered_map<uint8_t, std::vector<uint8_t> > m_rbgAllocationPerSym;  //!< RBG allocation in each sym
+
+  bool m_performBeamforming {true}; //!< True when we have to do beamforming. Default to true or we will not perform beamforming the first time..
+  Time m_beamformingPeriodicity; //!< Periodicity of beamforming (0 for never)
+  EventId m_beamformingTimer;    //!< Beamforming timer
+  PerformBeamformingFn m_doBeamforming; //!< Beamforming function
 };
 
 }

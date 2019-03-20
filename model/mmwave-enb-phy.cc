@@ -152,7 +152,13 @@ MmWaveEnbPhy::GetTypeId (void)
                    UintegerValue (8),
                    MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
                                          &MmWavePhy::GetAntennaNumDim2),
-                   MakeUintegerChecker<uint8_t> ());
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("BeamformingPeriodicity",
+                   "Interval between beamforming phases",
+                   TimeValue (MilliSeconds (100)),
+                   MakeTimeAccessor (&MmWaveEnbPhy::m_beamformingPeriodicity),
+                   MakeTimeChecker())
+    ;
   return tid;
 
 }
@@ -204,12 +210,18 @@ MmWaveEnbPhy::DoInitialize (void)
   m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
   m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
 
-  NS_LOG_INFO ("eNb antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
-                       ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
+  NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim1()) <<
+               ", " << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim2()));
+
+  if (m_beamformingPeriodicity != MilliSeconds (0))
+    {
+      m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
+                                                &MmWaveEnbPhy::ExpireBeamformingTimer, this);
+    }
 
   MmWavePhy::DoInitialize ();
-
 }
+
 void
 MmWaveEnbPhy::DoDispose (void)
 {
@@ -387,6 +399,16 @@ MmWaveEnbPhy::StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci
     }
 }
 
+void
+MmWaveEnbPhy::ExpireBeamformingTimer()
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Beamforming timer expired; programming a beamforming");
+  m_performBeamforming = true;
+  m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
+                                            &MmWaveEnbPhy::ExpireBeamformingTimer, this);
+}
+
 std::list <Ptr<MmWaveControlMessage> >
 MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
 {
@@ -512,6 +534,15 @@ MmWaveEnbPhy::StartVarTti (void)
     {
       // Start with a clean RBG allocation bitmask
       m_rbgAllocationPerSym.clear ();
+
+      if (m_performBeamforming)
+        {
+          m_performBeamforming = false;
+          for (const auto & dev : m_deviceMap)
+            {
+              m_doBeamforming (m_netDevice, dev);
+            }
+        }
 
       // create control messages to be transmitted in DL-Control period
       std::list <Ptr<MmWaveControlMessage> > ctrlMsgs = GetControlMessages ();
@@ -1002,6 +1033,13 @@ MmWaveEnbPhy::ReceiveUlHarqFeedback (UlHarqInfo mes)
     {
       m_phySapUser->UlHarqFeedback (mes);
     }
+}
+
+void
+MmWaveEnbPhy::SetPerformBeamformingFn(const MmWaveEnbPhy::PerformBeamformingFn &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_doBeamforming = fn;
 }
 
 }

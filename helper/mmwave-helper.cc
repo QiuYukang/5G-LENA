@@ -601,6 +601,12 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       Ptr<MmWaveSpectrumPhy> dlPhy = CreateObject<MmWaveSpectrumPhy> ();
       Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (dlPhy, ulPhy, n);
 
+      NS_ASSERT (m_3gppChannel.size() > it->first);
+      MmWaveEnbPhy::PerformBeamformingFn beamformingFn;
+      beamformingFn = std::bind (&MmWave3gppChannel::PerformBeamforming, m_3gppChannel.at(it->first),
+                                 std::placeholders::_1, std::placeholders::_2);
+      phy->SetPerformBeamformingFn (beamformingFn);
+
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (m_bandwidthPartsConf->GetBandwidhtPartsConf ().at (it->first)->GetNumHarqProcess ());
       dlPhy->SetHarqPhyModule (harq);
       // ulPhy->SetHarqPhyModule (harq);

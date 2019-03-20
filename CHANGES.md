@@ -83,6 +83,10 @@ the beamforming vectors will be adjusted every time that the channel is updated.
 * AntennaArrayBasicModel has a new function GetBeamformingVectorUpdateTime
 that returns the last time at which the beamforming vector toward a specified
 device has been updated.
+* EnbPhy now can perform beamforming, in a very initial form (every connected ue
+will perform the beamforming, and it will take 0 simulated time). The periodicity
+of this beamforming depends on the value of the new attribute *BeamformingPeriodicity*
+of the class MmWaveEnbPhy
 
 ### Changes to existing API:
 
