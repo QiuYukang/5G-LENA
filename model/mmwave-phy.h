@@ -145,8 +145,6 @@ public:
   MmWavePhySapProvider* GetPhySapProvider ();
   //	void SetPhySapUser (MmWavePhySapUser* ptr);
 
-  void UpdateCurrentAllocationAndSchedule (uint32_t frame, uint32_t sf);
-
   void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
 
   bool SlotExists (const SfnSf &retVal) const;
