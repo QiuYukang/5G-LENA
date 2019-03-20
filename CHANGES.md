@@ -126,6 +126,8 @@ must now be referred to "ns3::PointToPointEpcHelper". In fact, NrPointToPointEpc
 is now inheriting from PointToPointEpcHelper.
 * AntennaArrayModel has the beamforming vector that emulates omni reception and 
 transmission.
+* Removed attribute *BeamformingEnabled* and *UpdateBeamformingVectorsIdeally*
+from MmWave3gppChannel.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of

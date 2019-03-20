@@ -1,26 +1,20 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*
-*   Author: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                Sourjya Dutta <sdutta@nyu.edu>
-*                Russell Ford <russell.ford@nyu.edu>
-*                Menglei Zhang <menglei@nyu.edu>
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 
 #include "mmwave-3gpp-channel.h"
@@ -228,24 +222,13 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (0),
                    MakeDoubleAccessor(&MmWave3gppChannel::m_bandwidth),
                    MakeDoubleChecker<double> ())
-     .AddAttribute ("BeamformingEnabled",
-                    "If true, perform beamforming feature for connected pairs is enabled, "
-                    "if false, perform beamforming feature for connected pairs is disabled.",
-                    BooleanValue (true),
-                    MakeBooleanAccessor (&MmWave3gppChannel::m_beamformingEnabled),
-                    MakeBooleanChecker ())
     .AddAttribute ("CellScan",
                    "If true, use beam search method to determine beamforming vector,"
                    "if false, the long-term covariance matrix method is used.",
                     BooleanValue (false),
                     MakeBooleanAccessor (&MmWave3gppChannel::m_cellScan),
                     MakeBooleanChecker ())
-    .AddAttribute ("UpdateBeamformingVectorsIdeally",
-                   "If true, the beamforming vectors will be updated when the channel is updated, "
-                   "if false, the channel update will not trigger the beamforming vectors update",
-                   BooleanValue (true),
-                   MakeBooleanAccessor (&MmWave3gppChannel::m_updateBeamformingVectorIdeally),
-                   MakeBooleanChecker ());
+    ;
   return tid;
 }
 
@@ -397,12 +380,12 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
   m_deviceToAntennaArray.insert(std::make_pair(bsDevice, bsDeviceAntenna));
 
   // propagation loss model needs to be able to distinguish whether the device is UE or BS
-  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != nullptr)
     {
       m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
           ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
     }
-  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != nullptr)
     {
       m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
           ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
@@ -411,23 +394,18 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
     {
       NS_ABORT_MSG ("Pathloss model unknown");
     }
-
-  if (m_beamformingEnabled)
-    {
-      PerformBeamforming (bsDevice,ueDevice);
-    }
 }
 
 bool
 MmWave3gppChannel::IsValidLink (Ptr<const MobilityModel> a,
                                 Ptr<const MobilityModel> b) const
 {
-  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != nullptr)
      {
        return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
            ->IsValidLink (a, b);
      }
-   else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+   else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != nullptr)
      {
        return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
            ->IsValidLink (a, b);
@@ -507,12 +485,12 @@ MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
                                           Ptr<const MobilityModel> b) const
 {
 
-  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != 0)
+  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != nullptr)
     {
       return m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
           ->GetChannelCondition (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
     }
-  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != 0)
+  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != nullptr)
     {
       return m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
           ->GetChannelCondition (a->GetObject<MobilityModel>(),b->GetObject<MobilityModel>());
@@ -677,25 +655,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   // the following code is expected to optimise the updates of the long
   // term matrix, i.e. to perform it only when is absolutely necessary
-  if (AreConnected(a, b))
-    {
-      if (m_beamformingEnabled)
-        {
-          NS_ABORT_MSG_IF( txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
-                           rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ,
-                           "According to the current implementation if devices are connected, and m_beamforming is Enabled we should already have "
-                           "some beamforming vectors configured.");
-
-          // if the channel has been updated
-          if (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
-            {
-              NS_LOG_INFO ("Perform the beamforming method since the channel has been updated.");
-              PerformBeamforming (a->GetObject<Node> ()->GetDevice (0),
-                                  b->GetObject<Node> ()->GetDevice (0));
-            }
-        }
-    }
-  else // if not connected pair
+  if (!AreConnected(a, b))
     {
        if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
            rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)

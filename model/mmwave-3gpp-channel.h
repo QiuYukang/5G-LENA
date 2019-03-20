@@ -1,26 +1,20 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*
-*   Author: Marco Mezzavilla < mezzavilla@nyu.edu>
-*           Sourjya Dutta <sdutta@nyu.edu>
-*           Russell Ford <russell.ford@nyu.edu>
-*           Menglei Zhang <menglei@nyu.edu>
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 
 #ifndef MMWAVE_3GPP_CHANNEL_H_
@@ -540,8 +534,6 @@ private:
   double m_beamSearchAngleStep; //!< The size of the angle to be used in beam search method
   double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
-  bool m_updateBeamformingVectorIdeally; //!< Update the beamforming vectors ideally
-  bool m_beamformingEnabled; //!< Whether perform beamforming is enabled, if false antenna array should have the beamforming vectors configured externally
   bool m_cellScan; //!< If true beam search beamforming is enabled, if false the long term cov. matrix is used
   double m_bandwidth; //!< The total bandwidth for this channel
   std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
