@@ -316,9 +316,10 @@ public:
    * @param a MobilityModel of the transmitter
    * @param b MobilityModel of the receiver
    */
-  void PerformBeamforming(Ptr<const MobilityModel> a,
-                          Ptr<const MobilityModel> b) const;
+  void PerformBeamforming(const Ptr<const NetDevice> &a,
+                          const Ptr<const NetDevice> &b) const;
 
+private:
   /**
    * Scan all sectors with predefined code book and select the one returns maximum gain.
    * The BF vector is stored in the Params3gpp object passed as parameter
@@ -336,8 +337,6 @@ public:
    */
   void LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
                                      Ptr<const MobilityModel> b) const;
-
-private:
 
   /**
    * This function prepares 3gpp parameters that are necessary for the channel

@@ -414,8 +414,7 @@ MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
 
   if (m_beamformingEnabled)
     {
-      PerformBeamforming (bsDevice->GetNode()->GetObject<MobilityModel>(),
-                          ueDevice->GetNode()->GetObject<MobilityModel>());
+      PerformBeamforming (bsDevice,ueDevice);
     }
 }
 
@@ -524,21 +523,22 @@ MmWave3gppChannel::DoGetChannelCondition (Ptr<const MobilityModel> a,
     }
 }
 
-void MmWave3gppChannel::PerformBeamforming (Ptr<const MobilityModel> a,
-                                              Ptr<const MobilityModel> b) const
+void MmWave3gppChannel::PerformBeamforming (const Ptr<const NetDevice> &a,
+                                            const Ptr<const NetDevice> &b) const
 {
-  NS_ABORT_MSG_IF( !m_beamformingEnabled,
-                   "PerformBeamforming should not be called if beamforming is disabled.");
+  NS_LOG_FUNCTION (this);
+  Ptr<const MobilityModel> aMob = a->GetNode()->GetObject<MobilityModel> ();
+  Ptr<const MobilityModel> bMob = b->GetNode()->GetObject<MobilityModel> ();
 
   if (m_cellScan)
     {
       NS_LOG_INFO ("beam search method ...");
-      BeamSearchBeamforming (a, b);
+      BeamSearchBeamforming (aMob, bMob);
     }
   else
     {
       NS_LOG_INFO ("long term cov. matrix...");
-      LongTermCovMatrixBeamforming (a, b);
+      LongTermCovMatrixBeamforming (aMob, bMob);
     }
 }
 
@@ -690,7 +690,8 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
           if (m_updateBeamformingVectorIdeally && channelParams->m_longTermUpdateTime < channelParams->m_generatedTime)
             {
               NS_LOG_INFO ("Perform the beamforming method since the channel has been updated.");
-              PerformBeamforming (a, b);
+              PerformBeamforming (a->GetObject<Node> ()->GetDevice (0),
+                                  b->GetObject<Node> ()->GetDevice (0));
             }
         }
     }
