@@ -42,8 +42,6 @@ public:
 
   virtual ~AntennaArrayModel () override;
 
-  virtual void DoInitialize (void) override;
-
   static TypeId GetTypeId ();
 
   virtual double GetGainDb (Angles a) override;
@@ -106,10 +104,6 @@ public:
 
 
 protected:
-
-  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage; /*!< A type represents a map where the key is a pointer
-                                                                               to the device and the value is the BeamformingVector element */
-
   double m_disV {0.0};       //!< antenna spacing in the vertical direction in terms of wave length.
   double m_disH {0.0};       //!< antenna spacing in the horizontal direction in terms of wave length.
   AntennaOrientation m_orientation {X0}; //!< antenna orientation, for example, when set to "X0" (x=0) it means that the antenna will be in y-z plane
@@ -123,8 +117,20 @@ protected:
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
 
 private:
+
   double m_minAngle {0.0};
   double m_maxAngle {2 * M_PI};
+
+  /**
+   * \brief Generate a omni directional beamforming vector
+   * \param antennaNumDim1 First dimension of the antenna
+   * \param antennaNumDim2 Second dimension of the antenna
+   * \return the beamforming vector
+   */
+  BeamformingVector GenerateOmniTxRxW (uint8_t antennaNumDim1, uint8_t antennaNumDim2) const;
+
+private:
+  typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
   BeamformingVector m_currentBeamformingVector;
   BeamformingStorage m_beamformingVectorMap;
 };

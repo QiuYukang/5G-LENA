@@ -129,46 +129,6 @@ AntennaArrayModel::GetTypeId ()
   return tid;
 }
 
-
-void
-AntennaArrayModel::DoInitialize (void)
-{
-  NS_LOG_FUNCTION (this);
-  // we configure omni beamforming vector for each antenna only once, and we use it when the antenna is in omni mode
-  complexVector_t tempVector;
-  uint16_t size = m_antennaNumDim1 * m_antennaNumDim2;
-  double power = 1 / sqrt (size);
-  for (auto ind = 0; ind < m_antennaNumDim1; ind++)
-    {
-      std::complex<double> c = 0.0;
-      if (m_antennaNumDim1 % 2 == 0)
-        {
-          c = exp(std::complex<double> (0, M_PI*ind*ind/m_antennaNumDim1));
-        }
-      else
-        {
-          c = exp(std::complex<double> (0, M_PI*ind*(ind+1)/m_antennaNumDim1));
-        }
-
-      for (auto ind2 = 0; ind2 < m_antennaNumDim2; ind2++)
-        {
-          std::complex<double> d = 0.0;
-          if (m_antennaNumDim2 % 2 == 0)
-            {
-              d = exp(std::complex<double> (0, M_PI*ind2*ind2/m_antennaNumDim2));
-            }
-          else
-            {
-              d = exp(std::complex<double> (0, M_PI*ind2*(ind2+1)/m_antennaNumDim2));
-            }
-
-          tempVector.push_back (c * d * power);
-        }
-    }
-
-  m_omniTxRxW = std::make_pair (tempVector, std::make_pair (-1, -1));;
-}
-
 double
 AntennaArrayModel::GetGainDb (Angles a)
 {
@@ -216,6 +176,8 @@ AntennaArrayModel::GetCurrentBeamformingVector ()
 void
 AntennaArrayModel::ChangeToOmniTx ()
 {
+  NS_LOG_FUNCTION (this);
+
   m_currentBeamformingVector = m_omniTxRxW;
 }
 
@@ -488,12 +450,22 @@ void
 AntennaArrayModel::SetAntennaNumDim1 (uint8_t antennaNum)
 {
   m_antennaNumDim1 = antennaNum;
+
+  if (m_antennaNumDim1 != 0 && m_antennaNumDim2 != 0)
+    {
+      m_omniTxRxW = GenerateOmniTxRxW (m_antennaNumDim1, m_antennaNumDim2);
+    }
 }
 
 void
 AntennaArrayModel::SetAntennaNumDim2 (uint8_t antennaNum)
 {
   m_antennaNumDim2 = antennaNum;
+
+  if (m_antennaNumDim1 != 0 && m_antennaNumDim2 != 0)
+    {
+      m_omniTxRxW = GenerateOmniTxRxW (m_antennaNumDim1, m_antennaNumDim2);
+    }
 }
 
 Ptr<const SpectrumModel>
@@ -506,6 +478,45 @@ void
 AntennaArrayModel::SetSpectrumModel (Ptr<const SpectrumModel> sm)
 {
   m_spectrumModel = sm;
+}
+
+AntennaArrayBasicModel::BeamformingVector
+AntennaArrayModel::GenerateOmniTxRxW (uint8_t antennaNumDim1, uint8_t antennaNumDim2) const
+{
+  NS_LOG_FUNCTION (this);
+
+  complexVector_t tempVector;
+  uint16_t size = antennaNumDim1 * antennaNumDim2;
+  double power = 1 / sqrt (size);
+  for (auto ind = 0; ind < antennaNumDim1; ind++)
+    {
+      std::complex<double> c = 0.0;
+      if (antennaNumDim1 % 2 == 0)
+        {
+          c = exp(std::complex<double> (0, M_PI*ind*ind/antennaNumDim1));
+        }
+      else
+        {
+          c = exp(std::complex<double> (0, M_PI*ind*(ind+1)/antennaNumDim1));
+        }
+
+      for (auto ind2 = 0; ind2 < antennaNumDim2; ind2++)
+        {
+          std::complex<double> d = 0.0;
+          if (antennaNumDim2 % 2 == 0)
+            {
+              d = exp(std::complex<double> (0, M_PI*ind2*ind2/antennaNumDim2));
+            }
+          else
+            {
+              d = exp(std::complex<double> (0, M_PI*ind2*(ind2+1)/antennaNumDim2));
+            }
+
+          tempVector.push_back (c * d * power);
+        }
+    }
+
+  return std::make_pair (tempVector, std::make_pair (-1, -1));
 }
 
 } /* namespace ns3 */
