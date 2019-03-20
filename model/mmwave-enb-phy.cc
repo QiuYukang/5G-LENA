@@ -748,7 +748,8 @@ MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAl
 }
 
 void
-MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsgs, Time varTtiPeriod)
+MmWaveEnbPhy::SendCtrlChannels (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgs,
+                                const Time &varTtiPeriod)
 {
   NS_LOG_FUNCTION (this << "Send Ctrl");
 
