@@ -664,6 +664,7 @@ private:
   Ptr<MmWaveHelper> m_helper;
   Ptr<NrPointToPointEpcHelper> m_epcHelper;
   std::unordered_map<uint32_t, uint32_t> m_ueGnbMap;
+  uint32_t m_ueNum {0};
 };
 
 NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
@@ -721,6 +722,7 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
         }
     }
 
+  m_ueNum = m_ueDev.GetN ();
   for (uint32_t i = 0 ; i < m_ueDev.GetN(); ++i)
     {
       Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
@@ -760,11 +762,22 @@ NrSingleBwpSetup::~NrSingleBwpSetup ()
 void
 NrSingleBwpSetup::UeReception (RxPacketTraceParams params)
 {
+  static std::set<uint32_t> ueRecv;
+  static uint32_t n = 0;
   // RNTI to NodeId conversion??
   m_manager->SinrStore (params.m_cellId, params.m_rnti, params.m_sinr);
 
-  // Exit after the first measurement
-  Simulator::Stop ();
+  if (ueRecv.find(params.m_cellId) == ueRecv.end ())
+    {
+      ueRecv.insert(params.m_cellId);
+      ++n;
+      if (n == m_ueNum)
+        {
+          // Exit after the first measurement for each UE
+          Simulator::Stop ();
+        }
+
+    }
 }
 
 static void
