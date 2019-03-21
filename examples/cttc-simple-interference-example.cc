@@ -762,6 +762,9 @@ NrSingleBwpSetup::UeReception (RxPacketTraceParams params)
 {
   // RNTI to NodeId conversion??
   m_manager->SinrStore (params.m_cellId, params.m_rnti, params.m_sinr);
+
+  // Exit after the first measurement
+  Simulator::Stop ();
 }
 
 static void
