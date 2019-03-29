@@ -55,6 +55,10 @@ technologies that are using the 3gpp channel model implementation.
 Bugs fixed
 ----------
 - (scheduler) Fixed the use of a static MCS value in the schedulers
+- (spectrum-phy) While looping the packets in the packet burst,
+  to send the feedback, extract the RNTI for each loop. Before, it was
+  asserting when the RNTI changed. The code does not depend on the
+  RNTI previous values, so it should be safe.
 
 Known issues
 ------------

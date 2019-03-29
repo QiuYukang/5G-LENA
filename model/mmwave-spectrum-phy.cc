@@ -551,7 +551,6 @@ MmWaveSpectrumPhy::EndRxData ()
   std::map <uint16_t, DlHarqInfo> harqDlInfoMap;
   for (auto packetBurst : m_rxPacketBurstList)
     {
-      uint16_t rnti = 0;
       for (auto packet : packetBurst->GetPackets ())
         {
           if (packet->GetSize () == 0)
@@ -565,12 +564,7 @@ MmWaveSpectrumPhy::EndRxData ()
               NS_FATAL_ERROR ("No radio bearer tag found");
             }
 
-          if (rnti != 0)
-            {
-              NS_ASSERT (bearerTag.GetRnti () == rnti);
-            }
-
-          rnti = bearerTag.GetRnti ();
+          uint16_t rnti = bearerTag.GetRnti ();
 
           auto itTb = m_transportBlocks.find (rnti);
 
