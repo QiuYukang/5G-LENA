@@ -239,23 +239,21 @@ main (int argc, char *argv[])
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
 
-  Ptr<BandwidthPartsPhyMacConf> bwpConf = CreateObject <BandwidthPartsPhyMacConf> ();
-
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetCcId(0);
-  bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp1);
+  BandwidthPartRepresentation repr (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart(0, repr);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
   phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
   phyMacCommonBwp2->SetNumerology(numerologyBwp2);
   phyMacCommonBwp2->SetCcId(1);
-  bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
-
-  mmWaveHelper->SetBandwidthPartMap (bwpConf);
+  BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart(1, repr2);
 
   Ptr<Node> ueNode = CreateObject<Node> ();
   Ptr<Node> gNbNode = CreateObject<Node> ();

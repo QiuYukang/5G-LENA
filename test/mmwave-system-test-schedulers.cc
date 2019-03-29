@@ -152,15 +152,15 @@ MmWaveSystemTestScheduling::DoRun (void)
     mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
     mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
-    Ptr<BandwidthPartsPhyMacConf> bwpConf = CreateObject <BandwidthPartsPhyMacConf> ();
+
     Ptr<MmWavePhyMacCommon> phyMacCommonBwp = CreateObject<MmWavePhyMacCommon>();
     phyMacCommonBwp->SetCentreFrequency(28e9);
     phyMacCommonBwp->SetBandwidth (m_bw1);
     phyMacCommonBwp->SetNumerology(m_numerology);
     phyMacCommonBwp->SetAttribute ("MacSchedulerType", TypeIdValue (TypeId::LookupByName(m_schedulerType)));
 
-    bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp);
-    mmWaveHelper->SetBandwidthPartMap (bwpConf);
+    BandwidthPartRepresentation bwpRepr (0, phyMacCommonBwp, nullptr, nullptr, nullptr);
+    mmWaveHelper->AddBandwidthPart (0, bwpRepr);
 
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
     mmWaveHelper->SetEpcHelper (epcHelper);

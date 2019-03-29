@@ -73,44 +73,24 @@ class MmWaveSpectrumValueHelper;
 class PropagationLossModel;
 
 
-class BandwidthPartsPhyMacConf : public Object
+class BandwidthPartRepresentation
 {
-
 public:
-  std::vector <Ptr<MmWavePhyMacCommon> > GetBandwidhtPartsConf ()
-  {
-    return m_bandwidthPartsConf;
-  }
+  BandwidthPartRepresentation (uint32_t id, const Ptr<MmWavePhyMacCommon> &phyMacCommon,
+                               const Ptr<SpectrumChannel> channel,
+                               const Ptr<PropagationLossModel> &propagation,
+                               const Ptr<MmWave3gppChannel> & spectrumPropagation);
+  BandwidthPartRepresentation (const BandwidthPartRepresentation & o);
+  ~BandwidthPartRepresentation ();
 
-  void AddBandwidthPartPhyMacConf (Ptr<MmWavePhyMacCommon> phyMacConf)
-  {
-    m_bandwidthPartsConf.push_back (phyMacConf);
-  }
+  BandwidthPartRepresentation& operator= (const ns3::BandwidthPartRepresentation&);
 
-  virtual void DoDispose (void)
-  {
-    for (auto i:m_bandwidthPartsConf)
-      {
-        i->DoDispose ();
-      }
-    m_bandwidthPartsConf.clear ();
-  }
-
-  virtual void DoInitialize ()
-  {
-    if (m_bandwidthPartsConf.size () == 0)
-      {
-        Ptr<MmWavePhyMacCommon> phyMacCommon = CreateObject <MmWavePhyMacCommon> ();
-        m_bandwidthPartsConf.push_back (phyMacCommon);
-      }
-  }
-
-
-private:
-  std::vector <Ptr<MmWavePhyMacCommon> > m_bandwidthPartsConf;
+  uint32_t m_id {0};
+  Ptr<MmWavePhyMacCommon> m_phyMacCommon;
+  Ptr<SpectrumChannel> m_channel;
+  Ptr<PropagationLossModel> m_propagation;
+  Ptr<MmWave3gppChannel> m_spectrumPropagation;
 };
-
-
 
 class MmWaveHelper : public Object
 {
@@ -198,9 +178,8 @@ public:
   bool GetHarqEnabled ();
   void SetSnrTest (bool snrTest);
   bool GetSnrTest ();
-  Ptr<PropagationLossModel>
-  GetPathLossModel (uint8_t index);
-  void SetBandwidthPartMap (Ptr<BandwidthPartsPhyMacConf> bwpConf);
+  Ptr<PropagationLossModel> GetPathLossModel (uint8_t index);
+  void AddBandwidthPart (uint32_t id, const BandwidthPartRepresentation &bwpRepr);
 
   /**
    * Activate a dedicated EPS bearer on a given set of UE devices.
@@ -263,13 +242,9 @@ private:
   Ptr<MmWaveBearerStatsCalculator> GetPdcpStats (void);
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
-
-  std::vector<Ptr<SpectrumChannel> >m_channel;
-  std::vector<Ptr<MmWave3gppChannel> > m_3gppChannel;   //3gpp channel per bandwidth part
   
   std::map< uint8_t, Ptr<Object> > m_pathlossModel;
   std::string m_pathlossModelType;
-
   std::string m_channelModelType;
 
   ObjectFactory m_enbNetDeviceFactory;
@@ -286,8 +261,6 @@ private:
   uint16_t m_cellIdCounter;
 
   Ptr<MmWavePhyRxTrace> m_phyStats;
-
-  //Ptr<MmWavePhyMacCommon> m_phyMacCommon;
 
   ObjectFactory m_ffrAlgorithmFactory;
 
@@ -309,17 +282,19 @@ private:
    */
   bool m_useCa;
 
+  bool m_initialized {false}; //!< Is helper initialized correctly?
+
   /**
    * This contains all the information about each component carrier
    */
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams;
 
+  std::unordered_map<uint32_t, BandwidthPartRepresentation> m_bwpConfiguration;
+
   /**
    * Number of component carriers that will be installed by default at eNodeB and UE devices.
    */
   uint16_t m_noOfCcs;
-
-  Ptr<BandwidthPartsPhyMacConf> m_bandwidthPartsConf;
   TypeId m_defaultSchedulerType;
 };
 

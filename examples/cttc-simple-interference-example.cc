@@ -678,8 +678,6 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   m_helper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   m_helper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
-  Ptr<BandwidthPartsPhyMacConf> bwpConf = CreateObject <BandwidthPartsPhyMacConf> ();
-
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(freq);
   phyMacCommonBwp1->SetBandwidth (bw);
@@ -687,9 +685,8 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
   phyMacCommonBwp1->SetCcId(0);
 
-  bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp1);
-
-  m_helper->SetBandwidthPartMap (bwpConf);
+  BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
+  m_helper->AddBandwidthPart(0, repr1);
 
   m_epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   m_helper->SetEpcHelper (m_epcHelper);

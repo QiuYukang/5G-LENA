@@ -383,15 +383,14 @@ main (int argc, char *argv[])
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
-
-  Ptr<BandwidthPartsPhyMacConf> bwpConf = CreateObject <BandwidthPartsPhyMacConf> ();
-
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-  bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp1);
+
+  BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart(0, repr1);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
@@ -401,11 +400,9 @@ main (int argc, char *argv[])
   // if not single BWP simulation add second BWP configuration
   if (!singleBwp)
     {
-      bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
+      BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
+      mmWaveHelper->AddBandwidthPart(1, repr2);
     }
-
-  mmWaveHelper->SetBandwidthPartMap (bwpConf);
-
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);

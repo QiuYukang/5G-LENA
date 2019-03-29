@@ -116,20 +116,23 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
     mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
-    Ptr<BandwidthPartsPhyMacConf> bwpConf = CreateObject <BandwidthPartsPhyMacConf> ();
     Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
     phyMacCommonBwp1->SetCentreFrequency(28e9);
     phyMacCommonBwp1->SetBandwidth (m_bw1);
     phyMacCommonBwp1->SetNumerology(m_numerology);
     phyMacCommonBwp1->SetCcId(0);
-    bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp1);
+
+    BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
+    mmWaveHelper->AddBandwidthPart(0, repr1);
+
     Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
     phyMacCommonBwp2->SetCentreFrequency(28.2e9);
     phyMacCommonBwp2->SetBandwidth (m_bw2);
     phyMacCommonBwp2->SetNumerology(m_numerology);
     phyMacCommonBwp2->SetCcId(1);
-    bwpConf->AddBandwidthPartPhyMacConf(phyMacCommonBwp2);
-    mmWaveHelper->SetBandwidthPartMap (bwpConf);
+
+    BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
+    mmWaveHelper->AddBandwidthPart(1, repr2);
 
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
     mmWaveHelper->SetEpcHelper (epcHelper);
