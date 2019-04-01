@@ -426,8 +426,6 @@ NrTest3gppChannelTestCase::TestLongTermCovMatrixBeamforming (Ptr<MmWave3gppChann
 void
 NrTest3gppChannelTestCase::DoRun()
 {
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamformingEnabled", BooleanValue (false));
-
   Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
   Ptr<MmWave3gppPropagationLossModel> pathLoss = CreateObject<MmWave3gppPropagationLossModel>();
 
