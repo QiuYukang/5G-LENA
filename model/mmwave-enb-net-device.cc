@@ -174,12 +174,18 @@ MmWaveEnbNetDevice::GetPhyOnCenterFreq (double centerFrequency) const
   return nullptr;
 }
 
-
 uint16_t
 MmWaveEnbNetDevice::GetCellId () const
 {
   NS_LOG_FUNCTION (this);
   return m_cellId;
+}
+
+uint16_t
+MmWaveEnbNetDevice::GetCellId (uint8_t index) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ccMap.at(index)->GetCellId ();
 }
 
 uint8_t

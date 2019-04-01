@@ -79,6 +79,8 @@ public:
    */
   virtual Ptr<MmWavePhy> GetPhyOnCenterFreq (double centerFrequency) const override;
 
+  uint16_t GetCellId (uint8_t index) const;
+
   uint16_t GetCellId () const;
 
   uint8_t GetBandwidth () const;
