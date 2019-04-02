@@ -847,11 +847,10 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
       (DynamicCast<MmWaveUePhy>(ueNetDev->GetPhy (i)))->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
       enbNetDev->GetMac(i)->AssociateUeMAC (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi ());
+      Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
+      ueNas->Connect (gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (i),
+                      gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn (i));
     }
-
-  Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
-  ueNas->Connect (gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (),
-                  gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn ());
 
   if (m_epcHelper != 0)
     {
