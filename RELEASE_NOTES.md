@@ -52,6 +52,14 @@ AntennaModel that is implementing AntennaArrayBasicModel interface. This
 feature is a basic prerequisite for simulating co-existence of different
 technologies that are using the 3gpp channel model implementation.
 
+- (3gpp channel model) The beamforming phase has been extracted from the model,
+and it is now a duty of the NetDevice. The gNB phy has now a new attribute to
+configure the periodicity of the beamforming. Please note that it is still ideal,
+i.e., it does not require any simulated time to be performed.
+
+- (RRC) Now all carriers are registered to RRC, to transmit system information
+through all the bandwidth parts.
+
 Bugs fixed
 ----------
 - (scheduler) Fixed the use of a static MCS value in the schedulers
