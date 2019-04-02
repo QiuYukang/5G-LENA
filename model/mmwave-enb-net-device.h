@@ -83,13 +83,7 @@ public:
 
   uint16_t GetCellId () const;
 
-  uint8_t GetBandwidth () const;
-
-  void SetBandwidth (uint8_t bw);
-
-  void SetEarfcn (uint16_t earfcn);
-
-  uint16_t GetEarfcn () const;
+  uint16_t GetEarfcn (uint8_t index) const;
 
   void SetRrc (Ptr<LteEnbRrc> rrc);
 
@@ -104,10 +98,8 @@ public:
   uint32_t GetCcMapSize () const;
 
 protected:
-  virtual void
-  DoInitialize (void);
-  void
-  UpdateConfig ();
+  virtual void DoInitialize (void);
+  void UpdateConfig ();
 
 private:
   Ptr<MmWaveMacScheduler> m_scheduler;
@@ -115,10 +107,6 @@ private:
   Ptr<LteEnbRrc> m_rrc;
 
   uint16_t m_cellId; /* Cell Identifer. To uniquely identify an E-nodeB  */
-
-  uint8_t m_Bandwidth; /* bandwidth in RBs (?) */
-
-  uint16_t m_Earfcn; /* carrier frequency */
 
   bool m_isConstructed;
 

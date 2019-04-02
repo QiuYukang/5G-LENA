@@ -81,8 +81,6 @@ MmWaveEnbNetDevice::GetTypeId ()
 
 MmWaveEnbNetDevice::MmWaveEnbNetDevice ()
   : m_cellId (0),
-  m_Bandwidth (72),
-  m_Earfcn (1),
   m_isConstructed (false),
   m_isConfigured (false)
 {
@@ -188,32 +186,11 @@ MmWaveEnbNetDevice::GetCellId (uint8_t index) const
   return m_ccMap.at(index)->GetCellId ();
 }
 
-uint8_t
-MmWaveEnbNetDevice::GetBandwidth () const
-{
-  NS_LOG_FUNCTION (this);
-  return m_Bandwidth;
-}
-
-void
-MmWaveEnbNetDevice::SetBandwidth (uint8_t bw)
-{
-  NS_LOG_FUNCTION (this);
-  m_Bandwidth = bw;
-}
-
-void
-MmWaveEnbNetDevice::SetEarfcn (uint16_t earfcn)
-{
-  NS_LOG_FUNCTION (this);
-  m_Earfcn = earfcn;
-}
-
 uint16_t
-MmWaveEnbNetDevice::GetEarfcn () const
+MmWaveEnbNetDevice::GetEarfcn (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
-  return m_Earfcn;
+  return m_ccMap.at (index)->GetDlEarfcn (); //Ul or Dl doesn't matter, they are the same
 
 }
 
