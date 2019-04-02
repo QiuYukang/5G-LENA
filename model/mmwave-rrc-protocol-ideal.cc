@@ -189,21 +189,18 @@ mmWaveUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
     {
       Ptr<Node> node = *i;
       int nDevs = node->GetNDevices ();
-      for (int j = 0;
-           (j < nDevs) && (!found);
-           j++)
+      for (int j = 0; (j < nDevs) && (!found); j++)
         {
           enbDev = node->GetDevice (j)->GetObject <MmWaveEnbNetDevice> ();
-          if (enbDev == 0)
+          if (enbDev != nullptr)
             {
-              continue;
-            }
-          else
-            {
-              if (enbDev->GetCellId () == cellId)
+              for (uint32_t h = 0; h < enbDev->GetCcMapSize (); ++h)
                 {
-                  found = true;
-                  break;
+                  if (enbDev->GetCellId (h) == cellId)
+                    {
+                      found = true;
+                      break;
+                    }
                 }
             }
         }
