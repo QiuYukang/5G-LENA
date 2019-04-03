@@ -538,10 +538,25 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
       channelParams = Create <Params3gpp>();
       
       NS_LOG_INFO ("Update or create the forward channel");
-      NS_LOG_LOGIC ("it == GetChannelMap().end () " << (it == GetChannelMap().end ()));
-      NS_LOG_LOGIC ("itReverse == GetChannelMap().end () " << (itReverse == GetChannelMap().end ()));
-      NS_LOG_LOGIC ("it->second->m_channel.size() == 0 " << (it->second->m_channel.size () == 0));
-      NS_LOG_LOGIC ("it->second->m_los != los" << (it->second->m_input.GetLos() != input3gppParameters.GetLos()));
+      if (it == GetChannelMap().end ())
+        {
+          NS_LOG_LOGIC ("Channel not present in the map");
+        }
+      else
+        {
+          if (it->second->m_channel.size () == 0)
+            {
+              NS_LOG_LOGIC ("CHANNEL size : 0");
+            }
+          if (it->second->m_input.GetLos() != input3gppParameters.GetLos())
+            {
+              NS_LOG_LOGIC ("input los != channel los");
+            }
+        }
+      if (itReverse == GetChannelMap().end ())
+        {
+          NS_LOG_LOGIC ("Channel not present in the map (reverse it)");
+        }
 
       double hUT, hBS;
       hUT = lotUT.z;
@@ -626,7 +641,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   if (!IsValidLink (a, b))
     {
       NS_LOG_INFO ("UE<->UE or gNB<->gNB, returning");
-     return rxPsd;
+      return rxPsd;
     }
 
   InputParams3gpp input3gppParameters = GetInput3gppParameters (a, b);
@@ -719,6 +734,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
     {
       NS_LOG_DEBUG ("****** UL BF gain == " << Sum (bfGain) / nbands << " RX PSD " << Sum (*rxPsd) / nbands);
     }
+
   return bfPsd;
 }
 
