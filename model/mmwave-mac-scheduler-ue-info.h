@@ -84,11 +84,11 @@ public:
   {
   }
 
-  static uint16_t & GetDlRBG (const UePtr &ue)
+  static uint32_t & GetDlRBG (const UePtr &ue)
   {
     return ue->m_dlRBG;
   }
-  static uint16_t & GetUlRBG (const UePtr &ue)
+  static uint32_t & GetUlRBG (const UePtr &ue)
   {
     return ue->m_ulRBG;
   }
@@ -234,10 +234,10 @@ public:
   std::unordered_map<uint8_t, LCGPtr> m_dlLCG;//!< DL LCG
   std::unordered_map<uint8_t, LCGPtr> m_ulLCG;//!< UL LCG
 
-  uint16_t        m_dlMRBRetx {0};  //!< MRB assigned for retx. To update the name, what is MRB is not defined
-  uint16_t        m_ulMRBRetx {0};  //!< MRB assigned for retx. To update the name, what is MRB is not defined
-  uint16_t        m_dlRBG     {0};  //!< DL Resource Block Group assigned in this slot
-  uint16_t        m_ulRBG     {0};  //!< UL Resource Block Group assigned in this slot
+  uint32_t        m_dlMRBRetx {0};  //!< MRB assigned for retx. To update the name, what is MRB is not defined
+  uint32_t        m_ulMRBRetx {0};  //!< MRB assigned for retx. To update the name, what is MRB is not defined
+  uint32_t        m_dlRBG     {0};  //!< DL Resource Block Group assigned in this slot
+  uint32_t        m_ulRBG     {0};  //!< UL Resource Block Group assigned in this slot
   uint8_t         m_dlSym     {0};  //!< Number of (new data) symbols assigned in this slot.
   uint8_t         m_ulSym     {0};  //!< Number of (new data) symbols assigned in this slot.
 

@@ -270,7 +270,7 @@ public:
     PointInFTPlane (uint8_t rbg, uint8_t sym) : m_rbg (rbg), m_sym (sym)
     {
     }
-    uint8_t m_rbg;  //!< Represent the starting RBG
+    uint32_t m_rbg;  //!< Represent the starting RBG
     uint8_t m_sym; //!< Represent the starting symbol
   };
 

@@ -229,7 +229,7 @@ private:
    * \brief Function to notify that the UE did not get any resource in one iteration
    */
   typedef std::function<void (const UePtrAndBufferReq &, const FTResources &, const FTResources &)> AfterUnsucessfullAssignmentFn;
-  typedef std::function<uint16_t& (const UePtr &ue)> GetRBGFn; //!< Getter for the RBG of an UE
+  typedef std::function<uint32_t& (const UePtr &ue)> GetRBGFn; //!< Getter for the RBG of an UE
   typedef std::function<uint32_t& (const UePtr &ue)> GetTBSFn; //!< Getter for the TBS of an UE
   typedef std::function<uint8_t& (const UePtr &ue)> GetSymFn;  //!< Getter for the number of symbols of an UE
   typedef std::function<bool (const MmWaveMacSchedulerNs3::UePtrAndBufferReq &lhs,

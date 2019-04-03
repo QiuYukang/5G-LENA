@@ -176,7 +176,9 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
 
       // Update metrics for the successfull UE
       NS_LOG_DEBUG ("Assigned " << m_phyMacConfig->GetBandwidthInRbg () <<
-                    " " << type << " RBG (= 1 SYM) to UE " << GetUe (*schedInfoIt)->m_rnti);
+                    " " << type << " RBG (= 1 SYM) to UE " << GetUe (*schedInfoIt)->m_rnti <<
+                    " total assigned up to now: " << GetRBGFn (GetUe (*schedInfoIt)) <<
+                    " that corresponds to " << assigned.m_rbg);
       SuccessfullAssignmentFn (*schedInfoIt, FTResources (m_phyMacConfig->GetBandwidthInRbg (), 1),
                                assigned);
 
@@ -199,7 +201,9 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
       for (const auto &ue : el.second)
         {
           symOfBeam += GetRBGFn (ue.first) / m_phyMacConfig->GetBandwidthInRbg ();
-          NS_ASSERT (GetRBGFn (ue.first) % m_phyMacConfig->GetBandwidthInRbg () == 0);
+          NS_ASSERT_MSG (GetRBGFn (ue.first) % m_phyMacConfig->GetBandwidthInRbg () == 0,
+                         "Assigned RBG: " << GetRBGFn (ue.first) << " RBG in the BW: " <<
+                         m_phyMacConfig->GetBandwidthInRbg ());
         }
       ret.insert (std::make_pair (el.first, symOfBeam));
     }
