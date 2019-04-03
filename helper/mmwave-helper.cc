@@ -167,42 +167,36 @@ MmWaveHelper::DoInitialize ()
   NS_ASSERT (! m_bwpConfiguration.empty ());
   for (auto & conf : m_bwpConfiguration)
     {
-      if (conf.second.m_channel == nullptr)
+      if (conf.second.m_channel == nullptr && conf.second.m_propagation == nullptr && conf.second.m_3gppChannel == nullptr)
         {
+          // Create everything inside, and connect things
+          NS_ABORT_UNLESS (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel");
           conf.second.m_channel = m_channelFactory.Create<SpectrumChannel> ();
-          NS_ASSERT (conf.second.m_channel != nullptr);
-        }
-      if (conf.second.m_propagation == nullptr)
-        {
-          Ptr<Object> pathlossModel = m_pathlossModelFactory.Create ();
-          Ptr<PropagationLossModel> splm = pathlossModel->GetObject<PropagationLossModel> ();
-          NS_ABORT_IF (splm == nullptr);
-          splm->SetAttributeFailSafe("Frequency", DoubleValue(conf.second.m_phyMacCommon->GetCenterFrequency()));
-          conf.second.m_channel->AddPropagationLossModel (splm);
-          conf.second.m_propagation = splm;
-        }
-      if (conf.second.m_spectrumPropagation == nullptr)
-        {
-          Ptr<MmWave3gppChannel> channel = CreateObject<MmWave3gppChannel> ();
+          conf.second.m_propagation = DynamicCast<PropagationLossModel> (m_pathlossModelFactory.Create ());
+          conf.second.m_propagation->SetAttributeFailSafe("Frequency", DoubleValue(conf.second.m_phyMacCommon->GetCenterFrequency()));
+          conf.second.m_channel->AddPropagationLossModel (conf.second.m_propagation);
 
-          if (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel" )
-            {
-              channel->SetPathlossModel (conf.second.m_propagation);
-              channel->SetAttribute ("CenterFrequency", DoubleValue (conf.second.m_phyMacCommon->GetCenterFrequency()));
-              channel->SetAttribute ("Bandwidth", DoubleValue (conf.second.m_phyMacCommon->GetBandwidth ()));
-            }
-          else
-            {
-              NS_FATAL_ERROR ("The 3GPP channel and propagation loss should be enabled at the same time");
-            }
+          conf.second.m_3gppChannel = CreateObject<MmWave3gppChannel> ();
+          conf.second.m_3gppChannel->SetPathlossModel (conf.second.m_propagation);
+          conf.second.m_3gppChannel->SetAttribute ("CenterFrequency", DoubleValue (conf.second.m_phyMacCommon->GetCenterFrequency()));
+          conf.second.m_3gppChannel->SetAttribute ("Bandwidth", DoubleValue (conf.second.m_phyMacCommon->GetBandwidth ()));
 
-          conf.second.m_spectrumPropagation = channel;
-          conf.second.m_channel->AddSpectrumPropagationLossModel (channel);
+          conf.second.m_channel->AddSpectrumPropagationLossModel (conf.second.m_3gppChannel);
+        }
+      else if (conf.second.m_channel != nullptr && conf.second.m_propagation != nullptr && conf.second.m_3gppChannel != nullptr)
+        {
+          // We suppose that the channel and the propagation are correctly connected
+          // outside
+          NS_LOG_INFO ("Channel and propagation received as input");
+        }
+      else
+        {
+          NS_FATAL_ERROR ("Configuration not supported");
         }
 
       NS_ASSERT (conf.second.m_channel != nullptr);
       NS_ASSERT (conf.second.m_propagation != nullptr);
-      NS_ASSERT (conf.second.m_spectrumPropagation != nullptr);
+      NS_ASSERT (conf.second.m_3gppChannel != nullptr);
     }
 
   m_phyStats = CreateObject<MmWavePhyRxTrace> ();
@@ -584,7 +578,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (dlPhy, ulPhy, n);
 
       MmWaveEnbPhy::PerformBeamformingFn beamformingFn;
-      beamformingFn = std::bind (&MmWave3gppChannel::PerformBeamforming, conf.m_spectrumPropagation,
+      beamformingFn = std::bind (&MmWave3gppChannel::PerformBeamforming, conf.m_3gppChannel,
                                  std::placeholders::_1, std::placeholders::_2);
       phy->SetPerformBeamformingFn (beamformingFn);
 
@@ -866,10 +860,10 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
 
     for (const auto &it : m_bwpConfiguration)
       {
-        NS_ABORT_IF (it.second.m_spectrumPropagation == nullptr);
+        NS_ABORT_IF (it.second.m_3gppChannel == nullptr);
         Ptr<AntennaArrayBasicModel> ueAntenna = ueNetDev->GetPhy(it.first)->GetAntennaArray();
         Ptr<AntennaArrayBasicModel> bsAntenna = enbNetDev->GetPhy(it.first)->GetAntennaArray();
-        it.second.m_spectrumPropagation->CreateInitialBeamformingVectors(ueNetDev, ueAntenna, enbNetDev, bsAntenna);
+        it.second.m_3gppChannel->CreateInitialBeamformingVectors(ueNetDev, ueAntenna, enbNetDev, bsAntenna);
       }
 }
 
@@ -1105,14 +1099,14 @@ MmWaveHelper::GetPdcpStats (void)
 
 BandwidthPartRepresentation::BandwidthPartRepresentation(uint32_t id,
                                                          const Ptr<MmWavePhyMacCommon> &phyMacCommon,
-                                                         const Ptr<SpectrumChannel> channel,
+                                                         const Ptr<SpectrumChannel> &channel,
                                                          const Ptr<PropagationLossModel> &propagation,
                                                          const Ptr<MmWave3gppChannel> & spectrumPropagation)
   : m_id (id),
     m_phyMacCommon (phyMacCommon),
     m_channel (channel),
     m_propagation (propagation),
-    m_spectrumPropagation (spectrumPropagation)
+    m_3gppChannel (spectrumPropagation)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -1124,7 +1118,7 @@ BandwidthPartRepresentation::BandwidthPartRepresentation (const BandwidthPartRep
   m_phyMacCommon = o.m_phyMacCommon;
   m_channel = o.m_channel;
   m_propagation = o.m_propagation;
-  m_spectrumPropagation = o.m_spectrumPropagation;
+  m_3gppChannel = o.m_3gppChannel;
 }
 
 BandwidthPartRepresentation::~BandwidthPartRepresentation()
@@ -1139,7 +1133,7 @@ BandwidthPartRepresentation::operator=(const BandwidthPartRepresentation &o)
   m_phyMacCommon = o.m_phyMacCommon;
   m_channel = o.m_channel;
   m_propagation = o.m_propagation;
-  m_spectrumPropagation = o.m_spectrumPropagation;
+  m_3gppChannel = o.m_3gppChannel;
   return *this;
 }
 

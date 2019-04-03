@@ -77,7 +77,7 @@ class BandwidthPartRepresentation
 {
 public:
   BandwidthPartRepresentation (uint32_t id, const Ptr<MmWavePhyMacCommon> &phyMacCommon,
-                               const Ptr<SpectrumChannel> channel,
+                               const Ptr<SpectrumChannel> &channel,
                                const Ptr<PropagationLossModel> &propagation,
                                const Ptr<MmWave3gppChannel> & spectrumPropagation);
   BandwidthPartRepresentation (const BandwidthPartRepresentation & o);
@@ -89,7 +89,7 @@ public:
   Ptr<MmWavePhyMacCommon> m_phyMacCommon;
   Ptr<SpectrumChannel> m_channel;
   Ptr<PropagationLossModel> m_propagation;
-  Ptr<MmWave3gppChannel> m_spectrumPropagation;
+  Ptr<MmWave3gppChannel> m_3gppChannel;
 };
 
 class MmWaveHelper : public Object
@@ -213,8 +213,17 @@ public:
   void DeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
 protected:
-  virtual void
-  DoInitialize ();
+  /**
+   * \brief Initialize things inside the helper.
+   *
+   * The most important thing is the channel and the propagation loss model
+   * for each bandwidth part. If they are not specified by the user through
+   * AddBandwidthPart, one will created by default. If the user specifies
+   * the channel and the propagation model as bwp configuration, they will be
+   * not touched. Otherwise, the models will be created and connected for each
+   * bwp.
+   */
+  virtual void DoInitialize ();
 
 private:
   /**
