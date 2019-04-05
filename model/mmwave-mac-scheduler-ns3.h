@@ -619,7 +619,7 @@ private:
                           std::deque<VarTtiAllocInfo> *allocations) const;
 
 
-  void ComputeActiveUe (ActiveUeMap *activeDlUe, const SlotAllocInfo *alloc, const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
+  void ComputeActiveUe (ActiveUeMap *activeDlUe, const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
                         const std::string &mode) const;
   void ComputeActiveHarq (ActiveHarqMap *activeDlHarq, const std::vector <DlHarqInfo> &dlHarqFeedback) const;
   void ComputeActiveHarq (ActiveHarqMap *activeUlHarq, const std::vector <UlHarqInfo> &ulHarqFeedback) const;
@@ -630,7 +630,8 @@ private:
                             const ActiveUeMap &activeUl, SlotAllocInfo *slotAlloc) const;
   uint8_t DoScheduleUlSr (PointInFTPlane *spoint, uint32_t symAvail,
                           std::list<uint16_t> *rnti, SlotAllocInfo *slotAlloc) const;
-  uint8_t DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback, const SfnSf &dlSfnSf,
+  uint8_t DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback, const ActiveHarqMap &activeDlHarq,
+                        ActiveUeMap *activeDlUe, const SfnSf &dlSfnSf,
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
   uint8_t DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback, const SfnSf &ulSfn,
                         SlotAllocInfo *allocInfo);

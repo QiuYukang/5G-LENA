@@ -874,12 +874,12 @@ MmWaveMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeUlHarq,
  *
  * The function loops all available UEs and checks their LC. If one (or more)
  * LC contains bytes, they are marked active and inserted in one of the
- * list passed as input parameters. The UE is not marked as active if
- * there is already an allocation for him in the list of allocations.
+ * list passed as input parameters. Every UE is marked as active if it has
+ * data to transmit; it is a duty for someone else to not assign two DCI for
+ * the same RNTI.
  */
 void
 MmWaveMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
-                                        SlotAllocInfo const *alloc,
                                         const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
                                         const std::string &mode) const
 {
@@ -888,21 +888,6 @@ MmWaveMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
     {
       uint32_t totBuffer = 0;
       const auto & ue = ueInfo.second;
-      bool ueAlreadyScheduled = false;
-
-      for (const auto &allocation : alloc->m_varTtiAllocInfo)
-        {
-          if (allocation.m_dci->m_rnti == ue->m_rnti)
-            {
-              ueAlreadyScheduled = true;
-              break;
-            }
-        }
-      if (ueAlreadyScheduled)
-        {
-          // Do not schdule two times the same UE
-          continue;
-        }
 
       // compute total DL and UL bytes buffered
       for (const auto & lcgInfo : GetLCGFn (ue))
@@ -1430,6 +1415,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
  *
  * - Retrieve the allocation done in the past (UL) for this slot
  * - Prepend DL CTRL symbol to the allocation list;
+ * - Compute the list of active HARQ/new data UE
  * - Perform a scheduling for DL HARQ/data for this (DoScheduleDl());
  * - Indicate to the MAC the decision for that slot through SchedConfigInd()
  *
@@ -1463,7 +1449,14 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
                   &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetDlCtrlSymbols ();
 
-  DoScheduleDl (dlHarqFeedback, params.m_snfSf, ulAllocations, &dlSlot.m_slotAllocInfo);
+  // compute active ue in the current subframe, group them by BeamId
+  ActiveHarqMap activeDlHarq;
+  ComputeActiveHarq (&activeDlHarq, dlHarqFeedback);
+
+  ActiveUeMap activeDlUe;
+  ComputeActiveUe (&activeDlUe, &MmWaveMacSchedulerUeInfo::GetDlLCG, "DL");
+
+  DoScheduleDl (dlHarqFeedback, activeDlHarq, &activeDlUe, params.m_snfSf, ulAllocations, &dlSlot.m_slotAllocInfo);
 
   // if no UL allocation, then erase the element. If UL allocation, then
   // the element will be erased when the CQI for that UL allocation will be received
@@ -1567,7 +1560,8 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
  * Then, for all the UE that requested a SR, it will be allocated one entire
  * symbol. After that, if any symbol remains, the function will schedule data.
  * The data allocation is made in DoScheduleUlData(), only for UEs that
- * have been selected by the function ComputeActiveUe.
+ * have been selected by the function ComputeActiveUe and the ones that does not
+ * have already a grant for HARQ (or SR).
  *
  * If any assignation is made, then the member variable m_ulAllocationMap (SlotElem)
  * is updated by storing the total UL symbols used in this slot, and
@@ -1631,9 +1625,36 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       ulSymAvail -= usedSr;
     }
 
-
   ActiveUeMap activeUlUe;
-  ComputeActiveUe (&activeUlUe, allocInfo, &MmWaveMacSchedulerUeInfo::GetUlLCG, "UL");
+  ComputeActiveUe (&activeUlUe, &MmWaveMacSchedulerUeInfo::GetUlLCG, "UL");
+
+  GetSecond GetUeInfoList;
+  for (const auto & alloc : allocInfo->m_varTtiAllocInfo)
+    {
+      for (auto it = activeUlUe.begin(); it != activeUlUe.end (); /* no incr */)
+        {
+          bool found = false;
+          for (const auto & ueInfo : GetUeInfoList (*it))
+            {
+              GetFirst GetUeInfoPtr;
+              if (GetUeInfoPtr (ueInfo)->m_rnti == alloc.m_dci->m_rnti)
+                {
+                  NS_LOG_INFO ("Removed RNTI " << alloc.m_dci->m_rnti << " from active ue list "
+                               "because it has already an HARQ scheduled");
+                  found = true;
+                  break;
+                }
+            }
+          if (!found)
+            {
+              ++it;
+            }
+          else
+            {
+              it = activeUlUe.erase (it);
+            }
+        }
+    }
 
   if (ulSymAvail > 0 && activeUlUe.size () > 0)
     {
@@ -1694,22 +1715,21 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
  * previously allocated. In this way, DL and UL allocation will not overlap.
  *
  * HARQ retx processing is done in the function  ScheduleDlHarq(), while
- * DL new data processing in the function ScheduleDlData(). Before each phase,
- * the UEs are selected: for HARQ, the function ComputeActiveHarq() is used.
- * For data, the function ComputeActiveUe.
+ * DL new data processing in the function ScheduleDlData(). The method is
+ * ensuring that if an UE gets a DCI for HARQ, it will not be scheduled for new
+ * data as well. We have a limit of 1 DCI per UE.
  *
  */
 uint8_t
 MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback,
+                                     const ActiveHarqMap &activeDlHarq,
+                                     ActiveUeMap *activeDlUe,
                                      const SfnSf &dlSfnSf,
                                      const SlotElem &ulAllocations,
                                      SlotAllocInfo *allocInfo)
 {
   NS_LOG_INFO (this);
-
-  // compute active ue in the current subframe, group them by BeamId
-  ActiveHarqMap activeDlHarq;
-  ComputeActiveHarq (&activeDlHarq, dlHarqFeedback);
+  NS_ASSERT (activeDlUe != nullptr);
 
   const uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () -
     m_phyMacConfig->GetDlCtrlSymbols () - m_phyMacConfig->GetUlCtrlSymbols ();
@@ -1734,15 +1754,41 @@ MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedb
       dlSymAvail -= usedHarq;
     }
 
+  GetSecond GetUeInfoList;
+
+  for (const auto & alloc : allocInfo->m_varTtiAllocInfo)
+    {
+      for (auto it = activeDlUe->begin(); it != activeDlUe->end (); /* no incr */)
+        {
+          bool found = false;
+          for (const auto & ueInfo : GetUeInfoList (*it))
+            {
+              GetFirst GetUeInfoPtr;
+              if (GetUeInfoPtr (ueInfo)->m_rnti == alloc.m_dci->m_rnti)
+                {
+                  NS_LOG_INFO ("Removed RNTI " << alloc.m_dci->m_rnti << " from active ue list "
+                               "because it has already an HARQ scheduled");
+                  found = true;
+                  break;
+                }
+            }
+          if (!found)
+            {
+              ++it;
+            }
+          else
+            {
+              it = activeDlUe->erase (it);
+            }
+        }
+    }
+
   NS_ASSERT (dlAssignationStartPoint.m_rbg == 0);
 
-  ActiveUeMap activeDlUe;
-  ComputeActiveUe (&activeDlUe, allocInfo, &MmWaveMacSchedulerUeInfo::GetDlLCG, "DL");
-
-  if (dlSymAvail > 0 && activeDlUe.size () > 0)
+  if (dlSymAvail > 0 && activeDlUe->size () > 0)
     {
       uint8_t usedDl = DoScheduleDlData (&dlAssignationStartPoint, dlSymAvail,
-                                         activeDlUe, allocInfo);
+                                         *activeDlUe, allocInfo);
       NS_ASSERT (dlSymAvail >= usedDl);
       dlSymAvail -= usedDl;
     }
