@@ -190,6 +190,21 @@ MmWaveEnbPhy::DoInitialize (void)
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
+  for (unsigned i = 0; i < m_phyMacConfig->GetUlSchedDelay(); i++)
+    {
+      SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
+      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
+
+      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
+
+      slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
+
+      SetSlotAllocInfo (slotAllocInfo);
+      NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
+      sfnSf = sfnSf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
+                                       m_phyMacConfig->GetSubframesPerFrame ());
+    }
+
   MmWavePhy::InstallAntenna();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
   Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
