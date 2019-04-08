@@ -93,6 +93,18 @@ public:
     std::vector<uint16_t> m_srList;                //!< List of RNTI which asked for a SR
   };
 
+  /**
+   * Parameters of the SCHED_DL_RACH_INFO_REQ primitive.
+   * See section 4.2.5 for a detailed description of the parameters.
+   */
+  struct SchedDlRachInfoReqParameters
+  {
+    uint16_t  m_sfnSf; //!< sfn SF
+    std::vector <struct RachListElement_s> m_rachList; //!< RACH list
+
+    std::vector <struct VendorSpecificListElement_s> m_vendorSpecificList; ///< vendor specific list
+  };
+
   virtual void SchedDlRlcBufferReq (const struct SchedDlRlcBufferReqParameters& params) = 0;
 
   virtual void SchedDlCqiInfoReq (const SchedDlCqiInfoReqParameters& params) = 0;
@@ -121,6 +133,13 @@ public:
 
   virtual void SchedSetMcs (uint32_t mcs) = 0;
 
+  /**
+   * \brief SCHED_DL_RACH_INFO_REQ
+   *
+   * \param params SchedDlRachInfoReqParameters
+   */
+  virtual void SchedDlRachInfoReq (const SchedDlRachInfoReqParameters& params) = 0;
+
 private:
 };
 
@@ -136,6 +155,7 @@ public:
     }
     const SfnSf m_sfnSf;
     SlotAllocInfo m_slotAllocInfo;
+    std::vector <BuildRarListElement_s> m_buildRarList; ///< build rar list
   };
 
   virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) = 0;

@@ -146,6 +146,9 @@ doing everything else at PHY level.
 * UE and ENB PHY does not rely on the order of the allocation to understand if
 an allocation is DL/UL, DATA/CTRL. Also, we support now the possibility to start
 an allocation at a symbol != 0.
+* The scheduler is now informed of RACH messages, even if (for the moment) it
+does nothing to allocate space for UL RRC message, it reserve some ideal
+space in the DL CTRL link to send the RAR response.
 
 ---
 

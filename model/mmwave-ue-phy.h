@@ -171,6 +171,11 @@ protected:
 private:
 
   /**
+   * \brief Forward the received RAR to the MAC
+   * \param rarMsg RAR message
+   */
+  void DoReceiveRar (Ptr<MmWaveRarMessage> rarMsg);
+  /**
    * \brief Create a DlCqiFeedback message
    * \param sinr the SINR value
    * \return a CTRL message with the CQI feedback

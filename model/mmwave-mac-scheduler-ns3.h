@@ -305,6 +305,8 @@ public:
   DoSchedUlSrInfoReq (const MmWaveMacSchedSapProvider::SchedUlSrInfoReqParameters &params) override;
   virtual void
   DoSchedSetMcs (uint32_t mcs) override;
+  virtual void
+  DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
 
   // to save some typing
   using BeamId = AntennaArrayModel::BeamId;
@@ -661,6 +663,8 @@ private:
   std::vector <UlHarqInfo> m_ulHarqToRetransmit; //!< List of UL HARQ that could not have been retransmitted
 
   std::list<uint16_t> m_srList;  //!< List of RNTI of UEs that asked for a SR
+
+  std::vector <struct RachListElement_s> m_rachList; //!< rach list
 
   friend MmWaveSchedGeneralTestCase;
 };

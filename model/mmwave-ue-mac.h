@@ -187,8 +187,8 @@ private:
   SrBsrMachine m_srState {INACTIVE};       //!< Current state for the SR/BSR machine.
 
   Ptr<UniformRandomVariable> m_raPreambleUniformVariable;
-  uint8_t m_raPreambleId;
-  uint8_t m_raRnti;
+  uint8_t m_raPreambleId {0};
+  uint8_t m_raRnti {0};
 
   struct UlHarqProcessInfo
   {
@@ -209,12 +209,10 @@ private:
   };
 
   std::map <uint8_t, LcInfo> m_lcInfoMap;
-  uint16_t m_rnti;
+  uint16_t m_rnti {0};
 
   bool m_waitingForRaResponse {true};
   static uint8_t g_raPreambleId;
-
-  bool m_performRa {false}; //!< Indicates if, in the next available slot, the UE has to send the RA preamble
 };
 
 }

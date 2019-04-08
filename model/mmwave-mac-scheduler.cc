@@ -115,6 +115,10 @@ public:
   {
     m_scheduler->DoSchedSetMcs (mcs);
   }
+  virtual void SchedDlRachInfoReq (const SchedDlRachInfoReqParameters& params) override
+  {
+    m_scheduler->DoSchedDlRachInfoReq (params);
+  }
 private:
   MmWaveMacScheduler* m_scheduler {nullptr};
 };

@@ -35,6 +35,7 @@
 namespace ns3 {
 
 class MmWaveControlMessage;
+class MmWaveRarMessage;
 
 class MmWaveEnbMac : public Object
 {
@@ -119,6 +120,7 @@ protected:
 
 private:
   void ReceiveRachPreamble (uint32_t raId);
+  void DoReceiveRachPreamble (uint32_t raId);
   void ReceiveBsrMessage  (MacCeElement bsr);
   void DoReportMacCeToScheduler (MacCeListElement_s bsr);
   /**
@@ -211,6 +213,8 @@ private:
   TracedCallback<uint32_t, uint32_t,uint32_t, uint32_t, uint32_t, uint32_t, uint8_t> m_dlScheduling;
 
   std::list<uint16_t> m_srRntiList; //!< List of RNTI that requested a SR
+
+  std::map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
 };

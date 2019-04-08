@@ -349,20 +349,15 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
         {
-          NS_LOG_INFO ("received RAR");
           NS_ASSERT (m_cellId > 0);
-
+          NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
           Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
 
-          for (std::list<MmWaveRarMessage::Rar>::const_iterator it = rarMsg->RarListBegin ();
-               it != rarMsg->RarListEnd ();
-               ++it)
-            {
-              if (it->rapId == m_raPreambleId)
-                {
-                  m_phySapUser->ReceiveControlMessage (rarMsg);
-                }
-            }
+          // As the TbDecodeLatency includes only the PHY delay, and considering
+          // that the RAR message is then forwarded immediately by the MAC to the
+          // RRC, we have to put 2 here to respect the TDD timings.
+          Simulator::Schedule (2 * MicroSeconds(m_phyMacConfig->GetTbDecodeLatency()),
+                               &MmWaveUePhy::DoReceiveRar, this, msg);
         }
       else
         {
@@ -385,6 +380,20 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         {
           auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
           std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
+        }
+    }
+}
+
+void
+MmWaveUePhy::DoReceiveRar (Ptr<MmWaveRarMessage> rarMsg)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (auto it = rarMsg->RarListBegin (); it != rarMsg->RarListEnd (); ++it)
+    {
+      if (it->rapId == m_raPreambleId)
+        {
+          m_phySapUser->ReceiveControlMessage (rarMsg);
         }
     }
 }

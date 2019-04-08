@@ -370,6 +370,20 @@ MmWaveEnbMac::GetConfigurationParameters (void) const
 void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Received RACH preamble (on the air) from " << raId << " in slot " <<
+               SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+               ", scheduling MAC reception after the decode latency");
+  Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                                     &MmWaveEnbMac::DoReceiveRachPreamble, this, raId);
+}
+
+void
+MmWaveEnbMac::DoReceiveRachPreamble (uint32_t raId)
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Received RACH preamble from " << raId << " in slot " <<
+               SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
   ++m_receivedRachPreambleCount[raId];
 }
 
@@ -408,6 +422,8 @@ void
 MmWaveEnbMac::DoSlotIndication (SfnSf sfnSf)
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Perform things, slot on the air: " << sfnSf);
+
   m_frameNum = sfnSf.m_frameNum;
   m_subframeNum = sfnSf.m_subframeNum;
   m_slotNum = sfnSf.m_slotNum;
@@ -428,22 +444,25 @@ MmWaveEnbMac::DoSlotIndication (SfnSf sfnSf)
   if (!m_receivedRachPreambleCount.empty ())
     {
       // process received RACH preambles and notify the scheduler
-      Ptr<MmWaveRarMessage> rarMsg = Create<MmWaveRarMessage> ();
+      MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters rachInfoReqParams;
 
-      for (std::map<uint8_t, uint32_t>::const_iterator it = m_receivedRachPreambleCount.begin ();
+      for (auto it = m_receivedRachPreambleCount.begin ();
            it != m_receivedRachPreambleCount.end ();
            ++it)
         {
           uint16_t rnti = m_cmacSapUser->AllocateTemporaryCellRnti ();
-          NS_LOG_INFO (rnti);
-          MmWaveRarMessage::Rar rar;
-          rar.rapId = (*it).first;
-          rar.rarPayload.m_rnti = rnti;
-          rarMsg->AddRar (rar);
-          //NS_ASSERT_MSG((*it).second ==1, "Two user send the same Rach ID, collision detected");
+
+          NS_LOG_INFO ("Informing MAC scheduler of the RACH preamble for " <<
+                       it->first << " in slot " << sfnSf);
+          RachListElement_s rachLe;
+          rachLe.m_rnti = rnti;
+          rachLe.m_estimatedSize = 144; // to be confirmed
+          rachInfoReqParams.m_rachList.emplace_back (rachLe);
+
+          m_rapIdRntiMap.insert (std::make_pair (rnti, it->first));
         }
-      m_phySapProvider->SendControlMessage (rarMsg);
       m_receivedRachPreambleCount.clear ();
+      m_macSchedSapProvider->SchedDlRachInfoReq (rachInfoReqParams);
     }
 
   // --- UPLINK ---
@@ -849,7 +868,32 @@ void
 MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndParameters ind)
 {
   m_phySapProvider->SetSlotAllocInfo (ind.m_slotAllocInfo);
-  //m_phySapProvider->SetUlSlotAllocInfo (ind.m_ulSlotAllocInfo);
+
+  // Random Access procedure: send RARs
+  Ptr<MmWaveRarMessage> rarMsg = Create<MmWaveRarMessage> ();
+  uint16_t raRnti = 1; // NO!! 38.321-5.1.3
+  rarMsg->SetRaRnti (raRnti);
+  for (const auto & rarAllocation : ind.m_buildRarList)
+    {
+      std::map <uint8_t, uint32_t>::iterator itRapId = m_rapIdRntiMap.find (rarAllocation.m_rnti);
+      if (itRapId == m_rapIdRntiMap.end ())
+        {
+          NS_FATAL_ERROR ("Unable to find rapId of RNTI " << rarAllocation.m_rnti);
+        }
+      MmWaveRarMessage::Rar rar;
+      rar.rapId = itRapId->second;
+      rar.rarPayload = rarAllocation;
+      rarMsg->AddRar (rar);
+      NS_LOG_INFO ("In slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                   " send to PHY the RAR message for RNTI " <<
+                   rarAllocation.m_rnti << " rapId " << itRapId->second);
+    }
+
+  if (ind.m_buildRarList.size () > 0)
+    {
+      m_phySapProvider->SendControlMessage (rarMsg);
+      m_rapIdRntiMap.clear ();
+    }
 
   for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size (); islot++)
     {
@@ -940,8 +984,6 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
 
                   m_dlScheduling (ind.m_sfnSf.m_frameNum, ind.m_sfnSf.m_subframeNum, ind.m_sfnSf.m_slotNum,
                                   dciElem->m_tbSize, dciElem->m_mcs, dciElem->m_rnti, m_phyMacConfig->GetCcId ());
-
-
                 }
               else
                 {

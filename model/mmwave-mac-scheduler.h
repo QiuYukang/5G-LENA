@@ -246,6 +246,13 @@ public:
   virtual void
   DoSchedSetMcs (uint32_t mcs) = 0;
 
+  /**
+   * \brief RACH information
+   *
+   * \param params SchedDlRachInfoReqParameters
+   */
+  virtual void DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters& params) = 0;
+
 protected:
   MmWaveMacSchedSapUser* m_macSchedSapUser           {nullptr};  //!< SAP user
   MmWaveMacCschedSapUser* m_macCschedSapUser         {nullptr};  //!< SAP User

@@ -151,6 +151,14 @@ MmWaveMacSchedulerNs3::DoSchedSetMcs (uint32_t mcs)
   m_startMcsUl = static_cast<uint8_t> (mcs);
 }
 
+void
+MmWaveMacSchedulerNs3::DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters &params)
+{
+  NS_LOG_INFO (this);
+
+  m_rachList = params.m_rachList;
+}
+
 /**
  * \brief Cell configuration
  * \param params unused.
@@ -1446,6 +1454,16 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   PrependCtrlSym (0, m_phyMacConfig->GetDlCtrlSymbols (), DciInfoElementTdma::DL,
                   &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetDlCtrlSymbols ();
+
+  // RACH
+  for (const auto & rachReq : m_rachList)
+    {
+      BuildRarListElement_s newRar;
+      newRar.m_rnti = rachReq.m_rnti;
+      // newRar.m_ulGrant is not used
+      dlSlot.m_buildRarList.push_back (newRar);
+    }
+  m_rachList.clear ();
 
   // compute active ue in the current subframe, group them by BeamId
   ActiveHarqMap activeDlHarq;

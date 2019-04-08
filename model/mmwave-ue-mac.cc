@@ -455,13 +455,6 @@ MmWaveUeMac::DoSlotIndication (SfnSf sfn)
 
   RefreshHarqProcessesPacketBuffer ();
 
-  if (m_performRa)
-    {
-      NS_LOG_INFO ("Sending RA preamble to PHY in slot " << sfn);
-      SendRaPreamble (true);
-      m_performRa = false;
-    }
-
   if (m_srState == TO_SEND)
     {
       NS_LOG_INFO ("Sending SR to PHY in slot " << sfn);
@@ -784,13 +777,13 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       }
     case (MmWaveControlMessage::RAR):
       {
+        NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
         if (m_waitingForRaResponse == true)
           {
             Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
-            NS_LOG_LOGIC ("got RAR with RA-RNTI " << (uint32_t) rarMsg->GetRaRnti () << ", expecting " << (uint32_t) m_raRnti);
-            for (std::list<MmWaveRarMessage::Rar>::const_iterator it = rarMsg->RarListBegin ();
-                 it != rarMsg->RarListEnd ();
-                 ++it)
+            NS_LOG_LOGIC ("got RAR with RA-RNTI " << +rarMsg->GetRaRnti () <<
+                          ", expecting " << +m_raRnti);
+            for (auto it = rarMsg->RarListBegin (); it != rarMsg->RarListEnd (); ++it)
               {
                 if (it->rapId == m_raPreambleId)
                   {
@@ -836,7 +829,9 @@ void
 MmWaveUeMac::RandomlySelectAndSendRaPreamble ()
 {
   NS_LOG_FUNCTION (this);
-  m_performRa = true;
+  NS_LOG_DEBUG (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                "Received System Information, send to PHY the RA preamble");
+  SendRaPreamble (true);
 }
 
 void
