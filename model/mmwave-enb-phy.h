@@ -182,6 +182,8 @@ private:
   Time m_beamformingPeriodicity; //!< Periodicity of beamforming (0 for never)
   EventId m_beamformingTimer;    //!< Beamforming timer
   PerformBeamformingFn m_doBeamforming; //!< Beamforming function
+
+  std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
 };
 
 }

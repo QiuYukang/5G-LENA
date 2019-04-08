@@ -287,6 +287,7 @@ MmWaveEnbPhy::StartSlot (void)
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ));
+  NS_ASSERT (m_currSlotAllocInfo.m_varTtiAllocInfo.size () != 0);
 
   NS_LOG_INFO ("gNB start slot " << m_currSlotAllocInfo.m_sfnSf << " composed by the following allocations:");
   for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
@@ -343,6 +344,22 @@ MmWaveEnbPhy::StartSlot (void)
           msg->SetSib1 (m_sib1);
           m_controlMessageQueue.at (0).push_back (msg);
         }
+    }
+
+  NS_ASSERT (m_ctrlMsgs.size () == 0);
+  SfnSf sfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
+
+  // Start with a clean RBG allocation bitmask
+  m_rbgAllocationPerSym.clear ();
+
+  // create control messages to be transmitted in DL-Control period
+  m_ctrlMsgs = GetControlMessages ();
+  m_ctrlMsgs.merge (RetrieveMsgsFromDCIs (sfn));
+
+  if (m_ctrlMsgs.size () > 0)
+    {
+      NS_ASSERT (m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_tddMode == VarTtiAllocInfo::DL &&
+                 m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_varTtiType == VarTtiAllocInfo::CTRL);
     }
 
   StartVarTti ();
@@ -504,9 +521,6 @@ MmWaveEnbPhy::StartVarTti (void)
 
   if (m_varTtiNum == 0)  // DL control var tti
     {
-      // Start with a clean RBG allocation bitmask
-      m_rbgAllocationPerSym.clear ();
-
       if (m_performBeamforming)
         {
           m_performBeamforming = false;
@@ -515,10 +529,6 @@ MmWaveEnbPhy::StartVarTti (void)
               m_doBeamforming (m_netDevice, dev);
             }
         }
-
-      // create control messages to be transmitted in DL-Control period
-      std::list <Ptr<MmWaveControlMessage> > ctrlMsgs = GetControlMessages ();
-      ctrlMsgs.merge (RetrieveMsgsFromDCIs (sfn));
 
       // TX control period
       varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
@@ -531,7 +541,8 @@ MmWaveEnbPhy::StartVarTti (void)
                     " start " << Simulator::Now () <<
                     " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
 
-      SendCtrlChannels (ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
+      SendCtrlChannels (m_ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
+      m_ctrlMsgs.clear ();
     }
   else if (m_varTtiNum == m_currSfNumVarTtis - 1)   // UL control var tti
     {
@@ -741,6 +752,8 @@ MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAl
   // If the transmission last n symbol (n > 1 && n < 12) the SetSubChannels
   // doesn't need to be called again. In fact, SendDataChannels will be
   // invoked only when the symStart changes.
+  NS_ASSERT (varTtiInfo.m_dci != nullptr);
+  NS_ASSERT (m_rbgAllocationPerSym.find(varTtiInfo.m_dci->m_symStart) != m_rbgAllocationPerSym.end ());
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (varTtiInfo.m_dci->m_symStart)));
 
   std::list<Ptr<MmWaveControlMessage> > ctrlMsgs;
