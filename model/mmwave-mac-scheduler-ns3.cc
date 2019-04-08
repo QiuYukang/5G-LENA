@@ -1451,8 +1451,11 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
 
   MmWaveMacSchedSapUser::SchedConfigIndParameters dlSlot (params.m_snfSf);
   dlSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
-  NS_ASSERT (m_ulAllocationMap.find (params.m_snfSf.Encode ()) != m_ulAllocationMap.end ());
   auto ulAllocationIt = m_ulAllocationMap.find (params.m_snfSf.Encode ()); // UL allocations for this slot
+  if (ulAllocationIt == m_ulAllocationMap.end ())
+    {
+      ulAllocationIt = m_ulAllocationMap.insert(std::make_pair (params.m_snfSf.Encode (), SlotElem (0))).first;
+    }
   auto & ulAllocations = ulAllocationIt->second;
 
   // add slot for DL control, at symbol 0
