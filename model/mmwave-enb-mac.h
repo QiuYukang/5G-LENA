@@ -205,6 +205,9 @@ struct AllocateNcRaPreambleReturnValue
    */
   typedef void (* SrTracedCallback) (const uint8_t ccId, const uint16_t rnti);
 
+protected:
+  void DoInitialize () override;
+
 private:
   // forwarded from LteEnbCmacSapProvider
   void DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);

@@ -167,43 +167,6 @@ MmWaveEnbPhy::DoInitialize (void)
     {   // push elements onto queue for initial scheduling delay
       m_controlMessageQueue.push_back (std::list<Ptr<MmWaveControlMessage> > ());
     }
-  //m_slotAllocInfoUpdated = true;
-
-  SfnSf sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-
-  for (unsigned i = 0; i < m_phyMacConfig->GetL1L2DataLatency (); i++)
-    {
-      SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
-      auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, rbgBitmask);
-      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
-
-      VarTtiAllocInfo dlCtrlVarTti (VarTtiAllocInfo::DL, VarTtiAllocInfo::CTRL, dciDl);
-      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
-
-      slotAllocInfo.m_varTtiAllocInfo.emplace_back (dlCtrlVarTti);
-      slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
-
-      SetSlotAllocInfo (slotAllocInfo);
-      NS_LOG_INFO ("Pushing DL/UL CTRL symbol allocation for " << sfnSf);
-      sfnSf = sfnSf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                       m_phyMacConfig->GetSubframesPerFrame ());
-    }
-
-  for (unsigned i = 0; i < m_phyMacConfig->GetUlSchedDelay(); i++)
-    {
-      SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
-      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
-
-      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
-
-      slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
-
-      SetSlotAllocInfo (slotAllocInfo);
-      NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
-      sfnSf = sfnSf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                       m_phyMacConfig->GetSubframesPerFrame ());
-    }
 
   MmWavePhy::InstallAntenna();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
