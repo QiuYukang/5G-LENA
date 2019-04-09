@@ -61,8 +61,6 @@ MmWaveEnbPhy::MmWaveEnbPhy ()
 MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
                             const Ptr<Node> &n)
   : MmWavePhy (dlPhy, ulPhy),
-  m_prevVarTti (0),
-  m_prevVarTtiDir (VarTtiAllocInfo::NA),
   m_currSymStart (0)
 {
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
@@ -282,7 +280,6 @@ MmWaveEnbPhy::StartSlot (void)
 
   m_lastSlotStart = Simulator::Now ();
   m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
-  m_currSfNumVarTtis = m_currSlotAllocInfo.m_varTtiAllocInfo.size ();
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
@@ -503,6 +500,142 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
   return ctrlMsgs;
 }
 
+Time
+MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_FUNCTION (this);
+
+  if (m_performBeamforming)
+    {
+      m_performBeamforming = false;
+      for (const auto & dev : m_deviceMap)
+        {
+          m_doBeamforming (m_netDevice, dev);
+        }
+    }
+
+  // TX control period
+  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
+
+  NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
+
+  NS_LOG_DEBUG ("ENB TXing DL CTRL frame " << m_frameNum <<
+                " subframe " << static_cast<uint32_t> (m_subframeNum) <<
+                " slot " << static_cast<uint32_t> (m_slotNum) <<
+                " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
+                "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
+                " start " << Simulator::Now () <<
+                " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
+
+  SendCtrlChannels (&m_ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
+
+  return varTtiPeriod;
+}
+
+Time
+MmWaveEnbPhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_FUNCTION (this);
+  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
+
+  NS_LOG_DEBUG ("ENB RXng UL CTRL frame " << m_frameNum <<
+                " subframe " << static_cast<uint32_t> (m_subframeNum) <<
+                " slot " << static_cast<uint32_t> (m_slotNum) <<
+                " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
+                "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
+                " start " << Simulator::Now () <<
+                " end " << Simulator::Now () + varTtiPeriod);
+  return varTtiPeriod;
+}
+
+Time
+MmWaveEnbPhy::DlData (const VarTtiAllocInfo& varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * varTtiInfo.m_dci->m_numSym;
+
+  Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, varTtiInfo.m_dci->m_symStart));
+  if (pktBurst && pktBurst->GetNPackets () > 0)
+    {
+      std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
+      MmWaveMacPduTag macTag;
+      pkts.front ()->PeekPacketTag (macTag);
+      NS_ASSERT ((macTag.GetSfn ().m_slotNum == m_slotNum) && (macTag.GetSfn ().m_varTtiNum == varTtiInfo.m_dci->m_symStart));
+    }
+  else
+    {
+      // sometimes the UE will be scheduled when no data is queued
+      // in this case, send an empty PDU
+      MmWaveMacPduTag tag (SfnSf (m_frameNum, m_subframeNum, m_slotNum, varTtiInfo.m_dci->m_symStart));
+      Ptr<Packet> emptyPdu = Create <Packet> ();
+      MmWaveMacPduHeader header;
+      MacSubheader subheader (3, 0);    // lcid = 3, size = 0
+      header.AddSubheader (subheader);
+      emptyPdu->AddHeader (header);
+      emptyPdu->AddPacketTag (tag);
+      LteRadioBearerTag bearerTag (varTtiInfo.m_dci->m_rnti, 3, 0);
+      emptyPdu->AddPacketTag (bearerTag);
+      pktBurst = CreateObject<PacketBurst> ();
+      pktBurst->AddPacket (emptyPdu);
+    }
+
+  NS_LOG_DEBUG ("ENB TXing DL DATA frame " << m_frameNum <<
+                " subframe " << static_cast<uint32_t> (m_subframeNum) <<
+                " slot " << static_cast<uint32_t> (m_slotNum) <<
+                " symbols "  << static_cast<uint32_t> (varTtiInfo.m_dci->m_symStart) <<
+                "-" << static_cast<uint32_t> (varTtiInfo.m_dci->m_symStart + varTtiInfo.m_dci->m_numSym - 1) <<
+                " start " << Simulator::Now () + NanoSeconds (1) <<
+                " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (2.0));
+
+  Simulator::Schedule (NanoSeconds (1.0), &MmWaveEnbPhy::SendDataChannels, this,
+                       pktBurst, varTtiPeriod - NanoSeconds (2.0), varTtiInfo);
+
+  return varTtiPeriod;
+}
+
+Time
+MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_INFO (this);
+
+  // Assert: we expect TDMA in UL
+  NS_ASSERT (dci->m_rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
+  NS_ASSERT (static_cast<uint32_t> (std::count (dci->m_rbgBitmask.begin (),
+                                                dci->m_rbgBitmask.end (), 1U)) == dci->m_rbgBitmask.size ());
+
+  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
+
+  m_downlinkSpectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
+                                        dci->m_tbSize, dci->m_mcs,
+                                        FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                        dci->m_harqProcess, dci->m_rv, false,
+                                        dci->m_symStart, dci->m_numSym);
+
+  bool found = false;
+  for (uint8_t i = 0; i < m_deviceMap.size (); i++)
+    {
+      Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
+      uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      if (dci->m_rnti == ueRnti)
+        {
+          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+          antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
+          found = true;
+          break;
+        }
+    }
+  NS_ASSERT (found);
+
+  NS_LOG_DEBUG ("ENB RXing UL DATA frame " << m_frameNum <<
+                " subframe " << static_cast<uint32_t> (m_subframeNum) <<
+                " slot " << static_cast<uint32_t> (m_slotNum) <<
+                " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
+                "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
+                " start " << Simulator::Now () <<
+                " end " << Simulator::Now () + varTtiPeriod);
+  return varTtiPeriod;
+}
+
 void
 MmWaveEnbPhy::StartVarTti (void)
 {
@@ -519,125 +652,30 @@ MmWaveEnbPhy::StartVarTti (void)
 
   Time varTtiPeriod;
 
-  if (m_varTtiNum == 0)  // DL control var tti
+  NS_ASSERT (currVarTti.m_varTtiType != VarTtiAllocInfo::CTRL_DATA);
+
+  if (currVarTti.m_varTtiType == VarTtiAllocInfo::CTRL)
     {
-      if (m_performBeamforming)
+      if (currVarTti.m_tddMode == VarTtiAllocInfo::DL)
         {
-          m_performBeamforming = false;
-          for (const auto & dev : m_deviceMap)
-            {
-              m_doBeamforming (m_netDevice, dev);
-            }
+          varTtiPeriod = DlCtrl (currVarTti.m_dci);
         }
-
-      // TX control period
-      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
-
-      NS_LOG_DEBUG ("ENB TXing DL CTRL frame " << m_frameNum <<
-                    " subframe " << static_cast<uint32_t> (m_subframeNum) <<
-                    " slot " << static_cast<uint32_t> (m_slotNum) <<
-                    " symbols "  << static_cast<uint32_t> (currVarTti.m_dci->m_symStart) <<
-                    "-" << static_cast<uint32_t> (currVarTti.m_dci->m_symStart + currVarTti.m_dci->m_numSym - 1) <<
-                    " start " << Simulator::Now () <<
-                    " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
-
-      SendCtrlChannels (m_ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
-      m_ctrlMsgs.clear ();
+      else if (currVarTti.m_tddMode == VarTtiAllocInfo::UL)
+        {
+          varTtiPeriod = UlCtrl (currVarTti.m_dci);
+        }
     }
-  else if (m_varTtiNum == m_currSfNumVarTtis - 1)   // UL control var tti
+  else  if (currVarTti.m_varTtiType == VarTtiAllocInfo::DATA)
     {
-      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
-
-      NS_LOG_DEBUG ("ENB RXng UL CTRL frame " << m_frameNum <<
-                    " subframe " << static_cast<uint32_t> (m_subframeNum) <<
-                    " slot " << static_cast<uint32_t> (m_slotNum) <<
-                    " symbols "  << static_cast<uint32_t> (currVarTti.m_dci->m_symStart) <<
-                    "-" << static_cast<uint32_t> (currVarTti.m_dci->m_symStart + currVarTti.m_dci->m_numSym - 1) <<
-                    " start " << Simulator::Now () <<
-                    " end " << Simulator::Now () + varTtiPeriod);
-    }
-  else if (currVarTti.m_tddMode == VarTtiAllocInfo::DL)      // transmit DL var tti
-    {
-      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * currVarTti.m_dci->m_numSym;
-      NS_ASSERT (currVarTti.m_tddMode == VarTtiAllocInfo::DL);
-
-      Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, currVarTti.m_dci->m_symStart));
-      if (pktBurst && pktBurst->GetNPackets () > 0)
+      if (currVarTti.m_tddMode == VarTtiAllocInfo::DL)
         {
-          std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
-          MmWaveMacPduTag macTag;
-          pkts.front ()->PeekPacketTag (macTag);
-          NS_ASSERT ((macTag.GetSfn ().m_slotNum == m_slotNum) && (macTag.GetSfn ().m_varTtiNum == currVarTti.m_dci->m_symStart));
+          varTtiPeriod = DlData (currVarTti);
         }
-      else
+      else if (currVarTti.m_tddMode == VarTtiAllocInfo::UL)
         {
-          // sometimes the UE will be scheduled when no data is queued
-          // in this case, send an empty PDU
-          MmWaveMacPduTag tag (SfnSf (m_frameNum, m_subframeNum, m_slotNum, currVarTti.m_dci->m_symStart));
-          Ptr<Packet> emptyPdu = Create <Packet> ();
-          MmWaveMacPduHeader header;
-          MacSubheader subheader (3, 0);    // lcid = 3, size = 0
-          header.AddSubheader (subheader);
-          emptyPdu->AddHeader (header);
-          emptyPdu->AddPacketTag (tag);
-          LteRadioBearerTag bearerTag (currVarTti.m_dci->m_rnti, 3, 0);
-          emptyPdu->AddPacketTag (bearerTag);
-          pktBurst = CreateObject<PacketBurst> ();
-          pktBurst->AddPacket (emptyPdu);
+          varTtiPeriod = UlData (currVarTti.m_dci);
         }
-
-      NS_LOG_DEBUG ("ENB TXing DL DATA frame " << m_frameNum <<
-                    " subframe " << static_cast<uint32_t> (m_subframeNum) <<
-                    " slot " << static_cast<uint32_t> (m_slotNum) <<
-                    " symbols "  << static_cast<uint32_t> (currVarTti.m_dci->m_symStart) <<
-                    "-" << static_cast<uint32_t> (currVarTti.m_dci->m_symStart + currVarTti.m_dci->m_numSym - 1) <<
-                    " start " << Simulator::Now () + NanoSeconds (1) <<
-                    " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (2.0));
-
-      Simulator::Schedule (NanoSeconds (1.0), &MmWaveEnbPhy::SendDataChannels, this, pktBurst, varTtiPeriod - NanoSeconds (2.0), currVarTti);
     }
-  else if (currVarTti.m_tddMode == VarTtiAllocInfo::UL)    // receive UL var tti
-    {
-      // Assert: we expect TDMA in UL
-      NS_ASSERT (currVarTti.m_dci->m_rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
-      NS_ASSERT (static_cast<uint32_t> (std::count (currVarTti.m_dci->m_rbgBitmask.begin (),
-                                                    currVarTti.m_dci->m_rbgBitmask.end (), 1U)) ==
-                 currVarTti.m_dci->m_rbgBitmask.size ());
-
-      varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * currVarTti.m_dci->m_numSym;
-
-      //NS_LOG_DEBUG ("Var tti " << (uint8_t)m_varTtiNum << " scheduled for Uplink");
-      m_downlinkSpectrumPhy->AddExpectedTb (currVarTti.m_dci->m_rnti, currVarTti.m_dci->m_ndi,
-                                            currVarTti.m_dci->m_tbSize, currVarTti.m_dci->m_mcs,
-                                            FromRBGBitmaskToRBAssignment (currVarTti.m_dci->m_rbgBitmask),
-                                            currVarTti.m_dci->m_harqProcess, currVarTti.m_dci->m_rv, false,
-                                            currVarTti.m_dci->m_symStart, currVarTti.m_dci->m_numSym);
-
-      bool found = false;
-      for (uint8_t i = 0; i < m_deviceMap.size (); i++)
-        {
-          Ptr<MmWaveUeNetDevice> ueDev = DynamicCast < MmWaveUeNetDevice > (m_deviceMap.at (i));
-          uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
-          if (currVarTti.m_dci->m_rnti == ueRnti)
-            {
-              Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
-              antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
-              found = true;
-              break;
-            }
-        }
-      NS_ASSERT (found);
-
-      NS_LOG_DEBUG ("ENB RXing UL DATA frame " << m_frameNum <<
-                    " subframe " << static_cast<uint32_t> (m_subframeNum) <<
-                    " slot " << static_cast<uint32_t> (m_slotNum) <<
-                    " symbols "  << static_cast<uint32_t> (currVarTti.m_dci->m_symStart) <<
-                    "-" << static_cast<uint32_t> (currVarTti.m_dci->m_symStart + currVarTti.m_dci->m_numSym - 1) <<
-                    " start " << Simulator::Now () <<
-                    " end " << Simulator::Now () + varTtiPeriod);
-    }
-
-  m_prevVarTtiDir = currVarTti.m_tddMode;
 
   Simulator::Schedule (varTtiPeriod, &MmWaveEnbPhy::EndVarTti, this);
 }
@@ -655,9 +693,8 @@ MmWaveEnbPhy::EndVarTti (void)
 
   antennaArray->ChangeToOmniTx ();
 
-  if (m_varTtiNum == m_currSfNumVarTtis - 1)
+  if (m_varTtiNum == m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1)
     {
-      m_varTtiNum = 0;
       EndSlot ();
     }
   else
@@ -699,17 +736,16 @@ MmWaveEnbPhy::EndSlot (void)
 
   Time slotStart = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () - Simulator::Now ();
 
-  if (slotStart < Seconds (0))
-    {
-      NS_FATAL_ERROR ("lastStart=" << m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () <<
-                      " now " <<  Simulator::Now () << " slotStart value" << slotStart);
-    }
+  NS_ASSERT_MSG (slotStart > MilliSeconds (0),
+                 "lastStart=" << m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () <<
+                 " now " <<  Simulator::Now () << " slotStart value" << slotStart);
 
   m_varTtiNum = 0;
 
   SfnSf sfnf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
 
-  SfnSf retVal = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),m_phyMacConfig->GetSubframesPerFrame ());
+  SfnSf retVal = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
+                                         m_phyMacConfig->GetSubframesPerFrame ());
 
   m_frameNum = retVal.m_frameNum;
   m_subframeNum = retVal.m_subframeNum;
@@ -719,7 +755,8 @@ MmWaveEnbPhy::EndSlot (void)
 }
 
 void
-MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAllocInfo& varTtiInfo)
+MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
+                                const VarTtiAllocInfo& varTtiInfo)
 {
   if (varTtiInfo.m_isOmni)
     {
@@ -761,7 +798,7 @@ MmWaveEnbPhy::SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAl
 }
 
 void
-MmWaveEnbPhy::SendCtrlChannels (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgs,
+MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
                                 const Time &varTtiPeriod)
 {
   NS_LOG_FUNCTION (this << "Send Ctrl");
@@ -775,7 +812,9 @@ MmWaveEnbPhy::SendCtrlChannels (const std::list<Ptr<MmWaveControlMessage> > &ctr
 
   SetSubChannels (fullBwRb);
 
-  m_downlinkSpectrumPhy->StartTxDlControlFrames (ctrlMsgs, varTtiPeriod);
+  m_downlinkSpectrumPhy->StartTxDlControlFrames (*ctrlMsgs, varTtiPeriod);
+
+  ctrlMsgs->clear ();
 }
 
 bool

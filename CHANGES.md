@@ -141,6 +141,9 @@ devices is in omni mode. This is possible because AntennaArrayModel has new
 beamforming vector that emulates omni reception and transmission.
 * The Slot Indication is asked to the MAC at the beginning of the slot, before
 doing everything else at PHY level.
+* UE and ENB PHY does not rely on the order of the allocation to understand if
+an allocation is DL/UL, DATA/CTRL. Also, we support now the possibility to start
+an allocation at a symbol != 0.
 
 ---
 
