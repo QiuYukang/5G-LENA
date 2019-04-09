@@ -157,12 +157,6 @@ MmWaveSpectrumPhy::SetAntenna (Ptr<AntennaModel> a)
 }
 
 void
-MmWaveSpectrumPhy::SetState (State newState)
-{
-  ChangeState (newState);
-}
-
-void
 MmWaveSpectrumPhy::ChangeState (State newState)
 {
   NS_LOG_LOGIC (this << " state: " << m_state << " -> " << newState);
@@ -704,7 +698,8 @@ MmWaveSpectrumPhy::EndRxData ()
       m_phyRxCtrlEndOkCallback (m_rxControlMessageList);
     }
 
-  m_state = IDLE;
+  ChangeState (IDLE);
+
   m_rxPacketBurstList.clear ();
   m_transportBlocks.clear ();
   m_rxControlMessageList.clear ();
@@ -713,7 +708,8 @@ MmWaveSpectrumPhy::EndRxData ()
 void
 MmWaveSpectrumPhy::EndRxCtrl ()
 {
-  NS_ASSERT (m_state = RX_CTRL);
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_state == RX_CTRL);
 
   // control error model not supported
   // forward control messages of this frame to LtePhy
@@ -725,13 +721,14 @@ MmWaveSpectrumPhy::EndRxCtrl ()
         }
     }
 
-  m_state = IDLE;
+  ChangeState (IDLE);
   m_rxControlMessageList.clear ();
 }
 
 bool
 MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList, Time duration, uint8_t slotInd)
 {
+  NS_LOG_FUNCTION (this);
   switch (m_state)
     {
     case RX_DATA:
@@ -745,7 +742,7 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
       {
         NS_ASSERT (m_txPsd);
 
-        m_state = TX;
+        ChangeState (TX);
         Ptr<MmwaveSpectrumSignalParametersDataFrame> txParams = Create<MmwaveSpectrumSignalParametersDataFrame> ();
         txParams->duration = duration;
         txParams->txPhy = this->GetObject<SpectrumPhy> ();
@@ -826,7 +823,7 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
       {
         NS_ASSERT (m_txPsd);
 
-        m_state = TX;
+        ChangeState (TX);
 
         Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> txParams = Create<MmWaveSpectrumSignalParametersDlCtrlFrame> ();
         txParams->duration = duration;
@@ -846,9 +843,10 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
 void
 MmWaveSpectrumPhy::EndTx ()
 {
+  NS_LOG_FUNCTION (this);
   NS_ASSERT (m_state == TX);
 
-  m_state = IDLE;
+  ChangeState (IDLE);
 }
 
 Ptr<SpectrumChannel>
