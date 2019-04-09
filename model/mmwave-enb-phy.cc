@@ -318,6 +318,9 @@ MmWaveEnbPhy::StartSlot (void)
                    " direction " << direction << " type " << type);
     }
 
+  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
+  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
   if (m_slotNum == 0)
     {
       if (m_subframeNum == 0)   // send MIB at the beginning of each frame
@@ -624,9 +627,6 @@ MmWaveEnbPhy::StartVarTti (void)
     }
 
   m_prevVarTtiDir = currVarTti.m_tddMode;
-
-  NS_LOG_DEBUG ("Asking MAC for SlotIndication for frame" << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));    // trigger MAC
 
   Simulator::Schedule (varTtiPeriod, &MmWaveEnbPhy::EndVarTti, this);
 }
