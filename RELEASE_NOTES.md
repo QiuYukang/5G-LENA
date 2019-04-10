@@ -67,6 +67,8 @@ Bugs fixed
   to send the feedback, extract the RNTI for each loop. Before, it was
   asserting when the RNTI changed. The code does not depend on the
   RNTI previous values, so it should be safe.
+- (phy) At the beginning, fill some slot (number configured by UL sched delay
+  param) with UL CTRL symbol.
 
 Known issues
 ------------

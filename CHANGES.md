@@ -139,6 +139,9 @@ does not have to be related to the channel update event.
 * MmWave3gppChannel supports calculation of the beamforming gain when one of 
 devices is in omni mode. This is possible because AntennaArrayModel has new 
 beamforming vector that emulates omni reception and transmission.
+* The Slot Indication is asked to the MAC at the beginning of the slot, before
+doing everything else at PHY level.
+
 ---
 
 ## Changes from NR-v0.1 to NR-v0.2
