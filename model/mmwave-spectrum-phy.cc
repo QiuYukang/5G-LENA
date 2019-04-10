@@ -240,79 +240,40 @@ void
 MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 {
   NS_LOG_FUNCTION (this);
+  Ptr <const SpectrumValue> rxPsd = params->psd;
+  Time duration = params->duration;
+  NS_LOG_INFO ("Start receiving signal: " << rxPsd <<" duration= " << duration);
 
-  Ptr<MmWaveEnbNetDevice> EnbTx =
-    DynamicCast<MmWaveEnbNetDevice> (params->txPhy->GetDevice ());
-  Ptr<MmWaveEnbNetDevice> enbRx =
-    DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
-  if ((EnbTx != 0 && enbRx != 0) || (EnbTx == 0 && enbRx == 0))
+  uint32_t senderNodeId = -1;
+
+  /*
+  if (params->txPhy)
     {
-      NS_LOG_INFO ("BS to BS or UE to UE transmission neglected.");
-      return;
-    }
+      senderNodeId = params->txPhy->GetDevice ()->GetNode ()->GetId();
+    }*/
+
+  NS_LOG_DEBUG ("Received signal from " << senderNodeId << " with unfiltered power " << 10.0 * std::log10 (Integral (*rxPsd)) + 30.0  << " dBm");
+
+  // pass it to interference calculations regardless of the type (LTE or non-LTE)
+  m_interferenceData->AddSignal (rxPsd, duration);
 
   Ptr<MmwaveSpectrumSignalParametersDataFrame> mmwaveDataRxParams =
     DynamicCast<MmwaveSpectrumSignalParametersDataFrame> (params);
 
-  Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> DlCtrlRxParams =
+  Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> dlCtrlRxParams =
     DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
 
-  if (mmwaveDataRxParams != 0)
+  if (mmwaveDataRxParams != nullptr)
     {
-      Ptr<MmWaveUeNetDevice> ueRx = 0;
-      ueRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
-
-      /****************** the following code does not work with 2 bandwidth parts ************************/
-      // seems to be some issue with concurrent execution of independent events ...
-      // TODO @CTTC: needs to be revisited
-      /*
-      bool isAllocated = true;
-
-      if ((ueRx!=0) && (ueRx->GetPhy ()->IsReceptionEnabled () == false))
-        {
-          isAllocated = false;
-        }
-
-       if (isAllocated)
-        {*/
-      m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
-      NS_LOG_INFO ("Start Rxing a signal: " << mmwaveDataRxParams->psd <<
-                   " duration= " << mmwaveDataRxParams->duration << " cellId " <<
-                   mmwaveDataRxParams->cellId << " this cellId: " << m_cellId);
-      if (mmwaveDataRxParams->cellId == m_cellId)
-        {
-          //m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
-          StartRxData (mmwaveDataRxParams);
-        }
-
-      /*  TODO @CTTC:
-       *  double check why this code is not used, not clear how the interference calculated.
-       else
-       {
-         if (ueRx != 0)
-           {
-             m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
-           }
-       }
-       */
-      //}
-
+      StartRxData (mmwaveDataRxParams);
+    }
+  else if (dlCtrlRxParams!= nullptr)
+    {
+      StartRxCtrl (params);
     }
   else
     {
-      Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> DlCtrlRxParams =
-        DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
-      if (DlCtrlRxParams != 0)
-        {
-          if (DlCtrlRxParams->cellId == m_cellId)
-            {
-              StartRxCtrl (params);
-            }
-          else
-            {
-              // Do nothing
-            }
-        }
+      NS_LOG_INFO ("Received non-mmwave signal of duration:"<<duration);
     }
 }
 
@@ -451,7 +412,10 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
               {
                 m_rxControlMessageList.insert (m_rxControlMessageList.end (), dlCtrlRxParams->ctrlMsgList.begin (), dlCtrlRxParams->ctrlMsgList.end ());
               }
-
+          }
+        else
+          {
+            NS_LOG_INFO ("Ctrl received from interfering cell with cell id:"<<cellId);
           }
         break;
       }
