@@ -96,8 +96,6 @@ public:
   Ptr<AntennaModel> GetRxAntenna ();
   void SetAntenna (Ptr<AntennaModel> a);
 
-  void SetState (State newState);
-
   void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
   void StartRx (Ptr<SpectrumSignalParameters> params);
