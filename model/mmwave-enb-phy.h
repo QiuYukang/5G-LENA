@@ -75,9 +75,9 @@ public:
   void EndVarTti (void);
 
 
-  void SendDataChannels (Ptr<PacketBurst> pb, Time varTtiPeriod, VarTtiAllocInfo& varTtiInfo);
+  void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod, const VarTtiAllocInfo &varTtiInfo);
 
-  void SendCtrlChannels (const std::list<Ptr<MmWaveControlMessage> > & ctrlMsg,
+  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
                          const Time &varTtiPeriod);
 
   virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override;
@@ -114,6 +114,33 @@ public:
 private:
   std::list <Ptr<MmWaveControlMessage> > RetrieveMsgsFromDCIs (const SfnSf &sfn);
 
+  /**
+   * \brief Transmit DL CTRL and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the transmission of DL CTRL will end
+   */
+  Time DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+  /**
+   * \brief Receive UL CTRL and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the reception of UL CTRL will end
+   */
+  Time UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+
+  /**
+   * \brief Transmit DL data and return the time at which the transmission will end
+   * \param varTtiInfo the current varTti
+   * \return the time at which the transmission of DL data will end
+   */
+  Time DlData (const VarTtiAllocInfo &varTtiInfo) __attribute__((warn_unused_result));
+
+  /**
+   * \brief Receive UL data and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the reception of UL data will end
+   */
+  Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+
   bool AddUePhy (uint16_t rnti);
   // LteEnbCphySapProvider forwarded methods
   void DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
@@ -146,15 +173,7 @@ private:
 
   std::list<TbAllocInfo> DequeueUlTbAlloc ();
 
-  uint8_t m_currSfNumVarTtis;
-
-  uint32_t m_numRbg;
-
   std::set <uint64_t> m_ueAttached;
-
-  uint8_t m_prevVarTti;   // 1->UL 0->DL 2->Unspecified
-
-  VarTtiAllocInfo::TddMode m_prevVarTtiDir;
 
   std::vector< Ptr<NetDevice> > m_deviceMap;
 
@@ -182,6 +201,8 @@ private:
   Time m_beamformingPeriodicity; //!< Periodicity of beamforming (0 for never)
   EventId m_beamformingTimer;    //!< Beamforming timer
   PerformBeamformingFn m_doBeamforming; //!< Beamforming function
+
+  std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
 };
 
 }

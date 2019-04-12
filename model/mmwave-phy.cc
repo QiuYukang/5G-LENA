@@ -443,7 +443,9 @@ MmWavePhy::GetSlotAllocInfo (const SfnSf &sfnsf)
   NS_LOG_FUNCTION (this << " at:" << Simulator::Now ().GetSeconds () << "ccId:" << (unsigned)m_componentCarrierId << "frameNum:" << sfnsf.m_frameNum <<
                    "subframe:" << (unsigned)sfnsf.m_subframeNum << "slot:" << (unsigned)sfnsf.m_slotNum);
 
-  NS_ASSERT_MSG (m_slotAllocInfo.find (sfnsf) != m_slotAllocInfo.end (), "Trying to fetch a non existing slot allocation info.");
+  NS_ASSERT_MSG (m_slotAllocInfo.find (sfnsf) != m_slotAllocInfo.end (),
+                 "Trying to fetch " << sfnsf << " but is not existing in the list");
+
   SlotAllocInfo slot = m_slotAllocInfo[sfnsf];
   m_slotAllocInfo.erase (m_slotAllocInfo.find (sfnsf));
   return slot;

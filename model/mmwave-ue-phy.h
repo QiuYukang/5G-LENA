@@ -87,12 +87,9 @@ public:
 
   void ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > msgList);
 
-  void SlotIndication (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
+  void StartSlot (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
   void StartVarTti ();
   void EndVarTti ();
-
-
-  uint32_t GetSubframeNumber (void);
 
   void PhyDataPacketReceived (Ptr<Packet> p);
 
@@ -125,6 +122,33 @@ public:
   }
 
 private:
+  /**
+   * \brief Receive DL CTRL and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the reception of DL CTRL will end
+   */
+  Time DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+  /**
+   * \brief Transmit UL CTRL and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the transmission of UL CTRL will end
+   */
+  Time UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+
+  /**
+   * \brief Receive DL data and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the reception of DL data will end
+   */
+  Time DlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+
+  /**
+   * \brief Transmit UL data and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the transmission of UL data will end
+   */
+  Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+
   void DoReset ();
   void DoStartCellSearch (uint16_t dlEarfcn);
   void DoSynchronizeWithEnb (uint16_t cellId);
