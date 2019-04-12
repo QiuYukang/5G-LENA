@@ -34,6 +34,7 @@
 #include "mmwave-mac-pdu-tag.h"
 #include "nr-lte-mi-error-model.h"
 #include <functional>
+#include <ns3/lte-radio-bearer-tag.h>
 
 namespace ns3 {
 

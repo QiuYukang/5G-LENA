@@ -1,7 +1,8 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
 *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License version 2 as
@@ -16,24 +17,13 @@
 *   along with this program; if not, write to the Free Software
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
 */
 
-
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_UE_PHY_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_UE_PHY_H_
+#ifndef MMWAVE_UE_PHY_H
+#define MMWAVE_UE_PHY_H
 
 #include <ns3/mmwave-phy.h>
-#include "mmwave-phy-mac-common.h"
-#include <ns3/ptr.h>
 #include "nr-amc.h"
-#include <map>
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/mmwave-harq-phy.h>
@@ -41,87 +31,151 @@
 
 namespace ns3 {
 
-class PacketBurst;
-class mmwEnbPhy;
-
 class MmWaveUePhy : public MmWavePhy
 {
   friend class UeMemberLteUePhySapProvider;
   friend class MemberLteUeCphySapProvider<MmWaveUePhy>;
 
 public:
-  MmWaveUePhy ();
-
-  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy, const Ptr<Node> &n);
-
-  virtual ~MmWaveUePhy () override;
-
   // inherited from Object
   static TypeId GetTypeId (void);
-  virtual void DoInitialize (void) override;
-  virtual void DoDispose (void) override;
+  virtual void DoInitialize (void) override; // Public because it's called by hand,
+                                             // and not by aggregation, in MmWaveNetDevice
 
-  LteUeCphySapProvider* GetUeCphySapProvider ();
+  /**
+   * \brief MmWaveUePhy default constructor. Is there for ns-3 object system, but should not be used.
+   */
+  MmWaveUePhy ();
+
+  /**
+   * \brief MmWaveUePhy real constructor
+   * \param dlPhy DL spectrum phy
+   * \param ulPhy UL spectrum phy
+   * \param n Pointer to the node owning this instance
+   *
+   * Usually called by the helper. It starts the event loop for the ue.
+   */
+  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy, const Ptr<Node> &n);
+
+  /**
+   * \brief ~MmWaveUePhy
+   */
+  virtual ~MmWaveUePhy () override;
+
+  /**
+   * \brief Retrieve the pointer for the C PHY SAP provider (AKA the PHY interface towards the RRC)
+   * \return the C PHY SAP pointer
+   */
+  LteUeCphySapProvider* GetUeCphySapProvider () __attribute__((warn_unused_result));
+
+  /**
+   * \brief Install ue C PHY SAP user (AKA the PHY interface towards the RRC)
+   * \param s the C PHY SAP user pointer to install
+   */
   void SetUeCphySapUser (LteUeCphySapUser* s);
 
-  void SetTxPower (double pow);
-  double GetTxPower () const;
-
-  void SetNoiseFigure (double pf);
-  double GetNoiseFigure () const;
-
-  bool SendPacket (Ptr<Packet> packet);
-  void DoSetSubChannels ();
-
-  void SetSubChannelsForReception (std::vector <int> mask);
-  std::vector <int> GetSubChannelsForReception (void);
-
-  void SetSubChannelsForTransmission (std::vector <int> mask);
-  std::vector <int> GetSubChannelsForTransmission (void);
-
-  void DoSendControlMessage (Ptr<MmWaveControlMessage> msg);
-
-  void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
-  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override;
-  Ptr<MmWaveSpectrumPhy> GetUlSpectrumPhy () const;
-
-  void ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > msgList);
-
-  void StartSlot (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
-  void StartVarTti ();
-  void EndVarTti ();
-
-  void PhyDataPacketReceived (Ptr<Packet> p);
-
-  void SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd);
-
-  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd);
-
-  Ptr<MmWaveDlCqiMessage> CreateDlCqiFeedbackMessage (const SpectrumValue& sinr);
-
-  void GenerateDlCqiReport (const SpectrumValue& sinr);
-
-  bool IsReceptionEnabled ();
-
-  void ResetReception ();
-
-  uint16_t GetRnti ();
-
+  /**
+   * \brief Install the PHY sap user (AKA the UE MAC)
+   *
+   * \param ptr the PHY SAP user pointer to install
+   */
   void SetPhySapUser (MmWaveUePhySapUser* ptr);
 
-  void SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq);
+  /**
+   * \brief Set the transmission power for the UE
+   *
+   * Please note that there is also an attribute ("MmWaveUePhy::TxPower")
+   * \param pow power
+   */
+  void SetTxPower (double pow);
 
-  void ReceiveLteDlHarqFeedback (DlHarqInfo m);
+  /**
+   * \brief Retrieve the TX power of the UE
+   *
+   * Please note that there is also an attribute ("MmWaveUePhy::TxPower")
+   * \return the TX power of the UE
+   */
+  double GetTxPower () const __attribute__((warn_unused_result));
 
-  void SetPhyMacConfig (Ptr<MmWavePhyMacCommon> config);
+  /**
+   * \brief Register the UE to a certain Enb
+   *
+   * Install the configuration parameters in the UE. At the moment, the code
+   * does not reconfigure itself when the PhyMacCommon parameters change,
+   * so you can call this function only one (therefore, no handoff)
+   *
+   * \param cellId the CELL ID of the ENB
+   * \param config the ENB configuration
+   */
+  void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override
-  {
-    NS_UNUSED (rnti);
-    NS_FATAL_ERROR ("ERROR");
-  }
+  /**
+   * \brief Retrieve the DlSpectrumPhy pointer
+   *
+   * As this function is used mainly to get traced values out of DlSpectrum,
+   * it should be removed and the traces connected (and redirected) here.
+   * \return A pointer to the DlSpectrumPhy of this UE
+   */
+  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override __attribute__((warn_unused_result));
+
+  /**
+   * \brief Receive a list of CTRL messages
+   *
+   * Connected by the helper to a callback of the spectrum.
+   *
+   * \param msgList message list
+   */
+  void PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList);
+
+  /**
+   * \brief Receive a PHY data packet
+   *
+   * Connected by the helper to a callback of the spectrum.
+   *
+   * \param p Received packet
+   */
+  void PhyDataPacketReceived (const Ptr<Packet> &p);
+
+  /**
+   * \brief Generate a DL CQI report
+   *
+   * Connected by the helper to a callback in mmWaveChunkProcessor.
+   *
+   * \param sinr the SINR
+   */
+  void GenerateDlCqiReport (const SpectrumValue& sinr);
+
+  /**
+   * \brief Get the current RNTI of the user
+   *
+   * \return the current RNTI of the user
+   */
+  uint16_t GetRnti () __attribute__((warn_unused_result));
+
+  /**
+   * \brief Receive the HARQ feedback on the transmission
+   *
+   * Connected by the helper to a spectrum phy callback
+   *
+   * \param m the HARQ feedback
+   */
+  void ReceiveLteDlHarqFeedback (const DlHarqInfo &m);
+
+  // From mmwave phy. Not used in the UE
+  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
+
+protected:
+  // From object
+  virtual void DoDispose (void) override;
 
 private:
+
+  /**
+   * \brief Create a DlCqiFeedback message
+   * \param sinr the SINR value
+   * \return a CTRL message with the CQI feedback
+   */
+  Ptr<MmWaveDlCqiMessage> CreateDlCqiFeedbackMessage (const SpectrumValue& sinr) __attribute__((warn_unused_result));
   /**
    * \brief Receive DL CTRL and return the time at which the transmission will end
    * \param dci the current DCI
@@ -149,6 +203,15 @@ private:
    */
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
+  void StartSlot (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
+  void StartVarTti ();
+  void EndVarTti ();
+  void SetSubChannelsForTransmission (std::vector <int> mask);
+  void DoSendControlMessage (Ptr<MmWaveControlMessage> msg);
+  void SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd);
+  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd);
+
+  // SAP methods
   void DoReset ();
   void DoStartCellSearch (uint16_t dlEarfcn);
   void DoSynchronizeWithEnb (uint16_t cellId);
@@ -168,48 +231,27 @@ private:
   void DoSetTransmissionMode (uint8_t txMode);
   void DoSetSrsConfigurationIndex (uint16_t srcCi);
 
-  void ReceiveDataPeriod (uint32_t slotNum);
-  void QueueUlTbAlloc (TbAllocInfo tbAllocInfo);
-  std::list<TbAllocInfo> DequeueUlTbAlloc ();
+private:
+  MmWaveUePhySapUser* m_phySapUser;             //!< SAP pointer
+  LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
+  LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
 
-  MmWaveUePhySapUser* m_phySapUser;
-
-  LteUeCphySapProvider* m_ueCphySapProvider;
-  LteUeCphySapUser* m_ueCphySapUser;
-
-  Ptr<NrAmc> m_amc;
-  std::vector <int> m_subChannelsforRx;
-
-  uint32_t m_numRbg;
+  Ptr<NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
 
   Time m_wbCqiPeriod;       /**< Wideband Periodic CQI: 2, 5, 10, 16, 20, 32, 40, 64, 80 or 160 ms */
   Time m_wbCqiLast;
+  Time m_lastSlotStart; //!< Time of the last slot start
 
-  std::vector< std::list<TbAllocInfo> > m_ulTbAllocQueue;       // for storing info on future UL TB transmissions
-  bool m_ulGrant;               // true if no uplink grant in subframe, need to transmit UL control in PUCCH instead
-  bool m_slotAllocInfoUpdated;
+  bool m_ulConfigured {false};     //!< Flag to indicate if RRC configured the UL
+  bool m_receptionEnabled {false}; //!< Flag to indicate if we are currently receiveing data
+  uint16_t m_rnti {0};             //!< Current RNTI of the user
+  uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
 
-  Time m_dataPeriod;            // data period length in microseconds
-  Time m_slotPeriod;
-  Time m_lastSlotStart;
-
-  bool m_dlConfigured;
-  bool m_ulConfigured;
-
-  TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace;
-
-  TracedCallback<uint64_t, uint64_t> m_reportUlTbSize;
-  TracedCallback<uint64_t, uint64_t> m_reportDlTbSize;
-
-  bool m_receptionEnabled;
-  uint16_t m_rnti;
-  uint32_t m_currTbs {0};
-  uint8_t m_currNumSym {0};
-
-  Ptr<MmWaveHarqPhy> m_harqPhyModule;
+  TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
+  TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
+  TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
 };
-
 
 }
 
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_UE_PHY_H_ */
+#endif /* MMWAVE_UE_PHY_H */

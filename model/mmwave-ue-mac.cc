@@ -1,50 +1,45 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                Sourjya Dutta <sdutta@nyu.edu>
- *                Russell Ford <russell.ford@nyu.edu>
- *                Menglei Zhang <menglei@nyu.edu>
- *                Biljana Bojovic <bbojovic@cttc.es>
- */
+*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License version 2 as
+*   published by the Free Software Foundation;
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License
+*   along with this program; if not, write to the Free Software
+*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*/
 
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
       if (m_phyMacConfig)                                                \
         {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
+          std::clog << " [ccId "             \
+                    << +m_phyMacConfig->GetCcId ()                       \
+                    << ", RNTI " << m_rnti << "] ";                      \
         }                                                                \
     }                                                                    \
   while (false);
+
 #include "mmwave-ue-mac.h"
-#include "mmwave-phy-sap.h"
+#include "mmwave-control-messages.h"
 #include <ns3/log.h>
 #include <ns3/boolean.h>
+#include <ns3/lte-radio-bearer-tag.h>
 
 namespace ns3 {
-NS_LOG_COMPONENT_DEFINE ("MmWaveUeMac");
 
+NS_LOG_COMPONENT_DEFINE ("MmWaveUeMac");
 NS_OBJECT_ENSURE_REGISTERED (MmWaveUeMac);
 
 uint8_t MmWaveUeMac::g_raPreambleId = 0;
@@ -202,21 +197,13 @@ TypeId
 MmWaveUeMac::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MmWaveUeMac")
-    .SetParent<MmWaveMac> ()
+    .SetParent<Object> ()
     .AddConstructor<MmWaveUeMac> ()
-    .AddAttribute ("StandardBSR",
-                   "Enable 3GPP BSR/SR mechanism. Not implemented yet",
-                   BooleanValue (false),
-                   MakeBooleanAccessor (&MmWaveUeMac::m_stdBsr),
-                   MakeBooleanChecker ())
   ;
   return tid;
 }
 
-MmWaveUeMac::MmWaveUeMac (void)
-  : //m_harqProcessId (0),
-  m_rnti (0),
-  m_waitingForRaResponse (true)
+MmWaveUeMac::MmWaveUeMac (void) : Object ()
 {
   NS_LOG_FUNCTION (this);
   m_cmacSapProvider = new UeMemberMmWaveUeCmacSapProvider (this);
@@ -238,13 +225,16 @@ MmWaveUeMac::DoDispose ()
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
-  m_raPreambleUniformVariable = 0;
+  m_raPreambleUniformVariable = nullptr;
   Object::DoDispose ();
 }
 
 void
-MmWaveUeMac::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
+MmWaveUeMac::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfig)
 {
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT(m_phyMacConfig == nullptr);
+
   m_phyMacConfig = ptrConfig;
 
   m_miUlHarqProcessesPacket.resize (m_phyMacConfig->GetNumHarqProcess ());
@@ -259,24 +249,20 @@ MmWaveUeMac::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
 void
 MmWaveUeMac::SetRnti (uint16_t rnti)
 {
+  NS_LOG_FUNCTION (this);
   m_rnti = rnti;
 }
 
 uint32_t
 MmWaveUeMac::GetTotalBufSize () const
 {
+  NS_LOG_FUNCTION (this);
   uint32_t ret = 0;
   for (auto it = m_ulBsrReceived.cbegin (); it != m_ulBsrReceived.cend (); ++it)
     {
       ret += ((*it).second.txQueueSize + (*it).second.retxQueueSize + (*it).second.statusPduSize);
     }
   return ret;
-}
-
-Ptr<MmWavePhyMacCommon>
-MmWaveUeMac::GetConfigurationParameters (void) const
-{
-  return m_phyMacConfig;
 }
 
 // forwarded from MAC SAP
@@ -327,11 +313,6 @@ MmWaveUeMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 
           MmWaveMacPduHeader headerTst;
           it->second.m_pdu->PeekHeader (headerTst);
-          if (headerTst.GetSubheaders ().size () > 0)
-            {
-              //NS_LOG_UNCOND(headerTst.GetSubheaders ().at (0).m_size);
-            }
-
           LteRadioBearerTag bearerTag (params.rnti, 0, 0);
           it->second.m_pdu->AddPacketTag (bearerTag);
           m_miUlHarqProcessesPacket.at (params.harqProcessId).m_pktBurst->AddPacket (it->second.m_pdu);
@@ -368,11 +349,8 @@ MmWaveUeMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamete
 
   if (m_srState == INACTIVE)
     {
-      NS_LOG_INFO ("RNTI " << m_rnti << " INACTIVE -> ACTIVE, bufSize " << GetTotalBufSize ());
-      // The SR message is put in a list, that will be sent only when
-      // we will be sending the UL_CTRL in PHY
-      m_srState = ACTIVE;
-      SendSR ();
+      NS_LOG_INFO ("INACTIVE -> TO_SEND, bufSize " << GetTotalBufSize ());
+      m_srState = TO_SEND;
     }
 }
 
@@ -390,7 +368,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
 
   if (m_ulBsrReceived.size () == 0)
     {
-      NS_LOG_INFO ("RNTI " << m_rnti << " No BSR report to transmit");
+      NS_LOG_INFO ("No BSR report to transmit");
       return;
     }
   MacCeElement bsr = MacCeElement ();
@@ -452,7 +430,7 @@ MmWaveUeMac::RefreshHarqProcessesPacketBuffer (void)
           if (m_miUlHarqProcessesPacket.at (i).m_pktBurst->GetSize () > 0)
             {
               // timer expired: drop packets in buffer for this process
-              NS_LOG_INFO (this << " HARQ Proc Id " << i << " packets buffer expired");
+              NS_LOG_INFO ("HARQ Proc Id " << i << " packets buffer expired");
               Ptr<PacketBurst> emptyPb = CreateObject <PacketBurst> ();
               m_miUlHarqProcessesPacket.at (i).m_pktBurst = emptyPb;
               m_miUlHarqProcessesPacket.at (i).m_lcidList.clear ();
@@ -474,30 +452,24 @@ MmWaveUeMac::DoSlotIndication (SfnSf sfn)
   m_slotNum = sfn.m_slotNum;
   m_varTtiNum = sfn.m_varTtiNum;
   NS_LOG_INFO ("Slot " << sfn);
+
   RefreshHarqProcessesPacketBuffer ();
 
-  if (m_bsrReservedSpace.size () > 0)
+  if (m_performRa)
     {
-      NS_ASSERT_MSG (!(m_bsrReservedSpace.front () < sfn),
-                     "\nFront: " << m_bsrReservedSpace.front () << "\nCurrent: " << sfn);
-      if (sfn.IsTtiEqual (m_bsrReservedSpace.front ()))
-        {
-          m_bsrReservedSpace.pop ();
-
-          if (GetTotalBufSize () > 0)
-            {
-              // The BSR is sent as message to PHY just before the PHY sends
-              // the UL CTRL, as to be as most accurate possible
-              NS_LOG_INFO ("RNTI " << m_rnti << " BSR_SENT, bufSize " << GetTotalBufSize ());
-              SendReportBufferStatus ();
-            }
-          else if (m_bsrReservedSpace.size () == 0)
-            {
-              m_srState = INACTIVE;
-              NS_LOG_INFO ("RNTI " << m_rnti << " ACTIVE -> INACTIVE, bufSize " << GetTotalBufSize ());
-            }
-        }
+      NS_LOG_INFO ("Sending RA preamble to PHY in slot " << sfn);
+      SendRaPreamble (true);
+      m_performRa = false;
     }
+
+  if (m_srState == TO_SEND)
+    {
+      NS_LOG_INFO ("Sending SR to PHY in slot " << sfn);
+      SendSR ();
+      m_srState = ACTIVE;
+    }
+
+  // Feedback missing
 }
 
 void
@@ -611,7 +583,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
             dataSfn = dataSfn.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
                                                    m_phyMacConfig->GetSlotsPerSubframe (),
                                                    m_phyMacConfig->GetSubframesPerFrame ());
-            NS_LOG_INFO ("RNTI " << m_rnti << " UL DCI received, transmit data in slot " << dataSfn <<
+            NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
                          " TBS " << dciInfoElem->m_tbSize << " total queue " << GetTotalBufSize ());
             if (dciInfoElem->m_ndi == 1)
               {
@@ -641,7 +613,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
 
                 if (activeLcs == 0)
                   {
-                    NS_LOG_DEBUG (this << " No active flows for this UL-DCI");
+                    NS_LOG_DEBUG ("No active flows for this UL-DCI");
                     // the UE may have been scheduled when it has no buffered data due to BSR quantization, send empty packet
 
                     MmWaveMacPduTag tag (dataSfn);
@@ -772,7 +744,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
             else if (dciInfoElem->m_ndi == 0)
               {
                 // HARQ retransmission -> retrieve data from HARQ buffer
-                NS_LOG_DEBUG (this << " UE MAC RETX HARQ " << (unsigned)dciInfoElem->m_harqProcess);
+                NS_LOG_DEBUG ("UE MAC RETX HARQ " << (unsigned)dciInfoElem->m_harqProcess);
                 Ptr<PacketBurst> pb = m_miUlHarqProcessesPacket.at (dciInfoElem->m_harqProcess).m_pktBurst;
                 for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
                   {
@@ -797,11 +769,16 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
               }
 
             // After a DCI UL, if I have data in the buffer, I can report a BSR
-            auto sf = dataSfn;
-            sf.m_varTtiNum = m_phyMacConfig->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();               // at symbol 13
-            NS_ASSERT (!(sf < dataSfn));
-            m_bsrReservedSpace.emplace (sf);
-            NS_LOG_INFO ("RNTI " << m_rnti << " Tx data after a TxOpportunity, BSR is scheduled for " << sf);
+            if (GetTotalBufSize () > 0)
+              {
+                NS_LOG_INFO ("BSR_SENT, bufSize " << GetTotalBufSize ());
+                SendReportBufferStatus ();
+              }
+            else
+              {
+                m_srState = INACTIVE;
+                NS_LOG_INFO ("ACTIVE -> INACTIVE, bufSize " << GetTotalBufSize ());
+              }
           }
         break;
       }
@@ -810,7 +787,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         if (m_waitingForRaResponse == true)
           {
             Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
-            NS_LOG_LOGIC (this << "got RAR with RA-RNTI " << (uint32_t) rarMsg->GetRaRnti () << ", expecting " << (uint32_t) m_raRnti);
+            NS_LOG_LOGIC ("got RAR with RA-RNTI " << (uint32_t) rarMsg->GetRaRnti () << ", expecting " << (uint32_t) m_raRnti);
             for (std::list<MmWaveRarMessage::Rar>::const_iterator it = rarMsg->RarListBegin ();
                  it != rarMsg->RarListEnd ();
                  ++it)
@@ -859,13 +836,14 @@ void
 MmWaveUeMac::RandomlySelectAndSendRaPreamble ()
 {
   NS_LOG_FUNCTION (this);
-  bool contention = true;
-  SendRaPreamble (contention);
+  m_performRa = true;
 }
 
 void
 MmWaveUeMac::SendRaPreamble (bool contention)
 {
+  NS_LOG_INFO (this);
+  NS_UNUSED (contention);
   //m_raPreambleId = m_raPreambleUniformVariable->GetInteger (0, 64 - 1);
   m_raPreambleId = g_raPreambleId++;
   /*raRnti should be subframeNo -1 */

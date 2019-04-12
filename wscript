@@ -26,7 +26,6 @@ def build(bld):
         'model/mmwave-spectrum-value-helper.cc',
         'model/mmwave-interference.cc',
         'model/mmwave-chunk-processor.cc',
-        'model/mmwave-mac.cc',
         'model/mmwave-mac-scheduler.cc',
         'model/mmwave-mac-scheduler-tdma-rr.cc',
         'model/mmwave-mac-scheduler-tdma-pf.cc',

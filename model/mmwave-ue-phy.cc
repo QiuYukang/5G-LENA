@@ -1,60 +1,49 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                Sourjya Dutta <sdutta@nyu.edu>
- *                Russell Ford <russell.ford@nyu.edu>
- *                Menglei Zhang <menglei@nyu.edu>
- *                Biljana Bojovic <bbojovic@cttc.es>
- */
+*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License version 2 as
+*   published by the Free Software Foundation;
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License
+*   along with this program; if not, write to the Free Software
+*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*/
 
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
       if (m_phyMacConfig)                                                \
         {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
+          std::clog << " [ CellId " << m_cellId << ", ccId "             \
+                    << +m_phyMacConfig->GetCcId ()                       \
+                    << ", RNTI " << m_rnti << "] ";                      \
         }                                                                \
     }                                                                    \
   while (false);
 
-#include <ns3/object-factory.h>
-#include <ns3/log.h>
-#include <cfloat>
-#include <cmath>
-#include <algorithm>
-#include <ns3/simulator.h>
-#include <ns3/double.h>
 #include "mmwave-ue-phy.h"
 #include "mmwave-ue-net-device.h"
 #include "mmwave-spectrum-value-helper.h"
-#include <ns3/pointer.h>
+#include <ns3/log.h>
+#include <ns3/simulator.h>
 #include <ns3/node.h>
+#include <ns3/double.h>
+#include <ns3/lte-radio-bearer-tag.h>
+#include <algorithm>
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveUePhy");
-
 NS_OBJECT_ENSURE_REGISTERED (MmWaveUePhy);
 
 MmWaveUePhy::MmWaveUePhy ()
@@ -65,8 +54,7 @@ MmWaveUePhy::MmWaveUePhy ()
 
 MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
                           const Ptr<Node> &n)
-  : MmWavePhy (dlPhy, ulPhy),
-  m_rnti (0)
+  : MmWavePhy (dlPhy, ulPhy)
 {
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
@@ -89,8 +77,7 @@ MmWaveUePhy::GetTypeId (void)
     .AddAttribute ("TxPower",
                    "Transmission power in dBm",
                    DoubleValue (2.0),
-                   MakeDoubleAccessor (&MmWaveUePhy::SetTxPower,
-                                       &MmWaveUePhy::GetTxPower),
+                   MakeDoubleAccessor (&MmWaveUePhy::m_txPower),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("NoiseFigure",
                    "Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver."
@@ -101,20 +88,13 @@ MmWaveUePhy::GetTypeId (void)
                    " are connected to sources at the standard noise temperature T0.\" "
                   "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0), // mmwave code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
-                   MakeDoubleAccessor (&MmWavePhy::SetNoiseFigure,
-                   &MmWavePhy::GetNoiseFigure),
+                   MakeDoubleAccessor (&MmWaveUePhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("DlSpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
                    MakePointerAccessor (&MmWaveUePhy::GetDlSpectrumPhy),
-                   MakePointerChecker <MmWaveSpectrumPhy> ())
-    .AddAttribute ("UlSpectrumPhy",
-                   "The uplink MmWaveSpectrumPhy associated to this MmWavePhy",
-                   TypeId::ATTR_GET,
-                   PointerValue (),
-                   MakePointerAccessor (&MmWaveUePhy::GetUlSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddAttribute ("AntennaArrayType",
                     "AntennaArray of this UE phy. There are two types of antenna array available: "
@@ -157,41 +137,7 @@ void
 MmWaveUePhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
-
-  SfnSf sfnf = SfnSf (0, 0, 0, 0);
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-
-
-  for (unsigned i = 0; i < m_phyMacConfig->GetSlotsPerSubframe (); i++)
-    {
-      SlotAllocInfo sai = SlotAllocInfo (sfnf);
-      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-      sai.m_varTtiAllocInfo.push_back (dlCtrlSlot);
-      sai.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-      SetSlotAllocInfo (sai);
-
-      sfnf = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                     m_phyMacConfig->GetSubframesPerFrame ());
-    }
-
-  m_slotPeriod = m_phyMacConfig->GetSlotPeriod ();
-
-  MmWavePhy::InstallAntenna ();
-  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
-  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
-
-  if (antenna3gpp)
-    {
-      antenna3gpp->SetIsUe(true);
-    }
-
-  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
-  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
-
-  NS_LOG_INFO ("UE antenna array initialised:"<<(unsigned)GetAntennaArray()->GetAntennaNumDim1() <<
-                         ", "<< (unsigned)GetAntennaArray()->GetAntennaNumDim2());
-
+  MmWavePhy::DoInitialize ();
 }
 
 void
@@ -227,38 +173,6 @@ MmWaveUePhy::GetTxPower () const
 }
 
 void
-MmWaveUePhy::SetNoiseFigure (double pf)
-{
-  m_noiseFigure = pf;
-}
-
-double
-MmWaveUePhy::GetNoiseFigure () const
-{
-  return m_noiseFigure;
-}
-
-void
-MmWaveUePhy::DoSetSubChannels ()
-{
-
-}
-
-void
-MmWaveUePhy::SetSubChannelsForReception (std::vector <int> mask)
-{
-
-}
-
-std::vector <int>
-MmWaveUePhy::GetSubChannelsForReception (void)
-{
-  std::vector <int> vec;
-
-  return vec;
-}
-
-void
 MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
@@ -266,28 +180,39 @@ MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
   m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
-std::vector <int>
-MmWaveUePhy::GetSubChannelsForTransmission (void)
-{
-  std::vector <int> vec;
-
-  return vec;
-}
-
 void
 MmWaveUePhy::DoSendControlMessage (Ptr<MmWaveControlMessage> msg)
 {
   NS_LOG_FUNCTION (this << msg);
-  SetControlMessage (msg);
+  EnqueueCtrlMessage (msg);
 }
-
 
 void
 MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 {
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_phyMacConfig == nullptr); // Otherwise we probably have to change things..
+
   m_cellId = cellId;
-  //TBD how to assign bandwitdh and earfcn
   m_phyMacConfig = config;
+
+  InitializeMessageList ();
+
+  MmWavePhy::InstallAntenna ();
+  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
+  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
+
+  if (antenna3gpp)
+    {
+      antenna3gpp->SetIsUe(true);
+    }
+
+
+  m_downlinkSpectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
+  m_uplinkSpectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
+
+  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
@@ -295,6 +220,26 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   m_downlinkSpectrumPhy->SetCellId (m_cellId);
 
   GetAntennaArray()->SetSpectrumModel (m_downlinkSpectrumPhy->GetRxSpectrumModel());
+
+  m_amc = CreateObject <NrAmc> (m_phyMacConfig);
+
+  // Initialize the slot allocation
+  SfnSf sfnf = SfnSf (0, 0, 0, 0);
+  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+
+  for (unsigned i = 0; i < m_phyMacConfig->GetSlotsPerSubframe (); i++)
+    {
+      SlotAllocInfo sai = SlotAllocInfo (sfnf);
+      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
+
+      sai.m_varTtiAllocInfo.push_back (dlCtrlSlot);
+      sai.m_varTtiAllocInfo.push_back (ulCtrlSlot);
+      SetSlotAllocInfo (sai);
+
+      sfnf = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
+                                     m_phyMacConfig->GetSubframesPerFrame ());
+    }
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -303,14 +248,8 @@ MmWaveUePhy::GetDlSpectrumPhy () const
   return m_downlinkSpectrumPhy;
 }
 
-Ptr<MmWaveSpectrumPhy>
-MmWaveUePhy::GetUlSpectrumPhy () const
-{
-  return m_uplinkSpectrumPhy;
-}
-
 void
-MmWaveUePhy::ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > msgList)
+MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>> &msgList)
 {
   NS_LOG_FUNCTION (this);
   bool dlUpdated = false;
@@ -451,49 +390,17 @@ MmWaveUePhy::ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > ms
 }
 
 void
-MmWaveUePhy::QueueUlTbAlloc (TbAllocInfo m)
-{
-  NS_LOG_FUNCTION (this);
-  //  NS_LOG_DEBUG ("UL TB Info Elem queue size == " << m_ulTbAllocQueue.size ());
-  m_ulTbAllocQueue.at (m_phyMacConfig->GetUlSchedDelay () - 1).push_back (m);
-}
-
-std::list<TbAllocInfo>
-MmWaveUePhy::DequeueUlTbAlloc (void)
-{
-  NS_LOG_FUNCTION (this);
-
-  if (m_ulTbAllocQueue.empty ())
-    {
-      std::list<TbAllocInfo> emptylist;
-      return (emptylist);
-    }
-
-  if (m_ulTbAllocQueue.at (0).size () > 0)
-    {
-      std::list<TbAllocInfo> ret = m_ulTbAllocQueue.at (0);
-      m_ulTbAllocQueue.erase (m_ulTbAllocQueue.begin ());
-      std::list<TbAllocInfo> l;
-      m_ulTbAllocQueue.push_back (l);
-      return (ret);
-    }
-  else
-    {
-      m_ulTbAllocQueue.erase (m_ulTbAllocQueue.begin ());
-      std::list<TbAllocInfo> l;
-      m_ulTbAllocQueue.push_back (l);
-      std::list<TbAllocInfo> emptylist;
-      return (emptylist);
-    }
-}
-
-void
 MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 {
+  NS_LOG_FUNCTION (this);
   m_frameNum = frameNum;
   m_subframeNum = sfNum;
-  m_slotNum = slotNum;
+  m_slotNum = static_cast<uint8_t> (slotNum);
   m_lastSlotStart = Simulator::Now ();
+  m_varTtiNum = 0;
+
+  // Call MAC before doing anything in PHY
+  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));   // trigger mac
 
   // update the current slot
   m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
@@ -502,7 +409,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
     {
       NS_ASSERT (m_currSlotAllocInfo.m_numSymAlloc == 0);
       NS_LOG_INFO ("No allocation in this slot, directly go to the end of the slot");
-      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod(), &MmWaveUePhy::EndVarTti, this);
+      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod (), &MmWaveUePhy::EndVarTti, this);
       return;
     }
 
@@ -579,6 +486,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
 
   std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
+
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<
                 +(dci->m_symStart + dci->m_numSym - 1) <<
@@ -635,7 +543,7 @@ MmWaveUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   else
     {
-      NS_LOG_DEBUG ("Send an empty PDU .... ");
+      NS_LOG_WARN ("Send an empty PDU .... ");
       // sometimes the UE will be scheduled when no data is queued
       // in this case, send an empty PDU
       MmWaveMacPduTag tag (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart));
@@ -671,13 +579,8 @@ MmWaveUePhy::StartVarTti ()
   Time varTtiPeriod;
   const VarTtiAllocInfo & currSlot = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum];
 
-  m_currNumSym = currSlot.m_dci->m_numSym;
   m_currTbs = currSlot.m_dci->m_tbSize;
   m_receptionEnabled = false;
-
-  // This is necessary as the MAC will compare the TtiNum, and if matches,
-  // will send the BSR
-  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, currSlot.m_dci->m_symStart));   // trigger mac
 
   NS_LOG_DEBUG ("UE " << m_rnti << " frame " << static_cast<uint32_t> (m_frameNum) <<
                 " subframe " << static_cast<uint32_t> (m_subframeNum) << " slot " <<
@@ -714,7 +617,6 @@ MmWaveUePhy::EndVarTti ()
       // end of slot
       SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum,0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                        m_phyMacConfig->GetSubframesPerFrame ());
-      m_varTtiNum = 0;
 
       if (!SlotExists (retVal))
         {
@@ -745,14 +647,11 @@ MmWaveUePhy::EndVarTti ()
       Simulator::Schedule (nextVarTtiStart + m_lastSlotStart - Simulator::Now (), &MmWaveUePhy::StartVarTti, this);
     }
 
-  if (m_receptionEnabled)
-    {
-      m_receptionEnabled = false;
-    }
+  m_receptionEnabled = false;
 }
 
 void
-MmWaveUePhy::PhyDataPacketReceived (Ptr<Packet> p)
+MmWaveUePhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 {
   Simulator::ScheduleWithContext (m_netDevice->GetNode ()->GetId (),
                                   MicroSeconds (m_phyMacConfig->GetTbDecodeLatency ()),
@@ -783,14 +682,9 @@ MmWaveUePhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Ti
   m_downlinkSpectrumPhy->StartTxDlControlFrames (ctrlMsg,prd);
 }
 
-
 Ptr<MmWaveDlCqiMessage>
 MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
 {
-  if (!m_amc)
-    {
-      m_amc = CreateObject <NrAmc> (m_phyMacConfig);
-    }
   NS_LOG_FUNCTION (this);
   SpectrumValue newSinr = sinr;
   // CREATE DlCqiLteControlMessage
@@ -812,6 +706,8 @@ MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
 void
 MmWaveUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
 {
+  NS_LOG_FUNCTION (this);
+  // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
       if (Simulator::Now () > m_wbCqiLast + m_wbCqiPeriod)
@@ -830,7 +726,7 @@ MmWaveUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
 }
 
 void
-MmWaveUePhy::ReceiveLteDlHarqFeedback (DlHarqInfo m)
+MmWaveUePhy::ReceiveLteDlHarqFeedback (const DlHarqInfo &m)
 {
   NS_LOG_FUNCTION (this);
   // generate feedback to eNB and send it through ideal PUCCH
@@ -839,24 +735,11 @@ MmWaveUePhy::ReceiveLteDlHarqFeedback (DlHarqInfo m)
   Simulator::Schedule (MicroSeconds (m_phyMacConfig->GetTbDecodeLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
 }
 
-bool
-MmWaveUePhy::IsReceptionEnabled ()
-{
-  return m_receptionEnabled;
-}
-
-void
-MmWaveUePhy::ResetReception ()
-{
-  m_receptionEnabled = false;
-}
-
 uint16_t
 MmWaveUePhy::GetRnti ()
 {
   return m_rnti;
 }
-
 
 void
 MmWaveUePhy::DoReset ()
@@ -886,7 +769,7 @@ MmWaveUePhy::DoSetPa (double pa)
 void
 MmWaveUePhy::DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient)
 {
-  NS_LOG_FUNCTION (this << (uint16_t) (rsrpFilterCoefficient));
+  NS_LOG_FUNCTION (this << +rsrpFilterCoefficient);
 }
 
 void
@@ -899,9 +782,6 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
     }
 
   m_cellId = cellId;
-  //TBD how to assign bandwitdh and earfcn
-  // we will assign this already in mmwave-helper.cc
-  //m_phyMacConfig = config;
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
@@ -909,24 +789,26 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   m_downlinkSpectrumPhy->SetCellId (m_cellId);
 }
 
-
-void
-MmWaveUePhy::SetPhyMacConfig (Ptr<MmWavePhyMacCommon> config)
+AntennaArrayBasicModel::BeamId
+MmWaveUePhy::GetBeamId (uint16_t rnti) const
 {
-  m_phyMacConfig = config;
+  NS_LOG_FUNCTION (this);
+  // That's a bad specification: the UE PHY doesn't know anything about its beam id.
+  NS_UNUSED (rnti);
+  NS_FATAL_ERROR ("ERROR");
 }
 
 void
 MmWaveUePhy::DoSetDlBandwidth (uint8_t dlBandwidth)
 {
-  NS_LOG_FUNCTION (this << (uint32_t) dlBandwidth);
+  NS_LOG_FUNCTION (this << +dlBandwidth);
 }
 
 
 void
 MmWaveUePhy::DoConfigureUplink (uint16_t ulEarfcn, uint8_t ulBandwidth)
 {
-  NS_LOG_FUNCTION (this << ulEarfcn << ulBandwidth);
+  NS_LOG_FUNCTION (this << ulEarfcn << +ulBandwidth);
   m_ulConfigured = true;
 }
 
@@ -946,7 +828,7 @@ MmWaveUePhy::DoSetRnti (uint16_t rnti)
 void
 MmWaveUePhy::DoSetTransmissionMode (uint8_t txMode)
 {
-  NS_LOG_FUNCTION (this << (uint16_t)txMode);
+  NS_LOG_FUNCTION (this << +txMode);
 }
 
 void
@@ -959,12 +841,6 @@ void
 MmWaveUePhy::SetPhySapUser (MmWaveUePhySapUser* ptr)
 {
   m_phySapUser = ptr;
-}
-
-void
-MmWaveUePhy::SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
-{
-  m_harqPhyModule = harq;
 }
 
 }

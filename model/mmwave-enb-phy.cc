@@ -21,30 +21,21 @@
     {                                                                    \
       if (m_phyMacConfig)                                                \
         {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
+          std::clog << " [ CellId " << m_cellId << ", ccId "             \
+                    << +m_phyMacConfig->GetCcId () << "] ";              \
         }                                                                \
     }                                                                    \
   while (false);
-#include <ns3/object-factory.h>
+
 #include <ns3/log.h>
-#include <cfloat>
-#include <cmath>
-#include <ns3/simulator.h>
-#include <ns3/attribute-accessor-helper.h>
-#include <ns3/double.h>
+#include <ns3/lte-radio-bearer-tag.h>
+#include <ns3/node.h>
 #include <algorithm>
 
 #include "mmwave-enb-phy.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
-#include "mmwave-radio-bearer-tag.h"
-
-#include <ns3/node-list.h>
-#include <ns3/node.h>
-#include <ns3/pointer.h>
 
 namespace ns3 {
 
@@ -60,14 +51,12 @@ MmWaveEnbPhy::MmWaveEnbPhy ()
 
 MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
                             const Ptr<Node> &n)
-  : MmWavePhy (dlPhy, ulPhy),
-  m_currSymStart (0)
+  : MmWavePhy (dlPhy, ulPhy)
 {
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
 
-  m_phyMacConfig = nullptr;
-
-  Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0), &MmWaveEnbPhy::StartSlot, this);
+  Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0),
+                                  &MmWaveEnbPhy::StartSlot, this, 0, 0, 0);
 }
 
 MmWaveEnbPhy::~MmWaveEnbPhy ()
@@ -96,20 +85,13 @@ MmWaveEnbPhy::GetTypeId (void)
                    " are connected to sources at the standard noise temperature T0.\" "
                    "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0),
-                   MakeDoubleAccessor (&MmWavePhy::SetNoiseFigure,
-                                       &MmWavePhy::GetNoiseFigure),
+                   MakeDoubleAccessor (&MmWaveEnbPhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("DlSpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbPhy::GetDlSpectrumPhy),
-                   MakePointerChecker <MmWaveSpectrumPhy> ())
-    .AddAttribute ("UlSpectrumPhy",
-                   "The uplink MmWaveSpectrumPhy associated to this MmWavePhy",
-                   TypeId::ATTR_GET,
-                   PointerValue (),
-                   MakePointerAccessor (&MmWaveEnbPhy::GetUlSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddTraceSource ("UlSinrTrace",
                      "UL SINR statistics.",
@@ -157,14 +139,7 @@ MmWaveEnbPhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
 
-  NS_ABORT_IF (m_phyMacConfig == nullptr);
-
   m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
-
-  for (unsigned i = 0; i < m_phyMacConfig->GetL1L2CtrlLatency (); i++)
-    {   // push elements onto queue for initial scheduling delay
-      m_controlMessageQueue.push_back (std::list<Ptr<MmWaveControlMessage> > ());
-    }
 
   MmWavePhy::InstallAntenna();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
@@ -197,14 +172,24 @@ MmWaveEnbPhy::DoDispose (void)
 }
 
 void
-MmWaveEnbPhy::SetmmWaveEnbCphySapUser (LteEnbCphySapUser* s)
+MmWaveEnbPhy::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacCommon)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_phyMacConfig == nullptr);
+  m_phyMacConfig = phyMacCommon;
+
+  InitializeMessageList ();
+}
+
+void
+MmWaveEnbPhy::SetEnbCphySapUser (LteEnbCphySapUser* s)
 {
   NS_LOG_FUNCTION (this);
   m_enbCphySapUser = s;
 }
 
 LteEnbCphySapProvider*
-MmWaveEnbPhy::GetmmWaveEnbCphySapProvider ()
+MmWaveEnbPhy::GetEnbCphySapProvider ()
 {
   NS_LOG_FUNCTION (this);
   return m_enbCphySapProvider;
@@ -238,22 +223,6 @@ MmWaveEnbPhy::GetTxPower () const
 }
 
 void
-MmWaveEnbPhy::SetNoiseFigure (double nf)
-{
-  m_noiseFigure = nf;
-}
-double
-MmWaveEnbPhy::GetNoiseFigure () const
-{
-  return m_noiseFigure;
-}
-
-void
-MmWaveEnbPhy::CalcChannelQualityForUe (std::vector <double> sinr, Ptr<MmWaveSpectrumPhy> ue)
-{
-
-}
-void
 MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
@@ -261,22 +230,24 @@ MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
   m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
-Ptr<MmWaveSpectrumPhy>
-MmWaveEnbPhy::GetDlSpectrumPhy () const
+Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetDlSpectrumPhy() const
 {
   return m_downlinkSpectrumPhy;
 }
 
-Ptr<MmWaveSpectrumPhy>
-MmWaveEnbPhy::GetUlSpectrumPhy () const
-{
-  return m_uplinkSpectrumPhy;
-}
-
 void
-MmWaveEnbPhy::StartSlot (void)
+MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 {
   NS_LOG_FUNCTION (this);
+
+  m_frameNum = frameNum;
+  m_subframeNum = sfNum;
+  m_slotNum = static_cast<uint8_t> (slotNum);
+  m_lastSlotStart = Simulator::Now ();
+  m_varTtiNum = 0;
+
+  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
+  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
 
   m_lastSlotStart = Simulator::Now ();
   m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
@@ -284,7 +255,14 @@ MmWaveEnbPhy::StartSlot (void)
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ));
-  NS_ASSERT (m_currSlotAllocInfo.m_varTtiAllocInfo.size () != 0);
+
+  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
+    {
+      NS_LOG_INFO ("gNB start  empty slot " << m_currSlotAllocInfo.m_sfnSf <<
+                   " scheduling directly the end of the slot");
+      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod (), &MmWaveEnbPhy::EndSlot, this);
+      return;
+    }
 
   NS_LOG_INFO ("gNB start slot " << m_currSlotAllocInfo.m_sfnSf << " composed by the following allocations:");
   for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
@@ -316,50 +294,10 @@ MmWaveEnbPhy::StartSlot (void)
                    " direction " << direction << " type " << type);
     }
 
-  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
-  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+  auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
+  auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
 
-  if (m_slotNum == 0)
-    {
-      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
-        {
-          LteRrcSap::MasterInformationBlock mib;
-          mib.dlBandwidth = 4U;
-          mib.systemFrameNumber = 1;
-          Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
-          mibMsg->SetMib (mib);
-          if (m_controlMessageQueue.empty ())
-            {
-              std::list<Ptr<MmWaveControlMessage> > l;
-              m_controlMessageQueue.push_back (l);
-            }
-          m_controlMessageQueue.at (0).push_back (mibMsg);
-        }
-      else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
-        {
-          Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
-          msg->SetSib1 (m_sib1);
-          m_controlMessageQueue.at (0).push_back (msg);
-        }
-    }
-
-  NS_ASSERT (m_ctrlMsgs.size () == 0);
-  SfnSf sfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
-
-  // Start with a clean RBG allocation bitmask
-  m_rbgAllocationPerSym.clear ();
-
-  // create control messages to be transmitted in DL-Control period
-  m_ctrlMsgs = GetControlMessages ();
-  m_ctrlMsgs.merge (RetrieveMsgsFromDCIs (sfn));
-
-  if (m_ctrlMsgs.size () > 0)
-    {
-      NS_ASSERT (m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_dci->m_format == DciInfoElementTdma::DL &&
-                 m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_dci->m_type == DciInfoElementTdma::CTRL);
-    }
-
-  StartVarTti ();
+  Simulator::Schedule (nextVarTtiStart, &MmWaveEnbPhy::StartVarTti, this);
 }
 
 
@@ -514,12 +452,40 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
         }
     }
 
+  if (m_slotNum == 0)
+    {
+      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
+        {
+          LteRrcSap::MasterInformationBlock mib;
+          mib.dlBandwidth = 4U;
+          mib.systemFrameNumber = 1;
+          Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
+          mibMsg->SetMib (mib);
+          EnqueueCtrlMsgNow (mibMsg);
+        }
+      else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
+        {
+          Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
+          msg->SetSib1 (m_sib1);
+          EnqueueCtrlMsgNow (msg);
+        }
+    }
+
+  SfnSf sfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
+
+  // Start with a clean RBG allocation bitmask
+  m_rbgAllocationPerSym.clear ();
+
+  // create control messages to be transmitted in DL-Control period
+  std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = GetControlMessages ();
+  ctrlMsgs.merge (RetrieveMsgsFromDCIs (sfn));
+
   // TX control period
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
 
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
 
-  NS_LOG_DEBUG ("ENB TXing DL CTRL frame " << m_frameNum <<
+  NS_LOG_DEBUG ("ENB TXing DL CTRL with " << ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
                 " subframe " << static_cast<uint32_t> (m_subframeNum) <<
                 " slot " << static_cast<uint32_t> (m_slotNum) <<
                 " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
@@ -527,7 +493,7 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                 " start " << Simulator::Now () <<
                 " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
 
-  SendCtrlChannels (&m_ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
+  SendCtrlChannels (&ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
 
   return varTtiPeriod;
 }
@@ -740,18 +706,14 @@ MmWaveEnbPhy::EndSlot (void)
                  "lastStart=" << m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () <<
                  " now " <<  Simulator::Now () << " slotStart value" << slotStart);
 
-  m_varTtiNum = 0;
-
   SfnSf sfnf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
 
   SfnSf retVal = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                          m_phyMacConfig->GetSubframesPerFrame ());
 
-  m_frameNum = retVal.m_frameNum;
-  m_subframeNum = retVal.m_subframeNum;
-  m_slotNum = retVal.m_slotNum;
-
-  Simulator::Schedule (slotStart, &MmWaveEnbPhy::StartSlot, this);
+  Simulator::Schedule (slotStart, &MmWaveEnbPhy::StartSlot, this,
+                       retVal.m_frameNum, retVal.m_subframeNum,
+                       static_cast<uint8_t> (retVal.m_slotNum));
 }
 
 void
@@ -818,7 +780,7 @@ MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
 }
 
 bool
-MmWaveEnbPhy::AddUePhy (uint64_t imsi, Ptr<NetDevice> ueDevice)
+MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<NetDevice> &ueDevice)
 {
   NS_LOG_FUNCTION (this << imsi);
   std::set <uint64_t>::iterator it;
@@ -838,7 +800,7 @@ MmWaveEnbPhy::AddUePhy (uint64_t imsi, Ptr<NetDevice> ueDevice)
 }
 
 void
-MmWaveEnbPhy::PhyDataPacketReceived (Ptr<Packet> p)
+MmWaveEnbPhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 {
   Simulator::ScheduleWithContext (m_netDevice->GetNode ()->GetId (),
                                   MicroSeconds (m_phyMacConfig->GetTbDecodeLatency ()),
@@ -877,11 +839,11 @@ MmWaveEnbPhy::GenerateDataCqiReport (const SpectrumValue& sinr)
 
 
 void
-MmWaveEnbPhy::PhyCtrlMessagesReceived (std::list<Ptr<MmWaveControlMessage> > msgList)
+MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList)
 {
   NS_LOG_FUNCTION (this);
 
-  std::list<Ptr<MmWaveControlMessage> >::iterator ctrlIt = msgList.begin ();
+  auto ctrlIt = msgList.begin ();
 
   while (ctrlIt != msgList.end ())
     {
@@ -938,7 +900,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (std::list<Ptr<MmWaveControlMessage> > msg
 void
 MmWaveEnbPhy::DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth)
 {
-  NS_LOG_FUNCTION (this << (uint32_t) ulBandwidth << (uint32_t) dlBandwidth);
+  NS_LOG_FUNCTION (this << +ulBandwidth << +dlBandwidth);
 }
 
 void
@@ -951,27 +913,13 @@ MmWaveEnbPhy::DoSetEarfcn (uint16_t ulEarfcn, uint16_t dlEarfcn)
 void
 MmWaveEnbPhy::DoAddUe (uint16_t rnti)
 {
-  NS_LOG_FUNCTION (this << rnti);
-  bool success = AddUePhy (rnti);
-  NS_ASSERT_MSG (success, "AddUePhy() failed");
-
-}
-
-bool
-MmWaveEnbPhy::AddUePhy (uint16_t rnti)
-{
+  NS_UNUSED (rnti);
   NS_LOG_FUNCTION (this << rnti);
   std::set <uint16_t>::iterator it;
   it = m_ueAttachedRnti.find (rnti);
   if (it == m_ueAttachedRnti.end ())
     {
       m_ueAttachedRnti.insert (rnti);
-      return (true);
-    }
-  else
-    {
-      NS_LOG_ERROR ("UE already attached");
-      return (false);
     }
 }
 
@@ -994,30 +942,28 @@ MmWaveEnbPhy::DoRemoveUe (uint16_t rnti)
 void
 MmWaveEnbPhy::DoSetPa (uint16_t rnti, double pa)
 {
-  NS_LOG_FUNCTION (this << rnti);
+  NS_LOG_FUNCTION (this << rnti << pa);
 }
 
 void
 MmWaveEnbPhy::DoSetTransmissionMode (uint16_t  rnti, uint8_t txMode)
 {
-  NS_LOG_FUNCTION (this << rnti << (uint16_t)txMode);
+  NS_LOG_FUNCTION (this << rnti << +txMode);
   // UL supports only SISO MODE
 }
 
 void
 MmWaveEnbPhy::DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << rnti << srcCi);
 }
-
 
 void
 MmWaveEnbPhy::DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib)
 {
   NS_LOG_FUNCTION (this);
-  //m_mib = mib;
+  NS_UNUSED (mib);
 }
-
 
 void
 MmWaveEnbPhy::DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1)
@@ -1030,7 +976,7 @@ int8_t
 MmWaveEnbPhy::DoGetReferenceSignalPower () const
 {
   NS_LOG_FUNCTION (this);
-  return m_txPower;
+  return static_cast<int8_t> (m_txPower);
 }
 
 void
@@ -1040,13 +986,7 @@ MmWaveEnbPhy::SetPhySapUser (MmWaveEnbPhySapUser* ptr)
 }
 
 void
-MmWaveEnbPhy::SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
-{
-  m_harqPhyModule = harq;
-}
-
-void
-MmWaveEnbPhy::ReceiveUlHarqFeedback (UlHarqInfo mes)
+MmWaveEnbPhy::ReceiveUlHarqFeedback (const UlHarqInfo &mes)
 {
   NS_LOG_FUNCTION (this);
   // forward to scheduler

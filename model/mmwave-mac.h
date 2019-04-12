@@ -1,7 +1,8 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
 *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License version 2 as
@@ -16,36 +17,12 @@
 *   along with this program; if not, write to the Free Software
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
 */
+#ifndef MMWAVE_MAC_H
+#define MMWAVE_MAC_H
 
-
-
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_MAC_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_MAC_H_
-
-
-#include <vector>
-#include "mmwave-enb-phy.h"
-#include "mmwave-phy-mac-common.h"
-#include "mmwave-mac-scheduler.h"
-#include "mmwave-control-messages.h"
-#include <ns3/packet.h>
-#include <ns3/packet-burst.h>
-#include <ns3/lte-mac-sap.h>
-#include <map>
-#include <list>
-#include "mmwave-mac-sched-sap.h"
-#include <ns3/lte-radio-bearer-tag.h>
 #include "mmwave-mac-pdu-header.h"
 #include "mmwave-mac-pdu-tag.h"
-
 
 namespace ns3 {
 
@@ -76,33 +53,5 @@ struct MacPduInfo
   MmWaveMacPduHeader m_macHeader;
 };
 
-class MmWaveMac : public Object
-{
-public:
-  /* Do not put the set TypeId function. */
-  MmWaveMac ();
-  ~MmWaveMac ();
-  virtual void DoDispose (void);
-
-
-  void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
-
-  bool QueueData (Ptr<Packet> packet);
-  Ptr<PacketBurst> GetPacketBurstFromMacQueue ();
-
-protected:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
-
-  Ptr<PacketBurst>  m_macQueue;
-
-
-};
-
-
-
-
-}
-
-
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_MAC_H_ */
+} // namespace ns3
+#endif // MMWAVE_MAC_H
