@@ -357,7 +357,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           // that the RAR message is then forwarded immediately by the MAC to the
           // RRC, we have to put 2 here to respect the TDD timings.
           Simulator::Schedule (2 * MicroSeconds(m_phyMacConfig->GetTbDecodeLatency()),
-                               &MmWaveUePhy::DoReceiveRar, this, msg);
+                               &MmWaveUePhy::DoReceiveRar, this, rarMsg);
         }
       else
         {
