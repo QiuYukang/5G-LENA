@@ -601,7 +601,7 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
       else if (it->second->m_channel.size () == 0)
         {
           //if the channel map is not empty, we only update the channel.
-          NS_LOG_DEBUG ("Update forward channel consistently");
+          NS_LOG_INFO ("Update forward channel consistently");
           it->second->m_input = input3gppParameters;
           channelParams = UpdateChannel (it->second, table3gpp, a, b);
         }
@@ -728,11 +728,17 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
   if (!IsReverseLink (a, b ))
     {
-      NS_LOG_DEBUG ("****** DL BF gain == " << Sum (bfGain) / nbands << " RX PSD " << Sum (*rxPsd) / nbands); // print avg bf gain
+      NS_LOG_DEBUG ("****** DL BF gain == " << Sum (bfGain) / nbands <<
+                    " RX PSD " << Sum (*rxPsd) / nbands <<
+                    " beamTx " << txAntennaArray->GetCurrentBeamformingVector().second <<
+                    " beamRx " << rxAntennaArray->GetCurrentBeamformingVector().second);
     }
   else
     {
-      NS_LOG_DEBUG ("****** UL BF gain == " << Sum (bfGain) / nbands << " RX PSD " << Sum (*rxPsd) / nbands);
+      NS_LOG_DEBUG ("****** UL BF gain == " << Sum (bfGain) / nbands <<
+                    " RX PSD " << Sum (*rxPsd) / nbands <<
+                    " beamTx " << txAntennaArray->GetCurrentBeamformingVector().second <<
+                    " beamRx " << rxAntennaArray->GetCurrentBeamformingVector().second);
     }
 
   return bfPsd;
@@ -938,7 +944,7 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_DEBUG ("CalBeamGain: txW " << txW << std::endl << " rxW " << rxW << std::endl <<
+  NS_LOG_INFO ("CalBeamGain: txW " << txW << std::endl << " rxW " << rxW << std::endl <<
                 " delay " << delaySpread << std::endl << " angle " << angle << std::endl <<
                 " speed " << speed);
 
