@@ -58,12 +58,6 @@ public:
   virtual ~MmWaveEnbMac (void);
   virtual void DoDispose (void);
 
-  /**
-   * \brief Set the component carrier ID
-   * \param index the component carrier ID
-   */
-  void SetComponentCarrierId (uint8_t index);
-
   /*	struct SchedConfigIndParameters
       {
               uint32_t m_sfn;
@@ -270,8 +264,6 @@ private:
    * the LteEnbMac signature */
   TracedCallback<uint32_t, uint32_t,uint32_t, uint32_t, uint32_t, uint32_t, uint8_t> m_dlScheduling;
 
-  /// component carrier Id used to address sap
-  uint8_t m_componentCarrierId;
   std::list<uint16_t> m_srRntiList; //!< List of RNTI that requested a SR
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
