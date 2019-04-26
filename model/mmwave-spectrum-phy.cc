@@ -238,23 +238,17 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
   Time duration = params->duration;
   NS_LOG_INFO ("Start receiving signal: " << rxPsd <<" duration= " << duration);
 
-  Ptr<MmWaveEnbNetDevice> enbTx =
-      DynamicCast<MmWaveEnbNetDevice> (params->txPhy->GetDevice ());
-  Ptr<MmWaveEnbNetDevice> enbRx =
-      DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
+  uint32_t senderNodeId = -1;
 
-  Ptr<MmWaveUeNetDevice> ueTx =
-      DynamicCast<MmWaveUeNetDevice> (params->txPhy->GetDevice ());
-  Ptr<MmWaveUeNetDevice> ueRx =
-      DynamicCast<MmWaveUeNetDevice> (GetDevice ());
-
-  if ((enbTx != 0 && enbRx != 0) || (ueTx != 0 && ueRx != 0))
+  /*
+  if (params->txPhy)
     {
-      NS_LOG_INFO ("BS to BS or UE to UE transmission neglected.");
-      return;
-    }
+      senderNodeId = params->txPhy->GetDevice ()->GetNode ()->GetId();
+    }*/
 
-  // pass it to interference calculations regardless of the type (mmwave or non-mmwave)
+  NS_LOG_DEBUG ("Received signal from " << senderNodeId << " with unfiltered power " << 10.0 * std::log10 (Integral (*rxPsd)) + 30.0  << " dBm");
+
+  // pass it to interference calculations regardless of the type (LTE or non-LTE)
   m_interferenceData->AddSignal (rxPsd, duration);
 
   Ptr<MmwaveSpectrumSignalParametersDataFrame> mmwaveDataRxParams =
