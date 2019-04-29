@@ -98,7 +98,7 @@ MmWaveMemberPhySapProvider::SendRachPreamble (uint8_t PreambleId, uint8_t Rnti)
 void
 MmWaveMemberPhySapProvider::SetSlotAllocInfo (SlotAllocInfo slotAllocInfo)
 {
-  m_phy->SetSlotAllocInfo (slotAllocInfo);
+  m_phy->PushBackSlotAllocInfo (slotAllocInfo);
 }
 
 AntennaArrayModel::BeamId
@@ -157,7 +157,6 @@ MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy
   m_subframeNum (0),
   m_slotNum (0),
   m_varTtiNum (0),
-  m_slotAllocInfoUpdated (false),
   m_antennaNumDim1 (0),
   m_antennaNumDim2 (0),
   m_antennaArrayType (AntennaArrayBasicModel::GetTypeId())
@@ -401,57 +400,109 @@ MmWavePhy::GetPhySapProvider ()
 }
 
 void
-MmWavePhy::SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
+MmWavePhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_INFO ("ccId:" << static_cast<uint32_t> (m_componentCarrierId) <<
-               " frameNum:" << static_cast<uint32_t> (slotAllocInfo.m_sfnSf.m_frameNum) <<
-               " subframe:" << static_cast<uint32_t> (slotAllocInfo.m_sfnSf.m_subframeNum) <<
-               " slot:" << static_cast<uint32_t> (slotAllocInfo.m_sfnSf.m_slotNum));
+  NS_LOG_DEBUG ("ccId:" << static_cast<uint32_t> (GetCcId ()) <<
+               " setting info for slot " << slotAllocInfo.m_sfnSf);
 
-  SfnSf sf = slotAllocInfo.m_sfnSf;
+  // That's not so complex, as the list would typically be of 2 or 3 elements.
+  bool updated = false;
+  for (auto & alloc : m_slotAllocInfo)
+    {
+      if (alloc.m_sfnSf == slotAllocInfo.m_sfnSf)
+        {
+          NS_LOG_INFO ("Merging inside existing allocation");
+          alloc.Merge (slotAllocInfo);
+          updated = true;
+          break;
+        }
+    }
+  if (! updated)
+    {
+      m_slotAllocInfo.push_back (slotAllocInfo);
+      m_slotAllocInfo.sort ();
+      NS_LOG_INFO ("Pushing allocation at the end of the list");
+    }
 
-  if (m_slotAllocInfo.find (sf) == m_slotAllocInfo.end ())
+  std::stringstream output;
+
+  for (const auto & alloc : m_slotAllocInfo)
     {
-      m_slotAllocInfo [sf] = slotAllocInfo;
+      output << alloc;
     }
-  else
-    {
-      m_slotAllocInfo [sf].Merge (slotAllocInfo);
-    }
+  NS_LOG_INFO (output.str ());
 }
 
 
 bool
-MmWavePhy::SlotExists (const SfnSf &retVal) const
+MmWavePhy::SlotAllocInfoExists (const SfnSf &retVal) const
 {
   NS_LOG_FUNCTION (this);
-  return m_slotAllocInfo.find (retVal) != m_slotAllocInfo.end ();
+  for (const auto & alloc : m_slotAllocInfo)
+    {
+      if (alloc.m_sfnSf == retVal)
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+SlotAllocInfo
+MmWavePhy::RetrieveSlotAllocInfo ()
+{
+  NS_LOG_FUNCTION (this);
+  SlotAllocInfo ret;
+
+  ret = *m_slotAllocInfo.begin ();
+  m_slotAllocInfo.erase(m_slotAllocInfo.begin ());
+  return ret;
 }
 
 
 SlotAllocInfo
-MmWavePhy::GetSlotAllocInfo (const SfnSf &sfnsf)
+MmWavePhy::RetrieveSlotAllocInfo (const SfnSf &sfnsf)
 {
-  NS_LOG_FUNCTION (this << " at:" << Simulator::Now ().GetSeconds () << "ccId:" << (unsigned)m_componentCarrierId << "frameNum:" << sfnsf.m_frameNum <<
-                   "subframe:" << (unsigned)sfnsf.m_subframeNum << "slot:" << (unsigned)sfnsf.m_slotNum);
+  NS_LOG_FUNCTION ("ccId:" << +GetCcId () << " slot " << sfnsf);
 
-  NS_ASSERT_MSG (m_slotAllocInfo.find (sfnsf) != m_slotAllocInfo.end (),
-                 "Trying to fetch " << sfnsf << " but is not existing in the list");
+  SlotAllocInfo ret;
 
-  SlotAllocInfo slot = m_slotAllocInfo[sfnsf];
-  m_slotAllocInfo.erase (m_slotAllocInfo.find (sfnsf));
-  return slot;
+  for (auto allocIt = m_slotAllocInfo.begin(); allocIt != m_slotAllocInfo.end (); ++allocIt)
+    {
+      if (allocIt->m_sfnSf == sfnsf)
+        {
+          ret = *allocIt;
+          m_slotAllocInfo.erase (allocIt);
+          return ret;
+        }
+    }
+
+  NS_FATAL_ERROR("Didn't found the slot");
+  return SlotAllocInfo ();
 }
 
 SlotAllocInfo &
 MmWavePhy::PeekSlotAllocInfo (const SfnSf &sfnsf)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_slotAllocInfo.find (sfnsf) != m_slotAllocInfo.end (),
-                 "Trying to fetch a non existing slot allocation info.");
-  return m_slotAllocInfo[sfnsf];
+  for (auto & alloc : m_slotAllocInfo)
+    {
+      if (alloc.m_sfnSf == sfnsf)
+        {
+          return alloc;
+        }
+    }
+
+  NS_FATAL_ERROR ("Didn't found the slot");
+}
+
+size_t
+MmWavePhy::SlotAllocInfoSize() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_slotAllocInfo.size ();
 }
 
 Ptr<AntennaArrayBasicModel>

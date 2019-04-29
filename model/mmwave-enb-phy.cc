@@ -258,7 +258,8 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
 
   m_lastSlotStart = Simulator::Now ();
-  m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
+  m_currSlotAllocInfo = RetrieveSlotAllocInfo ();
+  NS_ASSERT(m_currSlotAllocInfo.m_sfnSf == SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
@@ -385,7 +386,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
                                                m_phyMacConfig->GetSubframesPerFrame ());
   if (m_phyMacConfig->GetUlSchedDelay () > 0)
     {
-      if (SlotExists (ulSfn))
+      if (SlotAllocInfoExists (ulSfn))
         {
           SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
           NS_LOG_INFO ("Retrieving UL allocation for slot " << ulSlot.m_sfnSf <<

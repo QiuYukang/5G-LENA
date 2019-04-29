@@ -468,11 +468,18 @@ struct SlotAllocInfo
    */
   void Merge (const SlotAllocInfo & other);
 
-  bool operator < (const SlotAllocInfo &rhs) const;
-
   SfnSf m_sfnSf          {};
   uint32_t m_numSymAlloc {0};    // number of allocated slots
   std::deque<VarTtiAllocInfo> m_varTtiAllocInfo;
+
+  /**
+   * \brief operator < (less than)
+   * \param rhs other SlotAllocInfo to compare
+   * \return true if this SlotAllocInfo is less than rhs
+   *
+   * The comparison is done on sfnSf
+   */
+  bool operator < (const SlotAllocInfo& rhs) const;
 };
 
 struct DlCqiInfo
@@ -800,6 +807,7 @@ std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat cons
 std::ostream & operator<< (std::ostream & os, DlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, UlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, SfnSf const & item);
+std::ostream & operator<< (std::ostream & os, SlotAllocInfo const & item);
 }
 
 #endif /* SRC_MMWAVE_MODEL_MMWAVE_PHY_MAC_COMMON_H_ */

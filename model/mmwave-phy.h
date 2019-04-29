@@ -120,11 +120,35 @@ public:
 
   MmWavePhySapProvider* GetPhySapProvider ();
 
-  void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
+  /**
+   * \brief Store the slot allocation info
+   * \param slotAllocInfo the allocation to store
+   */
+  void PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
 
-  bool SlotExists (const SfnSf &retVal) const;
+  /**
+   * \brief Check if the SlotAllocationInfo for that slot exists
+   * \param sfnsf slot to check
+   * \return true if the allocation exists
+   */
+  bool SlotAllocInfoExists (const SfnSf &sfnsf) const;
 
-  SlotAllocInfo GetSlotAllocInfo (const SfnSf &sfnsf);
+  /**
+   * \brief Get the head for the slot allocation info, and delete it from the
+   * internal list
+   * \return the Slot allocation info head
+   */
+  SlotAllocInfo RetrieveSlotAllocInfo ();
+
+  /**
+   * \brief Get the SlotAllocationInfo for the specified slot, and delete it
+   * from the internal list
+   *
+   * \param sfnsf slot specified
+   * \return the SlotAllocationInfo
+   */
+  SlotAllocInfo RetrieveSlotAllocInfo (const SfnSf &sfnsf);
+
   /**
    * \brief Peek the SlotAllocInfo at the SfnSf specified
    * \param sfnsf (existing) SfnSf to look for
@@ -133,6 +157,12 @@ public:
    * The method will assert if sfnsf does not exits (please check with SlotExists())
    */
   SlotAllocInfo & PeekSlotAllocInfo (const SfnSf & sfnsf);
+
+  /**
+   * \brief Retrieve the size of the SlotAllocInfo list
+   * \return the allocation list size
+   */
+  size_t SlotAllocInfoSize () const;
 
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
 
@@ -208,18 +238,13 @@ protected:
 
   uint32_t m_raPreambleId;
 
-  bool m_slotAllocInfoUpdated;
-
 private:
-  std::map<SfnSf, SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
+  std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
   uint8_t m_antennaNumDim1 {0};
   uint8_t m_antennaNumDim2 {0};
   TypeId m_antennaArrayType {AntennaArrayModel::GetTypeId()};
-
-  /// component carrier Id used to address sap
-  uint8_t m_componentCarrierId;
 
   Ptr<AntennaArrayBasicModel> m_antennaArray {nullptr};
 };

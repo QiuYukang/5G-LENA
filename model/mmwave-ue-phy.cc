@@ -244,7 +244,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 
       sai.m_varTtiAllocInfo.push_back (dlCtrlSlot);
       sai.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-      SetSlotAllocInfo (sai);
+      PushBackSlotAllocInfo (sai);
 
       sfnf = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                      m_phyMacConfig->GetSubframesPerFrame ());
@@ -324,7 +324,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                 }
               else
                 {
-                  if (SlotExists (ulSfnSf))
+                  if (SlotAllocInfoExists (ulSfnSf))
                     {
                       auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
                       ulSlot.m_varTtiAllocInfo.push_back (varTtiInfo);
@@ -338,7 +338,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                       slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
                       slotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
                       slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-                      SetSlotAllocInfo (slotAllocInfo);
+                      PushBackSlotAllocInfo (slotAllocInfo);
                     }
                   ulUpdated = true;
                 }
@@ -396,7 +396,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         {
           std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
         }
-      else if (m_phyMacConfig->GetUlSchedDelay () > 0 && SlotExists (ulSfnSf))
+      else if (m_phyMacConfig->GetUlSchedDelay () > 0 && SlotAllocInfoExists (ulSfnSf))
         {
           auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
           std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
@@ -432,7 +432,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));   // trigger mac
 
   // update the current slot
-  m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
+  m_currSlotAllocInfo = RetrieveSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
 
   if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
     {
@@ -654,7 +654,7 @@ MmWaveUePhy::EndVarTti ()
       SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum,0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                        m_phyMacConfig->GetSubframesPerFrame ());
 
-      if (!SlotExists (retVal))
+      if (!SlotAllocInfoExists (retVal))
         {
           // prepare the following slot info
           std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
@@ -663,7 +663,7 @@ MmWaveUePhy::EndVarTti ()
           VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
           slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
           slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-          SetSlotAllocInfo (slotAllocInfo);
+          PushBackSlotAllocInfo (slotAllocInfo);
         }
 
       Simulator::Schedule (m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
