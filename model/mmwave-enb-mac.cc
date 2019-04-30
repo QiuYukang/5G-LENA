@@ -867,7 +867,8 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
   for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size (); islot++)
     {
       VarTtiAllocInfo &varTtiAllocInfo = ind.m_slotAllocInfo.m_varTtiAllocInfo[islot];
-      if (varTtiAllocInfo.m_varTtiType != VarTtiAllocInfo::CTRL && varTtiAllocInfo.m_tddMode == VarTtiAllocInfo::DL)
+      if (varTtiAllocInfo.m_dci->m_type != DciInfoElementTdma::CTRL
+          && varTtiAllocInfo.m_dci->m_format == DciInfoElementTdma::DL)
         {
           uint16_t rnti = varTtiAllocInfo.m_dci->m_rnti;
           std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
@@ -1032,11 +1033,11 @@ MmWaveEnbMac::DoInitialize()
   for (unsigned i = 0; i < m_phyMacConfig->GetL1L2DataLatency (); i++)
     {
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
-      auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, rbgBitmask);
-      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
+      auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
+      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
-      VarTtiAllocInfo dlCtrlVarTti (VarTtiAllocInfo::DL, VarTtiAllocInfo::CTRL, dciDl);
-      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
+      VarTtiAllocInfo dlCtrlVarTti (dciDl);
+      VarTtiAllocInfo ulCtrlVarTti (dciUl);
 
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (dlCtrlVarTti);
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
@@ -1050,9 +1051,9 @@ MmWaveEnbMac::DoInitialize()
   for (unsigned i = 0; i < m_phyMacConfig->GetUlSchedDelay(); i++)
     {
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
-      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
+      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
-      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
+      VarTtiAllocInfo ulCtrlVarTti (dciUl);
 
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
 

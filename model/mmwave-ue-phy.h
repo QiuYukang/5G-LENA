@@ -185,9 +185,6 @@ private:
   Time m_wbCqiPeriod;       /**< Wideband Periodic CQI: 2, 5, 10, 16, 20, 32, 40, 64, 80 or 160 ms */
   Time m_wbCqiLast;
 
-  VarTtiAllocInfo::TddMode m_prevSlotDir;
-
-  SlotAllocInfo m_currSlotAllocInfo;
   std::vector< std::list<TbAllocInfo> > m_ulTbAllocQueue;       // for storing info on future UL TB transmissions
   bool m_ulGrant;               // true if no uplink grant in subframe, need to transmit UL control in PUCCH instead
   bool m_slotAllocInfoUpdated;

@@ -383,7 +383,7 @@ MmWaveMacSchedulerTdma::CreateDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoint
                " for " << static_cast<uint32_t> (numSym) << " SYM ");
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
-      (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0);
+      (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA);
 
   dci->m_rbgBitmask = std::move (rbgAssigned);
 

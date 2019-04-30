@@ -165,14 +165,8 @@ MmWaveUePhy::DoInitialize (void)
   for (unsigned i = 0; i < m_phyMacConfig->GetSlotsPerSubframe (); i++)
     {
       SlotAllocInfo sai = SlotAllocInfo (sfnf);
-      DciInfoElementTdma dlDci (0, 1, rbgBitmask);
-      DciInfoElementTdma ulDci (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
-      VarTtiAllocInfo dlCtrlSlot (VarTtiAllocInfo::DL,
-                                  VarTtiAllocInfo::CTRL,
-                                  std::make_shared<DciInfoElementTdma> (0, 1, rbgBitmask));
-      VarTtiAllocInfo ulCtrlSlot (VarTtiAllocInfo::UL,
-                                  VarTtiAllocInfo::CTRL,
-                                  std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask));
+      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
       sai.m_varTtiAllocInfo.push_back (dlCtrlSlot);
       sai.m_varTtiAllocInfo.push_back (ulCtrlSlot);
       SetSlotAllocInfo (sai);
@@ -356,7 +350,7 @@ MmWaveUePhy::ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > ms
                             " tbs " << dciInfoElem->m_tbSize <<
                             " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
-              VarTtiAllocInfo varTtiInfo (VarTtiAllocInfo::DL, VarTtiAllocInfo::DATA, dciInfoElem);
+              VarTtiAllocInfo varTtiInfo (dciInfoElem);
               m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
               dlUpdated = true;
             }
@@ -370,7 +364,7 @@ MmWaveUePhy::ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > ms
                             " tbs " << dciInfoElem->m_tbSize <<
                             " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
-              VarTtiAllocInfo varTtiInfo (VarTtiAllocInfo::UL, VarTtiAllocInfo::DATA, dciInfoElem);
+              VarTtiAllocInfo varTtiInfo (dciInfoElem);
 
               if (m_phyMacConfig->GetUlSchedDelay () == 0)
                 {
@@ -388,14 +382,8 @@ MmWaveUePhy::ReceiveControlMessageList (std::list<Ptr<MmWaveControlMessage> > ms
                     {
                       std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
                       SlotAllocInfo slotAllocInfo = SlotAllocInfo (ulSfnSf);
-                      DciInfoElementTdma dciDl (0, 1, rbgBitmask);
-                      DciInfoElementTdma dciUl (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
-                      VarTtiAllocInfo dlCtrlSlot (VarTtiAllocInfo::DL,
-                                                  VarTtiAllocInfo::CTRL,
-                                                  std::make_shared<DciInfoElementTdma> (0, 1, rbgBitmask));
-                      VarTtiAllocInfo ulCtrlSlot (VarTtiAllocInfo::UL,
-                                                  VarTtiAllocInfo::CTRL,
-                                                  std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask));
+                      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+                      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
                       slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
                       slotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
                       slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
@@ -527,11 +515,11 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
       std::string direction, type;
-      if (alloc.m_varTtiType == VarTtiAllocInfo::CTRL)
+      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
         {
           type = "CTRL";
         }
-      else if (alloc.m_varTtiType == VarTtiAllocInfo::CTRL_DATA)
+      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
         {
           type = "CTRL_DATA";
         }
@@ -540,7 +528,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
           type = "DATA";
         }
 
-      if (alloc.m_tddMode == VarTtiAllocInfo::UL)
+      if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
           direction = "UL";
         }
@@ -686,7 +674,6 @@ MmWaveUePhy::StartVarTti ()
   m_currNumSym = currSlot.m_dci->m_numSym;
   m_currTbs = currSlot.m_dci->m_tbSize;
   m_receptionEnabled = false;
-  m_prevSlotDir = currSlot.m_tddMode;
 
   // This is necessary as the MAC will compare the TtiNum, and if matches,
   // will send the BSR
@@ -697,19 +684,19 @@ MmWaveUePhy::StartVarTti ()
                 static_cast<uint32_t> (m_slotNum) << " sym " <<
                 static_cast<uint32_t> (currSlot.m_dci->m_symStart));
 
-  if (currSlot.m_varTtiType == VarTtiAllocInfo::CTRL && currSlot.m_tddMode == VarTtiAllocInfo::DL)
+  if (currSlot.m_dci->m_type == DciInfoElementTdma::CTRL && currSlot.m_dci->m_format == DciInfoElementTdma::DL)
     {
       varTtiPeriod = DlCtrl (currSlot.m_dci);
     }
-  else if (currSlot.m_varTtiType == VarTtiAllocInfo::CTRL && currSlot.m_tddMode == VarTtiAllocInfo::UL)
+  else if (currSlot.m_dci->m_type == DciInfoElementTdma::CTRL && currSlot.m_dci->m_format == DciInfoElementTdma::UL)
     {
       varTtiPeriod = UlCtrl (currSlot.m_dci);
     }
-  else if (currSlot.m_varTtiType == VarTtiAllocInfo::DATA && currSlot.m_tddMode == VarTtiAllocInfo::DL)
+  else if (currSlot.m_dci->m_type == DciInfoElementTdma::DATA && currSlot.m_dci->m_format == DciInfoElementTdma::DL)
     {
       varTtiPeriod = DlData (currSlot.m_dci);
     }
-  else if (currSlot.m_varTtiType == VarTtiAllocInfo::DATA && currSlot.m_tddMode == VarTtiAllocInfo::UL)
+  else if (currSlot.m_dci->m_type == DciInfoElementTdma::DATA && currSlot.m_dci->m_format == DciInfoElementTdma::UL)
     {
       varTtiPeriod = UlData (currSlot.m_dci);
     }
@@ -734,12 +721,8 @@ MmWaveUePhy::EndVarTti ()
           // prepare the following slot info
           std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
           SlotAllocInfo slotAllocInfo = SlotAllocInfo (retVal);
-          VarTtiAllocInfo dlCtrlSlot (VarTtiAllocInfo::DL,
-                                      VarTtiAllocInfo::CTRL,
-                                      std::make_shared<DciInfoElementTdma> (0, 1, rbgBitmask));
-          VarTtiAllocInfo ulCtrlSlot (VarTtiAllocInfo::UL,
-                                      VarTtiAllocInfo::CTRL,
-                                      std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask));
+          VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+          VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
           slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
           slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
           SetSlotAllocInfo (slotAllocInfo);
