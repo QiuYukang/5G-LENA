@@ -243,6 +243,7 @@ void
 MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>> &msgList)
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Received " << msgList.size () << " messages");
   bool dlUpdated = false;
   bool ulUpdated = false;
 
@@ -270,12 +271,13 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                               << m_frameNum << " " << m_subframeNum);
             }
 
-          if (dciInfoElem->m_rnti != m_rnti)
+          if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
             {
               continue;   // DCI not for me
             }
 
-          if (dciInfoElem->m_format == DciInfoElementTdma::DL)   // set downlink slot schedule for current slot
+          if (dciInfoElem->m_format == DciInfoElementTdma::DL
+              && dciInfoElem->m_type == DciInfoElementTdma::DATA)
             {
               NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
                             " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
@@ -287,7 +289,8 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
               m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
               dlUpdated = true;
             }
-          else if (dciInfoElem->m_format == DciInfoElementTdma::UL)   // set downlink slot schedule for t+Tul_sched slot
+          else if (dciInfoElem->m_format == DciInfoElementTdma::UL
+                   && dciInfoElem->m_type == DciInfoElementTdma::DATA)   // set downlink slot schedule for t+Tul_sched slot
             {
 
               NS_LOG_DEBUG ("UE" << m_rnti <<
@@ -319,6 +322,15 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                     }
                   ulUpdated = true;
                 }
+            }
+          else if (dciInfoElem->m_format == DciInfoElementTdma::UL
+                   && dciInfoElem->m_type == DciInfoElementTdma::CTRL)
+            {
+              VarTtiAllocInfo varTtiInfo (dciInfoElem);
+              m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
+              dlUpdated = true; // Please note that this is DLUpdated even if
+                                // we added an UL control because the UL CTRL
+                                // is for this slot
             }
 
           m_phySapUser->ReceiveControlMessage (msg);
@@ -356,6 +368,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         }
       else
         {
+          NS_LOG_INFO ("Message type not recognized " << msg->GetMessageType ());
           m_phySapUser->ReceiveControlMessage (msg);
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
@@ -421,9 +434,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 
   std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
   VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-  VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
   m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
-  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
 
   if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
     {
@@ -639,6 +650,7 @@ void
 MmWaveUePhy::EndVarTti ()
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Executed varTti " << (+m_varTtiNum) + 1 << " of " << m_currSlotAllocInfo.m_varTtiAllocInfo.size ());
   if (m_varTtiNum == m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1)
     {
       // end of slot

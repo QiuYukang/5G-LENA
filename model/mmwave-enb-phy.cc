@@ -350,15 +350,15 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
   // find all DL DCI elements in the current slot and create the DL RBG bitmask
   uint8_t lastSymbolDl = 0, lastSymbolUl = 0;
 
-  NS_LOG_INFO ("Retrieving DL allocation for slot " << m_currSlotAllocInfo.m_sfnSf <<
-               " with a total of " << m_currSlotAllocInfo.m_varTtiAllocInfo.size () <<
-               " allocations");
+  NS_LOG_INFO ("Retrieving DL allocation (and an eventual UL CTRL) for slot " <<
+               m_currSlotAllocInfo.m_sfnSf << " from a set of " <<
+               m_currSlotAllocInfo.m_varTtiAllocInfo.size () << " allocations");
   for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
       if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
           && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
         {
-          auto dciElem = dlAlloc.m_dci;
+          auto & dciElem = dlAlloc.m_dci;
           NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
           NS_ASSERT (dciElem->m_tbSize > 0);
           NS_ASSERT (dciElem->m_symStart >= lastSymbolDl);
@@ -375,6 +375,15 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
 
           ctrlMsgs.push_back (dciMsg);
           NS_LOG_INFO ("To send, DL DCI for UE " << dciElem->m_rnti);
+        }
+      else if (dlAlloc.m_dci->m_type == DciInfoElementTdma::CTRL
+               && dlAlloc.m_dci->m_format == DciInfoElementTdma::UL)
+        {
+          Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dlAlloc.m_dci);
+          dciMsg->SetSfnSf (sfn);
+
+          ctrlMsgs.push_back (dciMsg);
+          NS_LOG_INFO ("To send, UL CTRL for all UEs");
         }
     }
 
