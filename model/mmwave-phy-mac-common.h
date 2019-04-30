@@ -405,20 +405,6 @@ struct TbAllocInfo
   TbInfoElement m_tbInfo;
 };
 
-struct DciInfoElement
-{
-  DciInfoElement () :
-    m_rnti (0), m_cceIndex (0), m_format (0), m_tddBitmap (0)
-  {
-  }
-
-  uint16_t m_rnti;
-  uint8_t m_cceIndex;
-  uint8_t m_format;     // to support different DCI types
-  uint16_t m_tddBitmap;         // 0 == DL, 1 == UL
-  std::vector<TbInfoElement> m_tbInfoElements;
-};
-
 struct RlcPduInfo
 {
   RlcPduInfo () = default;
