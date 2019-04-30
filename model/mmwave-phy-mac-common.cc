@@ -604,7 +604,7 @@ std::ostream & operator<< (std::ostream & os, SfnSf const & item)
 std::ostream &operator<< (std::ostream &os, const SlotAllocInfo &item)
 {
   os << "Allocation for slot " << item.m_sfnSf << " total symbols allocated: "
-     << item.m_numSymAlloc << ":" << std::endl;
+     << item.m_numSymAlloc << ", tti: " << item.m_varTtiAllocInfo.size () << std::endl;
   return os;
 }
 

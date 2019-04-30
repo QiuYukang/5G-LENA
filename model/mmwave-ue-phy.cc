@@ -231,24 +231,6 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   GetAntennaArray()->SetSpectrumModel (m_downlinkSpectrumPhy->GetRxSpectrumModel());
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
-
-  // Initialize the slot allocation
-  SfnSf sfnf = SfnSf (0, 0, 0, 0);
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-
-  for (unsigned i = 0; i < m_phyMacConfig->GetSlotsPerSubframe (); i++)
-    {
-      SlotAllocInfo sai = SlotAllocInfo (sfnf);
-      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-
-      sai.m_varTtiAllocInfo.push_back (dlCtrlSlot);
-      sai.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-      PushBackSlotAllocInfo (sai);
-
-      sfnf = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                     m_phyMacConfig->GetSubframesPerFrame ());
-    }
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -331,13 +313,8 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                     }
                   else
                     {
-                      std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
                       SlotAllocInfo slotAllocInfo = SlotAllocInfo (ulSfnSf);
-                      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-                      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-                      slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
                       slotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
-                      slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
                       PushBackSlotAllocInfo (slotAllocInfo);
                     }
                   ulUpdated = true;
@@ -431,8 +408,22 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   // Call MAC before doing anything in PHY
   m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));   // trigger mac
 
-  // update the current slot
-  m_currSlotAllocInfo = RetrieveSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
+  // update the current slot object, and insert DL/UL CTRL allocations.
+  // That will not be true anymore when true TDD pattern will be used.
+  if (SlotAllocInfoExists (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum)))
+    {
+      m_currSlotAllocInfo = RetrieveSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
+    }
+  else
+    {
+      m_currSlotAllocInfo = SlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
+    }
+
+  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+  VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
+  m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
+  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
 
   if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
     {
@@ -653,18 +644,6 @@ MmWaveUePhy::EndVarTti ()
       // end of slot
       SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum,0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                        m_phyMacConfig->GetSubframesPerFrame ());
-
-      if (!SlotAllocInfoExists (retVal))
-        {
-          // prepare the following slot info
-          std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-          SlotAllocInfo slotAllocInfo = SlotAllocInfo (retVal);
-          VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-          VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-          slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
-          slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-          PushBackSlotAllocInfo (slotAllocInfo);
-        }
 
       Simulator::Schedule (m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
                            Simulator::Now (),

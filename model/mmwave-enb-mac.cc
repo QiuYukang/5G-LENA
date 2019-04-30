@@ -1061,7 +1061,9 @@ MmWaveEnbMac::DoInitialize()
 
   for (unsigned i = 0; i < m_phyMacConfig->GetL1L2DataLatency (); i++)
     {
+      NS_LOG_INFO ("Pushing DL/UL CTRL symbol allocation for " << sfnSf);
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
+      slotAllocInfo.m_numSymAlloc = 2;
       auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
       auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
@@ -1072,14 +1074,15 @@ MmWaveEnbMac::DoInitialize()
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
 
       m_phySapProvider->SetSlotAllocInfo (slotAllocInfo);
-      NS_LOG_INFO ("Pushing DL/UL CTRL symbol allocation for " << sfnSf);
       sfnSf = sfnSf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
   for (unsigned i = 0; i < m_phyMacConfig->GetUlSchedDelay(); i++)
     {
+      NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
+      slotAllocInfo.m_numSymAlloc = 1;
       auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
       VarTtiAllocInfo ulCtrlVarTti (dciUl);
@@ -1087,7 +1090,6 @@ MmWaveEnbMac::DoInitialize()
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
 
       m_phySapProvider->SetSlotAllocInfo (slotAllocInfo);
-      NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
       sfnSf = sfnSf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
