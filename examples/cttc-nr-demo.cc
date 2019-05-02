@@ -196,8 +196,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
-  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManagerGnb"));
-
   // create base stations and mobile terminals
   NodeContainer gNbNodes;
   NodeContainer ueNodes;
