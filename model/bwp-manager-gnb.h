@@ -45,6 +45,25 @@ public:
   virtual ~BwpManagerGnb () override;
   static TypeId GetTypeId ();
 
+  /**
+   * \brief Get the bwp index for the RNTI and LCID
+   * \param rnti The RNTI of the user
+   * \param lcid The LCID of the flow that we want to know the bwp index
+   * \return The index of the BWP in which that LCID should go
+   */
+  uint8_t GetBwpIndex (uint16_t rnti, uint8_t lcid);
+
+  /**
+   * \brief Get the bwp index for the RNTI and LCID
+   * \param rnti The RNTI of the user
+   * \param lcid The LCID of the flow that we want to know the bwp index
+   * \return The index of the BWP in which that LCID should go
+   *
+   * Why this method? I wonder if you can imagine it... Hint: Think in a RR
+   * algorithm that returns a different bwp index for every call...´
+   */
+  uint8_t PeekBwpIndex (uint16_t rnti, uint8_t lcid) const;
+
 protected:
   // Inherited methods
   virtual void DoInitialize (void) override;
