@@ -115,7 +115,7 @@ public:
 
   void SetPhyMacConfig (Ptr<MmWavePhyMacCommon> config);
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const override
+  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override
   {
     NS_UNUSED (rnti);
     NS_FATAL_ERROR ("ERROR");

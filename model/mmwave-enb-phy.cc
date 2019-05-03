@@ -210,7 +210,7 @@ MmWaveEnbPhy::GetmmWaveEnbCphySapProvider ()
   return m_enbCphySapProvider;
 }
 
-AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint8_t rnti) const
+AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 {
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {

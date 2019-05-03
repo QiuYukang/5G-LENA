@@ -159,8 +159,6 @@ public:
    */
   SlotAllocInfo & PeekSlotAllocInfo (const SfnSf & sfnsf);
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const = 0;
-
   /**
   * Set the component carrier ID
   *
@@ -175,6 +173,7 @@ public:
   */
   uint8_t GetComponentCarrierId ();
 
+  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
 
   virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
 

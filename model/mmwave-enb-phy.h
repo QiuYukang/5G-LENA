@@ -52,7 +52,7 @@ public:
   void SetmmWaveEnbCphySapUser (LteEnbCphySapUser* s);
   LteEnbCphySapProvider* GetmmWaveEnbCphySapProvider ();
 
-  AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const override;
+  AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
 
   void SetTxPower (double pow);
   double GetTxPower () const;
