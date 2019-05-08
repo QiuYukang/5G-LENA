@@ -119,7 +119,7 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
           auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,
                                                            startingPoint->m_sym, symPerBeam,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
-                                                           0, dciInfoReTx->m_rv + 1);
+                                                           0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA);
           dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
           dci->m_harqProcess = dciInfoReTx->m_harqProcess;
 
@@ -152,7 +152,7 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
 
           startingPoint->m_rbg += rbgAssigned;
 
-          VarTtiAllocInfo slotInfo (VarTtiAllocInfo::DL, VarTtiAllocInfo::DATA, dciInfoReTx);
+          VarTtiAllocInfo slotInfo (dciInfoReTx);
           NS_LOG_DEBUG ("UE" << dciInfoReTx->m_rnti <<
                         " gets DL symbols " << static_cast<uint32_t> (dciInfoReTx->m_symStart) <<
                         "-" << static_cast<uint32_t> (dciInfoReTx->m_symStart + dciInfoReTx->m_numSym - 1) <<
@@ -245,7 +245,7 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
                                                            startingPoint->m_sym - dciInfoReTx->m_numSym,
                                                            dciInfoReTx->m_numSym,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
-                                                           0, dciInfoReTx->m_rv + 1);
+                                                           0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA);
           dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
           dci->m_harqProcess = harqId;
           harqProcess.m_dciElement = dci;
@@ -253,7 +253,7 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
 
           startingPoint->m_sym -= dciInfoReTx->m_numSym;
 
-          VarTtiAllocInfo slotInfo (VarTtiAllocInfo::UL, VarTtiAllocInfo::DATA, dciInfoReTx);
+          VarTtiAllocInfo slotInfo (dciInfoReTx);
           NS_LOG_DEBUG ("UE" << dciInfoReTx->m_rnti <<
                         " gets UL symbols " << static_cast<uint32_t> (dciInfoReTx->m_symStart) <<
                         "-" << static_cast<uint32_t> (dciInfoReTx->m_symStart + dciInfoReTx->m_numSym - 1) <<

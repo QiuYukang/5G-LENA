@@ -119,28 +119,6 @@ public:
   void SetCcPhyParams (std::map< uint8_t, ComponentCarrier> ccmap);
 
   /**
-     * Set the type of carrier component algorithm to be used by eNodeB devices.
-     *
-     * \param type type of carrier component manager
-     *
-     */
-  void SetEnbComponentCarrierManagerType (std::string type);
-
-  /**
-   *
-   * \return the carrier enb component carrier manager type
-   */
-  std::string GetEnbComponentCarrierManagerType () const;
-
-  /**
-   * Set an attribute for the enb component carrier manager to be created.
-   *
-   * \param n the name of the attribute
-   * \param v the value of the attribute
-   */
-  void SetEnbComponentCarrierManagerAttribute (std::string n, const AttributeValue &v);
-
-  /**
    * Set the type of Component Carrier Manager to be used by Ue devices.
    *
    * \param type type of UE Component Carrier Manager
@@ -261,8 +239,6 @@ private:
   ObjectFactory m_channelFactory;
   ObjectFactory m_pathlossModelFactory;
   ObjectFactory m_phyMacCommonFactory;
-  /// Factory of enb component carrier manager object.
-  ObjectFactory m_enbComponentCarrierManagerFactory;
   /// Factory of ue component carrier manager object.
   ObjectFactory m_ueComponentCarrierManagerFactory;
 

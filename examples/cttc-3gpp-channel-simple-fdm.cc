@@ -229,7 +229,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
-  Config::SetDefault ("ns3::MmWaveHelper::EnbComponentCarrierManager", StringValue ("ns3::BwpManagerGnb"));
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
   Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
 

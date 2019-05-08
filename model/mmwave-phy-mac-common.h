@@ -318,7 +318,15 @@ struct DciInfoElementTdma
     UL = 1
   };
 
-  DciInfoElementTdma () = delete;
+  /**
+   * \brief The VarTtiType enum
+   */
+  enum VarTtiType
+  {
+    CTRL_DATA = 0, //!< Not used anywhere
+    DATA = 1,      //!< Used for DL/UL DATA
+    CTRL = 2       //!< Used for DL/UL CTRL
+  };
 
   /**
    * \brief Constructor used in MmWaveUePhy to build local DCI for DL and UL control
@@ -326,10 +334,12 @@ struct DciInfoElementTdma
    * \param numSym Num sym
    * \param rbgBitmask Bitmask of RBG
    */
-  DciInfoElementTdma (uint8_t symStart, uint8_t numSym,
+  DciInfoElementTdma (uint8_t symStart, uint8_t numSym, DciFormat format, VarTtiType type,
                       const std::vector<uint8_t> &rbgBitmask)
-    : m_symStart (symStart),
+    : m_format (format),
+    m_symStart (symStart),
     m_numSym (numSym),
+    m_type (type),
     m_rbgBitmask (rbgBitmask)
   {
   }
@@ -349,9 +359,9 @@ struct DciInfoElementTdma
    */
   DciInfoElementTdma (uint16_t rnti, DciFormat format, uint8_t symStart,
                       uint8_t numSym, uint8_t mcs, uint32_t tbs, uint8_t ndi,
-                      uint8_t rv)
+                      uint8_t rv, VarTtiType type)
     : m_rnti (rnti), m_format (format), m_symStart (symStart),
-    m_numSym (numSym), m_mcs (mcs), m_tbSize (tbs), m_ndi (ndi), m_rv (rv)
+    m_numSym (numSym), m_mcs (mcs), m_tbSize (tbs), m_ndi (ndi), m_rv (rv), m_type (type)
   {
   }
 
@@ -374,6 +384,7 @@ struct DciInfoElementTdma
       m_tbSize (o.m_tbSize),
       m_ndi (ndi),
       m_rv (rv),
+      m_type (o.m_type),
       m_harqProcess (o.m_harqProcess),
       m_rbgBitmask (o.m_rbgBitmask)
   {
@@ -387,6 +398,7 @@ struct DciInfoElementTdma
   const uint32_t m_tbSize     {0};
   const uint8_t m_ndi         {0};   // By default is retransmission
   const uint8_t m_rv          {0};   // not used for UL DCI
+  const VarTtiType m_type     {CTRL_DATA};
   uint8_t m_harqProcess {0};
   std::vector<uint8_t> m_rbgBitmask  {};   //!< RBG mask: 0 if the RBG is not used, 1 otherwise
 };
@@ -405,20 +417,6 @@ struct TbAllocInfo
   TbInfoElement m_tbInfo;
 };
 
-struct DciInfoElement
-{
-  DciInfoElement () :
-    m_rnti (0), m_cceIndex (0), m_format (0), m_tddBitmap (0)
-  {
-  }
-
-  uint16_t m_rnti;
-  uint8_t m_cceIndex;
-  uint8_t m_format;     // to support different DCI types
-  uint16_t m_tddBitmap;         // 0 == DL, 1 == UL
-  std::vector<TbInfoElement> m_tbInfoElements;
-};
-
 struct RlcPduInfo
 {
   RlcPduInfo () = default;
@@ -435,38 +433,20 @@ struct RlcPduInfo
 
 struct VarTtiAllocInfo
 {
-  enum TddMode
-  {
-    NA = 0, DL = 1, UL = 2,
-  };
-
-  enum VarTtiType
-  {
-    CTRL_DATA = 0, DATA = 1, CTRL = 2
-  };
-
-  enum CtrlTxMode
-  {
-    ANALOG = 0, DIGITAL = 1, OMNI = 2
-  };
-
-  VarTtiAllocInfo () = delete;
   VarTtiAllocInfo (const VarTtiAllocInfo &o) = default;
 
-  VarTtiAllocInfo (TddMode tddMode, VarTtiType varTtiType,
-                   const std::shared_ptr<DciInfoElementTdma> &dci)
-    : m_tddMode (tddMode), m_isOmni (0), m_varTtiType (varTtiType), m_dci (dci)
+  VarTtiAllocInfo (const std::shared_ptr<DciInfoElementTdma> &dci)
+    : m_dci (dci)
   {
   }
 
-  TddMode m_tddMode       {NA};
-  bool m_isOmni           {false};  // Beamforming disabled, true if omnidirectional
-  VarTtiType m_varTtiType {CTRL_DATA};
+  bool m_isOmni           {false};
   std::shared_ptr<DciInfoElementTdma> m_dci;
   std::vector<RlcPduInfo> m_rlcPduInfo;
 
   bool operator < (const VarTtiAllocInfo& o) const
   {
+    NS_ASSERT (m_dci != nullptr);
     return (m_dci->m_symStart < o.m_dci->m_symStart);
   }
 };
@@ -488,12 +468,12 @@ struct SlotAllocInfo
    */
   void Merge (const SlotAllocInfo & other);
 
+  bool operator < (const SlotAllocInfo &rhs) const;
+
   SfnSf m_sfnSf          {};
   uint32_t m_numSymAlloc {0};    // number of allocated slots
   std::deque<VarTtiAllocInfo> m_varTtiAllocInfo;
 };
-
-typedef std::vector<VarTtiAllocInfo::VarTtiType> TddVarTtiTypeList;
 
 struct DlCqiInfo
 {
@@ -549,27 +529,6 @@ struct MacCeElement
 struct RlcListElement
 {
   std::vector<struct RlcPduInfo> m_rlcPduElements;
-};
-
-struct SchedInfo
-{
-  SchedInfo () :
-    m_frameNum (0), m_subframeNum (0), m_slotNum (0), m_rnti (0)
-  {
-  }
-  SchedInfo (unsigned int numVarTti) :
-    m_frameNum (0), m_subframeNum (0), m_slotNum (0), m_rnti (0)
-  {
-  }
-
-  uint16_t m_frameNum;
-  uint8_t m_subframeNum;
-  uint16_t m_slotNum;
-  uint16_t m_rnti;
-
-  SlotAllocInfo m_slotAllocInfo;
-  struct DciInfoElement m_dci;
-  std::map<uint8_t, std::vector<struct RlcPduInfo> > m_rlcPduMap;   // RLC PDU elems for each MAC TB
 };
 
 struct UePhyPacketCountParameter
@@ -837,7 +796,7 @@ private:
   uint8_t m_componentCarrierId;
 };
 
-std::ostream & operator<< (std::ostream & os, VarTtiAllocInfo::TddMode const & item);
+std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);
 std::ostream & operator<< (std::ostream & os, DlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, UlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, SfnSf const & item);

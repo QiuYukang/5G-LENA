@@ -49,7 +49,7 @@
 #include <ns3/buildings-obstacle-propagation-loss-model.h>
 #include <ns3/lte-enb-component-carrier-manager.h>
 #include <ns3/lte-ue-component-carrier-manager.h>
-
+#include <ns3/bwp-manager-gnb.h>
 
 namespace ns3 {
 
@@ -110,14 +110,6 @@ MmWaveHelper::GetTypeId (void)
                    BooleanValue (false),
                    MakeBooleanAccessor (&MmWaveHelper::m_rlcAmEnabled),
                    MakeBooleanChecker ())
-    .AddAttribute ("EnbComponentCarrierManager",
-                   "The type of Component Carrier Manager to be used for eNBs. "
-                   "The allowed values for this attributes are the type names "
-                   "of any class inheriting ns3::LteEnbComponentCarrierManager.",
-                   StringValue ("ns3::NoOpComponentCarrierManager"),
-                   MakeStringAccessor (&MmWaveHelper::SetEnbComponentCarrierManagerType,
-                                       &MmWaveHelper::GetEnbComponentCarrierManagerType),
-                   MakeStringChecker ())
     .AddAttribute ("UeComponentCarrierManager",
                    "The type of Component Carrier Manager to be used for UEs. "
                    "The allowed values for this attributes are the type names "
@@ -274,28 +266,6 @@ bool
 MmWaveHelper::GetSnrTest ()
 {
   return m_snrTest;
-}
-
-std::string
-MmWaveHelper::GetEnbComponentCarrierManagerType () const
-{
-  return m_enbComponentCarrierManagerFactory.GetTypeId ().GetName ();
-}
-
-
-void
-MmWaveHelper::SetEnbComponentCarrierManagerType (std::string type)
-{
-  NS_LOG_FUNCTION (this << type);
-  m_enbComponentCarrierManagerFactory = ObjectFactory ();
-  m_enbComponentCarrierManagerFactory.SetTypeId (type);
-}
-
-void
-MmWaveHelper::SetEnbComponentCarrierManagerAttribute (std::string n, const AttributeValue &v)
-{
-  NS_LOG_FUNCTION (this << n);
-  m_enbComponentCarrierManagerFactory.Set (n, v);
 }
 
 std::string
@@ -475,11 +445,9 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       Ptr<MmWavePhyMacCommon> phyMacCommon = m_bwpConfiguration.at (it->first).m_phyMacCommon;
       rrc->SetLteUeCmacSapProvider (it->second->GetMac ()->GetUeCmacSapProvider (), it->first);
       it->second->GetMac ()->SetUeCmacSapUser (rrc->GetLteUeCmacSapUser (it->first));
-      it->second->GetMac ()->SetComponentCarrierId (it->first);
 
       it->second->GetPhy ()->SetUeCphySapUser (rrc->GetLteUeCphySapUser ());
       rrc->SetLteUeCphySapProvider (it->second->GetPhy ()->GetUeCphySapProvider (), it->first);
-      it->second->GetPhy ()->SetComponentCarrierId (it->first);
 
       it->second->GetPhy ()->SetConfigurationParameters (phyMacCommon);
       it->second->GetMac ()->SetConfigurationParameters (phyMacCommon);
@@ -624,7 +592,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
   NS_ASSERT (ccMap.size () == m_noOfCcs);
 
   Ptr<LteEnbRrc> rrc = CreateObject<LteEnbRrc> ();
-  Ptr<LteEnbComponentCarrierManager> ccmEnbManager = m_enbComponentCarrierManagerFactory.Create<LteEnbComponentCarrierManager> ();
+  Ptr<LteEnbComponentCarrierManager> ccmEnbManager = DynamicCast<LteEnbComponentCarrierManager> (CreateObject<BwpManagerGnb> ());
 
   // Convert Enb carrier map to only PhyConf map
   // we want to make RRC to be generic, to be able to work with any type of carriers, not only strictly LTE carriers
@@ -693,9 +661,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
 
       rrc->SetLteEnbCmacSapProvider (it->second->GetMac ()->GetEnbCmacSapProvider (),it->first );
       it->second->GetMac ()->SetEnbCmacSapUser (rrc->GetLteEnbCmacSapUser (it->first));
-
-      it->second->GetPhy ()->SetComponentCarrierId (it->first);
-      it->second->GetMac ()->SetComponentCarrierId (it->first);
 
       //FFR SAP - currently not used in mmwave module
       //it->second->GetFfMacScheduler ()->SetLteFfrSapProvider (it->second->GetFfrAlgorithm ()->GetLteFfrSapProvider ());

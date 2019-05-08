@@ -361,12 +361,6 @@ MmWaveEnbMac::DoDispose (void)
 }
 
 void
-MmWaveEnbMac::SetComponentCarrierId (uint8_t index)
-{
-  m_componentCarrierId = index;
-}
-
-void
 MmWaveEnbMac::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
 {
   m_phyMacConfig = ptrConfig;
@@ -580,7 +574,7 @@ MmWaveEnbMac::ReceiveBsrMessage  (MacCeElement bsr)
       mcle.m_macCeType = MacCeListElement_s::PHR;
     }
 
-  m_ccmMacSapUser->UlReceiveMacCe (mcle, m_componentCarrierId);
+  m_ccmMacSapUser->UlReceiveMacCe (mcle, m_phyMacConfig->GetCcId ());
 }
 
 void
@@ -629,7 +623,7 @@ MmWaveEnbMac::DoReportSrToScheduler(uint16_t rnti)
 {
   NS_LOG_FUNCTION (this);
   m_srRntiList.push_back (rnti);
-  m_srCallback (m_componentCarrierId, rnti);
+  m_srCallback (m_phyMacConfig->GetCcId (), rnti);
 }
 
 void
@@ -745,7 +739,7 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       {
         // Report it to the CCM. Then he will call the right MAC
         Ptr<MmWaveSRMessage> sr = DynamicCast<MmWaveSRMessage> (msg);
-        m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), m_componentCarrierId);
+        m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), m_phyMacConfig->GetCcId ());
         break;
       }
     case (MmWaveControlMessage::DL_CQI):
@@ -839,7 +833,7 @@ MmWaveEnbMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamet
 void
 MmWaveEnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 {
-  params.componentCarrierId = m_componentCarrierId;
+  params.componentCarrierId = m_phyMacConfig->GetCcId ();
   // TB UID passed back along with RLC data as HARQ process ID
   uint32_t tbMapKey = ((params.rnti & 0xFFFF) << 8) | (params.harqProcessId & 0xFF);
   std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
@@ -873,7 +867,8 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
   for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size (); islot++)
     {
       VarTtiAllocInfo &varTtiAllocInfo = ind.m_slotAllocInfo.m_varTtiAllocInfo[islot];
-      if (varTtiAllocInfo.m_varTtiType != VarTtiAllocInfo::CTRL && varTtiAllocInfo.m_tddMode == VarTtiAllocInfo::DL)
+      if (varTtiAllocInfo.m_dci->m_type != DciInfoElementTdma::CTRL
+          && varTtiAllocInfo.m_dci->m_format == DciInfoElementTdma::DL)
         {
           uint16_t rnti = varTtiAllocInfo.m_dci->m_rnti;
           std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
@@ -926,9 +921,9 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                       // The MAC and RLC already consider 2 bytes for the header.
                       // that's a repetition, and prevent transmitting very small
                       // portions.
-                      //(*lcidIt).second->NotifyTxOpportunity ((rlcPduInfo[ipdu].m_size)-subheader.GetSize (), 0, tbUid, m_componentCarrierId, rnti, rlcPduInfo[ipdu].m_lcid);
+                      //(*lcidIt).second->NotifyTxOpportunity ((rlcPduInfo[ipdu].m_size)-subheader.GetSize (), 0, tbUid, m_phyMacConfig->GetCcId (), rnti, rlcPduInfo[ipdu].m_lcid);
 
-                      (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo[ipdu].m_size), 0, tbUid, m_componentCarrierId, rnti, rlcPduInfo[ipdu].m_lcid));
+                      (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo[ipdu].m_size), 0, tbUid, m_phyMacConfig->GetCcId (), rnti, rlcPduInfo[ipdu].m_lcid));
                       harqIt->second.at (tbUid).m_lcidList.push_back (rlcPduInfo[ipdu].m_lcid);
                     }
 
@@ -957,7 +952,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                   m_macPduMap.erase (pduMapIt);    // delete map entry
 
                   m_dlScheduling (ind.m_sfnSf.m_frameNum, ind.m_sfnSf.m_subframeNum, ind.m_sfnSf.m_slotNum,
-                                  dciElem->m_tbSize, dciElem->m_mcs, dciElem->m_rnti, m_componentCarrierId);
+                                  dciElem->m_tbSize, dciElem->m_mcs, dciElem->m_rnti, m_phyMacConfig->GetCcId ());
 
 
                 }
@@ -1038,11 +1033,11 @@ MmWaveEnbMac::DoInitialize()
   for (unsigned i = 0; i < m_phyMacConfig->GetL1L2DataLatency (); i++)
     {
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
-      auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, rbgBitmask);
-      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
+      auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
+      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
-      VarTtiAllocInfo dlCtrlVarTti (VarTtiAllocInfo::DL, VarTtiAllocInfo::CTRL, dciDl);
-      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
+      VarTtiAllocInfo dlCtrlVarTti (dciDl);
+      VarTtiAllocInfo ulCtrlVarTti (dciUl);
 
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (dlCtrlVarTti);
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
@@ -1056,9 +1051,9 @@ MmWaveEnbMac::DoInitialize()
   for (unsigned i = 0; i < m_phyMacConfig->GetUlSchedDelay(); i++)
     {
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
-      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, rbgBitmask);
+      auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
-      VarTtiAllocInfo ulCtrlVarTti (VarTtiAllocInfo::UL, VarTtiAllocInfo::CTRL, dciUl);
+      VarTtiAllocInfo ulCtrlVarTti (dciUl);
 
       slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
 

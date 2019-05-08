@@ -723,7 +723,7 @@ MmWaveMacSchedulerNs3::ResetExpiredHARQ (uint16_t rnti, MmWaveMacHarqVector *har
  */
 uint8_t
 MmWaveMacSchedulerNs3::PrependCtrlSym (uint8_t symStart, uint8_t numSymToAllocate,
-                                       VarTtiAllocInfo::TddMode mode,
+                                       DciInfoElementTdma::DciFormat mode,
                                        std::deque<VarTtiAllocInfo> *allocations) const
 {
   std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
@@ -731,7 +731,7 @@ MmWaveMacSchedulerNs3::PrependCtrlSym (uint8_t symStart, uint8_t numSymToAllocat
   NS_ASSERT_MSG (rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg (),
                  "bitmask size " << rbgBitmask.size () << " conf " <<
                  m_phyMacConfig->GetBandwidthInRbg ());
-  if (mode == VarTtiAllocInfo::DL)
+  if (mode == DciInfoElementTdma::DL)
     {
       NS_ASSERT (allocations->size () == 0); // no previous allocations
       NS_ASSERT (symStart == 0); // start from the symbol 0
@@ -739,8 +739,7 @@ MmWaveMacSchedulerNs3::PrependCtrlSym (uint8_t symStart, uint8_t numSymToAllocat
 
   for (uint8_t sym = symStart; sym < symStart + numSymToAllocate; ++sym)
     {
-      allocations->emplace_front (VarTtiAllocInfo (mode, VarTtiAllocInfo::CTRL,
-                                                   std::make_shared<DciInfoElementTdma> (sym, 1, rbgBitmask)));
+      allocations->emplace_front (VarTtiAllocInfo (std::make_shared<DciInfoElementTdma> (sym, 1, mode, DciInfoElementTdma::CTRL, rbgBitmask)));
       NS_LOG_INFO ("Allocating CTRL symbol, type" << mode <<
                    " in TDMA. numSym=1, symStart=" <<
                    static_cast<uint32_t> (sym) <<
@@ -759,13 +758,13 @@ MmWaveMacSchedulerNs3::PrependCtrlSym (uint8_t symStart, uint8_t numSymToAllocat
  */
 uint8_t
 MmWaveMacSchedulerNs3::AppendCtrlSym (uint8_t symStart, uint8_t numSymToAllocate,
-                                      VarTtiAllocInfo::TddMode mode,
+                                      DciInfoElementTdma::DciFormat mode,
                                       std::deque<VarTtiAllocInfo> *allocations) const
 {
   std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
 
   NS_ASSERT (rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
-  if (mode == VarTtiAllocInfo::DL)
+  if (mode == DciInfoElementTdma::DL)
     {
       NS_ASSERT (allocations->size () == 0); // no previous allocations
       NS_ASSERT (symStart == 0); // start from the symbol 0
@@ -773,8 +772,7 @@ MmWaveMacSchedulerNs3::AppendCtrlSym (uint8_t symStart, uint8_t numSymToAllocate
 
   for (uint8_t sym = symStart; sym < symStart + numSymToAllocate; ++sym)
     {
-      allocations->emplace_back (VarTtiAllocInfo (mode, VarTtiAllocInfo::CTRL,
-                                                  std::make_shared<DciInfoElementTdma> (sym, 1, rbgBitmask)));
+      allocations->emplace_back (VarTtiAllocInfo (std::make_shared<DciInfoElementTdma> (sym, 1, mode, DciInfoElementTdma::CTRL, rbgBitmask)));
       NS_LOG_INFO ("Allocating CTRL symbol, type" << mode <<
                    " in TDMA. numSym=1, symStart=" <<
                    static_cast<uint32_t> (sym) <<
@@ -1084,7 +1082,7 @@ MmWaveMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAva
 
           auto distributedBytes = AssignBytesToLC (ue.first->m_dlLCG, dci->m_tbSize);
 
-          VarTtiAllocInfo slotInfo (VarTtiAllocInfo::DL, VarTtiAllocInfo::DATA, dci);
+          VarTtiAllocInfo slotInfo (dci);
 
           NS_LOG_INFO ("Assigned process ID " << static_cast<uint32_t> (dci->m_harqProcess) <<
                        " to UE " << ue.first->m_rnti);
@@ -1238,7 +1236,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAva
 
           ue.first->m_ulHarq.Get (id).m_dciElement->m_harqProcess = id;
 
-          VarTtiAllocInfo slotInfo (VarTtiAllocInfo::UL, VarTtiAllocInfo::DATA, dci);
+          VarTtiAllocInfo slotInfo (dci);
 
           NS_LOG_INFO ("Assigned process ID " << static_cast<uint32_t> (dci->m_harqProcess) <<
                        " to UE " << ue.first->m_rnti);
@@ -1362,7 +1360,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
 
       ue->m_ulHarq.Get (id).m_dciElement->m_harqProcess = id;
 
-      VarTtiAllocInfo slotInfo (VarTtiAllocInfo::UL, VarTtiAllocInfo::DATA, dci);
+      VarTtiAllocInfo slotInfo (dci);
 
       NS_LOG_DEBUG (" UE" << dci->m_rnti <<
                     " gets UL symbols " << static_cast<uint32_t> (dci->m_symStart) <<
@@ -1445,7 +1443,7 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   auto & ulAllocations = ulAllocationIt->second;
 
   // add slot for DL control, at symbol 0
-  PrependCtrlSym (0, m_phyMacConfig->GetDlCtrlSymbols (), VarTtiAllocInfo::DL,
+  PrependCtrlSym (0, m_phyMacConfig->GetDlCtrlSymbols (), DciInfoElementTdma::DL,
                   &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetDlCtrlSymbols ();
 
@@ -1526,8 +1524,7 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
 
   // add slot for UL control, at last symbol (13 in most cases)
   AppendCtrlSym (static_cast<uint8_t> (m_phyMacConfig->GetSymbolsPerSlot () - 1),
-                 1, VarTtiAllocInfo::UL,
-                 &ulSlot.m_slotAllocInfo.m_varTtiAllocInfo);
+                 1, DciInfoElementTdma::UL, &ulSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   ulSlot.m_slotAllocInfo.m_numSymAlloc += 1;
 
   NS_LOG_INFO ("Total DCI for UL : " << ulSlot.m_slotAllocInfo.m_varTtiAllocInfo.size () <<
@@ -1671,7 +1668,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       auto & allocations = m_ulAllocationMap.at (ulSfn.Encode ()).m_ulAllocations;
       for (const auto &alloc : allocInfo->m_varTtiAllocInfo)
         {
-          if (alloc.m_varTtiType == VarTtiAllocInfo::DATA && alloc.m_tddMode == VarTtiAllocInfo::UL)
+          if (alloc.m_dci->m_type == DciInfoElementTdma::DATA && alloc.m_dci->m_format == DciInfoElementTdma::UL)
             {
               // THIS DOESN'T WORK FOR UL OFDMA (IF EXISTS)
               NS_LOG_INFO ("Placed an allocation in the map for the CQI, RNTI " <<

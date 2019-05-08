@@ -128,6 +128,8 @@ is now inheriting from PointToPointEpcHelper.
 transmission.
 * Removed attribute *BeamformingEnabled* and *UpdateBeamformingVectorsIdeally*
 from MmWave3gppChannel.
+* Removed attribute *EnbComponentCarrierManager* from MmWaveHelper. The only allowed
+CCManager is now BwpManagerGnb.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of

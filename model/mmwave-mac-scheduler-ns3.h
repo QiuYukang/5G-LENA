@@ -612,10 +612,10 @@ private:
               const std::vector <UlHarqInfo> &ulHarqInfo);
 
   uint8_t AppendCtrlSym (uint8_t symStart, uint8_t numSymToAllocate,
-                         VarTtiAllocInfo::TddMode mode,
+                         DciInfoElementTdma::DciFormat mode,
                          std::deque<VarTtiAllocInfo> *allocations) const;
   uint8_t PrependCtrlSym (uint8_t symStart, uint8_t numSymToAllocate,
-                          VarTtiAllocInfo::TddMode mode,
+                          DciInfoElementTdma::DciFormat mode,
                           std::deque<VarTtiAllocInfo> *allocations) const;
 
 

@@ -460,22 +460,6 @@ MmWavePhy::PeekSlotAllocInfo (const SfnSf &sfnsf)
   return m_slotAllocInfo[sfnsf];
 }
 
-void
-MmWavePhy::SetComponentCarrierId (uint8_t index)
-{
-  NS_LOG_FUNCTION (this);
-  m_componentCarrierId = index;
-  m_downlinkSpectrumPhy->SetComponentCarrierId (index);
-  m_uplinkSpectrumPhy->SetComponentCarrierId (index);
-}
-
-uint8_t
-MmWavePhy::GetComponentCarrierId ()
-{
-  NS_LOG_FUNCTION (this);
-  return m_componentCarrierId;
-}
-
 Ptr<AntennaArrayBasicModel>
 MmWavePhy::GetAntennaArray () const
 {

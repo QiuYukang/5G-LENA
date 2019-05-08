@@ -538,13 +538,19 @@ SlotAllocInfo::Merge (const SlotAllocInfo &other)
   std::sort (m_varTtiAllocInfo.begin (), m_varTtiAllocInfo.end ());
 }
 
-std::ostream & operator<< (std::ostream & os, VarTtiAllocInfo::TddMode const & item)
+bool
+SlotAllocInfo::operator < (const SlotAllocInfo &rhs) const
 {
-  if (item == VarTtiAllocInfo::DL)
+  return m_sfnSf < rhs.m_sfnSf;
+}
+
+std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item)
+{
+  if (item == DciInfoElementTdma::DL)
     {
       os << "DL";
     }
-  else if (item == VarTtiAllocInfo::UL)
+  else if (item == DciInfoElementTdma::UL)
     {
       os << "UL";
     }

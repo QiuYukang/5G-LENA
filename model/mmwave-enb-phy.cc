@@ -210,7 +210,7 @@ MmWaveEnbPhy::GetmmWaveEnbCphySapProvider ()
   return m_enbCphySapProvider;
 }
 
-AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint8_t rnti) const
+AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 {
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
@@ -290,11 +290,11 @@ MmWaveEnbPhy::StartSlot (void)
   for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
       std::string direction, type;
-      if (alloc.m_varTtiType == VarTtiAllocInfo::CTRL)
+      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
         {
           type = "CTRL";
         }
-      else if (alloc.m_varTtiType == VarTtiAllocInfo::CTRL_DATA)
+      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
         {
           type = "CTRL_DATA";
         }
@@ -303,7 +303,7 @@ MmWaveEnbPhy::StartSlot (void)
           type = "DATA";
         }
 
-      if (alloc.m_tddMode == VarTtiAllocInfo::UL)
+      if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
           direction = "UL";
         }
@@ -355,8 +355,8 @@ MmWaveEnbPhy::StartSlot (void)
 
   if (m_ctrlMsgs.size () > 0)
     {
-      NS_ASSERT (m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_tddMode == VarTtiAllocInfo::DL &&
-                 m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_varTtiType == VarTtiAllocInfo::CTRL);
+      NS_ASSERT (m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_dci->m_format == DciInfoElementTdma::DL &&
+                 m_currSlotAllocInfo.m_varTtiAllocInfo.at(0).m_dci->m_type == DciInfoElementTdma::CTRL);
     }
 
   StartVarTti ();
@@ -408,8 +408,8 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
                " allocations");
   for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
-      if (dlAlloc.m_varTtiType != VarTtiAllocInfo::CTRL
-          && dlAlloc.m_tddMode == VarTtiAllocInfo::DL)
+      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
+          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
         {
           auto dciElem = dlAlloc.m_dci;
           NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
@@ -447,8 +447,8 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
                        " allocations");
           for (const auto & ulAlloc : ulSlot.m_varTtiAllocInfo)
             {
-              if (ulAlloc.m_varTtiType != VarTtiAllocInfo::CTRL
-                  && ulAlloc.m_tddMode == VarTtiAllocInfo::UL)
+              if (ulAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
+                  && ulAlloc.m_dci->m_format == DciInfoElementTdma::UL)
                 {
                   auto dciElem = ulAlloc.m_dci;
 
@@ -474,8 +474,8 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
     {
       for (const auto & ulAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
         {
-          if (ulAlloc.m_varTtiType != VarTtiAllocInfo::CTRL
-              && ulAlloc.m_tddMode == VarTtiAllocInfo::UL)
+          if (ulAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
+              && ulAlloc.m_dci->m_format == DciInfoElementTdma::UL)
             {
               auto dciElem = ulAlloc.m_dci;
 
@@ -652,26 +652,26 @@ MmWaveEnbPhy::StartVarTti (void)
 
   Time varTtiPeriod;
 
-  NS_ASSERT (currVarTti.m_varTtiType != VarTtiAllocInfo::CTRL_DATA);
+  NS_ASSERT (currVarTti.m_dci->m_type != DciInfoElementTdma::CTRL_DATA);
 
-  if (currVarTti.m_varTtiType == VarTtiAllocInfo::CTRL)
+  if (currVarTti.m_dci->m_type == DciInfoElementTdma::CTRL)
     {
-      if (currVarTti.m_tddMode == VarTtiAllocInfo::DL)
+      if (currVarTti.m_dci->m_format == DciInfoElementTdma::DL)
         {
           varTtiPeriod = DlCtrl (currVarTti.m_dci);
         }
-      else if (currVarTti.m_tddMode == VarTtiAllocInfo::UL)
+      else if (currVarTti.m_dci->m_format == DciInfoElementTdma::UL)
         {
           varTtiPeriod = UlCtrl (currVarTti.m_dci);
         }
     }
-  else  if (currVarTti.m_varTtiType == VarTtiAllocInfo::DATA)
+  else  if (currVarTti.m_dci->m_type == DciInfoElementTdma::DATA)
     {
-      if (currVarTti.m_tddMode == VarTtiAllocInfo::DL)
+      if (currVarTti.m_dci->m_format == DciInfoElementTdma::DL)
         {
           varTtiPeriod = DlData (currVarTti);
         }
-      else if (currVarTti.m_tddMode == VarTtiAllocInfo::UL)
+      else if (currVarTti.m_dci->m_format == DciInfoElementTdma::UL)
         {
           varTtiPeriod = UlData (currVarTti.m_dci);
         }

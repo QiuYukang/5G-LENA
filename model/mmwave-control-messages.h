@@ -106,27 +106,6 @@ private:
  * for the UEs attached to a given BS.                      *
  ************************************************************/
 
-class MmWaveDciMessage : public MmWaveControlMessage
-{
-public:
-  MmWaveDciMessage (void);
-  virtual ~MmWaveDciMessage (void);
-
-//	void SetRbAllocationMap (SlotAllocInfo allocMap);
-//	SlotAllocInfo GetRbAllocationMap (void);
-
-  void SetDciInfoElement (DciInfoElement dci);
-  DciInfoElement GetDciInfoElement (void);
-
-  void SetSfnSf (uint32_t sfn);
-  uint32_t GetSfnSf (void);
-
-private:
-  uint32_t m_sfnSf;        // frame num and sf num for debugging
-//	SlotAllocInfo m_rscAllocationMap;
-  DciInfoElement m_dciInfoElement;
-};
-
 class MmWaveTdmaDciMessage : public MmWaveControlMessage
 {
 public:

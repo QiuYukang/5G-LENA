@@ -56,12 +56,6 @@ public:
   LteUeCmacSapProvider*  GetUeCmacSapProvider (void);
   LteMacSapProvider*  GetUeMacSapProvider (void);
 
-  /**
-  * \brief Set the component carried ID
-  * \param index the component carrier ID
-  */
-  void SetComponentCarrierId (uint8_t index);
-
   void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
@@ -73,9 +67,6 @@ public:
   void RecvRaResponse (BuildRarListElement_s raResponse);
 
   virtual void SetRnti (uint16_t);
-
-  /// component carrier Id --> used to address sap
-  uint8_t m_componentCarrierId;
 
 private:
   /**
@@ -124,7 +115,6 @@ private:
   LteUeCmacSapUser* m_cmacSapUser;
   LteUeCmacSapProvider* m_cmacSapProvider;
 
-  TddVarTtiTypeList m_DataTxTDDMap;
   SlotAllocInfo m_DataTxAllocationList;
 
   MmWavePhySapProvider* m_phySapProvider;

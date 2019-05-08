@@ -79,19 +79,41 @@ BwpManagerGnb::DoSetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint1
   return lcsConfig;
 }
 
+uint8_t
+BwpManagerGnb::GetBwpIndex (uint16_t rnti, uint8_t lcid)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
+  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti)->second.find (lcid) != m_rlcLcInstantiated.find (rnti)->second.end (), "Unknown logical channel of UE");
+
+  uint8_t qci = m_rlcLcInstantiated.find (rnti)->second.find (lcid)->second.qci;
+
+  // Force a conversion between the uint8_t type that comes from the LcInfo
+  // struct (yeah, using the EpsBearer::Qci type was too hard ...)
+  return m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
+}
+
+uint8_t
+BwpManagerGnb::PeekBwpIndex (uint16_t rnti, uint8_t lcid) const
+{
+  NS_LOG_FUNCTION (this);
+  // For the moment, Get and Peek are the same, but they'll change
+  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
+  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti)->second.find (lcid) != m_rlcLcInstantiated.find (rnti)->second.end (), "Unknown logical channel of UE");
+
+  uint8_t qci = m_rlcLcInstantiated.find (rnti)->second.find (lcid)->second.qci;
+
+  // Force a conversion between the uint8_t type that comes from the LcInfo
+  // struct (yeah, using the EpsBearer::Qci type was too hard ...)
+  return m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
+}
 
 void
 BwpManagerGnb::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid) != m_rlcLcInstantiated.find (params.rnti)->second.end (), "Unknown logical channel of UE");
 
-  uint8_t qci = m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid)->second.qci;
-
-  // Force a conversion between the uint8_t type that comes from the LcInfo
-  // struct (yeah, using the EpsBearer::Qci type was too hard ...)
-  uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
+  uint8_t bwpIndex = GetBwpIndex (params.rnti, params.lcid);
 
   if (m_macSapProvidersMap.find (bwpIndex) != m_macSapProvidersMap.end ())
     {

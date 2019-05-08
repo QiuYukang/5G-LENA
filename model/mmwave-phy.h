@@ -92,10 +92,6 @@ public:
   virtual void DoInitialize (void);
 
   void InstallAntenna ();
-  /*	*
-   * \returns transmission time interval
-
-      double GetTti (void) const;*/
 
   void DoSetCellId (uint16_t cellId);
 
@@ -159,22 +155,7 @@ public:
    */
   SlotAllocInfo & PeekSlotAllocInfo (const SfnSf & sfnsf);
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const = 0;
-
-  /**
-  * Set the component carrier ID
-  *
-  * \param index the component carrier ID index
-  */
-  void SetComponentCarrierId (uint8_t index);
-
-  /**
-  * Get the component carrier ID
-  *
-  * \returns the component carrier ID index
-  */
-  uint8_t GetComponentCarrierId ();
-
+  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
 
   virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
 
@@ -235,21 +216,12 @@ protected:
   std::map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
   std::vector<std::list<Ptr<MmWaveControlMessage> > > m_controlMessageQueue;
 
-  TddVarTtiTypeList m_currTddMap;
-  //	std::list<SlotAllocInfo> m_slotAllocInfoList;
   SlotAllocInfo m_currSlotAllocInfo;
-
-  //std::vector<SlotAllocInfo> m_slotAllocInfo;	// maps subframe num to allocation info
-
 
   uint16_t m_frameNum;
   uint8_t m_subframeNum;
   uint8_t m_slotNum;
   uint8_t m_varTtiNum;
-
-  std::map<uint32_t, TddVarTtiTypeList> m_tddPatternForVarTtiMap;
-
-  std::map<uint32_t, SlotAllocInfo> m_varTtiAllocInfoMap;
 
   MmWavePhySapProvider* m_phySapProvider;
 
@@ -258,7 +230,7 @@ protected:
   bool m_slotAllocInfoUpdated;
 
 private:
-  std::map <SfnSf,SlotAllocInfo> m_slotAllocInfo;   // maps subframe num to allocation info
+  std::map<SfnSf, SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
 
   uint8_t m_antennaNumDim1 {0};
   uint8_t m_antennaNumDim2 {0};
