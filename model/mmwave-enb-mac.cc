@@ -317,6 +317,14 @@ MmWaveEnbMac::GetTypeId (void)
                      "Information regarding received scheduling request.",
                      MakeTraceSourceAccessor (&MmWaveEnbMac::m_srCallback),
                      "ns3::MmWaveEnbMac::SrTracedCallback")
+    .AddTraceSource ("EnbMacRxedCtrlMsgsTrace",
+                     "Enb MAC Rxed Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveEnbMac::m_macRxedCtrlMsgsTrace),
+                     "ns3::MmWaveMacRxTrace::RxedEnbMacCtrlMsgsTracedCallback")
+    .AddTraceSource ("EnbMacTxedCtrlMsgsTrace",
+                     "Enb MAC Txed Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveEnbMac::m_macTxedCtrlMsgsTrace),
+                     "ns3::MmWaveMacRxTrace::TxedEnbMacCtrlMsgsTracedCallback")
   ;
   return tid;
 }
@@ -370,20 +378,6 @@ MmWaveEnbMac::GetConfigurationParameters (void) const
 void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
-  NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Received RACH preamble (on the air) from " << raId << " in slot " <<
-               SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
-               ", scheduling MAC reception after the decode latency");
-  Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
-                                     &MmWaveEnbMac::DoReceiveRachPreamble, this, raId);
-}
-
-void
-MmWaveEnbMac::DoReceiveRachPreamble (uint32_t raId)
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Received RACH preamble from " << raId << " in slot " <<
-               SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
   ++m_receivedRachPreambleCount[raId];
 }
 
@@ -739,6 +733,7 @@ void
 MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
 {
   NS_LOG_FUNCTION (this << msg);
+
   switch (msg->GetMessageType ())
     {
     case (MmWaveControlMessage::SR):
@@ -746,6 +741,7 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         // Report it to the CCM. Then he will call the right MAC
         Ptr<MmWaveSRMessage> sr = DynamicCast<MmWaveSRMessage> (msg);
         m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), m_phyMacConfig->GetCcId ());
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), sr->GetRNTI (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_CQI):
@@ -754,18 +750,21 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         DlCqiInfo cqiElement = cqi->GetDlCqi ();
         NS_ASSERT (cqiElement.m_rnti != 0);
         m_dlCqiReceived.push_back (cqiElement);
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), cqiElement.m_rnti, msg);
         break;
       }
     case (MmWaveControlMessage::BSR):
       {
         Ptr<MmWaveBsrMessage> bsr = DynamicCast<MmWaveBsrMessage> (msg);
         ReceiveBsrMessage (bsr->GetBsr ());
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), bsr->GetBsr().m_rnti, msg);
         break;
       }
     case (MmWaveControlMessage::DL_HARQ):
       {
         Ptr<MmWaveDlHarqFeedbackMessage> dlharq = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
         DoDlHarqFeedback (dlharq->GetDlHarqFeedback ());
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), dlharq->GetDlHarqFeedback().m_rnti, msg);
         break;
       }
     default:
@@ -887,6 +886,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
       NS_LOG_INFO ("In slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
                    " send to PHY the RAR message for RNTI " <<
                    rarAllocation.m_rnti << " rapId " << itRapId->second);
+      m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), rarAllocation.m_rnti, rarMsg);
     }
 
   if (ind.m_buildRarList.size () > 0)

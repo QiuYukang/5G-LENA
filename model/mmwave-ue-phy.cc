@@ -129,7 +129,16 @@ MmWaveUePhy::GetTypeId (void)
     .AddTraceSource ("ReportDownlinkTbSize",
                      "Report allocated downlink TB size for trace.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportDlTbSize),
-                     "ns3::DlTbSize::TracedCallback");
+                     "ns3::DlTbSize::TracedCallback")
+    .AddTraceSource ("UePhyRxedCtrlMsgsTrace",
+                     "Ue PHY Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyRxedCtrlMsgsTrace),
+                     "ns3::MmWavePhyRxTrace::RxedUePhyCtrlMsgsTracedCallback")
+    .AddTraceSource ("UePhyTxedCtrlMsgsTrace",
+                     "Ue PHY Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyTxedCtrlMsgsTrace),
+                     "ns3::MmWavePhyRxTrace::TxedUePhyCtrlMsgsTracedCallback")
+      ;
   return tid;
 }
 
@@ -268,6 +277,8 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           auto dciInfoElem = dciMsg->GetDciInfoElement ();
           SfnSf dciSfn = dciMsg->GetSfnSf ();
 
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
+
           if (dciSfn.m_frameNum != m_frameNum || dciSfn.m_subframeNum != m_subframeNum)
             {
               NS_FATAL_ERROR ("DCI intended for different subframe (dci= "
@@ -340,18 +351,21 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           NS_ASSERT (m_cellId > 0);
           Ptr<MmWaveMibMessage> msg2 = DynamicCast<MmWaveMibMessage> (msg);
           m_ueCphySapUser->RecvMasterInformationBlock (m_cellId, msg2->GetMib ());
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
         {
           NS_ASSERT (m_cellId > 0);
           Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
           m_ueCphySapUser->RecvSystemInformationBlockType1 (m_cellId, msg2->GetSib1 ());
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
         {
           NS_ASSERT (m_cellId > 0);
           NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
           Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
 
           // As the TbDecodeLatency includes only the PHY delay, and considering
           // that the RAR message is then forwarded immediately by the MAC to the
@@ -362,6 +376,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
       else
         {
           m_phySapUser->ReceiveControlMessage (msg);
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
         }
     }
 
@@ -495,6 +510,12 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
 
   std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
+
+  for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
+    {
+      Ptr<MmWaveControlMessage> msg = (*ctrlIt);
+      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart), dci->m_rnti, msg);
+    }
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<

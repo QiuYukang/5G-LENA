@@ -199,6 +199,14 @@ MmWaveUeMac::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWaveUeMac")
     .SetParent<Object> ()
     .AddConstructor<MmWaveUeMac> ()
+    .AddTraceSource ("UeMacRxedCtrlMsgsTrace",
+                     "Ue MAC Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUeMac::m_macRxedCtrlMsgsTrace),
+                     "ns3::MmWaveMacRxTrace::RxedUeMacCtrlMsgsTracedCallback")
+    .AddTraceSource ("UeMacTxedCtrlMsgsTrace",
+                     "Ue MAC Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUeMac::m_macTxedCtrlMsgsTrace),
+                     "ns3::MmWaveMacRxTrace::TxedUeMacCtrlMsgsTracedCallback")
   ;
   return tid;
 }
@@ -404,6 +412,8 @@ MmWaveUeMac::SendReportBufferStatus (void)
   Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
   msg->SetBsr (bsr);
   m_phySapProvider->SendControlMessage (msg);
+
+  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), bsr.m_rnti, msg);
 }
 
 void
@@ -481,6 +491,8 @@ MmWaveUeMac::SendSR () const
   msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
   m_phySapProvider->SendControlMessage (msg);
+
+  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
 }
 
 void
@@ -569,6 +581,8 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       {
         Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast <MmWaveTdmaDciMessage> (msg);
         auto dciInfoElem = dciMsg->GetDciInfoElement ();
+
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
 
         if (dciInfoElem->m_format == DciInfoElementTdma::UL)
           {
@@ -778,6 +792,9 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
     case (MmWaveControlMessage::RAR):
       {
         NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+        m_macRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, msg);
+
         if (m_waitingForRaResponse == true)
           {
             Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);

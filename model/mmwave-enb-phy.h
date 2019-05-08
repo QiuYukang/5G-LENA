@@ -181,6 +181,32 @@ public:
    */
   void SetPerformBeamformingFn (const PerformBeamformingFn &fn);
 
+  /**
+   *  TracedCallback signature for Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* RxedEnbPhyCtrlMsgsTracedCallback)
+      (const SfnSf sfn, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
+  /**
+   *  TracedCallback signature for Transmitted Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* TxedEnbPhyCtrlMsgsTracedCallback)
+      (const SfnSf sfn, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
 protected:
   // From object
   virtual void DoDispose (void) override;
@@ -277,6 +303,20 @@ private:
   PerformBeamformingFn m_doBeamforming; //!< Beamforming function
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_ulSinrTrace; //!< SINR trace
+
+  /**
+   * Trace information regarding Received Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * pointer to message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
+
+  /**
+   * Trace information regarding Transmitted Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * pointer to message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 };
 
 }

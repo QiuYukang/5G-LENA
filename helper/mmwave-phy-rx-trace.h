@@ -28,9 +28,11 @@
 
 #ifndef SRC_MMWAVE_HELPER_MMWAVE_PHY_RX_TRACE_H_
 #define SRC_MMWAVE_HELPER_MMWAVE_PHY_RX_TRACE_H_
+
 #include <ns3/object.h>
 #include <ns3/spectrum-value.h>
 #include <ns3/mmwave-phy-mac-common.h>
+#include <ns3/mmwave-control-messages.h>
 #include <fstream>
 #include <iostream>
 
@@ -55,6 +57,58 @@ public:
   static void RxPacketTraceUeCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, RxPacketTraceParams param);
   static void RxPacketTraceEnbCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, RxPacketTraceParams param);
 
+  /**
+   *  Trace sink for Enb Phy Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  static void RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                          uint16_t rnti, Ptr<MmWaveControlMessage> msg);
+
+  /**
+   *  Trace sink for Enb Phy Transmitted Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  static void TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                          uint16_t rnti, Ptr<MmWaveControlMessage> msg);
+
+  /**
+   *  Trace sink for Ue Phy Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  static void RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                         uint16_t rnti, Ptr<MmWaveControlMessage> msg);
+
+  /**
+   *  Trace sink for Ue Phy Transmitted Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  static void TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                         uint16_t rnti, Ptr<MmWaveControlMessage> msg);
+
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);
   void ReportPowerTrace (uint64_t imsi, SpectrumValue& power);
@@ -64,6 +118,16 @@ private:
 
   static std::ofstream m_rxPacketTraceFile;
   static std::string m_rxPacketTraceFilename;
+
+  static std::ofstream m_rxedEnbPhyCtrlMsgsFile;
+  static std::string m_rxedEnbPhyCtrlMsgsFileName;
+  static std::ofstream m_txedEnbPhyCtrlMsgsFile;
+  static std::string m_txedEnbPhyCtrlMsgsFileName;
+
+  static std::ofstream m_rxedUePhyCtrlMsgsFile;
+  static std::string m_rxedUePhyCtrlMsgsFileName;
+  static std::ofstream m_txedUePhyCtrlMsgsFile;
+  static std::string m_txedUePhyCtrlMsgsFileName;
 };
 
 } /* namespace ns3 */

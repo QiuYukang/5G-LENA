@@ -97,6 +97,14 @@ MmWaveEnbPhy::GetTypeId (void)
                      "UL SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveEnbPhy::m_ulSinrTrace),
                      "ns3::UlSinr::TracedCallback")
+    .AddTraceSource ("EnbPhyRxedCtrlMsgsTrace",
+                     "Enb PHY Rxed Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveEnbPhy::m_phyRxedCtrlMsgsTrace),
+                     "ns3::MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsTracedCallback")
+    .AddTraceSource ("EnbPhyTxedCtrlMsgsTrace",
+                     "Enb PHY Txed Control Messages Traces.",
+                     MakeTraceSourceAccessor (&MmWaveEnbPhy::m_phyTxedCtrlMsgsTrace),
+                     "ns3::MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsTracedCallback")
     .AddAttribute ("MmWavePhyMacCommon",
                    "The associated MmWavePhyMacCommon",
                    PointerValue (),
@@ -468,6 +476,7 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
           Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
           msg->SetSib1 (m_sib1);
           EnqueueCtrlMsgNow (msg);
+          // TODO: SIB21 has to be sent every 2 frames
         }
     }
 
@@ -485,6 +494,12 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
 
+  for (auto ctrlIt = ctrlMsgs.begin (); ctrlIt != ctrlMsgs.end (); ++ctrlIt)
+    {
+      Ptr<MmWaveControlMessage> msg = (*ctrlIt);
+      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart), dci->m_rnti, msg);
+    }
+
   NS_LOG_DEBUG ("ENB TXing DL CTRL with " << ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
                 " subframe " << static_cast<uint32_t> (m_subframeNum) <<
                 " slot " << static_cast<uint32_t> (m_slotNum) <<
@@ -492,6 +507,8 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                 "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
                 " start " << Simulator::Now () <<
                 " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
+
+
 
   SendCtrlChannels (&ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
 
@@ -853,11 +870,19 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
         {
           NS_LOG_INFO ("received CQI");
           m_phySapUser->ReceiveControlMessage (msg);
+
+          Ptr<MmWaveDlCqiMessage> dlcqi = DynamicCast<MmWaveDlCqiMessage> (msg);
+          DlCqiInfo dlcqiLE = dlcqi->GetDlCqi ();
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), dlcqiLE.m_rnti, msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
         {
           NS_LOG_INFO ("received BSR");
           m_phySapUser->ReceiveControlMessage (msg);
+
+          Ptr<MmWaveBsrMessage> bsrmsg = DynamicCast<MmWaveBsrMessage> (msg);
+          MacCeElement macCeEl = bsrmsg->GetBsr();
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), macCeEl.m_rnti, msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
         {
@@ -866,6 +891,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
 
           Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
           m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), 0, msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
         {
@@ -880,6 +906,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
           if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
             {
               m_phySapUser->ReceiveControlMessage (msg);
+              m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), dlharq.m_rnti, msg);
             }
         }
       else

@@ -114,6 +114,32 @@ public:
    */
   typedef void (* SrTracedCallback) (const uint8_t ccId, const uint16_t rnti);
 
+  /**
+   *  TracedCallback signature for Enb Mac Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* RxedEnbMacCtrlMsgsTracedCallback)
+      (const SfnSf sfn, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
+  /**
+   *  TracedCallback signature for Enb Mac Transmitted Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* TxedEnbMacCtrlMsgsTracedCallback)
+      (const SfnSf sfn, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
 protected:
   virtual void DoInitialize () override;
   virtual void DoDispose (void) override;
@@ -217,6 +243,20 @@ private:
   std::map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
+
+  /**
+   * Trace information regarding ENB MAC Received Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti, pointer to
+   * message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
+
+  /**
+   * Trace information regarding ENB MAC Transmitted Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti, pointer to
+   * message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
 };
 
 }

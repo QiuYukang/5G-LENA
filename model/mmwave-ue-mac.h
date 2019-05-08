@@ -92,6 +92,32 @@ public:
    */
   void SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfig);
 
+  /**
+   *  TracedCallback signature for Ue Mac Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* RxedUeMacCtrlMsgsTracedCallback)
+    (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
+  /**
+   *  TracedCallback signature for Ue Mac Transmitted Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* TxedUeMacCtrlMsgsTracedCallback)
+    (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
+
+
 protected:
   // From object
   virtual void DoDispose (void) override;
@@ -213,6 +239,20 @@ private:
 
   bool m_waitingForRaResponse {true};
   static uint8_t g_raPreambleId;
+
+  /**
+   * Trace information regarding Ue MAC Received Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * pointer to message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
+
+  /**
+   * Trace information regarding Ue MAC Transmitted Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * pointer to message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
 };
 
 }

@@ -47,6 +47,7 @@
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/mmwave-rrc-protocol-ideal.h>
 #include "mmwave-phy-rx-trace.h"
+#include "mmwave-mac-rx-trace.h"
 #include <ns3/epc-helper.h>
 #include <ns3/epc-ue-nas.h>
 #include <ns3/lte-enb-rrc.h>
@@ -224,6 +225,10 @@ private:
   void EnableUePacketCountTrace ();
   void EnableTransportBlockTrace ();
   void EnableRlcTraces (void);
+  void EnableEnbPhyCtrlMsgsTraces (void);
+  void EnableUePhyCtrlMsgsTraces (void);
+  void EnableEnbMacCtrlMsgsTraces (void);
+  void EnableUeMacCtrlMsgsTraces (void);
   Ptr<MmWaveBearerStatsCalculator> GetRlcStats (void);
   void EnablePdcpTraces (void);
   Ptr<MmWaveBearerStatsCalculator> GetPdcpStats (void);
@@ -246,6 +251,7 @@ private:
   uint16_t m_cellIdCounter;
 
   Ptr<MmWavePhyRxTrace> m_phyStats;
+  Ptr<MmwaveMacRxTrace> m_macStats;
 
   ObjectFactory m_ffrAlgorithmFactory;
 

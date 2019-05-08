@@ -161,6 +161,32 @@ public:
    */
   void ReceiveLteDlHarqFeedback (const DlHarqInfo &m);
 
+  /**
+   *  TracedCallback signature for Ue Phy Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* RxedUePhyCtrlMsgsTracedCallback)
+      (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
+  /**
+   *  TracedCallback signature for Ue Phy Transmitted Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] pointer to msg to get the msg type
+   */
+  typedef void (* TxedUePhyCtrlMsgsTracedCallback)
+      (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+
   // From mmwave phy. Not used in the UE
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
 
@@ -255,6 +281,20 @@ private:
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
+
+  /**
+   * Trace information regarding Ue PHY Received Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * pointer to message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
+
+  /**
+   * Trace information regarding Ue PHY Transmitted Control Messages
+   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * pointer to message in order to get the msg type
+   */
+  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 };
 
 }
