@@ -453,8 +453,6 @@ struct VarTtiAllocInfo
 
 struct SlotAllocInfo
 {
-  SlotAllocInfo () = default;
-
   SlotAllocInfo (SfnSf sfn)
     : m_sfnSf (sfn)
   {

@@ -150,7 +150,9 @@ public:
 
   struct SchedConfigIndParameters
   {
-    SchedConfigIndParameters (const SfnSf sfnSf) : m_sfnSf (sfnSf)
+    SchedConfigIndParameters (const SfnSf sfnSf)
+      : m_sfnSf (sfnSf),
+        m_slotAllocInfo (sfnSf)
     {
     }
     const SfnSf m_sfnSf;

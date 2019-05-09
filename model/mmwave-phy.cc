@@ -144,6 +144,7 @@ MmWavePhy::FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) 
 }
 
 MmWavePhy::MmWavePhy ()
+  : m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
   NS_FATAL_ERROR ("This constructor should not be called");
@@ -152,14 +153,7 @@ MmWavePhy::MmWavePhy ()
 MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy> ulChannelPhy)
   : m_downlinkSpectrumPhy (dlChannelPhy),
   m_uplinkSpectrumPhy (ulChannelPhy),
-  m_cellId (0),
-  m_frameNum (0),
-  m_subframeNum (0),
-  m_slotNum (0),
-  m_varTtiNum (0),
-  m_antennaNumDim1 (0),
-  m_antennaNumDim2 (0),
-  m_antennaArrayType (AntennaArrayBasicModel::GetTypeId())
+  m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
@@ -454,9 +448,7 @@ SlotAllocInfo
 MmWavePhy::RetrieveSlotAllocInfo ()
 {
   NS_LOG_FUNCTION (this);
-  SlotAllocInfo ret;
-
-  ret = *m_slotAllocInfo.begin ();
+  SlotAllocInfo ret = *m_slotAllocInfo.begin ();
   m_slotAllocInfo.erase(m_slotAllocInfo.begin ());
   return ret;
 }
@@ -467,20 +459,19 @@ MmWavePhy::RetrieveSlotAllocInfo (const SfnSf &sfnsf)
 {
   NS_LOG_FUNCTION ("ccId:" << +GetCcId () << " slot " << sfnsf);
 
-  SlotAllocInfo ret;
 
   for (auto allocIt = m_slotAllocInfo.begin(); allocIt != m_slotAllocInfo.end (); ++allocIt)
     {
       if (allocIt->m_sfnSf == sfnsf)
         {
-          ret = *allocIt;
+          SlotAllocInfo ret = *allocIt;
           m_slotAllocInfo.erase (allocIt);
           return ret;
         }
     }
 
   NS_FATAL_ERROR("Didn't found the slot");
-  return SlotAllocInfo ();
+  return SlotAllocInfo (sfnsf);
 }
 
 SlotAllocInfo &

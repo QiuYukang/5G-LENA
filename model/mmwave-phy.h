@@ -219,24 +219,24 @@ protected:
   Ptr<MmWaveSpectrumPhy> m_downlinkSpectrumPhy;
   Ptr<MmWaveSpectrumPhy> m_uplinkSpectrumPhy;
 
-  double m_txPower;
-  double m_noiseFigure;
+  double m_txPower {0.0};
+  double m_noiseFigure {0.0};
 
-  uint16_t m_cellId;
+  uint16_t m_cellId {0};
 
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   std::map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
 
   SlotAllocInfo m_currSlotAllocInfo;
-  uint16_t m_frameNum;
-  uint8_t m_subframeNum;
-  uint8_t m_slotNum;
-  uint8_t m_varTtiNum;
+  uint16_t m_frameNum {0};
+  uint8_t m_subframeNum {0};
+  uint8_t m_slotNum {0};
+  uint8_t m_varTtiNum {0};
 
   MmWavePhySapProvider* m_phySapProvider;
 
-  uint32_t m_raPreambleId;
+  uint32_t m_raPreambleId {0};
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
