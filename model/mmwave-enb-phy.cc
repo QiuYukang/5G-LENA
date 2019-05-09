@@ -244,6 +244,26 @@ Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetDlSpectrumPhy() const
 }
 
 void
+MmWaveEnbPhy::QueueMib ()
+{
+  NS_LOG_FUNCTION (this);
+  LteRrcSap::MasterInformationBlock mib;
+  mib.dlBandwidth = 4U;
+  mib.systemFrameNumber = 1;
+  Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
+  mibMsg->SetMib (mib);
+  EnqueueCtrlMsgNow (mibMsg);
+}
+
+void MmWaveEnbPhy::QueueSib ()
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
+  msg->SetSib1 (m_sib1);
+  EnqueueCtrlMsgNow (msg);
+}
+
+void
 MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 {
   NS_LOG_FUNCTION (this);
@@ -447,18 +467,11 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       if (m_subframeNum == 0)   // send MIB at the beginning of each frame
         {
-          LteRrcSap::MasterInformationBlock mib;
-          mib.dlBandwidth = 4U;
-          mib.systemFrameNumber = 1;
-          Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
-          mibMsg->SetMib (mib);
-          EnqueueCtrlMsgNow (mibMsg);
+          QueueMib ();
         }
       else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
         {
-          Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
-          msg->SetSib1 (m_sib1);
-          EnqueueCtrlMsgNow (msg);
+          QueueSib ();
           // TODO: SIB21 has to be sent every 2 frames
         }
     }
