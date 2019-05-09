@@ -1097,6 +1097,7 @@ MmWaveEnbMac::DoInitialize()
       NS_LOG_INFO ("Pushing DL/UL CTRL symbol allocation for " << sfnSf);
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
       slotAllocInfo.m_numSymAlloc = 2;
+      slotAllocInfo.m_type = SlotAllocInfo::BOTH;
       auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
       auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
@@ -1116,6 +1117,7 @@ MmWaveEnbMac::DoInitialize()
       NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
       SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
       slotAllocInfo.m_numSymAlloc = 1;
+      slotAllocInfo.m_type = SlotAllocInfo::UL;
       auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 
       VarTtiAllocInfo ulCtrlVarTti (dciUl);

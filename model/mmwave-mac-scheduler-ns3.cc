@@ -1443,6 +1443,7 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
 
   MmWaveMacSchedSapUser::SchedConfigIndParameters dlSlot (params.m_snfSf);
   dlSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
+  dlSlot.m_slotAllocInfo.m_type = SlotAllocInfo::DL;
   auto ulAllocationIt = m_ulAllocationMap.find (params.m_snfSf.Encode ()); // UL allocations for this slot
   if (ulAllocationIt == m_ulAllocationMap.end ())
     {
@@ -1536,6 +1537,7 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
 
   MmWaveMacSchedSapUser::SchedConfigIndParameters ulSlot (params.m_snfSf);
   ulSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
+  ulSlot.m_slotAllocInfo.m_type = SlotAllocInfo::UL;
 
   // Doing UL for slot ulSlot
   DoScheduleUl (ulHarqFeedback, params.m_snfSf, &ulSlot.m_slotAllocInfo);

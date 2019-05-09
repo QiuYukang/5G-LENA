@@ -270,35 +270,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
       return;
     }
 
-  NS_LOG_INFO ("gNB start slot " << m_currSlotAllocInfo.m_sfnSf << " composed by the following allocations:");
-  for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
-    {
-      std::string direction, type;
-      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
-        {
-          type = "CTRL";
-        }
-      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
-        {
-          type = "CTRL_DATA";
-        }
-      else
-        {
-          type = "DATA";
-        }
-
-      if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
-        {
-          direction = "UL";
-        }
-      else
-        {
-          direction = "DL";
-        }
-      NS_LOG_INFO ("Allocation from sym " << static_cast<uint32_t> (alloc.m_dci->m_symStart) <<
-                   " to sym " << static_cast<uint32_t> (alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) <<
-                   " direction " << direction << " type " << type);
-    }
+  NS_LOG_INFO ("Gnb Start Slot: " << m_currSlotAllocInfo);
 
   NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
   m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));

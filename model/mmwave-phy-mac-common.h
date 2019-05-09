@@ -459,6 +459,17 @@ struct SlotAllocInfo
   }
 
   /**
+   * \brief Enum which indicates the allocations that are inside the allocation info
+   */
+  enum AllocationType
+  {
+    NONE = 0, //!< No allocations
+    DL   = 1,  //!< DL Allocations
+    UL   = 2,  //!< UL Allocations
+    BOTH = 3 //!< DL and UL allocations
+  };
+
+  /**
    * \brief Merge the input parameter to this SlotAllocInfo
    * \param other SlotAllocInfo to merge in this allocation
    *
@@ -466,9 +477,10 @@ struct SlotAllocInfo
    */
   void Merge (const SlotAllocInfo & other);
 
-  SfnSf m_sfnSf          {};
-  uint32_t m_numSymAlloc {0};    // number of allocated slots
-  std::deque<VarTtiAllocInfo> m_varTtiAllocInfo;
+  SfnSf m_sfnSf          {};     //!< SfnSf of this allocation
+  uint32_t m_numSymAlloc {0};    //!< Number of allocated symbols
+  std::deque<VarTtiAllocInfo> m_varTtiAllocInfo; //!< queue of allocations
+  AllocationType m_type {NONE}; //!< Allocations type
 
   /**
    * \brief operator < (less than)
@@ -806,6 +818,7 @@ std::ostream & operator<< (std::ostream & os, DlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, UlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, SfnSf const & item);
 std::ostream & operator<< (std::ostream & os, SlotAllocInfo const & item);
+std::ostream & operator<< (std::ostream & os, SlotAllocInfo::AllocationType const & item);
 }
 
 #endif /* SRC_MMWAVE_MODEL_MMWAVE_PHY_MAC_COMMON_H_ */

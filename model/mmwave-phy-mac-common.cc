@@ -524,8 +524,13 @@ void
 SlotAllocInfo::Merge (const SlotAllocInfo &other)
 {
   NS_LOG_FUNCTION (this);
-
+  NS_ASSERT (other.m_type != NONE && m_type != NONE);
   NS_ASSERT (other.m_sfnSf == m_sfnSf);
+
+  if (other.m_type * m_type == 6)
+    {
+      m_type = BOTH;
+    }
 
   m_numSymAlloc += other.m_numSymAlloc;
 
@@ -604,7 +609,58 @@ std::ostream & operator<< (std::ostream & os, SfnSf const & item)
 std::ostream &operator<< (std::ostream &os, const SlotAllocInfo &item)
 {
   os << "Allocation for slot " << item.m_sfnSf << " total symbols allocated: "
-     << item.m_numSymAlloc << ", tti: " << item.m_varTtiAllocInfo.size () << std::endl;
+     << item.m_numSymAlloc << " of type " << item.m_type
+     << ", tti: " << item.m_varTtiAllocInfo.size ()
+     << " composed by the following allocations: " << std::endl;
+  for (const auto & alloc : item.m_varTtiAllocInfo)
+    {
+      std::string direction, type;
+      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
+        {
+          type = "CTRL";
+        }
+      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
+        {
+          type = "CTRL_DATA";
+        }
+      else
+        {
+          type = "DATA";
+        }
+
+      if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
+        {
+          direction = "UL";
+        }
+      else
+        {
+          direction = "DL";
+        }
+      os << "[Allocation from sym " << static_cast<uint32_t> (alloc.m_dci->m_symStart) <<
+            " to sym " << static_cast<uint32_t> (alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) <<
+            " direction " << direction << " type " << type << "]" << std::endl;
+    }
+  return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const SlotAllocInfo::AllocationType &item)
+{
+  switch (item)
+    {
+    case SlotAllocInfo::NONE:
+      os << "NONE";
+      break;
+    case SlotAllocInfo::DL:
+      os << "DL";
+      break;
+    case SlotAllocInfo::UL:
+      os << "UL";
+      break;
+    case SlotAllocInfo::BOTH:
+      os << "BOTH";
+      break;
+    }
+
   return os;
 }
 
