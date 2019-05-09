@@ -152,7 +152,9 @@ public:
 
   virtual void ReceiveControlMessage (Ptr<MmWaveControlMessage> msg) override;
 
-  virtual void SlotIndication (SfnSf) override;
+  virtual void SlotDlIndication (const SfnSf &) override;
+
+  virtual void SlotUlIndication (const SfnSf &) override;
 
   virtual void UlCqiReport (MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters cqi) override;
 
@@ -185,9 +187,15 @@ MmWaveMacEnbMemberPhySapUser::ReceiveControlMessage (Ptr<MmWaveControlMessage> m
 }
 
 void
-MmWaveMacEnbMemberPhySapUser::SlotIndication (SfnSf sfn)
+MmWaveMacEnbMemberPhySapUser::SlotDlIndication (const SfnSf &sfn)
 {
-  m_mac->DoSlotIndication (sfn);
+  m_mac->DoSlotDlIndication (sfn);
+}
+
+void
+MmWaveMacEnbMemberPhySapUser::SlotUlIndication (const SfnSf &sfn)
+{
+  m_mac->DoSlotUlIndication (sfn);
 }
 
 void
@@ -413,10 +421,10 @@ MmWaveEnbMac::GetLteCcmMacSapProvider ()
 }
 
 void
-MmWaveEnbMac::DoSlotIndication (SfnSf sfnSf)
+MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Perform things, slot on the air: " << sfnSf);
+  NS_LOG_INFO ("Perform things on DL, slot on the air: " << sfnSf);
 
   m_frameNum = sfnSf.m_frameNum;
   m_subframeNum = sfnSf.m_subframeNum;
@@ -459,6 +467,51 @@ MmWaveEnbMac::DoSlotIndication (SfnSf sfnSf)
       m_macSchedSapProvider->SchedDlRachInfoReq (rachInfoReqParams);
     }
 
+  if (m_varTtiNum == 0)
+    {
+      SfnSf dlSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0).IncreaseNoOfSlotsWithLatency (
+        m_phyMacConfig->GetL1L2CtrlLatency (),
+        m_phyMacConfig->GetSlotsPerSubframe (),
+        m_phyMacConfig->GetSubframesPerFrame ());
+
+
+      MmWaveMacSchedSapProvider::SchedDlTriggerReqParameters dlParams;
+
+      dlParams.m_snfSf = dlSfn;
+
+      // Forward DL HARQ feebacks collected during last subframe TTI
+      if (m_dlHarqInfoReceived.size () > 0)
+        {
+          dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
+          // empty local buffer
+          m_dlHarqInfoReceived.clear ();
+        }
+
+      {
+        for (const auto & ue : m_rlcAttached)
+          {
+            MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
+            params.m_rnti = ue.first;
+            params.m_beamId = m_phySapProvider->GetBeamId (ue.first);
+            params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
+            m_macCschedSapProvider->CschedUeConfigReq (params);
+          }
+      }
+
+      m_macSchedSapProvider->SchedDlTriggerReq (dlParams);
+    }
+}
+
+void
+MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf)
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Perform things on UL, slot on the air: " << sfnSf);
+  m_frameNum = sfnSf.m_frameNum;
+  m_subframeNum = sfnSf.m_subframeNum;
+  m_slotNum = sfnSf.m_slotNum;
+  m_varTtiNum = sfnSf.m_varTtiNum;
+
   // --- UPLINK ---
   // Send UL-CQI info to the scheduler
   for (uint16_t i = 0; i < m_ulCqiReceived.size (); i++)
@@ -488,51 +541,32 @@ MmWaveEnbMac::DoSlotIndication (SfnSf sfnSf)
       m_macSchedSapProvider->SchedUlMacCtrlInfoReq (ulMacReq);
     }
 
-  NS_ASSERT (m_varTtiNum == 0);
-  SfnSf dlSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0).IncreaseNoOfSlotsWithLatency (
-        m_phyMacConfig->GetL1L2CtrlLatency (),
-        m_phyMacConfig->GetSlotsPerSubframe (),
-        m_phyMacConfig->GetSubframesPerFrame ());
-  SfnSf ulSfn = dlSfn.CalculateUplinkSlot (
-        m_phyMacConfig->GetUlSchedDelay (),
-        m_phyMacConfig->GetSlotsPerSubframe (),
-        m_phyMacConfig->GetSubframesPerFrame ());
-
-  MmWaveMacSchedSapProvider::SchedDlTriggerReqParameters dlParams;
-  MmWaveMacSchedSapProvider::SchedUlTriggerReqParameters ulParams;
-
-  dlParams.m_snfSf = dlSfn;
-  ulParams.m_snfSf = ulSfn;
-
-  // Forward DL HARQ feebacks collected during last subframe TTI
-  if (m_dlHarqInfoReceived.size () > 0)
+  if (m_varTtiNum == 0)
     {
-      dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
-      // empty local buffer
-      m_dlHarqInfoReceived.clear ();
+      SfnSf ulSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0)
+          .IncreaseNoOfSlotsWithLatency (
+            m_phyMacConfig->GetL1L2CtrlLatency (),
+            m_phyMacConfig->GetSlotsPerSubframe (),
+            m_phyMacConfig->GetSubframesPerFrame ())
+          .CalculateUplinkSlot (
+            m_phyMacConfig->GetUlSchedDelay (),
+            m_phyMacConfig->GetSlotsPerSubframe (),
+            m_phyMacConfig->GetSubframesPerFrame ());
+
+      MmWaveMacSchedSapProvider::SchedUlTriggerReqParameters ulParams;
+
+      ulParams.m_snfSf = ulSfn;
+
+      // Forward UL HARQ feebacks collected during last TTI
+      if (m_ulHarqInfoReceived.size () > 0)
+        {
+          ulParams.m_ulHarqInfoList = m_ulHarqInfoReceived;
+          // empty local buffer
+          m_ulHarqInfoReceived.clear ();
+        }
+
+      m_macSchedSapProvider->SchedUlTriggerReq (ulParams);
     }
-
-  // Forward UL HARQ feebacks collected during last TTI
-  if (m_ulHarqInfoReceived.size () > 0)
-    {
-      ulParams.m_ulHarqInfoList = m_ulHarqInfoReceived;
-      // empty local buffer
-      m_ulHarqInfoReceived.clear ();
-    }
-
-  {
-    for (const auto & ue : m_rlcAttached)
-      {
-        MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
-        params.m_rnti = ue.first;
-        params.m_beamId = m_phySapProvider->GetBeamId (ue.first);
-        params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
-        m_macCschedSapProvider->CschedUeConfigReq (params);
-      }
-  }
-
-  m_macSchedSapProvider->SchedUlTriggerReq (ulParams);
-  m_macSchedSapProvider->SchedDlTriggerReq (dlParams);
 }
 
 void
@@ -727,7 +761,6 @@ MmWaveEnbMac::DoUlCqiReport (MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParamet
   NS_ASSERT (ulcqi.m_sfnSf.m_varTtiNum != 0);
   m_ulCqiReceived.push_back (ulcqi);
 }
-
 
 void
 MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)

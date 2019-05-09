@@ -254,9 +254,6 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_lastSlotStart = Simulator::Now ();
   m_varTtiNum = 0;
 
-  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
-  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-
   m_lastSlotStart = Simulator::Now ();
   m_currSlotAllocInfo = RetrieveSlotAllocInfo ();
   NS_ASSERT(m_currSlotAllocInfo.m_sfnSf == SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
@@ -302,6 +299,10 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
                    " to sym " << static_cast<uint32_t> (alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) <<
                    " direction " << direction << " type " << type);
     }
+
+  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
+  m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+  m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
 
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;

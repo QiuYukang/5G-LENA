@@ -84,7 +84,13 @@ public:
    * \brief Trigger the start from a new slot (input from Phy layer)
    * \param SfnSf contains frame number, subframe number and slot number
    */
-  virtual void SlotIndication (SfnSf) = 0;
+  virtual void SlotDlIndication (const SfnSf &) = 0;
+
+  /**
+   * \brief Trigger the start from a new slot (input from Phy layer)
+   * \param SfnSf contains frame number, subframe number and slot number
+   */
+  virtual void SlotUlIndication (const SfnSf &) = 0;
 
   /**
    * \brief Returns to MAC level the UL-CQI evaluated
