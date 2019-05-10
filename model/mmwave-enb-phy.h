@@ -28,6 +28,12 @@
 
 namespace ns3 {
 
+class PacketBurst;
+class MmWaveNetDevice;
+class MmWaveUePhy;
+class MmWaveEnbMac;
+class NrChAccessManager;
+
 class MmWaveEnbPhy : public MmWavePhy
 {
   friend class MemberLteEnbCphySapProvider<MmWaveEnbPhy>;
@@ -76,6 +82,12 @@ public:
    * \return the beam id of the user
    */
   AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
+
+  /**
+   * \brief Set the channel access manager interface for this instance of the PHY
+   * \param s the pointer to the interface
+   */
+  void SetCam (const Ptr<NrChAccessManager> &s);
 
   /**
    * \brief Set the transmission power for the UE
@@ -230,6 +242,18 @@ private:
   std::list <Ptr<MmWaveControlMessage>> RetrieveMsgsFromDCIs (const SfnSf &sfn) __attribute__((warn_unused_result));
 
   /**
+   * \brief Channel access granted, invoked after the LBT
+   *
+   * \param time Time of the grant
+   */
+  void ChannelAccessGranted (const Time &time);
+
+  /**
+   * \brief Channel access lost, the grant has expired
+   */
+  void ChannelAccessLost ();
+
+  /**
    * \brief Transmit DL CTRL and return the time at which the transmission will end
    * \param dci the current DCI
    * \return the time at which the transmission of DL CTRL will end
@@ -264,6 +288,11 @@ private:
    * \brief Queue a SIB message, to be sent (hopefully) in this slot
    */
   void QueueSib ();
+
+  /**
+   * \brief Effectively start the slot, as we have the channel.
+   */
+  void DoStartSlot ();
 
   // LteEnbCphySapProvider forwarded methods
   void DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
@@ -327,6 +356,23 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
+
+  std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
+
+  /**
+   * \brief Status of the channel for the PHY
+   */
+  enum ChannelStatus
+  {
+    NONE,        //!< The PHY doesn't know the channel status
+    REQUESTED,   //!< The PHY requested channel access
+    GRANTED      //!< The PHY has the channel, it can transmit
+  };
+
+  ChannelStatus m_channelStatus {NONE}; //!< The channel status
+  EventId m_channelLostTimer; //!< Timer that, when expires, indicates that the channel is lost
+
+  Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
 };
 
 }

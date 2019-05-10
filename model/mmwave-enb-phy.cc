@@ -31,11 +31,18 @@
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/node.h>
 #include <algorithm>
+#include <functional>
 
 #include "mmwave-enb-phy.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
+#include "mmwave-radio-bearer-tag.h"
+#include "nr-ch-access-manager.h"
+
+#include <ns3/node-list.h>
+#include <ns3/node.h>
+#include <ns3/pointer.h>
 
 namespace ns3 {
 
@@ -220,6 +227,16 @@ AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 }
 
 void
+MmWaveEnbPhy::SetCam (const Ptr<NrChAccessManager> &cam)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (cam != nullptr);
+  m_cam = cam;
+  m_cam->SetAccessGrantedCallback (std::bind (&MmWaveEnbPhy::ChannelAccessGranted, this,
+                                              std::placeholders::_1));
+}
+
+void
 MmWaveEnbPhy::SetTxPower (double pow)
 {
   m_txPower = pow;
@@ -276,7 +293,6 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 
   m_lastSlotStart = Simulator::Now ();
   m_currSlotAllocInfo = RetrieveSlotAllocInfo ();
-  NS_ASSERT(m_currSlotAllocInfo.m_sfnSf == SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
@@ -290,11 +306,84 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
       return;
     }
 
-  NS_LOG_INFO ("Gnb Start Slot: " << m_currSlotAllocInfo);
+  NS_ASSERT_MSG ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
+                 && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
+                 && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ),
+                 "Current slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0) <<
+                 " but allocation for " << m_currSlotAllocInfo.m_sfnSf);
 
-  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
-  m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-  m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+  if (m_slotNum == 0)
+    {
+      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
+        {
+          QueueMib ();
+        }
+      else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
+        {
+          QueueSib ();
+        }
+    }
+
+  if (m_channelStatus == GRANTED)
+    {
+      NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
+      m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+      m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+      DoStartSlot ();
+    }
+  else
+    {
+      if (m_currSlotAllocInfo.ContainsDataAllocation () || ! IsCtrlMsgListEmpty ())
+        {
+          // Request the channel access
+          if (m_channelStatus == NONE)
+            {
+              NS_LOG_DEBUG ("Channel not granted, request the channel");
+              m_channelStatus = REQUESTED; // This goes always before RequestAccess()
+              m_cam->RequestAccess ();
+              if (m_channelStatus == GRANTED)
+                {
+                  // Repetition but we can have a CAM that gives the channel
+                  // instantaneously
+                  NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
+                  m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+                  m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+                  DoStartSlot ();
+                  return; // Exit without calling anything else
+                }
+            }
+          // If the channel was not granted, queue back the allocation,
+          // without calling the MAC for a new slot
+          auto slotAllocCopy = m_currSlotAllocInfo;
+          slotAllocCopy.m_sfnSf = slotAllocCopy.m_sfnSf.IncreaseNoOfSlots(m_phyMacConfig->GetSlotsPerSubframe(),
+                                                                          m_phyMacConfig->GetSubframesPerFrame());
+          NS_LOG_INFO ("Queueing allocation for " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0) <<
+                       " to " << slotAllocCopy.m_sfnSf);
+          PushFrontSlotAllocInfo (slotAllocCopy);
+        }
+      else
+        {
+          // It's an empty slot; ask the MAC for a new one (maybe a new data will arrive..)
+          // and just let the current one go away
+          NS_LOG_DEBUG ("Channel not granted; but asking MAC for SlotIndication for the future, maybe there will be data");
+          m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+          m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+        }
+      // Just schedule the end of the slot; we do not have the channel
+      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod () - NanoSeconds (1), &MmWaveEnbPhy::EndSlot, this);
+      NS_LOG_DEBUG ("Schedule " << Simulator::Now () + m_phyMacConfig->GetSlotPeriod() - NanoSeconds (1));
+    }
+
+}
+
+void MmWaveEnbPhy::DoStartSlot ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_ctrlMsgs.size () == 0);
+  NS_LOG_INFO ("Gnb Start Slot: " << m_currSlotAllocInfo);
 
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
@@ -460,19 +549,6 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       for (const auto & dev : m_deviceMap)
         {
           m_doBeamforming (m_netDevice, dev);
-        }
-    }
-
-  if (m_slotNum == 0)
-    {
-      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
-        {
-          QueueMib ();
-        }
-      else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
-        {
-          QueueSib ();
-          // TODO: SIB21 has to be sent every 2 frames
         }
     }
 
@@ -1029,6 +1105,33 @@ MmWaveEnbPhy::SetPerformBeamformingFn(const MmWaveEnbPhy::PerformBeamformingFn &
 {
   NS_LOG_FUNCTION (this);
   m_doBeamforming = fn;
+}
+
+void
+MmWaveEnbPhy::ChannelAccessGranted (const Time &time)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelStatus = GRANTED;
+
+  Time toNextSlot = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () - Simulator::Now ();
+  Time grant = time - toNextSlot;
+  int64_t slotGranted = grant.GetNanoSeconds () / m_phyMacConfig->GetSlotPeriod().GetNanoSeconds ();
+
+  NS_LOG_INFO ("Channel access granted for " << time.GetMilliSeconds () <<
+               " ms, which corresponds to " << slotGranted << " slot in which each slot is " <<
+               m_phyMacConfig->GetSlotPeriod() << " ms. We lost " <<
+               toNextSlot.GetMilliSeconds() << " ms. ");
+  NS_LOG_DEBUG ("Channel access granted for " << slotGranted << " slot");
+  m_channelLostTimer = Simulator::Schedule (m_phyMacConfig->GetSlotPeriod () * slotGranted - NanoSeconds (1),
+                                            &MmWaveEnbPhy::ChannelAccessLost, this);
+}
+
+void
+MmWaveEnbPhy::ChannelAccessLost ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_DEBUG ("Channel access lost");
+  m_channelStatus = NONE;
 }
 
 }

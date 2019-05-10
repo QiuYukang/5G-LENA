@@ -477,6 +477,12 @@ struct SlotAllocInfo
    */
   void Merge (const SlotAllocInfo & other);
 
+  /**
+   * \brief Check if we have data allocations
+   * \return true if m_varTtiAllocInfo contains data allocations
+   */
+  bool ContainsDataAllocation () const;
+
   SfnSf m_sfnSf          {};     //!< SfnSf of this allocation
   uint32_t m_numSymAlloc {0};    //!< Number of allocated symbols
   std::deque<VarTtiAllocInfo> m_varTtiAllocInfo; //!< queue of allocations

@@ -51,6 +51,7 @@
 #include <ns3/lte-ue-component-carrier-manager.h>
 #include <ns3/bwp-manager-gnb.h>
 #include <ns3/bwp-manager-ue.h>
+#include <ns3/nr-ch-access-manager.h>
 
 namespace ns3 {
 
@@ -502,6 +503,8 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       ccMap.insert (std::make_pair (conf.first, cc));
     }
 
+  ObjectFactory channelAccessManagerFactory;
+
   for (auto it = ccMap.begin (); it != ccMap.end (); ++it)
     {
       BandwidthPartRepresentation &conf = m_bwpConfiguration.at(it->first);
@@ -514,6 +517,11 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       beamformingFn = std::bind (&MmWave3gppChannel::PerformBeamforming, conf.m_3gppChannel,
                                  std::placeholders::_1, std::placeholders::_2);
       phy->SetPerformBeamformingFn (beamformingFn);
+
+      // PHY <--> CAM
+      channelAccessManagerFactory.SetTypeId (conf.m_channelAccessManagerType);
+      Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
+      phy->SetCam (cam);
 
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
       dlPhy->SetHarqPhyModule (harq);
@@ -1086,6 +1094,7 @@ BandwidthPartRepresentation::BandwidthPartRepresentation (const BandwidthPartRep
   m_channel = o.m_channel;
   m_propagation = o.m_propagation;
   m_3gppChannel = o.m_3gppChannel;
+  m_channelAccessManagerType = o.m_channelAccessManagerType;
 }
 
 BandwidthPartRepresentation::~BandwidthPartRepresentation()
@@ -1101,6 +1110,7 @@ BandwidthPartRepresentation::operator=(const BandwidthPartRepresentation &o)
   m_channel = o.m_channel;
   m_propagation = o.m_propagation;
   m_3gppChannel = o.m_3gppChannel;
+  m_channelAccessManagerType = o.m_channelAccessManagerType;
   return *this;
 }
 

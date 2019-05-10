@@ -544,6 +544,20 @@ SlotAllocInfo::Merge (const SlotAllocInfo &other)
 }
 
 bool
+SlotAllocInfo::ContainsDataAllocation () const
+{
+  NS_LOG_FUNCTION (this);
+  for (const auto & allocation : m_varTtiAllocInfo)
+    {
+      if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+bool
 SlotAllocInfo::operator < (const SlotAllocInfo &rhs) const
 {
   return m_sfnSf < rhs.m_sfnSf;

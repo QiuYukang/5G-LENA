@@ -123,8 +123,19 @@ public:
   /**
    * \brief Store the slot allocation info
    * \param slotAllocInfo the allocation to store
+   *
+   * This method expect that the sfn of the allocation will match the sfn
+   * when the allocation will be retrieved.
    */
   void PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
+
+  /**
+   * \brief Store the slot allocation info at the front
+   * \param slotAllocInfo the allocation to store
+   *
+   * Increase the sfn of all allocations to be chronologically "in order".
+   */
+  void PushFrontSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
 
   /**
    * \brief Check if the SlotAllocationInfo for that slot exists
@@ -163,6 +174,12 @@ public:
    * \return the allocation list size
    */
   size_t SlotAllocInfoSize () const;
+
+  /**
+   * \brief Check if the list of control messages is empty.
+   * \return true if there are no control messages queued for this slot
+   */
+  bool IsCtrlMsgListEmpty () const;
 
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
 

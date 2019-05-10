@@ -429,6 +429,21 @@ MmWavePhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
   NS_LOG_INFO (output.str ());
 }
 
+void
+MmWavePhy::PushFrontSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
+{
+  NS_LOG_FUNCTION (this);
+  SfnSf slotSfn = slotAllocInfo.m_sfnSf;
+  m_slotAllocInfo.push_front (slotAllocInfo);
+
+  // all the slot allocations have to be "adjusted":
+  for (auto it = m_slotAllocInfo.begin (); it != m_slotAllocInfo.end (); ++it)
+    {
+      it->m_sfnSf = slotSfn;
+      slotSfn = slotSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+    }
+}
+
 
 bool
 MmWavePhy::SlotAllocInfoExists (const SfnSf &retVal) const
@@ -494,6 +509,13 @@ MmWavePhy::SlotAllocInfoSize() const
 {
   NS_LOG_FUNCTION (this);
   return m_slotAllocInfo.size ();
+}
+
+bool
+MmWavePhy::IsCtrlMsgListEmpty() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_controlMessageQueue.empty ();
 }
 
 Ptr<AntennaArrayBasicModel>

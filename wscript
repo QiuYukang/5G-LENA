@@ -72,6 +72,7 @@ def build(bld):
         'model/mmwave-mac-scheduler-ue-info-pf.cc',
         'model/nr-eesm-error-model.cc',
         'model/nr-error-model.cc',
+        'model/nr-ch-access-manager.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -156,6 +157,7 @@ def build(bld):
         'model/mmwave-mac-scheduler-ue-info.h',
         'model/nr-eesm-error-model.h',
         'model/nr-error-model.h',
+        'model/nr-ch-access-manager.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
