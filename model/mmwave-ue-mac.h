@@ -99,10 +99,11 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] ccId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUeMacCtrlMsgsTracedCallback)
-    (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Mac Transmitted Control Messages.
@@ -111,10 +112,11 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] ccId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUeMacCtrlMsgsTracedCallback)
-    (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
 
 
@@ -242,17 +244,17 @@ private:
 
   /**
    * Trace information regarding Ue MAC Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue MAC Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
 };
 
 }

@@ -169,10 +169,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
+   * \param [in] ccId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy Transmitted Control Messages.
@@ -182,10 +183,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
+   * \param [in] ccId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
   // From mmwave phy. Not used in the UE
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
@@ -284,17 +286,17 @@ private:
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 };
 
 }

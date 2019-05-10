@@ -741,7 +741,8 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         // Report it to the CCM. Then he will call the right MAC
         Ptr<MmWaveSRMessage> sr = DynamicCast<MmWaveSRMessage> (msg);
         m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), m_phyMacConfig->GetCcId ());
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), sr->GetRNTI (), msg);
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                sr->GetRNTI (), m_phyMacConfig->GetCcId (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_CQI):
@@ -750,21 +751,24 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         DlCqiInfo cqiElement = cqi->GetDlCqi ();
         NS_ASSERT (cqiElement.m_rnti != 0);
         m_dlCqiReceived.push_back (cqiElement);
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), cqiElement.m_rnti, msg);
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                cqiElement.m_rnti, m_phyMacConfig->GetCcId (), msg);
         break;
       }
     case (MmWaveControlMessage::BSR):
       {
         Ptr<MmWaveBsrMessage> bsr = DynamicCast<MmWaveBsrMessage> (msg);
         ReceiveBsrMessage (bsr->GetBsr ());
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), bsr->GetBsr().m_rnti, msg);
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                bsr->GetBsr().m_rnti, m_phyMacConfig->GetCcId (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_HARQ):
       {
         Ptr<MmWaveDlHarqFeedbackMessage> dlharq = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
         DoDlHarqFeedback (dlharq->GetDlHarqFeedback ());
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), dlharq->GetDlHarqFeedback().m_rnti, msg);
+        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                dlharq->GetDlHarqFeedback().m_rnti, m_phyMacConfig->GetCcId (), msg);
         break;
       }
     default:
@@ -886,7 +890,8 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
       NS_LOG_INFO ("In slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
                    " send to PHY the RAR message for RNTI " <<
                    rarAllocation.m_rnti << " rapId " << itRapId->second);
-      m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), rarAllocation.m_rnti, rarMsg);
+      m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                              rarAllocation.m_rnti, m_phyMacConfig->GetCcId (), rarMsg);
     }
 
   if (ind.m_buildRarList.size () > 0)

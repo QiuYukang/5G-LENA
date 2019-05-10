@@ -497,7 +497,8 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   for (auto ctrlIt = ctrlMsgs.begin (); ctrlIt != ctrlMsgs.end (); ++ctrlIt)
     {
       Ptr<MmWaveControlMessage> msg = (*ctrlIt);
-      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart), dci->m_rnti, msg);
+      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
+                              dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
     }
 
   NS_LOG_DEBUG ("ENB TXing DL CTRL with " << ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
@@ -873,7 +874,8 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
 
           Ptr<MmWaveDlCqiMessage> dlcqi = DynamicCast<MmWaveDlCqiMessage> (msg);
           DlCqiInfo dlcqiLE = dlcqi->GetDlCqi ();
-          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), dlcqiLE.m_rnti, msg);
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                  dlcqiLE.m_rnti, m_phyMacConfig->GetCcId (), msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
         {
@@ -882,7 +884,8 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
 
           Ptr<MmWaveBsrMessage> bsrmsg = DynamicCast<MmWaveBsrMessage> (msg);
           MacCeElement macCeEl = bsrmsg->GetBsr();
-          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), macCeEl.m_rnti, msg);
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                  macCeEl.m_rnti, m_phyMacConfig->GetCcId (), msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
         {
@@ -891,7 +894,8 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
 
           Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
           m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
-          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), 0, msg);
+          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                  0, m_phyMacConfig->GetCcId (), msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
         {
@@ -906,7 +910,8 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
           if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
             {
               m_phySapUser->ReceiveControlMessage (msg);
-              m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), dlharq.m_rnti, msg);
+              m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                      dlharq.m_rnti, m_phyMacConfig->GetCcId (), msg);
             }
         }
       else

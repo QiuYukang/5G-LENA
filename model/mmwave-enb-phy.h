@@ -189,10 +189,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
+   * \param [in] ccId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedEnbPhyCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Transmitted Control Messages.
@@ -202,10 +203,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
+   * \param [in] ccId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedEnbPhyCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
 protected:
   // From object
@@ -306,17 +308,17 @@ private:
 
   /**
    * Trace information regarding Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti,
+   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 };
 
 }
