@@ -88,4 +88,16 @@
   * numerologies for 5G new radio in ns-3, (B Bojovic, S Lagen, L Giupponi),
   * in Proceedings of the 10th Workshop on ns-3, 37-44.
   */
+
+/**
+  * \defgroup gnb G Node B PHY and MAC classes
+  *
+  * We group the PHY and MAC (and related) classes for the Gnb.
+  */
+
+/**
+  * \defgroup ue User Equipment PHY and MAC classes
+  *
+  * We group the PHY and MAC (and related) classes for the UE.
+  */
 #endif // GROUPS_H

@@ -63,6 +63,10 @@ through all the bandwidth parts.
 - (SCHED) The scheduler now is informed of RACH preamble messages, and reserve
   some space in the DL CTRL symbol to send the RAR messages.
 
+- Added traces that indicate the transmission or the reception of CTRL
+  messages. For instance, take a look to *EnbMacRxedCtrlMsgsTrace* or
+  *EnbMacTxedCtrlMsgsTrace* in the Gnb MAC file. 
+
 Bugs fixed
 ----------
 - (scheduler) Fixed the use of a static MCS value in the schedulers

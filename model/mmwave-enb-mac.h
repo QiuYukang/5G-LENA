@@ -37,6 +37,17 @@ namespace ns3 {
 class MmWaveControlMessage;
 class MmWaveRarMessage;
 
+/**
+ * \ingroup gnb
+ * \brief The MAC class for the gnb
+ *
+ * \section CTRL-trace Traces for CTRL messages
+ *
+ * The class has two attributes that signals to the eventual listener the
+ * transmission or the reception of CTRL messages. One is EnbMacRxedCtrlMsgsTrace,
+ * and the other is EnbMacTxedCtrlMsgsTrace. For what regards the UE, you will
+ * find more information in the MmWaveUePhy class documentation.
+ */
 class MmWaveEnbMac : public Object
 {
   friend class MmWaveEnbMacMemberEnbCmacSapProvider;
