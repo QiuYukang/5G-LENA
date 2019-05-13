@@ -364,12 +364,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
 
       dlPhy->SetHarqPhyModule (harq);
-      //ulPhy->SetHarqPhyModule (harq);
-      phy->SetHarqPhyModule (harq);
-      phy->SetPhyMacConfig (conf.m_phyMacCommon);
 
-      /* Do not do this here. Do it during registration with the BS
-      * phy->SetConfigurationParameters(m_phyMacCommon);*/
       Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
       pData->AddCallback (MakeCallback (&MmWaveUePhy::GenerateDlCqiReport, phy));
       pData->AddCallback (MakeCallback (&MmWaveSpectrumPhy::UpdateSinrPerceived, dlPhy));
@@ -389,7 +384,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       dlPhy->SetMobility (mm);
 
       dlPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
-      dlPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::ReceiveControlMessageList, phy));
+      dlPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::PhyCtrlMessagesReceived, phy));
 
       it->second->SetPhy (phy);
     }
@@ -449,7 +444,6 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       it->second->GetPhy ()->SetUeCphySapUser (rrc->GetLteUeCphySapUser ());
       rrc->SetLteUeCphySapProvider (it->second->GetPhy ()->GetUeCphySapProvider (), it->first);
 
-      it->second->GetPhy ()->SetConfigurationParameters (phyMacCommon);
       it->second->GetMac ()->SetConfigurationParameters (phyMacCommon);
 
       it->second->GetPhy ()->SetPhySapUser (it->second->GetMac ()->GetPhySapUser ());
@@ -480,7 +474,6 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
     {
       Ptr<MmWaveUePhy> ccPhy = it->second->GetPhy ();
       ccPhy->SetDevice (dev);
-      ccPhy->GetUlSpectrumPhy ()->SetDevice (dev);
       ccPhy->GetDlSpectrumPhy ()->SetDevice (dev);
       // hooks are earlier set
     }
@@ -552,8 +545,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
 
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
       dlPhy->SetHarqPhyModule (harq);
-      // ulPhy->SetHarqPhyModule (harq);
-      phy->SetHarqPhyModule (harq);
 
       Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
       if (!m_snrTest)
@@ -656,8 +647,8 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
   bool ccmTest;
   for (std::map<uint8_t,Ptr<ComponentCarrierGnb> >::iterator it = ccMap.begin (); it != ccMap.end (); ++it)
     {
-      it->second->GetPhy ()->SetmmWaveEnbCphySapUser (rrc->GetLteEnbCphySapUser (it->first));
-      rrc->SetLteEnbCphySapProvider (it->second->GetPhy ()->GetmmWaveEnbCphySapProvider (), it->first);
+      it->second->GetPhy ()->SetEnbCphySapUser (rrc->GetLteEnbCphySapUser (it->first));
+      rrc->SetLteEnbCphySapProvider (it->second->GetPhy ()->GetEnbCphySapProvider (), it->first);
 
       rrc->SetLteEnbCmacSapProvider (it->second->GetMac ()->GetEnbCmacSapProvider (),it->first );
       it->second->GetMac ()->SetEnbCmacSapUser (rrc->GetLteEnbCmacSapUser (it->first));
@@ -721,7 +712,6 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       ccPhy->SetDevice (dev);
       ccPhy->GetDlSpectrumPhy ()->SetDevice (dev);
       ccPhy->GetDlSpectrumPhy ()->SetCellId (cellId);
-      ccPhy->GetUlSpectrumPhy ()->SetDevice (dev);
       ccPhy->GetDlSpectrumPhy ()->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, ccPhy));
       ccPhy->GetDlSpectrumPhy ()->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyCtrlMessagesReceived, ccPhy));
       ccPhy->GetDlSpectrumPhy ()->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReceiveUlHarqFeedback, ccPhy));
@@ -803,9 +793,8 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
       Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
-      (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->AddUePhy (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
+      (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->RegisterUe (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
       (DynamicCast<MmWaveUePhy>(ueNetDev->GetPhy (i)))->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
-      enbNetDev->GetMac(i)->AssociateUeMAC (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi ());
       Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
       ueNas->Connect (gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (i),
                       gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn (i));
@@ -986,6 +975,10 @@ MmWaveHelper::EnableTraces (void)
   //EnableTransportBlockTrace ();
   EnableRlcTraces ();
   EnablePdcpTraces ();
+  EnableEnbPhyCtrlMsgsTraces ();
+  EnableUePhyCtrlMsgsTraces ();
+  EnableEnbMacCtrlMsgsTraces ();
+  EnableUeMacCtrlMsgsTraces ();
 }
 
 void
@@ -997,6 +990,43 @@ MmWaveHelper::EnableDlPhyTrace (void)
 
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/DlSpectrumPhy/RxPacketTraceUe",
                    MakeBoundCallback (&MmWavePhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
+}
+
+void
+MmWaveHelper::EnableEnbPhyCtrlMsgsTraces (void)
+{
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/EnbPhyRxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback, m_phyStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/EnbPhyTxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback, m_phyStats));
+}
+
+void
+MmWaveHelper::EnableEnbMacCtrlMsgsTraces (void)
+{
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/EnbMacRxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback, m_macStats));
+
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/EnbMacTxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback, m_macStats));
+}
+
+void
+MmWaveHelper::EnableUePhyCtrlMsgsTraces (void)
+{
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/UePhyRxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback, m_phyStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/UePhyTxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback, m_phyStats));
+}
+
+void
+MmWaveHelper::EnableUeMacCtrlMsgsTraces (void)
+{
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUeMac/UeMacRxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback, m_macStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUeMac/UeMacTxedCtrlMsgsTrace",
+                   MakeBoundCallback (&MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback, m_macStats));
 }
 
 void

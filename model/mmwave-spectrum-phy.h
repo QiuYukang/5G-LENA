@@ -53,20 +53,20 @@
 
 namespace ns3 {
 
-typedef Callback< void, Ptr<Packet> > MmWavePhyRxDataEndOkCallback;
-typedef Callback< void, std::list<Ptr<MmWaveControlMessage> > > MmWavePhyRxCtrlEndOkCallback;
+typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
+typedef Callback< void, const std::list<Ptr<MmWaveControlMessage> > &> MmWavePhyRxCtrlEndOkCallback;
 
 /**
  * This method is used by the LteSpectrumPhy to notify the PHY about
  * the status of a certain DL HARQ process
  */
-typedef Callback< void, DlHarqInfo > MmWavePhyDlHarqFeedbackCallback;
+typedef Callback< void, const DlHarqInfo& > MmWavePhyDlHarqFeedbackCallback;
 
 /**
  * This method is used by the LteSpectrumPhy to notify the PHY about
  * the status of a certain UL HARQ process
  */
-typedef Callback< void, UlHarqInfo > MmWavePhyUlHarqFeedbackCallback;
+typedef Callback< void, const UlHarqInfo &> MmWavePhyUlHarqFeedbackCallback;
 
 
 class MmWaveSpectrumPhy : public SpectrumPhy

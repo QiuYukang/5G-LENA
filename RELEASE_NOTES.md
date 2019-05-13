@@ -60,6 +60,9 @@ i.e., it does not require any simulated time to be performed.
 - (RRC) Now all carriers are registered to RRC, to transmit system information
 through all the bandwidth parts.
 
+- (SCHED) The scheduler now is informed of RACH preamble messages, and reserve
+  some space in the DL CTRL symbol to send the RAR messages.
+
 Bugs fixed
 ----------
 - (scheduler) Fixed the use of a static MCS value in the schedulers

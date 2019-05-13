@@ -1,53 +1,32 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                        Sourjya Dutta <sdutta@nyu.edu>
- *                        Russell Ford <russell.ford@nyu.edu>
- *                        Menglei Zhang <menglei@nyu.edu>
- */
-
-
+*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License version 2 as
+*   published by the Free Software Foundation;
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License
+*   along with this program; if not, write to the Free Software
+*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*/
 
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
 #define SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
 
-#include <ns3/spectrum-value.h>
-#include <ns3/mobility-model.h>
-#include <ns3/packet.h>
-#include <ns3/nstime.h>
-#include <ns3/spectrum-phy.h>
-#include <ns3/spectrum-channel.h>
-#include <ns3/spectrum-signal-parameters.h>
-#include <ns3/spectrum-interference.h>
-#include <ns3/generic-phy.h>
 #include <ns3/antenna-array-model.h>
 #include "mmwave-phy-mac-common.h"
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-phy-sap.h"
 #include "antenna-array-basic-model.h"
-#include <string>
-#include <map>
-#include <inttypes.h>
-#include "mmwave-spectrum-value-helper.h"
 
 namespace ns3 {
 
@@ -89,17 +68,18 @@ public:
 
   void DoDispose ();
 
-  virtual void DoInitialize (void);
-
   void InstallAntenna ();
 
   void DoSetCellId (uint16_t cellId);
 
-
   void SetNoiseFigure (double nf);
   double GetNoiseFigure (void) const;
 
-  void SetControlMessage (Ptr<MmWaveControlMessage> m);
+  /**
+   * \brief Enqueue a ctrl message, keeping in consideration L1L2CtrlDelay
+   * \param m the message to enqueue
+   */
+  void EnqueueCtrlMessage (const Ptr<MmWaveControlMessage> &m);
   std::list<Ptr<MmWaveControlMessage> > GetControlMessages (void);
 
   virtual void SetMacPdu (Ptr<Packet> pb);
@@ -135,11 +115,10 @@ public:
    * Take the value from PhyMacCommon. If it's not set, then return 777.
    */
   uint32_t GetCcId () const;
-  void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
+
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
   MmWavePhySapProvider* GetPhySapProvider ();
-  //	void SetPhySapUser (MmWavePhySapUser* ptr);
 
   void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
 
@@ -160,45 +139,49 @@ public:
   virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
 
   /**
-   * @return The antena array that is being used by this PHY
+   * \return The antena array that is being used by this PHY
    */
   Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
 
   /**
    * \brief Sets the antenna array type used by this PHY
-   * @param antennaArrayTypeId antennaArray to be used by this PHY
+   * \param antennaArrayTypeId antennaArray to be used by this PHY
    * */
   void SetAntennaArrayType (const TypeId antennaArrayTypeId);
 
   /**
    * \brief Returns the antenna array TypeId
-   * @return antenna array TypeId
+   * \return antenna array TypeId
    */
   TypeId GetAntennaArrayType () const;
 
   /**
    * \brief Set the first dimension of panel/sector in number of antenna elements
-   * @param antennaNumDim1 the size of the first dimension of the panel/sector
+   * \param antennaNumDim1 the size of the first dimension of the panel/sector
    */
   void SetAntennaNumDim1 (uint8_t antennaNumDim1);
 
   /**
    * \brief Returns the size of the first dimension of the panel/sector in the number of antenna elements
-   * @return the size of the first dimension
+   * \return the size of the first dimension
    */
   uint8_t GetAntennaNumDim1 () const;
 
   /**
    * \brief Set the second dimension of panel sector in number of antenna elements
-   * @param antennaNumDim2 the size of the second dimension of the panel/sector
+   * \param antennaNumDim2 the size of the second dimension of the panel/sector
    */
   void SetAntennaNumDim2 (uint8_t antennaNumDim2);
 
   /**
    * \brief Returns the size of the second dimension of the panel/sector in the number of antenna elements
-   * @return the size of the second dimension
+   * \return the size of the second dimension
    */
   uint8_t GetAntennaNumDim2 () const;
+
+protected:
+  void EnqueueCtrlMsgNow (const Ptr<MmWaveControlMessage> &msg);
+  void InitializeMessageList ();
 
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
@@ -214,10 +197,8 @@ protected:
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   std::map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
-  std::vector<std::list<Ptr<MmWaveControlMessage> > > m_controlMessageQueue;
 
   SlotAllocInfo m_currSlotAllocInfo;
-
   uint16_t m_frameNum;
   uint8_t m_subframeNum;
   uint8_t m_slotNum;
@@ -231,6 +212,7 @@ protected:
 
 private:
   std::map<SfnSf, SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
+  std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
   uint8_t m_antennaNumDim1 {0};
   uint8_t m_antennaNumDim2 {0};

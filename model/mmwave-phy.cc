@@ -1,39 +1,31 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                Sourjya Dutta <sdutta@nyu.edu>
- *                Russell Ford <russell.ford@nyu.edu>
- *                Menglei Zhang <menglei@nyu.edu>
- *                Biljana Bojovic <bbojovic@cttc.es>
- */
+*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License version 2 as
+*   published by the Free Software Foundation;
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License
+*   along with this program; if not, write to the Free Software
+*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*/
 
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
       if (m_phyMacConfig)                                                \
         {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
+          std::clog << " [ CellId " << m_cellId << ", ccId "             \
+                    << +m_phyMacConfig->GetCcId () << "] ";              \
         }                                                                \
     }                                                                    \
   while (false);
@@ -48,6 +40,7 @@
 #include "mmwave-mac-pdu-header.h"
 #include "mmwave-net-device.h"
 #include <map>
+#include "mmwave-spectrum-value-helper.h"
 #include <sstream>
 #include <vector>
 #include <algorithm>
@@ -93,7 +86,7 @@ MmWaveMemberPhySapProvider::SendMacPdu (Ptr<Packet> p)
 void
 MmWaveMemberPhySapProvider::SendControlMessage (Ptr<MmWaveControlMessage> msg)
 {
-  m_phy->SetControlMessage (msg);  //May need to change
+  m_phy->EnqueueCtrlMessage (msg);  //May need to change
 }
 
 void
@@ -181,12 +174,6 @@ MmWavePhy::~MmWavePhy ()
 }
 
 void
-MmWavePhy::DoInitialize ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-void
 MmWavePhy::InstallAntenna ()
 {
   ObjectFactory antennaFactory = ObjectFactory ();
@@ -259,10 +246,11 @@ void
 MmWavePhy::SendRachPreamble (uint32_t PreambleId, uint32_t Rnti)
 {
   NS_LOG_FUNCTION (this);
+  // This function is called by the SAP, SO it has to stay at the L1L2CtrlDelay rule
   m_raPreambleId = PreambleId;
   Ptr<MmWaveRachPreambleMessage> msg = Create<MmWaveRachPreambleMessage> ();
   msg->SetRapId (PreambleId);
-  SetControlMessage (msg);
+  EnqueueCtrlMessage (msg); // Enqueue at the end
 }
 
 void
@@ -341,20 +329,33 @@ MmWavePhy::GetCcId() const
 }
 
 void
-MmWavePhy::SetControlMessage (Ptr<MmWaveControlMessage> m)
+MmWavePhy::EnqueueCtrlMessage (const Ptr<MmWaveControlMessage> &m)
 {
   NS_LOG_FUNCTION (this);
-  if (m_controlMessageQueue.empty ())
+
+  m_controlMessageQueue.at (m_controlMessageQueue.size () - 1).push_back (m);
+}
+
+void
+MmWavePhy::EnqueueCtrlMsgNow (const Ptr<MmWaveControlMessage> &msg)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_controlMessageQueue.at (0).push_back (msg);
+}
+
+void
+MmWavePhy::InitializeMessageList ()
+{
+  NS_LOG_FUNCTION (this);
+  m_controlMessageQueue.clear ();
+
+  for (unsigned i = 0; i <= m_phyMacConfig->GetL1L2CtrlLatency (); i++)
     {
-      std::list<Ptr<MmWaveControlMessage> > l;
-      l.push_back (m);
-      m_controlMessageQueue.push_back (l);
-    }
-  else
-    {
-      m_controlMessageQueue.at (m_controlMessageQueue.size () - 1).push_back (m);
+      m_controlMessageQueue.push_back (std::list<Ptr<MmWaveControlMessage> > ());
     }
 }
+
 
 std::list<Ptr<MmWaveControlMessage> >
 MmWavePhy::GetControlMessages (void)
@@ -382,13 +383,6 @@ MmWavePhy::GetControlMessages (void)
       std::list<Ptr<MmWaveControlMessage> > emptylist;
       return (emptylist);
     }
-}
-
-void
-MmWavePhy::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
-{
-  NS_LOG_FUNCTION (this);
-  m_phyMacConfig = ptrConfig;
 }
 
 Ptr<MmWavePhyMacCommon>

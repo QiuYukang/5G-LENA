@@ -13,6 +13,7 @@ def build(bld):
     module.source = [
         'helper/mmwave-helper.cc',
         'helper/mmwave-phy-rx-trace.cc',
+        'helper/mmwave-mac-rx-trace.cc',
         'helper/nr-point-to-point-epc-helper.cc',
         'helper/mmwave-bearer-stats-calculator.cc',        
         'helper/mmwave-bearer-stats-connector.cc',           
@@ -26,7 +27,6 @@ def build(bld):
         'model/mmwave-spectrum-value-helper.cc',
         'model/mmwave-interference.cc',
         'model/mmwave-chunk-processor.cc',
-        'model/mmwave-mac.cc',
         'model/mmwave-mac-scheduler.cc',
         'model/mmwave-mac-scheduler-tdma-rr.cc',
         'model/mmwave-mac-scheduler-tdma-pf.cc',
@@ -91,6 +91,7 @@ def build(bld):
     headers.source = [
         'helper/mmwave-helper.h',
         'helper/mmwave-phy-rx-trace.h',
+        'helper/mmwave-mac-rx-trace.h',
         'helper/nr-point-to-point-epc-helper.h',
         'helper/mmwave-bearer-stats-calculator.h',        
         'helper/mmwave-bearer-stats-connector.h',        

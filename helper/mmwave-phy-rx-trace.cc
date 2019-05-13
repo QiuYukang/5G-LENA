@@ -41,6 +41,16 @@ NS_OBJECT_ENSURE_REGISTERED (MmWavePhyRxTrace);
 std::ofstream MmWavePhyRxTrace::m_rxPacketTraceFile;
 std::string MmWavePhyRxTrace::m_rxPacketTraceFilename;
 
+std::ofstream MmWavePhyRxTrace::m_rxedEnbPhyCtrlMsgsFile;
+std::string MmWavePhyRxTrace::m_rxedEnbPhyCtrlMsgsFileName;
+std::ofstream MmWavePhyRxTrace::m_txedEnbPhyCtrlMsgsFile;
+std::string MmWavePhyRxTrace::m_txedEnbPhyCtrlMsgsFileName;
+
+std::ofstream MmWavePhyRxTrace::m_rxedUePhyCtrlMsgsFile;
+std::string MmWavePhyRxTrace::m_rxedUePhyCtrlMsgsFileName;
+std::ofstream MmWavePhyRxTrace::m_txedUePhyCtrlMsgsFile;
+std::string MmWavePhyRxTrace::m_txedUePhyCtrlMsgsFileName;
+
 MmWavePhyRxTrace::MmWavePhyRxTrace ()
 {
 }
@@ -50,6 +60,26 @@ MmWavePhyRxTrace::~MmWavePhyRxTrace ()
   if (m_rxPacketTraceFile.is_open ())
     {
       m_rxPacketTraceFile.close ();
+    }
+
+  if (m_rxedEnbPhyCtrlMsgsFile.is_open ())
+    {
+      m_rxedEnbPhyCtrlMsgsFile.close ();
+    }
+
+  if (m_txedEnbPhyCtrlMsgsFile.is_open ())
+    {
+      m_txedEnbPhyCtrlMsgsFile.close ();
+    }
+
+  if (m_rxedUePhyCtrlMsgsFile.is_open ())
+    {
+      m_rxedUePhyCtrlMsgsFile.close ();
+    }
+
+  if (m_txedUePhyCtrlMsgsFile.is_open ())
+    {
+      m_txedUePhyCtrlMsgsFile.close ();
     }
 }
 
@@ -95,6 +125,191 @@ MmWavePhyRxTrace::UlSinrTraceCallback (Ptr<MmWavePhyRxTrace> phyStats, std::stri
   fclose (log_file);
   //phyStats->ReportInterferenceTrace (imsi, sinr);
   //phyStats->ReportPowerTrace (imsi, power);
+}
+
+void
+MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                              uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+{
+  if (!m_rxedEnbPhyCtrlMsgsFile.is_open ())
+      {
+        m_rxedEnbPhyCtrlMsgsFileName = "RxedEnbPhyCtrlMsgsTrace.txt";
+        m_rxedEnbPhyCtrlMsgsFile.open (m_rxedEnbPhyCtrlMsgsFileName.c_str ());
+        m_rxedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
+                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
+                                 << "\t" << "MsgType" << std::endl;
+
+        if (!m_rxedEnbPhyCtrlMsgsFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_rxedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Rxed" << "\t" << sfn.m_frameNum
+          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
+          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+
+
+  if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
+    {
+      m_rxedEnbPhyCtrlMsgsFile << "DL_CQI";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
+    {
+      m_rxedEnbPhyCtrlMsgsFile << "BSR";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
+    {
+      m_rxedEnbPhyCtrlMsgsFile << "RACH_PREAMBLE";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
+    {
+      m_rxedEnbPhyCtrlMsgsFile << "DL_HARQ";
+    }
+  else
+    {
+      m_rxedEnbPhyCtrlMsgsFile << "Other";
+    }
+  m_rxedEnbPhyCtrlMsgsFile << std::endl;
+}
+
+void
+MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                              uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+{
+  if (!m_txedEnbPhyCtrlMsgsFile.is_open ())
+      {
+        m_txedEnbPhyCtrlMsgsFileName = "TxedEnbPhyCtrlMsgsTrace.txt";
+        m_txedEnbPhyCtrlMsgsFile.open (m_txedEnbPhyCtrlMsgsFileName.c_str ());
+        m_txedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
+                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
+                                 << "\t" << "MsgType" << std::endl;
+
+        if (!m_txedEnbPhyCtrlMsgsFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_txedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Txed" << "\t" << sfn.m_frameNum
+          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
+          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+
+  if (msg->GetMessageType () == MmWaveControlMessage::MIB)
+    {
+      m_txedEnbPhyCtrlMsgsFile << "MIB";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
+    {
+      m_txedEnbPhyCtrlMsgsFile << "SIB1";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
+    {
+      m_txedEnbPhyCtrlMsgsFile << "RAR";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
+    {
+      m_txedEnbPhyCtrlMsgsFile << "DCI_TDMA";
+    }
+  else
+    {
+      m_txedEnbPhyCtrlMsgsFile << "Other";
+    }
+  m_txedEnbPhyCtrlMsgsFile << std::endl;
+}
+
+void
+MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                             uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+{
+  if (!m_rxedUePhyCtrlMsgsFile.is_open ())
+      {
+        m_rxedUePhyCtrlMsgsFileName = "RxedUePhyCtrlMsgsTrace.txt";
+        m_rxedUePhyCtrlMsgsFile.open (m_rxedUePhyCtrlMsgsFileName.c_str ());
+        m_rxedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
+                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
+                                 << "\t" << "MsgType" << std::endl;
+
+        if (!m_rxedUePhyCtrlMsgsFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_rxedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Rxed" << "\t" << sfn.m_frameNum
+          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
+          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+
+  if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
+    {
+      m_rxedUePhyCtrlMsgsFile << "DCI_TDMA";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
+    {
+      m_rxedUePhyCtrlMsgsFile << "MIB";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
+    {
+      m_rxedUePhyCtrlMsgsFile << "SIB1";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
+    {
+      m_rxedUePhyCtrlMsgsFile << "RAR";
+    }
+  else
+    {
+      m_rxedUePhyCtrlMsgsFile << "Other";
+    }
+  m_rxedUePhyCtrlMsgsFile << std::endl;
+}
+
+void
+MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                             uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+{
+  if (!m_txedUePhyCtrlMsgsFile.is_open ())
+      {
+        m_txedUePhyCtrlMsgsFileName = "TxedUePhyCtrlMsgsTrace.txt";
+        m_txedUePhyCtrlMsgsFile.open (m_txedUePhyCtrlMsgsFileName.c_str ());
+        m_txedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
+                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
+                                 << "\t" << "MsgType" << std::endl;
+
+        if (!m_txedUePhyCtrlMsgsFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_txedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Txed" << "\t" << sfn.m_frameNum
+          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
+          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+
+  if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
+    {
+      m_txedUePhyCtrlMsgsFile << "RACH_PREAMBLE";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::SR)
+    {
+      m_txedUePhyCtrlMsgsFile << "SR";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
+    {
+      m_txedUePhyCtrlMsgsFile << "BSR";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
+    {
+      m_txedUePhyCtrlMsgsFile << "DL_CQI";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
+    {
+      m_txedUePhyCtrlMsgsFile << "DL_HARQ";
+    }
+  else
+    {
+      m_txedUePhyCtrlMsgsFile << "Other";
+    }
+  m_txedUePhyCtrlMsgsFile << std::endl;
 }
 
 void
