@@ -130,6 +130,8 @@ transmission.
 from MmWave3gppChannel.
 * Removed attribute *EnbComponentCarrierManager* from MmWaveHelper. The only allowed
 CCManager is now BwpManagerGnb.
+* Removed attribute *UeComponentCarrierManager* from MmWaveHelper. The only allowed
+manager is now UeManagerGnb.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of

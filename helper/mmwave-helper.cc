@@ -50,6 +50,7 @@
 #include <ns3/lte-enb-component-carrier-manager.h>
 #include <ns3/lte-ue-component-carrier-manager.h>
 #include <ns3/bwp-manager-gnb.h>
+#include <ns3/bwp-manager-ue.h>
 
 namespace ns3 {
 
@@ -110,14 +111,6 @@ MmWaveHelper::GetTypeId (void)
                    BooleanValue (false),
                    MakeBooleanAccessor (&MmWaveHelper::m_rlcAmEnabled),
                    MakeBooleanChecker ())
-    .AddAttribute ("UeComponentCarrierManager",
-                   "The type of Component Carrier Manager to be used for UEs. "
-                   "The allowed values for this attributes are the type names "
-                   "of any class inheriting ns3::LteUeComponentCarrierManager.",
-                   StringValue ("ns3::SimpleUeComponentCarrierManager"),
-                   MakeStringAccessor (&MmWaveHelper::SetUeComponentCarrierManagerType,
-                                       &MmWaveHelper::GetUeComponentCarrierManagerType),
-                   MakeStringChecker ())
     .AddAttribute ("UseCa",
                    "If true, Carrier Aggregation feature is enabled and a valid Component Carrier Map is expected."
                    "If false, single carrier simulation.",
@@ -268,27 +261,6 @@ MmWaveHelper::GetSnrTest ()
   return m_snrTest;
 }
 
-std::string
-MmWaveHelper::GetUeComponentCarrierManagerType () const
-{
-  return m_ueComponentCarrierManagerFactory.GetTypeId ().GetName ();
-}
-
-void
-MmWaveHelper::SetUeComponentCarrierManagerType (std::string type)
-{
-  NS_LOG_FUNCTION (this << type);
-  m_ueComponentCarrierManagerFactory = ObjectFactory ();
-  m_ueComponentCarrierManagerFactory.SetTypeId (type);
-}
-
-void
-MmWaveHelper::SetUeComponentCarrierManagerAttribute (std::string n, const AttributeValue &v)
-{
-  NS_LOG_FUNCTION (this << n);
-  m_ueComponentCarrierManagerFactory.Set (n, v);
-}
-
 NetDeviceContainer
 MmWaveHelper::InstallUeDevice (NodeContainer c)
 {
@@ -389,7 +361,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       it->second->SetPhy (phy);
     }
 
-  Ptr<LteUeComponentCarrierManager> ccmUe = m_ueComponentCarrierManagerFactory.Create<LteUeComponentCarrierManager> ();
+  Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (CreateObject <BwpManagerUe> ());
 
   NS_ABORT_IF(m_noOfCcs != m_bwpConfiguration.size ());
 

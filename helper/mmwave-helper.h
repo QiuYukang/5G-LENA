@@ -59,8 +59,6 @@
 #include <ns3/mmwave-bearer-stats-connector.h>
 #include <ns3/propagation-loss-model.h>
 #include <ns3/mmwave-3gpp-channel.h>
-#include <ns3/component-carrier-gnb.h>
-#include <ns3/component-carrier-mmwave-ue.h>
 #include <ns3/cc-helper.h>
 
 namespace ns3 {
@@ -118,29 +116,6 @@ public:
    * \param ccmap the component carrier map
    */
   void SetCcPhyParams (std::map< uint8_t, ComponentCarrier> ccmap);
-
-  /**
-   * Set the type of Component Carrier Manager to be used by Ue devices.
-   *
-   * \param type type of UE Component Carrier Manager
-   *
-   */
-  void SetUeComponentCarrierManagerType (std::string type);
-
-  /**
-   *
-   * \return the carrier ue component carrier manager type
-   */
-  std::string GetUeComponentCarrierManagerType () const;
-
-  /**
-   * Set an attribute for the ue component carrier manager to be created.
-   *
-   * \param n the name of the attribute
-   * \param v the value of the attribute
-   */
-  void SetUeComponentCarrierManagerAttribute (std::string n, const AttributeValue &v);
-
 
   void AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
   void AttachToEnb (const Ptr<NetDevice> &ueDevice, const Ptr<NetDevice> &gnbDevice);
@@ -244,8 +219,6 @@ private:
   ObjectFactory m_channelFactory;
   ObjectFactory m_pathlossModelFactory;
   ObjectFactory m_phyMacCommonFactory;
-  /// Factory of ue component carrier manager object.
-  ObjectFactory m_ueComponentCarrierManagerFactory;
 
   uint64_t m_imsiCounter;
   uint16_t m_cellIdCounter;
