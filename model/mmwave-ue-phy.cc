@@ -132,7 +132,7 @@ MmWaveUePhy::GetTypeId (void)
                      "ns3::DlTbSize::TracedCallback")
     .AddTraceSource ("UePhyRxedCtrlMsgsTrace",
                      "Ue PHY Control Messages Traces.",
-                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyTxedCtrlMsgsTrace),
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyRxedCtrlMsgsTrace),
                      "ns3::MmWavePhyRxTrace::RxedUePhyCtrlMsgsTracedCallback")
     .AddTraceSource ("UePhyTxedCtrlMsgsTrace",
                      "Ue PHY Control Messages Traces.",
