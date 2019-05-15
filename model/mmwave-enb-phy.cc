@@ -494,24 +494,29 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
 
-  for (auto ctrlIt = ctrlMsgs.begin (); ctrlIt != ctrlMsgs.end (); ++ctrlIt)
+  if (ctrlMsgs.size () > 0)
     {
-      Ptr<MmWaveControlMessage> msg = (*ctrlIt);
-      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
-                              dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
+      NS_LOG_DEBUG ("ENB TXing DL CTRL with " << ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
+                    " subframe " << static_cast<uint32_t> (m_subframeNum) <<
+                    " slot " << static_cast<uint32_t> (m_slotNum) <<
+                    " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
+                    "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
+                    " start " << Simulator::Now () <<
+                    " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
+
+      for (auto ctrlIt = ctrlMsgs.begin (); ctrlIt != ctrlMsgs.end (); ++ctrlIt)
+        {
+          Ptr<MmWaveControlMessage> msg = (*ctrlIt);
+          m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
+                                  dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
+        }
+
+      SendCtrlChannels (&ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
     }
-
-  NS_LOG_DEBUG ("ENB TXing DL CTRL with " << ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
-                " subframe " << static_cast<uint32_t> (m_subframeNum) <<
-                " slot " << static_cast<uint32_t> (m_slotNum) <<
-                " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
-                "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
-                " start " << Simulator::Now () <<
-                " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
-
-
-
-  SendCtrlChannels (&ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
+  else
+    {
+      NS_LOG_INFO ("Scheduled time for DL CTRL but no messages to send");
+    }
 
   return varTtiPeriod;
 }
