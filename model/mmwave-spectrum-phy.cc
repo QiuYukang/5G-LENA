@@ -14,6 +14,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *   Authors: Biljana Bojovic <biljana.bojovic@cttc.es>
+ *   Inspired by lte-specterum-phy.cc
  */
 
 #include "mmwave-spectrum-phy.h"
@@ -41,10 +44,36 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("MmWaveSpectrumPhy");
 NS_OBJECT_ENSURE_REGISTERED (MmWaveSpectrumPhy);
 
+std::string ToString (enum MmWaveSpectrumPhy::State state)
+{
+  switch (state)
+  {
+    case MmWaveSpectrumPhy::TX:
+      return "TX";
+      break;
+    case MmWaveSpectrumPhy::RX_CTRL:
+      return "RX_CTRL";
+      break;
+    case MmWaveSpectrumPhy::CCA_BUSY:
+      return "CCA_BUSY";
+      break;
+    case MmWaveSpectrumPhy::RX_DATA:
+      return "RX_DATA";
+      break;
+    case MmWaveSpectrumPhy::IDLE:
+      return "IDLE";
+      break;
+    default:
+      NS_ABORT_MSG ("Unknown state.");
+  }
+}
+
 MmWaveSpectrumPhy::MmWaveSpectrumPhy ()
   : SpectrumPhy (),
     m_cellId (0),
-  m_state (IDLE)
+  m_state (IDLE),
+  m_unlicensedMode (false),
+  m_busyTimeEnds (Seconds (0))
 {
   m_interferenceData = CreateObject<mmWaveInterference> ();
   m_random = CreateObject<UniformRandomVariable> ();
@@ -64,6 +93,19 @@ MmWaveSpectrumPhy::GetTypeId (void)
     tid =
     TypeId ("ns3::MmWaveSpectrumPhy")
     .SetParent<NetDevice> ()
+    .AddAttribute ("UnlicensedMode",
+                   "Activate/Deactivate unlicensed mode in which energy detection is performed" 
+                   " and PHY state machine has an additional state CCA_BUSY.",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&MmWaveSpectrumPhy::m_unlicensedMode),
+                   MakeBooleanChecker ())
+    .AddAttribute ("CcaMode1Threshold",
+                   "The energy of a received signal should be higher than "
+                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.",
+                   DoubleValue (-62.0),
+                   MakeDoubleAccessor (&MmWaveSpectrumPhy::SetCcaMode1Threshold,
+                                       &MmWaveSpectrumPhy::GetCcaMode1Threshold),
+                   MakeDoubleChecker<double> ())
     .AddTraceSource ("RxPacketTraceEnb",
                      "The no. of packets received and transmitted by the Base Station",
                      MakeTraceSourceAccessor (&MmWaveSpectrumPhy::m_rxPacketTraceEnb),
@@ -86,6 +128,10 @@ MmWaveSpectrumPhy::GetTypeId (void)
                    TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
                    MakeTypeIdAccessor (&MmWaveSpectrumPhy::m_errorModelType),
                    MakeTypeIdChecker ())
+    .AddTraceSource ("ChannelOccupied",
+                     "This traced callback is triggered every time that the channel is occupied",
+                     MakeTraceSourceAccessor (&MmWaveSpectrumPhy::m_channelOccupied),
+                     "ns3::ChannelOccupied::TracedCalback")
   ;
 
   return tid;
@@ -112,6 +158,21 @@ MmWaveSpectrumPhy::SetDevice (Ptr<NetDevice> d)
     {
       m_isEnb = false;
     }
+}
+
+void
+MmWaveSpectrumPhy::SetCcaMode1Threshold (double thresholdDBm)
+{
+  NS_LOG_FUNCTION (this << thresholdDBm);
+  // convert dBm to Watt
+  m_ccaMode1ThresholdW = (std::pow (10.0, thresholdDBm / 10.0)) / 1000.0;
+}
+
+double
+MmWaveSpectrumPhy::GetCcaMode1Threshold (void) const
+{
+  // convert Watt to dBm
+  return 10.0 * std::log10 (m_ccaMode1ThresholdW * 1000.0);
 }
 
 Ptr<NetDevice>
@@ -158,10 +219,15 @@ MmWaveSpectrumPhy::SetAntenna (Ptr<AntennaModel> a)
 }
 
 void
-MmWaveSpectrumPhy::ChangeState (State newState)
+MmWaveSpectrumPhy::ChangeState (State newState, Time duration)
 {
-  NS_LOG_LOGIC (this << " state: " << m_state << " -> " << newState);
+  NS_LOG_LOGIC (this << " change state: " << ToString (m_state) << " -> " << ToString (newState));
   m_state = newState;
+
+  if (newState == RX_DATA || newState == RX_CTRL || newState == TX || newState == CCA_BUSY)
+    {
+      m_channelOccupied (duration);
+    }
 }
 
 
@@ -235,80 +301,55 @@ void
 MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 {
   NS_LOG_FUNCTION (this);
+  Ptr <const SpectrumValue> rxPsd = params->psd;
+  Time duration = params->duration;
+  NS_LOG_INFO ("Start receiving signal: " << rxPsd <<" duration= " << duration);
 
-  Ptr<MmWaveEnbNetDevice> EnbTx =
-    DynamicCast<MmWaveEnbNetDevice> (params->txPhy->GetDevice ());
+  Ptr<MmWaveEnbNetDevice> enbTx =
+      DynamicCast<MmWaveEnbNetDevice> (params->txPhy->GetDevice ());
   Ptr<MmWaveEnbNetDevice> enbRx =
-    DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
-  if ((EnbTx != 0 && enbRx != 0) || (EnbTx == 0 && enbRx == 0))
+      DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
+
+  Ptr<MmWaveUeNetDevice> ueTx =
+      DynamicCast<MmWaveUeNetDevice> (params->txPhy->GetDevice ());
+  Ptr<MmWaveUeNetDevice> ueRx =
+      DynamicCast<MmWaveUeNetDevice> (GetDevice ());
+
+  if ((enbTx != 0 && enbRx != 0) || (ueTx != 0 && ueRx != 0))
     {
       NS_LOG_INFO ("BS to BS or UE to UE transmission neglected.");
       return;
     }
 
+  // pass it to interference calculations regardless of the type (mmwave or non-mmwave)
+  m_interferenceData->AddSignal (rxPsd, duration);
+
   Ptr<MmwaveSpectrumSignalParametersDataFrame> mmwaveDataRxParams =
     DynamicCast<MmwaveSpectrumSignalParametersDataFrame> (params);
 
-  Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> DlCtrlRxParams =
+  Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> dlCtrlRxParams =
     DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
 
-  if (mmwaveDataRxParams != 0)
+  if (mmwaveDataRxParams != nullptr)
     {
-      Ptr<MmWaveUeNetDevice> ueRx = 0;
-      ueRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
-
-      /****************** the following code does not work with 2 bandwidth parts ************************/
-      // seems to be some issue with concurrent execution of independent events ...
-      // TODO @CTTC: needs to be revisited
-      /*
-      bool isAllocated = true;
-
-      if ((ueRx!=0) && (ueRx->GetPhy ()->IsReceptionEnabled () == false))
-        {
-          isAllocated = false;
-        }
-
-       if (isAllocated)
-        {*/
-      m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
-      NS_LOG_INFO ("Start Rxing a signal: " << mmwaveDataRxParams->psd <<
-                   " duration= " << mmwaveDataRxParams->duration << " cellId " <<
-                   mmwaveDataRxParams->cellId << " this cellId: " << m_cellId);
-      if (mmwaveDataRxParams->cellId == m_cellId)
-        {
-          //m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
-          StartRxData (mmwaveDataRxParams);
-        }
-
-      /*  TODO @CTTC:
-       *  double check why this code is not used, not clear how the interference calculated.
-       else
-       {
-         if (ueRx != 0)
-           {
-             m_interferenceData->AddSignal (mmwaveDataRxParams->psd, mmwaveDataRxParams->duration);
-           }
-       }
-       */
-      //}
-
+      StartRxData (mmwaveDataRxParams);
+    }
+  else if (dlCtrlRxParams != nullptr)
+    {
+      StartRxCtrl (params);
     }
   else
     {
-      Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> DlCtrlRxParams =
-        DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
-      if (DlCtrlRxParams != 0)
+      // If in RX or TX state, do not change to CCA_BUSY until is finished
+      // RX or TX state. If in IDLE state, then ok, move to CCA_BUSY if the
+      // channel is found busy.
+      if (m_unlicensedMode && m_state == IDLE)
         {
-          if (DlCtrlRxParams->cellId == m_cellId)
-            {
-              StartRxCtrl (params);
-            }
-          else
-            {
-              // Do nothing
-            }
+          MaybeCcaBusy ();
         }
+      NS_LOG_INFO ("Received non-mmwave signal of duration:"<<duration);
     }
+  
 }
 
 void
@@ -330,6 +371,9 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
     case RX_CTRL:
       NS_FATAL_ERROR ("Cannot receive control in data period");
       break;
+    case CCA_BUSY:
+      NS_LOG_INFO ("Start receiving DATA while in CCA_BUSY state");
+      /* no break */
     case RX_DATA:
     case IDLE:
       {
@@ -337,7 +381,7 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
           {
             if (m_rxPacketBurstList.empty ())
               {
-                NS_ASSERT (m_state == IDLE);
+                NS_ASSERT (m_state == IDLE || m_state == CCA_BUSY);
                 // first transmission, i.e., we're IDLE and we start RX
                 m_firstRxStart = Simulator::Now ();
                 m_firstRxDuration = params->duration;
@@ -355,7 +399,8 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
                 NS_ASSERT ((m_firstRxStart == Simulator::Now ()) && (m_firstRxDuration == params->duration));
               }
 
-            ChangeState (RX_DATA);
+            ChangeState (RX_DATA, params->duration);
+
             if (params->packetBurst && !params->packetBurst->GetPackets ().empty ())
               {
                 m_rxPacketBurstList.push_back (params->packetBurst);
@@ -369,6 +414,15 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
           {
             NS_LOG_LOGIC (this << " not in sync with this signal (cellId="
                                << params->cellId  << ", m_cellId=" << m_cellId << ")");
+            // Signal is not coming from our UE/gNB, then we should check
+            // whether the aggregation of all signals as tracked by the
+            // InterferenceHelper class is higher than the CcaBusyThreshold
+
+            // However do not do not change state to CCA_BUSY from RX or TX, only from IDLE.
+            if (m_unlicensedMode && m_state == IDLE)
+              {
+                MaybeCcaBusy ();
+              }
           }
       }
       break;
@@ -390,6 +444,9 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
     case RX_DATA:
       NS_FATAL_ERROR ("Cannot RX data while receiving control");
       break;
+    case CCA_BUSY:
+      NS_LOG_INFO ("Start receiving CTRL while channel in CCA_BUSY state");
+      /* no break */
     case RX_CTRL:
     case IDLE:
       {
@@ -399,14 +456,11 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
           DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
         // To check if we're synchronized to this signal, we check for the CellId
         uint16_t cellId = 0;
-        if (dlCtrlRxParams != 0)
-          {
-            cellId = dlCtrlRxParams->cellId;
-          }
-        else
-          {
-            NS_LOG_ERROR ("SpectrumSignalParameters type not supported");
-          }
+        
+        NS_ABORT_MSG_IF (dlCtrlRxParams == nullptr , "SpectrumSignalParameters type not supported");
+
+        cellId = dlCtrlRxParams->cellId;
+
         // check presence of PSS for UE measuerements
         /*if (dlCtrlRxParams->pss == true)
                       {
@@ -430,7 +484,7 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
                            && (m_firstRxDuration == params->duration));
               }
             NS_LOG_LOGIC (this << " synchronized with this signal (cellId=" << cellId << ")");
-            if (m_state == IDLE)
+            if (m_state == IDLE || m_state == CCA_BUSY)
               {
                 // first transmission, i.e., we're IDLE and we start RX
                 NS_ASSERT (m_rxControlMessageList.empty ());
@@ -440,13 +494,22 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
                 // store the DCIs
                 m_rxControlMessageList = dlCtrlRxParams->ctrlMsgList;
                 Simulator::Schedule (params->duration, &MmWaveSpectrumPhy::EndRxCtrl, this);
-                ChangeState (RX_CTRL);
+                ChangeState (RX_CTRL, params->duration);
               }
             else
               {
                 m_rxControlMessageList.insert (m_rxControlMessageList.end (), dlCtrlRxParams->ctrlMsgList.begin (), dlCtrlRxParams->ctrlMsgList.end ());
               }
 
+          }
+        else
+          {
+            // do not change to CCA_BUSY from RX or TX, only from IDLE
+            if (m_unlicensedMode && m_state == IDLE)
+              {
+                MaybeCcaBusy ();
+              }
+            NS_LOG_INFO ("Ctrl received from interfering cell with cell id:"<<cellId);
           }
         break;
       }
@@ -699,11 +762,82 @@ MmWaveSpectrumPhy::EndRxData ()
       m_phyRxCtrlEndOkCallback (m_rxControlMessageList);
     }
 
-  ChangeState (IDLE);
+  // if in unlicensed mode check after reception if the state should be 
+  // changed to IDLE or CCA_BUSY
+  if (m_unlicensedMode)
+    {
+      MaybeCcaBusy ();
+    }
+  else
+    {
+      ChangeState (IDLE, Seconds (0));
+    }
 
   m_rxPacketBurstList.clear ();
   m_transportBlocks.clear ();
   m_rxControlMessageList.clear ();
+}
+
+void
+MmWaveSpectrumPhy::CheckIfStillBusy ()
+{
+  NS_ABORT_MSG_IF ( m_state == IDLE, "This function should not be called when in IDLE state." );
+
+  // If in state of RX/TX do not switch to CCA_BUSY until RX/TX is finished. 
+  // When RX/TX finishes, check if the channel is still busy.
+  
+  if (m_state == CCA_BUSY)
+    {
+      MaybeCcaBusy();
+    }
+  else // RX_CTRL, RX_DATA, TX
+    {
+      Time delayUntilCcaEnd = m_interferenceData->GetEnergyDuration (m_ccaMode1ThresholdW);
+
+      if (delayUntilCcaEnd.IsZero())
+        {
+          NS_LOG_INFO (" Channel found IDLE as expected.");
+        }
+      else
+        {
+          NS_LOG_INFO (" Wait while channel BUSY for: "<<delayUntilCcaEnd<<" ns.");
+        }
+    }
+}
+
+void
+MmWaveSpectrumPhy::MaybeCcaBusy ()
+{
+  Time delayUntilCcaEnd = m_interferenceData->GetEnergyDuration (m_ccaMode1ThresholdW);
+  if (!delayUntilCcaEnd.IsZero ())
+    {
+      NS_LOG_DEBUG ("Channel detected BUSY for:" << delayUntilCcaEnd << " ns.");
+
+      ChangeState (CCA_BUSY, delayUntilCcaEnd);
+
+      // check if with the new energy the channel will be for longer time in CCA_BUSY
+      if ( m_busyTimeEnds < Simulator::Now() + delayUntilCcaEnd)
+        {
+          m_busyTimeEnds = Simulator::Now () + delayUntilCcaEnd;
+
+          if (m_checkIfIsIdleEvent.IsRunning())
+            {
+              m_checkIfIsIdleEvent.Cancel();
+            }
+
+          NS_LOG_DEBUG ("Check if still BUSY in:" << delayUntilCcaEnd << " us, and that is at "
+              " time:"<<Simulator::Now() + delayUntilCcaEnd<<" and current time is:"<<Simulator::Now());
+
+          m_checkIfIsIdleEvent = Simulator::Schedule (delayUntilCcaEnd, &MmWaveSpectrumPhy::CheckIfStillBusy, this);
+        }
+    }
+  else
+    {
+      NS_ABORT_MSG_IF (m_checkIfIsIdleEvent.IsRunning(), "Unexpected state: returning to IDLE while there is an event "
+                       "running that should switch from CCA_BUSY to IDLE ?!");
+      NS_LOG_DEBUG ("Channel detected IDLE after being in: " << ToString (m_state) << " state.");
+      ChangeState (IDLE, Seconds (0));
+    }
 }
 
 void
@@ -722,7 +856,16 @@ MmWaveSpectrumPhy::EndRxCtrl ()
         }
     }
 
-  ChangeState (IDLE);
+  // if in unlicensed mode check after reception if we are in IDLE or CCA_BUSY mode
+  if (m_unlicensedMode)
+    {
+      MaybeCcaBusy ();
+    }
+  else
+    {
+      ChangeState (IDLE, Seconds (0));
+    }
+
   m_rxControlMessageList.clear ();
 }
 
@@ -739,11 +882,15 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
     case TX:
       NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");
       break;
+    case CCA_BUSY:
+      NS_ABORT_MSG ("Start transmitting DATA while in CCA_BUSY state");
+      /* no break */
     case IDLE:
       {
         NS_ASSERT (m_txPsd);
 
-        ChangeState (TX);
+        ChangeState (TX, duration);
+
         Ptr<MmwaveSpectrumSignalParametersDataFrame> txParams = Create<MmwaveSpectrumSignalParametersDataFrame> ();
         txParams->duration = duration;
         txParams->txPhy = this->GetObject<SpectrumPhy> ();
@@ -775,25 +922,6 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
             m_txPacketTraceEnb (traceParam);
           }
 
-        //		if (enbTx)
-        //		{
-        //			EnbPhyPacketCountParameter traceParam;
-        //			traceParam.m_noBytes = (txParams->packetBurst)?txParams->packetBurst->GetSize ():0;
-        //			traceParam.m_cellId = txParams->cellId;
-        //			traceParam.m_isTx = true;
-        //			traceParam.m_subframeno = enbTx->GetPhy ()->GetAbsoluteSubframeNo ();
-        //			m_reportEnbPacketCount (traceParam);
-        //		}
-        //		else if (ueTx)
-        //		{
-        //			UePhyPacketCountParameter traceParam;
-        //			traceParam.m_noBytes = (txParams->packetBurst)?txParams->packetBurst->GetSize ():0;
-        //			traceParam.m_imsi = ueTx->GetImsi ();
-        //			traceParam.m_isTx = true;
-        //			traceParam.m_subframeno = ueTx->GetPhy ()->GetAbsoluteSubframeNo ();
-        //			m_reportUePacketCount (traceParam);
-        //		}
-
         m_channel->StartTx (txParams);
 
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
@@ -820,11 +948,15 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
     case TX:
       NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");
       break;
+    case CCA_BUSY:
+      NS_ABORT_MSG ("Start transmitting CTRL while in CCA_BUSY state");
+      /* no break */
+      break;
     case IDLE:
       {
         NS_ASSERT (m_txPsd);
 
-        ChangeState (TX);
+        ChangeState (TX, duration);
 
         Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> txParams = Create<MmWaveSpectrumSignalParametersDlCtrlFrame> ();
         txParams->duration = duration;
@@ -847,7 +979,15 @@ MmWaveSpectrumPhy::EndTx ()
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_state == TX);
 
-  ChangeState (IDLE);
+  // if in unlicensed mode check after transmission if we are in IDLE or CCA_BUSY mode
+  if (m_unlicensedMode)
+    {
+      MaybeCcaBusy ();
+    }
+  else
+    {
+      ChangeState (IDLE, Seconds (0));
+    }
 }
 
 Ptr<SpectrumChannel>

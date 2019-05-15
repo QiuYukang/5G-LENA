@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -16,13 +15,10 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
  *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                        Sourjya Dutta <sdutta@nyu.edu>
- *                        Russell Ford <russell.ford@nyu.edu>
- *                        Menglei Zhang <menglei@nyu.edu>
+ *   Author: Biljana Bojovic <biljana.bojovic@cttc.es>
+ *   Inspired by lte-specterum-phy.h
+ *
  */
 
 
@@ -68,6 +64,13 @@ typedef Callback< void, const DlHarqInfo& > MmWavePhyDlHarqFeedbackCallback;
  */
 typedef Callback< void, const UlHarqInfo &> MmWavePhyUlHarqFeedbackCallback;
 
+/**
+ * This traced callback is used to notify when is occupied either
+ * by some transmission of our own PHY instance or by someone else which
+ * is detected by energy detection method.
+ */
+typedef TracedCallback < Time> ChannelOccupiedTracedCallback;
+
 
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
@@ -80,13 +83,27 @@ public:
     IDLE = 0,
     TX,
     RX_DATA,
-    RX_CTRL
+    RX_CTRL,
+    CCA_BUSY
   };
 
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
   void SetDevice (Ptr<NetDevice> d);
+
+  /**
+   * \brief Set clear channel assessment (CCA) threshold
+   * @param thresholdDBm - CCA threshold in dBms
+   */
+  void SetCcaMode1Threshold (double thresholdDBm);
+
+  /**
+   * Returns clear channel assesment (CCA) threshold
+   * @return CCA threshold in dBms
+   */
+  double GetCcaMode1Threshold (void) const;
+
   Ptr<NetDevice> GetDevice () const;
   void SetMobility (Ptr<MobilityModel> m);
   Ptr<MobilityModel> GetMobility ();
@@ -199,10 +216,21 @@ private:
   std::unordered_map<uint16_t, TransportBlockInfo> m_transportBlocks; //!< Transport block map
   TypeId m_errorModelType; //!< Error model type
 
-  void ChangeState (State newState);
+  void ChangeState (State newState, Time duration);
   void EndTx ();
   void EndRxData ();
   void EndRxCtrl ();
+
+  void MaybeCcaBusy ();
+
+  /**
+   * \brief Function used to schedule event to check if state should be switched from CCA_BUSY to IDLE.
+   * This function should be used only for this transition of state machine. After finishing
+   * reception (RX_CTRL or RX_DATA) function MaybeCcaBusy should be called instead to check
+   * if to switch to IDLE or CCA_BUSY, and then new event may be created in the case that the
+   * channel is BUSY to switch back from busy to idle.
+   */
+  void CheckIfStillBusy ();
 
   Ptr<mmWaveInterference> m_interferenceData;
   Ptr<MobilityModel> m_mobility;
@@ -228,6 +256,8 @@ private:
   MmWavePhyRxCtrlEndOkCallback    m_phyRxCtrlEndOkCallback;
   MmWavePhyRxDataEndOkCallback                m_phyRxDataEndOkCallback;
 
+  ChannelOccupiedTracedCallback  m_channelOccupied;
+
   MmWavePhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback;
   MmWavePhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback;
 
@@ -246,6 +276,14 @@ private:
   Ptr<MmWaveHarqPhy> m_harqPhyModule;
 
   bool m_isEnb;
+
+  double m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in Watts
+
+  bool m_unlicensedMode {false};
+
+  EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY to IDLE.
+
+  Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time
 
 };
 
