@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License version 2 as
@@ -16,15 +15,7 @@
 *   along with this program; if not, write to the Free Software
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
 */
-
 
 
 #ifndef MMWAVE_INTERFERENCE_H
@@ -38,6 +29,7 @@
 #include <ns3/mmwave-chunk-processor.h>
 #include <ns3/trace-source-accessor.h>
 #include <ns3/traced-callback.h>
+#include <ns3/vector.h>
 
 
 namespace ns3 {
@@ -56,13 +48,102 @@ public:
   void AddPowerChunkProcessor (Ptr<mmWaveChunkProcessor> p);
   void AddSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p);
 
+  /**
+   * \brief Checks if the sum of the energy, including the energies that start
+   * at this moment is greater than provided energy detection threshold.
+   * If yes it returns true, otherwise false.
+   * @param energyW energy detection threshold used to evaluate if the channel
+   * is busy
+   * @return Returns true if the energy is above provided threshold. Otherwise
+   * false.
+   */
+  bool IsChannelBusyNow (double energyW);
+
+  /**
+   * \brief Returns the duration of the energy that is above the energy
+   * provided detection threshold
+   * @param energyW energy detection threshold used to evaluate if the channel
+   * is busy
+   * @return Duration of the energy that is above provided energy detection
+   * threshold.
+   */
+  Time GetEnergyDuration (double energyW);
+
+
+  /**
+  * \brief Crates events corresponding to the new energy. One event corresponds
+  * to the moment when the energy starts, and another to the moment that energy
+  * ends and in that event the energy is negative, or it is being substracted.
+  * @param startTime Energy start time
+  * @param endTime Energy end time
+  * @param rxPowerW Power of the energy in Watts
+  */
+  void AppendEvent (Time startTime, Time endTime, double rxPowerW);
+  /**
+   * Erase all events.
+   */
+  void EraseEvents (void);
+
 private:
+
+  /**
+     * Noise and Interference (thus Ni) event.
+     */
+    class NiChange
+    {
+      public:
+      /**
+       * Create a NiChange at the given time and the amount of NI change.
+       *
+       * \param time time of the event
+       * \param delta the power
+       */
+      NiChange (Time time, double delta);
+      /**
+       * Return the event time.
+       *
+       * \return the event time.
+       */
+      Time GetTime (void) const;
+      /**
+       * Return the power
+       *
+       * \return the power
+       */
+      double GetDelta (void) const;
+      /**
+       * Compare the event time of two NiChange objects (a < o).
+       *
+       * \param o
+       * \return true if a < o.time, false otherwise
+       */
+      bool operator < (const NiChange& o) const;
+
+
+  private:
+      Time m_time;
+      double m_delta;
+    };
+   /**
+    * typedef for a vector of NiChanges
+    */
+   typedef std::vector <NiChange> NiChanges;
+
+   mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
+
   void ConditionallyEvaluateChunk ();
   void DoAddSignal (Ptr<const SpectrumValue> spd);
   void DoSubtractSignal  (Ptr<const SpectrumValue> spd, uint32_t signalId);
+
+  /**
+   * Add NiChange to the list at the appropriate position.
+   *
+   * \param change
+   */
+  void AddNiChangeEvent (NiChange change);
+
   std::list<Ptr<mmWaveChunkProcessor> > m_PowerChunkProcessorList;
   std::list<Ptr<mmWaveChunkProcessor> > m_sinrChunkProcessorList;
-
 
   TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
   TracedCallback<double> m_rssiPerProcessedChunk;  ///<! Trace for RSSI pre processed chunk.
@@ -77,6 +158,12 @@ private:
 
   uint32_t m_lastSignalId;
   uint32_t m_lastSignalIdBeforeReset;
+
+  /// Used for energy duration calculation, inspired by wifi/model/interference-helper implementation
+  NiChanges m_niChanges; //!< List of events in whitch there is some change in the energy
+  double m_firstPower; //!< This contains the accumulated sum of the energy events until the certain moment it has been calculated
+
+
 };
 
 } // namespace ns3

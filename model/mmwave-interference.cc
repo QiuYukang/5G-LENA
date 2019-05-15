@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -16,13 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                        Sourjya Dutta <sdutta@nyu.edu>
- *                        Russell Ford <russell.ford@nyu.edu>
- *                        Menglei Zhang <menglei@nyu.edu>
  */
 
 
@@ -32,6 +24,7 @@
 #include <ns3/log.h>
 #include "mmwave-chunk-processor.h"
 #include <stdio.h>
+#include <algorithm>
 
 
 
@@ -43,7 +36,8 @@ namespace ns3 {
 mmWaveInterference::mmWaveInterference ()
   : m_receiving (false),
   m_lastSignalId (0),
-  m_lastSignalIdBeforeReset (0)
+  m_lastSignalIdBeforeReset (0),
+  m_firstPower (0.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -143,6 +137,22 @@ void
 mmWaveInterference::AddSignal (Ptr<const SpectrumValue> spd, const Time duration)
 {
   NS_LOG_FUNCTION (this << *spd << duration);
+
+  // Integrate over our receive bandwidth.
+  // Note that differently from wifi, we do not need to pass the
+  // signal through the filter. This is because
+  // before receiving the signal already passed through the
+  // spectrum converter, thus we will consider only the power over the
+  // spectrum that corresponds to the spectrum of the receiver.
+  // Also, differently from wifi we do not account here for the antenna gain,
+  // since this is already taken into account by the spectrum channel.
+  double rxPowerW = Integral (*spd);
+  // We are creating two events, one that adds the rxPowerW, and
+  // another that substracts the rxPowerW at the endTime.
+  // These events will be used to determine if the channel is busy and
+  // for how long.
+  AppendEvent (Simulator::Now(), Simulator::Now() + duration, rxPowerW);
+
   DoAddSignal (spd);
   uint32_t signalId = ++m_lastSignalId;
   if (signalId == m_lastSignalIdBeforeReset)
@@ -246,6 +256,152 @@ mmWaveInterference::AddSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p)
 {
   NS_LOG_FUNCTION (this << p);
   m_sinrChunkProcessorList.push_back (p);
+}
+
+/****************************************************************
+ *       Class which records SNIR change events for a
+ *       short period of time.
+ ****************************************************************/
+
+mmWaveInterference::NiChange::NiChange (Time time, double delta)
+  : m_time (time),
+    m_delta (delta)
+{
+}
+
+Time
+mmWaveInterference::NiChange::GetTime (void) const
+{
+  return m_time;
+}
+
+double
+mmWaveInterference::NiChange::GetDelta (void) const
+{
+  return m_delta;
+}
+
+bool
+mmWaveInterference::NiChange::operator < (const mmWaveInterference::NiChange& o) const
+{
+  return (m_time < o.m_time);
+}
+
+bool
+mmWaveInterference::IsChannelBusyNow (double energyW)
+{
+  double detectedPowerW = Integral (*m_allSignals);
+  double powerDbm = 10 * log10 (detectedPowerW * 1000);
+
+  NS_LOG_INFO("IsChannelBusyNow detected power is: "<<powerDbm <<
+              "  detectedPowerW: "<< detectedPowerW << " length spectrum: "<< 
+              (*m_allSignals).GetValuesN() <<" thresholdW:"<< energyW);
+
+  if (detectedPowerW > energyW)
+    {
+      NS_LOG_INFO ("Channel is BUSY.");
+      return true;
+    }
+  else
+    {
+      NS_LOG_INFO ("Channel is IDLE.");
+      return false;
+    }
+}
+
+Time
+mmWaveInterference::GetEnergyDuration (double energyW)
+{
+  if (!IsChannelBusyNow (energyW))
+    {
+      return Seconds (0);
+    }
+
+  Time now = Simulator::Now ();
+  double noiseInterferenceW = 0.0;
+  Time end = now;
+  noiseInterferenceW = m_firstPower;
+
+  NS_LOG_INFO("First power: " << m_firstPower);
+
+  for (NiChanges::const_iterator i = m_niChanges.begin (); i != m_niChanges.end (); i++)
+    {
+      noiseInterferenceW += i->GetDelta ();
+      end = i->GetTime ();
+      NS_LOG_INFO ("Delta: " << i->GetDelta () << "time: " << i->GetTime ());
+      if (end < now)
+        {
+          continue;
+        }
+      if (noiseInterferenceW < energyW)
+        {
+          break;
+        }
+    }
+    
+  NS_LOG_INFO("Future power dBm:"<<10 * log10 (noiseInterferenceW*1000)<<" W:"<<noiseInterferenceW <<
+  " and energy threshold in W is: "<< energyW);
+
+  if (end > now)
+    {
+      NS_LOG_INFO ("Channel BUSY until."<<end);
+
+    }
+  else
+    {
+      NS_LOG_INFO ("Channel IDLE.");
+    }
+
+  return end > now ? end - now : MicroSeconds (0);
+}
+
+void
+mmWaveInterference::EraseEvents (void)
+{
+  m_niChanges.clear ();
+  m_firstPower = 0.0;
+}
+
+mmWaveInterference::NiChanges::iterator
+mmWaveInterference::GetPosition (Time moment)
+{
+  return std::upper_bound (m_niChanges.begin (), m_niChanges.end (), NiChange (moment, 0));
+}
+
+void
+mmWaveInterference::AddNiChangeEvent (NiChange change)
+{
+  m_niChanges.insert (GetPosition (change.GetTime ()), change);
+}
+
+void
+mmWaveInterference::AppendEvent (Time startTime, Time endTime, double rxPowerW)
+{
+  Time now = Simulator::Now ();
+  
+  if (!m_receiving)
+    {
+      NiChanges::iterator nowIterator = GetPosition (now);
+      // We empty the list until the current moment. To do so we 
+      // first we sum all the energies until the current moment 
+      // and save it in m_firstPower.
+      for (NiChanges::iterator i = m_niChanges.begin (); i != nowIterator; i++)
+        {
+          m_firstPower += i->GetDelta ();
+        }
+      // then we remove all the events up to the current moment
+      m_niChanges.erase (m_niChanges.begin (), nowIterator);
+      // we create an event that represents the new energy
+      m_niChanges.insert (m_niChanges.begin (), NiChange (startTime, rxPowerW));
+    }
+  else
+    {
+      // for the startTime create the event that adds the energy
+      AddNiChangeEvent (NiChange (startTime, rxPowerW));
+    }
+
+  // for the endTime create event that will substract energy
+  AddNiChangeEvent (NiChange (endTime, - rxPowerW));
 }
 
 } // namespace ns3
