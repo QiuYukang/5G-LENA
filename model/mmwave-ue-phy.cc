@@ -505,6 +505,28 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
+  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
+
+  if (ctrlMsg.size () == 0)
+    {
+      NS_LOG_INFO   ("UE" << m_rnti << " reserved space for UL CTRL frame for symbols " <<
+                    +dci->m_symStart << "-" <<
+                    +(dci->m_symStart + dci->m_numSym - 1) <<
+                    "\t start " << Simulator::Now () << " end " <<
+                    (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)) <<
+                    " but no data to transmit");
+
+      return varTtiPeriod;
+    }
+
+  for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
+    {
+      Ptr<MmWaveControlMessage> msg = *ctrlIt;
+      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
+                              dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
+    }
+
   std::vector<int> channelRbs;
   for (uint32_t i = 0; i < m_phyMacConfig->GetBandwidthInRbs (); i++)
     {
@@ -512,23 +534,15 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
     }
 
   SetSubChannelsForTransmission (channelRbs);
-  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
-
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
-
-  for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
-    {
-      Ptr<MmWaveControlMessage> msg = (*ctrlIt);
-      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
-                              dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
-    }
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<
                 +(dci->m_symStart + dci->m_numSym - 1) <<
                 "\t start " << Simulator::Now () << " end " <<
                 (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)));
+
   SendCtrlChannels (ctrlMsg, varTtiPeriod - NanoSeconds (1.0));
+
   return varTtiPeriod;
 }
 
