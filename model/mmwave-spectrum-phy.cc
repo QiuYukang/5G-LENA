@@ -883,7 +883,7 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
       NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");
       break;
     case CCA_BUSY:
-      NS_ABORT_MSG ("Start transmitting DATA while in CCA_BUSY state");
+      NS_LOG_WARN ("Start transmitting DATA while in CCA_BUSY state");
       /* no break */
     case IDLE:
       {
@@ -949,7 +949,7 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
       NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");
       break;
     case CCA_BUSY:
-      NS_ABORT_MSG ("Start transmitting CTRL while in CCA_BUSY state");
+      NS_LOG_WARN ("Start transmitting CTRL while in CCA_BUSY state");
       /* no break */
       break;
     case IDLE:
