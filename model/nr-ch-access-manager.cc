@@ -39,13 +39,7 @@ NrChAccessManager::GetTypeId (void)
                    TimeValue (Minutes (1)),
                    MakeTimeAccessor (&NrChAccessManager::SetGrantDuration,
                                      &NrChAccessManager::GetGrantDuration),
-                   MakeTimeChecker ())
-    .AddAttribute ("EnergyDetectionThreshold",
-                   "CCA-ED threshold for channel sensing",
-                   DoubleValue (-72.0),
-                   MakeDoubleAccessor (&NrChAccessManager::SetEdThreshold,
-                                       &NrChAccessManager::GetEdThreshold),
-                   MakeDoubleChecker<double> (-100.0, -50.0));
+                   MakeTimeChecker ());
   return tid;
 }
 
@@ -74,17 +68,31 @@ NrChAccessManager::GetGrantDuration () const
 }
 
 void
-NrChAccessManager::SetEdThreshold (double edThreshold)
+NrChAccessManager::SetNrSpectrumPhy (Ptr<MmWaveSpectrumPhy> spectrumPhy)
 {
   NS_LOG_FUNCTION (this);
-  m_edThreshold = edThreshold;
+  m_spectrumPhy = spectrumPhy;
 }
 
-double
-NrChAccessManager::GetEdThreshold () const
+Ptr<MmWaveSpectrumPhy>
+NrChAccessManager::GetNrSpectrumPhy ()
 {
   NS_LOG_FUNCTION (this);
-  return m_edThreshold;
+  return m_spectrumPhy;
+}
+
+void
+NrChAccessManager::SetNrEnbMac (Ptr<MmWaveEnbMac> mac)
+{
+  NS_LOG_FUNCTION (this);
+  m_mac = mac;
+}
+
+Ptr<MmWaveEnbMac>
+NrChAccessManager::GetNrEnbMac ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_mac;
 }
 
 // -----------------------------------------------------------------

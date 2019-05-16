@@ -22,6 +22,8 @@
 #include <ns3/antenna-array-basic-model.h>
 #include <ns3/event-id.h>
 #include <functional>
+#include "mmwave-enb-mac.h"
+#include "mmwave-spectrum-phy.h"
 
 #ifndef NR_CH_ACCESS_MANAGER_H_
 #define NR_CH_ACCESS_MANAGER_H_
@@ -59,9 +61,6 @@ public:
    */
   Time GetGrantDuration () const;
 
-  void SetEdThreshold (double edThreshold);
-  double GetEdThreshold () const;
-
   /**
    * \brief A function that signal that the channel has been earned
    */
@@ -82,9 +81,35 @@ public:
    */
   virtual void ReleaseGrant () = 0;
 
+  /**
+   * @brief Set spectrum phy instance for this channel access manager
+   * @param spectrumPhy specturm phy instance
+   */
+  virtual void SetNrSpectrumPhy (Ptr<MmWaveSpectrumPhy> spectrumPhy);
+
+  /**
+   * Getter for spectrum phy instance to which is connected this channel access manager
+   * @return pointer to spectrum phy instance
+   */
+  Ptr<MmWaveSpectrumPhy> GetNrSpectrumPhy ();
+
+  /**
+   * \brief Set MAC instance for this channel access manager
+   * @param mac eNB mac instance
+   */
+  virtual void SetNrEnbMac (Ptr<MmWaveEnbMac> mac);
+
+  /**
+   * Getter for MAC instance to which is connected this channel access manager
+   * @return pointer to MAC instance
+   */
+  Ptr<MmWaveEnbMac> GetNrEnbMac ();
+
 private:
-  double m_edThreshold {0.0};
-  Time m_grantDuration;
+
+  Time m_grantDuration; //!< Duration of the channel access grant
+  Ptr<MmWaveEnbMac> m_mac; //!< MAC instance to which is connected this channel access manager
+  Ptr<MmWaveSpectrumPhy> m_spectrumPhy; //!< SpectrumPhy instance to which is connected this channel access manager
 };
 
 class NrAlwaysOnAccessManager : public NrChAccessManager

@@ -521,6 +521,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       // PHY <--> CAM
       channelAccessManagerFactory.SetTypeId (conf.m_channelAccessManagerType);
       Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
+      cam->SetNrSpectrumPhy (dlPhy);
       phy->SetCam (cam);
 
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
@@ -556,6 +557,8 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       it->second->SetMac (mac);
       it->second->SetMmWaveMacScheduler (sched);
       it->second->SetPhy (phy);
+
+      cam->SetNrEnbMac (mac);
     }
 
   NS_ABORT_MSG_IF (m_useCa && ccMap.size () < 2, "You have to either specify carriers or disable carrier aggregation");
