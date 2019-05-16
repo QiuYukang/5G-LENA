@@ -357,8 +357,6 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
 {
   NS_LOG_FUNCTION (this);
 
-  m_interferenceData->StartRx (params->psd);
-
   Ptr<MmWaveEnbNetDevice> enbRx =
     DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
   Ptr<MmWaveUeNetDevice> ueRx =
@@ -379,6 +377,8 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
       {
         if (params->cellId == m_cellId)
           {
+            m_interferenceData->StartRx (params->psd);
+
             if (m_rxPacketBurstList.empty ())
               {
                 NS_ASSERT (m_state == IDLE || m_state == CCA_BUSY);
@@ -937,7 +937,7 @@ bool
 MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList,
                                            const Time &duration)
 {
-  NS_LOG_LOGIC (this << " state: " << m_state);
+  NS_LOG_LOGIC (this << " state: " << ToString (m_state));
 
   switch (m_state)
     {
