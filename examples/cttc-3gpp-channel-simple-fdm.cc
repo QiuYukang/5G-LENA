@@ -38,10 +38,10 @@
  *
  * Bellow are described the global variables that are accessible through the
  * command line. E.g. the numerology of the BWP 1 can be configured by using
- * as --numerologyBwp1=4, so if use would like to specify this parameter
- * the program would be run in the following way:
+ * as --numerologyBwp1=4, so if the user would like to specify this parameter
+ * the program can be run in the following way:
  *
- * ./waf --run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=3"
+ * ./waf --run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=4"
  *
  */
 
@@ -118,6 +118,10 @@ static ns3::GlobalValue g_udpPacketSizeUll ("packetSize",
                                             ns3::UintegerValue (1000),
                                             ns3::MakeUintegerChecker<uint32_t>());
 
+
+static int g_rlcTraceCallbackCalled = false; //!< Global variable used to check if the callback function for RLC is called and thus to determine if the example is run correctly or not
+static int g_pdcpTraceCallbackCalled = false; //!< Global variable used to check if the callback function for PDCP is called and thus to determine if the example is run correctly or not
+
 /**
  * \related Global boolean variable used to configure whether the flow is a low latency. It is accessible as "--isUll" from CommandLine.
  */
@@ -139,7 +143,9 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr)
   uint16_t packetSize = uintegerValue.Get();
 
   Ptr<Packet> pkt = Create<Packet> (packetSize);
-  EpsBearerTag tag (1, 1);
+  // the dedicated bearer that we activate in the simulation 
+  // will have bearerId = 2
+  EpsBearerTag tag (1, 2);
   pkt->AddPacketTag (tag);
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
@@ -157,6 +163,7 @@ void
 RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
 {
   std::cout<<"\n Packet PDCP delay:"<<pdcpDelay<<"\n";
+  g_pdcpTraceCallbackCalled = true;
 }
 
 /**
@@ -177,6 +184,7 @@ RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_
   std::cout<<"\n lcid:"<<(unsigned)lcid<<std::endl;
   std::cout<<"\n bytes :"<< bytes<<std::endl;
   std::cout<<"\n delay :"<< rlcDelay<<std::endl;
+  g_rlcTraceCallbackCalled = true;
 }
 
 /**
@@ -185,10 +193,13 @@ RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_
 void
 ConnectPdcpRlcTraces ()
 {
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+  // after recent changes in the EPC UE node ID has changed to 3
+  // dedicated bearer that we have activated has bearer id 2
+  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/2/LtePdcp/RxPDU",
                       MakeCallback (&RxPdcpPDU));
-
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+  // after recent changes in the EPC UE node ID has changed to 3
+  // dedicated bearer that we have activated has bearer id 2
+  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/2/LteRlc/RxPDU",
                       MakeCallback (&RxRlcPDU));
 
 }
@@ -277,6 +288,11 @@ main (int argc, char *argv[])
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
+  Ptr<EpcTft> tft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpf;
+  dlpf.localPortStart = 1234;
+  dlpf.localPortEnd = 1234;
+  tft->Add (dlpf);
   enum EpsBearer::Qci q;
 
   if (isUll)
@@ -289,7 +305,7 @@ main (int argc, char *argv[])
     }
 
   EpsBearer bearer (q);
-  mmWaveHelper->ActivateDataRadioBearer (ueNetDev, bearer);
+  mmWaveHelper->ActivateDedicatedEpsBearer (ueNetDev, bearer, tft);
 
   Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
 
@@ -298,6 +314,15 @@ main (int argc, char *argv[])
   Simulator::Stop (Seconds (1));
   Simulator::Run ();
   Simulator::Destroy ();
+
+  if (g_rlcTraceCallbackCalled && g_pdcpTraceCallbackCalled)
+    {
+      return EXIT_SUCCESS;
+    }
+  else
+    {
+      return EXIT_FAILURE;
+    }
 }
 
 
