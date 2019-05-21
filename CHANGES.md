@@ -151,6 +151,10 @@ an allocation at a symbol != 0.
 * The scheduler is now informed of RACH messages, even if (for the moment) it
 does nothing to allocate space for UL RRC message, it reserve some ideal
 space in the DL CTRL link to send the RAR response.
+* The UE will ignore the UL CTRL slot if there are no messages to send. Practically speaking,
+the UE will not set power on the RBG, not generating interference.
+* The GNB will not put power during the DL CTRL symbol if there aren't messages
+to send to the UEs.
 
 ---
 

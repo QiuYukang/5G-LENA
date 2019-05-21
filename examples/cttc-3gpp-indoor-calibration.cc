@@ -108,8 +108,8 @@ NS_LOG_COMPONENT_DEFINE ("Nr3gppIndoorCalibration");
 
 
 static ns3::GlobalValue g_duration ("duration",
-                                     "simulation duration in milliseconds",
-                                     ns3::UintegerValue (100),
+                                     "simulation duration in milliseconds, should be greater than 100 ms to allow the collection of traces",
+                                     ns3::UintegerValue (150),
                                      ns3::MakeUintegerChecker<uint32_t>());
 
 static ns3::GlobalValue g_shadowing ("shadowing",
