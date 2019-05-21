@@ -475,8 +475,20 @@ MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
   for (const auto & burstPair : newBursts)
     {
       SfnSf old, latest;
-      old.Decode(sfnMap.at (burstPair.first));
-      latest.Decode(burstPair.first);
+      old.Decode (sfnMap.at (burstPair.first));
+      latest.Decode (burstPair.first);
+
+      for (auto & p : burstPair.second->GetPackets())
+        {
+          MmWaveMacPduTag tag;
+          bool ret = p->RemovePacketTag (tag);
+          NS_ASSERT (ret);
+
+          tag.SetSfn (latest);
+          p->AddPacketTag (tag);
+        }
+
+
       m_packetBurstMap.insert (std::make_pair (burstPair.first, burstPair.second));
       NS_LOG_INFO ("PacketBurst with " << burstPair.second->GetNPackets() <<
                    "packets for SFN " << old << " now moved to SFN " << latest);
