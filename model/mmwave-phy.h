@@ -135,7 +135,7 @@ public:
    *
    * Increase the sfn of all allocations to be chronologically "in order".
    */
-  void PushFrontSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
+  void PushFrontSlotAllocInfo (const SfnSf &newSfnSf, const SlotAllocInfo &slotAllocInfo);
 
   /**
    * \brief Check if the SlotAllocationInfo for that slot exists
@@ -243,7 +243,7 @@ protected:
 
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
-  std::map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
+  std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
 
   SlotAllocInfo m_currSlotAllocInfo;
   uint16_t m_frameNum {0};

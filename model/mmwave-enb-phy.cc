@@ -358,11 +358,19 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
           // If the channel was not granted, queue back the allocation,
           // without calling the MAC for a new slot
           auto slotAllocCopy = m_currSlotAllocInfo;
-          slotAllocCopy.m_sfnSf = slotAllocCopy.m_sfnSf.IncreaseNoOfSlots(m_phyMacConfig->GetSlotsPerSubframe(),
-                                                                          m_phyMacConfig->GetSubframesPerFrame());
-          NS_LOG_INFO ("Queueing allocation for " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0) <<
-                       " to " << slotAllocCopy.m_sfnSf);
-          PushFrontSlotAllocInfo (slotAllocCopy);
+          auto newSfnSf = slotAllocCopy.m_sfnSf.IncreaseNoOfSlots(m_phyMacConfig->GetSlotsPerSubframe(),
+                                                                  m_phyMacConfig->GetSubframesPerFrame());
+          NS_LOG_INFO ("Queueing allocation in front for " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
+          if (m_currSlotAllocInfo.ContainsDataAllocation ())
+            {
+              NS_LOG_INFO ("Reason: Current slot allocation has data");
+            }
+          else
+            {
+              NS_LOG_INFO ("Reason: CTRL message list is not empty");
+            }
+
+          PushFrontSlotAllocInfo (newSfnSf, slotAllocCopy);
         }
       else
         {

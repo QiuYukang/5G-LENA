@@ -255,13 +255,14 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
     {
       NS_ASSERT ((tag.GetSfn ().m_slotNum >= 0) && (tag.GetSfn ().m_varTtiNum < m_phyMacConfig->GetSymbolsPerSlot ()));
 
-      std::map<uint64_t, Ptr<PacketBurst> >::iterator it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
+      auto it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
 
       if (it == m_packetBurstMap.end ())
         {
-          it = m_packetBurstMap.insert (std::pair<uint64_t, Ptr<PacketBurst> > (tag.GetSfn ().Encode (), CreateObject<PacketBurst> ())).first;
+          it = m_packetBurstMap.insert (std::make_pair (tag.GetSfn ().Encode (), CreateObject<PacketBurst> ())).first;
         }
       it->second->AddPacket (p);
+      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn ());
     }
   else
     {
@@ -274,11 +275,11 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
 {
   NS_LOG_FUNCTION (this);
   Ptr<PacketBurst> pburst;
-  std::map<uint64_t, Ptr<PacketBurst> >::iterator it = m_packetBurstMap.find (sfn.Encode ());
+  auto it = m_packetBurstMap.find (sfn.Encode ());
 
   if (it == m_packetBurstMap.end ())
     {
-      NS_LOG_ERROR ("GetPacketBurst(): Packet burst not found for subframe " << (unsigned)sfn.m_subframeNum << " slot" << (unsigned) sfn.m_slotNum << " tti start "  << (unsigned)sfn.m_varTtiNum);
+      NS_LOG_ERROR ("Packet burst not found for " << sfn);
       return pburst;
     }
   else
@@ -430,17 +431,55 @@ MmWavePhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 }
 
 void
-MmWavePhy::PushFrontSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
+MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
+                                   const SlotAllocInfo &slotAllocInfo)
 {
   NS_LOG_FUNCTION (this);
-  SfnSf slotSfn = slotAllocInfo.m_sfnSf;
-  m_slotAllocInfo.push_front (slotAllocInfo);
 
-  // all the slot allocations have to be "adjusted":
+  m_slotAllocInfo.push_front (slotAllocInfo);
+  SfnSf currentSfn = newSfnSf;
+  std::unordered_map<uint64_t, Ptr<PacketBurst>> newBursts; // map between new sfn and the packet burst
+  std::unordered_map<uint64_t, uint64_t> sfnMap; // map between new and old sfn, for debugging
+
+  // all the slot allocations  (and their packet burst) have to be "adjusted":
+  // directly modify the sfn for the allocation, and temporarly store the
+  // burst (along with the new sfn) into newBursts.
   for (auto it = m_slotAllocInfo.begin (); it != m_slotAllocInfo.end (); ++it)
     {
-      it->m_sfnSf = slotSfn;
-      slotSfn = slotSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+      auto slotSfn = it->m_sfnSf;
+      for (const auto &alloc : it->m_varTtiAllocInfo)
+        {
+          if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
+            {
+              slotSfn.m_varTtiNum = alloc.m_dci->m_symStart;
+              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn);
+              if (pburst && pburst->GetNPackets() > 0)
+                {
+                  currentSfn.m_varTtiNum = alloc.m_dci->m_symStart;
+                  newBursts.insert (std::make_pair (currentSfn.Encode(), pburst));
+                  sfnMap.insert (std::make_pair (currentSfn.Encode(), it->m_sfnSf.Encode()));
+                }
+              else
+                {
+                  NS_LOG_INFO ("No packet burst found for " << slotSfn);
+                }
+            }
+        }
+
+      currentSfn.m_varTtiNum = 0;
+      NS_LOG_INFO ("Set slot allocation for " << it->m_sfnSf << " to " << currentSfn);
+      it->m_sfnSf = currentSfn;
+      currentSfn = currentSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+    }
+
+  for (const auto & burstPair : newBursts)
+    {
+      SfnSf old, latest;
+      old.Decode(sfnMap.at (burstPair.first));
+      latest.Decode(burstPair.first);
+      m_packetBurstMap.insert (std::make_pair (burstPair.first, burstPair.second));
+      NS_LOG_INFO ("PacketBurst with " << burstPair.second->GetNPackets() <<
+                   "packets for SFN " << old << " now moved to SFN " << latest);
     }
 }
 
