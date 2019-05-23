@@ -81,6 +81,8 @@ public:
    */
   virtual void ReleaseGrant () = 0;
 
+  virtual void Cancel () = 0;
+
   /**
    * @brief Set spectrum phy instance for this channel access manager
    * @param spectrumPhy specturm phy instance
@@ -127,6 +129,7 @@ public:
   virtual void RequestAccess () override;
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) override;
   virtual void ReleaseGrant () override;
+  virtual void Cancel () override;
 
 private:
   std::vector<AccessGrantedCallback> m_accessGrantedCb;

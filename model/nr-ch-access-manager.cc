@@ -139,10 +139,18 @@ NrAlwaysOnAccessManager::SetAccessGrantedCallback (const AccessGrantedCallback &
 }
 
 void
-NrAlwaysOnAccessManager::ReleaseGrant()
+NrAlwaysOnAccessManager::ReleaseGrant ()
 {
   NS_LOG_FUNCTION (this);
   // Do nothing, we are always on..
+}
+
+void
+NrAlwaysOnAccessManager::Cancel ()
+{
+  NS_LOG_FUNCTION (this);
+  // Do nothing, we are always on and we call the callback only when RequestAccess()
+  // is called
 }
 
 }
