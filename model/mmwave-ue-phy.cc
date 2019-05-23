@@ -323,15 +323,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                   ulUpdated = true;
                 }
             }
-          else if (dciInfoElem->m_format == DciInfoElementTdma::UL
-                   && dciInfoElem->m_type == DciInfoElementTdma::CTRL)
-            {
-              VarTtiAllocInfo varTtiInfo (dciInfoElem);
-              m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
-              dlUpdated = true; // Please note that this is DLUpdated even if
-                                // we added an UL control because the UL CTRL
-                                // is for this slot
-            }
 
           m_phySapUser->ReceiveControlMessage (msg);
         }
@@ -434,15 +425,9 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 
   std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
   VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+  VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
   m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
-    {
-      NS_ASSERT (m_currSlotAllocInfo.m_numSymAlloc == 0);
-      NS_LOG_INFO ("No allocation in this slot, directly go to the end of the slot");
-      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod (), &MmWaveUePhy::EndVarTti, this);
-      return;
-    }
+  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum
@@ -668,7 +653,7 @@ MmWaveUePhy::EndVarTti ()
   if (m_varTtiNum == m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1)
     {
       // end of slot
-      SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum,0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
+      SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                        m_phyMacConfig->GetSubframesPerFrame ());
 
       Simulator::Schedule (m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -

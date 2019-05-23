@@ -480,15 +480,6 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
           ctrlMsgs.push_back (dciMsg);
           NS_LOG_INFO ("To send, DL DCI for UE " << dciElem->m_rnti);
         }
-      else if (dlAlloc.m_dci->m_type == DciInfoElementTdma::CTRL
-               && dlAlloc.m_dci->m_format == DciInfoElementTdma::UL)
-        {
-          Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dlAlloc.m_dci);
-          dciMsg->SetSfnSf (sfn);
-
-          ctrlMsgs.push_back (dciMsg);
-          NS_LOG_INFO ("To send, UL CTRL for all UEs");
-        }
     }
 
   // TODO: REDUCE AMOUNT OF DUPLICATE CODE
