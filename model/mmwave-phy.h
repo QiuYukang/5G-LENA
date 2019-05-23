@@ -176,7 +176,7 @@ public:
   size_t SlotAllocInfoSize () const;
 
   /**
-   * \brief Check if the list of control messages is empty.
+   * \brief Check if there are no control messages queued for this slot
    * \return true if there are no control messages queued for this slot
    */
   bool IsCtrlMsgListEmpty () const;

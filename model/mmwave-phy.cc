@@ -566,7 +566,7 @@ bool
 MmWavePhy::IsCtrlMsgListEmpty() const
 {
   NS_LOG_FUNCTION (this);
-  return m_controlMessageQueue.empty ();
+  return m_controlMessageQueue.empty () || m_controlMessageQueue.at (0).empty();
 }
 
 Ptr<AntennaArrayBasicModel>
