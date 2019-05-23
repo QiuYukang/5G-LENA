@@ -332,24 +332,40 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
   if (mmwaveDataRxParams != nullptr)
     {
-      StartRxData (mmwaveDataRxParams);
+      if (mmwaveDataRxParams->cellId == m_cellId)
+        {
+          StartRxData (mmwaveDataRxParams);
+        }
+      else
+        {
+          NS_LOG_INFO (" Received DATA not in sync with this signal (cellId=" <<
+                       mmwaveDataRxParams->cellId  << ", m_cellId=" << m_cellId << ")");
+        }
     }
   else if (dlCtrlRxParams != nullptr)
     {
-      StartRxCtrl (params);
+      if (dlCtrlRxParams->cellId == m_cellId)
+        {
+          StartRxCtrl (params);
+        }
+      else
+        {
+          NS_LOG_INFO (" Received CTRL not in sync with this signal (cellId=" <<
+                       dlCtrlRxParams->cellId  << ", m_cellId=" << m_cellId << ")");
+        }
     }
   else
     {
-      // If in RX or TX state, do not change to CCA_BUSY until is finished
-      // RX or TX state. If in IDLE state, then ok, move to CCA_BUSY if the
-      // channel is found busy.
-      if (m_unlicensedMode && m_state == IDLE)
-        {
-          MaybeCcaBusy ();
-        }
-      NS_LOG_INFO ("Received non-mmwave signal of duration:"<<duration);
+      NS_LOG_INFO ("Received non-mmwave signal of duration:" << duration);
     }
-  
+
+  // If in RX or TX state, do not change to CCA_BUSY until is finished
+  // RX or TX state. If in IDLE state, then ok, move to CCA_BUSY if the
+  // channel is found busy.
+  if (m_unlicensedMode && m_state == IDLE)
+    {
+      MaybeCcaBusy ();
+    }
 }
 
 void
@@ -375,55 +391,38 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
     case RX_DATA:
     case IDLE:
       {
-        if (params->cellId == m_cellId)
+        m_interferenceData->StartRx (params->psd);
+
+        if (m_rxPacketBurstList.empty ())
           {
-            m_interferenceData->StartRx (params->psd);
+            NS_ASSERT (m_state == IDLE || m_state == CCA_BUSY);
+            // first transmission, i.e., we're IDLE and we start RX
+            m_firstRxStart = Simulator::Now ();
+            m_firstRxDuration = params->duration;
+            NS_LOG_LOGIC (this << " scheduling EndRx with delay " << params->duration.GetSeconds () << "s");
 
-            if (m_rxPacketBurstList.empty ())
-              {
-                NS_ASSERT (m_state == IDLE || m_state == CCA_BUSY);
-                // first transmission, i.e., we're IDLE and we start RX
-                m_firstRxStart = Simulator::Now ();
-                m_firstRxDuration = params->duration;
-                NS_LOG_LOGIC (this << " scheduling EndRx with delay " << params->duration.GetSeconds () << "s");
-
-                Simulator::Schedule (params->duration, &MmWaveSpectrumPhy::EndRxData, this);
-              }
-            else
-              {
-                NS_ASSERT (m_state == RX_DATA);
-                // sanity check: if there are multiple RX events, they
-                // should occur at the same time and have the same
-                // duration, otherwise the interference calculation
-                // won't be correct
-                NS_ASSERT ((m_firstRxStart == Simulator::Now ()) && (m_firstRxDuration == params->duration));
-              }
-
-            ChangeState (RX_DATA, params->duration);
-
-            if (params->packetBurst && !params->packetBurst->GetPackets ().empty ())
-              {
-                m_rxPacketBurstList.push_back (params->packetBurst);
-              }
-            //NS_LOG_DEBUG (this << " insert msgs " << params->ctrlMsgList.size ());
-            m_rxControlMessageList.insert (m_rxControlMessageList.end (), params->ctrlMsgList.begin (), params->ctrlMsgList.end ());
-
-            NS_LOG_LOGIC (this << " numSimultaneousRxEvents = " << m_rxPacketBurstList.size ());
+            Simulator::Schedule (params->duration, &MmWaveSpectrumPhy::EndRxData, this);
           }
         else
           {
-            NS_LOG_LOGIC (this << " not in sync with this signal (cellId="
-                               << params->cellId  << ", m_cellId=" << m_cellId << ")");
-            // Signal is not coming from our UE/gNB, then we should check
-            // whether the aggregation of all signals as tracked by the
-            // InterferenceHelper class is higher than the CcaBusyThreshold
-
-            // However do not do not change state to CCA_BUSY from RX or TX, only from IDLE.
-            if (m_unlicensedMode && m_state == IDLE)
-              {
-                MaybeCcaBusy ();
-              }
+            NS_ASSERT (m_state == RX_DATA);
+            // sanity check: if there are multiple RX events, they
+            // should occur at the same time and have the same
+            // duration, otherwise the interference calculation
+            // won't be correct
+            NS_ASSERT ((m_firstRxStart == Simulator::Now ()) && (m_firstRxDuration == params->duration));
           }
+
+        ChangeState (RX_DATA, params->duration);
+
+        if (params->packetBurst && !params->packetBurst->GetPackets ().empty ())
+          {
+            m_rxPacketBurstList.push_back (params->packetBurst);
+          }
+        //NS_LOG_DEBUG (this << " insert msgs " << params->ctrlMsgList.size ());
+        m_rxControlMessageList.insert (m_rxControlMessageList.end (), params->ctrlMsgList.begin (), params->ctrlMsgList.end ());
+
+        NS_LOG_LOGIC (this << " numSimultaneousRxEvents = " << m_rxPacketBurstList.size ());
       }
       break;
     default:
@@ -504,11 +503,6 @@ MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
           }
         else
           {
-            // do not change to CCA_BUSY from RX or TX, only from IDLE
-            if (m_unlicensedMode && m_state == IDLE)
-              {
-                MaybeCcaBusy ();
-              }
             NS_LOG_INFO ("Ctrl received from interfering cell with cell id:"<<cellId);
           }
         break;
