@@ -294,6 +294,8 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_lastSlotStart = Simulator::Now ();
   m_currSlotAllocInfo = RetrieveSlotAllocInfo ();
 
+  const SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0);
+
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ));
@@ -328,14 +330,26 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   if (m_channelStatus == GRANTED)
     {
       NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
-      m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-      m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+      m_phySapUser->SlotUlIndication (currentSlot);
+      m_phySapUser->SlotDlIndication (currentSlot);
 
       DoStartSlot ();
     }
   else
     {
-      if (m_currSlotAllocInfo.ContainsDataAllocation () || ! IsCtrlMsgListEmpty ())
+      bool hasUlDci = false;
+      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
+                                                           m_phyMacConfig->GetSlotsPerSubframe (),
+                                                           m_phyMacConfig->GetSubframesPerFrame ());
+      if (m_phyMacConfig->GetUlSchedDelay () > 0)
+        {
+          if (SlotAllocInfoExists (ulSfn))
+            {
+              SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
+              hasUlDci = ulSlot.ContainsDataAllocation ();
+            }
+        }
+      if (m_currSlotAllocInfo.ContainsDataAllocation () || ! IsCtrlMsgListEmpty () || hasUlDci)
         {
           // Request the channel access
           if (m_channelStatus == NONE)
