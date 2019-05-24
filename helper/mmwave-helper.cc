@@ -519,7 +519,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       phy->SetPerformBeamformingFn (beamformingFn);
 
       // PHY <--> CAM
-      channelAccessManagerFactory.SetTypeId (conf.m_channelAccessManagerType);
+      channelAccessManagerFactory.SetTypeId (conf.m_gnbChannelAccessManagerType);
       Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
       cam->SetNrSpectrumPhy (dlPhy);
       phy->SetCam (cam);
@@ -1097,7 +1097,8 @@ BandwidthPartRepresentation::BandwidthPartRepresentation (const BandwidthPartRep
   m_channel = o.m_channel;
   m_propagation = o.m_propagation;
   m_3gppChannel = o.m_3gppChannel;
-  m_channelAccessManagerType = o.m_channelAccessManagerType;
+  m_gnbChannelAccessManagerType = o.m_gnbChannelAccessManagerType;
+  m_ueChannelAccessManagerType = o.m_ueChannelAccessManagerType;
 }
 
 BandwidthPartRepresentation::~BandwidthPartRepresentation()
@@ -1113,7 +1114,8 @@ BandwidthPartRepresentation::operator=(const BandwidthPartRepresentation &o)
   m_channel = o.m_channel;
   m_propagation = o.m_propagation;
   m_3gppChannel = o.m_3gppChannel;
-  m_channelAccessManagerType = o.m_channelAccessManagerType;
+  m_gnbChannelAccessManagerType = o.m_gnbChannelAccessManagerType;
+  m_ueChannelAccessManagerType = o.m_ueChannelAccessManagerType;
   return *this;
 }
 

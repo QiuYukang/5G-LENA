@@ -89,7 +89,8 @@ public:
   Ptr<SpectrumChannel> m_channel;
   Ptr<PropagationLossModel> m_propagation;
   Ptr<MmWave3gppChannel> m_3gppChannel;
-  std::string m_channelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type
+  std::string m_gnbChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for GNB
+  std::string m_ueChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for UE
 };
 
 class MmWaveHelper : public Object
