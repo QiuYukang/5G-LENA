@@ -326,6 +326,8 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       ueCcMap.insert (std::make_pair (conf.first, cc));
     }
 
+  ObjectFactory channelAccessManagerFactory;
+
   for (auto it = ueCcMap.begin (); it != ueCcMap.end (); ++it)
     {
       BandwidthPartRepresentation & conf = m_bwpConfiguration.at (it->first);
@@ -335,6 +337,11 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       Ptr<MmWaveSpectrumPhy> dlPhy = CreateObject<MmWaveSpectrumPhy> ();
       Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (dlPhy, ulPhy, n);
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
+
+      channelAccessManagerFactory.SetTypeId (conf.m_ueChannelAccessManagerType);
+      Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
+      cam->SetNrSpectrumPhy (dlPhy);
+      phy->SetCam (cam);
 
       dlPhy->SetHarqPhyModule (harq);
 

@@ -31,6 +31,8 @@
 
 namespace ns3 {
 
+class NrChAccessManager;
+
 class MmWaveUePhy : public MmWavePhy
 {
   friend class UeMemberLteUePhySapProvider;
@@ -189,6 +191,12 @@ public:
   typedef void (* TxedUePhyCtrlMsgsTracedCallback)
       (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
+  /**
+   * \brief Set the channel access manager interface for this instance of the PHY
+   * \param s the pointer to the interface
+   */
+  void SetCam (const Ptr<NrChAccessManager> &cam);
+
   // From mmwave phy. Not used in the UE
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
 
@@ -197,6 +205,17 @@ protected:
   virtual void DoDispose (void) override;
 
 private:
+  /**
+   * \brief Channel access granted, invoked after the LBT
+   *
+   * \param time Time of the grant
+   */
+  void ChannelAccessGranted (const Time &time);
+
+  /**
+   * \brief RequestAccess
+   */
+  void RequestAccess ();
 
   /**
    * \brief Forward the received RAR to the MAC
@@ -279,6 +298,20 @@ private:
   bool m_receptionEnabled {false}; //!< Flag to indicate if we are currently receiveing data
   uint16_t m_rnti {0};             //!< Current RNTI of the user
   uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
+
+  /**
+   * \brief Status of the channel for the PHY
+   */
+  enum ChannelStatus
+  {
+    NONE,        //!< The PHY doesn't know the channel status
+    REQUESTED,   //!< The PHY requested channel access
+    GRANTED      //!< The PHY has the channel, it can transmit
+  };
+
+  ChannelStatus m_channelStatus {NONE}; //!< The channel status
+  Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
+  Time m_lbtThresholdForCtrl; //!< Threshold for LBT before the UL CTRL
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS

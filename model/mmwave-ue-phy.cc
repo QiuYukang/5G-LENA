@@ -34,6 +34,7 @@
 #include "mmwave-ue-phy.h"
 #include "mmwave-ue-net-device.h"
 #include "mmwave-spectrum-value-helper.h"
+#include "nr-ch-access-manager.h"
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -118,6 +119,11 @@ MmWaveUePhy::GetTypeId (void)
                    MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
                                          &MmWavePhy::GetAntennaNumDim2),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("LBTThresholdForCtrl",
+                   "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
+                   TimeValue (MicroSeconds (16)),
+                   MakeTimeAccessor (&MmWaveUePhy::m_lbtThresholdForCtrl),
+                   MakeTimeChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -154,6 +160,13 @@ MmWaveUePhy::DoDispose (void)
 {
   delete m_ueCphySapProvider;
   MmWavePhy::DoDispose ();
+}
+
+void
+MmWaveUePhy::ChannelAccessGranted (const Time &time)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelStatus = GRANTED;
 }
 
 void
@@ -383,6 +396,73 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
         }
     }
+
+  uint8_t ulCtrlSymStart = 0;
+  uint8_t ulCtrlNumSym = 0;
+  for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+    {
+      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+        {
+          ulCtrlSymStart = alloc.m_dci->m_symStart;
+          ulCtrlNumSym = alloc.m_dci->m_numSym;
+          break;
+        }
+    }
+
+  if (! IsCtrlMsgListEmpty () && ulCtrlNumSym != 0)
+    {
+      // We have an UL CTRL symbol scheduled and we have to transmit CTRLs..
+      // .. so we check that we have at least 25 us between the latest DCI,
+      // or we have to schedule an LBT event.
+
+      Time limit = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
+          ((m_phyMacConfig->GetSymbolsPerSlot () - ulCtrlSymStart) * m_phyMacConfig->GetSymbolPeriod ()) -
+          m_lbtThresholdForCtrl;
+
+      for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+        {
+          int64_t symbolPeriod = m_phyMacConfig->GetSymbolPeriod ().GetMicroSeconds ();
+          int64_t dciEndsAt = m_lastSlotStart.GetMicroSeconds () +
+              ((alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) * symbolPeriod);
+
+          if (alloc.m_dci->m_type != DciInfoElementTdma::DATA)
+            {
+              continue;
+            }
+
+          if (limit.GetMicroSeconds () < dciEndsAt)
+            {
+              NS_LOG_INFO ("This data DCI ends at " << MicroSeconds (dciEndsAt) <<
+                           " which is inside the LBT shared COT (the limit is " <<
+                           limit << "). No need for LBT");
+              m_channelStatus = GRANTED;
+            }
+          else
+            {
+              NS_LOG_INFO ("This data DCI starts at " << +alloc.m_dci->m_symStart << " for " <<
+                           +alloc.m_dci->m_numSym << " ends at " << MicroSeconds (dciEndsAt) <<
+                           " which is outside the LBT shared COT (the limit is " <<
+                           limit << ").");
+            }
+        }
+      if (m_channelStatus != GRANTED)
+        {
+          Time sched = m_lastSlotStart - Simulator::Now () +
+              (m_phyMacConfig->GetSymbolPeriod () * ulCtrlSymStart) - MicroSeconds (25);
+          NS_LOG_INFO ("Scheduling an LBT for sending the UL CTRL at " <<
+                       Simulator::Now () + sched);
+          Simulator::Schedule (sched, &MmWaveUePhy::RequestAccess, this);
+        }
+    }
+}
+
+void
+MmWaveUePhy::RequestAccess ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Request access at " << Simulator::Now () << " because we have to transmit UL CTRL");
+  m_cam->RequestAccess (); // This will put the m_channelStatus to granted when
+                           // the channel will be granted.
 }
 
 void
@@ -493,9 +573,8 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
 
-  if (ctrlMsg.size () == 0)
+  if (IsCtrlMsgListEmpty ())
     {
       NS_LOG_INFO   ("UE" << m_rnti << " reserved space for UL CTRL frame for symbols " <<
                     +dci->m_symStart << "-" <<
@@ -503,9 +582,18 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                     "\t start " << Simulator::Now () << " end " <<
                     (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)) <<
                     " but no data to transmit");
+      GetControlMessages (); // empty the current message list
 
       return varTtiPeriod;
     }
+  else if (m_channelStatus != GRANTED)
+    {
+      NS_LOG_INFO ("UE" << m_rnti << " has to transmit CTRL but channel not granted");
+      m_cam->Cancel ();
+      return varTtiPeriod;
+    }
+
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
 
   for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
     {
@@ -530,6 +618,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   SendCtrlChannels (ctrlMsg, varTtiPeriod - NanoSeconds (1.0));
 
+  m_channelStatus = NONE; // Reset the channel status
   return varTtiPeriod;
 }
 
@@ -759,6 +848,16 @@ MmWaveUePhy::ReceiveLteDlHarqFeedback (const DlHarqInfo &m)
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
   Simulator::Schedule (MicroSeconds (m_phyMacConfig->GetTbDecodeLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
+}
+
+void
+MmWaveUePhy::SetCam(const Ptr<NrChAccessManager> &cam)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (cam != nullptr);
+  m_cam = cam;
+  m_cam->SetAccessGrantedCallback (std::bind (&MmWaveUePhy::ChannelAccessGranted, this,
+                                              std::placeholders::_1));
 }
 
 uint16_t
