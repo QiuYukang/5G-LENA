@@ -622,6 +622,7 @@ private:
 
 
   void ComputeActiveUe (ActiveUeMap *activeDlUe, const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
+                        const MmWaveMacSchedulerUeInfo::GetHarqVectorFn &GetHarqVector,
                         const std::string &mode) const;
   void ComputeActiveHarq (ActiveHarqMap *activeDlHarq, const std::vector <DlHarqInfo> &dlHarqFeedback) const;
   void ComputeActiveHarq (ActiveHarqMap *activeUlHarq, const std::vector <UlHarqInfo> &ulHarqFeedback) const;

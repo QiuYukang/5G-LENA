@@ -887,6 +887,7 @@ MmWaveMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeUlHarq,
 void
 MmWaveMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
                                         const MmWaveMacSchedulerUeInfo::GetLCGFn &GetLCGFn,
+                                        const MmWaveMacSchedulerUeInfo::GetHarqVectorFn &GetHarqVector,
                                         const std::string &mode) const
 {
   NS_LOG_FUNCTION (this);
@@ -908,7 +909,9 @@ MmWaveMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
           totBuffer += lcg->GetTotalSize ();
         }
 
-      if (totBuffer > 0)
+      auto harqV = GetHarqVector (ue);
+
+      if (totBuffer > 0 && harqV.CanInsert ())
         {
           auto it = activeUe->find (ue->m_beamId);
           if (it == activeUe->end ())
@@ -1471,7 +1474,8 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   ComputeActiveHarq (&activeDlHarq, dlHarqFeedback);
 
   ActiveUeMap activeDlUe;
-  ComputeActiveUe (&activeDlUe, &MmWaveMacSchedulerUeInfo::GetDlLCG, "DL");
+  ComputeActiveUe (&activeDlUe, &MmWaveMacSchedulerUeInfo::GetDlLCG,
+                   &MmWaveMacSchedulerUeInfo::GetDlHarqVector, "DL");
 
   DoScheduleDl (dlHarqFeedback, activeDlHarq, &activeDlUe, params.m_snfSf, ulAllocations, &dlSlot.m_slotAllocInfo);
 
@@ -1643,7 +1647,8 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
     }
 
   ActiveUeMap activeUlUe;
-  ComputeActiveUe (&activeUlUe, &MmWaveMacSchedulerUeInfo::GetUlLCG, "UL");
+  ComputeActiveUe (&activeUlUe, &MmWaveMacSchedulerUeInfo::GetUlLCG,
+                   &MmWaveMacSchedulerUeInfo::GetUlHarqVector, "UL");
 
   GetSecond GetUeInfoList;
   for (const auto & alloc : allocInfo->m_varTtiAllocInfo)
