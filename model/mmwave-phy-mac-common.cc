@@ -113,7 +113,7 @@ MmWavePhyMacCommon::GetTypeId (void)
     .AddAttribute ("L1L2DataLatency",
                    "L1L2 Data decode latency in slot",
                    UintegerValue (2),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2CtrlLatency),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2DataLatency),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("MacSchedulerType",
                    "The type of scheduler to be used for the MAC. "
