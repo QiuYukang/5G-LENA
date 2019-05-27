@@ -394,9 +394,25 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
           m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
           m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
         }
-      // Just schedule the end of the slot; we do not have the channel
-      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod () - NanoSeconds (1), &MmWaveEnbPhy::EndSlot, this);
-      NS_LOG_DEBUG ("Schedule " << Simulator::Now () + m_phyMacConfig->GetSlotPeriod() - NanoSeconds (1));
+      // If we have the UL CTRL, then schedule it (we are listening, so
+      // we don't need the channel. Otherwise, just go at the end of the
+      // slot
+      Time end = m_phyMacConfig->GetSlotPeriod () - NanoSeconds (1);
+      if (m_currSlotAllocInfo.m_varTtiAllocInfo.size() > 0)
+        {
+          for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+            {
+              if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+                {
+                  Time start = m_phyMacConfig->GetSymbolPeriod () * alloc.m_dci->m_symStart;
+                  NS_LOG_DEBUG ("Schedule UL CTRL at " << start);
+                  Simulator::Schedule (start, &MmWaveEnbPhy::UlCtrl, this, alloc.m_dci);
+                  end = m_phyMacConfig->GetSymbolPeriod () * alloc.m_dci->m_numSym;
+                }
+            }
+        }
+      Simulator::Schedule (end, &MmWaveEnbPhy::EndSlot, this);
+      NS_LOG_DEBUG ("Schedule end of slot at " << Simulator::Now () + end);
     }
 
 }
