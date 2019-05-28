@@ -290,6 +290,11 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
+
+  /**
+   * Trace DL HARQ info list elements.
+   */
+  TracedCallback<std::vector <DlHarqInfo> > m_dlHarqFeedback;
 };
 
 }

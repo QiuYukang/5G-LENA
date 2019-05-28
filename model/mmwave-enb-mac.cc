@@ -333,6 +333,10 @@ MmWaveEnbMac::GetTypeId (void)
                      "Enb MAC Txed Control Messages Traces.",
                      MakeTraceSourceAccessor (&MmWaveEnbMac::m_macTxedCtrlMsgsTrace),
                      "ns3::MmWaveMacRxTrace::TxedEnbMacCtrlMsgsTracedCallback")
+    .AddTraceSource ("DlHarqFeedback",
+                     "Harq feedback.",
+                      MakeTraceSourceAccessor (&MmWaveEnbMac::m_dlHarqFeedback),
+                     "ns3::MmWaveEnbMac::DlHarqFeedbackTracedCallback")
   ;
   return tid;
 }
@@ -479,9 +483,12 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
 
       dlParams.m_snfSf = dlSfn;
 
-      // Forward DL HARQ feebacks collected during last subframe TTI
+      // Forward DL HARQ feedbacks collected during last subframe TTI
       if (m_dlHarqInfoReceived.size () > 0)
         {
+          /* trace for HARQ feedback*/
+          m_dlHarqFeedback (m_dlHarqInfoReceived);
+
           dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
           // empty local buffer
           m_dlHarqInfoReceived.clear ();
