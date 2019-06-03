@@ -467,6 +467,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
 {
   std::list <Ptr<MmWaveControlMessage> > ctrlMsgs;
 
+  std::set <uint16_t> scheduledRnti;
   // find all DL DCI elements in the current slot and create the DL RBG bitmask
   uint8_t lastSymbolDl = 0, lastSymbolUl = 0;
 
@@ -475,6 +476,13 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
                m_currSlotAllocInfo.m_varTtiAllocInfo.size () << " allocations");
   for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
+      if (dlAlloc.m_dci->m_rnti != 0 && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          NS_LOG_INFO ("DCI FOR " << dlAlloc.m_dci->m_rnti << "type " <<
+                       dlAlloc.m_dci->m_format << " " << dlAlloc.m_dci->m_type);
+          NS_ASSERT (scheduledRnti.find(dlAlloc.m_dci->m_rnti) == scheduledRnti.end());
+          scheduledRnti.insert(dlAlloc.m_dci->m_rnti);
+        }
       if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
           && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
         {

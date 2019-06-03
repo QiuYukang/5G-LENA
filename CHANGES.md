@@ -89,6 +89,7 @@ of this beamforming depends on the value of the new attribute *BeamformingPeriod
 of the class MmWaveEnbPhy
 * MmWaveSpectrumPhy now has two more traces: TxCtrlTrace and TxDataTrace, to extract
 information about how the channel is occupied
+* Now MmWaveSpectrumPhy can enable interference for all links, also UE->UE and GNB->GNB
 
 ### Changes to existing API:
 

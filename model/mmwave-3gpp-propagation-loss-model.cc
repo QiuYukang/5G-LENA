@@ -651,7 +651,6 @@ MmWave3gppPropagationLossModel::CalculateLoss (Ptr<MobilityModel> ueMob, Ptr<Mob
 void MmWave3gppPropagationLossModel::AddUeMobilityModel (Ptr<const MobilityModel> a)
 {
   m_ueMobilityModels.insert(a);
-
 }
 
 bool MmWave3gppPropagationLossModel::IsUeMobilityModel (Ptr<const MobilityModel> a) const
@@ -669,6 +668,7 @@ bool MmWave3gppPropagationLossModel::IsUeMobilityModel (Ptr<const MobilityModel>
       return false;
     }
 }
+
 
 bool
 MmWave3gppPropagationLossModel::IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const
@@ -689,28 +689,35 @@ MmWave3gppPropagationLossModel::IsValidLink (Ptr<const MobilityModel> a, Ptr<con
     }
 }
 
+
 double
 MmWave3gppPropagationLossModel::GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const
 {
-  Ptr<MobilityModel> ueMob, enbMob;
-
-  if (!IsValidLink(a,b))
+  if (m_enableAllChannels == true)
     {
-      return 0;
-    }
-  else if (IsUeMobilityModel(a) && !IsUeMobilityModel(b))
-    {
-      ueMob = a;
-      enbMob = b;
+      return CalculateLoss (b,a);
     }
   else
     {
-      enbMob = a;
-      ueMob = b;
+      Ptr<MobilityModel> ueMob, enbMob;
+
+      if (!IsValidLink(a,b))
+        {
+          return 0;
+        }
+      else if (IsUeMobilityModel(a) && !IsUeMobilityModel(b))
+        {
+          ueMob = a;
+          enbMob = b;
+        }
+      else
+        {
+          enbMob = a;
+          ueMob = b;
+        }
+
+      return CalculateLoss (ueMob,enbMob);
     }
-
-  return CalculateLoss (ueMob,enbMob);
-
 }
 
 int64_t
@@ -734,13 +741,20 @@ MmWave3gppPropagationLossModel::GetChannelCondition (Ptr<MobilityModel> a, Ptr<M
   it = m_channelConditionMap.find (std::make_pair (a,b));
   if (it == m_channelConditionMap.end ())
     {
-      if (IsValidLink (a, b))
+      if (m_enableAllChannels == true)
         {
           it = CreateNewChannelCondition (a, b);
         }
       else
         {
-          NS_FATAL_ERROR ("Cannot find the link in the map");
+          if (IsValidLink (a, b))
+            {
+              it = CreateNewChannelCondition (a, b);
+            }
+          else
+            {
+              NS_FATAL_ERROR ("Cannot find the link in the map");
+            }
         }
     }
   return (*it).second.m_channelCondition;
@@ -751,6 +765,12 @@ std::string
 MmWave3gppPropagationLossModel::GetScenario ()
 {
   return m_scenario;
+}
+
+void
+MmWave3gppPropagationLossModel::SetAllChannelsComputation ()
+{
+  m_enableAllChannels = true;
 }
 
 }

@@ -131,7 +131,6 @@ private:
    */
   bool IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 
-
   /**
    * Calculates loss between UE and BS.
    * @param ueMob UE mobility model
@@ -139,6 +138,11 @@ private:
    * @return Loss value
    */
   double CalculateLoss (Ptr<MobilityModel> ueMob, Ptr<MobilityModel> enbMob) const;
+
+  /**
+   * Function enables computation of gNB-gNB and UE-UE pathloss
+   */
+  void SetAllChannelsComputation ();
 
   /**
    * Creates channel condition for the pair of the devices whoes mobilities
@@ -169,6 +173,7 @@ private:
   Ptr<UniformRandomVariable> m_uniformVar;
   bool m_shadowingEnabled;
   bool m_inCar;
+  bool m_enableAllChannels {false}; //!< If true, enables gNB-gNB and UE-UE pathloss and channel generation, if false, PL and channel are not computed
 
   std::set <Ptr<const MobilityModel> > m_ueMobilityModels; //!< List of mobility models belonging to the UEs. This map is used internally to understand if the mobility model corresponds to UE device.
 

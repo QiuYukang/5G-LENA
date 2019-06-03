@@ -284,6 +284,8 @@ private:
 
   Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time
 
+  bool m_enableAllInterferences {false}; //!< If true, enables gNB-gNB and UE-UE interferences, if false, they are not taken into account
+
 };
 
 }
