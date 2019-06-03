@@ -49,29 +49,6 @@
 
 namespace ns3 {
 
-typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
-typedef Callback< void, const std::list<Ptr<MmWaveControlMessage> > &> MmWavePhyRxCtrlEndOkCallback;
-
-/**
- * This method is used by the LteSpectrumPhy to notify the PHY about
- * the status of a certain DL HARQ process
- */
-typedef Callback< void, const DlHarqInfo& > MmWavePhyDlHarqFeedbackCallback;
-
-/**
- * This method is used by the LteSpectrumPhy to notify the PHY about
- * the status of a certain UL HARQ process
- */
-typedef Callback< void, const UlHarqInfo &> MmWavePhyUlHarqFeedbackCallback;
-
-/**
- * This traced callback is used to notify when is occupied either
- * by some transmission of our own PHY instance or by someone else which
- * is detected by energy detection method.
- */
-typedef TracedCallback < Time> ChannelOccupiedTracedCallback;
-
-
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
@@ -86,6 +63,26 @@ public:
     RX_CTRL,
     CCA_BUSY
   };
+
+  typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
+  typedef Callback< void, const std::list<Ptr<MmWaveControlMessage> > &> MmWavePhyRxCtrlEndOkCallback;
+
+  /**
+   * This method is used by the LteSpectrumPhy to notify the PHY about
+   * the status of a certain DL HARQ process
+   */
+  typedef Callback< void, const DlHarqInfo& > MmWavePhyDlHarqFeedbackCallback;
+
+  /**
+   * This method is used by the LteSpectrumPhy to notify the PHY about
+   * the status of a certain UL HARQ process
+   */
+  typedef Callback< void, const UlHarqInfo &> MmWavePhyUlHarqFeedbackCallback;
+
+  /**
+   * \brief Typedef for a channel occupancy. Used by different traces.
+   */
+  typedef TracedCallback <Time> ChannelOccupiedTracedCallback;
 
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
@@ -254,9 +251,11 @@ private:
   State m_state;
 
   MmWavePhyRxCtrlEndOkCallback    m_phyRxCtrlEndOkCallback;
-  MmWavePhyRxDataEndOkCallback                m_phyRxDataEndOkCallback;
+  MmWavePhyRxDataEndOkCallback    m_phyRxDataEndOkCallback;
 
-  ChannelOccupiedTracedCallback  m_channelOccupied;
+  ChannelOccupiedTracedCallback m_channelOccupied;
+  ChannelOccupiedTracedCallback m_txDataTrace;
+  ChannelOccupiedTracedCallback m_txCtrlTrace;
 
   MmWavePhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback;
   MmWavePhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback;

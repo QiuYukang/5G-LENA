@@ -131,7 +131,15 @@ MmWaveSpectrumPhy::GetTypeId (void)
     .AddTraceSource ("ChannelOccupied",
                      "This traced callback is triggered every time that the channel is occupied",
                      MakeTraceSourceAccessor (&MmWaveSpectrumPhy::m_channelOccupied),
-                     "ns3::ChannelOccupied::TracedCalback")
+                     "ns3::MmWaveSpectrumPhy::ChannelOccupiedTracedCallback")
+    .AddTraceSource ("TxDataTrace",
+                     "Indicates when the channel is being occupied by a data transmission",
+                     MakeTraceSourceAccessor (&MmWaveSpectrumPhy::m_txDataTrace),
+                     "ns3::MmWaveSpectrumPhy::ChannelOccupiedTracedCallback")
+    .AddTraceSource ("TxCtrlTrace",
+                     "Indicates when the channel is being occupied by a ctrl transmission",
+                     MakeTraceSourceAccessor (&MmWaveSpectrumPhy::m_txCtrlTrace),
+                     "ns3::MmWaveSpectrumPhy::ChannelOccupiedTracedCallback")
   ;
 
   return tid;
@@ -864,7 +872,8 @@ MmWaveSpectrumPhy::EndRxCtrl ()
 }
 
 bool
-MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList, Time duration, uint8_t slotInd)
+MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList,
+                                      Time duration, uint8_t slotInd)
 {
   NS_LOG_FUNCTION (this);
   switch (m_state)
@@ -916,6 +925,8 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
             m_txPacketTraceEnb (traceParam);
           }
 
+        m_txDataTrace (duration);
+
         m_channel->StartTx (txParams);
 
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
@@ -960,7 +971,11 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
         txParams->pss = true;
         txParams->ctrlMsgList = ctrlMsgList;
         txParams->txAntenna = m_antenna;
+
+        m_txCtrlTrace (duration);
+
         m_channel->StartTx (txParams);
+
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
       }
     }
