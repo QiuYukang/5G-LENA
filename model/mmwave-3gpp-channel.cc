@@ -268,40 +268,6 @@ double MmWave3gppChannel::GetCenterFrequency () const
   return m_centerFrequency;
 }
 
-void
-MmWave3gppChannel::ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2)
-{
-  key_t key = std::make_pair (dev1,dev2);
-
-  std::map< key_t, int >::iterator iter = m_connectedPair.find (key);
-  if (iter != m_connectedPair.end ())
-    {
-      m_connectedPair.erase (iter);
-    }
-  m_connectedPair.insert (std::make_pair (key,1));
-}
-
-bool
-MmWave3gppChannel::AreConnected (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const
-{
-  Ptr<NetDevice> dev1 = a->GetObject<Node> ()->GetDevice (0);
-  Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
-
-  key_t key = std::make_pair (dev1, dev2);
-  key_t reverseKey = std::make_pair (dev2, dev1);
-
-  std::map< key_t, int >::iterator it = m_connectedPair.find (key);
-  std::map< key_t, int >::iterator itReverse = m_connectedPair.find (reverseKey);
-
-  if ( it != m_connectedPair.end() || itReverse != m_connectedPair.end())
-    {
-      return true;
-    }
-  else
-    {
-      return false;
-    }
-}
 
 bool
 MmWave3gppChannel::ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const
@@ -371,36 +337,32 @@ MmWave3gppChannel::GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel
 
 
 void
-MmWave3gppChannel::CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
-                                                    Ptr<AntennaArrayBasicModel> ueDeviceAntenna,
-                                                    Ptr<NetDevice> bsDevice,
-                                                    Ptr<AntennaArrayBasicModel> bsDeviceAntenna)
+MmWave3gppChannel::RegisterDevicesAntennaArray (Ptr<NetDevice> device,
+                                                Ptr<AntennaArrayBasicModel> antennaArray,
+                                                bool isUe)
 {
-  ConnectDevices (ueDevice, bsDevice);
-  ConnectDevices (bsDevice, ueDevice);
-  m_ueDevices.insert(ueDevice);
-  complexVector_t empty;
-  AntennaArrayBasicModel::BeamId emptyId = std::make_pair (0,0);
-  ueDeviceAntenna->SetBeamformingVector (empty, emptyId, bsDevice);
-  bsDeviceAntenna->SetBeamformingVector (empty, emptyId, ueDevice);
 
-  m_deviceToAntennaArray.insert(std::make_pair(ueDevice, ueDeviceAntenna));
-  m_deviceToAntennaArray.insert(std::make_pair(bsDevice, bsDeviceAntenna));
+  NS_LOG_FUNCTION (this);
+  m_deviceToAntennaArray.insert(std::make_pair(device, antennaArray));
 
-  // propagation loss model needs to be able to distinguish whether the device is UE or BS
-  if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != nullptr)
+  if (isUe)
     {
-      m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
-          ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
-    }
-  else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != nullptr)
-    {
-      m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
-          ->AddUeMobilityModel (ueDevice->GetNode()->GetObject<MobilityModel>());
-    }
-  else
-    {
-      NS_ABORT_MSG ("Pathloss model unknown");
+      m_ueDevices.insert(device);
+      // propagation loss model needs to be able to distinguish whether the device is UE or BS
+      if (DynamicCast<MmWave3gppPropagationLossModel> (m_3gppPathloss) != nullptr)
+        {
+          m_3gppPathloss->GetObject<MmWave3gppPropagationLossModel> ()
+              ->AddUeMobilityModel (device->GetNode()->GetObject<MobilityModel>());
+        }
+      else if (DynamicCast<MmWave3gppBuildingsPropagationLossModel> (m_3gppPathloss) != nullptr)
+        {
+          m_3gppPathloss->GetObject<MmWave3gppBuildingsPropagationLossModel> ()
+              ->AddUeMobilityModel (device->GetNode()->GetObject<MobilityModel>());
+        }
+      else
+        {
+          NS_ABORT_MSG ("Pathloss model unknown");
+        }
     }
 }
 
@@ -694,21 +656,6 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
   Ptr<AntennaArrayBasicModel> rxAntennaArray = GetAntennaArray (rxDevice);
-
-  // the following code is expected to optimise the updates of the long
-  // term matrix, i.e. to perform it only when is absolutely necessary
-  if (!AreConnected(a, b))
-    {
-       if (txAntennaArray->GetCurrentBeamformingVector ().first.size() == 0 ||
-           rxAntennaArray->GetCurrentBeamformingVector ().first.size() == 0)
-        {
-          NS_LOG_INFO ("txW.size ==0 || rxW.size() == 0");
-
-          GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
-          NS_LOG_INFO ("Not connected pair, and one or both beams are not configured yet, do not anything");
-          return rxPsd;
-        }
-    }
 
   NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector ().first.size()==0 || rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0,
                    "Beamforming vectors not properly calculated. Tx elements: " << txAntennaArray->GetCurrentBeamformingVector ().first.size() <<

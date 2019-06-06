@@ -180,6 +180,7 @@ MmWavePhy::InstallAntenna ()
                                                                             m_phyMacConfig->GetNumScsPerRb(),
                                                                             m_phyMacConfig->GetSubcarrierSpacing());
   m_antennaArray->SetSpectrumModel (sm);
+  m_antennaArray->Initialize();
 }
 
 void

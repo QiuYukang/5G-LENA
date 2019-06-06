@@ -129,6 +129,12 @@ AntennaArrayModel::GetTypeId ()
   return tid;
 }
 
+void AntennaArrayModel::DoInitialize (void)
+{
+  AntennaArrayBasicModel::DoInitialize();
+  ChangeToOmniTx ();
+}
+
 double
 AntennaArrayModel::GetGainDb (Angles a)
 {

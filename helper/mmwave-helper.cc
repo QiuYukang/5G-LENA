@@ -714,6 +714,8 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
   for (const auto & conf : m_bwpConfiguration)
     {
       conf.second.m_channel->AddRx(ccMap.at (conf.second.m_id)->GetPhy ()->GetDlSpectrumPhy ());
+      Ptr<AntennaArrayBasicModel> antenna = dev->GetPhy (conf.first)->GetAntennaArray();
+      conf.second.m_3gppChannel->RegisterDevicesAntennaArray (dev, antenna);
     }
 
   if (m_epcHelper != 0)
@@ -806,8 +808,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       {
         NS_ABORT_IF (it.second.m_3gppChannel == nullptr);
         Ptr<AntennaArrayBasicModel> ueAntenna = ueNetDev->GetPhy(it.first)->GetAntennaArray();
-        Ptr<AntennaArrayBasicModel> bsAntenna = enbNetDev->GetPhy(it.first)->GetAntennaArray();
-        it.second.m_3gppChannel->CreateInitialBeamformingVectors(ueNetDev, ueAntenna, enbNetDev, bsAntenna);
+        it.second.m_3gppChannel->RegisterDevicesAntennaArray (ueNetDev, ueAntenna, true);
       }
 }
 

@@ -227,21 +227,6 @@ public:
   void DoDispose ();
 
   /**
-   * Register the connection between two devices
-   * @param a pointer to a NetDevice
-   * @param a pointer to a NetDevice
-   */
-  void ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2);
-
-  /**
-   * Check if the devices are connected
-   * @param a The first device's mobility model
-   * @param b The second device's mobility model
-   * @return boolean value true if the devices are connected and false if they are not
-   */
-  bool AreConnected (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
-
-  /**
    * Check if the channel matrix between a and b exists
    * @param a MobilityModel of the first device
    * @param b MobilityModel of the second device
@@ -276,16 +261,14 @@ public:
   Vector GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 
   /**
-   * Register the connection between the UE and BS device
-   * @param ueDevice The UE device
-   * @param ueDeviceAntenna The UE antenna array
-   * @param bsDevice The BS device
-   * @param bsDeviceAntenna The BS antenna array model
+   * Register device and its antennaArray to be used in the calculations by the model
+   * @param device Device to be registered
+   * @param antennaArray AntennaArray of the device
+   * @param isUe Whether the device is UE/STA or is AP/gNB
    */
-  void CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
-                                        Ptr<AntennaArrayBasicModel> ueDeviceAntenna,
-                                        Ptr<NetDevice> bsDevice,
-                                        Ptr<AntennaArrayBasicModel> bsDeviceAntenna);
+  void RegisterDevicesAntennaArray (Ptr<NetDevice> device,
+                                    Ptr<AntennaArrayBasicModel> antennaArray,
+                                    bool isUe = false);
   /**
    * Sets the center frequency of the channel map of this instance of MmWave3gppChannel
    * @param centerFrequency center frequency of the channel map of this instance of MmWave3gppChannel

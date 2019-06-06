@@ -241,7 +241,8 @@ NrTest3gppChannelTestCase::TestCreateInitialBeamformingVectors (Ptr<MmWave3gppCh
                                                                 Ptr<SimpleNetDevice> gnbDev,
                                                                 Ptr<AntennaArrayBasicModel> gnbAnt)
 {
-  channel->CreateInitialBeamformingVectors (ueDev, ueAnt, gnbDev, gnbAnt);
+  channel->RegisterDevicesAntennaArray (ueDev, ueAnt, true);
+  channel->RegisterDevicesAntennaArray (gnbDev, gnbAnt);
 
   NS_TEST_ASSERT_MSG_EQ (channel->IsUeDevice (ueDev), true, "Device is not a UE device");
   NS_TEST_ASSERT_MSG_EQ (channel->IsUeDevice (gnbDev), false, "Device is not a UE device");
@@ -472,7 +473,9 @@ NrTest3gppChannelTestCase::DoRun()
   gnbDev2->SetNode (gnbNode2);
 
   Ptr<AntennaArrayModel> ueAnt1 = CreateObject<AntennaArrayModel>();
+  ueAnt1->Initialize();
   Ptr<AntennaArrayModel> gnbAnt1 = CreateObject<AntennaArrayModel>();
+  gnbAnt1->Initialize();
 
   ChannelPhyConf rxPhyConf = ChannelPhyConf (m_centerFrequency, m_bandwidth, m_rxNumerology);
   Ptr<const SpectrumModel> spectrumModel =  rxPhyConf.GetSpectrumModel ();
@@ -481,7 +484,9 @@ NrTest3gppChannelTestCase::DoRun()
   gnbAnt1->SetSpectrumModel (spectrumModel);
 
   Ptr<AntennaArrayModel> ueAnt2 = CreateObject<AntennaArrayModel>();
+  ueAnt2->Initialize();
   Ptr<AntennaArrayModel> gnbAnt2 = CreateObject<AntennaArrayModel>();
+  gnbAnt2->Initialize();
 
   TestParams testParams;
   testParams.ueMm = ueNode1->GetObject<MobilityModel>();
