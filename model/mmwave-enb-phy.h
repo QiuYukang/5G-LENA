@@ -249,7 +249,7 @@ private:
   void ChannelAccessGranted (const Time &time);
 
   /**
-   * \brief Channel access lost, the grant has expired
+   * \brief Channel access lost, the grant has expired or the LBT denied the access
    */
   void ChannelAccessLost ();
 

@@ -234,6 +234,7 @@ MmWaveEnbPhy::SetCam (const Ptr<NrChAccessManager> &cam)
   m_cam = cam;
   m_cam->SetAccessGrantedCallback (std::bind (&MmWaveEnbPhy::ChannelAccessGranted, this,
                                               std::placeholders::_1));
+  m_cam->SetAccessDeniedCallback (std::bind (&MmWaveEnbPhy::ChannelAccessLost, this));
 }
 
 void

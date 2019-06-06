@@ -213,6 +213,11 @@ private:
   void ChannelAccessGranted (const Time &time);
 
   /**
+   * \brief Channel access denied
+   */
+  void ChannelAccessDenied ();
+
+  /**
    * \brief RequestAccess
    */
   void RequestAccess ();

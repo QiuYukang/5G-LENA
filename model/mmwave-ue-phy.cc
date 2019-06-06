@@ -166,7 +166,16 @@ void
 MmWaveUePhy::ChannelAccessGranted (const Time &time)
 {
   NS_LOG_FUNCTION (this);
+  NS_UNUSED (time);
+  // That will be granted only till the end of the slot
   m_channelStatus = GRANTED;
+}
+
+void
+MmWaveUePhy::ChannelAccessDenied ()
+{
+  NS_LOG_FUNCTION (this);
+  m_channelStatus = NONE;
 }
 
 void
@@ -618,7 +627,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   SendCtrlChannels (ctrlMsg, varTtiPeriod - NanoSeconds (1.0));
 
-  m_channelStatus = NONE; // Reset the channel status
+  ChannelAccessDenied (); // Reset the channel status
   return varTtiPeriod;
 }
 
@@ -858,6 +867,7 @@ MmWaveUePhy::SetCam(const Ptr<NrChAccessManager> &cam)
   m_cam = cam;
   m_cam->SetAccessGrantedCallback (std::bind (&MmWaveUePhy::ChannelAccessGranted, this,
                                               std::placeholders::_1));
+  m_cam->SetAccessDeniedCallback (std::bind (&MmWaveUePhy::ChannelAccessDenied, this));
 }
 
 uint16_t

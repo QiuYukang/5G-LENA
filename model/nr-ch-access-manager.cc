@@ -139,6 +139,14 @@ NrAlwaysOnAccessManager::SetAccessGrantedCallback (const AccessGrantedCallback &
 }
 
 void
+NrAlwaysOnAccessManager::SetAccessDeniedCallback(const NrChAccessManager::AccessDeniedCallback &cb)
+{
+  NS_LOG_FUNCTION (this);
+  NS_UNUSED (cb);
+  // Don't store it, as we will not call it..
+}
+
+void
 NrAlwaysOnAccessManager::ReleaseGrant ()
 {
   NS_LOG_FUNCTION (this);

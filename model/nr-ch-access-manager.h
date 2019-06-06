@@ -65,6 +65,11 @@ public:
    * \brief A function that signal that the channel has been earned
    */
   typedef std::function<void (const Time &time)> AccessGrantedCallback;
+  /**
+   * \brief A function that signal that the channel is denied and the request should
+   * be retried
+   */
+  typedef std::function<void ()> AccessDeniedCallback;
 
   /**
    * @brief RequestAccess
@@ -75,6 +80,7 @@ public:
    * @param cb
    */
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) = 0;
+  virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) = 0;
 
   /**
    * @brief ReleaseGrant
@@ -128,6 +134,7 @@ public:
 
   virtual void RequestAccess () override;
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) override;
+  virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) override;
   virtual void ReleaseGrant () override;
   virtual void Cancel () override;
 
