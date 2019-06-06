@@ -531,6 +531,7 @@ void MmWave3gppChannel::PerformBeamforming (const Ptr<const NetDevice> &a,
 Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
                                                  Ptr<const MobilityModel> b) const
 {
+  NS_LOG_FUNCTION (this);
   Ptr<Params3gpp> channelParams;
   InputParams3gpp input3gppParameters = GetInput3gppParameters (a, b);
 
@@ -711,7 +712,8 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   NS_ABORT_MSG_IF (txAntennaArray->GetCurrentBeamformingVector ().first.size()==0 || rxAntennaArray->GetCurrentBeamformingVector ().first.size()==0,
                    "Beamforming vectors not properly calculated. Tx elements: " << txAntennaArray->GetCurrentBeamformingVector ().first.size() <<
-                   " rx elements: " << rxAntennaArray->GetCurrentBeamformingVector ().first.size());
+                   " rx elements: " << rxAntennaArray->GetCurrentBeamformingVector ().first.size()<< " Tx node is:"<<txDevice->GetNode()->GetId()
+                   <<" and Rx node is:"<<rxDevice->GetNode()->GetId());
 
 
   // if some of beamforming vectors has changed then the long term matrix must be updated also
@@ -1096,6 +1098,7 @@ MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW,
 Ptr<ParamsTable>
 MmWave3gppChannel::Get3gppTable (bool los, bool o2i, double hBS, double hUT, double distance2D) const
 {
+  NS_LOG_FUNCTION (this);
   double fcGHz = m_centerFrequency / 1e9;
   Ptr<ParamsTable> table3gpp = CreateObject<ParamsTable> ();
   // table3gpp includes the following parameters:
@@ -1303,6 +1306,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
                                   InputParams3gpp input3gppParameters) const
 {
 
+  NS_LOG_FUNCTION (this);
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
@@ -2715,6 +2719,7 @@ MmWave3gppChannel::UpdateChannel (Ptr<Params3gpp> params3gpp,
 Ptr<AntennaArrayBasicModel>
 MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
 {
+  NS_LOG_FUNCTION (this);
   NS_ABORT_MSG_IF (m_deviceToAntennaArray.find (device) == m_deviceToAntennaArray.end(), "AntennaArray object for this device does not exist");
   return m_deviceToAntennaArray.find (device)->second;
 }
@@ -2723,6 +2728,7 @@ MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
 bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
                                        Ptr<const MobilityModel> b) const
 {
+  NS_LOG_FUNCTION (this);
   key_t keyReverse = std::make_pair (b->GetObject<Node> ()->GetDevice (0),
                                      a->GetObject<Node> ()->GetDevice (0));
   bool reverseLink = false;
