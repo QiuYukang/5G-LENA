@@ -294,7 +294,7 @@ private:
   /**
    * Trace DL HARQ info list elements.
    */
-  TracedCallback<std::vector <DlHarqInfo> > m_dlHarqFeedback;
+  TracedCallback<const DlHarqInfo&> m_dlHarqFeedback;
 };
 
 }

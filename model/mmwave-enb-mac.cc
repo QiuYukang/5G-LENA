@@ -486,9 +486,6 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
       // Forward DL HARQ feedbacks collected during last subframe TTI
       if (m_dlHarqInfoReceived.size () > 0)
         {
-          /* trace for HARQ feedback*/
-          m_dlHarqFeedback (m_dlHarqInfoReceived);
-
           dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
           // empty local buffer
           m_dlHarqInfoReceived.clear ();
@@ -858,6 +855,9 @@ MmWaveEnbMac::DoDlHarqFeedback (DlHarqInfo params)
     {
       NS_FATAL_ERROR (" HARQ functionality not implemented");
     }
+
+  /* trace for HARQ feedback*/
+  m_dlHarqFeedback (params);
 
   m_dlHarqInfoReceived.push_back (params);
 }
