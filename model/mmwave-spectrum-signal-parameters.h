@@ -114,6 +114,28 @@ struct MmWaveSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParamete
 };
 
 
+struct MmWaveSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
+{
+
+  // inherited from SpectrumSignalParameters
+  virtual Ptr<SpectrumSignalParameters> Copy ();
+
+  /**
+  * default constructor
+  */
+  MmWaveSpectrumSignalParametersUlCtrlFrame ();
+
+  /**
+  * copy constructor
+  */
+  MmWaveSpectrumSignalParametersUlCtrlFrame (const MmWaveSpectrumSignalParametersUlCtrlFrame& p);
+
+
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;
+  uint16_t cellId;
+};
+
+
 }  // namespace ns3
 
 

@@ -60,7 +60,8 @@ public:
     IDLE = 0,
     TX,
     RX_DATA,
-    RX_CTRL,
+    RX_DL_CTRL,
+    RX_UL_CTRL,
     CCA_BUSY
   };
 
@@ -114,7 +115,8 @@ public:
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
   void StartRx (Ptr<SpectrumSignalParameters> params);
   void StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> params);
-  void StartRxCtrl (Ptr<SpectrumSignalParameters> params);
+  void StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params);
+  void StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params);
   Ptr<SpectrumChannel> GetSpectrumChannel ();
   void SetCellId (uint16_t cellId);
   /**
@@ -126,7 +128,8 @@ public:
   bool StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList, Time duration, uint8_t slotInd);
 
   bool StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);   // control frames from enb to ue
-  bool StartTxUlControlFrames (void);   // control frames from ue to enb
+
+  bool StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);
 
   void SetPhyRxDataEndOkCallback (MmWavePhyRxDataEndOkCallback c);
   void SetPhyRxCtrlEndOkCallback (MmWavePhyRxCtrlEndOkCallback c);
@@ -223,7 +226,7 @@ private:
   /**
    * \brief Function used to schedule event to check if state should be switched from CCA_BUSY to IDLE.
    * This function should be used only for this transition of state machine. After finishing
-   * reception (RX_CTRL or RX_DATA) function MaybeCcaBusy should be called instead to check
+   * reception (RX_DL_CTRL or RX_UL_CTRL or RX_DATA) function MaybeCcaBusy should be called instead to check
    * if to switch to IDLE or CCA_BUSY, and then new event may be created in the case that the
    * channel is BUSY to switch back from busy to idle.
    */

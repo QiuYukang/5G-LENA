@@ -803,7 +803,7 @@ MmWaveUePhy::SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlM
 void
 MmWaveUePhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd)
 {
-  m_downlinkSpectrumPhy->StartTxDlControlFrames (ctrlMsg,prd);
+  m_downlinkSpectrumPhy->StartTxUlControlFrames (ctrlMsg,prd);
 }
 
 Ptr<MmWaveDlCqiMessage>

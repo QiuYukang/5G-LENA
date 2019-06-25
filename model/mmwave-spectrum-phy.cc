@@ -51,8 +51,11 @@ std::string ToString (enum MmWaveSpectrumPhy::State state)
     case MmWaveSpectrumPhy::TX:
       return "TX";
       break;
-    case MmWaveSpectrumPhy::RX_CTRL:
-      return "RX_CTRL";
+    case MmWaveSpectrumPhy::RX_DL_CTRL:
+      return "RX_DL_CTRL";
+      break;
+    case MmWaveSpectrumPhy::RX_UL_CTRL:
+      return "RX_UL_CTRL";
       break;
     case MmWaveSpectrumPhy::CCA_BUSY:
       return "CCA_BUSY";
@@ -241,7 +244,7 @@ MmWaveSpectrumPhy::ChangeState (State newState, Time duration)
   NS_LOG_LOGIC (this << " change state: " << ToString (m_state) << " -> " << ToString (newState));
   m_state = newState;
 
-  if (newState == RX_DATA || newState == RX_CTRL || newState == TX || newState == CCA_BUSY)
+  if (newState == RX_DATA || newState == RX_DL_CTRL || newState == RX_UL_CTRL || newState == TX || newState == CCA_BUSY)
     {
       m_channelOccupied (duration);
     }
@@ -351,6 +354,9 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
   Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> dlCtrlRxParams =
     DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
 
+  Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> ulCtrlRxParams =
+    DynamicCast<MmWaveSpectrumSignalParametersUlCtrlFrame> (params);
+
   if (mmwaveDataRxParams != nullptr)
     {
       if (mmwaveDataRxParams->cellId == m_cellId)
@@ -365,14 +371,40 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (dlCtrlRxParams != nullptr)
     {
-      if (dlCtrlRxParams->cellId == m_cellId)
+      if (!m_isEnb)
         {
-          StartRxCtrl (params);
+          if (dlCtrlRxParams->cellId == m_cellId)
+            {
+              StartRxDlCtrl (dlCtrlRxParams);
+            }
+          else
+            {
+              NS_LOG_INFO ("Received DL CTRL, but not in sync with this signal (cellId=" <<
+                       dlCtrlRxParams->cellId  << ", m_cellId=" << m_cellId << ")");
+            }
         }
       else
         {
-          NS_LOG_INFO (" Received CTRL not in sync with this signal (cellId=" <<
-                       dlCtrlRxParams->cellId  << ", m_cellId=" << m_cellId << ")");
+          NS_LOG_DEBUG ("DL CTRL ignored at gNB");
+        }
+    }
+  else if (ulCtrlRxParams != nullptr)
+    {
+      if (m_isEnb) // only gNBs should enter into reception of UL CTRL signals
+        {
+          if (ulCtrlRxParams->cellId == m_cellId)
+            {
+              StartRxUlCtrl (ulCtrlRxParams);
+            }
+          else
+            {
+              NS_LOG_INFO ("Received UL CTRL, but not in sync with this signal (cellId=" <<
+                           ulCtrlRxParams->cellId  << ", m_cellId=" << m_cellId << ")");
+            }
+        }
+      else
+        {
+           NS_LOG_DEBUG ("UL CTRL ignored at UE device");
         }
     }
   else
@@ -394,22 +426,21 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<MmWaveEnbNetDevice> enbRx =
-    DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
-  Ptr<MmWaveUeNetDevice> ueRx =
-    DynamicCast<MmWaveUeNetDevice> (GetDevice ());
   switch (m_state)
     {
     case TX:
-      NS_FATAL_ERROR ("Cannot receive while transmitting");
+      NS_FATAL_ERROR ("Cannot RX while TX.");
       break;
-    case RX_CTRL:
-      NS_FATAL_ERROR ("Cannot receive control in data period");
+    case RX_DL_CTRL:
+      /* no break */
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("Cannot receive DATA while receiving CTRL.");
       break;
     case CCA_BUSY:
-      NS_LOG_INFO ("Start receiving DATA while in CCA_BUSY state");
+      NS_LOG_INFO ("Start receiving DATA while in CCA_BUSY state.");
       /* no break */
-    case RX_DATA:
+    case RX_DATA: // RX_DATA while RX_DATA is possible with OFDMA, i.e. gNB receives from multiple UEs at the same time
+      /* no break */
     case IDLE:
       {
         m_interferenceData->StartRx (params->psd);
@@ -452,79 +483,95 @@ MmWaveSpectrumPhy::StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> par
 }
 
 void
-MmWaveSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
+MmWaveSpectrumPhy::StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params)
 {
+  // The current code of this function assumes:
+  // that this function is called only when cellId = m_cellId, which means
+  // that UE can start to receive DL CTRL only from its own cellId,
+  // and CTRL from other cellIds will be ignored
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (params->cellId == m_cellId && !m_isEnb);
   // RDF: method currently supports Downlink control only!
   switch (m_state)
     {
     case TX:
-      NS_FATAL_ERROR ("Cannot RX while TX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
+      NS_FATAL_ERROR ("Cannot RX while TX.");
       break;
     case RX_DATA:
-      NS_FATAL_ERROR ("Cannot RX data while receiving control");
+      NS_FATAL_ERROR ("Cannot RX CTRL while receiving DATA.");
+      break;
+    case RX_DL_CTRL:
+      NS_FATAL_ERROR ("Cannot RX DL CTRL while already receiving DL CTRL.");
+      break;
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("UE should never be in RX_UL_CTRL state.");
       break;
     case CCA_BUSY:
-      NS_LOG_INFO ("Start receiving CTRL while channel in CCA_BUSY state");
+      NS_LOG_INFO ("Start receiving CTRL while channel in CCA_BUSY state.");
       /* no break */
-    case RX_CTRL:
     case IDLE:
       {
-        // the behavior is similar when we're IDLE or RX because we can receive more signals
-        // simultaneously (e.g., at the eNB).
-        Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> dlCtrlRxParams = \
-          DynamicCast<MmWaveSpectrumSignalParametersDlCtrlFrame> (params);
-        // To check if we're synchronized to this signal, we check for the CellId
-        uint16_t cellId = 0;
-        
-        NS_ABORT_MSG_IF (dlCtrlRxParams == nullptr , "SpectrumSignalParameters type not supported");
+        NS_ASSERT (m_rxControlMessageList.empty ());
+        NS_LOG_LOGIC (this << "receiving DL CTRL from cellId:"<<params->cellId<< "and scheduling EndRx with delay " << params->duration);
+        // store the DCIs
+        m_rxControlMessageList = params->ctrlMsgList;
+        Simulator::Schedule (params->duration, &MmWaveSpectrumPhy::EndRxCtrl, this);
+        ChangeState (RX_DL_CTRL, params->duration);
+        break;
+      }
+    default:
+      {
+        NS_FATAL_ERROR ("Unknown state.");
+        break;
+      }
+    }
+}
 
-        cellId = dlCtrlRxParams->cellId;
-
-        // check presence of PSS for UE measuerements
-        /*if (dlCtrlRxParams->pss == true)
-                      {
-                              SpectrumValue pssPsd = *params->psd;
-                              if (!m_phyRxPssCallback.IsNull ())
-                              {
-                                      m_phyRxPssCallback (cellId, params->psd);
-                              }
-                      }*/
-        if (cellId  == m_cellId)
+void
+MmWaveSpectrumPhy::StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params)
+{
+  // The current code of this function assumes:
+  // 1) that this function is called only when cellId = m_cellId
+  // 2) this function should be only called for gNB, only gNB should enter into reception of UL CTRL signals
+  // 3) gNB can receive simultaneously signals from various UEs
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (params->cellId == m_cellId && m_isEnb);
+  // RDF: method currently supports Uplink control only!
+  switch (m_state)
+    {
+    case TX:
+      NS_FATAL_ERROR ("Cannot RX UL CTRL while TX.");
+      break;
+    case RX_DATA:
+      NS_FATAL_ERROR ("Cannot RX UL CTRL while receiving DATA.");
+      break;
+    case RX_DL_CTRL:
+      NS_FATAL_ERROR ("gNB should not be in RX_DL_CTRL state.");
+      break;
+    case CCA_BUSY:
+      NS_LOG_INFO ("Start receiving UL CTRL while channel in CCA_BUSY state.");
+      /* no break */
+    case RX_UL_CTRL:
+      /* no break */
+    case IDLE:
+      {
+        // at the gNB we can receive more UL CTRL signals simultaneously
+        if (m_state == IDLE || m_state == CCA_BUSY)
           {
-            if (m_state == RX_CTRL)
-              {
-                Ptr<MmWaveUeNetDevice> ueRx =
-                  DynamicCast<MmWaveUeNetDevice> (GetDevice ());
-                if (ueRx)
-                  {
-                    NS_FATAL_ERROR ("UE already receiving control data from serving cell");
-                  }
-                NS_ASSERT ((m_firstRxStart == Simulator::Now ())
-                           && (m_firstRxDuration == params->duration));
-              }
-            NS_LOG_LOGIC (this << " synchronized with this signal (cellId=" << cellId << ")");
-            if (m_state == IDLE || m_state == CCA_BUSY)
-              {
-                // first transmission, i.e., we're IDLE and we start RX
-                NS_ASSERT (m_rxControlMessageList.empty ());
-                m_firstRxStart = Simulator::Now ();
-                m_firstRxDuration = params->duration;
-                NS_LOG_LOGIC (this << " scheduling EndRx with delay " << params->duration);
-                // store the DCIs
-                m_rxControlMessageList = dlCtrlRxParams->ctrlMsgList;
-                Simulator::Schedule (params->duration, &MmWaveSpectrumPhy::EndRxCtrl, this);
-                ChangeState (RX_CTRL, params->duration);
-              }
-            else
-              {
-                m_rxControlMessageList.insert (m_rxControlMessageList.end (), dlCtrlRxParams->ctrlMsgList.begin (), dlCtrlRxParams->ctrlMsgList.end ());
-              }
-
+            // first transmission, i.e., we're IDLE and we start RX
+            NS_ASSERT (m_rxControlMessageList.empty ());
+            m_firstRxStart = Simulator::Now ();
+            m_firstRxDuration = params->duration;
+            NS_LOG_LOGIC (this << " scheduling EndRx with delay " << params->duration);
+            // store the DCIs
+            m_rxControlMessageList = params->ctrlMsgList;
+            Simulator::Schedule (params->duration, &MmWaveSpectrumPhy::EndRxCtrl, this);
+            ChangeState (RX_UL_CTRL, params->duration);
           }
-        else
+        else // already in RX_UL_CTRL state, just add new CTRL messages from other UE
           {
-            NS_LOG_INFO ("Ctrl received from interfering cell with cell id:"<<cellId);
+            NS_ASSERT ((m_firstRxStart == Simulator::Now ()) && (m_firstRxDuration == params->duration));
+            m_rxControlMessageList.insert (m_rxControlMessageList.end (), params->ctrlMsgList.begin (), params->ctrlMsgList.end ());
           }
         break;
       }
@@ -805,7 +852,7 @@ MmWaveSpectrumPhy::CheckIfStillBusy ()
     {
       MaybeCcaBusy();
     }
-  else // RX_CTRL, RX_DATA, TX
+  else // RX_DL_CTRL, RX_UL_CTRL, RX_DATA, TX
     {
       Time delayUntilCcaEnd = m_interferenceData->GetEnergyDuration (m_ccaMode1ThresholdW);
 
@@ -859,7 +906,7 @@ void
 MmWaveSpectrumPhy::EndRxCtrl ()
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_state == RX_CTRL);
+  NS_ASSERT (m_state == RX_DL_CTRL || m_state == RX_UL_CTRL);
 
   // control error model not supported
   // forward control messages of this frame to LtePhy
@@ -892,14 +939,17 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
   switch (m_state)
     {
     case RX_DATA:
-    case RX_CTRL:
-      NS_FATAL_ERROR ("cannot TX while RX: Cannot transmit while receiving");
+      /* no break */
+    case RX_DL_CTRL:
+      /* no break */
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("Cannot TX while RX.");
       break;
     case TX:
-      NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");
+      NS_FATAL_ERROR ("Cannot TX while already TX.");
       break;
     case CCA_BUSY:
-      NS_LOG_WARN ("Start transmitting DATA while in CCA_BUSY state");
+      NS_LOG_WARN ("Start transmitting DATA while in CCA_BUSY state.");
       /* no break */
     case IDLE:
       {
@@ -917,17 +967,8 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
         txParams->slotInd = slotInd;
         txParams->txAntenna = m_antenna;
 
-
-
-        //NS_LOG_DEBUG ("ctrlMsgList.size () == " << txParams->ctrlMsgList.size ());
-
         /* This section is used for trace */
-        Ptr<MmWaveEnbNetDevice> enbTx =
-          DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
-        Ptr<MmWaveUeNetDevice> ueTx =
-          DynamicCast<MmWaveUeNetDevice> (GetDevice ());
-
-        if (enbTx)
+        if (m_isEnb)
           {
             EnbPhyPacketCountParameter traceParam;
             traceParam.m_noBytes = (txParams->packetBurst) ? txParams->packetBurst->GetSize () : 0;
@@ -960,22 +1001,22 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
   switch (m_state)
     {
     case RX_DATA:
-    case RX_CTRL:
-      NS_FATAL_ERROR (Simulator::Now() << "cannot TX while RX: Cannot transmit while receiving.");
+      /* no break */
+    case RX_DL_CTRL:
+      /* no break */
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("Cannot TX while RX.");
       break;
     case TX:
-      NS_FATAL_ERROR ("cannot TX while already Tx: Cannot transmit while a transmission is still on");
+      NS_FATAL_ERROR ("Cannot TX while already TX.");
       break;
     case CCA_BUSY:
-      NS_LOG_WARN ("Start transmitting CTRL while in CCA_BUSY state");
+      NS_LOG_WARN ("Start transmitting DL CTRL while in CCA_BUSY state.");
       /* no break */
-      break;
     case IDLE:
       {
         NS_ASSERT (m_txPsd);
-
         ChangeState (TX, duration);
-
         Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> txParams = Create<MmWaveSpectrumSignalParametersDlCtrlFrame> ();
         txParams->duration = duration;
         txParams->txPhy = GetObject<SpectrumPhy> ();
@@ -984,11 +1025,49 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
         txParams->pss = true;
         txParams->ctrlMsgList = ctrlMsgList;
         txParams->txAntenna = m_antenna;
-
         m_txCtrlTrace (duration);
-
         m_channel->StartTx (txParams);
+        Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
+      }
+    }
+  return false;
+}
 
+
+bool
+MmWaveSpectrumPhy::StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList,
+                                           const Time &duration)
+{
+  NS_LOG_LOGIC (this << " state: " << ToString (m_state));
+
+  switch (m_state)
+    {
+    case RX_DATA:
+      /* no break */
+    case RX_DL_CTRL:
+      /* no break */ 
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("Cannot TX while RX.");
+      break;
+    case TX:
+      NS_FATAL_ERROR ("Cannot TX while already TX.");
+      break;
+    case CCA_BUSY:
+      NS_LOG_WARN ("Start transmitting UL CTRL while in CCA_BUSY state");
+      /* no break */
+    case IDLE:
+      {
+        NS_ASSERT (m_txPsd);
+        ChangeState (TX, duration);
+        Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> txParams = Create<MmWaveSpectrumSignalParametersUlCtrlFrame> ();
+        txParams->duration = duration;
+        txParams->txPhy = GetObject<SpectrumPhy> ();
+        txParams->psd = m_txPsd;
+        txParams->cellId = m_cellId;
+        txParams->ctrlMsgList = ctrlMsgList;
+        txParams->txAntenna = m_antenna;
+        m_txCtrlTrace (duration);
+        m_channel->StartTx (txParams);
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
       }
     }
