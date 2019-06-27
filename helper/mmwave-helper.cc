@@ -333,38 +333,35 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       BandwidthPartRepresentation & conf = m_bwpConfiguration.at (it->first);
       NS_ASSERT (conf.m_id == it->first);
 
-      Ptr<MmWaveSpectrumPhy> ulPhy = CreateObject<MmWaveSpectrumPhy> ();
-      Ptr<MmWaveSpectrumPhy> dlPhy = CreateObject<MmWaveSpectrumPhy> ();
-      Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (dlPhy, ulPhy, n);
+      Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
+      Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (channelPhy, n);
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
 
       channelAccessManagerFactory.SetTypeId (conf.m_ueChannelAccessManagerType);
       Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
-      cam->SetNrSpectrumPhy (dlPhy);
+      cam->SetNrSpectrumPhy (channelPhy);
       phy->SetCam (cam);
 
-      dlPhy->SetHarqPhyModule (harq);
+      channelPhy->SetHarqPhyModule (harq);
 
       Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
       pData->AddCallback (MakeCallback (&MmWaveUePhy::GenerateDlCqiReport, phy));
-      pData->AddCallback (MakeCallback (&MmWaveSpectrumPhy::UpdateSinrPerceived, dlPhy));
-      dlPhy->AddDataSinrChunkProcessor (pData);
+      pData->AddCallback (MakeCallback (&MmWaveSpectrumPhy::UpdateSinrPerceived, channelPhy));
+      channelPhy->AddDataSinrChunkProcessor (pData);
 
       if (m_harqEnabled)
         {
-          dlPhy->SetPhyDlHarqFeedbackCallback (MakeCallback (&MmWaveUePhy::ReceiveLteDlHarqFeedback, phy));
+          channelPhy->SetPhyDlHarqFeedbackCallback (MakeCallback (&MmWaveUePhy::ReceiveLteDlHarqFeedback, phy));
         }
 
-      ulPhy->SetChannel (conf.m_channel);
-      dlPhy->SetChannel (conf.m_channel);
+      channelPhy->SetChannel (conf.m_channel);
 
       Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
       NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallUeDevice ()");
-      ulPhy->SetMobility (mm);
-      dlPhy->SetMobility (mm);
+      channelPhy->SetMobility (mm);
 
-      dlPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
-      dlPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::PhyCtrlMessagesReceived, phy));
+      channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
+      channelPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::PhyCtrlMessagesReceived, phy));
 
       it->second->SetPhy (phy);
     }
@@ -454,7 +451,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
     {
       Ptr<MmWaveUePhy> ccPhy = it->second->GetPhy ();
       ccPhy->SetDevice (dev);
-      ccPhy->GetDlSpectrumPhy ()->SetDevice (dev);
+      ccPhy->GetSpectrumPhy ()->SetDevice (dev);
       // hooks are earlier set
     }
 
@@ -516,9 +513,8 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
     {
       BandwidthPartRepresentation &conf = m_bwpConfiguration.at(it->first);
       NS_ASSERT (conf.m_id == it->first);
-      Ptr<MmWaveSpectrumPhy> ulPhy = CreateObject<MmWaveSpectrumPhy> ();
-      Ptr<MmWaveSpectrumPhy> dlPhy = CreateObject<MmWaveSpectrumPhy> ();
-      Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (dlPhy, ulPhy, n);
+      Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
+      Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (channelPhy, n);
 
       MmWaveEnbPhy::PerformBeamformingFn beamformingFn;
       beamformingFn = std::bind (&MmWave3gppChannel::PerformBeamforming, conf.m_3gppChannel,
@@ -528,29 +524,27 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       // PHY <--> CAM
       channelAccessManagerFactory.SetTypeId (conf.m_gnbChannelAccessManagerType);
       Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
-      cam->SetNrSpectrumPhy (dlPhy);
+      cam->SetNrSpectrumPhy (channelPhy);
       phy->SetCam (cam);
 
       Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
-      dlPhy->SetHarqPhyModule (harq);
+      channelPhy->SetHarqPhyModule (harq);
 
       Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
       if (!m_snrTest)
         {
           pData->AddCallback (MakeCallback (&MmWaveEnbPhy::GenerateDataCqiReport, phy));
-          pData->AddCallback (MakeCallback (&MmWaveSpectrumPhy::UpdateSinrPerceived, dlPhy));
+          pData->AddCallback (MakeCallback (&MmWaveSpectrumPhy::UpdateSinrPerceived, channelPhy));
         }
-      dlPhy->AddDataSinrChunkProcessor (pData);
+      channelPhy->AddDataSinrChunkProcessor (pData);
 
       phy->SetConfigurationParameters (conf.m_phyMacCommon);
 
-      ulPhy->SetChannel (conf.m_channel);
-      dlPhy->SetChannel (conf.m_channel);
+      channelPhy->SetChannel (conf.m_channel);
 
       Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
       NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallEnbDevice ()");
-      dlPhy->SetMobility (mm);
-      ulPhy->SetMobility (mm);
+      channelPhy->SetMobility (mm);
 
       Ptr<MmWaveEnbMac> mac = CreateObject<MmWaveEnbMac> ();
       mac->SetConfigurationParameters (conf.m_phyMacCommon);
@@ -700,11 +694,11 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
     {
       Ptr<MmWaveEnbPhy> ccPhy = it->second->GetPhy ();
       ccPhy->SetDevice (dev);
-      ccPhy->GetDlSpectrumPhy ()->SetDevice (dev);
-      ccPhy->GetDlSpectrumPhy ()->SetCellId (cellId);
-      ccPhy->GetDlSpectrumPhy ()->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, ccPhy));
-      ccPhy->GetDlSpectrumPhy ()->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyCtrlMessagesReceived, ccPhy));
-      ccPhy->GetDlSpectrumPhy ()->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReceiveUlHarqFeedback, ccPhy));
+      ccPhy->GetSpectrumPhy ()->SetDevice (dev);
+      ccPhy->GetSpectrumPhy ()->SetCellId (cellId);
+      ccPhy->GetSpectrumPhy ()->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, ccPhy));
+      ccPhy->GetSpectrumPhy ()->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyCtrlMessagesReceived, ccPhy));
+      ccPhy->GetSpectrumPhy ()->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReceiveUlHarqFeedback, ccPhy));
       NS_LOG_LOGIC ("set the propagation model frequencies");
     }  //end for
   rrc->SetForwardUpCallback (MakeCallback (&MmWaveEnbNetDevice::Receive, dev));
@@ -713,7 +707,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
 
   for (const auto & conf : m_bwpConfiguration)
     {
-      conf.second.m_channel->AddRx(ccMap.at (conf.second.m_id)->GetPhy ()->GetDlSpectrumPhy ());
+      conf.second.m_channel->AddRx(ccMap.at (conf.second.m_id)->GetPhy ()->GetSpectrumPhy ());
       Ptr<AntennaArrayBasicModel> antenna = dev->GetPhy (conf.first)->GetAntennaArray();
       conf.second.m_3gppChannel->RegisterDevicesAntennaArray (dev, antenna);
     }
@@ -979,7 +973,7 @@ MmWaveHelper::EnableDlPhyTrace (void)
   //Config::Connect ("/NodeList/*/DeviceList/*/MmWaveUePhy/ReportCurrentCellRsrpSinr",
   //  MakeBoundCallback (&MmWavePhyRxTrace::ReportCurrentCellRsrpSinrCallback, m_phyStats));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/DlSpectrumPhy/RxPacketTraceUe",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/SpectrumPhy/RxPacketTraceUe",
                    MakeBoundCallback (&MmWavePhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
 }
 
@@ -1024,7 +1018,7 @@ void
 MmWaveHelper::EnableUlPhyTrace (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/DlSpectrumPhy/RxPacketTraceEnb",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/SpectrumPhy/RxPacketTraceEnb",
                    MakeBoundCallback (&MmWavePhyRxTrace::RxPacketTraceEnbCallback, m_phyStats));
 }
 
@@ -1032,7 +1026,7 @@ void
 MmWaveHelper::EnableEnbPacketCountTrace ()
 {
   NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/DlSpectrumPhy/ReportEnbTxRxPacketCount",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/SpectrumPhy/ReportEnbTxRxPacketCount",
                    MakeBoundCallback (&MmWavePhyRxTrace::ReportPacketCountEnbCallback, m_phyStats));
 
 }
@@ -1041,7 +1035,7 @@ void
 MmWaveHelper::EnableUePacketCountTrace ()
 {
   NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/DlSpectrumPhy/ReportUeTxRxPacketCount",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/SpectrumPhy/ReportUeTxRxPacketCount",
                    MakeBoundCallback (&MmWavePhyRxTrace::ReportPacketCountUeCallback, m_phyStats));
 
 }

@@ -52,7 +52,7 @@ public:
   /**
    * \brief MmWaveEnbPhy real constructor. Start the event loop for the gnb.
    */
-  MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy>, Ptr<MmWaveSpectrumPhy>, const Ptr<Node> &);
+  MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy>, const Ptr<Node> &);
 
   /**
    * \brief ~MmWaveEnbPhy
@@ -113,13 +113,13 @@ public:
   void SetSubChannels (const std::vector<int> &rbIndexVector);
 
   /**
-   * \brief Retrieve the DlSpectrumPhy pointer
+   * \brief Retrieve the SpectrumPhy pointer
    *
-   * As this function is used mainly to get traced values out of DlSpectrum,
+   * As this function is used mainly to get traced values out of Spectrum,
    * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the DlSpectrumPhy of this UE
+   * \return A pointer to the SpectrumPhy of this UE
    */
-  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override __attribute__((warn_unused_result));
+  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
 
   /**
    * \brief Add the UE to the list of this gnb UEs.

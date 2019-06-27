@@ -723,7 +723,7 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   for (uint32_t i = 0 ; i < m_ueDev.GetN(); ++i)
     {
       Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
-      (m_ueDev.Get(i))->GetPhy(0)->GetDlSpectrumPhy();
+      (m_ueDev.Get(i))->GetPhy(0)->GetSpectrumPhy();
       ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe",
                                                  MakeCallback (&NrSingleBwpSetup::UeReception, this));
       Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference();

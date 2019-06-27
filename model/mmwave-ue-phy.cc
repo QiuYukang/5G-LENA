@@ -53,9 +53,9 @@ MmWaveUePhy::MmWaveUePhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
+MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy,
                           const Ptr<Node> &n)
-  : MmWavePhy (dlPhy, ulPhy)
+  : MmWavePhy (channelPhy)
 {
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
@@ -91,11 +91,11 @@ MmWaveUePhy::GetTypeId (void)
                    DoubleValue (5.0), // mmwave code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
                    MakeDoubleAccessor (&MmWaveUePhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("DlSpectrumPhy",
-                   "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
+    .AddAttribute ("SpectrumPhy",
+                   "The SpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
-                   MakePointerAccessor (&MmWaveUePhy::GetDlSpectrumPhy),
+                   MakePointerAccessor (&MmWaveUePhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddAttribute ("AntennaArrayType",
                     "AntennaArray of this UE phy. There are two types of antenna array available: "
@@ -208,7 +208,7 @@ MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
   NS_ASSERT (txPsd);
-  m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
 void
@@ -239,26 +239,23 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
     }
 
 
-  m_downlinkSpectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-  m_uplinkSpectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-
-  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
-  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_spectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
+  m_spectrumPhy->SetAntenna (GetAntennaArray());
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
-  m_downlinkSpectrumPhy->SetCellId (m_cellId);
+  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+  m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
+  m_spectrumPhy->SetCellId (m_cellId);
 
-  GetAntennaArray()->SetSpectrumModel (m_downlinkSpectrumPhy->GetRxSpectrumModel());
+  GetAntennaArray()->SetSpectrumModel (m_spectrumPhy->GetRxSpectrumModel());
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
 }
 
 Ptr<MmWaveSpectrumPhy>
-MmWaveUePhy::GetDlSpectrumPhy () const
+MmWaveUePhy::GetSpectrumPhy () const
 {
-  return m_downlinkSpectrumPhy;
+  return m_spectrumPhy;
 }
 
 void
@@ -639,7 +636,7 @@ MmWaveUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_receptionEnabled = true;
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
 
-  m_downlinkSpectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, true,
                                         dci->m_symStart, dci->m_numSym);
@@ -797,13 +794,13 @@ MmWaveUePhy::SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlM
         }
     }
 
-  m_downlinkSpectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration, slotInd);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration, slotInd);
 }
 
 void
 MmWaveUePhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd)
 {
-  m_downlinkSpectrumPhy->StartTxUlControlFrames (ctrlMsg,prd);
+  m_spectrumPhy->StartTxUlControlFrames (ctrlMsg,prd);
 }
 
 Ptr<MmWaveDlCqiMessage>
@@ -919,9 +916,9 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   m_cellId = cellId;
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
-  m_downlinkSpectrumPhy->SetCellId (m_cellId);
+  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+  m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
+  m_spectrumPhy->SetCellId (m_cellId);
 }
 
 AntennaArrayBasicModel::BeamId

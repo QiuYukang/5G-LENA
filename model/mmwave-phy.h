@@ -38,7 +38,7 @@ class MmWavePhy : public Object
 public:
   MmWavePhy ();
 
-  MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy> ulChannelPhy);
+  MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy);
 
   virtual ~MmWavePhy ();
 
@@ -183,7 +183,7 @@ public:
 
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
 
-  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
+  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const = 0;
 
   /**
    * \return The antena array that is being used by this PHY
@@ -233,8 +233,6 @@ protected:
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
   Ptr<MmWaveSpectrumPhy> m_spectrumPhy;
-  Ptr<MmWaveSpectrumPhy> m_downlinkSpectrumPhy;
-  Ptr<MmWaveSpectrumPhy> m_uplinkSpectrumPhy;
 
   double m_txPower {0.0};
   double m_noiseFigure {0.0};

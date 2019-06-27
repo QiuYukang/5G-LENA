@@ -150,9 +150,8 @@ MmWavePhy::MmWavePhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy> ulChannelPhy)
-  : m_downlinkSpectrumPhy (dlChannelPhy),
-  m_uplinkSpectrumPhy (ulChannelPhy),
+MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy):
+    m_spectrumPhy (channelPhy),
   m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
@@ -217,8 +216,7 @@ MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
   m_cellId = cellId;
-  m_downlinkSpectrumPhy->SetCellId (cellId);
-  m_uplinkSpectrumPhy->SetCellId (cellId);
+  m_spectrumPhy->SetCellId (cellId);
 }
 
 

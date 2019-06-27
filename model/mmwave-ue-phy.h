@@ -51,13 +51,12 @@ public:
 
   /**
    * \brief MmWaveUePhy real constructor
-   * \param dlPhy DL spectrum phy
-   * \param ulPhy UL spectrum phy
+   * \param channelPhy spectrum phy
    * \param n Pointer to the node owning this instance
    *
    * Usually called by the helper. It starts the event loop for the ue.
    */
-  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy, const Ptr<Node> &n);
+  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy, const Ptr<Node> &n);
 
   /**
    * \brief ~MmWaveUePhy
@@ -112,13 +111,13 @@ public:
   void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
 
   /**
-   * \brief Retrieve the DlSpectrumPhy pointer
+   * \brief Retrieve the SpectrumPhy pointer
    *
-   * As this function is used mainly to get traced values out of DlSpectrum,
+   * As this function is used mainly to get traced values out of Spectrum,
    * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the DlSpectrumPhy of this UE
+   * \return A pointer to the SpectrumPhy of this UE
    */
-  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override __attribute__((warn_unused_result));
+  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
 
   /**
    * \brief Receive a list of CTRL messages

@@ -56,9 +56,9 @@ MmWaveEnbPhy::MmWaveEnbPhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
+MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> channelPhy,
                             const Ptr<Node> &n)
-  : MmWavePhy (dlPhy, ulPhy)
+  : MmWavePhy (channelPhy)
 {
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
 
@@ -94,11 +94,11 @@ MmWaveEnbPhy::GetTypeId (void)
                    DoubleValue (5.0),
                    MakeDoubleAccessor (&MmWaveEnbPhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("DlSpectrumPhy",
+    .AddAttribute ("SpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
-                   MakePointerAccessor (&MmWaveEnbPhy::GetDlSpectrumPhy),
+                   MakePointerAccessor (&MmWaveEnbPhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddTraceSource ("UlSinrTrace",
                      "UL SINR statistics.",
@@ -154,7 +154,7 @@ MmWaveEnbPhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
 
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
   MmWavePhy::InstallAntenna();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
@@ -164,8 +164,7 @@ MmWaveEnbPhy::DoInitialize (void)
       antenna3gpp->SetIsUe(false);
     }
 
-  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
-  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_spectrumPhy->SetAntenna (GetAntennaArray());
 
   NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim1()) <<
                ", " << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim2()));
@@ -219,7 +218,7 @@ AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 
       if (ueRnti == rnti)
         {
-          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
           return AntennaArrayModel::GetBeamId (antennaArray->GetBeamformingVector (m_deviceMap.at (i)));
         }
     }
@@ -253,12 +252,12 @@ MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
   NS_ASSERT (txPsd);
-  m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
-Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetDlSpectrumPhy() const
+Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetSpectrumPhy() const
 {
-  return m_downlinkSpectrumPhy;
+  return m_spectrumPhy;
 }
 
 void
@@ -704,7 +703,7 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
 
-  m_downlinkSpectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
                                         dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, false,
@@ -717,7 +716,7 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
-          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
           antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
           found = true;
           break;
@@ -741,7 +740,7 @@ MmWaveEnbPhy::StartVarTti (void)
   NS_LOG_FUNCTION (this);
 
   //assume the control signal is omni
-  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
   antennaArray->ChangeToOmniTx ();
 
   VarTtiAllocInfo & currVarTti = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum];
@@ -788,7 +787,7 @@ MmWaveEnbPhy::EndVarTti (void)
                " which lasted for " << static_cast<uint32_t> (lastDci->m_numSym) <<
                " symbols finished");
 
-  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
 
   antennaArray->ChangeToOmniTx ();
 
@@ -855,7 +854,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
 {
   if (varTtiInfo.m_isOmni)
     {
-      Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+      Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
       antennaArray->ChangeToOmniTx ();
     }
   else
@@ -871,7 +870,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
           if (varTtiInfo.m_dci->m_rnti == ueRnti)
             {
               //NS_LOG_UNCOND ("Change Beamforming Vector");
-              Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+              Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
               antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
               found = true;
               break;
@@ -889,7 +888,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (varTtiInfo.m_dci->m_symStart)));
 
   std::list<Ptr<MmWaveControlMessage> > ctrlMsgs;
-  m_downlinkSpectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod, varTtiInfo.m_dci->m_symStart);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod, varTtiInfo.m_dci->m_symStart);
 }
 
 void
@@ -907,7 +906,7 @@ MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
 
   SetSubChannels (fullBwRb);
 
-  m_downlinkSpectrumPhy->StartTxDlControlFrames (*ctrlMsgs, varTtiPeriod);
+  m_spectrumPhy->StartTxDlControlFrames (*ctrlMsgs, varTtiPeriod);
 
   ctrlMsgs->clear ();
 }
