@@ -98,41 +98,41 @@ typedef std::tuple<double, uint8_t, uint32_t, double> MappingTable;
 
 static std::vector<MappingTable> resultTable1 = {
   // sinr (lineal), mcs, cbsize, result
-  MappingTable { 19.95, 18, 3200, 0.0036 },    // sinr 13 db
-  MappingTable { 15.84, 18, 3200, 0.964962 },  // sinr 12 db
+  //MappingTable { 19.95, 18, 3200, 0.00 },    // sinr 13 db - deleted to avoid roundings
+  MappingTable { 15.849, 18, 3200, 0.5936047 },  // sinr 12 db
   MappingTable { 10,    18, 3200, 1.00 },      // sinr 10 db
-  MappingTable { 19.95, 18, 1750, 0.0015 },      // sinr 13 db
-  MappingTable { 15.84, 18, 1750, 0.744913 },    // sinr 12 db
+  MappingTable { 19.95, 18, 1750, 0.0026 },      // sinr 13 db
+  MappingTable { 15.84, 18, 1750, 0.7718373 },    // sinr 12 db
   MappingTable { 10,    18, 1750, 1.00 },      // sinr 10 db
-  MappingTable { 19.95, 18, 3500, 0.0038 },    // sinr 13 db
-  MappingTable { 15.84, 18, 3500, 0.967803 },  // sinr 12 db
+  //MappingTable { 19.95, 18, 3500, 0.00 },    // sinr 13 db - deleted to avoid roundings
+  MappingTable { 15.849, 18, 3500, 0.9128521 },  // sinr 12 db
   MappingTable { 10,    18, 3500, 1.00 },      // sinr 10 db
 
-  MappingTable { 8.9125, 14, 3900, 0.0222 },    // sinr 9.5db
-  MappingTable { 7.9433, 14, 3900, 0.961174 },  // sinr 9 db
+  MappingTable { 8.9125, 14, 3900, 0.0357 },    // sinr 9.5db
+  MappingTable { 7.9433, 14, 3900, 0.9649621 },  // sinr 9 db
   MappingTable { 6.3095, 14, 3900, 1.00 },      // sinr 8 db
-  MappingTable { 8.9125, 14, 6300, 0.0161 },    // sinr 9.5db
-  MappingTable { 7.9433, 14, 6300, 0.992308 },  // sinr 9 db
+  MappingTable { 8.9125, 14, 6300, 0.0240 },    // sinr 9.5db
+  MappingTable { 7.9433, 14, 6300, 0.9923077 },  // sinr 9 db
   MappingTable { 6.3095, 14, 6300, 1.00 }       // sinr 8 db
 
 };
 static std::vector<MappingTable> resultTable2 = {
-  // sinr (lineal), mcs, cbsize, result
-  MappingTable { 19.95, 11, 3200, 0.0036 },    // sinr 13 db
-  MappingTable { 15.84, 11, 3200, 0.964962 },    // sinr 12 db
+  // sinr (lineal), mcs, cbsize, result 
+  //MappingTable { 19.95, 11, 3200, 0.00 },    // sinr 13 db - deleted to avoid roundings
+  MappingTable { 15.849, 11, 3200, 0.5936047 },  // sinr 12 db
   MappingTable { 10,    11, 3200, 1.00 },      // sinr 10 db
-  MappingTable { 19.95, 11, 1750, 0.0015 },    // sinr 13 db
-  MappingTable { 15.84, 11, 1750, 0.744913 },    // sinr 12 db
+  MappingTable { 19.95, 11, 1750, 0.0026 },      // sinr 13 db
+  MappingTable { 15.84, 11, 1750, 0.7718373 },    // sinr 12 db
   MappingTable { 10,    11, 1750, 1.00 },      // sinr 10 db
-  MappingTable { 19.95, 11, 3500, 0.0038 },      // sinr 13 db
-  MappingTable { 15.84, 11, 3500, 0.967803 },    // sinr 12 db
+  //MappingTable { 19.95, 11, 3500, 0.00 },    // sinr 13 db - deleted to avoid roundings
+  MappingTable { 15.849, 11, 3500, 0.9128521 },  // sinr 12 db
   MappingTable { 10,    11, 3500, 1.00 },      // sinr 10 db
 
-  MappingTable { 8.9125, 8, 3900, 0.0222 },    // sinr 9.5db
-  MappingTable { 7.9433, 8, 3900, 0.961174 },  // sinr 9 db
+  MappingTable { 8.9125, 8, 3900, 0.0357 },    // sinr 9.5db
+  MappingTable { 7.9433, 8, 3900, 0.9649621 },  // sinr 9 db
   MappingTable { 6.3095, 8, 3900, 1.00 },      // sinr 8 db
-  MappingTable { 8.9125, 8, 6300, 0.0161 },    // sinr 9.5db
-  MappingTable { 7.9433, 8, 6300, 0.992308 },  // sinr 9 db
+  MappingTable { 8.9125, 8, 6300, 0.0240 },    // sinr 9.5db
+  MappingTable { 7.9433, 8, 6300, 0.9923077 },  // sinr 9 db
   MappingTable { 6.3095, 8, 6300, 1.00 }       // sinr 8 db
 
 };
