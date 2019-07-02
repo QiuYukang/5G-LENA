@@ -15772,7 +15772,7 @@ NrEesmErrorModel::MappingSinrBler (double sinr, uint8_t mcs, uint32_t cbSizeBit)
   GraphType bg_type = GetBaseGraphType (cbSizeBit, mcs);
 
   // Get the index of CBSIZE in the map
-  NS_LOG_INFO ("For sinr " << sinr << " and mcs " << static_cast<uint8_t>(mcs) <<
+  NS_LOG_INFO ("For sinr " << sinr << " and mcs " << +mcs <<
                 " CbSizebit " << cbSizeBit << " we got bg type " << m_bgTypeName[bg_type]);
   auto cbMap = m_simulatedBlerFromSINR->at (bg_type).at (mcs);
   auto cbIt = cbMap.upper_bound (cbSizeBit);
@@ -15859,7 +15859,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   double tbSinr = SinrEff (sinr, map, mcs);
   double SINR = tbSinr;
 
-  NS_LOG_DEBUG (" mcs " << static_cast<uint8_t>(mcs) << " TBSize in bit " << sizeBit <<
+  NS_LOG_DEBUG (" mcs " << +mcs << " TBSize in bit " << sizeBit <<
                 " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
                 tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
                 "SINR: " << sinr);
@@ -15943,7 +15943,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
           // compute effective SINR with the sinr_sum vector and map_sum RB map
           SINR = SinrEff (sinr_sum, map_sum, mcs);
         }
-      else
+      else if (m_harqMethod == HarqIr)
         {
           // HARQ INCREMENTAL REDUNDANCY: update SINReff and ECR after retx
           // no repetition of coded bits
@@ -15988,6 +15988,10 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
           // compute effective SINR with the sinr_sum vector and map_sum RB map
           SINR = SinrEff (sinr_sum, map_sum, mcs);
+        }
+      else
+        {
+          NS_ABORT_MSG("Not valid HARQ method");
         }
     }
 
@@ -16072,12 +16076,17 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
   // PHY abstraction for HARQ-IR retx -> get closest ECR to Reff from the
   // available ones that belong to the same modulation order
-  uint8_t mcs_eq = mcs;
-  if ((sinrHistory.size () > 0) && (m_harqMethod == HarqIr))
+  uint8_t mcs_eq = mcs;  
+  NS_LOG_INFO (" MCS of tx " << +mcs );
+
+  if ((sinrHistory.size () > 0) && (m_harqMethod == HarqIr) && (mcs > 0))
     {
       uint8_t ModOrder = m_mcsMTable->at (mcs);
+      NS_LOG_INFO (" Modulation order: " << +ModOrder );
+      NS_LOG_INFO (" Reff: " << Reff );
 
-      for (uint8_t mcsindex = GetMaxMcs (); mcsindex >= 0; mcsindex--)
+      for (uint8_t mcsindex = (mcs-1); mcsindex != 255; mcsindex--)
+        // search from MCS=mcs-1 to MCS=0. end at 255 to acount for wrap around of uint
         {
           if ((m_mcsMTable->at (mcsindex) == ModOrder) &&
               (m_mcsEcrTable->at (mcsindex) > Reff))
@@ -16087,8 +16096,8 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
         }
      }
 
-  NS_LOG_DEBUG (" MCS of tx " << mcs <<
-                " Equivalent MCS for PHY abstraction (just for HARQ-IR) " << mcs_eq);
+  NS_LOG_INFO (" MCS of tx " << +mcs <<
+                " Equivalent MCS for PHY abstraction (just for HARQ-IR) " << +mcs_eq);
 
   double errorRate = 1.0;
   if (C != 1)
@@ -16165,6 +16174,7 @@ NrEesmErrorModel::GetMaxMcs ()
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_mcsEcrTable != nullptr);
+  NS_LOG_INFO (" Max MCS: " << +(m_mcsEcrTable->size () - 1));
   return static_cast<uint8_t> (m_mcsEcrTable->size () - 1);
 }
 
