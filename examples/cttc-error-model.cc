@@ -158,7 +158,7 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsUl", BooleanValue(true));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (mcs));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
-  Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqIr));
+  Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
 
   if (eesmTable == 1)
     {
@@ -330,14 +330,24 @@ main (int argc, char *argv[])
 
 
   uint64_t sum = 0;
+  uint32_t cont = 0;
   for (auto & v : packetsTime)
     {
-      sum += v;
+      if ( v < 100000 )
+        {
+          sum += v;
+          cont++;
+          //std::cerr << "Packet latency: " << v << std::endl;
+        }
     }
+  //std::cerr << "Packets received: " << packetsTime.size () << std::endl;
+  //std::cerr << "Counter: " << +cont << std::endl;
 
   if (packetsTime.size () > 0)
     {
-      std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
+      //std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
+      std::cerr << "Average e2e latency: " << sum / cont << " us" << std::endl;
+
     }
   else
     {
