@@ -40,9 +40,11 @@ public:
 
   AntennaArrayModel ();
 
-  virtual ~AntennaArrayModel () override;
+  virtual ~AntennaArrayModel ();
 
   static TypeId GetTypeId ();
+
+  virtual void DoInitialize (void) override;
 
   virtual double GetGainDb (Angles a) override;
 

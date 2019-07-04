@@ -587,7 +587,8 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                 m_rnti, m_phyMacConfig->GetCcId (), msg);
 
-        if (dciInfoElem->m_format == DciInfoElementTdma::UL)
+        if (dciInfoElem->m_format == DciInfoElementTdma::UL
+            && dciInfoElem->m_type == DciInfoElementTdma::DATA)
           {
             SfnSf dataSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, dciInfoElem->m_symStart);
             dataSfn = dataSfn.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),

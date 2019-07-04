@@ -433,23 +433,38 @@ MmWave3gppBuildingsPropagationLossModel::GetChannelCondition (Ptr<MobilityModel>
   it = m_conditionMap.find (std::make_pair (a,b));
   if (it == m_conditionMap.end ())
     {
-      if (m_3gppLos->IsValidLink (a, b))
+      if (m_enableAllChannels == true)
         {
           it = CreateNewOrUpdateChannelCondition (a, b);
         }
       else
         {
-          NS_FATAL_ERROR ("Cannot find the link in the map");
+          if (m_3gppLos->IsValidLink (a, b))
+            {
+              it = CreateNewOrUpdateChannelCondition (a, b);
+            }
+          else
+            {
+              NS_FATAL_ERROR ("Cannot find the link in the map");
+            }
         }
     }
   return (*it).second.m_channelCondition;
 
 }
 
+
 bool
 MmWave3gppBuildingsPropagationLossModel::IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const
 {
   return m_3gppLos->IsValidLink (a, b);
+}
+
+
+void
+MmWave3gppBuildingsPropagationLossModel::SetAllChannelsComputation ()
+{
+  m_enableAllChannels = true;
 }
 
 

@@ -34,6 +34,7 @@
 #include "mmwave-ue-phy.h"
 #include "mmwave-ue-net-device.h"
 #include "mmwave-spectrum-value-helper.h"
+#include "nr-ch-access-manager.h"
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -52,9 +53,9 @@ MmWaveUePhy::MmWaveUePhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
+MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy,
                           const Ptr<Node> &n)
-  : MmWavePhy (dlPhy, ulPhy)
+  : MmWavePhy (channelPhy)
 {
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
@@ -90,11 +91,11 @@ MmWaveUePhy::GetTypeId (void)
                    DoubleValue (5.0), // mmwave code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
                    MakeDoubleAccessor (&MmWaveUePhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("DlSpectrumPhy",
-                   "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
+    .AddAttribute ("SpectrumPhy",
+                   "The SpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
-                   MakePointerAccessor (&MmWaveUePhy::GetDlSpectrumPhy),
+                   MakePointerAccessor (&MmWaveUePhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddAttribute ("AntennaArrayType",
                     "AntennaArray of this UE phy. There are two types of antenna array available: "
@@ -118,6 +119,11 @@ MmWaveUePhy::GetTypeId (void)
                    MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
                                          &MmWavePhy::GetAntennaNumDim2),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("LBTThresholdForCtrl",
+                   "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
+                   TimeValue (MicroSeconds (16)),
+                   MakeTimeAccessor (&MmWaveUePhy::m_lbtThresholdForCtrl),
+                   MakeTimeChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -157,6 +163,22 @@ MmWaveUePhy::DoDispose (void)
 }
 
 void
+MmWaveUePhy::ChannelAccessGranted (const Time &time)
+{
+  NS_LOG_FUNCTION (this);
+  NS_UNUSED (time);
+  // That will be granted only till the end of the slot
+  m_channelStatus = GRANTED;
+}
+
+void
+MmWaveUePhy::ChannelAccessDenied ()
+{
+  NS_LOG_FUNCTION (this);
+  m_channelStatus = NONE;
+}
+
+void
 MmWaveUePhy::SetUeCphySapUser (LteUeCphySapUser* s)
 {
   NS_LOG_FUNCTION (this);
@@ -186,7 +208,7 @@ MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
   NS_ASSERT (txPsd);
-  m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
 void
@@ -217,50 +239,30 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
     }
 
 
-  m_downlinkSpectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-  m_uplinkSpectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-
-  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
-  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_spectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
+  m_spectrumPhy->SetAntenna (GetAntennaArray());
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
-  m_downlinkSpectrumPhy->SetCellId (m_cellId);
+  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+  m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
+  m_spectrumPhy->SetCellId (m_cellId);
 
-  GetAntennaArray()->SetSpectrumModel (m_downlinkSpectrumPhy->GetRxSpectrumModel());
+  GetAntennaArray()->SetSpectrumModel (m_spectrumPhy->GetRxSpectrumModel());
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
-
-  // Initialize the slot allocation
-  SfnSf sfnf = SfnSf (0, 0, 0, 0);
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-
-  for (unsigned i = 0; i < m_phyMacConfig->GetSlotsPerSubframe (); i++)
-    {
-      SlotAllocInfo sai = SlotAllocInfo (sfnf);
-      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-
-      sai.m_varTtiAllocInfo.push_back (dlCtrlSlot);
-      sai.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-      SetSlotAllocInfo (sai);
-
-      sfnf = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                     m_phyMacConfig->GetSubframesPerFrame ());
-    }
 }
 
 Ptr<MmWaveSpectrumPhy>
-MmWaveUePhy::GetDlSpectrumPhy () const
+MmWaveUePhy::GetSpectrumPhy () const
 {
-  return m_downlinkSpectrumPhy;
+  return m_spectrumPhy;
 }
 
 void
 MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>> &msgList)
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Received " << msgList.size () << " messages");
   bool dlUpdated = false;
   bool ulUpdated = false;
 
@@ -288,12 +290,13 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                               << m_frameNum << " " << m_subframeNum);
             }
 
-          if (dciInfoElem->m_rnti != m_rnti)
+          if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
             {
               continue;   // DCI not for me
             }
 
-          if (dciInfoElem->m_format == DciInfoElementTdma::DL)   // set downlink slot schedule for current slot
+          if (dciInfoElem->m_format == DciInfoElementTdma::DL
+              && dciInfoElem->m_type == DciInfoElementTdma::DATA)
             {
               NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
                             " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
@@ -305,7 +308,8 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
               m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
               dlUpdated = true;
             }
-          else if (dciInfoElem->m_format == DciInfoElementTdma::UL)   // set downlink slot schedule for t+Tul_sched slot
+          else if (dciInfoElem->m_format == DciInfoElementTdma::UL
+                   && dciInfoElem->m_type == DciInfoElementTdma::DATA)   // set downlink slot schedule for t+Tul_sched slot
             {
 
               NS_LOG_DEBUG ("UE" << m_rnti <<
@@ -324,21 +328,16 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                 }
               else
                 {
-                  if (SlotExists (ulSfnSf))
+                  if (SlotAllocInfoExists (ulSfnSf))
                     {
                       auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
                       ulSlot.m_varTtiAllocInfo.push_back (varTtiInfo);
                     }
                   else
                     {
-                      std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
                       SlotAllocInfo slotAllocInfo = SlotAllocInfo (ulSfnSf);
-                      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-                      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-                      slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
                       slotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
-                      slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-                      SetSlotAllocInfo (slotAllocInfo);
+                      PushBackSlotAllocInfo (slotAllocInfo);
                     }
                   ulUpdated = true;
                 }
@@ -379,6 +378,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         }
       else
         {
+          NS_LOG_INFO ("Message type not recognized " << msg->GetMessageType ());
           m_phySapUser->ReceiveControlMessage (msg);
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
@@ -396,12 +396,79 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         {
           std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
         }
-      else if (m_phyMacConfig->GetUlSchedDelay () > 0 && SlotExists (ulSfnSf))
+      else if (m_phyMacConfig->GetUlSchedDelay () > 0 && SlotAllocInfoExists (ulSfnSf))
         {
           auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
           std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
         }
     }
+
+  uint8_t ulCtrlSymStart = 0;
+  uint8_t ulCtrlNumSym = 0;
+  for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+    {
+      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+        {
+          ulCtrlSymStart = alloc.m_dci->m_symStart;
+          ulCtrlNumSym = alloc.m_dci->m_numSym;
+          break;
+        }
+    }
+
+  if (! IsCtrlMsgListEmpty () && ulCtrlNumSym != 0)
+    {
+      // We have an UL CTRL symbol scheduled and we have to transmit CTRLs..
+      // .. so we check that we have at least 25 us between the latest DCI,
+      // or we have to schedule an LBT event.
+
+      Time limit = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
+          ((m_phyMacConfig->GetSymbolsPerSlot () - ulCtrlSymStart) * m_phyMacConfig->GetSymbolPeriod ()) -
+          m_lbtThresholdForCtrl;
+
+      for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+        {
+          int64_t symbolPeriod = m_phyMacConfig->GetSymbolPeriod ().GetMicroSeconds ();
+          int64_t dciEndsAt = m_lastSlotStart.GetMicroSeconds () +
+              ((alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) * symbolPeriod);
+
+          if (alloc.m_dci->m_type != DciInfoElementTdma::DATA)
+            {
+              continue;
+            }
+
+          if (limit.GetMicroSeconds () < dciEndsAt)
+            {
+              NS_LOG_INFO ("This data DCI ends at " << MicroSeconds (dciEndsAt) <<
+                           " which is inside the LBT shared COT (the limit is " <<
+                           limit << "). No need for LBT");
+              m_channelStatus = GRANTED;
+            }
+          else
+            {
+              NS_LOG_INFO ("This data DCI starts at " << +alloc.m_dci->m_symStart << " for " <<
+                           +alloc.m_dci->m_numSym << " ends at " << MicroSeconds (dciEndsAt) <<
+                           " which is outside the LBT shared COT (the limit is " <<
+                           limit << ").");
+            }
+        }
+      if (m_channelStatus != GRANTED)
+        {
+          Time sched = m_lastSlotStart - Simulator::Now () +
+              (m_phyMacConfig->GetSymbolPeriod () * ulCtrlSymStart) - MicroSeconds (25);
+          NS_LOG_INFO ("Scheduling an LBT for sending the UL CTRL at " <<
+                       Simulator::Now () + sched);
+          Simulator::Schedule (sched, &MmWaveUePhy::RequestAccess, this);
+        }
+    }
+}
+
+void
+MmWaveUePhy::RequestAccess ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Request access at " << Simulator::Now () << " because we have to transmit UL CTRL");
+  m_cam->RequestAccess (); // This will put the m_channelStatus to granted when
+                           // the channel will be granted.
 }
 
 void
@@ -431,16 +498,22 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   // Call MAC before doing anything in PHY
   m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));   // trigger mac
 
-  // update the current slot
-  m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
+  // update the current slot object, and insert DL/UL CTRL allocations.
+  // That will not be true anymore when true TDD pattern will be used.
+  if (SlotAllocInfoExists (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum)))
     {
-      NS_ASSERT (m_currSlotAllocInfo.m_numSymAlloc == 0);
-      NS_LOG_INFO ("No allocation in this slot, directly go to the end of the slot");
-      Simulator::Schedule (m_phyMacConfig->GetSlotPeriod (), &MmWaveUePhy::EndVarTti, this);
-      return;
+      m_currSlotAllocInfo = RetrieveSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
     }
+  else
+    {
+      m_currSlotAllocInfo = SlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
+    }
+
+  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+  VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
+  m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
+  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum
@@ -506,9 +579,8 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
 
-  if (ctrlMsg.size () == 0)
+  if (IsCtrlMsgListEmpty ())
     {
       NS_LOG_INFO   ("UE" << m_rnti << " reserved space for UL CTRL frame for symbols " <<
                     +dci->m_symStart << "-" <<
@@ -516,9 +588,18 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                     "\t start " << Simulator::Now () << " end " <<
                     (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)) <<
                     " but no data to transmit");
+      GetControlMessages (); // empty the current message list
 
       return varTtiPeriod;
     }
+  else if (m_channelStatus != GRANTED)
+    {
+      NS_LOG_INFO ("UE" << m_rnti << " has to transmit CTRL but channel not granted");
+      m_cam->Cancel ();
+      return varTtiPeriod;
+    }
+
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
 
   for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
     {
@@ -543,6 +624,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   SendCtrlChannels (ctrlMsg, varTtiPeriod - NanoSeconds (1.0));
 
+  ChannelAccessDenied (); // Reset the channel status
   return varTtiPeriod;
 }
 
@@ -554,7 +636,7 @@ MmWaveUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_receptionEnabled = true;
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
 
-  m_downlinkSpectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, true,
                                         dci->m_symStart, dci->m_numSym);
@@ -662,23 +744,12 @@ void
 MmWaveUePhy::EndVarTti ()
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Executed varTti " << (+m_varTtiNum) + 1 << " of " << m_currSlotAllocInfo.m_varTtiAllocInfo.size ());
   if (m_varTtiNum == m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1)
     {
       // end of slot
-      SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum,0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
+      SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                        m_phyMacConfig->GetSubframesPerFrame ());
-
-      if (!SlotExists (retVal))
-        {
-          // prepare the following slot info
-          std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-          SlotAllocInfo slotAllocInfo = SlotAllocInfo (retVal);
-          VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-          VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-          slotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
-          slotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
-          SetSlotAllocInfo (slotAllocInfo);
-        }
 
       Simulator::Schedule (m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
                            Simulator::Now (),
@@ -723,13 +794,13 @@ MmWaveUePhy::SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlM
         }
     }
 
-  m_downlinkSpectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration, slotInd);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration, slotInd);
 }
 
 void
 MmWaveUePhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd)
 {
-  m_downlinkSpectrumPhy->StartTxDlControlFrames (ctrlMsg,prd);
+  m_spectrumPhy->StartTxUlControlFrames (ctrlMsg,prd);
 }
 
 Ptr<MmWaveDlCqiMessage>
@@ -785,6 +856,17 @@ MmWaveUePhy::ReceiveLteDlHarqFeedback (const DlHarqInfo &m)
   Simulator::Schedule (MicroSeconds (m_phyMacConfig->GetTbDecodeLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
 }
 
+void
+MmWaveUePhy::SetCam(const Ptr<NrChAccessManager> &cam)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (cam != nullptr);
+  m_cam = cam;
+  m_cam->SetAccessGrantedCallback (std::bind (&MmWaveUePhy::ChannelAccessGranted, this,
+                                              std::placeholders::_1));
+  m_cam->SetAccessDeniedCallback (std::bind (&MmWaveUePhy::ChannelAccessDenied, this));
+}
+
 uint16_t
 MmWaveUePhy::GetRnti ()
 {
@@ -834,9 +916,9 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   m_cellId = cellId;
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  m_downlinkSpectrumPhy->GetSpectrumChannel ()->AddRx (m_downlinkSpectrumPhy);
-  m_downlinkSpectrumPhy->SetCellId (m_cellId);
+  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+  m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
+  m_spectrumPhy->SetCellId (m_cellId);
 }
 
 AntennaArrayBasicModel::BeamId

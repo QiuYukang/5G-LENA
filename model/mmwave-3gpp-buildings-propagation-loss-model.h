@@ -57,7 +57,7 @@ private:
    * @param b Mobility model of the second device
    * @return whether the link is a valid link, and the valid link is considered
    * when it is between UE and BS
-   */
+  */
   bool IsValidLink (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 
   /**
@@ -65,6 +65,11 @@ private:
    * @param a Mobility model to be added to the list of mobility models
    */
   void AddUeMobilityModel (Ptr<const MobilityModel> a) const;
+
+  /**
+   * Function enables computation of gNB-gNB and UE-UE pathloss
+   */
+  void SetAllChannelsComputation ();
 
   /**
    * Created new channel condition element corresponding to the link between the two devices
@@ -90,6 +95,8 @@ private:
   mutable channelConditionMap_t m_conditionMap;
   bool m_updateCondition;
   mutable Time m_prevTime;
+  bool m_enableAllChannels {false}; //!< If true, enables gNB-gNB and UE-UE pathloss and channel generation, if false, PL and channel are not computed
+
 };
 
 }

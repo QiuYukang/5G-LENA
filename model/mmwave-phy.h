@@ -38,7 +38,7 @@ class MmWavePhy : public Object
 public:
   MmWavePhy ();
 
-  MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy> ulChannelPhy);
+  MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy);
 
   virtual ~MmWavePhy ();
 
@@ -120,11 +120,46 @@ public:
 
   MmWavePhySapProvider* GetPhySapProvider ();
 
-  void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
+  /**
+   * \brief Store the slot allocation info
+   * \param slotAllocInfo the allocation to store
+   *
+   * This method expect that the sfn of the allocation will match the sfn
+   * when the allocation will be retrieved.
+   */
+  void PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
 
-  bool SlotExists (const SfnSf &retVal) const;
+  /**
+   * \brief Store the slot allocation info at the front
+   * \param slotAllocInfo the allocation to store
+   *
+   * Increase the sfn of all allocations to be chronologically "in order".
+   */
+  void PushFrontSlotAllocInfo (const SfnSf &newSfnSf, const SlotAllocInfo &slotAllocInfo);
 
-  SlotAllocInfo GetSlotAllocInfo (const SfnSf &sfnsf);
+  /**
+   * \brief Check if the SlotAllocationInfo for that slot exists
+   * \param sfnsf slot to check
+   * \return true if the allocation exists
+   */
+  bool SlotAllocInfoExists (const SfnSf &sfnsf) const;
+
+  /**
+   * \brief Get the head for the slot allocation info, and delete it from the
+   * internal list
+   * \return the Slot allocation info head
+   */
+  SlotAllocInfo RetrieveSlotAllocInfo ();
+
+  /**
+   * \brief Get the SlotAllocationInfo for the specified slot, and delete it
+   * from the internal list
+   *
+   * \param sfnsf slot specified
+   * \return the SlotAllocationInfo
+   */
+  SlotAllocInfo RetrieveSlotAllocInfo (const SfnSf &sfnsf);
+
   /**
    * \brief Peek the SlotAllocInfo at the SfnSf specified
    * \param sfnsf (existing) SfnSf to look for
@@ -134,9 +169,21 @@ public:
    */
   SlotAllocInfo & PeekSlotAllocInfo (const SfnSf & sfnsf);
 
+  /**
+   * \brief Retrieve the size of the SlotAllocInfo list
+   * \return the allocation list size
+   */
+  size_t SlotAllocInfoSize () const;
+
+  /**
+   * \brief Check if there are no control messages queued for this slot
+   * \return true if there are no control messages queued for this slot
+   */
+  bool IsCtrlMsgListEmpty () const;
+
   virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
 
-  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const = 0;
+  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const = 0;
 
   /**
    * \return The antena array that is being used by this PHY
@@ -186,40 +233,33 @@ protected:
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
   Ptr<MmWaveSpectrumPhy> m_spectrumPhy;
-  Ptr<MmWaveSpectrumPhy> m_downlinkSpectrumPhy;
-  Ptr<MmWaveSpectrumPhy> m_uplinkSpectrumPhy;
 
-  double m_txPower;
-  double m_noiseFigure;
+  double m_txPower {0.0};
+  double m_noiseFigure {0.0};
 
-  uint16_t m_cellId;
+  uint16_t m_cellId {0};
 
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
-  std::map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
+  std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
 
   SlotAllocInfo m_currSlotAllocInfo;
-  uint16_t m_frameNum;
-  uint8_t m_subframeNum;
-  uint8_t m_slotNum;
-  uint8_t m_varTtiNum;
+  uint16_t m_frameNum {0};
+  uint8_t m_subframeNum {0};
+  uint8_t m_slotNum {0};
+  uint8_t m_varTtiNum {0};
 
   MmWavePhySapProvider* m_phySapProvider;
 
-  uint32_t m_raPreambleId;
-
-  bool m_slotAllocInfoUpdated;
+  uint32_t m_raPreambleId {0};
 
 private:
-  std::map<SfnSf, SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
+  std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
   uint8_t m_antennaNumDim1 {0};
   uint8_t m_antennaNumDim2 {0};
   TypeId m_antennaArrayType {AntennaArrayModel::GetTypeId()};
-
-  /// component carrier Id used to address sap
-  uint8_t m_componentCarrierId;
 
   Ptr<AntennaArrayBasicModel> m_antennaArray {nullptr};
 };

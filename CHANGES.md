@@ -87,6 +87,11 @@ device has been updated.
 will perform the beamforming, and it will take 0 simulated time). The periodicity
 of this beamforming depends on the value of the new attribute *BeamformingPeriodicity*
 of the class MmWaveEnbPhy
+* MmWaveSpectrumPhy now has two more traces: TxCtrlTrace and TxDataTrace, to extract
+information about how the channel is occupied
+* Now MmWaveSpectrumPhy can enable interference for all links, also UE->UE and GNB->GNB
+* Introduced Listen-Before-Talk after MAC. The interface of a channel access manager
+is inside the file *nr-ch-access-manager.h*.
 
 ### Changes to existing API:
 
@@ -130,6 +135,8 @@ transmission.
 from MmWave3gppChannel.
 * Removed attribute *EnbComponentCarrierManager* from MmWaveHelper. The only allowed
 CCManager is now BwpManagerGnb.
+* Removed attribute *UeComponentCarrierManager* from MmWaveHelper. The only allowed
+manager is now UeManagerGnb.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of

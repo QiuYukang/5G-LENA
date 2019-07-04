@@ -227,21 +227,6 @@ public:
   void DoDispose ();
 
   /**
-   * Register the connection between two devices
-   * @param a pointer to a NetDevice
-   * @param a pointer to a NetDevice
-   */
-  void ConnectDevices (Ptr<NetDevice> dev1, Ptr<NetDevice> dev2);
-
-  /**
-   * Check if the devices are connected
-   * @param a The first device's mobility model
-   * @param b The second device's mobility model
-   * @return boolean value true if the devices are connected and false if they are not
-   */
-  bool AreConnected (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const;
-
-  /**
    * Check if the channel matrix between a and b exists
    * @param a MobilityModel of the first device
    * @param b MobilityModel of the second device
@@ -276,16 +261,14 @@ public:
   Vector GetLocUT (Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 
   /**
-   * Register the connection between the UE and BS device
-   * @param ueDevice The UE device
-   * @param ueDeviceAntenna The UE antenna array
-   * @param bsDevice The BS device
-   * @param bsDeviceAntenna The BS antenna array model
+   * Register device and its antennaArray to be used in the calculations by the model
+   * @param device Device to be registered
+   * @param antennaArray AntennaArray of the device
+   * @param isUe Whether the device is UE/STA or is AP/gNB
    */
-  void CreateInitialBeamformingVectors (Ptr<NetDevice> ueDevice,
-                                        Ptr<AntennaArrayBasicModel> ueDeviceAntenna,
-                                        Ptr<NetDevice> bsDevice,
-                                        Ptr<AntennaArrayBasicModel> bsDeviceAntenna);
+  void RegisterDevicesAntennaArray (Ptr<NetDevice> device,
+                                    Ptr<AntennaArrayBasicModel> antennaArray,
+                                    bool isUe = false);
   /**
    * Sets the center frequency of the channel map of this instance of MmWave3gppChannel
    * @param centerFrequency center frequency of the channel map of this instance of MmWave3gppChannel
@@ -535,7 +518,8 @@ private:
   double m_beamSearchAngleStep; //!< The size of the angle to be used in beam search method
   double m_ueSpeed; //!< The speed of the UE to be used in the calculation instead of the real relative speed
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
-  bool m_cellScan; //!< If true beam search beamforming is enabled, if false the long term cov. matrix is used
+  bool m_cellScan {false}; //!< If true beam search beamforming is enabled, if false the long term cov. matrix is used
+  bool m_enableAllChannels {false}; //!< If true, enables gNB-gNB and UE-UE pathloss and channel generation, if false, PL and channel are not computed
   double m_bandwidth; //!< The total bandwidth for this channel
   std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
 };

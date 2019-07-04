@@ -453,12 +453,21 @@ struct VarTtiAllocInfo
 
 struct SlotAllocInfo
 {
-  SlotAllocInfo () = default;
-
   SlotAllocInfo (SfnSf sfn)
     : m_sfnSf (sfn)
   {
   }
+
+  /**
+   * \brief Enum which indicates the allocations that are inside the allocation info
+   */
+  enum AllocationType
+  {
+    NONE = 0, //!< No allocations
+    DL   = 1,  //!< DL Allocations
+    UL   = 2,  //!< UL Allocations
+    BOTH = 3 //!< DL and UL allocations
+  };
 
   /**
    * \brief Merge the input parameter to this SlotAllocInfo
@@ -468,11 +477,25 @@ struct SlotAllocInfo
    */
   void Merge (const SlotAllocInfo & other);
 
-  bool operator < (const SlotAllocInfo &rhs) const;
+  /**
+   * \brief Check if we have data allocations
+   * \return true if m_varTtiAllocInfo contains data allocations
+   */
+  bool ContainsDataAllocation () const;
 
-  SfnSf m_sfnSf          {};
-  uint32_t m_numSymAlloc {0};    // number of allocated slots
-  std::deque<VarTtiAllocInfo> m_varTtiAllocInfo;
+  SfnSf m_sfnSf          {};     //!< SfnSf of this allocation
+  uint32_t m_numSymAlloc {0};    //!< Number of allocated symbols
+  std::deque<VarTtiAllocInfo> m_varTtiAllocInfo; //!< queue of allocations
+  AllocationType m_type {NONE}; //!< Allocations type
+
+  /**
+   * \brief operator < (less than)
+   * \param rhs other SlotAllocInfo to compare
+   * \return true if this SlotAllocInfo is less than rhs
+   *
+   * The comparison is done on sfnSf
+   */
+  bool operator < (const SlotAllocInfo& rhs) const;
 };
 
 struct DlCqiInfo
@@ -800,6 +823,8 @@ std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat cons
 std::ostream & operator<< (std::ostream & os, DlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, UlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, SfnSf const & item);
+std::ostream & operator<< (std::ostream & os, SlotAllocInfo const & item);
+std::ostream & operator<< (std::ostream & os, SlotAllocInfo::AllocationType const & item);
 }
 
 #endif /* SRC_MMWAVE_MODEL_MMWAVE_PHY_MAC_COMMON_H_ */

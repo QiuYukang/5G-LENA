@@ -140,7 +140,7 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
       tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code-blocks.
     }
 
-  NS_LOG_INFO (" mcs:" << mcs <<
+  NS_LOG_INFO (" mcs:" << (unsigned) mcs <<
                " subcarriers" << m_phyMacConfig->GetNumScsPerRb () * m_phyMacConfig->GetBandwidthInRbs () <<
                " TB size:" << tbSize);
 

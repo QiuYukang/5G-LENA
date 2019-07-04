@@ -28,6 +28,12 @@
 
 namespace ns3 {
 
+class PacketBurst;
+class MmWaveNetDevice;
+class MmWaveUePhy;
+class MmWaveEnbMac;
+class NrChAccessManager;
+
 class MmWaveEnbPhy : public MmWavePhy
 {
   friend class MemberLteEnbCphySapProvider<MmWaveEnbPhy>;
@@ -46,7 +52,7 @@ public:
   /**
    * \brief MmWaveEnbPhy real constructor. Start the event loop for the gnb.
    */
-  MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy>, Ptr<MmWaveSpectrumPhy>, const Ptr<Node> &);
+  MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy>, const Ptr<Node> &);
 
   /**
    * \brief ~MmWaveEnbPhy
@@ -78,6 +84,12 @@ public:
   AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
 
   /**
+   * \brief Set the channel access manager interface for this instance of the PHY
+   * \param s the pointer to the interface
+   */
+  void SetCam (const Ptr<NrChAccessManager> &s);
+
+  /**
    * \brief Set the transmission power for the UE
    *
    * Please note that there is also an attribute ("MmWaveUePhy::TxPower")
@@ -101,13 +113,13 @@ public:
   void SetSubChannels (const std::vector<int> &rbIndexVector);
 
   /**
-   * \brief Retrieve the DlSpectrumPhy pointer
+   * \brief Retrieve the SpectrumPhy pointer
    *
-   * As this function is used mainly to get traced values out of DlSpectrum,
+   * As this function is used mainly to get traced values out of Spectrum,
    * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the DlSpectrumPhy of this UE
+   * \return A pointer to the SpectrumPhy of this UE
    */
-  virtual Ptr<MmWaveSpectrumPhy> GetDlSpectrumPhy () const override __attribute__((warn_unused_result));
+  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
 
   /**
    * \brief Add the UE to the list of this gnb UEs.
@@ -230,6 +242,18 @@ private:
   std::list <Ptr<MmWaveControlMessage>> RetrieveMsgsFromDCIs (const SfnSf &sfn) __attribute__((warn_unused_result));
 
   /**
+   * \brief Channel access granted, invoked after the LBT
+   *
+   * \param time Time of the grant
+   */
+  void ChannelAccessGranted (const Time &time);
+
+  /**
+   * \brief Channel access lost, the grant has expired or the LBT denied the access
+   */
+  void ChannelAccessLost ();
+
+  /**
    * \brief Transmit DL CTRL and return the time at which the transmission will end
    * \param dci the current DCI
    * \return the time at which the transmission of DL CTRL will end
@@ -257,6 +281,32 @@ private:
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
+   * \brief Queue a MIB message, to be sent (hopefully) in this slot
+   */
+  void QueueMib ();
+  /**
+   * \brief Queue a SIB message, to be sent (hopefully) in this slot
+   */
+  void QueueSib ();
+
+  /**
+   * \brief Effectively start the slot, as we have the channel.
+   */
+  void DoStartSlot ();
+
+  // LteEnbCphySapProvider forwarded methods
+  void DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  void DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn);
+  void DoAddUe (uint16_t rnti);
+  void DoRemoveUe (uint16_t rnti);
+  void DoSetPa (uint16_t rnti, double pa);
+  void DoSetTransmissionMode (uint16_t  rnti, uint8_t txMode);
+  void DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi);
+  void DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib);
+  void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
+  void DoSetBandwidth (uint8_t Bandwidth );
+  void DoSetEarfcn (uint16_t Earfcn );
+  /**
    * \brief Store the RBG allocation in the symStart, rbg map.
    * \param dci DCI
    *
@@ -271,19 +321,6 @@ private:
    * StartVarTti().
    */
   void ExpireBeamformingTimer ();
-
-  // LteEnbCphySapProvider forwarded methods
-  void DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
-  void DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn);
-  void DoAddUe (uint16_t rnti);
-  void DoRemoveUe (uint16_t rnti);
-  void DoSetPa (uint16_t rnti, double pa);
-  void DoSetTransmissionMode (uint16_t  rnti, uint8_t txMode);
-  void DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi);
-  void DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib);
-  void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
-  void DoSetBandwidth (uint8_t Bandwidth );
-  void DoSetEarfcn (uint16_t Earfcn );
 
 private:
   MmWaveEnbPhySapUser* m_phySapUser;           //!< SAP pointer
@@ -319,6 +356,23 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
+
+  std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
+
+  /**
+   * \brief Status of the channel for the PHY
+   */
+  enum ChannelStatus
+  {
+    NONE,        //!< The PHY doesn't know the channel status
+    REQUESTED,   //!< The PHY requested channel access
+    GRANTED      //!< The PHY has the channel, it can transmit
+  };
+
+  ChannelStatus m_channelStatus {NONE}; //!< The channel status
+  EventId m_channelLostTimer; //!< Timer that, when expires, indicates that the channel is lost
+
+  Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
 };
 
 }

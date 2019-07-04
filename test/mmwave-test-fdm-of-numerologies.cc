@@ -105,7 +105,6 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
     Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
     Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
-    Config::SetDefault ("ns3::MmWaveHelper::UeComponentCarrierManager", StringValue ("ns3::BwpManagerUe"));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));

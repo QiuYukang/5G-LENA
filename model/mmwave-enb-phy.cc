@@ -31,11 +31,18 @@
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/node.h>
 #include <algorithm>
+#include <functional>
 
 #include "mmwave-enb-phy.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
+#include "mmwave-radio-bearer-tag.h"
+#include "nr-ch-access-manager.h"
+
+#include <ns3/node-list.h>
+#include <ns3/node.h>
+#include <ns3/pointer.h>
 
 namespace ns3 {
 
@@ -49,9 +56,9 @@ MmWaveEnbPhy::MmWaveEnbPhy ()
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> dlPhy, Ptr<MmWaveSpectrumPhy> ulPhy,
+MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> channelPhy,
                             const Ptr<Node> &n)
-  : MmWavePhy (dlPhy, ulPhy)
+  : MmWavePhy (channelPhy)
 {
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
 
@@ -87,11 +94,11 @@ MmWaveEnbPhy::GetTypeId (void)
                    DoubleValue (5.0),
                    MakeDoubleAccessor (&MmWaveEnbPhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("DlSpectrumPhy",
+    .AddAttribute ("SpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
-                   MakePointerAccessor (&MmWaveEnbPhy::GetDlSpectrumPhy),
+                   MakePointerAccessor (&MmWaveEnbPhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddTraceSource ("UlSinrTrace",
                      "UL SINR statistics.",
@@ -147,7 +154,7 @@ MmWaveEnbPhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
 
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
   MmWavePhy::InstallAntenna();
   NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
@@ -157,8 +164,7 @@ MmWaveEnbPhy::DoInitialize (void)
       antenna3gpp->SetIsUe(false);
     }
 
-  m_downlinkSpectrumPhy->SetAntenna (GetAntennaArray());
-  m_uplinkSpectrumPhy->SetAntenna (GetAntennaArray());
+  m_spectrumPhy->SetAntenna (GetAntennaArray());
 
   NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim1()) <<
                ", " << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim2()));
@@ -212,11 +218,22 @@ AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 
       if (ueRnti == rnti)
         {
-          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
           return AntennaArrayModel::GetBeamId (antennaArray->GetBeamformingVector (m_deviceMap.at (i)));
         }
     }
   return AntennaArrayModel::BeamId (std::make_pair (0,0));
+}
+
+void
+MmWaveEnbPhy::SetCam (const Ptr<NrChAccessManager> &cam)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (cam != nullptr);
+  m_cam = cam;
+  m_cam->SetAccessGrantedCallback (std::bind (&MmWaveEnbPhy::ChannelAccessGranted, this,
+                                              std::placeholders::_1));
+  m_cam->SetAccessDeniedCallback (std::bind (&MmWaveEnbPhy::ChannelAccessLost, this));
 }
 
 void
@@ -235,12 +252,32 @@ MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
   NS_ASSERT (txPsd);
-  m_downlinkSpectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
-Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetDlSpectrumPhy() const
+Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetSpectrumPhy() const
 {
-  return m_downlinkSpectrumPhy;
+  return m_spectrumPhy;
+}
+
+void
+MmWaveEnbPhy::QueueMib ()
+{
+  NS_LOG_FUNCTION (this);
+  LteRrcSap::MasterInformationBlock mib;
+  mib.dlBandwidth = 4U;
+  mib.systemFrameNumber = 1;
+  Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
+  mibMsg->SetMib (mib);
+  EnqueueCtrlMsgNow (mibMsg);
+}
+
+void MmWaveEnbPhy::QueueSib ()
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
+  msg->SetSib1 (m_sib1);
+  EnqueueCtrlMsgNow (msg);
 }
 
 void
@@ -254,11 +291,10 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_lastSlotStart = Simulator::Now ();
   m_varTtiNum = 0;
 
-  NS_LOG_DEBUG ("Asking MAC for SlotIndication for the future");
-  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-
   m_lastSlotStart = Simulator::Now ();
-  m_currSlotAllocInfo = GetSlotAllocInfo (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
+  m_currSlotAllocInfo = RetrieveSlotAllocInfo ();
+
+  const SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0);
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
@@ -272,35 +308,120 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
       return;
     }
 
-  NS_LOG_INFO ("gNB start slot " << m_currSlotAllocInfo.m_sfnSf << " composed by the following allocations:");
-  for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
-    {
-      std::string direction, type;
-      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
-        {
-          type = "CTRL";
-        }
-      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
-        {
-          type = "CTRL_DATA";
-        }
-      else
-        {
-          type = "DATA";
-        }
+  NS_ASSERT_MSG ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
+                 && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
+                 && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ),
+                 "Current slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0) <<
+                 " but allocation for " << m_currSlotAllocInfo.m_sfnSf);
 
-      if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
+
+  if (m_slotNum == 0)
+    {
+      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
         {
-          direction = "UL";
+          QueueMib ();
+        }
+      else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
+        {
+          QueueSib ();
+        }
+    }
+
+  if (m_channelStatus == GRANTED)
+    {
+      NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
+      m_phySapUser->SlotUlIndication (currentSlot);
+      m_phySapUser->SlotDlIndication (currentSlot);
+
+      DoStartSlot ();
+    }
+  else
+    {
+      bool hasUlDci = false;
+      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
+                                                           m_phyMacConfig->GetSlotsPerSubframe (),
+                                                           m_phyMacConfig->GetSubframesPerFrame ());
+      if (m_phyMacConfig->GetUlSchedDelay () > 0)
+        {
+          if (SlotAllocInfoExists (ulSfn))
+            {
+              SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
+              hasUlDci = ulSlot.ContainsDataAllocation ();
+            }
+        }
+      if (m_currSlotAllocInfo.ContainsDataAllocation () || ! IsCtrlMsgListEmpty () || hasUlDci)
+        {
+          // Request the channel access
+          if (m_channelStatus == NONE)
+            {
+              NS_LOG_DEBUG ("Channel not granted, request the channel");
+              m_channelStatus = REQUESTED; // This goes always before RequestAccess()
+              m_cam->RequestAccess ();
+              if (m_channelStatus == GRANTED)
+                {
+                  // Repetition but we can have a CAM that gives the channel
+                  // instantaneously
+                  NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
+                  m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+                  m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+                  DoStartSlot ();
+                  return; // Exit without calling anything else
+                }
+            }
+          // If the channel was not granted, queue back the allocation,
+          // without calling the MAC for a new slot
+          auto slotAllocCopy = m_currSlotAllocInfo;
+          auto newSfnSf = slotAllocCopy.m_sfnSf.IncreaseNoOfSlots(m_phyMacConfig->GetSlotsPerSubframe(),
+                                                                  m_phyMacConfig->GetSubframesPerFrame());
+          NS_LOG_INFO ("Queueing allocation in front for " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
+          if (m_currSlotAllocInfo.ContainsDataAllocation ())
+            {
+              NS_LOG_INFO ("Reason: Current slot allocation has data");
+            }
+          else
+            {
+              NS_LOG_INFO ("Reason: CTRL message list is not empty");
+            }
+
+          PushFrontSlotAllocInfo (newSfnSf, slotAllocCopy);
         }
       else
         {
-          direction = "DL";
+          // It's an empty slot; ask the MAC for a new one (maybe a new data will arrive..)
+          // and just let the current one go away
+          NS_LOG_DEBUG ("Channel not granted; but asking MAC for SlotIndication for the future, maybe there will be data");
+          m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+          m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
         }
-      NS_LOG_INFO ("Allocation from sym " << static_cast<uint32_t> (alloc.m_dci->m_symStart) <<
-                   " to sym " << static_cast<uint32_t> (alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) <<
-                   " direction " << direction << " type " << type);
+      // If we have the UL CTRL, then schedule it (we are listening, so
+      // we don't need the channel. Otherwise, just go at the end of the
+      // slot
+      Time end = m_phyMacConfig->GetSlotPeriod () - NanoSeconds (1);
+      if (m_currSlotAllocInfo.m_varTtiAllocInfo.size() > 0)
+        {
+          for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+            {
+              if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+                {
+                  Time start = m_phyMacConfig->GetSymbolPeriod () * alloc.m_dci->m_symStart;
+                  NS_LOG_DEBUG ("Schedule UL CTRL at " << start);
+                  Simulator::Schedule (start, &MmWaveEnbPhy::UlCtrl, this, alloc.m_dci);
+                  end = m_phyMacConfig->GetSymbolPeriod () * alloc.m_dci->m_numSym;
+                }
+            }
+        }
+      Simulator::Schedule (end, &MmWaveEnbPhy::EndSlot, this);
+      NS_LOG_DEBUG ("Schedule end of slot at " << Simulator::Now () + end);
     }
+
+}
+
+void MmWaveEnbPhy::DoStartSlot ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_ctrlMsgs.size () == 0);
+  NS_LOG_INFO ("Gnb Start Slot: " << m_currSlotAllocInfo);
 
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
@@ -346,18 +467,26 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
 {
   std::list <Ptr<MmWaveControlMessage> > ctrlMsgs;
 
+  std::set <uint16_t> scheduledRnti;
   // find all DL DCI elements in the current slot and create the DL RBG bitmask
   uint8_t lastSymbolDl = 0, lastSymbolUl = 0;
 
-  NS_LOG_INFO ("Retrieving DL allocation for slot " << m_currSlotAllocInfo.m_sfnSf <<
-               " with a total of " << m_currSlotAllocInfo.m_varTtiAllocInfo.size () <<
-               " allocations");
+  NS_LOG_INFO ("Retrieving DL allocation (and an eventual UL CTRL) for slot " <<
+               m_currSlotAllocInfo.m_sfnSf << " from a set of " <<
+               m_currSlotAllocInfo.m_varTtiAllocInfo.size () << " allocations");
   for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
+      if (dlAlloc.m_dci->m_rnti != 0 && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          NS_LOG_INFO ("DCI FOR " << dlAlloc.m_dci->m_rnti << "type " <<
+                       dlAlloc.m_dci->m_format << " " << dlAlloc.m_dci->m_type);
+          NS_ASSERT (scheduledRnti.find(dlAlloc.m_dci->m_rnti) == scheduledRnti.end());
+          scheduledRnti.insert(dlAlloc.m_dci->m_rnti);
+        }
       if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
           && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
         {
-          auto dciElem = dlAlloc.m_dci;
+          auto & dciElem = dlAlloc.m_dci;
           NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
           NS_ASSERT (dciElem->m_tbSize > 0);
           NS_ASSERT (dciElem->m_symStart >= lastSymbolDl);
@@ -385,7 +514,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
                                                m_phyMacConfig->GetSubframesPerFrame ());
   if (m_phyMacConfig->GetUlSchedDelay () > 0)
     {
-      if (SlotExists (ulSfn))
+      if (SlotAllocInfoExists (ulSfn))
         {
           SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
           NS_LOG_INFO ("Retrieving UL allocation for slot " << ulSlot.m_sfnSf <<
@@ -457,26 +586,6 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       for (const auto & dev : m_deviceMap)
         {
           m_doBeamforming (m_netDevice, dev);
-        }
-    }
-
-  if (m_slotNum == 0)
-    {
-      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
-        {
-          LteRrcSap::MasterInformationBlock mib;
-          mib.dlBandwidth = 4U;
-          mib.systemFrameNumber = 1;
-          Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
-          mibMsg->SetMib (mib);
-          EnqueueCtrlMsgNow (mibMsg);
-        }
-      else if (m_subframeNum == 5)   // send SIB at beginning of second half-frame
-        {
-          Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
-          msg->SetSib1 (m_sib1);
-          EnqueueCtrlMsgNow (msg);
-          // TODO: SIB21 has to be sent every 2 frames
         }
     }
 
@@ -594,7 +703,7 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
 
-  m_downlinkSpectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
                                         dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, false,
@@ -607,7 +716,7 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
-          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
           antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
           found = true;
           break;
@@ -631,7 +740,7 @@ MmWaveEnbPhy::StartVarTti (void)
   NS_LOG_FUNCTION (this);
 
   //assume the control signal is omni
-  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
   antennaArray->ChangeToOmniTx ();
 
   VarTtiAllocInfo & currVarTti = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum];
@@ -678,7 +787,7 @@ MmWaveEnbPhy::EndVarTti (void)
                " which lasted for " << static_cast<uint32_t> (lastDci->m_numSym) <<
                " symbols finished");
 
-  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
 
   antennaArray->ChangeToOmniTx ();
 
@@ -745,7 +854,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
 {
   if (varTtiInfo.m_isOmni)
     {
-      Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+      Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
       antennaArray->ChangeToOmniTx ();
     }
   else
@@ -761,7 +870,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
           if (varTtiInfo.m_dci->m_rnti == ueRnti)
             {
               //NS_LOG_UNCOND ("Change Beamforming Vector");
-              Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetDlSpectrumPhy ()->GetRxAntenna ());
+              Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
               antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
               found = true;
               break;
@@ -779,7 +888,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (varTtiInfo.m_dci->m_symStart)));
 
   std::list<Ptr<MmWaveControlMessage> > ctrlMsgs;
-  m_downlinkSpectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod, varTtiInfo.m_dci->m_symStart);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod, varTtiInfo.m_dci->m_symStart);
 }
 
 void
@@ -797,7 +906,7 @@ MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
 
   SetSubChannels (fullBwRb);
 
-  m_downlinkSpectrumPhy->StartTxDlControlFrames (*ctrlMsgs, varTtiPeriod);
+  m_spectrumPhy->StartTxDlControlFrames (*ctrlMsgs, varTtiPeriod);
 
   ctrlMsgs->clear ();
 }
@@ -1038,6 +1147,33 @@ MmWaveEnbPhy::SetPerformBeamformingFn(const MmWaveEnbPhy::PerformBeamformingFn &
 {
   NS_LOG_FUNCTION (this);
   m_doBeamforming = fn;
+}
+
+void
+MmWaveEnbPhy::ChannelAccessGranted (const Time &time)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelStatus = GRANTED;
+
+  Time toNextSlot = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () - Simulator::Now ();
+  Time grant = time - toNextSlot;
+  int64_t slotGranted = grant.GetNanoSeconds () / m_phyMacConfig->GetSlotPeriod().GetNanoSeconds ();
+
+  NS_LOG_INFO ("Channel access granted for " << time.GetMilliSeconds () <<
+               " ms, which corresponds to " << slotGranted << " slot in which each slot is " <<
+               m_phyMacConfig->GetSlotPeriod() << " ms. We lost " <<
+               toNextSlot.GetMilliSeconds() << " ms. ");
+  NS_LOG_DEBUG ("Channel access granted for " << slotGranted << " slot");
+  m_channelLostTimer = Simulator::Schedule (m_phyMacConfig->GetSlotPeriod () * slotGranted - NanoSeconds (1),
+                                            &MmWaveEnbPhy::ChannelAccessLost, this);
+}
+
+void
+MmWaveEnbPhy::ChannelAccessLost ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_DEBUG ("Channel access lost");
+  m_channelStatus = NONE;
 }
 
 }

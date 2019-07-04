@@ -74,6 +74,9 @@ static ns3::GlobalValue g_isUplink ("isUplink",
                                  ns3::MakeBooleanChecker());
 
 
+static bool g_rxPdcpCallbackCalled = false;
+static bool g_rxRxRlcPDUCallbackCalled = false;
+
 /**
  * Function creates a single packet and directly calls the function send
  * of a device to send the packet to the destination address.
@@ -108,6 +111,7 @@ void
 RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
 {
   std::cout<<"\n Packet PDCP delay:"<<pdcpDelay<<"\n";
+  g_rxPdcpCallbackCalled = true;
 }
 
 /**
@@ -128,6 +132,7 @@ RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_
   std::cout<<"\n lcid:"<<(unsigned)lcid<<std::endl;
   std::cout<<"\n bytes :"<< bytes<<std::endl;
   std::cout<<"\n delay :"<< rlcDelay<<std::endl;
+  g_rxRxRlcPDUCallbackCalled = true;
 }
 
 /**
@@ -136,10 +141,10 @@ RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_
 void
 ConnectPdcpRlcTraces ()
 {
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
                       MakeCallback (&RxPdcpPDU));
 
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
                       MakeCallback (&RxRlcPDU));
 }
 
@@ -149,10 +154,10 @@ ConnectPdcpRlcTraces ()
 void
 ConnectUlPdcpRlcTraces ()
 {
-  Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/3/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LtePdcp/RxPDU",
                       MakeCallback (&RxPdcpPDU));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/3/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LteRlc/RxPDU",
                       MakeCallback (&RxRlcPDU));
 }
 
@@ -235,6 +240,15 @@ main (int argc, char *argv[])
   Simulator::Stop (Seconds (1));
   Simulator::Run ();
   Simulator::Destroy ();
+
+  if (g_rxPdcpCallbackCalled && g_rxRxRlcPDUCallbackCalled)
+    {
+      return EXIT_SUCCESS;
+    }
+  else
+    {
+      return EXIT_FAILURE;
+    }
 }
 
 

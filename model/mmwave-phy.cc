@@ -98,7 +98,7 @@ MmWaveMemberPhySapProvider::SendRachPreamble (uint8_t PreambleId, uint8_t Rnti)
 void
 MmWaveMemberPhySapProvider::SetSlotAllocInfo (SlotAllocInfo slotAllocInfo)
 {
-  m_phy->SetSlotAllocInfo (slotAllocInfo);
+  m_phy->PushBackSlotAllocInfo (slotAllocInfo);
 }
 
 AntennaArrayModel::BeamId
@@ -144,23 +144,15 @@ MmWavePhy::FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) 
 }
 
 MmWavePhy::MmWavePhy ()
+  : m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
   NS_FATAL_ERROR ("This constructor should not be called");
 }
 
-MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> dlChannelPhy, Ptr<MmWaveSpectrumPhy> ulChannelPhy)
-  : m_downlinkSpectrumPhy (dlChannelPhy),
-  m_uplinkSpectrumPhy (ulChannelPhy),
-  m_cellId (0),
-  m_frameNum (0),
-  m_subframeNum (0),
-  m_slotNum (0),
-  m_varTtiNum (0),
-  m_slotAllocInfoUpdated (false),
-  m_antennaNumDim1 (0),
-  m_antennaNumDim2 (0),
-  m_antennaArrayType (AntennaArrayBasicModel::GetTypeId())
+MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy):
+    m_spectrumPhy (channelPhy),
+  m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
@@ -187,6 +179,7 @@ MmWavePhy::InstallAntenna ()
                                                                             m_phyMacConfig->GetNumScsPerRb(),
                                                                             m_phyMacConfig->GetSubcarrierSpacing());
   m_antennaArray->SetSpectrumModel (sm);
+  m_antennaArray->Initialize();
 }
 
 void
@@ -223,8 +216,7 @@ MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
   m_cellId = cellId;
-  m_downlinkSpectrumPhy->SetCellId (cellId);
-  m_uplinkSpectrumPhy->SetCellId (cellId);
+  m_spectrumPhy->SetCellId (cellId);
 }
 
 
@@ -262,13 +254,14 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
     {
       NS_ASSERT ((tag.GetSfn ().m_slotNum >= 0) && (tag.GetSfn ().m_varTtiNum < m_phyMacConfig->GetSymbolsPerSlot ()));
 
-      std::map<uint64_t, Ptr<PacketBurst> >::iterator it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
+      auto it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
 
       if (it == m_packetBurstMap.end ())
         {
-          it = m_packetBurstMap.insert (std::pair<uint64_t, Ptr<PacketBurst> > (tag.GetSfn ().Encode (), CreateObject<PacketBurst> ())).first;
+          it = m_packetBurstMap.insert (std::make_pair (tag.GetSfn ().Encode (), CreateObject<PacketBurst> ())).first;
         }
       it->second->AddPacket (p);
+      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn ());
     }
   else
     {
@@ -281,11 +274,11 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
 {
   NS_LOG_FUNCTION (this);
   Ptr<PacketBurst> pburst;
-  std::map<uint64_t, Ptr<PacketBurst> >::iterator it = m_packetBurstMap.find (sfn.Encode ());
+  auto it = m_packetBurstMap.find (sfn.Encode ());
 
   if (it == m_packetBurstMap.end ())
     {
-      NS_LOG_ERROR ("GetPacketBurst(): Packet burst not found for subframe " << (unsigned)sfn.m_subframeNum << " slot" << (unsigned) sfn.m_slotNum << " tti start "  << (unsigned)sfn.m_varTtiNum);
+      NS_LOG_ERROR ("Packet burst not found for " << sfn);
       return pburst;
     }
   else
@@ -401,57 +394,178 @@ MmWavePhy::GetPhySapProvider ()
 }
 
 void
-MmWavePhy::SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
+MmWavePhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_INFO ("ccId:" << static_cast<uint32_t> (m_componentCarrierId) <<
-               " frameNum:" << static_cast<uint32_t> (slotAllocInfo.m_sfnSf.m_frameNum) <<
-               " subframe:" << static_cast<uint32_t> (slotAllocInfo.m_sfnSf.m_subframeNum) <<
-               " slot:" << static_cast<uint32_t> (slotAllocInfo.m_sfnSf.m_slotNum));
+  NS_LOG_DEBUG ("ccId:" << static_cast<uint32_t> (GetCcId ()) <<
+               " setting info for slot " << slotAllocInfo.m_sfnSf);
 
-  SfnSf sf = slotAllocInfo.m_sfnSf;
-
-  if (m_slotAllocInfo.find (sf) == m_slotAllocInfo.end ())
+  // That's not so complex, as the list would typically be of 2 or 3 elements.
+  bool updated = false;
+  for (auto & alloc : m_slotAllocInfo)
     {
-      m_slotAllocInfo [sf] = slotAllocInfo;
+      if (alloc.m_sfnSf == slotAllocInfo.m_sfnSf)
+        {
+          NS_LOG_INFO ("Merging inside existing allocation");
+          alloc.Merge (slotAllocInfo);
+          updated = true;
+          break;
+        }
     }
-  else
+  if (! updated)
     {
-      m_slotAllocInfo [sf].Merge (slotAllocInfo);
+      m_slotAllocInfo.push_back (slotAllocInfo);
+      m_slotAllocInfo.sort ();
+      NS_LOG_INFO ("Pushing allocation at the end of the list");
+    }
+
+  std::stringstream output;
+
+  for (const auto & alloc : m_slotAllocInfo)
+    {
+      output << alloc;
+    }
+  NS_LOG_INFO (output.str ());
+}
+
+void
+MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
+                                   const SlotAllocInfo &slotAllocInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_slotAllocInfo.push_front (slotAllocInfo);
+  SfnSf currentSfn = newSfnSf;
+  std::unordered_map<uint64_t, Ptr<PacketBurst>> newBursts; // map between new sfn and the packet burst
+  std::unordered_map<uint64_t, uint64_t> sfnMap; // map between new and old sfn, for debugging
+
+  // all the slot allocations  (and their packet burst) have to be "adjusted":
+  // directly modify the sfn for the allocation, and temporarly store the
+  // burst (along with the new sfn) into newBursts.
+  for (auto it = m_slotAllocInfo.begin (); it != m_slotAllocInfo.end (); ++it)
+    {
+      auto slotSfn = it->m_sfnSf;
+      for (const auto &alloc : it->m_varTtiAllocInfo)
+        {
+          if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
+            {
+              slotSfn.m_varTtiNum = alloc.m_dci->m_symStart;
+              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn);
+              if (pburst && pburst->GetNPackets() > 0)
+                {
+                  currentSfn.m_varTtiNum = alloc.m_dci->m_symStart;
+                  newBursts.insert (std::make_pair (currentSfn.Encode(), pburst));
+                  sfnMap.insert (std::make_pair (currentSfn.Encode(), it->m_sfnSf.Encode()));
+                }
+              else
+                {
+                  NS_LOG_INFO ("No packet burst found for " << slotSfn);
+                }
+            }
+        }
+
+      currentSfn.m_varTtiNum = 0;
+      NS_LOG_INFO ("Set slot allocation for " << it->m_sfnSf << " to " << currentSfn);
+      it->m_sfnSf = currentSfn;
+      currentSfn = currentSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+    }
+
+  for (const auto & burstPair : newBursts)
+    {
+      SfnSf old, latest;
+      old.Decode (sfnMap.at (burstPair.first));
+      latest.Decode (burstPair.first);
+
+      for (auto & p : burstPair.second->GetPackets())
+        {
+          MmWaveMacPduTag tag;
+          bool ret = p->RemovePacketTag (tag);
+          NS_ASSERT (ret);
+
+          tag.SetSfn (latest);
+          p->AddPacketTag (tag);
+        }
+
+
+      m_packetBurstMap.insert (std::make_pair (burstPair.first, burstPair.second));
+      NS_LOG_INFO ("PacketBurst with " << burstPair.second->GetNPackets() <<
+                   "packets for SFN " << old << " now moved to SFN " << latest);
     }
 }
 
 
 bool
-MmWavePhy::SlotExists (const SfnSf &retVal) const
+MmWavePhy::SlotAllocInfoExists (const SfnSf &retVal) const
 {
   NS_LOG_FUNCTION (this);
-  return m_slotAllocInfo.find (retVal) != m_slotAllocInfo.end ();
+  for (const auto & alloc : m_slotAllocInfo)
+    {
+      if (alloc.m_sfnSf == retVal)
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+SlotAllocInfo
+MmWavePhy::RetrieveSlotAllocInfo ()
+{
+  NS_LOG_FUNCTION (this);
+  SlotAllocInfo ret = *m_slotAllocInfo.begin ();
+  m_slotAllocInfo.erase(m_slotAllocInfo.begin ());
+  return ret;
 }
 
 
 SlotAllocInfo
-MmWavePhy::GetSlotAllocInfo (const SfnSf &sfnsf)
+MmWavePhy::RetrieveSlotAllocInfo (const SfnSf &sfnsf)
 {
-  NS_LOG_FUNCTION (this << " at:" << Simulator::Now ().GetSeconds () << "ccId:" << (unsigned)m_componentCarrierId << "frameNum:" << sfnsf.m_frameNum <<
-                   "subframe:" << (unsigned)sfnsf.m_subframeNum << "slot:" << (unsigned)sfnsf.m_slotNum);
+  NS_LOG_FUNCTION ("ccId:" << +GetCcId () << " slot " << sfnsf);
 
-  NS_ASSERT_MSG (m_slotAllocInfo.find (sfnsf) != m_slotAllocInfo.end (),
-                 "Trying to fetch " << sfnsf << " but is not existing in the list");
 
-  SlotAllocInfo slot = m_slotAllocInfo[sfnsf];
-  m_slotAllocInfo.erase (m_slotAllocInfo.find (sfnsf));
-  return slot;
+  for (auto allocIt = m_slotAllocInfo.begin(); allocIt != m_slotAllocInfo.end (); ++allocIt)
+    {
+      if (allocIt->m_sfnSf == sfnsf)
+        {
+          SlotAllocInfo ret = *allocIt;
+          m_slotAllocInfo.erase (allocIt);
+          return ret;
+        }
+    }
+
+  NS_FATAL_ERROR("Didn't found the slot");
+  return SlotAllocInfo (sfnsf);
 }
 
 SlotAllocInfo &
 MmWavePhy::PeekSlotAllocInfo (const SfnSf &sfnsf)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_slotAllocInfo.find (sfnsf) != m_slotAllocInfo.end (),
-                 "Trying to fetch a non existing slot allocation info.");
-  return m_slotAllocInfo[sfnsf];
+  for (auto & alloc : m_slotAllocInfo)
+    {
+      if (alloc.m_sfnSf == sfnsf)
+        {
+          return alloc;
+        }
+    }
+
+  NS_FATAL_ERROR ("Didn't found the slot");
+}
+
+size_t
+MmWavePhy::SlotAllocInfoSize() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_slotAllocInfo.size ();
+}
+
+bool
+MmWavePhy::IsCtrlMsgListEmpty() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_controlMessageQueue.empty () || m_controlMessageQueue.at (0).empty();
 }
 
 Ptr<AntennaArrayBasicModel>

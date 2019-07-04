@@ -89,7 +89,7 @@ void updateSnr (double snrInit, Ptr<MmWaveEnbNetDevice> enbDev, Ptr<const Spectr
   std::cout << "************* SINR changing to " << snrInit << " (MCS = " << mcs << " ) *************" << std::endl;
 
   Simulator::Schedule (MicroSeconds (3 * 100), &MmWaveSpectrumPhy::UpdateSinrPerceived,
-                       enbDev->GetPhy (0)->GetDlSpectrumPhy (), specVals);
+                       enbDev->GetPhy (0)->GetSpectrumPhy (), specVals);
 
   //enbPhy->GenerateDataCqiReport(specVals);
 

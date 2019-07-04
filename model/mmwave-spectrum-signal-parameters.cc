@@ -127,4 +127,32 @@ MmWaveSpectrumSignalParametersDlCtrlFrame::Copy ()
   return lssp;
 }
 
+
+MmWaveSpectrumSignalParametersUlCtrlFrame::MmWaveSpectrumSignalParametersUlCtrlFrame ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+MmWaveSpectrumSignalParametersUlCtrlFrame::MmWaveSpectrumSignalParametersUlCtrlFrame (const MmWaveSpectrumSignalParametersUlCtrlFrame& p)
+  : SpectrumSignalParameters (p)
+{
+  NS_LOG_FUNCTION (this << &p);
+  cellId = p.cellId;
+  ctrlMsgList = p.ctrlMsgList;
+}
+
+Ptr<SpectrumSignalParameters>
+MmWaveSpectrumSignalParametersUlCtrlFrame::Copy ()
+{
+  NS_LOG_FUNCTION (this);
+  // Ideally we would use:
+  //   return Copy<MmWaveSpectrumSignalParametersUlCtrlFrame> (*this);
+  // but for some reason it doesn't work. Another alternative is
+  //   return Copy<MmWaveSpectrumSignalParametersUlCtrlFrame> (this);
+  // but it causes a double creation of the object, hence it is less efficient.
+  // The solution below is copied from the implementation of Copy<> (Ptr<>) in ptr.h
+  Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> lssp (new MmWaveSpectrumSignalParametersUlCtrlFrame (*this), false);
+  return lssp;
+}
+
 }

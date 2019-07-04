@@ -65,6 +65,26 @@ public:
   void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
+  /**
+   * \brief The MAC has been informed that we are passed to a new slot
+   * \param sfnSf the current slot
+   *
+   * The MAC should perform its operations (including the scheduler) for DL.
+   * Please note that what is decided in this slot will reach the air later
+   * (depending on the L1L2CTRL latency parameter).
+   */
+  void DoSlotDlIndication (const SfnSf &sfnSf);
+
+  /**
+   * \brief The MAC has been informed that we are passed to a new slot
+   * \param sfnSf the current slot
+   *
+   * The MAC should perform its operations (including the scheduler) for UL.
+   * Please note that what is decided in this slot will reach the air later
+   * (depending on the L1L2CTRL latency and the UL Sched delay parameters).
+   */
+  void DoSlotUlIndication (const SfnSf &sfnSf);
+
   void SetMcs (int mcs);
 
   void SetForwardUpCallback (Callback <void, Ptr<Packet> > cb);
@@ -270,6 +290,11 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
+
+  /**
+   * Trace DL HARQ info list elements.
+   */
+  TracedCallback<const DlHarqInfo&> m_dlHarqFeedback;
 };
 
 }
