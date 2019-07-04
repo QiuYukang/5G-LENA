@@ -90,6 +90,8 @@ of the class MmWaveEnbPhy
 * MmWaveSpectrumPhy now has two more traces: TxCtrlTrace and TxDataTrace, to extract
 information about how the channel is occupied
 * Now MmWaveSpectrumPhy can enable interference for all links, also UE->UE and GNB->GNB
+* Introduced Listen-Before-Talk after MAC. The interface of a channel access manager
+is inside the file *nr-ch-access-manager.h*.
 
 ### Changes to existing API:
 
