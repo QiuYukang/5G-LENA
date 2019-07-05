@@ -1,12 +1,5 @@
-<!--
-/**
- * \page changes Changes
- * \brief Changelog of 5G-LENA
- */
--->
-
-Changes
-=======
+5G-LENA Changes       {#changes}
+===============
 
 NR module: API and model change history
 ---------------------------------------

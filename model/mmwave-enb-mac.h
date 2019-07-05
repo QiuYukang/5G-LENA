@@ -41,7 +41,7 @@ class MmWaveRarMessage;
  * \ingroup gnb
  * \brief The MAC class for the gnb
  *
- * \section CTRL-trace Traces for CTRL messages
+ * \section trace CTRL Traces for CTRL messages
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is EnbMacRxedCtrlMsgsTrace,

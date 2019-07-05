@@ -1,11 +1,5 @@
-<!--
-/**
- * \page releasenotes Release Notes
- * \brief Release notes of 5G-LENA
- */
--->
-
-# 3GPP NR ns-3 module RELEASE NOTES
+5G-LENA Release Notes                         {#releasenotes}
+=====================
 
 This file contains release notes for the NR module (most recent releases first).  
 

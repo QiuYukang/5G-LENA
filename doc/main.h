@@ -24,8 +24,8 @@
  *
  * \section mainpage-whats-new What's new?
  *
- * Curious about what was added or improved recently? Check out the CHANGES.md file.
- * We also maintain a RELEASE_NOTES.md file.
+ * Curious about what was added or improved recently? Check out the \ref changes file.
+ * We also maintain the \ref releasenotes in a separate file.
  *
  * \section mainpage-getting-started Getting started
  *

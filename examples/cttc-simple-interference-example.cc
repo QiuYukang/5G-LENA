@@ -90,8 +90,8 @@ Scenario::GetUes () const
     GNB_i                          UE_i
  \endverbatim
  *
- * The distance between each GNB is \f$ GNB_{i+1}_{x} = GNB_{i}_{x} \f$ ,
- * \f$ GNB_{i+1}_{z} = GNB_{i}_{z} \f$ and \f$ GNB_{i+1}_{y} = GNB_{i}_{y} + 0.5 \f$
+ * The distance between each GNB is for the x value \f$ GNB_{i+1} = GNB_{i} \f$ ,
+ * for z \f$ GNB_{i+1} = GNB_{i} \f$ and for y \f$ GNB_{i+1} = GNB_{i} + 0.5 \f$
  */
 class SimpleInterferenceScenario : public Scenario
 {
