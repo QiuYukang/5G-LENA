@@ -265,6 +265,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
   NS_LOG_INFO ("Received " << msgList.size () << " messages");
   bool dlUpdated = false;
   bool ulUpdated = false;
+  bool hasToSendCtrl = false;
 
   SfnSf ulSfnSf = m_currSlotAllocInfo.m_sfnSf.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
                                                                    m_phyMacConfig->GetSlotsPerSubframe (),
@@ -343,6 +344,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                 }
             }
 
+          hasToSendCtrl = true;
           m_phySapUser->ReceiveControlMessage (msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
@@ -353,6 +355,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           m_ueCphySapUser->RecvMasterInformationBlock (m_cellId, msg2->GetMib ());
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
+          hasToSendCtrl = true;
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
         {
@@ -361,6 +364,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           m_ueCphySapUser->RecvSystemInformationBlockType1 (m_cellId, msg2->GetSib1 ());
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
+          hasToSendCtrl = true;
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
         {
@@ -375,6 +379,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           // RRC, we have to put 2 here to respect the TDD timings.
           Simulator::Schedule (2 * MicroSeconds(m_phyMacConfig->GetTbDecodeLatency()),
                                &MmWaveUePhy::DoReceiveRar, this, rarMsg);
+          hasToSendCtrl = true;
         }
       else
         {
@@ -390,6 +395,9 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
       std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
     }
 
+  uint8_t ulCtrlSymStart = 0;
+  uint8_t ulCtrlNumSym = 0;
+
   if (ulUpdated)
     {
       if (m_phyMacConfig->GetUlSchedDelay () == 0)
@@ -403,15 +411,16 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         }
     }
 
-  uint8_t ulCtrlSymStart = 0;
-  uint8_t ulCtrlNumSym = 0;
-  for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+  if (hasToSendCtrl)
     {
-      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+      for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
         {
-          ulCtrlSymStart = alloc.m_dci->m_symStart;
-          ulCtrlNumSym = alloc.m_dci->m_numSym;
-          break;
+          if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+            {
+              ulCtrlSymStart = alloc.m_dci->m_symStart;
+              ulCtrlNumSym = alloc.m_dci->m_numSym;
+              break;
+            }
         }
     }
 
