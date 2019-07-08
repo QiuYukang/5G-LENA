@@ -80,11 +80,11 @@ main (int argc, char *argv[])
   double bandwidthBwp1 = 100e6;
   double ueY = 30.0;
 
-  double simTime = 50.0; // seconds
+  double simTime = 5.0; // 50.0; // seconds
   uint32_t pktSize = 500;
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
-  Time updateChannelInterval = MilliSeconds(1000); //MilliSeconds (150);
+  Time updateChannelInterval = MilliSeconds(0); //MilliSeconds (150);
   uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
   NS_ABORT_IF (packets == 0);
 

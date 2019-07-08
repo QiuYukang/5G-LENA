@@ -8280,6 +8280,9 @@ static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr1 = {
           { 9.951923e-01, 8.566667e-01, 3.010143e-01, 2.620000e-02, 7.000000e-04 } // BLER
         }
       }
+  },
+  { // MCS 28
+    { 0U, NrEesmErrorModel::DoubleTuple{ { 0.0 } , { 0.0 } } }
   }
 }
 };
@@ -15668,6 +15671,12 @@ static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr2 = {
           { 9.759615e-01, 6.387500e-01, 1.095395e-01, 2.400000e-03, 0 } // BLER
         }
       }
+  },
+  { // MCS 26
+    { 0U, NrEesmErrorModel::DoubleTuple{ { 0.0 } , { 0.0 } } }
+  },
+  { // MCS 27
+    { 0U, NrEesmErrorModel::DoubleTuple{ { 0.0 } , { 0.0 } } }
   }
 }
 };
