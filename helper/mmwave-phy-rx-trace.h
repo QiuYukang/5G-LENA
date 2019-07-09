@@ -69,7 +69,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Enb Phy Transmitted Control Messages.
@@ -83,7 +83,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Received Control Messages.
@@ -97,7 +97,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Transmitted Control Messages.
@@ -111,7 +111,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);

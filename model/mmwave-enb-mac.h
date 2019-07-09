@@ -282,14 +282,14 @@ private:
    * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding ENB MAC Transmitted Control Messages
    * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
 
   /**
    * Trace DL HARQ info list elements.

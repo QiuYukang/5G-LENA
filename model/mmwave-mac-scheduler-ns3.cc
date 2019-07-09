@@ -1699,7 +1699,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
               NS_LOG_INFO ("Placed an allocation in the map for the CQI, RNTI " <<
                            alloc.m_dci->m_rnti << ", symStart " <<
                            static_cast<uint32_t>(alloc.m_dci->m_symStart) <<
-                           " numSym " << alloc.m_dci->m_mcs);
+                           " numSym " << +alloc.m_dci->m_numSym);
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
                                                    m_phyMacConfig->GetBandwidthInRbs (), // Assume UL in TDMA
                                                    alloc.m_dci->m_tbSize,
@@ -1718,6 +1718,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       NS_LOG_INFO ("For the slot " << ulSfn << " registered a total of " <<
                    static_cast<uint32_t> (totUlSym) <<
                    " symbols and " << allocations.size () << " allocations");
+      NS_ASSERT (m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym == totUlSym);
     }
 
   return dataSymPerSlot - ulSymAvail;

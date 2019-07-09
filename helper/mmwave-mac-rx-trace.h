@@ -48,7 +48,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Enb Mac Transmitted Control Messages.
@@ -62,7 +62,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Mac Received Control Messages.
@@ -76,7 +76,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Mac Transmitted Control Messages.
@@ -90,7 +90,7 @@ public:
    * \param [in] pointer to msg to get the msg type
    */
   static void TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg);
+                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
 private:
 

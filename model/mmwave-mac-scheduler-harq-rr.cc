@@ -116,6 +116,7 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
 
           allocatedUe.push_back (dciInfoReTx->m_rnti);
 
+          NS_ASSERT (dciInfoReTx->m_format == DciInfoElementTdma::DL);
           auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,
                                                            startingPoint->m_sym, symPerBeam,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
@@ -240,6 +241,8 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
         {
           symAvail -= dciInfoReTx->m_numSym;
           symUsed += dciInfoReTx->m_numSym;
+
+          NS_ASSERT (dciInfoReTx->m_format == DciInfoElementTdma::UL);
 
           auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,
                                                            startingPoint->m_sym - dciInfoReTx->m_numSym,

@@ -838,17 +838,6 @@ MmWaveEnbMac::DoDlHarqFeedback (DlHarqInfo params)
     }
   else if (params.m_harqStatus == DlHarqInfo::NACK)
     {
-      /*if (params.m_numRetx == 3)
- {
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (params.m_rnti);
-  for (unsigned i = 0; i < (*it).second.at (params.m_harqProcessId).m_lcidList.size (); i++)
-  {
-  std::map<uint8_t, LteMacSapUser*>::iterator lcidIt =
-    rntiIt->second.find ((*it).second.at (params.m_harqProcessId).m_lcidList[i]);
-  NS_ASSERT (lcidIt != rntiIt->second.end ());
-  lcidIt->second->NotifyDlHarqDeliveryFailure (params.m_harqProcessId);
-  }
- }*/
       NS_LOG_DEBUG (this << " HARQ-NACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
     }
   else

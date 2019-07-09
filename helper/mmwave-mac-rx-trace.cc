@@ -78,7 +78,7 @@ MmwaveMacRxTrace::GetTypeId (void)
 
 void
 MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                              uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedEnbMacCtrlMsgsFile.is_open ())
       {
@@ -123,7 +123,7 @@ MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
 
 void
 MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                              uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedEnbMacCtrlMsgsFile.is_open ())
       {
@@ -161,7 +161,7 @@ MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
 
 void
 MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                             uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedUeMacCtrlMsgsFile.is_open ())
       {
@@ -198,7 +198,7 @@ MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
 
 void
 MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                             uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedUeMacCtrlMsgsFile.is_open ())
       {

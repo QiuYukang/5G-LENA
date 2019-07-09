@@ -348,14 +348,14 @@ private:
    * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Transmitted Control Messages
    * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 
   std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
 

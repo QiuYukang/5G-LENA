@@ -592,7 +592,7 @@ MmWaveSpectrumPhy::EndRxData ()
   Ptr<MmWaveEnbNetDevice> enbRx = DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
   Ptr<MmWaveUeNetDevice> ueRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
 
-  NS_ASSERT (m_state = RX_DATA);
+  NS_ASSERT (m_state == RX_DATA);
 
   GetSecond GetTBInfo;
   GetFirst GetRnti;

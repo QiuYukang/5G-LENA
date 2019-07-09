@@ -129,7 +129,7 @@ MmWavePhyRxTrace::UlSinrTraceCallback (Ptr<MmWavePhyRxTrace> phyStats, std::stri
 
 void
 MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                              uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedEnbPhyCtrlMsgsFile.is_open ())
       {
@@ -175,7 +175,7 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
 
 void
 MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                              uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedEnbPhyCtrlMsgsFile.is_open ())
       {
@@ -220,7 +220,7 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
 
 void
 MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                             uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedUePhyCtrlMsgsFile.is_open ())
       {
@@ -265,7 +265,7 @@ MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
 
 void
 MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t ccId, Ptr<MmWaveControlMessage> msg)
+                                             uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedUePhyCtrlMsgsFile.is_open ())
       {

@@ -478,8 +478,10 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
     {
       if (dlAlloc.m_dci->m_rnti != 0 && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
         {
-          NS_LOG_INFO ("DCI FOR " << dlAlloc.m_dci->m_rnti << "type " <<
-                       dlAlloc.m_dci->m_format << " " << dlAlloc.m_dci->m_type);
+          NS_LOG_INFO ("DCI FOR " << dlAlloc.m_dci->m_rnti << " type " <<
+                       dlAlloc.m_dci->m_format << " " << dlAlloc.m_dci->m_type <<
+                       " start " << +dlAlloc.m_dci->m_symStart << " numSym " <<
+                       +dlAlloc.m_dci->m_numSym);
           NS_ASSERT (scheduledRnti.find(dlAlloc.m_dci->m_rnti) == scheduledRnti.end());
           scheduledRnti.insert(dlAlloc.m_dci->m_rnti);
         }
@@ -540,7 +542,9 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
                   dciMsg->SetSfnSf (sfn);
                   ctrlMsgs.push_back (dciMsg);
 
-                  NS_LOG_INFO ("To send, UL DCI for UE " << dciElem->m_rnti);
+                  NS_LOG_INFO ("To send, UL DCI for UE " << dciElem->m_rnti <<
+                               "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
+                               " lastSymbolUl " << static_cast<uint32_t> (lastSymbolUl));
                 }
             }
         }
@@ -556,6 +560,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
 
               NS_ASSERT (dciElem->m_format == DciInfoElementTdma::UL);
               NS_ASSERT (dciElem->m_tbSize > 0);
+              NS_ASSERT (dciElem->m_symStart >= lastSymbolDl);
               NS_ASSERT_MSG (dciElem->m_symStart >= lastSymbolUl,
                              "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
                              " lastSymbolUl " << static_cast<uint32_t> (lastSymbolUl));
