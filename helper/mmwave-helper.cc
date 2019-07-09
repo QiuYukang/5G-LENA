@@ -159,7 +159,6 @@ MmWaveHelper::DoInitialize ()
           conf.second.m_3gppChannel = CreateObject<MmWave3gppChannel> ();
           conf.second.m_3gppChannel->SetPathlossModel (conf.second.m_propagation);
           conf.second.m_3gppChannel->SetAttribute ("CenterFrequency", DoubleValue (conf.second.m_phyMacCommon->GetCenterFrequency()));
-          conf.second.m_3gppChannel->SetAttribute ("Bandwidth", DoubleValue (conf.second.m_phyMacCommon->GetBandwidth ()));
 
           conf.second.m_channel->AddSpectrumPropagationLossModel (conf.second.m_3gppChannel);
         }
