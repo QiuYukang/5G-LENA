@@ -520,7 +520,6 @@ private:
   double m_centerFrequency; //!< The center frequency of this 3gpp channel, in this implementation all the devices using the same channel are on the same central frequency
   bool m_cellScan {false}; //!< If true beam search beamforming is enabled, if false the long term cov. matrix is used
   bool m_enableAllChannels {false}; //!< If true, enables gNB-gNB and UE-UE pathloss and channel generation, if false, PL and channel are not computed
-  double m_bandwidth; //!< The total bandwidth for this channel
   std::map <Ptr<NetDevice>, Ptr<AntennaArrayBasicModel> > m_deviceToAntennaArray; //!< The map that holds the mapping between the netDevice and its AntennaArray instance for this channel
 };
 

@@ -218,11 +218,6 @@ MmWave3gppChannel::GetTypeId (void)
                    DoubleValue (28e9),
                    MakeDoubleAccessor(&MmWave3gppChannel::SetCenterFrequency, &MmWave3gppChannel::GetCenterFrequency),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("Bandwidth",
-                   "The bandwidth in Hz of this spectrum channel matrix",
-                   DoubleValue (0),
-                   MakeDoubleAccessor(&MmWave3gppChannel::m_bandwidth),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("CellScan",
                    "If true, use beam search method to determine beamforming vector,"
                    "if false, the long-term covariance matrix method is used.",
@@ -2693,8 +2688,8 @@ MmWave3gppChannel::GetFakeTxPowerSpectralDensity (double powerTx, Ptr<const Spec
 {
   Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (txSm);
   double powerTxW = std::pow (10., (powerTx - 30) / 10);
-  double txPowerDensity = 0;
-  txPowerDensity = powerTxW / m_bandwidth;
+  double bw =   (txPsd->GetSpectrumModel()->End()-1)->fh - txPsd->GetSpectrumModel()->Begin()->fl;
+  double txPowerDensity = powerTxW / bw;
 
   std::vector<int> listOfSubchannels;
   for (size_t rbId = 0; rbId < txSm->GetNumBands (); rbId++)
