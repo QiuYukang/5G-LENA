@@ -259,6 +259,15 @@ private:
    */
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
+  /**
+   * \brief Try to perform an lbt before UL CTRL
+   *
+   * This function should be called after we receive the DL_DCI for the slot,
+   * and then checks if we can re-use the channel through shared MCOT. Otherwise,
+   * schedule an LBT before the transmission of the UL CTRL.
+   */
+  void TryToPerformLbt ();
+
   void StartSlot (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
   void StartVarTti ();
   void EndVarTti ();
@@ -316,6 +325,7 @@ private:
   ChannelStatus m_channelStatus {NONE}; //!< The channel status
   Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
   Time m_lbtThresholdForCtrl; //!< Threshold for LBT before the UL CTRL
+  bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS

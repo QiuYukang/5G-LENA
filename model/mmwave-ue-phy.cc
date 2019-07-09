@@ -265,7 +265,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
   NS_LOG_INFO ("Received " << msgList.size () << " messages");
   bool dlUpdated = false;
   bool ulUpdated = false;
-  bool hasToSendCtrl = false;
 
   SfnSf ulSfnSf = m_currSlotAllocInfo.m_sfnSf.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
                                                                    m_phyMacConfig->GetSlotsPerSubframe (),
@@ -344,7 +343,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                 }
             }
 
-          hasToSendCtrl = true;
           m_phySapUser->ReceiveControlMessage (msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
@@ -355,7 +353,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           m_ueCphySapUser->RecvMasterInformationBlock (m_cellId, msg2->GetMib ());
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
-          hasToSendCtrl = true;
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
         {
@@ -364,7 +361,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           m_ueCphySapUser->RecvSystemInformationBlockType1 (m_cellId, msg2->GetSib1 ());
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
-          hasToSendCtrl = true;
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
         {
@@ -379,7 +375,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           // RRC, we have to put 2 here to respect the TDD timings.
           Simulator::Schedule (2 * MicroSeconds(m_phyMacConfig->GetTbDecodeLatency()),
                                &MmWaveUePhy::DoReceiveRar, this, rarMsg);
-          hasToSendCtrl = true;
         }
       else
         {
@@ -395,8 +390,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
       std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
     }
 
-  uint8_t ulCtrlSymStart = 0;
-  uint8_t ulCtrlNumSym = 0;
 
   if (ulUpdated)
     {
@@ -410,21 +403,25 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
         }
     }
+}
 
-  if (hasToSendCtrl)
+void
+MmWaveUePhy::TryToPerformLbt ()
+{
+  uint8_t ulCtrlSymStart = 0;
+  uint8_t ulCtrlNumSym = 0;
+
+  for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
-      for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+      if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
-          if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL && alloc.m_dci->m_format == DciInfoElementTdma::UL)
-            {
-              ulCtrlSymStart = alloc.m_dci->m_symStart;
-              ulCtrlNumSym = alloc.m_dci->m_numSym;
-              break;
-            }
+          ulCtrlSymStart = alloc.m_dci->m_symStart;
+          ulCtrlNumSym = alloc.m_dci->m_numSym;
+          break;
         }
     }
 
-  if (! IsCtrlMsgListEmpty () && ulCtrlNumSym != 0)
+  if (ulCtrlNumSym != 0)
     {
       // We have an UL CTRL symbol scheduled and we have to transmit CTRLs..
       // .. so we check that we have at least 25 us between the latest DCI,
@@ -579,6 +576,9 @@ MmWaveUePhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
                 "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
                 "\t start " << Simulator::Now () <<
                 " end " << (Simulator::Now () + varTtiPeriod));
+
+  m_tryToPerformLbt = true;
+
   return varTtiPeriod;
 }
 
@@ -754,6 +754,13 @@ MmWaveUePhy::EndVarTti ()
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("Executed varTti " << (+m_varTtiNum) + 1 << " of " << m_currSlotAllocInfo.m_varTtiAllocInfo.size ());
+
+  if (m_tryToPerformLbt)
+    {
+      TryToPerformLbt ();
+      m_tryToPerformLbt = false;
+    }
+
   if (m_varTtiNum == m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1)
     {
       // end of slot
