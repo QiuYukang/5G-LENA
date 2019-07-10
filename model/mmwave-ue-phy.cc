@@ -598,7 +598,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                     (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)) <<
                     " but no data to transmit");
       GetControlMessages (); // empty the current message list
-
+      m_cam->Cancel ();
       return varTtiPeriod;
     }
   else if (m_channelStatus != GRANTED)
