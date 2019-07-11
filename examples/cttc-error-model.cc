@@ -38,19 +38,29 @@ NS_LOG_COMPONENT_DEFINE ("CttcErrorModelExample");
 
 
 static Ptr<ListPositionAllocator>
-GetGnbPositions(uint32_t gnbNum, double gNbHeight = 10.0)
+GetGnbPositions(uint32_t gNbNum, double gNbHeight = 10.0)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
   pos->Add (Vector (0.0, 0.0, gNbHeight));
+
+  if (gNbNum > 1)
+    {
+      pos->Add (Vector (5.0, 0.0, gNbHeight));
+    }
+
   return pos;
 }
 
 static Ptr<ListPositionAllocator>
-GetUePositions(double ueY, double ueHeight = 1.5)
+GetUePositions(double ueY, double ueHeight = 1.5, uint32_t gNbNum = 1)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
   pos->Add (Vector (0.0, ueY, ueHeight));
 
+  if (gNbNum > 1)
+    {
+      pos->Add (Vector (5.0, ueY, ueHeight));
+    }
   return pos;
 }
 
@@ -74,14 +84,14 @@ main (int argc, char *argv[])
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
   bool cellScan = false;
-  double beamSearchAngleStep = 10.0;
+  double beamSearchAngleStep = 30.0;
   double totalTxPower = 4;
   uint16_t numerologyBwp1 = 4;
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
   double ueY = 30.0;
 
-  double simTime = 50.0; // seconds
+  double simTime = 10.0; // seconds
   uint32_t pktSize = 500;
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
@@ -160,6 +170,9 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
   Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
 
+  Config::SetDefault ("ns3::MmWave3gppChannel::EnableAllChannels", BooleanValue (true));
+  Config::SetDefault ("ns3::MmWaveSpectrumPhy::EnableAllInterferences", BooleanValue (true));
+
   if (eesmTable == 1)
     {
       Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
@@ -191,7 +204,7 @@ main (int argc, char *argv[])
   ueNodes.Create (ueNumPergNb * gNbNum);
 
   Ptr<ListPositionAllocator> apPositionAlloc = GetGnbPositions(gNbNum, gNbHeight);
-  Ptr<ListPositionAllocator> staPositionAlloc = GetUePositions(ueY, ueHeight);
+  Ptr<ListPositionAllocator> staPositionAlloc = GetUePositions(ueY, ueHeight, gNbNum);
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (apPositionAlloc);
