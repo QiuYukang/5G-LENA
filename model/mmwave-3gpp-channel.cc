@@ -242,6 +242,7 @@ MmWave3gppChannel::~MmWave3gppChannel ()
 void
 MmWave3gppChannel::DoDispose ()
 {
+  NS_LOG_FUNCTION (this);
   m_uniformRv = nullptr;
   m_uniformRvBlockage = nullptr;
   m_normalRv = nullptr;
@@ -250,7 +251,6 @@ MmWave3gppChannel::DoDispose ()
   m_channelMap.clear();
 
   SpectrumPropagationLossModel::DoDispose ();
-  NS_LOG_FUNCTION (this);
 }
 
 void MmWave3gppChannel::SetCenterFrequency (double centerFrequency)
@@ -267,6 +267,7 @@ double MmWave3gppChannel::GetCenterFrequency () const
 bool
 MmWave3gppChannel::ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b) const
 {
+  NS_LOG_FUNCTION (this);
   Ptr<NetDevice> dev1 = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
 
@@ -275,10 +276,12 @@ MmWave3gppChannel::ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const Mo
 
   if (it != GetChannelMap().end () || itReverse != GetChannelMap().end ())
     {
+      NS_LOG_INFO("channel matrix exists (forward or reverse)");
       return true;
     }
   else
     {
+      NS_LOG_INFO("channel matrix does not exist (forward nor reverse)");
       return false;
     }
 }
@@ -286,6 +289,7 @@ MmWave3gppChannel::ChannelMatrixExist (Ptr<const MobilityModel> a , Ptr<const Mo
 bool
 MmWave3gppChannel::ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<const MobilityModel> b, bool los) const
 {
+  NS_LOG_FUNCTION (this);
   Ptr<NetDevice> dev1 = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> dev2 = b->GetObject<Node> ()->GetDevice (0);
 
@@ -294,10 +298,12 @@ MmWave3gppChannel::ChannelMatrixNeedsUpdate (Ptr<const MobilityModel> a , Ptr<co
   if ((it != GetChannelMap().end () && it->second->m_channel.size () == 0)
         || (it != GetChannelMap().end () && it->second->m_input.GetLos() != los))
     {
+      NS_LOG_INFO("channel matrix needs update (checks only one dir)");
       return true;
     }
   else
     {
+      NS_LOG_INFO("channel matrix does not need update");
       return false;
     }
 }
@@ -494,6 +500,14 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
 
   MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
   MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
+  if (!ChannelMatrixExist (a,b))
+    {
+      NS_LOG_INFO("channel matrix does not exist");
+    }
+  if (ChannelMatrixNeedsUpdate (a,b, input3gppParameters.GetLos()))
+    {
+      NS_LOG_INFO("channel matrix needs update");
+    }
 
   // If is update, then we only update the forward channel.
   if (!ChannelMatrixExist (a,b)
@@ -601,6 +615,12 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
   else //Find channel matrix in the Reverse link
     {
       NS_ABORT_IF (itReverse == GetChannelMap().end());
+
+      if (ChannelMatrixNeedsUpdate (b, a, input3gppParameters.GetLos()))
+        {
+          NS_LOG_INFO("it is reverse link, but channel matrix in forward needs update!!");
+        }
+
       channelParams = itReverse->second;
     }
   return channelParams;
@@ -615,6 +635,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   NS_ASSERT_MSG (a->GetDistanceFrom (b) != 0,
                  "the position of tx and rx devices cannot be the same. Tx " << a->GetPosition () <<
                  " rx " << b->GetPosition ());
+  NS_LOG_INFO ("computing Rx PSD for Tx " << a->GetPosition () << " rx " << b->GetPosition ());
 
   Ptr<SpectrumValue> rxPsd = Copy (txPsd);
 
@@ -640,11 +661,13 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   if (IsReverseLink(a,b))
     {
+      NS_LOG_INFO ("is reverse link");
       txDevice = b->GetObject<Node> ()->GetDevice (0);
       rxDevice = a->GetObject<Node> ()->GetDevice (0);
     }
   else
     {
+      NS_LOG_INFO ("is forward link");
       txDevice = a->GetObject<Node> ()->GetDevice (0);
       rxDevice = b->GetObject<Node> ()->GetDevice (0);
     }
