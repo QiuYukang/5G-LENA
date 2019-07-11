@@ -432,7 +432,6 @@ NrTest3gppChannelTestCase::DoRun()
 
   channel->SetPathlossModel (pathLoss);
   channel->SetAttribute ("CenterFrequency", DoubleValue (m_centerFrequency));
-  channel->SetAttribute ("Bandwidth", DoubleValue (m_bandwidth));
 
   Ptr<Node> ueNode1 = CreateObject<Node>();
   Ptr<Node> gnbNode1 = CreateObject<Node>();
