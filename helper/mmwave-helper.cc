@@ -64,7 +64,6 @@ MmWaveHelper::MmWaveHelper (void)
   : m_imsiCounter (0),
   m_cellIdCounter {1},
   m_harqEnabled (false),
-  m_rlcAmEnabled (false),
   m_snrTest (false)
 {
   NS_LOG_FUNCTION (this);
@@ -106,11 +105,6 @@ MmWaveHelper::GetTypeId (void)
                    "Enable Hybrid ARQ",
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWaveHelper::m_harqEnabled),
-                   MakeBooleanChecker ())
-    .AddAttribute ("RlcAmEnabled",
-                   "Enable RLC Acknowledged Mode",
-                   BooleanValue (false),
-                   MakeBooleanAccessor (&MmWaveHelper::m_rlcAmEnabled),
                    MakeBooleanChecker ())
     .AddAttribute ("UseCa",
                    "If true, Carrier Aggregation feature is enabled and a valid Component Carrier Map is expected."

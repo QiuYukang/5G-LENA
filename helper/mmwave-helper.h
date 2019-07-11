@@ -233,7 +233,6 @@ private:
   Ptr<EpcHelper> m_epcHelper;
 
   bool m_harqEnabled;
-  bool m_rlcAmEnabled;
   bool m_snrTest;
 
   Ptr<MmWaveBearerStatsCalculator> m_rlcStats;
