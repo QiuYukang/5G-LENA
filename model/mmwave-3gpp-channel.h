@@ -341,6 +341,9 @@ private:
   void DoUpdateLongTerm (Ptr<const MobilityModel> a,
                          Ptr<const MobilityModel> b) const;
 
+  /**
+   * \brief Gets the channel assuming that a->b is the forward channel
+   */
   Ptr<Params3gpp> DoGetChannel (Ptr<const MobilityModel> a,
                                    Ptr<const MobilityModel> b) const;
 
@@ -410,14 +413,18 @@ private:
 
 
   /**
-   * Checks if a is transmitter and b receiver or is a "reverse link" meaning oposite,
-   * i.e. that b is transmitter and a receiver.
+   * Checks if a is transmitter and b receiver or is created as "forward link".
+   * Forward link corresponds to the channel that is first created between a and b,
+   * I.e., if first is created channel "a to b" then a->b is the forward link, and b->a is reverse.
+   * Otherwise, if first is created "b to a" then b->a is the forward link, and a->B is reverse.
+   * Only one channel should be saved in the map, and the one that is saved corresponds
+   * to so called forward link.
    * @param a mobility model of the first node
    * @param b mobility model of the second node
-   * @return boolean that says if the a and b are tx and rx or opposite.
+   * @return boolean that says if the link is reverse link
    */
-  bool IsReverseLink (Ptr<const MobilityModel> a,
-                      Ptr<const MobilityModel> b) const;
+  bool IsCreatedAsForwardLink (Ptr<const MobilityModel> a,
+                               Ptr<const MobilityModel> b) const;
 
   /**
    * Creates power spectral density for the given power and

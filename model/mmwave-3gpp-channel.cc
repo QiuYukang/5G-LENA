@@ -491,51 +491,20 @@ void MmWave3gppChannel::PerformBeamforming (const Ptr<const NetDevice> &a,
     }
 }
 
+// function assumes that channel from a to b is the forward channel,
+// a) if it does not exist, it will create it
+// b) if it needs to be updated since it is deleted because of the previous update, it will be updated
+// c) if it exists already the function will return it
 Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
                                                  Ptr<const MobilityModel> b) const
 {
   NS_LOG_FUNCTION (this);
-  Ptr<Params3gpp> channelParams;
   InputParams3gpp input3gppParameters = GetInput3gppParameters (a, b);
-
   MmWave3gppChannel::channelMap_t::iterator it = GetChannelMap().find (input3gppParameters.GetKey());
-  MmWave3gppChannel::channelMap_t::iterator itReverse = GetChannelMap().find (input3gppParameters.GetKeyReverse());
-  if (!ChannelMatrixExist (a,b))
-    {
-      NS_LOG_INFO("channel matrix does not exist");
-    }
-  if (ChannelMatrixNeedsUpdate (a,b, input3gppParameters.GetLos()))
-    {
-      NS_LOG_INFO("channel matrix needs update");
-    }
 
-  // If is update, then we only update the forward channel.
-  if (!ChannelMatrixExist (a,b)
-      || ChannelMatrixNeedsUpdate (a,b, input3gppParameters.GetLos()))
+  // If we need to created the map or we only need to update the forward channel.
+  if (it == GetChannelMap().end () || ChannelMatrixNeedsUpdate (a,b, input3gppParameters.GetLos()))
     {
-      channelParams = Create <Params3gpp>();
-      
-      NS_LOG_INFO ("Update or create the forward channel");
-      if (it == GetChannelMap().end ())
-        {
-          NS_LOG_LOGIC ("Channel not present in the map");
-        }
-      else
-        {
-          if (it->second->m_channel.size () == 0)
-            {
-              NS_LOG_LOGIC ("CHANNEL size : 0");
-            }
-          if (it->second->m_input.GetLos() != input3gppParameters.GetLos())
-            {
-              NS_LOG_LOGIC ("input los != channel los");
-            }
-        }
-      if (itReverse == GetChannelMap().end ())
-        {
-          NS_LOG_LOGIC ("Channel not present in the map (reverse it)");
-        }
-
       Ptr<ParamsTable> table3gpp;
       if (m_enableAllChannels == true)
         {
@@ -573,57 +542,39 @@ Ptr<Params3gpp> MmWave3gppChannel::DoGetChannel (Ptr<const MobilityModel> a,
                                                      input3gppParameters.GetDis2D());
         }
 
-      if (!ChannelMatrixExist (a, b)
-          || (it != GetChannelMap().end () && it->second->m_channel.size () == 0))
+      // the following code is to schedule to delete the channel matrix that we are going to create now or that we are going to update now
+      //delete the channel parameter to cause the channel to be updated again.
+      //The m_updatePeriod can be configured to be relatively large in order to disable updates.
+      if (m_updatePeriod.GetMilliSeconds () > 0)
         {
-          //delete the channel parameter to cause the channel to be updated again.
-          //The m_updatePeriod can be configured to be relatively large in order to disable updates.
-          if (m_updatePeriod.GetMilliSeconds () > 0)
-            {
-              NS_LOG_INFO ("Time " << Simulator::Now ().GetSeconds () << " schedule delete for a " << a->GetPosition () << " b " << b->GetPosition ());
-              Simulator::Schedule (m_updatePeriod, &MmWave3gppChannel::DeleteChannel,this,a,b);
-            }
+          NS_LOG_INFO ("Time " << Simulator::Now ().GetSeconds () << " schedule delete for a " << a->GetPosition () << " b " << b->GetPosition ());
+          Simulator::Schedule (m_updatePeriod, &MmWave3gppChannel::DeleteChannel,this,a,b);
         }
 
       if (it == GetChannelMap().end ())
         {
+          NS_ABORT_MSG_IF (ChannelMatrixExist(a,b), "Creating channel that already exist with inverse key order ...  this function should be called for "
+              "the forward link");
           //if the channel map is empty, we create a new channel.
           // Step 4-11 are performed in function GetNewChannel()
           NS_LOG_INFO ("Create new channel");
-          channelParams = GetNewChannel (table3gpp, a, b, input3gppParameters);
+          // insert the newcly created channel into the map of forward channels
+          GetChannelMap()[input3gppParameters.GetKey()] = GetNewChannel (table3gpp, a, b, input3gppParameters);
         }
-      else if (it->second->m_channel.size () == 0)
+      else //update because the LOS condition changed or because the channel matrix was deleted for the channel update purposes
         {
           //if the channel map is not empty, we only update the channel.
           NS_LOG_INFO ("Update forward channel consistently");
           it->second->m_input = input3gppParameters;
-          channelParams = UpdateChannel (it->second, table3gpp, a, b);
+          // insert the updated channel into the map of forward channels
+          GetChannelMap()[input3gppParameters.GetKey()] = UpdateChannel (it->second, table3gpp, a, b);
         }
-      else
-        {
-          NS_FATAL_ERROR ("AI Programming Error");
-        }
-
-      // update the channel map with the new channel params
-      GetChannelMap()[input3gppParameters.GetKey()] = channelParams;
+      return GetChannelMap()[input3gppParameters.GetKey()];
     }
-  else if (itReverse == GetChannelMap().end ()) //Find channel matrix in the forward link
-    {
-      NS_ABORT_IF (it == GetChannelMap().end());
-      channelParams = it->second;
-    }
-  else //Find channel matrix in the Reverse link
-    {
-      NS_ABORT_IF (itReverse == GetChannelMap().end());
-
-      if (ChannelMatrixNeedsUpdate (b, a, input3gppParameters.GetLos()))
-        {
-          NS_LOG_INFO("it is reverse link, but channel matrix in forward needs update!!");
-        }
-
-      channelParams = itReverse->second;
-    }
-  return channelParams;
+  else
+   {
+     return it->second;
+   }
 }
 
 Ptr<SpectrumValue>
@@ -654,22 +605,25 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
   // When there is a LOS/NLOS switch, a new uncorrelated channel is created.
   // Therefore, LOS/NLOS condition of updating is always consistent with the previous channel.
 
-  Ptr<Params3gpp> channelParams = DoGetChannel (a,b);
+  Ptr<Params3gpp> channelParams ;
 
   Ptr<NetDevice> txDevice;
   Ptr<NetDevice> rxDevice;
 
-  if (IsReverseLink(a,b))
-    {
-      NS_LOG_INFO ("is reverse link");
-      txDevice = b->GetObject<Node> ()->GetDevice (0);
-      rxDevice = a->GetObject<Node> ()->GetDevice (0);
-    }
-  else
+  // is the chanel created as forward link or maybe still does not exist yet
+  if (IsCreatedAsForwardLink(a,b) || !ChannelMatrixExist(a, b))
     {
       NS_LOG_INFO ("is forward link");
       txDevice = a->GetObject<Node> ()->GetDevice (0);
       rxDevice = b->GetObject<Node> ()->GetDevice (0);
+      channelParams = DoGetChannel (a, b);
+    }
+  else
+    {
+      NS_LOG_INFO ("is reverse link");
+      txDevice = b->GetObject<Node> ()->GetDevice (0);
+      rxDevice = a->GetObject<Node> ()->GetDevice (0);
+      channelParams = DoGetChannel (b,a);
     }
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
@@ -718,7 +672,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 
   SpectrumValue bfGain = (*bfPsd) / (*rxPsd);
   uint8_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
-  if (!IsReverseLink (a, b ))
+  if (IsCreatedAsForwardLink(a, b))
     {
       NS_LOG_DEBUG ("****** DL BF gain == " << Sum (bfGain) / nbands <<
                     " RX PSD " << Sum (*rxPsd) / nbands <<
@@ -743,20 +697,23 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
 
   NS_ABORT_MSG_IF (a->GetDistanceFrom(b) == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
-  Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
+  Ptr<Params3gpp> params3gpp;
 
   Ptr<NetDevice> txDevice;
   Ptr<NetDevice> rxDevice;
 
-  if (IsReverseLink(a,b))
-    {
-      txDevice = b->GetObject<Node> ()->GetDevice (0);
-      rxDevice = a->GetObject<Node> ()->GetDevice (0);
-    }
-  else
+  // is the chanel created as forward link or maybe still does not exist yet
+  if (IsCreatedAsForwardLink(a,b) || !ChannelMatrixExist(a, b))
     {
       txDevice = a->GetObject<Node> ()->GetDevice (0);
       rxDevice = b->GetObject<Node> ()->GetDevice (0);
+      params3gpp = DoGetChannel (a, b);
+    }
+  else
+    {
+      txDevice = b->GetObject<Node> ()->GetDevice (0);
+      rxDevice = a->GetObject<Node> ()->GetDevice (0);
+      params3gpp = DoGetChannel (b, a);
     }
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
@@ -1272,6 +1229,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
 {
 
   NS_LOG_FUNCTION (this);
+
   Ptr<NetDevice> txDevice = a->GetObject<Node> ()->GetDevice (0);
   Ptr<NetDevice> rxDevice = b->GetObject<Node> ()->GetDevice (0);
 
@@ -2689,20 +2647,21 @@ MmWave3gppChannel::GetAntennaArray (Ptr<NetDevice> device) const
   return m_deviceToAntennaArray.find (device)->second;
 }
 
-
-bool MmWave3gppChannel::IsReverseLink (Ptr<const MobilityModel> a,
+// Forward link corresponds to the channel that is first created between a and b,
+// if first is created a to b then a->b is the forward link between a and b
+// if first is created b to a then b->a is the forward link between a and b
+bool MmWave3gppChannel::IsCreatedAsForwardLink (Ptr<const MobilityModel> a,
                                        Ptr<const MobilityModel> b) const
 {
   NS_LOG_FUNCTION (this);
-  key_t keyReverse = std::make_pair (b->GetObject<Node> ()->GetDevice (0),
-                                     a->GetObject<Node> ()->GetDevice (0));
-  bool reverseLink = false;
+  key_t key = std::make_pair (a->GetObject<Node> ()->GetDevice (0),
+                                     b->GetObject<Node> ()->GetDevice (0));
 
-  if (GetChannelMap().find (keyReverse) != GetChannelMap().end ())
+  if (GetChannelMap().find (key) != GetChannelMap().end ())
     {
-      reverseLink = true;
+      return true;
     }
-  return reverseLink;
+  return false;
 }
 
 
@@ -2731,20 +2690,23 @@ MmWave3gppChannel::BeamSearchBeamforming (Ptr<const MobilityModel> a,
 
   NS_ABORT_MSG_IF (a->GetDistanceFrom(b) == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
-  Ptr<Params3gpp> params3gpp = DoGetChannel (a, b);
+  Ptr<Params3gpp> params3gpp;
 
   Ptr<NetDevice> txDevice;
   Ptr<NetDevice> rxDevice;
 
-  if (IsReverseLink(a,b))
-    {
-      txDevice = b->GetObject<Node> ()->GetDevice (0);
-      rxDevice = a->GetObject<Node> ()->GetDevice (0);
-    }
-  else
+  // is the chanel created as forward link or maybe still does not exist yet
+  if (IsCreatedAsForwardLink(a,b) || !ChannelMatrixExist(a, b))
     {
       txDevice = a->GetObject<Node> ()->GetDevice (0);
       rxDevice = b->GetObject<Node> ()->GetDevice (0);
+      params3gpp = DoGetChannel (a, b);
+    }
+  else
+    {
+      txDevice = b->GetObject<Node> ()->GetDevice (0);
+      rxDevice = a->GetObject<Node> ()->GetDevice (0);
+      params3gpp = DoGetChannel (b, a);
     }
 
   Ptr<AntennaArrayBasicModel> txAntennaArray = GetAntennaArray (txDevice);
