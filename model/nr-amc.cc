@@ -65,7 +65,7 @@ NrAmc::GetTypeId (void)
     .SetParent<Object> ()
     .AddConstructor<NrAmc> ()
     .AddAttribute ("Ber",
-                   "The requested BER in assigning MCS (default is 0.00005). Only used with Piro model",
+                   "The requested BER in assigning MCS (default is 0.00005). Only used with ShannonModel",
                    DoubleValue (0.00005),
                    MakeDoubleAccessor (&NrAmc::m_ber),
                    MakeDoubleChecker<double> ())
@@ -74,7 +74,7 @@ NrAmc::GetTypeId (void)
                    EnumValue (NrAmc::ErrorModel),
                    MakeEnumAccessor (&NrAmc::m_amcModel),
                    MakeEnumChecker (NrAmc::ErrorModel, "ErrorModel",
-                                    NrAmc::PiroEW2010, "PiroEW2010"))
+                                    NrAmc::ShannonModel, "ShannonModel"))
     .AddAttribute ("ErrorModelType",
                    "Type of the Error Model to use when AmcModel is set to ErrorModel",
                    TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
@@ -162,9 +162,9 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
   double cqiAvg = 0;
 
   Values::const_iterator it;
-  if (m_amcModel == PiroEW2010)
+  if (m_amcModel == ShannonModel)
     {
-      //use PiroEW2010 model
+      //use shannon model
       uint32_t rbNum = 0;
       for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
         {

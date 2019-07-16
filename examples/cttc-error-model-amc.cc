@@ -185,7 +185,7 @@ main (int argc, char *argv[])
     }
 
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ErrorModel));  // NrAmc::PiroEW2010 or NrAmc::ErrorModel
+  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ErrorModel));  // NrAmc::ShannonModel or NrAmc::ErrorModel
 
   Config::SetDefault("ns3::MmWaveSpectrumPhy::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
 

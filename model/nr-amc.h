@@ -29,10 +29,10 @@ namespace ns3 {
  * \brief Adaptive Modulation and Coding class for the NR module
  *
  * The class has two option to calculate the CQI feedback (which is the MCS to use
- * in the future transmissions): the PIRO model or the "ErrorModel" model,
+ * in the future transmissions): the "ShannonModel" or the "ErrorModel" model,
  * which uses the output of an error model to find the optimal MCS.
  *
- * Please note that it is necessary, even when using the PIRO model, to correctly
+ * Please note that it is necessary, even when using the ShannonModel, to correctly
  * configure the ErrorModel type, which must be the same as the one set in the
  * MmWaveSpectrumPhy class.
  */
@@ -67,7 +67,7 @@ public:
    */
   enum AmcModel
   {
-    PiroEW2010, //!< Piro version (very conservative)
+    ShannonModel, //!< Shannon based model (very conservative)
     ErrorModel  //!< Error Model version (can use different error models, see NrErrorModel)
   };
 
@@ -129,7 +129,7 @@ public:
   uint32_t GetMaxMcs () const;
 
 private:
-  double m_ber;             //!< Piro model reference BER
+  double m_ber;             //!< Shannon based model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
   Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< Pointer to PHY-MAC config
   Ptr<NrErrorModel> m_errorModel;         //!< Pointer to an instance of ErrorModel

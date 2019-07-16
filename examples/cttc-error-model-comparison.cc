@@ -70,7 +70,7 @@ main (int argc, char *argv[])
     }
 
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::PiroEW2010));
+  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
 
 
   Ptr<MmWavePhyMacCommon> config = CreateObject<MmWavePhyMacCommon> ();
