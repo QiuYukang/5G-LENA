@@ -91,7 +91,7 @@ main (int argc, char *argv[])
   double bandwidthBwp1 = 100e6;
   double ueY = 30.0;
 
-  double simTime = 10.0; // seconds
+  double simTime = 50.0; // seconds
   uint32_t pktSize = 500;
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
@@ -102,6 +102,7 @@ main (int argc, char *argv[])
 
   std::string errorModel = "ns3::NrEesmErrorModel";
   uint32_t eesmTable = 1;
+  std::string harqMethod = "HarqIr";
 
   CommandLine cmd;
 
@@ -140,6 +141,9 @@ main (int argc, char *argv[])
   cmd.AddValue("pktSize",
                "Packet Size",
                pktSize);
+  cmd.AddValue("harqMethod",
+               "The HARQ method to be used in case of Eesm (HarqCc or HarqIr)",
+               harqMethod);
 
   cmd.Parse (argc, argv);
 
@@ -168,7 +172,19 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsUl", BooleanValue(true));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (mcs));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
-  Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
+
+  if (harqMethod == "HarqCc")
+    {
+      Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
+    }
+  else if (harqMethod == "HarqIr")
+    {
+      Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqIr));
+    }
+  else
+    {
+      NS_FATAL_ERROR ("HARQ method not valid, you set " << harqMethod);
+    }
 
   Config::SetDefault ("ns3::MmWave3gppChannel::EnableAllChannels", BooleanValue (true));
   Config::SetDefault ("ns3::MmWaveSpectrumPhy::EnableAllInterferences", BooleanValue (true));
@@ -352,11 +368,12 @@ main (int argc, char *argv[])
           cont++;
           //std::cerr << "Packet latency: " << v << std::endl;
         }
+      //std::cerr << "Packet latency: " << v << std::endl;
     }
   //std::cerr << "Packets received: " << packetsTime.size () << std::endl;
   //std::cerr << "Counter: " << +cont << std::endl;
 
-  if (packetsTime.size () > 0)
+  if (packetsTime.size () > 0 && cont > 0)
     {
       //std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
       std::cerr << "Average e2e latency: " << sum / cont << " us" << std::endl;

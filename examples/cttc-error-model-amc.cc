@@ -122,7 +122,7 @@ main (int argc, char *argv[])
                "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
                eesmTable);
   cmd.AddValue("harqMethod",
-               "The HARQ method to be used in case of Eesm (NrEesmErrorModel::HarqCc or NrEesmErrorModel::HarqIr)",
+               "The HARQ method to be used in case of Eesm (HarqCc or HarqIr)",
                harqMethod);
   cmd.AddValue("ueY",
                "Y position of any UE",
