@@ -354,7 +354,7 @@ main (int argc, char *argv[])
   std::cerr << "Packets received: " << packetsTime.size () << std::endl;
   std::cerr << "Counter: " << +cont << std::endl;
 
-  if (packetsTime.size () > 0)
+  if (packetsTime.size () > 0 && cont > 0)
     {
       //std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
       std::cerr << "Average e2e latency: " << sum / cont << " us" << std::endl;
