@@ -121,7 +121,7 @@ MmWaveUePhy::GetTypeId (void)
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("LBTThresholdForCtrl",
                    "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
-                   TimeValue (MicroSeconds (16)),
+                   TimeValue (MicroSeconds (25)),
                    MakeTimeAccessor (&MmWaveUePhy::m_lbtThresholdForCtrl),
                    MakeTimeChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
