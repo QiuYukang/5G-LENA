@@ -147,13 +147,6 @@ NrAlwaysOnAccessManager::SetAccessDeniedCallback(const NrChAccessManager::Access
 }
 
 void
-NrAlwaysOnAccessManager::ReleaseGrant ()
-{
-  NS_LOG_FUNCTION (this);
-  // Do nothing, we are always on..
-}
-
-void
 NrAlwaysOnAccessManager::Cancel ()
 {
   NS_LOG_FUNCTION (this);

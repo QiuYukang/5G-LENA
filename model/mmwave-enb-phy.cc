@@ -874,7 +874,6 @@ MmWaveEnbPhy::EndSlot (void)
   if (m_channelStatus == TO_LOSE)
     {
       NS_LOG_INFO ("Release the channel because we did not have any data to maintain the grant");
-      m_cam->ReleaseGrant ();
       m_channelStatus = NONE;
       m_channelLostTimer.Cancel ();
     }
@@ -1212,7 +1211,6 @@ MmWaveEnbPhy::ChannelAccessGranted (const Time &time)
   if (time < m_phyMacConfig->GetSlotPeriod ())
     {
       NS_LOG_INFO ("Channel granted for less than the slot time. Ignoring the grant.");
-      m_cam->ReleaseGrant ();
       m_channelStatus = NONE;
       return;
     }

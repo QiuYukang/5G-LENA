@@ -82,11 +82,6 @@ public:
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) = 0;
   virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) = 0;
 
-  /**
-   * @brief ReleaseGrant
-   */
-  virtual void ReleaseGrant () = 0;
-
   virtual void Cancel () = 0;
 
   /**
@@ -135,7 +130,6 @@ public:
   virtual void RequestAccess () override;
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) override;
   virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) override;
-  virtual void ReleaseGrant () override;
   virtual void Cancel () override;
 
 private:
