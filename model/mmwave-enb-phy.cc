@@ -284,6 +284,7 @@ void
 MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_channelStatus != TO_LOSE);
 
   m_frameNum = frameNum;
   m_subframeNum = sfNum;
@@ -422,6 +423,37 @@ void MmWaveEnbPhy::DoStartSlot ()
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_ctrlMsgs.size () == 0);
   NS_LOG_INFO ("Gnb Start Slot: " << m_currSlotAllocInfo);
+
+  NS_ASSERT (m_channelStatus == GRANTED);
+  // The channel is granted, we have to check if we maintain it for the next
+  // slot or we have to release it.
+
+  // Assuming the scheduler assign contiguos symbol
+  uint8_t lastDlSymbol = 0;
+  for (auto & dci : m_currSlotAllocInfo.m_varTtiAllocInfo)
+    {
+      if (dci.m_dci->m_type == DciInfoElementTdma::DATA && dci.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          lastDlSymbol = std::max (lastDlSymbol,
+                                   static_cast<uint8_t> (dci.m_dci->m_symStart + dci.m_dci->m_numSym));
+        }
+    }
+
+  Time lastDataTime = m_phyMacConfig->GetSymbolPeriod() * lastDlSymbol;
+
+  if (m_phyMacConfig->GetSlotPeriod () - lastDataTime > MicroSeconds (25))
+    {
+      NS_LOG_INFO ("Last symbol of data: " << +lastDlSymbol << ", to the end of slot we still have " <<
+                   (m_phyMacConfig->GetSlotPeriod () - lastDataTime).GetMicroSeconds() <<
+                   " us, so we're going to lose the channel");
+      m_channelStatus = TO_LOSE;
+    }
+  else
+    {
+      NS_LOG_INFO ("Last symbol of data: " << +lastDlSymbol << ", to the end of slot we still have " <<
+                   (m_phyMacConfig->GetSlotPeriod () - lastDataTime).GetMicroSeconds() <<
+                   " us, so we're NOT going to lose the channel");
+    }
 
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
@@ -839,6 +871,13 @@ MmWaveEnbPhy::EndSlot (void)
 
   Time slotStart = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () - Simulator::Now ();
 
+  if (m_channelStatus == TO_LOSE)
+    {
+      NS_LOG_INFO ("Release the channel because we did not have any data to maintain the grant");
+      m_channelStatus = NONE;
+      m_channelLostTimer.Cancel ();
+    }
+
   NS_ASSERT_MSG (slotStart > MilliSeconds (0),
                  "lastStart=" << m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () <<
                  " now " <<  Simulator::Now () << " slotStart value" << slotStart);
@@ -979,6 +1018,16 @@ void
 MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList)
 {
   NS_LOG_FUNCTION (this);
+
+  // If I have received UL CTRL messages, and I was about to lose the channel,
+  // I can reuse through the cot gained by the UE.
+  // We maintain the total timer in m_channelLostTimer: when our first calculated
+  // MCOT expires, we release the channel anyway.
+  //if (msgList.size () > 0 && m_channelStatus == TO_LOSE)
+   // {
+   //   NS_LOG_INFO ("Received " << msgList.size() << " CTRL msgs, channel gained again");
+  //    m_channelStatus = GRANTED;
+   // }
 
   auto ctrlIt = msgList.begin ();
 
@@ -1169,6 +1218,7 @@ MmWaveEnbPhy::ChannelAccessGranted (const Time &time)
                m_phyMacConfig->GetSlotPeriod() << " ms. We lost " <<
                toNextSlot.GetMilliSeconds() << " ms. ");
   NS_LOG_DEBUG ("Channel access granted for " << slotGranted << " slot");
+  NS_ASSERT(! m_channelLostTimer.IsRunning ());
   m_channelLostTimer = Simulator::Schedule (m_phyMacConfig->GetSlotPeriod () * slotGranted - NanoSeconds (1),
                                             &MmWaveEnbPhy::ChannelAccessLost, this);
 }

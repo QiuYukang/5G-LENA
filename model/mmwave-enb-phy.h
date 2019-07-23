@@ -366,7 +366,8 @@ private:
   {
     NONE,        //!< The PHY doesn't know the channel status
     REQUESTED,   //!< The PHY requested channel access
-    GRANTED      //!< The PHY has the channel, it can transmit
+    GRANTED,      //!< The PHY has the channel, it can transmit
+    TO_LOSE
   };
 
   ChannelStatus m_channelStatus {NONE}; //!< The channel status
