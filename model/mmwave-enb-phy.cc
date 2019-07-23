@@ -874,6 +874,7 @@ MmWaveEnbPhy::EndSlot (void)
   if (m_channelStatus == TO_LOSE)
     {
       NS_LOG_INFO ("Release the channel because we did not have any data to maintain the grant");
+      m_cam->ReleaseGrant ();
       m_channelStatus = NONE;
       m_channelLostTimer.Cancel ();
     }
@@ -1207,6 +1208,15 @@ void
 MmWaveEnbPhy::ChannelAccessGranted (const Time &time)
 {
   NS_LOG_FUNCTION (this);
+
+  if (time < m_phyMacConfig->GetSlotPeriod ())
+    {
+      NS_LOG_INFO ("Channel granted for less than the slot time. Ignoring the grant.");
+      m_cam->ReleaseGrant ();
+      m_channelStatus = NONE;
+      return;
+    }
+
   m_channelStatus = GRANTED;
 
   Time toNextSlot = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () - Simulator::Now ();
@@ -1219,6 +1229,8 @@ MmWaveEnbPhy::ChannelAccessGranted (const Time &time)
                toNextSlot.GetMilliSeconds() << " ms. ");
   NS_LOG_DEBUG ("Channel access granted for " << slotGranted << " slot");
   NS_ASSERT(! m_channelLostTimer.IsRunning ());
+
+  slotGranted = std::max (1L, slotGranted);
   m_channelLostTimer = Simulator::Schedule (m_phyMacConfig->GetSlotPeriod () * slotGranted - NanoSeconds (1),
                                             &MmWaveEnbPhy::ChannelAccessLost, this);
 }
