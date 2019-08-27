@@ -110,6 +110,31 @@ $ ./waf
 
 If that command returns successfully, Welcome to the NR world !
 
+\section upgrade Upgrading 5G-LENA
+
+We assume that your work lives in a separate branch, and that the 'master'
+branch of the NR repository is left untouched as the first time you downloaded
+it. If it is not the case, then please move all your work in a separate branch.
+
+A vanilla 'master' branch can be updated by simply running:
+
+\code{.sh}
+$ cd ns-3-dev/src/nr
+$ git checkout master
+$ git pull
+\endcode
+
+At each release, we will incorporate into the master branch all the work that
+is meant to be released.
+
+For what regards ns-3-dev (the main directory in which, under src/ or contrib/,
+you saved the NR module) the story is a bit different. Since we often rewrite
+its history to keep pace with ns-3-dev plus our patches to LTE that have not been
+accepted in the mainline, it is possible that with a simple `git pull` it will
+not upgrade correctly. What we suggest is, if the `git pull` strategy leads to
+conflicts, to download again our ns-3-dev repository, following the instructions
+at the beginning of this file (the repository is gitlab.com:cttc-lena/ns-3-dev.git).
+
 \section getting-started-tutorial ns-3 tutorials
 
 If it is the first time you work with the ns-3 environment, we recommend to take

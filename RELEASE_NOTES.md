@@ -34,9 +34,47 @@ This release has been tested on the following platforms:
 New user-visible features (old first)
 -------------------------
 
+Bugs fixed
+----------
+
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+Release NR-v0.3
+--------------
+
+Availability
+------------
+This release is not yet available.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note:  not all features available on all platforms):
+
+- g++-4.9 or later
+- Apple LLVM version 7.0.2 or later
+- clang-3.3 or later
+
+In addition, Python 2.7 (Python 2 series) or Python 3.4-3.7 (Python 3 series)
+
+This release has been tested on the following platforms:
+- ArchLinux 2018.10.08 with g++-8.2.1 and Python 3.7.1
+- Ubuntu 16.04 (64 bit) with g++-5.4.0 and Python 2.7.12/3.5.2
+
+New user-visible features (old first)
+-------------------------
+
 - (error model) Added the NrEesmErrorModel class. It models the NR PHY
 abstraction according to LDPC coding, block segmentation, and including
-MCS/CQI table 1 and 2.
+MCS/CQI table 1 and 2. The user can select the HARQ method (HarqCc or HarqIr)
+as well as the MCS/CQI table of NR to be used (McsTable1 or McsTable2), through
+new attributes. In this release, the BLER-SINR tables are not completed yet,
+and so it is recommended not to use this error model.
 
 - (3gpp channel model) 3gppChannelModel can now be used by any other module,
 i.e. it is not any more mmwave specific spectrum propagation model. This means
@@ -51,15 +89,21 @@ and it is now a duty of the NetDevice. The gNB phy has now a new attribute to
 configure the periodicity of the beamforming. Please note that it is still ideal,
 i.e., it does not require any simulated time to be performed.
 
+- (3gpp channel model) gNB-gNB and UE-UE pathloss and channel computation can be
+allowed (through a new attribute) for Indoor Hotspot scenarios.
+
+- (spectrum phy) gNB-gNB and UE-UE interferences can be enabled (through a new
+attribute).
+
 - (RRC) Now all carriers are registered to RRC, to transmit system information
 through all the bandwidth parts.
 
 - (SCHED) The scheduler now is informed of RACH preamble messages, and reserve
-  some space in the DL CTRL symbol to send the RAR messages.
+some space in the DL CTRL symbol to send the RAR messages.
 
 - Added traces that indicate the transmission or the reception of CTRL
-  messages. For instance, take a look to *EnbMacRxedCtrlMsgsTrace* or
-  *EnbMacTxedCtrlMsgsTrace* in the Gnb MAC file. 
+messages. For instance, take a look to *EnbMacRxedCtrlMsgsTrace* or
+*EnbMacTxedCtrlMsgsTrace* in the Gnb MAC file.
 
 Bugs fixed
 ----------

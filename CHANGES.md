@@ -44,7 +44,17 @@ us a note on ns-developers mailing list.
 
 ---
 
-## Changes from NR-v0.2 to NR-dev
+## Changes from NR-v0.3 to NR-dev
+
+### New API:
+
+### Changes to existing API:
+
+### Changed behavior:
+
+---
+
+## Changes from NR-v0.2 to NR-v0.3
 
 ### New API:
 
@@ -54,7 +64,10 @@ MmWaveSpectrumPhy.
 sync with the attribute *ErrorModelType* of MmWaveSpectrumPhy
 * Added attribute *ErrorModelType* to the class MmWaveSpectrumPhy
 * Added class NrEesmErrorModel to model the NR PHY abstraction according to LDPC
-coding, block segmentation, and including MCS/CQI table 1 and 2.
+coding, block segmentation, and including MCS/CQI table 1 and 2. It has an attribute
+to select the HARQ method (HarqCc or HarqIr) and another attribute to select the
+MCS/CQI table of NR to be used (McsTable1 or McsTable2). In this release, the
+BLER-SINR are not completed yet, and so it is recommended not to use this model.
 * Added attributes AntennaNumDim1, AntennaNumDim2, AntennaArrayType to
 MmWaveEnbPhy and MmWaveUePhy. And these two classes are responsible for an
 antenna array installation. This means that there is an instance of
@@ -82,7 +95,12 @@ of this beamforming depends on the value of the new attribute *BeamformingPeriod
 of the class MmWaveEnbPhy
 * MmWaveSpectrumPhy now has two more traces: TxCtrlTrace and TxDataTrace, to extract
 information about how the channel is occupied
-* Now MmWaveSpectrumPhy can enable interference for all links, also UE->UE and GNB->GNB
+* Now MmWaveSpectrumPhy can enable interference for all links, also UE->UE and GNB->GNB,
+configured through the attribute EnableAllInterferences.
+* Now MmWave3gppChannel can enable generation of propagation losses for all links,
+also UE->UE and GNB->GNB, configured through the attribute EnableAllChannels. This
+feature, nowadays, applies *only* to Indoor Hotspot scenarios, for which the 3GPP pathloss
+model is valid.
 * Introduced Listen-Before-Talk after MAC. The interface of a channel access manager
 is inside the file *nr-ch-access-manager.h*.
 
@@ -115,14 +133,15 @@ only mmwave specific spectrum propagation model. This means that any subclass
 of NetDevice can be attached to a channel using this SpectrumPropagationModel.
 An additional requirement is that the technology uses AntennaModel that is
 implementing AntennaArrayBasicModel interface. The
-dependencies from mmwave module-specific classes are removed, e.g. dependency on MmWaveEnbNetDevice, MmWaveUeNetDevice, MmWaveUePhy, MmWaveEnbPhy.
+dependencies from mmwave module-specific classes are removed, e.g. dependency on
+MmWaveEnbNetDevice, MmWaveUeNetDevice, MmWaveUePhy, MmWaveEnbPhy.
 * Removed MmWaveMacSchedulerNs3 attribute McsDefaultDl/McsDefaultUl. Its
 functionality is now taken by the attribute StartingMcsDl/StartingMcsUl
 * Renamed MmWavePointToPointEpcHelper into NrPointToPointEpcHelper. All
 attributes that before were in the form "ns3::MmWavePointToPointEpcHelper"
 must now be referred to "ns3::PointToPointEpcHelper". In fact, NrPointToPointEpcHelper
 is now inheriting from PointToPointEpcHelper.
-* AntennaArrayModel has the beamforming vector that emulates omni reception and 
+* AntennaArrayModel has the beamforming vector that emulates omni reception and
 transmission.
 * Removed attribute *BeamformingEnabled* and *UpdateBeamformingVectorsIdeally*
 from MmWave3gppChannel.
@@ -130,6 +149,7 @@ from MmWave3gppChannel.
 CCManager is now BwpManagerGnb.
 * Removed attribute *UeComponentCarrierManager* from MmWaveHelper. The only allowed
 manager is now UeManagerGnb.
+* Removed attribute *Bandwidth* from MmWave3gppChannel.
 
 ### Changed behavior:
 * BeamSearchBeamforming and LongTermCovMatrixBeamforming functions of
@@ -138,8 +158,8 @@ that the update of the beamforming vectors can be triggered at any time and
 does not have to be related to the channel update event.
 * TxPower default value for a UE passed from 30.0 dBm to 2.0 dBm
 * TxPower default value for a gNb passed from 30.0 dBm to 2.0 dBm
-* MmWave3gppChannel supports calculation of the beamforming gain when one of 
-devices is in omni mode. This is possible because AntennaArrayModel has new 
+* MmWave3gppChannel supports calculation of the beamforming gain when one of
+devices is in omni mode. This is possible because AntennaArrayModel has new
 beamforming vector that emulates omni reception and transmission.
 * The Slot Indication is asked to the MAC at the beginning of the slot, before
 doing everything else at PHY level.
