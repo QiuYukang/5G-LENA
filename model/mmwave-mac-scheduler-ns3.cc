@@ -1653,27 +1653,23 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
   GetSecond GetUeInfoList;
   for (const auto & alloc : allocInfo->m_varTtiAllocInfo)
     {
-      for (auto it = activeUlUe.begin(); it != activeUlUe.end (); /* no incr */)
+      for (auto it = activeUlUe.begin(); it != activeUlUe.end (); ++it)
         {
-          bool found = false;
-          for (const auto & ueInfo : GetUeInfoList (*it))
+          auto & ueInfos = GetUeInfoList(*it);
+          for (auto ueIt = ueInfos.begin(); ueIt != ueInfos.end(); /* no incr */)
             {
               GetFirst GetUeInfoPtr;
-              if (GetUeInfoPtr (ueInfo)->m_rnti == alloc.m_dci->m_rnti)
+              if (GetUeInfoPtr (*ueIt)->m_rnti == alloc.m_dci->m_rnti)
                 {
                   NS_LOG_INFO ("Removed RNTI " << alloc.m_dci->m_rnti << " from active ue list "
                                "because it has already an HARQ scheduled");
-                  found = true;
+                  ueInfos.erase (ueIt);
                   break;
                 }
-            }
-          if (!found)
-            {
-              ++it;
-            }
-          else
-            {
-              it = activeUlUe.erase (it);
+              else
+                {
+                  ++ueIt;
+                }
             }
         }
     }
@@ -1781,27 +1777,23 @@ MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedb
 
   for (const auto & alloc : allocInfo->m_varTtiAllocInfo)
     {
-      for (auto it = activeDlUe->begin(); it != activeDlUe->end (); /* no incr */)
+      for (auto it = activeDlUe->begin(); it != activeDlUe->end (); ++it)
         {
-          bool found = false;
-          for (const auto & ueInfo : GetUeInfoList (*it))
+          auto & ueInfos = GetUeInfoList(*it);
+          for (auto ueIt = ueInfos.begin(); ueIt != ueInfos.end(); /* no incr */)
             {
               GetFirst GetUeInfoPtr;
-              if (GetUeInfoPtr (ueInfo)->m_rnti == alloc.m_dci->m_rnti)
+              if (GetUeInfoPtr (*ueIt)->m_rnti == alloc.m_dci->m_rnti)
                 {
                   NS_LOG_INFO ("Removed RNTI " << alloc.m_dci->m_rnti << " from active ue list "
                                "because it has already an HARQ scheduled");
-                  found = true;
+                  ueInfos.erase (ueIt);
                   break;
                 }
-            }
-          if (!found)
-            {
-              ++it;
-            }
-          else
-            {
-              it = activeDlUe->erase (it);
+              else
+                {
+                  ++ueIt;
+                }
             }
         }
     }
