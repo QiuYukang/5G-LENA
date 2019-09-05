@@ -883,13 +883,13 @@ MmWave3gppChannel::LongTermCovMatrixBeamforming (Ptr<const MobilityModel> a,
 
 Ptr<SpectrumValue>
 MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
-                                       complex3DVector_t channel,
-                                       complexVector_t longTerm,
-                                       complexVector_t txW,
-                                       complexVector_t rxW,
-                                       doubleVector_t delaySpread,
-                                       double2DVector_t angle,
-                                       Vector speed) const
+                                       const complex3DVector_t& channel,
+                                       const complexVector_t& longTerm,
+                                       const complexVector_t& txW,
+                                       const complexVector_t& rxW,
+                                       const doubleVector_t& delaySpread,
+                                       const double2DVector_t& angle,
+                                       const Vector& speed) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -926,6 +926,7 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
   uint16_t iSubband = 0;
   double varTtiTime = Simulator::Now ().GetSeconds ();
   complexVector_t doppler;
+  doppler.reserve(numCluster);
   for (size_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
       //cluster angle angle[direction][n],where, direction = 0(aoa), 1(zoa).
@@ -937,9 +938,10 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
 
     }
 
+  std::complex<double> subsbandGain (0.0,0.0);
   while (vit != tempPsd->ValuesEnd ())
     {
-      std::complex<double> subsbandGain (0.0,0.0);
+      subsbandGain = 0;
       if ((*vit) != 0.00)
         {
           double fsb = (*sbit).fc; // take the carrier frequency of the band for which we al calculating the gain
@@ -950,9 +952,9 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
             }
           *vit = (*vit) * (norm (subsbandGain));
         }
-      vit++;
-      sbit++;
-      iSubband++;
+      ++vit;
+      ++sbit;
+      ++iSubband;
     }
   return tempPsd;
 }
@@ -984,8 +986,8 @@ MmWave3gppChannel::SetPathlossModel (Ptr<PropagationLossModel> pathloss)
 }
 
 complexVector_t
-MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW,
-                                doubleVector_t delayClusters, complex3DVector_t& Husn) const
+MmWave3gppChannel::CalLongTerm (const complexVector_t& txW, const complexVector_t& rxW,
+                                const doubleVector_t& delayClusters, const complex3DVector_t& Husn) const
 {
   NS_LOG_INFO ("CalLongTerm with params: txW " << txW << std::endl <<
                " rxW " << rxW);
@@ -994,22 +996,22 @@ MmWave3gppChannel::CalLongTerm (complexVector_t txW, complexVector_t rxW,
   size_t rxAntennaNum = rxW.size ();
   //store the long term part to reduce computation load
   //only the small scale fading is need to be updated if the large scale parameters and antenna weights remain unchanged.
-  complexVector_t longTerm;
   size_t numCluster = delayClusters.size ();
+  complexVector_t longTerm(numCluster);
 
+  std::complex<double> rxSum (0,0);
   for (size_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
-      std::complex<double> txSum (0,0);
+      std::complex<double>& txSum = longTerm[cIndex];
       for (size_t txIndex = 0; txIndex < txAntennaNum; txIndex++)
         {
-          std::complex<double> rxSum (0,0);
+          rxSum = 0;
           for (size_t rxIndex = 0; rxIndex < rxAntennaNum; rxIndex++)
             {
               rxSum = rxSum + std::conj (rxW.at (rxIndex)) * Husn.at (rxIndex).at (txIndex).at (cIndex);
             }
           txSum = txSum + txW.at (txIndex) * rxSum;
         }
-      longTerm.push_back (txSum);
     }
   NS_ABORT_MSG_IF (longTerm.size() == 0,"Long-term matrix is empty.");
 
