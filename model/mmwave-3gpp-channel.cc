@@ -911,11 +911,11 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
 
   Ptr<SpectrumValue> tempPsd = Copy<SpectrumValue> (txPsd);
 
-  NS_ABORT_MSG_UNLESS (delaySpread.size()==channel.at(0).at(0).size(), "the cluster number of channel and delay spread should be the same");
-  NS_ABORT_MSG_UNLESS (txW.size()==channel.at(0).size(), "the tx antenna size of channel and antenna weights should be the same");
+  NS_ABORT_MSG_UNLESS (delaySpread.size()==channel[0][0].size(), "the cluster number of channel and delay spread should be the same");
+  NS_ABORT_MSG_UNLESS (txW.size()==channel[0].size(), "the tx antenna size of channel and antenna weights should be the same");
   NS_ABORT_MSG_UNLESS (rxW.size()==channel.size(), "the rx antenna size of channel and antenna weights should be the same");
-  NS_ABORT_MSG_UNLESS (angle.at(0).size()==channel.at(0).at(0).size(), "the cluster number of channel and AOA should be the same");
-  NS_ABORT_MSG_UNLESS (angle.at(1).size()==channel.at(0).at(0).size(), "the cluster number of channel and ZOA should be the same");
+  NS_ABORT_MSG_UNLESS (angle[0].size()==channel[0][0].size(), "the cluster number of channel and AOA should be the same");
+  NS_ABORT_MSG_UNLESS (angle[0].size()==channel[0][0].size(), "the cluster number of channel and ZOA should be the same");
 
   //channel[rx][tx][cluster]
   size_t numCluster = delaySpread.size ();
@@ -930,9 +930,9 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
   for (size_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
       //cluster angle angle[direction][n],where, direction = 0(aoa), 1(zoa).
-      double temp_doppler = 2 * M_PI * (sin (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * cos (angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.x
-                                        + sin (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * sin (angle.at (AOA_INDEX).at (cIndex) * M_PI / 180) * speed.y
-                                        + cos (angle.at (ZOA_INDEX).at (cIndex) * M_PI / 180) * speed.z) * varTtiTime *
+      double temp_doppler = 2 * M_PI * (sin (angle[ZOA_INDEX][cIndex] * M_PI / 180) * cos (angle[AOA_INDEX][cIndex] * M_PI / 180) * speed.x
+                                        + sin (angle[ZOA_INDEX][cIndex] * M_PI / 180) * sin (angle[AOA_INDEX][cIndex] * M_PI / 180) * speed.y
+                                        + cos (angle[ZOA_INDEX][cIndex] * M_PI / 180) * speed.z) * varTtiTime *
                                             m_centerFrequency / 3e8;
       doppler.push_back (exp (std::complex<double> (0, temp_doppler)));
 
@@ -947,8 +947,8 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
           double fsb = (*sbit).fc; // take the carrier frequency of the band for which we al calculating the gain
           for (size_t cIndex = 0; cIndex < numCluster; cIndex++) // calculate for this subband for all the clusters
             {
-              double delay = -2 * M_PI * fsb * (delaySpread.at (cIndex));
-              subsbandGain = subsbandGain + longTerm.at (cIndex) * doppler.at (cIndex) * exp (std::complex<double> (0, delay));
+              double delay = -2 * M_PI * fsb * (delaySpread[cIndex]);
+              subsbandGain = subsbandGain + longTerm[cIndex] * doppler[cIndex] * exp (std::complex<double> (0, delay));
             }
           *vit = (*vit) * (norm (subsbandGain));
         }
@@ -1008,9 +1008,9 @@ MmWave3gppChannel::CalLongTerm (const complexVector_t& txW, const complexVector_
           rxSum = 0;
           for (size_t rxIndex = 0; rxIndex < rxAntennaNum; rxIndex++)
             {
-              rxSum = rxSum + std::conj (rxW.at (rxIndex)) * Husn.at (rxIndex).at (txIndex).at (cIndex);
+              rxSum = rxSum + std::conj (rxW[rxIndex]) * Husn[rxIndex][txIndex][cIndex];
             }
-          txSum = txSum + txW.at (txIndex) * rxSum;
+          txSum = txSum + txW[txIndex] * rxSum;
         }
     }
   NS_ABORT_MSG_IF (longTerm.size() == 0,"Long-term matrix is empty.");
@@ -1289,7 +1289,7 @@ MmWave3gppChannel::GetNewChannel (Ptr<ParamsTable>  table3gpp,
       double temp = 0;
       for (uint8_t column = 0; column < paramNum; column++)
         {
-          temp += table3gpp->m_sqrtC[row][column] * LSPsIndep.at (column);
+          temp += table3gpp->m_sqrtC[row][column] * LSPsIndep[column];
         }
       LSPs.push_back (temp);
     }
