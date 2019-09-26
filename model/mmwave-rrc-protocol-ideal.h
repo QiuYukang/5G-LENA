@@ -60,7 +60,7 @@ public:
   virtual ~mmWaveUeRrcProtocolIdeal ();
 
   // inherited from Object
-  virtual void DoDispose (void);
+  virtual void DoDispose (void) override;
   static TypeId GetTypeId (void);
 
   void SetLteUeRrcSapProvider (LteUeRrcSapProvider* p);

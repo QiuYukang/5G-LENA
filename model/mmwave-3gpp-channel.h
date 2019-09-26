@@ -224,7 +224,7 @@ public:
 
   // inherited from Object
   static TypeId GetTypeId (void);
-  void DoDispose ();
+  virtual void DoDispose () override;
 
   /**
    * Check if the channel matrix between a and b exists
@@ -370,9 +370,9 @@ private:
    * @params the mobility model of the receiver
    * @returns the received PSD
    */
-  Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
-                                                   Ptr<const MobilityModel> a,
-                                                   Ptr<const MobilityModel> b) const;
+  virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
+                                                           Ptr<const MobilityModel> a,
+                                                           Ptr<const MobilityModel> b) const override;
 
   /**
    * Get a new realization of the channel

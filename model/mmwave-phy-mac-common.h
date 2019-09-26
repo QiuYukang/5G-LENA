@@ -659,9 +659,9 @@ public:
   ~MmWavePhyMacCommon (void);
 
   // inherited from Object
-  virtual void DoInitialize (void);
+  virtual void DoInitialize (void) override;
 
-  virtual void DoDispose (void);
+  virtual void DoDispose (void) override;
 
   static TypeId GetTypeId (void);
 
@@ -811,7 +811,7 @@ private:
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
   uint32_t m_l1L2DataLatency;   // In no. of slots - TODO: check if this is correct description
   uint32_t m_ulSchedDelay;   // delay between transmission of UL-DCI and corresponding subframe in TTIs
-  uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
+  //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
   uint32_t m_maxTbSizeBytes;
   std::string m_staticTddPattern;

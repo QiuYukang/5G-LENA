@@ -66,7 +66,7 @@ public:
 
   void SetChannel (Ptr<SpectrumChannel> c);
 
-  void DoDispose ();
+  virtual void DoDispose () override;
 
   void InstallAntenna ();
 

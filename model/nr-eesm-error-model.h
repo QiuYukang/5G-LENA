@@ -104,10 +104,10 @@ public:
    * \return A pointer to an output, with the tbler and SINR vector, effective
    * SINR, RB map, code bits, and info bits.
    */
-  Ptr<NrErrorModelOutput> GetTbDecodificationStats (const SpectrumValue& sinr,
-                                                    const std::vector<int>& map,
-                                                    uint32_t size, uint8_t mcs,
-                                                    const NrErrorModelHistory &sinrHistory);
+  virtual Ptr<NrErrorModelOutput> GetTbDecodificationStats (const SpectrumValue& sinr,
+                                                            const std::vector<int>& map,
+                                                            uint32_t size, uint8_t mcs,
+                                                            const NrErrorModelHistory &sinrHistory) override;
 
   /**
    * \brief Get the SE for a given CQI, following the CQIs in NR Table1/Table2

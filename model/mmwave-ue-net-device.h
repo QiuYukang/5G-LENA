@@ -73,7 +73,7 @@ public:
 
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
-  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const override;
+  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const;
 
   /**
    * Returns the PHY instance that is configured to operate on the provided
@@ -81,7 +81,7 @@ public:
    * @param centerFrequency The central carrier frequency in Hz
    * @return A pointer to the PHY instance it it exist, otherwise a nullptr
    */
-  virtual Ptr<MmWavePhy> GetPhyOnCenterFreq (double centerFrequency) const override;
+  virtual Ptr<MmWavePhy> GetPhyOnCenterFreq (double centerFrequency) const;
 
   Ptr<LteUeComponentCarrierManager> GetComponentCarrierManager (void) const;
 
