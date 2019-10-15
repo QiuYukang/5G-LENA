@@ -273,7 +273,6 @@ private:
   Ptr<UniformRandomVariable> m_random;
 
   bool m_dataErrorModelEnabled;   // when true (default) the phy error model is enabled
-  bool m_ctrlErrorModelEnabled;   // when true (default) the phy error model is enabled for DL ctrl frame
 
   Ptr<MmWaveHarqPhy> m_harqPhyModule;
 

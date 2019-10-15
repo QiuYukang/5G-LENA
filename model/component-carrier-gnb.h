@@ -54,7 +54,7 @@ public:
   ComponentCarrierGnb ();
 
   virtual ~ComponentCarrierGnb (void);
-  virtual void DoDispose (void);
+  virtual void DoDispose (void) override;
 
   /**
    * \return a pointer to the physical layer.
@@ -92,7 +92,7 @@ public:
   virtual void SetUlBandwidth (uint8_t bw) override { m_ulBandwidth = bw; }
 
 protected:
-  virtual void DoInitialize (void);
+  virtual void DoInitialize (void) override;
 
 private:
   Ptr<MmWaveEnbPhy> m_phy; ///< the Phy instance of this eNodeB component carrier

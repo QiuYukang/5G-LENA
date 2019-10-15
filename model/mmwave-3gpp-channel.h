@@ -224,7 +224,7 @@ public:
 
   // inherited from Object
   static TypeId GetTypeId (void);
-  void DoDispose ();
+  virtual void DoDispose () override;
 
   /**
    * Check if the channel matrix between a and b exists
@@ -370,9 +370,9 @@ private:
    * @params the mobility model of the receiver
    * @returns the received PSD
    */
-  Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
-                                                   Ptr<const MobilityModel> a,
-                                                   Ptr<const MobilityModel> b) const;
+  virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
+                                                           Ptr<const MobilityModel> a,
+                                                           Ptr<const MobilityModel> b) const override;
 
   /**
    * Get a new realization of the channel
@@ -443,7 +443,10 @@ private:
    * @param Husn the channel realization
    * @return long term fading parameters
    */
-  complexVector_t CalLongTerm (complexVector_t txW, complexVector_t rxW, doubleVector_t delayClusters, complex3DVector_t& Husn) const;
+  complexVector_t CalLongTerm (const complexVector_t& txW,
+                               const complexVector_t& rxW,
+                               const doubleVector_t& delayClusters,
+                               const complex3DVector_t& Husn) const;
 
   /**
    * Compute the BF gain, apply frequency selectivity by phase-shifting with the cluster delays
@@ -459,13 +462,13 @@ private:
    * @return the rx PSD
    */
   Ptr<SpectrumValue> CalBeamformingGain (Ptr<const SpectrumValue> txPsd,
-                                         complex3DVector_t channel,
-                                         complexVector_t longTerm,
-                                         complexVector_t txW,
-                                         complexVector_t rxW,
-                                         doubleVector_t delay,
-                                         double2DVector_t angle,
-                                         Vector speed) const;
+                                         const complex3DVector_t& channel,
+                                         const complexVector_t& longTerm,
+                                         const complexVector_t& txW,
+                                         const complexVector_t& rxW,
+                                         const doubleVector_t& delay,
+                                         const double2DVector_t& angle,
+                                         const Vector& speed) const;
 
   /**
    * Returns the ParamsTable with the parameters of TR 38.900 Table 7.5-6

@@ -152,6 +152,7 @@ public:
    */
   MmWaveMacSchedulerLCG (uint8_t id) : m_id (id)
   {
+    (void) m_id;
   }
   /**
    * \brief MmWaveMacSchedulerLCG copy constructor (deleted)
