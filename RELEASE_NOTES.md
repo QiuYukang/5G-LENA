@@ -34,9 +34,9 @@ This release has been tested on the following platforms:
 Important news
 --------------
 - This release is aligned with CTTC's ns-3-dev commit id
-100eeee2c (rlc-um: Reordering timer set to 10 ms instead of 100 ms)
+dcfda7b84 rlc-um: Reordering timer set to 10 ms instead of 100 ms
 that is on top of the nsnam ns-3-dev master commit id 
-29152dd9c (spectrum: Fix missing space in MultiModelSpectrumChannel trace).
+149f748cf core: assert that Ptr is not null on dereference.
 To upgrade CTTC's ns-3-dev, please run the following (save any non-official
 commit, as they will be deleted):
 
