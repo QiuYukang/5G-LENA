@@ -348,7 +348,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
-  Config::SetDefault("ns3::PointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
 
   // Should be 8x8 = 64 antenna elements
   Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(ns3::AntennaArrayModel::GetTypeId()));

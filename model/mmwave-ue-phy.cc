@@ -991,6 +991,35 @@ MmWaveUePhy::SetPhySapUser (MmWaveUePhySapUser* ptr)
   m_phySapUser = ptr;
 }
 
+void
+MmWaveUePhy::DoResetPhyAfterRlf ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_FATAL_ERROR ("MmWaveUePhy does not have RLF functionality yet");
+}
+
+void
+MmWaveUePhy::DoResetRlfParams ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_FATAL_ERROR ("MmWaveUePhy does not have RLF functionality yet");
+}
+
+void
+MmWaveUePhy::DoStartInSnycDetection ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_FATAL_ERROR ("MmWaveUePhy does not have RLF functionality yet");
+}
+
+void
+MmWaveUePhy::DoSetImsi (uint64_t imsi)
+{
+  NS_LOG_FUNCTION (this);
+  m_imsi = imsi;
+}
+
+
 }
 
 

@@ -31,6 +31,24 @@ This release has been tested on the following platforms:
 - ArchLinux 2018.10.08 with g++-8.2.1 and Python 3.7.1
 - Ubuntu 16.04 (64 bit) with g++-5.4.0 and Python 2.7.12/3.5.2
 
+Important news
+--------------
+- This release is aligned with CTTC's ns-3-dev commit id
+100eeee2c (rlc-um: Reordering timer set to 10 ms instead of 100 ms)
+that is on top of the nsnam ns-3-dev master commit id 
+29152dd9c (spectrum: Fix missing space in MultiModelSpectrumChannel trace).
+To upgrade CTTC's ns-3-dev, please run the following (save any non-official
+commit, as they will be deleted):
+
+$ cd /path/to/cttc/ns-3-dev
+$ git reset --hard HEAD~200
+$ git pull
+
+This module can be updated with the usual
+
+$ git pull
+
+
 New user-visible features (old first)
 -------------------------
 

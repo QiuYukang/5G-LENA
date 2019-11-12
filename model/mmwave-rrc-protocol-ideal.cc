@@ -175,6 +175,12 @@ mmWaveUeRrcProtocolIdeal::DoSendMeasurementReport (LteRrcSap::MeasurementReport 
 }
 
 void
+mmWaveUeRrcProtocolIdeal::DoSendIdealUeContextRemoveRequest (uint16_t rnti)
+{
+  NS_FATAL_ERROR ("mmWaveUeRrcProtocolIdeal does not have RLF functionality yet");
+}
+
+void
 mmWaveUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
 {
   uint16_t cellId = m_rrc->GetCellId ();

@@ -173,6 +173,17 @@ private:
   void AddLc (uint8_t lcId, LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu);
   void DoRemoveLc (uint8_t lcId);
   void DoReset ();
+  /**
+   * \brief Notify MAC about the successful RRC connection
+   * establishment.
+   */
+  void DoNotifyConnectionSuccessful ();
+  /**
+   * \brief Set IMSI
+   *
+   * \param imsi the IMSI of the UE
+   */
+  void DoSetImsi (uint64_t imsi);
 
   void RandomlySelectAndSendRaPreamble ();
   void SendRaPreamble (bool contention);
@@ -228,6 +239,7 @@ private:
   Ptr<UniformRandomVariable> m_raPreambleUniformVariable;
   uint8_t m_raPreambleId {0};
   uint8_t m_raRnti {0};
+  uint16_t m_imsi {0}; ///< IMSI
 
   struct UlHarqProcessInfo
   {

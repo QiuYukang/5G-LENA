@@ -86,6 +86,12 @@ public:
 
   virtual void SendRachPreamble (uint32_t PreambleId, uint32_t Rnti);
 
+  /**
+   * \brief Notify PHY about the successful RRC connection
+   * establishment.
+   */
+  virtual void NotifyConnectionSuccessful ();
+
 
   //	virtual Ptr<PacketBurst> GetPacketBurst (void);
   virtual Ptr<PacketBurst> GetPacketBurst (SfnSf);
@@ -252,6 +258,7 @@ protected:
   MmWavePhySapProvider* m_phySapProvider;
 
   uint32_t m_raPreambleId {0};
+  bool m_isConnected {false}; ///< set when UE RRC is in CONNECTED_NORMALLY state
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list

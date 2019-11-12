@@ -67,6 +67,8 @@ public:
 
   virtual AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const override;
 
+  virtual void NotifyConnectionSuccessful () override;
+
 private:
   MmWavePhy* m_phy;
 };
@@ -105,6 +107,12 @@ AntennaArrayModel::BeamId
 MmWaveMemberPhySapProvider::GetBeamId (uint8_t rnti) const
 {
   return m_phy->GetBeamId (rnti);
+}
+
+void
+MmWaveMemberPhySapProvider::NotifyConnectionSuccessful ()
+{
+  m_phy->NotifyConnectionSuccessful ();
 }
 
 /* ======= */
@@ -267,6 +275,13 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
     {
       NS_FATAL_ERROR ("No MAC packet PDU header available");
     }
+}
+
+void
+MmWavePhy::NotifyConnectionSuccessful ()
+{
+  NS_LOG_FUNCTION (this);
+  m_isConnected = true;
 }
 
 Ptr<PacketBurst>

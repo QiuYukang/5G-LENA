@@ -51,6 +51,12 @@ public:
   virtual void SetSlotAllocInfo (SlotAllocInfo slotAllocInfo) = 0;
 
   /**
+   * \brief Notify PHY about the successful RRC connection
+   * establishment.
+   */
+  virtual void NotifyConnectionSuccessful () = 0;
+
+  /**
    * \brief Get the beam ID from the RNTI specified. Not in any standard.
    * \param rnti RNTI of the user
    * \return Beam ID of the user

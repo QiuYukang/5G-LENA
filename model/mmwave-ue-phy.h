@@ -295,6 +295,41 @@ private:
   void DoSetRnti (uint16_t rnti);
   void DoSetTransmissionMode (uint8_t txMode);
   void DoSetSrsConfigurationIndex (uint16_t srcCi);
+  /**
+   * \brief Reset Phy after radio link failure function
+   *
+   * It resets the physical layer parameters of the
+   * UE after RLF.
+   *
+   */
+  void DoResetPhyAfterRlf ();
+  /**
+   * \brief Reset radio link failure parameters
+   *
+   * Upon receiving N311 in Sync indications from the UE
+   * PHY, the UE RRC instructs the UE PHY to reset the
+   * RLF parameters so, it can start RLF detection again.
+   *
+   */
+  void DoResetRlfParams ();
+
+  /**
+   * \brief Start in Snyc detection function
+   *
+   * When T310 timer is started, it indicates that physical layer
+   * problems are detected at the UE and the recovery process is
+   * started by checking if the radio frames are in-sync for N311
+   * consecutive times.
+   *
+   */
+  void DoStartInSnycDetection ();
+
+  /**
+   * \brief Set IMSI
+   *
+   * \param imsi the IMSI of the UE
+   */
+  void DoSetImsi (uint64_t imsi);
 
 private:
   MmWaveUePhySapUser* m_phySapUser;             //!< SAP pointer
@@ -311,6 +346,7 @@ private:
   bool m_receptionEnabled {false}; //!< Flag to indicate if we are currently receiveing data
   uint16_t m_rnti {0};             //!< Current RNTI of the user
   uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
+  uint64_t m_imsi {0}; ///< The IMSI of the UE
 
   /**
    * \brief Status of the channel for the PHY

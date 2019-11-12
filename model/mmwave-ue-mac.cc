@@ -62,6 +62,8 @@ public:
   virtual void RemoveLc (uint8_t lcId);
   virtual void Reset ();
   virtual void SetRnti (uint16_t rnti);
+  virtual void NotifyConnectionSuccessful ();
+  virtual void SetImsi (uint64_t imsi);
 
 private:
   MmWaveUeMac* m_mac;
@@ -115,6 +117,18 @@ UeMemberMmWaveUeCmacSapProvider::SetRnti (uint16_t rnti)
 {
   m_mac->SetRnti (rnti);
 }
+
+void
+UeMemberMmWaveUeCmacSapProvider::NotifyConnectionSuccessful ()
+{
+  m_mac->DoNotifyConnectionSuccessful ();
+}
+
+void
+UeMemberMmWaveUeCmacSapProvider::SetImsi (uint64_t imsi)
+ {
+   m_mac->DoSetImsi (imsi);
+ }
 
 class UeMemberMmWaveMacSapProvider : public LteMacSapProvider
 {
@@ -260,6 +274,21 @@ MmWaveUeMac::SetRnti (uint16_t rnti)
   NS_LOG_FUNCTION (this);
   m_rnti = rnti;
 }
+
+void
+MmWaveUeMac::DoNotifyConnectionSuccessful ()
+{
+  NS_LOG_FUNCTION (this);
+  m_phySapProvider->NotifyConnectionSuccessful ();
+}
+
+void
+MmWaveUeMac::DoSetImsi (uint64_t imsi)
+{
+  NS_LOG_FUNCTION (this);
+  m_imsi = imsi;
+}
+
 
 uint32_t
 MmWaveUeMac::GetTotalBufSize () const

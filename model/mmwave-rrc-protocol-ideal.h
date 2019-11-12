@@ -78,6 +78,16 @@ private:
   void DoSendRrcConnectionReestablishmentRequest (LteRrcSap::RrcConnectionReestablishmentRequest msg);
   void DoSendRrcConnectionReestablishmentComplete (LteRrcSap::RrcConnectionReestablishmentComplete msg);
   void DoSendMeasurementReport (LteRrcSap::MeasurementReport msg);
+  /**
+   * \brief Send Ideal UE context remove request function
+   *
+   * Notify eNodeB to release UE context once radio link failure
+   * or random access failure is detected. It is needed since no
+   * RLF detection mechanism at eNodeB is implemented
+   *
+   * \param rnti the RNTI of the UE
+   */
+  void DoSendIdealUeContextRemoveRequest (uint16_t rnti);
 
   void SetEnbRrcSapProvider ();
 

@@ -1251,7 +1251,18 @@ MmWaveEnbMac::UeUpdateConfigurationReq (LteEnbCmacSapProvider::UeConfig params)
 LteEnbCmacSapProvider::RachConfig
 MmWaveEnbMac::DoGetRachConfig ()
 {
-  return LteEnbCmacSapProvider::RachConfig ();
+  //UEs in NR does not choose RACH preambles randomly, therefore,
+  //it does not rely on the following parameters. However, the
+  //recent change in LteUeRrc class introduced an assert to
+  //check the correct value of connEstFailCount parameter.
+  //Thus, we need to assign dummy but correct values to
+  //avoid this assert in LteUeRrc class.
+  LteEnbCmacSapProvider::RachConfig rc;
+  rc.numberOfRaPreambles = 52;
+  rc.preambleTransMax = 50;
+  rc.raResponseWindowSize = 3;
+  rc.connEstFailCount = 1;
+  return rc;
 }
 
 LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue
