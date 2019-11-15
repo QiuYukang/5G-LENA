@@ -60,6 +60,7 @@
 #include <ns3/propagation-loss-model.h>
 #include <ns3/mmwave-3gpp-channel.h>
 #include <ns3/cc-helper.h>
+#include <algorithm>
 
 namespace ns3 {
 
@@ -70,6 +71,101 @@ class SpectrumChannel;
 class SpectrumpropagationLossModel;
 class MmWaveSpectrumValueHelper;
 class PropagationLossModel;
+
+
+
+struct ComponentCarrierBandwidthPartElement
+{
+	uint8_t m_bwp_id;
+	uint8_t m_numerology;
+	double m_centralFrequency;
+	double m_lowerFrequency;
+	double m_higherFrequency;
+	uint32_t m_bandwidth;
+};
+
+struct ComponentCarrierInfo
+{
+	uint8_t m_numBwps;
+	uint8_t m_activeBwp;
+	double m_centralFrequency;
+	double m_lowerFrequency;
+	double m_higherFrequency;
+	uint32_t m_bandwidth;
+	std::vector<ComponentCarrierBandwidthPartElement> m_bwp;
+
+	void AddBwp(ComponentCarrierBandwidthPartElement bwp);
+};
+
+
+struct OperationBandInfo
+{
+	double m_centralFrequency;
+	double m_lowerFrequency;
+	double m_higherFrequency;
+	uint32_t m_bandwidth;
+	uint8_t m_numCarriers;
+	bool m_contiguousCc;	// If contiguousCc == true, 4 CC max; else, 2 CC max
+	std::vector<ComponentCarrierInfo> m_cc;
+
+	void AddCc(ComponentCarrierInfo cc);
+};
+
+
+bool CarrierFrequencyCompare(ComponentCarrierInfo lhs, ComponentCarrierInfo rhs);
+
+bool BwpFrequencyCompare(ComponentCarrierBandwidthPartElement lhs, ComponentCarrierBandwidthPartElement rhs);
+
+bool BwpIdCompare(ComponentCarrierBandwidthPartElement lhs, ComponentCarrierBandwidthPartElement rhs);
+
+class ComponentCarrierBandwidthPartCreator
+{
+public:
+	ComponentCarrierBandwidthPartCreator();
+	ComponentCarrierBandwidthPartCreator(uint8_t maxNumBands);
+	~ComponentCarrierBandwidthPartCreator();
+
+	/*
+	 * This function creates an operation band information by splitting the defined bandwidth
+	 * into contiguous numCCs carriers, all with the same carrier bandwidth
+	 */
+	void CreateOperationBandContiguousCc(double centralFrequency, uint32_t operationBandwidth, uint8_t numCCs);
+
+	/*
+	 * This function creates an operation band with the provided central frequency and bandwidth and the CC configuration
+	 */
+	OperationBandInfo CreateOperationBand(double centralFrequency, uint32_t operationBandwidth, std::vector<ComponentCarrierInfo> cc);
+
+	// Will create an operation band with the given CC information
+	void AddOperationBand(OperationBandInfo band);
+
+	// Checks the provided configuration of the operation band
+	void ValidateOperationBand(OperationBandInfo band);
+
+	// Checks the consistency of BWP within the carrier
+	// Simulation will stop if a bad configuration is found
+	void CheckBwpsInCc(ComponentCarrierInfo cc);
+
+	// Checks the consistency of the CC within the operation band
+	// Simulation will stop if a bad configuration is found
+	void CheckCcsInOperationBand(OperationBandInfo band);
+
+	// Checks that operation bands are not overlapped in frequency
+	void CheckOperationBands();
+
+	// Determines whether the CCs in the band are contiguous (true) or not (false)
+	bool CheckContiguousCcs(OperationBandInfo band, uint32_t freqSeparation);
+
+	// Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the provided carrier index
+	ComponentCarrierBandwidthPartElement GetActiveBwpInfo(uint8_t bandIndex, uint8_t ccIndex);
+	//void AddOperationBand(OperationBandInfo bandInfo);
+
+	uint8_t m_maxBands;	 // Limit the number of operation bands
+	uint8_t m_numBands;  // Number of current operation bands. It must be smaller or equal than m_maxBands
+	std::vector<OperationBandInfo> m_bands;  // Vector to the operation band information elements
+	uint8_t m_numBwps;	// Number of BWP created. Consider removing
+	uint8_t m_numCcs;	// Number of Component Carriers created
+};
 
 
 class BandwidthPartRepresentation
