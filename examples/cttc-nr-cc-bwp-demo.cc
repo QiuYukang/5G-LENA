@@ -1,24 +1,11 @@
 /*
  -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*-
-
- *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *
- *   Author:  Biljana Bojovic <bbojovic@cttc.es>
- *
+ * An simple example of Carrier Aggregation (CA) and Bandwidth Part (BWP) configuration in NR, where
+ * a number of Component Carriers (CC) (up to 16 in the best case scenario) are allocated in different
+ * operation bands in Frequency Range 2 (FR2) or mmWave band.
+ * CA can aggregate contiguous and non-contiguous CCs, and each CC may have up to 4 BWP. Only one BWP
+ * per CC can be active at a time.
  */
 
 
@@ -252,9 +239,9 @@ main (int argc, char *argv[])
 
 	  // The example continues extracting the different CCs to activate the BWP of each CC in the band
 	  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-	  ComponentCarrierInfo cc1 = ccManager.m_bands.at(0).m_cc.at(0);
+	  ComponentCarrierInfo cc1 = ccManager.GetComponentCarrier (0,0);
 	  phyMacCommonBwp1->SetCentreFrequency(cc1.m_bwp.at(0).m_centralFrequency);
-	  phyMacCommonBwp1->SetBandwidth (cc1.m_bwp.at(0).m_higherFrequency - cc1.m_bwp.at(0).m_lowerFrequency);
+	  phyMacCommonBwp1->SetBandwidth (cc1.m_bwp.at(0).m_bandwidth);
 	  phyMacCommonBwp1->SetNumerology((uint32_t)cc1.m_bwp.at(0).m_numerology);
 	  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
 	  phyMacCommonBwp1->SetCcId (ccId);
@@ -263,7 +250,7 @@ main (int argc, char *argv[])
 	  ++ccId;
 
 	  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-	  ComponentCarrierInfo cc2 = ccManager.m_bands.at(0).m_cc.at(1);
+	  ComponentCarrierInfo cc2 = ccManager.GetComponentCarrier (0,1);
 	  phyMacCommonBwp2->SetCentreFrequency(cc2.m_bwp.at(0).m_centralFrequency);
 	  phyMacCommonBwp2->SetBandwidth (cc2.m_bwp.at(0).m_higherFrequency - cc2.m_bwp.at(0).m_lowerFrequency);
 	  phyMacCommonBwp2->SetNumerology((uint32_t)cc2.m_bwp.at(0).m_numerology);
@@ -274,7 +261,7 @@ main (int argc, char *argv[])
 	  ++ccId;
 
 	  Ptr<MmWavePhyMacCommon> phyMacCommonBwp3 = CreateObject<MmWavePhyMacCommon>();
-	  ComponentCarrierInfo cc3 = ccManager.m_bands.at(0).m_cc.at(2);
+	  ComponentCarrierInfo cc3 = ccManager.GetComponentCarrier (0,2);
 	  phyMacCommonBwp3->SetCentreFrequency(cc3.m_bwp.at(0).m_centralFrequency);
 	  phyMacCommonBwp3->SetBandwidth (cc3.m_bwp.at(0).m_higherFrequency - cc3.m_bwp.at(0).m_lowerFrequency);
 	  phyMacCommonBwp3->SetNumerology((uint32_t)cc3.m_bwp.at(0).m_numerology);
@@ -285,7 +272,7 @@ main (int argc, char *argv[])
 	  ++ccId;
 
 	  Ptr<MmWavePhyMacCommon> phyMacCommonBwp4 = CreateObject<MmWavePhyMacCommon>();
-	  ComponentCarrierInfo cc4 = ccManager.m_bands.at(0).m_cc.at(3);
+	  ComponentCarrierInfo cc4 = ccManager.GetComponentCarrier (0,3);
 	  phyMacCommonBwp4->SetCentreFrequency(cc4.m_bwp.at(0).m_centralFrequency);
 	  phyMacCommonBwp4->SetBandwidth (cc4.m_bwp.at(0).m_higherFrequency - cc4.m_bwp.at(0).m_lowerFrequency);
 	  phyMacCommonBwp4->SetNumerology((uint32_t)cc4.m_bwp.at(0).m_numerology);
@@ -301,15 +288,17 @@ main (int argc, char *argv[])
 	  ccManager.CheckBwpsInCc(cc3);
 	  ccManager.CheckBwpsInCc(cc4);
 
-	  ccManager.CheckCcsInOperationBand(ccManager.m_bands.at(0));
+//	  ccManager.CheckCcsInAllOperationBands();
+	  ccManager.ValidateCaBwpConfiguration();
 
   }
   else
   {
-	  // Manually create a non-contiguous CC configuration with 2 CCs. First CC has two BWPs and the second only one.
+	  // Manually creates a non-contiguous CC configuration with 2 CCs. First CC has two BWPs and the second only one.
 	  double centralFrequency = 28e9;
 	  uint32_t bandwidth = 3e9;
 
+//	  OperationBandInfo band0;
 	  std::vector<ComponentCarrierInfo> ccs;
 	  uint8_t bwpCount = 0;
 
@@ -318,7 +307,6 @@ main (int argc, char *argv[])
 	  cc0.m_bandwidth = 100e6;
 	  cc0.m_lowerFrequency = cc0.m_centralFrequency - (double)cc0.m_bandwidth/2;
 	  cc0.m_higherFrequency = cc0.m_centralFrequency + (double)cc0.m_bandwidth/2;
-	  cc0.m_numBwps = 1;
 	  cc0.m_activeBwp = bwpCount;
 	  ComponentCarrierBandwidthPartElement bwp0;
 	  bwp0.m_bwp_id = bwpCount;
@@ -331,7 +319,7 @@ main (int argc, char *argv[])
 	  ++bwpCount;
 	  ComponentCarrierBandwidthPartElement bwp01;
 	  bwp01.m_bwp_id = bwpCount;
-	  bwp01.m_numerology = 3;
+	  bwp01.m_numerology = 4;
 	  bwp01.m_centralFrequency = cc0.m_higherFrequency-20e6;
 	  bwp01.m_bandwidth = 30e6;
 	  bwp01.m_lowerFrequency = bwp01.m_centralFrequency - bwp01.m_bandwidth/2;
@@ -344,7 +332,6 @@ main (int argc, char *argv[])
 	  cc1.m_bandwidth = 100e6;
 	  cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth/2;
 	  cc1.m_higherFrequency = cc1.m_centralFrequency + (double)cc1.m_bandwidth/2;
-	  cc1.m_numBwps = 1;
 	  cc1.m_activeBwp = bwpCount;
 	  ComponentCarrierBandwidthPartElement bwp1;
 	  bwp1.m_bwp_id = bwpCount;
@@ -356,12 +343,15 @@ main (int argc, char *argv[])
 	  cc1.AddBwp(bwp1);
 	  ++bwpCount;
 
-	  ccs.push_back(cc0);
 	  ccs.push_back(cc1);
+	  ccs.push_back(cc0);
 
 	  // Test that the method creates a band with the CC information created and pushes it to the manager
 	  OperationBandInfo band = ccManager.CreateOperationBand(centralFrequency, bandwidth, ccs);
 	  ccManager.AddOperationBand(band);
+
+	  // Check that the CA/BWP configurations of all the defined operation bands are correct
+	  ccManager.ValidateCaBwpConfiguration();
 
 	  // Create BandwidthPartRepresentations referred to the active BWP only of each CC
 	  Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
@@ -407,14 +397,7 @@ main (int argc, char *argv[])
 
   double x = pow(10, totalTxPower/10);
 
-  double totalBandwidth = 0;
-  for (uint8_t b = 0; b < ccManager.m_numBands; b++)
-  {
-	  for (uint8_t c = 0; c < ccManager.m_numCcs; c++)
-	  {
-		totalBandwidth += ccManager.m_bands.at(b).m_cc.at(c).m_bandwidth;
-	  }
-  }
+  double totalBandwidth = ccManager.GetAggregatedBandwidth();
 
   for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
     {
@@ -424,7 +407,7 @@ main (int argc, char *argv[])
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
           Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
-          uint32_t bwCc = ccManager.m_bands.at(0).m_cc.at(i).m_bandwidth;
+          uint32_t bwCc = ccManager.GetCarrierBandwidth(0,i); //m_bands.at(0).m_cc.at(i).m_bandwidth;
           bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
 		  std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
 
@@ -497,7 +480,7 @@ main (int argc, char *argv[])
       if (udpFullBuffer)
         {
           double bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-          uint32_t bandwidthBwp1 = ccManager.m_bands.at(0).m_cc.at(0).m_bwp.at(0).m_bandwidth;
+          uint32_t bandwidthBwp1 = ccManager.GetCarrierBandwidth(0,0); //m_bands.at(0).m_cc.at(0).m_bwp.at(0).m_bandwidth;
           if (bandwidthBwp1 > 20e6)
             {
               bitRate *=  bandwidthBwp1 / 20e6;
@@ -507,7 +490,7 @@ main (int argc, char *argv[])
 
           bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
 
-          uint32_t bandwidthBwp2 = ccManager.m_bands.at(0).m_cc.at(1).m_bwp.at(0).m_bandwidth;
+          uint32_t bandwidthBwp2 = ccManager.GetCarrierBandwidth(0,1); //m_bands.at(0).m_cc.at(1).m_bwp.at(0).m_bandwidth;
           if (bandwidthBwp2 > 20e6)
             {
               bitRate *=  bandwidthBwp2 / 20e6;

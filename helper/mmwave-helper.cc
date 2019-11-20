@@ -1154,22 +1154,36 @@ BandwidthPartRepresentation::operator=(const BandwidthPartRepresentation &o)
 }
 
 
+
+static bool CarrierFrequencyCompare(const ComponentCarrierInfo & lhs,
+			     const ComponentCarrierInfo & rhs)
+{
+  return lhs.m_centralFrequency < rhs.m_centralFrequency;
+}
+
+static bool BwpFrequencyCompare(const ComponentCarrierBandwidthPartElement & lhs,
+			 const ComponentCarrierBandwidthPartElement & rhs)
+{
+  return lhs.m_centralFrequency < rhs.m_centralFrequency;
+}
+
+static bool BwpIdCompare(const ComponentCarrierBandwidthPartElement & lhs,
+		  const ComponentCarrierBandwidthPartElement & rhs)
+{
+  return lhs.m_bwp_id < rhs.m_bwp_id;
+}
+
+
+
 ComponentCarrierBandwidthPartCreator::ComponentCarrierBandwidthPartCreator()
 {
-	NS_LOG_FUNCTION (this);
-	m_maxBands = 2;
-	m_numBands = 0;
-	m_numCcs = 0;
-	m_numBwps = 0;
+  NS_LOG_FUNCTION (this);
 }
 
 ComponentCarrierBandwidthPartCreator::ComponentCarrierBandwidthPartCreator(uint8_t maxNumBands)
 {
-	NS_LOG_FUNCTION (this);
-	m_maxBands = maxNumBands;
-	m_numBands = 0;
-	m_numBwps = 0;
-	m_numCcs = 0;
+  NS_LOG_FUNCTION (this);
+  m_maxBands = maxNumBands;
 }
 
 ComponentCarrierBandwidthPartCreator::~ComponentCarrierBandwidthPartCreator()
@@ -1179,229 +1193,238 @@ ComponentCarrierBandwidthPartCreator::~ComponentCarrierBandwidthPartCreator()
 
 
 void
-ComponentCarrierInfo::AddBwp(ComponentCarrierBandwidthPartElement bwp)
+ComponentCarrierInfo::AddBwp (const ComponentCarrierBandwidthPartElement & bwp)
 {
-	NS_ABORT_MSG_IF (m_numBwps >= 4,"Maximum number of BWPs reached (4)");
-
-	m_bwp.push_back(bwp);
+  NS_ABORT_MSG_IF (m_numBwps >= 4,"Maximum number of BWPs reached (4)");
+  m_bwp.push_back(bwp);
+  ++m_numBwps;
 }
 
 
 void
-OperationBandInfo::AddCc(ComponentCarrierInfo cc)
+OperationBandInfo::AddCc (const ComponentCarrierInfo & cc)
 {
-	m_cc.push_back(cc);
+  NS_ABORT_MSG_IF (m_numCarriers >= MAX_CC_INTRA_BAND,"The maximum number of CCs in the band was reached");
+  m_cc.push_back(cc);
+  ++m_numCarriers;
 }
 
 
 
-void ComponentCarrierBandwidthPartCreator::
-CreateOperationBandContiguousCc(double centralFrequency, uint32_t operationBandwidth, uint8_t numCCs)
+void
+ComponentCarrierBandwidthPartCreator::CreateOperationBandContiguousCc (double centralFrequency,
+                                                                       uint32_t operationBandwidth,
+                                                                       uint8_t numCCs)
 {
-	NS_ABORT_MSG_IF (m_numBands == m_maxBands,"Maximum number of operation bands reached"<<(uint16_t)m_maxBands);
-	OperationBandInfo band;
-	band.m_centralFrequency = centralFrequency;
-	band.m_bandwidth = operationBandwidth;
-	band.m_lowerFrequency = centralFrequency - (double)operationBandwidth/2;
-	band.m_higherFrequency = centralFrequency + (double)operationBandwidth/2;
-	band.m_numCarriers = numCCs;
-	band.m_contiguousCc = true;
 
-	uint8_t numerology = 2;
-	uint32_t maxCcBandwidth = 198e6;
-	if (centralFrequency > 6e9)
-	{
-		numerology = 3;
-		maxCcBandwidth = 396e6;
-	}
+  NS_ABORT_MSG_IF (m_numBands == m_maxBands,"Maximum number of operation bands reached"<<(uint16_t)m_maxBands);
 
-	double ccBandwidth = operationBandwidth/numCCs;
-	ccBandwidth = (ccBandwidth > maxCcBandwidth) ? maxCcBandwidth : ccBandwidth;
-	/*
-	if (ccBandwidth > maxCcBandwidth)
-	{
-		ccBandwidth = maxCcBandwidth;
-	}
-	*/
-	uint16_t numRBs = ccBandwidth/(12*15e3*std::pow(2,numerology));
-	NS_ABORT_MSG_IF(numRBs < 24, "Carrier bandwidth is below the minimum number of RBs (24)");
-	NS_ABORT_MSG_IF(numRBs > 275, "Carrier bandwidth is larger than the maximum number of RBs (275)");
+  OperationBandInfo band;
+  band.m_centralFrequency = centralFrequency;
+  band.m_bandwidth = operationBandwidth;
+  band.m_lowerFrequency = centralFrequency - (double)operationBandwidth/2;
+  band.m_higherFrequency = centralFrequency + (double)operationBandwidth/2;
+  band.m_numCarriers = numCCs;
+  band.m_contiguousCc = CONTIGUOUS;
 
-	for (uint8_t c = 0; c < numCCs; c++)
-	{
-		ComponentCarrierInfo cc;
-		cc.m_centralFrequency = band.m_lowerFrequency+c*ccBandwidth+ccBandwidth/2;
-		cc.m_lowerFrequency = band.m_lowerFrequency+c*ccBandwidth;
-		cc.m_higherFrequency = band.m_lowerFrequency+(c+1)*ccBandwidth-1;
-		cc.m_bandwidth = ccBandwidth;
-		cc.m_numBwps = 1;
-		cc.m_activeBwp = m_numBwps;
-		ComponentCarrierBandwidthPartElement bwp;
-		bwp.m_numerology = numerology;
-		bwp.m_centralFrequency = cc.m_centralFrequency;
-		bwp.m_lowerFrequency = cc.m_lowerFrequency;
-		bwp.m_higherFrequency = cc.m_higherFrequency;
-		bwp.m_bandwidth = cc.m_bandwidth;
-		cc.m_bwp.push_back(bwp);
-		m_numBwps++;
-		band.m_cc.push_back(cc);
-		m_numCcs++;
-	}
-	m_bands.push_back(band);
-	m_numBands++;
+  uint8_t numerology = 2;
+  uint32_t maxCcBandwidth = 198e6;
+
+  if (centralFrequency > 6e9)
+    {
+      numerology = 3;
+      maxCcBandwidth = 396e6;
+    }
+
+  double ccBandwidth = std::min((double)maxCcBandwidth,(double)operationBandwidth/numCCs);
+
+  uint16_t numRBs = ccBandwidth/(12*15e3*std::pow(2,numerology));
+  NS_ABORT_MSG_IF(numRBs < 24, "Carrier bandwidth is below the minimum number of RBs (24)");
+  NS_ABORT_MSG_IF(numRBs > 275, "Carrier bandwidth is larger than the maximum number of RBs (275)");
+
+  for (uint8_t c = 0; c < numCCs; c++)
+    {
+      ComponentCarrierInfo cc;
+      cc.m_centralFrequency = band.m_lowerFrequency+c*ccBandwidth+ccBandwidth/2;
+      cc.m_lowerFrequency = band.m_lowerFrequency+c*ccBandwidth;
+      cc.m_higherFrequency = band.m_lowerFrequency+(c+1)*ccBandwidth-1;
+      cc.m_bandwidth = ccBandwidth;
+      cc.m_numBwps = 1;
+      cc.m_activeBwp = m_numBwps;
+      ComponentCarrierBandwidthPartElement bwp;
+      bwp.m_numerology = numerology;
+      bwp.m_centralFrequency = cc.m_centralFrequency;
+      bwp.m_lowerFrequency = cc.m_lowerFrequency;
+      bwp.m_higherFrequency = cc.m_higherFrequency;
+      bwp.m_bandwidth = cc.m_bandwidth;
+      cc.m_bwp.push_back(bwp);
+      m_numBwps++;
+      band.m_cc.push_back(cc);
+      m_numCcs++;
+    }
+  m_bands.push_back(band);
+  m_numBands++;
+
+}
+
+
+OperationBandInfo
+ComponentCarrierBandwidthPartCreator::CreateOperationBand (double centralFrequency,
+                                                           uint32_t operationBandwidth)
+{
+  OperationBandInfo band;
+  band.m_centralFrequency = centralFrequency;
+  band.m_bandwidth = operationBandwidth;
+  return band;
 
 }
 
 OperationBandInfo
-ComponentCarrierBandwidthPartCreator::CreateOperationBand(
-		double centralFrequency,
-		uint32_t operationBandwidth,
-		std::vector<ComponentCarrierInfo> cc)
+ComponentCarrierBandwidthPartCreator::CreateOperationBand (double centralFrequency,
+                                                           uint32_t operationBandwidth,
+                                                           std::vector<ComponentCarrierInfo> &ccs)
 {
 
-	NS_ABORT_MSG_IF(cc.empty(),"No CC definition provided");
+  NS_ABORT_MSG_IF(ccs.empty(),"No CC definition provided");
 
-	bool contiguous = true;
-	uint8_t numCcs = cc.size();
+  ContiguousMode contiguous = CONTIGUOUS;
+  uint8_t numCcs = ccs.size();
+  NS_ABORT_MSG_IF(numCcs > MAX_CC_INTRA_BAND,"The number of CCs is larger than the maximum");
 
-	// Sort CC by ascending central frequency value
-	std::sort(cc.begin(),cc.end(),CarrierFrequencyCompare);
+  // Checks if CCs overlap and are contiguous. CCs must be ordered in increasing central frequency value
+  // Uncomment the code below if you created the CC vector out of the API and needs reordering
+  std::sort(ccs.begin(),ccs.end(),CarrierFrequencyCompare);
+  uint8_t c=0;
+  while (c < numCcs-1)
+    {
+      if ((double)ccs.at(c+1).m_lowerFrequency - (double)ccs.at(c).m_higherFrequency  < 0)
+        {
+          NS_ABORT_MSG("CCs overlap");
+        }
+      if (ccs.at(c+1).m_lowerFrequency - ccs.at(c).m_higherFrequency > 1)
+        {
+          contiguous = NON_CONTIGUOUS;
+        }
+      ++c;
+    }
 
-	// Loop checks if CCs are overlap and contiguous or not
-	uint8_t c=0;
-	while (c < numCcs-1 && contiguous == true)
-	{
-		if((double)cc.at(c+1).m_lowerFrequency - (double)cc.at(c).m_higherFrequency < 0)
-		{
-			NS_ABORT_MSG("CCs overlap");
-		}
+  // Check if each CC has BWP configuration and validate it
+  for (const auto & cc : ccs)
+    {
+      CheckBwpsInCc(cc);
+    }
 
-		if(cc.at(c+1).m_lowerFrequency - cc.at(c).m_higherFrequency > 1)
-		{
-			contiguous = false;
-		}
-		++c;
-	}
+  // At this point, CC configuration is valid. Create the operation band.
+  OperationBandInfo band;
+  band.m_centralFrequency = centralFrequency;
+  band.m_bandwidth = operationBandwidth;
+  band.m_lowerFrequency = centralFrequency - operationBandwidth/2;
+  band.m_higherFrequency = centralFrequency + operationBandwidth/2;
+  band.m_numCarriers = numCcs;
+  band.m_contiguousCc = contiguous;
+  band.m_cc = ccs;
+  return band;
 
-	// Check if each CC has BWP configuration and validate it
-	for (uint8_t c = 0; c < numCcs; c++)
-	{
-		CheckBwpsInCc(cc.at(c));
-	}
-
-	// At this point, CC configuration is valid. Create the operation band.
-	OperationBandInfo band;
-	band.m_centralFrequency = centralFrequency;
-	band.m_bandwidth = operationBandwidth;
-	band.m_lowerFrequency = centralFrequency - operationBandwidth/2;
-	band.m_higherFrequency = centralFrequency + operationBandwidth/2;
-	band.m_numCarriers = numCcs;
-	band.m_contiguousCc = contiguous;
-	band.m_cc = cc;
-	return band;
-
-}
-
-void
-ComponentCarrierBandwidthPartCreator::AddOperationBand(OperationBandInfo band)
-{
-	NS_ABORT_MSG_IF(m_numBands >= m_maxBands,"Maximum number of operation bands reached");
-	ValidateOperationBand(band);
-	m_bands.push_back(band);
-	++m_numBands;
-	m_numCcs += band.m_numCarriers;
-	for (uint8_t c = 0; c < band.m_numCarriers; c++)
-	{
-		m_numBwps += band.m_cc.at(c).m_bwp.size();
-	}
-
-}
-
-void
-ComponentCarrierBandwidthPartCreator::ValidateOperationBand(OperationBandInfo band)
-{
-	NS_ABORT_MSG_IF(band.m_cc.empty(),"No CC information provided");
-
-	uint8_t numCcs = band.m_cc.size();
-	bool contiguous = true;
-
-	// Sort CC by ascending central frequency value
-	std::sort(band.m_cc.begin(),band.m_cc.end(),CarrierFrequencyCompare);
-
-	// Loop checks if CCs are overlap and contiguous or not
-	uint8_t c=0;
-	while (c < numCcs-1 && contiguous == true)
-	{
-		if((double)band.m_cc.at(c+1).m_lowerFrequency - (double)band.m_cc.at(c).m_higherFrequency < 0)
-		{
-			NS_ABORT_MSG("CCs overlap");
-		}
-
-		if(band.m_cc.at(c+1).m_lowerFrequency - band.m_cc.at(c).m_higherFrequency > 1)
-		{
-			contiguous = false;
-		}
-		++c;
-	}
-
-	// Check if each CC has BWP configuration and validate it
-	for (uint8_t c = 0; c < numCcs; c++)
-	{
-		CheckBwpsInCc(band.m_cc.at(c));
-	}
 }
 
 
 void
-ComponentCarrierBandwidthPartCreator::CheckBwpsInCc(ComponentCarrierInfo cc)
+ComponentCarrierBandwidthPartCreator::AddOperationBand (OperationBandInfo band)
 {
-	// First check: number of BWP shall not be larger than 4
-	uint8_t numBwps = cc.m_bwp.size();
-	NS_ABORT_MSG_IF (numBwps > 4 || numBwps < 1,"The number of BWPs exceeds the maximum value (4)");
+  NS_ABORT_MSG_IF(m_numBands >= m_maxBands,"Maximum number of operation bands reached");
+  ValidateOperationBand(band);
+  m_bands.push_back(band);
+  ++m_numBands;
+  m_numCcs += band.m_numCarriers;
+  for (uint8_t c = 0; c < band.m_numCarriers; c++)
+    {
+      m_numBwps += band.m_cc.at(c).m_bwp.size();
+    }
+}
 
-	// Second check: BWP shall not exceed CC limits and the sum of BWPs cannot be larger than the CC bandwidth
-	std::sort(cc.m_bwp.begin(), cc.m_bwp.end(), BwpFrequencyCompare);
-	uint32_t totalBandwidth = 0;
-	bool activeFound = false;
-	for (uint8_t a = 0; a < numBwps; a++)
+void
+ComponentCarrierBandwidthPartCreator::ValidateOperationBand (OperationBandInfo band)
+{
+  NS_ABORT_MSG_IF(band.m_cc.empty(),"No CC information provided");
+  uint8_t numCcs = band.m_cc.size();
+  ContiguousMode contiguous = CONTIGUOUS;
+
+  // Sort CC by ascending central frequency value
+  std::sort(band.m_cc.begin(),band.m_cc.end(),CarrierFrequencyCompare);
+
+  // Loop checks if CCs are overlap and contiguous or not
+  uint8_t c=0;
+  while (c < numCcs-1)
+    {
+      if ((double)band.m_cc.at(c+1).m_lowerFrequency - (double)band.m_cc.at(c).m_higherFrequency < 0)
+        {
+          NS_ABORT_MSG("CCs overlap");
+        }
+      if (band.m_cc.at(c+1).m_lowerFrequency - band.m_cc.at(c).m_higherFrequency > 1)  //TODO: Consider changing the frequency separation value depending on the SCS
 	{
-		totalBandwidth += cc.m_bwp.at(a).m_bandwidth;
-		if (cc.m_bwp.at(a).m_higherFrequency > cc.m_higherFrequency || cc.m_bwp.at(a).m_lowerFrequency < cc.m_lowerFrequency)
-		{
-			NS_ABORT_MSG("BWP part is out of the CC");
-		}
-		if(cc.m_bwp.at(a).m_bwp_id == cc.m_activeBwp)
-		{
-			activeFound = true;
-		}
+	  contiguous = NON_CONTIGUOUS;
 	}
-	NS_ABORT_MSG_IF(totalBandwidth > cc.m_bandwidth,"Aggregated BWP is larger than carrier bandwidth");
+      ++c;
+    }
 
-	// Third check: the active BWP id is in the CC description
-	NS_ABORT_MSG_IF(activeFound==false,"The active BWP id was not found in the CC");
+  band.m_contiguousCc = contiguous;
 
-	// Fourth check: BWPs shall not overlap in frequency
-//	bool overlap = false;
-	for (uint8_t a = 0; a < numBwps-1; a++)
-	{
-		if (cc.m_bwp.at(a).m_higherFrequency > cc.m_bwp.at(a+1).m_lowerFrequency)
-		{
-			NS_ABORT_MSG("BWP shall not overlap");
-//			overlap = true;
-		}
-	}
-
-	// Fifth check: BWP ids are not repeated
-	std::sort(cc.m_bwp.begin(), cc.m_bwp.end(), BwpIdCompare);
-	for (uint8_t i = 0; i < numBwps-1; i++)
-	{
-		if (cc.m_bwp.at(i).m_bwp_id == cc.m_bwp.at(i+1).m_bwp_id)
-		{
-			NS_ABORT_MSG("Repeated BWP id");
-		}
-	}
+  // Check if each CC has BWP configuration and validate them
+  for (uint8_t c = 0; c < numCcs; c++)
+    {
+      CheckBwpsInCc(band.m_cc.at(c));
+    }
+}
 
 
+void
+ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (ComponentCarrierInfo cc)
+{
+  // First check: number of BWP shall not be larger than 4
+  uint8_t numBwps = cc.m_bwp.size();
+
+  NS_ABORT_MSG_IF (numBwps > 4 || numBwps < 1,"The number of BWPs exceeds the maximum value (4)");
+
+  // Second check: BWP shall not exceed CC limits and the sum of BWPs cannot be larger than the CC bandwidth
+  std::sort(cc.m_bwp.begin(), cc.m_bwp.end(), BwpFrequencyCompare);
+  uint32_t totalBandwidth = 0;
+  bool activeFound = false;
+  for (const auto & a : cc.m_bwp)
+    {
+      totalBandwidth += a.m_bandwidth;
+      if (a.m_higherFrequency > cc.m_higherFrequency || a.m_lowerFrequency < cc.m_lowerFrequency)
+        {
+          NS_ABORT_MSG("BWP part is out of the CC");
+        }
+      if (a.m_bwp_id == cc.m_activeBwp)
+        {
+          activeFound = true;
+        }
+    }
+  NS_ABORT_MSG_IF (totalBandwidth > cc.m_bandwidth,"Aggregated BWP is larger than carrier bandwidth");
+
+  // Third check: the active BWP id is in the CC description
+  NS_ABORT_MSG_IF (activeFound==false,"The active BWP id was not found in the CC");
+
+
+  // Fourth check: BWPs shall not overlap in frequency
+  for (uint8_t a = 0; a < numBwps-1; a++)
+    {
+      if (cc.m_bwp.at(a).m_higherFrequency > cc.m_bwp.at(a+1).m_lowerFrequency)
+        {
+          NS_ABORT_MSG("BWPs shall not overlap");
+        }
+    }
+
+  // Fifth check: BWP ids are not repeated
+  std::sort(cc.m_bwp.begin(), cc.m_bwp.end(), BwpIdCompare);
+  for (uint8_t i = 0; i < numBwps-1; i++)
+    {
+      if (cc.m_bwp.at(i).m_bwp_id == cc.m_bwp.at(i+1).m_bwp_id)
+        {
+          NS_ABORT_MSG("Repeated BWP id");
+        }
+    }
 
 }
 
@@ -1409,146 +1432,164 @@ ComponentCarrierBandwidthPartCreator::CheckBwpsInCc(ComponentCarrierInfo cc)
 void
 ComponentCarrierBandwidthPartCreator::CheckCcsInOperationBand(OperationBandInfo band)
 {
-	// First check: number of BWP shall not be larger than 4
-	uint8_t numCcs = band.m_numCarriers;
-	NS_ABORT_MSG_IF (numCcs != band.m_cc.size(),"The number of announced CC exceeds does not match the number of defined CCs");
 
-	// Second check: the number of CCs cannot be larger than the maximum value
-	NS_ABORT_MSG_IF (numCcs > 8,"The number of CCs exceeds the maximum value");
+  // First check: number of BWP shall not be larger than 4
+  uint8_t numCcs = band.m_numCarriers;
+  NS_ABORT_MSG_IF (numCcs != band.m_cc.size(),"The number of announced CC exceeds does not match the number of defined CCs");
 
-	// Third: CCs shall not overlap
-//	bool overlap = false;
-	for (uint8_t a = 0; a < numCcs; a++)
+  // Second check: the number of CCs cannot be larger than the maximum value
+  NS_ABORT_MSG_IF (numCcs >= MAX_CC_INTRA_BAND,"The number of CCs exceeds the maximum value");
+
+  // Third check: CCs shall not overlap
+  std::sort(band.m_cc.begin(),band.m_cc.end(),CarrierFrequencyCompare); // Sort CC by ascending central frequency value
+
+  for (uint8_t c = 0; c < band.m_numCarriers-1; c++)
+    {
+      if (band.m_cc.at(c).m_higherFrequency < band.m_cc.at(c+1).m_lowerFrequency)
 	{
-		for (uint8_t b = 0; b < numCcs && b != a; b++)
-		{
-			if (band.m_cc.at(a).m_higherFrequency < band.m_cc.at(b).m_lowerFrequency)
-			{
-				NS_ABORT_MSG("CCs shall not overlap");
-//				overlap = true;
-			}
-		}
+	  NS_ABORT_MSG ("CCs shall not overlap");
 	}
+    }
 
-	// Third check: the sum of BWPs cannot be larger than the CC bandwidth
-	uint32_t totalBandwidth = 0;
-	for (uint8_t a = 0; a < numCcs; a++)
-	{
-		totalBandwidth += band.m_cc.at(a).m_bandwidth;
-	}
-	NS_ABORT_MSG_IF(totalBandwidth > band.m_bandwidth,"Aggregated bandwidth is larger than the operation band");
+  // Fourth check: the sum of BWPs cannot be larger than the CC bandwidth
+  // TODO: The current implementation assumes that BWPs cannot overlap. As a consequence, their bandwidth cannot exceed the CC's
+  uint32_t totalBandwidth = 0;
+  for (const auto & a : band.m_cc)
+    {
+      totalBandwidth += a.m_bandwidth;
+      // Fifth: Check that the BWP configuration is correct
+      CheckBwpsInCc(a);
+    }
+  NS_ABORT_MSG_IF (totalBandwidth > band.m_bandwidth,"Aggregated bandwidth is larger than the operation band");
 
 }
 
 
 void
-ComponentCarrierBandwidthPartCreator::CheckOperationBands()
+ComponentCarrierBandwidthPartCreator::CheckCcsInAllOperationBands()
 {
-	// First: Number of band must be consistent
-	NS_ABORT_MSG_IF(m_numBands == m_bands.size(),"The number of bands does not match the number of bands created");
-	// Second: Number of bands below the maximum number
-	NS_ABORT_MSG_IF(m_numBands > m_maxBands,"The number of bands is larger than the maximum number");
-
-	// Third: Operation bands shall not overlap
-//	bool overlap = false;
-	for (uint8_t a = 0; a < m_numBands; a++)
-	{
-		for (uint8_t b = 0; b < m_numBands && b != a; b++)
-		{
-			if (m_bands.at(a).m_higherFrequency < m_bands.at(b).m_lowerFrequency)
-			{
-				NS_ABORT_MSG("Bands shall not overlap");
-//				overlap = true;
-			}
-		}
-	}
+  for (const auto & i : m_bands)
+    {
+      CheckCcsInOperationBand(i);
+    }
 }
 
 
-bool CarrierFrequencyCompare(ComponentCarrierInfo lhs, ComponentCarrierInfo rhs)
+void
+ComponentCarrierBandwidthPartCreator::ValidateCaBwpConfiguration()
 {
-	return lhs.m_centralFrequency < rhs.m_centralFrequency;
+  // First: Number of band must be consistent
+  NS_ABORT_MSG_IF(m_numBands != m_bands.size(),"The number of bands does not match the number of bands created");
+
+  // Second: Number of bands below the maximum number
+  NS_ABORT_MSG_IF(m_numBands > m_maxBands,"The number of bands is larger than the maximum number");
+
+  uint16_t numAggrCcs = 0;
+  // Third: Operation bands shall not overlap
+  for (const auto & a : m_bands)
+    {
+      NS_ABORT_MSG_IF(a.m_numCarriers != a.m_cc.size(),"The declared number of intra-band CCs does not match the number of configured CCs");
+      for (const auto & b : m_bands)
+        {
+          if (&a != &b && a.m_higherFrequency < b.m_lowerFrequency)
+            {
+              NS_ABORT_MSG("Bands shall not overlap");
+            }
+        }
+      // Fourth: Check that the CC configuration is valid
+      CheckCcsInOperationBand(a);
+      numAggrCcs += a.m_numCarriers;
+    }
+
+  // Fourth: Check that the number of the inter-band aggregated carriers is below the maximum value
+  NS_ABORT_MSG_IF(numAggrCcs > MAX_CC_INTER_BAND,"The number of allowed aggregated CCs was exceeded");
 }
 
-bool BwpFrequencyCompare(ComponentCarrierBandwidthPartElement lhs, ComponentCarrierBandwidthPartElement rhs)
+
+ContiguousMode
+ComponentCarrierBandwidthPartCreator::GetCcContiguousnessState (OperationBandInfo band,
+								uint32_t freqSeparation)
 {
-	return lhs.m_centralFrequency < rhs.m_centralFrequency;
-}
+  // Make sure there is more than 1 CC
+  NS_ABORT_MSG_IF(band.m_numCarriers < 1,"There should be more than 1 CC to determine if they are contiguous");
 
-bool BwpIdCompare(ComponentCarrierBandwidthPartElement lhs, ComponentCarrierBandwidthPartElement rhs)
-{
-	return lhs.m_bwp_id < rhs.m_bwp_id;
-}
+  // Assume that CCs might not be ordered in an increasing central frequency value
+  std::sort(band.m_cc.begin(), band.m_cc.end(), CarrierFrequencyCompare);
 
-
-bool
-ComponentCarrierBandwidthPartCreator::CheckContiguousCcs(OperationBandInfo band, uint32_t freqSeparation)
-{
-	// Check there is more than 1 CC
-	NS_ABORT_MSG_IF(band.m_numCarriers < 1,"There should be more than 1 CC to determine if they are contiguous");
-
-	// Assume that CCs might not be ordered in an increasing central frequency value
-	std::sort(band.m_cc.begin(), band.m_cc.end(), CarrierFrequencyCompare);
-
-	for (uint8_t i = 0; i < band.m_numCarriers-1; i++)
-	{
-		if (band.m_cc.at(i).m_lowerFrequency - band.m_cc.at(i+1).m_higherFrequency > freqSeparation)
-		{
-			return false;
-		}
-	}
-
-//	// Find the lowest central frequency
-//	// Find the next smallest central frequency
-//	// Compare that the two frequency bands are not separated by more than freqSeparation (separation might be 0)
-//	std::vector<uint8_t> index_vector_aux;
-//	uint32_t minFrec = band.m_cc.at(0).m_centralFrequency;
-//	uint8_t i = 1;
-//	while (i < band.m_numCarriers)
-//	{
-//		if (band.m_cc.at(i).m_centralFrequency < minFrec)
-//		{
-//			minFrec = band.m_cc.at(i).m_centralFrequency;
-//		}
-//	}
-////	std::vector<uint8_t> index_vector_aux;
-////	for (uint8_t c = 0; c < band.m_numCarriers; c++)
-////	{
-////		if ()
-////		{
-////			std::min
-////		}
-////	}
-
-	return true;
+  for (uint8_t i = 0; i < band.m_numCarriers-1; i++)
+    {
+      if (band.m_cc.at(i).m_lowerFrequency - band.m_cc.at(i+1).m_higherFrequency > freqSeparation)
+        {
+          return NON_CONTIGUOUS;
+        }
+    }
+  return CONTIGUOUS;
 }
 
 ComponentCarrierBandwidthPartElement
 ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo(uint8_t bandIndex, uint8_t ccIndex)
 {
-	NS_ABORT_MSG_IF(m_bands.empty(),"No operation band information provided");
-	NS_ABORT_MSG_IF(bandIndex > m_maxBands-1 || bandIndex > m_bands.size()-1,"Wrong operation band index");
-//	NS_ABORT_MSG_IF(ccIndex > m_numCcs,"Wrong component carrier index");
+  NS_ABORT_MSG_IF(m_bands.empty(),"No operation band information provided");
+  NS_ABORT_MSG_IF(bandIndex >= m_maxBands || bandIndex >= m_bands.size(), "Wrong operation band index");
+//  NS_ABORT_MSG_IF(ccIndex > m_numCcs,"Wrong component carrier index");
 
-	OperationBandInfo band = m_bands.at(bandIndex);
-	NS_ABORT_MSG_IF(band.m_cc.empty(),"No carrier band information provided");
-	NS_ABORT_MSG_IF(ccIndex > band.m_numCarriers-1 || ccIndex > band.m_cc.size()-1,"Wrong component carrier index");
 
-	ComponentCarrierInfo cc = band.m_cc.at(ccIndex);
-	ComponentCarrierBandwidthPartElement bwp;
-	bool found = false;
-	for(uint8_t i = 0; i < cc.m_bwp.size(); i++)
+  OperationBandInfo band = m_bands.at(bandIndex);
+  NS_ABORT_MSG_IF(band.m_cc.empty(),"No carrier band information provided");
+  NS_ABORT_MSG_IF(ccIndex > band.m_numCarriers-1 || ccIndex > band.m_cc.size()-1,"Wrong component carrier index");
+
+  ComponentCarrierInfo cc = band.m_cc.at(ccIndex);
+  ComponentCarrierBandwidthPartElement bwp;
+  bool found = false;
+  for(uint8_t i = 0; i < cc.m_bwp.size(); i++)
+    {
+      if(cc.m_bwp.at(i).m_bwp_id == cc.m_activeBwp)
+        {
+          found = true;
+          bwp = cc.m_bwp.at(i);
+          break;
+        }
+    }
+  NS_ABORT_MSG_IF(found==false,"Active BWP id is not found in the current CC");
+  return bwp;
+
+}
+
+ComponentCarrierInfo
+ComponentCarrierBandwidthPartCreator::GetComponentCarrier (uint8_t bandId, uint8_t ccId)
+{
+  NS_ABORT_MSG_IF(bandId >= m_numBands,"Wrong operation band id");
+  NS_ABORT_MSG_IF(m_bands.at(bandId).m_numCarriers <= ccId, "CC index exceeds the number of defined CCs");
+  return m_bands.at(bandId).m_cc.at(ccId);
+}
+
+
+uint32_t ComponentCarrierBandwidthPartCreator::GetAggregatedBandwidth ()
+{
+  uint32_t aBandwidth = 0;
+  for (const auto & band : m_bands)
+    {
+      for (const auto & cc : band.m_cc)
 	{
-		if(cc.m_bwp.at(i).m_bwp_id == cc.m_activeBwp)
+	  for (const auto & bwp : cc.m_bwp)
+	    {
+	      if (bwp.m_bwp_id == cc.m_activeBwp)
 		{
-			found = true;
-			bwp = cc.m_bwp.at(i);
-			break;
+		  aBandwidth += bwp.m_bandwidth;
 		}
+	    }
 	}
-	NS_ABORT_MSG_IF(found==false,"Active BWP id is not found in the current CC");
-	return bwp;
+    }
 
+  return aBandwidth;
+}
+
+
+uint32_t ComponentCarrierBandwidthPartCreator::GetCarrierBandwidth (uint8_t bandId, uint8_t ccId)
+{
+  // There is at least one bwp
+  ComponentCarrierBandwidthPartElement bwp = GetActiveBwpInfo(bandId, ccId);
+  return bwp.m_bandwidth;
 }
 
 } // namespace ns3
