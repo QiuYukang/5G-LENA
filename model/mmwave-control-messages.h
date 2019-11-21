@@ -25,20 +25,26 @@
 *                         Menglei Zhang <menglei@nyu.edu>
 */
 
-
-
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_CONTROL_MESSAGES_H_
 #define SRC_MMWAVE_MODEL_MMWAVE_CONTROL_MESSAGES_H_
 
-#include <ns3/ptr.h>
 #include <ns3/simple-ref-count.h>
-#include <ns3/lte-rrc-sap.h>
-#include <ns3/ff-mac-common.h>
 #include "mmwave-phy-mac-common.h"
-#include <list>
-#include <memory>
 
 namespace ns3 {
+
+/**
+ * \brief Available TDD slot types. Ordering is important.
+ */
+enum LteNrTddSlotType : uint8_t
+{
+  DL = 0,  //!< DL CTRL + DL DATA
+  S  = 1,  //!< DL CTRL + DL DATA + UL CTRL
+  F  = 2,  //!< DL CTRL + DL DATA + UL DATA + UL CTRL
+  UL = 3,  //!< UL DATA + UL CTRL
+};
+
+std::ostream & operator<< (std::ostream & os, LteNrTddSlotType const & item);
 
 class MmWaveControlMessage : public SimpleRefCount<MmWaveControlMessage>
 {
@@ -227,13 +233,25 @@ public:
   void SetSib1 (LteRrcSap::SystemInformationBlockType1 sib1);
 
   /**
+   * \brief Replace the TDD pattern of this control message.
+   * \param pattern the TDD pattern to store
+   */
+  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+
+  /**
    * \brief Retrieve the SIB1 content from this control message.
    * \return the current SIB1 content that this control message holds
    */
   LteRrcSap::SystemInformationBlockType1 GetSib1 () const;
 
+  /**
+   * \return Retrieve the TDD pattern stored in this message.
+   */
+  const std::vector<LteNrTddSlotType> & GetTddPattern () const;
+
 private:
-  LteRrcSap::SystemInformationBlockType1 m_sib1;
+  LteRrcSap::SystemInformationBlockType1 m_sib1; //!< Sib1 content
+  std::vector<LteNrTddSlotType> m_pattern;       //!< TDD Pattern
 
 }; // end of class MmWaveSib1Message
 // ---------------------------------------------------------------------------
