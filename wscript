@@ -85,6 +85,8 @@ def build(bld):
         'test/test-antenna-3gpp-model-conf.cc',
         'test/nr-test-l2sm-eesm.cc',
         'test/nr-test-3gpp-channel.cc',
+        'test/nr-lte-pattern-generation.cc',
+        'test/nr-phy-patterns.cc',
         ]
 
     headers = bld(features='ns3header')
