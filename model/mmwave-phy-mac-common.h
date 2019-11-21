@@ -191,6 +191,22 @@ struct SfnSf
   }
 
   /**
+   * \brief Normalize the SfnSf in slot number
+   * \param slotsPerSubframe Number of slot per subframe
+   * \param subframesPerFrame Number of subframes per frame
+   * \return The number of total slots passed (can overlap)
+   */
+  uint64_t
+  Normalize (uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
+  {
+    uint64_t ret = 0;
+    ret += m_slotNum;
+    ret += m_subframeNum * slotsPerSubframe;
+    ret += m_frameNum * subframesPerFrame * slotsPerSubframe;
+    return ret;
+  }
+
+  /**
    * \brief Add to this SfnSf a number of slot indicated by the first parameter
    * \param slotN Number of slot to add
    * \param slotsPerSubframe Number of slot per subframe
