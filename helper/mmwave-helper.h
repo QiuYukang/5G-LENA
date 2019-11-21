@@ -73,7 +73,7 @@ class MmWaveSpectrumValueHelper;
 class PropagationLossModel;
 
 
-/*
+/**
  * Bandwidth part configuration element
  */
 struct ComponentCarrierBandwidthPartElement
@@ -86,7 +86,7 @@ struct ComponentCarrierBandwidthPartElement
   uint32_t m_bandwidth;       //<! BWP bandwidth
 };
 
-/*
+/**
  * Component carrier configuration element
  */
 struct ComponentCarrierInfo
@@ -99,7 +99,7 @@ struct ComponentCarrierInfo
   uint32_t m_bandwidth;        //<! BWP bandwidth
   std::vector<ComponentCarrierBandwidthPartElement> m_bwp;  //<! Space for BWP. FIXME Consider using maps for access speed
 
-  /*
+  /**
    * \brief Adds a BWP to the carrier
    * \param bwp Description of the BWP
    */
@@ -107,7 +107,7 @@ struct ComponentCarrierInfo
 };
 
 
-/*
+/**
  * Carrier aggregation contiguous allocation mode within an operation band
  */
 enum ContiguousMode
@@ -125,7 +125,9 @@ enum ContiguousMode
 const uint8_t MAX_CC_INTRA_BAND = 8;  //<! Up to 8 CCs can be aggregated in the same operation band
 const uint8_t MAX_CC_INTER_BAND = 16; //<! The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
 
-
+/**
+ * \brief The operation band information structure
+ */
 struct OperationBandInfo
 {
   double m_centralFrequency;  //<! Operation band central frequency
@@ -136,104 +138,85 @@ struct OperationBandInfo
   ContiguousMode m_contiguousCc;  //<! CA intra-band contiguousness
   std::vector<ComponentCarrierInfo> m_cc;  //<! Space for CC configuration information
 
-  void AddCc(const ComponentCarrierInfo &cc);
+  void AddCc (const ComponentCarrierInfo &cc);
 };
 
 
 
-/*
+/**
  * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
  */
 class ComponentCarrierBandwidthPartCreator
 {
 public:
-  ComponentCarrierBandwidthPartCreator();
-  ComponentCarrierBandwidthPartCreator(uint8_t maxNumBands);
-  virtual ~ComponentCarrierBandwidthPartCreator();
+  ComponentCarrierBandwidthPartCreator ();
+  ComponentCarrierBandwidthPartCreator (uint8_t maxNumBands);
+  virtual ~ComponentCarrierBandwidthPartCreator ();
 
-  /*
+  /**
    * \brief Creates an operation band by splitting the available bandwidth into numCCs equally-large contiguous carriers
    * \param centralFrequency Central operation frequency in Hz
    * \param operationBandwidth Operation band bandwidth
    * \param numCCs Number of contiguous CC
    */
-  void CreateOperationBandContiguousCc (double centralFrequency,
-					uint32_t operationBandwidth,
-					uint8_t numCCs);
+  void CreateOperationBandContiguousCc (double centralFrequency, uint32_t operationBandwidth, uint8_t numCCs);
 
-  /*
+  /**
    * \brief Creates an operation band with the desired central frequency and bandwidth with no CC information
    * \param centralFrequency The central frequency of the operation band
    * \param operationBandwidth The operation band bandwidth
    */
-  OperationBandInfo CreateEmptyOperationBand (double centralFrequency,
-					 uint32_t operationBandwidth);
+  OperationBandInfo CreateEmptyOperationBand (double centralFrequency, uint32_t operationBandwidth);
 
-  /*
+  /**
    * \brief Creates an operation band with the desired central frequency and bandwidth, with a single CC occupying the whole operation band
    * \param centralFrequency The central frequency of the operation band
    * \param operationBandwidth The operation band bandwidth
    */
-  OperationBandInfo CreateOperationBand (double centralFrequency,
-					 uint32_t operationBandwidth);
+  OperationBandInfo CreateOperationBand (double centralFrequency, uint32_t operationBandwidth);
 
-  /*
+  /**
    * \brief This function creates an operation band with the provided central frequency, bandwidth and intra-band CC configuration
    * \param centralFrequency The central frequency of the operation band
    * \param operationBandwidth The operation band bandwidth
    * \param cc Vector containing the intra-band CC configurations
    * \note Calling this function orders the CC per increasing central frequency value
    */
-  OperationBandInfo CreateOperationBand (double centralFrequency,
-					 uint32_t operationBandwidth,
-					 std::vector<ComponentCarrierInfo> &ccs);
+  OperationBandInfo CreateOperationBand (double centralFrequency, uint32_t operationBandwidth, std::vector<ComponentCarrierInfo> &ccs);
 
-  // Will create an operation band with the given CC information
-  /*
+  /**
    * \brief Adds the operation band to the class
    * \param band Description of the operation band
    */
-  void AddOperationBand (OperationBandInfo band);
+  void AddOperationBand (const OperationBandInfo &bandInfo);
 
-  /*
+  /**
    * \brief Performs some validation checks on the provided operation band configuration and its child CC and BWP structures
    * \param band Operation band parameters
    */
-  void ValidateOperationBand (OperationBandInfo band);
+  void ValidateOperationBand (OperationBandInfo &band);
 
-  /*
+  /**
    * \brief Checks the consistency of BWP within the carrier
    * \note Simulation will stop if a bad configuration is found
    * \param cc Component Carrier definition
    */
-  void CheckBwpsInCc (ComponentCarrierInfo cc);
+  void CheckBwpsInCc (ComponentCarrierInfo &cc);
 
-  /*
-   * \brief Checks the consistency of the CC within the operation band
-   * \note Simulation will stop if a bad configuration is found
-   * \param band Operation band configuration
-   */
-  void CheckCcsInOperationBand (OperationBandInfo band);
-
-  /*
-   * \brief Checks the consistency of the CCs of each defined operation band
-   */
-  void CheckCcsInAllOperationBands ();
-
-  /*
+  /**
    * \brief Validates the CA/BWP configuration
    */
   void ValidateCaBwpConfiguration ();
 
-  /*
+  /**
    * \brief Determines whether the CCs in the band are contiguous or not based on a intra-band CC frequency offset
    * \param band Operation band information structure
    * \param freqSeparation Maximum separation between contiguous CCs in Hz
    * \returns Flag indicating contiguous or non-contiguous CCs for the given band
    */
-  ContiguousMode GetCcContiguousnessState (OperationBandInfo band, uint32_t freqSeparation);
+  ContiguousMode GetCcContiguousnessState (OperationBandInfo &band, uint32_t freqSeparation);
 
-  /*
+  /**
    * \brief Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the provided carrier index
    * \param bandIndex Operation band id
    * \param ccIndex Component carrier id
@@ -241,7 +224,7 @@ public:
    */
   ComponentCarrierBandwidthPartElement GetActiveBwpInfo (uint8_t bandIndex, uint8_t ccIndex);
 
-  /*
+  /**
    * \brief Gets the ComponentCarrierInfo struct associated to the provided operation band and carrier indices
    * \param bandIndex Operation band id
    * \param ccIndex Component carrier id
@@ -249,13 +232,13 @@ public:
    */
   ComponentCarrierInfo GetComponentCarrier (uint8_t bandId, uint8_t ccId);
 
-  /*
+  /**
    * \brief Returns the aggregated bandwidth in the CA configuration, considering the active BWP
    * \return Aggregated bandwidth in Hz
    */
   uint32_t GetAggregatedBandwidth ();
 
-  /*
+  /**
    * \brief Returns the active BWP of the given CC in the given operation band
    * \param bandId Operation band id (position in the class internal vector of operation bands)
    * \param ccId CC id (position in the operation band's internal vector of CCs)
@@ -263,13 +246,12 @@ public:
    */
   uint32_t GetCarrierBandwidth (uint8_t bandId, uint8_t ccId);
 
-  //void AddOperationBand(OperationBandInfo bandInfo);
 
 private:
   uint8_t m_maxBands {1};  //!< Limit the number of operation bands
   uint8_t m_numBands {0};  //!< Number of current operation bands. It must be smaller or equal than m_maxBands
-  uint8_t m_numBwps {0};  //!< Number of BWP created. Consider removing
-  uint8_t m_numCcs {0};  //!< Number of Component Carriers created
+  uint8_t m_numBwps {0};   //!< Number of BWP created. Consider removing
+  uint8_t m_numCcs {0};    //!< Number of Component Carriers created
   std::vector<OperationBandInfo> m_bands;  //!< Vector to the operation band information elements
 
 };
