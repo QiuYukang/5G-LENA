@@ -185,6 +185,199 @@ MmWaveEnbPhy::DoDispose (void)
   MmWavePhy::DoDispose ();
 }
 
+/**
+ * \brief An intelligent way to calculate the modulo
+ * \param n Number
+ * \param m Modulo
+ * \return n+=m until n < 0
+ */
+static uint32_t modulo (int n, uint32_t m)
+{
+  if (n >= 0)
+    {
+      return static_cast<uint32_t> (n) % m;
+    }
+  else
+    {
+      while (n < 0) {
+          n += m;
+        }
+      return static_cast<uint32_t> (n);
+    }
+}
+
+/**
+ * \brief Return the slot in which the DCI should be send, according to the parameter k
+ * \param pattern The TDD pattern
+ * \param pos The position inside the patter for which we want to check where the DCI should be sent
+ * \param k The K parameter (equal to K0 or K2, depending if it is DL or UL)
+ * \return The slot position in which the DCI for the position specified should be sent
+ */
+static uint32_t
+ReturnDciSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t k)
+{
+  int32_t j = static_cast<int32_t> (k);
+  uint32_t index = modulo (static_cast<int> (pos) - j, static_cast<uint32_t> (pattern.size ()));
+
+  while (pattern[index] > LteNrTddSlotType::F)
+    {
+      j++;
+      index = modulo (static_cast<int> (pos) - j, static_cast<uint32_t> (pattern.size ()));
+      NS_ASSERT (index < pattern.size ());
+    }
+
+  return index;
+}
+
+void
+MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType> &pattern,
+                                             std::map<uint32_t, std::vector<uint32_t>> *toSendDl,
+                                             std::map<uint32_t, std::vector<uint32_t>> *toSendUl,
+                                             std::map<uint32_t, std::vector<uint32_t>> *generateDl,
+                                             std::map<uint32_t, std::vector<uint32_t>> *generateUl,
+                                             uint32_t k0, uint32_t k2, uint32_t l1l2CtrlLatency)
+{
+  int32_t n = static_cast<int32_t> (pattern.size ());
+
+  for (int32_t i = n-1; i >= 0; --i)
+    {
+      if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::UL)
+        {
+          uint32_t indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k2);
+          uint32_t indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
+                                      static_cast<uint32_t> (pattern.size ()));
+          (*toSendUl)[indexDci].push_back(static_cast<uint32_t> (i));
+          (*generateUl)[indexGen].push_back (static_cast<uint32_t> (i));
+        }
+      else if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::DL ||
+               pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::S)
+        {
+          uint32_t indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k0);
+          uint32_t indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
+                                      static_cast<uint32_t> (pattern.size ()));
+
+          (*toSendDl)[indexDci].push_back(static_cast<uint32_t> (i));
+          (*generateDl)[indexGen].push_back (static_cast<uint32_t> (i));
+        }
+      else if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::F)
+        {
+          uint32_t indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k0);
+          uint32_t indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
+                                      static_cast<uint32_t> (pattern.size ()));
+          (*toSendDl)[indexDci].push_back(static_cast<uint32_t> (i));
+          (*generateDl)[indexGen].push_back (static_cast<uint32_t> (i));
+
+          indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k2);
+          indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
+                             static_cast<uint32_t> (pattern.size ()));
+
+          (*toSendUl)[indexDci].push_back(static_cast<uint32_t> (i));
+          (*generateUl)[indexGen].push_back (static_cast<uint32_t> (i));
+        }
+    }
+}
+
+void
+MmWaveEnbPhy::PushDlAllocation (const SfnSf &sfnSf) const
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Pushing DL CTRL symbol allocation for " << sfnSf);
+
+  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
+
+  slotAllocInfo.m_numSymAlloc = 1;
+  slotAllocInfo.m_type = SlotAllocInfo::BOTH;
+
+  auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
+  VarTtiAllocInfo dlCtrlVarTti (dciDl);
+
+  slotAllocInfo.m_varTtiAllocInfo.emplace_back (dlCtrlVarTti);
+  m_phySapProvider->SetSlotAllocInfo (slotAllocInfo);
+}
+
+void
+MmWaveEnbPhy::PushUlAllocation (const SfnSf &sfnSf) const
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
+
+  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
+
+  slotAllocInfo.m_numSymAlloc = 1;
+  slotAllocInfo.m_type = SlotAllocInfo::BOTH;
+
+  auto dciUl = std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
+  VarTtiAllocInfo ulCtrlVarTti (dciUl);
+
+  slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
+  m_phySapProvider->SetSlotAllocInfo (slotAllocInfo);
+}
+
+void
+MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_phyMacConfig != nullptr);
+  m_tddPattern = pattern;
+
+  m_generateDl.clear ();
+  m_generateUl.clear ();
+  m_toSendDl.clear ();
+  m_toSendUl.clear ();
+
+  GenerateStructuresFromPattern (pattern, &m_toSendDl, &m_toSendUl,
+                                 &m_generateDl, &m_generateUl, 0,
+                                 static_cast<uint32_t> (m_phyMacConfig->GetUlSchedDelay ()),
+                                 m_phyMacConfig->GetL1L2CtrlLatency ());
+
+  // At the beginning of the simulation, fill the slot allocations until
+  // the mac will generate one. It means from slot 0 up to slot indicated in
+  // the structure (with a possible wrap-around)
+  if (Simulator::GetContext() == Simulator::NO_CONTEXT)
+    {
+      NS_ASSERT (m_generateDl.begin() != m_generateDl.end());
+      NS_ASSERT (m_generateUl.begin() != m_generateUl.end());
+
+      SfnSf sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
+
+      uint32_t times = m_generateDl.begin()->first + 0 + m_phyMacConfig->GetL1L2CtrlLatency() - 1; // Missing K0
+
+      for (uint32_t i = 0; i <= times; ++i)
+        {
+          auto index = modulo (i, m_tddPattern.size ());
+          if (m_tddPattern[index] == DL || m_tddPattern[index] == S || m_tddPattern[index] == F)
+            {
+              PushDlAllocation (sfnSf);
+            }
+
+          sfnSf.Add (1, m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+        }
+
+      sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
+
+      times = m_generateUl.begin()->first + m_phyMacConfig->GetUlSchedDelay () + m_phyMacConfig->GetL1L2CtrlLatency() - 1;
+
+      for (uint32_t i = 0; i <= times; ++i)
+        {
+          auto index = modulo (i, m_tddPattern.size ());
+          if (m_tddPattern[index] == UL || m_tddPattern[index] == F)
+            {
+              PushUlAllocation (sfnSf);
+            }
+
+          sfnSf.Add (1, m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+        }
+    }
+  else
+    {
+      // Don't change dynamically the pattern. What would happen with the
+      // already scheduled slots?
+      NS_FATAL_ERROR ("Changing TDD pattern dynamically is disabled.");
+    }
+}
+
 void
 MmWaveEnbPhy::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacCommon)
 {
@@ -193,6 +386,8 @@ MmWaveEnbPhy::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacC
   m_phyMacConfig = phyMacCommon;
 
   InitializeMessageList ();
+
+  SetTddPattern (m_tddPattern); // Initialize everything needed for the TDD patterns
 }
 
 void
@@ -277,7 +472,50 @@ void MmWaveEnbPhy::QueueSib ()
   NS_LOG_FUNCTION (this);
   Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
   msg->SetSib1 (m_sib1);
+  msg->SetTddPattern (m_tddPattern);
   EnqueueCtrlMsgNow (msg);
+}
+
+void
+MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (!m_generateDl.empty());
+  NS_ASSERT (!m_generateUl.empty());
+
+  m_phySapUser->SetCurrentSfn (currentSlot);
+
+  uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
+                                                 m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
+
+  NS_LOG_INFO ("Start Slot " << currentSlot << ". In position " <<
+               currentSlotN << " there is a slot of type " <<
+               m_tddPattern[currentSlotN]);
+
+  for (const auto & slot : m_generateDl[currentSlotN])
+    {
+      SfnSf targetSlot = currentSlot;
+      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
+
+      NS_LOG_INFO (" in slot " << currentSlot << " generate DL for " <<
+                     targetSlot);
+      m_phySapUser->SlotDlIndication (targetSlot);
+    }
+
+  for (const auto & slot : m_generateUl[currentSlotN])
+    {
+      SfnSf targetSlot = currentSlot;
+      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
+
+      NS_LOG_INFO (" in slot " << currentSlot << " generate UL for " <<
+                     targetSlot);
+
+      m_phySapUser->SlotUlIndication (targetSlot);
+    }
 }
 
 void
@@ -297,9 +535,10 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 
   const SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0);
 
-  NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
-             && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
-             && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ));
+  NS_ASSERT_MSG ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
+                 && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
+                 && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ),
+                 "Retrieved slot " << m_currSlotAllocInfo.m_sfnSf << " but we are on " << currentSlot );
 
   if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
     {
@@ -318,7 +557,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 
   if (m_slotNum == 0)
     {
-      if (m_subframeNum == 0)   // send MIB at the beginning of each frame
+      if (m_subframeNum == 0)   //send MIB at the beginning of each frame
         {
           QueueMib ();
         }
@@ -331,9 +570,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   if (m_channelStatus == GRANTED)
     {
       NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
-      m_phySapUser->SlotUlIndication (currentSlot);
-      m_phySapUser->SlotDlIndication (currentSlot);
-
+      CallMacForSlotIndication (currentSlot);
       DoStartSlot ();
     }
   else
@@ -363,8 +600,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
                   // Repetition but we can have a CAM that gives the channel
                   // instantaneously
                   NS_LOG_DEBUG ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
-                  m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-                  m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+                  CallMacForSlotIndication (currentSlot);
 
                   DoStartSlot ();
                   return; // Exit without calling anything else
@@ -392,8 +628,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
           // It's an empty slot; ask the MAC for a new one (maybe a new data will arrive..)
           // and just let the current one go away
           NS_LOG_DEBUG ("Channel not granted; but asking MAC for SlotIndication for the future, maybe there will be data");
-          m_phySapUser->SlotUlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
-          m_phySapUser->SlotDlIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+          CallMacForSlotIndication (currentSlot);
         }
       // If we have the UL CTRL, then schedule it (we are listening, so
       // we don't need the channel. Otherwise, just go at the end of the
@@ -494,118 +729,99 @@ MmWaveEnbPhy::ExpireBeamformingTimer()
                                             &MmWaveEnbPhy::ExpireBeamformingTimer, this);
 }
 
-std::list <Ptr<MmWaveControlMessage> >
-MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &sfn)
+std::list <Ptr<MmWaveControlMessage>>
+MmWaveEnbPhy::RetrieveDciFromAllocation (const SfnSf &currentSlot,
+                                         const SlotAllocInfo &alloc,
+                                         const DciInfoElementTdma::DciFormat &format)
 {
-  std::list <Ptr<MmWaveControlMessage> > ctrlMsgs;
+  NS_LOG_FUNCTION(this);
+  std::list <Ptr<MmWaveControlMessage>> ctrlMsgs;
 
-  std::set <uint16_t> scheduledRnti;
-  // find all DL DCI elements in the current slot and create the DL RBG bitmask
-  uint8_t lastSymbolDl = 0, lastSymbolUl = 0;
-
-  NS_LOG_INFO ("Retrieving DL allocation (and an eventual UL CTRL) for slot " <<
-               m_currSlotAllocInfo.m_sfnSf << " from a set of " <<
-               m_currSlotAllocInfo.m_varTtiAllocInfo.size () << " allocations");
-  for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+  for (const auto & dlAlloc : alloc.m_varTtiAllocInfo)
     {
-      if (dlAlloc.m_dci->m_rnti != 0 && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
-        {
-          NS_LOG_INFO ("DCI FOR " << dlAlloc.m_dci->m_rnti << " type " <<
-                       dlAlloc.m_dci->m_format << " " << dlAlloc.m_dci->m_type <<
-                       " start " << +dlAlloc.m_dci->m_symStart << " numSym " <<
-                       +dlAlloc.m_dci->m_numSym);
-          NS_ASSERT (scheduledRnti.find(dlAlloc.m_dci->m_rnti) == scheduledRnti.end());
-          scheduledRnti.insert(dlAlloc.m_dci->m_rnti);
-        }
-      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
-          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
+      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL && dlAlloc.m_dci->m_format == format)
         {
           auto & dciElem = dlAlloc.m_dci;
-          NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
+          NS_ASSERT (dciElem->m_format == format);
           NS_ASSERT (dciElem->m_tbSize > 0);
-          NS_ASSERT (dciElem->m_symStart >= lastSymbolDl);
           NS_ASSERT_MSG (dciElem->m_symStart + dciElem->m_numSym <= m_phyMacConfig->GetSymbolsPerSlot (),
                          "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
                          " numSym: " << static_cast<uint32_t> (dciElem->m_numSym) <<
                          " symPerSlot: " << static_cast<uint32_t> (m_phyMacConfig->GetSymbolsPerSlot ()));
-          lastSymbolDl = dciElem->m_symStart;
 
-          StoreRBGAllocation (dciElem);
+          NS_LOG_INFO ("Send DCI to" << dciElem->m_rnti << " from sym " <<
+                         +dciElem->m_symStart << " to " << +dciElem->m_symStart + dciElem->m_numSym);
 
           Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
-          dciMsg->SetSfnSf (sfn);
+          dciMsg->SetSfnSf (currentSlot);
 
           ctrlMsgs.push_back (dciMsg);
           NS_LOG_INFO ("To send, DL DCI for UE " << dciElem->m_rnti);
         }
     }
 
-  // TODO: REDUCE AMOUNT OF DUPLICATE CODE
-  // Get all the DCI for UL. We retrieve that DCIs from a future slot
-  // if UlSchedDelay > 0, or this slot if == 0.
-  const SfnSf ulSfn = sfn.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
-                                               m_phyMacConfig->GetSlotsPerSubframe (),
-                                               m_phyMacConfig->GetSubframesPerFrame ());
-  if (m_phyMacConfig->GetUlSchedDelay () > 0)
+  return ctrlMsgs;
+}
+
+std::list <Ptr<MmWaveControlMessage> >
+MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
+{
+  std::list <Ptr<MmWaveControlMessage> > ctrlMsgs;
+  uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
+                                                 m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
+
+  // TODO: copy paste :(
+  for (const auto & slot : m_toSendDl[currentSlotN])
     {
-      if (SlotAllocInfoExists (ulSfn))
+      SfnSf targetSlot = currentSlot;
+      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
+
+      if (targetSlot == currentSlot)
         {
-          SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
-          NS_LOG_INFO ("Retrieving UL allocation for slot " << ulSlot.m_sfnSf <<
-                       " with a total of " << ulSlot.m_varTtiAllocInfo.size () <<
-                       " allocations");
-          for (const auto & ulAlloc : ulSlot.m_varTtiAllocInfo)
-            {
-              if (ulAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
-                  && ulAlloc.m_dci->m_format == DciInfoElementTdma::UL)
-                {
-                  auto dciElem = ulAlloc.m_dci;
+          NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for the same slot");
+          ctrlMsgs.merge (RetrieveDciFromAllocation (currentSlot, m_currSlotAllocInfo,
+                                                     DciInfoElementTdma::DL));
+        }
+      else if (SlotAllocInfoExists (targetSlot))
+        {
+          NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for " <<
+                         targetSlot);
 
-                  NS_ASSERT (dciElem->m_format == DciInfoElementTdma::UL);
-                  NS_ASSERT (dciElem->m_tbSize > 0);
-                  NS_ASSERT_MSG (dciElem->m_symStart >= lastSymbolUl,
-                                 "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
-                                 " lastSymbolUl " << static_cast<uint32_t> (lastSymbolUl));
-
-                  NS_ASSERT (dciElem->m_symStart + dciElem->m_numSym <= m_phyMacConfig->GetSymbolsPerSlot ());
-                  lastSymbolUl = dciElem->m_symStart;
-
-                  Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
-                  dciMsg->SetSfnSf (sfn);
-                  ctrlMsgs.push_back (dciMsg);
-
-                  NS_LOG_INFO ("To send, UL DCI for UE " << dciElem->m_rnti <<
-                               "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
-                               " lastSymbolUl " << static_cast<uint32_t> (lastSymbolUl));
-                }
-            }
+          ctrlMsgs.merge (RetrieveDciFromAllocation (currentSlot, PeekSlotAllocInfo(targetSlot),
+                                                     DciInfoElementTdma::DL));
+        }
+      else
+        {
+          NS_LOG_INFO ("No allocation found for slot " << targetSlot);
         }
     }
-  else
+
+  for (const auto & slot : m_toSendUl[currentSlotN])
     {
-      for (const auto & ulAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+      SfnSf targetSlot = currentSlot;
+      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
+
+      if (targetSlot == currentSlot)
         {
-          if (ulAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
-              && ulAlloc.m_dci->m_format == DciInfoElementTdma::UL)
-            {
-              auto dciElem = ulAlloc.m_dci;
+          NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for the same slot");
+          ctrlMsgs.merge (RetrieveDciFromAllocation (currentSlot, m_currSlotAllocInfo,
+                                                     DciInfoElementTdma::UL));
+        }
+      else if (SlotAllocInfoExists (targetSlot))
+        {
+          NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for " <<
+                         targetSlot);
 
-              NS_ASSERT (dciElem->m_format == DciInfoElementTdma::UL);
-              NS_ASSERT (dciElem->m_tbSize > 0);
-              NS_ASSERT (dciElem->m_symStart >= lastSymbolDl);
-              NS_ASSERT_MSG (dciElem->m_symStart >= lastSymbolUl,
-                             "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
-                             " lastSymbolUl " << static_cast<uint32_t> (lastSymbolUl));
-
-              NS_ASSERT (dciElem->m_symStart + dciElem->m_numSym <= m_phyMacConfig->GetSymbolsPerSlot ());
-              lastSymbolUl = dciElem->m_symStart;
-
-              Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
-              dciMsg->SetSfnSf (sfn);
-              ctrlMsgs.push_back (dciMsg);
-
-              NS_LOG_INFO ("To send, UL DCI for UE " << dciElem->m_rnti);
-            }
+          ctrlMsgs.merge (RetrieveDciFromAllocation (currentSlot, PeekSlotAllocInfo(targetSlot),
+                                                     DciInfoElementTdma::UL));
+        }
+      else
+        {
+          NS_LOG_INFO ("No allocation found for slot " << targetSlot);
         }
     }
 
@@ -626,14 +842,24 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
         }
     }
 
-  SfnSf sfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
+  SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
 
   // Start with a clean RBG allocation bitmask
   m_rbgAllocationPerSym.clear ();
 
   // create control messages to be transmitted in DL-Control period
   std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = GetControlMessages ();
-  ctrlMsgs.merge (RetrieveMsgsFromDCIs (sfn));
+  ctrlMsgs.merge (RetrieveMsgsFromDCIs (currentSlot));
+
+  // Create RBG map to know where to put power in DL
+  for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
+    {
+      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
+          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          StoreRBGAllocation (dlAlloc.m_dci);
+        }
+    }
 
   // TX control period
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
@@ -910,10 +1136,10 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
         {
           Ptr<MmWaveUeNetDevice> ueDev = DynamicCast<MmWaveUeNetDevice> (m_deviceMap.at (i));
           uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
-          //NS_LOG_UNCOND ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
+          //NS_LOG_INFO ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
           if (varTtiInfo.m_dci->m_rnti == ueRnti)
             {
-              //NS_LOG_UNCOND ("Change Beamforming Vector");
+              //NS_LOG_INFO ("Change Beamforming Vector");
               Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
               antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
               found = true;

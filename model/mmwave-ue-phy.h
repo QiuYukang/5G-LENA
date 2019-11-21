@@ -331,6 +331,16 @@ private:
    */
   void DoSetImsi (uint64_t imsi);
 
+  /**
+   * \brief Push proper DL CTRL/UL CTRL symbols in the current slot allocation
+   * \param currentSfnSf The current sfnSf
+   *
+   * The symbols are inserted based on the current TDD pattern; if no pattern
+   * is known (e.g., we are in the first slot, and the SIB has not reached
+   * yet the UE) it is automatically inserted a DL CTRL symbol.
+   */
+  void PushCtrlAllocations (const SfnSf currentSfnSf);
+
 private:
   MmWaveUePhySapUser* m_phySapUser;             //!< SAP pointer
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
@@ -347,6 +357,7 @@ private:
   uint16_t m_rnti {0};             //!< Current RNTI of the user
   uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
   uint64_t m_imsi {0}; ///< The IMSI of the UE
+  std::vector<LteNrTddSlotType> m_tddPattern;  //!< TDD pattern received through SIB msgs
 
   /**
    * \brief Status of the channel for the PHY

@@ -194,6 +194,14 @@ public:
   void SetPerformBeamformingFn (const PerformBeamformingFn &fn);
 
   /**
+   * \brief Set the current slot pattern (better to call it only once..)
+   * \param pattern the pattern
+   *
+   * It does not support dynamic change of pattern during the simulation
+   */
+  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+
+  /**
    *  TracedCallback signature for Received Control Messages.
    *
    * \param [in] frame Frame number.
@@ -322,6 +330,62 @@ private:
    */
   void ExpireBeamformingTimer ();
 
+  /**
+   * \brief Generate the generate/send DCI structures from a pattern
+   * \param pattern The pattern to analyze
+   * \param toSendDl The structure toSendDl to fill
+   * \param toSendUl The structure toSendUl to fill
+   * \param generateDl The structure generateDl to fill
+   * \param generateUl The structure generateUl to fill
+   * \param k0 K0 parameter
+   * \param k2 K2 parameter
+   * \param l1l2CtrlLatency L1L2CtrlLatency of the system
+   */
+  static void GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType> &pattern,
+                                             std::map<uint32_t, std::vector<uint32_t> > *toSendDl,
+                                             std::map<uint32_t, std::vector<uint32_t> > *toSendUl,
+                                             std::map<uint32_t, std::vector<uint32_t> > *generateDl,
+                                             std::map<uint32_t, std::vector<uint32_t> > *generateUl,
+                                             uint32_t k0, uint32_t k2, uint32_t l1l2CtrlLatency);
+
+  /**
+   * \brief Call MAC for retrieve the slot indication. Currently calls UL and DL.
+   * \param currentSlot Current slot
+   */
+  void CallMacForSlotIndication (const SfnSf &currentSlot);
+
+  /**
+   * \brief Retrieve a DCI list for the allocation passed as parameter
+   * \param currentSlot The current slot number (will be stored inside the CTRL messages)
+   * \param alloc The allocation we are searching in
+   * \param format The format of the DCI (UL or DL)
+   * \return A list of control messages that can be sent
+   *
+   * PS: This function ignores CTRL allocations.
+   */
+  std::list <Ptr<MmWaveControlMessage>>
+  RetrieveDciFromAllocation (const SfnSf &currentSlot,
+                             const SlotAllocInfo &alloc,
+                             const DciInfoElementTdma::DciFormat &format);
+
+  /**
+   * \brief Insert a fake DL allocation in the allocation list
+   * \param sfnSf The sfnSf to which we need a fake allocation
+   *
+   * Usually called at the beginning of the simulation to fill
+   * the slot allocation queue until the generation take place
+   */
+  void PushDlAllocation (const SfnSf &sfnSf) const;
+
+  /**
+   * \brief Insert a fake UL allocation in the allocation list
+   * \param sfnSf The sfnSf to which we need a fake allocation
+   *
+   * Usually called at the beginning of the simulation to fill
+   * the slot allocation queue until the generation take place
+   */
+  void PushUlAllocation (const SfnSf &sfnSf) const;
+
 private:
   MmWaveEnbPhySapUser* m_phySapUser;           //!< SAP pointer
   LteEnbCphySapProvider* m_enbCphySapProvider; //!< SAP pointer
@@ -359,6 +423,13 @@ private:
 
   std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
 
+  std::vector<LteNrTddSlotType> m_tddPattern = { F, F, F, F, F, F, F, F, F, F}; //!< Per-slot pattern
+
+  std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
+  std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
+  std::map<uint32_t, std::vector<uint32_t>> m_generateUl; //!< Map that indicates, for each slot, what UL DCI we have to generate
+  std::map<uint32_t, std::vector<uint32_t>> m_generateDl; //!< Map that indicates, for each slot, what DL DCI we have to generate
+
   /**
    * \brief Status of the channel for the PHY
    */
@@ -374,6 +445,8 @@ private:
   EventId m_channelLostTimer; //!< Timer that, when expires, indicates that the channel is lost
 
   Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
+
+  friend class LtePatternTestCase;
 };
 
 }

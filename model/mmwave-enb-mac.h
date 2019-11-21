@@ -66,24 +66,30 @@ public:
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
   /**
-   * \brief The MAC has been informed that we are passed to a new slot
-   * \param sfnSf the current slot
+   * \brief Perform DL scheduling decision for the indicated slot
+   * \param sfnSf the slot to fill with scheduling decisions
    *
    * The MAC should perform its operations (including the scheduler) for DL.
    * Please note that what is decided in this slot will reach the air later
    * (depending on the L1L2CTRL latency parameter).
    */
-  void DoSlotDlIndication (const SfnSf &sfnSf);
+  virtual void DoSlotDlIndication (const SfnSf &sfnSf);
 
   /**
-   * \brief The MAC has been informed that we are passed to a new slot
-   * \param sfnSf the current slot
+   * \brief Perform UL scheduling decision for the indicated slot
+   * \param sfnSf the slot to fill with scheduling decisions
    *
    * The MAC should perform its operations (including the scheduler) for UL.
    * Please note that what is decided in this slot will reach the air later
-   * (depending on the L1L2CTRL latency and the UL Sched delay parameters).
+   * (depending on the L1L2CTRL latency and the UL Sched delay (K2) parameters).
    */
-  void DoSlotUlIndication (const SfnSf &sfnSf);
+  virtual void DoSlotUlIndication (const SfnSf &sfnSf) ;
+
+  /**
+   * \brief Set the current sfn
+   * \param current sfn
+   */
+  virtual void SetCurrentSfn (const SfnSf &sfn);
 
   void SetMcs (int mcs);
 
@@ -174,7 +180,6 @@ public:
       (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
 
 protected:
-  virtual void DoInitialize () override;
   virtual void DoDispose (void) override;
 
 private:
@@ -194,7 +199,6 @@ private:
   void DoTransmitPdu (LteMacSapProvider::TransmitPduParameters);
   void DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters);
   void DoUlCqiReport (MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi);
-  void DoSlotIndication (SfnSf sfnSf);
   // forwarded from MmWaveMacCchedSapUser
   void DoCschedCellConfigCnf (MmWaveMacCschedSapUser::CschedCellConfigCnfParameters params);
   void DoCschedUeConfigCnf (MmWaveMacCschedSapUser::CschedUeConfigCnfParameters params);

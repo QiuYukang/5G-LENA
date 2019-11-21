@@ -359,6 +359,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           NS_ASSERT (m_cellId > 0);
           Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
           m_ueCphySapUser->RecvSystemInformationBlockType1 (m_cellId, msg2->GetSib1 ());
+          m_tddPattern = msg2->GetTddPattern ();
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
         }
@@ -492,6 +493,43 @@ MmWaveUePhy::DoReceiveRar (Ptr<MmWaveRarMessage> rarMsg)
 }
 
 void
+MmWaveUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
+{
+  NS_LOG_FUNCTION (this);
+
+  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+
+  // The UE still doesn't know the TDD pattern, so just add a DL CTRL
+  if (m_tddPattern.size () == 0)
+    {
+      NS_LOG_INFO ("TDD Pattern unknown, insert DL CTRL at the beginning of the slot");
+      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+      m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
+      return;
+    }
+
+  uint64_t currentSlotN = currentSfnSf.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
+                                                  m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
+
+  if (m_tddPattern[currentSlotN] < LteNrTddSlotType::UL)
+    {
+      NS_LOG_INFO ("The current TDD pattern indicates that we are in a " <<
+                   m_tddPattern[currentSlotN] <<
+                   " slot, so insert DL CTRL at the beginning of the slot");
+      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+      m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
+    }
+  if (m_tddPattern[currentSlotN] > LteNrTddSlotType::DL)
+    {
+      NS_LOG_INFO ("The current TDD pattern indicates that we are in a " <<
+                   m_tddPattern[currentSlotN] <<
+                   " slot, so insert UL CTRL at the end of the slot");
+      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
+      m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
+    }
+}
+
+void
 MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 {
   NS_LOG_FUNCTION (this);
@@ -501,11 +539,12 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_lastSlotStart = Simulator::Now ();
   m_varTtiNum = 0;
 
-  // Call MAC before doing anything in PHY
-  m_phySapUser->SlotIndication (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));   // trigger mac
+  auto currentSfnSf = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0);
 
-  // update the current slot object, and insert DL/UL CTRL allocations.
-  // That will not be true anymore when true TDD pattern will be used.
+  // Call MAC before doing anything in PHY
+  m_phySapUser->SlotIndication (currentSfnSf);   // trigger mac
+
+  // update the current slot object, and insert DL/UL CTRL allocations depending on the TDD pattern
   if (SlotAllocInfoExists (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum)))
     {
       m_currSlotAllocInfo = RetrieveSlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
@@ -515,11 +554,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
       m_currSlotAllocInfo = SlotAllocInfo (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum));
     }
 
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
-  VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
-  VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
-  m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
-  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
+  PushCtrlAllocations (currentSfnSf);
 
   NS_ASSERT ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
              && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum

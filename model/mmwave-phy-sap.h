@@ -87,16 +87,27 @@ public:
   virtual void ReceiveControlMessage (Ptr<MmWaveControlMessage> msg) = 0;
 
   /**
-   * \brief Trigger the start from a new slot (input from Phy layer)
-   * \param SfnSf contains frame number, subframe number and slot number
+   * \brief Set the current Sfn. The state machine has advanced by one slot
+   * \param sfn The current sfn
    */
-  virtual void SlotDlIndication (const SfnSf &) = 0;
+  virtual void SetCurrentSfn(const SfnSf &sfn) = 0;
 
   /**
-   * \brief Trigger the start from a new slot (input from Phy layer)
-   * \param SfnSf contains frame number, subframe number and slot number
+   * \brief Trigger MAC layer to generate a DL slot for the SfnSf indicated
+   * \param sfn Slot to fill with DL scheduling decisions
    */
-  virtual void SlotUlIndication (const SfnSf &) = 0;
+  virtual void SlotDlIndication (const SfnSf &sfn) = 0;
+
+  /**
+   * \brief Trigger MAC layer to generate an UL slot for the SfnSf indicated
+   * \param sfn Slot to fill with UL scheduling decisions
+   */
+  virtual void SlotUlIndication (const SfnSf &sfn) = 0;
+
+  // We do a DL and then manually add an UL CTRL if it's an S slot.
+  // virtual void SlotSIndication (const SfnSf &sfn) = 0;
+  // We do UL and then DL to model an F slot.
+  // virtual void SlotFIndication (const SfnSf &sfn) = 0;
 
   /**
    * \brief Returns to MAC level the UL-CQI evaluated
