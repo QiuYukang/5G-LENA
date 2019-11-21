@@ -981,7 +981,15 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
 
         m_txDataTrace (duration);
 
-        m_channel->StartTx (txParams);
+        if (m_channel)
+          {
+            m_channel->StartTx (txParams);
+          }
+        else
+          {
+            NS_LOG_WARN ("Working without channel (i.e., under test)");
+          }
+
 
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
       }
@@ -1026,7 +1034,15 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
         txParams->ctrlMsgList = ctrlMsgList;
         txParams->txAntenna = m_antenna;
         m_txCtrlTrace (duration);
-        m_channel->StartTx (txParams);
+        if (m_channel)
+          {
+            m_channel->StartTx (txParams);
+          }
+        else
+          {
+            NS_LOG_WARN ("Working without channel (i.e., under test)");
+          }
+
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
       }
     }
@@ -1067,7 +1083,14 @@ MmWaveSpectrumPhy::StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMess
         txParams->ctrlMsgList = ctrlMsgList;
         txParams->txAntenna = m_antenna;
         m_txCtrlTrace (duration);
-        m_channel->StartTx (txParams);
+        if (m_channel)
+          {
+            m_channel->StartTx (txParams);
+          }
+        else
+          {
+            NS_LOG_WARN ("Working without channel (i.e., under test)");
+          }
         Simulator::Schedule (duration, &MmWaveSpectrumPhy::EndTx, this);
       }
     }
