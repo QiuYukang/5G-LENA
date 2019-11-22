@@ -500,8 +500,8 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
                       m_phyMacConfig->GetSubframesPerFrame ());
 
       NS_LOG_INFO (" in slot " << currentSlot << " generate DL for " <<
-                     targetSlot);
-      m_phySapUser->SlotDlIndication (targetSlot);
+                     targetSlot << " which is of type " << m_tddPattern[slot]);
+      m_phySapUser->SlotDlIndication (targetSlot, m_tddPattern[slot]);
     }
 
   for (const auto & slot : m_generateUl[currentSlotN])
@@ -512,9 +512,9 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
                       m_phyMacConfig->GetSubframesPerFrame ());
 
       NS_LOG_INFO (" in slot " << currentSlot << " generate UL for " <<
-                     targetSlot);
+                     targetSlot << " which is of type " << m_tddPattern[slot]);
 
-      m_phySapUser->SlotUlIndication (targetSlot);
+      m_phySapUser->SlotUlIndication (targetSlot, m_tddPattern[slot]);
     }
 }
 

@@ -32,6 +32,7 @@
 #include <ns3/antenna-array-model.h>
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/mmwave-mac-sched-sap.h>
+#include <ns3/mmwave-control-messages.h>
 
 namespace ns3 {
 
@@ -95,14 +96,16 @@ public:
   /**
    * \brief Trigger MAC layer to generate a DL slot for the SfnSf indicated
    * \param sfn Slot to fill with DL scheduling decisions
+   * \param slotType Slot type requested (DL, S, F)
    */
-  virtual void SlotDlIndication (const SfnSf &sfn) = 0;
+  virtual void SlotDlIndication (const SfnSf &sfn, LteNrTddSlotType slotType) = 0;
 
   /**
    * \brief Trigger MAC layer to generate an UL slot for the SfnSf indicated
    * \param sfn Slot to fill with UL scheduling decisions
+   * \param slotType Slot type requested (UL, S, F)
    */
-  virtual void SlotUlIndication (const SfnSf &sfn) = 0;
+  virtual void SlotUlIndication (const SfnSf &sfn, LteNrTddSlotType slotType) = 0;
 
   // We do a DL and then manually add an UL CTRL if it's an S slot.
   // virtual void SlotSIndication (const SfnSf &sfn) = 0;

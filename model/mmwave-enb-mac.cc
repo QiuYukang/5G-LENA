@@ -152,9 +152,9 @@ public:
 
   virtual void ReceiveControlMessage (Ptr<MmWaveControlMessage> msg) override;
 
-  virtual void SlotDlIndication (const SfnSf &) override;
+  virtual void SlotDlIndication (const SfnSf &, LteNrTddSlotType) override;
 
-  virtual void SlotUlIndication (const SfnSf &) override;
+  virtual void SlotUlIndication (const SfnSf &, LteNrTddSlotType) override;
 
   virtual void SetCurrentSfn (const SfnSf &) override;
 
@@ -189,15 +189,15 @@ MmWaveMacEnbMemberPhySapUser::ReceiveControlMessage (Ptr<MmWaveControlMessage> m
 }
 
 void
-MmWaveMacEnbMemberPhySapUser::SlotDlIndication (const SfnSf &sfn)
+MmWaveMacEnbMemberPhySapUser::SlotDlIndication (const SfnSf &sfn, LteNrTddSlotType type)
 {
-  m_mac->DoSlotDlIndication (sfn);
+  m_mac->DoSlotDlIndication (sfn, type);
 }
 
 void
-MmWaveMacEnbMemberPhySapUser::SlotUlIndication (const SfnSf &sfn)
+MmWaveMacEnbMemberPhySapUser::SlotUlIndication (const SfnSf &sfn, LteNrTddSlotType type)
 {
-  m_mac->DoSlotUlIndication (sfn);
+  m_mac->DoSlotUlIndication (sfn, type);
 }
 
 void
@@ -440,7 +440,7 @@ MmWaveEnbMac::SetCurrentSfn (const SfnSf &sfnSf)
 }
 
 void
-MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
+MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("Perform things on DL, slot on the air: " << sfnSf);
@@ -485,6 +485,7 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
     {
       MmWaveMacSchedSapProvider::SchedDlTriggerReqParameters dlParams;
 
+      dlParams.m_slotType = type;
       dlParams.m_snfSf = sfnSf;
 
       // Forward DL HARQ feedbacks collected during last subframe TTI
@@ -511,7 +512,7 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
 }
 
 void
-MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf)
+MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("Perform things on UL, slot on the air: " << sfnSf);
@@ -550,6 +551,7 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf)
       MmWaveMacSchedSapProvider::SchedUlTriggerReqParameters ulParams;
 
       ulParams.m_snfSf = sfnSf;
+      ulParams.m_slotType = type;
 
       // Forward UL HARQ feebacks collected during last TTI
       if (m_ulHarqInfoReceived.size () > 0)

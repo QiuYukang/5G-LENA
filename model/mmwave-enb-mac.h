@@ -68,22 +68,24 @@ public:
   /**
    * \brief Perform DL scheduling decision for the indicated slot
    * \param sfnSf the slot to fill with scheduling decisions
+   * \param type TDD slot type
    *
    * The MAC should perform its operations (including the scheduler) for DL.
    * Please note that what is decided in this slot will reach the air later
    * (depending on the L1L2CTRL latency parameter).
    */
-  virtual void DoSlotDlIndication (const SfnSf &sfnSf);
+  virtual void DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type);
 
   /**
    * \brief Perform UL scheduling decision for the indicated slot
    * \param sfnSf the slot to fill with scheduling decisions
+   * \param type TDD slot type
    *
    * The MAC should perform its operations (including the scheduler) for UL.
    * Please note that what is decided in this slot will reach the air later
    * (depending on the L1L2CTRL latency and the UL Sched delay (K2) parameters).
    */
-  virtual void DoSlotUlIndication (const SfnSf &sfnSf) ;
+  virtual void DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) ;
 
   /**
    * \brief Set the current sfn

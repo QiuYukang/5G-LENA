@@ -19,6 +19,7 @@
 #define MMWAVEMACSCHEDSAPPROVIDER_H
 
 #include "mmwave-phy-mac-common.h"
+#include "mmwave-control-messages.h"
 
 namespace ns3 {
 
@@ -69,6 +70,7 @@ public:
   {
     SfnSf m_snfSf;
     std::vector <struct UlHarqInfo> m_ulHarqInfoList;
+    LteNrTddSlotType m_slotType {F}; //!< Indicate the type of slot requested
   };
 
   /**
@@ -78,6 +80,7 @@ public:
   {
     SfnSf m_snfSf;
     std::vector <struct DlHarqInfo> m_dlHarqInfoList;
+    LteNrTddSlotType m_slotType {F}; //!< Indicate the type of slot requested
   };
 
   /**

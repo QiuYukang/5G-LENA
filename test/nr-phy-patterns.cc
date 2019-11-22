@@ -43,8 +43,8 @@ public:
   TestEnbMac (const std::vector<LteNrTddSlotType> &pattern,
               const Ptr<MmWavePhyMacCommon> &config);
   virtual ~TestEnbMac (void) override;
-  virtual void DoSlotDlIndication (const SfnSf &sfnSf) override;
-  virtual void DoSlotUlIndication (const SfnSf &sfnSf) override;
+  virtual void DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) override;
+  virtual void DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) override;
   virtual void SetCurrentSfn (const SfnSf &sfn) override;
 
 private:
@@ -101,11 +101,12 @@ TestEnbMac::~TestEnbMac ()
 }
 
 void
-TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
+TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
   uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe (), m_config->GetSubframesPerFrame ());
   pos = pos % m_pattern.size ();
 
+  NS_ASSERT (type == LteNrTddSlotType::DL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
   NS_ASSERT_MSG (m_pattern[pos] == LteNrTddSlotType::DL ||
                  m_pattern[pos] == LteNrTddSlotType::S  ||
                  m_pattern[pos] == LteNrTddSlotType::F,
@@ -113,22 +114,23 @@ TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf)
 
   m_slotCreated.insert (pos);
 
-  MmWaveEnbMac::DoSlotDlIndication (sfnSf);
+  MmWaveEnbMac::DoSlotDlIndication (sfnSf, type);
 }
 
 void
-TestEnbMac::DoSlotUlIndication (const SfnSf &sfnSf)
+TestEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
   uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe (), m_config->GetSubframesPerFrame ());
   pos = pos % m_pattern.size ();
 
+  NS_ASSERT (type == LteNrTddSlotType::UL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
   NS_ASSERT_MSG (m_pattern[pos] == LteNrTddSlotType::UL ||
                  m_pattern[pos] == LteNrTddSlotType::F,
                  "MAC called to generate a UL slot, but in the pattern there is " << m_pattern[pos]);
 
   m_slotCreated.insert (pos);
 
-  MmWaveEnbMac::DoSlotUlIndication (sfnSf);
+  MmWaveEnbMac::DoSlotUlIndication (sfnSf, type);
 }
 
 void
