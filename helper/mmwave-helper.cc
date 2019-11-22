@@ -1170,7 +1170,7 @@ static bool BwpFrequencyCompare (const ComponentCarrierBandwidthPartElement & lh
 static bool BwpIdCompare (const ComponentCarrierBandwidthPartElement & lhs,
 		  const ComponentCarrierBandwidthPartElement & rhs)
 {
-  return lhs.m_bwp_id < rhs.m_bwp_id;
+  return lhs.m_bwpId < rhs.m_bwpId;
 }
 
 
@@ -1191,6 +1191,17 @@ ComponentCarrierBandwidthPartCreator::~ComponentCarrierBandwidthPartCreator ()
   NS_LOG_FUNCTION (this);
 }
 
+ComponentCarrierBandwidthPartCreator&
+ComponentCarrierBandwidthPartCreator::operator= (const ns3::ComponentCarrierBandwidthPartCreator& o)
+{
+  m_id = o.m_id;
+  m_maxBands = o.m_maxBands;
+  m_bands = o.m_bands;
+  m_numBands = o.m_numBands;
+  m_numBwps = o.m_numBwps;
+  m_numCcs = o.m_numCcs;
+  return *this;
+}
 
 void
 ComponentCarrierInfo::AddBwp (const ComponentCarrierBandwidthPartElement & bwp)
@@ -1396,7 +1407,7 @@ ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (ComponentCarrierInfo &cc)
         {
           NS_ABORT_MSG("BWP part is out of the CC");
         }
-      if (a.m_bwp_id == cc.m_activeBwp)
+      if (a.m_bwpId == cc.m_activeBwp)
         {
           activeFound = true;
         }
@@ -1420,7 +1431,7 @@ ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (ComponentCarrierInfo &cc)
   std::sort(cc.m_bwp.begin(), cc.m_bwp.end(), BwpIdCompare);
   for (uint8_t i = 0; i < numBwps-1; i++)
     {
-      if (cc.m_bwp.at(i).m_bwp_id == cc.m_bwp.at(i+1).m_bwp_id)
+      if (cc.m_bwp.at(i).m_bwpId == cc.m_bwp.at(i+1).m_bwpId)
         {
           NS_ABORT_MSG("Repeated BWP id");
         }
@@ -1439,6 +1450,7 @@ ComponentCarrierBandwidthPartCreator::ValidateCaBwpConfiguration ()
   NS_ABORT_MSG_IF(m_numBands > m_maxBands,"The number of bands is larger than the maximum number");
 
   uint16_t numAggrCcs = 0;
+  uint8_t numPrimaryCcs = 0;
   for (auto & a : m_bands)
     {
       // Third: Check that the CC configuration is valid
@@ -1451,6 +1463,13 @@ ComponentCarrierBandwidthPartCreator::ValidateCaBwpConfiguration ()
             {
               NS_ABORT_MSG("Bands shall not overlap");
             }
+          for (const auto & cc : b.m_cc)
+            {
+              if (cc.m_primaryCc == PRIMARY)
+        	{
+        	  ++numPrimaryCcs;
+        	}
+            }
         }
 
       numAggrCcs += a.m_numCarriers;
@@ -1458,6 +1477,9 @@ ComponentCarrierBandwidthPartCreator::ValidateCaBwpConfiguration ()
 
   // Fifth: Check that the number of the inter-band aggregated carriers is below the maximum value
   NS_ABORT_MSG_IF(numAggrCcs > MAX_CC_INTER_BAND,"The number of allowed aggregated CCs was exceeded");
+
+  // Sixth: There must be one primary CC only
+  NS_ABORT_MSG_IF(numPrimaryCcs != 1,"There must be one primary CC");
 }
 
 
@@ -1480,6 +1502,37 @@ ComponentCarrierBandwidthPartCreator::GetCcContiguousnessState (OperationBandInf
   return CONTIGUOUS;
 }
 
+
+ComponentCarrierBandwidthPartElement
+ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo ()
+{
+  NS_ABORT_MSG_IF(m_bands.empty(),"No operation band information provided");
+
+  for (const auto band : m_bands)
+    {
+      NS_ABORT_MSG_IF(band.m_cc.empty(),"Missing some CC information");
+      for (const auto cc : band.m_cc)
+	{
+	  if (cc.m_primaryCc == PRIMARY)
+	    {
+	      NS_ABORT_MSG_IF(cc.m_bwp.empty(),"Missing some BWP information");
+	      for (const auto bwp : cc.m_bwp)
+		{
+		  if (bwp.m_bwpId == cc.m_activeBwp)
+		    {
+		      return bwp;
+		    }
+		}
+	    }
+	}
+    }
+
+  NS_ABORT_MSG("No active BWP information found in the primary CC");
+
+}
+
+
+
 ComponentCarrierBandwidthPartElement
 ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo (uint8_t bandIndex, uint8_t ccIndex)
 {
@@ -1497,7 +1550,7 @@ ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo (uint8_t bandIndex, uint8
   bool found = false;
   for (const auto & b : cc.m_bwp)
     {
-      if(b.m_bwp_id == cc.m_activeBwp)
+      if(b.m_bwpId == cc.m_activeBwp)
         {
           found = true;
           bwp = b;
@@ -1527,7 +1580,7 @@ uint32_t ComponentCarrierBandwidthPartCreator::GetAggregatedBandwidth ()
 	{
 	  for (const auto & bwp : cc.m_bwp)
 	    {
-	      if (bwp.m_bwp_id == cc.m_activeBwp)
+	      if (bwp.m_bwpId == cc.m_activeBwp)
 		{
 		  aBandwidth += bwp.m_bandwidth;
 		}
@@ -1545,6 +1598,34 @@ ComponentCarrierBandwidthPartCreator::GetCarrierBandwidth (uint8_t bandId, uint8
   // There is at least one bwp
   ComponentCarrierBandwidthPartElement bwp = GetActiveBwpInfo(bandId, ccId);
   return bwp.m_bandwidth;
+}
+
+
+void
+ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t ccId, uint8_t activeBwpId)
+{
+  for (auto & band : m_bands)
+    {
+      if (band.m_bandId == bandId)
+	{
+	  for (auto & cc : band.m_cc)
+	    {
+	      if (cc.m_ccId == ccId)
+		{
+		  for (const auto & bwp : cc.m_bwp)
+		    {
+		      if (bwp.m_bwpId == activeBwpId)
+			{
+			  cc.m_activeBwp = activeBwpId;
+			  return;
+			}
+		    }
+		}
+	    }
+	}
+
+    }
+  NS_ABORT_MSG("Could not change the active BWP due to wrong request");
 }
 
 

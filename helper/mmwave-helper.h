@@ -78,7 +78,7 @@ class PropagationLossModel;
  */
 struct ComponentCarrierBandwidthPartElement
 {
-  uint8_t m_bwp_id;           //<! BWP id
+  uint8_t m_bwpId;            //<! BWP id
   uint8_t m_numerology;       //<! BWP numerology: 0,1,2,3,4
   double m_centralFrequency;  //<! BWP central frequency
   double m_lowerFrequency;    //<! BWP lower frequency
@@ -86,17 +86,26 @@ struct ComponentCarrierBandwidthPartElement
   uint32_t m_bandwidth;       //<! BWP bandwidth
 };
 
+
+enum ComponentCarrierState
+{
+  PRIMARY,
+  SECONDARY
+};
+
 /**
  * Component carrier configuration element
  */
 struct ComponentCarrierInfo
 {
+  uint8_t m_ccId {0};          //<! CC id
   uint8_t m_numBwps {0};       //<! Number of BWP in the carrier
   uint8_t m_activeBwp;         //<! Active BWP index
   double m_centralFrequency;   //<! BWP central frequency
   double m_lowerFrequency;     //<! BWP lower frequency
   double m_higherFrequency;    //<! BWP higher frequency
   uint32_t m_bandwidth;        //<! BWP bandwidth
+  ComponentCarrierState m_primaryCc {PRIMARY};  //<! Primary or secondary CC
   std::vector<ComponentCarrierBandwidthPartElement> m_bwp;  //<! Space for BWP. FIXME Consider using maps for access speed
 
   /**
@@ -130,6 +139,7 @@ const uint8_t MAX_CC_INTER_BAND = 16; //<! The maximum number of aggregated CCs 
  */
 struct OperationBandInfo
 {
+  uint8_t m_bandId {0};       //<! Operation band id
   double m_centralFrequency;  //<! Operation band central frequency
   double m_lowerFrequency;    //<! Operation band lower frequency
   double m_higherFrequency;   //<! Operation band higher frequency
@@ -152,6 +162,9 @@ public:
   ComponentCarrierBandwidthPartCreator ();
   ComponentCarrierBandwidthPartCreator (uint8_t maxNumBands);
   virtual ~ComponentCarrierBandwidthPartCreator ();
+
+  ComponentCarrierBandwidthPartCreator& operator= (const ns3::ComponentCarrierBandwidthPartCreator&);
+
 
   /**
    * \brief Creates an operation band by splitting the available bandwidth into numCCs equally-large contiguous carriers
@@ -217,7 +230,13 @@ public:
   ContiguousMode GetCcContiguousnessState (OperationBandInfo &band, uint32_t freqSeparation);
 
   /**
-   * \brief Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the provided carrier index
+   * \brief Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the primary CC
+   * \return The active BWP information object
+   */
+  ComponentCarrierBandwidthPartElement GetActiveBwpInfo ();
+
+  /**
+   * \brief Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the provided band and carrier index
    * \param bandIndex Operation band id
    * \param ccIndex Component carrier id
    * \return The active BWP information object
@@ -246,8 +265,17 @@ public:
    */
   uint32_t GetCarrierBandwidth (uint8_t bandId, uint8_t ccId);
 
+  /**
+   * \brief Change the active BWP of a given UE operating in the given ccId
+   * \param bandId Operation band id containing the CC/BWP to set to active
+   * \param ccId Component carrier id which BWP is to set to active
+   * \param activeBwpId BWP id to set to active
+   */
+  void ChangeActiveBwp (uint8_t bandId, uint8_t ccId, uint8_t activeBwpId);
+
 
 private:
+  uint32_t m_id {0};       //!< UE/flow/bearer id
   uint8_t m_maxBands {1};  //!< Limit the number of operation bands
   uint8_t m_numBands {0};  //!< Number of current operation bands. It must be smaller or equal than m_maxBands
   uint8_t m_numBwps {0};   //!< Number of BWP created. Consider removing

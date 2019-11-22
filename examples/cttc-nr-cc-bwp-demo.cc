@@ -224,8 +224,14 @@ main (int argc, char *argv[])
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
-  // setup the operation frequencies. In this example, one operation band is deployed with 2 Component Carriers
-  ComponentCarrierBandwidthPartCreator ccBwpManager(numBands);
+  /*
+   * Setup the operation frequencies. In this example, one operation band is deployed with
+   * multiple CCs: 4 CCs in the contiguous automatic case and 2 in the manual non-contiguous case.
+   * In the current implementation there should be as many ccBwpManagers as deployed UEs. However,
+   * UEs might share the CA/BWP configuration (differences can only occur in the definition of the
+   * BWPs
+   */
+  ComponentCarrierBandwidthPartCreator ccBwpManager(numBands);  //<! A first CA/BWP manager with numBands operation bands
 
   uint8_t ccId = 0;
 
@@ -306,13 +312,15 @@ main (int argc, char *argv[])
 
       // Component Carrier 1
       ComponentCarrierInfo cc0;
+      cc0.m_ccId = 0;
+      cc0.m_primaryCc = PRIMARY;
       cc0.m_centralFrequency = 28e9;
       cc0.m_bandwidth = 100e6;
       cc0.m_lowerFrequency = cc0.m_centralFrequency - (double)cc0.m_bandwidth/2;
       cc0.m_higherFrequency = cc0.m_centralFrequency + (double)cc0.m_bandwidth/2;
       cc0.m_activeBwp = bwpCount;
       ComponentCarrierBandwidthPartElement bwp0;
-      bwp0.m_bwp_id = bwpCount;
+      bwp0.m_bwpId = bwpCount;
       bwp0.m_numerology = 3;
       bwp0.m_centralFrequency = cc0.m_lowerFrequency+20e6;
       bwp0.m_bandwidth = 20e6;
@@ -323,7 +331,7 @@ main (int argc, char *argv[])
 
       // Component Carrier 2
       ComponentCarrierBandwidthPartElement bwp01;
-      bwp01.m_bwp_id = bwpCount;
+      bwp01.m_bwpId = bwpCount;
       bwp01.m_numerology = 4;
       bwp01.m_centralFrequency = cc0.m_higherFrequency-20e6;
       bwp01.m_bandwidth = 30e6;
@@ -333,6 +341,8 @@ main (int argc, char *argv[])
       ++bwpCount;
 
       ComponentCarrierInfo cc1;
+      cc1.m_ccId = 1;
+      cc1.m_primaryCc = SECONDARY;
       cc1.m_centralFrequency = 28.1e9;
       cc1.m_bandwidth = 100e6;
       cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth/2;
@@ -341,7 +351,7 @@ main (int argc, char *argv[])
 
       ComponentCarrierBandwidthPartElement bwp1;
 
-      bwp1.m_bwp_id = bwpCount;
+      bwp1.m_bwpId = bwpCount;
       bwp1.m_numerology = 3;
       bwp1.m_centralFrequency = cc1.m_centralFrequency;
       bwp1.m_bandwidth = cc1.m_bandwidth;
@@ -350,10 +360,8 @@ main (int argc, char *argv[])
       cc1.AddBwp(bwp1);
       ++bwpCount;
 
-      band.m_cc.push_back(cc1);
-      ++band.m_numCarriers;
-      band.m_cc.push_back(cc0);
-      ++band.m_numCarriers;
+      band.AddCc(cc1);
+      band.AddCc(cc0);
 
       // Add the UE operation band to the CA/BWP manager
       ccBwpManager.AddOperationBand(band);
@@ -361,9 +369,14 @@ main (int argc, char *argv[])
       // Check that the CA/BWP configurations of all the defined operation bands are correct
       ccBwpManager.ValidateCaBwpConfiguration();
 
+      // Create a copy of ccBwpManager for UE 2 and change the active BWP to primary CC, BWP id 1
+      ComponentCarrierBandwidthPartCreator ccBwpManager2 = ccBwpManager;
+      ccBwpManager2.ChangeActiveBwp(0, 0, 1);
+
       // Create BandwidthPartRepresentations referred to the active BWP only of each CC
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo(0,0);
+//      ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo(0,ccId);
+      ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo ();
       phyMacCommonBwp0->SetCentreFrequency(recBwp0.m_centralFrequency);
       phyMacCommonBwp0->SetBandwidth (recBwp0.m_bandwidth);
       phyMacCommonBwp0->SetNumerology((uint32_t)recBwp0.m_numerology);
@@ -374,7 +387,8 @@ main (int argc, char *argv[])
       ++ccId;
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager.GetActiveBwpInfo(0,1);
+//      ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager.GetActiveBwpInfo(0,ccId);
+      ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager2.GetActiveBwpInfo ();
       phyMacCommonBwp1->SetCentreFrequency(recBwp1.m_centralFrequency);
       phyMacCommonBwp1->SetBandwidth (recBwp1.m_bandwidth);
       phyMacCommonBwp1->SetNumerology((uint32_t)recBwp1.m_numerology);
@@ -417,7 +431,7 @@ main (int argc, char *argv[])
           Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
           uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(0,i); //m_bands.at(0).m_cc.at(i).m_bandwidth;
           bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
-		  std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
+          std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
         }
     }
 
