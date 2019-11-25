@@ -637,7 +637,7 @@ private:
                         ActiveUeMap *activeDlUe, const SfnSf &dlSfnSf,
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
   uint8_t DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback, const SfnSf &ulSfn,
-                        SlotAllocInfo *allocInfo);
+                        SlotAllocInfo *allocInfo, LteNrTddSlotType type);
 
   static const unsigned m_macHdrSize = 0;  //!< Mac Header size
   static const uint32_t m_subHdrSize = 4;  //!< Sub Header size (?)

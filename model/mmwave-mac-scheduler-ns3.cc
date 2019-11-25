@@ -1073,7 +1073,7 @@ MmWaveMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAva
           assigned = true;
           NS_LOG_INFO ("UE " << ue.first->m_rnti << " has " << ue.first->m_dlRBG <<
                        " RBG assigned");
-          NS_ASSERT_MSG (dci->m_symStart + dci->m_numSym < m_phyMacConfig->GetSymbolsPerSlot (),
+          NS_ASSERT_MSG (dci->m_symStart + dci->m_numSym <= m_phyMacConfig->GetSymbolsPerSlot (),
                          "symStart: " << static_cast<uint32_t> (dci->m_symStart) << " symEnd: " <<
                          static_cast<uint32_t> (dci->m_numSym) << " symbols: " <<
                          static_cast<uint32_t> (m_phyMacConfig->GetSymbolsPerSlot ()));
@@ -1442,7 +1442,7 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (params.m_snfSf.m_slotNum <= UINT8_MAX);
-  NS_LOG_INFO ("Scheduling invoked for slot " << params.m_snfSf);
+  NS_LOG_INFO ("Scheduling invoked for slot " << params.m_snfSf << " of type " << params.m_slotType);
 
   MmWaveMacSchedSapUser::SchedConfigIndParameters dlSlot (params.m_snfSf);
   dlSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
@@ -1458,6 +1458,17 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   PrependCtrlSym (0, m_phyMacConfig->GetDlCtrlSymbols (), DciInfoElementTdma::DL,
                   &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetDlCtrlSymbols ();
+
+  // In case of S slot, add UL CTRL and update the symbol used count
+  if (params.m_slotType == LteNrTddSlotType::S)
+    {
+      NS_LOG_INFO ("S slot, adding UL CTRL");
+      AppendCtrlSym (static_cast<uint8_t> (m_phyMacConfig->GetSymbolsPerSlot () - 1),
+                     m_phyMacConfig->GetUlCtrlSymbols (), DciInfoElementTdma::UL,
+                     &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
+      ulAllocations.m_totUlSym += m_phyMacConfig->GetUlCtrlSymbols ();
+      dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetUlCtrlSymbols ();
+    }
 
   // RACH
   for (const auto & rachReq : m_rachList)
@@ -1477,7 +1488,8 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   ComputeActiveUe (&activeDlUe, &MmWaveMacSchedulerUeInfo::GetDlLCG,
                    &MmWaveMacSchedulerUeInfo::GetDlHarqVector, "DL");
 
-  DoScheduleDl (dlHarqFeedback, activeDlHarq, &activeDlUe, params.m_snfSf, ulAllocations, &dlSlot.m_slotAllocInfo);
+  DoScheduleDl (dlHarqFeedback, activeDlHarq, &activeDlUe, params.m_snfSf,
+                ulAllocations, &dlSlot.m_slotAllocInfo);
 
   // if no UL allocation, then erase the element. If UL allocation, then
   // the element will be erased when the CQI for that UL allocation will be received
@@ -1519,8 +1531,8 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
  *
  * The process of scheduling UL data is defined as follows:
  *
- * - Perform a scheduling for UL HARQ/data for this (DoScheduleUl());
  * - Append a UL CTRL symbol to the allocation list;
+ * - Perform a scheduling for UL HARQ/data for this (DoScheduleUl());
  * - Indicate to the MAC the decision for that slot through SchedConfigInd()
  *
  * To know how the scheduling for UL is performed, take a look to the
@@ -1543,13 +1555,14 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
   ulSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
   ulSlot.m_slotAllocInfo.m_type = SlotAllocInfo::UL;
 
-  // Doing UL for slot ulSlot
-  DoScheduleUl (ulHarqFeedback, params.m_snfSf, &ulSlot.m_slotAllocInfo);
-
-  // add slot for UL control, at last symbol (13 in most cases)
+  // add slot for UL control, at last symbol, for slot type F and UL.
   AppendCtrlSym (static_cast<uint8_t> (m_phyMacConfig->GetSymbolsPerSlot () - 1),
-                 1, DciInfoElementTdma::UL, &ulSlot.m_slotAllocInfo.m_varTtiAllocInfo);
-  ulSlot.m_slotAllocInfo.m_numSymAlloc += 1;
+                 m_phyMacConfig->GetUlCtrlSymbols (), DciInfoElementTdma::UL,
+                 &ulSlot.m_slotAllocInfo.m_varTtiAllocInfo);
+  ulSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetUlCtrlSymbols ();
+
+  // Doing UL for slot ulSlot
+  DoScheduleUl (ulHarqFeedback, params.m_snfSf, &ulSlot.m_slotAllocInfo, params.m_slotType);
 
   NS_LOG_INFO ("Total DCI for UL : " << ulSlot.m_slotAllocInfo.m_varTtiAllocInfo.size () <<
                " including UL CTRL");
@@ -1561,6 +1574,7 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
  * \param activeUlHarq List of active HARQ processes in UL
  * \param ulSfn Slot number
  * \param allocInfo Allocation info pointer (where to save the allocations)
+ * \param type LTE/NR TDD slot type
  * \return the number of symbols used for the UL allocation
  *
  * The UL phase is, in this implementation, based completely on TDMA, so
@@ -1594,15 +1608,18 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
  */
 uint8_t
 MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
-                                     const SfnSf &ulSfn,
-                                     SlotAllocInfo *allocInfo)
+                                     const SfnSf &ulSfn, SlotAllocInfo *allocInfo,
+                                     LteNrTddSlotType type)
 {
-  NS_LOG_INFO (this);
+  NS_LOG_FUNCTION (this);
 
-  NS_ASSERT (allocInfo->m_varTtiAllocInfo.size () == 0);
+  NS_ASSERT (allocInfo->m_varTtiAllocInfo.size () == 1); // Just the UL CTRL
 
-  const uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () -
-    m_phyMacConfig->GetDlCtrlSymbols () - m_phyMacConfig->GetUlCtrlSymbols ();
+  uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
+  if (type == LteNrTddSlotType::F)
+    { // if it's a type F, we have to consider DL CTRL symbols, otherwise, don't
+      dataSymPerSlot -= m_phyMacConfig->GetDlCtrlSymbols ();
+    }
 
   ActiveHarqMap activeUlHarq;
   ComputeActiveHarq (&activeUlHarq, ulHarqFeedback);
@@ -1616,9 +1633,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
   // Create the UL allocation map entry
   m_ulAllocationMap.emplace (ulSfn.Encode (), SlotElem (0));
 
-  NS_LOG_DEBUG ("Scheduling UL frame " << static_cast<uint32_t> (ulSfn.m_frameNum) <<
-                " subframe " << static_cast<uint32_t> (ulSfn.m_subframeNum) <<
-                " slot " << static_cast<uint32_t> (ulSfn.m_slotNum) <<
+  NS_LOG_DEBUG ("Scheduling UL " << ulSfn <<
                 " UL HARQ to retransmit: " << ulHarqFeedback.size () <<
                 " Active Beams UL HARQ: " << activeUlHarq.size ());
 
@@ -1683,13 +1698,13 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       ulSymAvail -= usedUl;
     }
 
-  if (allocInfo->m_varTtiAllocInfo.size () > 0)
+  auto & totUlSym = m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym;
+  auto & allocations = m_ulAllocationMap.at (ulSfn.Encode ()).m_ulAllocations;
+  for (const auto &alloc : allocInfo->m_varTtiAllocInfo)
     {
-      auto & totUlSym = m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym;
-      auto & allocations = m_ulAllocationMap.at (ulSfn.Encode ()).m_ulAllocations;
-      for (const auto &alloc : allocInfo->m_varTtiAllocInfo)
+      if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
-          if (alloc.m_dci->m_type == DciInfoElementTdma::DATA && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+          if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
               // THIS DOESN'T WORK FOR UL OFDMA (IF EXISTS)
               NS_LOG_INFO ("Placed an allocation in the map for the CQI, RNTI " <<
@@ -1702,20 +1717,22 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
                                                    alloc.m_dci->m_symStart,
                                                    alloc.m_dci->m_numSym,
                                                    alloc.m_dci->m_mcs));
-              totUlSym += alloc.m_dci->m_numSym;
             }
+          totUlSym += alloc.m_dci->m_numSym;
         }
-
-      NS_ASSERT_MSG (dataSymPerSlot - ulSymAvail == totUlSym,
-                     "UL Data symbols available: " << static_cast<uint32_t> (dataSymPerSlot) <<
-                     " UL symbols available at end of sched: " << static_cast<uint32_t> (ulSymAvail) <<
-                     " total of symbols registered in the allocation: " << static_cast<uint32_t> (totUlSym));
-
-      NS_LOG_INFO ("For the slot " << ulSfn << " registered a total of " <<
-                   static_cast<uint32_t> (totUlSym) <<
-                   " symbols and " << allocations.size () << " allocations");
-      NS_ASSERT (m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym == totUlSym);
     }
+
+  NS_ASSERT_MSG ((dataSymPerSlot + m_phyMacConfig->GetUlCtrlSymbols ()) - ulSymAvail == totUlSym,
+                 "UL symbols available: " << static_cast<uint32_t> (dataSymPerSlot + m_phyMacConfig->GetUlCtrlSymbols ()) <<
+                 " UL symbols available at end of sched: " << static_cast<uint32_t> (ulSymAvail) <<
+                 " total of symbols registered in the allocation: " << static_cast<uint32_t> (totUlSym) <<
+                 " slot type " << type);
+
+  NS_LOG_INFO ("For the slot " << ulSfn << " registered a total of " <<
+               static_cast<uint32_t> (totUlSym) <<
+               " symbols and " << allocations.size () << " data allocations, with a total of " <<
+               allocInfo->m_varTtiAllocInfo.size ());
+  NS_ASSERT (m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym == totUlSym);
 
   return dataSymPerSlot - ulSymAvail;
 }
@@ -1750,15 +1767,12 @@ MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedb
   NS_LOG_INFO (this);
   NS_ASSERT (activeDlUe != nullptr);
 
-  const uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () -
-    m_phyMacConfig->GetDlCtrlSymbols () - m_phyMacConfig->GetUlCtrlSymbols ();
+  uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () - m_phyMacConfig->GetDlCtrlSymbols ();
 
   uint8_t dlSymAvail = dataSymPerSlot - ulAllocations.m_totUlSym;
   PointInFTPlane dlAssignationStartPoint (0, m_phyMacConfig->GetDlCtrlSymbols ());
 
-  NS_LOG_DEBUG ("Scheduling DL frame " << static_cast<uint32_t> (dlSfnSf.m_frameNum) <<
-                " subframe " << static_cast<uint32_t> (dlSfnSf.m_subframeNum) <<
-                " slot " << static_cast<uint32_t> (dlSfnSf.m_slotNum) <<
+  NS_LOG_DEBUG ("Scheduling DL for slot " << dlSfnSf <<
                 " DL HARQ to retransmit: " << dlHarqFeedback.size () <<
                 " Active Beams DL HARQ: " << activeDlHarq.size () <<
                 " sym available: " << static_cast<uint32_t> (dlSymAvail) <<

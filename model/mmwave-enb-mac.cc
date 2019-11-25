@@ -45,6 +45,7 @@
 #include "mmwave-control-messages.h"
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
+#include <algorithm>
 
 namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("MmWaveEnbMac");
@@ -754,7 +755,7 @@ MmWaveEnbMac::DoUlCqiReport (MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParamet
                " slot" << m_slotNum <<
                " varTtiNum " << m_varTtiNum );
 
-  NS_ASSERT (ulcqi.m_sfnSf.m_varTtiNum != 0);
+  // NS_ASSERT (ulcqi.m_sfnSf.m_varTtiNum != 0); Now UL data can be the first TTI..
   m_ulCqiReceived.push_back (ulcqi);
 }
 
@@ -891,6 +892,7 @@ MmWaveEnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 void
 MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndParameters ind)
 {
+  std::sort (ind.m_slotAllocInfo.m_varTtiAllocInfo.begin (), ind.m_slotAllocInfo.m_varTtiAllocInfo.end ());
   m_phySapProvider->SetSlotAllocInfo (ind.m_slotAllocInfo);
 
   // Random Access procedure: send RARs
