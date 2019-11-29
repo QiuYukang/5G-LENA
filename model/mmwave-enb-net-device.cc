@@ -144,32 +144,16 @@ MmWaveEnbNetDevice::DoDispose ()
 }
 
 Ptr<MmWaveEnbMac>
-MmWaveEnbNetDevice::GetMac (uint8_t index)
+MmWaveEnbNetDevice::GetMac (uint8_t index) const
 {
   return m_ccMap.at (index)->GetMac ();
 }
 
-Ptr<MmWavePhy>
+Ptr<MmWaveEnbPhy>
 MmWaveEnbNetDevice::GetPhy (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
   return m_ccMap.at (index)->GetPhy ();
-}
-
-Ptr<MmWavePhy>
-MmWaveEnbNetDevice::GetPhyOnCenterFreq (double centerFrequency) const
-{
-  NS_LOG_FUNCTION (this);
-
-  for (auto i:m_ccMap)
-    {
-      if (i.second->GetDlEarfcn())
-        {
-          return i.second->GetPhy();
-        }
-    }
-  NS_LOG_INFO ("PHY instance does not exist for center frequency:"<<centerFrequency);
-  return nullptr;
 }
 
 uint16_t

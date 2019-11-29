@@ -224,6 +224,44 @@ MmWaveHelper::SetChannelModelType (std::string type)
   m_channelModelType = type;
 }
 
+uint32_t
+MmWaveHelper::GetNumberBwp (const Ptr<const NetDevice> &gnbDevice)
+{
+  NS_LOG_FUNCTION (gnbDevice);
+  Ptr<const MmWaveEnbNetDevice> netDevice = DynamicCast<const MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return 0;
+    }
+  return netDevice->GetCcMapSize ();
+}
+
+Ptr<MmWaveEnbPhy>
+MmWaveHelper::GetEnbPhy (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
+{
+  NS_LOG_FUNCTION (gnbDevice << bwpIndex);
+  NS_ASSERT(bwpIndex < UINT8_MAX);
+  Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+  return netDevice->GetPhy (static_cast<uint8_t> (bwpIndex));
+}
+
+Ptr<MmWaveEnbMac>
+MmWaveHelper::GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
+{
+  NS_LOG_FUNCTION (gnbDevice << bwpIndex);
+  NS_ASSERT(bwpIndex < UINT8_MAX);
+  Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+  return netDevice->GetMac (static_cast<uint8_t> (bwpIndex));
+}
+
 void
 MmWaveHelper::SetSchedulerType (std::string type)
 {
@@ -532,6 +570,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       channelPhy->AddDataSinrChunkProcessor (pData);
 
       phy->SetConfigurationParameters (conf.m_phyMacCommon);
+      phy->SetTddPattern (conf.m_pattern);
 
       channelPhy->SetChannel (conf.m_channel);
 

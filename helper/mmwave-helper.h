@@ -91,6 +91,9 @@ public:
   Ptr<MmWave3gppChannel> m_3gppChannel;
   std::string m_gnbChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for GNB
   std::string m_ueChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for UE
+  std::vector<LteNrTddSlotType> m_pattern {LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
+                                           LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
+                                           LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F};
 };
 
 class MmWaveHelper : public Object
@@ -112,12 +115,33 @@ public:
   void SetChannelModelType (std::string type);
 
   /**
+   * \brief Get the number of configured BWP for a specific GNB NetDevice
+   * \param gnbDevice The GNB NetDevice
+   * \return the number of BWP installed, or 0 if there are errors
+   */
+  static uint32_t GetNumberBwp (const Ptr<const NetDevice> &gnbDevice);
+  /**
+   * \brief Get a pointer to the PHY of the GNB at the specified BWP
+   * \param gnbDevice The GNB NetDevice
+   * \param bwpIndex The index of the BWP required
+   * \return A pointer to the PHY layer of the GNB, or nullptr if there are errors
+   */
+  static Ptr<MmWaveEnbPhy> GetEnbPhy (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
+  /**
+   * \brief Get a pointer to the MAC of the GNB at the specified BWP
+   * \param gnbDevice The GNB NetDevice
+   * \param bwpIndex The index of the BWP required
+   * \return A pointer to the MAC layer of the GNB, or nullptr if there are errors
+   */
+  static Ptr<MmWaveEnbMac> GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
+
+  /**
    * This method is used to send the ComponentCarrier map created with CcHelper
    * to the helper, the structure will be used within InstallSingleEnbDevice
    *
    * \param ccmap the component carrier map
    */
-  void SetCcPhyParams (std::map< uint8_t, ComponentCarrier> ccmap);
+  void SetCcPhyParams (const std::map<uint8_t, ComponentCarrier> &ccmap);
 
   void AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
   void AttachToEnb (const Ptr<NetDevice> &ueDevice, const Ptr<NetDevice> &gnbDevice);

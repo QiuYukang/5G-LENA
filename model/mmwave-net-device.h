@@ -79,21 +79,9 @@ public:
   virtual bool SupportsSendFrom (void) const;
   virtual bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
-
-  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const = 0;
-
-  /**
-   * Returns the PHY instance that is configured to operate on the provided
-   * central carrier frequency
-   * @param centerFrequency The central carrier frequency in Hz
-   * @return A pointer to the PHY instance it it exist, otherwise a nullptr
-   */
-  virtual Ptr<MmWavePhy> GetPhyOnCenterFreq (double centerFrequency) const = 0;
-
-
   Ipv4Address GetPacketDestination (Ptr<Packet> packet);
-
   void Receive (Ptr<Packet> p);
+
 protected:
   NetDevice::ReceiveCallback m_rxCallback;
 private:
