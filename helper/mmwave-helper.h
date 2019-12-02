@@ -112,7 +112,7 @@ struct ComponentCarrierInfo
    * \brief Adds a BWP to the carrier
    * \param bwp Description of the BWP
    */
-  void AddBwp(const ComponentCarrierBandwidthPartElement & bwp);
+  void AddBwp (const ComponentCarrierBandwidthPartElement & bwp);
 };
 
 
@@ -145,7 +145,7 @@ struct OperationBandInfo
   double m_higherFrequency;   //<! Operation band higher frequency
   uint32_t m_bandwidth;       //<! Operation band bandwidth
   uint8_t m_numCarriers {0};  //<! Number of configured carriers in the operation band
-  ContiguousMode m_contiguousCc;  //<! CA intra-band contiguousness
+  ContiguousMode m_contiguousCc {CONTIGUOUS};  //<! CA intra-band contiguousness
   std::vector<ComponentCarrierInfo> m_cc;  //<! Space for CC configuration information
 
   void AddCc (const ComponentCarrierInfo &cc);
@@ -448,7 +448,7 @@ private:
   Ptr<MmWaveBearerStatsCalculator> GetPdcpStats (void);
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
-  
+
   std::map< uint8_t, Ptr<Object> > m_pathlossModel;
   std::string m_pathlossModelType;
   std::string m_channelModelType;

@@ -1,7 +1,7 @@
 /*
  -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*-
  *
- * An simple example of Carrier Aggregation (CA) and Bandwidth Part (BWP) configuration in NR, where
+ * An simple example of Carrier Aggregation (CA) configuration in LTE, where
  * a number of Component Carriers (CC) (up to 16 in the best case scenario) are allocated in different
  * operation bands in Frequency Range 2 (FR2) or mmWave band.
  * CA can aggregate contiguous and non-contiguous CCs, and each CC may have up to 4 BWP. Only one BWP
@@ -28,7 +28,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmComponentCarriersBandwidthPartsExample");
 
-int
+int 
 main (int argc, char *argv[])
 {
   bool udpFullBuffer = false;
@@ -37,19 +37,19 @@ main (int argc, char *argv[])
   uint16_t ueNumPergNb = 2;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
-  uint32_t udpPacketSizeUll = 100;
+  uint32_t udpPacketSizeUll = 1000;
   uint32_t udpPacketSizeBe = 1252;
   uint32_t lambdaUll = 10000;
-  uint32_t lambdaBe = 10000;
+  uint32_t lambdaBe = 1000;
   bool singleBwp = false;
-  uint8_t numBands = 1;
+  uint8_t numBands = 2;
   bool contiguousCc = false;
   std::string simTag = "default";
   std::string outputDir = "./";
   double totalTxPower = 8;
   bool logging = false;
 
-  double simTime = 1; // seconds
+  double simTime = 1.4; // seconds
   double udpAppStartTime = 0.4; //seconds
 
   CommandLine cmd;
@@ -94,7 +94,7 @@ main (int argc, char *argv[])
                 singleBwp);
   cmd.AddValue ("numBands",
                 "Number of operation bands. More than one implies non-contiguous CC",
-                numBands);
+				numBands);
   cmd.AddValue ("contiguousCc",
                 "Simulate with contiguous CC or non-contiguous CC example",
                 contiguousCc);
@@ -114,13 +114,13 @@ main (int argc, char *argv[])
 
   cmd.Parse (argc, argv);
 
-  NS_ABORT_IF (numBands < 1);
+  NS_ABORT_IF(numBands < 1);
 
   //ConfigStore inputConfig;
   //inputConfig.ConfigureDefaults ();
 
   // enable logging or not
-  if (logging)
+  if(logging)
     {
       LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
       LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
@@ -131,22 +131,22 @@ main (int argc, char *argv[])
     }
 
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
-                      StringValue ("l"));
+                      StringValue("l"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
-                      StringValue ("UMi-StreetCanyon")); // with antenna height of 10 m
+                      StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing",
-                      BooleanValue (false));
+                      BooleanValue(false));
 
   Config::SetDefault ("ns3::MmWave3gppChannel::CellScan",
-                      BooleanValue (cellScan));
+                      BooleanValue(cellScan));
   Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
-                      DoubleValue (beamSearchAngleStep));
+                      DoubleValue(beamSearchAngleStep));
 
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
-                      UintegerValue (999999999));
+                      UintegerValue(999999999));
 
-  Config::SetDefault ("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds (0)));
+  Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
 
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
@@ -173,12 +173,12 @@ main (int argc, char *argv[])
   Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
   int32_t yValue = 0.0;
 
-  for (uint32_t i = 1; i <= gNbNodes.GetN (); ++i)
+  for (uint32_t i = 1; i <= gNbNodes.GetN(); ++i)
     {
       // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
       if (i % 2 != 0)
         {
-          yValue = static_cast<int> (i) * 30;
+          yValue = static_cast<int>(i) * 30;
         }
       else
         {
@@ -221,6 +221,7 @@ main (int argc, char *argv[])
 
   // setup the mmWave simulation
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+//  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
@@ -231,206 +232,168 @@ main (int argc, char *argv[])
    * UEs might share the CA/BWP configuration (differences can only occur in the definition of the
    * BWPs
    */
-  ComponentCarrierBandwidthPartCreator ccBwpManager (numBands);  //<! A first CA/BWP manager with numBands operation bands
+  ComponentCarrierBandwidthPartCreator ccBwpManager(numBands);  //<! A first CA/BWP manager with numBands operation bands
 
   uint8_t ccId = 0;
 
-  if (contiguousCc == true)
-    {
-      // CC band configuration n257F (NR Release 15): four contiguous CCs of 400MHz at maximum.
-      // In this automated example, each CC is decomposed into a single BWP occupying the whole CC bandwidth.
-      double centralFrequency = 28e9;
-      uint32_t bandwidth = 3e9;
-      ccBwpManager.CreateOperationBandContiguousCc (centralFrequency,bandwidth,4);
+  // Manually creates a non-contiguous CC configuration with 2 CCs. First CC has two BWPs and the second only one.
 
-      // The example continues extracting the different CCs to activate the BWP of each CC in the band
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc1 = ccBwpManager.GetComponentCarrier (0,0);
-      phyMacCommonBwp1->SetCentreFrequency (cc1.m_bwp.at (0).m_centralFrequency);
-      phyMacCommonBwp1->SetBandwidth (cc1.m_bwp.at (0).m_bandwidth);
-      phyMacCommonBwp1->SetNumerology ((uint32_t)cc1.m_bwp.at (0).m_numerology);
-      phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp1->SetCcId (ccId);
-      BandwidthPartRepresentation repr1 (ccId, phyMacCommonBwp1, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr1);
-      ++ccId;
-
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc2 = ccBwpManager.GetComponentCarrier (0,1);
-      phyMacCommonBwp2->SetCentreFrequency (cc2.m_bwp.at (0).m_centralFrequency);
-      phyMacCommonBwp2->SetBandwidth (cc2.m_bwp.at (0).m_higherFrequency - cc2.m_bwp.at (0).m_lowerFrequency);
-      phyMacCommonBwp2->SetNumerology ((uint32_t)cc2.m_bwp.at (0).m_numerology);
-      phyMacCommonBwp2->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp2->SetCcId (ccId);
-      BandwidthPartRepresentation repr2 (ccId, phyMacCommonBwp2, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr2);
-      ++ccId;
-
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp3 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc3 = ccBwpManager.GetComponentCarrier (0,2);
-      phyMacCommonBwp3->SetCentreFrequency (cc3.m_bwp.at (0).m_centralFrequency);
-      phyMacCommonBwp3->SetBandwidth (cc3.m_bwp.at (0).m_higherFrequency - cc3.m_bwp.at (0).m_lowerFrequency);
-      phyMacCommonBwp3->SetNumerology ((uint32_t)cc3.m_bwp.at (0).m_numerology);
-      phyMacCommonBwp3->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp3->SetCcId (ccId);
-      BandwidthPartRepresentation repr3 (ccId, phyMacCommonBwp3, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr3);
-      ++ccId;
-
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp4 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc4 = ccBwpManager.GetComponentCarrier (0,3);
-      phyMacCommonBwp4->SetCentreFrequency (cc4.m_bwp.at (0).m_centralFrequency);
-      phyMacCommonBwp4->SetBandwidth (cc4.m_bwp.at (0).m_higherFrequency - cc4.m_bwp.at (0).m_lowerFrequency);
-      phyMacCommonBwp4->SetNumerology ((uint32_t)cc4.m_bwp.at (0).m_numerology);
-      phyMacCommonBwp4->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp4->SetCcId (ccId);
-      BandwidthPartRepresentation repr4 (ccId, phyMacCommonBwp4, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr4);
-      ++ccId;
-
-      // Finally, test that the given configuration is valid
-      ccBwpManager.ValidateCaBwpConfiguration ();
-
-    }
-  else
-    {
-      // Manually creates a non-contiguous CC configuration with 2 CCs. First CC has two BWPs and the second only one.
-      //
-
-      OperationBandInfo band;
-      band.m_centralFrequency  = 28e9;
-      band.m_bandwidth = 3e9;
-      band.m_lowerFrequency = band.m_centralFrequency - (double)band.m_bandwidth / 2;
-      band.m_higherFrequency = band.m_centralFrequency + (double)band.m_bandwidth / 2;
+  OperationBandInfo band1;
+  band1.m_centralFrequency  = 2140e6;
+  band1.m_bandwidth = 60e6;
+  band1.m_lowerFrequency = band1.m_centralFrequency - (double)band1.m_bandwidth/2;
+  band1.m_higherFrequency = band1.m_centralFrequency + (double)band1.m_bandwidth/2;
 //      std::vector<ComponentCarrierInfo> ccs;
-      uint8_t bwpCount = 0;
+  uint8_t bwpCount = 0;
 
-      // Component Carrier 1
-      ComponentCarrierInfo cc0;
-      cc0.m_ccId = 0;
-      cc0.m_primaryCc = PRIMARY;
-      cc0.m_centralFrequency = 28e9;
-      cc0.m_bandwidth = 400e6;
-      cc0.m_lowerFrequency = cc0.m_centralFrequency - (double)cc0.m_bandwidth / 2;
-      cc0.m_higherFrequency = cc0.m_centralFrequency + (double)cc0.m_bandwidth / 2;
-      cc0.m_activeBwp = bwpCount;
-      ComponentCarrierBandwidthPartElement bwp0;
-      bwp0.m_bwpId = bwpCount;
-      bwp0.m_numerology = 3;
-      bwp0.m_centralFrequency = cc0.m_lowerFrequency + 100e6;
-      bwp0.m_bandwidth = 200e6;
-      bwp0.m_lowerFrequency = bwp0.m_centralFrequency - bwp0.m_bandwidth / 2;
-      bwp0.m_higherFrequency = bwp0.m_centralFrequency + bwp0.m_bandwidth / 2;
-      cc0.AddBwp (bwp0);
-      ++bwpCount;
+  // Component Carrier 1
+  ComponentCarrierInfo cc0;
+  cc0.m_ccId = 0;
+  cc0.m_primaryCc = SECONDARY;
+  cc0.m_centralFrequency = band1.m_centralFrequency;
+  cc0.m_bandwidth = 20e6;
+  cc0.m_lowerFrequency = cc0.m_centralFrequency - (double)cc0.m_bandwidth/2;
+  cc0.m_higherFrequency = cc0.m_centralFrequency + (double)cc0.m_bandwidth/2;
+  cc0.m_activeBwp = bwpCount;
+  ComponentCarrierBandwidthPartElement bwp0;
+  bwp0.m_bwpId = bwpCount;
+  bwp0.m_numerology = 0;
+  bwp0.m_centralFrequency = cc0.m_centralFrequency;
+  bwp0.m_bandwidth = cc0.m_bandwidth;
+  bwp0.m_lowerFrequency = cc0.m_lowerFrequency;
+  bwp0.m_higherFrequency = cc0.m_higherFrequency;
+  cc0.AddBwp(bwp0);
+  ++bwpCount;
 
-      // Component Carrier 2
-      ComponentCarrierBandwidthPartElement bwp01;
-      bwp01.m_bwpId = bwpCount;
-      bwp01.m_numerology = 4;
-      bwp01.m_centralFrequency = cc0.m_higherFrequency - 50e6;
-      bwp01.m_bandwidth = 100e6;
-      bwp01.m_lowerFrequency = bwp01.m_centralFrequency - bwp01.m_bandwidth / 2;
-      bwp01.m_higherFrequency = bwp01.m_centralFrequency + bwp01.m_bandwidth / 2;
-      cc0.AddBwp (bwp01);
-      ++bwpCount;
+  // Add the CC to the band
+  band1.AddCc(cc0);
 
-      ComponentCarrierInfo cc1;
-      cc1.m_ccId = 1;
-      cc1.m_primaryCc = SECONDARY;
-      cc1.m_centralFrequency = 29e9;
-      cc1.m_bandwidth = 100e6;
-      cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth / 2;
-      cc1.m_higherFrequency = cc1.m_centralFrequency + (double)cc1.m_bandwidth / 2;
-      cc1.m_activeBwp = bwpCount;
+  // Add the UE operation band to the CA/BWP manager
+  ccBwpManager.AddOperationBand(band1);
 
-      ComponentCarrierBandwidthPartElement bwp1;
 
-      bwp1.m_bwpId = bwpCount;
-      bwp1.m_numerology = 3;
-      bwp1.m_centralFrequency = cc1.m_centralFrequency;
-      bwp1.m_bandwidth = cc1.m_bandwidth;
-      bwp1.m_lowerFrequency = cc1.m_lowerFrequency;
-      bwp1.m_higherFrequency = cc1.m_higherFrequency;
-      cc1.AddBwp (bwp1);
-      ++bwpCount;
+  //Second band
+  OperationBandInfo band3;
+  band3.m_centralFrequency  = 1842.5e6;
+  band3.m_bandwidth = 75e6;
+  band3.m_lowerFrequency = band3.m_centralFrequency - (double)band3.m_bandwidth/2;
+  band3.m_higherFrequency = band3.m_centralFrequency + (double)band3.m_bandwidth/2;
 
-      band.AddCc (cc1);
-      band.AddCc (cc0);
 
-      // Add the UE operation band to the CA/BWP manager
-      ccBwpManager.AddOperationBand (band);
+  ComponentCarrierInfo cc1;
+  cc1.m_ccId = 1;
+  cc1.m_primaryCc = PRIMARY;
+  cc1.m_centralFrequency = band3.m_lowerFrequency+10e6;
+  cc1.m_bandwidth = 20e6;
+  cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth/2;
+  cc1.m_higherFrequency = cc1.m_centralFrequency + (double)cc1.m_bandwidth/2;
+  cc1.m_activeBwp = bwpCount;
 
-      // Check that the CA/BWP configurations of all the defined operation bands are correct
-      ccBwpManager.ValidateCaBwpConfiguration ();
+  ComponentCarrierBandwidthPartElement bwp1;
+  bwp1.m_bwpId = bwpCount;
+  bwp1.m_numerology = 0;
+  bwp1.m_centralFrequency = cc1.m_centralFrequency;
+  bwp1.m_bandwidth = cc1.m_bandwidth;
+  bwp1.m_lowerFrequency = cc1.m_lowerFrequency;
+  bwp1.m_higherFrequency = cc1.m_higherFrequency;
+  cc1.AddBwp(bwp1);
+  ++bwpCount;
 
-      // Create a copy of ccBwpManager for UE 2 and change the active BWP to primary CC, BWP id 1
-      ComponentCarrierBandwidthPartCreator ccBwpManager2 = ccBwpManager;
-      ccBwpManager2.ChangeActiveBwp (0, 0, 1);
+  band3.AddCc(cc1);
 
-      // Create BandwidthPartRepresentations referred to the active BWP only of each CC
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
-//      ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo(0,ccId);
-      ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo ();
-      phyMacCommonBwp0->SetCentreFrequency (recBwp0.m_centralFrequency);
-      phyMacCommonBwp0->SetBandwidth (recBwp0.m_bandwidth);
-      phyMacCommonBwp0->SetNumerology ((uint32_t)recBwp0.m_numerology);
-      phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp0->SetCcId (ccId);
-      BandwidthPartRepresentation repr0 (ccId, phyMacCommonBwp0, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr0);
-      ++ccId;
 
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-//      ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager.GetActiveBwpInfo(0,ccId);
-      ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager2.GetActiveBwpInfo ();
-      phyMacCommonBwp1->SetCentreFrequency (recBwp1.m_centralFrequency);
-      phyMacCommonBwp1->SetBandwidth (recBwp1.m_bandwidth);
-      phyMacCommonBwp1->SetNumerology ((uint32_t)recBwp1.m_numerology);
-      phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp1->SetCcId (ccId);
-      BandwidthPartRepresentation repr1 (ccId, phyMacCommonBwp1, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr1);
-      ++ccId;
+  ComponentCarrierInfo cc2;
+  cc2.m_ccId = 2;
+  cc2.m_primaryCc = SECONDARY;
+  cc2.m_centralFrequency = band3.m_higherFrequency-10e6;
+  cc2.m_bandwidth = 20e6;
+  cc2.m_lowerFrequency = cc2.m_centralFrequency - (double)cc2.m_bandwidth/2;
+  cc2.m_higherFrequency = cc2.m_centralFrequency + (double)cc2.m_bandwidth/2;
+  cc2.m_activeBwp = bwpCount;
 
-    }
+  ComponentCarrierBandwidthPartElement bwp2;
+  bwp2.m_bwpId = bwpCount;
+  bwp2.m_numerology = 0;
+  bwp2.m_centralFrequency = cc2.m_centralFrequency;
+  bwp2.m_bandwidth = cc2.m_bandwidth;
+  bwp2.m_lowerFrequency = cc2.m_lowerFrequency;
+  bwp2.m_higherFrequency = cc2.m_higherFrequency;
+  cc2.AddBwp(bwp2);
+  ++bwpCount;
 
-  NS_ABORT_MSG_IF (ccId < 1,"No CC created");
+  band3.AddCc(cc2);
+
+  // Add the UE operation band to the CA/BWP manager
+  ccBwpManager.AddOperationBand(band3);
+
+  // Check that the CA/BWP configurations of all the defined operation bands are correct
+  ccBwpManager.ValidateCaBwpConfiguration();
+
+  // Create BandwidthPartRepresentations referred to the active BWP only of each CC
+  Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
+//  ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo(0,ccId);
+  ComponentCarrierBandwidthPartElement recBwp0 = bwp0;
+  phyMacCommonBwp0->SetCentreFrequency(recBwp0.m_centralFrequency);
+  phyMacCommonBwp0->SetBandwidth (recBwp0.m_bandwidth);
+  phyMacCommonBwp0->SetNumerology((uint32_t)recBwp0.m_numerology);
+  phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+  phyMacCommonBwp0->SetCcId (ccId);
+  BandwidthPartRepresentation repr0 (ccId, phyMacCommonBwp0, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart (ccId, repr0);
+  ++ccId;
+
+  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
+//  ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager.GetActiveBwpInfo(0,ccId);
+  ComponentCarrierBandwidthPartElement recBwp1 = bwp2;
+  phyMacCommonBwp1->SetCentreFrequency(recBwp1.m_centralFrequency);
+  phyMacCommonBwp1->SetBandwidth (recBwp1.m_bandwidth);
+  phyMacCommonBwp1->SetNumerology((uint32_t)recBwp1.m_numerology);
+  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+  phyMacCommonBwp1->SetCcId (ccId);
+  BandwidthPartRepresentation repr1 (ccId, phyMacCommonBwp1, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart (ccId, repr1);
+  ++ccId;
+
+
+  NS_ABORT_MSG_IF(ccId < 1,"No CC created");
   //Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (ccId));
-  mmWaveHelper->SetAttribute ("NumberOfComponentCarriers", UintegerValue (ccId));  //The commented line does not update the number of CCs
-
-  Config::SetDefault ("ns3::LteHelper::NumberOfComponentCarriers", UintegerValue (ccId));
-  Config::SetDefault ("ns3::LteHelper::EnbComponentCarrierManager", StringValue ("ns3::RrComponentCarrierManager"));
-
+  mmWaveHelper->SetAttribute("NumberOfComponentCarriers", UintegerValue(ccId));  //The commented line does not update the number of CCs
   /*
   UintegerValue testccId;
   mmWaveHelper->GetAttribute("NumberOfComponentCarriers",testccId);
   std::cout << testccId.Get() << std::endl;
   */
 
+  std::cout << "CC0" << std::endl;
+  std::cout << "  Central frequency (MHz): " << recBwp0.m_centralFrequency/1000/1000 << std::endl;
+  std::cout << "  Bandwidth (MHz): " << recBwp0.m_bandwidth/1000/1000 << std::endl;
+  std::cout << "CC1" << std::endl;
+  std::cout << "  Central frequency (MHz): " << recBwp1.m_centralFrequency/1000/1000 << std::endl;
+  std::cout << "  Bandwidth (MHz): " << recBwp1.m_bandwidth/1000/1000 << std::endl;
+
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
-  mmWaveHelper->Initialize ();
+  mmWaveHelper->Initialize();
 
   // install mmWave net devices
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
 
-  double x = pow (10, totalTxPower / 10);
+  double x = pow(10, totalTxPower/10);
 
-  double totalBandwidth = ccBwpManager.GetAggregatedBandwidth ();
+  double totalBandwidth = ccBwpManager.GetAggregatedBandwidth();
 
-  for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
+  for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
     {
       ObjectMapValue objectMapValue;
-      Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (enbNetDev.Get (j));
-      netDevice->GetAttribute ("ComponentCarrierMap", objectMapValue);
-      for (uint32_t i = 0; i < objectMapValue.GetN (); i++)
+      Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice>(enbNetDev.Get(j));
+      netDevice->GetAttribute("ComponentCarrierMap", objectMapValue);
+      for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
-          Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb> (objectMapValue.Get (i));
-          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth (0,i); //m_bands.at(0).m_cc.at(i).m_bandwidth;
-          bandwidthPart->GetPhy ()->SetTxPower (10 * log10 ((bwCc / totalBandwidth) * x));
-          std::cout << "\n txPower" << i << " = " << 10 * log10 ((bwCc / totalBandwidth) * x) << std::endl;
+          Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
+          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(0,i); //m_bands.at(0).m_cc.at(i).m_bandwidth;
+          bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
+          std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
         }
     }
 
@@ -460,9 +423,9 @@ main (int argc, char *argv[])
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -476,16 +439,16 @@ main (int argc, char *argv[])
   serverApps.Add (dlPacketSinkHelper.Install (ueNodes));
 
   // configure here UDP traffic
-  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
       //dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
 
       if (udpFullBuffer)
         {
           double bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-          uint32_t bandwidthBwp1 = ccBwpManager.GetCarrierBandwidth (0,0); //m_bands.at(0).m_cc.at(0).m_bwp.at(0).m_bandwidth;
+          uint32_t bandwidthBwp1 = ccBwpManager.GetCarrierBandwidth(0,0); //m_bands.at(0).m_cc.at(0).m_bwp.at(0).m_bandwidth;
           if (bandwidthBwp1 > 20e6)
             {
               bitRate *=  bandwidthBwp1 / 20e6;
@@ -495,7 +458,7 @@ main (int argc, char *argv[])
 
           bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
 
-          uint32_t bandwidthBwp2 = ccBwpManager.GetCarrierBandwidth (0,1); //m_bands.at(0).m_cc.at(1).m_bwp.at(0).m_bandwidth;
+          uint32_t bandwidthBwp2 = ccBwpManager.GetCarrierBandwidth(0,1); //m_bands.at(0).m_cc.at(1).m_bwp.at(0).m_bandwidth;
           if (bandwidthBwp2 > 20e6)
             {
               bitRate *=  bandwidthBwp2 / 20e6;
@@ -505,13 +468,13 @@ main (int argc, char *argv[])
 
       if (j % 2 == 0)
         {
-          dlClient.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
-          dlClient.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaUll)));
+          dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
+          dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
         }
       else
         {
-          dlClient.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-          dlClient.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaBe)));
+          dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
+          dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
         }
 
       clientApps.Add (dlClient.Install (remoteHost));
@@ -532,19 +495,19 @@ main (int argc, char *argv[])
         }
       else
         {
-          q = EpsBearer::GBR_CONV_VOICE;
+          q = EpsBearer::NGBR_LOW_LAT_EMBB;
         }
 
       //      q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
 
       EpsBearer bearer (q);
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueNetDev.Get (j), bearer, tft);
+      mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
     }
   // start UDP server and client apps
-  serverApps.Start (Seconds (udpAppStartTime));
-  clientApps.Start (Seconds (udpAppStartTime));
-  serverApps.Stop (Seconds (simTime));
-  clientApps.Stop (Seconds (simTime));
+  serverApps.Start(Seconds(udpAppStartTime));
+  clientApps.Start(Seconds(udpAppStartTime));
+  serverApps.Stop(Seconds(simTime));
+  clientApps.Stop(Seconds(simTime));
 
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
@@ -633,16 +596,17 @@ main (int argc, char *argv[])
       outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size () << "\n";
+  outFile << "\n\n  Aggregated throughput: " << averageFlowThroughput << "\n";
+  outFile << "  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
 
   outFile.close ();
 
   std::ifstream f (filename.c_str ());
 
-  if (f.is_open ())
+  if (f.is_open())
     {
-      std::cout << f.rdbuf ();
+      std::cout << f.rdbuf();
     }
 
   Simulator::Destroy ();
