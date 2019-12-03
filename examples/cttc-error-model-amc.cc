@@ -122,7 +122,7 @@ main (int argc, char *argv[])
                "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
                eesmTable);
   cmd.AddValue("harqMethod",
-               "The HARQ method to be used in case of Eesm (NrEesmErrorModel::HarqCc or NrEesmErrorModel::HarqIr)",
+               "The HARQ method to be used in case of Eesm (HarqCc or HarqIr)",
                harqMethod);
   cmd.AddValue("ueY",
                "Y position of any UE",
@@ -354,7 +354,7 @@ main (int argc, char *argv[])
   std::cerr << "Packets received: " << packetsTime.size () << std::endl;
   std::cerr << "Counter: " << +cont << std::endl;
 
-  if (packetsTime.size () > 0)
+  if (packetsTime.size () > 0 && cont > 0)
     {
       //std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
       std::cerr << "Average e2e latency: " << sum / cont << " us" << std::endl;

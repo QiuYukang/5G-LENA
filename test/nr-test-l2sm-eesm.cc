@@ -98,42 +98,50 @@ typedef std::tuple<double, uint8_t, uint32_t, double> MappingTable;
 
 static std::vector<MappingTable> resultTable1 = {
   // sinr (lineal), mcs, cbsize, result
-  //MappingTable { 19.95, 18, 3200, 0.00 },    // sinr 13 db - deleted to avoid roundings
-  MappingTable { 15.849, 18, 3200, 0.5936047 },  // sinr 12 db
-  MappingTable { 10,    18, 3200, 1.00 },      // sinr 10 db
-  MappingTable { 19.95, 18, 1750, 0.0026 },      // sinr 13 db
-  MappingTable { 15.84, 18, 1750, 0.7718373 },    // sinr 12 db
-  MappingTable { 10,    18, 1750, 1.00 },      // sinr 10 db
-  //MappingTable { 19.95, 18, 3500, 0.00 },    // sinr 13 db - deleted to avoid roundings
-  MappingTable { 15.849, 18, 3500, 0.9128521 },  // sinr 12 db
-  MappingTable { 10,    18, 3500, 1.00 },      // sinr 10 db
 
-  MappingTable { 8.9125, 14, 3900, 0.0357 },    // sinr 9.5db
-  MappingTable { 7.9433, 14, 3900, 0.9649621 },  // sinr 9 db
-  MappingTable { 6.3095, 14, 3900, 1.00 },      // sinr 8 db
-  MappingTable { 8.9125, 14, 6300, 0.0240 },    // sinr 9.5db
-  MappingTable { 7.9433, 14, 6300, 0.9923077 },  // sinr 9 db
-  MappingTable { 6.3095, 14, 6300, 1.00 }       // sinr 8 db
+  // MCS 18, all CBS in continuation use BGtype2
+  // CBS=3200, in table corresponds to 3104
+  MappingTable { 19.95,  18, 3200, 0.023 },      // sinr 13 db
+  MappingTable { 15.849, 18, 3200, 0.7567365 },  // sinr 12 db
+  MappingTable { 10,     18, 3200, 1.00 },       // sinr 10 db
+  // CBS=3500, in table corresponds to 3496
+  MappingTable { 19.95,  18, 3500, 0.0735 },     // sinr 13 db
+  MappingTable { 15.849, 18, 3500, 0.7908951 },  // sinr 12 db
+  MappingTable { 10,     18, 3500, 1.00 },       // sinr 10 db
+
+  // MCS 14, all CBS in continuation use BGtype1
+  // CBS=3900, in table corresponds to 3840
+  MappingTable { 8.9125, 14, 3900, 0.3225703 },  // sinr 9.5db
+  MappingTable { 7.9433, 14, 3900, 0.8827055 },  // sinr 9 db
+  MappingTable { 6.3095, 14, 3900, 1.00 },       // sinr 8 db
+  // CBS=6300, in table corresponds to 6272
+  MappingTable { 8.9125, 14, 6300, 0.0237 },     // sinr 9.5db
+  MappingTable { 7.9433, 14, 6300, 0.9990385 },  // sinr 9 db
+  MappingTable { 6.3095, 14, 6300, 1.00 }        // sinr 8 db
 
 };
 static std::vector<MappingTable> resultTable2 = {
   // sinr (lineal), mcs, cbsize, result 
-  //MappingTable { 19.95, 11, 3200, 0.00 },    // sinr 13 db - deleted to avoid roundings
-  MappingTable { 15.849, 11, 3200, 0.5936047 },  // sinr 12 db
-  MappingTable { 10,    11, 3200, 1.00 },      // sinr 10 db
-  MappingTable { 19.95, 11, 1750, 0.0026 },      // sinr 13 db
-  MappingTable { 15.84, 11, 1750, 0.7718373 },    // sinr 12 db
-  MappingTable { 10,    11, 1750, 1.00 },      // sinr 10 db
-  //MappingTable { 19.95, 11, 3500, 0.00 },    // sinr 13 db - deleted to avoid roundings
-  MappingTable { 15.849, 11, 3500, 0.9128521 },  // sinr 12 db
-  MappingTable { 10,    11, 3500, 1.00 },      // sinr 10 db
 
-  MappingTable { 8.9125, 8, 3900, 0.0357 },    // sinr 9.5db
-  MappingTable { 7.9433, 8, 3900, 0.9649621 },  // sinr 9 db
-  MappingTable { 6.3095, 8, 3900, 1.00 },      // sinr 8 db
-  MappingTable { 8.9125, 8, 6300, 0.0240 },    // sinr 9.5db
-  MappingTable { 7.9433, 8, 6300, 0.9923077 },  // sinr 9 db
-  MappingTable { 6.3095, 8, 6300, 1.00 }       // sinr 8 db
+  // MCS 11, all CBS in continuation use BGtype2
+  // CBS=3200, in table corresponds to 3104
+  MappingTable { 19.95,  11, 3200, 0.023 },      // sinr 13 db
+  MappingTable { 15.849, 11, 3200, 0.7567365 },  // sinr 12 db
+  MappingTable { 10,     11, 3200, 1.00 },       // sinr 10 db
+  // CBS=3500, in table corresponds to 3496
+  MappingTable { 19.95,  11, 3500, 0.0735 },     // sinr 13 db
+  MappingTable { 15.849, 11, 3500, 0.7908951 },  // sinr 12 db
+  MappingTable { 10,     11, 3500, 1.00 },       // sinr 10 db
+
+  // MCS 8, all CBS in continuation use BGtype1
+  // CBS=3900, in table corresponds to 3840
+  MappingTable { 8.9125, 8, 3900, 0.3225703 },  // sinr 9.5db
+  MappingTable { 7.9433, 8, 3900, 0.8827055 },  // sinr 9 db
+  MappingTable { 6.3095, 8, 3900, 1.00 },       // sinr 8 db
+  // CBS=6300, in table corresponds to 6272
+  MappingTable { 8.9125, 8, 6300, 0.0237 },     // sinr 9.5db
+  MappingTable { 7.9433, 8, 6300, 0.9990385 },  // sinr 9 db
+  MappingTable { 6.3095, 8, 6300, 1.00 }        // sinr 8 db
 
 };
 
@@ -205,7 +213,7 @@ NrL2smEesmTestCase::DoRun()
 class NrTestL2smEesm : public TestSuite
 {
 public:
-  NrTestL2smEesm () : TestSuite ("Nr-test-l2sm-eesm", UNIT)
+  NrTestL2smEesm () : TestSuite ("nr-test-l2sm-eesm", UNIT)
     {
       AddTestCase(new NrL2smEesmTestCase ("First test"), QUICK);
     }
