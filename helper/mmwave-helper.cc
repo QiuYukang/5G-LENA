@@ -1571,7 +1571,7 @@ ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo (uint8_t bandIndex, uint8
 
   OperationBandInfo band = m_bands.at (bandIndex);
   NS_ABORT_MSG_IF (band.m_cc.empty (),"No carrier band information provided");
-  NS_ABORT_MSG_IF (ccIndex > band.m_numCarriers - 1 || ccIndex > band.m_cc.size () - 1,"Wrong component carrier index");
+  NS_ABORT_MSG_IF (ccIndex > band.m_numCarriers - 1 || ccIndex > band.m_cc.size () - 1,"Carrier index exceeds vector length");
 
   ComponentCarrierInfo cc = band.m_cc.at (ccIndex);
   ComponentCarrierBandwidthPartElement bwp;

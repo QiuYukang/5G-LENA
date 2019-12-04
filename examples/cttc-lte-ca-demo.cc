@@ -26,7 +26,7 @@
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmComponentCarriersBandwidthPartsExample");
+NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmLteComponentCarriersExample");
 
 int 
 main (int argc, char *argv[])
@@ -34,7 +34,7 @@ main (int argc, char *argv[])
   bool udpFullBuffer = false;
   int32_t fixedMcs = -1;
   uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 2;
+  uint16_t ueNumPergNb = 1;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
   uint32_t udpPacketSizeUll = 1000;
@@ -48,6 +48,7 @@ main (int argc, char *argv[])
   std::string outputDir = "./";
   double totalTxPower = 8;
   bool logging = false;
+  uint16_t tddPattern = 0;
 
   double simTime = 1.4; // seconds
   double udpAppStartTime = 0.4; //seconds
@@ -111,6 +112,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("logging",
                 "Enable logging",
                 logging);
+  cmd.AddValue("tddPattern",
+	       "LTE TDD pattern to use",
+	       tddPattern);
 
   cmd.Parse (argc, argv);
 
@@ -235,6 +239,7 @@ main (int argc, char *argv[])
   ComponentCarrierBandwidthPartCreator ccBwpManager(numBands);  //<! A first CA/BWP manager with numBands operation bands
 
   uint8_t ccId = 0;
+  uint8_t bwpCount = 0;
 
   // Manually creates a non-contiguous CC configuration with 2 CCs. First CC has two BWPs and the second only one.
 
@@ -243,15 +248,13 @@ main (int argc, char *argv[])
   band1.m_bandwidth = 60e6;
   band1.m_lowerFrequency = band1.m_centralFrequency - (double)band1.m_bandwidth/2;
   band1.m_higherFrequency = band1.m_centralFrequency + (double)band1.m_bandwidth/2;
-//      std::vector<ComponentCarrierInfo> ccs;
-  uint8_t bwpCount = 0;
 
   // Component Carrier 1
   ComponentCarrierInfo cc0;
   cc0.m_ccId = 0;
   cc0.m_primaryCc = SECONDARY;
   cc0.m_centralFrequency = band1.m_centralFrequency;
-  cc0.m_bandwidth = 20e6;
+  cc0.m_bandwidth = 18e6;
   cc0.m_lowerFrequency = cc0.m_centralFrequency - (double)cc0.m_bandwidth/2;
   cc0.m_higherFrequency = cc0.m_centralFrequency + (double)cc0.m_bandwidth/2;
   cc0.m_activeBwp = bwpCount;
@@ -284,7 +287,7 @@ main (int argc, char *argv[])
   cc1.m_ccId = 1;
   cc1.m_primaryCc = PRIMARY;
   cc1.m_centralFrequency = band3.m_lowerFrequency+10e6;
-  cc1.m_bandwidth = 20e6;
+  cc1.m_bandwidth = 18e6;
   cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth/2;
   cc1.m_higherFrequency = cc1.m_centralFrequency + (double)cc1.m_bandwidth/2;
   cc1.m_activeBwp = bwpCount;
@@ -299,14 +302,14 @@ main (int argc, char *argv[])
   cc1.AddBwp(bwp1);
   ++bwpCount;
 
-  band3.AddCc(cc1);
+  band3.AddCc(cc1);//<! Adds the CC to the band
 
 
   ComponentCarrierInfo cc2;
   cc2.m_ccId = 2;
   cc2.m_primaryCc = SECONDARY;
   cc2.m_centralFrequency = band3.m_higherFrequency-10e6;
-  cc2.m_bandwidth = 20e6;
+  cc2.m_bandwidth = 18e6;
   cc2.m_lowerFrequency = cc2.m_centralFrequency - (double)cc2.m_bandwidth/2;
   cc2.m_higherFrequency = cc2.m_centralFrequency + (double)cc2.m_bandwidth/2;
   cc2.m_activeBwp = bwpCount;
@@ -321,7 +324,7 @@ main (int argc, char *argv[])
   cc2.AddBwp(bwp2);
   ++bwpCount;
 
-  band3.AddCc(cc2);
+  band3.AddCc(cc2); //<! Adds the CC to the band
 
   // Add the UE operation band to the CA/BWP manager
   ccBwpManager.AddOperationBand(band3);
@@ -331,7 +334,7 @@ main (int argc, char *argv[])
 
   // Create BandwidthPartRepresentations referred to the active BWP only of each CC
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
-//  ComponentCarrierBandwidthPartElement recBwp0 = ccBwpManager.GetActiveBwpInfo(0,ccId);
+  phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Just to match the RBG size for the bandwidth
   ComponentCarrierBandwidthPartElement recBwp0 = bwp0;
   phyMacCommonBwp0->SetCentreFrequency(recBwp0.m_centralFrequency);
   phyMacCommonBwp0->SetBandwidth (recBwp0.m_bandwidth);
@@ -343,8 +346,8 @@ main (int argc, char *argv[])
   ++ccId;
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-//  ComponentCarrierBandwidthPartElement recBwp1 = ccBwpManager.GetActiveBwpInfo(0,ccId);
-  ComponentCarrierBandwidthPartElement recBwp1 = bwp2;
+  phyMacCommonBwp1->SetNumRbPerRbg (4); //<! Just to match the RBG size for the bandwidth
+  ComponentCarrierBandwidthPartElement recBwp1 = bwp1;
   phyMacCommonBwp1->SetCentreFrequency(recBwp1.m_centralFrequency);
   phyMacCommonBwp1->SetBandwidth (recBwp1.m_bandwidth);
   phyMacCommonBwp1->SetNumerology((uint32_t)recBwp1.m_numerology);
@@ -352,6 +355,18 @@ main (int argc, char *argv[])
   phyMacCommonBwp1->SetCcId (ccId);
   BandwidthPartRepresentation repr1 (ccId, phyMacCommonBwp1, nullptr, nullptr, nullptr);
   mmWaveHelper->AddBandwidthPart (ccId, repr1);
+  ++ccId;
+
+  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
+  phyMacCommonBwp2->SetNumRbPerRbg (4); //<! Just to match the RBG size for the bandwidth
+  ComponentCarrierBandwidthPartElement recBwp2 = bwp2;
+  phyMacCommonBwp2->SetCentreFrequency(recBwp2.m_centralFrequency);
+  phyMacCommonBwp2->SetBandwidth (recBwp2.m_bandwidth);
+  phyMacCommonBwp2->SetNumerology((uint32_t)recBwp2.m_numerology);
+  phyMacCommonBwp2->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+  phyMacCommonBwp2->SetCcId (ccId);
+  BandwidthPartRepresentation repr2 (ccId, phyMacCommonBwp2, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart (ccId, repr2);
   ++ccId;
 
 
@@ -379,6 +394,66 @@ main (int argc, char *argv[])
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
 
+  // All LTE TDD patterns are defined here
+  std::vector<LteNrTddSlotType> ltePattern0 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                               LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+                                               LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
+					       LteNrTddSlotType::UL};
+  std::vector<LteNrTddSlotType> ltePattern1 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                                 LteNrTddSlotType::UL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+                                                 LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
+  					       LteNrTddSlotType::DL};
+  std::vector<LteNrTddSlotType> ltePattern2 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                                 LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+                                                 LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+  					       LteNrTddSlotType::DL};
+  std::vector<LteNrTddSlotType> ltePattern3 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                                   LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+                                                   LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    					       LteNrTddSlotType::DL};
+  std::vector<LteNrTddSlotType> ltePattern4 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                                     LteNrTddSlotType::UL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+                                                     LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+      					       LteNrTddSlotType::DL};
+  std::vector<LteNrTddSlotType> ltePattern5 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                                     LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+                                                     LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+      					       LteNrTddSlotType::DL};
+  std::vector<LteNrTddSlotType> ltePattern6 {LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+                                                       LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+                                                       LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
+        					       LteNrTddSlotType::DL};
+  std::vector<LteNrTddSlotType> ltePattern;
+  switch (tddPattern)
+  {
+    case 0:
+      ltePattern = ltePattern0;
+      break;
+    case 1:
+      ltePattern = ltePattern1;
+      break;
+    case 2:
+      ltePattern = ltePattern2;
+      break;
+    case 3:
+      ltePattern = ltePattern3;
+      break;
+    case 4:
+      ltePattern = ltePattern4;
+      break;
+    case 5:
+      ltePattern = ltePattern5;
+      break;
+    case 6:
+      ltePattern = ltePattern6;
+      break;
+    default:
+      NS_ABORT_MSG("Wrong LTE pattern id");
+  }
+  // I want to set the ltePattern on bwp 0 of gnb 0
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 0)->SetTddPattern (ltePattern);
+
+
   double x = pow(10, totalTxPower/10);
 
   double totalBandwidth = ccBwpManager.GetAggregatedBandwidth();
@@ -391,9 +466,9 @@ main (int argc, char *argv[])
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
           Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
-          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(0,i); //m_bands.at(0).m_cc.at(i).m_bandwidth;
+          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(1,0); //m_bands.at(0).m_cc.at(i).m_bandwidth;
           bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
-          std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
+//          std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
         }
     }
 
@@ -497,8 +572,6 @@ main (int argc, char *argv[])
         {
           q = EpsBearer::NGBR_LOW_LAT_EMBB;
         }
-
-      //      q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
 
       EpsBearer bearer (q);
       mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
