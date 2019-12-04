@@ -1,11 +1,11 @@
 /*
  -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*-
  *
- * An simple example of Carrier Aggregation (CA) configuration in LTE, where
- * a number of Component Carriers (CC) (up to 16 in the best case scenario) are allocated in different
- * operation bands in Frequency Range 2 (FR2) or mmWave band.
- * CA can aggregate contiguous and non-contiguous CCs, and each CC may have up to 4 BWP. Only one BWP
- * per CC can be active at a time.
+ * A simple example of Carrier Aggregation (CA) configuration in LTE, where
+ * three Component Carriers (CC) are allocated in two operation bands. CA can
+ * aggregate contiguous and non-contiguous CCs. In this example, non-contiguous
+ * CC are aggregated following the standard configuration CA-1A-3A-3A (Rel.14),
+ * and each CC has 20 MHz bandwidth.
  */
 
 
@@ -34,7 +34,7 @@ main (int argc, char *argv[])
   bool udpFullBuffer = false;
   int32_t fixedMcs = -1;
   uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 1;
+  uint16_t ueNumPergNb = 2;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
   uint32_t udpPacketSizeUll = 1000;
@@ -225,16 +225,14 @@ main (int argc, char *argv[])
 
   // setup the mmWave simulation
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-//  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
   /*
-   * Setup the operation frequencies. In this example, one operation band is deployed with
-   * multiple CCs: 4 CCs in the contiguous automatic case and 2 in the manual non-contiguous case.
-   * In the current implementation there should be as many ccBwpManagers as deployed UEs. However,
-   * UEs might share the CA/BWP configuration (differences can only occur in the definition of the
-   * BWPs
+   * Setup the operation bands. In this example, two standard operation bands are deployed:
+   * n1 and n3. n1 has a secondary carrier of 20 MHz and n3 has two non-contiguous carriers
+   * of 20 MHz each, one primary carrier and another secondary carrier. Transmission of a
+   * single DL UDP flow occurs on the primary carrier.
    */
   ComponentCarrierBandwidthPartCreator ccBwpManager(numBands);  //<! A first CA/BWP manager with numBands operation bands
 
@@ -334,7 +332,7 @@ main (int argc, char *argv[])
 
   // Create BandwidthPartRepresentations referred to the active BWP only of each CC
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Just to match the RBG size for the bandwidth
+  phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Just to force the RBG size for the given CC bandwidth
   ComponentCarrierBandwidthPartElement recBwp0 = bwp0;
   phyMacCommonBwp0->SetCentreFrequency(recBwp0.m_centralFrequency);
   phyMacCommonBwp0->SetBandwidth (recBwp0.m_bandwidth);
@@ -346,7 +344,7 @@ main (int argc, char *argv[])
   ++ccId;
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetNumRbPerRbg (4); //<! Just to match the RBG size for the bandwidth
+  phyMacCommonBwp1->SetNumRbPerRbg (4); //<! Just to force the RBG size for the given CC bandwidth
   ComponentCarrierBandwidthPartElement recBwp1 = bwp1;
   phyMacCommonBwp1->SetCentreFrequency(recBwp1.m_centralFrequency);
   phyMacCommonBwp1->SetBandwidth (recBwp1.m_bandwidth);
@@ -358,7 +356,7 @@ main (int argc, char *argv[])
   ++ccId;
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp2->SetNumRbPerRbg (4); //<! Just to match the RBG size for the bandwidth
+  phyMacCommonBwp2->SetNumRbPerRbg (4); //<! Just to force the RBG size for the given CC bandwidth
   ComponentCarrierBandwidthPartElement recBwp2 = bwp2;
   phyMacCommonBwp2->SetCentreFrequency(recBwp2.m_centralFrequency);
   phyMacCommonBwp2->SetBandwidth (recBwp2.m_bandwidth);
@@ -385,6 +383,10 @@ main (int argc, char *argv[])
   std::cout << "CC1" << std::endl;
   std::cout << "  Central frequency (MHz): " << recBwp1.m_centralFrequency/1000/1000 << std::endl;
   std::cout << "  Bandwidth (MHz): " << recBwp1.m_bandwidth/1000/1000 << std::endl;
+  std::cout << "CC2" << std::endl;
+  std::cout << "  Central frequency (MHz): " << recBwp2.m_centralFrequency/1000/1000 << std::endl;
+  std::cout << "  Bandwidth (MHz): " << recBwp2.m_bandwidth/1000/1000 << std::endl;
+
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
@@ -452,6 +454,8 @@ main (int argc, char *argv[])
   }
   // I want to set the ltePattern on bwp 0 of gnb 0
   mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 0)->SetTddPattern (ltePattern);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 1)->SetTddPattern (ltePattern);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 2)->SetTddPattern (ltePattern);
 
 
   double x = pow(10, totalTxPower/10);
@@ -466,7 +470,7 @@ main (int argc, char *argv[])
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
           Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
-          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(1,0); //m_bands.at(0).m_cc.at(i).m_bandwidth;
+          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(i);
           bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
 //          std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
         }

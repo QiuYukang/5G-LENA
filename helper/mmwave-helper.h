@@ -106,13 +106,14 @@ struct ComponentCarrierInfo
   double m_higherFrequency;    //<! BWP higher frequency
   uint32_t m_bandwidth;        //<! BWP bandwidth
   ComponentCarrierState m_primaryCc {PRIMARY};  //<! Primary or secondary CC
-  std::vector<ComponentCarrierBandwidthPartElement> m_bwp;  //<! Space for BWP. FIXME Consider using maps for access speed
+  std::map<uint8_t, ComponentCarrierBandwidthPartElement> m_bwp;  //<! Space for BWP
 
   /**
    * \brief Adds a BWP to the carrier
    * \param bwp Description of the BWP
    */
   void AddBwp (const ComponentCarrierBandwidthPartElement & bwp);
+  void AddBwp (uint8_t bwdId, const ComponentCarrierBandwidthPartElement & bwp);
 };
 
 
@@ -146,9 +147,10 @@ struct OperationBandInfo
   uint32_t m_bandwidth;       //<! Operation band bandwidth
   uint8_t m_numCarriers {0};  //<! Number of configured carriers in the operation band
   ContiguousMode m_contiguousCc {CONTIGUOUS};  //<! CA intra-band contiguousness
-  std::vector<ComponentCarrierInfo> m_cc;  //<! Space for CC configuration information
+  std::map<uint8_t, ComponentCarrierInfo> m_cc;
 
   void AddCc (const ComponentCarrierInfo &cc);
+  void AddCc (uint8_t ccId, const ComponentCarrierInfo &cc);
 };
 
 
@@ -189,15 +191,6 @@ public:
   OperationBandInfo CreateOperationBand (double centralFrequency, uint32_t operationBandwidth);
 
   /**
-   * \brief This function creates an operation band with the provided central frequency, bandwidth and intra-band CC configuration
-   * \param centralFrequency The central frequency of the operation band
-   * \param operationBandwidth The operation band bandwidth
-   * \param cc Vector containing the intra-band CC configurations
-   * \note Calling this function orders the CC per increasing central frequency value
-   */
-  OperationBandInfo CreateOperationBand (double centralFrequency, uint32_t operationBandwidth, std::vector<ComponentCarrierInfo> &ccs);
-
-  /**
    * \brief Adds the operation band to the class
    * \param band Description of the operation band
    */
@@ -214,7 +207,7 @@ public:
    * \note Simulation will stop if a bad configuration is found
    * \param cc Component Carrier definition
    */
-  void CheckBwpsInCc (ComponentCarrierInfo &cc);
+  void CheckBwpsInCc (const ComponentCarrierInfo &cc);
 
   /**
    * \brief Validates the CA/BWP configuration
@@ -256,6 +249,13 @@ public:
    * \return Aggregated bandwidth in Hz
    */
   uint32_t GetAggregatedBandwidth ();
+
+  /**
+   * \brief Iterates along the operation bands and returns the active BWP of the given CC id
+   * \param ccId CC id (position in the operation band's internal vector of CCs)
+   * \return Aggregated bandwidth in Hz
+   */
+  uint32_t GetCarrierBandwidth (uint8_t ccId);
 
   /**
    * \brief Returns the active BWP of the given CC in the given operation band
