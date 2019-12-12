@@ -275,6 +275,16 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
           (*generateUl)[indexGen].push_back (static_cast<uint32_t> (i));
         }
     }
+
+  for (auto & list : (*generateUl))
+    {
+      std::sort (list.second.begin (), list.second.end ());
+    }
+
+  for (auto & list : (*generateDl))
+    {
+      std::sort (list.second.begin (), list.second.end ());
+    }
 }
 
 void
