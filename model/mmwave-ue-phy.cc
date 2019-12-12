@@ -276,18 +276,29 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         {
           NS_ASSERT_MSG (m_varTtiNum == 0, "UE" << m_rnti << " got DCI on slot != 0");
           Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast<MmWaveTdmaDciMessage> (msg);
+          /*
+           *  TDD allows sending DCIs for different future subframes/slots.
+           *  In that case use the Sfn number coming in the DCI
+           */
+          if (m_tddPattern.size () != 0)
+            {
+              ulSfnSf = dciMsg->GetSfnSf ();
+            }
           auto dciInfoElem = dciMsg->GetDciInfoElement ();
           SfnSf dciSfn = dciMsg->GetSfnSf ();
 
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
 
-          if (dciSfn.m_frameNum != m_frameNum || dciSfn.m_subframeNum != m_subframeNum)
+          if (m_tddPattern.size () == 0)  //<! Only enters if FDD is used
             {
-              NS_FATAL_ERROR ("DCI intended for different subframe (dci= "
-                              << dciSfn.m_frameNum << " "
-                              << dciSfn.m_subframeNum << ", actual= "
-                              << m_frameNum << " " << m_subframeNum);
+              if (dciSfn.m_frameNum != m_frameNum || dciSfn.m_subframeNum != m_subframeNum)
+                {
+                  NS_FATAL_ERROR ("DCI intended for different subframe (dci= "
+                                  << dciSfn.m_frameNum << " "
+                                  << dciSfn.m_subframeNum << ", actual= "
+                                  << m_frameNum << " " << m_subframeNum);
+                }
             }
 
           if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
