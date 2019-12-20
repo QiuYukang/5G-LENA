@@ -259,16 +259,41 @@ MmWaveUePhy::GetSpectrumPhy () const
 }
 
 void
+MmWaveUePhy::InsertAllocation (const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_FUNCTION (this);
+
+  VarTtiAllocInfo varTtiInfo (dci);
+  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
+  std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
+}
+
+void
+MmWaveUePhy::InsertFutureAllocation (const SfnSf &sfnSf,
+                                     const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_FUNCTION (this);
+
+  VarTtiAllocInfo varTtiInfo (dci);
+  if (SlotAllocInfoExists (sfnSf))
+    {
+      auto & ulSlot = PeekSlotAllocInfo (sfnSf);
+      ulSlot.m_varTtiAllocInfo.push_back (varTtiInfo);
+      std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
+    }
+  else
+    {
+      SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
+      slotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
+      PushBackSlotAllocInfo (slotAllocInfo);
+    }
+}
+
+void
 MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>> &msgList)
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("Received " << msgList.size () << " messages");
-  bool dlUpdated = false;
-  bool ulUpdated = false;
-
-  SfnSf ulSfnSf = m_currSlotAllocInfo.m_sfnSf.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
-                                                                   m_phyMacConfig->GetSlotsPerSubframe (),
-                                                                   m_phyMacConfig->GetSubframesPerFrame ());
 
   for (const auto &msg : msgList)
     {
@@ -276,30 +301,12 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
         {
           NS_ASSERT_MSG (m_varTtiNum == 0, "UE" << m_rnti << " got DCI on slot != 0");
           Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast<MmWaveTdmaDciMessage> (msg);
-          /*
-           *  TDD allows sending DCIs for different future subframes/slots.
-           *  In that case use the Sfn number coming in the DCI
-           */
-          if (m_tddPattern.size () != 0)
-            {
-              ulSfnSf = dciMsg->GetSfnSf ();
-            }
+
           auto dciInfoElem = dciMsg->GetDciInfoElement ();
           SfnSf dciSfn = dciMsg->GetSfnSf ();
 
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
-
-          if (m_tddPattern.size () == 0)  //<! Only enters if FDD is used
-            {
-              if (dciSfn.m_frameNum != m_frameNum || dciSfn.m_subframeNum != m_subframeNum)
-                {
-                  NS_FATAL_ERROR ("DCI intended for different subframe (dci= "
-                                  << dciSfn.m_frameNum << " "
-                                  << dciSfn.m_subframeNum << ", actual= "
-                                  << m_frameNum << " " << m_subframeNum);
-                }
-            }
 
           if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
             {
@@ -315,14 +322,13 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                             " tbs " << dciInfoElem->m_tbSize <<
                             " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
-              VarTtiAllocInfo varTtiInfo (dciInfoElem);
-              m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
-              dlUpdated = true;
+              /* BIG ASSUMPTION: We assume that K0 is always 0 */
+              InsertAllocation (dciInfoElem);
             }
           else if (dciInfoElem->m_format == DciInfoElementTdma::UL
                    && dciInfoElem->m_type == DciInfoElementTdma::DATA)   // set downlink slot schedule for t+Tul_sched slot
             {
-
+              SfnSf ulSfnSf = dciMsg->GetSfnSf ();
               NS_LOG_DEBUG ("UE" << m_rnti <<
                             " UL-DCI received for slot " << ulSfnSf <<
                             " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
@@ -330,27 +336,13 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                             " tbs " << dciInfoElem->m_tbSize <<
                             " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
-              VarTtiAllocInfo varTtiInfo (dciInfoElem);
-
-              if (m_phyMacConfig->GetUlSchedDelay () == 0)
+              if (ulSfnSf == SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0))
                 {
-                  m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
-                  ulUpdated = true;
+                  InsertAllocation (dciInfoElem);
                 }
               else
                 {
-                  if (SlotAllocInfoExists (ulSfnSf))
-                    {
-                      auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
-                      ulSlot.m_varTtiAllocInfo.push_back (varTtiInfo);
-                    }
-                  else
-                    {
-                      SlotAllocInfo slotAllocInfo = SlotAllocInfo (ulSfnSf);
-                      slotAllocInfo.m_varTtiAllocInfo.push_back (varTtiInfo);
-                      PushBackSlotAllocInfo (slotAllocInfo);
-                    }
-                  ulUpdated = true;
+                  InsertFutureAllocation (ulSfnSf, dciInfoElem);
                 }
             }
 
@@ -394,25 +386,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           m_phySapUser->ReceiveControlMessage (msg);
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
-        }
-    }
-
-  if (dlUpdated)
-    {
-      std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
-    }
-
-
-  if (ulUpdated)
-    {
-      if (m_phyMacConfig->GetUlSchedDelay () == 0)
-        {
-          std::sort (m_currSlotAllocInfo.m_varTtiAllocInfo.begin (), m_currSlotAllocInfo.m_varTtiAllocInfo.end ());
-        }
-      else if (m_phyMacConfig->GetUlSchedDelay () > 0 && SlotAllocInfoExists (ulSfnSf))
-        {
-          auto & ulSlot = PeekSlotAllocInfo (ulSfnSf);
-          std::sort (ulSlot.m_varTtiAllocInfo.begin (), ulSlot.m_varTtiAllocInfo.end ());
         }
     }
 }

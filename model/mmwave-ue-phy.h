@@ -341,6 +341,18 @@ private:
    */
   void PushCtrlAllocations (const SfnSf currentSfnSf);
 
+  /**
+   * \brief Inserts the received DCI for the current slot allocation
+   * \param dci The DCI description of the current slot
+   */
+  void InsertAllocation (const std::shared_ptr<DciInfoElementTdma> &dci);
+
+  /**
+   * \brief Inserts the received DCI for a future slot allocation
+   * \param dci The DCI description of the future slot
+   */
+  void InsertFutureAllocation (const SfnSf &sfnSf, const std::shared_ptr<DciInfoElementTdma> &dci);
+
 private:
   MmWaveUePhySapUser* m_phySapUser;             //!< SAP pointer
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
