@@ -53,6 +53,7 @@
 #include <ns3/bwp-manager-ue.h>
 #include <ns3/nr-ch-access-manager.h>
 
+
 namespace ns3 {
 
 /* ... */
@@ -1659,27 +1660,6 @@ ComponentCarrierBandwidthPartCreator::GetCarrierBandwidth (uint8_t bandId, uint8
 void
 ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t ccId, uint8_t activeBwpId)
 {
-//  for (auto & band : m_bands)
-//    {
-//      if (band.m_bandId == bandId)
-//        {
-//          for (auto & cc : band.m_cc)
-//            {
-//              if (cc.m_ccId == ccId)
-//                {
-//                  for (const auto & bwp : cc.m_bwp)
-//                    {
-//                      if (bwp.m_bwpId == activeBwpId)
-//                        {
-//                          cc.m_activeBwp = activeBwpId;
-//                          return;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//    }
   for (auto & band : m_bands)
     {
       if (band.m_bandId == bandId)
@@ -1700,6 +1680,174 @@ ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t c
 }
 
 
+void
+ComponentCarrierBandwidthPartCreator::PlotNrCaBwpConfiguration (std::string filename)
+{
+
+  ValidateCaBwpConfiguration();
+
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+// FIXME: I think I can do this with calling the gnuclass in ns3 by calling
+//        plot.AppendExtra (whatever gnu line sting) (see gnuplot documantation
+//        in ns3
+
+  // Set the range for the x axis.
+  double minFreq = 100e9;
+  double maxFreq = 0;
+  for (const auto & band : m_bands)
+    {
+      if (band.m_lowerFrequency < minFreq)
+        {
+          minFreq = band.m_lowerFrequency;
+        }
+      if (band.m_higherFrequency > maxFreq)
+        {
+          maxFreq = band.m_higherFrequency;
+        }
+    }
+
+  outFile << "set term eps" << std::endl;
+  outFile << "set output \"" << filename << ".eps\"" << std::endl;
+  outFile << "set grid" << std::endl;
+
+  outFile << "set xrange [";
+  outFile << minFreq * 1e-6 - 1;
+  outFile << ":";
+  outFile << maxFreq * 1e-6 + 1;
+  outFile << "]";
+  outFile << std::endl;
+
+  outFile << "set yrange [1:100]" << std::endl;
+  outFile << "set xlabel \"f [MHz]\"" << std::endl;
+
+  uint16_t index = 1;   //<! Index must be larger than zero for gnuplot
+  for (const auto & band : m_bands)
+    {
+      std::string label = "n";
+      uint16_t bandId = static_cast<uint16_t> (band.m_bandId);
+      label += std::to_string (bandId);
+      PlotFrequencyBand (outFile, index, band.m_lowerFrequency * 1e-6, band.m_higherFrequency * 1e-6,
+                     70, 90, label);
+      index++;
+      for (const auto & cc : band.m_cc)
+        {
+          uint16_t ccId = static_cast<uint16_t> (cc.second.m_ccId);
+          label = "CC" + std::to_string (ccId);
+          PlotFrequencyBand (outFile, index, cc.second.m_lowerFrequency * 1e-6, cc.second.m_higherFrequency * 1e-6,
+                               40, 60, label);
+          index++;
+          for (const auto & bwp : cc.second.m_bwp)
+            {
+              uint16_t bwpId = static_cast<uint16_t> (bwp.second.m_bwpId);
+              label = "BWP" + std::to_string (bwpId);
+              PlotFrequencyBand (outFile, index, bwp.second.m_lowerFrequency * 1e-6, bwp.second.m_higherFrequency * 1e-6,
+                                             10, 30, label);
+              index++;
+            }
+        }
+    }
+
+  outFile << "unset key" << std::endl;
+  outFile << "plot -x" << std::endl;
+
+}
+
+void
+ComponentCarrierBandwidthPartCreator::PlotLteCaConfiguration (std::string filename)
+{
+
+  ValidateCaBwpConfiguration();
+
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+// FIXME: I think I can do this with calling the gnuclass in ns3 and use
+//        plot.AppendExtra (whatever sting);
+
+  double minFreq = 100e9;
+  double maxFreq = 0;
+  for (const auto & band : m_bands)
+    {
+      if (band.m_lowerFrequency < minFreq)
+        {
+          minFreq = band.m_lowerFrequency;
+        }
+      if (band.m_higherFrequency > maxFreq)
+        {
+          maxFreq = band.m_higherFrequency;
+        }
+    }
+
+  outFile << "set term eps" << std::endl;
+  outFile << "set output \"" << filename << ".eps\"" << std::endl;
+  outFile << "set grid" << std::endl;
+
+  outFile << "set xrange [";
+  outFile << minFreq * 1e-6 - 1;
+  outFile << ":";
+  outFile << maxFreq * 1e-6 + 1;
+  outFile << "]";
+  outFile << std::endl;
+
+  outFile << "set yrange [1:100]" << std::endl;
+  outFile << "set xlabel \"f [MHz]\"" << std::endl;
+
+  uint16_t index = 1;   //<! Index must be larger than zero for gnuplot
+  for (const auto & band : m_bands)
+    {
+      std::string label = "n";
+      uint16_t bandId = static_cast<uint16_t> (band.m_bandId);
+      label += std::to_string (bandId);
+      PlotFrequencyBand (outFile, index, band.m_lowerFrequency * 1e-6, band.m_higherFrequency * 1e-6,
+                     70, 90, label);
+      index++;
+      for (const auto & cc : band.m_cc)
+        {
+          uint16_t ccId = static_cast<uint16_t> (cc.second.m_ccId);
+          label = "CC" + std::to_string (ccId);
+          PlotFrequencyBand (outFile, index, cc.second.m_lowerFrequency * 1e-6, cc.second.m_higherFrequency * 1e-6,
+                               40, 60, label);
+          index++;
+        }
+    }
+
+  outFile << "unset key" << std::endl;
+  outFile << "plot -x" << std::endl;
+
+}
+
+
+void
+ComponentCarrierBandwidthPartCreator::PlotFrequencyBand (std::ofstream &outFile,
+                                                     uint16_t index,
+                                                     double xmin,
+                                                     double xmax,
+                                                     double ymin,
+                                                     double ymax,
+                                                     std::string label)
+{
+
+  outFile << "set object " << index << " rect from " << xmin  << "," << ymin <<
+      " to "   << xmax  << "," << ymax << " front fs empty " << std::endl;
+
+  outFile << "LABEL" << index << " = \"" << label << "\"" << std::endl;
+
+  outFile << "set label " << index << " at " << xmin << "," <<
+      (ymin + ymax) / 2 << " LABEL" << index << std::endl;
+
+}
 
 } // namespace ns3
 

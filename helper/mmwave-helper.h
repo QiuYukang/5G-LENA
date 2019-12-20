@@ -62,6 +62,7 @@
 #include <ns3/cc-helper.h>
 #include <algorithm>
 
+
 namespace ns3 {
 
 /* ... */
@@ -274,6 +275,19 @@ public:
   void ChangeActiveBwp (uint8_t bandId, uint8_t ccId, uint8_t activeBwpId);
 
 
+  /**
+   * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
+   * configuration
+   */
+  void PlotNrCaBwpConfiguration (std::string filename);
+
+
+  /**
+   * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
+   * configuration
+   */
+  void PlotLteCaConfiguration (std::string filename);
+
 private:
   uint32_t m_id {0};       //!< UE/flow/bearer id
   uint8_t m_maxBands {1};  //!< Limit the number of operation bands
@@ -282,6 +296,16 @@ private:
   uint8_t m_numCcs {0};    //!< Number of Component Carriers created
   std::vector<OperationBandInfo> m_bands;  //!< Vector to the operation band information elements
 
+  /**
+   * \brief Plots a 2D rectangle defined by the input points and places a label
+   */
+  void PlotFrequencyBand (std::ofstream &outFile,
+                      uint16_t index,
+                      double xmin,
+                      double xmax,
+                      double ymin,
+                      double ymax,
+                      std::string label);
 };
 
 
