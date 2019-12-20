@@ -54,12 +54,12 @@ main (int argc, char *argv[])
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
   uint16_t numerologyBwp2 = 2;
-  double frequencyBwp2 = 28e9;
+  double frequencyBwp2 = 28.2e9;
   double bandwidthBwp2 = 100e6;
   uint32_t udpPacketSizeUll = 100;
   uint32_t udpPacketSizeBe = 1252;
   uint32_t lambdaUll = 10000;
-  uint32_t lambdaBe = 1000;
+  uint32_t lambdaBe = 10000;
   bool singleBwp = false;
   std::string simTag = "default";
   std::string outputDir = "./";
@@ -283,6 +283,12 @@ main (int argc, char *argv[])
       mmWaveHelper->AddBandwidthPart(1, repr2);
     }
 
+  // Enable CA if there are more than one component carrier. Disabled by default
+  if (! singleBwp)
+    {
+      mmWaveHelper->SetAttribute ("UseCa", BooleanValue (true));
+    }
+
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
   mmWaveHelper->Initialize();
@@ -372,6 +378,9 @@ main (int argc, char *argv[])
   UdpServerHelper dlPacketSinkHelper (dlPort);
   serverApps.Add (dlPacketSinkHelper.Install (ueNodes));
 
+  // attach UEs to the closest eNB
+    mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+
   // configure here UDP traffic
   for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
     {
@@ -441,9 +450,6 @@ main (int argc, char *argv[])
   clientApps.Start(Seconds(udpAppStartTime));
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime));
-
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // enable the traces provided by the mmWave module
   //mmWaveHelper->EnableTraces();
