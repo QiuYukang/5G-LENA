@@ -52,6 +52,12 @@ $ git pull
 New user-visible features (old first)
 -------------------------
 
+- The control message timings (from PHY to MAC or from MAC to PHY) can be adjusted
+  in a flexible manner according to each release specifications.
+  WIP: Definition of new delay timings according to TS 38.213 (K0, K1, K2 and K3).
+  The UlSchedDelay is replaced by K2Delay.
+  The UE PHY DL HARQ feedback is scheduled based to: (K1Delay - L1L2CtrlLatency).
+
 Bugs fixed
 ----------
 

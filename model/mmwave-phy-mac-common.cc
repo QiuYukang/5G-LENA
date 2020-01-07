@@ -69,10 +69,25 @@ MmWavePhyMacCommon::GetTypeId (void)
                    MakeDoubleAccessor (&MmWavePhyMacCommon::SetBandwidth,
                                        &MmWavePhyMacCommon::GetBandwidth),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("UlSchedDelay",
-                   "Number of TTIs between UL scheduling decision and subframe to which it applies",
+    .AddAttribute ("K0Delay",
+                   "Delay between DL grant and corresponding DL data (PDSCH) reception",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_k0Delay),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("K1Delay",
+                   "Delay between DL data (PDSCH) reception and corresponding acknowledgement transmission on UL",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_k1Delay),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("K2Delay",
+                   "Delay between UL grant reception in DL and UL data (PUSCH) transmission",
                    UintegerValue (2),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_ulSchedDelay),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_k2Delay),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("K3Delay",
+                   "Delay between ACK/NAK reception in UL and corresponding retransmission of data (PDSCH) on DL",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_k3Delay),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("NumRbPerRbg",
                    "Number of resource blocks per resource block group",
@@ -102,13 +117,13 @@ MmWavePhyMacCommon::GetTypeId (void)
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("TbDecodeLatency",
                    "TB decode latency",
-                   UintegerValue (100.0),
+                   UintegerValue (100),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_tbDecodeLatencyUs),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("L1L2CtrlLatency",
                    "L1L2 CTRL decode latency in slot",
                    UintegerValue (2),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2CtrlLatency),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2DataLatency),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("L1L2DataLatency",
                    "L1L2 Data decode latency in slot",
@@ -154,7 +169,10 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
   m_l1L2DataLatency (2),
-  m_ulSchedDelay (1),
+  m_k0Delay (0),
+  m_k1Delay (4),
+  m_k2Delay (2),
+  m_k3Delay (4),
   m_tbDecodeLatencyUs (100.0),
   m_maxTbSizeBytes (0x7FFF),
   m_componentCarrierId (0)
@@ -236,10 +254,28 @@ MmWavePhyMacCommon::GetNumReferenceSymbols (void)
   return m_numRefSymbols;
 }
 
-uint8_t
-MmWavePhyMacCommon::GetUlSchedDelay (void) const
+uint32_t
+MmWavePhyMacCommon::GetK0Delay (void) const
 {
-  return m_ulSchedDelay;
+  return m_k0Delay;
+}
+
+uint32_t
+MmWavePhyMacCommon::GetK1Delay (void) const
+{
+  return m_k1Delay;
+}
+
+uint32_t
+MmWavePhyMacCommon::GetK2Delay (void) const
+{
+  return m_k2Delay;
+}
+
+uint32_t
+MmWavePhyMacCommon::GetK3Delay (void) const
+{
+  return m_k3Delay;
 }
 
 uint32_t
@@ -398,9 +434,27 @@ MmWavePhyMacCommon::SetNumReferenceSymbols (uint32_t refSym)
 }
 
 void
-MmWavePhyMacCommon::SetUlSchedDelay (uint32_t tti)
+MmWavePhyMacCommon::SetK0Delay (uint32_t delay)
 {
-  m_ulSchedDelay = tti;
+  m_k0Delay = delay;
+}
+
+void
+MmWavePhyMacCommon::SetK1Delay (uint32_t delay)
+{
+  m_k1Delay = delay;
+}
+
+void
+MmWavePhyMacCommon::SetK2Delay (uint32_t delay)
+{
+  m_k2Delay = delay;
+}
+
+void
+MmWavePhyMacCommon::SetK3Delay (uint32_t delay)
+{
+  m_k3Delay = delay;
 }
 
 void

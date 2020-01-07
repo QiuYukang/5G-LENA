@@ -136,6 +136,7 @@ main (int argc, char *argv[])
 //      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
 //      LogComponentEnable ("BwpManagerGnb", LOG_LEVEL_INFO);
 //      LogComponentEnable ("BwpManagerAlgorithm", LOG_LEVEL_INFO);
+      LogComponentEnable ("MmWaveEnbPhy", LOG_LEVEL_INFO);
     }
 
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",

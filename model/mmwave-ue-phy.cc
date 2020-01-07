@@ -346,7 +346,11 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                 }
             }
 
-          m_phySapUser->ReceiveControlMessage (msg);
+          NS_LOG_INFO ("Received DCI_TDMA for RNTI: " << m_rnti << " in slot " <<
+                       SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                       ", scheduling MAC ReceiveControlMessage after the decode latency");
+          Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                               &MmWaveUePhySapUser::ReceiveControlMessage, m_phySapUser, msg);
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
         {
@@ -374,10 +378,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
 
-          // As the TbDecodeLatency includes only the PHY delay, and considering
-          // that the RAR message is then forwarded immediately by the MAC to the
-          // RRC, we have to put 2 here to respect the TDD timings.
-          Simulator::Schedule (2 * MicroSeconds(m_phyMacConfig->GetTbDecodeLatency()),
+          Simulator::Schedule (MicroSeconds(m_phyMacConfig->GetTbDecodeLatency()),
                                &MmWaveUePhy::DoReceiveRar, this, rarMsg);
         }
       else
@@ -888,7 +889,8 @@ MmWaveUePhy::ReceiveLteDlHarqFeedback (const DlHarqInfo &m)
   // generate feedback to eNB and send it through ideal PUCCH
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
-  Simulator::Schedule (MicroSeconds (m_phyMacConfig->GetTbDecodeLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
+  //we apply the K1Delay, but we have to take into account the GetL1L2CtrlLatency due to the DoSendControlMessage
+  Simulator::Schedule (MicroSeconds (m_phyMacConfig->GetK1Delay () - m_phyMacConfig->GetL1L2CtrlLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
 }
 
 void

@@ -173,9 +173,9 @@ struct SfnSf
   }
 
   SfnSf
-  CalculateUplinkSlot (uint32_t ulSchedDelay, uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
+  CalculateUplinkSlot (uint32_t k2Delay, uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
   {
-    return IncreaseNoOfSlotsWithLatency (ulSchedDelay, slotsPerSubframe, subframesPerFrame);
+    return IncreaseNoOfSlotsWithLatency (k2Delay, slotsPerSubframe, subframesPerFrame);
   }
 
   SfnSf
@@ -701,7 +701,31 @@ public:
 
   uint32_t GetNumReferenceSymbols (void);
 
-  uint8_t GetUlSchedDelay (void) const;
+  /**
+   * \brief: Get the delay set between DL grant and
+   *  corresponding DL data (PDSCH) reception
+   */
+  uint32_t GetK0Delay (void) const;
+
+  /**
+   * \brief: Get the delay set between DL data (PDSCH)
+   *  reception and corresponding acknowledgement
+   *  transmission on UL
+   */
+  uint32_t GetK1Delay (void) const;
+
+  /**
+   * \brief: Get the delay set between UL grant reception
+   *  in DL and UL data (PUSCH) transmission
+   */
+  uint32_t GetK2Delay (void) const;
+
+  /**
+   * \brief: Get the delay set between ACK/NAK reception
+   *  in UL and corresponding retransmission of data
+   *  (PDSCH) on DL
+   */
+  uint32_t GetK3Delay (void) const;
 
   uint32_t GetNumScsPerRb (void) const;
 
@@ -762,7 +786,31 @@ public:
 
   void SetNumReferenceSymbols (uint32_t refSym);
 
-  void SetUlSchedDelay (uint32_t tti);
+  /**
+   * \brief: Set the delay between DL grant and
+   *  corresponding DL data (PDSCH) reception
+   */
+  void SetK0Delay (uint32_t delay);
+
+  /**
+   * \brief: Set the delay between DL data (PDSCH)
+   *  reception and corresponding acknowledgement
+   *  transmission on UL
+   */
+  void SetK1Delay (uint32_t delay);
+
+  /**
+   * \brief: Set the delay between UL grant reception
+   *  in DL and UL data (PUSCH) transmission
+   */
+  void SetK2Delay (uint32_t delay);
+
+  /**
+   * \brief: Set the delay between ACK/NAK reception
+   *  in UL and corresponding retransmission of data
+   *  (PDSCH) on DL
+   */
+  void SetK3Delay (uint32_t delay);
 
   void SetNumScsPrRb (uint32_t numScs);
 
@@ -826,7 +874,10 @@ private:
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
   uint32_t m_l1L2DataLatency;   // In no. of slots - TODO: check if this is correct description
-  uint32_t m_ulSchedDelay;   // delay between transmission of UL-DCI and corresponding subframe in TTIs
+  uint32_t m_k0Delay;           //!< delay between DL grant and corresponding DL data (PDSCH) reception
+  uint32_t m_k1Delay;           //!< delay between DL data (PDSCH) reception and corresponding acknowledgement transmission on UL
+  uint32_t m_k2Delay;           //!< delay between UL grant reception in DL and UL data (PUSCH) transmission
+  uint32_t m_k3Delay;           //!< delay between ACK/NAK reception in UL and corresponding retransmission of data (PDSCH) on DL
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
   uint32_t m_maxTbSizeBytes;

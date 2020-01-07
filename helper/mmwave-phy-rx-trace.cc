@@ -154,6 +154,10 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
     {
       m_rxedEnbPhyCtrlMsgsFile << "DL_CQI";
     }
+  else if (msg->GetMessageType () == MmWaveControlMessage::SR)
+    {
+      m_rxedEnbPhyCtrlMsgsFile << "SR";
+    }
   else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
     {
       m_rxedEnbPhyCtrlMsgsFile << "BSR";

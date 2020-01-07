@@ -440,10 +440,10 @@ MmWaveUeMac::SendReportBufferStatus (void)
   // create the feedback to eNB
   Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
   msg->SetBsr (bsr);
-  m_phySapProvider->SendControlMessage (msg);
 
   m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                           bsr.m_rnti, m_phyMacConfig->GetCcId (), msg);
+  m_phySapProvider->SendControlMessage (msg);
 }
 
 void
@@ -520,10 +520,10 @@ MmWaveUeMac::SendSR () const
   Ptr<MmWaveSRMessage> msg = Create<MmWaveSRMessage> ();
   msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
-  m_phySapProvider->SendControlMessage (msg);
 
   m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                           m_rnti, m_phyMacConfig->GetCcId (), msg);
+  m_phySapProvider->SendControlMessage (msg);
 }
 
 void
@@ -585,7 +585,7 @@ std::map<uint32_t, struct MacPduInfo>::iterator
 MmWaveUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
                              unsigned activeLcs)
 {
-  SfnSf ulSfnSf = (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0)).CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
+  SfnSf ulSfnSf = (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0)).CalculateUplinkSlot (m_phyMacConfig->GetK2Delay (),
                                                                                          m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                          m_phyMacConfig->GetSubframesPerFrame ());
   NS_LOG_DEBUG ("Adding PDU for slot " << ulSfnSf);
@@ -620,7 +620,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
             && dciInfoElem->m_type == DciInfoElementTdma::DATA)
           {
             SfnSf dataSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, dciInfoElem->m_symStart);
-            dataSfn = dataSfn.CalculateUplinkSlot (m_phyMacConfig->GetUlSchedDelay (),
+            dataSfn = dataSfn.CalculateUplinkSlot (m_phyMacConfig->GetK2Delay (),
                                                    m_phyMacConfig->GetSlotsPerSubframe (),
                                                    m_phyMacConfig->GetSubframesPerFrame ());
             NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
