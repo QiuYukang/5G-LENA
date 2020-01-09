@@ -137,6 +137,9 @@ main (int argc, char *argv[])
 //      LogComponentEnable ("BwpManagerGnb", LOG_LEVEL_INFO);
 //      LogComponentEnable ("BwpManagerAlgorithm", LOG_LEVEL_INFO);
       LogComponentEnable ("MmWaveEnbPhy", LOG_LEVEL_INFO);
+      LogComponentEnable ("MmWaveUePhy", LOG_LEVEL_INFO);
+//      LogComponentEnable ("MmWaveEnbMac", LOG_LEVEL_INFO);
+//      LogComponentEnable ("MmWaveUeMac", LOG_LEVEL_INFO);
     }
 
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
@@ -674,7 +677,7 @@ main (int argc, char *argv[])
   clientApps.Stop(Seconds(simTime));
 
   // enable the traces provided by the mmWave module
-  //mmWaveHelper->EnableTraces();
+  mmWaveHelper->EnableTraces();
 
 
   FlowMonitorHelper flowmonHelper;

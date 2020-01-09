@@ -114,6 +114,10 @@ MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
     {
       m_rxedEnbMacCtrlMsgsFile << "DL_HARQ";
     }
+  else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
+    {
+      m_rxedEnbMacCtrlMsgsFile << "RACH_PREAMBLE";
+    }
   else
     {
       m_rxedEnbMacCtrlMsgsFile << "Other";
@@ -225,6 +229,10 @@ MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
   else if (msg->GetMessageType () == MmWaveControlMessage::SR)
     {
       m_txedUeMacCtrlMsgsFile << "SR";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
+    {
+      m_txedUeMacCtrlMsgsFile << "RACH_PREAMBLE";
     }
   else
     {

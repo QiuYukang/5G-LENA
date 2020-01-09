@@ -894,6 +894,12 @@ MmWaveUeMac::SendRaPreamble (bool contention)
   m_raPreambleId = g_raPreambleId++;
   /*raRnti should be subframeNo -1 */
   m_raRnti = 1;
+
+  Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
+  rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
+  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, m_phyMacConfig->GetCcId(), rachMsg);
+
+
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);
 }
 

@@ -396,6 +396,9 @@ MmWaveEnbMac::GetConfigurationParameters (void) const
 void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
+  Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
+  m_macRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), raId, m_phyMacConfig->GetCcId(), rachMsg);
+
   ++m_receivedRachPreambleCount[raId];
 }
 
@@ -470,7 +473,7 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
           uint16_t rnti = m_cmacSapUser->AllocateTemporaryCellRnti ();
 
           NS_LOG_INFO ("Informing MAC scheduler of the RACH preamble for " <<
-                       it->first << " in slot " << sfnSf);
+                       static_cast<uint16_t> (it->first) << " in slot " << sfnSf);
           RachListElement_s rachLe;
           rachLe.m_rnti = rnti;
           rachLe.m_estimatedSize = 144; // to be confirmed
