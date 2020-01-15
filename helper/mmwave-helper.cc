@@ -1672,6 +1672,7 @@ ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t c
 	      if (itBwp != itCc->second.m_bwp.end ())
 		{
 		  itCc->second.m_activeBwp = activeBwpId;
+		  return;
 		}
 	    }
 	}
