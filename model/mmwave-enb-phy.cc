@@ -1307,9 +1307,16 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
           NS_ASSERT (m_cellId > 0);
 
           Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
-          m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
+//          m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   0, m_phyMacConfig->GetCcId (), msg);
+          NS_LOG_INFO ("Received RACH Preamble in slot " <<
+                                 SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                                 ", scheduling MAC ReceiveControlMessage after the decode latency");
+          Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                               &MmWaveEnbPhySapUser::ReceiveRachPreamble, m_phySapUser,
+                               rachPreamble->GetRapId ());
+
         }
       else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
         {
