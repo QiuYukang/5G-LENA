@@ -1682,7 +1682,7 @@ ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t c
 
 
 void
-ComponentCarrierBandwidthPartCreator::PlotNrCaBwpConfiguration (std::string filename)
+ComponentCarrierBandwidthPartCreator::PlotNrCaBwpConfiguration (const std::string &filename)
 {
 
   ValidateCaBwpConfiguration();
@@ -1761,7 +1761,7 @@ ComponentCarrierBandwidthPartCreator::PlotNrCaBwpConfiguration (std::string file
 }
 
 void
-ComponentCarrierBandwidthPartCreator::PlotLteCaConfiguration (std::string filename)
+ComponentCarrierBandwidthPartCreator::PlotLteCaConfiguration (const std::string &filename)
 {
 
   ValidateCaBwpConfiguration();
@@ -1837,7 +1837,7 @@ ComponentCarrierBandwidthPartCreator::PlotFrequencyBand (std::ofstream &outFile,
                                                      double xmax,
                                                      double ymin,
                                                      double ymax,
-                                                     std::string label)
+                                                     const std::string &label)
 {
 
   outFile << "set object " << index << " rect from " << xmin  << "," << ymin <<

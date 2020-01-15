@@ -279,14 +279,14 @@ public:
    * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
    * configuration
    */
-  void PlotNrCaBwpConfiguration (std::string filename);
+  void PlotNrCaBwpConfiguration (const std::string &filename);
 
 
   /**
    * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
    * configuration
    */
-  void PlotLteCaConfiguration (std::string filename);
+  void PlotLteCaConfiguration (const std::string &filename);
 
 private:
   uint32_t m_id {0};       //!< UE/flow/bearer id
@@ -305,7 +305,7 @@ private:
                       double xmax,
                       double ymin,
                       double ymax,
-                      std::string label);
+                      const std::string &label);
 };
 
 
