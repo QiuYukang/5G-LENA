@@ -307,23 +307,6 @@ struct TbInfoElement
   uint8_t m_harqProcess;
 };
 
-struct DlDciInfoElementTdma
-{
-  DlDciInfoElementTdma () :
-    m_symStart (0), m_numSym (0), m_mcs (0), m_tbSize (0), m_ndi (0), m_rv (
-      0), m_harqProcess (0)
-  {
-  }
-
-  uint8_t m_symStart {0};   // starting symbol index for flexible TTI scheme
-  uint8_t m_numSym   {0};     // number of symbols for flexible TTI scheme
-  uint8_t m_mcs      {2};
-  uint32_t m_tbSize  {0};
-  uint8_t m_ndi      {0};
-  uint8_t m_rv       {0};
-  uint8_t m_harqProcess {14};
-};
-
 /**
  * \brief Scheduling information. Despite the name, it is not TDMA.
  */
@@ -376,9 +359,10 @@ struct DciInfoElementTdma
    */
   DciInfoElementTdma (uint16_t rnti, DciFormat format, uint8_t symStart,
                       uint8_t numSym, uint8_t mcs, uint32_t tbs, uint8_t ndi,
-                      uint8_t rv, VarTtiType type)
+                      uint8_t rv, VarTtiType type, uint8_t bwpIndex)
     : m_rnti (rnti), m_format (format), m_symStart (symStart),
-    m_numSym (numSym), m_mcs (mcs), m_tbSize (tbs), m_ndi (ndi), m_rv (rv), m_type (type)
+    m_numSym (numSym), m_mcs (mcs), m_tbSize (tbs), m_ndi (ndi), m_rv (rv), m_type (type),
+    m_bwpIndex (bwpIndex)
   {
   }
 
@@ -402,6 +386,7 @@ struct DciInfoElementTdma
       m_ndi (ndi),
       m_rv (rv),
       m_type (o.m_type),
+      m_bwpIndex (o.m_bwpIndex),
       m_harqProcess (o.m_harqProcess),
       m_rbgBitmask (o.m_rbgBitmask)
   {
@@ -416,6 +401,7 @@ struct DciInfoElementTdma
   const uint8_t m_ndi         {0};   // By default is retransmission
   const uint8_t m_rv          {0};   // not used for UL DCI
   const VarTtiType m_type     {CTRL_DATA};
+  const uint8_t m_bwpIndex    {0};  //!< BWP Index to identify to which BWP this DCI applies to.
   uint8_t m_harqProcess {0};
   std::vector<uint8_t> m_rbgBitmask  {};   //!< RBG mask: 0 if the RBG is not used, 1 otherwise
 };
@@ -622,6 +608,7 @@ struct HarqInfo
   uint16_t m_rnti          {55};   //!< RNTI
   uint8_t m_harqProcessId  {15};   //!< ProcessId
   uint8_t m_numRetx        {5};    //!< Num of Retx
+  uint8_t m_bwpIndex       {8};    //!< BWP identifier, uniquely identifies BWP within the UE
 
   /**
    * \return true if the HARQ should be eliminated, since the info has been
@@ -632,6 +619,9 @@ struct HarqInfo
 
 /**
  * \brief A struct that contains info for the DL HARQ
+ *
+ * http://www.eurecom.fr/~kaltenbe/fapi-2.0/structDlInfoListElement__s.html
+ * Note: This should really be called DlInfoListElement ...
  */
 struct DlHarqInfo : public HarqInfo
 {

@@ -783,6 +783,7 @@ MmWaveSpectrumPhy::EndRxData ()
                   harqDlInfo.m_rnti = rnti;
                   harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
                   harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                  harqDlInfo.m_bwpIndex = m_componentCarrierId;
                   if (GetTBInfo(*itTb).m_isCorrupted)
                     {
                       harqDlInfo.m_harqStatus = DlHarqInfo::NACK;

@@ -122,7 +122,8 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
           auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,
                                                            startingPoint->m_sym, symPerBeam,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
-                                                           0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA);
+                                                           0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA,
+                                                           dciInfoReTx->m_bwpIndex);
           dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
           dci->m_harqProcess = dciInfoReTx->m_harqProcess;
 
@@ -250,7 +251,8 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
                                                            startingPoint->m_sym - dciInfoReTx->m_numSym,
                                                            dciInfoReTx->m_numSym,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
-                                                           0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA);
+                                                           0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA,
+                                                           dciInfoReTx->m_bwpIndex);
           dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
           dci->m_harqProcess = harqId;
           harqProcess.m_dciElement = dci;
