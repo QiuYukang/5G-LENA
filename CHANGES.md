@@ -65,6 +65,9 @@ us a note on ns-developers mailing list.
 
 ### Changed behavior:
 
+* In the DCI message,  the gNb reports the K{0,2} delay instead of the
+sfn number.
+
 ---
 
 ## Changes from NR-v0.2 to NR-v0.3
