@@ -303,7 +303,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast<MmWaveTdmaDciMessage> (msg);
 
           auto dciInfoElem = dciMsg->GetDciInfoElement ();
-          SfnSf dciSfn = dciMsg->GetSfnSf ();
 
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                   m_rnti, m_phyMacConfig->GetCcId (), msg);
@@ -316,6 +315,11 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           if (dciInfoElem->m_format == DciInfoElementTdma::DL
               && dciInfoElem->m_type == DciInfoElementTdma::DATA)
             {
+              SfnSf dciSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
+              uint32_t k0Delay = dciMsg->GetKDelay ();
+              dciSfn.Add (k0Delay, m_phyMacConfig->GetSlotsPerSubframe (),
+                                    m_phyMacConfig->GetSubframesPerFrame ());
+
               NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
                             " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
                             " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
@@ -329,7 +333,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                    && dciInfoElem->m_type == DciInfoElementTdma::DATA)   // set downlink slot schedule for t+Tul_sched slot
             {
               SfnSf ulSfnSf = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
-              uint32_t k2Delay = dciMsg->GetKDelay();
+              uint32_t k2Delay = dciMsg->GetKDelay ();
               ulSfnSf.Add (k2Delay, m_phyMacConfig->GetSlotsPerSubframe (),
                                     m_phyMacConfig->GetSubframesPerFrame ());
 
