@@ -328,7 +328,11 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
           else if (dciInfoElem->m_format == DciInfoElementTdma::UL
                    && dciInfoElem->m_type == DciInfoElementTdma::DATA)   // set downlink slot schedule for t+Tul_sched slot
             {
-              SfnSf ulSfnSf = dciMsg->GetSfnSf ();
+              SfnSf ulSfnSf = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
+              uint32_t k2Delay = dciMsg->GetKDelay();
+              ulSfnSf.Add (k2Delay, m_phyMacConfig->GetSlotsPerSubframe (),
+                                    m_phyMacConfig->GetSubframesPerFrame ());
+
               NS_LOG_DEBUG ("UE" << m_rnti <<
                             " UL-DCI received for slot " << ulSfnSf <<
                             " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
