@@ -108,6 +108,18 @@ MmWaveTdmaDciMessage::GetSfnSf (void)
   return m_sfnSf;
 }
 
+void
+MmWaveTdmaDciMessage::SetKDelay (uint32_t delay)
+{
+  m_k = delay;
+}
+
+uint32_t
+MmWaveTdmaDciMessage::GetKDelay (void) const
+{
+  return m_k;
+}
+
 MmWaveDlCqiMessage::MmWaveDlCqiMessage (void)
 {
   SetMessageType (MmWaveControlMessage::DL_CQI);
