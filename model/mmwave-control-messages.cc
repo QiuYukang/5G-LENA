@@ -97,18 +97,6 @@ MmWaveTdmaDciMessage::GetDciInfoElement (void)
 }
 
 void
-MmWaveTdmaDciMessage::SetSfnSf (SfnSf sfn)
-{
-  m_sfnSf = sfn;
-}
-
-SfnSf
-MmWaveTdmaDciMessage::GetSfnSf (void)
-{
-  return m_sfnSf;
-}
-
-void
 MmWaveTdmaDciMessage::SetKDelay (uint32_t delay)
 {
   m_k = delay;

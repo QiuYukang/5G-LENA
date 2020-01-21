@@ -764,8 +764,8 @@ MmWaveEnbPhy::RetrieveDciFromAllocation (const SfnSf &targetSlot,
                          +dciElem->m_symStart << " to " << +dciElem->m_symStart + dciElem->m_numSym);
 
           Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
-          dciMsg->SetSfnSf (targetSlot);
-          dciMsg->SetKDelay(kDelay);
+
+          dciMsg->SetKDelay (kDelay);
 
           ctrlMsgs.push_back (dciMsg);
           NS_LOG_INFO ("To send, DCI for UE " << dciElem->m_rnti);

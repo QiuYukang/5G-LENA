@@ -123,9 +123,6 @@ public:
 
   std::shared_ptr<DciInfoElementTdma> GetDciInfoElement (void);
 
-  void SetSfnSf (SfnSf sfn);
-  SfnSf GetSfnSf (void);
-
   /**
    * \brief Set the delay between DL/UL DCI reception
    * \and subframe to which it applies for
@@ -141,7 +138,6 @@ public:
   uint32_t GetKDelay (void) const;
 
 private:
-  SfnSf m_sfnSf;        // frame num and sf num for debugging
   uint32_t m_k;         //!< delay between DL/UL DCI reception and subframe to which it applies for reception/transmission of Data (k0/k2)
   //bool	m_ulGrant;	// is ul grant
 //	SlotAllocInfo m_rscAllocationMap;
