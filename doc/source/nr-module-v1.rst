@@ -14,12 +14,13 @@ Example Module Documentation
 
 Introduction
 ------------
-3rd Generation Partnership Project (3GPP) is devoting significant efforts to define the 
+3rd Generation Partnership Project (3GPP) has devoted significant efforts to standardize the 
 fifth generation (5G) New Radio (NR) access technology [TR38912]_, 
-which is expected to be extremely flexible from its physical layer definition and up to the architecture, 
-in order to be able to work in a wide range of bands and address many different use cases. 
+which is designed to be extremely flexible from its physical layer definition and up to the architecture, 
+in order to be able to work in a wide range of frequency bands and address many different use cases
+and deployment options. 
 
-Since the standardization of NR access technology is currently under development, 
+As the NR specification is developed and evolves, 
 a network simulator that is capable of simulating emerging NR
 features is of great interest for both, scientific and industrial communities. 
 In recent years a lot effort has been done by New York University (NYU) Wireless and University of Padova to develop a simulator 
@@ -30,36 +31,40 @@ Hence, a new mmWave simulation tool has been developed as a new module of |ns3|.
 A complete description of the mmWave module is provided in [end-to-end-mezz]_. 
 The mmWave module source code is still not part of the standard ns-3 distribution and 
 is available at a different repository [mmwave-module]_. 
-The 'mmWave' module implements a complete 3GPP protocol, where the physical (PHY) layer and MAC layers are custom implementations 
+The 'mmWave' module implements a complete 3GPP protocol, where the physical (PHY) layer and 
+medium access control (MAC) layers are custom implementations 
 developed to support a new mmWave-based channel, propagation, beamforming and antenna models; 
-and the medium access control (MAC) layer to support time division duplex (TDD), 
-time division multiple access (TDMA) MAC scheduling, 
-enhanced hybrid automatic repeat request (HARQ) for low latency applications.
+and the MAC layer to support Time Division Duplexing (TDD), 
+Time Division Multiple Access (TDMA) MAC scheduling, and
+enhanced Hybrid Automatic Repeat and reQuest (HARQ) for low latency applications.
 The higher layers are mostly based on |ns3| 'LTE' module functionalities, thus still following 3GPP LTE specifications, 
 but extending it to involve some of advanced features that are expected to emerge in 5G networks, 
 such as dual connectivity and low latency radio link control (RLC) layer.
 
 
 In this document we describe the implementation that we have initiated to generate a 3GPP compliant New Radio (NR) module able to 
-provide |ns3| simulation capabilities in the bands above and below 6 GHz, following the description in [TR38912]_. The work has been 
-funded by InterDigital Communications Inc.
+provide |ns3| simulation capabilities in the bands above and below 6 GHz, aligned with 3GPP NR Release-15, following the description in [TR38912]_. 
+The work has been initially
+funded by InterDigital Communications Inc, and continues with funding from the Lawrence Livermore National Lab (LLNL) and 
+a grant from the National Institute of Standards and Technologies (NIST).
 
 
 The module, as already mentioned, is built upon the 'mmwave' module developed by the NYU Wireless 
 and University of Padova, which is available in [mmwave-module]_. The 'mmwave' module is developed as a new module within |ns3| and 
 it leverages on the well known and extensively used LTE/EPC network simulator provided by the 'LTE' module in |ns3|. 
 
-The NR module is built upon the 'mmwave' simulator, but is more focused to target new 3GPP NR specs and so it currently targets the 
-following additional features: Formal definition of numerologies, Frequency Division Multiplexing (FDM) of 
-numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), and scheduling.
-Additionally, some feature of 'mmwave' module shall be adapted 
-to follow 3GPP standard, as for example the proposed frame structure.
+The NR module is built upon the 'mmwave' simulator, but is more focused to target new 3GPP Release-15 NR specifications and so it 
+incorporates fundamental PHY-MAC NR features such as: numerologies, Frequency Division Multiplexing (FDM) of 
+numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, 
+Low-Density Parity Check (LDPC) coding, modulation and coding schemes up to 256-QAM, dynamic TDD, among others.
+Additionally, some features of the 'mmwave' module have been adapted 
+to follow 3GPP standard, as for example the frame structure.
 
-The source code for the NR module lives currently in the directory ``src/mmwave``. 
+The source code for the NR module lives currently in the directory ``src/nr``. 
 
-This document primarily concerns extensions and modifications developed during the development of 'NR' module. However, since there is 
-currently no available documentation for the 'mmwave' module, we will briefly cover the features 
-from 'mmwave' module that are utilized in 'NR' module. 
+This document does not only concerns extensions and modifications developed during the development of 'NR' module but also
+covers the features 
+from 'mmwave' and 'lte' modules that are utilized in 'NR' module. 
 
 Over time, extensions found in this module may migrate to the existing |ns3| main development tree.
 
@@ -82,10 +87,9 @@ The rest of this document is organized into five major chapters:
 Design
 ------
 
-In this section we present the design of the new features that we have developed following Release 15 3GPP NR activity. In particular, in the 
-following we will focus and discuss the following features: NR frame structure and numerologies, configurable SubCarrier Spacing (SCS) support, 
-FDM of numerologies, mini-slot and mixed UL-DL slot format support, OFDMA, scheduling. 
- 
+In this section, we present the design of the different features that we have developed following 3GPP Release-15 NR activity. 
+For those features/mechanisms/layers that still have not been upgraded to NR, the current design following LTE specifications is also detailed.
+
 
 Architecture
 ************
@@ -101,8 +105,8 @@ TBC
 Frame structure and numerologies
 ================================
 
-In New Radio, the concept of 'numerology' is introduced to flexibly define the frame structure, in such a way that it can work in 
-both sub-6 GHz and mmWave bands. This is achieved by creating multiple numerologies formed by scaling a basic subcarrier scaling (SCS), 
+In NR, the concept of 'numerology' is introduced to flexibly define the frame structure, in such a way that it can work in 
+both sub-6 GHz and mmWave bands. This is achieved by creating multiple numerologies formed by scaling a basic subcarrier spacing (SCS), 
 by an integer N, where 15 KHz is the baseline SCS and N is a power of 2. The numerology is selected independently of the frequency 
 band, with possible SCS of 15 KHz to 240 KHz. 480 KHz is under study. Not all SCS options are proposed for all frequencies. For sub 6 GHz,
 only 15 KHz, 30 KHz, and 60 KHz are considered. Above 6 GHz the candidates are 60 KHz, 120 KHz and 240 KHz.
@@ -218,7 +222,7 @@ On the other hand, the transport block decoding time at UE is fixed and equals t
 FDM of numerologies
 ===================
 An additional level of flexibility in NR system can be achieved by employing the multiplexing of numerologies in the frequency domain.
-In 5G it is expected that a base station (a.k.a. gNB in NR) should provide access to different types of services, as enhanced Mobile
+In 5G it is expected that a base station (a.k.a., gNB in NR) should provide access to different types of services, as enhanced Mobile
 BroadBand (eMBB), massive Machine Type Communications (mMTC), and Ultra-Reliable and Low Latency Communications (URLLC). 
 A latency-throughput trade-off appears when attempting the selection of the proper numerology for gNB's
 operation: larger SCS is better to reduce latency and for complexity (i.e., for URLLC traffic), 
@@ -668,11 +672,23 @@ X2 interface
 TBC
 
 
+
+NR-U extension
+**************
+TBC
+
+
+NR V2X extension
+****************
+TBC
+
+
+
 Scope and Limitations
 ********************
-This module implements a partial set of features currently defined in the standard. Key aspects to be addressed in future works are described in the following.
-First of all, the PHY layer abstraction inherits the Link to System mapping procedure of the 'LTE' module, which still lacks of 256QAM introduced in Release 12. The NR module should include a new Link to System mapping specific for the NR technology, and supporting the newly defined NR channel coding (LDPC, polar coding, block size and codeword size flexibility). Other important missing features are the spatial multiplexing and the autonomous UL, introduced in Release 15. The module also, at the time of writing needs upgrade to the latest |ns3| release, |ns3-28|. 
-
+This module implements a partial set of features currently defined in the standard. Key aspects introduced in Release-15 that 
+are still missing are: spatial multiplexing, configured grant scheduling and puncturing, realistic beam management, error model 
+for control channels. 
 
 
 
@@ -680,7 +696,8 @@ Usage
 -----
 
 This section is principally concerned with the usage of the model, using
-the public API. We discuss on examples available to the user, the helpers, the attributes and the simulation campaign we run.
+the public API. We discuss on examples available to the user, the helpers, 
+the attributes and the simulation campaign we run.
 
 
 Examples
