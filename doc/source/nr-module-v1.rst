@@ -443,31 +443,126 @@ FDD
 TBC
 
 
-OFDMA
+MAC to channel delay
+====================
+TBC
+
+
+CQI feedback
+============
+TBC
+
+
+Interference model
+==================
+TBC
+
+
+Spectrum model
+==============
+TBC
+
+
+Data PHY error model
+====================
+TBC
+
+
+Beamforming model
 =================
-OFDMA
-=================
-To give flexibility in implementation choice, NR is deliberately introducing functionality to support analog beamforming in addition to digital precoding/beamforming. At high frequencies, analog beamforming, where the beam is shaped after digital-to-analog conversion, is necessary from an implementation perspective. Analog beamforming (or single-beam capability) results in the constraint that a receive or transmit beam can only be formed in a single direction at any given time instant and requires beam-sweeping where the same signal is repeated in multiple OFDM symbols but in different transmit beams. With beam-sweeping possibility, it is ensured that any signal can be transmitted with a high gain and narrow beamformed transmission to reach the entire intended coverage area.
+TBC
+
+
+
+
+HARQ
+****
+TBC
+
+
+
+
+MAC layer
+*********
+TBC
+
+
+Resource allocation model: OFDMA and TDMA
+=========================================
+To give flexibility in implementation choice, NR is deliberately introducing functionality to support analog beamforming in 
+addition to digital precoding/beamforming. At high frequencies, analog beamforming, where the beam is shaped after 
+digital-to-analog conversion, is necessary from an implementation perspective. Analog beamforming (or single-beam capability)
+results in the constraint that a receive or transmit beam can only be formed in a single direction at any given time instant
+and requires beam-sweeping where the same signal is repeated in multiple OFDM symbols but in different transmit beams. With 
+beam-sweeping possibility, it is ensured that any signal can be transmitted with a high gain and narrow beamformed transmission 
+to reach the entire intended coverage area.
 
 The 'NR' module supports TDMA and OFDMA with single-beam capability and variable TTI.
 
-The implementation of OFDMA under the single-beam capability constraint for mmWave means that frequency-domain multiplexing of different UEs is allowed among UEs associated to the same beam, so that in one OFDM symbol, or group of OFDM symbols, UEs that have the same beam ID can be scheduled in different RBGs, but not are UEs attached to different beam IDs. This is motivated by two main reasons. First, it is compatible with radio-frequency architectures based on single-beam capability, which is one of the main requirements for operation in bands with a high centre carrier frequency (mmWave bands). Second, it allows meeting the occupied channel bandwidth constraint in the unlicensed spectrum, e.g., that is required at the 5 GHz and 60 GHz bands, for any scheduling decision under the aforementioned constraint, since the scheduler will group UEs per beam ID and, within a TTI, only UEs that have the same beam ID would be allowed to be scheduled for DL transmission in different RBs. 
+The implementation of OFDMA under the single-beam capability constraint for mmWave means that frequency-domain multiplexing of 
+different UEs is allowed among UEs associated to the same beam, so that in one OFDM symbol, or group of OFDM symbols, UEs that 
+have the same beam ID can be scheduled in different RBGs, but not are UEs attached to different beam IDs. This is motivated by 
+two main reasons. First, it is compatible with radio-frequency architectures based on single-beam capability, which is one of 
+the main requirements for operation in bands with a high centre carrier frequency (mmWave bands). Second, it allows meeting the 
+occupied channel bandwidth constraint in the unlicensed spectrum, e.g., that is required at the 5 GHz and 60 GHz bands, for any
+scheduling decision under the aforementioned constraint, since the scheduler will group UEs per beam ID and, within a TTI, only 
+UEs that have the same beam ID would be allowed to be scheduled for DL transmission in different RBs. 
 
-The implementation of OFDMA with variable TTI is motivated by the NR specifications, which encompass slot- and mini-slot-based transmissions, and thus a variable TTI length composed by a flexible number of symbols may be encountered.
+The implementation of OFDMA with variable TTI is motivated by the NR specifications, which encompass slot- and mini-slot-based 
+transmissions, and thus a variable TTI length composed by a flexible number of symbols may be encountered.
 
-To account for OFDMA, the code relies on a bitmask per UE that is an output of the scheduler and then introduced in the DCI to enable correct decoding at the receiver. The bitmask is used at MAC level, and it is a vector of 0s and 1s, of length equal to the number of RBGs, to indicate the RBGs assigned to a particular UE. This bitmask is translated into a vector of assigned RB indeces at PHY, of variable length, at most the number of available RBs, for compatibility issues with PHY layer functions. In NR, a RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational band. This is a configuration parameter. In case the number of RBs in a RBG equals to the number of RBs in the whole channel bandwidth, then one can properly configure a TDMA-based channel access with variable TTI.
+To account for OFDMA, the code relies on a bitmask per UE that is an output of the scheduler and then introduced in the DCI to 
+enable correct decoding at the receiver. The bitmask is used at MAC level, and it is a vector of 0s and 1s, of length equal to 
+the number of RBGs, to indicate the RBGs assigned to a particular UE. This bitmask is translated into a vector of assigned RB 
+indeces at PHY, of variable length, at most the number of available RBs, for compatibility issues with PHY layer functions. In 
+NR, a RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational 
+band. This is a configuration parameter. In case the number of RBs in a RBG equals to the number of RBs in the whole channel 
+bandwidth, then one can properly configure a TDMA-based channel access with variable TTI.
 
-In addition, OFDMA-based access in 'NR' module has implied changes in the scheduler, HARQ operation, AMC model, temporal evolution, interference computation at PHY, and packet burst generation, as compared to the 'mmWave' module. Scheduler and HARQ for OFDMA are detailed in next section. The AMC model has been updated to map CQI into MCS, compute required number of RBGs from MCS and TBS, and to compute TBS from MCS, assigned number of RBGs and symbols. For OFDMA with variable TTI, all the temporal references are updated to enable a correct PHY behaviour both at gNBs and UEs. That is, the reference is not based on the transmitted TBs per UE (as in the 'mmWave' module, for which each symbol was assigned at most to a single UE), but on the TTIs assigned on different beams. Note that now, in the 'NR' module, within one symbol multiple UEs may be scheduled in different RBGs, so that the TBs do not indicate the temporal reference. This has incurred changes in the timing update at the devices. Finally the packet burst is generated in a way such that it may include different UEs in a TTI.
+In addition, OFDMA-based access in 'NR' module has implied changes in the scheduler, HARQ operation, AMC model, temporal evolution, 
+interference computation at PHY, and packet burst generation, as compared to the 'mmWave' module. Scheduler and HARQ for OFDMA are 
+detailed in next section. The AMC model has been updated to map CQI into MCS, compute required number of RBGs from MCS and TBS, and 
+to compute TBS from MCS, assigned number of RBGs and symbols. For OFDMA with variable TTI, all the temporal references are updated 
+to enable a correct PHY behaviour both at gNBs and UEs. That is, the reference is not based on the transmitted TBs per UE (as in the
+'mmWave' module, for which each symbol was assigned at most to a single UE), but on the TTIs assigned on different beams. Note that
+now, in the 'NR' module, within one symbol multiple UEs may be scheduled in different RBGs, so that the TBs do not indicate the 
+temporal reference. This has incurred changes in the timing update at the devices. Finally the packet burst is generated in a way 
+such that it may include different UEs in a TTI.
 
-Due to the OFDMA with single-beam capability, the 'NR' module has a new PHY-MAC interface to enable communication to the MAC entity of the beam ID, which is computed at PHY, and thus allow the OFDMA with variable TTI scheduler at MAC to consider this new information. The new interface has two functions ``GetBeamId`` and ``ChangeBeamId``, to obtain the beam ID of a UE, and change it. The beam ID is characterized by two parameters, azimuth and elevation, and it is only valid for the beam seach method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook). 
+Due to the OFDMA with single-beam capability, the 'NR' module has a new PHY-MAC interface to enable communication to the MAC entity 
+of the beam ID, which is computed at PHY, and thus allow the OFDMA with variable TTI scheduler at MAC to consider this new 
+information. The new interface has two functions ``GetBeamId`` and ``ChangeBeamId``, to obtain the beam ID of a UE, and change it.
+The beam ID is characterized by two parameters, azimuth and elevation, and it is only valid for the beam seach method (i.e., 
+for each UE, the transmission/reception beams are selected from a set of beams or codebook). 
 
 
 Scheduler
-********************
-We have introduced schedulers for OFDMA and TDMA-based access with variable TTI under single-beam capability. The main output of a scheduler functionality is a list of DCIs for a specific slot, each of which specifies four parameters: the transmission starting symbol, the duration (in number of symbols) and an RBG bitmask, in which a value of 1 in the position x represents a transmission in the RBG number x. 
-The current implementation of schedulers API follows the FemtoForum specification for LTE MAC Scheduler Interface [ff-api]_ , but can be easily extended to be compliant with different industrial interfaces.
+=========
+We have introduced schedulers for OFDMA and TDMA-based access with variable TTI under single-beam capability. The main output of
+a scheduler functionality is a list of DCIs for a specific slot, each of which specifies four parameters: the transmission starting 
+symbol, the duration (in number of symbols) and an RBG bitmask, in which a value of 1 in the position x represents a transmission 
+in the RBG number x. 
+The current implementation of schedulers API follows the FemtoForum specification for LTE MAC Scheduler Interface [ff-api]_ , but
+can be easily extended to be compliant with different industrial interfaces.
 
-The core class of the NR module schedulers design is ``MmWaveMacSchedulerNs3``. This class defines the core scheduling process and splits the scheduling logic into the logical blocks. Additionally, it implements the MAC schedulers API, and thus it decouples a scheduling logic from any specific MAC API specification. These two features facilitate and accelerate the introduction of the new schedulers specializations, i.e., the new schedulers only need to implement a minimum set of specific scheduling functionalities without having to follow any specific industrial API. The core scheduling process is defined in ``ScheduleDl`` and ``ScheduleUl`` functions. The scheduling process assigns the resources for active DL and UL flows and notifies the MAC of the scheduling decision for the corresponding slot. The scheduling logic for DL and UL are defined, respectively, in ``DoScheduleDl`` and ``DoScheduleUl`` functions. Currently, since in the uplink the TDMA is used, the ``DoScheduleUl`` is designed to support only TDMA scheduling. On the other hand, ``DoScheduleDl`` is designed to allow both, TDMA and OFDMA, modes for the downlink. Through these functions it is delegated to subclasses to perform the allocation of symbols among beams (if any), allocation of RBGs in time/frequency-domain among active UEs by using specific scheduling algorithm (e.g., round robin, proportional fair, etc.), and finally, the construction of corresponding DCIs/UCIs. For example, TDMA scheduling can be easily implemented by skipping the first step of allocating symbols among beams and by fixing the minimum number of assignable RBGs to the total number of RBGs. To obtain true TDMA-based access with variable TTI, it is then necessary to group allocations for the same UE in one single DCI/UCI which is the last step. Another important class to be mentioned is ``MmWaveMacSchedulerNs3Base`` which is a child class of ``MmWaveMacSchedulerNs3``, and represents a base class of all schedulers in the NR module (OFDMA and TDMA). This class handles the HARQ retransmissions for the DL and the UL. Currently, the NR module offers the scheduling of the HARQ retransmissions in a round robin manner by leveraging the ``MmWaveMacSchedulerHarqRr`` implementation. Scheduler inheritance model and collaboration diagram are shown in Figures ::`fig-nr-scheduler-collab` and ::`nr-schedulers`.
+The core class of the NR module schedulers design is ``MmWaveMacSchedulerNs3``. This class defines the core scheduling process and 
+splits the scheduling logic into the logical blocks. Additionally, it implements the MAC schedulers API, and thus it decouples a 
+scheduling logic from any specific MAC API specification. These two features facilitate and accelerate the introduction of the new 
+schedulers specializations, i.e., the new schedulers only need to implement a minimum set of specific scheduling functionalities 
+without having to follow any specific industrial API. The core scheduling process is defined in ``ScheduleDl`` and ``ScheduleUl`` 
+functions. The scheduling process assigns the resources for active DL and UL flows and notifies the MAC of the scheduling decision 
+for the corresponding slot. The scheduling logic for DL and UL are defined, respectively, in ``DoScheduleDl`` and ``DoScheduleUl`` 
+functions. Currently, since in the uplink the TDMA is used, the ``DoScheduleUl`` is designed to support only TDMA scheduling. On the 
+other hand, ``DoScheduleDl`` is designed to allow both, TDMA and OFDMA, modes for the downlink. Through these functions it is 
+delegated to subclasses to perform the allocation of symbols among beams (if any), allocation of RBGs in time/frequency-domain 
+among active UEs by using specific scheduling algorithm (e.g., round robin, proportional fair, etc.), and finally, the construction 
+of corresponding DCIs/UCIs. For example, TDMA scheduling can be easily implemented by skipping the first step of allocating symbols 
+among beams and by fixing the minimum number of assignable RBGs to the total number of RBGs. To obtain true TDMA-based access with
+variable TTI, it is then necessary to group allocations for the same UE in one single DCI/UCI which is the last step. Another important 
+class to be mentioned is ``MmWaveMacSchedulerNs3Base`` which is a child class of ``MmWaveMacSchedulerNs3``, and represents a base 
+class of all schedulers in the NR module (OFDMA and TDMA). This class handles the HARQ retransmissions for the DL and the UL. 
+Currently, the NR module offers the scheduling of the HARQ retransmissions in a round robin manner by leveraging the ``MmWaveMacSchedulerHarqRr``
+implementation. Scheduler inheritance model and collaboration diagram are shown in Figures :ref:`fig-nr-scheduler-collab` and :ref:`nr-schedulers`.
 
 An overview of the different phases that the OFDMA schedulers follow are:
 
@@ -513,13 +608,64 @@ The base class for TDMA schedulers is ``MmWaveMacSchedulerTdma``. This scheduler
    NR scheduler class collaboration diagram
 
 
-Uplink delay support for UL data
-********************************
+
+BWP manager
+===========
+TBC
+
+
+Adaptive modulation and coding model
+====================================
+TBC
+
+
+Transport block model
+=====================
+TBC
+
+
+Delay for UL data
+=================
 In an NR system, the UL decisions for a slot are taken in a different moment than the DL decision for the same slot. In particular, since the UE must have the time to prepare the data to send, the gNB takes the UL scheduler decision in advance and then sends the UL grant taking into account these timings. For example, consider that the DCIs for DL are usually prepared two slots in advance with respect to when the MAC PDU is actually over the air. For example, for UL, the UL grant must be prepared four slots before the actual time in which the UE transmission is over the air transmission: after two slots, the UL grant will be sent to the UE, and after two more slots, the gNB is expected to receive the UL data. Please note that latter examples consider default values for MAC to PHY processing delays at gNB and UE, which are in NR module set to 2 slots. The processing delays are parameters of the simulator that may be configured through corresponding attributes of ``MmWavePhyMacCommon`` class.
 
 At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information. 
 
 To accommodate the NR UL scheduling delay, the new MAC scheduler design is actively considering these delays during each phase.
+
+
+RLC layer
+*********
+TBC
+
+
+PDCP layer
+**********
+TBC
+
+
+SDAP layer
+**********
+TBC
+
+
+RRC layer
+*********
+TBC
+
+
+NAS layer
+*********
+TBC
+
+
+S1, S5, S11 interfaces
+**********************
+TBC
+
+
+X2 interface
+************
+TBC
 
 
 Scope and Limitations
@@ -531,25 +677,25 @@ First of all, the PHY layer abstraction inherits the Link to System mapping proc
 
 
 Usage
-------------
+-----
 
 This section is principally concerned with the usage of the model, using
 the public API. We discuss on examples available to the user, the helpers, the attributes and the simulation campaign we run.
 
 
 Examples
-***********************************
+********
 
 Several example programs are provided to highlight the operation.
 
 cttc-3gpp-channel-simple-ran.cc
-============================================
+===============================
 The program ``mmwave/examples/cttc-3gpp-channel-simple-ran.cc``
 allows users to select the numerology and test the performance considering only the radio access network (RAN). 
 The numerology can be toggled by the argument, 
 e.g. ``'--numerology=1'``. The scenario topology is simple, and it 
 consists of a single gNB and single UE. The scenario is illustrated in 
-Figure ::`fig-scenario-simple`.
+Figure :ref:`fig-scenario-simple`.
 
 .. _fig-scenario-simple:
 
@@ -604,7 +750,7 @@ the packet has not been fragmented at RLC layer and a single transmission opport
 was enough to transmit it. 
 
 cttc-3gpp-channel-nums.cc
-============================================
+=========================
 The program ``examples/cttc-3gpp-channel-nums.cc``
 allows users to select the numerology and test the end-to-end performance.
 Figure :ref:`fig-end-to-end` shows the simulation setup. 
@@ -687,7 +833,7 @@ while the delay is lower for the higher value of numerology. Also UPT throughput
 
 
 cttc-3gpp-channel-simple-fdm.cc
-============================================
+===============================
 
 The program ``examples/cttc-3gpp-channel-simple-fdm.cc`` can be used to simulate FDM in scenario with a single UE and gNB.
 In this program the packet is directly injected to the gNB, so this program can be used only for simulation of the RAN part.
@@ -744,7 +890,7 @@ On the other hand, when :math:`isUll=1`, the output of the simulation is the fol
 This example considers a fixed MCS (Modulation and Coding Scheme) of 28.
 
 cttc-3gpp-channel-nums-fdm.cc
-============================================
+=============================
 
 The program ``examples/cttc-3gpp-channel-nums-fdm.cc`` allows the user to configure 2 UEs and 1 or 2 bandwidth parts (BWPs) and test the end-to-end performance.
 This example is designed to expect the full configuration of each BWP. The configuration of BWP is composed of the following parameters:
@@ -754,8 +900,8 @@ URLLC is configured to be transmitted over the first BWP, and the eMBB over the 
 Hence, in this example it is expected to configure the first BWP to use a higher numerology than the second BWP.
 Figure :ref:`fig-end-to-end` shows the simulation setup. Note that this simulation topology is as the one used in ``scratch/cttc-3gpp-channel-nums.cc``
 The user can run this example with UDP full buffer traffic or can specify the UDP packet interval and UDP packet size per type of traffic.
-``udpIntervalUll`` and `packetSizeUll` parameters are used to configure the UDP traffic of URLLC flow, 
-while ``udpIntervalBe`` and `packetSizeBe` parameters are used to configure the UDP traffic of eMBB flow.
+``udpIntervalUll`` and ``packetSizeUll`` parameters are used to configure the UDP traffic of URLLC flow, 
+while ``udpIntervalBe`` and ``packetSizeBe`` parameters are used to configure the UDP traffic of eMBB flow.
 If UDP full buffer traffic is configured, the packet interval for each flow is calculated based on approximated value of saturation rate for the bandwidth to 
 which the flow is mapped, and taking into account the packet size of the flow. 
 The total transmission power :math:`P_{(i)}` depends on the bandwidth of each BWP, and will be proportionally assigned to each BWP in the following way:
@@ -769,7 +915,7 @@ If the user configures only 1 BWP, then the configuration for the first BWP will
 
 
 cttc-3gpp-indoor-calibration.cc
-=====================================
+===============================
 
 The program ``examples/cttc-3gpp-indoor-calibration`` is the simulation 
 script created for the NR-MIMO Phase 1 system-level calibration. 
@@ -807,7 +953,7 @@ set in the specific simulation execution.
 
 
 Simulation campaigns
-***********************************
+*********************
 
 In this section, we describe briefly the simulation campaigns that we have carried out to test the new implemented features. 
 We have created different simulation campaign scripts, where each script has different objectives. 
@@ -821,7 +967,7 @@ The name of the file is normally composed to reveal with which values of the par
 There is a single file per simulation. File contains the statistics of all flows belonging to that simulation.
 
 NR frame structure and numerologies
-============================================
+===================================
 
 In this subsection, we provide and overview of simulation campaigns contained in ``campaigns/3gpp-nr-numerologies``.
 
@@ -887,7 +1033,7 @@ and it is more remarkable for low bandwidths.
    Mean throughput per UDP flow
 
 FDM of numerologies
-============================================
+===================
 
 In this subsection, we describe the simulation campaigns to evaluate the FDM of numerologies. These simulation campaigns are evaluated on 
 ``cttc-3gpp-channel-nums-fdm.cc``. As mentioned earlier, this example can be configured to operate with 1 or 2 BWPs. 
@@ -1047,15 +1193,15 @@ configuration is the folliowing:
 
 
 Helpers
-***********************************
+*******
 
 What helper API will users typically use?  Describe it here.
 
 Attributes
-***********************************
+**********
 
 Common NR attributes
-==========================
+====================
 
 Class mmwave-phy-mac-common holds common NR attributes. According 
 to our current design all NR devices in the simulation have the same numerology 
@@ -1098,7 +1244,7 @@ However, in order to allow that the numerology or FDM of numerologies is NR devi
 and the PHY an MAC parameters shall belong to mmwave-enb-net-device and mmwave-ue-net device.
 
 3GPP channel model attributes
-=======================================
+=============================
 
 In the terms of 3GPP channel model we leverage on NYU implementation which is 
 according the 3GPP channel model reported by 3GPP in [TR38900]_.
@@ -1160,7 +1306,7 @@ These attributes are listed in Tables :ref:`tab-3gpp-channel-attributes`,
 What classes hold attributes, and what are the key ones worth mentioning?
 
 Output
-***********************************
+******
 
 What kind of data does the model generate?  What are the key trace
 sources?   What kind of logging output can be enabled?
@@ -1169,14 +1315,14 @@ sources?   What kind of logging output can be enabled?
 
 
 Validation
-------------
+----------
 
 Tests
-***********************************
+*****
 To validate the implemented features, we have designed different tests.
 
 NR test for new NR frame structure and numerologies configuration
-==============================================================================
+=================================================================
 Test case ``mmwave-system-test-configurations`` validates that the NR frame structure is correctly 
 configured by using new configuration parameters. 
 This is the system test that is validating the configuration of 
@@ -1187,7 +1333,7 @@ and that serialization and deserialization of the frame, subframe, slot and TTI 
 performs correctly for the new NR frame structure.
 
 Test of packet delay in NR protocol stack 
-==============================================================================
+=========================================
 
 Test case ``mmwave-test-numerology-delay`` validates that the delays of a single UDP packet are correct. 
 UDP packet is monitored at different points of NR protocol stack, 
@@ -1265,14 +1411,14 @@ The test passes if all of the previous steps are according to the timings relate
  Numerology:5	 Packet of :1000 bytes	#Slots:6	#Symbols:69	Packet PDCP delay:341070	RLC delay of first PDU:+191516.0ns	MCS of the first PDU:1
 
 Test of numerology FDM 
-==============================================================================
+======================
 To test the FDM of numerologies, we have implemented 
 the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to operate with 
 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the 
 bandwidth of the BWP through which it is multiplexed.
 
 Test for NR schedulers
-==============================================================================
+======================
 To test the NR schedulers, we have implemented a system test called ``MmWaveSystemTestSchedulers`` whose purpose is to test that the 
 NR schedulers provide a required amount of resources to all UEs, for both cases, the downlink and the uplink. The topology consists of a single gNB and 
 variable number of UEs, which are distributed among variable number of beams. Test cases are designed in such a way that the offered rate for the flow 
@@ -1283,7 +1429,7 @@ different scheduling algorithms (RR, PR, MR).
 
 
 Test for OFDMA
-==============================================================================
+==============
 Test case called ``MmWaveSystemTestOfdma`` validates that the NR scheduling in OFDMA mode provides expected interference situations in the scenario. 
 The test consists of a simple topology where 2 gNBs transmit to 2 UEs, and these two simultaneous transmissions are on the same transmission directions, the opposite transmission directions or 
  the perpendicular transmission directions.
@@ -1293,7 +1439,7 @@ single gNB is transmitting.
 
 
 References
-------------
+----------
 
 .. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
 
