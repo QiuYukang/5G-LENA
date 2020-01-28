@@ -29,20 +29,13 @@
         }                                                                \
     }                                                                    \
   while (false);
-#include <ns3/simulator.h>
-#include <ns3/callback.h>
-#include <ns3/node.h>
-#include <ns3/packet.h>
-#include <ns3/log.h>
+
 #include "mmwave-phy.h"
-#include "mmwave-phy-sap.h"
-#include "mmwave-mac-pdu-tag.h"
-#include "mmwave-mac-pdu-header.h"
-#include "mmwave-net-device.h"
-#include <map>
 #include "mmwave-spectrum-value-helper.h"
-#include <sstream>
-#include <vector>
+#include "mmwave-spectrum-phy.h"
+#include "mmwave-mac-pdu-tag.h"
+#include "mmwave-net-device.h"
+
 #include <algorithm>
 
 namespace ns3 {
@@ -206,40 +199,12 @@ MmWavePhy::SetDevice (Ptr<MmWaveNetDevice> d)
   m_netDevice = d;
 }
 
-Ptr<MmWaveNetDevice>
-MmWavePhy::GetDevice ()
-{
-  NS_LOG_FUNCTION (this);
-  return m_netDevice;
-}
-
-void
-MmWavePhy::SetChannel (Ptr<SpectrumChannel> c)
-{
-  NS_LOG_FUNCTION (this);
-}
-
 void
 MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
   m_cellId = cellId;
   m_spectrumPhy->SetCellId (cellId);
-}
-
-
-void
-MmWavePhy::SetNoiseFigure (double nf)
-{
-  NS_LOG_FUNCTION (this);
-  m_noiseFigure = nf;
-}
-
-double
-MmWavePhy::GetNoiseFigure (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_noiseFigure;
 }
 
 void
@@ -366,7 +331,7 @@ MmWavePhy::InitializeMessageList ()
 
 
 std::list<Ptr<MmWaveControlMessage> >
-MmWavePhy::GetControlMessages (void)
+MmWavePhy::PopCurrentSlotCtrlMsgs (void)
 {
   NS_LOG_FUNCTION (this);
   if (m_controlMessageQueue.empty ())

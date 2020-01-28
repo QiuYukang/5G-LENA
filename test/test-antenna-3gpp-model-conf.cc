@@ -40,6 +40,7 @@
 #include "ns3/mmwave-mac-scheduler-ofdma.h"
 #include "ns3/mmwave-mac-scheduler-ofdma-rr.h"
 #include "ns3/mmwave-phy-mac-common.h"
+#include "ns3/mmwave-spectrum-phy.h"
 #include "ns3/basic-data-calculators.h"
 #include "ns3/antenna-array-3gpp-model.h"
 

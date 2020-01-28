@@ -625,7 +625,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                     "\t start " << Simulator::Now () << " end " <<
                     (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)) <<
                     " but no data to transmit");
-      GetControlMessages (); // empty the current message list
+      PopCurrentSlotCtrlMsgs (); // empty the current message list
       m_cam->Cancel ();
       return varTtiPeriod;
     }
@@ -636,7 +636,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       return varTtiPeriod;
     }
 
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = PopCurrentSlotCtrlMsgs ();
 
   for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
     {
@@ -677,7 +677,7 @@ MmWaveUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, true,
                                         dci->m_symStart, dci->m_numSym);
-  m_reportDlTbSize (GetDevice ()->GetObject <MmWaveUeNetDevice> ()->GetImsi (), dci->m_tbSize);
+  m_reportDlTbSize (m_netDevice->GetObject <MmWaveUeNetDevice> ()->GetImsi (), dci->m_tbSize);
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL DATA frame for"
                 " symbols "  << +dci->m_symStart <<
@@ -695,7 +695,7 @@ MmWaveUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask));
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = GetControlMessages ();
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = PopCurrentSlotCtrlMsgs ();
   Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart));
   if (pktBurst && pktBurst->GetNPackets () > 0)
     {
@@ -727,7 +727,7 @@ MmWaveUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       pktBurst = CreateObject<PacketBurst> ();
       pktBurst->AddPacket (emptyPdu);
     }
-  m_reportUlTbSize (GetDevice ()->GetObject <MmWaveUeNetDevice> ()->GetImsi (), dci->m_tbSize);
+  m_reportUlTbSize (m_netDevice->GetObject <MmWaveUeNetDevice> ()->GetImsi (), dci->m_tbSize);
 
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " TXing UL DATA frame for" <<
@@ -884,7 +884,7 @@ MmWaveUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
             {
               DoSendControlMessage (msg);
             }
-          Ptr<MmWaveUeNetDevice> UeRx = DynamicCast<MmWaveUeNetDevice> (GetDevice ());
+          Ptr<MmWaveUeNetDevice> UeRx = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
           m_reportCurrentCellRsrpSinrTrace (UeRx->GetImsi (), newSinr, newSinr);
         }
     }

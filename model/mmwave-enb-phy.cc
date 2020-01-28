@@ -865,9 +865,6 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   // Start with a clean RBG allocation bitmask
   m_rbgAllocationPerSym.clear ();
 
-  // create control messages to be transmitted in DL-Control period
-  std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = GetControlMessages ();
-  ctrlMsgs.merge (RetrieveMsgsFromDCIs (currentSlot));
 
   // Create RBG map to know where to put power in DL
   for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
@@ -883,6 +880,10 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
 
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
+
+  // create control messages to be transmitted in DL-Control period
+  std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = PopCurrentSlotCtrlMsgs ();
+  ctrlMsgs.merge (RetrieveMsgsFromDCIs (currentSlot));
 
   if (ctrlMsgs.size () > 0)
     {

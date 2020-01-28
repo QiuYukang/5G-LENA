@@ -22,16 +22,15 @@
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
 #define SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
 
-#include <ns3/antenna-array-model.h>
-#include "mmwave-phy-mac-common.h"
-#include "mmwave-spectrum-phy.h"
 #include "mmwave-phy-sap.h"
-#include "antenna-array-basic-model.h"
 
 namespace ns3 {
 
 class MmWaveNetDevice;
 class MmWaveControlMessage;
+class MmWavePhyMacCommon;
+class MmWaveSpectrumPhy;
+class AntennaArrayBasicModel;
 
 class MmWavePhy : public Object
 {
@@ -40,9 +39,94 @@ public:
 
   MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy);
 
-  virtual ~MmWavePhy ();
+  virtual ~MmWavePhy () override;
 
   static TypeId GetTypeId (void);
+
+  // Called by SAP
+  /**
+   * \brief Enqueue a ctrl message, keeping in consideration L1L2CtrlDelay
+   * \param m the message to enqueue
+   */
+  void EnqueueCtrlMessage (const Ptr<MmWaveControlMessage> &m);
+
+  void SetMacPdu (Ptr<Packet> pb);
+  void SendRachPreamble (uint32_t PreambleId, uint32_t Rnti);
+
+  /**
+   * \brief Store the slot allocation info
+   * \param slotAllocInfo the allocation to store
+   *
+   * This method expect that the sfn of the allocation will match the sfn
+   * when the allocation will be retrieved.
+   */
+  void PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
+
+  /**
+   * \brief Notify PHY about the successful RRC connection
+   * establishment.
+   */
+  void NotifyConnectionSuccessful ();
+
+  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
+
+  // Attributes
+  /**
+   * \return The antena array that is being used by this PHY
+   */
+  Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
+
+  /**
+   * \brief Sets the antenna array type used by this PHY
+   * \param antennaArrayTypeId antennaArray to be used by this PHY
+   * */
+  void SetAntennaArrayType (const TypeId antennaArrayTypeId);
+
+  /**
+   * \brief Set the first dimension of panel/sector in number of antenna elements
+   * \param antennaNumDim1 the size of the first dimension of the panel/sector
+   */
+  void SetAntennaNumDim1 (uint8_t antennaNumDim1);
+
+  /**
+   * \brief Returns the size of the first dimension of the panel/sector in the number of antenna elements
+   * \return the size of the first dimension
+   */
+  uint8_t GetAntennaNumDim1 () const;
+
+  /**
+   * \brief Set the second dimension of panel sector in number of antenna elements
+   * \param antennaNumDim2 the size of the second dimension of the panel/sector
+   */
+  void SetAntennaNumDim2 (uint8_t antennaNumDim2);
+
+  /**
+   * \brief Returns the size of the second dimension of the panel/sector in the number of antenna elements
+   * \return the size of the second dimension
+   */
+  uint8_t GetAntennaNumDim2 () const;
+
+  /**
+   * \brief Returns the antenna array TypeId
+   * \return antenna array TypeId
+   */
+  TypeId GetAntennaArrayType () const;
+
+  // Installation / Helpers
+  MmWavePhySapProvider* GetPhySapProvider ();
+
+  void SetDevice (Ptr<MmWaveNetDevice> d);
+
+  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
+
+  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const = 0;
+
+  // SAP
+  void DoSetCellId (uint16_t cellId);
+
+protected:
+
+  virtual void DoDispose () override;
 
   /**
    * \brief Transform a MAC-made vector of RBG to a PHY-ready vector of SINR indices
@@ -60,41 +144,9 @@ public:
    */
   std::vector<int> FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const;
 
-  void SetDevice (Ptr<MmWaveNetDevice> d);
-
-  Ptr<MmWaveNetDevice> GetDevice ();
-
-  void SetChannel (Ptr<SpectrumChannel> c);
-
-  virtual void DoDispose () override;
-
   void InstallAntenna ();
 
-  void DoSetCellId (uint16_t cellId);
-
-  void SetNoiseFigure (double nf);
-  double GetNoiseFigure (void) const;
-
-  /**
-   * \brief Enqueue a ctrl message, keeping in consideration L1L2CtrlDelay
-   * \param m the message to enqueue
-   */
-  void EnqueueCtrlMessage (const Ptr<MmWaveControlMessage> &m);
-  std::list<Ptr<MmWaveControlMessage> > GetControlMessages (void);
-
-  virtual void SetMacPdu (Ptr<Packet> pb);
-
-  virtual void SendRachPreamble (uint32_t PreambleId, uint32_t Rnti);
-
-  /**
-   * \brief Notify PHY about the successful RRC connection
-   * establishment.
-   */
-  virtual void NotifyConnectionSuccessful ();
-
-
-  //	virtual Ptr<PacketBurst> GetPacketBurst (void);
-  virtual Ptr<PacketBurst> GetPacketBurst (SfnSf);
+  Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
   /**
    * \brief Create Noise Power Spectral density
@@ -121,19 +173,6 @@ public:
    * Take the value from PhyMacCommon. If it's not set, then return 777.
    */
   uint32_t GetCcId () const;
-
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
-
-  MmWavePhySapProvider* GetPhySapProvider ();
-
-  /**
-   * \brief Store the slot allocation info
-   * \param slotAllocInfo the allocation to store
-   *
-   * This method expect that the sfn of the allocation will match the sfn
-   * when the allocation will be retrieved.
-   */
-  void PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo);
 
   /**
    * \brief Store the slot allocation info at the front
@@ -187,54 +226,20 @@ public:
    */
   bool IsCtrlMsgListEmpty () const;
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
-
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const = 0;
-
   /**
-   * \return The antena array that is being used by this PHY
+   * \brief Enqueue a CTRL message without considering L1L2CtrlLatency
+   * \param msg The message to enqueue
    */
-  Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
-
-  /**
-   * \brief Sets the antenna array type used by this PHY
-   * \param antennaArrayTypeId antennaArray to be used by this PHY
-   * */
-  void SetAntennaArrayType (const TypeId antennaArrayTypeId);
-
-  /**
-   * \brief Returns the antenna array TypeId
-   * \return antenna array TypeId
-   */
-  TypeId GetAntennaArrayType () const;
-
-  /**
-   * \brief Set the first dimension of panel/sector in number of antenna elements
-   * \param antennaNumDim1 the size of the first dimension of the panel/sector
-   */
-  void SetAntennaNumDim1 (uint8_t antennaNumDim1);
-
-  /**
-   * \brief Returns the size of the first dimension of the panel/sector in the number of antenna elements
-   * \return the size of the first dimension
-   */
-  uint8_t GetAntennaNumDim1 () const;
-
-  /**
-   * \brief Set the second dimension of panel sector in number of antenna elements
-   * \param antennaNumDim2 the size of the second dimension of the panel/sector
-   */
-  void SetAntennaNumDim2 (uint8_t antennaNumDim2);
-
-  /**
-   * \brief Returns the size of the second dimension of the panel/sector in the number of antenna elements
-   * \return the size of the second dimension
-   */
-  uint8_t GetAntennaNumDim2 () const;
-
-protected:
   void EnqueueCtrlMsgNow (const Ptr<MmWaveControlMessage> &msg);
+  /**
+   * \brief Initialize the message list
+   */
   void InitializeMessageList ();
+  /**
+   * \brief Extract and return the message list that is at the beginning of the queue
+   * \return a list of control messages that are meant to be sent in the current slot
+   */
+  virtual std::list<Ptr<MmWaveControlMessage> > PopCurrentSlotCtrlMsgs (void);
 
 protected:
   Ptr<MmWaveNetDevice> m_netDevice;
