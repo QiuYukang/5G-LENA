@@ -363,16 +363,15 @@ private:
 
   /**
    * \brief Retrieve a DCI list for the allocation passed as parameter
-   * \param targetSlot The target slot number (will be stored inside the CTRL messages)
    * \param alloc The allocation we are searching in
    * \param format The format of the DCI (UL or DL)
+   * \param kDelay The K0 or K2 delay
    * \return A list of control messages that can be sent
    *
    * PS: This function ignores CTRL allocations.
    */
   std::list <Ptr<MmWaveControlMessage>>
-  RetrieveDciFromAllocation (const SfnSf &targetSlot,
-                             const SlotAllocInfo &alloc,
+  RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                              const DciInfoElementTdma::DciFormat &format,
                              uint32_t kDelay);
 

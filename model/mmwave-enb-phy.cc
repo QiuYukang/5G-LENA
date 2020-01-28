@@ -748,8 +748,7 @@ MmWaveEnbPhy::ExpireBeamformingTimer()
 }
 
 std::list <Ptr<MmWaveControlMessage>>
-MmWaveEnbPhy::RetrieveDciFromAllocation (const SfnSf &targetSlot,
-                                         const SlotAllocInfo &alloc,
+MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                                          const DciInfoElementTdma::DciFormat &format,
                                          uint32_t kDelay)
 {
@@ -794,17 +793,18 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
   for (const auto & slot : m_toSendDl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
 
       uint32_t delay = modulo (slot - currentSlotN, m_tddPattern.size ());
+
+      targetSlot.Add (delay,
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
 
       if (targetSlot == currentSlot)
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for the same slot");
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, m_currSlotAllocInfo,
+          ctrlMsgs.merge (RetrieveDciFromAllocation (m_currSlotAllocInfo,
                                                      DciInfoElementTdma::DL, delay));
         }
       else if (SlotAllocInfoExists (targetSlot))
@@ -812,7 +812,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
           NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for " <<
                          targetSlot);
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, PeekSlotAllocInfo(targetSlot),
+          ctrlMsgs.merge (RetrieveDciFromAllocation (PeekSlotAllocInfo(targetSlot),
                                                      DciInfoElementTdma::DL, delay));
         }
       else
@@ -824,17 +824,18 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
   for (const auto & slot : m_toSendUl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
 
       uint32_t delay = modulo (slot - currentSlotN, m_tddPattern.size ());
+
+      targetSlot.Add (delay,
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
 
       if (targetSlot == currentSlot)
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for the same slot");
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, m_currSlotAllocInfo,
+          ctrlMsgs.merge (RetrieveDciFromAllocation (m_currSlotAllocInfo,
                                                      DciInfoElementTdma::UL, delay));
         }
       else if (SlotAllocInfoExists (targetSlot))
@@ -842,7 +843,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
           NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for " <<
                          targetSlot);
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, PeekSlotAllocInfo(targetSlot),
+          ctrlMsgs.merge (RetrieveDciFromAllocation (PeekSlotAllocInfo(targetSlot),
                                                      DciInfoElementTdma::UL, delay));
         }
       else
