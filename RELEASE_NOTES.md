@@ -60,6 +60,7 @@ New user-visible features (old first)
 
 Bugs fixed
 ----------
+- Removed legacy and invalid mmwave-* examples, that were inherited from mmWave codebase.
 
 
 Known issues
