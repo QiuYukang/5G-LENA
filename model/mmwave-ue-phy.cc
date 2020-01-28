@@ -903,8 +903,7 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
 
-  //we apply the K1Delay, but we have to take into account the GetL1L2CtrlLatency due to the DoSendControlMessage
-  Simulator::Schedule (MilliSeconds (m_phyMacConfig->GetK1Delay () - m_phyMacConfig->GetL1L2CtrlLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
+  Simulator::Schedule (MilliSeconds (m_phyMacConfig->GetTbDecodeLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
 }
 
 void
