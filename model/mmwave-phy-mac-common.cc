@@ -125,11 +125,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (2),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2CtrlLatency),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("L1L2DataLatency",
-                   "L1L2 Data decode latency in slot",
-                   UintegerValue (2),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2DataLatency),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("MacSchedulerType",
                    "The type of scheduler to be used for the MAC. "
                    "The allowed values for this attributes are the type names "
@@ -168,7 +163,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_bandwidth (400e6),
   m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
-  m_l1L2DataLatency (2),
   m_k0Delay (0),
   m_k1Delay (4),
   m_k2Delay (2),
@@ -350,12 +344,6 @@ MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const
 }
 
 uint32_t
-MmWavePhyMacCommon::GetL1L2DataLatency (void) const
-{
-  return m_l1L2DataLatency;
-}
-
-uint32_t
 MmWavePhyMacCommon::GetNumHarqProcess (void) const
 {
   return m_numHarqProcess;
@@ -530,12 +518,6 @@ void
 MmWavePhyMacCommon::SetL1L2CtrlLatency (uint32_t delaySfs)
 {
   m_l1L2CtrlLatency = delaySfs;
-}
-
-void
-MmWavePhyMacCommon::SetL1L2DataLatency (uint32_t delayVarTtis)
-{
-  m_l1L2DataLatency = delayVarTtis;
 }
 
 void

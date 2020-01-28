@@ -75,6 +75,7 @@ along with Ul Data).
 
 * In the DCI message,  the gNb reports the K{0,2} delay instead of the
 sfn number.
+* L1L2DataLatency is removed (defined in phy-mac common).
 
 ---
 

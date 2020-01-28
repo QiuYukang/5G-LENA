@@ -753,8 +753,6 @@ public:
 
   uint16_t GetL1L2CtrlLatency (void) const;
 
-  uint32_t GetL1L2DataLatency (void) const;
-
   uint32_t GetNumHarqProcess (void) const;
 
   uint8_t GetHarqTimeout (void) const;
@@ -836,8 +834,6 @@ public:
 
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
-  void SetL1L2DataLatency (uint32_t delayVarTtis);
-
   void SetNumHarqProcess (uint32_t numProcess);
 
   void SetHarqDlTimeout (uint8_t harqDlTimeout);
@@ -873,7 +869,6 @@ private:
   double m_bandwidth;
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
-  uint32_t m_l1L2DataLatency;   // In no. of slots - TODO: check if this is correct description
   uint32_t m_k0Delay;           //!< delay between DL grant and corresponding DL data (PDSCH) reception
   uint32_t m_k1Delay;           //!< delay between DL data (PDSCH) reception and corresponding acknowledgement transmission on UL
   uint32_t m_k2Delay;           //!< delay between UL grant reception in DL and UL data (PUSCH) transmission
