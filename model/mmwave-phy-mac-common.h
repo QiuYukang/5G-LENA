@@ -702,23 +702,16 @@ public:
   uint32_t GetNumReferenceSymbols (void);
 
   /**
-   * \brief: Get the delay set between DL grant and
-   *  corresponding DL data (PDSCH) reception
+   * \brief: Get the minimum processing delay to decode
+   *  DL DCI and decode DL Data
    */
-  uint32_t GetK0Delay (void) const;
+  uint32_t GetN0Delay (void) const;
 
   /**
-   * \brief: Get the delay set between DL data (PDSCH)
-   *  reception and corresponding acknowledgement
-   *  transmission on UL
+   * \brief: Get the minimum processing delay to decode
+   *  UL DCI and prepare UL data
    */
-  uint32_t GetK1Delay (void) const;
-
-  /**
-   * \brief: Get the delay set between UL grant reception
-   *  in DL and UL data (PUSCH) transmission
-   */
-  uint32_t GetK2Delay (void) const;
+  uint32_t GetN2Delay (void) const;
 
   uint32_t GetNumScsPerRb (void) const;
 
@@ -778,23 +771,16 @@ public:
   void SetNumReferenceSymbols (uint32_t refSym);
 
   /**
-   * \brief: Set the delay between DL grant and
-   *  corresponding DL data (PDSCH) reception
+   * \brief: Set the minimum processing delay to
+   *  decode DL DCI and decode DL data
    */
-  void SetK0Delay (uint32_t delay);
+  void SetN0Delay (uint32_t delay);
 
   /**
-   * \brief: Set the delay between DL data (PDSCH)
-   *  reception and corresponding acknowledgement
-   *  transmission on UL
+   * \brief: Set the minimum processing delay to
+   *  decode UL DCI and prepare UL data
    */
-  void SetK1Delay (uint32_t delay);
-
-  /**
-   * \brief: Set the delay between UL grant reception
-   *  in DL and UL data (PUSCH) transmission
-   */
-  void SetK2Delay (uint32_t delay);
+  void SetN2Delay (uint32_t delay);
 
   void SetNumScsPrRb (uint32_t numScs);
 
@@ -855,9 +841,8 @@ private:
   double m_bandwidth;
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
-  uint32_t m_k0Delay;           //!< delay between DL grant and corresponding DL data (PDSCH) reception
-  uint32_t m_k1Delay;           //!< delay between DL data (PDSCH) reception and corresponding acknowledgement transmission on UL
-  uint32_t m_k2Delay;           //!< delay between UL grant reception in DL and UL data (PUSCH) transmission
+  uint32_t m_n0Delay;           //!< minimum processing delay needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n2Delay;           //!< minimum processing delay needed to decode UL DCI and prepare UL data (UE side)
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
   uint32_t m_maxTbSizeBytes;

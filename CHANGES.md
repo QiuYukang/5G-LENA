@@ -77,6 +77,8 @@ along with Ul Data).
 sfn number.
 * L1L2DataLatency is removed (defined in phy-mac common).
 * K3Delay is removed (defined in phy-mac common).
+* Introduce N0, N2 processing delays (in phy-mac common).
+* The UlSchedDelay is replaced by N2Delay.
 
 ---
 
@@ -204,10 +206,6 @@ be adjusted in a flexible manner. In particular, when a control message is passe
 from PHY to MAC or from MAC to PHY, the user can adjust the delay according to each
 release specifications. As default we apply a delay of 1 ms, exept of some cases
 (e.g. RAR msg), where the delay is set to 2 ms.
-WIP is focused on defining K0, K1, K2 and K3 delays according to TS 38.213.
-The UlSchedDelay is replaced by K2Delay.
-The UE PHY DL HARQ feedback is scheduled based to: (K1Delay - L1L2CtrlLatency) so that
-we take into account the latency by the EnqueueCtrlMessage ().
 
 ---
 

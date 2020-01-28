@@ -340,7 +340,7 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
 
   GenerateStructuresFromPattern (pattern, &m_toSendDl, &m_toSendUl,
                                  &m_generateDl, &m_generateUl, 0,
-                                 static_cast<uint32_t> (m_phyMacConfig->GetK2Delay ()),
+                                 static_cast<uint32_t> (m_phyMacConfig->GetN2Delay ()),
                                  m_phyMacConfig->GetL1L2CtrlLatency ());
 
   // At the beginning of the simulation, fill the slot allocations until
@@ -368,7 +368,7 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
 
       sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
 
-      times = m_generateUl.begin()->first + m_phyMacConfig->GetK2Delay () + m_phyMacConfig->GetL1L2CtrlLatency() - 1;
+      times = m_generateUl.begin()->first + m_phyMacConfig->GetN2Delay () + m_phyMacConfig->GetL1L2CtrlLatency() - 1;
 
       for (uint32_t i = 0; i <= times; ++i)
         {
@@ -594,10 +594,10 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   else
     {
       bool hasUlDci = false;
-      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetK2Delay (),
+      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetN2Delay (),
                                                            m_phyMacConfig->GetSlotsPerSubframe (),
                                                            m_phyMacConfig->GetSubframesPerFrame ());
-      if (m_phyMacConfig->GetK2Delay () > 0)
+      if (m_phyMacConfig->GetN2Delay () > 0)
         {
           if (SlotAllocInfoExists (ulSfn))
             {
