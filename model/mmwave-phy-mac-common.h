@@ -720,13 +720,6 @@ public:
    */
   uint32_t GetK2Delay (void) const;
 
-  /**
-   * \brief: Get the delay set between ACK/NAK reception
-   *  in UL and corresponding retransmission of data
-   *  (PDSCH) on DL
-   */
-  uint32_t GetK3Delay (void) const;
-
   uint32_t GetNumScsPerRb (void) const;
 
   double GetSubcarrierSpacing (void) const;
@@ -803,13 +796,6 @@ public:
    */
   void SetK2Delay (uint32_t delay);
 
-  /**
-   * \brief: Set the delay between ACK/NAK reception
-   *  in UL and corresponding retransmission of data
-   *  (PDSCH) on DL
-   */
-  void SetK3Delay (uint32_t delay);
-
   void SetNumScsPrRb (uint32_t numScs);
 
   void SetNumRefScPerRb (uint32_t numRefSc);
@@ -872,7 +858,6 @@ private:
   uint32_t m_k0Delay;           //!< delay between DL grant and corresponding DL data (PDSCH) reception
   uint32_t m_k1Delay;           //!< delay between DL data (PDSCH) reception and corresponding acknowledgement transmission on UL
   uint32_t m_k2Delay;           //!< delay between UL grant reception in DL and UL data (PUSCH) transmission
-  uint32_t m_k3Delay;           //!< delay between ACK/NAK reception in UL and corresponding retransmission of data (PDSCH) on DL
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
   uint32_t m_maxTbSizeBytes;

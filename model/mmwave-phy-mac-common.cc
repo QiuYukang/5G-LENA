@@ -84,11 +84,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (2),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_k2Delay),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("K3Delay",
-                   "Delay between ACK/NAK reception in UL and corresponding retransmission of data (PDSCH) on DL",
-                   UintegerValue (4),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_k3Delay),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("NumRbPerRbg",
                    "Number of resource blocks per resource block group",
                    UintegerValue (1),
@@ -166,7 +161,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_k0Delay (0),
   m_k1Delay (4),
   m_k2Delay (2),
-  m_k3Delay (4),
   m_tbDecodeLatencyUs (100.0),
   m_maxTbSizeBytes (0x7FFF),
   m_componentCarrierId (0)
@@ -264,12 +258,6 @@ uint32_t
 MmWavePhyMacCommon::GetK2Delay (void) const
 {
   return m_k2Delay;
-}
-
-uint32_t
-MmWavePhyMacCommon::GetK3Delay (void) const
-{
-  return m_k3Delay;
 }
 
 uint32_t
@@ -437,12 +425,6 @@ void
 MmWavePhyMacCommon::SetK2Delay (uint32_t delay)
 {
   m_k2Delay = delay;
-}
-
-void
-MmWavePhyMacCommon::SetK3Delay (uint32_t delay)
-{
-  m_k3Delay = delay;
 }
 
 void
