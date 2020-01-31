@@ -77,7 +77,7 @@ along with Ul Data).
 sfn number.
 * L1L2DataLatency is removed (defined in phy-mac common).
 * K3Delay is removed (defined in phy-mac common).
-* Introduce N0, N2 processing delays (in phy-mac common).
+* Introduce N0, N1, N2 processing delays (in phy-mac common).
 * The UlSchedDelay is replaced by N2Delay.
 
 ---

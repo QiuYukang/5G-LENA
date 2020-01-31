@@ -231,6 +231,13 @@ protected:
    * \param msg The message to enqueue
    */
   void EnqueueCtrlMsgNow (const Ptr<MmWaveControlMessage> &msg);
+
+  /**
+   * @brief Enqueue a CTRL message without considering L1L2CtrlLatency
+   * @param listOfMsgs The list of messages to enqueue
+   */
+  void EnqueueCtrlMsgNow (const std::list<Ptr<MmWaveControlMessage> > &listOfMsgs);
+
   /**
    * \brief Initialize the message list
    */

@@ -891,8 +891,9 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
 
   // create control messages to be transmitted in DL-Control period
+
+  EnqueueCtrlMsgNow (RetrieveMsgsFromDCIs (currentSlot));
   std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = PopCurrentSlotCtrlMsgs ();
-  ctrlMsgs.merge (RetrieveMsgsFromDCIs (currentSlot));
 
   if (ctrlMsgs.size () > 0)
     {

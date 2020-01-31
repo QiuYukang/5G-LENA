@@ -58,6 +58,8 @@ New user-visible features (old first)
 - The UlSchedDelay is replaced by K2Delay.
 - Ue side control messages could be scheduled with Ul Data. This behavior is now
   changed and therefore control messages are scheduled only in Ul Ctrl.
+- WIP: Definition of processing delays N0, N1, N2.
+- The UlSchedDelay is replaced by N2Delay.
 
 Bugs fixed
 ----------

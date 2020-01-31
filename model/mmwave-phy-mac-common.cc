@@ -74,6 +74,12 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (0),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_n0Delay),
                    MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("N1Delay",
+                   "Minimum processing delay (UE side) from the end of DL Data reception to "
+                   "the earliest possible start of the corresponding ACK/NACK transmission",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_n1Delay),
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("N2Delay",
                    "Minimum processing delay needed to decode UL DCI and prepare UL data",
                    UintegerValue (2),
@@ -154,6 +160,7 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
   m_n0Delay (0),
+  m_n1Delay (4),
   m_n2Delay (2),
   m_tbDecodeLatencyUs (100.0),
   m_maxTbSizeBytes (0x7FFF),
@@ -240,6 +247,12 @@ uint32_t
 MmWavePhyMacCommon::GetN0Delay (void) const
 {
   return m_n0Delay;
+}
+
+uint32_t
+MmWavePhyMacCommon::GetN1Delay (void) const
+{
+  return m_n1Delay;
 }
 
 uint32_t
@@ -401,6 +414,12 @@ void
 MmWavePhyMacCommon::SetN0Delay (uint32_t delay)
 {
   m_n0Delay = delay;
+}
+
+void
+MmWavePhyMacCommon::SetN1Delay (uint32_t delay)
+{
+  m_n1Delay = delay;
 }
 
 void

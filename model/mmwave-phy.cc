@@ -318,6 +318,15 @@ MmWavePhy::EnqueueCtrlMsgNow (const Ptr<MmWaveControlMessage> &msg)
 }
 
 void
+MmWavePhy::EnqueueCtrlMsgNow (const std::list<Ptr<MmWaveControlMessage> > &listOfMsgs)
+{
+  for (const auto & msg : listOfMsgs)
+    {
+      m_controlMessageQueue.at (0).push_back (msg);
+    }
+}
+
+void
 MmWavePhy::InitializeMessageList ()
 {
   NS_LOG_FUNCTION (this);

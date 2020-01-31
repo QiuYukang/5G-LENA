@@ -708,6 +708,12 @@ public:
   uint32_t GetN0Delay (void) const;
 
   /**
+   * \brief: Get the minimum processing delay to
+   *  decode DL Data and send Harq feedback
+   */
+  uint32_t GetN1Delay (void) const;
+
+  /**
    * \brief: Get the minimum processing delay to decode
    *  UL DCI and prepare UL data
    */
@@ -778,6 +784,12 @@ public:
 
   /**
    * \brief: Set the minimum processing delay to
+   *  decode DL Data and send Harq feedback
+   */
+  void SetN1Delay (uint32_t delay);
+
+  /**
+   * \brief: Set the minimum processing delay to
    *  decode UL DCI and prepare UL data
    */
   void SetN2Delay (uint32_t delay);
@@ -842,6 +854,7 @@ private:
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
   uint32_t m_n0Delay;           //!< minimum processing delay needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n1Delay;           //!< minimum processing delay from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
   uint32_t m_n2Delay;           //!< minimum processing delay needed to decode UL DCI and prepare UL data (UE side)
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
