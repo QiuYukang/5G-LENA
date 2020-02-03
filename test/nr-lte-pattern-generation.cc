@@ -204,7 +204,7 @@ LtePatternTestCase::DoRun()
     },
     {
       { 8, {2, } },
-      { 9, {4, 3, } },
+      { 9, {3, 4, } },
     }
 
   };
@@ -339,7 +339,7 @@ LtePatternTestCase::DoRun()
       { 3, {7, } },
       { 4, {8, } },
       { 8, {2, } },
-      { 9, {4, 3, } },
+      { 9, {3, 4, } },
     }
   };
   auto six = {LteNrTddSlotType::DL,
@@ -377,9 +377,9 @@ LtePatternTestCase::DoRun()
     },
     {
       { 3, {7, } },
-      { 4, {9, 8, } },
+      { 4, {8, 9, } },
       { 8, {2, } },
-      { 9, {4, 3, } },
+      { 9, {3, 4, } },
     }
   };
   auto zero = {LteNrTddSlotType::DL,
