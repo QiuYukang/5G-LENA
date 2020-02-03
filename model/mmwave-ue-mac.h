@@ -190,7 +190,8 @@ private:
   void SendReportBufferStatus (void);
   void RefreshHarqProcessesPacketBuffer (void);
 
-  std::map<uint32_t, struct MacPduInfo>::iterator AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci, unsigned activeLcs);
+  std::map<uint32_t, struct MacPduInfo>::iterator AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci,
+                                                                  unsigned activeLcs, const SfnSf &ulSfn);
 
 private:
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;

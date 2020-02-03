@@ -583,14 +583,11 @@ MmWaveUeMac::RecvRaResponse (BuildRarListElement_s raResponse)
 
 std::map<uint32_t, struct MacPduInfo>::iterator
 MmWaveUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
-                             unsigned activeLcs)
+                             unsigned activeLcs, const SfnSf &ulSfn)
 {
-  SfnSf ulSfnSf = (SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0)).CalculateUplinkSlot (m_phyMacConfig->GetK2Delay (),
-                                                                                         m_phyMacConfig->GetSlotsPerSubframe (),
-                                                                                         m_phyMacConfig->GetSubframesPerFrame ());
-  NS_LOG_DEBUG ("Adding PDU for slot " << ulSfnSf);
+  NS_LOG_DEBUG ("Adding PDU for slot " << ulSfn);
 
-  MacPduInfo macPduInfo (SfnSf (ulSfnSf.m_frameNum, ulSfnSf.m_subframeNum, ulSfnSf.m_slotNum, dci->m_symStart), dci->m_tbSize, activeLcs);
+  MacPduInfo macPduInfo (SfnSf (ulSfn.m_frameNum, ulSfn.m_subframeNum, ulSfn.m_slotNum, dci->m_symStart), dci->m_tbSize, activeLcs);
   std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
 
   if (it != m_macPduMap.end ())
@@ -620,7 +617,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
             && dciInfoElem->m_type == DciInfoElementTdma::DATA)
           {
             SfnSf dataSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, dciInfoElem->m_symStart);
-            dataSfn = dataSfn.CalculateUplinkSlot (m_phyMacConfig->GetK2Delay (),
+            dataSfn = dataSfn.CalculateUplinkSlot (dciMsg->GetKDelay (),
                                                    m_phyMacConfig->GetSlotsPerSubframe (),
                                                    m_phyMacConfig->GetSubframesPerFrame ());
             NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
@@ -672,7 +669,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     return;
                   }
 
-                std::map<uint32_t, struct MacPduInfo>::iterator macPduIt = AddToMacPduMap (dciInfoElem, activeLcs);
+                std::map<uint32_t, struct MacPduInfo>::iterator macPduIt = AddToMacPduMap (dciInfoElem, activeLcs, dataSfn);
                 std::map <uint8_t, LcInfo>::iterator lcIt;
                 uint32_t bytesPerActiveLc = dciInfoElem->m_tbSize / activeLcs;
                 bool statusPduPriority = false;
