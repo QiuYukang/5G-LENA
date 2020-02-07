@@ -129,8 +129,21 @@ public:
    */
   uint32_t GetKDelay (void) const;
 
+  /**
+   * \brief Set the delay between DL Data reception and
+   * \subframe to which it applies for Harq feedback
+   */
+  void SetK1Delay (uint32_t delay);
+  /**
+   * \brief Get the delay between DL Data reception and
+   * \subframe to which it applies for Harq feedback
+   * \return k1 delay
+   */
+  uint32_t GetK1Delay (void) const;
+
 private:
   uint32_t m_k;         //!< delay between DL/UL DCI reception and subframe to which it applies for reception/transmission of Data (k0/k2)
+  uint32_t m_k1;        //!< delay between DL Data reception and subframe to which it applies for Harq feedback (k1)
   //bool	m_ulGrant;	// is ul grant
 //	SlotAllocInfo m_rscAllocationMap;
   std::shared_ptr<DciInfoElementTdma> m_dciInfoElement;
