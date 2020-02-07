@@ -891,10 +891,10 @@ MmWaveUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
 }
 
 void
-MmWaveUePhy::ReceiveLteDlHarqFeedback (const DlHarqInfo &m)
+MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
 {
   NS_LOG_FUNCTION (this);
-  // generate feedback to eNB and send it through ideal PUCCH
+  // get the feedback from MmWaveSpectrumPhy and send it through ideal PUCCH to eNB
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
   //we apply the K1Delay, but we have to take into account the GetL1L2CtrlLatency due to the DoSendControlMessage
