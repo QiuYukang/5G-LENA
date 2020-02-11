@@ -97,7 +97,7 @@ Design
 In this section, we present the design of the different features and procedures that we have
 developed following 3GPP Release-15 NR activity.
 For those features/mechanisms/layers that still have not been upgraded to NR,
-the current design following LTE specifications is also detailed.
+the current design following LTE specifications is also indicated.
 
 
 Architecture
@@ -109,7 +109,7 @@ we represent the existing, and unmodified, ns-3 and LENA components.
 In light gray, we represent the NR components.
 On one side, we have a remote host (depicted as a single node in the figure,
 for simplicity, but there can be multiple nodes)
-that connects to an SGW/PGW, through a link. Such a connection can be of any
+that connects to an SGW/PGW (Service Gateway and Packet Gateway), through a link. Such a connection can be of any
 technology that is currently available in ns-3. It is currently implemented
 through a single link, but it can be replaced by an entire subnetwork with many
 nodes and routing rules. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates
@@ -118,7 +118,7 @@ the backhaul of the NR network (again, represented with a single link in the fig
 but the topology can vary), the GTP packet is received by the gNB.
 There, after decapsulating the payload, the packet is transmitted over the RAN
 through the entry point represented by the class ``NRGnbNetDevice``. The packet,
-if received correctly at the \gls{ue}, is passed to higher layers by the class ``NRUeNetDevice``.
+if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``.
 The path crossed by packets in the UL case is the same as the one described
 above but on the contrary direction.
 
@@ -137,7 +137,7 @@ enabling the communication with the LTE RLC layer. The module supports
 RLC TM, SM, UM and AM modes. The MAC layer contains the scheduler (``NRMacScheduler``
 and derived classes). Every scheduler also implements a SAP for LTE RRC layer
 configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform
-the directional communication for both DL and UL, to transmit/receive the data
+the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data
 and control channels. Each ``NRPhy`` class writes into an instance of ``MmWaveSpectrumPhy``
 class, which is shared between the UL and DL parts.
 
@@ -157,8 +157,10 @@ Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM
 but they help construct a fundamental feature of our simulator:
 the multiplexing of different parts of the bandwidth (like BWPs or CCs).
 NR has included the definition of BWP for energy-saving purposes,
-as well as to multiplex a variety of services with different QoS requirements.
-In our simulator, it is possible to divide the entire bandwidth into different
+as well as to multiplex a variety of services with different QoS requirements. CC concept
+was already introduced in LTE, and persists in NR, as a way to aggregate different
+carriers and so improve the system capacity.
+In the 'NR' simulator, it is possible to divide the entire bandwidth into different
 BWPs and CCs. Each BWP/CC can have its own PHY and MAC configuration
 (e.g., a specific numerology, scheduler rationale, and so on).
 We added the possibility for any node to transmit and receive flows
@@ -279,7 +281,7 @@ Therefore, among the set of supported numerologies for a specific operational
 band and deployment configuration, URLLC can be served with the numerology
 that has the shortest slot length, and eMBB with the numerology associated
 to the largest slot length. To address that, NR enables FDM of numerologies through different
-bandwidth parts (BWPs), to address the trade-off between latency
+BWPs, to address the trade-off between latency
 and throughput for different types of traffic by physically dividing the
 bandwidth in two or more BWPs. In Figure \ref{fig:bwps}, we illustrate
 an example of FDM of numerologies. The channel is split into two BWPs
@@ -315,7 +317,13 @@ TBC
 
 Duplexing schemes
 =================
-TBC
+The 'NR' simulator supports both TDD and FDD duplexing modes, in a flexible manner.
+Indeed a gNB can be configured with multiple carriers, some of them being paired (for FDD), and
+others being TDD. Each carrier can be further split into multiple BWPs, under the
+assumption that all the BWPs are orthogonal in frequency, to enable compatibility
+with the channel instances. The gNB can simultaneously transmit and/or receive from
+multiple BWPs. However, from the UE side, we assume the UE is active in a single
+BWP at a time.
 
 
 TDD model
@@ -385,7 +393,8 @@ latest NR specifications, including LDPC coding,
 MCS up to 256-QAM, different MCS Tables (MCS Table1 and MCS Table2),
 and NR transport block segmentation [TS38214]_ [TS38212]_. Also, the developed PHY
 abstraction model supports HARQ
-based on Incremental Redundancy (IR) and on Chase Combining (CC). The MCS table and
+based on Incremental Redundancy (IR) and on Chase Combining (CC), as we will present in
+the corresponding section. The MCS table and
 the HARQ method are two attributes that can be configured by the user.
 
 The error model of the NR data plane in the 'NR' module is developed according to standard
@@ -497,12 +506,12 @@ is calibrated
 such that the effective SINR of that channel approximates to the SINR that
 would produce the same BLER, with the same MCS, in AWGN channel conditions.
 In order to obtain the optimal mapping functions, we used the NR-compliant
-link-level simulator and use a calibration technique described in [cipriano08]_.
+link-level simulator and use a calibration technique described in [calibration-l2sm]_.
 We use tapped delay line (TDP) based fading channel models recommended by 3GPP in [TR38900]_.
 A collection of LOS (TDL-D) and NLOS (TDL-A) channel models ranging in delay
 spread from 30 ns to 316 ns are used. For NR, SCS of 30 KHz and 60 KHz are simulated.
 The details of the link-level simulator as well as the optimized :math:`\beta` values
-for each MCS index in MCS Table1 and MCS Table2 are detailed in [lagen20]_,
+for each MCS index in MCS Table1 and MCS Table2 are detailed in [nr-l2sm]_,
 as included in the 'NR' simulator.
 
 
@@ -551,6 +560,10 @@ In the later, a set of predefined beams is tested, and the beam-pair providing a
 highest average SNR is selected. For the beam-search method, our simulator supports
 abstraction of the beam ID through two angles (azimuth and elevation).
 A new interface allows you to have the beam ID available at MAC layer for scheduling purposes.
+
+Both methods are, as of today, ideal in the sense that no physical resources are employed
+to do the beam selection procedure, and as such no errors in the selection are taken into
+account.
 
 
 
@@ -636,7 +649,7 @@ This section describes the different models supported and developed at MAC layer
 Resource allocation model: OFDMA and TDMA
 =========================================
 The 'NR' module supports TDMA and OFDMA with single-beam capability and variable TTI
-in the downlink (DL) direction. In the uplink (UL) direction, only TDMA with variable
+in the DL direction. In the UL direction, only TDMA with variable
 TTI is supported (and so, single-beam capability by definition).
 The single-beam capability implies that a single receive or transmit beam can be used
 at any given time instant. The variable TTI means that the number of allocated
@@ -881,25 +894,31 @@ the UE and can be used for MCS index selection at the gNB.
 NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_),
 each table being associated with one MCS table.
 
-Note that the PHY abstraction model described in PHY layer section can also be used
-for link adaptation, i.e.,
-to determine an MCS that satisfies a target transport BLER (e.g., :math:`10\%`) based
-on the actual channel conditions. In that case, for a given set of SINR values,
-a target transport BLER, an MCS table, and considering a transport block
-composed of the group of RBs in the band (termed the CSI reference resource [TS38214]_),
-the highest MCS index that meets the target transport BLER constraint is selected
-at the UE. Such value is then reported through the associated CQI index to the gNB.
 
 The 'NR' module supports 1) fixing the MCS to a predefined value, both for downlink and uplink
 transmissions, separately, and 2) two different AMC models for link adaptation:
 
 * Error model-based: in which the MCS index is selected to meet a target transport BLER (e.g., of at most 0.1)
-* Shannon-based: which chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate (using a coefficient of :math:`{-}\ln(5{\times}0.00001)/0.5` to account for the difference in between the theoretical bound and real performance)
+* Shannon-based: which chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate
+
+In the Error model-based AMC, the PHY abstraction model described in PHY layer section is used
+for link adaptation, i.e.,
+to determine an MCS that satisfies the target transport BLER based
+on the actual channel conditions. In particular, for a given set of SINR values,
+a target transport BLER, an MCS table, and considering a transport block
+composed of the group of RBs in the band (termed the CSI reference resource [TS38214]_),
+the highest MCS index that meets the target transport BLER constraint is selected
+at the UE. Such value is then reported through the associated CQI index to the gNB.
+
+In the Shannon-based AMC, to compute the Shannon rate we use a coefficient
+of :math:`{-}\ln(5{\times}0.00001)/0.5` to account for the difference in
+between the theoretical bound and real performance.
 
 The AMC model can be configured by the user through the associated attribute.
 
-Note that link adaptation is done at UE side, and then communicated to the gNB
-through a CQI index.
+In the 'NR' module, link adaptation is done at the UE side, which selects the MCS index (quantized
+by 5 bits),
+and such index is then communicated to the gNB through a CQI index (quantized by 4 bits).
 
 
 
@@ -1017,7 +1036,8 @@ Usage
 -----
 
 This section is principally concerned with the usage of the model, using
-the public API. We discuss on examples available to the user, the helpers, the attributes and the simulation campaign we run.
+the public API. We discuss on examples available to the user, the helpers,
+the attributes and the simulation campaign we run.
 
 
 Examples
@@ -1134,7 +1154,7 @@ There is a single file per simulation. File contains the statistics of all
 flows belonging to that simulation.
 
 NR frame structure and numerologies
-============================================
+===================================
 
 In this subsection, we provide and overview of simulation campaigns contained in ``campaigns/3gpp-nr-numerologies``.
 
@@ -1471,6 +1491,7 @@ These attributes are listed in Tables :ref:`tab-3gpp-channel-attributes`,
 
 What classes hold attributes, and what are the key ones worth mentioning?
 
+
 Output
 ******
 
@@ -1555,16 +1576,13 @@ single gNB is transmitting.
 
 Test for error model
 ====================
-Test case called ``NrL2smEesmTestCase`` validates the NR PHY abstraction model.
+Test case called ``NrL2smEesmTestCase`` validates the NR PHY abstraction model. TBC
 
 
 Test for channel model
 ======================
-Test case called ``NrTest3gppChannelTestCase`` validates the channel model.
+Test case called ``NrTest3gppChannelTestCase`` validates the channel model. TBC
 
-
-References
-----------
 
 .. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
 
@@ -1594,6 +1612,6 @@ References
 
 .. [TS38212] 3GPP  TS  38.212, TSG  RAN;  NR;  Multiplexing  and  channel  coding (Release 16), v16.0.0, Dec. 2019.
 
-.. [cipriano08] A.  M.  Cipriano,  R.  Visoz,  and  T.  Salzer,  “Calibration  issues  of  PHY layer  abstractions  for  wireless  broadband  systems,” IEEE  Vehicular Technology Conference, Sept. 2008.
+.. [calibration-l2sm] A.-M. Cipriano,  R.  Visoz,  and  T.  Salzer,  "Calibration  issues  of  PHY layer  abstractions  for  wireless  broadband  systems", IEEE  Vehicular Technology Conference, Sept. 2008.
 
-.. [lagen20] S. Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello, L. Giupponi, New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks, in Proceedings of IEEE International Conference on Communications (IEEE ICC), 7-11 June 2020, Dublin (Ireland).
+.. [nr-l2sm] S. Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello, L. Giupponi, "New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks", in Proceedings of IEEE International Conference on Communications (IEEE ICC), 7-11 June 2020, Dublin (Ireland).
