@@ -692,6 +692,310 @@ for control channels.
 
 
 
+FDM of numerologies
+********************
+An additional level of flexibility in NR system can be achieved by employing the multiplexing of numerologies in the frequency domain.
+In 5G it is expected that a base station (a.k.a. gNB in NR) should provide access to different types of services, as enhanced Mobile
+BroadBand (eMBB), massive Machine Type Communications (mMTC), and Ultra-Reliable and Low Latency Communications (URLLC).
+A latency-throughput trade-off appears when attempting the selection of the proper numerology for gNB's
+operation: larger SCS is better to reduce latency and for complexity (i.e., for URLLC traffic),
+while lower SCS is better for high throughput performance (i.e., for eMBB traffic).
+For that reason, 3GPP NR specifies that multiple numerologies should be able to be multiplexed in time and/or frequency
+for a better user (a.k.a. UE in NR) performance under different types of data.
+This way, a gNB can accommodate different services with different latency requirements, as eMBB and URLLC, within the same
+channel bandwidth.
+When numerologies are multiplexed in a frequency domain, a.k.a. frequency division multiplexing (FDM) of numerologies,
+each numerology occupies a part of the whole channel bandwidth,
+which is referred to in NR as a bandwidth part (BWP).
+In addition, occasions where multiplexing of numerologies in time domain,
+a.k.a. time division multiplexing (TDM) of numerologies is needed are rare if the gNB configures properly the FDM of numerologies for eMBB and URLLC traffics.
+3GPP agreed that the BWP allocation has to be statically or semi-statically configured.
+
+In general, URLLC traffic requires a short slot length to meet strict latency requirements,
+while eMBB use case in general aims at increasing throughput, which is achieved with a large slot length.
+Therefore, among the set of supported numerologies for a specific operational band and deployment configuration,
+URLLC shall be served with the numerology that has the shortest slot length,
+and eMBB with the numerology associated to the largest slot length.
+That is, the numerology for URLLC will be larger than the numerology for eMBB.
+Hence, the main objective of FDM of numerologies is to address the trade-off between latency and throughput for different types of traffic.
+
+In Figure :ref:`fig-bwps` we illustrate an example of FDM of two numerologies.
+In the example, the channel is split into two BWPs that accommodate the two aforementioned numerologies multiplexed in frequency domain. The total bandwidth $B$ is divided into BWPs of bandwidth $B_u$ for URLLC and $B_e$ for eMBB,
+so that $B_u + B_e \leq B$.
+The number of PRBs for URLLC is $N_u$ and $N_e$ for eMBB. Note, that the PRB width varies with the numerology.
+
+
+.. _fig-bwps:
+
+.. figure:: figures/bwps.*
+   :align: center
+   :scale: 60 %
+
+   An example of BWPs
+
+
+
+
+Enhancements to support FDM of numerologies
+============================================
+The main challenge in designing and implementing the FDM feature in mmWave module is that this feature
+is not yet fully defined by 3GPP. For example, 3GPP does not define the control plane functionality of the FDM.
+The PHY needs a capability of configuration of different BWPs, and this configuration
+may be static or semi-static. On the other hand, from the simulation point of view,
+a typical use case scenario for FDM of numerologies would be to allow configuration of a small number of different BWPs,
+and as a preliminary implementation of this feature it would be sufficient that this configuration is static.
+At this point, this is an important design assumption for two reasons.
+Firstly, the current implementation of the channel and the propagation loss model of the mmWave module is not
+designed in a way to allow runtime modifications of the physical configuration parameters related to frequency,
+such as: the system bandwidth, the central carrier frequency, and neither
+time related physical layer parameters, such as symbol and slot length.
+Thus, until the current 3GPP mmWave channel model is not being modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs.
+
+Additionally, since the control plane functionality of the FDM is not defined yet by 3GPP
+and it is not clear how the runtime reconfiguration would be performed,
+i.e., the PHY reconfiguration of BWPs, the periodicity, and the control messages. Some options that are being considered by 3GPP are
+via the broadcast channel, RRC signaling or periodical group common PDCCH.
+
+Regarding the data plane, note that there is a similarity of the concept of the component carriers (CCs) in LTE and the BWPs in NR.
+While the purpose is different, the concept of having aggregated physical layer resources remains the same.
+The main difference is that in LTE, the different carriers have the same symbol, slot, subframe, and frame boundary,
+while in NR only the subframe and frame boundaries of different BWPs are aligned.
+Another difference is that the bandwidth of a Component Carrier (CC) in LTE is predefined and cannot be dynamically changed.
+On the other hand, in NR it is expected to allow semi-dynamic reconfiguration of the bandwidth of different BWPs.
+Additionally, in NR the SCS may be BWP-dependent, while in LTE it is the same for all sub-carriers.
+However, in the case of static BWPs configuration, possibility of having different configurations of time and frequency
+among BWPs does not make the BWP concept in its essence very different from the CCs in LTE.
+
+Taking into account the previously explained assumptions along with the currently available requirements for the control and data plane
+implementation of FDM of numerologies, the main design idea is to leverage the Carrier Aggregation (CA) feature of the 'LTE' module to implement the
+basic FDM feature in the 'NR' module. Note that the CA feature is mainly living in the Radio Respurce Control (RRC) and MAC layers.
+Since the current implementation of the 'mmWav'e leverages on the LTE module implementation of RRC,
+incorporating this part of CA functionality is automatically done by upgrading the 'LTE' module to the version that includes the CA feature.
+In this way, the 'mmWave' module inherits the features, such as the extension of RRC
+messages in order to handle the secondary CC (SCC) information.
+By leveraging on the LTE CA RRC functionality, each NR UE establishes the cell connection following the LTE R8 procedure.
+This includes a cell search and selection, followed by the system information acquisition phase and the random access procedure.
+
+The RRC is in charge of the connection procedure, and it configures the primary CC (PCC).
+Once the UE is in connected state, the gNB RRC is responsible to perform reconfiguration,
+addition and removal of SCCs.
+Since the ``UE Capability Inquiry`` and ``UE Capability Information`` are not implemented,
+it is assumed that each UE can support any BWP configuration provided by the
+gNB to which it is attached. Since, 3GPP defines the Primary CC (PCC) as UE related and not as eNB related,
+according to LTE CA the PCC is the CC that is perceived as the most robust connection for each UE.
+
+While, the RRC CA functionality is inherited from the 'LTE' module, the rest of the protocol stack of both, gNB and UE,
+needs to be updated according to the CA architecture. This means that the models of both ``MmWaveEnbDevice`` and ``MmWaveUeDevice``
+shall be extended to support the installation of the MAC and PHY per carriers.
+Additionally, the MAC layer of 'mmWave' module needs to be updated to allow scheduling on different BWPs.
+
+It should be defined how the MAC scheduling will be performed in multi-BWP system,
+and how will be this information transmitted to the UE.
+Different options are proposed recently to be included in 3GPP specification:
+
+* dedicated control channel
+* anchor control channel, and
+* shared control channel.
+
+.. _gnb-changes:
+
+.. figure:: figures/gnb-changes.*
+   :align: center
+   :scale: 60 %
+
+   Class diagram of changes at ``MmWaveEnbNetDevice``
+
+   Sending the scheduling information through a dedicated control channel of each
+BWP assumes that the UE is capable of decoding several control channels simultaneously.
+Depending on the type of traffic, the UE can be scheduled on different BWPs. This option is
+analog to independent carrier scheduling in LTE Release 10, according to which each CC has its
+own physical DL control channel (PDCCH) and the scheduler allocated traffic per CC-basis.
+Anchored control channel is transmitted on the BWP that is always ON or been used most frequently.
+Transmitting the scheduling information through anchored control channel means that the control information
+for all BWPs is transmitted on the same BWP. This is similar to cross-carrier scheduling in LTE Release 10, according to which
+the scheduling information is sent through the PCC.
+The third option, shared control channel, means that the control channel spans over BWPs in which the UE is being scheduled.
+Thus the bandwidth of the shared control channel dynamically changes depending on the scheduling information for UE.
+
+In the current implementation of FDM of numerologies in |ns3|, we support the transmission of the
+scheduling information through a dedicated control channel in each BWP,
+and the MAC scheduling and HARQ processes are performed per BWP.
+Finally, according to our model, the multiplexing of the data flows based on the type of traffic is performed
+by a new entity called BWP manager, whose role is similar to that of CC manager in the LTE module.
+The BWP manager can use 5G quality-of-service (QoS) identifiers (5QI), as defined [3GPPTSGSSA]_,
+to determine on which numerology (i.e., BWP) to allocate the packets of a radio bearer and to establish priorities among radio bearers.
+
+The first step to implement this design was to upgrade to latest 'LTE', in order to include the CA implementation therein available.
+However, upgrading of the 'LTE' module to the latest ns-3-dev version is not enough for the correct functioning of CA with 'mmWave' module,
+since the latest version of the 'LTE' module expects the service access point (SAP) interfaces of the lower layers and the stack
+initialization according the CA design.
+The class that is responsible for these initializations in the 'mmWave' module is ``MmWaveHelper`` class.
+Thus, the second major changes in the 'mmWave' module to enable CA architecture are in the functions of
+``MmWaveHelper`` class for installation of gNB and UE, and these are respectively, ``InstallSingleEnbDevice`` and
+``InstallSingleUeDevice``. Additionally, the function that has suffered important changes in ``MmWaveHelper``
+is ``DoInitialize``, which is responsible for the initialization of the channel and the pathloss model.
+
+``InstallSingleEnbDevice`` function is modified to allow configuration of the gNB according to CA architecture.
+In Figure \ref{fig:gnb-changes} we illustrate the changes in the model of gNB device, which are highlighted in dark green.
+The gNB device which is in 'mmWave' module represented by ``MmWaveEnbNetDevice`` is extended to
+include the map of CCs. Similarly to the LTE module, a CC consists of the MAC and PHY layers of each CC.
+Since the MAC and PHY configuration parameters in ``MmWavePhyMacCommon`` instance
+are extended to support a flexible numerology configuration,
+each CC can now be configured as a separate BWP with different numerology and other BWP specific parameters:
+carrier frequency, bandwidth, L1L2 processing and decoding delay, HARQ timing, etc.
+Apart from latter parameters, another important BWP-specific parameter is the transmission power per BWP
+which can be configured through the attribute of ``MmWaveEnbPhy``.
+
+``MmWaveEnbNetDevice`` is extended to include the CC manager entity whose interface is implemented
+in abstract class called ``LteEnbComponentCarrierManager``. The already existing set of LTE CC manager implementations is
+extended with a new CC manager entity called ``BwpManager``,
+which is different from the LTE CC manager since it can make decisions based on the numerology configuration of carriers.
+The role of the ``BwpManager`` class is to allow differentiation of the traffic flows based on their QoS requirements,
+and to forward the flow to the BWP which would provide the minimum latency for latency-sensitive types of flows, and
+which would maximize the throughput for the traffic flows that do not have a tight latency constraint.
+Current implementation of ``BwpManager`` supports all LTE EPS bearer QoS types, and
+the assignment of the corresponding BWP is based on the static configuration provided by the user.
+I.e., user shall specify which QoS type shall be mapped to which numerology and BWP.
+Similarly to the changes in gNB device that we illustrated in Figure :ref:`gnb-changes`,
+we have also extended the NR UE model to support the CCs and UE CC manager.
+However, in the current implementation,
+we are interested only in FDM of numerologies coordinated by the gNB and its BWP manager.
+Additionally, the function ``InstallSingleEnbDevice`` of ``MmWaveHelper`` is responsible for building up the whole protocol
+stack of the gNB and installing the SAP interfaces for control and data planes.
+In Figure Figure :ref:`ca-enb-data-plane-v6` we illustrate the gNB data plane according to this implementation.
+The main changes are installation of CC manager between the RLC and the MAC layers,
+and installation of CCs. To allow this architecture, the CC manager implements the SAP interfaces
+that were previously handled by RLC and MAC. In this way, gNB MAC and PHY continue to function as in the
+previous architecture, while CC manager is in charge of handling the information needed for CC management and
+multiplexing the flows over different carriers (or BWPs). Also, the control plane architecture of the gNB device
+is updated according the LTE module CA architecture. The full description of the LTE module CA architecture is provided in
+[CA_WNS32017]_.
+Similarly, the function ``InstallSingleUeDevice`` is modified to allow installation of NR UE device according to
+the LTE module CA architecture. ``InstallSingleUeDevice`` builds the CCs, installs the CC manager, and
+builds the protocol stack that is analog to the LTE UE CA.
+``DoInitialize`` function of ``MmWaveHelper`` is modified to allow configuration of different BWPs.
+However, this initialization is different from ``DoInitialize`` of ``LteHelper`` due to the current
+limitation of the 'mmWave' module channel models (MmWaveBeamforming, MmWaveChannelMatrix,
+MmWaveChannelRaytracing, MmWave3gppChannel),
+all of which depend on the various PHY and MAC configuration parameters
+specified through a single instance of ``MmWavePhyMacCommon``.
+Hence, due to the current design of the 'mmWave' module and channel models it is not possible like in LTE module
+to install devices operating on different central carrier frequencies, neither to install different CCs.
+Thus, to enable installation of different CCs, we have modified ``DoInitialize`` to allow installation
+of ``SpectrumChannel`` instance per CC. In this way, a single simulation will have as many
+``MmWave3gppChannel`` channel model instances as BWPs are configured.
+However, an important limitation of this design is that all gNBs and UEs in the simulation have the same BWP configuration.
+Each ``MmWave3gppChannel`` instance will represent a channel model for a different BWP whose
+parameters are defined in a corresponding instance of ``MmWavePhyMacCommon`` class.
+
+.. _ca-enb-data-plane-v6:
+
+.. figure:: figures/ca-enb-data-plane-v6.*
+   :align: center
+   :scale: 60 %
+
+   gNB data plane architecture with CA extension
+
+mini-slot and mixed UL-DL slot format support
+************************************************************
+According to the NR definition of TTI,
+one TTI duration corresponds to a number of consecutive symbols in the time domain in one transmission direction,
+and different TTI durations can be defined when using different number of symbols
+(e.g., corresponding to a mini-slot, one slot or several slots in one transmission direction).
+Thus, a TTI is in general of variable length, regardless of the numerology.
+To support operation per slot, instead of ``SfAllocInfo`` structure that is used in the 'mmWave' module to hold the information corresponding to a
+subframe, we introduce ``SfAllocInfo`` that holds the information per slot,
+and it extends the ``SfAllocInfo`` structure according the NR frame structure.
+One ``SfAllocInfo`` is built through a list of ``VarTtiAllocInfo`` elements.
+``VarTtiAllocInfo`` contains the scheduling information for a single TTI whose duration is no longer than that of one slot.
+At the UE PHY, ``VarTtiAllocInfo`` objects are populated after reception of Downlink Control Information
+(DCI) messages. For each ``VarTtiAllocInfo`` the scheduler specifies which are containing
+contiguous OFDM symbols, along with the information whether the allocation is DL or UL,
+and whether is control or data.
+Currently, according to the 'mmWave' module design, and in accordance with the self-contained slot structure in NR,
+the first and the last OFDM symbol of the frame structure are reserved for, respectively, DL control and UL control.
+
+
+OFDMA
+********************
+To give flexibility in implementation choice, NR is deliberately introducing functionality to support analog beamforming in addition to digital precoding/beamforming. At high frequencies, analog beamforming, where the beam is shaped after digital-to-analog conversion, is necessary from an implementation perspective. Analog beamforming (or single-beam capability) results in the constraint that a receive or transmit beam can only be formed in a single direction at any given time instant and requires beam-sweeping where the same signal is repeated in multiple OFDM symbols but in different transmit beams. With beam-sweeping possibility, it is ensured that any signal can be transmitted with a high gain and narrow beamformed transmission to reach the entire intended coverage area.
+
+The 'NR' module supports TDMA and OFDMA with single-beam capability and variable TTI.
+
+The implementation of OFDMA under the single-beam capability constraint for mmWave means that frequency-domain multiplexing of different UEs is allowed among UEs associated to the same beam, so that in one OFDM symbol, or group of OFDM symbols, UEs that have the same beam ID can be scheduled in different RBGs, but not are UEs attached to different beam IDs. This is motivated by two main reasons. First, it is compatible with radio-frequency architectures based on single-beam capability, which is one of the main requirements for operation in bands with a high centre carrier frequency (mmWave bands). Second, it allows meeting the occupied channel bandwidth constraint in the unlicensed spectrum, e.g., that is required at the 5 GHz and 60 GHz bands, for any scheduling decision under the aforementioned constraint, since the scheduler will group UEs per beam ID and, within a TTI, only UEs that have the same beam ID would be allowed to be scheduled for DL transmission in different RBs.
+
+The implementation of OFDMA with variable TTI is motivated by the NR specifications, which encompass slot- and mini-slot-based transmissions, and thus a variable TTI length composed by a flexible number of symbols may be encountered.
+
+To account for OFDMA, the code relies on a bitmask per UE that is an output of the scheduler and then introduced in the DCI to enable correct decoding at the receiver. The bitmask is used at MAC level, and it is a vector of 0s and 1s, of length equal to the number of RBGs, to indicate the RBGs assigned to a particular UE. This bitmask is translated into a vector of assigned RB indeces at PHY, of variable length, at most the number of available RBs, for compatibility issues with PHY layer functions. In NR, a RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational band. This is a configuration parameter. In case the number of RBs in a RBG equals to the number of RBs in the whole channel bandwidth, then one can properly configure a TDMA-based channel access with variable TTI.
+
+In addition, OFDMA-based access in 'NR' module has implied changes in the scheduler, HARQ operation, AMC model, temporal evolution, interference computation at PHY, and packet burst generation, as compared to the 'mmWave' module. Scheduler and HARQ for OFDMA are detailed in next section. The AMC model has been updated to map CQI into MCS, compute required number of RBGs from MCS and TBS, and to compute TBS from MCS, assigned number of RBGs and symbols. For OFDMA with variable TTI, all the temporal references are updated to enable a correct PHY behaviour both at gNBs and UEs. That is, the reference is not based on the transmitted TBs per UE (as in the 'mmWave' module, for which each symbol was assigned at most to a single UE), but on the TTIs assigned on different beams. Note that now, in the 'NR' module, within one symbol multiple UEs may be scheduled in different RBGs, so that the TBs do not indicate the temporal reference. This has incurred changes in the timing update at the devices. Finally the packet burst is generated in a way such that it may include different UEs in a TTI.
+
+Due to the OFDMA with single-beam capability, the 'NR' module has a new PHY-MAC interface to enable communication to the MAC entity of the beam ID, which is computed at PHY, and thus allow the OFDMA with variable TTI scheduler at MAC to consider this new information. The new interface has two functions ``GetBeamId`` and ``ChangeBeamId``, to obtain the beam ID of a UE, and change it. The beam ID is characterized by two parameters, azimuth and elevation, and it is only valid for the beam seach method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook).
+
+
+Scheduler
+********************
+We have introduced schedulers for OFDMA and TDMA-based access with variable TTI under single-beam capability. The main output of a scheduler functionality is a list of DCIs for a specific slot, each of which specifies four parameters: the transmission starting symbol, the duration (in number of symbols) and an RBG bitmask, in which a value of 1 in the position x represents a transmission in the RBG number x.
+The current implementation of schedulers API follows the FemtoForum specification for LTE MAC Scheduler Interface [ff-api]_ , but can be easily extended to be compliant with different industrial interfaces.
+
+The core class of the NR module schedulers design is ``MmWaveMacSchedulerNs3``. This class defines the core scheduling process and splits the scheduling logic into the logical blocks. Additionally, it implements the MAC schedulers API, and thus it decouples a scheduling logic from any specific MAC API specification. These two features facilitate and accelerate the introduction of the new schedulers specializations, i.e., the new schedulers only need to implement a minimum set of specific scheduling functionalities without having to follow any specific industrial API. The core scheduling process is defined in ``ScheduleDl`` and ``ScheduleUl`` functions. The scheduling process assigns the resources for active DL and UL flows and notifies the MAC of the scheduling decision for the corresponding slot. The scheduling logic for DL and UL are defined, respectively, in ``DoScheduleDl`` and ``DoScheduleUl`` functions. Currently, since in the uplink the TDMA is used, the ``DoScheduleUl`` is designed to support only TDMA scheduling. On the other hand, ``DoScheduleDl`` is designed to allow both, TDMA and OFDMA, modes for the downlink. Through these functions it is delegated to subclasses to perform the allocation of symbols among beams (if any), allocation of RBGs in time/frequency-domain among active UEs by using specific scheduling algorithm (e.g., round robin, proportional fair, etc.), and finally, the construction of corresponding DCIs/UCIs. For example, TDMA scheduling can be easily implemented by skipping the first step of allocating symbols among beams and by fixing the minimum number of assignable RBGs to the total number of RBGs. To obtain true TDMA-based access with variable TTI, it is then necessary to group allocations for the same UE in one single DCI/UCI which is the last step. Another important class to be mentioned is ``MmWaveMacSchedulerNs3Base`` which is a child class of ``MmWaveMacSchedulerNs3``, and represents a base class of all schedulers in the NR module (OFDMA and TDMA). This class handles the HARQ retransmissions for the DL and the UL. Currently, the NR module offers the scheduling of the HARQ retransmissions in a round robin manner by leveraging the ``MmWaveMacSchedulerHarqRr`` implementation. Scheduler inheritance model and collaboration diagram are shown in Figures ::`fig-nr-scheduler-collab` and ::`nr-schedulers`.
+
+An overview of the different phases that the OFDMA schedulers follow are:
+
+1) BSR and CQI messages processing. The MCS is computed by the AMC model for each user based on the CQIs for the DL or SINR measurements for the UL data channel. The MCS and BSR of each user are stored in a structure that will be later read to determine UE capabilities and needs. The procedure for estimating the MCS and determining the minimum number of RBs is common to all the OFDMA-based schedulers that we may derive.
+2) Upon being triggered by the MAC layer, the scheduler prepares a slot indication. As a first step, the total number of active flows is calculated for both UL and DL. Then, the UL is processed, and then the DL. This requirement comes from the fact that UL and DL have, in most cases, different delays. This delay is defined as the number of the slots that have to pass between the moment in which the decision is taken, and the moment that such decision is traveling in the air. The default delay parameters are 2 slots for DL and 4 slots for UL: therefore, UL data can be penalized by the higher delay, and hence has to be prioritized in some way when preparing the slot. For this reason, the scheduler is also taking UL and DL decision for the same slot in different moments.
+3) The UL decisions are not considered for the slot indicated by the MAC layer, but for a slot in the future. These involve firstly any HARQ retransmission that should be performed, for instance when the previous transmission has been NACKed. The requirement for retransmitting any piece of data is to have enough space (indicated by the number of RBG). This is because, while the retransmission does not need to start at the same symbol and RB index as the previous transmission of the same TB, it does need the same number of RBGs and MCS, since an adaptive HARQ scheme (where the re-transmission can be scheduled with a different MCS) is not implemented. If all the symbols are used by the UL retransmissions, the scheduling procedure ends here. Otherwise, UL data is scheduled, by assigning the remaining resources (or less) to the UEs that have data to transmit. The total number of symbols reserved for UL data is then stored internally along with the slot number to which these allocations are referred, and the procedure for UL ends here.
+4) The procedure for DL allocations is started, relative to the slot indicated by the MAC layer. The number of symbols previously given for UL data in the current slot has to be considered during the DL phase. Before evaluating what data can be scheduled, that number is extracted from the internal storage, and the DL phase can continue only if there are available symbols not used by the UL phase. If it is the case, then, the symbols can be distributed by giving priority to the HARQ retransmissions, and then to the new data, according to different metrics.
+
+The base class for OFDMA schedulers is ``MmWaveMacSchedulerOfdma``. In the downlink, ``MmWaveMacSchedulerOfdma`` class and its subclasses perform OFDMA scheduling, while in the uplink they leverage some of the subclasses of ``MmWaveMacSchedulerTdma`` class that implements TDMA scheduling.
+
+The OFDMA scheduling in the downlink is composed of the two scheduling levels: 1) the scheduling of the symbols per beam (time-domain level), where scheduler selects a number of consecutive OFDM symbols in a slot to assign to a specific beam, and 2) the scheduling of RBGs per UE in a beam, where the scheduler determines the allocation of RBGs for the OFDM symbols of the corresponding beam (frequency-domain level).
+The scheduling of the symbols per beam can be performed in a load-based or round robin fasion. The calculation of load is based on the BSRs and the assignment of symbols per beam is proportional to the load. In the following level, the specific scheduling algorithm (round robin, proportional fair, max rate) decides how RBGs are allocated among different UEs asociated to the same beam.
+Multiple fairness checks can be ensured in between each level of scheduling - the time domain and the frequency domain. For instance, a UE that already has its needs covered by a portion of the assigned resources can free these resources for others to use.
+
+The NR module currently offers three specializations of the OFMA schedulers. These specializations are implemented in the following classes: ``MmWaveMacSchedulerOfdmaRR``, ``MmWaveMacSchedulerOfdmaPF``, and ``MmWaveMacSchedulerOfdmaMR`` , and are, respectively, performing the downlink scheduling in a round robin (RR), proportional fair (PF) and max rate (MR) manner, as explained in the following:
+
+* RR: the available RBGs are divided evenly among UEs associated to that beam
+* PF: the available RBGs are distributed among the UEs according to a PF metric that considers the actual rate (based on the CQI) elevated to α and the average rate that has been provided in the previous slots to the different UEs. Changing the α parameter changes the PF metric. For α=0, the scheduler selects the UE with the lowest average rate. For α=1, the scheduler selects the UE with the largest ratio between actual rate and average rate.
+* MR: the total available RBGs are distributed among the UEs according to a maximum rate (MR) metric that considers the actual rate (based on the CQI) of the different UEs.
+
+Each of these OFDMA schedulers is performing a load-based scheduling of symbols per beam in time-domain for the downlink. In the uplink, the scheduling of ``MmWaveMacSchedulerOfdmaRR``, ``MmWaveMacSchedulerOfdmaPF``, and ``MmWaveMacSchedulerOfdmaMR``, is leveraging the implementation of, respectively, ``MmWaveMacSchedulerTdmaRR``, ``MmWaveMacSchedulerTdmaPF``, and ``MmWaveMacSchedulerTdmaMR`` TDMA schedulers.
+
+The base class for TDMA schedulers is ``MmWaveMacSchedulerTdma``. This scheduler performs TDMA scheduling for both, the UL and the DL traffic. The TDMA schedulers perform the scheduling only in the time-domain, i.e., by distributing OFDM symbols among the active UEs. NR module offers three specializations of TDMA schedulers: ``MmWaveMacSchedulerTdmaRR``, ``MmWaveMacSchedulerTdmaPF``, ``MmWaveMacSchedulerTdmaMR``, where the scheduling criteria is the same as in the corresponding OFDMA schedulers, while the scheduling is performed in time-domain instead of the frequency-domain, and thus the resources being allocated are symbols instead of RBGs.
+
+
+
+.. _fig-nr-schedulers:
+
+.. figure:: figures/nr-schedulers.*
+   :align: center
+   :scale: 75 %
+
+   NR scheduler inheritance class diagram
+
+
+
+.. _fig-nr-scheduler-collab:
+
+.. figure:: figures/nr-scheduler-collab.*
+   :align: center
+   :scale: 75 %
+
+   NR scheduler class collaboration diagram
+
+
+Uplink delay support for UL data
+********************************
+In an NR system, the UL decisions for a slot are taken in a different moment than the DL decision for the same slot. In particular, since the UE must have the time to prepare the data to send, the gNB takes the UL scheduler decision in advance and then sends the UL grant taking into account these timings. For example, consider that the DCIs for DL are usually prepared two slots in advance with respect to when the MAC PDU is actually over the air. For example, for UL, the UL grant must be prepared four slots before the actual time in which the UE transmission is over the air transmission: after two slots, the UL grant will be sent to the UE, and after two more slots, the gNB is expected to receive the UL data. Please note that latter examples consider default values for MAC to PHY processing delays at gNB and UE, which are in NR module set to 2 slots. The processing delays are parameters of the simulator that may be configured through corresponding attributes of ``MmWavePhyMacCommon`` class.
+
+At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
+
+To accommodate the NR UL scheduling delay, the new MAC scheduler design is actively considering these delays during each phase.
+
+
+
+
+
 Usage
 -----
 
