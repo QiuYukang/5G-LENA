@@ -175,7 +175,6 @@ This section describes the different models supported and developed at PHY layer
 
 Frame structure model
 =====================
-
 In NR, the 'numerology' concept is introduced to flexibly define the frame structure,
 in such a way that it can work in both sub-6 GHz and mmWave bands.
 The flexible frame structure is defined by multiple numerologies formed by scaling
@@ -384,7 +383,8 @@ All these features have been considered to model NR performance appropriately.
 The 'NR' module includes a PHY abstraction model for error modeling that is compliant with the
 latest NR specifications, including LDPC coding,
 MCS up to 256-QAM, different MCS Tables (MCS Table1 and MCS Table2),
-and NR transport block segmentation [TS38214]_ [TS38212]_. Also, the PHY abstraction model supports HARQ
+and NR transport block segmentation [TS38214]_ [TS38212]_. Also, the developed PHY
+abstraction model supports HARQ
 based on Incremental Redundancy (IR) and on Chase Combining (CC). The MCS table and
 the HARQ method are two attributes that can be configured by the user.
 
@@ -422,7 +422,7 @@ and mapping of code BLERs to the transport BLER.
    :align: center
    :scale: 60 %
 
-   NR PHY abstraction mode
+   NR PHY abstraction model
 
 
 The HARQ history depends on the HARQ method. In HARQ-CC, the HARQ history contains
@@ -448,8 +448,9 @@ A base station can indicate the table selection to a UE either
 semi-statically or dynamically, and the MCS index selection is communicated to
 the UE for each transmission through the DCI.
 Each MCS index defines an ECR, a modulation order,
-and the resulting spectral efficiency (SE). In the 'NR' module,  MCS Table1 and
-MCS Table 2 can be selected.
+and the resulting spectral efficiency (SE).
+
+In the 'NR' module, MCS Table1 and MCS Table 2 can be selected.
 The MCS Table1 includes from MCS0 (ECR=0.12, QPSK, SE=0.23 bits/s/Hz)
 to MCS28 (ECR=0.94, 64-QAM, SE=5.55 bits/s/Hz), whereas the MCS Table2
 has MCS indices from MCS0 (ECR=0.12, QPSK, SE=0.23 bits/s/Hz) to MCS27
@@ -475,7 +476,8 @@ If code block segmentation occurs, each transport block is split into :math:`C` 
 :math:`K` bits each, and for each code block, an additional CRC sequence of :math:`L=24`
 bits is appended to recover the segmentation during the decoding process.
 The segmentation process takes LDPC BG selection and LDPC lifting size
-into account, the complete details of which can be found in [TS38212]_.
+into account, the complete details of which can be found in [TS38212]_, and the
+same procedure has been included in the 'NR' module.
 
 
 **SINR compression**: In case of EESM, the mapping
@@ -501,15 +503,16 @@ A collection of LOS (TDL-D) and NLOS (TDL-A) channel models ranging in delay
 spread from 30 ns to 316 ns are used. For NR, SCS of 30 KHz and 60 KHz are simulated.
 The details of the link-level simulator as well as the optimized :math:`\beta` values
 for each MCS index in MCS Table1 and MCS Table2 are detailed in [lagen20]_,
-as included in the simulator.
+as included in the 'NR' simulator.
 
 
 **Effective SINR to code BLER mapping**: Once we have the effective SINR
 for the given MCS, resource allocation, and channel model,
 we need SINR-BLER lookup tables to find the corresponding code BLER.
 In order to obtain SINR-BLER mappings, we perform extensive simulations using our
-NR-compliant link-level simulator. Such curves are included in the simulator in form
+NR-compliant link-level simulator. Such curves are included in the 'NR' simulator in form
 of structures.
+
 For each MCS (both in MCS Table1 and Table2), various resource allocation
 (with varying number of RBs from 1 to 132 and varying number of OFDM symbols from 1 to 10)
 are simulated. Given the resource allocation,
@@ -533,9 +536,10 @@ to the transport BLER for the given TBS.
 The code BLERs of the :math:`C` code blocks (as determined by the code block segmentation)
 are combined to get the BLER of a transport block as:
 
-:math:`TBLER = 1- \prod_{i=1}^{C} (1-CBLER_i) \approxeq 1- (1-CBLER)^C`,
+:math:`TBLER = 1- \prod_{i=1}^{C} (1-CBLER_i) \approxeq 1- (1-CBLER)^C`.
 
-where the last approximate equality holds because code block segmentation in NR generates code blocks of roughly equal sizes.
+The last approximate equality is implemented in the 'NR' simulator, which
+holds because code block segmentation in NR generates code blocks of roughly equal sizes.
 
 
 Beamforming model
@@ -579,7 +583,7 @@ varies with the underline HARQ method, as detailed next.
 after the q-th retransmission remains the same as after the first transmission.
 In this case, the SINR values of the corresponding resources are summed across
 the retransmissions, and the combined SINR values are used for EESM. After q
-retransmissions, the effective SINR using EESM
+retransmissions, in the 'NR' simulator, the effective SINR using EESM
 is computed as:
 
 :math:`SINR_{\text{eff}} = {-}\beta \ln \Big( \frac{1}{|\omega|}\sum_{m \in \omega} \exp \big({-}\frac{1}{\beta}\sum_{j=1}^q \text{SINR}_{m,j}\big)\Big)`,
@@ -591,7 +595,7 @@ retransmission, and :math:`\omega` is the set of RBs to be combined.
 the previous one. The different retransmissions typically use a different set of
 coding bits. Therefore, both the effective SINR and the ECR need to be
 recomputed after each retransmission.
-The ECR after q retransmissions is obtained as:
+The ECR after q retransmissions is obtained in the 'NR' simulator as:
 
 :math:`\text{ECR}_{\text{eff}} = \frac{X}{\sum_{j=1}^q C_j}`,
 
@@ -704,7 +708,7 @@ for each UE, the transmission/reception beams are selected from a set of beams o
 
 Scheduler
 =========
-The 'NR' module, we have introduced schedulers for OFDMA and TDMA-based access
+In the 'NR' module, we have introduced schedulers for OFDMA and TDMA-based access
 with variable TTI under single-beam capability. The main output of
 a scheduler functionality is a list of DCIs for a specific slot,
 each of which specifies four parameters: the transmission starting
@@ -877,8 +881,8 @@ the UE and can be used for MCS index selection at the gNB.
 NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_),
 each table being associated with one MCS table.
 
-The PHY abstraction model described in PHY layer section is used as an error model,
-but it can also be used for link adaptation~\cite{mezzavilla:12}, i.e.,
+Note that the PHY abstraction model described in PHY layer section can also be used
+for link adaptation, i.e.,
 to determine an MCS that satisfies a target transport BLER (e.g., :math:`10\%`) based
 on the actual channel conditions. In that case, for a given set of SINR values,
 a target transport BLER, an MCS table, and considering a transport block
@@ -893,6 +897,9 @@ transmissions, separately, and 2) two different AMC models for link adaptation:
 * Shannon-based: which chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate (using a coefficient of :math:`{-}\ln(5{\times}0.00001)/0.5` to account for the difference in between the theoretical bound and real performance)
 
 The AMC model can be configured by the user through the associated attribute.
+
+Note that link adaptation is done at UE side, and then communicated to the gNB
+through a CQI index.
 
 
 
@@ -996,7 +1003,7 @@ TBC
 
 
 Scope and Limitations
-********************
+*********************
 This module implements a partial set of features currently defined in the standard.
 Key aspects introduced in Release-15 that are still missing are:
 spatial multiplexing, configured grant scheduling and puncturing,
@@ -1007,23 +1014,22 @@ realistic beam management, error model for control channels.
 
 
 Usage
-------------
+-----
 
 This section is principally concerned with the usage of the model, using
 the public API. We discuss on examples available to the user, the helpers, the attributes and the simulation campaign we run.
 
 
 Examples
-***********************************
+********
 
 Several example programs are provided to highlight the operation.
 
 cttc-3gpp-channel-simple-ran.cc
-============================================
+===============================
 The program ``mmwave/examples/cttc-3gpp-channel-simple-ran.cc``
-allows users to select the numerology and test the performance considering only the radio access network (RAN).
-The numerology can be toggled by the argument,
-e.g. ``'--numerology=1'``. The scenario topology is simple, and it
+allows users to select the numerology and test the performance considering
+only the RAN. The scenario topology is simple, and it
 consists of a single gNB and single UE. The scenario is illustrated in
 Figure ::`fig-scenario-simple`.
 
@@ -1036,51 +1042,11 @@ Figure ::`fig-scenario-simple`.
    NR scenario for simple performance evaluation (RAN part only)
 
 The output of the example is printed on the screen and it shows the PDCP and RLC delays.
-
-By default, the program uses the 3GPP channel model, without shadowing and with
-line of sight ('l') option.
-The program runs for 0.4 seconds and only one packet is transmitted.
-The packet size can be toggled by the argument,
-e.g. ``'--packetSize=1'``.
-
-This produces the following output:
-
-::
-
-  ./waf --run cttc-3gpp-channel-simple-ran
-
-
- Data received by UE RLC at:+402242855.0ns
- rnti:1
- lcid:3
- RLC bytes :1004
- RLC delay :2242855
- Packet PDCP delay:2242855
-
-By default, the example is run with numerology 0.
-
-To run with different numerology:
-
-::
-
-  ./waf --run "cttc-3gpp-channel-simple-ran --numerology=4"
-
-
-the output should be:
-
- Data received by UE RLC at:+400238391.0ns
- rnti:1
- lcid:3
- RLC bytes :1004
- RLC delay :238391
- Packet PDCP delay:238391
-
-We notice that the RLC and PDCP delay are equal. This means that
-the packet has not been fragmented at RLC layer and a single transmission opportunity
-was enough to transmit it.
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-simple-ran_8cc.html
 
 cttc-3gpp-channel-nums.cc
-============================================
+=========================
 The program ``examples/cttc-3gpp-channel-nums.cc``
 allows users to select the numerology and test the end-to-end performance.
 Figure :ref:`fig-end-to-end` shows the simulation setup.
@@ -1094,159 +1060,41 @@ UDP packet interval.
 
    NR end-to-end system performance evaluation
 
-For example, this can be configured by setting the
-argument, e.g. ``'--udpFullBuffer=0'``, and by setting the interval
-``'--udpInterval=0.001'``. The numerology can be toggled by the argument,
-e.g. ``'--numerology=1'``. Additionally, in this example two arguments
-are added ``'bandwidth'`` and ``'frequency'``. The modulation scheme of
-this example is in test mode, it is fixed to 28.
-
-By default, the program uses the 3GPP channel model, without shadowing and with
-line of sight ('l') option.
-The program runs for 0.4 seconds and one single packet is to be transmitted.
-The packet size can be toggled by the argument,
-e.g. ``'--packetSize=1'``.
-
-This simulation prints the output to the terminal and also to the file which
-is named by default ``cttc-3gpp-channel-nums-fdm-output`` and which is by
-default placed in the root directory of the project.
-To run the simulation with the default
-configuration one shall run the following in the command line
-
-::
-  ./waf --run cttc-3gpp-channel-nums
-
-
-The example of the output is the following:
-::
-
-  Flow 1 (1.0.0.2:49153 -> 7.0.0.2:1234) proto UDP
-  Tx Packets: 56254
-  Tx Bytes:   57829112
-  TxOffered:  771.055 Mbps
-  Rx Bytes:   48814580
-  Throughput: 651.917 Mbps
-  Mean delay:  49.2909 ms
-  Mean upt:  0.265386 Mbps
-  Mean jitter:  0.0229247 ms
-  Rx Packets: 47485
- Total UDP throughput (bps):6.33133e+08
-
-The output of this simulation represents the metrics that are collected
-by the flow-monitor ns-3 tool.
-
-By default, the example runs with numerology 0.
-To run with different numerology:
-
-::
-
-  ./waf --run "cttc-3gpp-channel-nums --numerology=4"
-
-
-the output should be:
-
-
-  Flow 1 (1.0.0.2:49153 -> 7.0.0.2:1234) proto UDP
-  Tx Packets: 56254
-  Tx Bytes:   57829112
-  TxOffered:  771.055 Mbps
-  Rx Bytes:   48792992
-  Throughput: 650.605 Mbps
-  Mean delay:  47.5682 ms
-  Mean upt:  0.375825 Mbps
-  Mean jitter:  0.0189741 ms
-  Rx Packets: 47464
-  Total UDP throughput (bps):6.32853e+08
-
-We notice that, as expected, the throughput is similar for different numerologies,
-while the delay is lower for the higher value of numerology. Also UPT throughput is higher.
-
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-nums_8cc.html
 
 cttc-3gpp-channel-simple-fdm.cc
-============================================
+===============================
 
-The program ``examples/cttc-3gpp-channel-simple-fdm.cc`` can be used to simulate FDM in scenario with a single UE and gNB.
-In this program the packet is directly injected to the gNB, so this program can be used only for simulation of the RAN part.
-This program allows the user to configure 2 bandwidth parts (BWPs). The user can also configure the size of the packet by
-using the global variable ``packetSize``, and can also specify an indicator that tells whether the traffic flow is URLLC or
-eMBB. The latter parameter is called ``isUll`` and when configured to 1, it means that the traffic is URLLC, while when set to 0, it
-means that the trafic is eMBB. In the following we show how to run the program:
+The program ``examples/cttc-3gpp-channel-simple-fdm.cc`` can be used to
+simulate FDM  of numerologies in scenario with a single UE and gNB.
+In this program the packet is directly injected to the gNB, so this program
+can be used only for simulation of the RAN part.
+This program allows the user to configure 2 BWPs.
 
-./waf --run 'cttc-3gpp-channel-simple-fdm --isUll=0'
-
-Consider the case in  which a first BWP (Bandwidth part) uses numerology 4, central carrier frequency 28.1 GHz and the bandwidth of 100 MHz,
-and a second BWP uses numerology 2, central frequency 28 GHz and the bandwidth of 100 MHz.
-The BWP manager should be configured in the following way:
-
-Config::SetDefault ("ns3::BwpManager::GBR_ULTRA_LOW_LAT", UintegerValue (0));
-
-Config::SetDefault ("ns3::BwpManager::GBR_CONV_VOICE", UintegerValue (1));
-
-This means that the URLLC traffic would be served through BWP 1, and the another type, GBR_CONV_VOICE, would be transmitted through BWP 2. Thus, when the parameter :math:`isUll=0`
-the output of the simulation is the following:
-
- Data received by UE RLC at:+400653570.0ns
-
- rnti:1
-
- lcid:3
-
- bytes :1004
-
- delay :653570
-
- Packet PDCP delay:653570
-
-
-On the other hand, when :math:`isUll=1`, the output of the simulation is the following:
-
- Data received by UE RLC at:+400251784.0ns
-
- rnti:1
-
- lcid:3
-
- bytes :1004
-
- delay :251784
-
- Packet PDCP delay:251784
-
- As a result, in the previous example, we just vary the type of QCI (Quality Channel Indicator) of the flow, and
- based on that, the BWP manager decides over which BWP will transmit the packet.
- We notice that when the traffic is URLLC, it will be transmitted over the first BWP which is configured with
- the higher numerology, :math:`\mu=4`, which guarantees much lower delay for a small amount of data then the
- :math:`\mu=2`. In this case, the packet delay is 2.6 time lower than when the higher numerology is used.
-This example considers a fixed MCS (Modulation and Coding Scheme) of 28.
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-simple-fdm_8cc.html
 
 cttc-3gpp-channel-nums-fdm.cc
-============================================
-
-The program ``examples/cttc-3gpp-channel-nums-fdm.cc`` allows the user to configure 2 UEs and 1 or 2 bandwidth parts (BWPs) and test the end-to-end performance.
-This example is designed to expect the full configuration of each BWP. The configuration of BWP is composed of the following parameters:
+=============================
+The program ``examples/cttc-3gpp-channel-nums-fdm.cc`` allows the user to configure
+2 UEs and 1 or 2 BWPs and test the end-to-end performance.
+This example is designed to expect the full configuration of each BWP.
+The configuration of BWP is composed of the following parameters:
 central carrier frequency, bandwidth and numerology. There are 2 UEs, and each UE has one flow.
 One flow is of URLLC traffic type, while the another is eMBB.
 URLLC is configured to be transmitted over the first BWP, and the eMBB over the second BWP.
-Hence, in this example it is expected to configure the first BWP to use a higher numerology than the second BWP.
-Figure :ref:`fig-end-to-end` shows the simulation setup. Note that this simulation topology is as the one used in ``scratch/cttc-3gpp-channel-nums.cc``
-The user can run this example with UDP full buffer traffic or can specify the UDP packet interval and UDP packet size per type of traffic.
-``udpIntervalUll`` and `packetSizeUll` parameters are used to configure the UDP traffic of URLLC flow,
-while ``udpIntervalBe`` and `packetSizeBe` parameters are used to configure the UDP traffic of eMBB flow.
-If UDP full buffer traffic is configured, the packet interval for each flow is calculated based on approximated value of saturation rate for the bandwidth to
-which the flow is mapped, and taking into account the packet size of the flow.
-The total transmission power :math:`P_{(i)}` depends on the bandwidth of each BWP, and will be proportionally assigned to each BWP in the following way:
+Figure :ref:`fig-end-to-end` shows the simulation setup.
+Note that this simulation topology is as the one used in ``scratch/cttc-3gpp-channel-nums.cc``
+The user can run this example with UDP full buffer traffic or can specify the
+UDP packet interval and UDP packet size per type of traffic.
 
- .. math::
-
-      P_{(i)}= 10\log_{10} ((bandwidthBwp(i)/totalBandwidth)*10^{(totalTxPower/10)})
-
-
-If the user configures only 1 BWP, then the configuration for the first BWP will be used.
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-nums-fdm_8cc.html
 
 
 cttc-3gpp-indoor-calibration.cc
-=====================================
-
+===============================
 The program ``examples/cttc-3gpp-indoor-calibration`` is the simulation
 script created for the NR-MIMO Phase 1 system-level calibration.
 The scenario implemented in this simulation script is according to
@@ -1255,46 +1103,35 @@ the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
 The simulation assumptions and the configuration parameters follow
 the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
 and which are summarised in R1-1703534 Table 1.
-In the following Figure is illustrated the scenario with the gNB positions
-which are represented with "x". The UE nodes are randomly uniformly dropped
-in the area. There are 10 UEs per gNB.
 
-The results of the simulation are files containing data that is being
-collected over the course of the simulation execution:
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-3gpp-indoor-calibration_8cc.html
 
- - SINR values for all the 120 UEs
- - SNR values for all the 120 UEs
- - RSSI values for all the 120 UEs
-
-Additionally, there are files that contain:
-
-  - UE positions
-  - gNB positions
-  - distances of UEs from the gNBs to which they are attached
-
-The file names are created by default in the root project directory if not
-configured differently by setting resultsDirPath parameter of the Run()
-function.
-
-The file names by default start with the prefixes such as "sinrs", "snrs",
-"rssi", "gnb-positions,", "ue-positions" which are followed by the
-string that briefly describes the configuration parameters that are being
-set in the specific simulation execution.
 
 
 Simulation campaigns
-***********************************
+********************
 
-In this section, we describe briefly the simulation campaigns that we have carried out to test the new implemented features.
-We have created different simulation campaign scripts, where each script has different objectives.
-All simulation campaing scripts can be found in the folder src/mmwave/campaigns. In this folder, we group scripts by evaluated functionality, under different conditions.
-For example, ``3gpp-nr-numerologies`` sub-folder contains simulation campaigns related to the evaluation of frame structure/numerologies, and
-``3gpp-nr-fdm`` sub-folder contains simulation campaigns related to the evaluation of FDM of numerologies. Additionally,
-the simulation campaign scripts for the 3gpp calibration phase 1 are placed in ``3gpp-calibration`` sub-folder.
-If the simulation campaign is relatively small (it is not run for many different parameters) the output of campaign is printed on the screen,
-while in case of large campaigns, the results are written to results file in ``campaigns/*/results`` folder.
-The name of the file is normally composed to reveal with which values of the parameters is executed the simulation.
-There is a single file per simulation. File contains the statistics of all flows belonging to that simulation.
+In this section, we describe briefly the simulation campaigns that we have
+carried out to test the new implemented features.
+We have created different simulation campaign scripts, where each script
+has different objectives.
+All simulation campaing scripts can be found in the folder src/mmwave/campaigns.
+In this folder, we group scripts by evaluated functionality, under different conditions.
+For example, ``3gpp-nr-numerologies`` sub-folder contains simulation
+campaigns related to the evaluation of frame structure/numerologies, and
+``3gpp-nr-fdm`` sub-folder contains simulation campaigns related to the
+evaluation of FDM of numerologies. Additionally,
+the simulation campaign scripts for the 3gpp calibration phase 1 are
+placed in ``3gpp-calibration`` sub-folder.
+If the simulation campaign is relatively small (it is not run for many
+different parameters) the output of campaign is printed on the screen,
+while in case of large campaigns, the results are written to results file
+in ``campaigns/*/results`` folder.
+The name of the file is normally composed to reveal with which values of
+the parameters is executed the simulation.
+There is a single file per simulation. File contains the statistics of all
+flows belonging to that simulation.
 
 NR frame structure and numerologies
 ============================================
@@ -1363,7 +1200,7 @@ and it is more remarkable for low bandwidths.
    Mean throughput per UDP flow
 
 FDM of numerologies
-============================================
+===================
 
 In this subsection, we describe the simulation campaigns to evaluate the FDM of numerologies. These simulation campaigns are evaluated on
 ``cttc-3gpp-channel-nums-fdm.cc``. As mentioned earlier, this example can be configured to operate with 1 or 2 BWPs.
@@ -1427,7 +1264,7 @@ However, there is almost no impact of FDM of numerologies on the performance of 
 
 
 3gpp Indoor Calibration Phase 1
-================================
+===============================
 
 In this subsection, we describe the simulation campaign that is desidned for
 the 3gpp calibration Phase 1. The simulation script that implements the indoor
@@ -1523,41 +1360,41 @@ configuration is the folliowing:
 
 
 Helpers
-***********************************
+*******
 
 What helper API will users typically use?  Describe it here.
 
+
 Attributes
-***********************************
+**********
 
 Common NR attributes
-==========================
-
-Class mmwave-phy-mac-common holds common NR attributes. According
+====================
+Class ``mmwave-phy-mac-common`` holds common NR attributes. According
 to our current design all NR devices in the simulation have the same numerology
-configuration which is the one that is specified in mmwave-phy-mac-common class.
-In table :ref:`tab-mmwave-phy-mac-common` we show the mmwave-mac-phy-common class attributes.
+configuration which is the one that is specified in ``mmwave-phy-mac-common`` class.
+In table :ref:`tab-mmwave-phy-mac-common` we show the ``mmwave-phy-mac-common`` class attributes.
 
 
 .. _tab-mmwave-phy-mac-common:
 
 .. table:: NR common system attributes defined through mmwave-phy-mac-common class
 
-        ====================   ==================================================================================       ==================
-  Name 		       Description 										Default value
-        ====================   ==================================================================================       ==================
-  Numerology             The 3GPP numerology to be used                                                                      4
-  Bandwidth              The system bandwidth in Hz                                                                          400e6
-  CtrlSymbols            The number of OFDM symbols for DL control per subframe                                               1
-  NumReferenceSymbols    The number of reference symbols per slot                                                             6
-  CenterFreq             The center frequency in Hz                                                                          28e9
-  UlSchedDelay           The number of TTIs between UL scheduling decision and subframe to which it applies                   1
-  NumRbPerRbg            The number of resource blocks per resource block group                                               1
-  WbCqiPeriod            The period between wideband DL-CQI reports in microseconds                                           500
-  NumHarqProcess         The number of concurrent stop-and-wait Hybrid ARQ processes per user                                 20
-  HarqDlTimeout          Downlink harq timeout timer                                                                          20
-  TbDecodeLatency        Transport block decode latency in microseconds                                                       100
-        ====================   ==================================================================================       ==================
+  ====================   ==================================================================================       ==================
+  Name                   Description                                                                              Default value
+  ====================   ==================================================================================       ==================
+  Numerology             The 3GPP numerology to be used                                                           4
+  Bandwidth              The system bandwidth in Hz                                                               400e6
+  CtrlSymbols            The number of OFDM symbols for DL control per subframe                                   1
+  NumReferenceSymbols    The number of reference symbols per slot                                                 6
+  CenterFreq             The center frequency in Hz                                                               28e9
+  UlSchedDelay           The number of TTIs between UL scheduling decision and subframe to which it applies       1
+  NumRbPerRbg            The number of resource blocks per resource block group                                   1
+  WbCqiPeriod            The period between wideband DL-CQI reports in microseconds                               500
+  NumHarqProcess         The number of concurrent stop-and-wait Hybrid ARQ processes per user                     20
+  HarqDlTimeout          Downlink harq timeout timer                                                              20
+  TbDecodeLatency        Transport block decode latency in microseconds                                           100
+  ====================   ==================================================================================       ==================
 
 
 User may specify the numerology of the system by configuring "Numerology" attribute of
@@ -1569,21 +1406,20 @@ symbol period, slot period, symbols per slot, subframes per frame, slots per sub
 the number of PRBs, and the subcarrier spacing.
 
 According to the current design that temporarily follows some of NYU 'mmwave' module design choices,
-the bandwidth and numerology attributes are currently placed in mmwave-phy-mac-common class.
+the bandwidth and numerology attributes are currently placed in ``mmwave-phy-mac-common`` class.
 However, in order to allow that the numerology or FDM of numerologies is NR device specific,
-and the PHY an MAC parameters shall belong to mmwave-enb-net-device and mmwave-ue-net device.
+and the PHY an MAC parameters shall belong to ``mmwave-enb-net-device`` and ``mmwave-ue-net-device``.
 
 3GPP channel model attributes
-=======================================
-
+=============================
 In the terms of 3GPP channel model we leverage on NYU implementation which is
 according the 3GPP channel model reported by 3GPP in [TR38900]_.
 NYU 3GPP channel model implements the channel model for frequencies of
 the 6-100 GHz band and associated MIMO beamforming architecture. The description
 of the implementation may be found in [ns-3-3gpp-cm]_.
 
-The 3GPP channel model attributes are specified in classes MmWave3gppChannel,
-MmWave3gppPropagationLossModel and MmWave3gppBuildingsPropagationLossModel.
+The 3GPP channel model attributes are specified in classes ``MmWave3gppChannel``,
+``MmWave3gppPropagationLossModel`` and ``MmWave3gppBuildingsPropagationLossModel``.
 These attributes are listed in Tables :ref:`tab-3gpp-channel-attributes`,
 :ref:`tab-3gpp-propagation-loss-attributes` and :ref:`tab-3gpp-buildings-propagation-loss`.
 
@@ -1592,51 +1428,51 @@ These attributes are listed in Tables :ref:`tab-3gpp-channel-attributes`,
 
 .. table:: 3GPP channel model attributes that can be configured in MmWave3gppChannel
 
-        ====================   ======================================================================================================================================       ==================
-  Name 		       Description 										                                                    Default value
-        ====================   ======================================================================================================================================       ==================
-  UpdatePeriod     		Enable spatially-consistent UT mobility modeling procedure A, the update period unit is in ms, set to 0 ms to disable update		0
-  CellScan         		Whether to use search method to determine beamforming vector, the default is long-term covariance matrix method				false
-  Blockage         		Enable blockage model A (sec 7.6.4.1)													false
-  NumNonselfBlocking       	The number of non-self-blocking regions													4
-  BlockerSpeed			The speed of moving blockers, the unit is m/s												1
-  PortraitMode                    True for portrait mode, false for landscape mode											true
-        ====================   ======================================================================================================================================       ==================
+  ====================   ======================================================================================================================================       ==================
+  Name                   Description                                                                                                                                  Default value
+  ====================   ======================================================================================================================================       ==================
+  UpdatePeriod           Enable spatially-consistent UT mobility modeling procedure A, the update period unit is in ms, set to 0 ms to disable update                 0
+  CellScan               Whether to use search method to determine beamforming vector, the default is long-term covariance matrix method                              false
+  Blockage               Enable blockage model A (sec 7.6.4.1)                                                                                                        false
+  NumNonselfBlocking     The number of non-self-blocking regions                                                                                                      4
+  BlockerSpeed           The speed of moving blockers, the unit is m/s                                                                                                1
+  PortraitMode           True for portrait mode, false for landscape mode                                                                                             true
+  ====================   ======================================================================================================================================       ==================
 
 
 .. _tab-3gpp-propagation-loss-attributes:
 
 .. table:: 3GPP propagation loss attributes that can be configured in MmWave3gppPropagationLossModel
 
-        ====================   ======================================================================================================================================       ==================
-  Name 		       Description 										                                                    Default value
-        ====================   ======================================================================================================================================       ==================
-  Frequency 		        The carrier frequency (in Hz) at which propagation occurs  									        28 GHz
-  MinLoss                         The minimum value (dB) of the total loss, used at short ranges										0
-  ChannelCondition                'l' for LOS, 'n' for NLOS, 'a' for all													a
-  Scenario			The available channel scenarios are 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen', 'InH-ShoppingMall'		RMa
-  OptionalNlos			Whether to use the optional NLoS propagation loss model											false
-  Shadowing			Enable shadowing effect															true
-  InCar				If inside a vehicle, car penetration loss should be added to propagation loss								false
-        ====================   ======================================================================================================================================       ==================
+  ====================   ======================================================================================================================================       ==================
+  Name                   Description                                                                                                                                  Default value
+  ====================   ======================================================================================================================================       ==================
+  Frequency 		         The carrier frequency (in Hz) at which propagation occurs                                                                                    28 GHz
+  MinLoss                The minimum value (dB) of the total loss, used at short ranges                                                                               0
+  ChannelCondition       'l' for LOS, 'n' for NLOS, 'a' for all                                                                                                       a
+  Scenario               The available channel scenarios are 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen', 'InH-ShoppingMall'                RMa
+  OptionalNlos			     Whether to use the optional NLoS propagation loss model                                                                                      false
+  Shadowing			         Enable shadowing effect                                                                                                                      true
+  InCar				           If inside a vehicle, car penetration loss should be added to propagation loss                                                                false
+  ====================   ======================================================================================================================================       ==================
 
 
 .. _tab-3gpp-buildings-propagation-loss:
 
 .. table:: 3GPP buildings propagation loss attributes that can be configured in MmWave3gppBuildingsPropagationLossModel
 
-        ====================   ======================================================================================================================================       ==================
-  Name 		       Description 										                                                    Default value
-        ====================   ======================================================================================================================================       ==================
-  Frequency 		        The carrier frequency (in Hz) at which propagation occurs  									        28 GHz
-        UpdateCondition                 Whether to Update LOS/NLOS condition while UE moves											true
-        ====================   ======================================================================================================================================       ==================
+  ====================   ======================================================================================================================================       ==================
+  Name                   Description                                                                                                                                  Default value
+  ====================   ======================================================================================================================================       ==================
+  Frequency              The carrier frequency (in Hz) at which propagation occurs                                                                                    28 GHz
+  UpdateCondition        Whether to Update LOS/NLOS condition while UE moves                                                                                          true
+  ====================   ======================================================================================================================================       ==================
 
 
 What classes hold attributes, and what are the key ones worth mentioning?
 
 Output
-***********************************
+******
 
 What kind of data does the model generate?  What are the key trace
 sources?   What kind of logging output can be enabled?
@@ -1645,14 +1481,14 @@ sources?   What kind of logging output can be enabled?
 
 
 Validation
-------------
+----------
 
 Tests
-***********************************
+*****
 To validate the implemented features, we have designed different tests.
 
 NR test for new NR frame structure and numerologies configuration
-==============================================================================
+=================================================================
 Test case ``mmwave-system-test-configurations`` validates that the NR frame structure is correctly
 configured by using new configuration parameters.
 This is the system test that is validating the configuration of
@@ -1663,9 +1499,10 @@ and that serialization and deserialization of the frame, subframe, slot and TTI 
 performs correctly for the new NR frame structure.
 
 Test of packet delay in NR protocol stack
-==============================================================================
+=========================================
 
-Test case ``mmwave-test-numerology-delay`` validates that the delays of a single UDP packet are correct.
+Test case ``mmwave-test-numerology-delay`` validates that the delays of a single
+UDP packet are correct.
 UDP packet is monitored at different points of NR protocol stack,
 at gNB and UE. The test checks whether the delay corresponds to
 configuration of the system for different numerologies.
@@ -1678,77 +1515,21 @@ configuration of the system for different numerologies.
 
    Performance evaluation of packet delay in NR protocol stack
 
-The test monitors delays such as, eNB processing time, air time, UE time, etc.
+The test monitors delays such as, gNB processing time, air time, UE time, etc.
 The test fails if it detects unexpected delay in the NR protocol stack.
-
-The topology consists of 1 gNB and 1 UE, and considers only the Radio Access Network (RAN).
-The distance between the gNB and UE is 10 meters,
-and the heights are: h_BS=10 m and h_UT=1.5 m. A single packet of 1000 bytes is directly
-injected to gNB device and configured to have the destination address of the UE.
-The test supports also the possibility to inject various amounts of packets, or to change size of packets.
-The propagation model is the 3GPP channel model, without buildings.
-The central frequency is 28 GHz and the bandwidth is 400 MHz.
-Other parameters of 3GPP model are the following:
-
-
-MinLoss = 0.0
-
-ChannelCondition = 'a'
-
-Scenario = Rma
-
-OptionalNlos = false
-
-InCar = false
-
-The test checks that the "injected packet" is passed through the NR stack in the following way:
-
-1. Packet arrives to gNB at time t
-
-2. gNB PDCP forwards immediately packet to RLC at time t
-
-3. gNB RLC immediately informs MAC that there is new packet in queue via BSR at time t
-
-4. gNB MAC schedules the packet and informs RLC of TXOP at time t
-
-5. gNB RLC sends packets, transmits it to MAC t
-
-6. gNB MAC pass the packet to PHY, and packet is untouched at PHY until t + L1L2 delay (this is how is simulated this delay)
-
-7. gNB PHY starts to transmit the PDU at time t + L1L2 delay + CTRL duration (symbol)
-
-8. UE PHY finished reception at time t + L1L2 delay + CTRL duration (symbol duration) + DATA duration (number of symbols * symbol duration) = t_reception_finished
-
-9. UE decodes the packet and pass it to MAC at time t_reception_finished + TB decode delay (100 micro seconds currently set by default)
-
-10. UE MAC pass immediately the PDU to RLC at time t_reception_finished + TB decode delay (100 micro seconds currently set by default)
-
-11. RLC waits to receive all PDUs of corresponding packet and then it pass it to PDCP t_reception_finished (last PDU) + TB decode delay (100 micro seconds currently set by default)
-
-
-The test passes if all of the previous steps are according to the timings related to a specific numerology. The test is run for different numerologies and the output of the test is as follows:
-
- Numerology:0	 Packet of :1000 bytes	#Slots:1	#Symbols:3	Packet PDCP delay:2385712	RLC delay of first PDU:+2385712.0ns	MCS of the first PDU:1
-
- Numerology:1	 Packet of :1000 bytes	#Slots:1	#Symbols:5	Packet PDCP delay:1314284	RLC delay of first PDU:+1314284.0ns	MCS of the first PDU:1
-
- Numerology:2	 Packet of :1000 bytes	#Slots:1	#Symbols:9	Packet PDCP delay:778570	RLC delay of first PDU:+778570.0ns	MCS of the first PDU:1
-
- Numerology:3	 Packet of :1000 bytes	#Slots:2	#Symbols:17	Packet PDCP delay:528569	RLC delay of first PDU:+466069.0ns	MCS of the first PDU:1
-
- Numerology:4	 Packet of :1000 bytes	#Slots:3	#Symbols:34	Packet PDCP delay:399105	RLC delay of first PDU:+283034.0ns	MCS of the first PDU:1
-
- Numerology:5	 Packet of :1000 bytes	#Slots:6	#Symbols:69	Packet PDCP delay:341070	RLC delay of first PDU:+191516.0ns	MCS of the first PDU:1
+The test passes if all of the previous steps are according to the
+timings related to a specific numerology. The test is run for different
+numerologies.
 
 Test of numerology FDM
-==============================================================================
+======================
 To test the FDM of numerologies, we have implemented
 the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to operate with
 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
 
 Test for NR schedulers
-==============================================================================
+======================
 To test the NR schedulers, we have implemented a system test called ``MmWaveSystemTestSchedulers`` whose purpose is to test that the
 NR schedulers provide a required amount of resources to all UEs, for both cases, the downlink and the uplink. The topology consists of a single gNB and
 variable number of UEs, which are distributed among variable number of beams. Test cases are designed in such a way that the offered rate for the flow
@@ -1759,17 +1540,31 @@ different scheduling algorithms (RR, PR, MR).
 
 
 Test for OFDMA
-==============================================================================
-Test case called ``MmWaveSystemTestOfdma`` validates that the NR scheduling in OFDMA mode provides expected interference situations in the scenario.
-The test consists of a simple topology where 2 gNBs transmit to 2 UEs, and these two simultaneous transmissions are on the same transmission directions, the opposite transmission directions or
- the perpendicular transmission directions.
-Test configures a new simple test scheduler to use only a limited portion of RBGs for scheduling. Test case where assigned RBGs for gNBs overlap is
-expected to affect the MCS and performance, while in the case when RBGs assigned to gNBs are not overlapping shall be the same as in the case when only a
+==============
+Test case called ``MmWaveSystemTestOfdma`` validates that the NR scheduling
+in OFDMA mode provides expected interference situations in the scenario.
+The test consists of a simple topology where 2 gNBs transmit to 2 UEs, and
+these two simultaneous transmissions are on the same transmission directions,
+the opposite transmission directions or the perpendicular transmission directions.
+Test configures a new simple test scheduler to use only a limited portion of RBGs
+for scheduling. Test case where assigned RBGs for gNBs overlap is
+expected to affect the MCS and performance, while in the case when RBGs assigned
+to gNBs are not overlapping shall be the same as in the case when only a
 single gNB is transmitting.
 
 
+Test for error model
+====================
+Test case called ``NrL2smEesmTestCase`` validates the NR PHY abstraction model.
+
+
+Test for channel model
+======================
+Test case called ``NrTest3gppChannelTestCase`` validates the channel model.
+
+
 References
-------------
+----------
 
 .. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
 
