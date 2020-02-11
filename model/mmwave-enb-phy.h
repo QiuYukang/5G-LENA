@@ -344,8 +344,10 @@ private:
    * \param toSendUl The structure toSendUl to fill
    * \param generateDl The structure generateDl to fill
    * \param generateUl The structure generateUl to fill
+   * \param dlHarqfbPosition The structure dlHarqfbPosition to fill
    * \param k0 K0 parameter
    * \param k2 K2 parameter
+   * \param n2 N2 parameter
    * \param l1l2CtrlLatency L1L2CtrlLatency of the system
    */
   static void GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType> &pattern,
@@ -353,7 +355,8 @@ private:
                                              std::map<uint32_t, std::vector<uint32_t> > *toSendUl,
                                              std::map<uint32_t, std::vector<uint32_t> > *generateDl,
                                              std::map<uint32_t, std::vector<uint32_t> > *generateUl,
-                                             uint32_t k0, uint32_t k2, uint32_t l1l2CtrlLatency);
+                                             std::map<uint32_t, uint32_t> *dlHarqfbPosition,
+                                             uint32_t k0, uint32_t k2, uint32_t n2, uint32_t l1l2CtrlLatency);
 
   /**
    * \brief Call MAC for retrieve the slot indication. Currently calls UL and DL.
@@ -436,6 +439,8 @@ private:
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_generateUl; //!< Map that indicates, for each slot, what UL DCI we have to generate
   std::map<uint32_t, std::vector<uint32_t>> m_generateDl; //!< Map that indicates, for each slot, what DL DCI we have to generate
+
+  std::map<uint32_t, uint32_t> m_dlHarqfbPosition; //!< Map that indicates, for each DL slot, where the UE has to send the Harq Feedback
 
   /**
    * \brief Status of the channel for the PHY
