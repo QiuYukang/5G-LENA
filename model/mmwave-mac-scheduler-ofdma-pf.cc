@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Natale Patriciello <natale.patriciello@gmail.com>
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -36,12 +36,14 @@ MmWaveMacSchedulerOfdmaPF::GetTypeId (void)
     .AddAttribute ("FairnessIndex",
                    "Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput",
                    DoubleValue (0),
-                   MakeDoubleAccessor (&MmWaveMacSchedulerOfdmaPF::m_alpha),
+                   MakeDoubleAccessor (&MmWaveMacSchedulerOfdmaPF::SetFairnessIndex,
+                                       &MmWaveMacSchedulerOfdmaPF::GetFairnessIndex),
                    MakeDoubleChecker<float> (0, 1))
     .AddAttribute ("LastAvgTPutWeight",
                    "Weight of the last average throughput in the average throughput calculation",
                    DoubleValue (99),
-                   MakeDoubleAccessor (&MmWaveMacSchedulerOfdmaPF::m_timeWindow),
+                   MakeDoubleAccessor (&MmWaveMacSchedulerOfdmaPF::SetTimeWindow,
+                                       &MmWaveMacSchedulerOfdmaPF::GetTimeWindow),
                    MakeDoubleChecker<float> (0))
   ;
   return tid;
@@ -50,6 +52,34 @@ MmWaveMacSchedulerOfdmaPF::GetTypeId (void)
 MmWaveMacSchedulerOfdmaPF::MmWaveMacSchedulerOfdmaPF () : MmWaveMacSchedulerOfdmaRR ()
 {
 
+}
+
+void
+MmWaveMacSchedulerOfdmaPF::SetFairnessIndex (double v)
+{
+  NS_LOG_FUNCTION (this);
+  m_alpha = v;
+}
+
+double
+MmWaveMacSchedulerOfdmaPF::GetFairnessIndex () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_alpha;
+}
+
+void
+MmWaveMacSchedulerOfdmaPF::SetTimeWindow (double v)
+{
+  NS_LOG_FUNCTION (this);
+  m_timeWindow = v;
+}
+
+double
+MmWaveMacSchedulerOfdmaPF::GetTimeWindow () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_timeWindow;
 }
 
 std::shared_ptr<MmWaveMacSchedulerUeInfo>

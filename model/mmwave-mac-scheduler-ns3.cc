@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Natale Patriciello <natale.patriciello@gmail.com>
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -15,7 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Based on work done by CTTC/NYU
  */
 
 #define NS_LOG_APPEND_CONTEXT                                            \
@@ -60,27 +59,32 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
     .AddAttribute ("CqiTimerThreshold",
                    "The time while a CQI is valid",
                    TimeValue (Seconds (1)),
-                   MakeTimeAccessor (&MmWaveMacSchedulerNs3::m_cqiTimersThreshold),
+                   MakeTimeAccessor (&MmWaveMacSchedulerNs3::SetCqiTimerThreshold,
+                                     &MmWaveMacSchedulerNs3::GetCqiTimerThreshold),
                    MakeTimeChecker ())
     .AddAttribute ("FixedMcsDl",
                    "Fix MCS to value set in StartingMcsDl",
                    BooleanValue (false),
-                   MakeBooleanAccessor (&MmWaveMacSchedulerNs3::m_fixedMcsDl),
+                   MakeBooleanAccessor (&MmWaveMacSchedulerNs3::SetFixedDlMcs,
+                                        &MmWaveMacSchedulerNs3::IsDlMcsFixed),
                    MakeBooleanChecker ())
     .AddAttribute ("FixedMcsUl",
                    "Fix MCS to value set in StartingMcsUl",
                    BooleanValue (false),
-                   MakeBooleanAccessor (&MmWaveMacSchedulerNs3::m_fixedMcsUl),
+                   MakeBooleanAccessor (&MmWaveMacSchedulerNs3::SetFixedUlMcs,
+                                        &MmWaveMacSchedulerNs3::IsUlMcsFixed),
                    MakeBooleanChecker ())
     .AddAttribute ("StartingMcsDl",
                    "Starting MCS for DL",
                    UintegerValue (0),
-                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::m_startMcsDl),
+                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetStartMcsDl,
+                                         &MmWaveMacSchedulerNs3::GetStartMcsDl),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("StartingMcsUl",
                    "Starting MCS for UL",
                    UintegerValue (0),
-                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::m_startMcsUl),
+                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetStartMcsUl,
+                                         &MmWaveMacSchedulerNs3::GetStartMcsUl),
                    MakeUintegerChecker<uint8_t> ())
   ;
 
@@ -154,9 +158,83 @@ MmWaveMacSchedulerNs3::DoSchedSetMcs (uint32_t mcs)
 void
 MmWaveMacSchedulerNs3::DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters &params)
 {
-  NS_LOG_INFO (this);
+  NS_LOG_FUNCTION (this);
 
   m_rachList = params.m_rachList;
+}
+
+void
+MmWaveMacSchedulerNs3::SetCqiTimerThreshold (const Time &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_cqiTimersThreshold = v;
+}
+
+Time
+MmWaveMacSchedulerNs3::GetCqiTimerThreshold () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_cqiTimersThreshold;
+}
+
+void
+MmWaveMacSchedulerNs3::SetFixedDlMcs (bool v)
+{
+  NS_LOG_FUNCTION (this);
+  m_fixedMcsDl = v;
+}
+
+bool
+MmWaveMacSchedulerNs3::IsDlMcsFixed () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_fixedMcsDl;
+}
+
+void
+MmWaveMacSchedulerNs3::SetFixedUlMcs (bool v)
+{
+  NS_LOG_FUNCTION (this);
+  m_fixedMcsUl = v;
+}
+
+bool
+MmWaveMacSchedulerNs3::IsUlMcsFixed () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_fixedMcsUl;
+}
+
+void
+MmWaveMacSchedulerNs3::SetStartMcsDl (uint8_t v)
+{
+  NS_LOG_FUNCTION (this);
+  m_startMcsDl = v;
+  m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
+                                             m_startMcsDl, m_startMcsUl);
+}
+
+uint8_t
+MmWaveMacSchedulerNs3::GetStartMcsDl () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_startMcsDl;
+}
+
+void
+MmWaveMacSchedulerNs3::SetStartMcsUl (uint8_t v)
+{
+  NS_LOG_FUNCTION (this);
+  m_startMcsUl = v;
+  m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
+                                             m_startMcsDl, m_startMcsUl);
+}
+
+uint8_t
+MmWaveMacSchedulerNs3::GetStartMcsUl () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_startMcsUl;
 }
 
 /**
