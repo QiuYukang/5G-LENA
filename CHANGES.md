@@ -44,11 +44,24 @@ us a note on ns-developers mailing list.
 
 ---
 
-## Changes from NR-v0.3 to NR-dev
+## Changes from NR-v0.4 to NR-dev
 
 ### New API:
 
 ### Changes to existing API:
+
+### Changed behavior:
+
+---
+
+## Changes from NR-v0.3 to NR-v0.4
+
+### New API:
+
+### Changes to existing API:
+
+* Replaced SINR-BLER curves for MCS Table1 and Table2 of the NR error model
+  with more accurate (and complete) values.
 
 ### Changed behavior:
 

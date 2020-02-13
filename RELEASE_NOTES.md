@@ -28,15 +28,15 @@ requirements (Note:  not all features available on all platforms):
 In addition, Python 2.7 (Python 2 series) or Python 3.4-3.7 (Python 3 series)
 
 This release has been tested on the following platforms:
-- ArchLinux 2018.10.08 with g++-8.2.1 and Python 3.7.1
-- Ubuntu 16.04 (64 bit) with g++-5.4.0 and Python 2.7.12/3.5.2
+- ArchLinux with g++-9.2.1, clang-9.0.1, and Python 3.8.1
+- Ubuntu 18.04 (64 bit) with g++-8.3.0 and Python 2.7.12/3.5.2
 
 Important news
 --------------
 - This release is aligned with CTTC's ns-3-dev commit id
-dcfda7b84 rlc-um: Reordering timer set to 10 ms instead of 100 ms
-that is on top of the nsnam ns-3-dev master commit id 
-149f748cf core: assert that Ptr is not null on dereference.
+217b410c lte-rlc: TM is now sending more than one packet per transmission opportunity
+that is on top of the nsnam ns-3-dev master commit id
+578c107eb internet: fix packet deduplication test .
 To upgrade CTTC's ns-3-dev, please run the following (save any non-official
 commit, as they will be deleted):
 
@@ -62,12 +62,69 @@ In general, known issues are tracked on the project tracker available
 at https://gitlab.cttc.es/ns3-new-radio/nr
 
 
+Release NR-v0.4
+--------------
+
+Availability
+------------
+Available since Thu Feb 13 2020.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note:  not all features available on all platforms):
+
+- g++-4.9 or later
+- Apple LLVM version 7.0.2 or later
+- clang-3.3 or later
+
+In addition, Python 2.7 (Python 2 series) or Python 3.4-3.7 (Python 3 series)
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9.2.1, clang-9.0.1, and Python 3.8.1
+- Ubuntu 18.04 (64 bit) with g++-8.3.0 and Python 2.7.12/3.5.2
+
+Important news
+--------------
+- This release is aligned with CTTC's ns-3-dev commit id
+217b410c lte-rlc: TM is now sending more than one packet per transmission opportunity
+that is on top of the nsnam ns-3-dev master commit id
+578c107eb internet: fix packet deduplication test .
+To upgrade CTTC's ns-3-dev, please run the following (save any non-official
+commit, as they will be deleted):
+
+$ cd /path/to/cttc/ns-3-dev
+$ git reset --hard HEAD~200
+$ git pull
+
+This module can be updated with the usual
+
+$ git pull
+
+
+New user-visible features (old first)
+-------------------------------------
+
+- (error model) new BLER-SINR tables for MCS table1 and table2
+- (performance) Various performance improvements
+
+
+Bugs fixed
+----------
+- (scheduler) Correctly schedule beams of users that got a HARQ retx space.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
 Release NR-v0.3
 --------------
 
 Availability
 ------------
-This release is not yet available.
+Available since Tue Aug 27 2019.
 
 Supported platforms
 -------------------
@@ -144,7 +201,7 @@ Release NR-v0.2
 
 Availability
 ------------
-This release is not yet available.
+Available since Fri Feb 1 2019.
 
 Supported platforms
 -------------------
