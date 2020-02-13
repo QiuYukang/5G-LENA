@@ -376,7 +376,7 @@ private:
   std::list <Ptr<MmWaveControlMessage>>
   RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                              const DciInfoElementTdma::DciFormat &format,
-                             uint32_t kDelay);
+                             uint32_t kDelay, uint32_t k1Delay);
 
   /**
    * \brief Insert a fake DL allocation in the allocation list

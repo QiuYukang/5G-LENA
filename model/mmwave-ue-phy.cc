@@ -327,6 +327,9 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                             " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
               /* BIG ASSUMPTION: We assume that K0 is always 0 */
+
+              m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
+
               InsertAllocation (dciInfoElem);
             }
           else if (dciInfoElem->m_format == DciInfoElementTdma::UL
@@ -648,6 +651,13 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       Ptr<MmWaveControlMessage> msg = *ctrlIt;
       m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
                               dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
+
+      if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
+        {
+          Ptr<MmWaveDlHarqFeedbackMessage> harqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
+          uint8_t harqId = harqMsg->GetDlHarqFeedback().m_harqProcessId;
+          m_harqIdToK1Map.erase ( m_harqIdToK1Map.find(harqId), m_harqIdToK1Map.end() );
+        }
     }
 
   std::vector<int> channelRbs;

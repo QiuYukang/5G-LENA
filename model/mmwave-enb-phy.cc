@@ -791,7 +791,7 @@ MmWaveEnbPhy::ExpireBeamformingTimer()
 std::list <Ptr<MmWaveControlMessage>>
 MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                                          const DciInfoElementTdma::DciFormat &format,
-                                         uint32_t kDelay)
+                                         uint32_t kDelay, uint32_t k1Delay)
 {
   NS_LOG_FUNCTION(this);
   std::list <Ptr<MmWaveControlMessage>> ctrlMsgs;
@@ -814,6 +814,7 @@ MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
           Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
 
           dciMsg->SetKDelay (kDelay);
+          dciMsg->SetK1Delay (k1Delay);  //Set for both DL/UL however used only in DL (in UL UE ignors it)
 
           ctrlMsgs.push_back (dciMsg);
           NS_LOG_INFO ("To send, DCI for UE " << dciElem->m_rnti);
@@ -830,33 +831,37 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
   uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
                                                  m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
 
+  uint32_t k1delay = modulo (m_dlHarqfbPosition[currentSlotN] - currentSlotN, m_tddPattern.size ());
+  if (k1delay < m_phyMacConfig->GetN1Delay ())
+    {
+      k1delay += m_tddPattern.size ();
+    }
+  NS_ASSERT_MSG (k1delay >= m_phyMacConfig->GetN1Delay (),
+                 " k1delay must be equal or larger than N1 " << k1delay);
+
   // TODO: copy paste :(
   for (const auto & slot : m_toSendDl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
 
       uint32_t k0delay = modulo (slot - currentSlotN, m_tddPattern.size ());
-      NS_ASSERT_MSG (k0delay >= m_phyMacConfig->GetN0Delay () && k0delay < 15, " k0delay can only get values between 0 and 15 " << k0delay);
+      if (k0delay < m_phyMacConfig->GetN0Delay ())
+        {
+          k0delay += m_tddPattern.size ();
+        }
+      NS_ASSERT_MSG (k0delay >= m_phyMacConfig->GetN0Delay () && k0delay < 15,
+                     " k0delay can only get values between 0 and 15 " << k0delay);
 
       targetSlot.Add (k0delay,
                       m_phyMacConfig->GetSlotsPerSubframe (),
                       m_phyMacConfig->GetSubframesPerFrame ());
-
-      uint32_t k1delay = modulo (m_dlHarqfbPosition[currentSlotN] - currentSlotN, m_tddPattern.size ());
-
-      if (k1delay < m_phyMacConfig->GetN1Delay ())
-        {
-          k1delay += m_tddPattern.size ();
-        }
-      NS_ASSERT_MSG (k1delay >= m_phyMacConfig->GetN1Delay (), " k1delay must be equal or larger than N1 " << k1delay);
-
 
       if (targetSlot == currentSlot)
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for the same slot");
 
           ctrlMsgs.merge (RetrieveDciFromAllocation (m_currSlotAllocInfo,
-                                                     DciInfoElementTdma::DL, k0delay));
+                                                     DciInfoElementTdma::DL, k0delay, k1delay));
         }
       else if (SlotAllocInfoExists (targetSlot))
         {
@@ -864,7 +869,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
                          targetSlot);
 
           ctrlMsgs.merge (RetrieveDciFromAllocation (PeekSlotAllocInfo(targetSlot),
-                                                     DciInfoElementTdma::DL, k0delay));
+                                                     DciInfoElementTdma::DL, k0delay, k1delay));
         }
       else
         {
@@ -877,7 +882,12 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
       SfnSf targetSlot = currentSlot;
 
       uint32_t k2delay = modulo (slot - currentSlotN, m_tddPattern.size ());
-      NS_ASSERT_MSG (k2delay >= m_phyMacConfig->GetN2Delay () && k2delay < 15, " k2delay can only get values between 0 and 15 " << k2delay);
+      if (k2delay < m_phyMacConfig->GetN2Delay ())
+        {
+          k2delay += m_tddPattern.size ();
+        }
+      NS_ASSERT_MSG (k2delay >= m_phyMacConfig->GetN2Delay () && k2delay < 15,
+                     " k2delay can only get values between 0 and 15 " << k2delay);
 
       targetSlot.Add (k2delay,
                       m_phyMacConfig->GetSlotsPerSubframe (),
@@ -888,7 +898,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
           NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for the same slot");
 
           ctrlMsgs.merge (RetrieveDciFromAllocation (m_currSlotAllocInfo,
-                                                     DciInfoElementTdma::UL, k2delay));
+                                                     DciInfoElementTdma::UL, k2delay, k1delay));
         }
       else if (SlotAllocInfoExists (targetSlot))
         {
@@ -896,7 +906,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
                          targetSlot);
 
           ctrlMsgs.merge (RetrieveDciFromAllocation (PeekSlotAllocInfo(targetSlot),
-                                                     DciInfoElementTdma::UL, k2delay));
+                                                     DciInfoElementTdma::UL, k2delay, k1delay));
         }
       else
         {

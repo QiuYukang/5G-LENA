@@ -132,6 +132,9 @@ public:
   /**
    * \brief Set the delay between DL Data reception and
    * \subframe to which it applies for Harq feedback
+   *
+   * \Note that K1 delay is also passed with the UL DCI
+   * \however the UE ignors it (applies only for DL DCI)
    */
   void SetK1Delay (uint32_t delay);
   /**

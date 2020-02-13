@@ -371,6 +371,7 @@ private:
   uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
   uint64_t m_imsi {0}; ///< The IMSI of the UE
   std::vector<LteNrTddSlotType> m_tddPattern;  //!< TDD pattern received through SIB msgs
+  std::unordered_map<uint8_t, uint32_t> m_harqIdToK1Map;  //!< Map that holds the K1 delay for each Harq process id
 
   /**
    * \brief Status of the channel for the PHY
