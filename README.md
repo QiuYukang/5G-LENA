@@ -112,6 +112,38 @@ not upgrade correctly. What we suggest is, if the `git pull` strategy leads to
 conflicts, to download again our ns-3-dev repository, following the instructions
 at the beginning of this file (the repository is gitlab.com:cttc-lena/ns-3-dev.git).
 
+## Documentation
+
+We maintain two sources of documentation: a user manual, and the Doxygen API
+documentation. The user manual describes the models and their assumptions; as
+we developed the module while the standard was not fully available, some parts
+are not modeling precisely the bits and the procedures indicated by the
+standard. However, we tried to abstract them accurately. In the Doxygen API
+documentation, you will find details about design and user usage of any class
+of the module, as well as description and images for the examples and the
+tests.
+
+To build the user manual, please do:
+
+```
+$ cd doc
+$ make latexpdf
+```
+
+And you fill find the PDF user manual in the directory build/latex. Please note
+that you may have to install some requirements to build the documentation; you
+can find the list of packages for any Ubuntu-based distribution in the file
+`.gitlab-ci.yml`.
+
+To build the doxygen documentation, please do:
+
+```
+$ python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
+```
+
+And then you will find the doxygen documentation inside `doc/doc/html/`.
+Please note that you may need to initialize the m.css submodule, and
+to install some packages like python3.
 
 ## Features
 
@@ -119,7 +151,9 @@ To see the features, please go to the [official webpage](https://cttc-lena.gitla
 
 ## Papers
 
-An updated list of published papers that are based on the outcome of this module is available [here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
+An updated list of published papers that are based on the outcome of this
+module is available
+[here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
 
 ## Future work
 
