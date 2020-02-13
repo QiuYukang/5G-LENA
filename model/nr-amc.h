@@ -16,8 +16,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_AMC_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_AMC_H_
+#ifndef NR_AMC_H
+#define NR_AMC_H
 
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/nr-error-model.h>
@@ -53,12 +53,10 @@ public:
    */
   NrAmc (const Ptr<MmWavePhyMacCommon> & configParams);
 
-  NrAmc () { }
-
   /**
    * \brief ~NrAmc deconstructor
    */
-  virtual ~NrAmc ();
+  virtual ~NrAmc () override;
 
   /**
    * \brief Valid types of the model used to create a cqi feedback
@@ -128,6 +126,39 @@ public:
   */
   uint32_t GetMaxMcs () const;
 
+  /**
+   * \brief Set the the requested BER in assigning MCS
+   * \param v the BER
+   */
+  void SetBer (double v);
+  /**
+   * \brief Get the BER value
+   * \return
+   */
+  double GetBer () const;
+
+  /**
+   * \brief Set the AMC model type
+   * \param m the AMC model
+   */
+  void SetAmcModel (AmcModel m);
+  /**
+   * \brief Get the AMC model type
+   * \return the AMC model type
+   */
+  AmcModel GetAmcModel () const;
+
+  /**
+   * \brief Set Error model type
+   * \param type the Error model type
+   */
+  void SetErrorModelType (const TypeId &type);
+  /**
+   * \brief Get the error model type
+   * \return the error model type
+   */
+  TypeId GetErrorModelType () const;
+
 private:
   double m_ber;             //!< Shannon based model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
@@ -140,4 +171,4 @@ private:
 
 } // end namespace ns3
 
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_AMC_H_ */
+#endif /* NR_AMC_H */
