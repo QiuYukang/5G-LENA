@@ -60,6 +60,14 @@ along with Ul Data).
 
 ### Changed behavior:
 
+* In the DCI message, the gNb reports the K{0,1,2} delay instead of the
+sfn number.
+* L1L2DataLatency is removed (defined in phy-mac common).
+* K3Delay is removed (defined in phy-mac common).
+* Introduce N0, N1, N2 processing delays (in phy-mac common).
+* The UlSchedDelay is replaced by N2Delay.
+* UE receives DL data according to K0 and sends UL data according to K2.
+
 ---
 
 ## Changes from NR-v0.3 to NR-v0.4
@@ -73,12 +81,6 @@ along with Ul Data).
 
 ### Changed behavior:
 
-* In the DCI message,  the gNb reports the K{0,1,2} delay instead of the
-sfn number.
-* L1L2DataLatency is removed (defined in phy-mac common).
-* K3Delay is removed (defined in phy-mac common).
-* Introduce N0, N1, N2 processing delays (in phy-mac common).
-* The UlSchedDelay is replaced by N2Delay.
 
 ---
 

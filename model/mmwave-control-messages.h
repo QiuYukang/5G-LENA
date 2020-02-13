@@ -117,29 +117,29 @@ public:
 
   /**
    * \brief Set the delay between DL/UL DCI reception
-   * \and subframe to which it applies for
-   * \reception/transmission of Data (k0/k2)
+   * and subframe to which it applies for
+   * reception/transmission of Data (k0/k2)
    */
   void SetKDelay (uint32_t delay);
   /**
    * \brief Get the delay between DL/UL DCI reception
-   * \and subframe to which it applies for
-   * \reception/transmission of Data (k0/k2)
+   * and subframe to which it applies for
+   * reception/transmission of Data (k0/k2)
    * \return k delay
    */
   uint32_t GetKDelay (void) const;
 
   /**
    * \brief Set the delay between DL Data reception and
-   * \subframe to which it applies for Harq feedback
+   * subframe to which it applies for Harq feedback
    *
-   * \Note that K1 delay is also passed with the UL DCI
-   * \however the UE ignors it (applies only for DL DCI)
+   * Note that K1 delay is also passed with the UL DCI
+   * however the UE ignors it (applies only for DL DCI)
    */
   void SetK1Delay (uint32_t delay);
   /**
    * \brief Get the delay between DL Data reception and
-   * \subframe to which it applies for Harq feedback
+   * subframe to which it applies for Harq feedback
    * \return k1 delay
    */
   uint32_t GetK1Delay (void) const;

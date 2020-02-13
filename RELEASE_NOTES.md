@@ -60,6 +60,7 @@ New user-visible features (old first)
   changed and therefore control messages are scheduled only in Ul Ctrl.
 - WIP: Definition of processing delays N0, N1, N2.
 - The UlSchedDelay is replaced by N2Delay.
+- UE receives DL data according to K0 and sends UL data according to K2.
 
 Bugs fixed
 ----------
