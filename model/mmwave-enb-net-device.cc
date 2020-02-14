@@ -1,51 +1,33 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
-
-#include <ns3/llc-snap-header.h>
-#include <ns3/simulator.h>
-#include <ns3/callback.h>
-#include <ns3/node.h>
-#include <ns3/packet.h>
-#include "mmwave-net-device.h"
-#include <ns3/packet-burst.h>
-#include <ns3/uinteger.h>
-#include <ns3/trace-source-accessor.h>
-#include <ns3/pointer.h>
-#include <ns3/enum.h>
-#include <ns3/uinteger.h>
 #include "mmwave-enb-net-device.h"
-#include "mmwave-ue-net-device.h"
+#include <ns3/object-map.h>
 #include <ns3/lte-enb-rrc.h>
-#include <ns3/ipv4-l3-protocol.h>
 #include <ns3/abort.h>
 #include <ns3/log.h>
 #include <ns3/lte-enb-component-carrier-manager.h>
-#include <ns3/object-map.h>
+#include <ns3/ipv4-l3-protocol.h>
+
+#include "component-carrier-gnb.h"
+#include "mmwave-enb-mac.h"
+#include "mmwave-enb-phy.h"
 
 namespace ns3 {
 
@@ -58,9 +40,6 @@ MmWaveEnbNetDevice::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::MmWaveEnbNetDevice").SetParent<MmWaveNetDevice> ()
     .AddConstructor<MmWaveEnbNetDevice> ()
-    .AddAttribute ("mmWaveScheduler", "The Scheduler associated with the MAC",
-                   PointerValue (), MakePointerAccessor (&MmWaveEnbNetDevice::m_scheduler),
-                   MakePointerChecker<MmWaveMacScheduler> ())
     .AddAttribute ("LteEnbComponentCarrierManager",
                    "The component carrier manager associated to this EnbNetDevice",
                    PointerValue (),
@@ -129,16 +108,16 @@ MmWaveEnbNetDevice::DoDispose ()
   NS_LOG_FUNCTION (this);
 
   m_rrc->Dispose ();
-  m_rrc = 0;
+  m_rrc = nullptr;
 
   m_componentCarrierManager->Dispose ();
-  m_componentCarrierManager = 0;
+  m_componentCarrierManager = nullptr;
   // ComponentCarrierEnb::DoDispose() will call DoDispose
   // of its PHY, MAC, FFR and scheduler instance
-  for (uint32_t i = 0; i < m_ccMap.size (); i++)
+  for (uint8_t i = 0; i < m_ccMap.size (); i++)
     {
       m_ccMap.at (i)->Dispose ();
-      m_ccMap.at (i) = 0;
+      m_ccMap.at (i) = nullptr;
     }
   MmWaveNetDevice::DoDispose ();
 }

@@ -37,6 +37,8 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
+#include "ns3/component-carrier-gnb.h"
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmBandwidthPartsExample");

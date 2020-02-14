@@ -35,7 +35,8 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/test.h"
-
+#include "ns3/component-carrier-gnb.h"
+#include "ns3/component-carrier-mmwave-ue.h"
 using namespace ns3;
 
 /**
