@@ -52,7 +52,9 @@
 #include <ns3/bwp-manager-gnb.h>
 #include <ns3/bwp-manager-ue.h>
 #include <ns3/nr-ch-access-manager.h>
-
+#include <ns3/component-carrier-gnb.h>
+#include <ns3/component-carrier-mmwave-ue.h>
+#include <ns3/mmwave-ue-mac.h>
 
 namespace ns3 {
 

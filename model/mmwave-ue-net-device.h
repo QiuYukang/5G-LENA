@@ -1,57 +1,39 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                Sourjya Dutta <sdutta@nyu.edu>
-*                Russell Ford <russell.ford@nyu.edu>
-*                Menglei Zhang <menglei@nyu.edu>
-*                Biljana Bojovic <bbojovic@cttc.es> added carrier aggregation
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_UE_NET_DEVICE_H_
 #define SRC_MMWAVE_MODEL_MMWAVE_UE_NET_DEVICE_H_
 
-
 #include "mmwave-net-device.h"
-#include "mmwave-enb-net-device.h"
-#include "ns3/event-id.h"
-#include "ns3/mac48-address.h"
-#include "ns3/traced-callback.h"
-#include "ns3/nstime.h"
-#include "mmwave-phy.h"
-#include "mmwave-ue-mac.h"
-#include <ns3/lte-ue-rrc.h>
-#include <ns3/epc-ue-nas.h>
-#include "component-carrier-mmwave-ue.h"
-#include <ns3/lte-ue-component-carrier-manager.h>
 
 namespace ns3 {
 
 class Packet;
 class PacketBurst;
 class Node;
-//class MmWavePhy;
 class MmWaveUePhy;
 class MmWaveUeMac;
+class LteUeComponentCarrierManager;
+class EpcUeNas;
+class LteUeRrc;
 class MmWaveEnbNetDevice;
+class ComponentCarrierMmWaveUe;
 
 class MmWaveUeNetDevice : public MmWaveNetDevice
 {
@@ -63,15 +45,10 @@ public:
 
   virtual ~MmWaveUeNetDevice (void);
 
-  virtual void DoDispose ();
-
   uint32_t GetCsgId () const;
 
   void SetCsgId (uint32_t csgId);
 
-  void UpdateConfig (void);
-
-  virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
   virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const;
 
@@ -120,6 +97,11 @@ public:
 protected:
   // inherited from Object
   virtual void DoInitialize (void);
+  virtual void DoDispose ();
+
+  void UpdateConfig (void);
+
+  virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
 private:
   Ptr<MmWaveEnbNetDevice> m_targetEnb;

@@ -43,6 +43,7 @@
 #include <ns3/node-list.h>
 #include <ns3/node.h>
 #include <ns3/pointer.h>
+#include <ns3/double.h>
 
 namespace ns3 {
 

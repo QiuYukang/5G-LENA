@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -15,6 +14,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 
 #ifndef MMWAVE_ENB_MAC_H
@@ -92,8 +92,6 @@ public:
    * \param current sfn
    */
   virtual void SetCurrentSfn (const SfnSf &sfn);
-
-  void SetMcs (int mcs);
 
   void SetForwardUpCallback (Callback <void, Ptr<Packet> > cb);
 

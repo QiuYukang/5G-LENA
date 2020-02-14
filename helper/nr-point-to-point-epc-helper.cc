@@ -25,6 +25,8 @@
 #include <ns3/mmwave-enb-net-device.h>
 #include <ns3/epc-x2.h>
 #include <ns3/mmwave-ue-net-device.h>
+#include <ns3/lte-enb-rrc.h>
+#include <ns3/epc-ue-nas.h>
 
 namespace ns3 {
 

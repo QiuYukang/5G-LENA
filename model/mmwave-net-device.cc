@@ -1,40 +1,26 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
-
-
-#include <ns3/simulator.h>
-#include <ns3/callback.h>
-#include <ns3/node.h>
-#include <ns3/packet.h>
 #include <ns3/log.h>
 #include <ns3/ipv4-l3-protocol.h>
+#include <ns3/node.h>
 #include "mmwave-net-device.h"
-
 
 namespace ns3 {
 
@@ -72,7 +58,7 @@ MmWaveNetDevice::~MmWaveNetDevice (void)
 void
 MmWaveNetDevice::DoDispose (void)
 {
-  m_node = 0;
+  m_node = nullptr;
   NetDevice::DoDispose ();
 }
 
@@ -89,7 +75,7 @@ MmWaveNetDevice::GetIfIndex (void) const
 Ptr<Channel>
 MmWaveNetDevice::GetChannel (void) const
 {
-  return 0;
+  return nullptr;
 }
 void
 MmWaveNetDevice::SetAddress (Address address)
@@ -122,7 +108,7 @@ MmWaveNetDevice::IsLinkUp (void) const
 void
 MmWaveNetDevice::AddLinkChangeCallback (Callback<void> callback)
 {
-
+  NS_UNUSED (callback);
 }
 bool
 MmWaveNetDevice::IsBroadcast (void) const
@@ -142,6 +128,7 @@ MmWaveNetDevice::IsMulticast (void) const
 Address
 MmWaveNetDevice::GetMulticast (Ipv4Address multicastGroup) const
 {
+  NS_UNUSED (multicastGroup);
   return Mac48Address ("01:00:5e:00:00:00");
 }
 bool
@@ -158,6 +145,10 @@ MmWaveNetDevice::IsPointToPoint (void) const
 bool
 MmWaveNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber)
 {
+  NS_UNUSED (packet);
+  NS_UNUSED (source);
+  NS_UNUSED (dest);
+  NS_UNUSED (protocolNumber);
   NS_FATAL_ERROR ("Send from not supported");
   return false;
 }
@@ -183,8 +174,8 @@ MmWaveNetDevice::NeedsArp (void) const
 Address
 MmWaveNetDevice::GetMulticast (Ipv6Address addr) const
 {
-  Address dummy;
-  return dummy;
+  NS_UNUSED (addr);
+  return Address ();
 }
 
 void
@@ -197,7 +188,7 @@ MmWaveNetDevice::SetReceiveCallback (ReceiveCallback cb)
 void
 MmWaveNetDevice::SetPromiscReceiveCallback (PromiscReceiveCallback cb)
 {
-
+  NS_UNUSED (cb);
 }
 
 bool
@@ -216,22 +207,9 @@ MmWaveNetDevice::Receive (Ptr<Packet> p)
 bool
 MmWaveNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
-  bool ret = DoSend ( packet, dest, protocolNumber);
+  bool ret = DoSend (packet, dest, protocolNumber);
   return ret;
 }
-
-Ipv4Address
-MmWaveNetDevice::GetPacketDestination (Ptr<Packet> packet)
-{
-  Ipv4Address dest_ip;
-  Ptr<Packet> q = packet->Copy ();
-
-  Ipv4Header ipHeader;
-  q->PeekHeader (ipHeader);
-  dest_ip = ipHeader.GetDestination ();
-  return dest_ip;
-}
-
 
 }
 
