@@ -56,8 +56,8 @@ and forward-declare everything else. An example is the following:
 #include "MyBossClass.h"
 #include "Mac.h"
 
-class Spectrum;
-class Phy;
+class Spectrum; // forward-declaration
+class Phy; // forward-declaration
 
 class MyPreciousClass : public MyBossClass // Cannot be forward-declared
 {
