@@ -1,6 +1,6 @@
 ﻿/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Natale Patriciello <natale.patriciello@gmail.com>
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -330,6 +330,63 @@ public:
    * \brief Map between a beamID and the HARQ of that beam
    */
   typedef std::unordered_map<BeamId, HarqVectorIteratorList, BeamIdHash> ActiveHarqMap;
+
+  /**
+   * \brief Set the CqiTimerThreshold
+   * \param v the value to set
+   */
+  void SetCqiTimerThreshold (const Time &v);
+  /**
+   * \brief Get the CqiTimerThreshold
+   * \return the value
+   */
+  Time GetCqiTimerThreshold () const;
+
+  /**
+   * \brief Set if the MCS in DL is fixed (in case, it will take the starting value)
+   * \param v the value
+   * \see SetStartMcsDl
+   */
+  void SetFixedDlMcs (bool v);
+  /**
+   * \brief Check if the MCS in DL is fixed
+   * \return true if the DL MCS is fixed, false otherwise
+   */
+  bool IsDlMcsFixed () const;
+
+  /**
+   * \brief Set if the MCS in UL is fixed (in case, it will take the starting value)
+   * \param v the value
+   * \see SetStartMcsUl
+   */
+  void SetFixedUlMcs (bool v);
+  /**
+   * \brief Check if the MCS in UL is fixed
+   * \return true if the UL MCS is fixed, false otherwise
+   */
+  bool IsUlMcsFixed () const;
+
+  /**
+   * \brief Set the starting value for the DL MCS
+   * \param v the value
+   */
+  void SetStartMcsDl (uint8_t v);
+  /**
+   * \brief Get the DL MCS starting value
+   * \return the value
+   */
+  uint8_t GetStartMcsDl () const;
+
+  /**
+   * \brief Set the starting value for the UL MCS
+   * \param v the value
+   */
+  void SetStartMcsUl (uint8_t v);
+  /**
+   * \brief Get the DL MCS starting value
+   * \return the value
+   */
+  uint8_t GetStartMcsUl () const;
 
 protected:
   /**

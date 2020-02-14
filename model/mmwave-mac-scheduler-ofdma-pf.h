@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Natale Patriciello <natale.patriciello@gmail.com>
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -49,6 +49,29 @@ public:
   virtual ~MmWaveMacSchedulerOfdmaPF () override
   {
   }
+
+  /**
+   * \brief Set the value of attribute "FairnessIndex"
+   * \param v
+   */
+  void SetFairnessIndex (double v);
+
+  /**
+   * \brief Get the value of attribute "FairnessIndex"
+   * @return
+   */
+  double GetFairnessIndex () const;
+
+  /**
+   * \brief Set the attribute "LastAvgTPutWeight"
+   * \param v the value to save
+   */
+  void SetTimeWindow (double v);
+  /**
+   * \brief Get the attribute "LastAvgTPutWeight"
+   * \return the value of the attribute
+   */
+  double GetTimeWindow () const;
 
 protected:
   // inherit
@@ -99,7 +122,7 @@ protected:
 
 private:
   double m_timeWindow {99.0}; //!< Time window to calculate the throughput. Better to make it an attribute.
-  float m_alpha {0.0}; //!< PF Fairness index
+  double m_alpha {0.0}; //!< PF Fairness index
 };
 
 } // namespace ns3

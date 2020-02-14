@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -16,16 +15,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
- *                Sourjya Dutta <sdutta@nyu.edu>
- *                Russell Ford <russell.ford@nyu.edu>
- *                Menglei Zhang <menglei@nyu.edu>
  */
-
-
 
 #include "nr-amc.h"
 #include <ns3/log.h>
@@ -44,14 +34,6 @@ NrAmc::NrAmc (const Ptr<MmWavePhyMacCommon> & configParams)
   : m_phyMacConfig (configParams)
 {
   NS_LOG_INFO ("Initialze AMC module");
-
-  // We already need the attributes
-  ObjectBase::ConstructSelf (AttributeConstructionList ());
-
-  ObjectFactory factory;
-  factory.SetTypeId (m_errorModelType);
-  m_errorModel = DynamicCast<NrErrorModel> (factory.Create ());
-  NS_ASSERT (m_errorModel != nullptr);
 }
 
 NrAmc::~NrAmc ()
@@ -63,22 +45,24 @@ NrAmc::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrAmc")
     .SetParent<Object> ()
-    .AddConstructor<NrAmc> ()
     .AddAttribute ("Ber",
                    "The requested BER in assigning MCS (default is 0.00005). Only used with ShannonModel",
                    DoubleValue (0.00005),
-                   MakeDoubleAccessor (&NrAmc::m_ber),
+                   MakeDoubleAccessor (&NrAmc::SetBer,
+                                       &NrAmc::GetBer),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("AmcModel",
                    "AMC model used to assign CQI",
                    EnumValue (NrAmc::ErrorModel),
-                   MakeEnumAccessor (&NrAmc::m_amcModel),
+                   MakeEnumAccessor (&NrAmc::SetAmcModel,
+                                     &NrAmc::GetAmcModel),
                    MakeEnumChecker (NrAmc::ErrorModel, "ErrorModel",
                                     NrAmc::ShannonModel, "ShannonModel"))
     .AddAttribute ("ErrorModelType",
                    "Type of the Error Model to use when AmcModel is set to ErrorModel",
                    TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
-                   MakeTypeIdAccessor (&NrAmc::m_errorModelType),
+                   MakeTypeIdAccessor (&NrAmc::SetErrorModelType,
+                                       &NrAmc::GetErrorModelType),
                    MakeTypeIdChecker ())
   ;
   return tid;
@@ -294,6 +278,53 @@ NrAmc::GetMaxMcs() const
 {
   NS_LOG_FUNCTION (this);
   return m_errorModel->GetMaxMcs ();
+}
+
+void
+NrAmc::SetBer (double v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ber = v;
+}
+
+double
+NrAmc::GetBer () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ber;
+}
+
+void
+NrAmc::SetAmcModel (NrAmc::AmcModel m)
+{
+  NS_LOG_FUNCTION (this);
+  m_amcModel = m;
+}
+
+NrAmc::AmcModel
+NrAmc::GetAmcModel () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_amcModel;
+}
+
+void
+NrAmc::SetErrorModelType (const TypeId &type)
+{
+  NS_LOG_FUNCTION (this);
+  ObjectFactory factory;
+  m_errorModelType = type;
+
+  factory.SetTypeId (m_errorModelType);
+  m_errorModel = DynamicCast<NrErrorModel> (factory.Create ());
+  NS_ASSERT (m_errorModel != nullptr);
+}
+
+TypeId
+NrAmc::GetErrorModelType () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_errorModelType;
 }
 
 } // namespace ns3

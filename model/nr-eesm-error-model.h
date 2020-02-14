@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2018 CTTC Sandra Lagen  <sandra.lagen@cttc.es>
+*   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License version 2 as
@@ -10,7 +10,6 @@
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of
 *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *   GNU General Public License for more details.
-}
 *
 *   You should have received a copy of the GNU General Public License
 *   along with this program; if not, write to the Free Software
@@ -29,7 +28,7 @@ class NrL2smEesmTestCase;
 
 /**
  * \ingroup error-models
- * @brief The NrEesmErrorModelOutput struct
+ * \brief The NrEesmErrorModelOutput struct
  *
  * Error model output returned by the class NrEesmErrorModel.
  * \see NrEesmErrorModel
