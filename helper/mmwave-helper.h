@@ -1,78 +1,52 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*   Author: Marco Miozzo <marco.miozzo@cttc.es>
-*           Nicola Baldo  <nbaldo@cttc.es>
-*
-*   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
 
 #ifndef MMWAVE_HELPER_H
 #define MMWAVE_HELPER_H
 
-#include <ns3/config.h>
-#include <ns3/simulator.h>
-#include <ns3/names.h>
-#include <ns3/net-device.h>
 #include <ns3/net-device-container.h>
-#include <ns3/node.h>
 #include <ns3/node-container.h>
-#include <ns3/mobility-model.h>
-#include <ns3/spectrum-phy.h>
-#include <ns3/mmwave-ue-net-device.h>
-#include <ns3/mmwave-enb-net-device.h>
-#include <ns3/mmwave-phy.h>
-#include <ns3/mmwave-ue-phy.h>
-#include <ns3/mmwave-enb-phy.h>
-#include <ns3/mmwave-spectrum-value-helper.h>
-#include <ns3/mmwave-phy-mac-common.h>
-#include <ns3/mmwave-rrc-protocol-ideal.h>
-#include "mmwave-phy-rx-trace.h"
-#include "mmwave-mac-rx-trace.h"
-#include <ns3/epc-helper.h>
-#include <ns3/epc-ue-nas.h>
-#include <ns3/lte-enb-rrc.h>
-#include <ns3/lte-ue-rrc.h>
-#include <ns3/boolean.h>
-#include <ns3/epc-helper.h>
-#include <ns3/lte-ffr-algorithm.h>
-#include <ns3/mmwave-bearer-stats-calculator.h>
+#include <ns3/eps-bearer.h>
+#include <ns3/object-factory.h>
 #include <ns3/mmwave-bearer-stats-connector.h>
-#include <ns3/propagation-loss-model.h>
+#include <ns3/mmwave-control-messages.h>
 #include <ns3/mmwave-3gpp-channel.h>
-#include <ns3/cc-helper.h>
-#include <algorithm>
-
 
 namespace ns3 {
 
-/* ... */
 class MmWaveUePhy;
 class MmWaveEnbPhy;
 class SpectrumChannel;
 class SpectrumpropagationLossModel;
 class MmWaveSpectrumValueHelper;
 class PropagationLossModel;
-
+class MmWaveEnbMac;
+class EpcHelper;
+class EpcTft;
+class MmWaveBearerStatsCalculator;
+class MmwaveMacRxTrace;
+class MmWavePhyRxTrace;
+class MmWavePhyMacCommon;
+class MmWave3gppChannel;
+class ComponentCarrierEnb;
+class ComponentCarrier;
 
 /**
  * Bandwidth part configuration element

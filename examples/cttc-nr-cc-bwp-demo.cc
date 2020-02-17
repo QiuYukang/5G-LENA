@@ -466,8 +466,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
     {
       ObjectMapValue objectMapValue;
-      Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (enbNetDev.Get (j));
-      netDevice->GetAttribute ("ComponentCarrierMap", objectMapValue);
+      enbNetDev.Get (j)->GetAttribute ("ComponentCarrierMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN (); i++)
         {
           Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb> (objectMapValue.Get (i));

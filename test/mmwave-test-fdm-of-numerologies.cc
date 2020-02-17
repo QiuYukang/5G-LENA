@@ -213,8 +213,7 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
 
     totalBandwidth = m_bw1 + m_bw2;
 
-    Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice>(enbNetDev.Get(0));
-    netDevice->GetAttribute("ComponentCarrierMap", objectMapValue);
+    enbNetDev.Get(0)->GetAttribute("ComponentCarrierMap", objectMapValue);
     for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
       {
         Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
@@ -231,8 +230,7 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     // set tx power of UE devices
     for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
       {
-        Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice>(ueNetDev.Get(j));
-        netDevice->GetAttribute("ComponentCarrierMapUe", objectMapValue);
+        ueNetDev.Get(j)->GetAttribute("ComponentCarrierMapUe", objectMapValue);
         for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
           {
             Ptr<ComponentCarrierMmWaveUe> bandwidthPart = DynamicCast<ComponentCarrierMmWaveUe>(objectMapValue.Get(i));

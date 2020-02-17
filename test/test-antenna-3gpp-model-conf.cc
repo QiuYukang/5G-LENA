@@ -43,6 +43,7 @@
 #include "ns3/mmwave-spectrum-phy.h"
 #include "ns3/basic-data-calculators.h"
 #include "ns3/antenna-array-3gpp-model.h"
+#include "ns3/mmwave-ue-net-device.h"
 
 using namespace ns3;
 

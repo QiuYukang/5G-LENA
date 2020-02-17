@@ -19,8 +19,8 @@
 
 
 
-#ifndef LTE_RRC_PROTOCOL_IDEAL_H
-#define LTE_RRC_PROTOCOL_IDEAL_H
+#ifndef MMWAVE_RRC_PROTOCOL_IDEAL_H
+#define MMWAVE_RRC_PROTOCOL_IDEAL_H
 
 #include <stdint.h>
 #include <map>
@@ -149,4 +149,4 @@ private:
 }
 
 
-#endif // LTE_RRC_PROTOCOL_IDEAL_H
+#endif // MMWAVE_RRC_PROTOCOL_IDEAL_H
