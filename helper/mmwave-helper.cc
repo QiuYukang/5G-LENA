@@ -1,7 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -16,45 +15,39 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Marco Miozzo <marco.miozzo@cttc.es>
- *           Nicola Baldo  <nbaldo@cttc.es>
- *   Modified by: Danilo Abrignani <danilo.abrignani@unibo.it> (Carrier Aggregation - GSoC 2015)
- *                Biljana Bojovic <biljana.bojovic@cttc.es> (Carrier Aggregation, mmwave)
- *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu> (mmwave)
- *                Sourjya Dutta <sdutta@nyu.edu> (mmwave)
- *                Russell Ford <russell.ford@nyu.edu> (mmwave)
- *                Menglei Zhang <menglei@nyu.edu> (mmwave)
  */
 
-
-
-#include <ns3/string.h>
-#include <ns3/log.h>
-#include <ns3/abort.h>
-#include <ns3/pointer.h>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include "mmwave-helper.h"
-#include <ns3/abort.h>
-#include <ns3/buildings-propagation-loss-model.h>
-#include <ns3/multi-model-spectrum-channel.h>
-#include <ns3/uinteger.h>
-#include <ns3/double.h>
-#include <ns3/ipv4.h>
-#include <ns3/mmwave-rrc-protocol-ideal.h>
+#include <ns3/lte-rrc-protocol-ideal.h>
 #include <ns3/lte-rrc-protocol-real.h>
-#include <ns3/epc-enb-application.h>
-#include <ns3/epc-x2.h>
-#include <ns3/buildings-obstacle-propagation-loss-model.h>
-#include <ns3/lte-enb-component-carrier-manager.h>
-#include <ns3/lte-ue-component-carrier-manager.h>
-#include <ns3/bwp-manager-gnb.h>
-#include <ns3/bwp-manager-ue.h>
+#include <ns3/multi-model-spectrum-channel.h>
+#include <ns3/lte-ue-rrc.h>
+#include <ns3/epc-ue-nas.h>
+#include <ns3/names.h>
+
+#include <ns3/mmwave-rrc-protocol-ideal.h>
+#include <ns3/mmwave-enb-mac.h>
+#include <ns3/mmwave-enb-phy.h>
+#include <ns3/mmwave-ue-phy.h>
+#include <ns3/mmwave-ue-mac.h>
+#include <ns3/mmwave-enb-net-device.h>
+#include <ns3/mmwave-ue-net-device.h>
 #include <ns3/nr-ch-access-manager.h>
 #include <ns3/component-carrier-gnb.h>
+#include <ns3/bwp-manager-gnb.h>
+#include <ns3/bwp-manager-ue.h>
+#include <ns3/mmwave-rrc-protocol-ideal.h>
+#include <ns3/epc-helper.h>
+#include <ns3/epc-enb-application.h>
+#include <ns3/epc-x2.h>
+#include <ns3/mmwave-phy-rx-trace.h>
+#include <ns3/mmwave-mac-rx-trace.h>
+#include <ns3/mmwave-bearer-stats-calculator.h>
+#include <ns3/mmwave-3gpp-channel.h>
 #include <ns3/component-carrier-mmwave-ue.h>
-#include <ns3/mmwave-ue-mac.h>
+#include <ns3/component-carrier-gnb.h>
+
+#include <algorithm>
 
 namespace ns3 {
 
@@ -1641,9 +1634,9 @@ ComponentCarrierBandwidthPartCreator::GetCarrierBandwidth (uint8_t ccId)
     {
       std::map<uint8_t, ComponentCarrierInfo>::const_iterator it = band.m_cc.find(ccId);
       if (it != band.m_cc.end ())
-	{
-	  return it->second.m_bandwidth;
-	}
+        {
+          return it->second.m_bandwidth;
+        }
     }
   NS_ABORT_MSG("The CC id you requested was not found");
 }
@@ -1665,19 +1658,19 @@ ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t c
   for (auto & band : m_bands)
     {
       if (band.m_bandId == bandId)
-	{
-	  std::map<uint8_t, ComponentCarrierInfo>::iterator itCc = band.m_cc.find(ccId);
-	  if (itCc != band.m_cc.end ())
-	    {
-	      // Make sure the BWP id belongs to the queried CC
-	      std::map<uint8_t, ComponentCarrierBandwidthPartElement>::iterator itBwp = itCc->second.m_bwp.find (activeBwpId);
-	      if (itBwp != itCc->second.m_bwp.end ())
-		{
-		  itCc->second.m_activeBwp = activeBwpId;
-		  return;
-		}
-	    }
-	}
+        {
+          std::map<uint8_t, ComponentCarrierInfo>::iterator itCc = band.m_cc.find(ccId);
+          if (itCc != band.m_cc.end ())
+            {
+              // Make sure the BWP id belongs to the queried CC
+              std::map<uint8_t, ComponentCarrierBandwidthPartElement>::iterator itBwp = itCc->second.m_bwp.find (activeBwpId);
+              if (itBwp != itCc->second.m_bwp.end ())
+                {
+                  itCc->second.m_activeBwp = activeBwpId;
+                  return;
+                }
+            }
+        }
     }
   NS_ABORT_MSG ("Could not change the active BWP due to wrong request");
 }
