@@ -144,6 +144,14 @@ MmWaveUePhy::GetTypeId (void)
                      "Ue PHY Control Messages Traces.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_phyTxedCtrlMsgsTrace),
                      "ns3::MmWavePhyRxTrace::TxedUePhyCtrlMsgsTracedCallback")
+    .AddTraceSource ("UePhyRxedDlDciTrace",
+                     "Ue PHY DL DCI Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyUeRxedDlDciTrace),
+                     "ns3::MmWavePhyRxTrace::RxedUePhyDlDciTracedCallback")
+    .AddTraceSource ("UePhyTxedHarqFeedbackTrace",
+                     "Ue PHY DL HARQ Feedback Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyUeTxedHarqFeedbackTrace),
+                     "ns3::MmWavePhyRxTrace::TxedUePhyHarqFeedbackTracedCallback")
       ;
   return tid;
 }
@@ -329,6 +337,9 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
               /* BIG ASSUMPTION: We assume that K0 is always 0 */
 
               m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
+
+              m_phyUeRxedDlDciTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                      m_rnti, m_phyMacConfig->GetCcId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
 
               InsertAllocation (dciInfoElem);
             }
@@ -656,6 +667,15 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
         {
           Ptr<MmWaveDlHarqFeedbackMessage> harqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
           uint8_t harqId = harqMsg->GetDlHarqFeedback().m_harqProcessId;
+
+          auto it = m_harqIdToK1Map.find(harqId);
+          if (it!=m_harqIdToK1Map.end())
+            {
+              m_phyUeTxedHarqFeedbackTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                      m_rnti, m_phyMacConfig->GetCcId (),
+                                      static_cast<uint32_t> (harqId), it->second);
+            }
+
           m_harqIdToK1Map.erase ( m_harqIdToK1Map.find(harqId), m_harqIdToK1Map.end() );
         }
     }
