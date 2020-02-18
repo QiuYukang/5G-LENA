@@ -29,7 +29,6 @@
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
-#include "ns3/antenna-array-model.h"
 #include "ns3/sqlite-output.h"
 
 using namespace ns3;
@@ -801,9 +800,6 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
 
   Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue (2));
   Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue (4));
-
-  Config::SetDefault("ns3::AntennaArrayModel::AntennaOrientation", EnumValue (AntennaArrayModel::X0));
-
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));

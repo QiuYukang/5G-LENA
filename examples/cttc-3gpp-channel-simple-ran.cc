@@ -181,20 +181,15 @@ main (int argc, char *argv[])
   GlobalValue::GetValueByName("isUplink", boolValue); // use uplink
   bool uplink = boolValue.Get();
 
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(28e9));
   Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(400e6));
   Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(numerology));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
+  Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("UMi-StreetCanyon"));
 
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue (true));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (28));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
 
