@@ -184,16 +184,6 @@ main (int argc, char *argv[])
   //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNum", UintegerValue (16));
   //Config::SetDefault("ns3::MmWaveEnbPhy::TxPower", DoubleValue (txPower));
 
-
-  if(singleBwp)
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (1));
-    }
-  else
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
-    }
-
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
@@ -283,12 +273,6 @@ main (int argc, char *argv[])
       phyMacCommonBwp2->SetCcId(1);
       BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
       mmWaveHelper->AddBandwidthPart(1, repr2);
-    }
-
-  // Enable CA if there are more than one component carrier. Disabled by default
-  if (! singleBwp)
-    {
-      mmWaveHelper->SetAttribute ("UseCa", BooleanValue (true));
     }
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();

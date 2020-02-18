@@ -398,17 +398,6 @@ main (int argc, char *argv[])
     }
 
   NS_ABORT_MSG_IF (ccId < 1,"No CC created");
-  //Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (ccId));
-  mmWaveHelper->SetAttribute ("NumberOfComponentCarriers", UintegerValue (ccId));  //The commented line does not update the number of CCs
-
-  Config::SetDefault ("ns3::LteHelper::NumberOfComponentCarriers", UintegerValue (ccId));
-  Config::SetDefault ("ns3::LteHelper::EnbComponentCarrierManager", StringValue ("ns3::RrComponentCarrierManager"));
-
-  /*
-  UintegerValue testccId;
-  mmWaveHelper->GetAttribute("NumberOfComponentCarriers",testccId);
-  std::cout << testccId.Get() << std::endl;
-  */
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);

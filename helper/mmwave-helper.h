@@ -47,6 +47,9 @@ class MmWavePhyMacCommon;
 class MmWave3gppChannel;
 class ComponentCarrierEnb;
 class ComponentCarrier;
+class MmWaveMacScheduler;
+class MmWaveEnbNetDevice;
+class MmWaveUeMac;
 
 /**
  * Bandwidth part configuration element
@@ -428,6 +431,14 @@ private:
    */
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
+  Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentation& conf,
+                                   const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId) const;
+  Ptr<MmWaveMacScheduler> CreateGnbSched (const BandwidthPartRepresentation& conf);
+  Ptr<MmWaveEnbMac> CreateGnbMac (const BandwidthPartRepresentation& conf);
+
+  Ptr<MmWaveUeMac> CreateUeMac () const;
+  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf) const;
+
   Ptr<NetDevice> InstallSingleUeDevice (Ptr<Node> n);
   Ptr<NetDevice> InstallSingleEnbDevice (Ptr<Node> n);
   void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
@@ -474,14 +485,6 @@ private:
   Ptr<MmWaveBearerStatsCalculator> m_pdcpStats;
   MmWaveBearerStatsConnector m_radioBearerStatsConnector;
 
-  /**
-   * The `UseCa` attribute. If true, Carrier Aggregation is enabled.
-   * Hence, the helper will expect a valid component carrier map
-   * If it is false, the component carrier will be created within the LteHelper
-   * this is to maintain the backwards compatibility with user script
-   */
-  bool m_useCa;
-
   bool m_initialized {false}; //!< Is helper initialized correctly?
 
   /**
@@ -490,11 +493,6 @@ private:
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams;
 
   std::unordered_map<uint32_t, BandwidthPartRepresentation> m_bwpConfiguration;
-
-  /**
-   * Number of component carriers that will be installed by default at eNodeB and UE devices.
-   */
-  uint16_t m_noOfCcs;
   TypeId m_defaultSchedulerType;
 };
 

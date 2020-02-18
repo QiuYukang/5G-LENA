@@ -90,6 +90,12 @@ public:
   void SetCam (const Ptr<NrChAccessManager> &s);
 
   /**
+   * \brief Get the channel access manager for the PHY
+   * \return the CAM of the PHY
+   */
+  Ptr<NrChAccessManager> GetCam () const;
+
+  /**
    * \brief Set the transmission power for the UE
    *
    * Please note that there is also an attribute ("MmWaveUePhy::TxPower")

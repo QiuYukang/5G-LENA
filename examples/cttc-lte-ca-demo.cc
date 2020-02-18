@@ -172,8 +172,7 @@ main (int argc, char *argv[])
 
   // The maximum number of carriers in LTE Rel. 10 is 5; 32 in Rel. 15
   NS_ABORT_MSG_IF(numCcs > 5, "Please adjust the number of CCs");
-  Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers",
-                      UintegerValue (numCcs));
+
 
   // Define here which carrier ids will be mapped to a given QCI
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
