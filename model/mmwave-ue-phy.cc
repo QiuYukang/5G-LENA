@@ -343,6 +343,12 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
 
               /* BIG ASSUMPTION: We assume that K0 is always 0 */
 
+              auto it = m_harqIdToK1Map.find (dciInfoElem->m_harqProcess);
+              if (it!=m_harqIdToK1Map.end ())
+               {
+                 m_harqIdToK1Map.erase (m_harqIdToK1Map.find (dciInfoElem->m_harqProcess));
+               }
+
               m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
 
               m_phyUeRxedDlDciTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
@@ -667,23 +673,21 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
     {
       Ptr<MmWaveControlMessage> msg = *ctrlIt;
-      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
+      m_phyTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
                               dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
 
       if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
         {
           Ptr<MmWaveDlHarqFeedbackMessage> harqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
-          uint8_t harqId = harqMsg->GetDlHarqFeedback().m_harqProcessId;
+          uint8_t harqId = harqMsg->GetDlHarqFeedback ().m_harqProcessId;
 
-          auto it = m_harqIdToK1Map.find(harqId);
-          if (it!=m_harqIdToK1Map.end())
+          auto it = m_harqIdToK1Map.find (harqId);
+          if (it!=m_harqIdToK1Map.end ())
             {
               m_phyUeTxedHarqFeedbackTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                                       m_rnti, m_phyMacConfig->GetCcId (),
                                       static_cast<uint32_t> (harqId), it->second);
             }
-
-          m_harqIdToK1Map.erase ( m_harqIdToK1Map.find(harqId), m_harqIdToK1Map.end() );
         }
     }
 
@@ -940,7 +944,15 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
 
-  Simulator::Schedule (MilliSeconds (m_phyMacConfig->GetTbDecodeLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
+  auto k1It = m_harqIdToK1Map.find (m.m_harqProcessId);
+
+  NS_LOG_DEBUG ("ReceiveLteDlHarqFeedback" << " Harq Process " <<
+                static_cast<uint32_t> (k1It->first) <<
+                " K1: " << k1It->second << " Frame " <<
+                SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+  Simulator::Schedule (((m_phyMacConfig->GetSlotPeriod () * k1It->second) - (Simulator::Now () - m_lastSlotStart)),
+                       &MmWaveUePhy::DoSendControlMessageNow, this, msg);
 }
 
 void

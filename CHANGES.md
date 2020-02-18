@@ -58,15 +58,21 @@ respectively to avoid confusion. mmwave-helper callbacks are updated accordingly
 * Ue control messages are only scheduled in Ul Ctrl (previously could be send
 along with Ul Data).
 
+* MmWaveUePhy includes now traces for the DL DCI and the corresponding DL HARQ Feedback
+
 ### Changed behavior:
 
+* K0, K1, K2 Delays are removed from the phy-mac common, instead they are
+implemented as parameters of the DCI.
 * In the DCI message, the gNb reports the K{0,1,2} delay instead of the
 sfn number.
 * L1L2DataLatency is removed (defined in phy-mac common).
-* K3Delay is removed (defined in phy-mac common).
-* Introduce N0, N1, N2 processing delays (in phy-mac common).
+* N0, N1, N2 processing delays are defined in phy-mac common.
 * The UlSchedDelay is replaced by N2Delay.
-* UE receives DL data according to K0 and sends UL data according to K2.
+* UE receives DL data according to K0 and sends UL data according to K2
+(passed from the gNb in the DL and UL DCI, respectively).
+* UE schedules the DL HARQ Feedback according to K1 delay (passed from the
+gNb to the UE in the DL DCI).
 
 ---
 

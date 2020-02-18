@@ -54,13 +54,16 @@ New user-visible features (old first)
 
 - The control message timings (from PHY to MAC or from MAC to PHY) can be adjusted
   in a flexible manner according to each release specifications.
-- WIP: Definition of new delay timings according to TS 38.213 (K0 and K2).
-- The UlSchedDelay is replaced by K2Delay.
+- Processing delays N0, N1, N2 are introduced in phy-mac-common, K0, K1, K2 are
+  removed form phy-mac-common and instead they are implemented as parameters of the
+  DCI, which are calculated in the gNb and communicated to the UE through the DCI.
+- The UlSchedDelay is replaced by N2Delay.
+- UE receives DL data according to K0 and sends UL data according to K2
+  (passed from the gNb in the DL and UL DCI, respectively). Moreover,the DL HARQ
+  Feedback is scheduled according to K1 delay (passed from the gNb to the UE in
+  the DL DCI).
 - Ue side control messages could be scheduled with Ul Data. This behavior is now
   changed and therefore control messages are scheduled only in Ul Ctrl.
-- WIP: Definition of processing delays N0, N1, N2.
-- The UlSchedDelay is replaced by N2Delay.
-- UE receives DL data according to K0 and sends UL data according to K2.
 
 Bugs fixed
 ----------
