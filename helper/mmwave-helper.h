@@ -27,15 +27,15 @@
 #include <ns3/object-factory.h>
 #include <ns3/mmwave-bearer-stats-connector.h>
 #include <ns3/mmwave-control-messages.h>
+#include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 
 namespace ns3 {
 
 class MmWaveUePhy;
 class MmWaveEnbPhy;
 class SpectrumChannel;
-class SpectrumpropagationLossModel;
 class MmWaveSpectrumValueHelper;
-class PropagationLossModel;
 class MmWaveEnbMac;
 class EpcHelper;
 class EpcTft;
@@ -43,7 +43,6 @@ class MmWaveBearerStatsCalculator;
 class MmwaveMacRxTrace;
 class MmWavePhyRxTrace;
 class MmWavePhyMacCommon;
-class ThreeGppSpectrumPropagationLossModel;
 class ComponentCarrierEnb;
 class ComponentCarrier;
 class MmWaveMacScheduler;
@@ -290,7 +289,7 @@ class BandwidthPartRepresentation
 public:
   BandwidthPartRepresentation (uint32_t id, const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                const Ptr<SpectrumChannel> &channel,
-                               const Ptr<PropagationLossModel> &propagation,
+                               const Ptr<ThreeGppPropagationLossModel> &propagation,
                                const Ptr<ThreeGppSpectrumPropagationLossModel> & spectrumPropagation);
   BandwidthPartRepresentation (const BandwidthPartRepresentation & o);
   ~BandwidthPartRepresentation ();
@@ -300,7 +299,7 @@ public:
   uint32_t m_id {0};
   Ptr<MmWavePhyMacCommon> m_phyMacCommon;
   Ptr<SpectrumChannel> m_channel;
-  Ptr<PropagationLossModel> m_propagation;
+  Ptr<ThreeGppPropagationLossModel> m_propagation;
   Ptr<ThreeGppSpectrumPropagationLossModel> m_3gppChannel;
   std::string m_gnbChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for GNB
   std::string m_ueChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for UE
@@ -324,7 +323,6 @@ public:
 
   void ConfigureCarriers (std::map<uint8_t, Ptr<ComponentCarrierEnb> > ccPhyConf);
 
-  void SetPathlossModelType (std::string type);
   void SetChannelModelType (std::string type);
 
   /**
@@ -371,7 +369,6 @@ public:
   bool GetHarqEnabled ();
   void SetSnrTest (bool snrTest);
   bool GetSnrTest ();
-  Ptr<PropagationLossModel> GetPathLossModel (uint8_t index);
   void AddBandwidthPart (uint32_t id, const BandwidthPartRepresentation &bwpRepr);
 
   /**
@@ -457,14 +454,11 @@ private:
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
 
-  std::map< uint8_t, Ptr<Object> > m_pathlossModel;
-  std::string m_pathlossModelType;
   std::string m_channelModelType;
 
   ObjectFactory m_enbNetDeviceFactory;
   ObjectFactory m_ueNetDeviceFactory;
   ObjectFactory m_channelFactory;
-  ObjectFactory m_pathlossModelFactory;
   ObjectFactory m_phyMacCommonFactory;
 
   uint64_t m_imsiCounter;
@@ -493,6 +487,7 @@ private:
 
   std::unordered_map<uint32_t, BandwidthPartRepresentation> m_bwpConfiguration;
   TypeId m_defaultSchedulerType;
+  std::string m_scenario;  //!< Important parameter that specifies the type of propagation loss and condition model types
 };
 
 }

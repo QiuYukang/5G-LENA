@@ -119,37 +119,37 @@ MmWaveEnbPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
-	.AddAttribute ("IsotropicAntennaElements",
-	               "Defines type of antenna elements to be used: "
-	               "a) when true, isotropic, and "
-				   "b) when false, 3gpp."
-				   "Another important parameter to specify is the number of antenna elements by "
-				   "dimension.",
-				   BooleanValue(false),
-				   MakeBooleanAccessor(&MmWaveEnbPhy::m_areIsotropicElements),
-				   MakeBooleanChecker())
+    .AddAttribute ("IsotropicAntennaElements",
+                   "Defines type of antenna elements to be used: "
+                   "a) when true, isotropic, and "
+                   "b) when false, 3gpp."
+                   "Another important parameter to specify is the number of antenna elements by "
+                   "dimension.",
+                   BooleanValue(false),
+                   MakeBooleanAccessor(&MmWaveEnbPhy::m_areIsotropicElements),
+                   MakeBooleanChecker())
     .AddAttribute ("AntennaNumDim1",
                    "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
                    UintegerValue (4),
-				   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim1),
-				   MakeUintegerChecker<uint32_t> ())
+                   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim1),
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("AntennaNumDim2",
                    "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
                    UintegerValue (8),
-				   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim2),
-				   MakeUintegerChecker<uint32_t> ())
-	.AddAttribute ("IdealBeamformingEnabled",
-	               "If true, ideal beamforming will be performed between gNB and its ideally attached UE devices."
-				   "If false, no ideal beamforming will be performed. By default is ideal, until "
-				   "real beamforming methods are implemented.",
-				   BooleanValue (true),
-				   MakeBooleanAccessor (&MmWaveEnbPhy::m_idealBeamformingEnabled),
-				   MakeBooleanChecker ())
-	.AddAttribute ("IdealBeamformingAlgorithmType",
-				   "Type of the ideal beamforming algorithm in the case that it is enabled, by default is \"cell scan\" method.",
-				   TypeIdValue (CellScanBeamforming::GetTypeId ()),
-				   MakeTypeIdAccessor (&MmWaveEnbPhy::m_idealBeamformingAlgorithmType),
-				   MakeTypeIdChecker ())
+                   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim2),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("IdealBeamformingEnabled",
+                   "If true, ideal beamforming will be performed between gNB and its ideally attached UE devices."
+                   "If false, no ideal beamforming will be performed. By default is ideal, until "
+                   "real beamforming methods are implemented.",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&MmWaveEnbPhy::m_idealBeamformingEnabled),
+                   MakeBooleanChecker ())
+     .AddAttribute ("IdealBeamformingAlgorithmType",
+                    "Type of the ideal beamforming algorithm in the case that it is enabled, by default is \"cell scan\" method.",
+                    TypeIdValue (CellScanBeamforming::GetTypeId ()),
+                    MakeTypeIdAccessor (&MmWaveEnbPhy::m_idealBeamformingAlgorithmType),
+                    MakeTypeIdChecker ())
     ;
   return tid;
 
@@ -166,9 +166,11 @@ MmWaveEnbPhy::DoInitialize (void)
 
   if (m_idealBeamformingEnabled)
     {
-      ObjectFactory objectFactory;
+      ObjectFactory objectFactory = ObjectFactory ();
       objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
+
       Ptr<IdealBeamformingAlgorithm> idealAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
+      idealAlgorithm->SetOwner (m_netDevice, m_phyMacConfig->GetCcId());
       m_beamManager->SetIdeamBeamformingAlgorithm (idealAlgorithm);
     }
 

@@ -169,9 +169,9 @@ MmWavePhy::~MmWavePhy ()
 void
 MmWavePhy::InstallBeamManager ()
 {
-	m_beamManager = CreateObject<BeamManager>();
-	m_beamManager->InstallAntenna (m_antennaNumDim1, m_antennaNumDim2, m_areIsotropicElements);
-	m_spectrumPhy->SetAntennaArray (m_beamManager->GetAntennaArray());
+  m_beamManager = CreateObject<BeamManager>();
+  m_beamManager->InstallAntenna (m_antennaNumDim1, m_antennaNumDim2, m_areIsotropicElements);
+  m_spectrumPhy->SetAntennaArray (m_beamManager->GetAntennaArray());
 }
 
 void

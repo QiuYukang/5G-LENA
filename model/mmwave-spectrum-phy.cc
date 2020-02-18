@@ -226,7 +226,8 @@ MmWaveSpectrumPhy::GetRxSpectrumModel () const
 Ptr<AntennaModel>
 MmWaveSpectrumPhy::GetRxAntenna ()
 {
-   NS_ABORT_MSG("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
+   NS_LOG_WARN("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
+   return nullptr;
 }
 
 

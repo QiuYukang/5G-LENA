@@ -59,19 +59,17 @@ public:
   virtual ~IdealBeamformingAlgorithm () {}
 
   /**
+   * \brief Set owner gNB device of this ideal beamforming algorithm
+   */
+  void SetOwner (Ptr<NetDevice>, uint8_t ccId);
+
+  /**
    * \brief Add UE device in the list of UE devices for which will be performed
    * ideal beamforming method
    */
   void AddUeDevice (Ptr<NetDevice> ueDevice);
 
   virtual void Run ();
-
-  enum GenieAlg {
-     NONE,
-     CELL_SCAN,
-     DIRECT_PATH,
-     OPTIMAL
-  };
 
   static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
 
@@ -85,19 +83,30 @@ private:
 protected:
 
   Ptr<NetDevice> m_netDevice;
+  uint8_t m_ccId;
 
 };
 
 
-class CellScanBeamforming: public IdealBeamformingAlgorithm {
+class CellScanBeamforming: public IdealBeamformingAlgorithm
+{
 
 public:
-
   /**
    * \brief Get the type id
    * \return the type id of the class
    */
   static TypeId GetTypeId (void);
+
+  /**
+   * \brief constructor
+   */
+  CellScanBeamforming () {}
+
+  /**
+   * \brief destructor
+   */
+  virtual ~CellScanBeamforming () {}
 
 private:
 

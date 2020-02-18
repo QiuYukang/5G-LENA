@@ -35,7 +35,7 @@ BeamManager::BeamManager() {
 void
 BeamManager::InstallAntenna (uint32_t antennaNumDim1, uint32_t antennaNumDim2, bool areIsotropicElements) //TODO check whether to remove spectrum model as parameter, it is needed for cell scan?
 {
-  NS_ASSERT_MSG (m_antennaArray != nullptr, "Antenna already installed, access directly to antenna object to change parameters");
+  NS_ASSERT_MSG (m_antennaArray == nullptr, "Antenna already installed, access directly to antenna object to change parameters");
   m_antennaArray = CreateObject<ThreeGppAntennaArrayModel> ();
   m_antennaArray->SetAttribute ("NumColumns", UintegerValue(antennaNumDim1));
   m_antennaArray->SetAttribute ("NumRows", UintegerValue(antennaNumDim2));
@@ -106,8 +106,17 @@ BeamManager::ChangeBeamformingVector (Ptr<NetDevice> device)
       m_genieAlgorithm->Run();
     }
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
-  NS_ASSERT_MSG (it != m_beamformingVectorMap.end (), "could not find the beamforming vector for the provided device");
-  m_antennaArray->SetBeamformingVector(it->second.first);
+  if (it == m_beamformingVectorMap.end ())
+    {
+      NS_LOG_INFO ("Could not find the beamforming vector for the provided device");
+      m_antennaArray->ChangeToOmniTx();
+    }
+  else
+    {
+      NS_LOG_INFO ("Beamforming vector found");
+      m_antennaArray->SetBeamformingVector(it->second.first);
+    }
+
 }
 
 complexVector_t

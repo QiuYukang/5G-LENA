@@ -243,16 +243,18 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 
   InitializeMessageList ();
 
+  MmWavePhy::InstallBeamManager();
+  NS_ASSERT_MSG (m_beamManager, "Error in initialization of the BeamManager object");
+
   m_spectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-  m_spectrumPhy->SetAntennaArray(m_beamManager->GetAntennaArray());
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
   m_spectrumPhy->SetCellId (m_cellId);
 
-  MmWavePhy::InstallBeamManager();
-  NS_ASSERT_MSG (m_beamManager, "Error in initialization of the BeamManager object");
+
+
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
 }

@@ -19,6 +19,11 @@
 
 #include "ideal-beamforming-algorithm.h"
 #include "beam-manager.h"
+#include "mmwave-enb-phy.h"
+#include "mmwave-ue-phy.h"
+#include "mmwave-enb-net-device.h"
+#include "mmwave-ue-net-device.h"
+
 
 namespace ns3{
 
@@ -26,12 +31,10 @@ NS_LOG_COMPONENT_DEFINE ("IdealBeamformingAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (CellScanBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (DirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (OptimalCovMatrixBeamforming);
-
-
 TypeId
 IdealBeamformingAlgorithm::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::IdealBeamformingAlgorithm")
+  static TypeId tid = TypeId ("IdealBeamformingAlgorithm")
     .SetParent<Object> ()
   ;
 
@@ -67,6 +70,13 @@ IdealBeamformingAlgorithm::Run()
 
 
 void
+IdealBeamformingAlgorithm::SetOwner (Ptr<NetDevice> gNbDev, uint8_t ccId)
+{
+  m_netDevice = gNbDev;
+  m_ccId = ccId;
+}
+
+void
 IdealBeamformingAlgorithm::AddUeDevice (Ptr<NetDevice> ueDevice)
 {
   m_ueDeviceMap.push_back(ueDevice);
@@ -77,8 +87,9 @@ IdealBeamformingAlgorithm::AddUeDevice (Ptr<NetDevice> ueDevice)
 TypeId
 CellScanBeamforming::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::CellScanBeamforming")
+  static TypeId tid = TypeId ("CellScanBeamforming")
     .SetParent<IdealBeamformingAlgorithm> ()
+    .AddConstructor<CellScanBeamforming>()
   ;
 
   return tid;
@@ -91,16 +102,19 @@ CellScanBeamforming::DoRun (Ptr<NetDevice> gNbDev, Ptr<NetDevice> ueDev) const
   NS_ABORT_MSG_IF (gNbDev->GetNode()->GetObject<MobilityModel>()->GetDistanceFrom(ueDev->GetNode()->GetObject<MobilityModel>()) == 0,
                    "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
-  Ptr<MmWavePhy> txPhy = gNbDev->GetNode()->GetDevice (0)->GetObject<MmWavePhy>();
-  Ptr<MmWavePhy> rxPhy = ueDev->GetNode()->GetDevice (0)->GetObject<MmWavePhy>();
+  // TODO check if this is correct, assuming the same ccId of gNB PHY and corresponding UE PHY are the same
+  Ptr<MmWaveEnbPhy> txPhy = (DynamicCast<MmWaveEnbNetDevice>(gNbDev->GetNode()->GetDevice (0)))->GetPhy(m_ccId);
+  Ptr<MmWavePhy> rxPhy = (DynamicCast<MmWaveUeNetDevice> (ueDev->GetNode()->GetDevice (0)))->GetPhy(m_ccId);
 
-  Ptr<MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetObject<MmWaveSpectrumPhy>();
-  Ptr<MmWaveSpectrumPhy> rxSpectrumPhy = rxPhy->GetObject<MmWaveSpectrumPhy>();
+  Ptr<MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
+  Ptr<MmWaveSpectrumPhy> rxSpectrumPhy = rxPhy->GetSpectrumPhy();
 
   Ptr<const SpectrumModel> txSpectrumModel = txSpectrumPhy->GetRxSpectrumModel();
   Ptr<const SpectrumModel> rxSpectrumModel = rxSpectrumPhy->GetRxSpectrumModel();
 
-  NS_ASSERT_MSG (txSpectrumModel == rxSpectrumModel, "Devices should have the same spectrum model");
+  NS_ASSERT_MSG (txSpectrumModel->GetUid(), "Devices should have the same spectrum model");
+  NS_ASSERT_MSG (rxSpectrumModel->GetUid(), "Devices should have the same spectrum model");
+
 
   Ptr<MultiModelSpectrumChannel> txSpectrumChannel = DynamicCast<MultiModelSpectrumChannel> (txSpectrumPhy->GetSpectrumChannel());
   Ptr<MultiModelSpectrumChannel> rxSpectrumChannel = DynamicCast<MultiModelSpectrumChannel> (rxSpectrumPhy->GetSpectrumChannel());
@@ -216,6 +230,7 @@ DirectPathBeamforming::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::DirectPathBeamforming")
     .SetParent<IdealBeamformingAlgorithm> ()
+    .AddConstructor<DirectPathBeamforming>()
   ;
 
   return tid;
@@ -233,6 +248,7 @@ OptimalCovMatrixBeamforming::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::OptimalCovMatrixBeamforming")
     .SetParent<IdealBeamformingAlgorithm> ()
+    .AddConstructor<OptimalCovMatrixBeamforming>()
   ;
 
   return tid;

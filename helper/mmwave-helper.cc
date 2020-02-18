@@ -24,7 +24,6 @@
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/epc-ue-nas.h>
 #include <ns3/names.h>
-
 #include <ns3/mmwave-rrc-protocol-ideal.h>
 #include <ns3/mmwave-enb-mac.h>
 #include <ns3/mmwave-enb-phy.h>
@@ -46,7 +45,8 @@
 #include <ns3/component-carrier-mmwave-ue.h>
 #include <ns3/component-carrier-gnb.h>
 #include <ns3/beam-manager.h>
-
+#include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 
 #include <algorithm>
 
@@ -84,18 +84,11 @@ MmWaveHelper::GetTypeId (void)
     TypeId ("ns3::MmWaveHelper")
     .SetParent<Object> ()
     .AddConstructor<MmWaveHelper> ()
-    .AddAttribute ("PathlossModel",
-                   "The type of path-loss model to be used. "
-                   "The allowed values for this attributes are the type names "
-                   "of any class inheriting from ns3::PropagationLossModel.",
-                   StringValue ("ns3::MmWavePropagationLossModel"),
-                   MakeStringAccessor (&MmWaveHelper::SetPathlossModelType),
-                   MakeStringChecker ())
     .AddAttribute ("ChannelModel",
                    "The type of MIMO channel model to be used. "
                    "The allowed values for this attributes are the type names "
                    "of any class inheriting from ns3::SpectrumPropagationLossModel.",
-				   StringValue ("ns3::SpectrumPropagationLossModel"),
+                   StringValue ("ns3::ThreeGppSpectrumPropagationLossModel"),
                    MakeStringAccessor (&MmWaveHelper::SetChannelModelType),
                    MakeStringChecker ())
     .AddAttribute ("HarqEnabled",
@@ -103,6 +96,13 @@ MmWaveHelper::GetTypeId (void)
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWaveHelper::m_harqEnabled),
                    MakeBooleanChecker ())
+    .AddAttribute ("Scenario",
+                   "Scenario configuration to be used in ThreeGppPropagationLossModel which will be used to select the type of "
+                   "PropagationLossModel and ConditionModel instances. Possible options for this parameter are the following "
+                   "values : RMa, UMa,UMi-StreetCanyon, InH-OfficeOpen, InH-OfficeMixed.",
+                    StringValue ("InH-OfficeOpen"),
+                    MakeStringAccessor(&MmWaveHelper::m_scenario),
+                    MakeStringChecker())
     ;
   return tid;
 }
@@ -120,7 +120,6 @@ void
 MmWaveHelper::DoInitialize ()
 {
   NS_LOG_FUNCTION (this);
-  NS_ABORT_MSG_IF (m_pathlossModelType.empty (), "You forget to set a Pathloss model");
   NS_ABORT_MSG_IF (m_channelModelType != "ns3::ThreeGppSpectrumPropagationLossModel", "Cannot set a different type of channel");
 
   if (m_bwpConfiguration.empty())
@@ -134,16 +133,53 @@ MmWaveHelper::DoInitialize ()
     {
       if (conf.second.m_channel == nullptr && conf.second.m_propagation == nullptr && conf.second.m_3gppChannel == nullptr)
         {
-          // Create everything inside, and connect things
-          NS_ABORT_UNLESS (m_pathlossModelType == "ns3::ThreeGppPropagationLossModel");
+          ObjectFactory pathlossModelFactory = ObjectFactory ();
+          ObjectFactory channelConditionModelFactory = ObjectFactory ();
+
+          if (m_scenario == "RMa")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppRmaPropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppRmaChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "UMa")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppUmaChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "UMi-StreetCanyon")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppUmiStreetCanyonChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "InH-OfficeOpen")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppIndoorOpenOfficeChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "InH-OfficeMixed")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppIndoorMixedOfficeChannelConditionModel::GetTypeId ());
+            }
+          else
+             {
+                NS_FATAL_ERROR ("Unknown scenario");
+             }
+
+          Ptr<ChannelConditionModel> channelConditionModel  = channelConditionModelFactory.Create<ChannelConditionModel>();
+
           conf.second.m_channel = m_channelFactory.Create<SpectrumChannel> ();
-          conf.second.m_propagation = DynamicCast<PropagationLossModel> (m_pathlossModelFactory.Create ());
+          conf.second.m_propagation = pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
           conf.second.m_propagation->SetAttributeFailSafe("Frequency", DoubleValue(conf.second.m_phyMacCommon->GetCenterFrequency()));
+          conf.second.m_propagation->SetChannelConditionModel (channelConditionModel);
           conf.second.m_channel->AddPropagationLossModel (conf.second.m_propagation);
 
-          conf.second.m_3gppChannel = m_pathlossModelFactory.Create<ThreeGppSpectrumPropagationLossModel>();
+          pathlossModelFactory.SetTypeId(m_channelModelType);
+          conf.second.m_3gppChannel = pathlossModelFactory.Create<ThreeGppSpectrumPropagationLossModel>();
           conf.second.m_3gppChannel->SetFrequency (conf.second.m_phyMacCommon->GetCenterFrequency());
-          conf.second.m_3gppChannel->SetScenario (conf.second.m_phyMacCommon->GetScenario ());
+          conf.second.m_3gppChannel->SetScenario (m_scenario);
+          conf.second.m_3gppChannel->SetChannelConditionModel (channelConditionModel);
+
           conf.second.m_channel->AddSpectrumPropagationLossModel (conf.second.m_3gppChannel);
         }
       else if (conf.second.m_channel != nullptr && conf.second.m_propagation != nullptr && conf.second.m_3gppChannel != nullptr)
@@ -167,24 +203,6 @@ MmWaveHelper::DoInitialize ()
   m_initialized = true;
 
   Object::DoInitialize ();
-}
-
-void
-MmWaveHelper::SetPathlossModelType (std::string type)
-{
-  NS_LOG_FUNCTION (this << type);
-  m_pathlossModelType = type;
-  if (!type.empty ())
-    {
-      m_pathlossModelFactory = ObjectFactory ();
-      m_pathlossModelFactory.SetTypeId (type);
-    }
-}
-
-Ptr<PropagationLossModel>
-MmWaveHelper::GetPathLossModel (uint8_t index)
-{
-  return m_pathlossModel.at (index)->GetObject<PropagationLossModel> ();
 }
 
 void
@@ -1080,7 +1098,7 @@ MmWaveHelper::GetPdcpStats (void)
 BandwidthPartRepresentation::BandwidthPartRepresentation(uint32_t id,
                                                          const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                                          const Ptr<SpectrumChannel> &channel,
-                                                         const Ptr<PropagationLossModel> &propagation,
+                                                         const Ptr<ThreeGppPropagationLossModel> &propagation,
                                                          const Ptr<ThreeGppSpectrumPropagationLossModel> & spectrumPropagation)
   : m_id (id),
     m_phyMacCommon (phyMacCommon),

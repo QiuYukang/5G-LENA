@@ -32,7 +32,6 @@ class MmWavePhyMacCommon;
 class MmWaveSpectrumPhy;
 class AntennaArrayBasicModel;
 class MmWavePhyMacCommon;
-class MmWaveSpectrumPhy;
 class BeamManager;
 class ThreeGppAntennaArrayModel;
 
