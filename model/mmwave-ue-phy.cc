@@ -227,6 +227,13 @@ MmWaveUePhy::DoSendControlMessage (Ptr<MmWaveControlMessage> msg)
 }
 
 void
+MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
+{
+  NS_LOG_FUNCTION (this << msg);
+  EnqueueCtrlMsgNow (msg);
+}
+
+void
 MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 {
   NS_LOG_FUNCTION (this);

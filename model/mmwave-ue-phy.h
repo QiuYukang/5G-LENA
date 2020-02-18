@@ -305,7 +305,16 @@ private:
   void StartVarTti ();
   void EndVarTti ();
   void SetSubChannelsForTransmission (std::vector <int> mask);
+  /**
+   * \brief Send ctrl msgs considering L1L2CtrlLatency
+   * \param msg The ctrl msg to be sent
+   */
   void DoSendControlMessage (Ptr<MmWaveControlMessage> msg);
+  /**
+   * \brief Send ctrl msgs without considering L1L2CtrlLatency
+   * \param msg The ctrl msg to be sent
+   */
+  void DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg);
   void SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd);
   void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd);
 
