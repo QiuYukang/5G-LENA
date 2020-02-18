@@ -21,14 +21,15 @@
 #define SRC_MMWAVE_MODEL_MMWAVE_PHY_SAP_H_
 
 #include <ns3/packet-burst.h>
-#include <ns3/antenna-array-model.h>
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/mmwave-mac-sched-sap.h>
 #include <ns3/mmwave-control-messages.h>
+#include "beam-id.h"
 
 namespace ns3 {
 
 class MmWaveControlMessage;
+
 /* Mac to Phy comm*/
 class MmWavePhySapProvider
 {
@@ -54,7 +55,7 @@ public:
    * \param rnti RNTI of the user
    * \return Beam ID of the user
    */
-  virtual AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const = 0;
+  virtual BeamId GetBeamId (uint8_t rnti) const = 0;
 
 };
 
@@ -129,7 +130,7 @@ public:
    * \param beamId the new beam ID
    * \param rnti the RNTI of the user
    */
-  virtual void BeamChangeReport (AntennaArrayModel::BeamId beamId, uint8_t rnti) = 0;
+  virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) = 0;
 };
 
 class MmWaveUePhySapUser

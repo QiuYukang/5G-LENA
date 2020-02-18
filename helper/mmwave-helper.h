@@ -27,7 +27,6 @@
 #include <ns3/object-factory.h>
 #include <ns3/mmwave-bearer-stats-connector.h>
 #include <ns3/mmwave-control-messages.h>
-#include <ns3/mmwave-3gpp-channel.h>
 
 namespace ns3 {
 
@@ -44,7 +43,7 @@ class MmWaveBearerStatsCalculator;
 class MmwaveMacRxTrace;
 class MmWavePhyRxTrace;
 class MmWavePhyMacCommon;
-class MmWave3gppChannel;
+class ThreeGppSpectrumPropagationLossModel;
 class ComponentCarrierEnb;
 class ComponentCarrier;
 class MmWaveMacScheduler;
@@ -292,7 +291,7 @@ public:
   BandwidthPartRepresentation (uint32_t id, const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                const Ptr<SpectrumChannel> &channel,
                                const Ptr<PropagationLossModel> &propagation,
-                               const Ptr<MmWave3gppChannel> & spectrumPropagation);
+                               const Ptr<ThreeGppSpectrumPropagationLossModel> & spectrumPropagation);
   BandwidthPartRepresentation (const BandwidthPartRepresentation & o);
   ~BandwidthPartRepresentation ();
 
@@ -302,7 +301,7 @@ public:
   Ptr<MmWavePhyMacCommon> m_phyMacCommon;
   Ptr<SpectrumChannel> m_channel;
   Ptr<PropagationLossModel> m_propagation;
-  Ptr<MmWave3gppChannel> m_3gppChannel;
+  Ptr<ThreeGppSpectrumPropagationLossModel> m_3gppChannel;
   std::string m_gnbChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for GNB
   std::string m_ueChannelAccessManagerType {"ns3::NrAlwaysOnAccessManager"}; //!< Channel access manager type for UE
   std::vector<LteNrTddSlotType> m_pattern {LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,

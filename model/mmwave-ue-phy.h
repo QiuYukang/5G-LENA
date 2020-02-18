@@ -27,11 +27,12 @@
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/mmwave-harq-phy.h>
-#include <ns3/antenna-array-3gpp-model.h>
 
 namespace ns3 {
 
 class NrChAccessManager;
+class BeamManager;
+class BeamId;
 
 class MmWaveUePhy : public MmWavePhy
 {
@@ -230,7 +231,7 @@ public:
   void SetCam (const Ptr<NrChAccessManager> &cam);
 
   // From mmwave phy. Not used in the UE
-  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const override;
+  virtual BeamId GetBeamId (uint16_t rnti) const override;
 
 protected:
   // From object

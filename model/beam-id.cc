@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -14,50 +14,19 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 
-
-
-#include "antenna-array-basic-model.h"
-
-#include <ns3/log.h>
-#include <ns3/math.h>
-#include <ns3/simulator.h>
-#include "ns3/double.h"
-
-
-NS_LOG_COMPONENT_DEFINE ("AntennaArrayBasicModel");
+#include "beam-id.h"
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (AntennaArrayBasicModel);
-
-
-AntennaArrayBasicModel::AntennaArrayBasicModel ()
-{
-}
-
-AntennaArrayBasicModel::~AntennaArrayBasicModel ()
-{
-
-}
-
-TypeId
-AntennaArrayBasicModel::GetTypeId ()
-{
-  static TypeId tid = TypeId ("ns3::AntennaArrayBasicModel")
-    .SetParent<Object> ()
-    .SetGroupName("Antenna")
-  ;
-  return tid;
-}
-
-double
-AntennaArrayBasicModel::GetGainDb (Angles a)
-{
-  NS_ABORT_MSG("Function not implemented, should not be called.");
-  return 0;
-}
-
+  std::ostream &operator<< (std::ostream &os, const BeamId &item)
+  {
+    os << "[Sector: " << static_cast<uint16_t> (item.GetSector ())
+     << " elevation: " << item.GetElevation () << "]";
+    return os;
+  }
 
 } /* namespace ns3 */
+

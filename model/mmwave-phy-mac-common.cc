@@ -63,6 +63,12 @@ MmWavePhyMacCommon::GetTypeId (void)
                    DoubleValue (28e9),
                    MakeDoubleAccessor (&MmWavePhyMacCommon::m_centerFrequency),
                    MakeDoubleChecker<double> ())
+	.AddAttribute ("Scenario",
+	               "Scenario configuration to be used in ThreeGppPropagationLossModel"
+	               "it can be some of the following: RMa, UMa,UMi-StreetCanyon, InH-OfficeOpen, InH-OfficeMixed.",
+	               StringValue ("InH-OfficeOpen"),
+	               MakeStringAccessor(&MmWavePhyMacCommon::m_scenario),
+	               MakeStringChecker())
     .AddAttribute ("Bandwidth",
                    "The system bandwidth in Hz",
                    DoubleValue (400e6),
@@ -303,6 +309,13 @@ MmWavePhyMacCommon::GetBandwidth (void) const
 {
   return (GetSubcarrierSpacing () * GetNumScsPerRb () * m_rbNum);
 }
+
+std::string
+MmWavePhyMacCommon::GetScenario () const
+{
+  return m_scenario;
+}
+
 
 uint32_t
 MmWavePhyMacCommon::GetBandwidthInRbg () const

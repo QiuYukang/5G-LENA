@@ -49,6 +49,8 @@
 
 namespace ns3 {
 
+class ThreeGppAntennaArrayModel;
+
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
@@ -108,8 +110,27 @@ public:
   void SetChannel (Ptr<SpectrumChannel> c);
   Ptr<const SpectrumModel> GetRxSpectrumModel () const;
 
-  Ptr<AntennaModel> GetRxAntenna ();
-  void SetAntenna (Ptr<AntennaModel> a);
+  /**
+   * Implements GetRxAntenna function from SpectrumPhy. This
+   * function should not be called for NR devices, since NR devices do not use
+   * AntennaModel. This is because 3gpp channel model implementation only
+   * supports ThreeGppAntennaArrayModel antenna type.
+   *
+   * @return
+   */
+  virtual Ptr<AntennaModel> GetRxAntenna () override;
+
+  /**
+   * \brief Returns ThreeGppAntennaArrayModel instance of the device using this
+   * SpectrumPhy instance.
+   */
+  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray ();
+
+  /**
+   * \brief Set ThreeGppAntennaArrayModel instance for the device using this
+   * SpectrumPhy instance.
+   */
+  void SetAntennaArray (Ptr<ThreeGppAntennaArrayModel> a);
 
   void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
@@ -245,7 +266,7 @@ private:
   Time m_firstRxStart;
   Time m_firstRxDuration;
 
-  Ptr<AntennaModel> m_antenna;
+  Ptr<ThreeGppAntennaArrayModel> m_antenna; //!< AntennaArray object used by the device to which belongs this spectrum phy instance
 
   uint16_t m_cellId;
 

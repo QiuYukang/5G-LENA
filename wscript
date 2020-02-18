@@ -42,18 +42,11 @@ def build(bld):
         'model/nr-lte-mi-error-model.cc',
         'model/mmwave-enb-mac.cc',
         'model/mmwave-ue-mac.cc',
-        'model/mmwave-rrc-protocol-ideal.cc',
-        'model/buildings-obstacle-propagation-loss-model.cc',
+        'model/mmwave-rrc-protocol-ideal.cc',        
         'model/mmwave-mac-pdu-header.cc',
         'model/mmwave-mac-pdu-tag.cc',
         'model/mmwave-harq-phy.cc',
-        'model/mmwave-propagation-loss-model.cc',
-        'model/antenna-array-model.cc',
-        'model/antenna-array-basic-model.cc',
-        'model/antenna-array-3gpp-model.cc',
-        'model/mmwave-3gpp-propagation-loss-model.cc',
-        'model/mmwave-3gpp-channel.cc', 
-        'model/mmwave-3gpp-buildings-propagation-loss-model.cc',
+        'model/mmwave-propagation-loss-model.cc',        
         'model/component-carrier-gnb.cc',
         'model/component-carrier-mmwave-ue.cc',
         'model/bwp-manager-gnb.cc',
@@ -73,6 +66,9 @@ def build(bld):
         'model/nr-eesm-error-model.cc',
         'model/nr-error-model.cc',
         'model/nr-ch-access-manager.cc',
+        'model/beam-id.cc',
+        'model/beam-manager.cc',
+        'model/ideal-beamforming-algorithm.cc'
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -125,18 +121,11 @@ def build(bld):
         'model/nr-lte-mi-error-model.h',
         'model/mmwave-enb-mac.h',
         'model/mmwave-ue-mac.h',
-        'model/mmwave-rrc-protocol-ideal.h',
-        'model/buildings-obstacle-propagation-loss-model.h',
+        'model/mmwave-rrc-protocol-ideal.h',        
         'model/mmwave-mac-pdu-header.h',
         'model/mmwave-mac-pdu-tag.h',
         'model/mmwave-harq-phy.h',
-        'model/mmwave-propagation-loss-model.h',
-        'model/antenna-array-model.h',
-        'model/antenna-array-basic-model.h',
-        'model/antenna-array-3gpp-model.h',
-        'model/mmwave-3gpp-propagation-loss-model.h',
-        'model/mmwave-3gpp-channel.h',
-        'model/mmwave-3gpp-buildings-propagation-loss-model.h',
+        'model/mmwave-propagation-loss-model.h',               
         'model/component-carrier-gnb.h',
         'model/component-carrier-mmwave-ue.h',
         'model/bwp-manager-gnb.h',
@@ -160,6 +149,9 @@ def build(bld):
         'model/nr-eesm-error-model.h',
         'model/nr-error-model.h',
         'model/nr-ch-access-manager.h',
+        'model/beam-id.h',
+        'model/beam-manager.h',
+        'model/ideal-beamforming-algorithm.h'
         ]
 
     if bld.env.ENABLE_EXAMPLES:

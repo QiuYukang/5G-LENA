@@ -36,6 +36,7 @@ namespace ns3 {
 
 class MmWaveControlMessage;
 class MmWaveRarMessage;
+class BeamId;
 
 /**
  * \ingroup gnb
@@ -128,7 +129,7 @@ public:
    * \param beamId new beam ID
    * \param rnti RNTI of the user
    */
-  void BeamChangeReport (AntennaArrayModel::BeamId beamId, uint8_t rnti);
+  void BeamChangeReport (BeamId beamId, uint8_t rnti);
 
   /**
    * TracedCallback signature for DL scheduling events.

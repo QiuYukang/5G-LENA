@@ -40,7 +40,7 @@ public:
    * \param rnti RNTI of the UE
    * \param beamId Beam ID of the UE
    */
-  MmWaveMacSchedulerUeInfoPF (float alpha, uint16_t rnti, AntennaArrayModel::BeamId beamId)
+  MmWaveMacSchedulerUeInfoPF (float alpha, uint16_t rnti, BeamId beamId)
     : MmWaveMacSchedulerUeInfo (rnti, beamId),
     m_alpha (alpha)
   {
