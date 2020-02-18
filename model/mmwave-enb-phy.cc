@@ -442,6 +442,13 @@ MmWaveEnbPhy::SetCam (const Ptr<NrChAccessManager> &cam)
   m_cam->SetAccessDeniedCallback (std::bind (&MmWaveEnbPhy::ChannelAccessLost, this));
 }
 
+Ptr<NrChAccessManager>
+MmWaveEnbPhy::GetCam() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_cam;
+}
+
 void
 MmWaveEnbPhy::SetTxPower (double pow)
 {

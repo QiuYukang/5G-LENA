@@ -50,6 +50,8 @@ us a note on ns-developers mailing list.
 
 ### Changes to existing API:
 
+* Removed attribute NumberOfComponentCarriers and UseCa from MmWaveHelper.
+
 ### Changed behavior:
 
 ---

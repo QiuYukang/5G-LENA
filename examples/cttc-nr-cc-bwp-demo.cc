@@ -434,16 +434,6 @@ main (int argc, char *argv[])
     }
 
   NS_ABORT_MSG_IF (ccId < 1,"No CC created");
-  //Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (ccId));
-  mmWaveHelper->SetAttribute ("NumberOfComponentCarriers", UintegerValue (ccId));  //The commented line does not update the number of CCs
-  // Enable CA if there are more than one component carrier. Disabled by default
-  if (ccId > 0)
-    {
-      mmWaveHelper->SetAttribute ("UseCa", BooleanValue (true));
-    }
-
-  Config::SetDefault ("ns3::LteHelper::NumberOfComponentCarriers", UintegerValue (ccId));
-  Config::SetDefault ("ns3::LteHelper::EnbComponentCarrierManager", StringValue ("ns3::RrComponentCarrierManager"));
 
   /*
   UintegerValue testccId;

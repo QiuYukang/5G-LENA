@@ -359,20 +359,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue (4));
   Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue (4));
 
-
-
-  //Config::SetDefault("ns3::MmWaveEnbPhy::TxPower", DoubleValue (txPower));
-
-
-  if(singleBwp)
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (1));
-    }
-  else
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::NumberOfComponentCarriers", UintegerValue (2));
-    }
-
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
