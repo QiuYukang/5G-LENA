@@ -700,7 +700,7 @@ MmWaveUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask));
   Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsg = PopCurrentSlotCtrlMsgs ();
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsg;
   Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart));
   if (pktBurst && pktBurst->GetNPackets () > 0)
     {

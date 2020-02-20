@@ -55,6 +55,9 @@ respectively to avoid confusion. mmwave-helper callbacks are updated accordingly
 
 * Removed attribute NumberOfComponentCarriers and UseCa from MmWaveHelper.
 
+* Ue control messages are only scheduled in Ul Ctrl (previously could be send
+along with Ul Data).
+
 ### Changed behavior:
 
 ---
