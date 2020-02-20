@@ -386,6 +386,7 @@ private:
   Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
   Time m_lbtThresholdForCtrl; //!< Threshold for LBT before the UL CTRL
   bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
+  EventId m_lbtEvent;
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS

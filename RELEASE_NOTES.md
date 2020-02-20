@@ -61,7 +61,12 @@ New user-visible features (old first)
 Bugs fixed
 ----------
 - Removed legacy and invalid mmwave-* examples, that were inherited from mmWave codebase.
-
+- The code performing LBT at UE side always assumed a DL CTRL symbol inside a slot.
+  With TDD, that may not happen, and the code has been updated to not
+  always assume a DL CTRL.
+- TDMA Scheduler was assuming that there are always UE to schedule. That may not be true
+  if these UEs have scheduled an HARQ retransmission (and hence unable to
+  receive a new data DCI). Code updated to remove this assumption.
 
 Known issues
 ------------
