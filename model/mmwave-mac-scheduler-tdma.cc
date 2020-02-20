@@ -132,15 +132,13 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
       GetFirst GetUe;
 
       auto schedInfoIt = ueVector.begin ();
-      uint32_t bufQueueSize = schedInfoIt->second;
-      NS_ASSERT (bufQueueSize > 0); // Otherwise, something broken in the calculation of active UE
 
       std::sort (ueVector.begin (), ueVector.end (), GetCompareFn ());
 
       // Ensure fairness: pass over UEs which already has enough resources to transmit
       while (schedInfoIt != ueVector.end ())
         {
-          bufQueueSize = schedInfoIt->second;
+          uint32_t bufQueueSize = schedInfoIt->second;
 
           if (GetTBSFn (GetUe (*schedInfoIt)) >= bufQueueSize)
             {
