@@ -441,6 +441,8 @@ MmWaveUePhy::TryToPerformLbt ()
               NS_LOG_INFO ("This data DCI ends at " << MicroSeconds (dciEndsAt) <<
                            " which is inside the LBT shared COT (the limit is " <<
                            limit << "). No need for LBT");
+              m_lbtEvent.Cancel (); // Forget any LBT we previously set, because of the new
+                                    // DCI information
               m_channelStatus = GRANTED;
             }
           else
@@ -457,7 +459,8 @@ MmWaveUePhy::TryToPerformLbt ()
               (m_phyMacConfig->GetSymbolPeriod () * ulCtrlSymStart) - MicroSeconds (25);
           NS_LOG_INFO ("Scheduling an LBT for sending the UL CTRL at " <<
                        Simulator::Now () + sched);
-          Simulator::Schedule (sched, &MmWaveUePhy::RequestAccess, this);
+          m_lbtEvent.Cancel ();
+          m_lbtEvent = Simulator::Schedule (sched, &MmWaveUePhy::RequestAccess, this);
         }
     }
 }
@@ -586,6 +589,8 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
 
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
+
+  TryToPerformLbt ();
 
   Simulator::Schedule (nextVarTtiStart, &MmWaveUePhy::StartVarTti, this);
 }
@@ -897,6 +902,7 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   // get the feedback from MmWaveSpectrumPhy and send it through ideal PUCCH to eNB
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
+
   //we apply the K1Delay, but we have to take into account the GetL1L2CtrlLatency due to the DoSendControlMessage
   Simulator::Schedule (MilliSeconds (m_phyMacConfig->GetK1Delay () - m_phyMacConfig->GetL1L2CtrlLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
 }

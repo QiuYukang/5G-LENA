@@ -61,7 +61,9 @@ New user-visible features (old first)
 Bugs fixed
 ----------
 - Removed legacy and invalid mmwave-* examples, that were inherited from mmWave codebase.
-
+- The code performing LBT at UE side always assumed a DL CTRL symbol inside a slot.
+  With TDD, that may not happen, and the code has been updated to not
+  always assume a DL CTRL.
 
 Known issues
 ------------
