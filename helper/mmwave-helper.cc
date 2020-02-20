@@ -343,7 +343,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation
 
   if (m_harqEnabled)
     {
-      channelPhy->SetPhyDlHarqFeedbackCallback (MakeCallback (&MmWaveUePhy::ReceiveLteDlHarqFeedback, phy));
+      channelPhy->SetPhyDlHarqFeedbackCallback (MakeCallback (&MmWaveUePhy::EnqueueDlHarqFeedback, phy));
     }
 
   channelPhy->SetChannel (conf.m_channel);
@@ -535,7 +535,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentatio
   channelPhy->SetCellId (cellId);
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyCtrlMessagesReceived, phy));
-  channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReceiveUlHarqFeedback, phy));
+  channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReportUlHarqFeedback, phy));
 
   phy->Initialize ();
 

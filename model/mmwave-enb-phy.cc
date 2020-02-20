@@ -1467,7 +1467,7 @@ MmWaveEnbPhy::SetPhySapUser (MmWaveEnbPhySapUser* ptr)
 }
 
 void
-MmWaveEnbPhy::ReceiveUlHarqFeedback (const UlHarqInfo &mes)
+MmWaveEnbPhy::ReportUlHarqFeedback (const UlHarqInfo &mes)
 {
   NS_LOG_FUNCTION (this);
   // forward to scheduler

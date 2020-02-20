@@ -49,6 +49,9 @@ us a note on ns-developers mailing list.
 ### New API:
 
 ### Changes to existing API:
+* Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
+are renamed to MmWaveLteEnbPhy::ReportUlHarqFeedback and MmWaveLteUePhy::EnqueueDlHarqFeedback,
+respectively to avoid confusion. mmwave-helper callbacks are updated accordingly
 
 * Removed attribute NumberOfComponentCarriers and UseCa from MmWaveHelper.
 

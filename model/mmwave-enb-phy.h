@@ -178,13 +178,14 @@ public:
   void SetPhySapUser (MmWaveEnbPhySapUser* ptr);
 
   /**
-   * \brief Receive the HARQ feedback on the transmission
+   * \brief Get the HARQ feedback from MmWaveSpectrumPhy
+   * and forward it to the scheduler
    *
    * Connected by the helper to a spectrum phy callback
    *
    * \param m the HARQ feedback
    */
-  void ReceiveUlHarqFeedback (const UlHarqInfo &mes);
+  void ReportUlHarqFeedback (const UlHarqInfo &mes);
 
   /**
    * \brief Signature for a "PerformBeamforming" function

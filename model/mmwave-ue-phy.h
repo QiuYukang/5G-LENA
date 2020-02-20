@@ -154,13 +154,14 @@ public:
   uint16_t GetRnti () __attribute__((warn_unused_result));
 
   /**
-   * \brief Receive the HARQ feedback on the transmission
+   * \brief Get the HARQ feedback (on the transmission) from
+   * MmWaveSpectrumPhy and send it through ideal PUCCH to eNB
    *
    * Connected by the helper to a spectrum phy callback
    *
    * \param m the HARQ feedback
    */
-  void ReceiveLteDlHarqFeedback (const DlHarqInfo &m);
+  void EnqueueDlHarqFeedback (const DlHarqInfo &m);
 
   /**
    *  TracedCallback signature for Ue Phy Received Control Messages.
