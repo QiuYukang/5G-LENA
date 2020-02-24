@@ -85,15 +85,13 @@ The rest of this document is organized into five major chapters:
 3. **Usage:**  Documents how users may run and extend the NR test scenarios.
 4. **Validation:**  Documents how the models and scenarios have been verified
    and validated by test programs.
-5. **Results:** Documents preliminary results from some scenarios and how
-   to reproduce them.
-6. **Open Issues and Future Work:**  Describes topics for which future work
+5. **Open Issues and Future Work:**  Describes topics for which future work
    on model or scenario enhancements is recommended, or for which questions
    on interpretations of standards documents may be listed.
 
+
 Design
 ------
-
 In this section, we present the design of the different features and procedures that we have
 developed following 3GPP Release-15 NR activity.
 For those features/mechanisms/layers that still have not been upgraded to NR,
@@ -740,16 +738,16 @@ scheduling logic from any specific MAC API specification. These two features
 facilitate and accelerate the introduction of the new
 schedulers specializations, i.e., the new schedulers only need to implement a
 minimum set of specific scheduling functionalities
-without having to follow any specific industrial API. The core
-scheduling process is defined in ``ScheduleDl`` and ``ScheduleUl``
-functions. The scheduling process assigns the resources for active DL and UL
+without having to follow any specific industrial API.
+
+The scheduling process assigns the resources for active DL and UL
 flows and notifies the MAC of the scheduling decision
-for the corresponding slot. The scheduling logic for DL and UL are defined,
-respectively, in ``DoScheduleDl`` and ``DoScheduleUl``
-functions. Currently, since in the uplink the TDMA is used, the ``DoScheduleUl``
+for the corresponding slot. Currently, since in the uplink the TDMA is used, the
+scheduling for UL flows
 is designed to support only TDMA scheduling. On the
-other hand, ``DoScheduleDl`` is designed to allow both, TDMA and OFDMA,
-modes for the downlink. Through these functions it is
+other hand, the
+scheduling for DL flows is designed to allow both, TDMA and OFDMA,
+modes for the downlink. The scheduling functions are
 delegated to subclasses to perform the allocation of symbols among beams
 (if any), allocation of RBGs in time/frequency-domain
 among active UEs by using specific scheduling algorithm (e.g.,
@@ -759,15 +757,15 @@ implemented by skipping the first step of allocating symbols
 among beams and by fixing the minimum number of assignable RBGs to the total
 number of RBGs. To obtain true TDMA-based access with
 variable TTI, it is then necessary to group allocations for the same UE in
-one single DCI/UCI which is the last step. Another important
+one single DCI/UCI which is the last step.
+
+Another important
 class to be mentioned is ``MmWaveMacSchedulerNs3Base`` which is a child class
 of ``MmWaveMacSchedulerNs3``, and represents a base
 class of all schedulers in the NR module (OFDMA and TDMA). This class handles
 the HARQ retransmissions for the DL and the UL.
 Currently, the NR module offers the scheduling of the HARQ retransmissions
-in a round robin manner by leveraging the ``MmWaveMacSchedulerHarqRr``
-implementation. Scheduler inheritance model and collaboration diagram are
-shown in Figures :ref:`fig-nr-scheduler-collab` and :ref:`nr-schedulers`.
+in a round robin manner.
 
 An overview of the different phases that the OFDMA schedulers follow are:
 
@@ -812,7 +810,7 @@ is the case, then, the symbols can be distributed by giving priority to the HARQ
 retransmissions, and then to the new data, according to different metrics.
 
 The base class for OFDMA schedulers is ``MmWaveMacSchedulerOfdma``.
-In the downlink, ``MmWaveMacSchedulerOfdma`` class and its subclasses perform
+In the downlink, such class and its subclasses perform
 OFDMA scheduling, while in the uplink they leverage some of the subclasses of
 ``MmWaveMacSchedulerTdma`` class that implements TDMA scheduling.
 
@@ -833,11 +831,8 @@ its needs covered by a portion of the assigned resources can free these
 resources for others to use.
 
 The NR module currently offers three specializations of the OFMA schedulers.
-These specializations are implemented in the following classes:
-``MmWaveMacSchedulerOfdmaRR``, ``MmWaveMacSchedulerOfdmaPF``, and
-``MmWaveMacSchedulerOfdmaMR`` , and are, respectively, performing
-the downlink scheduling in a round robin (RR), proportional fair
-(PF) and max rate (MR) manner, as explained in the following:
+These specializations perform the downlink scheduling in a round robin (RR), proportional fair
+(PF) and max rate (MR) manner, respectively, as explained in the following:
 
 * RR: the available RBGs are divided evenly among UEs associated to that beam
 * PF: the available RBGs are distributed among the UEs according to a PF metric that considers the actual rate (based on the CQI) elevated to :math:`\alpha` and the average rate that has been provided in the previous slots to the different UEs. Changing the α parameter changes the PF metric. For :math:`\alpha=0`, the scheduler selects the UE with the lowest average rate. For :math:`\alpha=1`, the scheduler selects the UE with the largest ratio between actual rate and average rate.
@@ -845,40 +840,17 @@ the downlink scheduling in a round robin (RR), proportional fair
 
 Each of these OFDMA schedulers is performing a load-based scheduling of
 symbols per beam in time-domain for the downlink. In the uplink,
-the scheduling of ``MmWaveMacSchedulerOfdmaRR``, ``MmWaveMacSchedulerOfdmaPF``,
-and ``MmWaveMacSchedulerOfdmaMR``, is leveraging the implementation of,
-respectively, ``MmWaveMacSchedulerTdmaRR``, ``MmWaveMacSchedulerTdmaPF``,
-and ``MmWaveMacSchedulerTdmaMR`` TDMA schedulers.
+the scheduling is done by the TDMA schedulers.
 
 The base class for TDMA schedulers is ``MmWaveMacSchedulerTdma``.
 This scheduler performs TDMA scheduling for both, the UL and the DL traffic.
 The TDMA schedulers perform the scheduling only in the time-domain, i.e.,
 by distributing OFDM symbols among the active UEs. 'NR' module offers three
-specializations of TDMA schedulers: ``MmWaveMacSchedulerTdmaRR``,
-``MmWaveMacSchedulerTdmaPF``, ``MmWaveMacSchedulerTdmaMR``, where
+specializations of TDMA schedulers: RR, PF, and MR, where
 the scheduling criteria is the same as in the corresponding OFDMA
 schedulers, while the scheduling is performed in time-domain instead of
 the frequency-domain, and thus the resources being allocated are symbols instead of RBGs.
 
-
-
-.. _fig-nr-schedulers:
-
-.. figure:: figures/nr-schedulers.*
-   :align: center
-   :scale: 75 %
-
-   NR scheduler inheritance class diagram
-
-
-
-.. _fig-nr-scheduler-collab:
-
-.. figure:: figures/nr-scheduler-collab.*
-   :align: center
-   :scale: 75 %
-
-   NR scheduler class collaboration diagram
 
 
 BWP manager
@@ -1036,8 +1008,7 @@ Usage
 -----
 
 This section is principally concerned with the usage of the model, using
-the public API. We discuss on examples available to the user, the helpers,
-the attributes and the simulation campaign we run.
+the public API. We discuss on examples available to the user.
 
 
 Examples
@@ -1128,375 +1099,27 @@ The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-indoor-calibration_8cc.html
 
 
-
-Simulation campaigns
-********************
-
-In this section, we describe briefly the simulation campaigns that we have
-carried out to test the new implemented features.
-We have created different simulation campaign scripts, where each script
-has different objectives.
-All simulation campaing scripts can be found in the folder src/mmwave/campaigns.
-In this folder, we group scripts by evaluated functionality, under different conditions.
-For example, ``3gpp-nr-numerologies`` sub-folder contains simulation
-campaigns related to the evaluation of frame structure/numerologies, and
-``3gpp-nr-fdm`` sub-folder contains simulation campaigns related to the
-evaluation of FDM of numerologies. Additionally,
-the simulation campaign scripts for the 3gpp calibration phase 1 are
-placed in ``3gpp-calibration`` sub-folder.
-If the simulation campaign is relatively small (it is not run for many
-different parameters) the output of campaign is printed on the screen,
-while in case of large campaigns, the results are written to results file
-in ``campaigns/*/results`` folder.
-The name of the file is normally composed to reveal with which values of
-the parameters is executed the simulation.
-There is a single file per simulation. File contains the statistics of all
-flows belonging to that simulation.
-
-NR frame structure and numerologies
-===================================
-
-In this subsection, we provide and overview of simulation campaigns contained in ``campaigns/3gpp-nr-numerologies``.
-
-Script called ``run-simple-ran.sh`` is used to run ``cttc-3gpp-channel-simple-ran.cc`` simulation example. The user can configure the set
-of numerologies for which she would like to carry out the simulation campaign. Additionally, the parameters that can be configured are
-the packet size and whether to use the fixed MCS.
-
-Script ``run-e2e-single-ue-topology.sh`` is similar to the previous campaign since it also considers only 1 UE, but the simulation is now an end-to-end simulation defined in ``cttc-3gpp-channel-nums.cc``. This campaign allows variation of numerology, and
-additionally many parameters are available to be configured, such as bandwidth, frequency, whether to use a fixed MCS,
-the value of MCS in case of fixed MCS, which cell scan method to use, etc.
-
-Scripts ``run-e2e-multi-ue.sh``, ``run-e2e-multi-ue-diff-beam-angles.sh``, ``run-e2e-multi-ue-diff-cell-scan-method-adaptive-mcs-d2.sh``
-and ``run-e2e-multi-ue-diff-mcs-d2.sh`` are all running the simulation script ``cttc-3gpp-channel-nums.cc`` in multi-UE mode.
-As a result, all of these scripts vary the number of gNBs and UEs per gNB. On the other hand, ``run-e2e-multi-ue.sh`` is a more generic simulation campaign. The
-rest of scripts are created to evaluate the impact of a specific parameter. For example, the simulation campaign called
-``run-e2e-multi-ue-diff-cell-scan-method-adaptive-mcs-d2.sh`` is used to compare cell search methods: long term covariance and beam
-search beamforming method. ``run-e2e-multi-ue-diff-beam-angles.sh`` is used to evaluate the performance of different angle steps of beam
-search beamforming method. And finally , the script called ``run-e2e-multi-ue-diff-mcs-d2.sh`` is running the program for different
-values of MCS, where the MCS is configured as fixed.
-
-We consider now first scenario, for a single BWP, where we evaluate different numerologies while varying the traffic load.
-The numerologies that we evaluate in this simulation are from 1 to 5. The traffic is DL UDP.
-Packets of 100 bytes are being generated with a rate (in packets/s) which takes the following values: 1250, 62500, 125000, 250000, 375000.
-The simulation scenario is composed of a single gNB and a single UE that are at 10 m distance.
-The height of the gNB is 10 m and of UE is 1.5 m.
-The gNB transmission power is 1 dBm, the central carrier frequency is 28.1 GHz, and the bandwidth is 100 MHz.
-The channel model is the 3GPP channel model, and the scenario is UMi-StreetCanyon.
-Beam search is performed by using the long-term covariance matrix method. The delay between EPC and gNB is configured to 1 ms.
-
-In Figures :ref:`delay-1bwp` and :ref:`throughput-1bwp`, we show the mean latency and the mean throughput of the
-flow versus the offered load, when the system is being configured to use different numerologies.
-From Figure :ref:`delay-1bwp`, we observe that when the system is not saturated there is a significant impact of
-the numerology on the delay. However, when it is saturated there is a great impact of higher layers buffer delays and
-the actual transmission time does not play an important role.
-However, with respect to throughput, we observe a different effect in Figure :ref:`throughput-1bwp`.
-When there is no saturation, each numerology is able to satisfy QoS requirements of the flow equally, i.e. the served rate is equal to the offered rate.
-But, once in the saturation region, the lower numerologies (1, 2 and 3)
-start to provide a slightly better throughput than the higher numerologies (4 and 5).
-The reason for this is that depending on the bandwidth and SCS of each numerology a different portion of the
-bandwidth will be utilized. E.g., for numerology 5, the SCS is 480 kHz, PRB (Physical Respurce Block) width is 5.76 MHz, thus the
-actual bandwidth used is 97.92 MHz, while for numerology 1, the SCS is 30 kHz, PRB width is 0.36 MHz, thus the
-actual bandwidth is 99.72 MHz. Hence, there is around 2% more bandwidth in the second case, which corresponds
-to the difference in the achieved throughput that we see in the Figure :ref:`throughput-1bwp`.
-Note that the difference in the maximum throughput achieved by different numerologies depends on the channel bandwidth,
-and it is more remarkable for low bandwidths.
-
-.. _delay-1bwp:
-
-.. figure:: figures/delay_numerologies2.*
-   :align: center
-   :scale: 60 %
-
-   Mean delay per UDP flow
-
-
-
-.. _throughput-1bwp:
-
-.. figure:: figures/throughput_numerologies.*
-   :align: center
-   :scale: 60 %
-
-   Mean throughput per UDP flow
-
-FDM of numerologies
+cttc-error-model.cc
 ===================
-
-In this subsection, we describe the simulation campaigns to evaluate the FDM of numerologies. These simulation campaigns are evaluated on
-``cttc-3gpp-channel-nums-fdm.cc``. As mentioned earlier, this example can be configured to operate with 1 or 2 BWPs.
-The expected use of this example is with 2 BWPs, but 1 BWP can also be used for comparison purposes. This is the case with the
-``run-e2e-wns3-1bwp-symload.sh`` simulation campaign, in which there are 2 flows of different QCI. However, since there is only a single
-BWP, they will be served through the same BWP. The input parameter of this script is the configuration of BWP and also the
-configuration of traffic for both flows.
-
-Script ``run-e2e-wns3-2bwps-symload.sh`` is used  to simulate FDM of numerologies,
-when the bandwidth is uniformly divided between the BWPs.
-
-
-Script ``run-e2e-bwps-opt-asymload.sh`` can be used to configure different partitions
-of bandwidth among BWPs, and differently from two  simulations,
-the load of different BWPs is asymmetric. Finally, ``run-e2e-bwps-uni-asymload.sh``
-has the uniform partition of the bandwidth, but has still and asymmetric load.
-
-We present the results of a simulation configuration in which we evaluate
-the performance of FDM of numerologies when the total system bandwidth is
-divided in 2 BWPs of equal size. There are two BWPs, of 100 MHz bandwidth each.
-The total transmission power is 4 dBm, which is uniformly distributed among the two BWPs,
-so that each BWP disposes of  1 dBm.
-The central carrier frequencies are 28.1 GHz and 28 GHz.
-First BWP is configured with numerology 4 and the second BWP withnumerology 2.
-The topology consists of 1 gNB and 2 UEs. The first UE requests URLLC DL flow,
-and the second UE demands of an eMBB DL flow.
-URLLC flow packets are of 100 bytes and they are transmitted with
-rates from {1250, 62500, 125000, 250000, 375000}. eMBB flow packets are 1252 bytes. Packet sizes and rate are configured in this way
-to achieve the same offered throughput for both flows for any value of the rate.
-The packet sizes are adjusted to account for the UDP header of 28 bytes.
-UEs are placed at 10 m distance from gNB.
-When there are 2 BWPs, the BWP manager is configured to forward URLLC traffic over the BWP with a
-higher numerology, and eMBB over the BWP with a lower numerology. We compare the performance of 2 BWPs configuration
-with a single BWP, of the same total bandwidth (200 MHz) and total power (4 dBm), and numerolgoy 1.
-
-In Figures :ref:`delay-2bwps` and :ref:`throughput-2bwps` we show the performance in terms
-of the mean delay and the throughput versus the offered load per flow. As expected, we observe a positive impact of FDM of numerologies
-on the mean delay of URLLC flow. This flow benefits from being scheduled via BWP of a higher numerology. On the
-other hand, eMBB flow has almost the same performance in the terms of delay regardless if the FDM of
-numerologies is being used. With respect to throughput, we observe that URLLC flow obtains a
-better performance without FDM and when is transmitted over lower numerology in the saturation regime, due to the reasoning given in the previous subsection.
-However, there is almost no impact of FDM of numerologies on the performance of the eMBB flow.
-
-.. _fig-delay_2b:
-
-.. figure:: figures/delay_2b.*
-   :align: center
-   :scale: 60 %
-
-   Mean delay per UDP flow
-
-
-
-.. _fig-throughput_2:
-
-.. figure:: figures/throughput_2.*
-   :align: center
-   :scale: 60 %
-
-   Mean throughput per UDP flow
-
-
-3gpp Indoor Calibration Phase 1
-===============================
-
-In this subsection, we describe the simulation campaign that is desidned for
-the 3gpp calibration Phase 1. The simulation script that implements the indoor
-scenario acoording to 3gpp phase 1 calibration is placed in
-``cttc-3gpp-indoor-calibration.cc``. The main script simulation campaign is
-``run-calibration.sh`` which laverages the parameter configuration
-defined in the config file which is placed in the root of the same directory.
-
-We have run the simulation campaigns for different configurations:
-
- - Different 3gpp indoor pathloss models:
-    a) InH office-mixed,
-    b) InH office-open,
-    c) InH shopping-mall
-
- - Shadowing:
-    a) Enabled
-    b) Disabled
-
- - Different gNB antenna orientation:
-    a) Z = 0 (XY plane)
-    b) X = 0 (ZY plane)
-
- - Beamforming method:
-    a) Optimal
-    b) Beam search method for different beamsearching method angle, i.e. 5, 10, 30 degrees
-
- - gNB antenna radiation pattern:
-    a) 3GPP single-sector according to 3gpp 38.802. Table 8.2.1-7,
-    b) 3GPP wall-mount according to 3gpp 38.802. Table 8.2.1-7,
-    c) Isotropic
-
- - UE antenna radiation pattern:
-    a) 3GPP directional antenna according to 38.802. Table A.2.1-8:
-    b) Isotropic
-
-The rest of the parameters is in the following trying to be the closest possible
-to 3gpp calibration phase 1 simulation assumptions:
-
-- Carrier frequency: 30 GHz
-- Mode: DL only
-- Bandwidth: 40 MHz
-- SCS: 60 kHz (μ=2)
-- Channel model: Indoor TR 38.900
-- BS Tx Power: 23 dBm
-- BS antenna configuration: M=4, N=8 (32 antenna elements), 1 sector, vertical polarization
-- UE antenna configuration: M=2, N=4 (8 antenna elements), 1 panel, vertical polarization
-- BS antenna height: 3 mt
-- UE antenna height: 1,5 mt
-- BS noise figure: 7 dB
-- UE noise figure: 10 dB
-- UE speed: 3 km/h
-- Scheduler: TDMA PF
-- Traffic model: full buffer
-
-The deployment scenario is composed of 12 sites at 20 meters distance,
-and 120 UEs (100% indoor) randomly dropped in a 50 x 120 meters area.
-
-As reference curves, we use the results provided by the companies in R1-1709828.
-We consider the CDF of the wideband SINR with beamforming, and the CDF of the
-wideband SNR with step b (i.e., with analog TX/RX beamforming,
-using a single digital TX/RX port). For each case, we depict as reference the
-average of the companies contributing to 3GPP as well as the company that gets
-the minimum and the maximum of the average wideband SNR/SINR, so that a region
-for calibration is defined.
-
-In Figures :ref:`snr` and :ref:`sinr`, we display the CDF of wideband SNR and
-SINR of one of the confiugurations that match 3GPP calibration region. The simulation
-configuration is the folliowing:
- - pathloss model is the indoor shopping-mall,
- - shadowing is enabled,
- - gNB antenna orientation is XY (Z=0),
- - beam search method is optimal,
- - gNB 3GPP wall-mount,
- - UE 3GPP (see Figure 12 and Figure 13)
-
-
-.. _fig-snr:
-
-.. figure:: figures/snrs-r1-sh1-aoZ0-amGnb3GPP-amUe3GPP-scInH-ShoppingMall-sp3-bs0-ang10-gmWALL.*
-   :align: center
-   :scale: 60 %
-
-   SNR
-
-.. _fig-sinr:
-
-.. figure:: figures/sinrs-r1-sh1-aoZ0-amGnb3GPP-amUe3GPP-scInH-ShoppingMall-sp3-bs0-ang10-gmWALL.*
-   :align: center
-   :scale: 60 %
-
-   SINR
-
-
-Helpers
-*******
-
-What helper API will users typically use?  Describe it here.
-
-
-Attributes
-**********
-
-Common NR attributes
-====================
-Class ``mmwave-phy-mac-common`` holds common NR attributes. According
-to our current design all NR devices in the simulation have the same numerology
-configuration which is the one that is specified in ``mmwave-phy-mac-common`` class.
-In table :ref:`tab-mmwave-phy-mac-common` we show the ``mmwave-phy-mac-common`` class attributes.
-
-
-.. _tab-mmwave-phy-mac-common:
-
-.. table:: NR common system attributes defined through mmwave-phy-mac-common class
-
-  ====================   ==================================================================================       ==================
-  Name                   Description                                                                              Default value
-  ====================   ==================================================================================       ==================
-  Numerology             The 3GPP numerology to be used                                                           4
-  Bandwidth              The system bandwidth in Hz                                                               400e6
-  CtrlSymbols            The number of OFDM symbols for DL control per subframe                                   1
-  NumReferenceSymbols    The number of reference symbols per slot                                                 6
-  CenterFreq             The center frequency in Hz                                                               28e9
-  UlSchedDelay           The number of TTIs between UL scheduling decision and subframe to which it applies       1
-  NumRbPerRbg            The number of resource blocks per resource block group                                   1
-  WbCqiPeriod            The period between wideband DL-CQI reports in microseconds                               500
-  NumHarqProcess         The number of concurrent stop-and-wait Hybrid ARQ processes per user                     20
-  HarqDlTimeout          Downlink harq timeout timer                                                              20
-  TbDecodeLatency        Transport block decode latency in microseconds                                           100
-  ====================   ==================================================================================       ==================
-
-
-User may specify the numerology of the system by configuring "Numerology" attribute of
-the mm-wave-phy-common class. The numerology parameter should be set along with
-the bandwidth in order to allow correct configuration of all numerologies parameters of mm-wave-phy-mac-common.
-The numerologies parameters that are being configured at a run-time based on the configuration of "Numerology" and
-"Bandwidth" attribute, and which cannot be anymore directly accessed through the attributes of mm-wave-phy-common class are:
-symbol period, slot period, symbols per slot, subframes per frame, slots per subframe, subcarriers per PRB,
-the number of PRBs, and the subcarrier spacing.
-
-According to the current design that temporarily follows some of NYU 'mmwave' module design choices,
-the bandwidth and numerology attributes are currently placed in ``mmwave-phy-mac-common`` class.
-However, in order to allow that the numerology or FDM of numerologies is NR device specific,
-and the PHY an MAC parameters shall belong to ``mmwave-enb-net-device`` and ``mmwave-ue-net-device``.
-
-3GPP channel model attributes
-=============================
-In the terms of 3GPP channel model we leverage on NYU implementation which is
-according the 3GPP channel model reported by 3GPP in [TR38900]_.
-NYU 3GPP channel model implements the channel model for frequencies of
-the 6-100 GHz band and associated MIMO beamforming architecture. The description
-of the implementation may be found in [ns-3-3gpp-cm]_.
-
-The 3GPP channel model attributes are specified in classes ``MmWave3gppChannel``,
-``MmWave3gppPropagationLossModel`` and ``MmWave3gppBuildingsPropagationLossModel``.
-These attributes are listed in Tables :ref:`tab-3gpp-channel-attributes`,
-:ref:`tab-3gpp-propagation-loss-attributes` and :ref:`tab-3gpp-buildings-propagation-loss`.
-
-
-.. _tab-3gpp-channel-attributes:
-
-.. table:: 3GPP channel model attributes that can be configured in MmWave3gppChannel
-
-  ====================   ======================================================================================================================================       ==================
-  Name                   Description                                                                                                                                  Default value
-  ====================   ======================================================================================================================================       ==================
-  UpdatePeriod           Enable spatially-consistent UT mobility modeling procedure A, the update period unit is in ms, set to 0 ms to disable update                 0
-  CellScan               Whether to use search method to determine beamforming vector, the default is long-term covariance matrix method                              false
-  Blockage               Enable blockage model A (sec 7.6.4.1)                                                                                                        false
-  NumNonselfBlocking     The number of non-self-blocking regions                                                                                                      4
-  BlockerSpeed           The speed of moving blockers, the unit is m/s                                                                                                1
-  PortraitMode           True for portrait mode, false for landscape mode                                                                                             true
-  ====================   ======================================================================================================================================       ==================
-
-
-.. _tab-3gpp-propagation-loss-attributes:
-
-.. table:: 3GPP propagation loss attributes that can be configured in MmWave3gppPropagationLossModel
-
-  ====================   ======================================================================================================================================       ==================
-  Name                   Description                                                                                                                                  Default value
-  ====================   ======================================================================================================================================       ==================
-  Frequency 		         The carrier frequency (in Hz) at which propagation occurs                                                                                    28 GHz
-  MinLoss                The minimum value (dB) of the total loss, used at short ranges                                                                               0
-  ChannelCondition       'l' for LOS, 'n' for NLOS, 'a' for all                                                                                                       a
-  Scenario               The available channel scenarios are 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen', 'InH-ShoppingMall'                RMa
-  OptionalNlos			     Whether to use the optional NLoS propagation loss model                                                                                      false
-  Shadowing			         Enable shadowing effect                                                                                                                      true
-  InCar				           If inside a vehicle, car penetration loss should be added to propagation loss                                                                false
-  ====================   ======================================================================================================================================       ==================
-
-
-.. _tab-3gpp-buildings-propagation-loss:
-
-.. table:: 3GPP buildings propagation loss attributes that can be configured in MmWave3gppBuildingsPropagationLossModel
-
-  ====================   ======================================================================================================================================       ==================
-  Name                   Description                                                                                                                                  Default value
-  ====================   ======================================================================================================================================       ==================
-  Frequency              The carrier frequency (in Hz) at which propagation occurs                                                                                    28 GHz
-  UpdateCondition        Whether to Update LOS/NLOS condition while UE moves                                                                                          true
-  ====================   ======================================================================================================================================       ==================
-
-
-What classes hold attributes, and what are the key ones worth mentioning?
-
-
-Output
-******
-
-What kind of data does the model generate?  What are the key trace
-sources?   What kind of logging output can be enabled?
+The program ``examples/cttc-error-model`` allows the user to test the end-to-end performance
+with the new NR PHY abstraction model for error modeling by using a fixed MCS.
+It allows the user to set the MCS, the gNB-UE distance, and either HARQ-CC or HARQ-IR.
+
+
+cttc-error-model-comparison.cc
+==============================
+The program ``examples/cttc-error-model-comparison`` allows the user to compare the Transport
+Block Size that is obtained for each MCS index under different error models (NR and LTE)
+and different MCS Tables.
+
+
+cttc-error-model-amc.cc
+=======================
+The program ``examples/cttc-error-model-amc`` allows the user to test the end-to-end performance
+with the new NR PHY abstraction model for error modeling by using adaptive modulation and
+coding (AMC).
+It allows the user to set the AMC approach (error model-based or Shannon-based),
+the gNB-UE distance, and either HARQ-CC or HARQ-IR.
 
 
 
@@ -1507,6 +1130,7 @@ Validation
 Tests
 *****
 To validate the implemented features, we have designed different tests.
+
 
 NR test for new NR frame structure and numerologies configuration
 =================================================================
@@ -1519,9 +1143,9 @@ the gNB and UE clocks perform synchronously according the selected numerology,
 and that serialization and deserialization of the frame, subframe, slot and TTI number
 performs correctly for the new NR frame structure.
 
+
 Test of packet delay in NR protocol stack
 =========================================
-
 Test case ``mmwave-test-numerology-delay`` validates that the delays of a single
 UDP packet are correct.
 UDP packet is monitored at different points of NR protocol stack,
@@ -1542,12 +1166,14 @@ The test passes if all of the previous steps are according to the
 timings related to a specific numerology. The test is run for different
 numerologies.
 
+
 Test of numerology FDM
 ======================
 To test the FDM of numerologies, we have implemented
 the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to operate with
 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
+
 
 Test for NR schedulers
 ======================
@@ -1576,12 +1202,19 @@ single gNB is transmitting.
 
 Test for error model
 ====================
-Test case called ``NrL2smEesmTestCase`` validates the NR PHY abstraction model. TBC
+Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR PHY abstraction model.
+The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
+BLER values are properly obtained from the BLER-SINR look up tables for different block sizes, MCS
+Tables, BG types, and SINR values.
 
 
 Test for channel model
 ======================
 Test case called ``NrTest3gppChannelTestCase`` validates the channel model. TBC
+
+
+Open issues and future work
+---------------------------
 
 
 .. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
