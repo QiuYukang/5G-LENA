@@ -122,9 +122,9 @@ above but on the contrary direction.
 
 .. _fig-e2e:
 
-.. figure:: figures/drawing.*
+.. figure:: figures/drawing2.*
    :align: center
-   :scale: 100 %
+   :scale: 80 %
 
    End-to-end class overview
 
@@ -143,9 +143,9 @@ class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
-.. figure:: figures/drawings-1.*
+.. figure:: figures/drawing1.*
    :align: center
-   :scale: 100 %
+   :scale: 80 %
 
    RAN class overview
 
@@ -222,9 +222,9 @@ channel bandwidth of 400 MHz.
 
 .. _fig-frame-structure:
 
-.. figure:: figures/time-freq-mu3-400mhz.*
+.. figure:: figures/numerologies-1.*
    :align: center
-   :scale: 60 %
+   :scale: 35 %
 
    NR frame structure example
 
@@ -425,7 +425,7 @@ and mapping of code BLERs to the transport BLER.
 
 .. _fig-l2sm:
 
-.. figure:: figures/pic.*
+.. figure:: figures/l2sm-1.*
    :align: center
    :scale: 60 %
 
@@ -1028,7 +1028,7 @@ Figure ::`fig-scenario-simple`.
 
 .. figure:: figures/scenario-simple.*
    :align: center
-   :scale: 75 %
+   :scale: 50 %
 
    NR scenario for simple performance evaluation (RAN part only)
 
