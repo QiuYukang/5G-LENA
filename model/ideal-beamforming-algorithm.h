@@ -25,17 +25,14 @@
 #include <ns3/mobility-model.h>
 #include <ns3/log.h>
 #include <ns3/node.h>
-#include <ns3/spectrum-model.h>
-#include <ns3/spectrum-channel.h>
-#include <ns3/mmwave-phy.h>
 #include <ns3/three-gpp-channel.h>
-#include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/mmwave-spectrum-phy.h>
 
 namespace ns3 {
 
 class BeamManager;
+class SpectrumModel;
+class SpectrumValue;
 
 class IdealBeamformingAlgorithm: public Object
 {

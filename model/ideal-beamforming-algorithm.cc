@@ -19,11 +19,12 @@
 
 #include "ideal-beamforming-algorithm.h"
 #include "beam-manager.h"
-#include "mmwave-enb-phy.h"
+#include "mmwave-spectrum-phy.h"
 #include "mmwave-ue-phy.h"
+#include "mmwave-enb-phy.h"
 #include "mmwave-enb-net-device.h"
 #include "mmwave-ue-net-device.h"
-
+#include <ns3/multi-model-spectrum-channel.h>
 
 namespace ns3{
 
@@ -31,6 +32,7 @@ NS_LOG_COMPONENT_DEFINE ("IdealBeamformingAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (CellScanBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (DirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (OptimalCovMatrixBeamforming);
+
 TypeId
 IdealBeamformingAlgorithm::GetTypeId (void)
 {
@@ -189,8 +191,6 @@ CellScanBeamforming::DoRun (Ptr<NetDevice> gNbDev, Ptr<NetDevice> ueDev) const
             }
         }
     }
-
-  //NS_LOG_LOGIC ("maxTx " << maxTx << " txAntennaNum[1] " << (uint16_t)txAntennaArray->GetAntennaNumDim2());
 
   txBeamManager->SetBeamformingVector (maxTxW, BeamId (maxTx, maxTxTheta), gNbDev);
   rxBeamManager->SetBeamformingVector (maxRxW, BeamId (maxRx, maxRxTheta), ueDev);

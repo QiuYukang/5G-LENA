@@ -20,21 +20,11 @@
 #ifndef SRC_NR_MODEL_BEAM_MANAGER_H_
 #define SRC_NR_MODEL_BEAM_MANAGER_H_
 
-#include <ns3/three-gpp-antenna-array-model.h>
-#include <ns3/object.h>
-#include <ns3/log.h>
-#include <ns3/node.h>
-#include <complex>
-#include <ns3/nstime.h>
-#include <ns3/net-device.h>
-#include <map>
-#include <ns3/spectrum-model.h>
-#include <functional>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/event-id.h>
+
 #include "beam-id.h"
 #include "ideal-beamforming-algorithm.h"
-#include <ns3/mobility-model.h>
+#include "ns3/event-id.h"
+#include <ns3/three-gpp-antenna-array-model.h>
 
 namespace ns3 {
 
