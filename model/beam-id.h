@@ -27,92 +27,76 @@
 
 namespace ns3 {
 
- /**
-   * \brief Representation of a beam id
-   *
-   * A beam id in ns-3 is a pair that contains the sector, stored as a uint16_t,
-   * and the elevation, stored as a double. Utilities functions are provided to
-   * extract the values. This ID usually comes with the real physical representation
-   * of a Beam, expressed by BeamformingVector.
-   *
-   * \see GetSector
-   * \see GetElevation
-   */
+/**
+ * \brief Representation of a beam id
+ *
+ * A beam id in ns-3 is a pair that contains the sector, stored as a uint16_t,
+ * and the elevation, stored as a double. Utilities functions are provided to
+ * extract the values. This ID usually comes with the real physical representation
+ * of a Beam, expressed by BeamformingVector.
+ *
+ * \see GetSector
+ * \see GetElevation
+ */
 
-  class BeamId {
+class BeamId {
 
-    uint16_t m_sector {0};
-    double m_elevation {0};
-
-  public:
-
-    BeamId (){};
-
-    BeamId (uint16_t sector, double elevation)
-    {
-      m_sector = sector;
-      m_elevation = elevation;
-    }
-
-    /**
-     * \brief Objects of this class are used as key in hash
-     * table. This class must implement operator ==()
-     * to handle collisions.
-     */
-    inline bool operator==(const BeamId& p) const
-    {
-      return m_sector == p.GetSector() && m_elevation == p.GetElevation();
-    }
-
-
-    /**
-     * \brief Extract the sector from the beam id
-     * \return The sector of the beam
-     * \param b beam
-     */
-    inline uint16_t GetSector () const
-    {
-      return m_sector;
-    }
-
-    /**
-     * \brief Extract the elevation from the beam id
-     * \return the elevation of the beam
-     * \param b the beam
-     */
-    inline double GetElevation () const
-    {
-      return m_elevation;
-    }
-
-  };
-
-  // we reserve pair 65535, 65535 to identify the OMNI beam
-  const BeamId OMNI_BEAM_ID = BeamId (UINT16_MAX, UINT16_MAX);
+public:
 
   /**
-   * \brief Calculate the Cantor function for two unsigned int
-   * \param x1 first value max value 65535
-   * \param x2 second value max value 65535
-   * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
+   * \brief Default constructor which created beamId with 0 sector and 0 elevation.
    */
-  static constexpr uint32_t Cantor (uint16_t x1, uint16_t x2)
-  {
-    return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
-  }
+  BeamId ();
 
   /**
-   * \brief Calculate the hash of a BeamId
+   * \constructor Constructor used to configure both sector and elevation.
+   * \param sector species the sector of the beam
+   * \param elevation specifies the elevation of the beam
    */
-  struct BeamIdHash
-  {
-    size_t operator() (const BeamId &x) const
-    {
-      return std::hash<uint32_t>()(Cantor (x.GetSector(), static_cast<uint16_t> (x.GetElevation())));
-    }
-  };
+  BeamId (uint16_t sector, double elevation);
 
-  std::ostream &operator<< (std::ostream &os, const BeamId &item);
+  /**
+   * \brief Objects of this class are used as key in hash
+   * table. This class must implement operator ==()
+   * to handle collisions.
+   * \param p BeamId with which we compare this object
+   */
+  bool operator==(const BeamId& p) const;
+
+  /**
+   * \brief Extract the sector from the beam id
+   * \return The sector of the beam
+   * \param b beam
+   */
+  uint16_t GetSector () const;
+
+  /**
+   * \brief Extract the elevation from the beam id
+   * \return the elevation of the beam
+   * \param b the beam
+   */
+  double GetElevation () const;
+
+private:
+
+  uint16_t m_sector {0};  //!< sector of the beam
+  double m_elevation {0}; //!< elevation of the beam
+};
+
+
+// we reserve pair 65535, 65535 to identify the OMNI beam
+const BeamId OMNI_BEAM_ID = BeamId (UINT16_MAX, UINT16_MAX);
+
+/**
+ * \brief Calculate the hash of a BeamId
+ */
+struct BeamIdHash {
+
+  size_t operator() (const BeamId &x) const;
+
+};
+
+std::ostream &operator<< (std::ostream &os, const BeamId &item);
 
 } /* namespace ns3 */
 
