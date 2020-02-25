@@ -66,7 +66,7 @@ public:
    */
   void AddUeDevice (Ptr<NetDevice> ueDevice);
 
-  virtual void Run ();
+  virtual void Run () const;
 
   static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
 

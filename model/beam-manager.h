@@ -69,21 +69,16 @@ public:
    * \param v the BeamformingVector
    * \return the weight vector
    */
-  complexVector_t GetVector (BeamformingVector v)
-  {
-    return v.first;
-  }
+  complexVector_t GetVector (const BeamformingVector& v) const;
+
   /**
    * \brief Extract the beam id from the beamforming vector specified
    * \return the beam id
    * \param v the beamforming vector
    */
-  BeamId GetBeamId (const BeamformingVector &v)
-  {
-    return v.second;
-  }
+  BeamId GetBeamId (const BeamformingVector &v) const;
 
- typedef std::map<Ptr<NetDevice>, BeamformingVector> BeamformingStorage;
+ typedef std::map<const Ptr<const NetDevice>, BeamformingVector> BeamformingStorage;
 
 
   /**
@@ -95,14 +90,14 @@ public:
    * \param device device to which it is being transmitted, or from which is
    * being received
    */
-   virtual void SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
-                                      Ptr<NetDevice> device);
+   virtual void SetBeamformingVector (const complexVector_t& antennaWeights, const BeamId& beamId,
+                                      const Ptr<const NetDevice>& device);
 
    /**
     * \brief Change the beamforming vector for tx/rx to/from specified device
     * \param device Device to change the beamforming vector for
     */
-   virtual void ChangeBeamformingVector (Ptr<NetDevice> device);
+   virtual void ChangeBeamformingVector (const Ptr<const NetDevice>& device);
 
    /**
     * \brief Change the antenna model to omnidirectional (ignoring the beams) TODO check this
@@ -121,7 +116,7 @@ public:
     * communicated with a specified device
     * \return the current beamforming vector
     */
-   virtual complexVector_t GetBeamformingVector (Ptr<NetDevice> device);
+   virtual complexVector_t GetBeamformingVector (const Ptr<NetDevice>& device) const;
 
 
    /**
@@ -129,8 +124,7 @@ public:
     * communicated with a specified device
     * \return the current beamforming vector
     */
-   virtual BeamId GetBeamId (Ptr<NetDevice> device);
-
+   virtual BeamId GetBeamId (const Ptr<NetDevice>& device) const;
 
    /**
     * \brief Generate a omni directional beamforming vector
@@ -140,7 +134,10 @@ public:
     */
    BeamformingVector GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2) const;
 
-   Ptr<ThreeGppAntennaArrayModel> GetAntennaArray ();
+   /**
+    * TODO remove this from BeamManager, we agreed (N&B) that only SpectrumPhy or Phy will have a pointer to Antenna
+    */
+   Ptr<ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
    /**
     * \brief The beamforming timer has expired; at the next slot, perform beamforming.
@@ -150,9 +147,9 @@ public:
     */
    void ExpireBeamformingTimer ();
 
-   void SetIdeamBeamformingAlgorithm (Ptr<IdealBeamformingAlgorithm> algorithm);
+   void SetIdeamBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm);
 
-   Ptr<IdealBeamformingAlgorithm> GetIdealBeamformingAlgorithm();
+   Ptr<IdealBeamformingAlgorithm> GetIdealBeamformingAlgorithm() const;
 
 private:
 
@@ -161,7 +158,7 @@ private:
    Time m_beamformingPeriodicity; //!< Periodicity of beamforming (0 for never)
    EventId m_beamformingTimer;    //!< Beamforming timer
 
-   //only gNB beam manager is needs this part
+   //only gNB beam manager needs this part
    BeamformingStorage m_beamformingVectorMap; //!< device to beamforming vector mapping
 
    //only genie beaforming

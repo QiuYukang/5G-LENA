@@ -62,7 +62,7 @@ IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (double powerTx, Ptr
 }
 
 void
-IdealBeamformingAlgorithm::Run()
+IdealBeamformingAlgorithm::Run() const
 {
   for (const auto & dev : m_ueDeviceMap)
     {

@@ -54,6 +54,18 @@ BeamManager::InstallAntenna (uint32_t antennaNumDim1, uint32_t antennaNumDim2, b
     }
 }
 
+complexVector_t
+BeamManager::GetVector (const BeamformingVector& v) const
+{
+  return v.first;
+}
+
+BeamId
+BeamManager::GetBeamId (const BeamformingVector&v) const
+{
+  return v.second;
+}
+
 BeamManager::~BeamManager() {
   // TODO Auto-generated destructor stub
 }
@@ -75,8 +87,8 @@ BeamManager::GetTypeId (void)
 
 
 void
-BeamManager::SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId,
-                                         Ptr<NetDevice> device)
+BeamManager::SetBeamformingVector (const complexVector_t& antennaWeights, const BeamId& beamId,
+                                   const Ptr<const NetDevice>& device)
 {
   NS_LOG_INFO ("SetBeamformingVector for BeamId:" << beamId << " node id: " << device->GetNode()->GetId());
 
@@ -98,7 +110,7 @@ BeamManager::SetBeamformingVector (complexVector_t antennaWeights, BeamId beamId
 }
 
 void
-BeamManager::ChangeBeamformingVector (Ptr<NetDevice> device)
+BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
 {
   if (m_performGenieBeamforming)
     {
@@ -133,11 +145,11 @@ BeamManager::ChangeToOmniTx ()
 }
 
 complexVector_t
-BeamManager::GetBeamformingVector (Ptr<NetDevice> device)
+BeamManager::GetBeamformingVector (const Ptr<NetDevice>& device) const
 {
   NS_LOG_FUNCTION (this);
   complexVector_t beamformingVector ;
-  BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
+  BeamformingStorage::const_iterator it = m_beamformingVectorMap.find (device);
   if (it != m_beamformingVectorMap.end ())
     {
       beamformingVector = it->second.first;
@@ -150,10 +162,10 @@ BeamManager::GetBeamformingVector (Ptr<NetDevice> device)
 }
 
 BeamId
-BeamManager::GetBeamId (Ptr<NetDevice> device)
+BeamManager::GetBeamId (const Ptr<NetDevice>& device) const
 {
   BeamId beamId;
-  BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
+  BeamformingStorage::const_iterator it = m_beamformingVectorMap.find (device);
   if (it != m_beamformingVectorMap.end ())
     {
       beamId = it->second.second;
@@ -204,7 +216,7 @@ BeamManager::GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2
 }
 
 Ptr<ThreeGppAntennaArrayModel>
-BeamManager::GetAntennaArray ()
+BeamManager::GetAntennaArray () const
 {
   return m_antennaArray;
 }
@@ -220,13 +232,13 @@ BeamManager::ExpireBeamformingTimer()
 }
 
 void
-BeamManager::SetIdeamBeamformingAlgorithm (Ptr<IdealBeamformingAlgorithm> algorithm)
+BeamManager::SetIdeamBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm)
 {
   m_genieAlgorithm = algorithm;
 }
 
 Ptr<IdealBeamformingAlgorithm>
-BeamManager::GetIdealBeamformingAlgorithm()
+BeamManager::GetIdealBeamformingAlgorithm() const
 {
   return m_genieAlgorithm;
 }
