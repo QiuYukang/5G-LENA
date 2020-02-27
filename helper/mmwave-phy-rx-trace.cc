@@ -50,6 +50,8 @@ std::ofstream MmWavePhyRxTrace::m_rxedUePhyCtrlMsgsFile;
 std::string MmWavePhyRxTrace::m_rxedUePhyCtrlMsgsFileName;
 std::ofstream MmWavePhyRxTrace::m_txedUePhyCtrlMsgsFile;
 std::string MmWavePhyRxTrace::m_txedUePhyCtrlMsgsFileName;
+std::ofstream MmWavePhyRxTrace::m_rxedUePhyDlDciFile;
+std::string MmWavePhyRxTrace::m_rxedUePhyDlDciFileName;
 
 MmWavePhyRxTrace::MmWavePhyRxTrace ()
 {
@@ -80,6 +82,11 @@ MmWavePhyRxTrace::~MmWavePhyRxTrace ()
   if (m_txedUePhyCtrlMsgsFile.is_open ())
     {
       m_txedUePhyCtrlMsgsFile.close ();
+    }
+
+  if (m_rxedUePhyDlDciFile.is_open ())
+    {
+      m_rxedUePhyDlDciFile.close ();
     }
 }
 
@@ -314,6 +321,56 @@ MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
       m_txedUePhyCtrlMsgsFile << "Other";
     }
   m_txedUePhyCtrlMsgsFile << std::endl;
+}
+
+void
+MmWavePhyRxTrace::RxedUePhyDlDciCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                             uint16_t rnti, uint8_t ccId, uint8_t harqId, uint32_t k1Delay)
+{
+  if (!m_rxedUePhyDlDciFile.is_open ())
+      {
+        m_rxedUePhyDlDciFileName = "RxedUePhyDlDciTrace.txt";
+        m_rxedUePhyDlDciFile.open (m_rxedUePhyDlDciFileName.c_str ());
+        m_rxedUePhyDlDciFile << "Time" << "\t" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
+                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
+                                 << "\t" << "Harq ID" << "\t" << "K1 Delay" << std::endl;
+
+        if (!m_rxedUePhyDlDciFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_rxedUePhyDlDciFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "DL DCI Rxed" << "\t" << sfn.m_frameNum
+          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
+          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t"
+          << static_cast<uint32_t> (harqId) << "\t" << k1Delay << std::endl;
+
+}
+
+void
+MmWavePhyRxTrace::TxedUePhyHarqFeedbackCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                             uint16_t rnti, uint8_t ccId, uint8_t harqId, uint32_t k1Delay)
+{
+  if (!m_rxedUePhyDlDciFile.is_open ())
+      {
+        m_rxedUePhyDlDciFileName = "RxedUePhyDlDciTrace.txt";
+        m_rxedUePhyDlDciFile.open (m_rxedUePhyDlDciFileName.c_str ());
+        m_rxedUePhyDlDciFile << "Time" << "\t" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
+                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
+                                 << "\t" << "Harq ID" << "\t" << "K1 Delay" << std::endl;
+
+        if (!m_rxedUePhyDlDciFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_rxedUePhyDlDciFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "HARQ FD Txed" << "\t" << sfn.m_frameNum
+          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
+          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t"
+          << static_cast<uint32_t> (harqId) << "\t" << k1Delay << std::endl;
+
 }
 
 void

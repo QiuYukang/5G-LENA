@@ -702,30 +702,22 @@ public:
   uint32_t GetNumReferenceSymbols (void);
 
   /**
-   * \brief: Get the delay set between DL grant and
-   *  corresponding DL data (PDSCH) reception
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL DCI and decode DL Data
    */
-  uint32_t GetK0Delay (void) const;
+  uint32_t GetN0Delay (void) const;
 
   /**
-   * \brief: Get the delay set between DL data (PDSCH)
-   *  reception and corresponding acknowledgement
-   *  transmission on UL
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL Data and send Harq feedback
    */
-  uint32_t GetK1Delay (void) const;
+  uint32_t GetN1Delay (void) const;
 
   /**
-   * \brief: Get the delay set between UL grant reception
-   *  in DL and UL data (PUSCH) transmission
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode UL DCI and prepare UL data
    */
-  uint32_t GetK2Delay (void) const;
-
-  /**
-   * \brief: Get the delay set between ACK/NAK reception
-   *  in UL and corresponding retransmission of data
-   *  (PDSCH) on DL
-   */
-  uint32_t GetK3Delay (void) const;
+  uint32_t GetN2Delay (void) const;
 
   uint32_t GetNumScsPerRb (void) const;
 
@@ -752,8 +744,6 @@ public:
   double GetCenterFrequency (void) const;
 
   uint16_t GetL1L2CtrlLatency (void) const;
-
-  uint32_t GetL1L2DataLatency (void) const;
 
   uint32_t GetNumHarqProcess (void) const;
 
@@ -787,30 +777,28 @@ public:
   void SetNumReferenceSymbols (uint32_t refSym);
 
   /**
-   * \brief: Set the delay between DL grant and
-   *  corresponding DL data (PDSCH) reception
+   * \brief: Set the minimum processing delay (in slots)
+   * to decode DL DCI and decode DL data
    */
-  void SetK0Delay (uint32_t delay);
+  void SetN0Delay (uint32_t delay);
 
   /**
-   * \brief: Set the delay between DL data (PDSCH)
-   *  reception and corresponding acknowledgement
-   *  transmission on UL
+   * \brief: Set the minimum processing delay (in slots)
+   * to decode DL Data and send Harq feedback
+   *
+   * Please note that in the current implementation N1
+   * must be equal or larger than 1 (N1 >= 1)
    */
-  void SetK1Delay (uint32_t delay);
+  void SetN1Delay (uint32_t delay);
 
   /**
-   * \brief: Set the delay between UL grant reception
-   *  in DL and UL data (PUSCH) transmission
+   * \brief: Set the minimum processing delay (in slots)
+   * to decode UL DCI and prepare UL data
+   *
+   * Please note that in the current implementation N2
+   * must be equal or larger than 1 (N2 >= 1)
    */
-  void SetK2Delay (uint32_t delay);
-
-  /**
-   * \brief: Set the delay between ACK/NAK reception
-   *  in UL and corresponding retransmission of data
-   *  (PDSCH) on DL
-   */
-  void SetK3Delay (uint32_t delay);
+  void SetN2Delay (uint32_t delay);
 
   void SetNumScsPrRb (uint32_t numScs);
 
@@ -835,8 +823,6 @@ public:
   void SetCentreFrequency (double fc);
 
   void SetL1L2CtrlLatency (uint32_t delaySfs);
-
-  void SetL1L2DataLatency (uint32_t delayVarTtis);
 
   void SetNumHarqProcess (uint32_t numProcess);
 
@@ -873,11 +859,9 @@ private:
   double m_bandwidth;
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
-  uint32_t m_l1L2DataLatency;   // In no. of slots - TODO: check if this is correct description
-  uint32_t m_k0Delay;           //!< delay between DL grant and corresponding DL data (PDSCH) reception
-  uint32_t m_k1Delay;           //!< delay between DL data (PDSCH) reception and corresponding acknowledgement transmission on UL
-  uint32_t m_k2Delay;           //!< delay between UL grant reception in DL and UL data (PUSCH) transmission
-  uint32_t m_k3Delay;           //!< delay between ACK/NAK reception in UL and corresponding retransmission of data (PDSCH) on DL
+  uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+  uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
   uint32_t m_maxTbSizeBytes;

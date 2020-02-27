@@ -208,6 +208,39 @@ static uint32_t modulo (int n, uint32_t m)
 }
 
 /**
+ * \brief Return the slot in which the HARQ Feedback should be sent, according to the parameter N1
+ * \param pattern The TDD pattern
+ * \param pos The position of the data inside the pattern for which we want to find where the feedback should be sent
+ * \param n1 The N1 parameter
+ * \return The slot position in which the HARQ Feedback should be sent
+ *
+ * The resulted slot is then used for the calculation of K1, that will be
+ * communicated to the UE through the DL DCI.
+ * Please note that for the LTE TDD case, although the calculation follows the
+ * logic of Table 10.1-1 of TS 36.213, some configurations are simplified in order
+ * to avoid having a table from where we take the K1 values. In particular, for
+ * configurations 3, 4 and 6 (starting form 0), the specification splits the
+ * HARQ feedbacks among all UL subframes in an equal (as much as possible) manner.
+ * This tactic is ommitted in this implementation.
+ */
+static uint32_t
+ReturnHarqSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t n1)
+{
+  int32_t j = static_cast<int32_t> (n1);
+
+  uint32_t index = modulo (static_cast<int> (pos) + j, static_cast<uint32_t> (pattern.size ()));
+
+  while (pattern[index] < LteNrTddSlotType::F)
+    {
+      j++;
+      index = modulo (static_cast<int> (pos) + j, static_cast<uint32_t> (pattern.size ()));
+      NS_ASSERT (index < pattern.size ());
+    }
+
+  return index;
+}
+
+/**
  * \brief Return the slot in which the DCI should be send, according to the parameter k
  * \param pattern The TDD pattern
  * \param pos The position inside the patter for which we want to check where the DCI should be sent
@@ -218,6 +251,7 @@ static uint32_t
 ReturnDciSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t k)
 {
   int32_t j = static_cast<int32_t> (k);
+
   uint32_t index = modulo (static_cast<int> (pos) - j, static_cast<uint32_t> (pattern.size ()));
 
   while (pattern[index] > LteNrTddSlotType::F)
@@ -236,7 +270,8 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
                                              std::map<uint32_t, std::vector<uint32_t>> *toSendUl,
                                              std::map<uint32_t, std::vector<uint32_t>> *generateDl,
                                              std::map<uint32_t, std::vector<uint32_t>> *generateUl,
-                                             uint32_t k0, uint32_t k2, uint32_t l1l2CtrlLatency)
+                                             std::map<uint32_t, uint32_t> *dlHarqfbPosition,
+                                             uint32_t k0, uint32_t k2, uint32_t n1, uint32_t l1l2CtrlLatency)
 {
   int32_t n = static_cast<int32_t> (pattern.size ());
 
@@ -259,6 +294,9 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
 
           (*toSendDl)[indexDci].push_back(static_cast<uint32_t> (i));
           (*generateDl)[indexGen].push_back (static_cast<uint32_t> (i));
+
+          uint32_t indexHarq = ReturnHarqSlot (pattern, static_cast<uint32_t> (i), n1);
+          (*dlHarqfbPosition).insert (std::make_pair (static_cast<uint32_t> (i), indexHarq));
         }
       else if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::F)
         {
@@ -274,6 +312,9 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
 
           (*toSendUl)[indexDci].push_back(static_cast<uint32_t> (i));
           (*generateUl)[indexGen].push_back (static_cast<uint32_t> (i));
+
+          uint32_t indexHarq = ReturnHarqSlot (pattern, static_cast<uint32_t> (i), n1);
+          (*dlHarqfbPosition).insert (std::make_pair (static_cast<uint32_t> (i), indexHarq));
         }
     }
 
@@ -337,10 +378,13 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
   m_generateUl.clear ();
   m_toSendDl.clear ();
   m_toSendUl.clear ();
+  m_dlHarqfbPosition.clear ();
 
   GenerateStructuresFromPattern (pattern, &m_toSendDl, &m_toSendUl,
-                                 &m_generateDl, &m_generateUl, 0,
-                                 static_cast<uint32_t> (m_phyMacConfig->GetK2Delay ()),
+                                 &m_generateDl, &m_generateUl,
+                                 &m_dlHarqfbPosition, 0,
+                                 static_cast<uint32_t> (m_phyMacConfig->GetN2Delay ()),
+                                 m_phyMacConfig->GetN1Delay (),
                                  m_phyMacConfig->GetL1L2CtrlLatency ());
 
   // At the beginning of the simulation, fill the slot allocations until
@@ -368,7 +412,7 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
 
       sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
 
-      times = m_generateUl.begin()->first + m_phyMacConfig->GetK2Delay () + m_phyMacConfig->GetL1L2CtrlLatency() - 1;
+      times = m_generateUl.begin()->first + m_phyMacConfig->GetN2Delay () + m_phyMacConfig->GetL1L2CtrlLatency() - 1;
 
       for (uint32_t i = 0; i <= times; ++i)
         {
@@ -594,10 +638,10 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   else
     {
       bool hasUlDci = false;
-      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetK2Delay (),
+      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetN2Delay (),
                                                            m_phyMacConfig->GetSlotsPerSubframe (),
                                                            m_phyMacConfig->GetSubframesPerFrame ());
-      if (m_phyMacConfig->GetK2Delay () > 0)
+      if (m_phyMacConfig->GetN2Delay () > 0)
         {
           if (SlotAllocInfoExists (ulSfn))
             {
@@ -748,10 +792,9 @@ MmWaveEnbPhy::ExpireBeamformingTimer()
 }
 
 std::list <Ptr<MmWaveControlMessage>>
-MmWaveEnbPhy::RetrieveDciFromAllocation (const SfnSf &targetSlot,
-                                         const SlotAllocInfo &alloc,
+MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                                          const DciInfoElementTdma::DciFormat &format,
-                                         uint32_t kDelay)
+                                         uint32_t kDelay, uint32_t k1Delay)
 {
   NS_LOG_FUNCTION(this);
   std::list <Ptr<MmWaveControlMessage>> ctrlMsgs;
@@ -774,6 +817,7 @@ MmWaveEnbPhy::RetrieveDciFromAllocation (const SfnSf &targetSlot,
           Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
 
           dciMsg->SetKDelay (kDelay);
+          dciMsg->SetK1Delay (k1Delay);  //Set for both DL/UL however used only in DL (in UL UE ignors it)
 
           ctrlMsgs.push_back (dciMsg);
           NS_LOG_INFO ("To send, DCI for UE " << dciElem->m_rnti);
@@ -790,30 +834,45 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
   uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
                                                  m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
 
+  uint32_t k1delay = modulo (m_dlHarqfbPosition[currentSlotN] - currentSlotN, m_tddPattern.size ());
+  if (k1delay < m_phyMacConfig->GetN1Delay ())
+    {
+      k1delay += m_tddPattern.size ();
+    }
+  NS_ASSERT_MSG (k1delay >= m_phyMacConfig->GetN1Delay (),
+                 " k1delay must be equal or larger than N1 " << k1delay);
+
   // TODO: copy paste :(
   for (const auto & slot : m_toSendDl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+
+      uint32_t k0delay = modulo (slot - currentSlotN, m_tddPattern.size ());
+      if (k0delay < m_phyMacConfig->GetN0Delay ())
+        {
+          k0delay += m_tddPattern.size ();
+        }
+      NS_ASSERT_MSG (k0delay >= m_phyMacConfig->GetN0Delay () && k0delay < 15,
+                     " k0delay can only get values between 0 and 15 " << k0delay);
+
+      targetSlot.Add (k0delay,
                       m_phyMacConfig->GetSlotsPerSubframe (),
                       m_phyMacConfig->GetSubframesPerFrame ());
-
-      uint32_t delay = modulo (slot - currentSlotN, m_tddPattern.size ());
 
       if (targetSlot == currentSlot)
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for the same slot");
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, m_currSlotAllocInfo,
-                                                     DciInfoElementTdma::DL, delay));
+          ctrlMsgs.merge (RetrieveDciFromAllocation (m_currSlotAllocInfo,
+                                                     DciInfoElementTdma::DL, k0delay, k1delay));
         }
       else if (SlotAllocInfoExists (targetSlot))
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send DL DCI for " <<
                          targetSlot);
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, PeekSlotAllocInfo(targetSlot),
-                                                     DciInfoElementTdma::DL, delay));
+          ctrlMsgs.merge (RetrieveDciFromAllocation (PeekSlotAllocInfo(targetSlot),
+                                                     DciInfoElementTdma::DL, k0delay, k1delay));
         }
       else
         {
@@ -824,26 +883,33 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
   for (const auto & slot : m_toSendUl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+
+      uint32_t k2delay = modulo (slot - currentSlotN, m_tddPattern.size ());
+      if (k2delay < m_phyMacConfig->GetN2Delay ())
+        {
+          k2delay += m_tddPattern.size ();
+        }
+      NS_ASSERT_MSG (k2delay >= m_phyMacConfig->GetN2Delay () && k2delay < 15,
+                     " k2delay can only get values between 0 and 15 " << k2delay);
+
+      targetSlot.Add (k2delay,
                       m_phyMacConfig->GetSlotsPerSubframe (),
                       m_phyMacConfig->GetSubframesPerFrame ());
-
-      uint32_t delay = modulo (slot - currentSlotN, m_tddPattern.size ());
 
       if (targetSlot == currentSlot)
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for the same slot");
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, m_currSlotAllocInfo,
-                                                     DciInfoElementTdma::UL, delay));
+          ctrlMsgs.merge (RetrieveDciFromAllocation (m_currSlotAllocInfo,
+                                                     DciInfoElementTdma::UL, k2delay, k1delay));
         }
       else if (SlotAllocInfoExists (targetSlot))
         {
           NS_LOG_INFO (" in slot " << currentSlot << " send UL DCI for " <<
                          targetSlot);
 
-          ctrlMsgs.merge (RetrieveDciFromAllocation (targetSlot, PeekSlotAllocInfo(targetSlot),
-                                                     DciInfoElementTdma::UL, delay));
+          ctrlMsgs.merge (RetrieveDciFromAllocation (PeekSlotAllocInfo(targetSlot),
+                                                     DciInfoElementTdma::UL, k2delay, k1delay));
         }
       else
         {
@@ -890,8 +956,9 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
 
   // create control messages to be transmitted in DL-Control period
+
+  EnqueueCtrlMsgNow (RetrieveMsgsFromDCIs (currentSlot));
   std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = PopCurrentSlotCtrlMsgs ();
-  ctrlMsgs.merge (RetrieveMsgsFromDCIs (currentSlot));
 
   if (ctrlMsgs.size () > 0)
     {

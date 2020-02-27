@@ -1005,6 +1005,10 @@ MmWaveHelper::EnableUePhyCtrlMsgsTraces (void)
                    MakeBoundCallback (&MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback, m_phyStats));
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/UePhyTxedCtrlMsgsTrace",
                    MakeBoundCallback (&MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback, m_phyStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/UePhyRxedDlDciTrace",
+                   MakeBoundCallback (&MmWavePhyRxTrace::RxedUePhyDlDciCallback, m_phyStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/UePhyTxedHarqFeedbackTrace",
+                   MakeBoundCallback (&MmWavePhyRxTrace::TxedUePhyHarqFeedbackCallback, m_phyStats));
 }
 
 void

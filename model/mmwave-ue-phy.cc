@@ -144,6 +144,14 @@ MmWaveUePhy::GetTypeId (void)
                      "Ue PHY Control Messages Traces.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_phyTxedCtrlMsgsTrace),
                      "ns3::MmWavePhyRxTrace::TxedUePhyCtrlMsgsTracedCallback")
+    .AddTraceSource ("UePhyRxedDlDciTrace",
+                     "Ue PHY DL DCI Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyUeRxedDlDciTrace),
+                     "ns3::MmWavePhyRxTrace::RxedUePhyDlDciTracedCallback")
+    .AddTraceSource ("UePhyTxedHarqFeedbackTrace",
+                     "Ue PHY DL HARQ Feedback Traces.",
+                     MakeTraceSourceAccessor (&MmWaveUePhy::m_phyUeTxedHarqFeedbackTrace),
+                     "ns3::MmWavePhyRxTrace::TxedUePhyHarqFeedbackTracedCallback")
       ;
   return tid;
 }
@@ -216,6 +224,13 @@ MmWaveUePhy::DoSendControlMessage (Ptr<MmWaveControlMessage> msg)
 {
   NS_LOG_FUNCTION (this << msg);
   EnqueueCtrlMessage (msg);
+}
+
+void
+MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
+{
+  NS_LOG_FUNCTION (this << msg);
+  EnqueueCtrlMsgNow (msg);
 }
 
 void
@@ -327,6 +342,18 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>>
                             " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
               /* BIG ASSUMPTION: We assume that K0 is always 0 */
+
+              auto it = m_harqIdToK1Map.find (dciInfoElem->m_harqProcess);
+              if (it!=m_harqIdToK1Map.end ())
+               {
+                 m_harqIdToK1Map.erase (m_harqIdToK1Map.find (dciInfoElem->m_harqProcess));
+               }
+
+              m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
+
+              m_phyUeRxedDlDciTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                      m_rnti, m_phyMacConfig->GetCcId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
+
               InsertAllocation (dciInfoElem);
             }
           else if (dciInfoElem->m_format == DciInfoElementTdma::UL
@@ -646,8 +673,22 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   for (auto ctrlIt = ctrlMsg.begin (); ctrlIt != ctrlMsg.end (); ++ctrlIt)
     {
       Ptr<MmWaveControlMessage> msg = *ctrlIt;
-      m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
+      m_phyTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
                               dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
+
+      if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
+        {
+          Ptr<MmWaveDlHarqFeedbackMessage> harqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
+          uint8_t harqId = harqMsg->GetDlHarqFeedback ().m_harqProcessId;
+
+          auto it = m_harqIdToK1Map.find (harqId);
+          if (it!=m_harqIdToK1Map.end ())
+            {
+              m_phyUeTxedHarqFeedbackTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                                      m_rnti, m_phyMacConfig->GetCcId (),
+                                      static_cast<uint32_t> (harqId), it->second);
+            }
+        }
     }
 
   std::vector<int> channelRbs;
@@ -903,8 +944,15 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
   msg->SetDlHarqFeedback (m);
 
-  //we apply the K1Delay, but we have to take into account the GetL1L2CtrlLatency due to the DoSendControlMessage
-  Simulator::Schedule (MilliSeconds (m_phyMacConfig->GetK1Delay () - m_phyMacConfig->GetL1L2CtrlLatency ()), &MmWaveUePhy::DoSendControlMessage, this, msg);
+  auto k1It = m_harqIdToK1Map.find (m.m_harqProcessId);
+
+  NS_LOG_DEBUG ("ReceiveLteDlHarqFeedback" << " Harq Process " <<
+                static_cast<uint32_t> (k1It->first) <<
+                " K1: " << k1It->second << " Frame " <<
+                SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+
+  Simulator::Schedule (((m_phyMacConfig->GetSlotPeriod () * k1It->second) - (Simulator::Now () - m_lastSlotStart)),
+                       &MmWaveUePhy::DoSendControlMessageNow, this, msg);
 }
 
 void

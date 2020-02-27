@@ -183,7 +183,7 @@ class MmWaveSchedGeneralTestCase;
  * \section Scheduling UL
  * It is worth explaining that the
  * schedulers working on slot x for DL, are working on slot \f$x + y\f$
- * (where y is the value of PhyMacCommon::GetK2Delay -previously:GetULSchedDelay-).
+ * (where y is the value of PhyMacCommon::GetN2Delay -previously:GetULSchedDelay-).
  * This delay is implemented to simulate the fact that the UE receives the DCI at
  * time \f$t\f$, and then has some time (the delay) to prepare its UL data.
  * So, if the scheduler assigns some symbols for uplink data in slot \f$x + y\f$,

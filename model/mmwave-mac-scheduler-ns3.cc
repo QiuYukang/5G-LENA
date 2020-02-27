@@ -114,7 +114,7 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
-  for (uint16_t i = 0; i < m_phyMacConfig->GetK2Delay (); ++i)
+  for (uint16_t i = 0; i < m_phyMacConfig->GetN2Delay (); ++i)
     {
       NS_LOG_INFO ("Creating dummy UL allocation for slot " << first);
       m_ulAllocationMap.emplace (first.Encode (), SlotElem (0));
@@ -1483,13 +1483,13 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
  * decides how the resources should be divided between UEs. An important
  * thing to remember is that the slot being considered for DL decision can be
  * different for the slot for UL decision. This offset is due to the parameter
- * K2Delay (previously: UlSchedDelay) of the class MmWavePhyMacCommon.
+ * N2Delay (previously: UlSchedDelay) of the class MmWavePhyMacCommon.
  *
  * Another parameter to consider is the L1L2CtrlLatency (present in
  * MmWavePhyMacCommon as well) that defines the delay (in slots number) between
  * the slot that is currently "in the air" and the slot which is being prepared
  * for DL.
- * The default value for both L1L2CtrlLatency and K2Delay (previously: UlSchedDelay)
+ * The default value for both L1L2CtrlLatency and N2Delay (previously: UlSchedDelay)
  * is 2, so it means that while the slot number (frame, subframe, slot) is in the air,
  * the scheduler in this function will take decisions for DL in slot number
  * (frame, subframe, slot) + 2 and for UL in slot number (frame, subframe, slot) + 4.
@@ -1592,13 +1592,13 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
  * decides how the resources should be divided between UEs. An important
  * thing to remember is that the slot being considered for DL decision can be
  * different for the slot for UL decision. This offset is due to the parameter
- * K2Delay (previously: UlSchedDelay) of the class MmWavePhyMacCommon.
+ * N2Delay (previously: UlSchedDelay) of the class MmWavePhyMacCommon.
  *
  * Another parameter to consider is the L1L2CtrlLatency (present in
  * MmWavePhyMacCommon as well) that defines the delay (in slots number) between
  * the slot that is currently "in the air" and the slot which is being prepared
  * for DL.
- * The default value for both L1L2CtrlLatency and K2Delay (previously: UlSchedDelay)
+ * The default value for both L1L2CtrlLatency and N2Delay (previously: UlSchedDelay)
  * is 2, so it means that while the slot number (frame, subframe, slot) is in the air,
  * the scheduler in this function will take decisions for DL in slot number
  * (frame, subframe, slot) + 2 and for UL in slot number (frame, subframe, slot) + 4.

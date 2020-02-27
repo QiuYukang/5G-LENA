@@ -92,10 +92,22 @@ MmWaveTdmaDciMessage::SetKDelay (uint32_t delay)
   m_k = delay;
 }
 
+void
+MmWaveTdmaDciMessage::SetK1Delay (uint32_t delay)
+{
+  m_k1 = delay;
+}
+
 uint32_t
 MmWaveTdmaDciMessage::GetKDelay (void) const
 {
   return m_k;
+}
+
+uint32_t
+MmWaveTdmaDciMessage::GetK1Delay (void) const
+{
+  return m_k1;
 }
 
 MmWaveDlCqiMessage::MmWaveDlCqiMessage (void)

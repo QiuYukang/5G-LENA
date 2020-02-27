@@ -27,6 +27,7 @@
  *
  * The test considers the function MmWaveEnbPhy::GenerateStructuresFromPattern
  * and checks that the output of that function is equal to the one pre-defined.
+ * Test includes also the Harq feedback indication
  */
 namespace ns3 {
 
@@ -48,6 +49,15 @@ public:
     std::map<uint32_t, std::vector<uint32_t> > m_generateUl;
   };
 
+
+  /**
+   * \brief The harqResult in a single struct
+   */
+  struct HarqResult
+  {
+    std::map<uint32_t, uint32_t> m_dlHarq;
+  };
+
   /**
    * \brief Create LtePatternTestCase
    * \param name Name of the test
@@ -63,6 +73,15 @@ public:
    */
   void CheckMap (const std::map<uint32_t, std::vector<uint32_t> > &a,
                  const std::map<uint32_t, std::vector<uint32_t> > &b);
+
+  /**
+   * \brief Check if two maps of the Harq indication are equal
+   * \param a first map
+   * \param b second map
+   */
+  void CheckHarqMap (const std::map<uint32_t, uint32_t> &a,
+                 const std::map<uint32_t, uint32_t> &b);
+
   /**
    * \brief Check if two vectors are equal
    * \param a first vector
@@ -78,11 +97,25 @@ private:
    * \param result The theoretical result
    */
   void TestPattern (const std::vector<LteNrTddSlotType> &pattern, const Result &result);
+
+  /**
+   * \brief Test the output of PHY for the Harq feedback indication, and compares it to the input
+   * \param pattern The pattern to test
+   * \param harqResult The theoretical Harq feedback result
+   */
+  void TestHarq (const std::vector<LteNrTddSlotType> &pattern, const HarqResult &harqResult);
+
   /**
    * \brief Print the map
    * \param str the map to print
    */
   void Print (const std::map<uint32_t, std::vector<uint32_t> > &str);
+
+  /**
+   * \brief Print the Harq feedback map
+   * \param str the map to print
+   */
+  void PrintHarq (const std::map<uint32_t, uint32_t> &str);
 
   bool m_verbose = false; //!< Print the generated structure
 };
@@ -133,6 +166,18 @@ LtePatternTestCase::DoRun()
                } };
   TestPattern (one, a);
 
+  HarqResult ha = {
+    {
+       {0, 7},
+       {1, 7},
+       {4, 8},
+       {5, 2},
+       {6, 2},
+       {9, 3}
+    }
+  };
+  TestHarq(one, ha);
+
 
   Result b = {
     {
@@ -178,6 +223,20 @@ LtePatternTestCase::DoRun()
 
   TestPattern (two, b);
 
+  HarqResult hb = {
+    {
+      {0, 7},
+      {1, 7},
+      {3, 7},
+      {4, 2},
+      {5, 2},
+      {6, 2},
+      {8, 2},
+      {9, 7}
+    }
+  };
+  TestHarq(two, hb);
+
 
   Result c = {
     {
@@ -206,7 +265,6 @@ LtePatternTestCase::DoRun()
       { 8, {2, } },
       { 9, {3, 4, } },
     }
-
   };
   auto three = {LteNrTddSlotType::DL,
                 LteNrTddSlotType::S,
@@ -221,6 +279,19 @@ LtePatternTestCase::DoRun()
                };
 
   TestPattern (three, c);
+
+  HarqResult hc = {
+    {
+      {0, 4},
+      {1, 2},
+      {5, 2},
+      {6, 2},
+      {7, 2},
+      {8, 2},
+      {9, 3}
+    }
+  };
+  TestHarq(three, hc);
 
 
   Result d = {
@@ -267,6 +338,19 @@ LtePatternTestCase::DoRun()
 
   TestPattern (four, d);
 
+  HarqResult hd = {
+    {
+      {0, 2},
+      {1, 2},
+      {4, 2},
+      {5, 2},
+      {6, 2},
+      {7, 2},
+      {8, 2},
+      {9, 3}
+    }
+  };
+  TestHarq(four, hd);
 
 
   Result e = {
@@ -313,6 +397,21 @@ LtePatternTestCase::DoRun()
 
   TestPattern (five, e);
 
+  HarqResult he = {
+    {
+      {0, 2},
+      {1, 2},
+      {3, 2},
+      {4, 2},
+      {5, 2},
+      {6, 2},
+      {7, 2},
+      {8, 2},
+      {9, 2}
+    }
+  };
+  TestHarq(five, he);
+
 
   Result f = {
     {
@@ -355,6 +454,17 @@ LtePatternTestCase::DoRun()
              };
   TestPattern(six, f);
 
+  HarqResult hf = {
+    {
+      {0, 4},
+      {1, 7},
+      {5, 2},
+      {6, 2},
+      {9, 3}
+    }
+  };
+  TestHarq(six, hf);
+
 
   Result g = {
     {
@@ -395,6 +505,17 @@ LtePatternTestCase::DoRun()
               };
 
   TestPattern (zero, g);
+
+  HarqResult hg = {
+    {
+      {0, 4},
+      {1, 7},
+      {5, 9},
+      {6, 2}
+    }
+  };
+  TestHarq(zero, hg);
+
 
   Result h = { {
                  { 0, {0, } },
@@ -459,6 +580,22 @@ LtePatternTestCase::DoRun()
             };
 
   TestPattern (nr, h);
+
+  HarqResult hh = {
+    {
+      {0, 4},
+      {1, 5},
+      {2, 6},
+      {3, 7},
+      {4, 8},
+      {5, 9},
+      {6, 0},
+      {7, 1},
+      {8, 2},
+      {9, 3}
+    }
+  };
+  TestHarq(nr, hh);
 }
 
 void
@@ -474,6 +611,19 @@ LtePatternTestCase::Print(const std::map<uint32_t, std::vector<uint32_t> > &str)
         }
       std::cout << "} }," << std::endl;
     }
+  std::cout << "}" << std::endl;
+}
+
+void
+LtePatternTestCase::PrintHarq (const std::map<uint32_t, uint32_t> &str)
+{
+  std::cout << "{" << std::endl;
+    for (const auto & v : str)
+      {
+        std::cout << " { " << v.first << ", ";
+        std::cout << v.second;
+        std::cout << "}" << std::endl;
+      }
   std::cout << "}" << std::endl;
 }
 
@@ -502,6 +652,19 @@ LtePatternTestCase::CheckMap (const std::map<uint32_t, std::vector<uint32_t> > &
 }
 
 void
+LtePatternTestCase::CheckHarqMap (const std::map<uint32_t, uint32_t> &a,
+                                  const std::map<uint32_t, uint32_t> &b)
+{
+  NS_TEST_ASSERT_MSG_EQ (a.size (), b.size (), "Two HARQ maps have different length");
+
+  for (auto ita = a.begin (), itb = b.begin (); ita != b.end (), itb != b.end(); ++ita, ++itb)
+    {
+       NS_TEST_ASSERT_MSG_EQ (ita->first, itb->first, "Values in HARQ vector differ");
+    }
+}
+
+
+void
 LtePatternTestCase::TestPattern (const std::vector<LteNrTddSlotType> &pattern,
                                  const Result &result)
 {
@@ -509,8 +672,9 @@ LtePatternTestCase::TestPattern (const std::vector<LteNrTddSlotType> &pattern,
   std::map<uint32_t, std::vector<uint32_t> > toSendUl;
   std::map<uint32_t, std::vector<uint32_t> > generateDl;
   std::map<uint32_t, std::vector<uint32_t> > generateUl;
+  std::map<uint32_t, uint32_t> dlHarqFb;
 
-  MmWaveEnbPhy::GenerateStructuresFromPattern (pattern, &toSendDl, &toSendUl, &generateDl, &generateUl, 0, 2, 2);
+  MmWaveEnbPhy::GenerateStructuresFromPattern (pattern, &toSendDl, &toSendUl, &generateDl, &generateUl, &dlHarqFb, 0, 2, 4, 2);
 
   if (m_verbose)
     {
@@ -525,6 +689,29 @@ LtePatternTestCase::TestPattern (const std::vector<LteNrTddSlotType> &pattern,
   CheckMap (generateDl, result.m_generateDl);
   CheckMap (generateUl, result.m_generateUl);
 }
+
+void
+LtePatternTestCase::TestHarq (const std::vector<LteNrTddSlotType> &pattern,
+                                 const HarqResult &harqResult)
+{
+  {
+    std::map<uint32_t, std::vector<uint32_t> > toSendDl;
+    std::map<uint32_t, std::vector<uint32_t> > toSendUl;
+    std::map<uint32_t, std::vector<uint32_t> > generateDl;
+    std::map<uint32_t, std::vector<uint32_t> > generateUl;
+    std::map<uint32_t, uint32_t> dlHarqFb;
+
+    MmWaveEnbPhy::GenerateStructuresFromPattern (pattern, &toSendDl, &toSendUl, &generateDl, &generateUl, &dlHarqFb, 0, 2, 4, 2);
+
+    if (m_verbose)
+      {
+        PrintHarq (dlHarqFb);
+      }
+
+    CheckHarqMap (dlHarqFb, harqResult.m_dlHarq);
+  }
+}
+
 
 /**
  * \brief The NrLtePatternTestSuite class

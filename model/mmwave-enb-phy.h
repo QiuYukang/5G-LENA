@@ -344,8 +344,10 @@ private:
    * \param toSendUl The structure toSendUl to fill
    * \param generateDl The structure generateDl to fill
    * \param generateUl The structure generateUl to fill
+   * \param dlHarqfbPosition The structure dlHarqfbPosition to fill
    * \param k0 K0 parameter
    * \param k2 K2 parameter
+   * \param n2 N2 parameter
    * \param l1l2CtrlLatency L1L2CtrlLatency of the system
    */
   static void GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType> &pattern,
@@ -353,7 +355,8 @@ private:
                                              std::map<uint32_t, std::vector<uint32_t> > *toSendUl,
                                              std::map<uint32_t, std::vector<uint32_t> > *generateDl,
                                              std::map<uint32_t, std::vector<uint32_t> > *generateUl,
-                                             uint32_t k0, uint32_t k2, uint32_t l1l2CtrlLatency);
+                                             std::map<uint32_t, uint32_t> *dlHarqfbPosition,
+                                             uint32_t k0, uint32_t k2, uint32_t n2, uint32_t l1l2CtrlLatency);
 
   /**
    * \brief Call MAC for retrieve the slot indication. Currently calls UL and DL.
@@ -363,18 +366,17 @@ private:
 
   /**
    * \brief Retrieve a DCI list for the allocation passed as parameter
-   * \param targetSlot The target slot number (will be stored inside the CTRL messages)
    * \param alloc The allocation we are searching in
    * \param format The format of the DCI (UL or DL)
+   * \param kDelay The K0 or K2 delay
    * \return A list of control messages that can be sent
    *
    * PS: This function ignores CTRL allocations.
    */
   std::list <Ptr<MmWaveControlMessage>>
-  RetrieveDciFromAllocation (const SfnSf &targetSlot,
-                             const SlotAllocInfo &alloc,
+  RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                              const DciInfoElementTdma::DciFormat &format,
-                             uint32_t kDelay);
+                             uint32_t kDelay, uint32_t k1Delay);
 
   /**
    * \brief Insert a fake DL allocation in the allocation list
@@ -437,6 +439,8 @@ private:
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_generateUl; //!< Map that indicates, for each slot, what UL DCI we have to generate
   std::map<uint32_t, std::vector<uint32_t>> m_generateDl; //!< Map that indicates, for each slot, what DL DCI we have to generate
+
+  std::map<uint32_t, uint32_t> m_dlHarqfbPosition; //!< Map that indicates, for each DL slot, where the UE has to send the Harq Feedback
 
   /**
    * \brief Status of the channel for the PHY

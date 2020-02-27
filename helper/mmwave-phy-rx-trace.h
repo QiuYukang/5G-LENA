@@ -113,6 +113,35 @@ public:
   static void TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
+  /**
+   *  Trace sink for Ue Phy Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] component carrier Id
+   * \param [in] harq Id
+   * \param [in] k1 delay
+   */
+  static void RxedUePhyDlDciCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                         uint16_t rnti, uint8_t ccId, uint8_t harqId, uint32_t k1Delayg);
+  /**
+   *  Trace sink for Ue Phy Received Control Messages.
+   *
+   * \param [in] frame Frame number.
+   * \param [in] subframe Subframe number.
+   * \param [in] slot number.
+   * \param [in] VarTti
+   * \param [in] rnti
+   * \param [in] component carrier Id
+   * \param [in] harq Id
+   * \param [in] k1 delay
+   */
+  static void TxedUePhyHarqFeedbackCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
+                                         uint16_t rnti, uint8_t ccId, uint8_t harqId, uint32_t k1Delayg);
+
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);
   void ReportPowerTrace (uint64_t imsi, SpectrumValue& power);
@@ -132,6 +161,8 @@ private:
   static std::string m_rxedUePhyCtrlMsgsFileName;
   static std::ofstream m_txedUePhyCtrlMsgsFile;
   static std::string m_txedUePhyCtrlMsgsFileName;
+  static std::ofstream m_rxedUePhyDlDciFile;
+  static std::string m_rxedUePhyDlDciFileName;
 };
 
 } /* namespace ns3 */

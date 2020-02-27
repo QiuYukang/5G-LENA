@@ -58,7 +58,21 @@ respectively to avoid confusion. mmwave-helper callbacks are updated accordingly
 * Ue control messages are only scheduled in Ul Ctrl (previously could be send
 along with Ul Data).
 
+* MmWaveUePhy includes now traces for the DL DCI and the corresponding DL HARQ Feedback
+
 ### Changed behavior:
+
+* K0, K1, K2 Delays are removed from the phy-mac common, instead they are
+implemented as parameters of the DCI.
+* In the DCI message, the gNb reports the K{0,1,2} delay instead of the
+sfn number.
+* L1L2DataLatency is removed (defined in phy-mac common).
+* N0, N1, N2 processing delays are defined in phy-mac common.
+* The UlSchedDelay is replaced by N2Delay.
+* UE receives DL data according to K0 and sends UL data according to K2
+(passed from the gNb in the DL and UL DCI, respectively).
+* UE schedules the DL HARQ Feedback according to K1 delay (passed from the
+gNb to the UE in the DL DCI).
 
 ---
 
@@ -73,8 +87,6 @@ along with Ul Data).
 
 ### Changed behavior:
 
-* In the DCI message,  the gNb reports the K{0,2} delay instead of the
-sfn number.
 
 ---
 
@@ -202,10 +214,6 @@ be adjusted in a flexible manner. In particular, when a control message is passe
 from PHY to MAC or from MAC to PHY, the user can adjust the delay according to each
 release specifications. As default we apply a delay of 1 ms, exept of some cases
 (e.g. RAR msg), where the delay is set to 2 ms.
-WIP is focused on defining K0, K1, K2 and K3 delays according to TS 38.213.
-The UlSchedDelay is replaced by K2Delay.
-The UE PHY DL HARQ feedback is scheduled based to: (K1Delay - L1L2CtrlLatency) so that
-we take into account the latency by the EnqueueCtrlMessage ().
 
 ---
 

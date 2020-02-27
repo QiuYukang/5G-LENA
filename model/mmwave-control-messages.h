@@ -116,21 +116,39 @@ public:
   std::shared_ptr<DciInfoElementTdma> GetDciInfoElement (void);
 
   /**
-   * \brief Set the delay between DL/UL DCI reception
-   * \and subframe to which it applies for
-   * \reception/transmission of Data (k0/k2)
+   * \brief Set the delay (in slots) between DL/UL DCI
+   * reception and subframe to which it applies for
+   * reception/transmission of Data (k0/k2)
    */
   void SetKDelay (uint32_t delay);
   /**
-   * \brief Get the delay between DL/UL DCI reception
-   * \and subframe to which it applies for
-   * \reception/transmission of Data (k0/k2)
+   * \brief Get the delay (in slots) between DL/UL DCI
+   * reception and subframe to which it applies for
+   * reception/transmission of Data (k0/k2)
    * \return k delay
    */
   uint32_t GetKDelay (void) const;
 
+  /**
+   * \brief Set the delay (in slots) between DL Data
+   * reception and subframe to which it applies for
+   * Harq feedback
+   *
+   * Note that K1 delay is also passed with the UL DCI
+   * however the UE ignors it (applies only for DL DCI)
+   */
+  void SetK1Delay (uint32_t delay);
+  /**
+   * \brief Get the delay (in slots) between DL Data
+   * reception and subframe to which it applies for
+   * Harq feedback
+   * \return k1 delay
+   */
+  uint32_t GetK1Delay (void) const;
+
 private:
-  uint32_t m_k;         //!< delay between DL/UL DCI reception and subframe to which it applies for reception/transmission of Data (k0/k2)
+  uint32_t m_k;         //!< delay (in slots) between DL/UL DCI reception and subframe to which it applies for reception/transmission of Data (k0/k2)
+  uint32_t m_k1;        //!< delay (in slots) between DL Data reception and subframe to which it applies for Harq feedback (k1)
   //bool	m_ulGrant;	// is ul grant
 //	SlotAllocInfo m_rscAllocationMap;
   std::shared_ptr<DciInfoElementTdma> m_dciInfoElement;
