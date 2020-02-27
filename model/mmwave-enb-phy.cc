@@ -214,11 +214,14 @@ static uint32_t modulo (int n, uint32_t m)
  * \param n1 The N1 parameter
  * \return The slot position in which the HARQ Feedback should be sent
  *
- * Please note that although the calculation is based on Table 10.1-1 of TS 36.213,
- * some configurations are simplified in order to avoid having a table from where we
- * take the k1 values. In particular, for configurations 3, 4 and 6 (starting form 0),
- * the specification splits the HARQ feedbacks among all UL subframes in an equal (as
- * much as possible) manner. This tactic is ommitted in this implementation.
+ * The resulted slot is then used for the calculation of K1, that will be
+ * communicated to the UE through the DL DCI.
+ * Please note that for the LTE TDD case, although the calculation follows the
+ * logic of Table 10.1-1 of TS 36.213, some configurations are simplified in order
+ * to avoid having a table from where we take the K1 values. In particular, for
+ * configurations 3, 4 and 6 (starting form 0), the specification splits the
+ * HARQ feedbacks among all UL subframes in an equal (as much as possible) manner.
+ * This tactic is ommitted in this implementation.
  */
 static uint32_t
 ReturnHarqSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t n1)

@@ -702,20 +702,20 @@ public:
   uint32_t GetNumReferenceSymbols (void);
 
   /**
-   * \brief: Get the minimum processing delay to decode
-   *  DL DCI and decode DL Data
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL DCI and decode DL Data
    */
   uint32_t GetN0Delay (void) const;
 
   /**
-   * \brief: Get the minimum processing delay to
-   *  decode DL Data and send Harq feedback
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL Data and send Harq feedback
    */
   uint32_t GetN1Delay (void) const;
 
   /**
-   * \brief: Get the minimum processing delay to decode
-   *  UL DCI and prepare UL data
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode UL DCI and prepare UL data
    */
   uint32_t GetN2Delay (void) const;
 
@@ -777,20 +777,26 @@ public:
   void SetNumReferenceSymbols (uint32_t refSym);
 
   /**
-   * \brief: Set the minimum processing delay to
-   *  decode DL DCI and decode DL data
+   * \brief: Set the minimum processing delay (in slots)
+   * to decode DL DCI and decode DL data
    */
   void SetN0Delay (uint32_t delay);
 
   /**
-   * \brief: Set the minimum processing delay to
-   *  decode DL Data and send Harq feedback
+   * \brief: Set the minimum processing delay (in slots)
+   * to decode DL Data and send Harq feedback
+   *
+   * Please note that in the current implementation N1
+   * must be equal or larger than 1 (N1 >= 1)
    */
   void SetN1Delay (uint32_t delay);
 
   /**
-   * \brief: Set the minimum processing delay to
-   *  decode UL DCI and prepare UL data
+   * \brief: Set the minimum processing delay (in slots)
+   * to decode UL DCI and prepare UL data
+   *
+   * Please note that in the current implementation N2
+   * must be equal or larger than 1 (N2 >= 1)
    */
   void SetN2Delay (uint32_t delay);
 
@@ -853,9 +859,9 @@ private:
   double m_bandwidth;
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
-  uint32_t m_n0Delay;           //!< minimum processing delay needed to decode DL DCI and decode DL data (UE side)
-  uint32_t m_n1Delay;           //!< minimum processing delay from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
-  uint32_t m_n2Delay;           //!< minimum processing delay needed to decode UL DCI and prepare UL data (UE side)
+  uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+  uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
   uint32_t m_maxTbSizeBytes;
