@@ -20,14 +20,13 @@
 #ifndef SRC_NR_MODEL_BEAM_MANAGER_H_
 #define SRC_NR_MODEL_BEAM_MANAGER_H_
 
-
 #include "beam-id.h"
 #include "ideal-beamforming-algorithm.h"
 #include "ns3/event-id.h"
 #include <ns3/three-gpp-antenna-array-model.h>
+#include <ns3/nstime.h>
 
 namespace ns3 {
-
 
 /**
  * \ingroup beam-management

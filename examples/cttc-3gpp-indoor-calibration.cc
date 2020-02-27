@@ -42,6 +42,7 @@
 #include "ns3/basic-data-calculators.h"
 #include "ns3/mmwave-spectrum-phy.h"
 #include "ns3/mmwave-ue-net-device.h"
+#include <ns3/mmwave-ue-phy.h>
 
 using namespace ns3;
 

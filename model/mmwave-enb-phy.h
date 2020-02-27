@@ -137,7 +137,7 @@ public:
    * \param ueDevice Device
    * \return
    */
-  bool RegisterUe (uint64_t imsi, const Ptr<NetDevice> &ueDevice);
+  bool RegisterUe (uint64_t imsi, const Ptr<MmWaveUeNetDevice> &ueDevice);
 
   /**
    * \brief Receive a PHY data packet
@@ -384,7 +384,7 @@ private:
 
   std::set <uint64_t> m_ueAttached; //!< Set of attached UE (by IMSI)
   std::set <uint16_t> m_ueAttachedRnti; //!< Set of attached UE (by RNTI)
-  std::vector< Ptr<NetDevice> > m_deviceMap; //!< Vector of UE devices
+  std::vector< Ptr<MmWaveUeNetDevice> > m_deviceMap; //!< Vector of UE devices
 
   LteRrcSap::SystemInformationBlockType1 m_sib1; //!< SIB1 message
   Time m_lastSlotStart; //!< Time at which the last slot started

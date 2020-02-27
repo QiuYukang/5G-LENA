@@ -786,25 +786,25 @@ void
 MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
                            const Ptr<NetDevice> &gnbDevice)
 {
-  auto enbNetDev = gnbDevice->GetObject<MmWaveEnbNetDevice> ();
-  auto ueNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
+  Ptr<MmWaveEnbNetDevice> enbNetDev = gnbDevice->GetObject<MmWaveEnbNetDevice> ();
+  Ptr<MmWaveUeNetDevice> ueNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
 
   NS_ABORT_IF (enbNetDev == nullptr || ueNetDev == nullptr);
 
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
       Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
-      (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->RegisterUe (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
-      (DynamicCast<MmWaveUePhy>(ueNetDev->GetPhy (i)))->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
-      Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
-      ueNas->Connect (gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (i),
-                      gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn (i));
+      enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
+      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
+      Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
+      ueNas->Connect (enbNetDev->GetCellId (i),
+                      enbNetDev->GetEarfcn (i));
     }
 
   if (m_epcHelper != 0)
     {
       // activate default EPS bearer
-      m_epcHelper->ActivateEpsBearer (ueDevice, ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+      m_epcHelper->ActivateEpsBearer (ueDevice, ueNetDev->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
   // tricks needed for the simplified LTE-only simulations

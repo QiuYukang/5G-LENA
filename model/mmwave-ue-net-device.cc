@@ -177,7 +177,7 @@ MmWaveUeNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t pro
   return m_nas->Send (packet, protocolNumber);
 }
 
-Ptr<MmWavePhy>
+Ptr<MmWaveUePhy>
 MmWaveUeNetDevice::GetPhy (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);

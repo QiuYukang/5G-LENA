@@ -20,19 +20,16 @@
 #ifndef SRC_NR_MODEL_IDEAL_BEAMFORMING_ALGORITHM_H_
 #define SRC_NR_MODEL_IDEAL_BEAMFORMING_ALGORITHM_H_
 
-#include <ns3/ptr.h>
-#include <ns3/net-device.h>
-#include <ns3/mobility-model.h>
-#include <ns3/log.h>
-#include <ns3/node.h>
-#include <ns3/three-gpp-channel.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/object.h>
 
 namespace ns3 {
 
 class BeamManager;
 class SpectrumModel;
 class SpectrumValue;
+class MmWaveEnbNetDevice;
+class MmWaveUeNetDevice;
+class NetDevice;
 
 class IdealBeamformingAlgorithm: public Object
 {
@@ -48,23 +45,23 @@ public:
   /**
    * \brief constructor
    */
-  IdealBeamformingAlgorithm () {}
+  IdealBeamformingAlgorithm ();
 
   /**
    * \brief destructor
    */
-  virtual ~IdealBeamformingAlgorithm () {}
+  virtual ~IdealBeamformingAlgorithm ();
 
   /**
    * \brief Set owner gNB device of this ideal beamforming algorithm
    */
-  void SetOwner (Ptr<NetDevice>, uint8_t ccId);
+  void SetOwner (Ptr<MmWaveEnbNetDevice> owner, uint8_t ccId);
 
   /**
    * \brief Add UE device in the list of UE devices for which will be performed
    * ideal beamforming method
    */
-  void AddUeDevice (Ptr<NetDevice> ueDevice);
+  void AddUeDevice (Ptr<MmWaveUeNetDevice> ueDevice);
 
   virtual void Run () const;
 
@@ -72,15 +69,15 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<NetDevice> gNbDev, Ptr<NetDevice> ueDev) const = 0;
+  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const = 0;
 
 
-  std::vector< Ptr<NetDevice> > m_ueDeviceMap;  // list of UE devices for which genie beamforming should be performed
+  std::vector< Ptr<MmWaveUeNetDevice> > m_ueDeviceMap;  // list of UE devices for which genie beamforming should be performed
 
 protected:
 
-  Ptr<NetDevice> m_netDevice;
-  uint8_t m_ccId;
+  Ptr<MmWaveEnbNetDevice> m_netDevice;
+  uint8_t m_ccId {0};
 
 };
 
@@ -107,7 +104,7 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<NetDevice> gNbDev, Ptr<NetDevice> ueDev) const override;
+  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const override;
 
   void SetSector (uint16_t sector, double elevation,  Ptr<BeamManager> beamManager) const;
 
@@ -128,11 +125,12 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<NetDevice> gNbDev, Ptr<NetDevice> ueDev) const override;
+  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const override;
 };
 
 
-class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm {
+class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm
+{
 
 public:
 
@@ -145,7 +143,7 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<NetDevice> gNbDev, Ptr<NetDevice> ueDev) const override;
+  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const override;
 };
 
 

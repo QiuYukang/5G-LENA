@@ -37,6 +37,7 @@
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
+#include "mmwave-enb-net-device.h"
 #include "mmwave-radio-bearer-tag.h"
 #include "nr-ch-access-manager.h"
 
@@ -44,6 +45,7 @@
 #include <ns3/node.h>
 #include <ns3/pointer.h>
 #include <ns3/double.h>
+#include <ns3/boolean.h>
 #include "beam-manager.h"
 
 namespace ns3 {
@@ -170,7 +172,7 @@ MmWaveEnbPhy::DoInitialize (void)
       objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
 
       Ptr<IdealBeamformingAlgorithm> idealAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
-      idealAlgorithm->SetOwner (m_netDevice, m_phyMacConfig->GetCcId());
+      idealAlgorithm->SetOwner (DynamicCast<MmWaveEnbNetDevice>(m_netDevice), m_phyMacConfig->GetCcId());
       m_beamManager->SetIdeamBeamformingAlgorithm (idealAlgorithm);
     }
 
@@ -1251,7 +1253,7 @@ MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
 }
 
 bool
-MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<NetDevice> &ueDevice)
+MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<MmWaveUeNetDevice> &ueDevice)
 {
   NS_LOG_FUNCTION (this << imsi);
   std::set <uint64_t>::iterator it;
