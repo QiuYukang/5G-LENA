@@ -359,8 +359,6 @@ public:
 
   void EnableTraces ();
 
-  void SetSchedulerType (std::string type);
-
   void ActivateDataRadioBearer (NetDeviceContainer ueDevices, EpsBearer bearer);
   void ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer);
   void SetEpcHelper (Ptr<EpcHelper> epcHelper);
@@ -486,7 +484,6 @@ private:
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams;
 
   std::unordered_map<uint32_t, BandwidthPartRepresentation> m_bwpConfiguration;
-  TypeId m_defaultSchedulerType;
   std::string m_scenario;  //!< Important parameter that specifies the type of propagation loss and condition model types
 };
 

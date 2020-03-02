@@ -265,13 +265,6 @@ MmWaveHelper::GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
 }
 
 void
-MmWaveHelper::SetSchedulerType (std::string type)
-{
-  NS_LOG_FUNCTION (this << type);
-  m_defaultSchedulerType = TypeId::LookupByName (type);
-}
-
-void
 MmWaveHelper::SetHarqEnabled (bool harqEnabled)
 {
   m_harqEnabled = harqEnabled;
@@ -575,7 +568,6 @@ MmWaveHelper::CreateGnbSched (const BandwidthPartRepresentation& conf)
   NS_LOG_FUNCTION (this);
 
   ObjectFactory schedFactory;
-  schedFactory.SetTypeId (m_defaultSchedulerType);
   schedFactory.SetTypeId (conf.m_phyMacCommon->GetMacSchedType ());
   Ptr<MmWaveMacScheduler> sched = DynamicCast<MmWaveMacScheduler> (schedFactory.Create ());
   sched->ConfigureCommonParameters (conf.m_phyMacCommon);

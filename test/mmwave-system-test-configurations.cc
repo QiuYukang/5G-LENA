@@ -102,6 +102,7 @@ MmwaveSystemTestConfigurationsTestCase1::DoRun (void)
 
   // changing parameters in frequency domain
   Config::SetDefault("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(m_numerology));// set numerology, and set full frame structure just with this single parameter
+  Config::SetDefault("ns3::MmWavePhyMacCommon::Scheduler", TypeIdValue (TypeId::LookupByName(m_scheduler)));
 
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
   double hBS; //base station antenna height in meters;
@@ -112,7 +113,6 @@ MmwaveSystemTestConfigurationsTestCase1::DoRun (void)
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetSchedulerType (m_scheduler);
 
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
