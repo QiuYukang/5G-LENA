@@ -46,7 +46,7 @@ class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
   MmWaveSpectrumPhy ();
-  virtual ~MmWaveSpectrumPhy ();
+  virtual ~MmWaveSpectrumPhy () override;
 
   enum State
   {

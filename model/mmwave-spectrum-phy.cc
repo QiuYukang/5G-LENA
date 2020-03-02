@@ -86,6 +86,7 @@ MmWaveSpectrumPhy::GetTypeId (void)
     tid =
     TypeId ("ns3::MmWaveSpectrumPhy")
     .SetParent<NetDevice> ()
+    .AddConstructor<MmWaveSpectrumPhy> ()
     .AddAttribute ("UnlicensedMode",
                    "Activate/Deactivate unlicensed mode in which energy detection is performed" 
                    " and PHY state machine has an additional state CCA_BUSY.",
