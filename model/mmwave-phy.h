@@ -95,8 +95,6 @@ public:
 
 protected:
 
-  virtual void DoDispose () override;
-
   /**
    * \brief Transform a MAC-made vector of RBG to a PHY-ready vector of SINR indices
    * \param rbgBitmask Bitmask which indicates with 1 the RBG in which there is a transmission,

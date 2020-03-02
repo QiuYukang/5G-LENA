@@ -72,7 +72,7 @@ MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> channelPhy,
 
 MmWaveEnbPhy::~MmWaveEnbPhy ()
 {
-
+  delete m_enbCphySapProvider;
 }
 
 TypeId
@@ -179,13 +179,6 @@ MmWaveEnbPhy::DoInitialize (void)
   MmWavePhy::DoInitialize ();
   NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (m_beamManager->GetAntennaArray()->GetNumberOfElements()));
 
-}
-
-void
-MmWaveEnbPhy::DoDispose (void)
-{
-  delete m_enbCphySapProvider;
-  MmWavePhy::DoDispose ();
 }
 
 /**

@@ -227,7 +227,6 @@ public:
 
 protected:
   // From object
-  virtual void DoDispose (void) override;
   virtual void DoInitialize (void) override;
 
 private:
