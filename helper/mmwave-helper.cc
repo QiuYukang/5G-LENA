@@ -67,6 +67,11 @@ MmWaveHelper::MmWaveHelper (void)
   m_channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
   m_enbNetDeviceFactory.SetTypeId (MmWaveEnbNetDevice::GetTypeId ());
   m_ueNetDeviceFactory.SetTypeId (MmWaveUeNetDevice::GetTypeId ());
+  m_ueMacFactory.SetTypeId (MmWaveUeMac::GetTypeId ());
+  m_gnbMacFactory.SetTypeId (MmWaveEnbMac::GetTypeId ());
+  m_ueSpectrumFactory.SetTypeId (MmWaveSpectrumPhy::GetTypeId ());
+  m_gnbSpectrumFactory.SetTypeId (MmWaveSpectrumPhy::GetTypeId ());
+  //m_channelAccessManagerFactory.SetTypeId (...) NOT NECESSARY
 
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 }
@@ -325,23 +330,21 @@ Ptr<MmWaveUeMac>
 MmWaveHelper::CreateUeMac () const
 {
   NS_LOG_FUNCTION (this);
-  Ptr<MmWaveUeMac> mac = CreateObject<MmWaveUeMac> ();
+  Ptr<MmWaveUeMac> mac = m_ueMacFactory.Create <MmWaveUeMac> ();
   return mac;
 }
 
 Ptr<MmWaveUePhy>
-MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf) const
+MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf)
 {
   NS_LOG_FUNCTION (this);
 
-  ObjectFactory channelAccessManagerFactory;
-
-  Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
+  Ptr<MmWaveSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <MmWaveSpectrumPhy> ();
   Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (channelPhy, n);
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
 
-  channelAccessManagerFactory.SetTypeId (conf.m_ueChannelAccessManagerType);
-  Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
+  m_ueChannelAccessManagerFactory.SetTypeId (conf.m_ueChannelAccessManagerType);
+  Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
   cam->SetNrSpectrumPhy (channelPhy);
   phy->SetCam (cam);
 
@@ -501,18 +504,18 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
 
 Ptr<MmWaveEnbPhy>
 MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentation& conf,
-                             const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId) const
+                             const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
 
-  ObjectFactory channelAccessManagerFactory;
 
-  Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
+
+  Ptr<MmWaveSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create <MmWaveSpectrumPhy> ();
   Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (channelPhy, n);
 
   // PHY <--> CAM
-  channelAccessManagerFactory.SetTypeId (conf.m_gnbChannelAccessManagerType);
-  Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
+  m_gnbChannelAccessManagerFactory.SetTypeId (conf.m_gnbChannelAccessManagerType);
+  Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_gnbChannelAccessManagerFactory.Create ());
   cam->SetNrSpectrumPhy (channelPhy);
   phy->SetCam (cam);
 
@@ -557,7 +560,7 @@ MmWaveHelper::CreateGnbMac (const BandwidthPartRepresentation& conf)
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<MmWaveEnbMac> mac = CreateObject<MmWaveEnbMac> ();
+  Ptr<MmWaveEnbMac> mac = m_gnbMacFactory.Create <MmWaveEnbMac> ();
   mac->SetConfigurationParameters (conf.m_phyMacCommon);
   return mac;
 }
@@ -567,9 +570,8 @@ MmWaveHelper::CreateGnbSched (const BandwidthPartRepresentation& conf)
 {
   NS_LOG_FUNCTION (this);
 
-  ObjectFactory schedFactory;
-  schedFactory.SetTypeId (conf.m_phyMacCommon->GetMacSchedType ());
-  Ptr<MmWaveMacScheduler> sched = DynamicCast<MmWaveMacScheduler> (schedFactory.Create ());
+  m_schedFactory.SetTypeId (conf.m_phyMacCommon->GetMacSchedType ());
+  Ptr<MmWaveMacScheduler> sched = m_schedFactory.Create <MmWaveMacScheduler> ();
   sched->ConfigureCommonParameters (conf.m_phyMacCommon);
   return sched;
 }
@@ -724,7 +726,7 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
       NS_LOG_INFO ("adding this eNB to the EPC");
       m_epcHelper->AddEnb (n, dev, dev->GetCellId ());
       Ptr<EpcEnbApplication> enbApp = n->GetApplication (0)->GetObject<EpcEnbApplication> ();
-      NS_ASSERT_MSG (enbApp != 0, "cannot retrieve EpcEnbApplication");
+      NS_ASSERT_MSG (enbApp != nullptr, "cannot retrieve EpcEnbApplication");
 
       // S1 SAPs
       rrc->SetS1SapProvider (enbApp->GetS1SapProvider ());
@@ -793,7 +795,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
                       enbNetDev->GetEarfcn (i));
     }
 
-  if (m_epcHelper != 0)
+  if (m_epcHelper != nullptr)
     {
       // activate default EPS bearer
       m_epcHelper->ActivateEpsBearer (ueDevice, ueNetDev->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
@@ -843,10 +845,59 @@ void
 MmWaveHelper::DeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice,Ptr<NetDevice> enbDevice, uint8_t bearerId)
 {
   NS_LOG_FUNCTION (this << ueDevice << bearerId);
-  NS_ASSERT_MSG (m_epcHelper != 0, "Dedicated EPS bearers cannot be de-activated when the EPC is not used");
+  NS_ASSERT_MSG (m_epcHelper != nullptr, "Dedicated EPS bearers cannot be de-activated when the EPC is not used");
   NS_ASSERT_MSG (bearerId != 1, "Default bearer cannot be de-activated until and unless and UE is released");
 
   DoDeActivateDedicatedEpsBearer (ueDevice, enbDevice, bearerId);
+}
+
+void
+MmWaveHelper::SetUeMacAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueMacFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbMacAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbMacFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbSpectrumAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbSpectrumFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetUeSpectrumAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueSpectrumFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetUeChannelAccessManagerAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueChannelAccessManagerFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbChannelAccessManagerAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbChannelAccessManagerFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetSchedulerAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_schedFactory.Set (n, v);
 }
 
 void

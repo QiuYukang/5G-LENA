@@ -400,6 +400,62 @@ public:
 
   void DeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetUeMacAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetGnbMacAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetGnbSpectrumAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetUeSpectrumAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetUeChannelAccessManagerAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetGnbChannelAccessManagerAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetSchedulerAttribute (const std::string &n, const AttributeValue &v);
+
 protected:
   /**
    * \brief Initialize things inside the helper.
@@ -426,12 +482,12 @@ private:
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
   Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentation& conf,
-                                   const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId) const;
+                                   const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId);
   Ptr<MmWaveMacScheduler> CreateGnbSched (const BandwidthPartRepresentation& conf);
   Ptr<MmWaveEnbMac> CreateGnbMac (const BandwidthPartRepresentation& conf);
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
-  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf) const;
+  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf);
 
   Ptr<NetDevice> InstallSingleUeDevice (Ptr<Node> n);
   Ptr<NetDevice> InstallSingleEnbDevice (Ptr<Node> n);
@@ -454,10 +510,17 @@ private:
 
   std::string m_channelModelType;
 
-  ObjectFactory m_enbNetDeviceFactory;
-  ObjectFactory m_ueNetDeviceFactory;
-  ObjectFactory m_channelFactory;
-  ObjectFactory m_phyMacCommonFactory;
+  ObjectFactory m_enbNetDeviceFactory;  //!< NetDevice factory for gnb
+  ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue
+  ObjectFactory m_channelFactory;       //!< Channel factory
+  ObjectFactory m_phyMacCommonFactory;  //!< PhyMacCommon factory
+  ObjectFactory m_ueMacFactory;         //!< UE MAC factory
+  ObjectFactory m_gnbMacFactory;        //!< GNB MAC factory
+  ObjectFactory m_ueSpectrumFactory;    //!< UE Spectrum factory
+  ObjectFactory m_gnbSpectrumFactory;   //!< GNB spectrum factory
+  ObjectFactory m_ueChannelAccessManagerFactory; //!< UE Channel access manager factory
+  ObjectFactory m_gnbChannelAccessManagerFactory; //!< GNB Channel access manager factory
+  ObjectFactory m_schedFactory;         //!< Scheduler factory
 
   uint64_t m_imsiCounter;
   uint16_t m_cellIdCounter;
