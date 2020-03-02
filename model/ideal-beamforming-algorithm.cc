@@ -176,8 +176,8 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
                   double power = Sum (*rxPsd) / nbands;
                   
                   NS_LOG_LOGIC (" Rx power: "<< power << "txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
-                                (M_PI * (double)tx / (double)txNumRows - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
-                                (M_PI * (double)rx / (double)rxNumRows - 0.5 * M_PI) / (M_PI) * 180);
+                                (M_PI *  static_cast<double> (tx) / static_cast<double>(txNumRows) - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
+                                (M_PI * static_cast<double> (rx) / static_cast<double> (rxNumRows) - 0.5 * M_PI) / (M_PI) * 180);
 
                   if (max < power)
                     {
@@ -200,8 +200,8 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
   NS_LOG_DEBUG ("Beamforming vectors for gNB with node id: "<< gNbDev->GetNode()->GetId ()<<
                 " and UE with node id: " << ueDev->GetNode()->GetId ()<<
                 " are txTheta " << maxTxTheta << " rxTheta " << maxRxTheta << " tx sector " <<
-                (M_PI * (double) maxTx / (double) txNumRows - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
-                (M_PI * (double) maxRx / (double) rxNumRows - 0.5 * M_PI) / (M_PI) * 180);
+                (M_PI * static_cast<double> (maxTx) / static_cast<double> (txNumRows) - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
+                (M_PI * static_cast<double> (maxRx) / static_cast<double> (rxNumRows) - 0.5 * M_PI) / (M_PI) * 180);
 }
 
 
