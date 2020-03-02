@@ -18,24 +18,16 @@
  */
 
 #include "mmwave-spectrum-phy.h"
-
-#include <ns3/object-factory.h>
-#include <ns3/log.h>
-#include <ns3/boolean.h>
-#include <cmath>
-#include <ns3/trace-source-accessor.h>
-#include "mmwave-phy-mac-common.h"
-#include <ns3/mmwave-enb-net-device.h>
-#include <ns3/mmwave-ue-net-device.h>
-#include <ns3/mmwave-ue-phy.h>
-#include "mmwave-radio-bearer-tag.h"
-#include <stdio.h>
-#include <ns3/double.h>
+#include "mmwave-enb-net-device.h"
+#include "mmwave-ue-net-device.h"
 #include "mmwave-mac-pdu-tag.h"
-#include "nr-lte-mi-error-model.h"
+#include <ns3/boolean.h>
+#include <ns3/double.h>
 #include <functional>
+#include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/lte-radio-bearer-tag.h>
-#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include <ns3/trace-source-accessor.h>
+#include "nr-lte-mi-error-model.h"
 
 namespace ns3 {
 

@@ -15,12 +15,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author: Biljana Bojovic <biljana.bojovic@cttc.es>
- *   Inspired by lte-specterum-phy.h
- *
  */
-
 
 
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
@@ -29,19 +24,12 @@
 
 #include <ns3/object-factory.h>
 #include <ns3/event-id.h>
-#include <ns3/spectrum-value.h>
-#include <ns3/mobility-model.h>
 #include <ns3/packet.h>
 #include <ns3/nstime.h>
-#include <ns3/net-device.h>
 #include <ns3/spectrum-phy.h>
-#include <ns3/spectrum-channel.h>
-#include <ns3/spectrum-interference.h>
-#include <ns3/data-rate.h>
-#include <ns3/generic-phy.h>
 #include <ns3/packet-burst.h>
+#include <ns3/random-variable-stream.h>
 #include "mmwave-spectrum-signal-parameters.h"
-#include "ns3/random-variable-stream.h"
 #include "mmwave-interference.h"
 #include "mmwave-control-messages.h"
 #include "mmwave-harq-phy.h"
@@ -50,6 +38,9 @@
 namespace ns3 {
 
 class ThreeGppAntennaArrayModel;
+class NetDevice;
+class SpectrumValue;
+class SpectrumChannel;
 
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
