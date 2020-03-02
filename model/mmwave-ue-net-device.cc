@@ -95,7 +95,6 @@ MmWaveUeNetDevice::DoInitialize (void)
   std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> >::iterator it;
   for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
     {
-      it->second->GetPhy ()->DoInitialize ();
       it->second->GetMac ()->Initialize ();
     }
   m_rrc->Initialize ();

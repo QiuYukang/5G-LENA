@@ -42,8 +42,6 @@ class MmWaveUePhy : public MmWavePhy
 public:
   // inherited from Object
   static TypeId GetTypeId (void);
-  virtual void DoInitialize (void) override; // Public because it's called by hand,
-                                             // and not by aggregation, in MmWaveNetDevice
 
   /**
    * \brief MmWaveUePhy default constructor. Is there for ns-3 object system, but should not be used.
@@ -232,10 +230,6 @@ public:
 
   // From mmwave phy. Not used in the UE
   virtual BeamId GetBeamId (uint16_t rnti) const override;
-
-protected:
-  // From object
-  virtual void DoDispose (void) override;
 
 private:
   /**

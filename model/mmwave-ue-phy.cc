@@ -69,6 +69,7 @@ MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy,
 MmWaveUePhy::~MmWaveUePhy ()
 {
   NS_LOG_FUNCTION (this);
+  delete m_ueCphySapProvider;
 }
 
 TypeId
@@ -153,20 +154,6 @@ MmWaveUePhy::GetTypeId (void)
                      "ns3::MmWavePhyRxTrace::TxedUePhyHarqFeedbackTracedCallback")
       ;
   return tid;
-}
-
-void
-MmWaveUePhy::DoInitialize (void)
-{
-  NS_LOG_FUNCTION (this);
-  MmWavePhy::DoInitialize ();
-}
-
-void
-MmWaveUePhy::DoDispose (void)
-{
-  delete m_ueCphySapProvider;
-  MmWavePhy::DoDispose ();
 }
 
 void
