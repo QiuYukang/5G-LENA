@@ -149,7 +149,6 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
   rxBeamManager->GetAntennaArray()->GetAttribute("NumRows", uintValue);
   uint32_t rxNumRows = uintValue.Get();
 
-  NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
   for (uint16_t txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
       for (size_t tx = 0; tx <= txNumRows; tx++)
@@ -163,10 +162,6 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
             {
               for (size_t rx = 0; rx <= rxNumRows; rx++)
                 {
-                  NS_LOG_LOGIC ("txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
-                                (M_PI * (double)tx / (double)txNumRows - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
-                                (M_PI * (double)rx / (double)rxNumRows - 0.5 * M_PI) / (M_PI) * 180);
-
                   NS_ASSERT(rx < UINT8_MAX);
 
                   SetSector (static_cast<uint8_t> (rx), rxTheta, rxBeamManager);
@@ -175,13 +170,15 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
 
                   NS_ABORT_MSG_IF (txW.size()==0 || rxW.size()==0, "Beamforming vectors must be initialized in order to caclulate the long term matrix.");
 
-                  Ptr<SpectrumValue> bfPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd, gNbDev->GetNode()->GetObject<MobilityModel>(), ueDev->GetNode()->GetObject<MobilityModel>());
+                  Ptr<SpectrumValue> rxPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd, gNbDev->GetNode()->GetObject<MobilityModel>(), ueDev->GetNode()->GetObject<MobilityModel>());
 
-                  SpectrumValue bfGain = (*bfPsd) / (*fakePsd);  // TODO!!! BILJANA TO CHECK WITH SANDRA
-                  size_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
-                  double power = Sum (bfGain) / nbands;
+                  size_t nbands = rxPsd->GetSpectrumModel ()->GetNumBands ();
+                  double power = Sum (*rxPsd) / nbands;
+                  
+                  NS_LOG_LOGIC (" Rx power: "<< power << "txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
+                                (M_PI * (double)tx / (double)txNumRows - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
+                                (M_PI * (double)rx / (double)rxNumRows - 0.5 * M_PI) / (M_PI) * 180);
 
-                  NS_LOG_LOGIC ("gain " << power);
                   if (max < power)
                     {
                       max = power;
@@ -199,6 +196,12 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
 
   txBeamManager->SetBeamformingVector (maxTxW, BeamId (maxTx, maxTxTheta), ueDev);
   rxBeamManager->SetBeamformingVector (maxRxW, BeamId (maxRx, maxRxTheta), gNbDev);
+
+  NS_LOG_DEBUG ("Beamforming vectors for gNB with node id: "<< gNbDev->GetNode()->GetId ()<<
+                " and UE with node id: " << ueDev->GetNode()->GetId ()<<
+                " are txTheta " << maxTxTheta << " rxTheta " << maxRxTheta << " tx sector " <<
+                (M_PI * (double) maxTx / (double) txNumRows - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
+                (M_PI * (double) maxRx / (double) rxNumRows - 0.5 * M_PI) / (M_PI) * 180);
 }
 
 
