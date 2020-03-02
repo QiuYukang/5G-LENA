@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -14,7 +14,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  *
  *   Author: Biljana Bojovic <bbojovic@cttc.es>
  */
@@ -50,9 +49,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
 #include "ns3/mmwave-helper.h"
-#include <ns3/buildings-helper.h>
 #include "ns3/log.h"
-#include <ns3/buildings-module.h>
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
@@ -268,7 +265,7 @@ main (int argc, char *argv[])
   mobility.Install (gNbNode);
   mobility.Install (ueNode);
   gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
+  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (10, 0 , 1.5));
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
@@ -280,8 +277,7 @@ main (int argc, char *argv[])
 
   Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress());
 
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  mmWaveHelper->AttachToEnb (ueNetDev.Get(0), enbNetDev.Get(0));
 
   Ptr<EpcTft> tft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpf;
