@@ -79,9 +79,9 @@ public:
   typedef TracedCallback <Time> ChannelOccupiedTracedCallback;
 
   static TypeId GetTypeId (void);
-  virtual void DoDispose ();
+  virtual void DoDispose () override;
 
-  void SetDevice (Ptr<NetDevice> d);
+  void SetDevice (Ptr<NetDevice> d) override;
 
   /**
    * \brief Set clear channel assessment (CCA) threshold
@@ -95,11 +95,11 @@ public:
    */
   double GetCcaMode1Threshold (void) const;
 
-  Ptr<NetDevice> GetDevice () const;
-  void SetMobility (Ptr<MobilityModel> m);
-  Ptr<MobilityModel> GetMobility ();
-  void SetChannel (Ptr<SpectrumChannel> c);
-  Ptr<const SpectrumModel> GetRxSpectrumModel () const;
+  Ptr<NetDevice> GetDevice () const override;
+  void SetMobility (Ptr<MobilityModel> m) override;
+  Ptr<MobilityModel> GetMobility () override;
+  void SetChannel (Ptr<SpectrumChannel> c) override;
+  Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
 
   /**
    * Implements GetRxAntenna function from SpectrumPhy. This
@@ -125,7 +125,7 @@ public:
 
   void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
-  void StartRx (Ptr<SpectrumSignalParameters> params);
+  void StartRx (Ptr<SpectrumSignalParameters> params) override;
   void StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> params);
   void StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params);
   void StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params);
