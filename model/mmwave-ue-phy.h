@@ -34,6 +34,14 @@ class NrChAccessManager;
 class BeamManager;
 class BeamId;
 
+/**
+ * \brief The UE PHY class
+ *
+ * To initialize it, you must call also SetSpectrumPhy and StartEventLoop.
+ *
+ * \see SetSpectrumPhy
+ * \see StartEventLoop
+ */
 class MmWaveUePhy : public MmWavePhy
 {
   friend class UeMemberLteUePhySapProvider;
@@ -44,18 +52,9 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \brief MmWaveUePhy default constructor. Is there for ns-3 object system, but should not be used.
+   * \brief MmWaveUePhy default constructor.
    */
   MmWaveUePhy ();
-
-  /**
-   * \brief MmWaveUePhy real constructor
-   * \param channelPhy spectrum phy
-   * \param n Pointer to the node owning this instance
-   *
-   * Usually called by the helper. It starts the event loop for the ue.
-   */
-  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy, const Ptr<Node> &n);
 
   /**
    * \brief ~MmWaveUePhy
@@ -108,15 +107,6 @@ public:
    * \param config the ENB configuration
    */
   void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
-
-  /**
-   * \brief Retrieve the SpectrumPhy pointer
-   *
-   * As this function is used mainly to get traced values out of Spectrum,
-   * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the SpectrumPhy of this UE
-   */
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
 
   /**
    * \brief Receive a list of CTRL messages
@@ -230,6 +220,13 @@ public:
 
   // From mmwave phy. Not used in the UE
   virtual BeamId GetBeamId (uint16_t rnti) const override;
+
+  /**
+   * \brief Start the ue Event Loop
+   * \param nodeId the UE nodeId
+   * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
+   */
+  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
 
 private:
   /**

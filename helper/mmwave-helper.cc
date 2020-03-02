@@ -71,6 +71,8 @@ MmWaveHelper::MmWaveHelper (void)
   m_gnbMacFactory.SetTypeId (MmWaveEnbMac::GetTypeId ());
   m_ueSpectrumFactory.SetTypeId (MmWaveSpectrumPhy::GetTypeId ());
   m_gnbSpectrumFactory.SetTypeId (MmWaveSpectrumPhy::GetTypeId ());
+  m_uePhyFactory.SetTypeId (MmWaveUePhy::GetTypeId ());
+  m_gnbPhyFactory.SetTypeId (MmWaveEnbPhy::GetTypeId ());
   //m_channelAccessManagerFactory.SetTypeId (...) NOT NECESSARY
 
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
@@ -340,8 +342,11 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <MmWaveSpectrumPhy> ();
-  Ptr<MmWaveUePhy> phy = CreateObject<MmWaveUePhy> (channelPhy, n);
+  Ptr<MmWaveUePhy> phy = m_uePhyFactory.Create <MmWaveUePhy> ();
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (conf.m_phyMacCommon->GetNumHarqProcess ());
+
+  phy->SetSpectrumPhy (channelPhy);
+  phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   m_ueChannelAccessManagerFactory.SetTypeId (conf.m_ueChannelAccessManagerType);
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
@@ -508,10 +513,11 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentatio
 {
   NS_LOG_FUNCTION (this);
 
-
-
   Ptr<MmWaveSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create <MmWaveSpectrumPhy> ();
-  Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (channelPhy, n);
+  Ptr<MmWaveEnbPhy> phy = m_gnbPhyFactory.Create <MmWaveEnbPhy> ();
+
+  phy->SetSpectrumPhy (channelPhy);
+  phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   // PHY <--> CAM
   m_gnbChannelAccessManagerFactory.SetTypeId (conf.m_gnbChannelAccessManagerType);
@@ -898,6 +904,20 @@ MmWaveHelper::SetSchedulerAttribute(const std::string &n, const AttributeValue &
 {
   NS_LOG_FUNCTION (this);
   m_schedFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetUePhyAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_uePhyFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbPhyAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbPhyFactory.Set (n, v);
 }
 
 void

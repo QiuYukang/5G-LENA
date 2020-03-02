@@ -57,17 +57,7 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveEnbPhy);
 MmWaveEnbPhy::MmWaveEnbPhy ()
 {
   NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("This constructor should not be called");
-}
-
-MmWaveEnbPhy::MmWaveEnbPhy (Ptr<MmWaveSpectrumPhy> channelPhy,
-                            const Ptr<Node> &n)
-  : MmWavePhy (channelPhy)
-{
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
-
-  Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0),
-                                  &MmWaveEnbPhy::StartSlot, this, 0, 0, 0);
 }
 
 MmWaveEnbPhy::~MmWaveEnbPhy ()
@@ -102,7 +92,7 @@ MmWaveEnbPhy::GetTypeId (void)
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
-                   MakePointerAccessor (&MmWaveEnbPhy::GetSpectrumPhy),
+                   MakePointerAccessor (&MmWavePhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
     .AddTraceSource ("UlSinrTrace",
                      "UL SINR statistics.",
@@ -441,6 +431,16 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
 }
 
 void
+MmWaveEnbPhy::StartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
+{
+  NS_LOG_FUNCTION (this);
+  Simulator::ScheduleWithContext (nodeId, MilliSeconds (0),
+                                  &MmWaveEnbPhy::StartSlot, this,
+                                  startSlot.m_frameNum, startSlot.m_subframeNum,
+                                  startSlot.m_slotNum);
+}
+
+void
 MmWaveEnbPhy::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacCommon)
 {
   NS_LOG_FUNCTION (this);
@@ -516,11 +516,6 @@ MmWaveEnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
   NS_ASSERT (txPsd);
   m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
-}
-
-Ptr<MmWaveSpectrumPhy> MmWaveEnbPhy::GetSpectrumPhy() const
-{
-  return m_spectrumPhy;
 }
 
 void

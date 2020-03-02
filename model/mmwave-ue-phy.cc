@@ -52,18 +52,8 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveUePhy);
 MmWaveUePhy::MmWaveUePhy ()
 {
   NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("This constructor should not be called");
-}
-
-MmWaveUePhy::MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy,
-                          const Ptr<Node> &n)
-  : MmWavePhy (channelPhy)
-{
-  NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<MmWaveUePhy> (this);
-  Simulator::ScheduleWithContext (n->GetId (), MilliSeconds (0),
-                                  &MmWaveUePhy::StartSlot, this, 0, 0, 0);
 }
 
 MmWaveUePhy::~MmWaveUePhy ()
@@ -98,7 +88,7 @@ MmWaveUePhy::GetTypeId (void)
                    "The SpectrumPhy associated to this MmWavePhy",
                    TypeId::ATTR_GET,
                    PointerValue (),
-                   MakePointerAccessor (&MmWaveUePhy::GetSpectrumPhy),
+                   MakePointerAccessor (&MmWavePhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
 	.AddAttribute ("IsotropicAntennaElements",
 	               "Defines type of antenna elements to be used: "
@@ -244,12 +234,6 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
-}
-
-Ptr<MmWaveSpectrumPhy>
-MmWaveUePhy::GetSpectrumPhy () const
-{
-  return m_spectrumPhy;
 }
 
 void
@@ -1013,6 +997,16 @@ MmWaveUePhy::GetBeamId (uint16_t rnti) const
   // That's a bad specification: the UE PHY doesn't know anything about its beam id.
   NS_UNUSED (rnti);
   NS_FATAL_ERROR ("ERROR");
+}
+
+void
+MmWaveUePhy::StartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
+{
+  NS_LOG_FUNCTION (this);
+  Simulator::ScheduleWithContext (nodeId, MilliSeconds (0),
+                                  &MmWaveUePhy::StartSlot, this,
+                                  startSlot.m_frameNum, startSlot.m_subframeNum,
+                                  startSlot.m_slotNum);
 }
 
 void

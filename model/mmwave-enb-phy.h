@@ -36,6 +36,14 @@ class MmWaveEnbMac;
 class NrChAccessManager;
 class BeamManager;
 
+/**
+ * \brief The GNB PHY class
+ *
+ * To initialize it, you must call also SetSpectrumPhy and StartEventLoop.
+ *
+ * \see SetSpectrumPhy
+ * \see StartEventLoop
+ */
 class MmWaveEnbPhy : public MmWavePhy
 {
   friend class MemberLteEnbCphySapProvider<MmWaveEnbPhy>;
@@ -121,15 +129,6 @@ public:
   void SetSubChannels (const std::vector<int> &rbIndexVector);
 
   /**
-   * \brief Retrieve the SpectrumPhy pointer
-   *
-   * As this function is used mainly to get traced values out of Spectrum,
-   * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the SpectrumPhy of this UE
-   */
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
-
-  /**
    * \brief Add the UE to the list of this gnb UEs.
    *
    * Usually called by the helper when a UE register to this gnb.
@@ -196,6 +195,13 @@ public:
    * It does not support dynamic change of pattern during the simulation
    */
   void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+
+  /**
+   * \brief Start the ue Event Loop
+   * \param nodeId the UE nodeId
+   * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
+   */
+  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
 
   /**
    *  TracedCallback signature for Received Control Messages.

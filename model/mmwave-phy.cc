@@ -149,14 +149,6 @@ MmWavePhy::MmWavePhy ()
   : m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("This constructor should not be called");
-}
-
-MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy):
-    m_spectrumPhy (channelPhy),
-  m_currSlotAllocInfo (SfnSf (0,0,0,0))
-{
-  NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
 }
 
@@ -171,6 +163,7 @@ MmWavePhy::~MmWavePhy ()
 void
 MmWavePhy::InstallBeamManager ()
 {
+  NS_ASSERT (m_spectrumPhy != nullptr);
   m_beamManager = CreateObject<BeamManager>();
   m_beamManager->InstallAntenna (m_antennaNumDim1, m_antennaNumDim2, m_areIsotropicElements);
   m_spectrumPhy->SetAntennaArray (m_beamManager->GetAntennaArray());
@@ -187,6 +180,7 @@ void
 MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_spectrumPhy != nullptr);
   m_cellId = cellId;
   m_spectrumPhy->SetCellId (cellId);
 }
@@ -356,6 +350,20 @@ MmWavePhy::GetConfigurationParameters (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_phyMacConfig;
+}
+
+void
+MmWavePhy::SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_spectrumPhy != nullptr);
+  m_spectrumPhy = spectrumPhy;
+}
+
+Ptr<MmWaveSpectrumPhy>
+MmWavePhy::GetSpectrumPhy () const
+{
+  return m_spectrumPhy;
 }
 
 

@@ -40,8 +40,6 @@ class MmWavePhy : public Object
 public:
   MmWavePhy ();
 
-  MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy);
-
   virtual ~MmWavePhy () override;
 
   static TypeId GetTypeId (void);
@@ -88,7 +86,22 @@ public:
 
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const = 0;
+  /**
+   * \brief Retrieve the SpectrumPhy pointer
+   *
+   * As this function is used mainly to get traced values out of Spectrum,
+   * it should be removed and the traces connected (and redirected) here.
+   * \return A pointer to the SpectrumPhy of this UE
+   */
+  Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const;
+
+  /**
+   * \brief Set the SpectrumPhy associated with this PHY
+   * \param spectrumPhy the spectrumPhy
+   */
+  void SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
+
+  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
 
   // SAP
   void DoSetCellId (uint16_t cellId);

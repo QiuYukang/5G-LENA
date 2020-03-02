@@ -456,6 +456,22 @@ public:
    */
   void SetSchedulerAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetUePhyAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
+
 protected:
   /**
    * \brief Initialize things inside the helper.
@@ -518,17 +534,18 @@ private:
   ObjectFactory m_gnbMacFactory;        //!< GNB MAC factory
   ObjectFactory m_ueSpectrumFactory;    //!< UE Spectrum factory
   ObjectFactory m_gnbSpectrumFactory;   //!< GNB spectrum factory
+  ObjectFactory m_uePhyFactory;         //!< UE PHY factory
+  ObjectFactory m_gnbPhyFactory;        //!< GNB PHY factory
   ObjectFactory m_ueChannelAccessManagerFactory; //!< UE Channel access manager factory
   ObjectFactory m_gnbChannelAccessManagerFactory; //!< GNB Channel access manager factory
   ObjectFactory m_schedFactory;         //!< Scheduler factory
+
 
   uint64_t m_imsiCounter;
   uint16_t m_cellIdCounter;
 
   Ptr<MmWavePhyRxTrace> m_phyStats;
   Ptr<MmwaveMacRxTrace> m_macStats;
-
-  ObjectFactory m_ffrAlgorithmFactory;
 
   Ptr<EpcHelper> m_epcHelper;
 
