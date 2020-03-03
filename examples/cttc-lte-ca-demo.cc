@@ -80,7 +80,7 @@ main (int argc, char *argv[])
   bool udpFullBuffer = false;
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
-  uint16_t numFlowsUe = 2;
+  uint16_t numFlowsUe = 1;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
   uint32_t udpPacketSizeUll = 1000;
@@ -338,24 +338,29 @@ main (int argc, char *argv[])
        break;
    }
 
-  //Lowerst frequency band
+  //Lowest frequency band
   OperationBandInfo band40;
   band40.m_bandId = 40;
   band40.m_centralFrequency  = 2350e6;
   band40.m_bandwidth = 100e6;
-  band40.m_lowerFrequency = band40.m_centralFrequency - static_cast<double>(band40.m_bandwidth) / 2;
-  band40.m_higherFrequency = band40.m_centralFrequency + static_cast<double>(band40.m_bandwidth) / 2;
+  band40.m_lowerFrequency = band40.m_centralFrequency -
+      static_cast<double>(band40.m_bandwidth) / 2;
+  band40.m_higherFrequency = band40.m_centralFrequency +
+      static_cast<double>(band40.m_bandwidth) / 2;
 
   ComponentCarrierInfo cc0;
   cc0.m_ccId = 1;
-  cc0.m_primaryCc = PRIMARY;
+  cc0.m_primaryCc = CellType::PCell;
   cc0.m_centralFrequency = band40.m_lowerFrequency + 10e6;
   cc0.m_bandwidth = 18e6;
-  cc0.m_lowerFrequency = cc0.m_centralFrequency - static_cast<double>(cc0.m_bandwidth) / 2;
-  cc0.m_higherFrequency = cc0.m_centralFrequency + static_cast<double>(cc0.m_bandwidth) / 2;
-  cc0.m_activeBwp = bwpCount;
-  cc0.m_mode = OperationMode::FDD;
+  cc0.m_lowerFrequency = cc0.m_centralFrequency -
+      static_cast<double>(cc0.m_bandwidth) / 2;
+  cc0.m_higherFrequency = cc0.m_centralFrequency +
+      static_cast<double>(cc0.m_bandwidth) / 2;
+  cc0.m_mode = OperationMode::TDD;
+
   // The NR module works with BWPs. To emulate LTE you must create them occupying the whole CC
+  // Avoid using the base struct BandwidthPartInfo instead of the TDD/FDD versions. Simulation will not continue
   if (cc0.m_mode == OperationMode::TDD)
     {
       Ptr<BandwidthPartInfoTdd> bwp0 = CreateObject<BandwidthPartInfoTdd> ();
@@ -403,13 +408,12 @@ main (int argc, char *argv[])
 
   ComponentCarrierInfo cc1;
   cc1.m_ccId = 2;
-  cc1.m_primaryCc = SECONDARY;
+  cc1.m_primaryCc = CellType::SCell;
   cc1.m_mode = OperationMode::TDD;
   cc1.m_centralFrequency = band40.m_higherFrequency-10e6;
   cc1.m_bandwidth = 18e6;
   cc1.m_lowerFrequency = cc1.m_centralFrequency - static_cast<double> (cc1.m_bandwidth / 2);
   cc1.m_higherFrequency = cc1.m_centralFrequency + static_cast<double> (cc1.m_bandwidth / 2);
-  cc1.m_activeBwp = bwpCount;
 
   Ptr<BandwidthPartInfoTdd> bwp1 = CreateObject<BandwidthPartInfoTdd> ();
   bwp1->m_bwpId = bwpCount;
@@ -439,13 +443,13 @@ main (int argc, char *argv[])
   // Component Carrier 2
   ComponentCarrierInfo cc2;
   cc2.m_ccId = 0;
-  cc2.m_primaryCc = SECONDARY;
+  cc2.m_primaryCc = CellType::SCell;
   cc2.m_mode = OperationMode::TDD;
   cc2.m_centralFrequency = band38.m_centralFrequency;
   cc2.m_bandwidth = 18e6;
   cc2.m_lowerFrequency = cc2.m_centralFrequency - static_cast<double> (cc2.m_bandwidth) / 2;
   cc2.m_higherFrequency = cc2.m_centralFrequency + static_cast<double> (cc2.m_bandwidth) / 2;
-  cc2.m_activeBwp = bwpCount;
+
   Ptr<BandwidthPartInfoTdd> bwp2 = CreateObject<BandwidthPartInfoTdd> ();
   bwp2->m_bwpId = bwpCount;
   bwp2->m_numerology = 0;
@@ -476,7 +480,7 @@ main (int argc, char *argv[])
     {
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon> ();
       phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
-      Ptr<BandwidthPartInfo> recBwp0 = cc0.m_bwp.at(0);
+      Ptr<BandwidthPartInfo> recBwp0 = cc0.m_bwp.begin ()->second;
       phyMacCommonBwp0->SetCentreFrequency (recBwp0->m_centralFrequency);
       phyMacCommonBwp0->SetBandwidth (recBwp0->m_bandwidth);
       phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (recBwp0->m_numerology));
@@ -493,7 +497,8 @@ main (int argc, char *argv[])
     {
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0dl = CreateObject<MmWavePhyMacCommon> ();
       phyMacCommonBwp0dl->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
-      Ptr<BandwidthPartInfo> recBwp0dl = cc0.m_bwp.at(0);
+      std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator it = cc0.m_bwp.begin ();
+      Ptr<BandwidthPartInfo> recBwp0dl = it->second;
       phyMacCommonBwp0dl->SetCentreFrequency (recBwp0dl->m_centralFrequency);
       phyMacCommonBwp0dl->SetBandwidth (recBwp0dl->m_bandwidth);
       phyMacCommonBwp0dl->SetNumerology (static_cast<uint32_t> (recBwp0dl->m_numerology));
@@ -502,13 +507,14 @@ main (int argc, char *argv[])
       BandwidthPartRepresentation repr0dl (ccId, phyMacCommonBwp0dl, nullptr, nullptr, nullptr);
       mmWaveHelper->AddBandwidthPart (ccId, repr0dl);
       ++ccId;
+      ++it;
       std::cout << "CC0" << std::endl;
       std::cout << "  DL Central frequency (MHz): " << recBwp0dl->m_centralFrequency/1000/1000 << std::endl;
       std::cout << "  DL Bandwidth (MHz): " << recBwp0dl->m_bandwidth/1000/1000 << std::endl;
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0ul = CreateObject<MmWavePhyMacCommon> ();
       phyMacCommonBwp0ul->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
-      Ptr<BandwidthPartInfo> recBwp0ul = cc0.m_bwp.at(1);
+      Ptr<BandwidthPartInfo> recBwp0ul = it->second;
       phyMacCommonBwp0ul->SetCentreFrequency (recBwp0ul->m_centralFrequency);
       phyMacCommonBwp0ul->SetBandwidth (recBwp0ul->m_bandwidth);
       phyMacCommonBwp0ul->SetNumerology (static_cast<uint32_t> (recBwp0ul->m_numerology));
@@ -587,14 +593,14 @@ main (int argc, char *argv[])
 
   // Share the total transmission power among CCs proportionally with the BW
   double x = pow(10, totalTxPower/10);
-  double totalBandwidth = ccBwpManager.GetAggregatedBandwidth();
+  double totalBandwidth = ccBwpManager.GetAggregatedBandwidth(); //TODO: replace by GetUeAggregatedBandwidth
 
   /*
   *  In FDD, DL and UL might not be symmetric. A simple way to automatically set
   *  BWP powers is to loop all PHYs and apply the BW of the attached BWP
   */
   std::vector<Ptr<BandwidthPartInfo>> bwpList;
-  ccBwpManager.GetConfiguredBwp (bwpList);
+  ccBwpManager.GetConfiguredBwp (&bwpList);
 
   for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
     {

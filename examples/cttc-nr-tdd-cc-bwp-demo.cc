@@ -283,11 +283,22 @@ main (int argc, char *argv[])
                                                     mode);
 
       // The example continues extracting the different CCs to activate the BWP of each CC in the band
+      Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
+      ComponentCarrierInfo cc0 = ccBwpManager.GetComponentCarrierInfo (0);
+      phyMacCommonBwp0->SetCentreFrequency (cc0.m_bwp.at (0)->m_centralFrequency);
+      phyMacCommonBwp0->SetBandwidth (cc0.m_bwp.at (0)->m_bandwidth);
+      phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (cc0.m_bwp.at (0)->m_numerology));
+      phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+      phyMacCommonBwp0->SetCcId (ccId);
+      BandwidthPartRepresentation repr0 (ccId, phyMacCommonBwp0, nullptr, nullptr, nullptr);
+      mmWaveHelper->AddBandwidthPart (ccId, repr0);
+      ++ccId;
+
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc1 = ccBwpManager.GetComponentCarrier (0,0);
+      ComponentCarrierInfo cc1 = ccBwpManager.GetComponentCarrierInfo (1);
       phyMacCommonBwp1->SetCentreFrequency (cc1.m_bwp.at (0)->m_centralFrequency);
       phyMacCommonBwp1->SetBandwidth (cc1.m_bwp.at (0)->m_bandwidth);
-      phyMacCommonBwp1->SetNumerology ((uint32_t)cc1.m_bwp.at (0)->m_numerology);
+      phyMacCommonBwp1->SetNumerology (static_cast<uint32_t> (cc1.m_bwp.at (0)->m_numerology));
       phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
       phyMacCommonBwp1->SetCcId (ccId);
       BandwidthPartRepresentation repr1 (ccId, phyMacCommonBwp1, nullptr, nullptr, nullptr);
@@ -295,9 +306,9 @@ main (int argc, char *argv[])
       ++ccId;
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc2 = ccBwpManager.GetComponentCarrier (0,1);
+      ComponentCarrierInfo cc2 = ccBwpManager.GetComponentCarrierInfo (2);
       phyMacCommonBwp2->SetCentreFrequency (cc2.m_bwp.at (0)->m_centralFrequency);
-      phyMacCommonBwp2->SetBandwidth (cc2.m_bwp.at (0)->m_bandwidth);
+      phyMacCommonBwp2->SetBandwidth (static_cast<uint32_t> (cc2.m_bwp.at (0)->m_bandwidth));
       phyMacCommonBwp2->SetNumerology ((uint32_t)cc2.m_bwp.at (0)->m_numerology);
       phyMacCommonBwp2->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
       phyMacCommonBwp2->SetCcId (ccId);
@@ -306,25 +317,14 @@ main (int argc, char *argv[])
       ++ccId;
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp3 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc3 = ccBwpManager.GetComponentCarrier (0,2);
+      ComponentCarrierInfo cc3 = ccBwpManager.GetComponentCarrierInfo (3);
       phyMacCommonBwp3->SetCentreFrequency (cc3.m_bwp.at (0)->m_centralFrequency);
       phyMacCommonBwp3->SetBandwidth (cc3.m_bwp.at (0)->m_bandwidth);
-      phyMacCommonBwp3->SetNumerology ((uint32_t)cc3.m_bwp.at (0)->m_numerology);
+      phyMacCommonBwp3->SetNumerology (static_cast<uint32_t> (cc3.m_bwp.at (0)->m_numerology));
       phyMacCommonBwp3->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
       phyMacCommonBwp3->SetCcId (ccId);
       BandwidthPartRepresentation repr3 (ccId, phyMacCommonBwp3, nullptr, nullptr, nullptr);
       mmWaveHelper->AddBandwidthPart (ccId, repr3);
-      ++ccId;
-
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp4 = CreateObject<MmWavePhyMacCommon>();
-      ComponentCarrierInfo cc4 = ccBwpManager.GetComponentCarrier (0,3);
-      phyMacCommonBwp4->SetCentreFrequency (cc4.m_bwp.at (0)->m_centralFrequency);
-      phyMacCommonBwp4->SetBandwidth (cc4.m_bwp.at (0)->m_bandwidth);
-      phyMacCommonBwp4->SetNumerology ((uint32_t)cc4.m_bwp.at (0)->m_numerology);
-      phyMacCommonBwp4->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-      phyMacCommonBwp4->SetCcId (ccId);
-      BandwidthPartRepresentation repr4 (ccId, phyMacCommonBwp4, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart (ccId, repr4);
       ++ccId;
 
       // Finally, test that the given configuration is valid
@@ -340,21 +340,24 @@ main (int argc, char *argv[])
       OperationBandInfo band;
       band.m_centralFrequency  = 28e9;
       band.m_bandwidth = 3e9;
-      band.m_lowerFrequency = band.m_centralFrequency - (double)band.m_bandwidth / 2;
-      band.m_higherFrequency = band.m_centralFrequency + (double)band.m_bandwidth / 2;
-//      std::vector<ComponentCarrierInfo> ccs;
+      band.m_lowerFrequency = band.m_centralFrequency -
+          static_cast<double> (band.m_bandwidth / 2);
+      band.m_higherFrequency = band.m_centralFrequency +
+          static_cast<double> (band.m_bandwidth / 2);
       uint8_t bwpCount = 0;
 
       // Component Carrier 0
       ComponentCarrierInfo cc0;
       cc0.m_ccId = 0;
-      cc0.m_primaryCc = PRIMARY;
+      cc0.m_primaryCc = CellType::PCell;
       cc0.m_centralFrequency = 28e9;
       cc0.m_bandwidth = 400e6;
-      cc0.m_lowerFrequency = cc0.m_centralFrequency - (double)cc0.m_bandwidth / 2;
-      cc0.m_higherFrequency = cc0.m_centralFrequency + (double)cc0.m_bandwidth / 2;
-      cc0.m_activeBwp = bwpCount;
+      cc0.m_lowerFrequency = cc0.m_centralFrequency -
+          static_cast<double> (cc0.m_bandwidth / 2);
+      cc0.m_higherFrequency = cc0.m_centralFrequency +
+          static_cast<double> (cc0.m_bandwidth / 2);
       cc0.m_mode = OperationMode::TDD;
+      // Avoid using the base struct BandwidthPartInfo instead of the TDD/FDD versions. Simulation will not continue
       // BWP 0
       Ptr<BandwidthPartInfoTdd> bwp0 = CreateObject<BandwidthPartInfoTdd> ();
       bwp0->m_bwpId = bwpCount;
@@ -390,12 +393,13 @@ main (int argc, char *argv[])
       // Component Carrier 1
       ComponentCarrierInfo cc1;
       cc1.m_ccId = 1;
-      cc1.m_primaryCc = SECONDARY;
+      cc1.m_primaryCc = CellType::SCell;
       cc1.m_centralFrequency = 29e9;
       cc1.m_bandwidth = 100e6;
-      cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth / 2;
-      cc1.m_higherFrequency = cc1.m_centralFrequency + (double)cc1.m_bandwidth / 2;
-      cc1.m_activeBwp = bwpCount;
+      cc1.m_lowerFrequency = cc1.m_centralFrequency -
+          static_cast<double> (cc1.m_bandwidth / 2);
+      cc1.m_higherFrequency = cc1.m_centralFrequency +
+          static_cast<double> (cc1.m_bandwidth / 2);
       cc1.m_mode = OperationMode::TDD;
       // BWP 2
       Ptr<BandwidthPartInfoTdd> bwp2 = CreateObject<BandwidthPartInfoTdd> ();
@@ -436,10 +440,10 @@ main (int argc, char *argv[])
        */
 //      ccBwpManager2.ChangeActiveBwp (0, 0, 1);
 
+      // TODO: Create a function in the freq helper to do this automatically
       // Create BandwidthPartRepresentations referred to the active BWP only of each CC
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
-//      BandwidthPartInfo recBwp0 = ccBwpManager.GetActiveBwpInfo(0,ccId);
-      Ptr<BandwidthPartInfo> recBwp0 = ccBwpManager.GetActiveBwpInfo ();
+      Ptr<BandwidthPartInfo> recBwp0 = cc0.m_bwp.begin ()->second; // TODO
       phyMacCommonBwp0->SetCentreFrequency (recBwp0->m_centralFrequency);
       phyMacCommonBwp0->SetBandwidth (recBwp0->m_bandwidth);
       phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (recBwp0->m_numerology));
@@ -450,8 +454,7 @@ main (int argc, char *argv[])
       ++ccId;
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-//      BandwidthPartInfo recBwp1 = ccBwpManager.GetActiveBwpInfo(0,ccId);
-      Ptr<BandwidthPartInfo> recBwp1 = ccBwpManager2.GetActiveBwpInfo ();
+      Ptr<BandwidthPartInfo> recBwp1 = cc1.m_bwp.begin ()->second; // TODO
       phyMacCommonBwp1->SetCentreFrequency (recBwp1->m_centralFrequency);
       phyMacCommonBwp1->SetBandwidth (recBwp1->m_bandwidth);
       phyMacCommonBwp1->SetNumerology (static_cast<uint32_t> (recBwp1->m_numerology));
@@ -477,7 +480,7 @@ main (int argc, char *argv[])
   double totalBandwidth = ccBwpManager.GetAggregatedBandwidth ();
 
   std::vector<Ptr<BandwidthPartInfo>> bwpList;
-  ccBwpManager.GetConfiguredBwp (bwpList);
+  ccBwpManager.GetConfiguredBwp (&bwpList);
   for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
     {
       ObjectMapValue objectMapValue;
@@ -485,9 +488,10 @@ main (int argc, char *argv[])
       for (uint32_t i = 0; i < objectMapValue.GetN (); i++)
         {
           Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb> (objectMapValue.Get (i));
-          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth (0,i); //m_bands.at(0).m_cc.at(i).m_bandwidth;
-          bandwidthPart->GetPhy ()->SetTxPower (10 * log10 ((bwCc / totalBandwidth) * x));
-          std::cout << "\n txPower" << i << " = " << 10 * log10 ((bwCc / totalBandwidth) * x) << std::endl;
+          uint8_t bwdId = bandwidthPart->GetPhy ()->GetConfigurationParameters ()->GetCcId ();
+          uint32_t bw = (bwpList.at (bwdId))->m_bandwidth;
+          bandwidthPart->GetPhy ()->SetTxPower (10 * log10 ((bw / totalBandwidth) * x));
+          std::cout << "\n txPower" << i << " = " << 10 * log10 ((bw / totalBandwidth) * x) << std::endl;
         }
     }
 
