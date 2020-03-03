@@ -831,13 +831,11 @@ private:
   Time m_symbolPeriod;
   uint8_t m_symbolsPerSlot;
   Time m_slotPeriod;
-  uint32_t m_ctrlSymbols;
   uint8_t m_dlCtrlSymbols;   // num OFDM symbols for downlink control at beginning of subframe
   uint8_t m_ulCtrlSymbols;   // num OFDM symbols for uplink control at end of subframe
   uint32_t m_fixedTtisPerSlot;   // TODO: check if this is obsolete attribute
   uint32_t m_slotsPerSubframe;   // TODO: perform parameter cleanup, leave only mandatory ones, many redundant settings
   uint32_t m_subframesPerFrame;
-  uint32_t m_numRefSymbols;
   uint32_t m_numRbPerRbg;
   uint16_t m_numerology;
   double m_subcarrierSpacing;

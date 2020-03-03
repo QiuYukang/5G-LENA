@@ -48,16 +48,6 @@ MmWavePhyMacCommon::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWavePhyMacCommon")
     .SetParent<Object> ()
     .AddConstructor<MmWavePhyMacCommon> ()
-    .AddAttribute ("CtrlSymbols",
-                   "Number of OFDM symbols for DL control per subframe",
-                   UintegerValue (1),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_ctrlSymbols),
-                   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("NumReferenceSymbols",
-                   "Number of reference symbols per slot",
-                   UintegerValue (6),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_numRefSymbols),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("CenterFreq",
                    "The center frequency in Hz",
                    DoubleValue (28e9),
@@ -141,12 +131,10 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   : m_symbolPeriod (0.00000416),
   m_symbolsPerSlot (14),
   m_slotPeriod (0.0001),
-  m_ctrlSymbols (1),
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
   m_fixedTtisPerSlot (8),
   m_subframesPerFrame (10),
-  m_numRefSymbols (6),
   m_numRbPerRbg (1),
   m_numerology (4),
   m_subcarrierSpacing (15e3),
@@ -190,12 +178,6 @@ Time MmWavePhyMacCommon::GetSymbolPeriod(void) const
   return m_symbolPeriod;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetCtrlSymbols (void) const
-{
-  return m_ctrlSymbols;
-}
-
 uint8_t
 MmWavePhyMacCommon::GetDlCtrlSymbols (void) const
 {
@@ -235,12 +217,6 @@ uint32_t
 MmWavePhyMacCommon::GetSlotsPerSubframe (void) const
 {
   return m_slotsPerSubframe;
-}
-
-uint32_t
-MmWavePhyMacCommon::GetNumReferenceSymbols (void)
-{
-  return m_numRefSymbols;
 }
 
 uint32_t
@@ -375,12 +351,6 @@ MmWavePhyMacCommon::SetSlotPeriod (double period)
 }
 
 void
-MmWavePhyMacCommon::SetCtrlSymbols (uint32_t ctrlSymbols)
-{
-  m_ctrlSymbols = ctrlSymbols;
-}
-
-void
 MmWavePhyMacCommon::SetDlCtrlSymbols (uint8_t ctrlSymbols)
 {
   m_dlCtrlSymbols = ctrlSymbols;
@@ -402,12 +372,6 @@ void
 MmWavePhyMacCommon::SetSubframePerFrame (uint32_t numSf)
 {
   m_subframesPerFrame = numSf;
-}
-
-void
-MmWavePhyMacCommon::SetNumReferenceSymbols (uint32_t refSym)
-{
-  m_numRefSymbols = refSym;
 }
 
 void
@@ -465,7 +429,6 @@ MmWavePhyMacCommon::SetNumerology (uint32_t numerology)
   m_slotsPerSubframe  = std::pow (2, numerology);
   m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
   m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
-  m_numSubCarriersPerRb = 12;
   m_subcarrierSpacing = 15 * std::pow (2, numerology) * 1000;
 
   NS_ASSERT_MSG (m_bandwidthConfigured, "Bandwidth not configured, bandwidth has to be configured in order to configure properly the numerology");
