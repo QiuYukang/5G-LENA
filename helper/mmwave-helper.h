@@ -50,25 +50,68 @@ class MmWaveMacScheduler;
 class MmWaveEnbNetDevice;
 class MmWaveUeMac;
 
-/**
- * Bandwidth part configuration element
- */
-struct ComponentCarrierBandwidthPartElement
+enum OperationMode
 {
-  uint8_t m_bwpId;            //<! BWP id
-  uint8_t m_numerology;       //<! BWP numerology: 0,1,2,3,4
-  double m_centralFrequency;  //<! BWP central frequency
-  double m_lowerFrequency;    //<! BWP lower frequency
-  double m_higherFrequency;   //<! BWP higher frequency
-  uint32_t m_bandwidth;       //<! BWP bandwidth
+  TDD,
+  FDD
 };
 
 
 enum ComponentCarrierState
 {
-  PRIMARY,
-  SECONDARY
+  PRIMARY = 1,
+  SECONDARY = 2
 };
+
+/**
+ * Bandwidth part configuration information
+ */
+//struct BandwidthPartInfo : public SimpleRefCount<BandwidthPartInfo>
+struct BandwidthPartInfo : public Object
+{
+//  virtual ~BandwidthPartInfo() = default;  //<! Virtual destructor needed to enable polymorphism
+
+  uint8_t m_bwpId {0};             //<! BWP id
+  uint8_t m_numerology {0};        //<! BWP numerology: 0,1,2,3,4
+  double m_centralFrequency {0};   //<! BWP central frequency
+  double m_lowerFrequency {0};     //<! BWP lower frequency
+  double m_higherFrequency {0};    //<! BWP higher frequency
+  uint32_t m_bandwidth {0};        //<! BWP bandwidth
+  ComponentCarrierState m_cc {SECONDARY}; //<! Tells if the associated CC is primary or secondary
+};
+
+
+/**
+ * TDD BWP configuration information
+ */
+struct BandwidthPartInfoTdd : public BandwidthPartInfo
+{
+//  ~BandwidthPartInfoTdd ();
+
+  std::vector<LteNrTddSlotType> m_tddPattern;
+};
+
+
+/**
+ * FDD BWP configuration information
+ */
+struct BandwidthPartInfoFdd : public BandwidthPartInfo
+{
+//  ~BandwidthPartInfoFdd ();
+  /**
+   * For FDD patterns, the BWP should be configured for either DL or UL
+   */
+  enum flowDirection : uint8_t
+  {
+    DL = 0,
+    UL = 1
+  };
+
+  enum flowDirection m_direction;   //<! Flow direction of the BWP
+  std::vector<uint8_t> m_linkedBwps;  //<! Vector of BWPs associated to this BWP configuration but in the reverse transmission direction
+};
+
+
 
 /**
  * Component carrier configuration element
@@ -78,19 +121,21 @@ struct ComponentCarrierInfo
   uint8_t m_ccId {0};          //<! CC id
   uint8_t m_numBwps {0};       //<! Number of BWP in the carrier
   uint8_t m_activeBwp;         //<! Active BWP index
+  OperationMode m_mode {OperationMode::TDD};    //<! Sets the carrier operation mode (TDD or FDD)
   double m_centralFrequency;   //<! BWP central frequency
   double m_lowerFrequency;     //<! BWP lower frequency
   double m_higherFrequency;    //<! BWP higher frequency
   uint32_t m_bandwidth;        //<! BWP bandwidth
-  ComponentCarrierState m_primaryCc {PRIMARY};  //<! Primary or secondary CC
-  std::map<uint8_t, ComponentCarrierBandwidthPartElement> m_bwp;  //<! Space for BWP
+  ComponentCarrierState m_primaryCc {ComponentCarrierState::PRIMARY};  //<! Primary or secondary CC
+  std::map<uint8_t, Ptr<BandwidthPartInfo>> m_bwp;  //<! Space for BWP
 
   /**
    * \brief Adds a BWP to the carrier
    * \param bwp Description of the BWP
    */
-  void AddBwp (const ComponentCarrierBandwidthPartElement & bwp);
-  void AddBwp (uint8_t bwdId, const ComponentCarrierBandwidthPartElement & bwp);
+  void AddBwp (Ptr<BandwidthPartInfo> bwp);
+  void AddBwp (Ptr<BandwidthPartInfoTdd> bwp);
+  void AddBwp (Ptr<BandwidthPartInfoFdd> bwp);
 };
 
 
@@ -123,7 +168,7 @@ struct OperationBandInfo
   double m_higherFrequency;   //<! Operation band higher frequency
   uint32_t m_bandwidth;       //<! Operation band bandwidth
   uint8_t m_numCarriers {0};  //<! Number of configured carriers in the operation band
-  ContiguousMode m_contiguousCc {CONTIGUOUS};  //<! CA intra-band contiguousness
+  ContiguousMode m_contiguousCc {ContiguousMode::CONTIGUOUS};  //<! CA intra-band contiguousness
   std::map<uint8_t, ComponentCarrierInfo> m_cc;
 
   void AddCc (const ComponentCarrierInfo &cc);
@@ -146,12 +191,17 @@ public:
 
 
   /**
-   * \brief Creates an operation band by splitting the available bandwidth into numCCs equally-large contiguous carriers
+   * \brief Creates an operation band by splitting the available bandwidth into equally-large contiguous carriers. Carriers will have common parameters like numerology
    * \param centralFrequency Central operation frequency in Hz
    * \param operationBandwidth Operation band bandwidth
    * \param numCCs Number of contiguous CC
+   * \param mode The carriers' operation mode can be TDD or FDD. All the same.
    */
-  void CreateOperationBandContiguousCc (double centralFrequency, uint32_t operationBandwidth, uint8_t numCCs);
+  void CreateOperationBandContiguousCc (double centralFrequency,
+                                        uint32_t operationBandwidth,
+                                        uint8_t numCCs,
+                                        uint8_t numerology,
+                                        OperationMode mode);
 
   /**
    * \brief Creates an operation band with the desired central frequency and bandwidth with no CC information
@@ -184,7 +234,7 @@ public:
    * \note Simulation will stop if a bad configuration is found
    * \param cc Component Carrier definition
    */
-  void CheckBwpsInCc (const ComponentCarrierInfo &cc);
+  void CheckBwpsInCc (ComponentCarrierInfo &cc);
 
   /**
    * \brief Validates the CA/BWP configuration
@@ -200,18 +250,18 @@ public:
   ContiguousMode GetCcContiguousnessState (OperationBandInfo &band, uint32_t freqSeparation);
 
   /**
-   * \brief Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the primary CC
+   * \brief Gets the BandwidthPartInfo struct of the active BWP of the primary CC
    * \return The active BWP information object
    */
-  ComponentCarrierBandwidthPartElement GetActiveBwpInfo ();
+  Ptr<BandwidthPartInfo> GetActiveBwpInfo ();
 
   /**
-   * \brief Gets the ComponentCarrierBandwidthPartElement struct of the active BWP of the provided band and carrier index
+   * \brief Gets the BandwidthPartInfo struct of the active BWP of the provided band and carrier index
    * \param bandIndex Operation band id
    * \param ccIndex Component carrier id
    * \return The active BWP information object
    */
-  ComponentCarrierBandwidthPartElement GetActiveBwpInfo (uint8_t bandIndex, uint8_t ccIndex);
+  Ptr<BandwidthPartInfo> GetActiveBwpInfo (uint8_t bandIndex, uint8_t ccIndex);
 
   /**
    * \brief Gets the ComponentCarrierInfo struct associated to the provided operation band and carrier indices
@@ -234,6 +284,13 @@ public:
    */
   uint32_t GetCarrierBandwidth (uint8_t ccId);
 
+
+  /**
+   * \brief Returns the bandwidth of the BWP identified by its unique id
+   * \params bwpId The BWP id
+   */
+  uint32_t GetBwpBandwidth (uint8_t bwpId);
+
   /**
    * \brief Returns the active BWP of the given CC in the given operation band
    * \param bandId Operation band id (position in the class internal vector of operation bands)
@@ -250,6 +307,11 @@ public:
    */
   void ChangeActiveBwp (uint8_t bandId, uint8_t ccId, uint8_t activeBwpId);
 
+  /**
+   * \brief Get a vector with all the created BWP
+   * \param Vector of pointers the function will populate on
+   */
+  void GetConfiguredBwp (std::vector<Ptr<BandwidthPartInfo>> &bwpList);
 
   /**
    * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid

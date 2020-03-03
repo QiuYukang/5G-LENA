@@ -1222,16 +1222,16 @@ static bool CarrierFrequencyCompare (const ComponentCarrierInfo & lhs,
   return lhs.m_centralFrequency < rhs.m_centralFrequency;
 }
 
-static bool BwpFrequencyCompare (const ComponentCarrierBandwidthPartElement & lhs,
-                                 const ComponentCarrierBandwidthPartElement & rhs)
+static bool BwpFrequencyCompare (const Ptr<const BandwidthPartInfo> & lhs,
+                                 const Ptr<const BandwidthPartInfo> & rhs)
 {
-  return lhs.m_centralFrequency < rhs.m_centralFrequency;
+  return lhs->m_centralFrequency < rhs->m_centralFrequency;
 }
 
-static bool BwpIdCompare (const ComponentCarrierBandwidthPartElement & lhs,
-                          const ComponentCarrierBandwidthPartElement & rhs)
+static bool BwpIdCompare (const Ptr<const BandwidthPartInfo> & lhs,
+                          const Ptr<const BandwidthPartInfo> & rhs)
 {
-  return lhs.m_bwpId < rhs.m_bwpId;
+  return lhs->m_bwpId < rhs->m_bwpId;
 }
 
 
@@ -1267,27 +1267,46 @@ ComponentCarrierBandwidthPartCreator::operator= (const ns3::ComponentCarrierBand
 
 
 void
-ComponentCarrierInfo::AddBwp (const ComponentCarrierBandwidthPartElement & bwp)
+ComponentCarrierInfo::AddBwp (Ptr<BandwidthPartInfo> bwp)
 {
   NS_ABORT_MSG_IF (m_numBwps >= 4,"Maximum number of BWPs reached (4)");
 
-  std::map<uint8_t, ComponentCarrierBandwidthPartElement>::iterator it = m_bwp.find(bwp.m_bwpId);
+  std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator it = m_bwp.find(bwp->m_bwpId);
   NS_ABORT_MSG_IF(it != m_bwp.end(), "BWP id to insert was found in the CC");
 
-  m_bwp.insert ({bwp.m_bwpId, bwp});
+  bwp->m_cc = this->m_primaryCc;
+
+  m_bwp.insert ({bwp->m_bwpId, bwp});
   ++m_numBwps;
 }
 
 
 void
-ComponentCarrierInfo::AddBwp(uint8_t bwdId, const ComponentCarrierBandwidthPartElement & bwp)
+ComponentCarrierInfo::AddBwp (Ptr<BandwidthPartInfoTdd> bwp)
 {
   NS_ABORT_MSG_IF (m_numBwps >= 4,"Maximum number of BWPs reached (4)");
 
-  std::map<uint8_t, ComponentCarrierBandwidthPartElement>::iterator it = m_bwp.find(bwp.m_bwpId);
+  std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator it = m_bwp.find(bwp->m_bwpId);
   NS_ABORT_MSG_IF(it != m_bwp.end(), "BWP id to insert was found in the CC");
 
-  m_bwp.insert ({bwdId, bwp});
+  bwp->m_cc = this->m_primaryCc;
+
+  m_bwp.insert ({bwp->m_bwpId, bwp});
+  ++m_numBwps;
+}
+
+
+void
+ComponentCarrierInfo::AddBwp (Ptr<BandwidthPartInfoFdd> bwp)
+{
+  NS_ABORT_MSG_IF (m_numBwps >= 4,"Maximum number of BWPs reached (4)");
+
+  std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator it = m_bwp.find(bwp->m_bwpId);
+  NS_ABORT_MSG_IF(it != m_bwp.end(), "BWP id to insert was found in the CC");
+
+  bwp->m_cc = this->m_primaryCc;
+
+  m_bwp.insert ({bwp->m_bwpId, bwp});
   ++m_numBwps;
 }
 
@@ -1322,7 +1341,11 @@ OperationBandInfo::AddCc (uint8_t ccId, const ComponentCarrierInfo &cc)
 
 
 void
-ComponentCarrierBandwidthPartCreator::CreateOperationBandContiguousCc (double centralFrequency, uint32_t operationBandwidth, uint8_t numCCs)
+ComponentCarrierBandwidthPartCreator::CreateOperationBandContiguousCc (double centralFrequency,
+                                                                       uint32_t operationBandwidth,
+                                                                       uint8_t numCCs,
+                                                                       uint8_t numerology,
+                                                                       OperationMode mode)
 {
 
   NS_ABORT_MSG_IF (m_numBands == m_maxBands,"Maximum number of operation bands reached" << (uint16_t)m_maxBands);
@@ -1333,9 +1356,8 @@ ComponentCarrierBandwidthPartCreator::CreateOperationBandContiguousCc (double ce
   band.m_lowerFrequency = centralFrequency - (double)operationBandwidth / 2;
   band.m_higherFrequency = centralFrequency + (double)operationBandwidth / 2;
   band.m_numCarriers = numCCs;
-  band.m_contiguousCc = CONTIGUOUS;
+  band.m_contiguousCc = ContiguousMode::CONTIGUOUS;
 
-  uint8_t numerology = 2;
   uint32_t maxCcBandwidth = 198e6;
 
   if (centralFrequency > 6e9)
@@ -1344,7 +1366,7 @@ ComponentCarrierBandwidthPartCreator::CreateOperationBandContiguousCc (double ce
       maxCcBandwidth = 396e6;
     }
 
-  double ccBandwidth = std::min ((double)maxCcBandwidth,(double)operationBandwidth / numCCs);
+  double ccBandwidth = std::min (static_cast<double> (maxCcBandwidth), static_cast<double> (operationBandwidth) / numCCs);
 
   uint16_t numRBs = ccBandwidth / (12 * 15e3 * std::pow (2,numerology));
   NS_ABORT_MSG_IF (numRBs < 24, "Carrier bandwidth is below the minimum number of RBs (24)");
@@ -1357,17 +1379,48 @@ ComponentCarrierBandwidthPartCreator::CreateOperationBandContiguousCc (double ce
       cc.m_lowerFrequency = band.m_lowerFrequency + c * ccBandwidth;
       cc.m_higherFrequency = band.m_lowerFrequency + (c + 1) * ccBandwidth - 1;
       cc.m_bandwidth = ccBandwidth;
+      cc.m_mode = mode;
       cc.m_numBwps = 1;
       cc.m_activeBwp = m_numBwps;
-      ComponentCarrierBandwidthPartElement bwp;
-      bwp.m_bwpId = m_numBwps;
-      bwp.m_numerology = numerology;
-      bwp.m_centralFrequency = cc.m_centralFrequency;
-      bwp.m_lowerFrequency = cc.m_lowerFrequency;
-      bwp.m_higherFrequency = cc.m_higherFrequency;
-      bwp.m_bandwidth = cc.m_bandwidth;
-      cc.m_bwp.insert ({m_numBwps,bwp});
-      m_numBwps++;
+      if (mode == OperationMode::TDD)
+        {
+          Ptr<BandwidthPartInfoTdd> bwp = CreateObject<BandwidthPartInfoTdd> ();
+          bwp->m_bwpId = m_numBwps;
+          bwp->m_numerology = numerology;
+          bwp->m_centralFrequency = cc.m_centralFrequency;
+          bwp->m_lowerFrequency = cc.m_lowerFrequency;
+          bwp->m_higherFrequency = cc.m_higherFrequency;
+          bwp->m_bandwidth = cc.m_bandwidth;
+//          bwp->m_tddPattern =
+          cc.m_bwp.insert ({m_numBwps,bwp});
+          m_numBwps++;
+        }
+      else
+        {
+          cc.m_numBwps = 2;
+          Ptr<BandwidthPartInfoFdd> bwpDl;
+          bwpDl->m_bwpId = m_numBwps;
+          bwpDl->m_numerology = numerology;
+          bwpDl->m_bandwidth = cc.m_bandwidth / 2;
+          bwpDl->m_lowerFrequency = cc.m_lowerFrequency;
+          bwpDl->m_higherFrequency = bwpDl->m_lowerFrequency + bwpDl->m_bandwidth;
+          bwpDl->m_centralFrequency = (bwpDl->m_higherFrequency - bwpDl->m_lowerFrequency ) / 2;
+          bwpDl->m_direction = BandwidthPartInfoFdd::flowDirection::DL;
+          bwpDl->m_linkedBwps.push_back (bwpDl->m_bwpId + 1);
+          cc.m_bwp.insert ({m_numBwps,bwpDl});
+          m_numBwps++;
+          Ptr<BandwidthPartInfoFdd> bwpUl;
+          bwpUl->m_bwpId = m_numBwps;
+          bwpUl->m_numerology = numerology;
+          bwpUl->m_bandwidth = cc.m_bandwidth / 2;
+          bwpUl->m_lowerFrequency = bwpDl->m_higherFrequency;
+          bwpUl->m_higherFrequency = bwpUl->m_lowerFrequency + bwpUl->m_bandwidth;
+          bwpUl->m_centralFrequency = (bwpUl->m_higherFrequency - bwpUl->m_lowerFrequency ) / 2;
+          bwpUl->m_direction = BandwidthPartInfoFdd::flowDirection::UL;
+          bwpUl->m_linkedBwps.push_back (bwpDl->m_bwpId);
+          cc.m_bwp.insert ({m_numBwps,bwpDl});
+          m_numBwps++;
+        }
       band.m_cc.insert ({c,cc});
       m_numCcs++;
     }
@@ -1440,7 +1493,6 @@ ComponentCarrierBandwidthPartCreator::ValidateOperationBand (OperationBandInfo &
   band.m_contiguousCc = contiguous;
 
   // Check if each CC has BWP configuration and validate them
-//  for (uint8_t c = 0; c < numCcs; c++)
   for (auto & cc : band.m_cc)
     {
       CheckBwpsInCc (cc.second);
@@ -1449,7 +1501,7 @@ ComponentCarrierBandwidthPartCreator::ValidateOperationBand (OperationBandInfo &
 
 
 void
-ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (const ComponentCarrierInfo &cc)
+ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (ComponentCarrierInfo &cc)
 {
   // First check: number of BWP shall not be larger than 4
   uint8_t numBwps = cc.m_bwp.size ();
@@ -1457,22 +1509,24 @@ ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (const ComponentCarrierInfo 
   NS_ABORT_MSG_IF (numBwps > 4 || numBwps < 1,"The number of BWPs exceeds the maximum value (4)");
 
   // Second check: BWP shall not exceed CC limits and the sum of BWPs cannot be larger than the CC bandwidth
-  std::vector <ComponentCarrierBandwidthPartElement> values;
+  std::vector <Ptr<BandwidthPartInfo>> values;
   for (const auto & bwp : cc.m_bwp)
     {
-      values.push_back(bwp.second);
+      values.push_back (bwp.second);
     }
+  // First step is sort BWPs in increasing order of central frequency
   std::sort (values.begin (), values.end (), BwpFrequencyCompare);
   uint32_t totalBandwidth = 0;
   bool activeFound = false;
   for (const auto & a : values)
     {
-      totalBandwidth += a.m_bandwidth;
-      if (a.m_higherFrequency > cc.m_higherFrequency || a.m_lowerFrequency < cc.m_lowerFrequency)
+      totalBandwidth += a->m_bandwidth;
+      if (a->m_higherFrequency > cc.m_higherFrequency ||
+          a->m_lowerFrequency < cc.m_lowerFrequency)
         {
           NS_ABORT_MSG ("BWP part is out of the CC");
         }
-      if (a.m_bwpId == cc.m_activeBwp)
+      if (a->m_bwpId == cc.m_activeBwp)
         {
           activeFound = true;
         }
@@ -1486,19 +1540,35 @@ ComponentCarrierBandwidthPartCreator::CheckBwpsInCc (const ComponentCarrierInfo 
   // Fourth check: BWPs shall not overlap in frequency
   for (uint8_t a = 0; a < numBwps - 1; a++)
     {
-      if (values.at (a).m_higherFrequency > values.at (a + 1).m_lowerFrequency)
+      if (values.at (a)->m_higherFrequency > values.at (a + 1)->m_lowerFrequency)
         {
           NS_ABORT_MSG ("BWPs shall not overlap");
         }
     }
 
-  // Fifth check: BWP ids are not repeated
-  std::sort (values.begin (), values.end (), BwpIdCompare);
+  // Fifth check: BWP ids are not repeated. Map is already sorted by bwpId (key)
   for (uint8_t i = 0; i < numBwps - 1; i++)
     {
-      if (values.at (i).m_bwpId == values.at (i + 1).m_bwpId)
+      if (cc.m_bwp.at (i)->m_bwpId == cc.m_bwp.at (i + 1)->m_bwpId)
         {
           NS_ABORT_MSG ("Repeated BWP id");
+        }
+    }
+
+  // Sixth check: TDD/FDD operation in the current bwp matches the carrier's
+  for (const auto & bwp : cc.m_bwp)
+    {
+      Ptr<const BandwidthPartInfoTdd> ptrTdd =
+          DynamicCast<const BandwidthPartInfoTdd> (bwp.second);
+      Ptr<const BandwidthPartInfoFdd> ptrFdd =
+          DynamicCast<const BandwidthPartInfoFdd> (bwp.second);
+      if (cc.m_mode == OperationMode::TDD && ptrTdd == NULL)
+        {
+          NS_ABORT_MSG ("CC is set to TDD and BWP is FDD");
+        }
+      if (cc.m_mode == OperationMode::FDD && ptrFdd == NULL)
+        {
+          NS_ABORT_MSG ("CC is set to FDD and BWP is TDD");
         }
     }
 
@@ -1533,24 +1603,6 @@ ComponentCarrierBandwidthPartCreator::ValidateCaBwpConfiguration ()
           NS_ABORT_MSG ("Bands shall not overlap");
         }
     }
-
-  // Fifth: Check that there is one primary CC
-  /*
-   * My debugger gdb in Eclipse has problems with showing variables/continuing after
-   * a breakpoint inside multi-level range-based for loop like this.
-   * Comment and uncomment the following block of code if you are experiencing such issues
-   */
-//  for (const auto &band : m_bands)
-//  {
-//      for (const auto &cc : band.m_cc)
-//	{
-//	  if (cc.m_primaryCc == PRIMARY)
-//	    {
-//	      ++numPrimaryCcs;
-//	    }
-//	}
-//      numAggrCcs += band.m_numCarriers;
-//  }
   for (const auto & band : m_bands)
     {
       for (const auto & cc : band.m_cc)
@@ -1596,7 +1648,7 @@ ComponentCarrierBandwidthPartCreator::GetCcContiguousnessState (OperationBandInf
 }
 
 
-ComponentCarrierBandwidthPartElement
+Ptr<BandwidthPartInfo>
 ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo ()
 {
   NS_ABORT_MSG_IF (m_bands.empty (),"No operation band information provided");
@@ -1611,7 +1663,7 @@ ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo ()
               NS_ABORT_MSG_IF (cc.second.m_bwp.empty (),"Missing some BWP information");
               for (const auto & bwp : cc.second.m_bwp)
                 {
-                  if (bwp.second.m_bwpId == cc.second.m_activeBwp)
+                  if (bwp.second->m_bwpId == cc.second.m_activeBwp)
                     {
                       return bwp.second;
                     }
@@ -1625,25 +1677,22 @@ ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo ()
 }
 
 
-
-ComponentCarrierBandwidthPartElement
+Ptr<BandwidthPartInfo>
 ComponentCarrierBandwidthPartCreator::GetActiveBwpInfo (uint8_t bandIndex, uint8_t ccIndex)
 {
   NS_ABORT_MSG_IF (m_bands.empty (),"No operation band information provided");
   NS_ABORT_MSG_IF (bandIndex >= m_maxBands || bandIndex >= m_bands.size (), "Wrong operation band index");
-//  NS_ABORT_MSG_IF(ccIndex > m_numCcs,"Wrong component carrier index");
-
 
   OperationBandInfo band = m_bands.at (bandIndex);
   NS_ABORT_MSG_IF (band.m_cc.empty (),"No carrier band information provided");
   NS_ABORT_MSG_IF (ccIndex > band.m_numCarriers - 1 || ccIndex > band.m_cc.size () - 1,"Carrier index exceeds vector length");
 
   ComponentCarrierInfo cc = (band.m_cc.find (ccIndex))->second;
-  ComponentCarrierBandwidthPartElement bwp;
+  Ptr<BandwidthPartInfo> bwp;
   bool found = false;
   for (const auto & b : cc.m_bwp)
     {
-      if (b.second.m_bwpId == cc.m_activeBwp)
+      if (b.second->m_bwpId == cc.m_activeBwp)
         {
           found = true;
           bwp = b.second;
@@ -1673,9 +1722,9 @@ uint32_t ComponentCarrierBandwidthPartCreator::GetAggregatedBandwidth ()
         {
           for (const auto & bwp : cc.second.m_bwp)
             {
-              if (bwp.second.m_bwpId == cc.second.m_activeBwp)
+              if (bwp.second->m_bwpId == cc.second.m_activeBwp)
                 {
-                  aBandwidth += bwp.second.m_bandwidth;
+                  aBandwidth += bwp.second->m_bandwidth;
                 }
             }
         }
@@ -1702,13 +1751,33 @@ ComponentCarrierBandwidthPartCreator::GetCarrierBandwidth (uint8_t ccId)
 }
 
 
+uint32_t
+ComponentCarrierBandwidthPartCreator::GetBwpBandwidth (uint8_t bwpId)
+{
+  NS_ABORT_MSG_IF (bwpId > m_numBwps, "BWP id is larger than the number of existing BWPs");
+
+  for (const auto & band : m_bands)
+    {
+      for (const auto & cc : band.m_cc)
+        {
+          std::map<uint8_t, Ptr<BandwidthPartInfo>>::const_iterator it = cc.second.m_bwp.find (bwpId);
+          if (it != cc.second.m_bwp.end ())
+            {
+              return it->second->m_bandwidth;
+            }
+        }
+    }
+
+  NS_ABORT_MSG("The CC id you requested was not found");
+}
+
 
 uint32_t
 ComponentCarrierBandwidthPartCreator::GetCarrierBandwidth (uint8_t bandId, uint8_t ccId)
 {
   // There is at least one bwp
-  ComponentCarrierBandwidthPartElement bwp = GetActiveBwpInfo (bandId, ccId);
-  return bwp.m_bandwidth;
+  Ptr<BandwidthPartInfo> Pbwp = GetActiveBwpInfo (bandId, ccId);
+  return Pbwp->m_bandwidth;
 }
 
 
@@ -1723,7 +1792,7 @@ ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t c
           if (itCc != band.m_cc.end ())
             {
               // Make sure the BWP id belongs to the queried CC
-              std::map<uint8_t, ComponentCarrierBandwidthPartElement>::iterator itBwp = itCc->second.m_bwp.find (activeBwpId);
+              std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator itBwp = itCc->second.m_bwp.find (activeBwpId);
               if (itBwp != itCc->second.m_bwp.end ())
                 {
                   itCc->second.m_activeBwp = activeBwpId;
@@ -1733,6 +1802,31 @@ ComponentCarrierBandwidthPartCreator::ChangeActiveBwp (uint8_t bandId, uint8_t c
         }
     }
   NS_ABORT_MSG ("Could not change the active BWP due to wrong request");
+}
+
+
+void
+ComponentCarrierBandwidthPartCreator::GetConfiguredBwp (
+    std::vector<Ptr<BandwidthPartInfo>> &bwpList)
+{
+  if (bwpList.empty() == false)
+    {
+      bwpList.clear();
+    }
+
+  for (const auto & band : m_bands)
+    {
+      for (const auto & cc : band.m_cc)
+        {
+          for (const auto & bwp : cc.second.m_bwp)
+            {
+              bwpList.push_back (bwp.second);
+            }
+        }
+    }
+  // Additionally, sort bwp per id
+  std::sort (bwpList.begin (), bwpList.end (), BwpIdCompare);
+
 }
 
 
@@ -1801,9 +1895,9 @@ ComponentCarrierBandwidthPartCreator::PlotNrCaBwpConfiguration (const std::strin
           index++;
           for (const auto & bwp : cc.second.m_bwp)
             {
-              uint16_t bwpId = static_cast<uint16_t> (bwp.second.m_bwpId);
+              uint16_t bwpId = static_cast<uint16_t> (bwp.second->m_bwpId);
               label = "BWP" + std::to_string (bwpId);
-              PlotFrequencyBand (outFile, index, bwp.second.m_lowerFrequency * 1e-6, bwp.second.m_higherFrequency * 1e-6,
+              PlotFrequencyBand (outFile, index, bwp.second->m_lowerFrequency * 1e-6, bwp.second->m_higherFrequency * 1e-6,
                                              10, 30, label);
               index++;
             }
