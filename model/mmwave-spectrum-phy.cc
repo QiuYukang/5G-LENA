@@ -274,7 +274,7 @@ MmWaveSpectrumPhy::SetPhyRxDataEndOkCallback (MmWavePhyRxDataEndOkCallback c)
 
 
 void
-MmWaveSpectrumPhy::SetPhyRxCtrlEndOkCallback (MmWavePhyRxCtrlEndOkCallback c)
+MmWaveSpectrumPhy::SetPhyRxCtrlEndOkCallback (const MmWavePhyRxCtrlEndOkCallback &c)
 {
   m_phyRxCtrlEndOkCallback = c;
 }
@@ -819,9 +819,9 @@ MmWaveSpectrumPhy::EndRxData ()
 
   // forward control messages of this frame to MmWavePhy
 
-  if (!m_rxControlMessageList.empty () && !m_phyRxCtrlEndOkCallback.IsNull ())
+  if (!m_rxControlMessageList.empty () && m_phyRxCtrlEndOkCallback)
     {
-      m_phyRxCtrlEndOkCallback (m_rxControlMessageList);
+      m_phyRxCtrlEndOkCallback (m_rxControlMessageList, m_componentCarrierId);
     }
 
   // if in unlicensed mode check after reception if the state should be 
@@ -912,9 +912,9 @@ MmWaveSpectrumPhy::EndRxCtrl ()
   // forward control messages of this frame to LtePhy
   if (!m_rxControlMessageList.empty ())
     {
-      if (!m_phyRxCtrlEndOkCallback.IsNull ())
+      if (m_phyRxCtrlEndOkCallback)
         {
-          m_phyRxCtrlEndOkCallback (m_rxControlMessageList);
+          m_phyRxCtrlEndOkCallback (m_rxControlMessageList, m_componentCarrierId);
         }
     }
 

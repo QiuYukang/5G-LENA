@@ -28,6 +28,7 @@
 #include "component-carrier-gnb.h"
 #include "mmwave-enb-mac.h"
 #include "mmwave-enb-phy.h"
+#include "bwp-manager-gnb.h"
 
 namespace ns3 {
 
@@ -78,9 +79,36 @@ MmWaveEnbNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierGnb> > ccm)
   m_ccMap = ccm;
 }
 
-uint32_t MmWaveEnbNetDevice::GetCcMapSize() const
+uint32_t
+MmWaveEnbNetDevice::GetCcMapSize() const
 {
   return static_cast<uint32_t> (m_ccMap.size ());
+}
+
+void
+MmWaveEnbNetDevice::RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList,
+                                          uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerGnb> (m_componentCarrierManager)->RouteIngoingCtrlMsgs (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->PhyCtrlMessagesReceived (msg);
+    }
+}
+
+void
+MmWaveEnbNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList,
+                                           uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerGnb> (m_componentCarrierManager)->RouteOutgoingCtrlMsg (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->EncodeCtrlMsg (msg);
+    }
 }
 
 void

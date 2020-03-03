@@ -64,6 +64,23 @@ public:
    */
   uint32_t GetCcMapSize () const;
 
+  /**
+   * \brief The gNB received a CTRL message list.
+   *
+   * The gNB should divide the messages to the BWP they pertain to.
+   *
+   * \param msgList Message list
+   * \param sourceBwpId BWP Id from which the list originated
+   */
+  void RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
+
+  /**
+   * \brief Route the outgoing messages to the right BWP
+   * \param msgList the list of messages
+   * \param sourceBwpId the source bwp of the messages
+   */
+  void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
+
 protected:
   virtual void DoInitialize (void);
   void UpdateConfig ();

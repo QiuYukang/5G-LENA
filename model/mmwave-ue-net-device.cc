@@ -133,6 +133,31 @@ MmWaveUeNetDevice::EnqueueDlHarqFeedback (const DlHarqInfo &m) const
 }
 
 void
+MmWaveUeNetDevice::RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerUe> (m_componentCarrierManager)->RouteIngoingCtrlMsg (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->PhyCtrlMessagesReceived (msg);
+    }
+}
+
+void
+MmWaveUeNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList,
+                                          uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerUe> (m_componentCarrierManager)->RouteOutgoingCtrlMsg (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->EncodeCtrlMsg (msg);
+    }
+}
+
+void
 MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> > ccm)
 {
   NS_LOG_FUNCTION (this);

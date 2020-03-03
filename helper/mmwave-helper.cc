@@ -338,7 +338,8 @@ MmWaveHelper::CreateUeMac () const
 
 Ptr<MmWaveUePhy>
 MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf,
-                           const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback)
+                           const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback,
+                           const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyRxCtrlCallback)
 {
   NS_LOG_FUNCTION (this);
 
@@ -373,7 +374,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation
   channelPhy->SetMobility (mm);
 
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
-  channelPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveUePhy::PhyCtrlMessagesReceived, phy));
+  channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
   return phy;
 }
@@ -407,7 +408,9 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       auto mac = CreateUeMac ();
       cc->SetMac (mac);
 
-      auto phy = CreateUePhy (n, conf.second, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev) );
+      auto phy = CreateUePhy (n, conf.second, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev),
+                              std::bind (&MmWaveUeNetDevice::RouteIngoingCtrlMsgs, dev,
+                                         std::placeholders::_1, conf.first));
       phy->SetDevice (dev);
       phy->GetSpectrumPhy ()->SetDevice (dev);
       cc->SetPhy (phy);
@@ -510,7 +513,8 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
 
 Ptr<MmWaveEnbPhy>
 MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentation& conf,
-                             const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId)
+                            const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+                            const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback)
 {
   NS_LOG_FUNCTION (this);
 
@@ -550,7 +554,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentatio
   channelPhy->SetDevice (dev);
   channelPhy->SetCellId (cellId);
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, phy));
-  channelPhy->SetPhyRxCtrlEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyCtrlMessagesReceived, phy));
+  channelPhy->SetPhyRxCtrlEndOkCallback (phyEndCtrlCallback);
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReportUlHarqFeedback, phy));
 
   phy->Initialize ();
@@ -615,7 +619,9 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
           cc->SetAsPrimary (false);
         }
 
-      auto phy = CreateGnbPhy (n, conf.second, dev, cellId);
+      auto phy = CreateGnbPhy (n, conf.second, dev, cellId,
+                               std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
+                                          dev, std::placeholders::_1, conf.first));
       cc->SetPhy (phy);
 
       auto mac = CreateGnbMac (conf.second);

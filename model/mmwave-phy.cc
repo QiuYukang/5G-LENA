@@ -305,6 +305,14 @@ MmWavePhy::EnqueueCtrlMsgNow (const std::list<Ptr<MmWaveControlMessage> > &listO
 }
 
 void
+MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_ctrlMsgs.push_back (msg);
+}
+
+void
 MmWavePhy::InitializeMessageList ()
 {
   NS_LOG_FUNCTION (this);

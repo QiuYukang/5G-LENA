@@ -106,6 +106,12 @@ public:
   // SAP
   void DoSetCellId (uint16_t cellId);
 
+  /**
+   * \brief Take the control messages, and put it in a list that will be sent at the first occasion
+   * \param msg Message to "encode" and transmit
+   */
+  void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
+
 protected:
 
   /**
@@ -252,6 +258,8 @@ protected:
   uint32_t m_raPreambleId {0};
   bool m_isConnected {false}; ///< set when UE RRC is in CONNECTED_NORMALLY state
   Ptr<BeamManager> m_beamManager; //!< TODO
+
+  std::list <Ptr<MmWaveControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list

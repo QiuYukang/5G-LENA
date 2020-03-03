@@ -115,7 +115,7 @@ public:
    *
    * \param msgList message list
    */
-  void PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList);
+  void PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg);
 
   /**
    * \brief Receive a PHY data packet
@@ -308,7 +308,7 @@ private:
    */
   void DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg);
   void SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd);
-  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd);
+  void SendCtrlChannels (Time prd);
 
   // SAP methods
   void DoReset ();

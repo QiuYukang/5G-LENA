@@ -163,7 +163,7 @@ public:
    *
    * \param msgList message list
    */
-  void PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList);
+  void PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg);
 
   /**
    * \brief Get the power of the enb
@@ -245,8 +245,7 @@ private:
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
                          const VarTtiAllocInfo &varTtiInfo);
 
-  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
-                         const Time &varTtiPeriod);
+  void SendCtrlChannels (const Time &varTtiPeriod);
 
   std::list <Ptr<MmWaveControlMessage>> RetrieveMsgsFromDCIs (const SfnSf &sfn) __attribute__((warn_unused_result));
 
@@ -411,8 +410,6 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
-
-  std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
 
   std::vector<LteNrTddSlotType> m_tddPattern = { F, F, F, F, F, F, F, F, F, F}; //!< Per-slot pattern
 

@@ -105,6 +105,23 @@ public:
    */
   void EnqueueDlHarqFeedback (const DlHarqInfo &m) const;
 
+  /**
+   * \brief The UE received a CTRL message list.
+   *
+   * The UE should divide the messages to the BWP they pertain to.
+   *
+   * \param msgList Message list
+   * \param sourceBwpId BWP Id from which the list originated
+   */
+  void RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
+
+  /**
+   * \brief Route the outgoing messages to the right BWP
+   * \param msgList the list of messages
+   * \param sourceBwpId the source bwp of the messages
+   */
+  void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
+
 protected:
   // inherited from Object
   virtual void DoInitialize (void);

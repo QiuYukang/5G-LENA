@@ -499,13 +499,15 @@ private:
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
   Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentation& conf,
-                                   const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId);
+                                   const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+                                  const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback);
   Ptr<MmWaveMacScheduler> CreateGnbSched (const BandwidthPartRepresentation& conf);
   Ptr<MmWaveEnbMac> CreateGnbMac (const BandwidthPartRepresentation& conf);
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
   Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf,
-                                const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback);
+                                const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback,
+                                const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyRxCtrlCallback);
 
   Ptr<NetDevice> InstallSingleUeDevice (Ptr<Node> n);
   Ptr<NetDevice> InstallSingleEnbDevice (Ptr<Node> n);

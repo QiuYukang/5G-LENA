@@ -764,6 +764,26 @@ void MmWaveEnbPhy::DoStartSlot ()
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
 
+  // create control messages to be transmitted in DL-Control period
+  SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
+
+  auto ctrlMsgs = PopCurrentSlotCtrlMsgs ();
+  ctrlMsgs.merge (RetrieveMsgsFromDCIs (currentSlot));
+
+  if (m_netDevice != nullptr)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (m_netDevice)->RouteOutgoingCtrlMsgs (ctrlMsgs, m_phyMacConfig->GetCcId ());
+    }
+  else
+    {
+      // No netDevice (that could happen in tests) so just redirect them to us
+      for (const auto & msg : ctrlMsgs)
+        {
+          EncodeCtrlMsg (msg);
+        }
+    }
+
+
   Simulator::Schedule (nextVarTtiStart, &MmWaveEnbPhy::StartVarTti, this);
 }
 
@@ -902,11 +922,8 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
-
   // Start with a clean RBG allocation bitmask
   m_rbgAllocationPerSym.clear ();
-
 
   // Create RBG map to know where to put power in DL
   for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
@@ -923,14 +940,10 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
 
-  // create control messages to be transmitted in DL-Control period
-
-  EnqueueCtrlMsgNow (RetrieveMsgsFromDCIs (currentSlot));
-  std::list <Ptr<MmWaveControlMessage>> ctrlMsgs = PopCurrentSlotCtrlMsgs ();
-
-  if (ctrlMsgs.size () > 0)
+  // The function that is filling m_ctrlMsgs is MmWavePhy::encodeCtrlMsgs
+  if (m_ctrlMsgs.size () > 0)
     {
-      NS_LOG_DEBUG ("ENB TXing DL CTRL with " << ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
+      NS_LOG_DEBUG ("ENB TXing DL CTRL with " << m_ctrlMsgs.size () << " msgs, frame " << m_frameNum <<
                     " subframe " << static_cast<uint32_t> (m_subframeNum) <<
                     " slot " << static_cast<uint32_t> (m_slotNum) <<
                     " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
@@ -938,14 +951,14 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                     " start " << Simulator::Now () <<
                     " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (1.0));
 
-      for (auto ctrlIt = ctrlMsgs.begin (); ctrlIt != ctrlMsgs.end (); ++ctrlIt)
+      for (auto ctrlIt = m_ctrlMsgs.begin (); ctrlIt != m_ctrlMsgs.end (); ++ctrlIt)
         {
           Ptr<MmWaveControlMessage> msg = (*ctrlIt);
           m_phyTxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
                                   dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
         }
 
-      SendCtrlChannels (&ctrlMsgs, varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
+      SendCtrlChannels (varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
     }
   else
     {
@@ -1222,8 +1235,7 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
 }
 
 void
-MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
-                                const Time &varTtiPeriod)
+MmWaveEnbPhy::SendCtrlChannels (const Time &varTtiPeriod)
 {
   NS_LOG_FUNCTION (this << "Send Ctrl");
 
@@ -1236,9 +1248,8 @@ MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
 
   SetSubChannels (fullBwRb);
 
-  m_spectrumPhy->StartTxDlControlFrames (*ctrlMsgs, varTtiPeriod);
-
-  ctrlMsgs->clear ();
+  m_spectrumPhy->StartTxDlControlFrames (m_ctrlMsgs, varTtiPeriod);
+  m_ctrlMsgs.clear ();
 }
 
 bool
@@ -1305,7 +1316,7 @@ MmWaveEnbPhy::GenerateDataCqiReport (const SpectrumValue& sinr)
 
 
 void
-MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList)
+MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 {
   NS_LOG_FUNCTION (this);
 
@@ -1319,93 +1330,84 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage>
   //    m_channelStatus = GRANTED;
    // }
 
-  auto ctrlIt = msgList.begin ();
-
-  while (ctrlIt != msgList.end ())
+  if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
     {
-      Ptr<MmWaveControlMessage> msg = (*ctrlIt);
+      NS_LOG_INFO ("received CQI");
 
-      if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
+      Ptr<MmWaveDlCqiMessage> dlcqi = DynamicCast<MmWaveDlCqiMessage> (msg);
+      DlCqiInfo dlcqiLE = dlcqi->GetDlCqi ();
+      m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                              dlcqiLE.m_rnti, m_phyMacConfig->GetCcId (), msg);
+
+      NS_LOG_INFO ("Received DL_CQI for RNTI: " << dlcqiLE.m_rnti << " in slot " <<
+                   SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                   ", scheduling MAC ReceiveControlMessage after the decode latency");
+      Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                           &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
+    {
+      NS_LOG_INFO ("received BSR");
+
+      Ptr<MmWaveBsrMessage> bsrmsg = DynamicCast<MmWaveBsrMessage> (msg);
+      MacCeElement macCeEl = bsrmsg->GetBsr();
+      m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                              macCeEl.m_rnti, m_phyMacConfig->GetCcId (), msg);
+
+      NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
+                   SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                   ", scheduling MAC ReceiveControlMessage after the decode latency");
+      Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                           &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
+    {
+      NS_LOG_INFO ("received RACH_PREAMBLE");
+      NS_ASSERT (m_cellId > 0);
+
+      Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
+      //          m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
+      m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                              0, m_phyMacConfig->GetCcId (), msg);
+      NS_LOG_INFO ("Received RACH Preamble in slot " <<
+                   SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+                   ", scheduling MAC ReceiveControlMessage after the decode latency");
+      Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                           &MmWaveEnbPhySapUser::ReceiveRachPreamble, m_phySapUser,
+                           rachPreamble->GetRapId ());
+
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
+    {
+
+      Ptr<MmWaveDlHarqFeedbackMessage> dlharqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
+      DlHarqInfo dlharq = dlharqMsg->GetDlHarqFeedback ();
+
+      NS_LOG_INFO ("cellId:" << m_cellId << Simulator::Now () <<
+                   " received DL_HARQ from: " << dlharq.m_rnti);
+      // check whether the UE is connected
+
+      if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
         {
-          NS_LOG_INFO ("received CQI");
-
-          Ptr<MmWaveDlCqiMessage> dlcqi = DynamicCast<MmWaveDlCqiMessage> (msg);
-          DlCqiInfo dlcqiLE = dlcqi->GetDlCqi ();
           m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                  dlcqiLE.m_rnti, m_phyMacConfig->GetCcId (), msg);
+                                  dlharq.m_rnti, m_phyMacConfig->GetCcId (), msg);
 
-          NS_LOG_INFO ("Received DL_CQI for RNTI: " << dlcqiLE.m_rnti << " in slot " <<
+          NS_LOG_INFO ("Received DL_HARQ for RNTI: " << dlharq.m_rnti << " in slot " <<
                        SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
                        ", scheduling MAC ReceiveControlMessage after the decode latency");
           Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
                                &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
         }
-      else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
-        {
-          NS_LOG_INFO ("received BSR");
+    }
+  else
+    {
+      //m_phySapUser->ReceiveControlMessage (msg);
 
-          Ptr<MmWaveBsrMessage> bsrmsg = DynamicCast<MmWaveBsrMessage> (msg);
-          MacCeElement macCeEl = bsrmsg->GetBsr();
-          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                  macCeEl.m_rnti, m_phyMacConfig->GetCcId (), msg);
+      m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
+                              0, m_phyMacConfig->GetCcId (), msg);
 
-          NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
-                       SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
-                       ", scheduling MAC ReceiveControlMessage after the decode latency");
-          Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
-                               &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
-        }
-      else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
-        {
-          NS_LOG_INFO ("received RACH_PREAMBLE");
-          NS_ASSERT (m_cellId > 0);
-
-          Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
-//          m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
-          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                  0, m_phyMacConfig->GetCcId (), msg);
-          NS_LOG_INFO ("Received RACH Preamble in slot " <<
-                                 SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
-                                 ", scheduling MAC ReceiveControlMessage after the decode latency");
-          Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
-                               &MmWaveEnbPhySapUser::ReceiveRachPreamble, m_phySapUser,
-                               rachPreamble->GetRapId ());
-
-        }
-      else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
-        {
-
-          Ptr<MmWaveDlHarqFeedbackMessage> dlharqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
-          DlHarqInfo dlharq = dlharqMsg->GetDlHarqFeedback ();
-
-          NS_LOG_INFO ("cellId:" << m_cellId << Simulator::Now () <<
-                       " received DL_HARQ from: " << dlharq.m_rnti);
-          // check whether the UE is connected
-
-          if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
-            {
-              m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                      dlharq.m_rnti, m_phyMacConfig->GetCcId (), msg);
-
-              NS_LOG_INFO ("Received DL_HARQ for RNTI: " << dlharq.m_rnti << " in slot " <<
-                           SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
-                           ", scheduling MAC ReceiveControlMessage after the decode latency");
-              Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
-                                   &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
-            }
-        }
-      else
-        {
-          //m_phySapUser->ReceiveControlMessage (msg);
-
-          m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                  0, m_phyMacConfig->GetCcId (), msg);
-
-          Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
-                               &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
-        }
-
-      ctrlIt++;
+      Simulator::Schedule( MicroSeconds (m_phyMacConfig->GetTbDecodeLatency()),
+                           &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
     }
 
 }
