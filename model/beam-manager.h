@@ -20,30 +20,16 @@
 #ifndef SRC_NR_MODEL_BEAM_MANAGER_H_
 #define SRC_NR_MODEL_BEAM_MANAGER_H_
 
-#include "beam-id.h"
 #include "ideal-beamforming-algorithm.h"
 #include "ns3/event-id.h"
-#include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/nstime.h>
+#include <ns3/net-device.h>
+
 
 namespace ns3 {
 
 class MmWaveUeNetDevice;
 class MmWaveEnbNetDevice;
-
-/**
- * \ingroup beam-management
- * \brief Physical representation of a beam.
- *
- * Contains the vector of the antenna weight, as well as the beam id. These
- * values are stored as std::pair, and we provide utilities functions to
- * extract them.
- *
- * \see GetVector
- * \see GetBeamId
- */
-typedef std::pair<complexVector_t, BeamId>  BeamformingVector;
-
 
 /**
  * \ingroup beam-management
@@ -92,16 +78,17 @@ public:
   typedef std::map<const Ptr<const NetDevice>, BeamformingVector> BeamformingStorage; //!< BeamformingStorage type used to save the map of beamforming vectors per device
 
   /**
-   * \brief Function sets the beamforming weights of the antenna
+   * \brief Function that saves the beamforming weights of the antenna
    * for transmission or reception to/from a specified connected device.
-   * It also configures the beamId of this beamforming vector.  *
    * \param antennaWeights the weights of the beamforming vector
    * \param beamId the unique identifier of the beam
    * \param device device to which it is being transmitted, or from which is
    * being received
    */
-  virtual void SetBeamformingVector (const complexVector_t& antennaWeights, const BeamId& beamId,
-                                     const Ptr<const NetDevice>& device);
+private:
+  virtual void SaveBeamformingVector (const BeamformingVector& bfv,
+                                      const Ptr<const NetDevice>& device);
+public:
 
   /**
    * \brief Change the beamforming vector for tx/rx to/from specified device
@@ -186,6 +173,7 @@ private:
 
   //only genie beaforming
   bool m_performGenieBeamforming {true}; //!< True when we have to do beamforming. Default to true or we will not perform beamforming the first time..
+  uint16_t m_ccId {0};
   Ptr<IdealBeamformingAlgorithm> m_genieAlgorithm;
 };
 

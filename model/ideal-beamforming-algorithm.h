@@ -21,16 +21,22 @@
 #define SRC_NR_MODEL_IDEAL_BEAMFORMING_ALGORITHM_H_
 
 #include <ns3/object.h>
+#include "beam-id.h"
+#include <ns3/three-gpp-antenna-array-model.h>
 
 namespace ns3 {
 
-class BeamManager;
 class SpectrumModel;
 class SpectrumValue;
 class MmWaveEnbNetDevice;
 class MmWaveUeNetDevice;
-class NetDevice;
 
+/**
+ * \brief IdealBeamformingAlgorithm purpose is to generate beams for the pair
+ * of communicating devices. This group of algorithms assumes
+ * a perfect knowledge of the channel, because of which is called "ideal"
+ * algorithm.
+ */
 class IdealBeamformingAlgorithm: public Object
 {
 
@@ -53,17 +59,25 @@ public:
   virtual ~IdealBeamformingAlgorithm ();
 
   /**
-   * \brief Set owner gNB device of this ideal beamforming algorithm
+   * \brief Set ccId to which belongs this ideal beamforming algorithm
    */
   void SetOwner (uint8_t ccId);
 
-  virtual void Run (Ptr<MmWaveEnbNetDevice> gnbDev, Ptr<MmWaveUeNetDevice> ueDev) const;
+  virtual void GetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
 
   static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
 
 private:
 
-  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const = 0;
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const = 0;
 
 protected:
 
@@ -94,9 +108,9 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 
-  void SetSector (uint16_t sector, double elevation,  Ptr<BeamManager> beamManager) const;
+  void SetSector (uint16_t sector, double elevation,  Ptr<ThreeGppAntennaArrayModel> antennaArray) const;
 
   double m_beamSearchAngleStep {30};
 
@@ -115,7 +129,7 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 };
 
 
@@ -133,7 +147,7 @@ public:
 
 private:
 
-  virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 };
 
 

@@ -25,6 +25,7 @@
 #include <ns3/boolean.h>
 #include "mmwave-enb-net-device.h"
 #include "mmwave-ue-net-device.h"
+#include "mmwave-ue-phy.h"
 
 namespace ns3 {
 
@@ -90,38 +91,40 @@ BeamManager::GetTypeId (void)
 
 
 void
-BeamManager::SetBeamformingVector (const complexVector_t& antennaWeights, const BeamId& beamId,
-                                   const Ptr<const NetDevice>& device)
+BeamManager::SaveBeamformingVector (const BeamformingVector& bfv,
+                                    const Ptr<const NetDevice>& device)
 {
-  NS_LOG_INFO ("SetBeamformingVector for BeamId:" << beamId << " node id: " << device->GetNode()->GetId());
+  NS_LOG_INFO ("SetBeamformingVector for BeamId:" << bfv.second << " node id: " << device->GetNode()->GetId());
 
   if (device != nullptr)
     {
       BeamformingStorage::iterator iter = m_beamformingVectorMap.find (device);
       if (iter != m_beamformingVectorMap.end ())
         {
-          (*iter).second = BeamformingVector (std::make_pair(antennaWeights, beamId));
+          (*iter).second = bfv;
         }
       else
         {
-          m_beamformingVectorMap.insert (std::make_pair (device,
-                                                         std::make_pair(antennaWeights, beamId)));
+          m_beamformingVectorMap.insert (std::make_pair (device, bfv));
         }
     }
-
-  m_antennaArray->SetBeamformingVector(antennaWeights);
+  m_antennaArray->SetBeamformingVector(bfv.first);
 }
 
 void
 BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
 {
+  NS_LOG_FUNCTION(this);
   if (m_performGenieBeamforming)
     {
       m_performGenieBeamforming = false;
 
       for (const auto & ueDev : m_ueDeviceMap)
         {
-          m_genieAlgorithm->Run(m_gnbNetDevice, ueDev);
+          BeamformingVector gnbBfv, ueBfv;
+          m_genieAlgorithm->GetBeamformingVectors (m_gnbNetDevice, ueDev, &gnbBfv, &ueBfv);
+          SaveBeamformingVector (gnbBfv, ueDev);
+          (ueDev->GetPhy(m_ccId))->GetBeamManager()->SaveBeamformingVector(ueBfv, m_gnbNetDevice);
         }
     }
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
