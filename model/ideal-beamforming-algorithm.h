@@ -55,15 +55,9 @@ public:
   /**
    * \brief Set owner gNB device of this ideal beamforming algorithm
    */
-  void SetOwner (Ptr<MmWaveEnbNetDevice> owner, uint8_t ccId);
+  void SetOwner (uint8_t ccId);
 
-  /**
-   * \brief Add UE device in the list of UE devices for which will be performed
-   * ideal beamforming method
-   */
-  void AddUeDevice (Ptr<MmWaveUeNetDevice> ueDevice);
-
-  virtual void Run () const;
+  virtual void Run (Ptr<MmWaveEnbNetDevice> gnbDev, Ptr<MmWaveUeNetDevice> ueDev) const;
 
   static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
 
@@ -71,12 +65,8 @@ private:
 
   virtual void DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const = 0;
 
-
-  std::vector< Ptr<MmWaveUeNetDevice> > m_ueDeviceMap;  // list of UE devices for which genie beamforming should be performed
-
 protected:
 
-  Ptr<MmWaveEnbNetDevice> m_netDevice;
   uint8_t m_ccId {0};
 
 };

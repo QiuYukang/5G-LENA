@@ -28,6 +28,9 @@
 
 namespace ns3 {
 
+class MmWaveUeNetDevice;
+class MmWaveEnbNetDevice;
+
 /**
  * \ingroup beam-management
  * \brief Physical representation of a beam.
@@ -154,9 +157,20 @@ public:
    */
   void ExpireBeamformingTimer ();
 
-  void SetIdeamBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm);
+  void SetIdealBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm);
 
   Ptr<IdealBeamformingAlgorithm> GetIdealBeamformingAlgorithm() const;
+
+  /**
+   * \brief Add UE device in the list of UE devices for which will be performed
+   * ideal beamforming method
+   */
+  void AddUeDevice (const Ptr<MmWaveUeNetDevice> ueDevice);
+
+  /**
+   * \brief Defines the owner gnb device of this beam manager
+   */
+  void SetOwner (const Ptr<MmWaveEnbNetDevice> gnbDevice);
 
 private:
 
@@ -167,6 +181,8 @@ private:
 
   //only gNB beam manager needs this part
   BeamformingStorage m_beamformingVectorMap; //!< device to beamforming vector mapping
+  std::vector< Ptr<MmWaveUeNetDevice> > m_ueDeviceMap;  //!< list of UE devices for which genie beamforming should be performed
+  Ptr<MmWaveEnbNetDevice> m_gnbNetDevice; // device to which belongs this manager
 
   //only genie beaforming
   bool m_performGenieBeamforming {true}; //!< True when we have to do beamforming. Default to true or we will not perform beamforming the first time..

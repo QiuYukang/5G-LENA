@@ -75,26 +75,16 @@ IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (double powerTx, Ptr
 }
 
 void
-IdealBeamformingAlgorithm::Run() const
+IdealBeamformingAlgorithm::Run(Ptr<MmWaveEnbNetDevice> gnbDev, Ptr<MmWaveUeNetDevice> ueDev) const
 {
-  for (const auto & dev : m_ueDeviceMap)
-    {
-      DoRun (m_netDevice, dev);
-    }
+  DoRun (gnbDev, ueDev);
 }
 
 
 void
-IdealBeamformingAlgorithm::SetOwner (Ptr<MmWaveEnbNetDevice> gNbDev, uint8_t ccId)
+IdealBeamformingAlgorithm::SetOwner (uint8_t ccId)
 {
-  m_netDevice = gNbDev;
   m_ccId = ccId;
-}
-
-void
-IdealBeamformingAlgorithm::AddUeDevice (Ptr<MmWaveUeNetDevice> ueDevice)
-{
-  m_ueDeviceMap.push_back(ueDevice);
 }
 
 TypeId

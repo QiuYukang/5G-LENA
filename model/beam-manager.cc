@@ -23,6 +23,8 @@
 #include <ns3/simulator.h>
 #include <ns3/node.h>
 #include <ns3/boolean.h>
+#include "mmwave-enb-net-device.h"
+#include "mmwave-ue-net-device.h"
 
 namespace ns3 {
 
@@ -116,7 +118,11 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
   if (m_performGenieBeamforming)
     {
       m_performGenieBeamforming = false;
-      m_genieAlgorithm->Run();
+
+      for (const auto & ueDev : m_ueDeviceMap)
+        {
+          m_genieAlgorithm->Run(m_gnbNetDevice, ueDev);
+        }
     }
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
   if (it == m_beamformingVectorMap.end ())
@@ -129,7 +135,18 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
       NS_LOG_INFO ("Beamforming vector found");
       m_antennaArray->SetBeamformingVector(it->second.first);
     }
+}
 
+void
+BeamManager::AddUeDevice (const Ptr<MmWaveUeNetDevice> ueDevice)
+{
+  m_ueDeviceMap.push_back(ueDevice);
+}
+
+void
+BeamManager::SetOwner (const Ptr<MmWaveEnbNetDevice> gnbDevice)
+{
+  m_gnbNetDevice = gnbDevice;
 }
 
 complexVector_t
@@ -233,7 +250,7 @@ BeamManager::ExpireBeamformingTimer()
 }
 
 void
-BeamManager::SetIdeamBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm)
+BeamManager::SetIdealBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm)
 {
   m_genieAlgorithm = algorithm;
 }

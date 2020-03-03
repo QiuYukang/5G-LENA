@@ -162,8 +162,9 @@ MmWaveEnbPhy::DoInitialize (void)
       objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
 
       Ptr<IdealBeamformingAlgorithm> idealAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
-      idealAlgorithm->SetOwner (DynamicCast<MmWaveEnbNetDevice>(m_netDevice), m_phyMacConfig->GetCcId());
-      m_beamManager->SetIdeamBeamformingAlgorithm (idealAlgorithm);
+      idealAlgorithm->SetOwner (m_phyMacConfig->GetCcId());
+      m_beamManager->SetOwner (DynamicCast<MmWaveEnbNetDevice>(m_netDevice));
+      m_beamManager->SetIdealBeamformingAlgorithm (idealAlgorithm);
     }
 
   MmWavePhy::DoInitialize ();
@@ -1253,7 +1254,7 @@ MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<MmWaveUeNetDevice> &ueDevice)
       m_deviceMap.push_back (ueDevice);
       if (m_idealBeamformingEnabled)
         {
-          m_beamManager->GetIdealBeamformingAlgorithm ()->AddUeDevice (ueDevice);
+          m_beamManager->AddUeDevice (ueDevice);
         }
       return (true);
     }
