@@ -1054,8 +1054,8 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
-    	  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-    	  m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
+          NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+          m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
           found = true;
           break;
         }
@@ -1198,8 +1198,8 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
 {
   if (varTtiInfo.m_isOmni)
     {
-	  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-	  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
+      NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+      m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
     }
   else
     {   // update beamforming vectors (currently supports 1 user only)
