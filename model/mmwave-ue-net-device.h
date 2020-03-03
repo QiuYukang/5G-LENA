@@ -94,6 +94,17 @@ public:
    */
   uint32_t GetCcMapSize () const;
 
+  /**
+   * \brief Spectrum has calculated the HarqFeedback for one DL transmission,
+   * and give it to the NetDevice of the UE.
+   *
+   * The NetDevice find the best BWP to forward the Harq Feedback, and then
+   * forward it to the PHY of the selected BWP.
+   *
+   * \param m feedback
+   */
+  void EnqueueDlHarqFeedback (const DlHarqInfo &m) const;
+
 protected:
   // inherited from Object
   virtual void DoInitialize (void);

@@ -337,7 +337,8 @@ MmWaveHelper::CreateUeMac () const
 }
 
 Ptr<MmWaveUePhy>
-MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf)
+MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf,
+                           const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback)
 {
   NS_LOG_FUNCTION (this);
 
@@ -362,7 +363,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation
 
   if (m_harqEnabled)
     {
-      channelPhy->SetPhyDlHarqFeedbackCallback (MakeCallback (&MmWaveUePhy::EnqueueDlHarqFeedback, phy));
+      channelPhy->SetPhyDlHarqFeedbackCallback (dlHarqCallback);
     }
 
   channelPhy->SetChannel (conf.m_channel);
@@ -406,7 +407,7 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
       auto mac = CreateUeMac ();
       cc->SetMac (mac);
 
-      auto phy = CreateUePhy (n, conf.second);
+      auto phy = CreateUePhy (n, conf.second, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev) );
       phy->SetDevice (dev);
       phy->GetSpectrumPhy ()->SetDevice (dev);
       cc->SetPhy (phy);

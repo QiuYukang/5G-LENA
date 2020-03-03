@@ -29,6 +29,7 @@
 #include <ns3/mmwave-control-messages.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/mmwave-spectrum-phy.h>
 
 namespace ns3 {
 
@@ -503,7 +504,8 @@ private:
   Ptr<MmWaveEnbMac> CreateGnbMac (const BandwidthPartRepresentation& conf);
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
-  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf);
+  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf,
+                                const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback);
 
   Ptr<NetDevice> InstallSingleUeDevice (Ptr<Node> n);
   Ptr<NetDevice> InstallSingleEnbDevice (Ptr<Node> n);

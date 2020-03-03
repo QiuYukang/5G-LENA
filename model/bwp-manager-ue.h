@@ -20,6 +20,7 @@
 #define BWPMANAGERUE_H
 
 #include <ns3/simple-ue-component-carrier-manager.h>
+#include <ns3/mmwave-phy-mac-common.h>
 
 namespace ns3 {
 
@@ -36,6 +37,16 @@ public:
 
   BwpManagerUe ();
   virtual ~BwpManagerUe () override;
+
+  /**
+   * \brief The UE received a HARQ feedback from spectrum. Where this feedback
+   * should be forwarded?
+   *
+   * \param m the feedback
+   * \return the BWP index in which the feedback can be transmitted to the gNB.
+   */
+  uint8_t RouteDlHarqFeedback (const DlHarqInfo &m) const;
+
 protected:
   virtual void DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params) override;
   virtual std::vector<LteUeCcmRrcSapProvider::LcsConfig> DoAddLc (uint8_t lcId,  LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu) override;

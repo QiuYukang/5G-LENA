@@ -22,6 +22,7 @@
 #include "mmwave-ue-mac.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-enb-net-device.h"
+#include "bwp-manager-ue.h"
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/epc-ue-nas.h>
 #include <ns3/lte-ue-component-carrier-manager.h>
@@ -118,6 +119,17 @@ MmWaveUeNetDevice::GetCcMapSize() const
 {
   NS_LOG_FUNCTION (this);
   return m_ccMap.size ();
+}
+
+void
+MmWaveUeNetDevice::EnqueueDlHarqFeedback (const DlHarqInfo &m) const
+{
+  NS_LOG_FUNCTION (this);
+
+  auto ccManager = DynamicCast<BwpManagerUe> (m_componentCarrierManager);
+  NS_ASSERT (ccManager != nullptr);
+  uint8_t index = ccManager->RouteDlHarqFeedback (m);
+  m_ccMap.at (index)->GetPhy ()->EnqueueDlHarqFeedback (m);
 }
 
 void

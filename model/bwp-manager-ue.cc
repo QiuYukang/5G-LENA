@@ -91,4 +91,12 @@ LteMacSapUser
   return SimpleUeComponentCarrierManager::DoConfigureSignalBearer (lcId, lcConfig, msu);
 }
 
+uint8_t
+BwpManagerUe::RouteDlHarqFeedback (const DlHarqInfo &m) const
+{
+  NS_LOG_FUNCTION (this);
+
+  return m.m_bwpIndex;
+}
+
 } // namespace ns3
