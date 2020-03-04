@@ -31,7 +31,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
-#include "ns3/component-carrier-gnb.h"
+#include "ns3/bandwidth-part-gnb.h"
 
 using namespace ns3;
 
@@ -493,7 +493,7 @@ main (int argc, char *argv[])
       enbNetDev.Get (j)->GetAttribute ("ComponentCarrierMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN (); i++)
         {
-          Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb> (objectMapValue.Get (i));
+          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb> (objectMapValue.Get (i));
           uint8_t bwdId = bandwidthPart->GetPhy ()->GetConfigurationParameters ()->GetCcId ();
           uint32_t bw = (bwpList.at (bwdId))->m_bandwidth;
           bandwidthPart->GetPhy ()->SetTxPower (10 * log10 ((bw / totalBandwidth) * x));

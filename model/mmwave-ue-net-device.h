@@ -33,7 +33,7 @@ class LteUeComponentCarrierManager;
 class EpcUeNas;
 class LteUeRrc;
 class MmWaveEnbNetDevice;
-class ComponentCarrierMmWaveUe;
+class BandwidthPartUe;
 
 class MmWaveUeNetDevice : public MmWaveNetDevice
 {
@@ -80,13 +80,13 @@ public:
    * \brief Set the ComponentCarrier Map for the UE
    * \param ccm the map of ComponentCarrierUe
    */
-  void SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> > ccm);
+  void SetCcMap (std::map< uint8_t, Ptr<BandwidthPartUe> > ccm);
 
   /**
    * \brief Get the ComponentCarrier Map for the UE
    * \returns the map of ComponentCarrierUe
    */
-  std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> >  GetCcMap (void);
+  std::map< uint8_t, Ptr<BandwidthPartUe> >  GetCcMap (void);
 
   /**
    * \brief Get the size of the component carriers map
@@ -140,7 +140,7 @@ private:
   uint32_t m_csgId;
   bool m_isConstructed;
 
-  std::map < uint8_t, Ptr<ComponentCarrierMmWaveUe> > m_ccMap; ///< component carrier map
+  std::map < uint8_t, Ptr<BandwidthPartUe> > m_ccMap; ///< component carrier map
   Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
 
 };

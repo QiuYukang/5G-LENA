@@ -215,7 +215,7 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     enbNetDev.Get(0)->GetAttribute("ComponentCarrierMap", objectMapValue);
     for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
       {
-        Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
+        Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
         if (i==0)
           {
             bandwidthPart->GetPhy()->SetTxPower(10*log10((m_bw1/totalBandwidth)*x));
@@ -232,7 +232,7 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
         ueNetDev.Get(j)->GetAttribute("ComponentCarrierMapUe", objectMapValue);
         for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
           {
-            Ptr<ComponentCarrierMmWaveUe> bandwidthPart = DynamicCast<ComponentCarrierMmWaveUe>(objectMapValue.Get(i));
+            Ptr<BandwidthPartUe> bandwidthPart = DynamicCast<BandwidthPartUe>(objectMapValue.Get(i));
             if (i==0)
               {
                 bandwidthPart->GetPhy()->SetTxPower(10*log10((m_bw1/totalBandwidth)*x));

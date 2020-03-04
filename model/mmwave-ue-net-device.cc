@@ -18,7 +18,7 @@
  */
 
 #include "mmwave-ue-net-device.h"
-#include "component-carrier-mmwave-ue.h"
+#include "bandwidth-part-ue.h"
 #include "mmwave-ue-mac.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-enb-net-device.h"
@@ -70,7 +70,7 @@ MmWaveUeNetDevice::GetTypeId (void)
     .AddAttribute ("ComponentCarrierMapUe", "List of all component Carrier.",
                    ObjectMapValue (),
                    MakeObjectMapAccessor (&MmWaveUeNetDevice::m_ccMap),
-                   MakeObjectMapChecker<ComponentCarrierMmWaveUe> ())
+                   MakeObjectMapChecker<BandwidthPartUe> ())
   ;
   return tid;
 }
@@ -93,7 +93,7 @@ MmWaveUeNetDevice::DoInitialize (void)
   m_isConstructed = true;
   UpdateConfig ();
 
-  std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> >::iterator it;
+  std::map< uint8_t, Ptr<BandwidthPartUe> >::iterator it;
   for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
     {
       it->second->GetMac ()->Initialize ();
@@ -107,7 +107,7 @@ MmWaveUeNetDevice::DoDispose ()
   m_rrc->Dispose ();
 }
 
-std::map < uint8_t, Ptr<ComponentCarrierMmWaveUe> >
+std::map < uint8_t, Ptr<BandwidthPartUe> >
 MmWaveUeNetDevice::GetCcMap ()
 {
   NS_LOG_FUNCTION (this);
@@ -158,7 +158,7 @@ MmWaveUeNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessa
 }
 
 void
-MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> > ccm)
+MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<BandwidthPartUe> > ccm)
 {
   NS_LOG_FUNCTION (this);
   m_ccMap = ccm;

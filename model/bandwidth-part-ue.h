@@ -35,9 +35,9 @@ class MmWaveUeMac;
 /**
  * \ingroup lte
  *
- * ComponentCarrierMmWaveUe
+ * BandwidthPartUe
  */
-class ComponentCarrierMmWaveUe : public ComponentCarrier
+class BandwidthPartUe : public ComponentCarrier
 {
 public:
   /**
@@ -46,9 +46,9 @@ public:
    */
   static TypeId GetTypeId (void);
 
-  ComponentCarrierMmWaveUe ();
+  BandwidthPartUe ();
 
-  virtual ~ComponentCarrierMmWaveUe (void);
+  virtual ~BandwidthPartUe (void) override;
   virtual void DoDispose (void) override;
 
 

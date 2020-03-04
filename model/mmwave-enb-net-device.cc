@@ -25,7 +25,7 @@
 #include <ns3/lte-enb-component-carrier-manager.h>
 #include <ns3/ipv4-l3-protocol.h>
 
-#include "component-carrier-gnb.h"
+#include "bandwidth-part-gnb.h"
 #include "mmwave-enb-mac.h"
 #include "mmwave-enb-phy.h"
 #include "bwp-manager-gnb.h"
@@ -49,7 +49,7 @@ MmWaveEnbNetDevice::GetTypeId ()
     .AddAttribute ("ComponentCarrierMap", "List of component carriers.",
                    ObjectMapValue (),
                    MakeObjectMapAccessor (&MmWaveEnbNetDevice::m_ccMap),
-                   MakeObjectMapChecker<ComponentCarrierGnb> ())
+                   MakeObjectMapChecker<BandwidthPartGnb> ())
     .AddAttribute ("LteEnbRrc", "The RRC layer associated with the ENB", PointerValue (),
                    MakePointerAccessor (&MmWaveEnbNetDevice::m_rrc),
                    MakePointerChecker<LteEnbRrc> ())
@@ -73,7 +73,7 @@ MmWaveEnbNetDevice::~MmWaveEnbNetDevice ()
 }
 
 void
-MmWaveEnbNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierGnb> > ccm)
+MmWaveEnbNetDevice::SetCcMap (std::map< uint8_t, Ptr<BandwidthPartGnb> > ccm)
 {
   NS_ASSERT_MSG (!m_isConfigured, "attempt to set CC map after configuration");
   m_ccMap = ccm;
@@ -118,7 +118,7 @@ MmWaveEnbNetDevice::DoInitialize (void)
   m_isConstructed = true;
   UpdateConfig ();
 
-  std::map<uint8_t, Ptr<ComponentCarrierGnb> >::iterator it;
+  std::map<uint8_t, Ptr<BandwidthPartGnb> >::iterator it;
   for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
     {
       it->second->Initialize ();

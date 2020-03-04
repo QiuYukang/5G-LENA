@@ -34,7 +34,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
-#include "ns3/component-carrier-gnb.h"
+#include "ns3/bandwidth-part-gnb.h"
 
 using namespace ns3;
 
@@ -301,7 +301,7 @@ main (int argc, char *argv[])
       enbNetDev.Get(j)->GetAttribute("ComponentCarrierMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
-          Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
+          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
           if (i==0)
             {
               bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp1/totalBandwidth)*x));
@@ -317,7 +317,7 @@ main (int argc, char *argv[])
               std::cout<<"\n Please extend power assignment for additional bandwidht parts...";
             }
         }
-      //std::map<uint8_t, Ptr<ComponentCarrierGnb> > ccMap = objectMapValue.GetN()
+      //std::map<uint8_t, Ptr<BandwidthPartGnb> > ccMap = objectMapValue.GetN()
     }
 
   // create the internet and install the IP stack on the UEs

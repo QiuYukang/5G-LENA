@@ -28,52 +28,52 @@
 #include <ns3/mmwave-enb-mac.h>
 #include <ns3/lte-ffr-algorithm.h>
 #include <ns3/ff-mac-scheduler.h>
-#include "component-carrier-gnb.h"
+#include "bandwidth-part-gnb.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("ComponentCarrierGnb");
-NS_OBJECT_ENSURE_REGISTERED (ComponentCarrierGnb);
+NS_LOG_COMPONENT_DEFINE ("BandwidthPartGnb");
+NS_OBJECT_ENSURE_REGISTERED (BandwidthPartGnb);
 
-TypeId ComponentCarrierGnb::GetTypeId (void)
+TypeId BandwidthPartGnb::GetTypeId (void)
 {
   static TypeId
     tid =
-    TypeId ("ns3::ComponentCarrierGnb")
+    TypeId ("ns3::BandwidthPartGnb")
     .SetParent<ComponentCarrierBaseStation> ()
-    .AddConstructor<ComponentCarrierGnb> ()
+    .AddConstructor<BandwidthPartGnb> ()
     .AddAttribute ("MmWaveEnbPhy",
                    "The PHY associated to this EnbNetDevice",
                    PointerValue (),
-                   MakePointerAccessor (&ComponentCarrierGnb::m_phy),
+                   MakePointerAccessor (&BandwidthPartGnb::m_phy),
                    MakePointerChecker <MmWaveEnbPhy> ())
     .AddAttribute ("MmWaveEnbMac",
                    "The MAC associated to this EnbNetDevice",
                    PointerValue (),
-                   MakePointerAccessor (&ComponentCarrierGnb::m_mac),
+                   MakePointerAccessor (&BandwidthPartGnb::m_mac),
                    MakePointerChecker <MmWaveEnbMac> ())
     .AddAttribute ("FfMacScheduler",
                    "The scheduler associated to this EnbNetDevice",
                    PointerValue (),
-                   MakePointerAccessor (&ComponentCarrierGnb::m_scheduler),
+                   MakePointerAccessor (&BandwidthPartGnb::m_scheduler),
                    MakePointerChecker <FfMacScheduler> ())
   ;
   return tid;
 }
-ComponentCarrierGnb::ComponentCarrierGnb ()
+BandwidthPartGnb::BandwidthPartGnb ()
   : ComponentCarrierBaseStation ()
 {
   NS_LOG_FUNCTION (this);
   m_phy = nullptr;
 }
 
-ComponentCarrierGnb::~ComponentCarrierGnb (void)
+BandwidthPartGnb::~BandwidthPartGnb (void)
 {
   NS_LOG_FUNCTION (this);
 }
 
 void
-ComponentCarrierGnb::DoDispose ()
+BandwidthPartGnb::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   if (m_phy)
@@ -96,7 +96,7 @@ ComponentCarrierGnb::DoDispose ()
 
 
 void
-ComponentCarrierGnb::DoInitialize (void)
+BandwidthPartGnb::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
   m_isConstructed = true;
@@ -107,14 +107,14 @@ ComponentCarrierGnb::DoInitialize (void)
 }
 
 Ptr<MmWaveEnbPhy>
-ComponentCarrierGnb::GetPhy ()
+BandwidthPartGnb::GetPhy ()
 {
   NS_LOG_FUNCTION (this);
   return m_phy;
 }
 
 void
-ComponentCarrierGnb::SetPhy (Ptr<MmWaveEnbPhy> s)
+BandwidthPartGnb::SetPhy (Ptr<MmWaveEnbPhy> s)
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_phy != nullptr);
@@ -122,13 +122,13 @@ ComponentCarrierGnb::SetPhy (Ptr<MmWaveEnbPhy> s)
 }
 
 Ptr<MmWaveEnbMac>
-ComponentCarrierGnb::GetMac ()
+BandwidthPartGnb::GetMac ()
 {
   NS_LOG_FUNCTION (this);
   return m_mac;
 }
 void
-ComponentCarrierGnb::SetMac (Ptr<MmWaveEnbMac> s)
+BandwidthPartGnb::SetMac (Ptr<MmWaveEnbMac> s)
 {
   NS_LOG_FUNCTION (this);
   m_mac = s;
@@ -136,28 +136,28 @@ ComponentCarrierGnb::SetMac (Ptr<MmWaveEnbMac> s)
 
 
 Ptr<MmWaveMacScheduler>
-ComponentCarrierGnb::GetMmWaveMacScheduler ()
+BandwidthPartGnb::GetMmWaveMacScheduler ()
 {
   NS_LOG_FUNCTION (this);
   return m_scheduler;
 }
 
 void
-ComponentCarrierGnb::SetMmWaveMacScheduler (Ptr<MmWaveMacScheduler> s)
+BandwidthPartGnb::SetMmWaveMacScheduler (Ptr<MmWaveMacScheduler> s)
 {
   NS_LOG_FUNCTION (this);
   m_scheduler = s;
 }
 
 /*void
-ComponentCarrierGnb::SetFrequencyInHz (double centerFrequency)
+BandwidthPartGnb::SetFrequencyInHz (double centerFrequency)
 {
   NS_LOG_FUNCTION (this);
   m_centerFrequencyInHz = centerFrequency;
 }
 
 void
-ComponentCarrierGnb::SetNumerology (uint32_t numerology)
+BandwidthPartGnb::SetNumerology (uint32_t numerology)
 {
   NS_LOG_FUNCTION (this);
   m_numerology = numerology;

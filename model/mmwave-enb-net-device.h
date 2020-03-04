@@ -30,7 +30,7 @@ class Node;
 class MmWaveEnbPhy;
 class MmWaveEnbMac;
 class LteEnbRrc;
-class ComponentCarrierGnb;
+class BandwidthPartGnb;
 class LteEnbComponentCarrierManager;
 
 class MmWaveEnbNetDevice : public MmWaveNetDevice
@@ -56,7 +56,7 @@ public:
 
   Ptr<LteEnbRrc> GetRrc (void);
 
-  void SetCcMap (std::map<uint8_t, Ptr<ComponentCarrierGnb> > ccm);
+  void SetCcMap (std::map<uint8_t, Ptr<BandwidthPartGnb> > ccm);
 
   /**
    * \brief Get the size of the component carriers map
@@ -97,7 +97,7 @@ private:
 
   bool m_isConfigured;
 
-  std::map<uint8_t, Ptr<ComponentCarrierGnb> > m_ccMap; /**< ComponentCarrier map */
+  std::map<uint8_t, Ptr<BandwidthPartGnb> > m_ccMap; /**< ComponentCarrier map */
 
   Ptr<LteEnbComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager of this eNb
 

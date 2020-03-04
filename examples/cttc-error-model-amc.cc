@@ -283,7 +283,7 @@ main (int argc, char *argv[])
       netDevice->GetAttribute("ComponentCarrierMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
-          Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
+          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
           if (i==0)
             {
               bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp1/totalBandwidth)*x));

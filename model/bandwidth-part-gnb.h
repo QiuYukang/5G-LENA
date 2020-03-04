@@ -42,7 +42,7 @@ class MmWaveMacScheduler;
  * Defines a single carrier for gnb.
  *
  */
-class ComponentCarrierGnb : public ComponentCarrierBaseStation
+class BandwidthPartGnb : public ComponentCarrierBaseStation
 {
 public:
   /**
@@ -51,9 +51,9 @@ public:
    */
   static TypeId GetTypeId (void);
 
-  ComponentCarrierGnb ();
+  BandwidthPartGnb ();
 
-  virtual ~ComponentCarrierGnb (void);
+  virtual ~BandwidthPartGnb (void) override;
   virtual void DoDispose (void) override;
 
   /**

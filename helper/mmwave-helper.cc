@@ -32,7 +32,7 @@
 #include <ns3/mmwave-enb-net-device.h>
 #include <ns3/mmwave-ue-net-device.h>
 #include <ns3/nr-ch-access-manager.h>
-#include <ns3/component-carrier-gnb.h>
+#include <ns3/bandwidth-part-gnb.h>
 #include <ns3/bwp-manager-gnb.h>
 #include <ns3/bwp-manager-ue.h>
 #include <ns3/mmwave-rrc-protocol-ideal.h>
@@ -42,11 +42,11 @@
 #include <ns3/mmwave-phy-rx-trace.h>
 #include <ns3/mmwave-mac-rx-trace.h>
 #include <ns3/mmwave-bearer-stats-calculator.h>
-#include <ns3/component-carrier-mmwave-ue.h>
-#include <ns3/component-carrier-gnb.h>
+#include <ns3/bandwidth-part-ue.h>
 #include <ns3/beam-manager.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/mmwave-mac-scheduler-tdma-rr.h>
 
 #include <algorithm>
 
@@ -385,12 +385,12 @@ MmWaveHelper::InstallSingleUeDevice (Ptr<Node> n)
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveUeNetDevice> dev = m_ueNetDeviceFactory.Create<MmWaveUeNetDevice> ();
-  std::map<uint8_t, Ptr<ComponentCarrierMmWaveUe> > ueCcMap;
+  std::map<uint8_t, Ptr<BandwidthPartUe> > ueCcMap;
 
   // Create, for each ue, its component carriers
   for (const auto &conf : m_bwpConfiguration)
     {
-      Ptr <ComponentCarrierMmWaveUe> cc =  CreateObject<ComponentCarrierMmWaveUe> ();
+      Ptr <BandwidthPartUe> cc =  CreateObject<BandwidthPartUe> ();
       cc->SetUlBandwidth (conf.second.m_phyMacCommon->GetBandwidth ());
       cc->SetDlBandwidth (conf.second.m_phyMacCommon->GetBandwidth ());
       cc->SetDlEarfcn (conf.first + 1);
@@ -598,12 +598,12 @@ MmWaveHelper::InstallSingleEnbDevice (Ptr<Node> n)
   Ptr<MmWaveEnbNetDevice> dev = m_enbNetDeviceFactory.Create<MmWaveEnbNetDevice> ();
 
   // create component carrier map for this eNb device
-  std::map<uint8_t,Ptr<ComponentCarrierGnb> > ccMap;
+  std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
 
   for (const auto & conf : m_bwpConfiguration)
     {
       NS_ASSERT (conf.second.m_channel != nullptr);
-      Ptr <ComponentCarrierGnb> cc =  CreateObject<ComponentCarrierGnb> ();
+      Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
       cc->SetUlBandwidth (conf.second.m_phyMacCommon->GetBandwidth ());
       cc->SetDlBandwidth (conf.second.m_phyMacCommon->GetBandwidth ());
       cc->SetDlEarfcn (conf.first + 1);
