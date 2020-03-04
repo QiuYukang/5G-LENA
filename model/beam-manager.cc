@@ -37,16 +37,11 @@ BeamManager::BeamManager() {
 }
 
 void
-BeamManager::InstallAntenna (uint32_t antennaNumDim1, uint32_t antennaNumDim2, bool areIsotropicElements) //TODO check whether to remove spectrum model as parameter, it is needed for cell scan?
+BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray, uint32_t antennaNumDim1, uint32_t antennaNumDim2) //TODO check whether to remove spectrum model as parameter, it is needed for cell scan?
 {
-  NS_ASSERT_MSG (m_antennaArray == nullptr, "Antenna already installed, access directly to antenna object to change parameters");
-  m_antennaArray = CreateObject<ThreeGppAntennaArrayModel> ();
-  m_antennaArray->SetAttribute ("NumColumns", UintegerValue(antennaNumDim1));
-  m_antennaArray->SetAttribute ("NumRows", UintegerValue(antennaNumDim2));
-  m_antennaArray->SetAttribute ("IsotropicElements", BooleanValue (areIsotropicElements));
-
   // we assume that the antenna dimension will not change during the simulation,
   // thus we create this omni vector only once
+  m_antennaArray = antennaArray;
   m_omniTxRxW = GenerateOmniTxRxW (antennaNumDim1, antennaNumDim2);
 
   ChangeToOmniTx ();
@@ -234,12 +229,6 @@ BeamManager::GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2
     }
 
   return std::make_pair(omni, OMNI_BEAM_ID);
-}
-
-Ptr<ThreeGppAntennaArrayModel>
-BeamManager::GetAntennaArray () const
-{
-  return m_antennaArray;
 }
 
 void

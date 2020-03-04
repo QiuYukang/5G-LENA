@@ -210,6 +210,13 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 }
 
 void
+MmWaveUePhy::DoInitialize (void)
+{
+  NS_LOG_FUNCTION (this);
+  MmWavePhy::DoInitialize ();
+}
+
+void
 MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 {
   NS_LOG_FUNCTION (this);
@@ -220,8 +227,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 
   InitializeMessageList ();
 
-  MmWavePhy::InstallBeamManager();
-  NS_ASSERT_MSG (m_beamManager, "Error in initialization of the BeamManager object");
+  MmWavePhy::DoInitialize();
 
   m_spectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
 
@@ -229,9 +235,6 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
   m_spectrumPhy->SetCellId (m_cellId);
-
-
-
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
 }

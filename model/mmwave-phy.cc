@@ -36,6 +36,7 @@
 #include "mmwave-mac-pdu-tag.h"
 #include "mmwave-net-device.h"
 #include "beam-manager.h"
+#include <ns3/boolean.h>
 
 #include <algorithm>
 
@@ -161,12 +162,19 @@ MmWavePhy::~MmWavePhy ()
 }
 
 void
-MmWavePhy::InstallBeamManager ()
+MmWavePhy::DoInitialize ()
 {
   NS_ASSERT (m_spectrumPhy != nullptr);
+
+  Ptr<ThreeGppAntennaArrayModel> antennaArray = CreateObject<ThreeGppAntennaArrayModel> ();
+  antennaArray->SetAttribute ("NumColumns", UintegerValue(m_antennaNumDim1));
+  antennaArray->SetAttribute ("NumRows", UintegerValue(m_antennaNumDim2));
+  antennaArray->SetAttribute ("IsotropicElements", BooleanValue (m_areIsotropicElements));
+
   m_beamManager = CreateObject<BeamManager>();
-  m_beamManager->InstallAntenna (m_antennaNumDim1, m_antennaNumDim2, m_areIsotropicElements);
-  m_spectrumPhy->SetAntennaArray (m_beamManager->GetAntennaArray());
+  m_beamManager->Configure(antennaArray, m_antennaNumDim1, m_antennaNumDim2);
+
+  m_spectrumPhy->SetAntennaArray (antennaArray);
 }
 
 void

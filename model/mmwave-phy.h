@@ -130,7 +130,8 @@ protected:
    */
   std::vector<int> FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const;
 
-  void InstallBeamManager ();
+  //From Object
+  virtual void DoInitialize (void) override;
 
   Ptr<PacketBurst> GetPacketBurst (SfnSf);
 

@@ -152,11 +152,11 @@ MmWaveEnbPhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
 
+  MmWavePhy::DoInitialize ();
+
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
-  MmWavePhy::InstallBeamManager();
-
-  if (m_idealBeamformingEnabled)
+  if (m_idealBeamformingEnabled) // TODO Biljana: check if this can be moved to helper
     {
       ObjectFactory objectFactory = ObjectFactory ();
       objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
@@ -166,10 +166,6 @@ MmWaveEnbPhy::DoInitialize (void)
       m_beamManager->SetOwner (DynamicCast<MmWaveEnbNetDevice>(m_netDevice));
       m_beamManager->SetIdealBeamformingAlgorithm (idealAlgorithm);
     }
-
-  MmWavePhy::DoInitialize ();
-  NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (m_beamManager->GetAntennaArray()->GetNumberOfElements()));
-
 }
 
 /**

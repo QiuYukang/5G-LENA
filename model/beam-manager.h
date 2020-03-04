@@ -52,13 +52,12 @@ public:
   static TypeId GetTypeId ();
 
   /**
-   * \brief Creates and object of antenna array and initialize its beamforming vector to
-   * quasi omni beamforming vector
+   * \brief Configures quasi-omni beamforming vector and sets up the expire timer
+   * for beamforming
    * \param antennaNumDim1 the first antenna dimension in number of elements
    * \param antennaNumDim2 the second antenna dimension in number of elements
-   * \param areIsotropicElements whether the antenna elements are isotropic or 3gpp
    */
-  void InstallAntenna (uint32_t antennaNumDim1, uint32_t antennaNumDim2, bool areIsotropicElements);
+  void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray, uint32_t antennaNumDim1, uint32_t antennaNumDim2);
 
   /**
    * \brief Get weight vector from a BeamformingVector
@@ -130,11 +129,6 @@ public:
    * \return the beamforming vector
    */
   BeamformingVector GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2) const;
-
-  /**
-  * TODO remove this from BeamManager, we agreed (N&B) that only SpectrumPhy or Phy will have a pointer to Antenna
-  */
-  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.

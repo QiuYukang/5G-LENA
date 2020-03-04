@@ -561,7 +561,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentatio
 
   conf.m_channel->AddRx(channelPhy);
   // TODO: NOTE: if changing the Antenna Array, this will broke
-  conf.m_3gppChannel->AddDevice (dev, phy->GetBeamManager()->GetAntennaArray());
+  conf.m_3gppChannel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
 
   return phy;
 }
@@ -823,7 +823,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
     for (const auto &it : m_bwpConfiguration)
       {
         NS_ABORT_IF (it.second.m_3gppChannel == nullptr);
-        it.second.m_3gppChannel->AddDevice(ueNetDev, ueNetDev->GetPhy(it.first)->GetBeamManager()->GetAntennaArray());
+        it.second.m_3gppChannel->AddDevice(ueNetDev, ueNetDev->GetPhy(it.first)->GetSpectrumPhy()->GetAntennaArray());
       }
 }
 
