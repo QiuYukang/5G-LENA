@@ -720,8 +720,8 @@ public:
 
   double GetBandwidth (void) const;
 
-  /*
-   * brief: bandwidth in number of RBs
+  /**
+   * \brief: bandwidth in number of RBs
    */
   uint32_t GetBandwidthInRbs () const;
 
@@ -740,17 +740,11 @@ public:
     return m_macSchedType;
   }
 
-  void SetSymbolPeriod (double prdSym);
-
   void SetSymbolsPerSlot (uint8_t numSym);
-
-  void SetSlotPeriod (double period);
 
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
 
   void SetUlCtrlSymbols (uint8_t ctrlSymbols);
-
-  void SetSubframePerFrame (uint32_t numSf);
 
   /**
    * \brief: Set the minimum processing delay (in slots)
@@ -782,16 +776,16 @@ public:
 
   void SetRbNum (uint32_t numRB);
 
-  /*
-   * brief
+  /**
+   * \brief
    * rbgSize size of RBG in number of resource blocks
    */
   void SetNumRbPerRbg (uint32_t rbgSize);
 
   void SetNumerology (uint32_t numerology);
 
-  /*
-   * brief Set bandwidth value in Hz
+  /**
+   * \brief Set bandwidth value in Hz
    * param bandwidth the bandwidth value in Hz
    */
   void SetBandwidth (double bandwidth);
@@ -811,31 +805,29 @@ public:
   uint8_t GetCcId (void);
 
 private:
-  Time m_symbolPeriod;
-  uint8_t m_symbolsPerSlot;
-  Time m_slotPeriod;
-  uint8_t m_dlCtrlSymbols;   // num OFDM symbols for downlink control at beginning of subframe
-  uint8_t m_ulCtrlSymbols;   // num OFDM symbols for uplink control at end of subframe
+  Time m_symbolPeriod;          //!< OFDM symbol length
+  uint8_t m_symbolsPerSlot;     //!< number of OFDM symbols per slot (in 3GPP NR: 12 for normal CP, 14 for extended CP)
+  Time m_slotPeriod;            //!< NR slot length
+  uint8_t m_dlCtrlSymbols;      //!< number of OFDM symbols for downlink control at beginning of subframe
+  uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
   uint32_t m_slotsPerSubframe;   // TODO: perform parameter cleanup, leave only mandatory ones, many redundant settings
-  uint32_t m_subframesPerFrame;
-  uint32_t m_numRbPerRbg;
-  uint16_t m_numerology;
-  double m_subcarrierSpacing;
-  uint32_t m_rbNum;   // replaced nyu chunk
-  uint32_t m_numRefScPerRb;
-  uint32_t m_numSubCarriersPerRb;
-  uint8_t m_numHarqProcess;
+  const uint32_t m_subframesPerFrame {10};
+  uint32_t m_numRbPerRbg;       //!< number of resource blocks within the channel bandwidth
+  uint16_t m_numerology;        //!< NR numerology: defines the subcarrier spacing, RB width, slot length, and number of slots per subframe
+  double m_subcarrierSpacing;   //!< subcarrier spacing (it is determined by the numerology)
+  uint32_t m_rbNum;             //!< number of resource blocks within the channel bandwidth
+  uint32_t m_numRefScPerRb;     //!< number of subcarriers per resource block used for reference signals
+  uint32_t m_numSubCarriersPerRb;  //!< number of subcarriers per resource block (in 3GPP NR it is fixed to 12)
+  uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;
-  double m_centerFrequency;
-
-  double m_bandwidth;
+  double m_centerFrequency;     //!< channel central frequency (in Hz)
+  double m_bandwidth;           //!< channel bandwidth (in Hz)
   bool m_bandwidthConfigured;
-  uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames
+  uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
   uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
-  //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
-  uint32_t m_tbDecodeLatencyUs;
+  uint32_t m_tbDecodeLatencyUs; //!< transport block decode latency (in us)
   TypeId m_macSchedType;
   uint8_t m_componentCarrierId;
 };

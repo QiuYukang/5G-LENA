@@ -133,7 +133,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_slotPeriod (0.0001),
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
-  m_subframesPerFrame (10),
   m_numRbPerRbg (1),
   m_numerology (4),
   m_subcarrierSpacing (15e3),
@@ -312,21 +311,9 @@ MmWavePhyMacCommon::GetTbDecodeLatency (void) const
 }
 
 void
-MmWavePhyMacCommon::SetSymbolPeriod (double prdSym)
-{
-  m_symbolPeriod = Seconds (prdSym);
-}
-
-void
 MmWavePhyMacCommon::SetSymbolsPerSlot (uint8_t numSym)
 {
   m_symbolsPerSlot = numSym;
-}
-
-void
-MmWavePhyMacCommon::SetSlotPeriod (double period)
-{
-  m_slotPeriod = Seconds (period);
 }
 
 void
@@ -339,12 +326,6 @@ void
 MmWavePhyMacCommon::SetUlCtrlSymbols (uint8_t ctrlSymbols)
 {
   m_ulCtrlSymbols = ctrlSymbols;
-}
-
-void
-MmWavePhyMacCommon::SetSubframePerFrame (uint32_t numSf)
-{
-  m_subframesPerFrame = numSf;
 }
 
 void
@@ -383,8 +364,8 @@ MmWavePhyMacCommon::SetRbNum (uint32_t numRB)
   m_rbNum = numRB;
 }
 
-/*
- * brief
+/**
+ * \brief
  * rbgSize size of RBG in number of resource blocks
  */
 void
@@ -416,8 +397,8 @@ MmWavePhyMacCommon::SetNumerology (uint32_t numerology)
                " number of RBs: " << m_rbNum );
 }
 
-/*
- * brief Set bandwidth value in Hz
+/**
+ * \brief Set bandwidth value in Hz
  * param bandwidth the bandwidth value in Hz
  */
 void
