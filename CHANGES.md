@@ -62,6 +62,8 @@ along with Ul Data).
 
 * MmWaveUePhy includes now traces for the DL DCI and the corresponding DL HARQ Feedback
 
+* Renamed MmWaveEnbNetDevice attribute ComponentCarrierMap into BandwidthPartMap
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

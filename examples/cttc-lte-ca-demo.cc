@@ -599,7 +599,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
     {
       ObjectMapValue objectMapValue;
-      enbNetDev.Get(j)->GetAttribute("ComponentCarrierMap", objectMapValue);
+      enbNetDev.Get(j)->GetAttribute("BandwidthPartMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
           Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
@@ -614,7 +614,7 @@ main (int argc, char *argv[])
 //  for (uint32_t j = 0; j < ueNetDev.GetN(); ++j)
 //    {
 //      Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice>(ueNetDev.Get(j));
-//      netDevice->GetAttribute("ComponentCarrierMapUe", objectMapValue);
+//      netDevice->GetAttribute("BandwidthPartMapUe", objectMapValue);
 //      for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
 //        {
 //          Ptr<BandwidthPartUe> bandwidthPart = DynamicCast<BandwidthPartUe>(objectMapValue.Get(i));
@@ -783,7 +783,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> ComponentCarrierMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

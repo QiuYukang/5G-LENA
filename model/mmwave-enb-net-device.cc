@@ -46,7 +46,7 @@ MmWaveEnbNetDevice::GetTypeId ()
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbNetDevice::m_componentCarrierManager),
                    MakePointerChecker <LteEnbComponentCarrierManager> ())
-    .AddAttribute ("ComponentCarrierMap", "List of component carriers.",
+    .AddAttribute ("BandwidthPartMap", "List of Bandwidth Part container.",
                    ObjectMapValue (),
                    MakeObjectMapAccessor (&MmWaveEnbNetDevice::m_ccMap),
                    MakeObjectMapChecker<BandwidthPartGnb> ())
