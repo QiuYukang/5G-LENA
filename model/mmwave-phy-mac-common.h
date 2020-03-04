@@ -674,8 +674,6 @@ public:
 
   Time GetSymbolPeriod (void) const;
 
-  uint32_t GetCtrlSymbols (void) const;
-
   uint8_t GetDlCtrlSymbols (void) const;
 
   uint8_t GetUlCtrlSymbols (void) const;
@@ -689,8 +687,6 @@ public:
   uint32_t GetSubframesPerFrame (void) const;
 
   uint32_t GetSlotsPerSubframe (void) const;
-
-  uint32_t GetNumReferenceSymbols (void);
 
   /**
    * \brief: Get the minimum processing delay (in slots)
@@ -718,9 +714,6 @@ public:
 
   uint32_t GetBandwidthInRbg () const;
 
-  // for TDMA, number of reference subcarriers across entire bandwidth (default to 1/4th of SCs)
-  uint32_t GetNumRefScPerSym (void) const;
-
   uint32_t GetNumRbPerRbg (void) const;
 
   uint32_t GetNumerology (void) const;
@@ -742,8 +735,6 @@ public:
 
   uint32_t GetTbDecodeLatency (void) const;
 
-  uint32_t GetMaxTbSize (void) const;
-
   TypeId GetMacSchedType (void) const
   {
     return m_macSchedType;
@@ -755,17 +746,11 @@ public:
 
   void SetSlotPeriod (double period);
 
-  void SetCtrlSymbols (uint32_t ctrlSymbols);
-
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
 
   void SetUlCtrlSymbols (uint8_t ctrlSymbols);
 
-  void SetVarTtiPerSlot (uint32_t numVarTti);
-
   void SetSubframePerFrame (uint32_t numSf);
-
-  void SetNumReferenceSymbols (uint32_t refSym);
 
   /**
    * \brief: Set the minimum processing delay (in slots)
@@ -821,8 +806,6 @@ public:
 
   void SetTbDecodeLatency (uint32_t us);
 
-  void SetMaxTbSize (uint32_t bytes);
-
   void SetCcId (uint8_t ccId);
 
   uint8_t GetCcId (void);
@@ -833,7 +816,6 @@ private:
   Time m_slotPeriod;
   uint8_t m_dlCtrlSymbols;   // num OFDM symbols for downlink control at beginning of subframe
   uint8_t m_ulCtrlSymbols;   // num OFDM symbols for uplink control at end of subframe
-  uint32_t m_fixedTtisPerSlot;   // TODO: check if this is obsolete attribute
   uint32_t m_slotsPerSubframe;   // TODO: perform parameter cleanup, leave only mandatory ones, many redundant settings
   uint32_t m_subframesPerFrame;
   uint32_t m_numRbPerRbg;
@@ -854,8 +836,6 @@ private:
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
   //uint32_t m_wbCqiPeriodUs;     // WB CQI periodicity in microseconds
   uint32_t m_tbDecodeLatencyUs;
-  uint32_t m_maxTbSizeBytes;
-  std::string m_staticTddPattern;
   TypeId m_macSchedType;
   uint8_t m_componentCarrierId;
 };

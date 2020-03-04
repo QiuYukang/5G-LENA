@@ -133,7 +133,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_slotPeriod (0.0001),
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
-  m_fixedTtisPerSlot (8),
   m_subframesPerFrame (10),
   m_numRbPerRbg (1),
   m_numerology (4),
@@ -151,7 +150,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_n1Delay (4),
   m_n2Delay (2),
   m_tbDecodeLatencyUs (100.0),
-  m_maxTbSizeBytes (0x7FFF),
   m_componentCarrierId (0)
 {
   NS_LOG_INFO ("MmWavePhyMacCommon constructor");
@@ -202,12 +200,6 @@ MmWavePhyMacCommon::GetSlotPeriod (void) const
 }
 
 uint32_t
-MmWavePhyMacCommon::GetVarTtisPerSlot (void) const
-{
-  return m_fixedTtisPerSlot;
-}
-
-uint32_t
 MmWavePhyMacCommon::GetSubframesPerFrame (void) const
 {
   return m_subframesPerFrame;
@@ -253,13 +245,6 @@ uint32_t
 MmWavePhyMacCommon::GetNumRefScPerRb (void) const
 {
   return m_numRefScPerRb;
-}
-
-// for TDMA, number of reference subcarriers across entire bandwidth (default to 1/4th of SCs)
-uint32_t
-MmWavePhyMacCommon::GetNumRefScPerSym (void) const
-{
-  return m_numSubCarriersPerRb * m_rbNum  / 4;
 }
 
 uint32_t
@@ -326,12 +311,6 @@ MmWavePhyMacCommon::GetTbDecodeLatency (void) const
   return m_tbDecodeLatencyUs;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetMaxTbSize (void) const
-{
-  return m_maxTbSizeBytes;
-}
-
 void
 MmWavePhyMacCommon::SetSymbolPeriod (double prdSym)
 {
@@ -360,12 +339,6 @@ void
 MmWavePhyMacCommon::SetUlCtrlSymbols (uint8_t ctrlSymbols)
 {
   m_ulCtrlSymbols = ctrlSymbols;
-}
-
-void
-MmWavePhyMacCommon::SetVarTtiPerSlot (uint32_t numVarTti)
-{
-  m_fixedTtisPerSlot = numVarTti;
 }
 
 void
@@ -482,12 +455,6 @@ void
 MmWavePhyMacCommon::SetTbDecodeLatency (uint32_t us)
 {
   m_tbDecodeLatencyUs = us;
-}
-
-void
-MmWavePhyMacCommon::SetMaxTbSize (uint32_t bytes)
-{
-  m_maxTbSizeBytes = bytes;
 }
 
 void
