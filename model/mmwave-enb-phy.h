@@ -87,6 +87,33 @@ public:
   LteEnbCphySapProvider* GetEnbCphySapProvider ();
 
   /**
+    * \brief: Set the minimum processing delay (in slots)
+    * to decode DL DCI and decode DL data
+    */
+   void SetN0Delay (uint32_t delay);
+
+   /**
+    * \brief: Set the minimum processing delay (in slots)
+    * to decode DL Data and send Harq feedback
+    *
+    * Please note that in the current implementation N1
+    * must be equal or larger than 1 (N1 >= 1)
+    */
+   void SetN1Delay (uint32_t delay);
+
+  /**
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL DCI and decode DL Data
+   */
+  uint32_t GetN0Delay (void) const;
+
+  /**
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL Data and send Harq feedback
+   */
+  uint32_t GetN1Delay (void) const;
+
+  /**
    * \brief Get the BeamId for the selected user
    * \param rnti the selected user
    * \return the beam id of the user
@@ -438,8 +465,8 @@ private:
 
   friend class LtePatternTestCase;
 
-  bool m_idealBeamformingEnabled; //!< If true ideal beamforming method is performed
-  TypeId m_idealBeamformingAlgorithmType; //!< Ideal beamforming vector algorythm type
+  uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
 };
 
 }

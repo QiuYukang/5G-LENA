@@ -54,10 +54,13 @@ NS_LOG_COMPONENT_DEFINE ("MmWaveEnbPhy");
 
 NS_OBJECT_ENSURE_REGISTERED (MmWaveEnbPhy);
 
-MmWaveEnbPhy::MmWaveEnbPhy ()
+MmWaveEnbPhy::MmWaveEnbPhy ():
+    m_n0Delay (0),
+    m_n1Delay (4)
 {
   NS_LOG_FUNCTION (this);
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<MmWaveEnbPhy> (this);
+
 }
 
 MmWaveEnbPhy::~MmWaveEnbPhy ()
@@ -111,6 +114,17 @@ MmWaveEnbPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
+    .AddAttribute ("N0Delay",
+                   "Minimum processing delay needed to decode DL DCI and decode DL data",
+                    UintegerValue (0),
+                    MakeUintegerAccessor (&MmWaveEnbPhy::m_n0Delay),
+                    MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("N1Delay",
+                   "Minimum processing delay (UE side) from the end of DL Data reception to "
+                   "the earliest possible start of the corresponding ACK/NACK transmission",
+                    UintegerValue (4),
+                    MakeUintegerAccessor (&MmWaveEnbPhy::m_n1Delay),
+                    MakeUintegerChecker<uint32_t> ())
     ;
   return tid;
 
@@ -337,7 +351,7 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
                                  &m_generateDl, &m_generateUl,
                                  &m_dlHarqfbPosition, 0,
                                  static_cast<uint32_t> (m_phyMacConfig->GetN2Delay ()),
-                                 m_phyMacConfig->GetN1Delay (),
+                                 GetN1Delay (),
                                  m_phyMacConfig->GetL1L2CtrlLatency ());
 
   // At the beginning of the simulation, fill the slot allocations until
@@ -420,6 +434,30 @@ MmWaveEnbPhy::GetEnbCphySapProvider ()
 {
   NS_LOG_FUNCTION (this);
   return m_enbCphySapProvider;
+}
+
+uint32_t
+MmWaveEnbPhy::GetN0Delay (void) const
+{
+  return m_n0Delay;
+}
+
+uint32_t
+MmWaveEnbPhy::GetN1Delay (void) const
+{
+  return m_n1Delay;
+}
+
+void
+MmWaveEnbPhy::SetN0Delay (uint32_t delay)
+{
+  m_n0Delay = delay;
+}
+
+void
+MmWaveEnbPhy::SetN1Delay (uint32_t delay)
+{
+  m_n1Delay = delay;
 }
 
 BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const

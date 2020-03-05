@@ -264,11 +264,6 @@ protected:
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
-
-public:
-  bool m_areIsotropicElements {false}; //!< Whether to use isotropic antenna elements, default is false which means that 3gpp antenna elements will be used
-  uint8_t m_antennaNumDim1 {0};
-  uint8_t m_antennaNumDim2 {0};
 };
 
 }

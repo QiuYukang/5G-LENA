@@ -690,18 +690,6 @@ public:
 
   /**
    * \brief: Get the minimum processing delay (in slots)
-   * to decode DL DCI and decode DL Data
-   */
-  uint32_t GetN0Delay (void) const;
-
-  /**
-   * \brief: Get the minimum processing delay (in slots)
-   * to decode DL Data and send Harq feedback
-   */
-  uint32_t GetN1Delay (void) const;
-
-  /**
-   * \brief: Get the minimum processing delay (in slots)
    * to decode UL DCI and prepare UL data
    */
   uint32_t GetN2Delay (void) const;
@@ -745,21 +733,6 @@ public:
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
 
   void SetUlCtrlSymbols (uint8_t ctrlSymbols);
-
-  /**
-   * \brief: Set the minimum processing delay (in slots)
-   * to decode DL DCI and decode DL data
-   */
-  void SetN0Delay (uint32_t delay);
-
-  /**
-   * \brief: Set the minimum processing delay (in slots)
-   * to decode DL Data and send Harq feedback
-   *
-   * Please note that in the current implementation N1
-   * must be equal or larger than 1 (N1 >= 1)
-   */
-  void SetN1Delay (uint32_t delay);
 
   /**
    * \brief: Set the minimum processing delay (in slots)
@@ -824,8 +797,6 @@ private:
   double m_bandwidth;           //!< channel bandwidth (in Hz)
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
-  uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
-  uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
   uint32_t m_tbDecodeLatencyUs; //!< transport block decode latency (in us)
   TypeId m_macSchedType;
