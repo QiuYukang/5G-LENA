@@ -71,6 +71,8 @@ public:
 
   virtual BeamId GetBeamId (uint16_t rnti) const = 0;
 
+  void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
+
   Ptr<BeamManager> GetBeamManager ();
 
   // Attributes
@@ -129,9 +131,6 @@ protected:
    * is a 1 are from the 4th to the 11th, and that is reflected in the output)
    */
   std::vector<int> FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const;
-
-  //From Object
-  virtual void DoInitialize (void) override;
 
   Ptr<PacketBurst> GetPacketBurst (SfnSf);
 

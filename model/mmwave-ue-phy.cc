@@ -90,25 +90,6 @@ MmWaveUePhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWavePhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
-	.AddAttribute ("IsotropicAntennaElements",
-	               "Defines type of antenna elements to be used: "
-				   "a) when true, isotropic, and "
-				   "b) when false, 3gpp."
-				   "Another important parameter to specify is the number of antenna elements by "
-				   "dimension.",
-				   BooleanValue(false),
-				   MakeBooleanAccessor(&MmWaveUePhy::m_areIsotropicElements),
-				   MakeBooleanChecker())
-    .AddAttribute ("AntennaNumDim1",
-                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
-                   UintegerValue (2),
-				   MakeUintegerAccessor (&MmWaveUePhy::m_antennaNumDim1),
-				   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("AntennaNumDim2",
-                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
-                   UintegerValue (4),
-				   MakeUintegerAccessor (&MmWaveUePhy::m_antennaNumDim2),
-				   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("LBTThresholdForCtrl",
                    "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
                    TimeValue (MicroSeconds (25)),
@@ -207,13 +188,6 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 {
   NS_LOG_FUNCTION (this << msg);
   EnqueueCtrlMsgNow (msg);
-}
-
-void
-MmWaveUePhy::DoInitialize (void)
-{
-  NS_LOG_FUNCTION (this);
-  MmWavePhy::DoInitialize ();
 }
 
 void

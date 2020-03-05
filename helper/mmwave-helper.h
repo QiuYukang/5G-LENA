@@ -237,6 +237,10 @@ public:
 
   void SetMmWavePhyMacCommonAttribute (const std::string &n, const AttributeValue &v);
 
+  void SetUeAntennaAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v);
+
   void SetUeChannelAccessManagerTypeId (const TypeId &typeId);
 
   void SetGnbChannelAccessManagerTypeId (const TypeId &typeId);
@@ -305,6 +309,8 @@ private:
   ObjectFactory m_ueChannelAccessManagerFactory; //!< UE Channel access manager factory
   ObjectFactory m_gnbChannelAccessManagerFactory; //!< GNB Channel access manager factory
   ObjectFactory m_schedFactory;         //!< Scheduler factory
+  ObjectFactory m_ueAntennaFactory;     //!< UE antenna factory
+  ObjectFactory m_gnbAntennaFactory;    //!< UE antenna factory
 
 
   uint64_t m_imsiCounter;

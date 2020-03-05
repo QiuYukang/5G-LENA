@@ -162,19 +162,15 @@ MmWavePhy::~MmWavePhy ()
 }
 
 void
-MmWavePhy::DoInitialize ()
+MmWavePhy::InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna)
 {
+  NS_LOG_FUNCTION (this);
   NS_ASSERT (m_spectrumPhy != nullptr);
 
-  Ptr<ThreeGppAntennaArrayModel> antennaArray = CreateObject<ThreeGppAntennaArrayModel> ();
-  antennaArray->SetAttribute ("NumColumns", UintegerValue(m_antennaNumDim1));
-  antennaArray->SetAttribute ("NumRows", UintegerValue(m_antennaNumDim2));
-  antennaArray->SetAttribute ("IsotropicElements", BooleanValue (m_areIsotropicElements));
-
   m_beamManager = CreateObject<BeamManager>();
-  m_beamManager->Configure(antennaArray, m_antennaNumDim1, m_antennaNumDim2);
+  m_beamManager->Configure(antenna);
 
-  m_spectrumPhy->SetAntennaArray (antennaArray);
+  m_spectrumPhy->SetAntennaArray (antenna);
 }
 
 void

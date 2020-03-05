@@ -96,9 +96,6 @@ public:
    */
   double GetTxPower () const __attribute__((warn_unused_result));
 
-  // From object
-  virtual void DoInitialize (void) override;
-
   /**
    * \brief Register the UE to a certain Enb
    *

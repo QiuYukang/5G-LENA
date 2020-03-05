@@ -57,10 +57,8 @@ public:
   /**
    * \brief Configures quasi-omni beamforming vector and sets up the expire timer
    * for beamforming
-   * \param antennaNumDim1 the first antenna dimension in number of elements
-   * \param antennaNumDim2 the second antenna dimension in number of elements
    */
-  void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray, uint32_t antennaNumDim1, uint32_t antennaNumDim2);
+  void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray);
 
   /**
    * \brief Get weight vector from a BeamformingVector

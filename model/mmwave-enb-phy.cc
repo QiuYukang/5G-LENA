@@ -111,25 +111,6 @@ MmWaveEnbPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
-    .AddAttribute ("IsotropicAntennaElements",
-                   "Defines type of antenna elements to be used: "
-                   "a) when true, isotropic, and "
-                   "b) when false, 3gpp."
-                   "Another important parameter to specify is the number of antenna elements by "
-                   "dimension.",
-                   BooleanValue(false),
-                   MakeBooleanAccessor(&MmWaveEnbPhy::m_areIsotropicElements),
-                   MakeBooleanChecker())
-    .AddAttribute ("AntennaNumDim1",
-                   "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
-                   UintegerValue (4),
-                   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim1),
-                   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("AntennaNumDim2",
-                   "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
-                   UintegerValue (8),
-                   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim2),
-                   MakeUintegerChecker<uint32_t> ())
     ;
   return tid;
 

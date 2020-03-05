@@ -77,6 +77,8 @@ MmWaveHelper::MmWaveHelper (void)
   m_gnbChannelAccessManagerFactory.SetTypeId (NrAlwaysOnAccessManager::GetTypeId ());
   m_schedFactory.SetTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
   m_phyMacCommonFactory.SetTypeId (MmWavePhyMacCommon::GetTypeId ());
+  m_ueAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
+  m_gnbAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
 
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
@@ -314,7 +316,10 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   Ptr<MmWaveUePhy> phy = m_uePhyFactory.Create <MmWaveUePhy> ();
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
 
+  Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
+
   phy->SetSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
   phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
@@ -489,8 +494,11 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
 
   Ptr<MmWaveSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create <MmWaveSpectrumPhy> ();
   Ptr<MmWaveEnbPhy> phy = m_gnbPhyFactory.Create <MmWaveEnbPhy> ();
+  Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
   phy->SetSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
+
   phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   // PHY <--> CAM
@@ -899,6 +907,20 @@ MmWaveHelper::SetMmWavePhyMacCommonAttribute(const std::string &n, const Attribu
 {
   NS_LOG_FUNCTION (this);
   m_phyMacCommonFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetUeAntennaAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueAntennaFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbAntennaFactory.Set (n, v);
 }
 
 void
