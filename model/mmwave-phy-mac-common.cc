@@ -90,11 +90,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (20),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_harqTimeout),
                    MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("TbDecodeLatency",
-                   "TB decode latency",
-                   UintegerValue (100),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_tbDecodeLatencyUs),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("L1L2CtrlLatency",
                    "L1L2 CTRL decode latency in slot",
                    UintegerValue (2),
@@ -135,7 +130,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
   m_n2Delay (2),
-  m_tbDecodeLatencyUs (100.0),
   m_componentCarrierId (0)
 {
   NS_LOG_INFO ("MmWavePhyMacCommon constructor");
@@ -279,12 +273,6 @@ MmWavePhyMacCommon::GetHarqTimeout (void) const
   return m_harqTimeout;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetTbDecodeLatency (void) const
-{
-  return m_tbDecodeLatencyUs;
-}
-
 void
 MmWavePhyMacCommon::SetSymbolsPerSlot (uint8_t numSym)
 {
@@ -393,12 +381,6 @@ void
 MmWavePhyMacCommon::SetHarqDlTimeout (uint8_t harqDlTimeout)
 {
   m_harqTimeout = harqDlTimeout;
-}
-
-void
-MmWavePhyMacCommon::SetTbDecodeLatency (uint32_t us)
-{
-  m_tbDecodeLatencyUs = us;
 }
 
 void

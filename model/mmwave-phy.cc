@@ -147,7 +147,8 @@ MmWavePhy::FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) 
 }
 
 MmWavePhy::MmWavePhy ()
-  : m_currSlotAllocInfo (SfnSf (0,0,0,0))
+  : m_currSlotAllocInfo (SfnSf (0,0,0,0)),
+    m_tbDecodeLatencyUs (100.0)
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
@@ -565,6 +566,19 @@ Ptr<BeamManager>
 MmWavePhy::GetBeamManager ()
 {
   return m_beamManager;
+}
+
+
+void
+MmWavePhy::SetTbDecodeLatency (uint32_t us)
+{
+  m_tbDecodeLatencyUs = us;
+}
+
+uint32_t
+MmWavePhy::GetTbDecodeLatency (void) const
+{
+  return m_tbDecodeLatencyUs;
 }
 
 

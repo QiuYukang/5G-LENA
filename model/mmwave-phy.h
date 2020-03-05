@@ -69,6 +69,10 @@ public:
    */
   void NotifyConnectionSuccessful ();
 
+  virtual void SetTbDecodeLatency (uint32_t us);
+
+  virtual uint32_t GetTbDecodeLatency (void) const;
+
   virtual BeamId GetBeamId (uint16_t rnti) const = 0;
 
   void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
@@ -264,6 +268,10 @@ protected:
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
+
+  uint32_t m_tbDecodeLatencyUs; //!< transport block decode latency (in us)
+
+
 };
 
 }

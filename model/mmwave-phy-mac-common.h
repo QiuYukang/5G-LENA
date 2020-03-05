@@ -721,8 +721,6 @@ public:
 
   uint8_t GetHarqTimeout (void) const;
 
-  uint32_t GetTbDecodeLatency (void) const;
-
   TypeId GetMacSchedType (void) const
   {
     return m_macSchedType;
@@ -771,8 +769,6 @@ public:
 
   void SetHarqDlTimeout (uint8_t harqDlTimeout);
 
-  void SetTbDecodeLatency (uint32_t us);
-
   void SetCcId (uint8_t ccId);
 
   uint8_t GetCcId (void);
@@ -798,7 +794,6 @@ private:
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
-  uint32_t m_tbDecodeLatencyUs; //!< transport block decode latency (in us)
   TypeId m_macSchedType;
   uint8_t m_componentCarrierId;
 };
