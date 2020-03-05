@@ -156,10 +156,12 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
   };
 
-  ObjectFactory pathlossModelFactory;
   ObjectFactory channelConditionModelFactory;
+  ObjectFactory spectrumPropagationFactory;
+  ObjectFactory pathlossModelFactory;
   ObjectFactory channelFactory;
 
+  spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
   channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
 
   // Iterate over all CCs, and instantiate the channel and propagation model
@@ -182,7 +184,7 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
           bwp->m_propagation->SetAttributeFailSafe ("Frequency", DoubleValue (bwp->m_centralFrequency));
           bwp->m_propagation->SetChannelConditionModel (channelConditionModel);
 
-          bwp->m_3gppChannel = pathlossModelFactory.Create<ThreeGppSpectrumPropagationLossModel>();
+          bwp->m_3gppChannel = spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
           bwp->m_3gppChannel->SetFrequency (bwp->m_centralFrequency);
           bwp->m_3gppChannel->SetScenario (bwp->GetScenario ());
           bwp->m_3gppChannel->SetChannelConditionModel (channelConditionModel);
@@ -557,7 +559,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr> > allBwps)
 {
   NS_ABORT_MSG_IF (m_cellIdCounter == 65535, "max num eNBs exceeded");
-  NS_ASSERT (m_initialized);
 
   uint16_t cellId = m_cellIdCounter;
 

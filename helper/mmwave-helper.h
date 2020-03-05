@@ -323,8 +323,6 @@ private:
   Ptr<MmWaveBearerStatsCalculator> m_pdcpStats;
   MmWaveBearerStatsConnector m_radioBearerStatsConnector;
 
-  bool m_initialized {false}; //!< Is helper initialized correctly?
-
   /**
    * This contains all the information about each component carrier
    */
