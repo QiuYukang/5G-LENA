@@ -15,8 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
  */
 
 /**
@@ -185,6 +183,8 @@ main (int argc, char *argv[])
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
+  Ptr<IdealBeamformingHelper> beamformingHelper = CreateObject <IdealBeamformingHelper> ();
+  mmWaveHelper->SetIdealBeamformingHelper (beamformingHelper);
   mmWaveHelper->Initialize();
 
   // create base stations and mobile terminals

@@ -130,18 +130,6 @@ MmWaveEnbPhy::GetTypeId (void)
                    UintegerValue (8),
                    MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim2),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("IdealBeamformingEnabled",
-                   "If true, ideal beamforming will be performed between gNB and its ideally attached UE devices."
-                   "If false, no ideal beamforming will be performed. By default is ideal, until "
-                   "real beamforming methods are implemented.",
-                   BooleanValue (true),
-                   MakeBooleanAccessor (&MmWaveEnbPhy::m_idealBeamformingEnabled),
-                   MakeBooleanChecker ())
-     .AddAttribute ("IdealBeamformingAlgorithmType",
-                    "Type of the ideal beamforming algorithm in the case that it is enabled, by default is \"cell scan\" method.",
-                    TypeIdValue (CellScanBeamforming::GetTypeId ()),
-                    MakeTypeIdAccessor (&MmWaveEnbPhy::m_idealBeamformingAlgorithmType),
-                    MakeTypeIdChecker ())
     ;
   return tid;
 
@@ -156,16 +144,6 @@ MmWaveEnbPhy::DoInitialize (void)
 
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
-  if (m_idealBeamformingEnabled) // TODO Biljana: check if this can be moved to helper
-    {
-      ObjectFactory objectFactory = ObjectFactory ();
-      objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
-
-      Ptr<IdealBeamformingAlgorithm> idealAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
-      idealAlgorithm->SetOwner (m_phyMacConfig->GetCcId());
-      m_beamManager->SetOwner (DynamicCast<MmWaveEnbNetDevice>(m_netDevice));
-      m_beamManager->SetIdealBeamformingAlgorithm (idealAlgorithm);
-    }
 }
 
 /**
@@ -1259,10 +1237,6 @@ MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<MmWaveUeNetDevice> &ueDevice)
     {
       m_ueAttached.insert (imsi);
       m_deviceMap.push_back (ueDevice);
-      if (m_idealBeamformingEnabled)
-        {
-          m_beamManager->AddUeDevice (ueDevice);
-        }
       return (true);
     }
   else

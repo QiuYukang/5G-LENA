@@ -45,12 +45,6 @@ BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray, uint
   m_omniTxRxW = GenerateOmniTxRxW (antennaNumDim1, antennaNumDim2);
 
   ChangeToOmniTx ();
-
-  if (m_beamformingPeriodicity != MilliSeconds (0))
-    {
-      m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
-                                                &BeamManager::ExpireBeamformingTimer, this);
-    }
 }
 
 complexVector_t
@@ -75,11 +69,6 @@ BeamManager::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::BeamManager")
     .SetParent<Object> ()
     .AddConstructor<BeamManager> ()
-    .AddAttribute ("BeamformingPeriodicity",
-                   "Interval between beamforming phases",
-                   TimeValue (MilliSeconds (100)),
-                   MakeTimeAccessor (&BeamManager::m_beamformingPeriodicity),
-                   MakeTimeChecker())
     ;
   return tid;
 }
@@ -89,7 +78,7 @@ void
 BeamManager::SaveBeamformingVector (const BeamformingVector& bfv,
                                     const Ptr<const NetDevice>& device)
 {
-  NS_LOG_INFO ("SetBeamformingVector for BeamId:" << bfv.second << " node id: " << device->GetNode()->GetId());
+  NS_LOG_INFO ("Save beamforming vector on node id:"<<device->GetNode()->GetId()<<" with BeamId:" << bfv.second);
 
   if (device != nullptr)
     {
@@ -103,25 +92,13 @@ BeamManager::SaveBeamformingVector (const BeamformingVector& bfv,
           m_beamformingVectorMap.insert (std::make_pair (device, bfv));
         }
     }
-  m_antennaArray->SetBeamformingVector(bfv.first);
 }
 
 void
 BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
 {
   NS_LOG_FUNCTION(this);
-  if (m_performGenieBeamforming)
-    {
-      m_performGenieBeamforming = false;
 
-      for (const auto & ueDev : m_ueDeviceMap)
-        {
-          BeamformingVector gnbBfv, ueBfv;
-          m_genieAlgorithm->GetBeamformingVectors (m_gnbNetDevice, ueDev, &gnbBfv, &ueBfv);
-          SaveBeamformingVector (gnbBfv, ueDev);
-          (ueDev->GetPhy(m_ccId))->GetBeamManager()->SaveBeamformingVector(ueBfv, m_gnbNetDevice);
-        }
-    }
   BeamformingStorage::iterator it = m_beamformingVectorMap.find (device);
   if (it == m_beamformingVectorMap.end ())
     {
@@ -133,18 +110,6 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
       NS_LOG_INFO ("Beamforming vector found");
       m_antennaArray->SetBeamformingVector(it->second.first);
     }
-}
-
-void
-BeamManager::AddUeDevice (const Ptr<MmWaveUeNetDevice> ueDevice)
-{
-  m_ueDeviceMap.push_back(ueDevice);
-}
-
-void
-BeamManager::SetOwner (const Ptr<MmWaveEnbNetDevice> gnbDevice)
-{
-  m_gnbNetDevice = gnbDevice;
 }
 
 complexVector_t
@@ -232,26 +197,28 @@ BeamManager::GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2
 }
 
 void
-BeamManager::ExpireBeamformingTimer()
+BeamManager::SetSector (uint16_t sector, double elevation) const
 {
-  NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Beamforming timer expired; programming a beamforming");
-  m_performGenieBeamforming = true;
-  m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
-                                            &BeamManager::ExpireBeamformingTimer, this);
-}
+  NS_LOG_INFO ("Set sector to :"<< (unsigned) sector<< ", and elevation to:"<< elevation);
+  complexVector_t tempVector;
 
-void
-BeamManager::SetIdealBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm)
-{
-  m_genieAlgorithm = algorithm;
-}
+  UintegerValue uintValueNumRows;
+  m_antennaArray->GetAttribute("NumRows", uintValueNumRows);
 
-Ptr<IdealBeamformingAlgorithm>
-BeamManager::GetIdealBeamformingAlgorithm() const
-{
-  return m_genieAlgorithm;
-}
 
+  double hAngle_radian = M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumRows.Get())) - 0.5 * M_PI;
+  double vAngle_radian = elevation * M_PI / 180;
+  uint16_t size = m_antennaArray->GetNumberOfElements();
+  double power = 1 / sqrt (size);
+  for (auto ind = 0; ind < size; ind++)
+    {
+      Vector loc = m_antennaArray->GetElementLocation(ind);
+      double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
+                                  + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
+                                  + cos (vAngle_radian) * loc.z);
+      tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
+    }
+  m_antennaArray->SetBeamformingVector(tempVector);
+}
 
 } /* namespace ns3 */

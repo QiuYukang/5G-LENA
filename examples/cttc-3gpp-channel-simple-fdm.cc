@@ -15,7 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
  */
 
 /**
@@ -235,11 +234,13 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
-  Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
+  Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(10));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
@@ -265,7 +266,7 @@ main (int argc, char *argv[])
   mobility.Install (gNbNode);
   mobility.Install (ueNode);
   gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (10, 0 , 1.5));
+  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0.0, 10 , 1.5));
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);

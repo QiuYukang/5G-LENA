@@ -825,6 +825,11 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
         NS_ABORT_IF (it.second.m_3gppChannel == nullptr);
         it.second.m_3gppChannel->AddDevice(ueNetDev, ueNetDev->GetPhy(it.first)->GetSpectrumPhy()->GetAntennaArray());
       }
+
+    if (m_idealBeamformingHelper != nullptr)
+      {
+        m_idealBeamformingHelper->AddBeamformingTask (enbNetDev, ueNetDev);
+      }
 }
 
 
@@ -947,6 +952,13 @@ void
 MmWaveHelper::SetEpcHelper (Ptr<EpcHelper> epcHelper)
 {
   m_epcHelper = epcHelper;
+}
+
+void
+MmWaveHelper::SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper)
+{
+  m_idealBeamformingHelper = idealBeamformingHelper;
+  m_idealBeamformingHelper->Initialize();
 }
 
 class MmWaveDrbActivator : public SimpleRefCount<MmWaveDrbActivator>

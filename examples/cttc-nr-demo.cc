@@ -16,9 +16,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author:  Biljana Bojovic <bbojovic@cttc.es>
- *
  */
 
 
@@ -162,6 +159,7 @@ main (int argc, char *argv[])
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
     }
 
+  /**
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
                       StringValue("l"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
@@ -173,6 +171,7 @@ main (int argc, char *argv[])
                       BooleanValue(cellScan));
   Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
                       DoubleValue(beamSearchAngleStep));
+                      **/
 
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
@@ -250,9 +249,6 @@ main (int argc, char *argv[])
 
   // setup the mmWave simulation
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
-
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
@@ -277,6 +273,8 @@ main (int argc, char *argv[])
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
   mmWaveHelper->Initialize();
 
   // install mmWave net devices

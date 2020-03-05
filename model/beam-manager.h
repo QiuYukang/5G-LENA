@@ -30,6 +30,7 @@ namespace ns3 {
 
 class MmWaveUeNetDevice;
 class MmWaveEnbNetDevice;
+class IdealBeamformingHelper;
 
 /**
  * \ingroup beam-management
@@ -38,6 +39,8 @@ class MmWaveEnbNetDevice;
  * vectors per device.
  */
 class BeamManager: public Object {
+
+friend IdealBeamformingHelper;
 
 public:
 
@@ -84,11 +87,9 @@ public:
    * \param device device to which it is being transmitted, or from which is
    * being received
    */
-private:
+public:
   virtual void SaveBeamformingVector (const BeamformingVector& bfv,
                                       const Ptr<const NetDevice>& device);
-public:
-
   /**
    * \brief Change the beamforming vector for tx/rx to/from specified device
    * \param device Device to change the beamforming vector for
@@ -130,45 +131,15 @@ public:
    */
   BeamformingVector GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2) const;
 
-  /**
-   * \brief The beamforming timer has expired; at the next slot, perform beamforming.
-   *
-   * This function just set to true a boolean variable that will be checked in
-   * StartVarTti().
-   */
-  void ExpireBeamformingTimer ();
 
-  void SetIdealBeamformingAlgorithm (const Ptr<IdealBeamformingAlgorithm>& algorithm);
-
-  Ptr<IdealBeamformingAlgorithm> GetIdealBeamformingAlgorithm() const;
-
-  /**
-   * \brief Add UE device in the list of UE devices for which will be performed
-   * ideal beamforming method
-   */
-  void AddUeDevice (const Ptr<MmWaveUeNetDevice> ueDevice);
-
-  /**
-   * \brief Defines the owner gnb device of this beam manager
-   */
-  void SetOwner (const Ptr<MmWaveEnbNetDevice> gnbDevice);
+  void SetSector (uint16_t sector, double elevation) const;
 
 private:
 
   Ptr<ThreeGppAntennaArrayModel> m_antennaArray;  // the antenna array instance for which is responsible this BeamManager
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
-  Time m_beamformingPeriodicity; //!< Periodicity of beamforming (0 for never)
-  EventId m_beamformingTimer;    //!< Beamforming timer
-
-  //only gNB beam manager needs this part
   BeamformingStorage m_beamformingVectorMap; //!< device to beamforming vector mapping
-  std::vector< Ptr<MmWaveUeNetDevice> > m_ueDeviceMap;  //!< list of UE devices for which genie beamforming should be performed
-  Ptr<MmWaveEnbNetDevice> m_gnbNetDevice; // device to which belongs this manager
 
-  //only genie beaforming
-  bool m_performGenieBeamforming {true}; //!< True when we have to do beamforming. Default to true or we will not perform beamforming the first time..
-  uint16_t m_ccId {0};
-  Ptr<IdealBeamformingAlgorithm> m_genieAlgorithm;
 };
 
 } /* namespace ns3 */

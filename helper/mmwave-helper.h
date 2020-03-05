@@ -30,6 +30,7 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/mmwave-spectrum-phy.h>
+#include "ideal-beamforming-helper.h"
 
 namespace ns3 {
 
@@ -425,6 +426,7 @@ public:
   void ActivateDataRadioBearer (NetDeviceContainer ueDevices, EpsBearer bearer);
   void ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer);
   void SetEpcHelper (Ptr<EpcHelper> epcHelper);
+  void SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper);
 
   void SetHarqEnabled (bool harqEnabled);
   bool GetHarqEnabled ();
@@ -614,6 +616,7 @@ private:
   Ptr<MmwaveMacRxTrace> m_macStats;
 
   Ptr<EpcHelper> m_epcHelper;
+  Ptr<IdealBeamformingHelper> m_idealBeamformingHelper {nullptr};
 
   bool m_harqEnabled;
   bool m_snrTest;
