@@ -20,13 +20,14 @@
 #include "cc-bwp-helper.h"
 #include <ns3/log.h>
 #include <memory>
+#include <fstream>
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("BandwidthPartRepresentation");
 
 bool
-ComponentCarrierInfo::AddBwp (uint32_t id, BandwidthPartInfoPtr &&bwp)
+ComponentCarrierInfo::AddBwp (BandwidthPartInfoPtr &&bwp)
 {
   NS_LOG_FUNCTION (this);
 
@@ -34,15 +35,8 @@ ComponentCarrierInfo::AddBwp (uint32_t id, BandwidthPartInfoPtr &&bwp)
 
   NS_ASSERT (bwp->m_lowerFrequency >= m_lowerFrequency);
   NS_ASSERT (bwp->m_higherFrequency <= m_higherFrequency);
-  NS_ASSERT (id >= m_bwp.size ());
 
-  for (uint32_t i = 0; i < id; ++i)
-    {
-      // Check that we have id from 0 to id-1
-      NS_ASSERT (m_bwp.find (i) != m_bwp.end ());
-    }
-
-  m_bwp.emplace (id, std::move (bwp));
+  m_bwp.emplace_back (std::move (bwp));
 
   uint32_t i = 0;
   while (i < m_bwp.size () - 1)
@@ -61,22 +55,15 @@ ComponentCarrierInfo::AddBwp (uint32_t id, BandwidthPartInfoPtr &&bwp)
 
 
 bool
-OperationBandInfo::AddCc (uint32_t id, ComponentCarrierInfoPtr &&cc)
+OperationBandInfo::AddCc (ComponentCarrierInfoPtr &&cc)
 {
   NS_LOG_FUNCTION (this);
   bool ret = true;
 
   NS_ASSERT (cc->m_lowerFrequency >= m_lowerFrequency);
   NS_ASSERT (cc->m_higherFrequency <= m_higherFrequency);
-  NS_ASSERT (id >= m_cc.size ());
 
-  for (uint32_t i = 0; i < id; ++i)
-    {
-      // Check that we have id from 0 to id-1
-      NS_ASSERT (m_cc.find (i) != m_cc.end ());
-    }
-
-  m_cc.emplace (id, std::move (cc));
+  m_cc.emplace_back (std::move (cc));
 
   uint32_t i = 0;
   while (i < m_cc.size () - 1)
@@ -99,6 +86,22 @@ OperationBandInfo::GetBwpAt (uint32_t ccId, uint32_t bwpId) const
   return m_cc.at (ccId)->m_bwp.at (bwpId);
 }
 
+BandwidthPartInfoPtrVector
+OperationBandInfo::GetBwps() const
+{
+  std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> ret;
+
+  for (const auto & cc : m_cc)
+    {
+      for (auto & bwp : cc->m_bwp)
+        {
+          ret.push_back (bwp);
+        }
+    }
+
+  return ret;
+}
+
 
 // cc is a unique_pointer... I'm allowing myself to use a reference, because
 // if I would use a pointer (like I was telling you to do) then we end up
@@ -106,29 +109,34 @@ OperationBandInfo::GetBwpAt (uint32_t ccId, uint32_t bwpId) const
 // a bit useless here.
 void
 CcBwpCreator::InitializeCc (std::unique_ptr<ComponentCarrierInfo> &cc,
-                            double ccBandwidth, double lowerFreq, uint32_t ccId)
+                            double ccBandwidth, double lowerFreq, uint8_t ccPosition,
+                            uint8_t ccId)
 {
-  cc->m_centralFrequency = lowerFreq + ccId * ccBandwidth + ccBandwidth / 2;
-  cc->m_lowerFrequency = lowerFreq + ccId * ccBandwidth;
-  cc->m_higherFrequency = lowerFreq + (ccId + 1) * ccBandwidth - 1;
+  cc->m_centralFrequency = lowerFreq + ccPosition * ccBandwidth + ccBandwidth / 2;
+  cc->m_lowerFrequency = lowerFreq + ccPosition * ccBandwidth;
+  cc->m_higherFrequency = lowerFreq + (ccPosition + 1) * ccBandwidth - 1;
   cc->m_bandwidth = ccBandwidth;
   cc->m_ccId = ccId;
 }
 
 std::unique_ptr<ComponentCarrierInfo>
-CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint32_t ccId)
+CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId)
 {
   // Create a CC with a single BWP
   std::unique_ptr<ComponentCarrierInfo> cc (new ComponentCarrierInfo ());
-  InitializeCc (cc, ccBandwidth, lowerFreq, ccId);
+  InitializeCc (cc, ccBandwidth, lowerFreq, ccPosition, ccId);
 
   std::unique_ptr<BandwidthPartInfo> bwp (new BandwidthPartInfo ());
-  bwp->m_bwpId = m_bwpCounter++;
+
+  bwp->m_bwpId = m_bandwidthPartCounter++;
   bwp->m_centralFrequency = cc->m_centralFrequency;
   bwp->m_lowerFrequency = cc->m_lowerFrequency;
   bwp->m_higherFrequency = cc->m_higherFrequency;
   bwp->m_bandwidth = cc->m_bandwidth;
-  cc->AddBwp (0, std::move (bwp));
+
+  bool ret = cc->AddBwp (std::move (bwp));
+  NS_ASSERT (ret);
+
   // bwp is not longer a valid pointer
   return cc;
 }
@@ -137,7 +145,7 @@ OperationBandInfo
 CcBwpCreator::CreateOperationBandContiguousCc (const SimpleOperationBandConf &conf)
 {
   OperationBandInfo band;
-  band.m_bandId = m_bwpCounter++;
+  band.m_bandId = m_operationBandCounter++;
   band.m_centralFrequency = conf.m_centralFrequency;
   band.m_bandwidth = conf.m_bandwidth;
   band.m_lowerFrequency = conf.m_centralFrequency - conf.m_bandwidth / 2.0;
@@ -153,9 +161,9 @@ CcBwpCreator::CreateOperationBandContiguousCc (const SimpleOperationBandConf &co
   double ccBandwidth = std::min (static_cast<double> (maxCcBandwidth),
                                  static_cast<double> (conf.m_bandwidth) / conf.m_numCc);
 
-  for (uint8_t c = 0; c < conf.m_numCc; ++c)
+  for (uint8_t ccPosition = 0; ccPosition < conf.m_numCc; ++ccPosition)
     {
-      bool ret = band.AddCc (c, CreateCc (ccBandwidth, band.m_lowerFrequency, c));
+      bool ret = band.AddCc (CreateCc (ccBandwidth, band.m_lowerFrequency, ccPosition, m_componentCarrierCounter++));
       NS_ASSERT (ret);
     }
 
@@ -167,15 +175,30 @@ OperationBandInfo
 CcBwpCreator::CreateOperationBandNonContiguousCc (const std::vector<SimpleOperationBandConf> &configuration)
 {
   OperationBandInfo band;
-  band.m_bandId = m_bwpCounter++;
+  band.m_bandId = m_operationBandCounter++;
 
-  uint32_t id = 0;
   for (const auto & conf : configuration)
     {
-      band.AddCc (id++, CreateCc (conf.m_bandwidth, band.m_lowerFrequency, 0));
+      band.AddCc (CreateCc (conf.m_bandwidth, band.m_lowerFrequency, 0, m_componentCarrierCounter++));
     }
 
   return band;
+}
+
+BandwidthPartInfoPtrVector
+CcBwpCreator::GetAllBwps(const std::vector<std::reference_wrapper<OperationBandInfo>> &operationBands)
+{
+  BandwidthPartInfoPtrVector ret;
+
+  for (const auto & operationBand : operationBands)
+    {
+      auto v = operationBand.get().GetBwps ();
+      ret.insert (ret.end (),
+                  std::make_move_iterator(v.begin ()),
+                  std::make_move_iterator(v.end ()));
+    }
+
+  return ret;
 }
 
 void
@@ -343,6 +366,22 @@ CcBwpCreator::PlotFrequencyBand (std::ofstream &outFile,
   outFile << "set label " << index << " at " << xmin << "," <<
     (ymin + ymax) / 2 << " LABEL" << index << std::endl;
 
+}
+
+std::string
+BandwidthPartInfo::GetScenario () const
+{
+  NS_LOG_FUNCTION (this);
+  static std::unordered_map <Scenario, std::string> lookupTable
+  {
+    { BandwidthPartInfo::RMa, "RMa"},
+    { UMa, "UMa" },
+    { UMi_StreetCanyon, "UMi-StreetCanyon" },
+    { InH_OfficeOpen, "InH-OfficeOpen" },
+    { InH_OfficeMixed, "InH-OfficeMixed" },
+  };
+
+  return lookupTable[m_scenario];
 }
 
 }

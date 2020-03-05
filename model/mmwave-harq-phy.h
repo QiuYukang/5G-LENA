@@ -36,8 +36,16 @@ namespace ns3 {
 class MmWaveHarqPhy : public SimpleRefCount<MmWaveHarqPhy>
 {
 public:
-  MmWaveHarqPhy (uint32_t harqNum);
+  /**
+    *
+    */
   ~MmWaveHarqPhy ();
+
+  /**
+   * \brief Set a new harq number, resizing the existing vector
+   * \param harqNum new harq number
+   */
+  void SetHarqNum (uint32_t harqNum);
 
   /**
   * \brief Return the info of the HARQ procId in case of retranmissions

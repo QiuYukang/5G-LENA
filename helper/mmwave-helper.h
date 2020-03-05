@@ -50,6 +50,7 @@ class ComponentCarrierEnb;
 class ComponentCarrier;
 class MmWaveMacScheduler;
 class MmWaveEnbNetDevice;
+class MmWaveUeNetDevice;
 class MmWaveUeMac;
 
 class MmWaveHelper : public Object
@@ -60,14 +61,21 @@ public:
   virtual ~MmWaveHelper (void);
 
   static TypeId GetTypeId (void);
-  virtual void DoDispose (void);
 
-  NetDeviceContainer InstallUeDevice (NodeContainer c);
-  NetDeviceContainer InstallEnbDevice (NodeContainer c);
+  /**
+   * @brief InstallUeDevice
+   * @param c
+   * @param allBwps
+   * @return
+   *
+   * The position on the vector of bwp will be the bwp id
+   */
+  NetDeviceContainer InstallUeDevice (const NodeContainer &c,
+                                      const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> &allBwps);
+  NetDeviceContainer InstallGnbDevice (const NodeContainer &c,
+                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
 
   void ConfigureCarriers (std::map<uint8_t, Ptr<ComponentCarrierEnb> > ccPhyConf);
-
-  void SetChannelModelType (std::string type);
 
   /**
    * \brief Get the number of configured BWP for a specific GNB NetDevice
@@ -112,7 +120,17 @@ public:
   bool GetHarqEnabled ();
   void SetSnrTest (bool snrTest);
   bool GetSnrTest ();
-  void AddBandwidthPart (uint32_t id, const BandwidthPartRepresentation &bwpRepr);
+
+  /**
+   * \brief Initialize the bandwidth parts by creating and configuring the channel
+   * models, if they are not already initialized.
+   *
+   * If the models are already set (i.e., the pointers are not null) the helper
+   * will not touch anything.
+   *
+   * \param band the band representation
+   */
+  void InitializeOperationBand (OperationBandInfo *band) const;
 
   /**
    * Activate a dedicated EPS bearer on a given set of UE devices.
@@ -217,18 +235,13 @@ public:
    */
   void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
 
-protected:
-  /**
-   * \brief Initialize things inside the helper.
-   *
-   * The most important thing is the channel and the propagation loss model
-   * for each bandwidth part. If they are not specified by the user through
-   * AddBandwidthPart, one will created by default. If the user specifies
-   * the channel and the propagation model as bwp configuration, they will be
-   * not touched. Otherwise, the models will be created and connected for each
-   * bwp.
-   */
-  virtual void DoInitialize ();
+  void SetMmWavePhyMacCommonAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetUeChannelAccessManagerTypeId (const TypeId &typeId);
+
+  void SetGnbChannelAccessManagerTypeId (const TypeId &typeId);
+
+  void SetSchedulerTypeId (const TypeId &typeId);
 
 private:
   /**
@@ -242,19 +255,26 @@ private:
    */
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
-  Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentation& conf,
-                                   const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+  Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n,
+                                  const Ptr<MmWavePhyMacCommon> &phyMacCommon,
+                                  const Ptr<SpectrumChannel> &c,
+                                  const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
+                                  const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
                                   const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback);
-  Ptr<MmWaveMacScheduler> CreateGnbSched (const BandwidthPartRepresentation& conf);
-  Ptr<MmWaveEnbMac> CreateGnbMac (const BandwidthPartRepresentation& conf);
+  Ptr<MmWaveMacScheduler> CreateGnbSched (const Ptr<MmWavePhyMacCommon>& conf);
+  Ptr<MmWaveEnbMac> CreateGnbMac (const Ptr<MmWavePhyMacCommon>& conf);
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
-  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const BandwidthPartRepresentation &conf,
+  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
+                                const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
+                                const Ptr<MmWaveUeNetDevice> &dev,
                                 const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback,
                                 const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyRxCtrlCallback);
 
-  Ptr<NetDevice> InstallSingleUeDevice (Ptr<Node> n);
-  Ptr<NetDevice> InstallSingleEnbDevice (Ptr<Node> n);
+  Ptr<NetDevice> InstallSingleUeDevice (const Ptr<Node> &n,
+                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+  Ptr<NetDevice> InstallSingleGnbDevice (const Ptr<Node> &n,
+                                         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
   void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
   void EnableDlPhyTrace ();
   void EnableUlPhyTrace ();
@@ -271,8 +291,6 @@ private:
   Ptr<MmWaveBearerStatsCalculator> GetPdcpStats (void);
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
-
-  std::string m_channelModelType;
 
   ObjectFactory m_enbNetDeviceFactory;  //!< NetDevice factory for gnb
   ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue
@@ -311,9 +329,6 @@ private:
    * This contains all the information about each component carrier
    */
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams;
-
-  std::unordered_map<uint32_t, BandwidthPartRepresentation> m_bwpConfiguration;
-  std::string m_scenario;  //!< Important parameter that specifies the type of propagation loss and condition model types
 };
 
 }

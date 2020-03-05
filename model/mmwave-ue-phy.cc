@@ -236,6 +236,8 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
   m_spectrumPhy->SetCellId (m_cellId);
 
+  m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phyMacConfig->GetNumHarqProcess ());
+
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
 }
 

@@ -36,6 +36,8 @@
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
 #include "ns3/bandwidth-part-gnb.h"
 #include "ns3/grid-scenario-helper.h"
+#include "ns3/mmwave-enb-phy.h"
+#include "ns3/cc-bwp-helper.h"
 
 using namespace ns3;
 
@@ -146,44 +148,18 @@ main (int argc, char *argv[])
   NS_ABORT_IF (frequencyBwp1 < 6e9 || frequencyBwp1 > 100e9);
   NS_ABORT_IF (frequencyBwp2 < 6e9 || frequencyBwp2 > 100e9);
 
-  //ConfigStore inputConfig;
-  //inputConfig.ConfigureDefaults ();
-
   // enable logging or not
-  if(logging)
+  if (logging)
     {
-      LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
     }
 
-  /**
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
-                      StringValue("l"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
-                      StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing",
-                      BooleanValue(false));
-
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan",
-                      BooleanValue(cellScan));
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
-                      DoubleValue(beamSearchAngleStep));
-                      **/
-
-
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
 
   Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
-
-  //Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNum", UintegerValue (4));
-  //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNum", UintegerValue (16));
-  //Config::SetDefault("ns3::MmWaveEnbPhy::TxPower", DoubleValue (txPower));
-
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
@@ -199,76 +175,51 @@ main (int argc, char *argv[])
   gridScenario.CreateScenario ();
 
   // setup the mmWave simulation
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
-  phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
-  phyMacCommonBwp1->SetNumerology(numerologyBwp1);
-  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-  phyMacCommonBwp1->SetCcId (0);
-
-  BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
-  mmWaveHelper->AddBandwidthPart (0, repr1);
-
-  // if not single BWP simulation add second BWP configuration
-  if (!singleBwp)
-    {
-      Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-      phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
-      phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
-      phyMacCommonBwp2->SetNumerology(numerologyBwp2);
-      phyMacCommonBwp2->SetCcId(1);
-      BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart(1, repr2);
-    }
-
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
-  mmWaveHelper->Initialize();
-
-  // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gridScenario.GetBaseStations ());
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals ());
+  mmWaveHelper->SetEpcHelper (epcHelper);
 
   double x = pow(10, totalTxPower/10);
+  double totalBandwidth = bandwidthBwp1;
 
-  double totalBandwidth = 0;
+  BandwidthPartInfoPtrVector allBwps;
 
-  if (singleBwp)
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (frequencyBwp1, bandwidthBwp1);
+  CcBwpCreator::SimpleOperationBandConf bandConf2 (frequencyBwp2, bandwidthBwp2);
+
+  CcBwpCreator ccBwpCreator;
+  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+  OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
+
+  // Initialize channel and pathloss, plus other things inside band1
+  mmWaveHelper->InitializeOperationBand (&band1);
+
+  // if not single BWP simulation, initialize and setup power in the second bwp
+  if (!singleBwp)
     {
-      totalBandwidth = bandwidthBwp1;
+      // Initialize channel and pathloss, plus other things inside band2
+      mmWaveHelper->InitializeOperationBand (&band2);
+      totalBandwidth += bandwidthBwp2;
+      allBwps = CcBwpCreator::GetAllBwps ({band1, band2});
     }
   else
     {
-      totalBandwidth = bandwidthBwp1 + bandwidthBwp2;
+      allBwps = CcBwpCreator::GetAllBwps ({band1});
     }
 
+  // install mmWave net devices
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
 
-  for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
+  NS_ASSERT (enbNetDev.GetN () == 1);
+
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetTxPower (10*log10 ((bandwidthBwp1/totalBandwidth) * x));
+
+  if (!singleBwp)
     {
-      ObjectMapValue objectMapValue;
-      enbNetDev.Get(j)->GetAttribute("BandwidthPartMap", objectMapValue);
-      for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
-        {
-          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
-          if (i==0)
-            {
-              bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp1/totalBandwidth)*x));
-              std::cout<<"\n txPower1 = "<<10*log10((bandwidthBwp1/totalBandwidth)*x)<<std::endl;
-            }
-          else if (i==1)
-            {
-              bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp2/totalBandwidth)*x));
-              std::cout<<"\n txPower2 = "<<10*log10((bandwidthBwp2/totalBandwidth)*x)<<std::endl;
-            }
-          else
-            {
-              std::cout<<"\n Please extend power assignment for additional bandwidht parts...";
-            }
-        }
-      //std::map<uint8_t, Ptr<BandwidthPartGnb> > ccMap = objectMapValue.GetN()
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBwp2/totalBandwidth) * x));
     }
 
   // create the internet and install the IP stack on the UEs

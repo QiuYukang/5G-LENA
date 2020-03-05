@@ -25,7 +25,8 @@
 #include <ns3/mmwave-phy-mac-common.h>
 #include <ns3/mmwave-control-messages.h>
 #include <ns3/propagation-loss-model.h>
-#include <ns3/mmwave-3gpp-channel.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/three-gpp-propagation-loss-model.h>
 #include <memory>
 
 namespace ns3 {
@@ -46,37 +47,57 @@ static const uint8_t MAX_CC_INTER_BAND = 16; //!< The maximum number of aggregat
 struct BandwidthPartInfo
 {
   uint8_t m_bwpId {0};             //!< BWP id
-  double m_centralFrequency {0};   //!< BWP central frequency
-  double m_lowerFrequency {0};     //!< BWP lower frequency
-  double m_higherFrequency {0};    //!< BWP higher frequency
-  uint32_t m_bandwidth {0};        //!< BWP bandwidth
+  double m_centralFrequency {0.0};   //!< BWP central frequency
+  double m_lowerFrequency {0.0};     //!< BWP lower frequency
+  double m_higherFrequency {0.0};    //!< BWP higher frequency
+  double m_bandwidth {0.0};        //!< BWP bandwidth
 
-  Ptr<SpectrumChannel> m_channel;         //!< Channel for the Bwp. Leave it nullptr to let the helper fill it
-  Ptr<PropagationLossModel> m_propagation;//!< Propagation model. Leave it nullptr to let the helper fill it
-  Ptr<MmWave3gppChannel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
+  /**
+   * \brief Different types for the propagation loss model of this bandwidth parth
+   */
+  enum Scenario
+  {
+    RMa,
+    UMa,
+    UMi_StreetCanyon,
+    InH_OfficeOpen,
+    InH_OfficeMixed
+  } m_scenario {RMa};
+
+  /**
+   * \brief Retrieve a string version of the scenario
+   * \return the string-fied version of the scenario
+   */
+  std::string GetScenario () const;
+
+  Ptr<SpectrumChannel> m_channel;            //!< Channel for the Bwp. Leave it nullptr to let the helper fill it
+  Ptr<ThreeGppPropagationLossModel> m_propagation;   //!< Propagation model. Leave it nullptr to let the helper fill it
+  Ptr<ThreeGppSpectrumPropagationLossModel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
 };
 
 typedef std::unique_ptr<BandwidthPartInfo> BandwidthPartInfoPtr;
+typedef std::unique_ptr<const BandwidthPartInfo> BandwidthPartInfoConstPtr;
+typedef std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> BandwidthPartInfoPtrVector;
 
 /**
  * \brief Component carrier configuration element
  */
 struct ComponentCarrierInfo
 {
-  uint8_t m_ccId {0};          //!< CC id
+  uint8_t m_ccId {0};              //!< CC id
   double m_centralFrequency {0};   //!< BWP central frequency
   double m_lowerFrequency {0};     //!< BWP lower frequency
   double m_higherFrequency {0};    //!< BWP higher frequency
   double m_bandwidth {0};          //!< BWP bandwidth
 
-  std::unordered_map<uint32_t, BandwidthPartInfoPtr> m_bwp;  //!< Space for BWP
+  std::vector<BandwidthPartInfoPtr> m_bwp;  //!< Space for BWP
 
   /**
    * \brief Adds a bandwidth part configuration to the carrier
    *
    * \param bwp Description of the BWP to be added
    */
-  bool AddBwp (uint32_t id, BandwidthPartInfoPtr &&bwp);
+  bool AddBwp (BandwidthPartInfoPtr &&bwp);
 };
 
 typedef std::unique_ptr<ComponentCarrierInfo> ComponentCarrierInfoPtr;
@@ -94,9 +115,9 @@ struct OperationBandInfo
   double m_centralFrequency {0.0};  //!< Operation band central frequency
   double m_lowerFrequency   {0.0};  //!< Operation band lower frequency
   double m_higherFrequency  {0.0};  //!< Operation band higher frequency
-  double m_bandwidth      {0};    //!< Operation band bandwidth
+  double m_bandwidth        {0};    //!< Operation band bandwidth
 
-  std::unordered_map<uint32_t, ComponentCarrierInfoPtr> m_cc;
+  std::vector<ComponentCarrierInfoPtr> m_cc;
 
   /**
    * \brief Adds the component carrier definition given as an input reference
@@ -105,7 +126,7 @@ struct OperationBandInfo
    * \param id Where to put the cc
    * \param cc The information of the component carrier to be created
    */
-  bool AddCc (uint32_t id, ComponentCarrierInfoPtr &&cc);
+  bool AddCc (ComponentCarrierInfoPtr &&cc);
 
   /**
    * @brief GetBwpAt
@@ -114,6 +135,8 @@ struct OperationBandInfo
    * @return
    */
   BandwidthPartInfoPtr & GetBwpAt (uint32_t ccId, uint32_t bwpId) const;
+
+  BandwidthPartInfoPtrVector GetBwps() const;
 };
 
 /**
@@ -159,6 +182,14 @@ public:
   OperationBandInfo CreateOperationBandNonContiguousCc (const std::vector<SimpleOperationBandConf> &configuration);
 
   /**
+   * @brief GetAllBwps
+   * @param operationBands
+   * @return
+   */
+  static BandwidthPartInfoPtrVector
+  GetAllBwps (const std::vector<std::reference_wrapper<OperationBandInfo> > &operationBands);
+
+  /**
    * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
    * configuration
    *
@@ -179,8 +210,8 @@ public:
 
 private:
   void InitializeCc (std::unique_ptr<ComponentCarrierInfo> &cc,
-                     double ccBandwidth, double lowerFreq, uint32_t ccId);
-  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint32_t ccId);
+                     double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
+  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
 
   /**
    * \brief Plots a 2D rectangle defined by the input points and places a label
@@ -201,8 +232,9 @@ private:
                                  double ymax,
                                  const std::string &label);
 
-  uint8_t m_bwpCounter {0};
-  uint8_t m_opBandCounter {0};
+  uint8_t m_operationBandCounter {0};
+  uint8_t m_componentCarrierCounter {0};
+  uint8_t m_bandwidthPartCounter {0};
 };
 
 }
