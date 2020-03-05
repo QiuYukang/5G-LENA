@@ -107,13 +107,8 @@ GridScenarioHelper::CreateScenario ()
     {
       uint32_t utN = m_ut.GetN ();
 
-      for (uint32_t i = 0; i < bsPos->GetSize (); ++i)
+      for (uint32_t i = 0; i < utN; ++i)
         {
-          if (utN == 0)
-            {
-              break;
-            }
-
           Vector pos = bsPos->GetNext ();
 
           pos.x += m_delta.x;
@@ -121,8 +116,6 @@ GridScenarioHelper::CreateScenario ()
           pos.z = m_utHeight;
 
           utPos->Add (pos);
-
-          utN--;
         }
     }
 

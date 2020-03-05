@@ -49,7 +49,7 @@ main (int argc, char *argv[])
   bool udpFullBuffer = false;
   int32_t fixedMcs = -1;
   uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 2;
+  uint16_t ueNumPergNb = 1;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
   uint16_t numerologyBwp1 = 4;
@@ -208,6 +208,12 @@ main (int argc, char *argv[])
     {
       allBwps = CcBwpCreator::GetAllBwps ({band1});
     }
+
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
 
   // install mmWave net devices
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
