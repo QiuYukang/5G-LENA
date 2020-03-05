@@ -78,7 +78,7 @@ void
 BeamManager::SaveBeamformingVector (const BeamformingVector& bfv,
                                     const Ptr<const NetDevice>& device)
 {
-  NS_LOG_INFO ("Save beamforming vector on node id:"<<device->GetNode()->GetId()<<" with BeamId:" << bfv.second);
+  NS_LOG_INFO ("Save beamforming vector toward device with node id:"<<device->GetNode()->GetId()<<" with BeamId:" << bfv.second);
 
   if (device != nullptr)
     {
