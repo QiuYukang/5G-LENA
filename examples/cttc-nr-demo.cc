@@ -35,10 +35,11 @@
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
 #include "ns3/bandwidth-part-gnb.h"
+#include "ns3/grid-scenario-helper.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmBandwidthPartsExample");
+NS_LOG_COMPONENT_DEFINE ("CttcNrDemo");
 
 int 
 main (int argc, char *argv[])
@@ -187,65 +188,15 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
   // create base stations and mobile terminals
-  NodeContainer gNbNodes;
-  NodeContainer ueNodes;
-  MobilityHelper mobility;
-
-  double gNbHeight = 10;
-  double ueHeight = 1.5;
-
-  gNbNodes.Create (gNbNum);
-  ueNodes.Create (ueNumPergNb * gNbNum);
-
-  Ptr<ListPositionAllocator> apPositionAlloc = CreateObject<ListPositionAllocator> ();
-  Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
-  int32_t yValue = 0.0;
-
-  for (uint32_t i = 1; i <= gNbNodes.GetN(); ++i)
-    {
-      // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
-      if (i % 2 != 0)
-        {
-          yValue = static_cast<int>(i) * 30;
-        }
-      else
-        {
-          yValue = -yValue;
-        }
-
-      apPositionAlloc->Add (Vector (0.0, yValue, gNbHeight));
-
-
-      // 1.0, -1.0, 3.0, -3.0, 5.0, -5.0, ...
-      double xValue = 0.0;
-      for (uint32_t j = 1; j <= ueNumPergNb; ++j)
-        {
-          if (j % 2 != 0)
-            {
-              xValue = j;
-            }
-          else
-            {
-              xValue = -xValue;
-            }
-
-          if (yValue > 0)
-            {
-              staPositionAlloc->Add (Vector (xValue, 10, ueHeight));
-            }
-          else
-            {
-              staPositionAlloc->Add (Vector (xValue, -10, ueHeight));
-            }
-        }
-    }
-
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.SetPositionAllocator (apPositionAlloc);
-  mobility.Install (gNbNodes);
-
-  mobility.SetPositionAllocator (staPositionAlloc);
-  mobility.Install (ueNodes);
+  GridScenarioHelper gridScenario;
+  gridScenario.SetRows (1);
+  gridScenario.SetColumns (gNbNum);
+  gridScenario.SetHorizontalBsDistance (5.0);
+  gridScenario.SetBsHeight (10.0);
+  gridScenario.SetUtHeight (1.5);
+  gridScenario.SetBsNumber (gNbNum);
+  gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
+  gridScenario.CreateScenario ();
 
   // setup the mmWave simulation
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
@@ -278,8 +229,8 @@ main (int argc, char *argv[])
   mmWaveHelper->Initialize();
 
   // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gridScenario.GetBaseStations ());
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals ());
 
   double x = pow(10, totalTxPower/10);
 
@@ -341,14 +292,14 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
-  internet.Install (ueNodes);
+  internet.Install (gridScenario.GetUserTerminals ());
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -359,13 +310,13 @@ main (int argc, char *argv[])
   ApplicationContainer clientAppsEmbb, serverAppsEmbb;
 
   UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (ueNodes));
+  serverApps.Add (dlPacketSinkHelper.Install (gridScenario.GetUserTerminals ()));
 
   // attach UEs to the closest eNB
     mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // configure here UDP traffic
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
       dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
@@ -441,7 +392,7 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmonHelper;
   NodeContainer endpointNodes;
   endpointNodes.Add (remoteHost);
-  endpointNodes.Add (ueNodes);
+  endpointNodes.Add (gridScenario.GetUserTerminals ());
 
   Ptr<ns3::FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
   monitor->SetAttribute ("DelayBinWidth", DoubleValue (0.001));
