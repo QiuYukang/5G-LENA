@@ -60,8 +60,6 @@ private:
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.
    *
-   * This function just set to true a boolean variable that will be checked in
-   * StartVarTti().
    */
   void ExpireBeamformingTimer ();
 

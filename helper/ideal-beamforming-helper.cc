@@ -113,6 +113,7 @@ IdealBeamformingHelper::Run () const
 
            gNbPhy->GetBeamManager()->SaveBeamformingVector (gnbBfv, ueDev);
            uePhy->GetBeamManager()->SaveBeamformingVector (ueBfv, gNbDev);
+           uePhy->GetBeamManager()->ChangeBeamformingVector (gNbDev);
         }
     }
 }
