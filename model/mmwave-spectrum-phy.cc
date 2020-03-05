@@ -1157,6 +1157,12 @@ MmWaveSpectrumPhy::SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
   m_harqPhyModule = harq;
 }
 
+Ptr<MmWaveHarqPhy>
+MmWaveSpectrumPhy::GetHarqPhyModule() const
+{
+  return m_harqPhyModule;
+}
+
 Ptr<mmWaveInterference>
 MmWaveSpectrumPhy::GetMmWaveInterference (void) const
 {

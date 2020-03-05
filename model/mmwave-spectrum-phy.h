@@ -156,6 +156,8 @@ public:
 
   void SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq);
 
+  Ptr<MmWaveHarqPhy> GetHarqPhyModule () const;
+
   Ptr<mmWaveInterference> GetMmWaveInterference (void) const;
 
   /**
