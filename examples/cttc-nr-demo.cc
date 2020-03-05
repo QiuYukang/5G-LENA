@@ -186,8 +186,8 @@ main (int argc, char *argv[])
 
   BandwidthPartInfoPtrVector allBwps;
 
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (frequencyBwp1, bandwidthBwp1);
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (frequencyBwp2, bandwidthBwp2);
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (frequencyBwp1, bandwidthBwp1, 1, BandwidthPartInfo::UMi_StreetCanyon);
+  CcBwpCreator::SimpleOperationBandConf bandConf2 (frequencyBwp2, bandwidthBwp2, 1, BandwidthPartInfo::UMi_StreetCanyon);
 
   CcBwpCreator ccBwpCreator;
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);

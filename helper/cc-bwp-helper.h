@@ -102,6 +102,8 @@ struct ComponentCarrierInfo
 
 typedef std::unique_ptr<ComponentCarrierInfo> ComponentCarrierInfoPtr;
 
+std::ostream & operator<< (std::ostream & os, ComponentCarrierInfo const & item);
+
 
 /**
  * \brief Operation band information structure
@@ -139,6 +141,8 @@ struct OperationBandInfo
   BandwidthPartInfoPtrVector GetBwps() const;
 };
 
+std::ostream & operator<< (std::ostream & os, OperationBandInfo const & item);
+
 /**
  * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
  */
@@ -157,13 +161,15 @@ public:
      * \param num Numerology
      * \param sched Scheduler
      */
-    SimpleOperationBandConf (double centralFreq = 28e9, double bw = 400e6, uint8_t numCc = 1)
-      : m_centralFrequency (centralFreq), m_bandwidth (bw), m_numCc (numCc)
+    SimpleOperationBandConf (double centralFreq = 28e9, double bw = 400e6, uint8_t numCc = 1,
+                             BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa)
+      : m_centralFrequency (centralFreq), m_bandwidth (bw), m_numCc (numCc), m_scenario (scenario)
     {
     }
     double m_centralFrequency {28e9};   //!< Central Freq
     double m_bandwidth        {400e6};  //!< Total Bandwidth of the operation band
     uint8_t m_numCc           {1};      //!< Number of CC
+    BandwidthPartInfo::Scenario m_scenario {BandwidthPartInfo::RMa}; //!< Scenario
   };
 
   /**
@@ -211,7 +217,7 @@ public:
 private:
   void InitializeCc (std::unique_ptr<ComponentCarrierInfo> &cc,
                      double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
-  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
+  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId, BandwidthPartInfo::Scenario scenario);
 
   /**
    * \brief Plots a 2D rectangle defined by the input points and places a label
