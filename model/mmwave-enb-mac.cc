@@ -229,7 +229,8 @@ class MmWaveMacMemberMacSchedSapUser : public MmWaveMacSchedSapUser
 {
 public:
   MmWaveMacMemberMacSchedSapUser (MmWaveEnbMac* mac);
-  virtual void SchedConfigInd (const struct SchedConfigIndParameters& params);
+  virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) override;
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
 private:
   MmWaveEnbMac* m_mac;
 };
@@ -246,6 +247,11 @@ MmWaveMacMemberMacSchedSapUser::SchedConfigInd (const struct SchedConfigIndParam
   m_mac->DoSchedConfigIndication (params);
 }
 
+Ptr<const SpectrumModel>
+MmWaveMacMemberMacSchedSapUser::GetSpectrumModel () const
+{
+  return m_mac->m_phySapProvider->GetSpectrumModel ();
+}
 
 class MmWaveMacMemberMacCschedSapUser : public MmWaveMacCschedSapUser
 {

@@ -53,7 +53,8 @@ void
 MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
                                                   uint32_t tbs,
                                                   const MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
-                                                  const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const
+                                                  const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
+                                                  const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
 
@@ -79,10 +80,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
     }
 
 
-  SpectrumValue specVals (MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                      m_phyMacConfig->GetCenterFrequency(),
-                                                                      m_phyMacConfig->GetNumScsPerRb(),
-                                                                      m_phyMacConfig->GetSubcarrierSpacing()));
+  SpectrumValue specVals (model);
   Values::iterator specIt = specVals.ValuesBegin ();
   for (uint32_t ichunk = 0; ichunk < m_phyMacConfig->GetBandwidthInRbs (); ichunk++)
     {

@@ -636,7 +636,8 @@ MmWaveMacSchedulerNs3::DoSchedUlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
                 NS_ASSERT (allocation.m_tbs > 0);
 
                 m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_tbs,
-                                                 params, UeInfoOf (*itUe));
+                                                 params, UeInfoOf (*itUe),
+                                                 m_macSchedSapUser->GetSpectrumModel ());
                 found = true;
                 ulAllocations.erase (it);
                 break;

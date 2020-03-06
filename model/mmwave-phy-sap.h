@@ -57,6 +57,16 @@ public:
    */
   virtual BeamId GetBeamId (uint8_t rnti) const = 0;
 
+  /**
+   * \brief Retrieve the spectrum model used by the PHY layer.
+   * \return the SpectrumModel
+   *
+   * It is used to calculate the CQI. In the future, this method may be removed
+   * if the CQI calculation is done in the PHY layer, just reporting to MAC
+   * its value.
+   */
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+
 };
 
 /* Phy to Mac comm */

@@ -102,6 +102,7 @@ public:
    * \param tbs TBS of the allocation
    * \param params parameters of the received CQI
    * \param ueInfo UE info
+   * \param model SpectrumModel to calculate the CQI
    *
    * To calculate the UL MCS, is necessary to remember the allocation done to
    * be able to retrieve the number of symbols and the TBS assigned. This is
@@ -115,7 +116,8 @@ public:
    */
   void UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                         const MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
-                        const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const;
+                        const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
+                        const Ptr<const SpectrumModel> &model) const;
 
   /**
    * \brief Refresh the DL CQI for all the UE

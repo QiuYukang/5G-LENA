@@ -62,6 +62,8 @@ public:
 
   virtual BeamId GetBeamId (uint8_t rnti) const override;
 
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
+
   virtual void NotifyConnectionSuccessful () override;
 
 private:
@@ -102,6 +104,12 @@ BeamId
 MmWaveMemberPhySapProvider::GetBeamId (uint8_t rnti) const
 {
   return m_phy->GetBeamId (rnti);
+}
+
+Ptr<const SpectrumModel>
+MmWaveMemberPhySapProvider::GetSpectrumModel() const
+{
+  return m_phy->GetSpectrumModel ();
 }
 
 void
