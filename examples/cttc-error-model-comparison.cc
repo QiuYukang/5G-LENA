@@ -100,7 +100,6 @@ main (int argc, char *argv[])
   Ptr<MmWavePhyMacCommon> config = CreateObject<MmWavePhyMacCommon> ();
   config->SetNumerology (4);
   config->SetBandwidth(100e6);
-  config->SetCentreFrequency(28e9);
 
   Ptr<NrAmc> amc = CreateObject<NrAmc> (config);
 

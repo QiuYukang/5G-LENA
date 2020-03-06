@@ -678,7 +678,6 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   m_helper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetCentreFrequency(freq);
   phyMacCommonBwp1->SetBandwidth (bw);
   phyMacCommonBwp1->SetNumerology(num);
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));

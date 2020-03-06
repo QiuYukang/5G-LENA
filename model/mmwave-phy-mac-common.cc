@@ -48,11 +48,6 @@ MmWavePhyMacCommon::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWavePhyMacCommon")
     .SetParent<Object> ()
     .AddConstructor<MmWavePhyMacCommon> ()
-    .AddAttribute ("CenterFreq",
-                   "The center frequency in Hz",
-                   DoubleValue (28e9),
-                   MakeDoubleAccessor (&MmWavePhyMacCommon::m_centerFrequency),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("Bandwidth",
                    "The system bandwidth in Hz",
                    DoubleValue (400e6),
@@ -125,7 +120,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_numSubCarriersPerRb (12),
   m_numHarqProcess (20),
   m_harqTimeout (20),
-  m_centerFrequency (28e9),
   m_bandwidth (400e6),
   m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
@@ -248,13 +242,6 @@ MmWavePhyMacCommon::GetBandwidthInRbs () const
   return m_rbNum;
 }
 
-
-double
-MmWavePhyMacCommon::GetCenterFrequency (void) const
-{
-  return m_centerFrequency;
-}
-
 uint16_t
 MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const
 {
@@ -357,12 +344,6 @@ MmWavePhyMacCommon::SetBandwidth (double bandwidth)
 {
   m_bandwidth = bandwidth;
   m_bandwidthConfigured = true;
-}
-
-void
-MmWavePhyMacCommon::SetCentreFrequency (double fc)
-{
-  m_centerFrequency = fc;
 }
 
 void

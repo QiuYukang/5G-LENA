@@ -713,8 +713,6 @@ public:
    */
   uint32_t GetBandwidthInRbs () const;
 
-  double GetCenterFrequency (void) const;
-
   uint16_t GetL1L2CtrlLatency (void) const;
 
   uint32_t GetNumHarqProcess (void) const;
@@ -761,8 +759,6 @@ public:
    */
   void SetBandwidth (double bandwidth);
 
-  void SetCentreFrequency (double fc);
-
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
   void SetNumHarqProcess (uint32_t numProcess);
@@ -789,7 +785,6 @@ private:
   uint32_t m_numSubCarriersPerRb;  //!< number of subcarriers per resource block (in 3GPP NR it is fixed to 12)
   uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;
-  double m_centerFrequency;     //!< channel central frequency (in Hz)
   double m_bandwidth;           //!< channel bandwidth (in Hz)
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)

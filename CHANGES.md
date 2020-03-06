@@ -48,6 +48,9 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+* Added GetSpectrumModel to the SAP interface between PHY and MAC, so the CQI calculation
+can see that value.
+
 ### Changes to existing API:
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
 are renamed to MmWaveLteEnbPhy::ReportUlHarqFeedback and MmWaveLteUePhy::EnqueueDlHarqFeedback,
@@ -63,6 +66,8 @@ along with Ul Data).
 * MmWaveUePhy includes now traces for the DL DCI and the corresponding DL HARQ Feedback
 
 * Renamed MmWaveEnbNetDevice attribute ComponentCarrierMap into BandwidthPartMap
+
+* Removed CentreFrequency attribute from MmWavePhyMacCommon: it is now set by the helper.
 
 ### Changed behavior:
 
