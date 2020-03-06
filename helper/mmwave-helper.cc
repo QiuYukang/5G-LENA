@@ -367,8 +367,8 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
     {
       Ptr <BandwidthPartUe> cc =  CreateObject<BandwidthPartUe> ();
-      cc->SetUlBandwidth (allBwps[ccId].get()->m_bandwidth);
-      cc->SetDlBandwidth (allBwps[ccId].get()->m_bandwidth);
+      cc->SetUlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
+      cc->SetDlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
       cc->SetDlEarfcn (0); // Used for nothing..
       cc->SetUlEarfcn (0); // Used for nothing..
 
@@ -581,8 +581,8 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
   for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
     {
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
-      cc->SetUlBandwidth (allBwps[ccId].get()->m_bandwidth);
-      cc->SetDlBandwidth (allBwps[ccId].get()->m_bandwidth);
+      cc->SetUlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
+      cc->SetDlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
       cc->SetCellId (m_cellIdCounter++);
