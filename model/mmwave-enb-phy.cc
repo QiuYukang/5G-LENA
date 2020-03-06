@@ -128,11 +128,11 @@ MmWaveEnbPhy::GetTypeId (void)
                                           &MmWaveEnbPhy::GetN1Delay),
                     MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("TbDecodeLatency",
-                   "TB decode latency",
-                    UintegerValue (100),
-                    MakeUintegerAccessor (&MmWavePhy::SetTbDecodeLatency,
-                                          &MmWavePhy::GetTbDecodeLatency),
-                    MakeUintegerChecker<uint32_t> ())
+                   "Transport block decode latency",
+                    TimeValue (MicroSeconds (100)),
+                    MakeTimeAccessor (&MmWavePhy::SetTbDecodeLatency,
+                                      &MmWavePhy::GetTbDecodeLatency),
+                    MakeTimeChecker ())
     ;
   return tid;
 

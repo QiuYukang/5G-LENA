@@ -69,9 +69,15 @@ public:
    */
   void NotifyConnectionSuccessful ();
 
-  virtual void SetTbDecodeLatency (uint32_t us);
+  /**
+   * \brief Configures TB decode latency
+   */
+  virtual void SetTbDecodeLatency (Time us);
 
-  virtual uint32_t GetTbDecodeLatency (void) const;
+  /**
+   * \brief Returns TB decode latency
+   */
+  virtual Time GetTbDecodeLatency (void) const;
 
   virtual BeamId GetBeamId (uint16_t rnti) const = 0;
 
@@ -287,7 +293,7 @@ private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
-  uint32_t m_tbDecodeLatencyUs; //!< transport block decode latency (in us)
+  Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
 
 

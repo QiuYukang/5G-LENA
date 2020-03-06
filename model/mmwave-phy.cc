@@ -597,12 +597,12 @@ MmWavePhy::GetSpectrumModel () const
 
 
 void
-MmWavePhy::SetTbDecodeLatency (uint32_t us)
+MmWavePhy::SetTbDecodeLatency (Time us)
 {
   m_tbDecodeLatencyUs = us;
 }
 
-uint32_t
+Time
 MmWavePhy::GetTbDecodeLatency (void) const
 {
   return m_tbDecodeLatencyUs;

@@ -96,11 +96,11 @@ MmWaveUePhy::GetTypeId (void)
                    MakeTimeAccessor (&MmWaveUePhy::m_lbtThresholdForCtrl),
                    MakeTimeChecker ())
     .AddAttribute ("TbDecodeLatency",
-                   "TB decode latency",
-                    UintegerValue (100),
-                    MakeUintegerAccessor (&MmWavePhy::SetTbDecodeLatency,
-                                          &MmWavePhy::GetTbDecodeLatency),
-                    MakeUintegerChecker<uint32_t> ())
+                   "Transport block decode latency",
+                   TimeValue (MicroSeconds (100)),
+                   MakeTimeAccessor (&MmWavePhy::SetTbDecodeLatency,
+                   &MmWavePhy::GetTbDecodeLatency),
+                   MakeTimeChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&MmWaveUePhy::m_reportCurrentCellRsrpSinrTrace),

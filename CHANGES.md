@@ -69,6 +69,11 @@ along with Ul Data).
 
 * Removed CentreFrequency attribute from MmWavePhyMacCommon: it is now set by the helper.
 
+* Removed N0Delay,N1Delay, attributes from MmWavePhyMacCommon: they are now in MmWaveEnbPhy.
+
+* Removed TbDecodeLatency attribute from MmWavePhyMacCommon: it is now attribute of 
+MmWaveEnbPhy and MmWaveUePhy.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are
