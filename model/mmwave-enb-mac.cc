@@ -324,6 +324,11 @@ MmWaveEnbMac::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWaveEnbMac")
     .SetParent<Object> ()
     .AddConstructor<MmWaveEnbMac> ()
+    .AddAttribute ("NumRbPerRbg",
+                   "Number of resource blocks per resource block group.",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&MmWaveEnbMac::m_numRbPerRbg),
+                   MakeUintegerChecker<uint32_t> ())
     .AddTraceSource ("DlScheduling",
                      "Information regarding DL scheduling.",
                      MakeTraceSourceAccessor (&MmWaveEnbMac::m_dlScheduling),
@@ -377,6 +382,21 @@ MmWaveEnbMac::DoDispose (void)
   delete m_macSchedSapUser;
   delete m_macCschedSapUser;
   delete m_phySapUser;
+}
+
+void
+MmWaveEnbMac::SetNumRbPerRbg (uint32_t rbgSize)
+{
+  NS_ABORT_MSG_IF(m_numRbPerRbg !=-1, "This attribute can not be reconfigured");
+  m_numRbPerRbg = rbgSize;
+  m_phySapProvider->SetNumRbPerRbg(m_numRbPerRbg);
+  m_macCschedSapProvider->SetNumRbPerRbg(m_numRbPerRbg);
+}
+
+uint32_t
+MmWaveEnbMac::GetNumRbPerRbg (void) const
+{
+  return m_numRbPerRbg;
 }
 
 void
@@ -1055,6 +1075,8 @@ MmWaveEnbMac::DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
   params.m_ulBandwidth = ulBandwidth;
   params.m_dlBandwidth = dlBandwidth;
   //m_macChTtiDelay = m_phySapProvider->GetMacChTtiDelay ();  // Gets set by MmWavePhyMacCommon
+  m_phySapProvider->SetNumRbPerRbg(m_numRbPerRbg);
+  m_macCschedSapProvider->SetNumRbPerRbg (m_numRbPerRbg);
   m_macCschedSapProvider->CschedCellConfigReq (params);
 }
 

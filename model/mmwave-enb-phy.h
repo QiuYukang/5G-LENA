@@ -47,6 +47,7 @@ class BeamManager;
 class MmWaveEnbPhy : public MmWavePhy
 {
   friend class MemberLteEnbCphySapProvider<MmWaveEnbPhy>;
+  friend class MmWaveMemberPhySapProvider;
 public:
   /**
    * \brief Get Type id
@@ -341,6 +342,13 @@ private:
   void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
   void DoSetBandwidth (uint8_t Bandwidth );
   void DoSetEarfcn (uint16_t Earfcn );
+  /**
+   * \brief This function is called by MmWaveMemberPhySapProvider (by MAC) and
+   * it configures the number of resource blocks per resource block group
+   * \param numRbPerRbg number of resource block per RBG
+   */
+  virtual void DoSetNumRbPerRbg (int32_t numRbPerRbg) override;
+
   /**
    * \brief Store the RBG allocation in the symStart, rbg map.
    * \param dci DCI

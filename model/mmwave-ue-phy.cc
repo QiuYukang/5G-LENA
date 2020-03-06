@@ -222,6 +222,12 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 }
 
 void
+MmWaveUePhy::SetNumRbPerRbg (uint32_t numRbPerRbg)
+{
+  m_numRbPerRbg = numRbPerRbg;
+}
+
+void
 MmWaveUePhy::InsertAllocation (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);

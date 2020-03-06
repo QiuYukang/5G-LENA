@@ -149,6 +149,12 @@ MmWaveEnbPhy::DoInitialize (void)
 
 }
 
+void MmWaveEnbPhy::DoSetNumRbPerRbg (int32_t numRbPerRbg)
+{
+  NS_LOG_FUNCTION (this);
+  m_numRbPerRbg = numRbPerRbg;
+}
+
 /**
  * \brief An intelligent way to calculate the modulo
  * \param n Number
@@ -787,7 +793,6 @@ void MmWaveEnbPhy::DoStartSlot ()
 
   Simulator::Schedule (nextVarTtiStart, &MmWaveEnbPhy::StartVarTti, this);
 }
-
 
 void
 MmWaveEnbPhy::StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci)

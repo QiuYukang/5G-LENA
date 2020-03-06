@@ -51,6 +51,12 @@ public:
   virtual void NotifyConnectionSuccessful () = 0;
 
   /**
+   * \brief Set number of resource blocks per resource block group
+   * \param numRbPerRbg number of RB per RBG
+   */
+  virtual void SetNumRbPerRbg (uint32_t numRbPerRbg) = 0;
+
+  /**
    * \brief Get the beam ID from the RNTI specified. Not in any standard.
    * \param rnti RNTI of the user
    * \return Beam ID of the user

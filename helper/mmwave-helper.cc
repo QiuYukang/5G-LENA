@@ -781,6 +781,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
       enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
       ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
+      ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
       ueNetDev->GetCcMap()[i]->GetMac()->SetConfigurationParameters (configParams);
       Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
       ueNas->Connect (enbNetDev->GetCellId (i), enbNetDev->GetEarfcn (i));

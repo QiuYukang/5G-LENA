@@ -122,7 +122,7 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
-  NS_LOG_DEBUG ("RB per RBG " << m_phyMacConfig->GetNumRbPerRbg () <<
+  NS_LOG_DEBUG ("RB per RBG " << GetNumRbPerRbg () <<
                 " total RBG " << m_phyMacConfig->GetBandwidthInRbg ());
   std::string tbs;
 
@@ -130,8 +130,8 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
     {
       std::stringstream ss;
       ss << "\nMCS " << mcs <<
-            " TBS in 1 RBG: [" << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg ()) <<
-            "] TBS in 1 sym: [" << m_amc->CalculateTbSize(mcs, m_phyMacConfig->GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ()) <<
+            " TBS in 1 RBG: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg ()) <<
+            "] TBS in 1 sym: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ()) <<
             "]";
       tbs += ss.str ();
     }
@@ -309,6 +309,19 @@ MmWaveMacSchedulerNs3::DoCschedUeReleaseReq (const MmWaveMacCschedSapProvider::C
   m_ueMap.erase (itUe);
 
   NS_LOG_INFO ("Release RNTI " << params.m_rnti);
+}
+
+void
+MmWaveMacSchedulerNs3::DoSetNumRbPerRbg (uint32_t numRbPerRbg)
+{
+  m_numRbPerRbg = numRbPerRbg;
+}
+
+int64_t
+MmWaveMacSchedulerNs3::GetNumRbPerRbg () const
+{
+  NS_ABORT_MSG_IF(m_numRbPerRbg == -1, "Number of RBs per RBG not configured.");
+  return m_numRbPerRbg;
 }
 
 /**
@@ -1420,7 +1433,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
 
           assignedSym++;
           tbs = m_amc->CalculateTbSize (ue->m_ulMcs,
-                                        ue->m_ulRBG * m_phyMacConfig->GetNumRbPerRbg ());
+                                        ue->m_ulRBG * GetNumRbPerRbg ());
         }
       while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
 

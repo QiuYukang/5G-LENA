@@ -63,6 +63,19 @@ public:
   MmWaveEnbMac (void);
   virtual ~MmWaveEnbMac (void) override;
 
+  /**
+   * \brief Sets the number of RBs per RBG. Currently it can be 
+   * configured by the user, while in the future it will be configured 
+   * by the RRC based on the type of configuration and the bandwidth.
+   * \param rbgSize Number of RBs per RBG
+   */
+  void SetNumRbPerRbg (uint32_t rbgSize);
+
+  /**
+   * \return The number of resource blocks per resource block group
+   */
+  uint32_t GetNumRbPerRbg (void) const;
+
   void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
@@ -254,6 +267,8 @@ private:
   uint8_t m_subframeNum {0};
   uint16_t m_slotNum {0};
   uint32_t m_varTtiNum {0};
+
+  int32_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth
 
   std::map<uint32_t, struct MacPduInfo> m_macPduMap;
 

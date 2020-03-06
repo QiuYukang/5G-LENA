@@ -74,6 +74,12 @@ along with Ul Data).
 * Removed TbDecodeLatency attribute from MmWavePhyMacCommon: it is now attribute of 
 MmWaveEnbPhy and MmWaveUePhy.
 
+* Removed NumRbPerRbg attribute from MmWavePhyMacCommon to MmWaveEnbMac. 
+This attribute is still needed by UE PHY, thus for the moment this attribute 
+cannot be reconfigured once being set. Once that DCI bitmask is changed to 
+work per the RB granularity, this attribute can be reconfigured.
+
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

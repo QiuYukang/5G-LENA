@@ -109,6 +109,17 @@ public:
   void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
 
   /**
+   * \brief Function that sets the number of RBs per RBG.
+   * This function will be soon deprecated, as soon as all the functions at
+   * gNb PHY, MAC and UE PHY that work with DCI bitmask start
+   * to work on level of RBs instead of RBGs.
+   * This function is configured by helper
+   *
+   * \param numRbPerRbg Number of RBs per RBG
+   */
+  void SetNumRbPerRbg (uint32_t numRbPerRbg);
+
+  /**
    * \brief Receive a list of CTRL messages
    *
    * Connected by the helper to a callback of the spectrum.
@@ -387,7 +398,6 @@ private:
    */
   void InsertFutureAllocation (const SfnSf &sfnSf, const std::shared_ptr<DciInfoElementTdma> &dci);
 
-private:
   MmWaveUePhySapUser* m_phySapUser;             //!< SAP pointer
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
