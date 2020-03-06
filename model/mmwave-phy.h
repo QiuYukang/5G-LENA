@@ -79,6 +79,8 @@ public:
 
   Ptr<BeamManager> GetBeamManager ();
 
+  Ptr<const SpectrumModel> GetSpectrumModel () const;
+
   // Attributes
   /**
    * \return The antena array that is being used by this PHY
@@ -89,6 +91,14 @@ public:
   MmWavePhySapProvider* GetPhySapProvider ();
 
   void SetDevice (Ptr<MmWaveNetDevice> d);
+
+  /**
+   * \brief Install the PHY over a particular central frequency
+   * \param f the frequency in Hz
+   * The helper will call this function, making sure it is equal to the value
+   * of the channel.
+   */
+  void InstallCentralFrequency (double f);
 
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
@@ -143,7 +153,7 @@ protected:
    * \return A SpectrumValue array with fixed size, in which a value is
    * update to a particular value of the noise
    */
-  Ptr<SpectrumValue> GetNoisePowerSpectralDensity ();
+  Ptr<SpectrumValue> GetNoisePowerSpectralDensity () const;
 
   /**
    * Create Tx Power Spectral Density
@@ -163,6 +173,14 @@ protected:
    * Take the value from PhyMacCommon. If it's not set, then return 777.
    */
   uint32_t GetCcId () const;
+
+  /**
+   * \brief Retrieve the frequency (in Hz) of this PHY's channel
+   * \return the frequency of the channel in Hz
+   *
+   * The function will assert if it is called without having set a frequency first.
+   */
+  double GetCentralFrequency () const;
 
   /**
    * \brief Store the slot allocation info at the front
@@ -270,6 +288,7 @@ private:
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
   uint32_t m_tbDecodeLatencyUs; //!< transport block decode latency (in us)
+  double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
 
 
 };

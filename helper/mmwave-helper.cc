@@ -318,6 +318,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
 
   Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
+  phy->InstallCentralFrequency (gppChannel->GetFrequency ());
   phy->SetSpectrumPhy (channelPhy);
   phy->InstallAntenna (antenna);
   phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
@@ -496,6 +497,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   Ptr<MmWaveEnbPhy> phy = m_gnbPhyFactory.Create <MmWaveEnbPhy> ();
   Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
+  phy->InstallCentralFrequency (gppChannel->GetFrequency ());
   phy->SetSpectrumPhy (channelPhy);
   phy->InstallAntenna (antenna);
 

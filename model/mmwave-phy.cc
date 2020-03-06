@@ -182,6 +182,14 @@ MmWavePhy::SetDevice (Ptr<MmWaveNetDevice> d)
 }
 
 void
+MmWavePhy::InstallCentralFrequency (double f)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_centralFrequency < 0.0);
+  m_centralFrequency = f;
+}
+
+void
 MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
@@ -253,23 +261,15 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
 }
 
 Ptr<SpectrumValue>
-MmWavePhy::GetNoisePowerSpectralDensity ()
+MmWavePhy::GetNoisePowerSpectralDensity () const
 {
-  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                      m_phyMacConfig->GetCenterFrequency(),
-                                                                      m_phyMacConfig->GetNumScsPerRb(),
-                                                                      m_phyMacConfig->GetSubcarrierSpacing());
-
-  return MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity(m_noiseFigure, sm);
+  return MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigure, GetSpectrumModel ());
 }
 
 Ptr<SpectrumValue>
 MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
 {
-  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                           m_phyMacConfig->GetCenterFrequency(),
-                                                                           m_phyMacConfig->GetNumScsPerRb(),
-                                                                           m_phyMacConfig->GetSubcarrierSpacing());
+  Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
   return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
 }
@@ -282,6 +282,14 @@ MmWavePhy::GetCcId() const
       return m_phyMacConfig->GetCcId ();
     }
   return 777;
+}
+
+double
+MmWavePhy::GetCentralFrequency() const
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_centralFrequency < 0.0);
+  return m_centralFrequency;
 }
 
 void
@@ -566,6 +574,17 @@ Ptr<BeamManager>
 MmWavePhy::GetBeamManager ()
 {
   return m_beamManager;
+}
+
+Ptr<const SpectrumModel>
+MmWavePhy::GetSpectrumModel () const
+{
+  NS_LOG_FUNCTION (this);
+
+  return MmWaveSpectrumValueHelper::GetSpectrumModel (m_phyMacConfig->GetBandwidthInRbs(),
+                                                      GetCentralFrequency (),
+                                                      m_phyMacConfig->GetNumScsPerRb(),
+                                                      m_phyMacConfig->GetSubcarrierSpacing());
 }
 
 
