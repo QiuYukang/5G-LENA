@@ -570,8 +570,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 {
   NS_ABORT_MSG_IF (m_cellIdCounter == 65535, "max num eNBs exceeded");
 
-  uint16_t cellId = m_cellIdCounter;
-
   Ptr<MmWaveEnbNetDevice> dev = m_enbNetDeviceFactory.Create<MmWaveEnbNetDevice> ();
   Ptr<MmWavePhyMacCommon> phyMacCommon = m_phyMacCommonFactory.Create <MmWavePhyMacCommon> ();
 
@@ -597,7 +595,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
         }
 
       auto phy = CreateGnbPhy (n, phyMacCommon, allBwps[ccId].get()->m_channel,
-                               allBwps[ccId].get()->m_3gppChannel, dev, cellId,
+                               allBwps[ccId].get()->m_3gppChannel, dev, cc->GetCellId (),
                                std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
                                           dev, std::placeholders::_1, ccId));
       cc->SetPhy (phy);
@@ -702,7 +700,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
     }
 
   dev->SetNode (n);
-  dev->SetAttribute ("CellId", UintegerValue (cellId));
   dev->SetAttribute ("LteEnbComponentCarrierManager", PointerValue (ccmEnbManager));
   dev->SetCcMap (ccMap);
   dev->SetAttribute ("LteEnbRrc", PointerValue (rrc));

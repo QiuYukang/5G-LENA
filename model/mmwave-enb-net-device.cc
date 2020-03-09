@@ -53,9 +53,7 @@ MmWaveEnbNetDevice::GetTypeId ()
     .AddAttribute ("LteEnbRrc", "The RRC layer associated with the ENB", PointerValue (),
                    MakePointerAccessor (&MmWaveEnbNetDevice::m_rrc),
                    MakePointerChecker<LteEnbRrc> ())
-    .AddAttribute ("CellId", "Cell Identifier", UintegerValue (0),
-                   MakeUintegerAccessor (&MmWaveEnbNetDevice::m_cellId),
-                   MakeUintegerChecker<uint16_t> ());
+    ;
   return tid;
 }
 

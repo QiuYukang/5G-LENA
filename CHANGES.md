@@ -79,6 +79,7 @@ This attribute is still needed by UE PHY, thus for the moment this attribute
 cannot be reconfigured once being set. Once that DCI bitmask is changed to 
 work per the RB granularity, this attribute can be reconfigured.
 
+* Removed CellId attribute from MmWaveEnbNetDevice, as it was not used.
 
 ### Changed behavior:
 
