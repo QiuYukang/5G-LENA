@@ -139,8 +139,6 @@ the directional communication for both downlink (DL) and uplink (UL), to transmi
 and control channels. Each ``NRPhy`` class writes into an instance of ``MmWaveSpectrumPhy``
 class, which is shared between the UL and DL parts.
 
-
-
 .. _fig-ran:
 
 .. figure:: figures/drawing1.*
@@ -148,7 +146,6 @@ class, which is shared between the UL and DL parts.
    :scale: 80 %
 
    RAN class overview
-
 
 Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers.
 3GPP does not explicitly define them, and as such, they are virtual layers,
@@ -215,12 +212,11 @@ is fixed to 12, and the maximum number of PRBs according to Release-15 is 275.
 The numerology defines also the size of a PRB, and the total number of PRBs of the NR system
 within a fixed bandwidth. PRBs are grouped into PRB groups at MAC scheduling time.
 
-Figure :ref:`fig-frame-structure` shows the NR frame structure in time- and
+Figure :ref:`fig-frame` shows the NR frame structure in time- and
 frequency- domains for numerology 3 with normal CP and a total
 channel bandwidth of 400 MHz.
 
-
-.. _fig-frame-structure:
+.. _fig-frame:
 
 .. figure:: figures/numerologies-1.*
    :align: center
@@ -265,7 +261,7 @@ but the real duration of the slot depends on the configured numerology.
 Second, the scheduling operation is done on a slot basis, and the scheduler
 assigns transmission time intervals (TTIs) no longer than that of one slot.
 Third, the MAC-to-PHY processing delay depends on the numerology, and defaults to 2 slots.
-
+See implementation details and evaluations in [WNS32018-NR]_, [CAMAD2018-NR]_.
 
 FDM of numerologies
 ===================
@@ -281,22 +277,19 @@ that has the shortest slot length, and eMBB with the numerology associated
 to the largest slot length. To address that, NR enables FDM of numerologies through different
 BWPs, to address the trade-off between latency
 and throughput for different types of traffic by physically dividing the
-bandwidth in two or more BWPs. In Figure \ref{fig:bwps}, we illustrate
+bandwidth in two or more BWPs. In Figure :ref:`fig-bwp`, we illustrate
 an example of FDM of numerologies. The channel is split into two BWPs
 that accommodate the two numerologies multiplexed in
 frequency domain. The total bandwidth :math:`B` is then divided into two parts
 of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
 
-
-
-.. _fig-frame-structure:
+.. _fig-bwp:
 
 .. figure:: figures/bwp.*
    :align: center
    :scale: 80 %
 
    FDM of numerologies example
-
 
 In the 'NR' module, the user can configure FDM bands statically before the
 simulation starts. This is a critical design assumption based on two main reasons.
@@ -309,8 +302,7 @@ these runtime configuration changes, it will not be possible to perform
 semi-static reconfiguration of BWPs. The second reason is that in the simulator
 the RRC messaging to configure the default bandwidth part, as well as the
 bandwidth part reconfiguration, are not implemented yet.
-
-TBC
+See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
 
 
 Duplexing schemes
@@ -384,10 +376,10 @@ Spectrum model
 In the simulator, radio spectrum usage is modeled as follows. A Spectrum Model is defined in the
 simulation for each set of central carrier frequency, transmission bandwidth (in number
 of PRBs), subcarrier spacing, and number of subcarriers per PRB, using the
-Spectrum framework [Baldo2009]_. A spectrum model is configured for every bandwidth part (BWP)
+Spectrum framework [baldo2009]_. A spectrum model is configured for every bandwidth part (BWP)
 of each gNB instantiated in the simulation; hence, each gNB-BWP can use a different spectrum model.
 Every UE will automatically use the spectrum model of the gNB it is attached to.
-Using the MultiModelSpectrumChannel described in [Baldo2009]_, the interference among gNBs and UEs
+Using the MultiModelSpectrumChannel described in [baldo2009]_, the interference among gNBs and UEs
 that use different spectrum models is properly accounted for. This allows to
 simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering
 downlink-to-uplink and uplink-to-downlink interferences.
@@ -1242,8 +1234,6 @@ Open issues and future work
 
 .. [TR38900] 3GPP TR 38.900 "Study on channel model for frequency above 6GHz", (Release 14) TR 38.912v14.0.0 (2016-12), 3rd Generation Partnership Project, 2016.
 
-.. [ns-3-3gpp-cm] Menglei Zhang, Michele Polese, Marco Mezzavilla, Sundeep Rangan, Michele Zorzi, "ns-3 Implementation of the 3GPP MIMO Channel Model for Frequency Spectrum above 6 GHz", pages: 71-78, 	doi 10.1145/3067665.3067678, 17 Proceedings of the Workshop on ns-3, 2017.
-
 .. [end-to-end-mezz] Marco Mezzavilla, Menglei Zhang, Michele Polese, Russell Ford, Sourjya Dutta, Sundeep Rangan, Michele Zorzi, "End-to-End Simulation of 5G mmWave Networks,", in IEEE Communication Surveys and Tutorials, vol. 13, No 20,  pp. 2237-2263, April 2018.
 
 .. [WNS32018-NR]  B. Bojovic, S. Lagen, L. Giupponi, Implementation and Evaluation of Frequency Division Multiplexing of Numerologies for 5G New Radio in ns-3 , in Workshop on ns-3, June 2018, Mangalore, India.
@@ -1253,8 +1243,6 @@ Open issues and future work
 .. [3GPPTSGSSA] 3GPP TS 23.501 V15.0.0, System Architecture for the 5G System; Stage 2 (Release 15), Dec. 2017
 
 .. [CA-WNS32017] B. Bojovic, D. Abrignani Melchiorre, M. Miozzo, L. Giupponi, N. Baldo, Towards LTE-Advanced and LTE-A Pro Network Simulations: Implementing Carrier Aggregation in LTE Module of ns-3, in Proceedings of the Workshop on ns-3, Porto, Portugal, June 2017.
-
-.. [TS38214] 3GPP TS 38.214 V15.2.0 (2018-06), "NR; Physical layer procedures for data", (Release 15), V15.2.0 (2018-06), 3rd Generation Partnership Project, 2018
 
 .. [ff-api] FemtoForum , "LTE MAC Scheduler Interface v1.11", Document number: FF_Tech_001_v1.11 , Date issued: 12-10-2010.
 
