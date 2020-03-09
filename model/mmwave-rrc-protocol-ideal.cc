@@ -253,12 +253,6 @@ MmWaveEnbRrcProtocolIdeal::GetLteEnbRrcSapUser ()
   return m_enbRrcSapUser;
 }
 
-void
-MmWaveEnbRrcProtocolIdeal::SetCellId (uint16_t cellId)
-{
-  m_cellId = cellId;
-}
-
 LteUeRrcSapProvider*
 MmWaveEnbRrcProtocolIdeal::GetUeRrcSapProvider (uint16_t rnti)
 {

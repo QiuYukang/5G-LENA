@@ -642,7 +642,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       rrcProtocol->SetLteEnbRrcSapProvider (rrc->GetLteEnbRrcSapProvider ());
       rrc->SetLteEnbRrcSapUser (rrcProtocol->GetLteEnbRrcSapUser ());
       rrc->AggregateObject (rrcProtocol);
-      rrcProtocol->SetCellId (cellId);
     }
   else
     {
@@ -650,7 +649,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       rrcProtocol->SetLteEnbRrcSapProvider (rrc->GetLteEnbRrcSapProvider ());
       rrc->SetLteEnbRrcSapUser (rrcProtocol->GetLteEnbRrcSapUser ());
       rrc->AggregateObject (rrcProtocol);
-      rrcProtocol->SetCellId (cellId);
     }
 
   if (m_epcHelper != nullptr)

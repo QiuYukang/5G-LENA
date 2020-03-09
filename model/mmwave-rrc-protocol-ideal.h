@@ -113,8 +113,6 @@ public:
   void SetLteEnbRrcSapProvider (LteEnbRrcSapProvider* p);
   LteEnbRrcSapUser* GetLteEnbRrcSapUser ();
 
-  void SetCellId (uint16_t cellId);
-
   LteUeRrcSapProvider* GetUeRrcSapProvider (uint16_t rnti);
   void SetUeRrcSapProvider (uint16_t rnti, LteUeRrcSapProvider* p);
 
@@ -137,7 +135,6 @@ private:
 
 
   uint16_t m_rnti;
-  uint16_t m_cellId;
   LteEnbRrcSapProvider* m_enbRrcSapProvider;
   LteEnbRrcSapUser* m_enbRrcSapUser;
   std::map<uint16_t, LteUeRrcSapProvider*> m_enbRrcSapProviderMap;
