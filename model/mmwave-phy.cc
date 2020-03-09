@@ -193,7 +193,7 @@ void
 MmWavePhy::InstallCentralFrequency (double f)
 {
   NS_LOG_FUNCTION (this);
-  NS_ABORT_IF (m_centralFrequency < 0.0);
+  NS_ABORT_IF (m_centralFrequency >= 0.0);
   m_centralFrequency = f;
 }
 
