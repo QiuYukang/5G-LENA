@@ -352,7 +352,7 @@ last slot is reserved for UL CTRL, and the rest of symbols are available for DL 
 
 FDD model
 #########
-
+TBC
 
 MAC to channel delay
 ====================
@@ -366,12 +366,31 @@ TBC
 
 Interference model
 ==================
-TBC
+The PHY model is based on the well-known Gaussian interference models, according
+to which the powers of interfering signals (in linear units) are summed up together
+to determine the overall interference power.
+The useful and interfering signals, as well as the noise power spectral density,
+are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
+
+Also, such powers are used to determine if the channel is busy or empty. For that,
+we are creating two events, one that adds, for any signal, the received power and
+another that substracts the received power at the end time. These events are then
+used to determine if the channel is busy (by comparing to a threshold)
+and for how long.
 
 
 Spectrum model
 ==============
-TBC
+In the simulator, radio spectrum usage is modeled as follows. A Spectrum Model is defined in the
+simulation for each set of central carrier frequency, transmission bandwidth (in number
+of PRBs), subcarrier spacing, and number of subcarriers per PRB, using the
+Spectrum framework [Baldo2009]_. A spectrum model is configured for every bandwidth part (BWP)
+of each gNB instantiated in the simulation; hence, each gNB-BWP can use a different spectrum model.
+Every UE will automatically use the spectrum model of the gNB it is attached to.
+Using the MultiModelSpectrumChannel described in [Baldo2009]_, the interference among gNBs and UEs
+that use different spectrum models is properly accounted for. This allows to
+simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering
+downlink-to-uplink and uplink-to-downlink interferences.
 
 
 Data PHY error model
@@ -1248,3 +1267,5 @@ Open issues and future work
 .. [calibration-l2sm] A.-M. Cipriano,  R.  Visoz,  and  T.  Salzer,  "Calibration  issues  of  PHY layer  abstractions  for  wireless  broadband  systems", IEEE  Vehicular Technology Conference, Sept. 2008.
 
 .. [nr-l2sm] S. Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello, L. Giupponi, "New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks", in Proceedings of IEEE International Conference on Communications (IEEE ICC), 7-11 June 2020, Dublin (Ireland).
+
+.. [baldo2009] N. Baldo and M. Miozzo, "Spectrum-aware Channel and PHY layer modeling for ns3", Proceedings of ICST NSTools 2009, Pisa, Italy.
