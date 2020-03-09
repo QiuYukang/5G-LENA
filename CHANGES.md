@@ -81,6 +81,15 @@ work per the RB granularity, this attribute can be reconfigured.
 
 * Removed CellId attribute from MmWaveEnbNetDevice, as it was not used.
 
+* Removed NumRbPerRbg attribute from MmWavePhyMacCommon to MmWaveEnbMac. This 
+value is used by PHY and scheduler and they obtain it through SAP interface 
+by calling MAC public function GetNumPerRbg. This attribute is currently 
+needed by UE PHY, and is configured in MmWaveHelper in AttachToEnb function, 
+thus this attribute cannot be reconfigured once UEs attachment has started.
+When DCI bitmask is changed to work per the RB granularity, UE will not need 
+anymore this information, and consequently it will be possible to 
+reconfigure the attribute at gNb MAC.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

@@ -51,12 +51,6 @@ public:
   virtual void NotifyConnectionSuccessful () = 0;
 
   /**
-   * \brief Set number of resource blocks per resource block group
-   * \param numRbPerRbg number of RB per RBG
-   */
-  virtual void SetNumRbPerRbg (uint32_t numRbPerRbg) = 0;
-
-  /**
    * \brief Get the beam ID from the RNTI specified. Not in any standard.
    * \param rnti RNTI of the user
    * \return Beam ID of the user
@@ -75,7 +69,11 @@ public:
 
 };
 
-/* Phy to Mac comm */
+/* This SAP is normally used so that PHY can send to MAC indications
+ * and providing to MAC some information. The relationship between MAC and PHY
+ * is that PHY is service provider to MAC, and MAC is user.
+ * Exceptionally, PHY can also request some information from MAC through this
+ * interface, such as e.g. GetNumRbPerRbg.*/
 class MmWaveEnbPhySapUser
 {
 public:
@@ -147,6 +145,14 @@ public:
    * \param rnti the RNTI of the user
    */
   virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) = 0;
+
+  /**
+   * \brief PHY requests information from MAC.
+   * While MAC normally act as user of PHY services, in this case
+   * exceptionally MAC provides information/service to PHY.
+   * \return number of resource block per resource block group
+   */
+  virtual uint32_t GetNumRbPerRbg () const = 0;
 };
 
 class MmWaveUePhySapUser

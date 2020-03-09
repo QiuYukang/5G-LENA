@@ -166,6 +166,8 @@ public:
   virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) = 0;
 
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+
+  virtual uint32_t GetNumRbPerRbg () const = 0;
 };
 
 std::ostream & operator<< (std::ostream & os, MmWaveMacSchedSapProvider::SchedDlRlcBufferReqParameters const & p);

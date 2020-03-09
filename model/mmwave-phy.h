@@ -134,13 +134,6 @@ public:
    */
   void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
 
-  /**
-   * \brief This function is called by MmWaveMemberPhySapProvider (by MAC) and
-   * it configuress the number of resource blocks per resource block group
-   * \param numRbPerRbg number of resource block per RBG
-   */
-  virtual void DoSetNumRbPerRbg (int32_t numRbPerRbg);
-
 protected:
 
   /**
@@ -161,11 +154,10 @@ protected:
 
   /**
    * \brief Protected function that is used to get the number of resource
-   * blocks per resource block group and also to check whether this value is
-   * configured.
+   * blocks per resource block group.
    * \return Returns the number of RBs per RBG
    */
-  virtual int64_t GetNumRbPerRbg () const;
+  virtual uint32_t GetNumRbPerRbg () const = 0;
 
   Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
@@ -303,8 +295,6 @@ protected:
   Ptr<BeamManager> m_beamManager; //!< TODO
 
   std::list <Ptr<MmWaveControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
-
-  int64_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth, this parameter is configured by MAC through phy SAP provider interface
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list

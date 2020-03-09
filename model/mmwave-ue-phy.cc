@@ -227,6 +227,12 @@ MmWaveUePhy::SetNumRbPerRbg (uint32_t numRbPerRbg)
   m_numRbPerRbg = numRbPerRbg;
 }
 
+uint32_t
+MmWaveUePhy::GetNumRbPerRbg () const
+{
+  return m_numRbPerRbg;
+}
+
 void
 MmWaveUePhy::InsertAllocation (const std::shared_ptr<DciInfoElementTdma> &dci)
 {

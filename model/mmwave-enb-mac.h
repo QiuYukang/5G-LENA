@@ -72,7 +72,13 @@ public:
   void SetNumRbPerRbg (uint32_t rbgSize);
 
   /**
-   * \return The number of resource blocks per resource block group
+   * \return The number of resource blocks per resource block group.
+   * This function will be called through SAP interfaces by PHY and scheduler,
+   * to obtain this information from MAC.
+   * Note that this functions can be named without "Do" prefix,
+   * since it does not change the state of the object and can be exposed to
+   * everyone, not only through SAP.
+   *
    */
   uint32_t GetNumRbPerRbg (void) const;
 

@@ -200,7 +200,7 @@ public:
   int8_t DoGetReferenceSignalPower () const;
 
   /**
-   * \brief Install the PHY sap user (AKA the UE MAC)
+   * \brief Install the PHY SAP user (which is in this case the MAC)
    *
    * \param ptr the PHY SAP user pointer to install
    */
@@ -258,6 +258,8 @@ public:
    */
   typedef void (* TxedEnbPhyCtrlMsgsTracedCallback)
       (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+
+  uint32_t GetNumRbPerRbg () const override;
 
 protected:
   // From object
@@ -342,12 +344,6 @@ private:
   void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
   void DoSetBandwidth (uint8_t Bandwidth );
   void DoSetEarfcn (uint16_t Earfcn );
-  /**
-   * \brief This function is called by MmWaveMemberPhySapProvider (by MAC) and
-   * it configures the number of resource blocks per resource block group
-   * \param numRbPerRbg number of resource block per RBG
-   */
-  virtual void DoSetNumRbPerRbg (int32_t numRbPerRbg) override;
 
   /**
    * \brief Store the RBG allocation in the symStart, rbg map.
@@ -417,9 +413,9 @@ private:
   void PushUlAllocation (const SfnSf &sfnSf) const;
 
 private:
-  MmWaveEnbPhySapUser* m_phySapUser;           //!< SAP pointer
-  LteEnbCphySapProvider* m_enbCphySapProvider; //!< SAP pointer
-  LteEnbCphySapUser* m_enbCphySapUser;         //!< SAP pointer
+  MmWaveEnbPhySapUser* m_phySapUser;           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
+  LteEnbCphySapProvider* m_enbCphySapProvider; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call e.g SetBandwidth
+  LteEnbCphySapUser* m_enbCphySapUser;         //!< PHY CSAP user pointer, RRC can receive control information by PHY, currently configured but not used
 
   std::set <uint64_t> m_ueAttached; //!< Set of attached UE (by IMSI)
   std::set <uint16_t> m_ueAttachedRnti; //!< Set of attached UE (by RNTI)

@@ -119,6 +119,8 @@ public:
    */
   void SetNumRbPerRbg (uint32_t numRbPerRbg);
 
+  uint32_t GetNumRbPerRbg () const override;
+
   /**
    * \brief Receive a list of CTRL messages
    *
@@ -415,6 +417,8 @@ private:
   uint64_t m_imsi {0}; ///< The IMSI of the UE
   std::vector<LteNrTddSlotType> m_tddPattern;  //!< TDD pattern received through SIB msgs
   std::unordered_map<uint8_t, uint32_t> m_harqIdToK1Map;  //!< Map that holds the K1 delay for each Harq process id
+
+  int64_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth, this parameter is configured by MAC through phy SAP provider interface
 
   /**
    * \brief Status of the channel for the PHY

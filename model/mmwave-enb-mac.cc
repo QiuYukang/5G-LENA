@@ -134,8 +134,9 @@ MmWaveEnbMacMemberEnbCmacSapProvider::AllocateNcRaPreamble (uint16_t rnti)
 
 
 
-// SAP
-// ENB MAC-Phy
+// SAP interface between ENB PHY AND MAC
+// PHY is provider and MAC is user of its service following OSI model.
+// However, PHY may request some information from MAC.
 class MmWaveMacEnbMemberPhySapUser : public MmWaveEnbPhySapUser
 {
 public:
@@ -158,6 +159,8 @@ public:
   virtual void UlHarqFeedback (UlHarqInfo params) override;
 
   virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) override;
+
+  virtual uint32_t GetNumRbPerRbg () const override;
 
 private:
   MmWaveEnbMac* m_mac;
@@ -223,6 +226,12 @@ MmWaveMacEnbMemberPhySapUser::BeamChangeReport (BeamId beamId, uint8_t rnti)
   m_mac->BeamChangeReport (beamId, rnti);
 }
 
+uint32_t
+MmWaveMacEnbMemberPhySapUser::GetNumRbPerRbg () const
+{
+  return m_mac->GetNumRbPerRbg();
+}
+
 // MAC Sched
 
 class MmWaveMacMemberMacSchedSapUser : public MmWaveMacSchedSapUser
@@ -231,6 +240,7 @@ public:
   MmWaveMacMemberMacSchedSapUser (MmWaveEnbMac* mac);
   virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) override;
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
+  virtual uint32_t GetNumRbPerRbg () const override;
 private:
   MmWaveEnbMac* m_mac;
 };
@@ -250,7 +260,13 @@ MmWaveMacMemberMacSchedSapUser::SchedConfigInd (const struct SchedConfigIndParam
 Ptr<const SpectrumModel>
 MmWaveMacMemberMacSchedSapUser::GetSpectrumModel () const
 {
-  return m_mac->m_phySapProvider->GetSpectrumModel ();
+  return m_mac->m_phySapProvider->GetSpectrumModel (); //  MAC forwards the call from scheduler to PHY; i.e. this function connects two providers of MAC: scheduler and PHY
+}
+
+uint32_t
+MmWaveMacMemberMacSchedSapUser::GetNumRbPerRbg () const
+{
+  return m_mac->GetNumRbPerRbg();
 }
 
 class MmWaveMacMemberMacCschedSapUser : public MmWaveMacCschedSapUser
@@ -389,8 +405,6 @@ MmWaveEnbMac::SetNumRbPerRbg (uint32_t rbgSize)
 {
   NS_ABORT_MSG_IF(m_numRbPerRbg !=-1, "This attribute can not be reconfigured");
   m_numRbPerRbg = rbgSize;
-  m_phySapProvider->SetNumRbPerRbg(m_numRbPerRbg);
-  m_macCschedSapProvider->SetNumRbPerRbg(m_numRbPerRbg);
 }
 
 uint32_t
@@ -1075,8 +1089,6 @@ MmWaveEnbMac::DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
   params.m_ulBandwidth = ulBandwidth;
   params.m_dlBandwidth = dlBandwidth;
   //m_macChTtiDelay = m_phySapProvider->GetMacChTtiDelay ();  // Gets set by MmWavePhyMacCommon
-  m_phySapProvider->SetNumRbPerRbg(m_numRbPerRbg);
-  m_macCschedSapProvider->SetNumRbPerRbg (m_numRbPerRbg);
   m_macCschedSapProvider->CschedCellConfigReq (params);
 }
 

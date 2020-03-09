@@ -149,10 +149,10 @@ MmWaveEnbPhy::DoInitialize (void)
 
 }
 
-void MmWaveEnbPhy::DoSetNumRbPerRbg (int32_t numRbPerRbg)
+uint32_t
+MmWaveEnbPhy::GetNumRbPerRbg () const
 {
-  NS_LOG_FUNCTION (this);
-  m_numRbPerRbg = numRbPerRbg;
+  return m_phySapUser->GetNumRbPerRbg();
 }
 
 /**

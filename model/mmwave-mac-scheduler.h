@@ -177,12 +177,6 @@ public:
   virtual void
   DoCschedUeReleaseReq (const MmWaveMacCschedSapProvider::CschedUeReleaseReqParameters& params) = 0;
 
-  /**
-   * \brief Sets the number of resource blocks per resource block group
-   * \param numRbPerRbg number of RB per RBG
-   */
-  virtual void DoSetNumRbPerRbg (uint32_t numRbPerRbg) = 0;
-
   //
   // Implementation of the SCHED API primitives
   // (See 4.2 for description of the primitives)

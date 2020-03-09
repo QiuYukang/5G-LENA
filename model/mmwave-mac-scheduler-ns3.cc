@@ -122,6 +122,7 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
+  /*
   NS_LOG_DEBUG ("RB per RBG " << GetNumRbPerRbg () <<
                 " total RBG " << m_phyMacConfig->GetBandwidthInRbg ());
   std::string tbs;
@@ -135,7 +136,7 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
             "]";
       tbs += ss.str ();
     }
-  NS_LOG_DEBUG (tbs);
+  NS_LOG_DEBUG (tbs);*/
 }
 
 /**
@@ -311,17 +312,11 @@ MmWaveMacSchedulerNs3::DoCschedUeReleaseReq (const MmWaveMacCschedSapProvider::C
   NS_LOG_INFO ("Release RNTI " << params.m_rnti);
 }
 
-void
-MmWaveMacSchedulerNs3::DoSetNumRbPerRbg (uint32_t numRbPerRbg)
-{
-  m_numRbPerRbg = numRbPerRbg;
-}
-
 int64_t
 MmWaveMacSchedulerNs3::GetNumRbPerRbg () const
 {
-  NS_ABORT_MSG_IF(m_numRbPerRbg == -1, "Number of RBs per RBG not configured.");
-  return m_numRbPerRbg;
+  NS_LOG_FUNCTION (this);
+  return m_macSchedSapUser->GetNumRbPerRbg();
 }
 
 /**

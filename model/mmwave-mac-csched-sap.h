@@ -247,12 +247,6 @@ public:
 
   virtual void CschedUeReleaseReq (const struct CschedUeReleaseReqParameters& params) = 0;
 
-  /**
-   * \brief Sets the number of resource blocks per resource block group
-   * \param numRbPerRbg number of RB per RBG
-   */
-  virtual void SetNumRbPerRbg (uint32_t numRbPerRbg) = 0;
-
 private:
 };
 

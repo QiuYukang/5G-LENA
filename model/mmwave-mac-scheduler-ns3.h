@@ -307,8 +307,6 @@ public:
   DoSchedSetMcs (uint32_t mcs) override;
   virtual void
   DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
-  virtual void
-  DoSetNumRbPerRbg (uint32_t numRbPerRbg) override;
 
   // to save some typing
   using HarqVectorIterator = MmWaveMacHarqVector::iterator;
@@ -722,8 +720,6 @@ private:
   uint8_t m_startMcsDl   {0};   //!< Starting (or fixed) value for DL MCS
   uint8_t m_startMcsUl   {0};   //!< Starting (or fixed) value for UL MCS
   Time    m_cqiTimersThreshold; //!< The time while a CQI is valid
-
-  int32_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth
 
   MmWaveMacSchedulerCQIManagement m_cqiManagement; //!< CQI Management
 

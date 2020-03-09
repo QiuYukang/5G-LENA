@@ -60,8 +60,6 @@ public:
 
   virtual void SetSlotAllocInfo (SlotAllocInfo slotAllocInfo) override;
 
-  virtual void SetNumRbPerRbg (uint32_t numRbPerRbg);
-
   virtual BeamId GetBeamId (uint8_t rnti) const override;
 
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
@@ -100,12 +98,6 @@ void
 MmWaveMemberPhySapProvider::SetSlotAllocInfo (SlotAllocInfo slotAllocInfo)
 {
   m_phy->PushBackSlotAllocInfo (slotAllocInfo);
-}
-
-void
-MmWaveMemberPhySapProvider::SetNumRbPerRbg (uint32_t numRbPerRbg)
-{
-  m_phy->DoSetNumRbPerRbg(numRbPerRbg);
 }
 
 BeamId
@@ -274,19 +266,6 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
       m_packetBurstMap.erase (it);
     }
   return pburst;
-}
-
-void
-MmWavePhy::DoSetNumRbPerRbg (int32_t numRbPerRbg)
-{
-  NS_ABORT_MSG("This function should not be called. GNB PHY should override this function, while this function of UE PHY should not be called.");
-}
-
-int64_t
-MmWavePhy::GetNumRbPerRbg () const
-{
-  NS_ABORT_MSG_IF(m_numRbPerRbg == -1, "Number of RBs per RBG not configured.");
-  return m_numRbPerRbg;
 }
 
 Ptr<SpectrumValue>

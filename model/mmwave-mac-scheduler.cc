@@ -69,11 +69,6 @@ public:
     m_scheduler->DoCschedUeReleaseReq (params);
   }
 
-  virtual void SetNumRbPerRbg (uint32_t numRbPerRbg) override
-  {
-    m_scheduler->DoSetNumRbPerRbg (numRbPerRbg);
-  }
-
 private:
   MmWaveMacScheduler* m_scheduler {nullptr};
 };
