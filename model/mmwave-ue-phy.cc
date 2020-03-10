@@ -334,8 +334,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       NS_LOG_INFO ("Received DCI_TDMA for RNTI: " << m_rnti << " in slot " <<
                    SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
                    ", scheduling MAC ReceiveControlMessage after the decode latency");
-      Simulator::Schedule( MicroSeconds (GetTbDecodeLatency()),
-                           &MmWaveUePhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveUePhySapUser::ReceiveControlMessage, m_phySapUser, msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
     {
@@ -361,8 +360,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                               m_rnti, GetBwpId (), msg);
 
-      Simulator::Schedule (MicroSeconds(GetTbDecodeLatency()),
-                           &MmWaveUePhy::DoReceiveRar, this, rarMsg);
+      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveUePhy::DoReceiveRar, this, rarMsg);
     }
   else
     {
@@ -824,7 +822,7 @@ void
 MmWaveUePhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 {
   Simulator::ScheduleWithContext (m_netDevice->GetNode ()->GetId (),
-                                  MicroSeconds (GetTbDecodeLatency ()),
+                                  GetTbDecodeLatency (),
                                   &MmWaveUePhySapUser::ReceivePhyPdu,
                                   m_phySapUser,
                                   p);
