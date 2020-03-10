@@ -170,6 +170,7 @@ PHY layer
 *********
 This section describes the different models supported and developed at PHY layer.
 
+
 Frame structure model
 =====================
 In NR, the 'numerology' concept is introduced to flexibly define the frame structure,
@@ -196,7 +197,6 @@ are considered: normal and extended. For the rest of numerologies,  normal CP is
     3            120                         normal
     4            240                         normal
    ===========   =========================   =============
-
 
 In the time domain, each frame of length of 10 ms is split in time into 10 subframes, each
 of duration of 1 ms. Every subframe is split in time into a variable number of slots, and each
@@ -228,7 +228,7 @@ The implementation in the 'NR' module currently supports the NR frame structures
 shown in Table :ref:`tab-numerologies`. This corresponds to all the numerologies defined in NR Release-15
 with normal CP, plus numerology 5 (not yet supported in NR, but likely to be included
 in future releases).
-In the simulator, the numerology is specified by an attribute.
+In the simulator, the numerology is specified by the attribute ``Numerology``.
 Once the numerology is configured, the lengths of the symbol,
 the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe,
 are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
@@ -262,6 +262,7 @@ Second, the scheduling operation is done on a slot basis, and the scheduler
 assigns transmission time intervals (TTIs) no longer than that of one slot.
 Third, the MAC-to-PHY processing delay depends on the numerology, and defaults to 2 slots.
 See implementation details and evaluations in [WNS32018-NR]_, [CAMAD2018-NR]_.
+
 
 FDM of numerologies
 ===================
@@ -346,14 +347,20 @@ FDD model
 #########
 TBC
 
-MAC to channel delay
-====================
-TBC
-
 
 CQI feedback
 ============
-TBC
+NR defines the Channel Quality Indicator (CQI), which is reported by
+the UE and can be used for MCS index selection at the gNB.
+NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_),
+each table being associated with one MCS table.
+
+We consider the generation of periodic wideband CQI. That is, a single value
+of channel state that is deemed representative of all RBs in use.
+
+The CQI index to be reported is obtained by first obtaining a SINR measurement
+and then passing this SINR measurement to the Adaptive Modulation and Coding
+module (see details in AMC section) that maps it to the CQI index.
 
 
 Interference model
@@ -403,8 +410,14 @@ MCS up to 256-QAM, different MCS Tables (MCS Table1 and MCS Table2),
 and NR transport block segmentation [TS38214]_ [TS38212]_. Also, the developed PHY
 abstraction model supports HARQ
 based on Incremental Redundancy (IR) and on Chase Combining (CC), as we will present in
-the corresponding section. The MCS table and
-the HARQ method are two attributes that can be configured by the user.
+the corresponding section.
+
+The MCS table and
+the HARQ method can be configured in the 'NR' module by the user through the attributes
+``McsTable`` and ``HarqMethod``. Let us note that the attribute ``ErrorModelType`` configures
+the type of error modelling, which can be set to NR (ns3::NrEesmErrorModel) or to
+LTE (ns3::NrLteMiErrorModel) in case one wants to
+reproduce LTE PHY layer.
 
 The error model of the NR data plane in the 'NR' module is developed according to standard
 link-to-system mapping (L2SM) techniques. The L2SM choice is aligned with the
@@ -442,7 +455,6 @@ and mapping of code BLERs to the transport BLER.
 
    NR PHY abstraction model
 
-
 The HARQ history depends on the HARQ method. In HARQ-CC, the HARQ history contains
 the SINR per allocated RB, whereas for HARQ-IR, the HARQ history contains the last
 computed effective SINR and number of coded bits of each of the previous retransmissions.
@@ -457,7 +469,6 @@ found using SINR-BLER lookup tables obtained from the NR-compliant link-level si
 Finally, based on the number of code blocks and the code BLER, the transport BLER
 of the transport block is obtained. In what follows we detail the different blocks and
 NR features supported by the model.
-
 
 **MCS**: NR defines three tables of MCSs: MCS Table1 (up to 64-QAM),
 MCS Table2 (up to 256-QAM), and MCS Table3 (up to 64-QAM with low spectral efficiency),
@@ -477,14 +488,12 @@ As shown in Figure :ref:`fig-l2sm`, the MCS Table (1 or 2) and the
 MCS index (0 to 28 for MCS Table1, and 0 to 27 for MCS Table2) are
 inputs for the NR PHY abstraction.
 
-
 **LDPC BG selection**: BG selection in the 'NR' module is based on the following
 conditions [TS38212]_. Assuming :math:`R` as the ECR of the selected MCS
 and :math:`A` as the TBS (in bits), then,
 
 * LDPC base graph 2 (BG2) is selected if :math:`A \le 292` with any value of :math:`R`, or if :math:`R\le 0.25` with any value of :math:`A`, or if :math:`A \le 3824` with :math:`R \le 0.67`,
 * otherwise, the LDPC base graph 1 (BG1) is selected.
-
 
 **Code block segmentation**: Code block segmentation for LDPC coding in
 NR occurs when the number of total bits in a transport block including
@@ -496,7 +505,6 @@ bits is appended to recover the segmentation during the decoding process.
 The segmentation process takes LDPC BG selection and LDPC lifting size
 into account, the complete details of which can be found in [TS38212]_, and the
 same procedure has been included in the 'NR' module.
-
 
 **SINR compression**: In case of EESM, the mapping
 function is exponential and the effective SINR for single transmission depends
@@ -522,7 +530,6 @@ spread from 30 ns to 316 ns are used. For NR, SCS of 30 KHz and 60 KHz are simul
 The details of the link-level simulator as well as the optimized :math:`\beta` values
 for each MCS index in MCS Table1 and MCS Table2 are detailed in [nr-l2sm]_,
 as included in the 'NR' simulator.
-
 
 **Effective SINR to code BLER mapping**: Once we have the effective SINR
 for the given MCS, resource allocation, and channel model,
@@ -575,8 +582,6 @@ to do the beam selection procedure, and as such no errors in the selection are t
 account.
 
 
-
-
 HARQ
 ****
 The NR scheduler works on a slot basis and has a dynamic nature [TS38300]_.
@@ -592,7 +597,7 @@ in between the retransmissions. Also, the SINRs experienced
 on each RB may vary through retransmissions. As such, HARQ affects both the PHY and MAC layers.
 
 The 'NR' module supports two HARQ methods: Chase Combining (HARQ-CC)
-and Incremental Redundancy (HARQ-IR), which can be selected by the user through an attribute.
+and Incremental Redundancy (HARQ-IR), which can be selected by the user through the attribute ``HarqMethod``.
 
 At the PHY layer, the error model has been extended to support HARQ with retransmission combining.
 Basically, it is used to evaluate the correctness of the blocks received and
@@ -646,8 +651,6 @@ modulation order of the first transmission attempt. This restriction comes from
 the specification of the rate matcher in the 3GPP standard [TS38212]_, where
 the algorithm fixes the modulation order for generating the different blocks
 of the redundancy versions.
-
-
 
 
 MAC layer
@@ -725,7 +728,6 @@ the beam ID of a UE, and change it.
 The beam ID is characterized by two parameters, azimuth and elevation, and
 it is only valid for the beam seach beamforming method (i.e.,
 for each UE, the transmission/reception beams are selected from a set of beams or codebook).
-
 
 
 Scheduler
@@ -863,6 +865,37 @@ schedulers, while the scheduling is performed in time-domain instead of
 the frequency-domain, and thus the resources being allocated are symbols instead of RBGs.
 
 
+Scheduler operation
+===================
+In an NR system, the UL decisions for a slot are taken in a different moment
+than the DL decision for the same slot. In particular, since the UE must have
+the time to prepare the data to send, the gNB takes the UL scheduler decision
+in advance and then sends the UL grant taking into account these timings.
+For example, consider that the DCIs for DL are usually prepared two slots in
+advance with respect to when the MAC PDU is actually over the air. For example,
+for UL, the UL grant must be prepared four slots before the actual time in
+which the UE transmission is over the air transmission: after two slots,
+the UL grant will be sent to the UE, and after two more slots, the gNB is
+expected to receive the UL data.
+
+At PHY layer, the gNB stores all the relevant information to properly schedule
+reception/transmission of data in a vector of slot allocations. The vector
+is guaranteed to be sorted by the starting symbol, to maintain the timing
+order between allocations. Each allocation contains the DCI created by the
+MAC, as well as other useful information.
+
+To accommodate the NR UL scheduling delay, the new MAC scheduler design is
+actively considering these delays during each phase.
+
+
+Scheduling timings: K0, K1, K2
+==============================
+**K0:**
+
+**K1:**
+
+**K2:**
+
 
 BWP manager
 ===========
@@ -872,12 +905,6 @@ TBC
 Adaptive modulation and coding model
 ====================================
 MCS selection in NR is an implementation specific procedure.
-However, NR defines the Channel Quality Indicator (CQI), which is reported by
-the UE and can be used for MCS index selection at the gNB.
-NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_),
-each table being associated with one MCS table.
-
-
 The 'NR' module supports 1) fixing the MCS to a predefined value, both for downlink and uplink
 transmissions, separately, and 2) two different AMC models for link adaptation:
 
@@ -894,15 +921,19 @@ the highest MCS index that meets the target transport BLER constraint is selecte
 at the UE. Such value is then reported through the associated CQI index to the gNB.
 
 In the Shannon-based AMC, to compute the Shannon rate we use a coefficient
-of :math:`{-}\ln(5{\times}0.00001)/0.5` to account for the difference in
+of :math:`{-}\ln(5{\times} Ber)/1.5` to account for the difference in
 between the theoretical bound and real performance.
 
-The AMC model can be configured by the user through the associated attribute.
+The AMC model can be configured by the user through the attribute ``AmcModel``. In case
+the Error model-based AMC is selected, the attribute ``ErrorModelType`` defines
+the type of the Error Model that is used when AmcModel is set to ErrorModel, which takes
+the same error model type as the one configured for error modeling. In case the
+Shannon-based AMC is selected, the attribute ``Ber`` sets the requested bit error rate
+in assigning the MCS.
 
 In the 'NR' module, link adaptation is done at the UE side, which selects the MCS index (quantized
 by 5 bits),
 and such index is then communicated to the gNB through a CQI index (quantized by 4 bits).
-
 
 
 Transport block model
@@ -915,33 +946,6 @@ implementation complexity. The multiplexing of different logical channels
 to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag),
 which performs a functionality which is partially equivalent to that of the MAC headers
 specified by 3GPP.
-
-
-Delay for UL data
-=================
-In an NR system, the UL decisions for a slot are taken in a different moment
-than the DL decision for the same slot. In particular, since the UE must have
-the time to prepare the data to send, the gNB takes the UL scheduler decision
-in advance and then sends the UL grant taking into account these timings.
-For example, consider that the DCIs for DL are usually prepared two slots in
-advance with respect to when the MAC PDU is actually over the air. For example,
-for UL, the UL grant must be prepared four slots before the actual time in
-which the UE transmission is over the air transmission: after two slots,
-the UL grant will be sent to the UE, and after two more slots, the gNB is
-expected to receive the UL data. Please note that latter examples consider
-default values for MAC to PHY processing delays at gNB and UE, which are in 'NR'
-module set to 2 slots. The processing delays are parameters of the simulator
-that may be configured through corresponding attributes.
-
-At PHY layer, the gNB stores all the relevant information to properly schedule
-reception/transmission of data in a vector of slot allocations. The vector
-is guaranteed to be sorted by the starting symbol, to maintain the timing
-order between allocations. Each allocation contains the DCI created by the
-MAC, as well as other useful information.
-
-To accommodate the NR UL scheduling delay, the new MAC scheduler design is
-actively considering these delays during each phase.
-
 
 
 RLC layer
@@ -985,13 +989,10 @@ The simulator currently reuses the S1, S5, and S11 interfaces of LENA ns-3 LTE. 
 https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#s1-s5-and-s11
 
 
-
 X2 interface
 ************
 The simulator currently reuses the X2 interfaces of LENA ns-3 LTE. For details see:
 https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#x2
-
-
 
 
 NR-U extension
@@ -1027,6 +1028,7 @@ Examples
 
 Several example programs are provided to highlight the operation.
 
+
 cttc-3gpp-channel-simple-ran.cc
 ===============================
 The program ``mmwave/examples/cttc-3gpp-channel-simple-ran.cc``
@@ -1047,6 +1049,7 @@ The output of the example is printed on the screen and it shows the PDCP and RLC
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-simple-ran_8cc.html
 
+
 cttc-3gpp-channel-nums.cc
 =========================
 The program ``examples/cttc-3gpp-channel-nums.cc``
@@ -1064,6 +1067,7 @@ UDP packet interval.
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-nums_8cc.html
+
 
 cttc-3gpp-channel-simple-fdm.cc
 ===============================
@@ -1132,6 +1136,37 @@ coding (AMC).
 It allows the user to set the AMC approach (error model-based or Shannon-based),
 the gNB-UE distance, and either HARQ-CC or HARQ-IR.
 
+
+cttc-3gpp-channel-example.cc
+============================
+The program ``examples/cttc-3gpp-channel-example`` ... TBC
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
+
+cttc-simple-interference-example.cc
+===================================
+The program ``examples/cttc-simple-interference-example`` ... TBC
+
+
+cttc-lte-ca-demo.cc
+===================
+The program ``examples/cttc-lte-ca-demo`` ... TBC
+
+
+cttc-nr-cc-bwp-demo.cc
+======================
+The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC
+
+
+cttc-nr-demo.cc
+===============
+The program ``examples/cttc-nr-demo`` ... TBC
+
+
+cttc-nr-tdd-cc-bwp-demo.cc
+==========================
+The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC
 
 
 
@@ -1224,9 +1259,19 @@ Test for channel model
 Test case called ``NrTest3gppChannelTestCase`` validates the channel model. TBC
 
 
+Test for antenna model
+======================
+Test case called ... TBC
+
+
+Test for TDD patterns
+=====================
+Test case called ... TBC (2 tests: pattern generation, phy-patterns)
+
+
+
 Open issues and future work
 ---------------------------
-
 
 .. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
 
