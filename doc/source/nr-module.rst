@@ -345,7 +345,7 @@ last slot is reserved for UL CTRL, and the rest of symbols are available for DL 
 
 FDD model
 #########
-TBC
+TBC [Nat]
 
 
 CQI feedback
@@ -890,6 +890,8 @@ actively considering these delays during each phase.
 
 Scheduling timings: K0, K1, K2
 ==============================
+TBC [Kat]
+
 **K0:**
 
 **K1:**
@@ -899,7 +901,7 @@ Scheduling timings: K0, K1, K2
 
 BWP manager
 ===========
-TBC
+TBC [Nat, Carlos]
 
 
 Adaptive modulation and coding model
@@ -1139,34 +1141,34 @@ the gNB-UE distance, and either HARQ-CC or HARQ-IR.
 
 cttc-3gpp-channel-example.cc
 ============================
-The program ``examples/cttc-3gpp-channel-example`` ... TBC
+The program ``examples/cttc-3gpp-channel-example`` ... TBC [Biljana]
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
 
 cttc-simple-interference-example.cc
 ===================================
-The program ``examples/cttc-simple-interference-example`` ... TBC
+The program ``examples/cttc-simple-interference-example`` ... TBC [Biljana]
 
 
 cttc-lte-ca-demo.cc
 ===================
-The program ``examples/cttc-lte-ca-demo`` ... TBC
+The program ``examples/cttc-lte-ca-demo`` ... TBC [Carlos]
 
 
 cttc-nr-cc-bwp-demo.cc
 ======================
-The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC
+The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC [Carlos]
 
 
 cttc-nr-demo.cc
 ===============
-The program ``examples/cttc-nr-demo`` ... TBC
+The program ``examples/cttc-nr-demo`` ...  TBC [Nat]
 
 
 cttc-nr-tdd-cc-bwp-demo.cc
 ==========================
-The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC
+The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC [Kat]
 
 
 
@@ -1256,17 +1258,17 @@ Tables, BG types, and SINR values.
 
 Test for channel model
 ======================
-Test case called ``NrTest3gppChannelTestCase`` validates the channel model. TBC
+Test case called ``NrTest3gppChannelTestCase`` validates the channel model.  TBC [Biljana]
 
 
 Test for antenna model
 ======================
-Test case called ... TBC
+Test case called ... TBC [Biljana]
 
 
 Test for TDD patterns
 =====================
-Test case called ... TBC (2 tests: pattern generation, phy-patterns)
+Test case called ... TBC [Kat, Nat] (2 tests: pattern generation, phy-patterns)
 
 
 
