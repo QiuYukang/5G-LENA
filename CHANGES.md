@@ -90,6 +90,8 @@ When DCI bitmask is changed to work per the RB granularity, UE will not need
 anymore this information, and consequently it will be possible to 
 reconfigure the attribute at gNb MAC.
 
+* Removed CcId attribute from PhyMacConfig.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

@@ -97,11 +97,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()),
                    MakeTypeIdAccessor (&MmWavePhyMacCommon::m_macSchedType),
                    MakeTypeIdChecker ())
-    .AddAttribute ("ComponentCarrierId",
-                   "Component carrier ID",
-                    UintegerValue (0),
-                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_componentCarrierId),
-                    MakeUintegerChecker<uint8_t> ())
   ;
   return tid;
 }
@@ -123,8 +118,7 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_bandwidth (400e6),
   m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
-  m_n2Delay (2),
-  m_componentCarrierId (0)
+  m_n2Delay (2)
 {
   NS_LOG_INFO ("MmWavePhyMacCommon constructor");
 }
@@ -362,18 +356,6 @@ void
 MmWavePhyMacCommon::SetHarqDlTimeout (uint8_t harqDlTimeout)
 {
   m_harqTimeout = harqDlTimeout;
-}
-
-void
-MmWavePhyMacCommon::SetCcId (uint8_t ccId)
-{
-  m_componentCarrierId = ccId;
-}
-
-uint8_t
-MmWavePhyMacCommon::GetCcId (void)
-{
-  return m_componentCarrierId;
 }
 
 void
