@@ -91,7 +91,7 @@ public:
   /**
    * \return The antena array that is being used by this PHY
    */
-  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray () const;
+  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
   void SetNoiseFigure (double d);
   double GetNoiseFigure () const;
@@ -128,8 +128,23 @@ public:
 
   virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
 
+  /**
+   * \return the BWP ID, set by the SAP
+   */
+  uint16_t GetBwpId () const;
+  /**
+   * \return the cell ID, taken from the netdevice
+   */
+  uint16_t GetCellId () const;
+
   // SAP
-  void DoSetCellId (uint16_t cellId);
+  /**
+   * \brief In reality, set the BWP ID
+   * \param bwpId the BWP ID
+   *
+   * Called by lte-enb-cphy-sap only
+   */
+  void DoSetCellId (uint16_t bwpId);
 
   /**
    * \brief Take the control messages, and put it in a list that will be sent at the first occasion
@@ -279,8 +294,6 @@ protected:
   double m_txPower {0.0};
   double m_noiseFigure {0.0};
 
-  uint16_t m_cellId {0};
-
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
@@ -306,7 +319,7 @@ private:
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
 
-
+  uint16_t m_bwpId {0}; //!< Bwp ID -- Set by RRC
 };
 
 }

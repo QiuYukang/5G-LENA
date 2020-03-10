@@ -263,7 +263,7 @@ private:
                                   const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                   const Ptr<SpectrumChannel> &c,
                                   const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
-                                  const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+                                  const Ptr<MmWaveEnbNetDevice> &dev,
                                   const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback);
   Ptr<MmWaveMacScheduler> CreateGnbSched (const Ptr<MmWavePhyMacCommon>& conf);
   Ptr<MmWaveEnbMac> CreateGnbMac (const Ptr<MmWavePhyMacCommon>& conf);

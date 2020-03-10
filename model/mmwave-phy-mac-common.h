@@ -590,7 +590,7 @@ struct RxPacketTraceParams
   double m_sinrMin;
   double m_tbler;
   bool m_corrupt;
-  uint8_t m_ccId;
+  uint16_t m_bwpId;
   uint32_t m_rbAssignedNum;
 };
 

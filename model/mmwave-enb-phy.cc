@@ -19,11 +19,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ CellId " << m_cellId << ", ccId "             \
-                    << +m_phyMacConfig->GetCcId () << "] ";              \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 
@@ -1355,7 +1352,6 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
   else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
     {
       NS_LOG_INFO ("received RACH_PREAMBLE");
-      NS_ASSERT (m_cellId > 0);
 
       Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
       //          m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
@@ -1375,8 +1371,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       Ptr<MmWaveDlHarqFeedbackMessage> dlharqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
       DlHarqInfo dlharq = dlharqMsg->GetDlHarqFeedback ();
 
-      NS_LOG_INFO ("cellId:" << m_cellId << Simulator::Now () <<
-                   " received DL_HARQ from: " << dlharq.m_rnti);
+      NS_LOG_INFO (" received DL_HARQ from: " << dlharq.m_rnti);
       // check whether the UE is connected
 
       if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())

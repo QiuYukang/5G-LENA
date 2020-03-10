@@ -47,6 +47,7 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/mmwave-mac-scheduler-tdma-rr.h>
+#include <ns3/mmwave-chunk-processor.h>
 
 #include <algorithm>
 
@@ -340,6 +341,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
     }
 
   channelPhy->SetChannel (c);
+  channelPhy->InstallPhy (phy);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallUeDevice ()");
@@ -349,7 +351,8 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
   // TODO: If antenna changes, we are fucked!
-  gppChannel->AddDevice (dev,  phy->GetSpectrumPhy()->GetAntennaArray());
+  // TODO: Remove const_cast once final Tommaso version is merged
+  gppChannel->AddDevice (dev,  ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy()->GetAntennaArray()));
 
   return phy;
 }
@@ -488,7 +491,7 @@ Ptr<MmWaveEnbPhy>
 MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
                             const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                             const Ptr<SpectrumChannel> &c, const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
-                            const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+                            const Ptr<MmWaveEnbNetDevice> &dev,
                             const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback)
 {
   NS_LOG_FUNCTION (this);
@@ -498,6 +501,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
   phy->InstallCentralFrequency (gppChannel->GetFrequency ());
+  phy->SetConfigurationParameters (phyMacCommon);
   phy->InstallSpectrumPhy (channelPhy);
   phy->InstallAntenna (antenna);
 
@@ -520,17 +524,16 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
     }
   channelPhy->AddDataSinrChunkProcessor (pData);
 
-  phy->SetConfigurationParameters (phyMacCommon);
   phy->SetDevice (dev);
 
   channelPhy->SetChannel (c);
+  channelPhy->InstallPhy (phy);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallEnbDevice ()");
   channelPhy->SetMobility (mm);
 
   channelPhy->SetDevice (dev);
-  channelPhy->SetCellId (cellId);
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (phyEndCtrlCallback);
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReportUlHarqFeedback, phy));
@@ -539,7 +542,8 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
 
   c->AddRx (channelPhy);
   // TODO: NOTE: if changing the Antenna Array, this will broke
-  gppChannel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
+  // TODO: Remove const_cast after final Tommaso merge is done
+  gppChannel->AddDevice (dev, ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy()->GetAntennaArray()));
 
   return phy;
 }
@@ -579,16 +583,17 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
   // create component carrier map for this eNb device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
 
-  for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
+  for (uint32_t bwpId = 0; bwpId < allBwps.size (); ++bwpId)
     {
+      NS_LOG_DEBUG ("Creating BandwidthPart, cellId = " << m_cellIdCounter << " and id = " << bwpId);
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
-      cc->SetUlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
-      cc->SetDlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
+      cc->SetUlBandwidth (allBwps[bwpId].get()->m_channelBandwidth);
+      cc->SetDlBandwidth (allBwps[bwpId].get()->m_channelBandwidth);
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
       cc->SetCellId (m_cellIdCounter++);
 
-      if (ccId == 0)
+      if (bwpId == 0)
         {
           cc->SetAsPrimary (true);
         }
@@ -597,10 +602,10 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
           cc->SetAsPrimary (false);
         }
 
-      auto phy = CreateGnbPhy (n, phyMacCommon, allBwps[ccId].get()->m_channel,
-                               allBwps[ccId].get()->m_3gppChannel, dev, cc->GetCellId (),
+      auto phy = CreateGnbPhy (n, phyMacCommon, allBwps[bwpId].get()->m_channel,
+                               allBwps[bwpId].get()->m_3gppChannel, dev,
                                std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
-                                          dev, std::placeholders::_1, ccId));
+                                          dev, std::placeholders::_1, bwpId));
       cc->SetPhy (phy);
 
       auto mac = CreateGnbMac (phyMacCommon);
@@ -610,7 +615,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       auto sched = CreateGnbSched (phyMacCommon);
       cc->SetMmWaveMacScheduler (sched);
 
-      ccMap.insert (std::make_pair (ccId, cc));
+      ccMap.insert (std::make_pair (bwpId, cc));
     }
 
   Ptr<LteEnbRrc> rrc = CreateObject<LteEnbRrc> ();

@@ -22,12 +22,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ CellId " << m_cellId << ", ccId "             \
-                    << +m_phyMacConfig->GetCcId ()                       \
-                    << ", RNTI " << m_rnti << "] ";                      \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 
@@ -200,21 +196,18 @@ void
 MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 {
   NS_LOG_FUNCTION (this);
+  NS_UNUSED (cellId);
   NS_ASSERT (m_phyMacConfig == nullptr); // Otherwise we probably have to change things..
 
-  m_cellId = cellId;
   m_phyMacConfig = config;
 
   InitializeMessageList ();
 
   MmWavePhy::DoInitialize();
 
-  m_spectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
-  m_spectrumPhy->SetCellId (m_cellId);
 
   m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phyMacConfig->GetNumHarqProcess ());
 
@@ -347,24 +340,21 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
   else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
     {
       NS_LOG_INFO ("received MIB");
-      NS_ASSERT (m_cellId > 0);
       Ptr<MmWaveMibMessage> msg2 = DynamicCast<MmWaveMibMessage> (msg);
-      m_ueCphySapUser->RecvMasterInformationBlock (m_cellId, msg2->GetMib ());
+      m_ueCphySapUser->RecvMasterInformationBlock (GetBwpId (), msg2->GetMib ());
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                               m_rnti, m_phyMacConfig->GetCcId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
     {
-      NS_ASSERT (m_cellId > 0);
       Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
-      m_ueCphySapUser->RecvSystemInformationBlockType1 (m_cellId, msg2->GetSib1 ());
+      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetBwpId (), msg2->GetSib1 ());
       m_tddPattern = msg2->GetTddPattern ();
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
                               m_rnti, m_phyMacConfig->GetCcId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
     {
-      NS_ASSERT (m_cellId > 0);
       NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
       Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
@@ -983,17 +973,11 @@ void
 MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
-  if (cellId == 0)
-    {
-      NS_FATAL_ERROR ("Cell ID shall not be zero");
-    }
-
-  m_cellId = cellId;
+  NS_UNUSED (cellId);
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
-  m_spectrumPhy->SetCellId (m_cellId);
 }
 
 BeamId

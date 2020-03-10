@@ -22,11 +22,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ CellId " << m_cellId << ", ccId "             \
-                    << +m_phyMacConfig->GetCcId () << "] ";              \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 
@@ -35,6 +32,8 @@
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-mac-pdu-tag.h"
 #include "mmwave-net-device.h"
+#include "mmwave-ue-net-device.h"
+#include "mmwave-enb-net-device.h"
 #include "beam-manager.h"
 #include <ns3/boolean.h>
 
@@ -178,8 +177,6 @@ MmWavePhy::InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna)
 
   m_beamManager = CreateObject<BeamManager>();
   m_beamManager->Configure(antenna);
-
-  m_spectrumPhy->SetAntennaArray (antenna);
 }
 
 void
@@ -198,12 +195,10 @@ MmWavePhy::InstallCentralFrequency (double f)
 }
 
 void
-MmWavePhy::DoSetCellId (uint16_t cellId)
+MmWavePhy::DoSetCellId (uint16_t bwpId)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_spectrumPhy != nullptr);
-  m_cellId = cellId;
-  m_spectrumPhy->SetCellId (cellId);
+  m_bwpId = bwpId;
 }
 
 void
@@ -387,7 +382,31 @@ MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_spectrumPhy != nullptr);
   m_spectrumPhy = spectrumPhy;
-  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+  if (m_phyMacConfig != nullptr)
+    {
+      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+    }
+}
+
+uint16_t
+MmWavePhy::GetBwpId () const
+{
+  return m_bwpId;
+}
+
+uint16_t
+MmWavePhy::GetCellId () const
+{
+  auto enbNetDevice = DynamicCast<MmWaveEnbNetDevice> (m_netDevice);
+  auto ueNetDevice = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
+  if (enbNetDevice)
+    {
+      return enbNetDevice->GetCellId ();
+    }
+  else
+    {
+      return ueNetDevice->GetCellId ();
+    }
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -594,6 +613,12 @@ MmWavePhy::GetSpectrumModel () const
                                                       GetCentralFrequency (),
                                                       m_phyMacConfig->GetNumScsPerRb(),
                                                       m_phyMacConfig->GetSubcarrierSpacing());
+}
+
+Ptr<const ThreeGppAntennaArrayModel>
+MmWavePhy::GetAntennaArray() const
+{
+  return m_beamManager->GetAntennaArray ();
 }
 
 void

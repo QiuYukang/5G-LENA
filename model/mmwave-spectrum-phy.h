@@ -22,17 +22,9 @@
 #define SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
 
 
-#include <ns3/object-factory.h>
-#include <ns3/event-id.h>
-#include <ns3/packet.h>
-#include <ns3/nstime.h>
 #include <ns3/spectrum-phy.h>
-#include <ns3/packet-burst.h>
-#include <ns3/random-variable-stream.h>
 #include "mmwave-spectrum-signal-parameters.h"
-#include "mmwave-interference.h"
 #include "mmwave-control-messages.h"
-#include "mmwave-harq-phy.h"
 #include "nr-error-model.h"
 #include <functional>
 
@@ -42,10 +34,16 @@ class ThreeGppAntennaArrayModel;
 class NetDevice;
 class SpectrumValue;
 class SpectrumChannel;
+class MmWavePhy;
+class mmWaveChunkProcessor;
+class mmWaveInterference;
+class MmWaveHarqPhy;
 
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
+  static TypeId GetTypeId (void);
+
   MmWaveSpectrumPhy ();
   virtual ~MmWaveSpectrumPhy () override;
 
@@ -79,23 +77,24 @@ public:
    */
   typedef TracedCallback <Time> ChannelOccupiedTracedCallback;
 
-  static TypeId GetTypeId (void);
-  virtual void DoDispose () override;
 
-  void SetDevice (Ptr<NetDevice> d) override;
+  void InstallPhy (const Ptr<const MmWavePhy> &phyModel);
 
+  // Attributes
   /**
    * \brief Set clear channel assessment (CCA) threshold
-   * @param thresholdDBm - CCA threshold in dBms
+   * \param thresholdDBm - CCA threshold in dBms
    */
   void SetCcaMode1Threshold (double thresholdDBm);
 
   /**
    * Returns clear channel assesment (CCA) threshold
-   * @return CCA threshold in dBms
+   * \return CCA threshold in dBms
    */
   double GetCcaMode1Threshold (void) const;
 
+  // Inherited
+  void SetDevice (Ptr<NetDevice> d) override;
   Ptr<NetDevice> GetDevice () const override;
   void SetMobility (Ptr<MobilityModel> m) override;
   Ptr<MobilityModel> GetMobility () override;
@@ -116,13 +115,7 @@ public:
    * \brief Returns ThreeGppAntennaArrayModel instance of the device using this
    * SpectrumPhy instance.
    */
-  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray ();
-
-  /**
-   * \brief Set ThreeGppAntennaArrayModel instance for the device using this
-   * SpectrumPhy instance.
-   */
-  void SetAntennaArray (Ptr<ThreeGppAntennaArrayModel> a);
+  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray();
 
   void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
@@ -131,12 +124,6 @@ public:
   void StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params);
   void StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params);
   Ptr<SpectrumChannel> GetSpectrumChannel ();
-  void SetCellId (uint16_t cellId);
-  /**
-   *
-   * \param componentCarrierId the component carrier id
-   */
-  void SetComponentCarrierId (uint8_t componentCarrierId);
 
   bool StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList, Time duration, uint8_t slotInd);
 
@@ -178,6 +165,17 @@ public:
                       uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym);
 
 private:
+  /**
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+  /**
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+  /**
+   * \return true if this class is inside an enb/gnb
+   */
   bool IsEnb () const;
 
   /**
@@ -262,12 +260,6 @@ private:
   Time m_firstRxStart;
   Time m_firstRxDuration;
 
-  Ptr<ThreeGppAntennaArrayModel> m_antenna; //!< AntennaArray object used by the device to which belongs this spectrum phy instance
-
-  uint16_t m_cellId;
-
-  uint8_t m_componentCarrierId;   ///< the component carrier ID
-
   State m_state;
 
   MmWavePhyRxCtrlEndOkCallback    m_phyRxCtrlEndOkCallback;
@@ -303,6 +295,7 @@ private:
 
   bool m_enableAllInterferences {false}; //!< If true, enables gNB-gNB and UE-UE interferences, if false, they are not taken into account
 
+  Ptr<const MmWavePhy> m_phy;
 };
 
 }

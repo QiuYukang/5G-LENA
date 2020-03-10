@@ -519,7 +519,7 @@ MmWavePhyRxTrace::RxPacketTraceUeCallback (Ptr<MmWavePhyRxTrace> phyStats, std::
                       << "\t" << 10 * log10 (params.m_sinr)
                       << "\t" << params.m_corrupt
                       << "\t" << params.m_tbler
-                      << "\t" << (unsigned)params.m_ccId << std::endl;
+                      << "\t" << (unsigned)params.m_bwpId << std::endl;
 
   if (params.m_corrupt)
     {
@@ -535,7 +535,7 @@ MmWavePhyRxTrace::RxPacketTraceUeCallback (Ptr<MmWavePhyRxTrace> phyStats, std::
                     "\t" << params.m_sinr <<
                     "\t" << params.m_tbler <<
                     "\t" << params.m_corrupt <<
-                    "\t" << (unsigned)params.m_ccId);
+                    "\t" << (unsigned)params.m_bwpId);
     }
 }
 void
@@ -557,7 +557,7 @@ MmWavePhyRxTrace::RxPacketTraceEnbCallback (Ptr<MmWavePhyRxTrace> phyStats, std:
                       << "\t" << (unsigned)params.m_symStart
                       << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId
                       << "\t" << params.m_rnti << "\t" << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rv << "\t"
-                      << 10 * log10 (params.m_sinr) << "\t\t" << params.m_corrupt << " \t" << params.m_tbler << " \t" << params.m_ccId << std::endl;
+                      << 10 * log10 (params.m_sinr) << "\t\t" << params.m_corrupt << " \t" << params.m_tbler << " \t" << params.m_bwpId << std::endl;
 
   if (params.m_corrupt)
     {
@@ -566,7 +566,7 @@ MmWavePhyRxTrace::RxPacketTraceEnbCallback (Ptr<MmWavePhyRxTrace> phyStats, std:
                                     << "\t" << (unsigned)params.m_symStart
                                     << "\t" << (unsigned)params.m_numSym
                                     << "\t" << params.m_rnti << "\t" << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rv << "\t"
-                                    << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t" << params.m_sinrMin << " \t" << params.m_ccId);
+                                    << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t" << params.m_sinrMin << " \t" << params.m_bwpId);
     }
 }
 
