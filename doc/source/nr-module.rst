@@ -42,8 +42,7 @@ following 3GPP LTE specifications,
 but extending it to involve some of advanced features that are expected to emerge in 5G networks,
 such as dual connectivity and low latency radio link control (RLC) layer.
 
-
-In this document we describe the implementation that we have initiated to generate
+In this document, we describe the implementation that we have initiated to generate
 a 3GPP-compliant NR module able to
 provide |ns3| simulation capabilities in the bands above and below 6 GHz,
 aligned with 3GPP NR Release-15, following the description in [TS38300]_.
@@ -52,15 +51,8 @@ funded by InterDigital Communications Inc, and continues with funding from the
 Lawrence Livermore National Lab (LLNL) and
 a grant from the National Institute of Standards and Technologies (NIST).
 
-
-The module, as already mentioned, is built upon the 'mmwave' module developed by the NYU Wireless
-and University of Padova, which is available in [mmwave-module]_. The 'mmwave' module
-is developed as a new module within |ns3| and
-it leverages on the well known and extensively used LTE/EPC network simulator
-provided by the 'LTE' module in |ns3|.
-
-The NR module is built upon the 'mmwave' simulator, but is focused to
-target the 3GPP Release-15 NR specification. As such. it
+The 'NR' module is built upon the 'mmWave' simulator, as already mentioned, but is focused to
+target the 3GPP Release-15 NR specification. As such, it
 incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of
 multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs),
 Frequency Division Multiplexing (FDM) of
@@ -71,10 +63,9 @@ modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among 
 The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC)
 based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
 
-The source code for the NR module lives currently in the directory ``src/nr``.
+The source code for the 'NR' module lives currently in the directory ``src/nr``.
 
-This document describes the models available in the 'NR' module, including also the models
-from 'mmwave' and 'lte' modules that are utilized in 'NR' module.
+This document describes the models available in the 'NR' module.
 
 Over time, extensions found in this module may migrate to the existing |ns3| main development tree.
 
