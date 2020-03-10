@@ -157,18 +157,6 @@ void
 MmWaveSpectrumPhy::SetDevice (Ptr<NetDevice> d)
 {
   m_device = d;
-
-  Ptr<MmWaveEnbNetDevice> enbNetDev =
-    DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
-
-  if (enbNetDev != 0)
-    {
-      m_isEnb = true;
-    }
-  else
-    {
-      m_isEnb = false;
-    }
 }
 
 void
@@ -302,6 +290,12 @@ MmWaveSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uin
                static_cast<uint32_t> (numSym));
 }
 
+bool
+MmWaveSpectrumPhy::IsEnb () const
+{
+  return (DynamicCast<MmWaveEnbNetDevice> (GetDevice ()) != nullptr);
+}
+
 void
 MmWaveSpectrumPhy::SetPhyDlHarqFeedbackCallback (MmWavePhyDlHarqFeedbackCallback c)
 {
@@ -370,7 +364,7 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (dlCtrlRxParams != nullptr)
     {
-      if (!m_isEnb)
+      if (!IsEnb ())
         {
           if (dlCtrlRxParams->cellId == m_cellId)
             {
@@ -389,7 +383,7 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (ulCtrlRxParams != nullptr)
     {
-      if (m_isEnb) // only gNBs should enter into reception of UL CTRL signals
+      if (IsEnb ()) // only gNBs should enter into reception of UL CTRL signals
         {
           if (ulCtrlRxParams->cellId == m_cellId)
             {
@@ -489,7 +483,7 @@ MmWaveSpectrumPhy::StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame>
   // that UE can start to receive DL CTRL only from its own cellId,
   // and CTRL from other cellIds will be ignored
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (params->cellId == m_cellId && !m_isEnb);
+  NS_ASSERT (params->cellId == m_cellId && !IsEnb ());
   // RDF: method currently supports Downlink control only!
   switch (m_state)
     {
@@ -534,7 +528,7 @@ MmWaveSpectrumPhy::StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame>
   // 2) this function should be only called for gNB, only gNB should enter into reception of UL CTRL signals
   // 3) gNB can receive simultaneously signals from various UEs
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (params->cellId == m_cellId && m_isEnb);
+  NS_ASSERT (params->cellId == m_cellId && IsEnb ());
   // RDF: method currently supports Uplink control only!
   switch (m_state)
     {
@@ -967,7 +961,7 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
         txParams->slotInd = slotInd;
 
         /* This section is used for trace */
-        if (m_isEnb)
+        if (IsEnb ())
           {
             EnbPhyPacketCountParameter traceParam;
             traceParam.m_noBytes = (txParams->packetBurst) ? txParams->packetBurst->GetSize () : 0;

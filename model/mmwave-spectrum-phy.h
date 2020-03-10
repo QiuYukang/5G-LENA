@@ -178,6 +178,8 @@ public:
                       uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym);
 
 private:
+  bool IsEnb () const;
+
   /**
    * \brief Information about the expected transport block at a certain point in the slot
    *
@@ -290,8 +292,6 @@ private:
   bool m_dataErrorModelEnabled;   // when true (default) the phy error model is enabled
 
   Ptr<MmWaveHarqPhy> m_harqPhyModule;
-
-  bool m_isEnb;
 
   double m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in Watts
 
