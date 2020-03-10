@@ -327,7 +327,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   cam->SetNrSpectrumPhy (channelPhy);
   phy->SetCam (cam);
 
-  channelPhy->SetHarqPhyModule (harq);
+  channelPhy->InstallHarqPhyModule (harq);
 
   Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
   pData->AddCallback (MakeCallback (&MmWaveUePhy::GenerateDlCqiReport, phy));
@@ -510,7 +510,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
 
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
   harq->SetHarqNum(phyMacCommon->GetNumHarqProcess ());
-  channelPhy->SetHarqPhyModule (harq);
+  channelPhy->InstallHarqPhyModule (harq);
 
   Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
   if (!m_snrTest)

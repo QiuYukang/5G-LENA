@@ -1146,8 +1146,9 @@ MmWaveSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
 }
 
 void
-MmWaveSpectrumPhy::SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
+MmWaveSpectrumPhy::InstallHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
 {
+  NS_ABORT_IF (m_harqPhyModule != nullptr);
   m_harqPhyModule = harq;
 }
 

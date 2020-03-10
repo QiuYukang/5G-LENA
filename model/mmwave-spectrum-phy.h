@@ -154,7 +154,7 @@ public:
 
   void UpdateSinrPerceived (const SpectrumValue& sinr);
 
-  void SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq);
+  void InstallHarqPhyModule (Ptr<MmWaveHarqPhy> harq);
 
   Ptr<MmWaveHarqPhy> GetHarqPhyModule () const;
 
