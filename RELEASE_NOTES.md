@@ -64,6 +64,9 @@ New user-visible features (old first)
   the DL DCI).
 - Ue side control messages could be scheduled with Ul Data. This behavior is now
   changed and therefore control messages are scheduled only in Ul Ctrl.
+- Patterns of size different from 10 (less or greater) are now supported.
+  Changes mainly apply in the MmWaveEnbPhy::GenerateStructuresFromPattern that now
+  calculates k0, k1, k2
 
 Bugs fixed
 ----------

@@ -345,9 +345,9 @@ private:
    * \param generateDl The structure generateDl to fill
    * \param generateUl The structure generateUl to fill
    * \param dlHarqfbPosition The structure dlHarqfbPosition to fill
-   * \param k0 K0 parameter
-   * \param k2 K2 parameter
+   * \param n0 N0 parameter
    * \param n2 N2 parameter
+   * \param n1 N1 parameter
    * \param l1l2CtrlLatency L1L2CtrlLatency of the system
    */
   static void GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType> &pattern,
@@ -356,7 +356,7 @@ private:
                                              std::map<uint32_t, std::vector<uint32_t> > *generateDl,
                                              std::map<uint32_t, std::vector<uint32_t> > *generateUl,
                                              std::map<uint32_t, uint32_t> *dlHarqfbPosition,
-                                             uint32_t k0, uint32_t k2, uint32_t n2, uint32_t l1l2CtrlLatency);
+                                             uint32_t n0, uint32_t n2, uint32_t n1, uint32_t l1l2CtrlLatency);
 
   /**
    * \brief Call MAC for retrieve the slot indication. Currently calls UL and DL.
