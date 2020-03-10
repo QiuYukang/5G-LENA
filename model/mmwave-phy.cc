@@ -602,8 +602,7 @@ MmWavePhy::IsCtrlMsgListEmpty() const
   return m_controlMessageQueue.empty () || m_controlMessageQueue.at (0).empty();
 }
 
-Ptr<BeamManager>
-MmWavePhy::GetBeamManager ()
+Ptr<BeamManager> MmWavePhy::GetBeamManager() const
 {
   return m_beamManager;
 }

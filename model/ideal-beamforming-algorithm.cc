@@ -74,7 +74,10 @@ IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (double powerTx, Ptr
 }
 
 void
-IdealBeamformingAlgorithm::GetBeamformingVectors(const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+IdealBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                                 const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                                 BeamformingVector* gnbBfv,
+                                                 BeamformingVector* ueBfv) const
 {
   DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv);
 }
@@ -99,7 +102,9 @@ CellScanBeamforming::GetTypeId (void)
 
 
 void
-CellScanBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+CellScanBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                              const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                              BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
   NS_ABORT_MSG_IF (gnbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
 
@@ -107,17 +112,17 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnb
                    "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
   // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
-  Ptr<MmWaveEnbPhy> txPhy = gnbDev->GetPhy(m_bwpId);
-  Ptr<MmWaveUePhy> rxPhy = ueDev->GetPhy(m_bwpId);
+  Ptr<const MmWaveEnbPhy> txPhy = gnbDev->GetPhy(m_bwpId);
+  Ptr<const MmWaveUePhy> rxPhy = ueDev->GetPhy(m_bwpId);
 
-  Ptr<MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
-  Ptr<MmWaveSpectrumPhy> rxSpectrumPhy = rxPhy->GetSpectrumPhy();
+  Ptr<const MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
+  Ptr<const MmWaveSpectrumPhy> rxSpectrumPhy = rxPhy->GetSpectrumPhy();
 
-  Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
+  Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel(); // SpectrumChannel should be const.. but need to change ns-3-dev
   Ptr<SpectrumChannel> rxSpectrumChannel = rxSpectrumPhy->GetSpectrumChannel();
 
-  Ptr<SpectrumPropagationLossModel> txThreeGppSpectrumPropModel = txSpectrumChannel->GetSpectrumPropagationLossModel();
-  Ptr<SpectrumPropagationLossModel> rxThreeGppSpectrumPropModel = rxSpectrumChannel->GetSpectrumPropagationLossModel();
+  Ptr<const SpectrumPropagationLossModel> txThreeGppSpectrumPropModel = txSpectrumChannel->GetSpectrumPropagationLossModel();
+  Ptr<const SpectrumPropagationLossModel> rxThreeGppSpectrumPropModel = rxSpectrumChannel->GetSpectrumPropagationLossModel();
 
   NS_ASSERT_MSG (txThreeGppSpectrumPropModel == rxThreeGppSpectrumPropModel, "Devices should be connected on the same spectrum channel");
 
@@ -129,9 +134,9 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnb
 
   UintegerValue uintValue;
   txSpectrumPhy->GetAntennaArray()->GetAttribute("NumRows", uintValue);
-  uint32_t txNumRows = uintValue.Get();
+  uint32_t txNumRows = static_cast<uint32_t> (uintValue.Get());
   rxSpectrumPhy->GetAntennaArray()->GetAttribute("NumRows", uintValue);
-  uint32_t rxNumRows = uintValue.Get();
+  uint32_t rxNumRows = static_cast<uint32_t> (uintValue.Get());
 
   for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
@@ -200,9 +205,14 @@ DirectPathBeamforming::GetTypeId (void)
 
 
 void
-DirectPathBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+DirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice> &gnbDev,
+                                                const Ptr<const MmWaveUeNetDevice> &ueDev,
+                                                BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
-
+  NS_UNUSED (gnbDev);
+  NS_UNUSED (ueDev);
+  NS_UNUSED (gnbBfv);
+  NS_UNUSED (ueBfv);
 }
 
 TypeId
@@ -217,9 +227,14 @@ OptimalCovMatrixBeamforming::GetTypeId (void)
 }
 
 void
-OptimalCovMatrixBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+OptimalCovMatrixBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                                      const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
-
+  NS_UNUSED (gnbDev);
+  NS_UNUSED (ueDev);
+  NS_UNUSED (gnbBfv);
+  NS_UNUSED (ueBfv);
 }
 
 } // end of ns3 namespace

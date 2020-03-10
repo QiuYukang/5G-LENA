@@ -115,7 +115,7 @@ public:
    * \brief Returns ThreeGppAntennaArrayModel instance of the device using this
    * SpectrumPhy instance.
    */
-  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray() const;
 
   void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
@@ -123,7 +123,7 @@ public:
   void StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> params);
   void StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params);
   void StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params);
-  Ptr<SpectrumChannel> GetSpectrumChannel ();
+  Ptr<SpectrumChannel> GetSpectrumChannel () const;
 
   bool StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList, Time duration, uint8_t slotInd);
 

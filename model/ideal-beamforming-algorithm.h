@@ -63,7 +63,9 @@ public:
    */
   void SetOwner (uint8_t bwpId);
 
-  virtual void GetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
+  virtual void GetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                      const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
 
   static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
 
@@ -77,7 +79,9 @@ private:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const = 0;
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const = 0;
 
 protected:
 
@@ -99,16 +103,18 @@ public:
   /**
    * \brief constructor
    */
-  CellScanBeamforming () {}
+  CellScanBeamforming () = default;
 
   /**
    * \brief destructor
    */
-  virtual ~CellScanBeamforming () {}
+  virtual ~CellScanBeamforming () override = default;
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 
   void SetSector (uint16_t sector, double elevation,  Ptr<ThreeGppAntennaArrayModel> antennaArray) const;
 
@@ -117,7 +123,8 @@ private:
 };
 
 
-class DirectPathBeamforming: public IdealBeamformingAlgorithm {
+class DirectPathBeamforming: public IdealBeamformingAlgorithm
+{
 
 public:
   /**
@@ -129,7 +136,9 @@ public:
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 };
 
 
@@ -147,7 +156,9 @@ public:
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 };
 
 

@@ -83,7 +83,9 @@ public:
 
   void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
 
-  Ptr<BeamManager> GetBeamManager ();
+  // Note: Returning a BeamManger, it means that someone outside this class
+  // can change the beamforming vector, BUT the phy will not learn it.
+  Ptr<BeamManager> GetBeamManager () const;
 
   Ptr<const SpectrumModel> GetSpectrumModel () const;
 

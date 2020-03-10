@@ -217,7 +217,7 @@ MmWaveSpectrumPhy::GetRxAntenna ()
 
 
 Ptr<const ThreeGppAntennaArrayModel>
-MmWaveSpectrumPhy::GetAntennaArray ()
+MmWaveSpectrumPhy::GetAntennaArray () const
 {
    return m_phy->GetAntennaArray ();
 }
@@ -1116,7 +1116,7 @@ MmWaveSpectrumPhy::EndTx ()
 }
 
 Ptr<SpectrumChannel>
-MmWaveSpectrumPhy::GetSpectrumChannel ()
+MmWaveSpectrumPhy::GetSpectrumChannel () const
 {
   return m_channel;
 }
