@@ -62,6 +62,12 @@ BeamManager::GetBeamId (const BeamformingVector&v) const
   return v.second;
 }
 
+Ptr<const ThreeGppAntennaArrayModel>
+BeamManager::GetAntennaArray() const
+{
+  return m_antennaArray;
+}
+
 BeamManager::~BeamManager() {
   // TODO Auto-generated destructor stub
 }
