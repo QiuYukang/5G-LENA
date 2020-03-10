@@ -93,6 +93,9 @@ public:
    */
   Ptr<ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
+  void SetNoiseFigure (double d);
+  double GetNoiseFigure () const;
+
   // Installation / Helpers
   MmWavePhySapProvider* GetPhySapProvider ();
 
@@ -121,7 +124,7 @@ public:
    * \brief Set the SpectrumPhy associated with this PHY
    * \param spectrumPhy the spectrumPhy
    */
-  void SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
+  void InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
 
   virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
 

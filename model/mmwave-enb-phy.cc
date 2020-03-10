@@ -89,7 +89,8 @@ MmWaveEnbPhy::GetTypeId (void)
                    " are connected to sources at the standard noise temperature T0.\" "
                    "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0),
-                   MakeDoubleAccessor (&MmWaveEnbPhy::m_noiseFigure),
+                   MakeDoubleAccessor (&MmWavePhy::SetNoiseFigure,
+                                       &MmWavePhy::GetNoiseFigure),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("SpectrumPhy",
                    "The downlink MmWaveSpectrumPhy associated to this MmWavePhy",
@@ -135,17 +136,6 @@ MmWaveEnbPhy::GetTypeId (void)
                     MakeTimeChecker ())
     ;
   return tid;
-
-}
-
-void
-MmWaveEnbPhy::DoInitialize (void)
-{
-  NS_LOG_FUNCTION (this);
-
-  MmWavePhy::DoInitialize ();
-
-  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
 }
 

@@ -261,10 +261,6 @@ public:
 
   uint32_t GetNumRbPerRbg () const override;
 
-protected:
-  // From object
-  virtual void DoInitialize (void) override;
-
 private:
   void StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum);
   void EndSlot (void);

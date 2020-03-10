@@ -382,11 +382,12 @@ MmWavePhy::GetConfigurationParameters (void) const
 }
 
 void
-MmWavePhy::SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
+MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_spectrumPhy != nullptr);
   m_spectrumPhy = spectrumPhy;
+  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -593,6 +594,23 @@ MmWavePhy::GetSpectrumModel () const
                                                       GetCentralFrequency (),
                                                       m_phyMacConfig->GetNumScsPerRb(),
                                                       m_phyMacConfig->GetSubcarrierSpacing());
+}
+
+void
+MmWavePhy::SetNoiseFigure (double d)
+{
+  m_noiseFigure = d;
+
+  if (m_spectrumPhy)
+    {
+      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+    }
+}
+
+double
+MmWavePhy::GetNoiseFigure () const
+{
+  return m_noiseFigure;
 }
 
 
