@@ -585,13 +585,13 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 
   for (uint32_t bwpId = 0; bwpId < allBwps.size (); ++bwpId)
     {
-      NS_LOG_DEBUG ("Creating BandwidthPart, cellId = " << m_cellIdCounter << " and id = " << bwpId);
+      NS_LOG_DEBUG ("Creating BandwidthPart, id = " << bwpId);
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
       cc->SetUlBandwidth (allBwps[bwpId].get()->m_channelBandwidth);
       cc->SetDlBandwidth (allBwps[bwpId].get()->m_channelBandwidth);
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
-      cc->SetCellId (m_cellIdCounter++);
+      cc->SetCellId (bwpId);
 
       if (bwpId == 0)
         {

@@ -81,9 +81,9 @@ IdealBeamformingAlgorithm::GetBeamformingVectors(const Ptr<MmWaveEnbNetDevice>& 
 
 
 void
-IdealBeamformingAlgorithm::SetOwner (uint8_t ccId)
+IdealBeamformingAlgorithm::SetOwner (uint8_t bwpId)
 {
-  m_ccId = ccId;
+  m_bwpId = bwpId;
 }
 
 TypeId
@@ -107,8 +107,8 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnb
                    "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
   // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
-  Ptr<MmWaveEnbPhy> txPhy = gnbDev->GetPhy(m_ccId);
-  Ptr<MmWaveUePhy> rxPhy = ueDev->GetPhy(m_ccId);
+  Ptr<MmWaveEnbPhy> txPhy = gnbDev->GetPhy(m_bwpId);
+  Ptr<MmWaveUePhy> rxPhy = ueDev->GetPhy(m_bwpId);
 
   Ptr<MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
   Ptr<MmWaveSpectrumPhy> rxSpectrumPhy = rxPhy->GetSpectrumPhy();

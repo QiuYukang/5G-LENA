@@ -57,6 +57,18 @@ public:
   ~MmWaveMacSchedulerCQIManagement () = default;
 
   /**
+   * \brief Install a function to retrieve the bwp id
+   * \param fn the function
+   */
+  void InstallGetBwpIdFn (const std::function<uint16_t ()> &fn);
+
+  /**
+   * \brief Install a function to retrieve the cell id
+   * \param fn the function
+   */
+  void InstallGetCellIdFn (const std::function<uint16_t ()> & fn);
+
+  /**
    * \brief Set the pointer to the NrAmc model
    * \param config PhyMac config
    * \param amc AMC model to calculate CQI
@@ -142,10 +154,24 @@ public:
   void RefreshUlCqiMaps (const std::unordered_map<uint16_t, std::shared_ptr<MmWaveMacSchedulerUeInfo> > &m_ueMap) const;
 
 private:
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
   Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< PhyMac config
-  Ptr<NrAmc> m_amc;                   //!< NrAmc model pointer
+  Ptr<NrAmc> m_amc;                       //!< NrAmc model pointer
   uint8_t m_startMcsDl {0};
   uint8_t m_startMcsUl {0};
+  std::function<uint16_t ()> m_getBwpId;  //!< Function to retrieve bwp id
+  std::function<uint16_t ()> m_getCellId; //!< Function to retrieve cell id
 };
 
 } // namespace ns3

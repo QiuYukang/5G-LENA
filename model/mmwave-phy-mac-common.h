@@ -765,10 +765,6 @@ public:
 
   void SetHarqDlTimeout (uint8_t harqDlTimeout);
 
-  void SetCcId (uint8_t ccId);
-
-  uint8_t GetCcId (void);
-
 private:
   Time m_symbolPeriod;          //!< OFDM symbol length
   uint8_t m_symbolsPerSlot;     //!< number of OFDM symbols per slot (in 3GPP NR: 12 for normal CP, 14 for extended CP)
@@ -790,7 +786,6 @@ private:
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
   TypeId m_macSchedType;
-  uint8_t m_componentCarrierId;
 };
 
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);

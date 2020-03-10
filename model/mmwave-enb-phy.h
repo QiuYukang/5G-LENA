@@ -239,11 +239,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedEnbPhyCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Transmitted Control Messages.
@@ -253,11 +253,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedEnbPhyCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   uint32_t GetNumRbPerRbg () const override;
 
@@ -426,14 +426,14 @@ private:
 
   /**
    * Trace information regarding Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;

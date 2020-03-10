@@ -20,14 +20,11 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
+
 #include "mmwave-mac-scheduler-ns3.h"
 #include "mmwave-mac-scheduler-harq-rr.h"
 
@@ -44,6 +41,8 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveMacSchedulerNs3);
 MmWaveMacSchedulerNs3::MmWaveMacSchedulerNs3 () : MmWaveMacScheduler ()
 {
   NS_LOG_FUNCTION_NOARGS ();
+  m_cqiManagement.InstallGetBwpIdFn (std::bind (&MmWaveMacSchedulerNs3::GetBwpId, this));
+  m_cqiManagement.InstallGetCellIdFn (std::bind (&MmWaveMacSchedulerNs3::GetCellId, this));
 }
 
 MmWaveMacSchedulerNs3::~MmWaveMacSchedulerNs3 ()
@@ -1822,6 +1821,17 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
   NS_ASSERT (m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym == totUlSym);
 
   return dataSymPerSlot - ulSymAvail;
+}
+
+uint16_t
+MmWaveMacSchedulerNs3::GetBwpId () const
+{
+  return m_macSchedSapUser->GetBwpId ();
+}
+
+uint16_t MmWaveMacSchedulerNs3::GetCellId() const
+{
+  return m_macSchedSapUser->GetCellId ();
 }
 
 /**

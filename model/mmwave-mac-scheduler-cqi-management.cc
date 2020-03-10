@@ -20,12 +20,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 #include "mmwave-mac-scheduler-cqi-management.h"
@@ -94,6 +90,20 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
 }
 
 void
+MmWaveMacSchedulerCQIManagement::InstallGetBwpIdFn (const std::function<uint16_t ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getBwpId = fn;
+}
+
+void
+MmWaveMacSchedulerCQIManagement::InstallGetCellIdFn (const std::function<uint16_t ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getCellId = fn;
+}
+
+void
 MmWaveMacSchedulerCQIManagement::DlWBCQIReported (const DlCqiInfo &info,
                                                   const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
                                                   uint32_t expirationTime) const
@@ -154,6 +164,18 @@ MmWaveMacSchedulerCQIManagement::RefreshUlCqiMaps (const std::unordered_map<uint
           ue->m_ulCqi.m_timer -= 1;
         }
     }
+}
+
+uint16_t
+MmWaveMacSchedulerCQIManagement::GetBwpId () const
+{
+  return m_getBwpId ();
+}
+
+uint16_t
+MmWaveMacSchedulerCQIManagement::GetCellId () const
+{
+  return m_getCellId ();
 }
 
 } // namespace ns3

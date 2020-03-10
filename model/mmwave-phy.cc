@@ -65,6 +65,10 @@ public:
 
   virtual void NotifyConnectionSuccessful () override;
 
+  virtual uint16_t GetBwpId () const override;
+
+  virtual uint16_t GetCellId () const override;
+
 private:
   MmWavePhy* m_phy;
 };
@@ -115,6 +119,18 @@ void
 MmWaveMemberPhySapProvider::NotifyConnectionSuccessful ()
 {
   m_phy->NotifyConnectionSuccessful ();
+}
+
+uint16_t
+MmWaveMemberPhySapProvider::GetBwpId() const
+{
+  return m_phy->GetBwpId ();
+}
+
+uint16_t
+MmWaveMemberPhySapProvider::GetCellId() const
+{
+  return m_phy->GetCellId ();
 }
 
 /* ======= */
@@ -277,16 +293,6 @@ MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) con
   return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
 }
 
-uint32_t
-MmWavePhy::GetCcId() const
-{
-  if (m_phyMacConfig != nullptr)
-    {
-      return m_phyMacConfig->GetCcId ();
-    }
-  return 777;
-}
-
 double
 MmWavePhy::GetCentralFrequency() const
 {
@@ -428,8 +434,7 @@ MmWavePhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_DEBUG ("ccId:" << static_cast<uint32_t> (GetCcId ()) <<
-               " setting info for slot " << slotAllocInfo.m_sfnSf);
+  NS_LOG_DEBUG ("setting info for slot " << slotAllocInfo.m_sfnSf);
 
   // That's not so complex, as the list would typically be of 2 or 3 elements.
   bool updated = false;
@@ -552,8 +557,7 @@ MmWavePhy::RetrieveSlotAllocInfo ()
 SlotAllocInfo
 MmWavePhy::RetrieveSlotAllocInfo (const SfnSf &sfnsf)
 {
-  NS_LOG_FUNCTION ("ccId:" << +GetCcId () << " slot " << sfnsf);
-
+  NS_LOG_FUNCTION (" slot " << sfnsf);
 
   for (auto allocIt = m_slotAllocInfo.begin(); allocIt != m_slotAllocInfo.end (); ++allocIt)
     {

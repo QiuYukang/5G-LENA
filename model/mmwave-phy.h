@@ -198,14 +198,6 @@ protected:
   Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
 
   /**
-   * \brief Get the component carrier ID
-   * \return the component carrier ID
-   *
-   * Take the value from PhyMacCommon. If it's not set, then return 777.
-   */
-  uint32_t GetCcId () const;
-
-  /**
    * \brief Retrieve the frequency (in Hz) of this PHY's channel
    * \return the frequency of the channel in Hz
    *
@@ -319,7 +311,7 @@ private:
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
 
-  uint16_t m_bwpId {0}; //!< Bwp ID -- Set by RRC
+  uint16_t m_bwpId {88}; //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper when attaching to a gnb
 };
 
 }

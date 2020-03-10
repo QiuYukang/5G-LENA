@@ -67,6 +67,16 @@ public:
    */
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
 
+  /**
+   * \return the Bwp id of the PHY
+   */
+  virtual uint16_t GetBwpId () const = 0;
+
+  /**
+   * \return the cell id of the PHY
+   */
+  virtual uint16_t GetCellId () const = 0;
+
 };
 
 /* This SAP is normally used so that PHY can send to MAC indications

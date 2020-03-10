@@ -55,6 +55,18 @@ public:
     */
   virtual ~MmWaveMacSchedulerHarqRr () = default;
 
+  /**
+   * \brief Install a function to retrieve the bwp id
+   * \param fn the function
+   */
+  void InstallGetBwpIdFn (const std::function<uint16_t ()> &fn);
+
+  /**
+   * \brief Install a function to retrieve the cell id
+   * \param fn the function
+   */
+  void InstallGetCellIdFn (const std::function<uint16_t ()> & fn);
+
   virtual uint8_t ScheduleDlHarq (MmWaveMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,
                                   const MmWaveMacSchedulerNs3::ActiveHarqMap &activeDlHarq,
@@ -79,6 +91,21 @@ protected:
   void BufferHARQFeedback (const std::vector <DlHarqInfo> &dlHarqFeedback,
                            std::vector<DlHarqInfo> *dlHarqToRetransmit,
                            uint16_t rnti, uint8_t harqProcess) const;
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
+private:
+  std::function<uint16_t ()> m_getBwpId;  //!< Function to retrieve bwp id
+  std::function<uint16_t ()> m_getCellId; //!< Function to retrieve cell id
 };
 
 } // namespace ns3

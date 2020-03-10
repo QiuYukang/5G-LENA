@@ -257,8 +257,6 @@ protected:
   MmWaveMacCschedSapUser* m_macCschedSapUser         {nullptr};  //!< SAP User
   MmWaveMacCschedSapProvider* m_macCschedSapProvider {nullptr};  //!< SAP Provider
   MmWaveMacSchedSapProvider* m_macSchedSapProvider   {nullptr};  //!< SAP Provider
-
-  uint32_t m_ccId {UINT32_MAX}; //!< Component carrier ID.
 };
 
 } // namespace ns3

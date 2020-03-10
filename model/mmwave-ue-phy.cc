@@ -193,10 +193,9 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 }
 
 void
-MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
+MmWaveUePhy::RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config)
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (cellId);
   NS_ASSERT (m_phyMacConfig == nullptr); // Otherwise we probably have to change things..
 
   m_phyMacConfig = config;
@@ -212,6 +211,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
   m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phyMacConfig->GetNumHarqProcess ());
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
+  DoSetCellId (bwpId);
 }
 
 void
@@ -270,7 +270,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                              m_rnti, m_phyMacConfig->GetCcId (), msg);
+                              m_rnti, GetBwpId (), msg);
 
       if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
         {
@@ -302,7 +302,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
           m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
 
           m_phyUeRxedDlDciTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                 m_rnti, m_phyMacConfig->GetCcId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
+                                 m_rnti, GetBwpId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
 
           InsertAllocation (dciInfoElem);
         }
@@ -343,22 +343,23 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       Ptr<MmWaveMibMessage> msg2 = DynamicCast<MmWaveMibMessage> (msg);
       m_ueCphySapUser->RecvMasterInformationBlock (GetBwpId (), msg2->GetMib ());
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                              m_rnti, m_phyMacConfig->GetCcId (), msg);
+                              m_rnti, GetBwpId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
     {
       Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
-      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetBwpId (), msg2->GetSib1 ());
+      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetBwpId (), msg2->GetSib1 ()); 
       m_tddPattern = msg2->GetTddPattern ();
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                              m_rnti, m_phyMacConfig->GetCcId (), msg);
+                              m_rnti, GetBwpId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
     {
+      std::cout << Simulator::Now () << " RECV RAR " << GetBwpId() << std::endl;
       NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
       Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                              m_rnti, m_phyMacConfig->GetCcId (), msg);
+                              m_rnti, GetBwpId (), msg);
 
       Simulator::Schedule (MicroSeconds(GetTbDecodeLatency()),
                            &MmWaveUePhy::DoReceiveRar, this, rarMsg);
@@ -368,7 +369,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       NS_LOG_INFO ("Message type not recognized " << msg->GetMessageType ());
       m_phySapUser->ReceiveControlMessage (msg);
       m_phyRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                              m_rnti, m_phyMacConfig->GetCcId (), msg);
+                              m_rnti, GetBwpId (), msg);
     }
 }
 
@@ -568,7 +569,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   auto ctrlMsgs = PopCurrentSlotCtrlMsgs ();
   if (m_netDevice)
     {
-      DynamicCast<MmWaveUeNetDevice> (m_netDevice)->RouteOutgoingCtrlMsgs (ctrlMsgs, m_phyMacConfig->GetCcId ());
+      DynamicCast<MmWaveUeNetDevice> (m_netDevice)->RouteOutgoingCtrlMsgs (ctrlMsgs, GetBwpId ());
     }
   else
     {
@@ -632,7 +633,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   for (const auto & msg : m_ctrlMsgs)
     {
       m_phyTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart),
-                              dci->m_rnti, m_phyMacConfig->GetCcId (), msg);
+                              dci->m_rnti, GetBwpId (), msg);
 
       if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
         {
@@ -643,7 +644,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
           if (it!=m_harqIdToK1Map.end ())
             {
               m_phyUeTxedHarqFeedbackTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                      m_rnti, m_phyMacConfig->GetCcId (),
+                                      m_rnti, GetBwpId (),
                                       static_cast<uint32_t> (harqId), it->second);
             }
         }

@@ -20,12 +20,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 #include "mmwave-mac-scheduler-harq-rr.h"
@@ -36,6 +32,19 @@
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveMacSchedulerHarqRr");
+
+void
+MmWaveMacSchedulerHarqRr::InstallGetBwpIdFn (const std::function<uint16_t ()> &fn)
+{
+  m_getBwpId = fn;
+}
+
+void
+MmWaveMacSchedulerHarqRr::InstallGetCellIdFn (const std::function<uint16_t ()> &fn)
+{
+  m_getCellId = fn;
+}
+
 
 /**
  * \brief Schedule DL HARQ in RR fashion
@@ -350,6 +359,16 @@ MmWaveMacSchedulerHarqRr::BufferHARQFeedback (const std::vector <DlHarqInfo> &dl
         }
     }
   NS_ASSERT (found);
+}
+
+uint16_t MmWaveMacSchedulerHarqRr::GetBwpId () const
+{
+  return m_getBwpId ();
+}
+
+uint16_t MmWaveMacSchedulerHarqRr::GetCellId () const
+{
+  return m_getCellId ();
 }
 
 } // namespace ns3

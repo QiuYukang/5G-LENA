@@ -103,10 +103,10 @@ public:
    * does not reconfigure itself when the PhyMacCommon parameters change,
    * so you can call this function only one (therefore, no handoff)
    *
-   * \param cellId the CELL ID of the ENB
+   * \param bwpId the bwp id to which this PHY is attaching to
    * \param config the ENB configuration
    */
-  void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
+  void RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config);
 
   /**
    * \brief Function that sets the number of RBs per RBG.
@@ -173,11 +173,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy Transmitted Control Messages.
@@ -187,11 +187,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy DL DCI reception.
@@ -201,12 +201,12 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] harq ID
    * \param [in] K1 Delay
    */
   typedef void (* RxedUePhyDlDciTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId,
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId,
        uint8_t harqId, uint32_t K1Delay);
 
   /**
@@ -217,12 +217,12 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] harq ID
    * \param [in] K1 Delay
    */
   typedef void (* TxedUePhyHarqFeedbackTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId,
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId,
        uint8_t harqId, uint32_t K1Delay);
 
   /**
@@ -442,28 +442,28 @@ private:
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Rxed DL DCI Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeRxedDlDciTrace;
 
   /**
    * Trace information regarding Ue PHY Txed Harq Feedback
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeTxedHarqFeedbackTrace;

@@ -168,6 +168,10 @@ public:
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
 
   virtual uint32_t GetNumRbPerRbg () const = 0;
+
+  virtual uint16_t GetBwpId () const = 0;
+
+  virtual uint16_t GetCellId () const = 0;
 };
 
 std::ostream & operator<< (std::ostream & os, MmWaveMacSchedSapProvider::SchedDlRlcBufferReqParameters const & p);

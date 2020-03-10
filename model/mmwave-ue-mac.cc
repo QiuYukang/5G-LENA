@@ -20,12 +20,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "             \
-                    << +m_phyMacConfig->GetCcId ()                       \
-                    << ", RNTI " << m_rnti << "] ";                      \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 
@@ -236,18 +232,10 @@ MmWaveUeMac::MmWaveUeMac (void) : Object ()
 MmWaveUeMac::~MmWaveUeMac (void)
 {
   NS_LOG_FUNCTION (this);
-}
-
-void
-MmWaveUeMac::DoDispose ()
-{
-  NS_LOG_FUNCTION (this);
-  m_miUlHarqProcessesPacket.clear ();
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
-  m_raPreambleUniformVariable = nullptr;
-  Object::DoDispose ();
+  m_miUlHarqProcessesPacket.clear ();
 }
 
 void
@@ -288,6 +276,17 @@ MmWaveUeMac::DoSetImsi (uint64_t imsi)
   m_imsi = imsi;
 }
 
+uint16_t
+MmWaveUeMac::GetBwpId () const
+{
+  return 0;
+}
+
+uint16_t
+MmWaveUeMac::GetCellId () const
+{
+  return 0;
+}
 
 uint32_t
 MmWaveUeMac::GetTotalBufSize () const
@@ -441,7 +440,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
   msg->SetBsr (bsr);
 
   m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                          bsr.m_rnti, m_phyMacConfig->GetCcId (), msg);
+                          bsr.m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -521,7 +520,7 @@ MmWaveUeMac::SendSR () const
   msg->SetRNTI (m_rnti);
 
   m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                          m_rnti, m_phyMacConfig->GetCcId (), msg);
+                          m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -610,7 +609,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
         m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                m_rnti, m_phyMacConfig->GetCcId (), msg);
+                                m_rnti, GetBwpId (), msg);
 
         if (dciInfoElem->m_format == DciInfoElementTdma::UL
             && dciInfoElem->m_type == DciInfoElementTdma::DATA)
@@ -695,7 +694,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                         if ((statusPduPriority) && ((*itBsr).second.statusPduSize == statusPduMinSize))
                           {
                             MacSubheader subheader ((*lcIt).first,(*itBsr).second.statusPduSize);
-                            (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first));
+                            (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first));
                             NS_LOG_LOGIC (this << "\t" << bytesPerActiveLc << " send  " << (*itBsr).second.statusPduSize << " status bytes to LC " << (uint32_t)(*lcIt).first << " statusQueue " << (*itBsr).second.statusPduSize << " retxQueue" << (*itBsr).second.retxQueueSize << " txQueue" <<  (*itBsr).second.txQueueSize);
                             (*itBsr).second.statusPduSize = 0;
                             break;
@@ -711,7 +710,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                     macPduIt->second.m_numRlcPdu++;  // send status PDU + data PDU
                                   }
                                 //MacSubheader subheader((*lcIt).first,(*itBsr).second.statusPduSize);
-                                (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first));
+                                (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first));
                                 bytesForThisLc -= (*itBsr).second.statusPduSize;
                                 NS_LOG_DEBUG (this << " serve STATUS " << (*itBsr).second.statusPduSize);
                                 (*itBsr).second.statusPduSize = 0;
@@ -732,7 +731,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                   {
                                     NS_LOG_DEBUG (this << " serve retx DATA, bytes " << bytesForThisLc);
                                     MacSubheader subheader ((*lcIt).first, bytesForThisLc);
-                                    (*lcIt).second.macSapUser->NotifyTxOpportunity ( LteMacSapUser::TxOpportunityParameters ((bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
+                                    (*lcIt).second.macSapUser->NotifyTxOpportunity ( LteMacSapUser::TxOpportunityParameters ((bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
                                     if ((*itBsr).second.retxQueueSize >= bytesForThisLc)
                                       {
                                         (*itBsr).second.retxQueueSize -= bytesForThisLc;
@@ -761,7 +760,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                       }
                                     NS_LOG_DEBUG (this << " serve tx DATA, bytes " << bytesForThisLc << ", RLC overhead " << rlcOverhead);
                                     MacSubheader subheader ((*lcIt).first, bytesForThisLc);
-                                    (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ( (bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
+                                    (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ( (bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
                                     if ((*itBsr).second.txQueueSize >= bytesForThisLc - rlcOverhead)
                                       {
                                         (*itBsr).second.txQueueSize -= bytesForThisLc - rlcOverhead;
@@ -823,7 +822,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
 
         m_macRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                m_rnti, m_phyMacConfig->GetCcId (), msg);
+                                m_rnti, GetBwpId (), msg);
 
         if (m_waitingForRaResponse == true)
           {
@@ -893,9 +892,9 @@ MmWaveUeMac::SendRaPreamble (bool contention)
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, m_phyMacConfig->GetCcId(), rachMsg);
+  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, GetBwpId (), rachMsg);
 
-
+  std::cout << Simulator::Now () << " invio rach " << GetBwpId () << std::endl;
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);
 }
 

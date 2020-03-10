@@ -20,14 +20,11 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
+
 #include "mmwave-mac-scheduler-tdma.h"
 #include "mmwave-mac-scheduler-ue-info-pf.h"
 #include <ns3/log.h>
@@ -382,7 +379,7 @@ MmWaveMacSchedulerTdma::CreateDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoint
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA,
-       m_phyMacConfig->GetCcId ());
+       GetBwpId ());
 
   dci->m_rbgBitmask = std::move (rbgAssigned);
 

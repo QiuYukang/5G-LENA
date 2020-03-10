@@ -706,6 +706,19 @@ private:
   static const uint32_t m_subHdrSize = 4;  //!< Sub Header size (?)
   static const unsigned m_rlcHdrSize = 3;  //!< RLC Header size
 
+protected:
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
 private:
   std::unordered_map<uint16_t, std::shared_ptr<MmWaveMacSchedulerUeInfo> > m_ueMap; //!< The map of between RNTI and their data
 

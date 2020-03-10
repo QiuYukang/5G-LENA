@@ -59,9 +59,9 @@ public:
   virtual ~IdealBeamformingAlgorithm ();
 
   /**
-   * \brief Set ccId to which belongs this ideal beamforming algorithm
+   * \brief Set bwp id to which belongs this ideal beamforming algorithm
    */
-  void SetOwner (uint8_t ccId);
+  void SetOwner (uint8_t bwpId);
 
   virtual void GetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
 
@@ -81,7 +81,7 @@ private:
 
 protected:
 
-  uint8_t m_ccId {0};
+  uint8_t m_bwpId {0};
 
 };
 
