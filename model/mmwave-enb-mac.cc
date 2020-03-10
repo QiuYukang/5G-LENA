@@ -352,7 +352,8 @@ MmWaveEnbMac::GetTypeId (void)
     .AddAttribute ("NumRbPerRbg",
                    "Number of resource blocks per resource block group.",
                    UintegerValue (1),
-                   MakeUintegerAccessor (&MmWaveEnbMac::m_numRbPerRbg),
+                   MakeUintegerAccessor (&MmWaveEnbMac::SetNumRbPerRbg,
+                                         &MmWaveEnbMac::GetNumRbPerRbg),
                    MakeUintegerChecker<uint32_t> ())
     .AddTraceSource ("DlScheduling",
                      "Information regarding DL scheduling.",
