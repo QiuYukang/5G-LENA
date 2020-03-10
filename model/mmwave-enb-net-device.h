@@ -48,7 +48,16 @@ public:
 
   uint16_t GetCellId (uint8_t index) const;
 
+  /**
+   * \return the cell id
+   */
   uint16_t GetCellId () const;
+
+  /**
+   * \brief Set this gnb cell id
+   * \param cellId the cell id
+   */
+  void SetCellId (uint16_t cellId);
 
   uint16_t GetEarfcn (uint8_t index) const;
 
@@ -91,7 +100,7 @@ protected:
 private:
   Ptr<LteEnbRrc> m_rrc;
 
-  uint16_t m_cellId; /* Cell Identifer. To uniquely identify an E-nodeB  */
+  uint16_t m_cellId; //!< Cell ID. Set by the helper.
 
   bool m_isConstructed;
 

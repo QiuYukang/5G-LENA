@@ -573,6 +573,9 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
   Ptr<MmWaveEnbNetDevice> dev = m_enbNetDeviceFactory.Create<MmWaveEnbNetDevice> ();
   Ptr<MmWavePhyMacCommon> phyMacCommon = m_phyMacCommonFactory.Create <MmWavePhyMacCommon> ();
 
+  NS_LOG_DEBUG ("Creating gnb, cellId = " << m_cellIdCounter);
+  dev->SetCellId (m_cellIdCounter);
+
   // create component carrier map for this eNb device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
 

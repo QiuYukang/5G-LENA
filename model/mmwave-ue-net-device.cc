@@ -273,6 +273,12 @@ MmWaveUeNetDevice::GetEarfcn () const
   return m_earfcn;
 }
 
+uint16_t
+MmWaveUeNetDevice::GetCellId () const
+{
+  return GetTargetEnb ()->GetCellId ();
+}
+
 void
 MmWaveUeNetDevice::SetEarfcn (uint16_t earfcn)
 {

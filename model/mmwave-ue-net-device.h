@@ -66,6 +66,8 @@ public:
 
   uint16_t GetEarfcn () const;
 
+  uint16_t GetCellId () const;
+
   Ptr<EpcUeNas> GetNas (void) const;
 
   Ptr<LteUeRrc> GetRrc () const;

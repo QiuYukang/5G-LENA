@@ -168,6 +168,13 @@ MmWaveEnbNetDevice::GetCellId () const
   return m_cellId;
 }
 
+void
+MmWaveEnbNetDevice::SetCellId (uint16_t cellId)
+{
+  NS_LOG_FUNCTION (this);
+  m_cellId = cellId;
+}
+
 uint16_t
 MmWaveEnbNetDevice::GetCellId (uint8_t index) const
 {
