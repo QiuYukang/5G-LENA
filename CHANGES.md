@@ -73,6 +73,10 @@ sfn number.
 (passed from the gNb in the DL and UL DCI, respectively).
 * UE schedules the DL HARQ Feedback according to K1 delay (passed from the
 gNb to the UE in the DL DCI).
+* Patterns of size different from 10 (less or greater) are now supported.
+Changes mainly apply in the MmWaveEnbPhy::GenerateStructuresFromPattern that now
+calculates k0, k1, k2
+
 
 ---
 

@@ -208,14 +208,12 @@ static uint32_t modulo (int n, uint32_t m)
 }
 
 /**
- * \brief Return the slot in which the HARQ Feedback should be sent, according to the parameter N1
+ * \brief Return the slot in which the DL HARQ Feedback should be sent, according to the parameter N1
  * \param pattern The TDD pattern
  * \param pos The position of the data inside the pattern for which we want to find where the feedback should be sent
  * \param n1 The N1 parameter
- * \return The slot position in which the HARQ Feedback should be sent
+ * \return k1 (after how many slots the DL HARQ Feedback should be sent)
  *
- * The resulted slot is then used for the calculation of K1, that will be
- * communicated to the UE through the DL DCI.
  * Please note that for the LTE TDD case, although the calculation follows the
  * logic of Table 10.1-1 of TS 36.213, some configurations are simplified in order
  * to avoid having a table from where we take the K1 values. In particular, for
@@ -223,45 +221,79 @@ static uint32_t modulo (int n, uint32_t m)
  * HARQ feedbacks among all UL subframes in an equal (as much as possible) manner.
  * This tactic is ommitted in this implementation.
  */
-static uint32_t
+static int32_t
 ReturnHarqSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t n1)
 {
-  int32_t j = static_cast<int32_t> (n1);
+  int32_t k1 = static_cast<int32_t> (n1);
 
-  uint32_t index = modulo (static_cast<int> (pos) + j, static_cast<uint32_t> (pattern.size ()));
+  uint32_t index = modulo (static_cast<int> (pos) + k1, static_cast<uint32_t> (pattern.size ()));
 
   while (pattern[index] < LteNrTddSlotType::F)
     {
-      j++;
-      index = modulo (static_cast<int> (pos) + j, static_cast<uint32_t> (pattern.size ()));
+      k1++;
+      index = modulo (static_cast<int> (pos) + k1, static_cast<uint32_t> (pattern.size ()));
       NS_ASSERT (index < pattern.size ());
     }
 
-  return index;
+  return k1;
+}
+
+struct DciKPair
+{
+  uint32_t indexDci {0};
+  uint32_t k {0};
+};
+
+/**
+ * \brief Return the slot in which the DCI should be send, according to the parameter n,
+ * along with the number of slots required to add to the current slot to get the slot of DCI (k0/k2)
+ * \param pattern The TDD pattern
+ * \param pos The position inside the pattern for which we want to check where the DCI should be sent
+ * \param n The N parameter (equal to N0 or N2, depending if it is DL or UL)
+ * \return The slot position in which the DCI for the position specified should be sent and the k0/k2
+ */
+static DciKPair
+ReturnDciSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t n)
+{
+  DciKPair ret;
+  ret.k = n;
+  ret.indexDci = modulo (static_cast<int> (pos) - static_cast<int> (ret.k),
+                           static_cast<uint32_t> (pattern.size ()));
+
+  while (pattern[ret.indexDci] > LteNrTddSlotType::F)
+    {
+      ret.k++;
+      ret.indexDci = modulo (static_cast<int> (pos) - static_cast<int> (ret.k),
+                      static_cast<uint32_t> (pattern.size ()));
+      NS_ASSERT (ret.indexDci < pattern.size ());
+    }
+
+  return ret;
 }
 
 /**
- * \brief Return the slot in which the DCI should be send, according to the parameter k
+ * \brief Generates the map tosendDl/Ul that holds the information of the DCI Slot and the
+ * corresponding k0/k2 value, and the generateDl/Ul that includes the L1L2CtrlLatency.
  * \param pattern The TDD pattern
- * \param pos The position inside the patter for which we want to check where the DCI should be sent
- * \param k The K parameter (equal to K0 or K2, depending if it is DL or UL)
- * \return The slot position in which the DCI for the position specified should be sent
+ * \param pattern The pattern to analyze
+ * \param toSend The structure toSendDl/tosendUl to fill
+ * \param generate The structure generateDl/generateUl to fill
+ * \param pos The position inside the pattern for which we want to check where the DCI should be sent
+ * \param n The N parameter (equal to N0 or N2, depending if it is DL or UL)
+ * \param l1l2CtrlLatency L1L2CtrlLatency of the system
  */
-static uint32_t
-ReturnDciSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint32_t k)
+static void GenerateDciMaps (const std::vector<LteNrTddSlotType> &pattern,
+                             std::map<uint32_t, std::vector<uint32_t>> *toSend,
+                             std::map<uint32_t, std::vector<uint32_t>> *generate,
+                             uint32_t pos, uint32_t n, uint32_t l1l2CtrlLatency)
 {
-  int32_t j = static_cast<int32_t> (k);
+  auto dciSlot = ReturnDciSlot (pattern, pos, n);
+  uint32_t indexGen = modulo (static_cast<int>(dciSlot.indexDci) - static_cast<int> (l1l2CtrlLatency),
+                              static_cast<uint32_t> (pattern.size ()));
+  uint32_t kWithCtrlLatency = static_cast<uint32_t> (dciSlot.k) + l1l2CtrlLatency;
 
-  uint32_t index = modulo (static_cast<int> (pos) - j, static_cast<uint32_t> (pattern.size ()));
-
-  while (pattern[index] > LteNrTddSlotType::F)
-    {
-      j++;
-      index = modulo (static_cast<int> (pos) - j, static_cast<uint32_t> (pattern.size ()));
-      NS_ASSERT (index < pattern.size ());
-    }
-
-  return index;
+  (*toSend)[dciSlot.indexDci].push_back(static_cast<uint32_t> (dciSlot.k));
+  (*generate)[indexGen].push_back (kWithCtrlLatency);
 }
 
 void
@@ -271,50 +303,30 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
                                              std::map<uint32_t, std::vector<uint32_t>> *generateDl,
                                              std::map<uint32_t, std::vector<uint32_t>> *generateUl,
                                              std::map<uint32_t, uint32_t> *dlHarqfbPosition,
-                                             uint32_t k0, uint32_t k2, uint32_t n1, uint32_t l1l2CtrlLatency)
+                                             uint32_t n0, uint32_t n2, uint32_t n1, uint32_t l1l2CtrlLatency)
 {
-  int32_t n = static_cast<int32_t> (pattern.size ());
+  const uint32_t n = static_cast<uint32_t> (pattern.size ());
 
-  for (int32_t i = n-1; i >= 0; --i)
+  for (uint32_t i = 0; i < n; i++)
     {
-      if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::UL)
+      if (pattern[i] == LteNrTddSlotType::UL)
         {
-          uint32_t indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k2);
-          uint32_t indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
-                                      static_cast<uint32_t> (pattern.size ()));
-          (*toSendUl)[indexDci].push_back(static_cast<uint32_t> (i));
-          (*generateUl)[indexGen].push_back (static_cast<uint32_t> (i));
+          GenerateDciMaps (pattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
         }
-      else if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::DL ||
-               pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::S)
+      else if (pattern[i] == LteNrTddSlotType::DL || pattern[i] == LteNrTddSlotType::S)
         {
-          uint32_t indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k0);
-          uint32_t indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
-                                      static_cast<uint32_t> (pattern.size ()));
+          GenerateDciMaps (pattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
 
-          (*toSendDl)[indexDci].push_back(static_cast<uint32_t> (i));
-          (*generateDl)[indexGen].push_back (static_cast<uint32_t> (i));
-
-          uint32_t indexHarq = ReturnHarqSlot (pattern, static_cast<uint32_t> (i), n1);
-          (*dlHarqfbPosition).insert (std::make_pair (static_cast<uint32_t> (i), indexHarq));
+          int32_t k1 = ReturnHarqSlot (pattern, i, n1);
+          (*dlHarqfbPosition).insert (std::make_pair (i, k1));
         }
-      else if (pattern[static_cast<uint32_t> (i)] == LteNrTddSlotType::F)
+      else if (pattern[i] == LteNrTddSlotType::F)
         {
-          uint32_t indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k0);
-          uint32_t indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
-                                      static_cast<uint32_t> (pattern.size ()));
-          (*toSendDl)[indexDci].push_back(static_cast<uint32_t> (i));
-          (*generateDl)[indexGen].push_back (static_cast<uint32_t> (i));
+          GenerateDciMaps (pattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
+          GenerateDciMaps (pattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
 
-          indexDci = ReturnDciSlot (pattern, static_cast<uint32_t> (i), k2);
-          indexGen = modulo (static_cast<int>(indexDci) - static_cast<int> (l1l2CtrlLatency),
-                             static_cast<uint32_t> (pattern.size ()));
-
-          (*toSendUl)[indexDci].push_back(static_cast<uint32_t> (i));
-          (*generateUl)[indexGen].push_back (static_cast<uint32_t> (i));
-
-          uint32_t indexHarq = ReturnHarqSlot (pattern, static_cast<uint32_t> (i), n1);
-          (*dlHarqfbPosition).insert (std::make_pair (static_cast<uint32_t> (i), indexHarq));
+          int32_t k1 = ReturnHarqSlot (pattern, i, n1);
+          (*dlHarqfbPosition).insert (std::make_pair (i, k1));
         }
     }
 
@@ -554,29 +566,36 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
                currentSlotN << " there is a slot of type " <<
                m_tddPattern[currentSlotN]);
 
-  for (const auto & slot : m_generateDl[currentSlotN])
+  for (const auto & k0WithLatency : m_generateDl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+      targetSlot.Add (k0WithLatency,
                       m_phyMacConfig->GetSlotsPerSubframe (),
                       m_phyMacConfig->GetSubframesPerFrame ());
+
+      uint64_t pos = targetSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
+                                           m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
 
       NS_LOG_INFO (" in slot " << currentSlot << " generate DL for " <<
-                     targetSlot << " which is of type " << m_tddPattern[slot]);
-      m_phySapUser->SlotDlIndication (targetSlot, m_tddPattern[slot]);
+                     targetSlot << " which is of type " << m_tddPattern[pos]);
+
+      m_phySapUser->SlotDlIndication (targetSlot, m_tddPattern[pos]);
     }
 
-  for (const auto & slot : m_generateUl[currentSlotN])
+  for (const auto & k2WithLatency : m_generateUl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-      targetSlot.Add (modulo (slot - currentSlotN, m_tddPattern.size ()),
+      targetSlot.Add (k2WithLatency,
                       m_phyMacConfig->GetSlotsPerSubframe (),
                       m_phyMacConfig->GetSubframesPerFrame ());
 
-      NS_LOG_INFO (" in slot " << currentSlot << " generate UL for " <<
-                     targetSlot << " which is of type " << m_tddPattern[slot]);
+      uint64_t pos = targetSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
+                                           m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
 
-      m_phySapUser->SlotUlIndication (targetSlot, m_tddPattern[slot]);
+      NS_LOG_INFO (" in slot " << currentSlot << " generate UL for " <<
+                     targetSlot << " which is of type " << m_tddPattern[pos]);
+
+      m_phySapUser->SlotUlIndication (targetSlot, m_tddPattern[pos]);
     }
 }
 
@@ -834,26 +853,12 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
   uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
                                                  m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
 
-  uint32_t k1delay = modulo (m_dlHarqfbPosition[currentSlotN] - currentSlotN, m_tddPattern.size ());
-  if (k1delay < m_phyMacConfig->GetN1Delay ())
-    {
-      k1delay += m_tddPattern.size ();
-    }
-  NS_ASSERT_MSG (k1delay >= m_phyMacConfig->GetN1Delay (),
-                 " k1delay must be equal or larger than N1 " << k1delay);
+  uint32_t k1delay = m_dlHarqfbPosition[currentSlotN];
 
   // TODO: copy paste :(
-  for (const auto & slot : m_toSendDl[currentSlotN])
+  for (const auto & k0delay : m_toSendDl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-
-      uint32_t k0delay = modulo (slot - currentSlotN, m_tddPattern.size ());
-      if (k0delay < m_phyMacConfig->GetN0Delay ())
-        {
-          k0delay += m_tddPattern.size ();
-        }
-      NS_ASSERT_MSG (k0delay >= m_phyMacConfig->GetN0Delay () && k0delay < 15,
-                     " k0delay can only get values between 0 and 15 " << k0delay);
 
       targetSlot.Add (k0delay,
                       m_phyMacConfig->GetSlotsPerSubframe (),
@@ -880,17 +885,9 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
         }
     }
 
-  for (const auto & slot : m_toSendUl[currentSlotN])
+  for (const auto & k2delay : m_toSendUl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
-
-      uint32_t k2delay = modulo (slot - currentSlotN, m_tddPattern.size ());
-      if (k2delay < m_phyMacConfig->GetN2Delay ())
-        {
-          k2delay += m_tddPattern.size ();
-        }
-      NS_ASSERT_MSG (k2delay >= m_phyMacConfig->GetN2Delay () && k2delay < 15,
-                     " k2delay can only get values between 0 and 15 " << k2delay);
 
       targetSlot.Add (k2delay,
                       m_phyMacConfig->GetSlotsPerSubframe (),
