@@ -293,8 +293,8 @@ MmWaveUeNetDevice::SetTargetEnb (Ptr<MmWaveEnbNetDevice> enb)
   m_targetEnb = enb;
 }
 
-Ptr<MmWaveEnbNetDevice>
-MmWaveUeNetDevice::GetTargetEnb (void)
+Ptr<const MmWaveEnbNetDevice>
+MmWaveUeNetDevice::GetTargetEnb (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_targetEnb;

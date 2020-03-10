@@ -1012,7 +1012,7 @@ MmWaveDrbActivator::ActivateDrb (uint64_t imsi, uint16_t cellId, uint16_t rnti)
       Ptr<LteUeRrc> ueRrc = m_ueDevice->GetObject<MmWaveUeNetDevice> ()->GetRrc ();
       NS_ASSERT (ueRrc->GetState () == LteUeRrc::CONNECTED_NORMALLY);
       uint16_t rnti = ueRrc->GetRnti ();
-      Ptr<MmWaveEnbNetDevice> enbLteDevice = m_ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
+      Ptr<const MmWaveEnbNetDevice> enbLteDevice = m_ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
       Ptr<LteEnbRrc> enbRrc = enbLteDevice->GetObject<MmWaveEnbNetDevice> ()->GetRrc ();
       NS_ASSERT (ueRrc->GetCellId () == enbLteDevice->GetCellId ());
       Ptr<UeManager> ueManager = enbRrc->GetUeManager (rnti);
@@ -1048,7 +1048,7 @@ MmWaveHelper::ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer
   // to the Enb RRC Connection Established trace source
 
 
-  Ptr<MmWaveEnbNetDevice> enbmmWaveDevice = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
+  Ptr<const MmWaveEnbNetDevice> enbmmWaveDevice = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
 
   std::ostringstream path;
   path << "/NodeList/" << enbmmWaveDevice->GetNode ()->GetId ()

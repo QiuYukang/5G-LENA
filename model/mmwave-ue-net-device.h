@@ -76,7 +76,7 @@ public:
 
   void SetTargetEnb (Ptr<MmWaveEnbNetDevice> enb);
 
-  Ptr<MmWaveEnbNetDevice> GetTargetEnb (void);
+  Ptr<const MmWaveEnbNetDevice> GetTargetEnb (void) const;
 
   /**
    * \brief Set the ComponentCarrier Map for the UE
