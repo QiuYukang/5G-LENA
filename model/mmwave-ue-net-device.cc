@@ -276,7 +276,15 @@ MmWaveUeNetDevice::GetEarfcn () const
 uint16_t
 MmWaveUeNetDevice::GetCellId () const
 {
-  return GetTargetEnb ()->GetCellId ();
+  auto gnb = GetTargetEnb ();
+  if (gnb)
+    {
+      return GetTargetEnb ()->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
 }
 
 void

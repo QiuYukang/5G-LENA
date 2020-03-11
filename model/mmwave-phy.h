@@ -313,7 +313,7 @@ private:
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
 
-  uint16_t m_bwpId {88}; //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper when attaching to a gnb
+  uint16_t m_bwpId {UINT16_MAX}; //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper when attaching to a gnb
 };
 
 }

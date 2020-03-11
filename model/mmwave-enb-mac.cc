@@ -1109,13 +1109,29 @@ MmWaveEnbMac::BeamChangeReport (BeamId beamId, uint8_t rnti)
 uint16_t
 MmWaveEnbMac::GetBwpId () const
 {
-  return m_phySapProvider->GetBwpId ();
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetBwpId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+
 }
 
 uint16_t
 MmWaveEnbMac::GetCellId () const
 {
-  return m_phySapProvider->GetCellId ();
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+
 }
 
 void

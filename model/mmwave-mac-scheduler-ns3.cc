@@ -1826,12 +1826,29 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
 uint16_t
 MmWaveMacSchedulerNs3::GetBwpId () const
 {
-  return m_macSchedSapUser->GetBwpId ();
+  if (m_macSchedSapUser)
+    {
+      return m_macSchedSapUser->GetBwpId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+
 }
 
-uint16_t MmWaveMacSchedulerNs3::GetCellId() const
+uint16_t
+MmWaveMacSchedulerNs3::GetCellId () const
 {
-  return m_macSchedSapUser->GetCellId ();
+  if (m_macSchedSapUser)
+    {
+      return m_macSchedSapUser->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+
 }
 
 /**

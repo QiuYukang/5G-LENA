@@ -403,6 +403,10 @@ MmWavePhy::GetBwpId () const
 uint16_t
 MmWavePhy::GetCellId () const
 {
+  if (!m_netDevice)
+    {
+      return UINT16_MAX;
+    }
   auto enbNetDevice = DynamicCast<MmWaveEnbNetDevice> (m_netDevice);
   auto ueNetDevice = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
   if (enbNetDevice)
