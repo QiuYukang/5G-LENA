@@ -90,13 +90,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (2),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_l1L2CtrlLatency),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("MacSchedulerType",
-                   "The type of scheduler to be used for the MAC. "
-                   "The allowed values for this attributes are the type names "
-                   "of any class inheriting from ns3::MmWaveMacScheduler.",
-                   TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()),
-                   MakeTypeIdAccessor (&MmWavePhyMacCommon::m_macSchedType),
-                   MakeTypeIdChecker ())
   ;
   return tid;
 }

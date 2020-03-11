@@ -719,11 +719,6 @@ public:
 
   uint8_t GetHarqTimeout (void) const;
 
-  TypeId GetMacSchedType (void) const
-  {
-    return m_macSchedType;
-  }
-
   void SetSymbolsPerSlot (uint8_t numSym);
 
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
@@ -785,7 +780,6 @@ private:
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
-  TypeId m_macSchedType;
 };
 
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);

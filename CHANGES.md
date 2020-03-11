@@ -92,6 +92,8 @@ reconfigure the attribute at gNb MAC.
 
 * Removed CcId attribute from PhyMacConfig.
 
+* Removed MacSchedType attribute from PhyMacConfig.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are
