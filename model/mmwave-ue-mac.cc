@@ -279,13 +279,27 @@ MmWaveUeMac::DoSetImsi (uint64_t imsi)
 uint16_t
 MmWaveUeMac::GetBwpId () const
 {
-  return 0;
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetBwpId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
 }
 
 uint16_t
 MmWaveUeMac::GetCellId () const
 {
-  return 0;
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
 }
 
 uint32_t

@@ -207,11 +207,11 @@ private:
 private:
   Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
-  LteUeCmacSapUser* m_cmacSapUser;
-  LteUeCmacSapProvider* m_cmacSapProvider;
-  MmWavePhySapProvider* m_phySapProvider;
-  MmWaveUePhySapUser* m_phySapUser;
-  LteMacSapProvider* m_macSapProvider;
+  LteUeCmacSapUser* m_cmacSapUser {nullptr};
+  LteUeCmacSapProvider* m_cmacSapProvider {nullptr};
+  MmWavePhySapProvider* m_phySapProvider {nullptr};
+  MmWaveUePhySapUser* m_phySapUser {nullptr};
+  LteMacSapProvider* m_macSapProvider {nullptr};
 
   uint16_t m_frameNum {0};
   uint8_t m_subframeNum {0};
