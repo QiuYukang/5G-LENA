@@ -1,4 +1,4 @@
-/* Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; */
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -29,8 +29,43 @@
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
-
 #include <chrono>
+
+/**
+ * \file cttc-error-model.cc
+ * \ingroup examples
+ * \brief Error model example with fixed MCS: 1 gNB and 1 UE, multiple packets with varying fading conditions.
+ *
+ * This example allows the user to test the end-to-end performance with the new
+ * NR PHY abstraction model for error modeling by using a fixed MCS. It allows the user to set the MCS, the
+ * gNB-UE distance, the MCS table, the error model type, and the HARQ method.
+ *
+ * For example, the HARQ method can be configured by setting e.g.
+ * "--harqMethod=HarqIr" for HARQ-IR. The MCS table can be toggled by the argument,
+ * e.g. "--eesmTable=1" for MCS Table1, and the MCS value to be used as e.g. "--mcs=7".
+ * The NR error model can be set as "--errorModel=ns3::NrEesmErrorModel",
+ * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
+ *
+ * The scenario consists of a single gNB and a single UE, placed at positions (0.0, 0.0, 10), and
+ * (0.0, ueY, 1.5), respectively. ueY can be configured by the user, e.g. "ueY=20", and defaults
+ * to 30 m.
+ *
+ * By default, the program uses the 3GPP channel model, Urban Micro scenario, without shadowing and with
+ * probabilistic line of sight / non-line of sight ('a') option. The program runs for
+ * 50 seconds and one packet is transmitted every 200 ms from gNB to UE (donwlink direction).
+ * The packet size can be configured by using the following parameter: "--packetSize=1000".
+ * The channel update period is 150 ms, so that every packet encounters a different
+ * fading condition.
+ *
+ * This simulation prints the output to the terminal. The output statistics are
+ * averaged among all the transmitted packets.
+ *
+ * To run the simulation with the default configuration one shall run the
+ * following in the command line:
+ *
+ * ./waf --run cttc-error-model
+ *
+ */
 
 using namespace ns3;
 
@@ -365,18 +400,15 @@ main (int argc, char *argv[])
         {
           sum += v;
           cont++;
-          //std::cerr << "Packet latency: " << v << std::endl;
         }
-      //std::cerr << "Packet latency: " << v << std::endl;
     }
-  //std::cerr << "Packets received: " << packetsTime.size () << std::endl;
-  //std::cerr << "Counter: " << +cont << std::endl;
+  std::cerr << "Packets received: " << packetsTime.size () << std::endl;
+  std::cerr << "Counter (packets not affected by reordering): " << +cont << std::endl;
 
   if (packetsTime.size () > 0 && cont > 0)
     {
-      //std::cerr << "Average e2e latency: " << sum / packetsTime.size () << " us" << std::endl;
-      std::cerr << "Average e2e latency: " << sum / cont << " us" << std::endl;
-
+      std::cerr << "Average e2e latency (over all received packets): " << sum / packetsTime.size () << " us" << std::endl;
+      std::cerr << "Average e2e latency (over counter): " << sum / cont << " us" << std::endl;
     }
   else
     {
