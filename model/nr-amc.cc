@@ -126,7 +126,6 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
     }
 
   NS_LOG_INFO (" mcs:" << (unsigned) mcs <<
-               " subcarriers" << MmWavePhy::GetNumScsPerRb () * m_phyMacConfig->GetBandwidthInRbs () <<
                " TB size:" << tbSize);
 
   return tbSize;

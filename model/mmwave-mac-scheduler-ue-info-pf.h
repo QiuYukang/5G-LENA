@@ -92,7 +92,8 @@ public:
    *
    * \f$ pfMetric_{i} = std::pow(potentialTPut_{i}, alpha) / std::max (1E-9, m_avgTput_{i}) \f$
    *
-   * Alpha is a fairness metric.
+   * Alpha is a fairness metric. Please note that the throughput is calculated
+   * in bit/symbol.
    */
   static bool CompareUeWeightsDl (const MmWaveMacSchedulerNs3::UePtrAndBufferReq &lue,
                                   const MmWaveMacSchedulerNs3::UePtrAndBufferReq &rue)
