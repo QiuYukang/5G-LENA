@@ -566,22 +566,6 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
                currentSlotN << " there is a slot of type " <<
                m_tddPattern[currentSlotN]);
 
-  for (const auto & k0WithLatency : m_generateDl[currentSlotN])
-    {
-      SfnSf targetSlot = currentSlot;
-      targetSlot.Add (k0WithLatency,
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
-
-      uint64_t pos = targetSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
-                                           m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
-
-      NS_LOG_INFO (" in slot " << currentSlot << " generate DL for " <<
-                     targetSlot << " which is of type " << m_tddPattern[pos]);
-
-      m_phySapUser->SlotDlIndication (targetSlot, m_tddPattern[pos]);
-    }
-
   for (const auto & k2WithLatency : m_generateUl[currentSlotN])
     {
       SfnSf targetSlot = currentSlot;
@@ -596,6 +580,22 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
                      targetSlot << " which is of type " << m_tddPattern[pos]);
 
       m_phySapUser->SlotUlIndication (targetSlot, m_tddPattern[pos]);
+    }
+
+  for (const auto & k0WithLatency : m_generateDl[currentSlotN])
+    {
+      SfnSf targetSlot = currentSlot;
+      targetSlot.Add (k0WithLatency,
+                      m_phyMacConfig->GetSlotsPerSubframe (),
+                      m_phyMacConfig->GetSubframesPerFrame ());
+
+      uint64_t pos = targetSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
+                                           m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
+
+      NS_LOG_INFO (" in slot " << currentSlot << " generate DL for " <<
+                     targetSlot << " which is of type " << m_tddPattern[pos]);
+
+      m_phySapUser->SlotDlIndication (targetSlot, m_tddPattern[pos]);
     }
 }
 

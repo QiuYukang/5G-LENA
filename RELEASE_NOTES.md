@@ -77,6 +77,9 @@ Bugs fixed
 - TDMA Scheduler was assuming that there are always UE to schedule. That may not be true
   if these UEs have scheduled an HARQ retransmission (and hence unable to
   receive a new data DCI). Code updated to remove this assumption.
+- Enb was scheduling first DL and then UL, so when it was calculating the symbols to be
+  assigned to DL, it was not taking into account the UL symbols. Code has been updated to
+  schedule first UL and then DL.
 
 Known issues
 ------------
