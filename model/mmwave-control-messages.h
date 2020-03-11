@@ -25,19 +25,6 @@
 
 namespace ns3 {
 
-/**
- * \brief Available TDD slot types. Ordering is important.
- */
-enum LteNrTddSlotType : uint8_t
-{
-  DL = 0,  //!< DL CTRL + DL DATA
-  S  = 1,  //!< DL CTRL + DL DATA + UL CTRL
-  F  = 2,  //!< DL CTRL + DL DATA + UL DATA + UL CTRL
-  UL = 3,  //!< UL DATA + UL CTRL
-};
-
-std::ostream & operator<< (std::ostream & os, LteNrTddSlotType const & item);
-
 class MmWaveControlMessage : public SimpleRefCount<MmWaveControlMessage>
 {
 public:
