@@ -176,7 +176,7 @@ MmWaveEnbNetDevice::SetCellId (uint16_t cellId)
 }
 
 uint16_t
-MmWaveEnbNetDevice::GetCellId (uint8_t index) const
+MmWaveEnbNetDevice::GetBwpId (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
   return m_ccMap.at(index)->GetCellId ();

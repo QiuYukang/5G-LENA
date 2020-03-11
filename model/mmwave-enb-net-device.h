@@ -46,7 +46,7 @@ public:
 
   Ptr<MmWaveEnbPhy> GetPhy(uint8_t index) const;
 
-  uint16_t GetCellId (uint8_t index) const;
+  uint16_t GetBwpId (uint8_t index) const;
 
   /**
    * \return the cell id
