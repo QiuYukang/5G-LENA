@@ -78,7 +78,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
 
   SpectrumValue specVals (model);
   Values::iterator specIt = specVals.ValuesBegin ();
-  for (uint32_t ichunk = 0; ichunk < m_phyMacConfig->GetBandwidthInRbs (); ichunk++)
+  for (uint32_t ichunk = 0; ichunk < model->GetNumBands (); ichunk++)
     {
       NS_ASSERT (specIt != specVals.ValuesEnd ());
       *specIt = ueInfo->m_ulCqi.m_sinr.at (ichunk);   //sinrLin;
