@@ -149,22 +149,6 @@ BandwidthPartGnb::SetMmWaveMacScheduler (Ptr<MmWaveMacScheduler> s)
   m_scheduler = s;
 }
 
-/*void
-BandwidthPartGnb::SetFrequencyInHz (double centerFrequency)
-{
-  NS_LOG_FUNCTION (this);
-  m_centerFrequencyInHz = centerFrequency;
-}
-
-void
-BandwidthPartGnb::SetNumerology (uint32_t numerology)
-{
-  NS_LOG_FUNCTION (this);
-  m_numerology = numerology;
-}*/
-
-
-
 } // namespace ns3
 
 
