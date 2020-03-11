@@ -894,7 +894,6 @@ MmWaveUeMac::SendRaPreamble (bool contention)
   rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
   m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, GetBwpId (), rachMsg);
 
-  std::cout << Simulator::Now () << " invio rach " << GetBwpId () << std::endl;
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);
 }
 
