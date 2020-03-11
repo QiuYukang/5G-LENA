@@ -1111,14 +1111,19 @@ cttc-error-model.cc
 ===================
 The program ``examples/cttc-error-model`` allows the user to test the end-to-end performance
 with the new NR PHY abstraction model for error modeling by using a fixed MCS.
-It allows the user to set the MCS, the gNB-UE distance, and either HARQ-CC or HARQ-IR.
+It allows the user to set the MCS, the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-error-model_8cc.html
 
 cttc-error-model-comparison.cc
 ==============================
 The program ``examples/cttc-error-model-comparison`` allows the user to compare the Transport
 Block Size that is obtained for each MCS index under different error models (NR and LTE)
-and different MCS Tables.
+and different MCS Tables. It allows the user to configure the MCS Table and the error model type.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-error-model-comparison_8cc.html
 
 
 cttc-error-model-amc.cc
@@ -1127,7 +1132,10 @@ The program ``examples/cttc-error-model-amc`` allows the user to test the end-to
 with the new NR PHY abstraction model for error modeling by using adaptive modulation and
 coding (AMC).
 It allows the user to set the AMC approach (error model-based or Shannon-based),
-the gNB-UE distance, and either HARQ-CC or HARQ-IR.
+the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
 
 
 cttc-3gpp-channel-example.cc
