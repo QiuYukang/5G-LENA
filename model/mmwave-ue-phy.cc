@@ -951,8 +951,15 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
                 " K1: " << k1It->second << " Frame " <<
                 SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
 
-  Simulator::Schedule (((m_phyMacConfig->GetSlotPeriod () * k1It->second) - (Simulator::Now () - m_lastSlotStart)),
-                       &MmWaveUePhy::DoSendControlMessageNow, this, msg);
+  Time event = m_lastSlotStart + (m_phyMacConfig->GetSlotPeriod () * k1It->second);
+  if (event <= Simulator::Now ())
+    {
+      Simulator::ScheduleNow (&MmWaveUePhy::DoSendControlMessageNow, this, msg);
+    }
+  else
+    {
+      Simulator::Schedule (event - Simulator::Now (), &MmWaveUePhy::DoSendControlMessageNow, this, msg);
+    }
 }
 
 void

@@ -80,6 +80,9 @@ Bugs fixed
 - Enb was scheduling first DL and then UL, so when it was calculating the symbols to be
   assigned to DL, it was not taking into account the UL symbols. Code has been updated to
   schedule first UL and then DL.
+- N1 (used to schedule DL HARQ Feedback) could not be set to zero, because the way the
+  calculation was carried out was resulting in negative delay. Calculation has been updated
+  to take into account the case of N1=0.
 
 Known issues
 ------------
