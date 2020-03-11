@@ -76,6 +76,7 @@ gNb to the UE in the DL DCI).
 * Patterns of size different from 10 (less or greater) are now supported.
 Changes mainly apply in the MmWaveEnbPhy::GenerateStructuresFromPattern that now
 calculates k0, k1, k2
+* Enb first schedules UL and then DL
 
 
 ---
