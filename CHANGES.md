@@ -94,6 +94,9 @@ reconfigure the attribute at gNb MAC.
 
 * Removed MacSchedType attribute from PhyMacConfig.
 
+* Removed method GetNumScsPerRb() from PhyMacConfig, replaced by a static
+function in MmWavePhy.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

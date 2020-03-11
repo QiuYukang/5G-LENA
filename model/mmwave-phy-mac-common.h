@@ -694,8 +694,6 @@ public:
    */
   uint32_t GetN2Delay (void) const;
 
-  uint32_t GetNumScsPerRb (void) const;
-
   double GetSubcarrierSpacing (void) const;
 
   uint32_t GetNumRefScPerRb (void) const;
@@ -734,8 +732,6 @@ public:
    */
   void SetN2Delay (uint32_t delay);
 
-  void SetNumScsPrRb (uint32_t numScs);
-
   void SetNumRefScPerRb (uint32_t numRefSc);
 
   void SetRbNum (uint32_t numRB);
@@ -773,7 +769,6 @@ private:
   double m_subcarrierSpacing;   //!< subcarrier spacing (it is determined by the numerology)
   uint32_t m_rbNum;             //!< number of resource blocks within the channel bandwidth
   uint32_t m_numRefScPerRb;     //!< number of subcarriers per resource block used for reference signals
-  uint32_t m_numSubCarriersPerRb;  //!< number of subcarriers per resource block (in 3GPP NR it is fixed to 12)
   uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;
   double m_bandwidth;           //!< channel bandwidth (in Hz)

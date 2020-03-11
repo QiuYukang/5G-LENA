@@ -105,7 +105,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_subcarrierSpacing (15e3),
   m_rbNum (72),
   m_numRefScPerRb (1),
-  m_numSubCarriersPerRb (12),
   m_numHarqProcess (20),
   m_harqTimeout (20),
   m_bandwidth (400e6),
@@ -178,12 +177,6 @@ MmWavePhyMacCommon::GetN2Delay (void) const
   return m_n2Delay;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetNumScsPerRb (void) const
-{
-  return m_numSubCarriersPerRb;
-}
-
 double
 MmWavePhyMacCommon::GetSubcarrierSpacing (void) const
 {
@@ -211,7 +204,7 @@ MmWavePhyMacCommon::GetNumerology (void) const
 double
 MmWavePhyMacCommon::GetBandwidth (void) const
 {
-  return (GetSubcarrierSpacing () * GetNumScsPerRb () * m_rbNum);
+  return (GetSubcarrierSpacing () * 12 * m_rbNum);
 }
 
 uint32_t
@@ -272,12 +265,6 @@ MmWavePhyMacCommon::SetN2Delay (uint32_t delay)
 }
 
 void
-MmWavePhyMacCommon::SetNumScsPrRb (uint32_t numScs)
-{
-  m_numSubCarriersPerRb = numScs;
-}
-
-void
 MmWavePhyMacCommon::SetNumRefScPerRb (uint32_t numRefSc)
 {
   m_numRefScPerRb = numRefSc;
@@ -312,7 +299,7 @@ MmWavePhyMacCommon::SetNumerology (uint32_t numerology)
 
   NS_ASSERT_MSG (m_bandwidthConfigured, "Bandwidth not configured, bandwidth has to be configured in order to configure properly the numerology");
 
-  m_rbNum = m_bandwidth / (m_subcarrierSpacing * m_numSubCarriersPerRb);
+  m_rbNum = m_bandwidth / (m_subcarrierSpacing * 12);
 
   NS_LOG_INFO (" Numerology configured:" << m_numerology <<
                " slots per subframe: " << m_slotsPerSubframe <<

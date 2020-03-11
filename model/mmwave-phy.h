@@ -139,6 +139,17 @@ public:
    */
   uint16_t GetCellId () const;
 
+  /**
+   * \brief GetNumScsPerRb
+   *
+   * It is a static function as the value is fixed, and it is needed in NrAmc.
+   * Making this value changeable means creating an interface between PHY
+   * and AMC.
+   *
+   * \return 12, fixed value
+   */
+  static uint32_t GetNumScsPerRb ();
+
   // SAP
   /**
    * \brief In reality, set the BWP ID

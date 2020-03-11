@@ -419,6 +419,12 @@ MmWavePhy::GetCellId () const
     }
 }
 
+uint32_t
+MmWavePhy::GetNumScsPerRb ()
+{
+  return 12;
+}
+
 Ptr<MmWaveSpectrumPhy>
 MmWavePhy::GetSpectrumPhy () const
 {
@@ -618,7 +624,7 @@ MmWavePhy::GetSpectrumModel () const
 
   return MmWaveSpectrumValueHelper::GetSpectrumModel (m_phyMacConfig->GetBandwidthInRbs(),
                                                       GetCentralFrequency (),
-                                                      m_phyMacConfig->GetNumScsPerRb(),
+                                                      GetNumScsPerRb(),
                                                       m_phyMacConfig->GetSubcarrierSpacing());
 }
 
