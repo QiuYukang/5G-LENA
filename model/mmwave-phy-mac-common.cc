@@ -82,7 +82,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
   m_numRbPerRbg (1),
-  m_numRefScPerRb (1),
   m_numHarqProcess (20),
   m_harqTimeout (20),
   m_bandwidth (400e6),
@@ -138,11 +137,6 @@ MmWavePhyMacCommon::GetN2Delay (void) const
   return m_n2Delay;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetNumRefScPerRb (void) const
-{
-  return m_numRefScPerRb;
-}
 
 uint32_t
 MmWavePhyMacCommon::GetNumRbPerRbg (void) const
@@ -190,12 +184,6 @@ void
 MmWavePhyMacCommon::SetN2Delay (uint32_t delay)
 {
   m_n2Delay = delay;
-}
-
-void
-MmWavePhyMacCommon::SetNumRefScPerRb (uint32_t numRefSc)
-{
-  m_numRefScPerRb = numRefSc;
 }
 
 /**

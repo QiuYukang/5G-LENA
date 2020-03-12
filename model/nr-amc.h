@@ -85,6 +85,14 @@ public:
   uint32_t GetPayloadSize (uint8_t mcs, uint32_t nprb) const;
 
   /**
+   * \return The number of reference subcarrier per resource block
+   *
+   * For the moment is fixed at 1. When it has to change... someone will add an
+   * attribute.
+   */
+  uint32_t GetNumRefScPerRb () const;
+
+  /**
    * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned
    *
    * It depends on the error model. Please note that this function expects in

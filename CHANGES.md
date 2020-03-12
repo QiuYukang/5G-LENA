@@ -101,6 +101,8 @@ function in MmWavePhy.
 Moved to EnbPhy, while the UE get these values from RRC or from direct call by the
 helper at the attaching moment.
 
+* Moved GetNumRefScPerRb() from MmWavePhyMacCommon to NrAmc.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

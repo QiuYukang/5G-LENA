@@ -688,8 +688,6 @@ public:
    */
   uint32_t GetN2Delay (void) const;
 
-  uint32_t GetNumRefScPerRb (void) const;
-
   uint32_t GetBandwidthInRbg () const;
 
   uint32_t GetNumRbPerRbg (void) const;
@@ -712,8 +710,6 @@ public:
    * must be equal or larger than 1 (N2 >= 1)
    */
   void SetN2Delay (uint32_t delay);
-
-  void SetNumRefScPerRb (uint32_t numRefSc);
 
   /**
    * \brief
@@ -738,7 +734,6 @@ private:
   uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
   const uint32_t m_subframesPerFrame {10};
   uint32_t m_numRbPerRbg;       //!< number of resource blocks within the channel bandwidth
-  uint32_t m_numRefScPerRb;     //!< number of subcarriers per resource block used for reference signals
   uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;
   double m_bandwidth;           //!< channel bandwidth (in Hz)

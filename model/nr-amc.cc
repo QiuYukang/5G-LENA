@@ -97,8 +97,14 @@ NrAmc::GetMcsFromCqi (uint8_t cqi) const
 uint32_t
 NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
 {
-  return m_errorModel->GetPayloadSize (MmWavePhy::GetNumScsPerRb () - m_phyMacConfig->GetNumRefScPerRb (),
+  return m_errorModel->GetPayloadSize (MmWavePhy::GetNumScsPerRb () - GetNumRefScPerRb (),
                                        mcs, nprb);
+}
+
+uint32_t
+NrAmc::GetNumRefScPerRb () const
+{
+  return 1;
 }
 
 uint32_t
