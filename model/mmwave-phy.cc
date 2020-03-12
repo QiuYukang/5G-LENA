@@ -69,6 +69,10 @@ public:
 
   virtual uint16_t GetCellId () const override;
 
+  virtual uint32_t GetSymbolsPerSlot () const override;
+
+  virtual Time GetSlotPeriod () const override;
+
 private:
   MmWavePhy* m_phy;
 };
@@ -131,6 +135,18 @@ uint16_t
 MmWaveMemberPhySapProvider::GetCellId() const
 {
   return m_phy->GetCellId ();
+}
+
+uint32_t
+MmWaveMemberPhySapProvider::GetSymbolsPerSlot() const
+{
+  return m_phy->GetSymbolsPerSlot ();
+}
+
+Time
+MmWaveMemberPhySapProvider::GetSlotPeriod() const
+{
+  return m_phy->GetSlotPeriod ();
 }
 
 /* ======= */
@@ -211,6 +227,60 @@ MmWavePhy::InstallCentralFrequency (double f)
 }
 
 void
+MmWavePhy::SetNumerology (uint16_t numerology)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_numerology = numerology;
+  m_slotsPerSubframe  = static_cast<uint16_t> (std::pow (2, numerology));
+  m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
+  m_subcarrierSpacing = 15 * static_cast<uint32_t> (std::pow (2, numerology)) * 1000;
+  m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
+
+  UpdateRbNum ();
+
+  NS_LOG_INFO (" Numerology configured:" << m_numerology <<
+               " slots per subframe: " << m_slotsPerSubframe <<
+               " slot period:" << m_slotPeriod <<
+               " symbol period:" << m_symbolPeriod <<
+               " subcarrier spacing: " << m_subcarrierSpacing <<
+               " number of RBs: " << m_rbNum );
+}
+
+uint16_t
+MmWavePhy::GetNumerology() const
+{
+  return m_numerology;
+}
+
+void
+MmWavePhy::SetSymbolsPerSlot (uint16_t symbolsPerSlot)
+{
+  NS_LOG_FUNCTION (this);
+  m_symbolsPerSlot = symbolsPerSlot;
+  m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
+}
+
+uint32_t
+MmWavePhy::GetSymbolsPerSlot () const
+{
+  return m_symbolsPerSlot;
+}
+
+Time
+MmWavePhy::GetSlotPeriod () const
+{
+  NS_ABORT_IF (m_slotPeriod.IsNegative ());
+  return m_slotPeriod;
+}
+
+uint32_t
+MmWavePhy::GetNumScsPerRb ()
+{
+  return 12;
+}
+
+void
 MmWavePhy::DoSetCellId (uint16_t bwpId)
 {
   NS_LOG_FUNCTION (this);
@@ -235,7 +305,7 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
   MmWaveMacPduTag tag;
   if (p->PeekPacketTag (tag))
     {
-      NS_ASSERT ((tag.GetSfn ().m_slotNum >= 0) && (tag.GetSfn ().m_varTtiNum < m_phyMacConfig->GetSymbolsPerSlot ()));
+      NS_ASSERT ((tag.GetSfn ().m_slotNum >= 0) && (tag.GetSfn ().m_varTtiNum < GetSymbolsPerSlot ()));
 
       auto it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
 
@@ -290,7 +360,7 @@ MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) con
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, GetChannelBandwidth ());
 }
 
 double
@@ -332,6 +402,29 @@ MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
   NS_LOG_FUNCTION (this);
 
   m_ctrlMsgs.push_back (msg);
+}
+
+void
+MmWavePhy::UpdateRbNum ()
+{
+  NS_LOG_FUNCTION (this);
+
+  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * GetNumScsPerRb ()));
+
+  NS_ASSERT (m_rbNum > 0);
+
+  NS_LOG_INFO ("Updated RbNum to " << m_rbNum);
+
+  if (m_spectrumPhy)
+    {
+      // Update the noisePowerSpectralDensity, as it depends on m_rbNum
+      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+      NS_LOG_INFO ("Noise Power Spectral Density updated");
+    }
+  else
+    {
+      NS_LOG_INFO ("Noise Power Spectral Density NOT updated");
+    }
 }
 
 void
@@ -388,10 +481,7 @@ MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_spectrumPhy != nullptr);
   m_spectrumPhy = spectrumPhy;
-  if (m_phyMacConfig != nullptr)
-    {
-      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
-    }
+  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 }
 
 uint16_t
@@ -417,12 +507,6 @@ MmWavePhy::GetCellId () const
     {
       return ueNetDevice->GetCellId ();
     }
-}
-
-uint32_t
-MmWavePhy::GetNumScsPerRb ()
-{
-  return 12;
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -621,11 +705,26 @@ Ptr<const SpectrumModel>
 MmWavePhy::GetSpectrumModel () const
 {
   NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_IF (m_subcarrierSpacing < 0.0, "Set a valid numerology");
 
-  return MmWaveSpectrumValueHelper::GetSpectrumModel (m_phyMacConfig->GetBandwidthInRbs(),
+  return MmWaveSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
                                                       GetCentralFrequency (),
-                                                      GetNumScsPerRb(),
-                                                      m_phyMacConfig->GetSubcarrierSpacing());
+                                                      GetNumScsPerRb (),
+                                                      m_subcarrierSpacing);
+}
+
+Time
+MmWavePhy::GetSymbolPeriod () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_symbolPeriod;
+}
+
+uint32_t
+MmWavePhy::GetRbNum () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_rbNum;
 }
 
 Ptr<const ThreeGppAntennaArrayModel>

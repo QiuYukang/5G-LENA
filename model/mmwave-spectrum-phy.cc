@@ -242,7 +242,7 @@ MmWaveSpectrumPhy::SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noiseP
   NS_ASSERT (noisePsd);
   m_rxSpectrumModel = noisePsd->GetSpectrumModel ();
   m_interferenceData->SetNoisePowerSpectralDensity (noisePsd);
-
+  m_channel->AddRx (this);
 }
 
 void

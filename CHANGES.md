@@ -97,6 +97,10 @@ reconfigure the attribute at gNb MAC.
 * Removed method GetNumScsPerRb() from PhyMacConfig, replaced by a static
 function in MmWavePhy.
 
+* Removed Bandwidth, Numerology, SymbolsPerSlot attribute from MmWavePhyMacCommon.
+Moved to EnbPhy, while the UE get these values from RRC or from direct call by the
+helper at the attaching moment.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

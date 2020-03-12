@@ -238,6 +238,8 @@ public:
   virtual uint32_t GetNumRbPerRbg () const override;
   virtual uint16_t GetBwpId () const override;
   virtual uint16_t GetCellId () const override;
+  virtual uint32_t GetSymbolsPerSlot () const override;
+  virtual Time GetSlotPeriod () const override;
 private:
   MmWaveEnbMac* m_mac;
 };
@@ -276,6 +278,18 @@ uint16_t
 MmWaveMacMemberMacSchedSapUser::GetCellId() const
 {
   return m_mac->GetCellId ();
+}
+
+uint32_t
+MmWaveMacMemberMacSchedSapUser::GetSymbolsPerSlot() const
+{
+  return m_mac->m_phySapProvider->GetSymbolsPerSlot ();
+}
+
+Time
+MmWaveMacMemberMacSchedSapUser::GetSlotPeriod() const
+{
+  return m_mac->m_phySapProvider->GetSlotPeriod ();
 }
 
 class MmWaveMacMemberMacCschedSapUser : public MmWaveMacCschedSapUser

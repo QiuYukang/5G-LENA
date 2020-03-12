@@ -48,12 +48,6 @@ MmWavePhyMacCommon::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWavePhyMacCommon")
     .SetParent<Object> ()
     .AddConstructor<MmWavePhyMacCommon> ()
-    .AddAttribute ("Bandwidth",
-                   "The system bandwidth in Hz",
-                   DoubleValue (400e6),
-                   MakeDoubleAccessor (&MmWavePhyMacCommon::SetBandwidth,
-                                       &MmWavePhyMacCommon::GetBandwidth),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("N2Delay",
                    "Minimum processing delay needed to decode UL DCI and prepare UL data",
                    UintegerValue (2),
@@ -64,21 +58,10 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (1),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_numRbPerRbg),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("Numerology",
-                   "The 3gpp numerology to be used",
-                   UintegerValue (4),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::SetNumerology,
-                                         &MmWavePhyMacCommon::GetNumerology),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("NumHarqProcess",
                    "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
                    UintegerValue (20),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_numHarqProcess),
-                   MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("SymbolsPerSlot",
-                   "Number of symbols in one slot, including 2 of control",
-                   UintegerValue (14),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_symbolsPerSlot),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("HarqDlTimeout",
                    "Harq dl timeout",
@@ -95,15 +78,10 @@ MmWavePhyMacCommon::GetTypeId (void)
 }
 
 MmWavePhyMacCommon::MmWavePhyMacCommon ()
-  : m_symbolPeriod (0.00000416),
-  m_symbolsPerSlot (14),
-  m_slotPeriod (0.0001),
+  :
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
   m_numRbPerRbg (1),
-  m_numerology (4),
-  m_subcarrierSpacing (15e3),
-  m_rbNum (72),
   m_numRefScPerRb (1),
   m_numHarqProcess (20),
   m_harqTimeout (20),
@@ -131,11 +109,6 @@ MmWavePhyMacCommon::~MmWavePhyMacCommon (void)
 {
 }
 
-Time MmWavePhyMacCommon::GetSymbolPeriod(void) const
-{
-  return m_symbolPeriod;
-}
-
 uint8_t
 MmWavePhyMacCommon::GetDlCtrlSymbols (void) const
 {
@@ -147,18 +120,6 @@ uint8_t MmWavePhyMacCommon::GetUlCtrlSymbols (void) const
   return m_ulCtrlSymbols;
 }
 
-uint8_t
-MmWavePhyMacCommon::GetSymbolsPerSlot (void) const
-{
-  return m_symbolsPerSlot;
-}
-
-Time
-MmWavePhyMacCommon::GetSlotPeriod (void) const
-{
-  return m_slotPeriod;
-}
-
 uint32_t
 MmWavePhyMacCommon::GetSubframesPerFrame (void) const
 {
@@ -168,19 +129,13 @@ MmWavePhyMacCommon::GetSubframesPerFrame (void) const
 uint32_t
 MmWavePhyMacCommon::GetSlotsPerSubframe (void) const
 {
-  return m_slotsPerSubframe;
+  return 13;
 }
 
 uint32_t
 MmWavePhyMacCommon::GetN2Delay (void) const
 {
   return m_n2Delay;
-}
-
-double
-MmWavePhyMacCommon::GetSubcarrierSpacing (void) const
-{
-  return m_subcarrierSpacing;
 }
 
 uint32_t
@@ -196,30 +151,9 @@ MmWavePhyMacCommon::GetNumRbPerRbg (void) const
 }
 
 uint32_t
-MmWavePhyMacCommon::GetNumerology (void) const
-{
-  return m_numerology;
-}
-
-double
-MmWavePhyMacCommon::GetBandwidth (void) const
-{
-  return (GetSubcarrierSpacing () * 12 * m_rbNum);
-}
-
-uint32_t
 MmWavePhyMacCommon::GetBandwidthInRbg () const
 {
-  return m_rbNum / m_numRbPerRbg;
-}
-
-/*
- * brief: bandwidth in number of RBs
- */
-uint32_t
-MmWavePhyMacCommon::GetBandwidthInRbs () const
-{
-  return m_rbNum;
+  return 13 / m_numRbPerRbg;
 }
 
 uint16_t
@@ -238,12 +172,6 @@ uint8_t
 MmWavePhyMacCommon::GetHarqTimeout (void) const
 {
   return m_harqTimeout;
-}
-
-void
-MmWavePhyMacCommon::SetSymbolsPerSlot (uint8_t numSym)
-{
-  m_symbolsPerSlot = numSym;
 }
 
 void
@@ -270,12 +198,6 @@ MmWavePhyMacCommon::SetNumRefScPerRb (uint32_t numRefSc)
   m_numRefScPerRb = numRefSc;
 }
 
-void
-MmWavePhyMacCommon::SetRbNum (uint32_t numRB)
-{
-  m_rbNum = numRB;
-}
-
 /**
  * \brief
  * rbgSize size of RBG in number of resource blocks
@@ -284,29 +206,6 @@ void
 MmWavePhyMacCommon::SetNumRbPerRbg (uint32_t rbgSize)
 {
   m_numRbPerRbg = rbgSize;
-}
-
-void
-MmWavePhyMacCommon::SetNumerology (uint32_t numerology)
-{
-  NS_ASSERT_MSG ( (0 <= numerology) && (numerology <= 5), "Numerology not defined.");
-
-  m_numerology = numerology;
-  m_slotsPerSubframe  = std::pow (2, numerology);
-  m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
-  m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
-  m_subcarrierSpacing = 15 * std::pow (2, numerology) * 1000;
-
-  NS_ASSERT_MSG (m_bandwidthConfigured, "Bandwidth not configured, bandwidth has to be configured in order to configure properly the numerology");
-
-  m_rbNum = m_bandwidth / (m_subcarrierSpacing * 12);
-
-  NS_LOG_INFO (" Numerology configured:" << m_numerology <<
-               " slots per subframe: " << m_slotsPerSubframe <<
-               " slot period:" << m_slotPeriod <<
-               " symbol period:" << m_symbolPeriod <<
-               " subcarrier spacing: " << m_subcarrierSpacing <<
-               " number of RBs: " << m_rbNum );
 }
 
 /**

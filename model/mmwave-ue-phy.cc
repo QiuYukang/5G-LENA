@@ -202,11 +202,8 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config)
 
   InitializeMessageList ();
 
-  MmWavePhy::DoInitialize();
-
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
 
   m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phyMacConfig->GetNumHarqProcess ());
 
@@ -224,6 +221,12 @@ uint32_t
 MmWaveUePhy::GetNumRbPerRbg () const
 {
   return m_numRbPerRbg;
+}
+
+uint32_t MmWaveUePhy::GetChannelBandwidth() const
+{
+  // m_channelBandwidth is in kHz * 100
+  return m_channelBandwidth * 1000 * 100;
 }
 
 void
@@ -392,13 +395,13 @@ MmWaveUePhy::TryToPerformLbt ()
       // .. so we check that we have at least 25 us between the latest DCI,
       // or we have to schedule an LBT event.
 
-      Time limit = m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
-          ((m_phyMacConfig->GetSymbolsPerSlot () - ulCtrlSymStart) * m_phyMacConfig->GetSymbolPeriod ()) -
+      Time limit = m_lastSlotStart + GetSlotPeriod () -
+          ((GetSymbolsPerSlot () - ulCtrlSymStart) * GetSymbolPeriod ()) -
           m_lbtThresholdForCtrl;
 
       for (const auto & alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
         {
-          int64_t symbolPeriod = m_phyMacConfig->GetSymbolPeriod ().GetMicroSeconds ();
+          int64_t symbolPeriod = GetSymbolPeriod ().GetMicroSeconds ();
           int64_t dciEndsAt = m_lastSlotStart.GetMicroSeconds () +
               ((alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) * symbolPeriod);
 
@@ -427,7 +430,7 @@ MmWaveUePhy::TryToPerformLbt ()
       if (m_channelStatus != GRANTED)
         {
           Time sched = m_lastSlotStart - Simulator::Now () +
-              (m_phyMacConfig->GetSymbolPeriod () * ulCtrlSymStart) - MicroSeconds (25);
+              (GetSymbolPeriod () * ulCtrlSymStart) - MicroSeconds (25);
           NS_LOG_INFO ("Scheduling an LBT for sending the UL CTRL at " <<
                        Simulator::Now () + sched);
           m_lbtEvent.Cancel ();
@@ -491,7 +494,7 @@ MmWaveUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
       NS_LOG_INFO ("The current TDD pattern indicates that we are in a " <<
                    m_tddPattern[currentSlotN] <<
                    " slot, so insert UL CTRL at the end of the slot");
-      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (m_phyMacConfig->GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
+      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
       m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
     }
 }
@@ -559,7 +562,7 @@ MmWaveUePhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
     }
 
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
-  auto nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () * currentDci->m_symStart;
+  auto nextVarTtiStart = GetSymbolPeriod () * currentDci->m_symStart;
 
   TryToPerformLbt ();
 
@@ -588,7 +591,7 @@ MmWaveUePhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
+  Time varTtiPeriod = GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
 
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL CTRL frame for"
@@ -607,7 +610,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
+  Time varTtiPeriod = GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
 
   if (m_ctrlMsgs.size () == 0)
     {
@@ -648,7 +651,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
     }
 
   std::vector<int> channelRbs;
-  for (uint32_t i = 0; i < m_phyMacConfig->GetBandwidthInRbs (); i++)
+  for (uint32_t i = 0; i < GetRbNum (); i++)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
@@ -673,7 +676,7 @@ MmWaveUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   m_receptionEnabled = true;
-  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
@@ -696,7 +699,7 @@ MmWaveUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask));
-  Time varTtiPeriod = m_phyMacConfig->GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<MmWaveControlMessage> > ctrlMsg;
   Ptr<PacketBurst> pktBurst = GetPacketBurst (SfnSf (m_frameNum, m_subframeNum, m_slotNum, dci->m_symStart));
   if (pktBurst && pktBurst->GetNPackets () > 0)
@@ -797,7 +800,7 @@ MmWaveUePhy::EndVarTti ()
       SfnSf retVal = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0).IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
                                                                                        m_phyMacConfig->GetSubframesPerFrame ());
 
-      Simulator::Schedule (m_lastSlotStart + m_phyMacConfig->GetSlotPeriod () -
+      Simulator::Schedule (m_lastSlotStart + GetSlotPeriod () -
                            Simulator::Now (),
                            &MmWaveUePhy::StartSlot,
                            this,
@@ -808,7 +811,7 @@ MmWaveUePhy::EndVarTti ()
   else
     {
       m_varTtiNum++;
-      Time nextVarTtiStart = m_phyMacConfig->GetSymbolPeriod () *
+      Time nextVarTtiStart = GetSymbolPeriod () *
                              m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci->m_symStart;
 
       Simulator::Schedule (nextVarTtiStart + m_lastSlotStart - Simulator::Now (), &MmWaveUePhy::StartVarTti, this);
@@ -908,15 +911,8 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
                 " K1: " << k1It->second << " Frame " <<
                 SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
 
-  Time event = m_lastSlotStart + (m_phyMacConfig->GetSlotPeriod () * k1It->second);
-  if (event <= Simulator::Now ())
-    {
-      Simulator::ScheduleNow (&MmWaveUePhy::DoSendControlMessageNow, this, msg);
-    }
-  else
-    {
-      Simulator::Schedule (event - Simulator::Now (), &MmWaveUePhy::DoSendControlMessageNow, this, msg);
-    }
+  Simulator::Schedule (((GetSlotPeriod () * k1It->second) - (Simulator::Now () - m_lastSlotStart)),
+                       &MmWaveUePhy::DoSendControlMessageNow, this, msg);
 }
 
 void
@@ -973,9 +969,7 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   NS_LOG_FUNCTION (this << cellId);
   NS_UNUSED (cellId);
 
-  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-  m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
+  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity ());
 }
 
 BeamId
@@ -1001,6 +995,8 @@ void
 MmWaveUePhy::DoSetDlBandwidth (uint8_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
+  m_channelBandwidth = dlBandwidth;
+  UpdateRbNum ();
 }
 
 
@@ -1008,6 +1004,7 @@ void
 MmWaveUePhy::DoConfigureUplink (uint16_t ulEarfcn, uint8_t ulBandwidth)
 {
   NS_LOG_FUNCTION (this << ulEarfcn << +ulBandwidth);
+  // Ignore this; should be equal to dlBandwidth
   m_ulConfigured = true;
 }
 

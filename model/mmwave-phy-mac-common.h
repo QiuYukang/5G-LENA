@@ -672,15 +672,9 @@ public:
 
   static TypeId GetTypeId (void);
 
-  Time GetSymbolPeriod (void) const;
-
   uint8_t GetDlCtrlSymbols (void) const;
 
   uint8_t GetUlCtrlSymbols (void) const;
-
-  uint8_t GetSymbolsPerSlot (void) const;
-
-  Time GetSlotPeriod () const;
 
   uint32_t GetVarTtisPerSlot (void) const;
 
@@ -694,30 +688,17 @@ public:
    */
   uint32_t GetN2Delay (void) const;
 
-  double GetSubcarrierSpacing (void) const;
-
   uint32_t GetNumRefScPerRb (void) const;
 
   uint32_t GetBandwidthInRbg () const;
 
   uint32_t GetNumRbPerRbg (void) const;
 
-  uint32_t GetNumerology (void) const;
-
-  double GetBandwidth (void) const;
-
-  /**
-   * \brief: bandwidth in number of RBs
-   */
-  uint32_t GetBandwidthInRbs () const;
-
   uint16_t GetL1L2CtrlLatency (void) const;
 
   uint32_t GetNumHarqProcess (void) const;
 
   uint8_t GetHarqTimeout (void) const;
-
-  void SetSymbolsPerSlot (uint8_t numSym);
 
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
 
@@ -734,15 +715,11 @@ public:
 
   void SetNumRefScPerRb (uint32_t numRefSc);
 
-  void SetRbNum (uint32_t numRB);
-
   /**
    * \brief
    * rbgSize size of RBG in number of resource blocks
    */
   void SetNumRbPerRbg (uint32_t rbgSize);
-
-  void SetNumerology (uint32_t numerology);
 
   /**
    * \brief Set bandwidth value in Hz
@@ -757,17 +734,10 @@ public:
   void SetHarqDlTimeout (uint8_t harqDlTimeout);
 
 private:
-  Time m_symbolPeriod;          //!< OFDM symbol length
-  uint8_t m_symbolsPerSlot;     //!< number of OFDM symbols per slot (in 3GPP NR: 12 for normal CP, 14 for extended CP)
-  Time m_slotPeriod;            //!< NR slot length
   uint8_t m_dlCtrlSymbols;      //!< number of OFDM symbols for downlink control at beginning of subframe
   uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
-  uint32_t m_slotsPerSubframe;   // TODO: perform parameter cleanup, leave only mandatory ones, many redundant settings
   const uint32_t m_subframesPerFrame {10};
   uint32_t m_numRbPerRbg;       //!< number of resource blocks within the channel bandwidth
-  uint16_t m_numerology;        //!< NR numerology: defines the subcarrier spacing, RB width, slot length, and number of slots per subframe
-  double m_subcarrierSpacing;   //!< subcarrier spacing (it is determined by the numerology)
-  uint32_t m_rbNum;             //!< number of resource blocks within the channel bandwidth
   uint32_t m_numRefScPerRb;     //!< number of subcarriers per resource block used for reference signals
   uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;

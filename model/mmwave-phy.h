@@ -89,6 +89,28 @@ public:
 
   Ptr<const SpectrumModel> GetSpectrumModel () const;
 
+  uint32_t GetSymbolsPerSlot () const;
+
+  Time GetSlotPeriod () const;
+
+  /**
+   * \brief GetNumScsPerRb
+   *
+   * It is a static function as the value is fixed, and it is needed in NrAmc.
+   * Making this value changeable means creating an interface between PHY
+   * and AMC.
+   *
+   * \return 12, fixed value
+   */
+  static uint32_t GetNumScsPerRb ();
+
+  /**
+   * \brief Get SymbolPeriod
+   * \return the symbol period; the value changes every time the user changes
+   * the numerology
+   */
+  Time GetSymbolPeriod () const;
+
   // Attributes
   /**
    * \return The antena array that is being used by this PHY
@@ -110,6 +132,19 @@ public:
    * of the channel.
    */
   void InstallCentralFrequency (double f);
+
+  /**
+   * \brief Set GNB or UE numerology
+   * \param numerology numerology
+   *
+   * For the GNB, this is an attribute that can be changed at any time; for the
+   * UE, it is set by the helper at the attachment, and then is not changed anymore.
+   */
+  void SetNumerology (uint16_t numerology);
+
+  uint16_t GetNumerology () const;
+
+  void SetSymbolsPerSlot (uint16_t symbolsPerSlot);
 
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
@@ -139,17 +174,6 @@ public:
    */
   uint16_t GetCellId () const;
 
-  /**
-   * \brief GetNumScsPerRb
-   *
-   * It is a static function as the value is fixed, and it is needed in NrAmc.
-   * Making this value changeable means creating an interface between PHY
-   * and AMC.
-   *
-   * \return 12, fixed value
-   */
-  static uint32_t GetNumScsPerRb ();
-
   // SAP
   /**
    * \brief In reality, set the BWP ID
@@ -166,6 +190,10 @@ public:
   void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
 
 protected:
+  /**
+   * \brief Update the number of RB. Usually called after bandwidth changes
+   */
+  void UpdateRbNum ();
 
   /**
    * \brief Transform a MAC-made vector of RBG to a PHY-ready vector of SINR indices
@@ -189,6 +217,11 @@ protected:
    * \return Returns the number of RBs per RBG
    */
   virtual uint32_t GetNumRbPerRbg () const = 0;
+
+  /**
+   * \return the channel bandwidth in Hz
+   */
+  virtual uint32_t GetChannelBandwidth () const = 0;
 
   Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
@@ -217,6 +250,13 @@ protected:
    * The function will assert if it is called without having set a frequency first.
    */
   double GetCentralFrequency () const;
+
+  /**
+   * \brief Get the number of Resource block configured
+   *
+   * It changes with the numerology and the channel bandwidth
+   */
+  uint32_t GetRbNum () const;
 
   /**
    * \brief Store the slot allocation info at the front
@@ -325,6 +365,15 @@ private:
   double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
 
   uint16_t m_bwpId {UINT16_MAX}; //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper when attaching to a gnb
+  uint16_t m_numerology {0};         //!< NR numerology: defines the subcarrier spacing, RB width, slot length, and number of slots per subframe
+  uint16_t m_symbolsPerSlot {14};    //!< number of OFDM symbols per slot (in 3GPP NR: 12 for normal CP, 14 for extended CP)
+
+  // CHECK!
+  uint16_t m_slotsPerSubframe {1};
+  Time m_slotPeriod {MilliSeconds (1)};            //!< NR slot length
+  Time m_symbolPeriod {MilliSeconds (1) / 14};          //!< OFDM symbol length
+  uint32_t m_subcarrierSpacing {15000};   //!< subcarrier spacing (it is determined by the numerology)
+  uint32_t m_rbNum {0};             //!< number of resource blocks within the channel bandwidth
 };
 
 }

@@ -22,11 +22,11 @@
 #ifndef MMWAVE_UE_PHY_H
 #define MMWAVE_UE_PHY_H
 
-#include <ns3/mmwave-phy.h>
+#include "mmwave-phy.h"
 #include "nr-amc.h"
+#include "mmwave-harq-phy.h"
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
-#include <ns3/mmwave-harq-phy.h>
 
 namespace ns3 {
 
@@ -118,8 +118,6 @@ public:
    * \param numRbPerRbg Number of RBs per RBG
    */
   void SetNumRbPerRbg (uint32_t numRbPerRbg);
-
-  uint32_t GetNumRbPerRbg () const override;
 
   /**
    * \brief Receive a list of CTRL messages
@@ -240,6 +238,10 @@ public:
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
   virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+
+protected:
+  uint32_t GetNumRbPerRbg () const override;
+  uint32_t GetChannelBandwidth () const override;
 
 private:
   /**
@@ -435,6 +437,7 @@ private:
   Time m_lbtThresholdForCtrl; //!< Threshold for LBT before the UL CTRL
   bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
   EventId m_lbtEvent;
+  uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS

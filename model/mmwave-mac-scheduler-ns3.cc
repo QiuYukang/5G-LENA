@@ -563,10 +563,10 @@ MmWaveMacSchedulerNs3::DoSchedDlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
       return;
     }
 
-  NS_ASSERT (m_cqiTimersThreshold >= m_phyMacConfig->GetSlotPeriod ());
+  NS_ASSERT (m_cqiTimersThreshold >= m_macSchedSapUser->GetSlotPeriod ());
 
   uint32_t expirationTime = static_cast<uint32_t> (m_cqiTimersThreshold.GetNanoSeconds () /
-                                                   m_phyMacConfig->GetSlotPeriod ().GetNanoSeconds ());
+                                                   m_macSchedSapUser->GetSlotPeriod ().GetNanoSeconds ());
 
   for (const auto &cqi : params.m_cqiList)
     {
@@ -610,7 +610,7 @@ MmWaveMacSchedulerNs3::DoSchedUlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
   GetSecond UeInfoOf;
 
   uint32_t expirationTime = static_cast<uint32_t> (m_cqiTimersThreshold.GetNanoSeconds () /
-                                                   m_phyMacConfig->GetSlotPeriod ().GetNanoSeconds ());
+                                                   m_macSchedSapUser->GetSlotPeriod ().GetNanoSeconds ());
 
   switch (params.m_ulCqi.m_type)
     {
@@ -637,7 +637,6 @@ MmWaveMacSchedulerNs3::DoSchedUlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
             if (allocation.m_symStart == symStart)
               {
                 auto itUe = m_ueMap.find (allocation.m_rnti);
-                NS_ASSERT (allocation.m_rb == m_phyMacConfig->GetBandwidthInRbs ());
                 NS_ASSERT (itUe != m_ueMap.end ());
                 NS_ASSERT (allocation.m_numSym > 0);
                 NS_ASSERT (allocation.m_tbs > 0);
@@ -1159,10 +1158,10 @@ MmWaveMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAva
           assigned = true;
           NS_LOG_INFO ("UE " << ue.first->m_rnti << " has " << ue.first->m_dlRBG <<
                        " RBG assigned");
-          NS_ASSERT_MSG (dci->m_symStart + dci->m_numSym <= m_phyMacConfig->GetSymbolsPerSlot (),
+          NS_ASSERT_MSG (dci->m_symStart + dci->m_numSym <= m_macSchedSapUser->GetSymbolsPerSlot (),
                          "symStart: " << static_cast<uint32_t> (dci->m_symStart) << " symEnd: " <<
                          static_cast<uint32_t> (dci->m_numSym) << " symbols: " <<
-                         static_cast<uint32_t> (m_phyMacConfig->GetSymbolsPerSlot ()));
+                         static_cast<uint32_t> (m_macSchedSapUser->GetSymbolsPerSlot ()));
 
           HarqProcess harqProcess (true, HarqProcess::WAITING_FEEDBACK, 0, dci);
           uint8_t id;
@@ -1549,7 +1548,7 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   if (params.m_slotType == LteNrTddSlotType::S)
     {
       NS_LOG_INFO ("S slot, adding UL CTRL");
-      AppendCtrlSym (static_cast<uint8_t> (m_phyMacConfig->GetSymbolsPerSlot () - 1),
+      AppendCtrlSym (static_cast<uint8_t> (m_macSchedSapUser->GetSymbolsPerSlot () - 1),
                      m_phyMacConfig->GetUlCtrlSymbols (), DciInfoElementTdma::UL,
                      &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
       ulAllocations.m_totUlSym += m_phyMacConfig->GetUlCtrlSymbols ();
@@ -1642,7 +1641,7 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
   ulSlot.m_slotAllocInfo.m_type = SlotAllocInfo::UL;
 
   // add slot for UL control, at last symbol, for slot type F and UL.
-  AppendCtrlSym (static_cast<uint8_t> (m_phyMacConfig->GetSymbolsPerSlot () - 1),
+  AppendCtrlSym (static_cast<uint8_t> (m_macSchedSapUser->GetSymbolsPerSlot () - 1),
                  m_phyMacConfig->GetUlCtrlSymbols (), DciInfoElementTdma::UL,
                  &ulSlot.m_slotAllocInfo.m_varTtiAllocInfo);
   ulSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetUlCtrlSymbols ();
@@ -1701,7 +1700,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
 
   NS_ASSERT (allocInfo->m_varTtiAllocInfo.size () == 1); // Just the UL CTRL
 
-  uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
+  uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
   if (type == LteNrTddSlotType::F)
     { // if it's a type F, we have to consider DL CTRL symbols, otherwise, don't
       dataSymPerSlot -= m_phyMacConfig->GetDlCtrlSymbols ();
@@ -1712,7 +1711,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
 
   // Start the assignation from the last available data symbol, and like a shrimp
   // go backward.
-  uint8_t lastSym = m_phyMacConfig->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
+  uint8_t lastSym = m_macSchedSapUser->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
   PointInFTPlane ulAssignationStartPoint (0, lastSym);
   uint8_t ulSymAvail = dataSymPerSlot;
 
@@ -1798,7 +1797,6 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
                            static_cast<uint32_t>(alloc.m_dci->m_symStart) <<
                            " numSym " << +alloc.m_dci->m_numSym);
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
-                                                   m_phyMacConfig->GetBandwidthInRbs (), // Assume UL in TDMA
                                                    alloc.m_dci->m_tbSize,
                                                    alloc.m_dci->m_symStart,
                                                    alloc.m_dci->m_numSym,
@@ -1881,7 +1879,7 @@ MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedb
   NS_LOG_INFO (this);
   NS_ASSERT (activeDlUe != nullptr);
 
-  uint8_t dataSymPerSlot = m_phyMacConfig->GetSymbolsPerSlot () - m_phyMacConfig->GetDlCtrlSymbols ();
+  uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot () - m_phyMacConfig->GetDlCtrlSymbols ();
 
   uint8_t dlSymAvail = dataSymPerSlot - ulAllocations.m_totUlSym;
   PointInFTPlane dlAssignationStartPoint (0, m_phyMacConfig->GetDlCtrlSymbols ());

@@ -606,18 +606,16 @@ private:
     /**
      * \brief AllocElem constructor
      * \param rnti RNTI
-     * \param rb Resource Blocks
      * \param tbs Transport Block Size
      * \param numSym Number of symbols
      * \param mcs MCS
      */
-    AllocElem (uint16_t rnti, uint32_t rb, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs)
-      : m_rnti (rnti), m_rb (rb), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs)
+    AllocElem (uint16_t rnti, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs)
+      : m_rnti (rnti), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs)
     {
     }
 
     uint16_t m_rnti {0};  //!< Allocated RNTI
-    uint32_t m_rb   {0};  //!< Allocated RB
     uint32_t m_tbs  {0};  //!< Allocated TBS
     uint8_t m_symStart {0}; //!< Sym start
     uint8_t m_numSym {0}; //!< Allocated symbols

@@ -320,8 +320,6 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
   phy->InstallCentralFrequency (gppChannel->GetFrequency ());
-  phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
   phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
@@ -349,6 +347,9 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
 
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
+
+  phy->InstallSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
 
   // TODO: If antenna changes, we are fucked!
   // TODO: Remove const_cast once final Tommaso version is merged
@@ -502,8 +503,6 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
 
   phy->InstallCentralFrequency (gppChannel->GetFrequency ());
   phy->SetConfigurationParameters (phyMacCommon);
-  phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
 
   phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
@@ -538,7 +537,8 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   channelPhy->SetPhyRxCtrlEndOkCallback (phyEndCtrlCallback);
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReportUlHarqFeedback, phy));
 
-  phy->Initialize ();
+  phy->InstallSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
 
   c->AddRx (channelPhy);
   // TODO: NOTE: if changing the Antenna Array, this will broke
@@ -587,8 +587,9 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
     {
       NS_LOG_DEBUG ("Creating BandwidthPart, id = " << bwpId);
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
-      cc->SetUlBandwidth (allBwps[bwpId].get()->m_channelBandwidth);
-      cc->SetDlBandwidth (allBwps[bwpId].get()->m_channelBandwidth);
+      uint16_t bwInKhz = static_cast<uint16_t> (allBwps[bwpId].get()->m_channelBandwidth / 1000);
+      cc->SetUlBandwidth (bwInKhz / 100);
+      cc->SetDlBandwidth (bwInKhz / 100);
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
       cc->SetCellId (bwpId);
@@ -785,6 +786,8 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
       ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i), configParams);
       ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
+      ueNetDev->GetPhy (i)->SetSymbolsPerSlot (enbNetDev->GetPhy (i)->GetSymbolsPerSlot ());
+      ueNetDev->GetPhy (i)->SetNumerology (enbNetDev->GetPhy(i)->GetNumerology ());
       ueNetDev->GetCcMap()[i]->GetMac()->SetConfigurationParameters (configParams);
       Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
       ueNas->Connect (enbNetDev->GetBwpId (i), enbNetDev->GetEarfcn (i));

@@ -76,6 +76,18 @@ public:
    * \return the cell id of the PHY
    */
   virtual uint16_t GetCellId () const = 0;
+  /*
+   * \brief Get the number of symbols in one slot
+   * \return the number of symbols in one slot (it is an attribute in the PHY,
+   * so it can be changed dynamically -- don't store the value)
+   */
+  virtual uint32_t GetSymbolsPerSlot () const = 0;
+
+  /**
+   * \brief Get SlotPeriod
+   * \return the slot period (don't store the value as it depends on the numerology)
+   */
+  virtual Time GetSlotPeriod () const = 0;
 
 };
 

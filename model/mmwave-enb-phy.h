@@ -260,6 +260,7 @@ public:
       (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   uint32_t GetNumRbPerRbg () const override;
+  uint32_t GetChannelBandwidth () const override;
 
 private:
   void StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum);
@@ -467,6 +468,8 @@ private:
 
   uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
   uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+
+  uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
 };
 
 }
