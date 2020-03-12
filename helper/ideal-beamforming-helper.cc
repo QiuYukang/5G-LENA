@@ -66,22 +66,6 @@ IdealBeamformingHelper::GetTypeId (void)
 }
 
 void
-IdealBeamformingHelper::DoInitialize ()
-{
-  NS_LOG_FUNCTION (this);
-  ObjectFactory objectFactory = ObjectFactory ();
-  objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
-  m_idealBeamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
-  ExpireBeamformingTimer ();
-}
-
-void
-IdealBeamformingHelper::DoDispose (void)
-{
-  NS_LOG_FUNCTION (this);
-}
-
-void
 IdealBeamformingHelper::AddBeamformingTask (const Ptr<MmWaveEnbNetDevice>& gNbDev,
                                             const Ptr<MmWaveUeNetDevice>& ueDev)
 {
@@ -119,10 +103,16 @@ IdealBeamformingHelper::Run () const
 }
 
 void
-IdealBeamformingHelper::SetIdealBeamformingMethod (TypeId beamformingMethod)
+IdealBeamformingHelper::SetIdealBeamformingMethod (const TypeId &beamformingMethod)
 {
   NS_LOG_FUNCTION (this);
-  m_idealBeamformingAlgorithmType = beamformingMethod;
+  NS_ASSERT (beamformingMethod.IsChildOf (IdealBeamformingAlgorithm::GetTypeId ()));
+
+  ObjectFactory objectFactory;
+  objectFactory.SetTypeId (beamformingMethod);
+
+  m_idealBeamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
+  ExpireBeamformingTimer ();
 }
 
 void
@@ -132,6 +122,8 @@ IdealBeamformingHelper::ExpireBeamformingTimer()
   NS_LOG_INFO ("Beamforming timer expired; programming a beamforming");
 
   Run (); //Run beamforming tasks
+
+  m_beamformingTimer.Cancel (); // Cancel any previous beamforming event
 
   m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
                                             &IdealBeamformingHelper::ExpireBeamformingTimer, this);
