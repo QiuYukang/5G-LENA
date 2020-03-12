@@ -694,10 +694,6 @@ public:
 
   uint16_t GetL1L2CtrlLatency (void) const;
 
-  uint32_t GetNumHarqProcess (void) const;
-
-  uint8_t GetHarqTimeout (void) const;
-
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
 
   void SetUlCtrlSymbols (uint8_t ctrlSymbols);
@@ -728,7 +724,6 @@ private:
   uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
   const uint32_t m_subframesPerFrame {10};
   uint32_t m_numRbPerRbg;       //!< number of resource blocks within the channel bandwidth
-  uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)

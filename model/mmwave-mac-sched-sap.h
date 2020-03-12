@@ -169,6 +169,8 @@ public:
 
   virtual uint32_t GetNumRbPerRbg () const = 0;
 
+  virtual uint8_t GetNumHarqProcess () const = 0;
+
   virtual uint16_t GetBwpId () const = 0;
 
   virtual uint16_t GetCellId () const = 0;

@@ -173,6 +173,8 @@ public:
 
   //virtual void NotifyHarqDeliveryFailure (uint8_t harqId);
 
+  virtual uint8_t GetNumHarqProcess () const override;
+
 private:
   MmWaveUeMac* m_mac;
 };
@@ -200,6 +202,12 @@ MacUeMemberPhySapUser::SlotIndication (SfnSf sfn)
   m_mac->DoSlotIndication (sfn);
 }
 
+uint8_t
+MacUeMemberPhySapUser::GetNumHarqProcess () const
+{
+  return m_mac->GetNumHarqProcess();
+}
+
 //-----------------------------------------------------------------------
 
 TypeId
@@ -208,6 +216,12 @@ MmWaveUeMac::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWaveUeMac")
     .SetParent<Object> ()
     .AddConstructor<MmWaveUeMac> ()
+    .AddAttribute ("NumHarqProcess",
+                   "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
+                    UintegerValue (20),
+                    MakeUintegerAccessor (&MmWaveUeMac::SetNumHarqProcess,
+                                          &MmWaveUeMac::GetNumHarqProcess),
+                    MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("UeMacRxedCtrlMsgsTrace",
                      "Ue MAC Control Messages Traces.",
                      MakeTraceSourceAccessor (&MmWaveUeMac::m_macRxedCtrlMsgsTrace),
@@ -246,13 +260,13 @@ MmWaveUeMac::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfi
 
   m_phyMacConfig = ptrConfig;
 
-  m_miUlHarqProcessesPacket.resize (m_phyMacConfig->GetNumHarqProcess ());
+  m_miUlHarqProcessesPacket.resize (GetNumHarqProcess ());
   for (uint8_t i = 0; i < m_miUlHarqProcessesPacket.size (); i++)
     {
       Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
       m_miUlHarqProcessesPacket.at (i).m_pktBurst = pb;
     }
-  m_miUlHarqProcessesPacketTimer.resize (m_phyMacConfig->GetNumHarqProcess (), 0);
+  m_miUlHarqProcessesPacketTimer.resize (GetNumHarqProcess (), 0);
 }
 
 void
@@ -314,6 +328,25 @@ MmWaveUeMac::GetTotalBufSize () const
   return ret;
 }
 
+/**
+ * \brief Sets the number of HARQ processes
+ * \param numHarqProcesses the maximum number of harq processes
+ */
+void
+MmWaveUeMac::SetNumHarqProcess (uint8_t numHarqProcess)
+{
+  m_numHarqProcess = numHarqProcess;
+}
+
+/**
+ * \return number of HARQ processes
+ */
+uint8_t
+MmWaveUeMac::GetNumHarqProcess () const
+{
+  return m_numHarqProcess;
+}
+
 // forwarded from MAC SAP
 void
 MmWaveUeMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
@@ -365,8 +398,8 @@ MmWaveUeMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
           LteRadioBearerTag bearerTag (params.rnti, 0, 0);
           it->second.m_pdu->AddPacketTag (bearerTag);
           m_miUlHarqProcessesPacket.at (params.harqProcessId).m_pktBurst->AddPacket (it->second.m_pdu);
-          m_miUlHarqProcessesPacketTimer.at (params.harqProcessId) = m_phyMacConfig->GetHarqTimeout ();
-          //m_harqProcessId = (m_harqProcessId + 1) % m_phyMacConfig->GetHarqTimeout();
+          m_miUlHarqProcessesPacketTimer.at (params.harqProcessId) = GetNumHarqProcess();
+          //m_harqProcessId = (m_harqProcessId + 1) % GetNumHarqProcess;
           m_phySapProvider->SendMacPdu (it->second.m_pdu);
           m_macPduMap.erase (it);    // delete map entry
         }
@@ -675,8 +708,8 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     LteRadioBearerTag bearerTag (dciInfoElem->m_rnti, 3, 0);
                     emptyPdu->AddPacketTag (bearerTag);
                     m_miUlHarqProcessesPacket.at (dciInfoElem->m_harqProcess).m_pktBurst->AddPacket (emptyPdu);
-                    m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = m_phyMacConfig->GetHarqTimeout ();
-                    //m_harqProcessId = (m_harqProcessId + 1) % m_phyMacConfig->GetHarqTimeout();
+                    m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = GetNumHarqProcess ();
+                    //m_harqProcessId = (m_harqProcessId + 1) % GetNumHarqProcess;
                     m_phySapProvider->SendMacPdu (emptyPdu);
                     return;
                   }
@@ -814,7 +847,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     pkt->AddPacketTag (tag);
                     m_phySapProvider->SendMacPdu (pkt);
                   }
-                m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = m_phyMacConfig->GetHarqTimeout ();
+                m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = GetNumHarqProcess();
               }
 
             // After a DCI UL, if I have data in the buffer, I can report a BSR

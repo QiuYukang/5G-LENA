@@ -227,6 +227,7 @@ MmWaveMacEnbMemberPhySapUser::GetNumRbPerRbg () const
   return m_mac->GetNumRbPerRbg();
 }
 
+
 // MAC Sched
 
 class MmWaveMacMemberMacSchedSapUser : public MmWaveMacSchedSapUser
@@ -236,6 +237,7 @@ public:
   virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) override;
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
   virtual uint32_t GetNumRbPerRbg () const override;
+  virtual uint8_t GetNumHarqProcess () const override;
   virtual uint16_t GetBwpId () const override;
   virtual uint16_t GetCellId () const override;
   virtual uint32_t GetSymbolsPerSlot () const override;
@@ -266,6 +268,12 @@ uint32_t
 MmWaveMacMemberMacSchedSapUser::GetNumRbPerRbg () const
 {
   return m_mac->GetNumRbPerRbg ();
+}
+
+uint8_t
+MmWaveMacMemberMacSchedSapUser::GetNumHarqProcess () const
+{
+  return m_mac->GetNumHarqProcess();
 }
 
 uint16_t
@@ -369,6 +377,12 @@ MmWaveEnbMac::GetTypeId (void)
                    MakeUintegerAccessor (&MmWaveEnbMac::SetNumRbPerRbg,
                                          &MmWaveEnbMac::GetNumRbPerRbg),
                    MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("NumHarqProcess",
+                   "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
+                    UintegerValue (20),
+                    MakeUintegerAccessor (&MmWaveEnbMac::SetNumHarqProcess,
+                                          &MmWaveEnbMac::GetNumHarqProcess),
+                    MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("DlScheduling",
                      "Information regarding DL scheduling.",
                      MakeTraceSourceAccessor (&MmWaveEnbMac::m_dlScheduling),
@@ -429,6 +443,25 @@ uint32_t
 MmWaveEnbMac::GetNumRbPerRbg (void) const
 {
   return m_numRbPerRbg;
+}
+
+/**
+ * \brief Sets the number of HARQ processes
+ * \param numHarqProcesses the maximum number of harq processes
+ */
+void
+MmWaveEnbMac::SetNumHarqProcess (uint8_t numHarqProcess)
+{
+  m_numHarqProcess = numHarqProcess;
+}
+
+/**
+ * \return number of HARQ processes
+ */
+uint8_t
+MmWaveEnbMac::GetNumHarqProcess () const
+{
+  return m_numHarqProcess;
 }
 
 void
@@ -1166,7 +1199,7 @@ MmWaveEnbMac::DoAddUe (uint16_t rnti)
 
   // Create DL transmission HARQ buffers
   MmWaveDlHarqProcessesBuffer_t buf;
-  uint16_t harqNum = m_phyMacConfig->GetNumHarqProcess ();
+  uint16_t harqNum = GetNumHarqProcess ();
   buf.resize (harqNum);
   for (uint8_t i = 0; i < harqNum; i++)
     {

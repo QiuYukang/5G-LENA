@@ -82,6 +82,18 @@ public:
    */
   uint32_t GetNumRbPerRbg (void) const;
 
+  /**
+   * \brief Sets the number of HARQ processes
+   * \param numHarqProcesses the maximum number of harq processes
+   */
+  void SetNumHarqProcess (uint8_t numHarqProcess);
+
+  /**
+   * \return number of HARQ processes
+   */
+  uint8_t GetNumHarqProcess () const;
+
+
   void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
@@ -285,6 +297,8 @@ private:
   uint32_t m_varTtiNum {0};
 
   int32_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth
+
+  uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
   std::map<uint32_t, struct MacPduInfo> m_macPduMap;
 

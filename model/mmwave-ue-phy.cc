@@ -205,7 +205,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config)
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
 
-  m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phyMacConfig->GetNumHarqProcess ());
+  m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phySapUser->GetNumHarqProcess ());
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
   DoSetCellId (bwpId);

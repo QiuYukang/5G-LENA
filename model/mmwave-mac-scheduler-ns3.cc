@@ -280,8 +280,8 @@ MmWaveMacSchedulerNs3::DoCschedUeConfigReq (const MmWaveMacCschedSapProvider::Cs
 
       itUe = m_ueMap.insert (std::make_pair (params.m_rnti, CreateUeRepresentation (params))).first;
 
-      UeInfoOf (*itUe)->m_dlHarq.SetMaxSize (static_cast<uint8_t> (m_phyMacConfig->GetNumHarqProcess ()));
-      UeInfoOf (*itUe)->m_ulHarq.SetMaxSize (static_cast<uint8_t> (m_phyMacConfig->GetNumHarqProcess ()));
+      UeInfoOf (*itUe)->m_dlHarq.SetMaxSize (static_cast<uint8_t> (m_macSchedSapUser->GetNumHarqProcess ()));
+      UeInfoOf (*itUe)->m_ulHarq.SetMaxSize (static_cast<uint8_t> (m_macSchedSapUser->GetNumHarqProcess ()));
       UeInfoOf (*itUe)->m_dlMcs = m_startMcsDl;
       UeInfoOf (*itUe)->m_ulMcs = m_startMcsUl;
     }
@@ -790,7 +790,7 @@ MmWaveMacSchedulerNs3::ResetExpiredHARQ (uint16_t rnti, MmWaveMacHarqVector *har
           continue;
         }
 
-      if (process.m_timer < m_phyMacConfig->GetHarqTimeout ())
+      if (process.m_timer <m_macSchedSapUser->GetNumHarqProcess())
         {
           ++process.m_timer;
           NS_LOG_INFO ("Updated process for UE " << rnti << " number " <<

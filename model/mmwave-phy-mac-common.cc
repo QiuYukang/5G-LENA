@@ -58,16 +58,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (1),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_numRbPerRbg),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("NumHarqProcess",
-                   "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
-                   UintegerValue (20),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_numHarqProcess),
-                   MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("HarqDlTimeout",
-                   "Harq dl timeout",
-                   UintegerValue (20),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_harqTimeout),
-                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("L1L2CtrlLatency",
                    "L1L2 CTRL decode latency in slot",
                    UintegerValue (2),
@@ -82,7 +72,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
   m_numRbPerRbg (1),
-  m_numHarqProcess (20),
   m_harqTimeout (20),
   m_l1L2CtrlLatency (2),
   m_n2Delay (2)
@@ -154,18 +143,6 @@ MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const
   return m_l1L2CtrlLatency;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetNumHarqProcess (void) const
-{
-  return m_numHarqProcess;
-}
-
-uint8_t
-MmWavePhyMacCommon::GetHarqTimeout (void) const
-{
-  return m_harqTimeout;
-}
-
 void
 MmWavePhyMacCommon::SetDlCtrlSymbols (uint8_t ctrlSymbols)
 {
@@ -200,17 +177,6 @@ MmWavePhyMacCommon::SetL1L2CtrlLatency (uint32_t delaySfs)
   m_l1L2CtrlLatency = delaySfs;
 }
 
-void
-MmWavePhyMacCommon::SetNumHarqProcess (uint32_t numProcess)
-{
-  m_numHarqProcess = numProcess;
-}
-
-void
-MmWavePhyMacCommon::SetHarqDlTimeout (uint8_t harqDlTimeout)
-{
-  m_harqTimeout = harqDlTimeout;
-}
 
 void
 SlotAllocInfo::Merge (const SlotAllocInfo &other)

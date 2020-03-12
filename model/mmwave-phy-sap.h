@@ -205,6 +205,8 @@ public:
   virtual void SlotIndication (SfnSf) = 0;
 
   //virtual void NotifyHarqDeliveryFailure (uint8_t harqId) = 0;
+
+  virtual uint8_t GetNumHarqProcess () const = 0;
 };
 
 }

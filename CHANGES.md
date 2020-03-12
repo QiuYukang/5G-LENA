@@ -103,6 +103,11 @@ helper at the attaching moment.
 
 * Moved GetNumRefScPerRb() from MmWavePhyMacCommon to NrAmc.
 
+* Removed NumHarqProcess and HarqDlTimeout from MmWavePhyMacCommon. 
+NumHarqProcess is now attribute of MmWaveEnbMac and MmWaveUeMac, while HarqDlTimeout 
+is completely removed since the timeout is equivalent to the (maximum) number of 
+harq processes. 
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

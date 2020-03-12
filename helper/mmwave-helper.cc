@@ -512,7 +512,6 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   phy->SetCam (cam);
 
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
-  harq->SetHarqNum(phyMacCommon->GetNumHarqProcess ());
   channelPhy->InstallHarqPhyModule (harq);
 
   Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();

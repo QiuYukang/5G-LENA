@@ -131,6 +131,16 @@ public:
   typedef void (* TxedUeMacCtrlMsgsTracedCallback)
     (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
+  /**
+   * \brief Sets the number of HARQ processes
+   * \param numHarqProcesses the maximum number of harq processes
+   */
+  void SetNumHarqProcess (uint8_t numHarqProcesses);
+
+  /**
+   * \return number of HARQ processes
+   */
+  uint8_t GetNumHarqProcess () const;
 
 
 protected:
@@ -217,6 +227,8 @@ private:
   uint8_t m_subframeNum {0};
   uint16_t m_slotNum {0};
   uint8_t m_varTtiNum {0};
+
+  uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
   std::map<uint32_t, struct MacPduInfo> m_macPduMap;
 
