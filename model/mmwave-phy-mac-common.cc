@@ -84,8 +84,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   m_numRbPerRbg (1),
   m_numHarqProcess (20),
   m_harqTimeout (20),
-  m_bandwidth (400e6),
-  m_bandwidthConfigured (false),
   m_l1L2CtrlLatency (2),
   m_n2Delay (2)
 {
@@ -194,17 +192,6 @@ void
 MmWavePhyMacCommon::SetNumRbPerRbg (uint32_t rbgSize)
 {
   m_numRbPerRbg = rbgSize;
-}
-
-/**
- * \brief Set bandwidth value in Hz
- * param bandwidth the bandwidth value in Hz
- */
-void
-MmWavePhyMacCommon::SetBandwidth (double bandwidth)
-{
-  m_bandwidth = bandwidth;
-  m_bandwidthConfigured = true;
 }
 
 void

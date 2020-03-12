@@ -717,12 +717,6 @@ public:
    */
   void SetNumRbPerRbg (uint32_t rbgSize);
 
-  /**
-   * \brief Set bandwidth value in Hz
-   * param bandwidth the bandwidth value in Hz
-   */
-  void SetBandwidth (double bandwidth);
-
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
   void SetNumHarqProcess (uint32_t numProcess);
@@ -736,8 +730,6 @@ private:
   uint32_t m_numRbPerRbg;       //!< number of resource blocks within the channel bandwidth
   uint8_t m_numHarqProcess;     //!< number of supported HARQ processes
   uint8_t m_harqTimeout;
-  double m_bandwidth;           //!< channel bandwidth (in Hz)
-  bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
 };
