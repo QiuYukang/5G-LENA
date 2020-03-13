@@ -23,6 +23,8 @@
 
 namespace ns3 {
 
+class SpectrumModel;
+
 class MmWaveMacSchedSapProvider
 {
 public:

@@ -26,12 +26,15 @@
 
 #include <ns3/lte-ue-cmac-sap.h>
 #include <ns3/lte-ccm-mac-sap.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3 {
 
 class MmWaveUePhySapUser;
 class MmWavePhySapProvider;
 class MmWaveControlMessage;
+class UniformRandomVariable;
+class PacketBurst;
 
 /**
  * \ingroup ue

@@ -23,6 +23,7 @@
 #define SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
 
 #include "mmwave-phy-sap.h"
+#include <ns3/spectrum-value.h>
 
 namespace ns3 {
 

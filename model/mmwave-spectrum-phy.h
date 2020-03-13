@@ -23,6 +23,7 @@
 
 
 #include <ns3/spectrum-phy.h>
+#include <ns3/traced-callback.h>
 #include "mmwave-spectrum-signal-parameters.h"
 #include "mmwave-control-messages.h"
 #include "nr-error-model.h"
@@ -38,6 +39,7 @@ class MmWavePhy;
 class mmWaveChunkProcessor;
 class mmWaveInterference;
 class MmWaveHarqPhy;
+class UniformRandomVariable;
 
 class MmWaveSpectrumPhy : public SpectrumPhy
 {

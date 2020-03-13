@@ -28,6 +28,7 @@
 #include "beam-manager.h"
 #include <ns3/double.h>
 #include <ns3/angles.h>
+#include <ns3/uinteger.h>
 
 namespace ns3{
 

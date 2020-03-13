@@ -371,8 +371,10 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
     {
       Ptr <BandwidthPartUe> cc =  CreateObject<BandwidthPartUe> ();
-      cc->SetUlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
-      cc->SetDlBandwidth (allBwps[ccId].get()->m_channelBandwidth);
+      double bwInKhz = allBwps[ccId].get()->m_channelBandwidth / 1000.0;
+      NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
+      cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
+      cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Used for nothing..
       cc->SetUlEarfcn (0); // Used for nothing..
 
@@ -586,9 +588,10 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
     {
       NS_LOG_DEBUG ("Creating BandwidthPart, id = " << bwpId);
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
-      uint16_t bwInKhz = static_cast<uint16_t> (allBwps[bwpId].get()->m_channelBandwidth / 1000);
-      cc->SetUlBandwidth (bwInKhz / 100);
-      cc->SetDlBandwidth (bwInKhz / 100);
+      double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
+      NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
+      cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
+      cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
       cc->SetCellId (bwpId);

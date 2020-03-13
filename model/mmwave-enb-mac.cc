@@ -33,6 +33,7 @@
 #include "mmwave-control-messages.h"
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
+#include <ns3/spectrum-model.h>
 #include <algorithm>
 #include "beam-id.h"
 
@@ -54,7 +55,7 @@ public:
   MmWaveEnbMacMemberEnbCmacSapProvider (MmWaveEnbMac* mac);
 
   // inherited from LteEnbCmacSapProvider
-  virtual void ConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  virtual void ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth);
   virtual void AddUe (uint16_t rnti);
   virtual void RemoveUe (uint16_t rnti);
   virtual void AddLc (LcInfo lcinfo, LteMacSapUser* msu);
@@ -74,7 +75,7 @@ MmWaveEnbMacMemberEnbCmacSapProvider::MmWaveEnbMacMemberEnbCmacSapProvider (MmWa
 }
 
 void
-MmWaveEnbMacMemberEnbCmacSapProvider::ConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
+MmWaveEnbMacMemberEnbCmacSapProvider::ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   m_mac->DoConfigureMac (ulBandwidth, dlBandwidth);
 }
@@ -1132,7 +1133,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
 // ////////////////////////////////////////////
 
 void
-MmWaveEnbMac::DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
+MmWaveEnbMac::DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << " ulBandwidth=" << (uint16_t) ulBandwidth << " dlBandwidth=" << (uint16_t) dlBandwidth);
   MmWaveMacCschedSapProvider::CschedCellConfigReqParameters params;

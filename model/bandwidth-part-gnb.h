@@ -88,8 +88,8 @@ public:
    */
   void SetMmWaveMacScheduler (Ptr<MmWaveMacScheduler> s);
 
-  virtual void SetDlBandwidth (uint8_t bw) override { m_dlBandwidth = bw; }
-  virtual void SetUlBandwidth (uint8_t bw) override { m_ulBandwidth = bw; }
+  virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
+  virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
 
 protected:
   virtual void DoInitialize (void) override;

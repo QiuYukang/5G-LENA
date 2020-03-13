@@ -29,6 +29,7 @@
 #include <ns3/log.h>
 #include <ns3/boolean.h>
 #include <ns3/lte-radio-bearer-tag.h>
+#include <ns3/random-variable-stream.h>
 #include "mmwave-phy-sap.h"
 #include "mmwave-control-messages.h"
 

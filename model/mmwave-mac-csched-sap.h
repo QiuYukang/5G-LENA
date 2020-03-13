@@ -86,8 +86,8 @@ public:
 
     struct SiConfiguration_s m_siConfiguration;
 
-    uint8_t m_ulBandwidth;
-    uint8_t m_dlBandwidth;
+    uint16_t m_ulBandwidth;
+    uint16_t m_dlBandwidth;
 
     enum NormalExtended_e m_ulCyclicPrefixLength;
     enum NormalExtended_e m_dlCyclicPrefixLength;

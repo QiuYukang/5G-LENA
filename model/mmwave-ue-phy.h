@@ -27,6 +27,7 @@
 #include "mmwave-harq-phy.h"
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3 {
 
@@ -338,7 +339,7 @@ private:
    * If equals to 0, no layer 3 filtering is applicable.
    */
   void DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient);
-  void DoSetDlBandwidth (uint8_t ulBandwidth);
+  void DoSetDlBandwidth (uint16_t ulBandwidth);
   void DoConfigureUplink (uint16_t ulEarfcn, uint8_t ulBandwidth);
   void DoConfigureReferenceSignalPower (int8_t referenceSignalPower);
   void DoSetRnti (uint16_t rnti);

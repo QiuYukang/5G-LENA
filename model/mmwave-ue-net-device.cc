@@ -28,6 +28,7 @@
 #include <ns3/lte-ue-component-carrier-manager.h>
 #include <ns3/ipv4-l3-protocol.h>
 #include <ns3/object-map.h>
+#include <ns3/pointer.h>
 
 namespace ns3 {
 

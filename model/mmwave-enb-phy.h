@@ -330,7 +330,7 @@ private:
   void DoStartSlot ();
 
   // LteEnbCphySapProvider forwarded methods
-  void DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  void DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth);
   void DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn);
   void DoAddUe (uint16_t rnti);
   void DoRemoveUe (uint16_t rnti);
@@ -339,7 +339,7 @@ private:
   void DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi);
   void DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib);
   void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
-  void DoSetBandwidth (uint8_t Bandwidth );
+  void DoSetBandwidth (uint16_t Bandwidth );
   void DoSetEarfcn (uint16_t Earfcn );
 
   /**

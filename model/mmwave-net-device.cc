@@ -20,6 +20,8 @@
 #include <ns3/log.h>
 #include <ns3/ipv4-l3-protocol.h>
 #include <ns3/node.h>
+#include <ns3/uinteger.h>
+#include <ns3/channel.h>
 #include "mmwave-net-device.h"
 
 namespace ns3 {

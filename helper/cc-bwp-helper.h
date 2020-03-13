@@ -27,10 +27,10 @@
 #include <ns3/propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/spectrum-channel.h>
 #include <memory>
 
 namespace ns3 {
-
 
 /*
  * Upper limits of the number of component carriers used for Carrier

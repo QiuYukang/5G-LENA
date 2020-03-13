@@ -38,6 +38,7 @@
 #include <ns3/lte-radio-bearer-tag.h>
 #include <algorithm>
 #include <ns3/boolean.h>
+#include <ns3/pointer.h>
 #include "beam-manager.h"
 
 namespace ns3 {
@@ -223,7 +224,8 @@ MmWaveUePhy::GetNumRbPerRbg () const
   return m_numRbPerRbg;
 }
 
-uint32_t MmWaveUePhy::GetChannelBandwidth() const
+uint32_t
+MmWaveUePhy::GetChannelBandwidth() const
 {
   // m_channelBandwidth is in kHz * 100
   return m_channelBandwidth * 1000 * 100;
@@ -992,7 +994,7 @@ MmWaveUePhy::StartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
 }
 
 void
-MmWaveUePhy::DoSetDlBandwidth (uint8_t dlBandwidth)
+MmWaveUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
   m_channelBandwidth = dlBandwidth;

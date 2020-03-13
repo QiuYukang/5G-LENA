@@ -536,7 +536,7 @@ MmWaveEnbPhy::QueueMib ()
 {
   NS_LOG_FUNCTION (this);
   LteRrcSap::MasterInformationBlock mib;
-  mib.dlBandwidth = 4U;
+  mib.dlBandwidth = m_channelBandwidth;
   mib.systemFrameNumber = 1;
   Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
   mibMsg->SetMib (mib);
@@ -1418,7 +1418,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 ///////////////////////////////////////////////////////////
 
 void
-MmWaveEnbPhy::DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth)
+MmWaveEnbPhy::DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +ulBandwidth << +dlBandwidth);
   NS_ASSERT (ulBandwidth == dlBandwidth);

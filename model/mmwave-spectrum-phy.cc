@@ -31,6 +31,8 @@
 #include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/trace-source-accessor.h>
+#include <ns3/random-variable-stream.h>
+#include <ns3/spectrum-channel.h>
 
 
 namespace ns3 {

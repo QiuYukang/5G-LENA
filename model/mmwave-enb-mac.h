@@ -31,6 +31,7 @@
 #include <ns3/lte-ccm-mac-sap.h>
 #include <ns3/lte-mac-sap.h>
 #include <ns3/lte-enb-cmac-sap.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3 {
 
@@ -250,7 +251,7 @@ private:
   void DoCschedUeConfigUpdateInd (MmWaveMacCschedSapUser::CschedUeConfigUpdateIndParameters params);
   void DoCschedCellConfigUpdateInd (MmWaveMacCschedSapUser::CschedCellConfigUpdateIndParameters params);
   // forwarded from LteEnbCmacSapProvider
-  void DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  void DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth);
   void DoAddUe (uint16_t rnti);
   void DoRemoveUe (uint16_t rnti);
   void DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu);
