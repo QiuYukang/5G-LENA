@@ -158,6 +158,9 @@ public:
 
   virtual uint32_t GetNumRbPerRbg () const override;
 
+  virtual std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const override;
+  virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const override;
+
 private:
   MmWaveEnbMac* m_mac;
 };
@@ -226,6 +229,18 @@ uint32_t
 MmWaveMacEnbMemberPhySapUser::GetNumRbPerRbg () const
 {
   return m_mac->GetNumRbPerRbg();
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveMacEnbMemberPhySapUser::GetDlCtrlDci() const
+{
+  return m_mac->GetDlCtrlDci ();
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveMacEnbMemberPhySapUser::GetUlCtrlDci() const
+{
+  return m_mac->GetUlCtrlDci ();
 }
 
 
@@ -1137,11 +1152,15 @@ MmWaveEnbMac::DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << " ulBandwidth=" << (uint16_t) ulBandwidth << " dlBandwidth=" << (uint16_t) dlBandwidth);
   MmWaveMacCschedSapProvider::CschedCellConfigReqParameters params;
-  // Configure the subset of parameters used by FfMacScheduler
-  params.m_ulBandwidth = ulBandwidth;
-  params.m_dlBandwidth = dlBandwidth;
+  // Configure the subset of parameters used by FfMacScheduler. Transform it in
+  // bandwidth by the number of RBG.
+  params.m_ulBandwidth = ulBandwidth / GetNumRbPerRbg ();
+  params.m_dlBandwidth = dlBandwidth / GetNumRbPerRbg ();
+  m_bandwidthInRbg = params.m_dlBandwidth;
   //m_macChTtiDelay = m_phySapProvider->GetMacChTtiDelay ();  // Gets set by MmWavePhyMacCommon
   m_macCschedSapProvider->CschedCellConfigReq (params);
+
+
 }
 
 void
@@ -1180,6 +1199,30 @@ MmWaveEnbMac::GetCellId () const
       return UINT16_MAX;
     }
 
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveEnbMac::GetDlCtrlDci () const
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_ASSERT (m_bandwidthInRbg > 0);
+  std::vector<uint8_t> rbgBitmask (m_bandwidthInRbg , 1);
+
+  // Fix: Insert number of dl ctrl symbols
+  return std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveEnbMac::GetUlCtrlDci () const
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_ASSERT (m_bandwidthInRbg > 0);
+  std::vector<uint8_t> rbgBitmask (m_bandwidthInRbg , 1);
+
+  // Fix: Insert number of ul ctrl symbols
+  return std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 }
 
 void

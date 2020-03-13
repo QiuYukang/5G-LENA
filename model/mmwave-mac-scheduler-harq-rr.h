@@ -44,11 +44,7 @@ public:
    * \param config Mac-Phy config
    * \param amc AMC
    */
-  MmWaveMacSchedulerHarqRr (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
-  {
-    m_phyMacConfig = config;
-    m_amc = amc;
-  }
+  MmWaveMacSchedulerHarqRr (const Ptr<NrAmc> &amc);
 
   /**
     * \brief Default deconstructor
@@ -67,6 +63,12 @@ public:
    */
   void InstallGetCellIdFn (const std::function<uint16_t ()> & fn);
 
+  /**
+   * \brief Install a function to retrieve the bandwidth in RBG
+   * \param fn
+   */
+  void InstallGetBwInRBG (const std::function<uint16_t ()> & fn);
+
   virtual uint8_t ScheduleDlHarq (MmWaveMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,
                                   const MmWaveMacSchedulerNs3::ActiveHarqMap &activeDlHarq,
@@ -84,7 +86,6 @@ public:
   virtual void SortUlHarq (MmWaveMacSchedulerNs3::ActiveHarqMap *activeUlHarq) const;
 
 protected:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;  //!< phy mac config
   Ptr<NrAmc> m_amc;                    //!< AMC
 
 protected:
@@ -103,9 +104,16 @@ protected:
    */
   uint16_t GetCellId () const;
 
+  /**
+   * \brief Get the bandwidth in RBG
+   * \return the BW in RBG
+   */
+  uint16_t GetBandwidthInRbg () const;
+
 private:
   std::function<uint16_t ()> m_getBwpId;  //!< Function to retrieve bwp id
   std::function<uint16_t ()> m_getCellId; //!< Function to retrieve cell id
+  std::function<uint16_t ()> m_getBwInRbg; //!< Function to retrieve bw in rbg
 };
 
 } // namespace ns3

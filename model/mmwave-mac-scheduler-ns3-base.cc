@@ -52,7 +52,8 @@ MmWaveMacSchedulerNs3Base::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> co
 {
   MmWaveMacSchedulerNs3::ConfigureCommonParameters (config);
   // Hardcoded, but the type can be a parameter if needed
-  m_schedHarq = std::unique_ptr<MmWaveMacSchedulerHarqRr> (new MmWaveMacSchedulerHarqRr (m_phyMacConfig, m_amc));
+  m_schedHarq = std::unique_ptr<MmWaveMacSchedulerHarqRr> (new MmWaveMacSchedulerHarqRr (m_amc));
+  m_schedHarq->InstallGetBwInRBG (std::bind (&MmWaveMacSchedulerNs3Base::GetBandwidthInRbg, this));
   m_schedHarq->InstallGetBwpIdFn (std::bind (&MmWaveMacSchedulerNs3Base::GetBwpId, this));
   m_schedHarq->InstallGetCellIdFn (std::bind (&MmWaveMacSchedulerNs3Base::GetCellId, this));
 }

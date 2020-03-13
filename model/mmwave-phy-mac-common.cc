@@ -118,12 +118,12 @@ MmWavePhyMacCommon::GetN2Delay (void) const
   return m_n2Delay;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetBandwidthInRbg () const
-{
+//uint32_t
+//MmWavePhyMacCommon::GetBandwidthInRbg () const
+//{
   // return m_rbNum / m_numRbPerRbg;
-  return 130 / 13;
-}
+//  return 130 / 13;
+//}
 
 uint16_t
 MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const

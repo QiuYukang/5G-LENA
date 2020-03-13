@@ -469,7 +469,9 @@ MmWaveUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
 {
   NS_LOG_FUNCTION (this);
 
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  // The UE does not know anything from the GNB yet, so listen on the default
+  // bandwidth.
+  std::vector<uint8_t> rbgBitmask (GetRbNum (), 1);
 
   // The UE still doesn't know the TDD pattern, so just add a DL CTRL
   if (m_tddPattern.size () == 0)

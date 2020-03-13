@@ -175,6 +175,10 @@ public:
    * \return number of resource block per resource block group
    */
   virtual uint32_t GetNumRbPerRbg () const = 0;
+
+  virtual std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const = 0;
+
+  virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const = 0;
 };
 
 class MmWaveUePhySapUser

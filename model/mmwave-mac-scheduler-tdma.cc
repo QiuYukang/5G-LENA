@@ -117,7 +117,7 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
 
   for (auto & ue : ueVector)
     {
-      BeforeSchedFn (ue, FTResources (m_phyMacConfig->GetBandwidthInRbg (), 1));
+      BeforeSchedFn (ue, FTResources (GetBandwidthInRbg (), 1));
     }
 
   // Distribute the symbols following the selected behaviour among UEs
@@ -160,8 +160,8 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
 
       // Assign 1 entire symbol (full RBG) to the selected UE and to the total
       // resources assigned count
-      GetRBGFn (GetUe (*schedInfoIt)) += m_phyMacConfig->GetBandwidthInRbg ();
-      assigned.m_rbg += m_phyMacConfig->GetBandwidthInRbg ();
+      GetRBGFn (GetUe (*schedInfoIt)) += GetBandwidthInRbg ();
+      assigned.m_rbg += GetBandwidthInRbg ();
 
       GetSymFn (GetUe (*schedInfoIt)) += 1;
       assigned.m_sym += 1;
@@ -170,11 +170,11 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
       resources -= 1;
 
       // Update metrics for the successfull UE
-      NS_LOG_DEBUG ("Assigned " << m_phyMacConfig->GetBandwidthInRbg () <<
+      NS_LOG_DEBUG ("Assigned " << GetBandwidthInRbg () <<
                     " " << type << " RBG (= 1 SYM) to UE " << GetUe (*schedInfoIt)->m_rnti <<
                     " total assigned up to now: " << GetRBGFn (GetUe (*schedInfoIt)) <<
                     " that corresponds to " << assigned.m_rbg);
-      SuccessfullAssignmentFn (*schedInfoIt, FTResources (m_phyMacConfig->GetBandwidthInRbg (), 1),
+      SuccessfullAssignmentFn (*schedInfoIt, FTResources (GetBandwidthInRbg (), 1),
                                assigned);
 
       // Update metrics for the unsuccessfull UEs (who did not get any resource in this iteration)
@@ -182,7 +182,7 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
         {
           if (GetUe (ue)->m_rnti != GetUe (*schedInfoIt)->m_rnti)
             {
-              UnSuccessfullAssignmentFn (ue, FTResources (m_phyMacConfig->GetBandwidthInRbg (), 1),
+              UnSuccessfullAssignmentFn (ue, FTResources (GetBandwidthInRbg (), 1),
                                          assigned);
             }
         }
@@ -195,10 +195,10 @@ MmWaveMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &act
       uint32_t symOfBeam = 0;
       for (const auto &ue : el.second)
         {
-          symOfBeam += GetRBGFn (ue.first) / m_phyMacConfig->GetBandwidthInRbg ();
-          NS_ASSERT_MSG (GetRBGFn (ue.first) % m_phyMacConfig->GetBandwidthInRbg () == 0,
+          symOfBeam += GetRBGFn (ue.first) / GetBandwidthInRbg ();
+          NS_ASSERT_MSG (GetRBGFn (ue.first) % GetBandwidthInRbg () == 0,
                          "Assigned RBG: " << GetRBGFn (ue.first) << " RBG in the BW: " <<
-                         m_phyMacConfig->GetBandwidthInRbg ());
+                         GetBandwidthInRbg ());
         }
       ret.insert (std::make_pair (el.first, symOfBeam));
     }
@@ -294,7 +294,7 @@ MmWaveMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_dlRBG / m_phyMacConfig->GetBandwidthInRbg ());
+  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_dlRBG / GetBandwidthInRbg ());
 
   auto dci = CreateDci (spoint, ueInfo, tbs, DciInfoElementTdma::DL, ueInfo->m_dlMcs,
                         std::max (numSym, static_cast<uint8_t> (1)));
@@ -331,7 +331,7 @@ MmWaveMacSchedulerTdma::CreateUlDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoi
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_ulRBG / m_phyMacConfig->GetBandwidthInRbg ());
+  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_ulRBG / GetBandwidthInRbg ());
   numSym = std::max (numSym, static_cast<uint8_t> (1));
 
   NS_ASSERT (spoint->m_sym >= numSym);
@@ -370,11 +370,11 @@ MmWaveMacSchedulerTdma::CreateDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoint
   NS_LOG_FUNCTION (this);
   NS_ASSERT (tbs > 0);
   NS_ASSERT (numSym > 0);
-  std::vector<uint8_t> rbgAssigned (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  std::vector<uint8_t> rbgAssigned (GetBandwidthInRbg (), 1);
 
   NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
                static_cast<uint32_t> (spoint->m_rbg) << " to " <<
-               m_phyMacConfig->GetBandwidthInRbg () + spoint->m_rbg <<
+               GetBandwidthInRbg () + spoint->m_rbg <<
                " for " << static_cast<uint32_t> (numSym) << " SYM ");
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>

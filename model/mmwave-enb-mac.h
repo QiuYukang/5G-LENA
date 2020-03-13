@@ -225,6 +225,18 @@ protected:
    */
   uint16_t GetCellId () const;
 
+  /**
+   * \brief GetDlCtrlAllocation
+   * \return
+   */
+  std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const;
+
+  /**
+   * \brief GetUlCtrlAllocation
+   * \return
+   */
+  std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const;
+
 private:
   void ReceiveRachPreamble (uint32_t raId);
   void DoReceiveRachPreamble (uint32_t raId);
@@ -327,6 +339,8 @@ private:
   std::map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
+
+  uint16_t m_bandwidthInRbg {0}; //!< BW in RBG. Set by RRC through ConfigureMac
 
   /**
    * Trace information regarding ENB MAC Received Control Messages

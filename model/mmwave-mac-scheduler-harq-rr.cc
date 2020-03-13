@@ -33,6 +33,11 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveMacSchedulerHarqRr");
 
+MmWaveMacSchedulerHarqRr::MmWaveMacSchedulerHarqRr (const Ptr<NrAmc> &amc)
+{
+  m_amc = amc;
+}
+
 void
 MmWaveMacSchedulerHarqRr::InstallGetBwpIdFn (const std::function<uint16_t ()> &fn)
 {
@@ -43,6 +48,12 @@ void
 MmWaveMacSchedulerHarqRr::InstallGetCellIdFn (const std::function<uint16_t ()> &fn)
 {
   m_getCellId = fn;
+}
+
+void
+MmWaveMacSchedulerHarqRr::InstallGetBwInRBG(const std::function<uint16_t ()> &fn)
+{
+  m_getBwInRbg = fn;
 }
 
 
@@ -98,7 +109,7 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
 
           long rbgAssigned = std::count (dciInfoReTx->m_rbgBitmask.begin (),
                                          dciInfoReTx->m_rbgBitmask.end (), 1) * dciInfoReTx->m_numSym;
-          uint32_t rbgAvail = (m_phyMacConfig->GetBandwidthInRbg () - startingPoint->m_rbg) * symPerBeam;
+          uint32_t rbgAvail = (GetBandwidthInRbg () - startingPoint->m_rbg) * symPerBeam;
 
           NS_LOG_INFO ("Evaluating space to retransmit HARQ PID=" <<
                        static_cast<uint32_t> (dciInfoReTx->m_harqProcess) <<
@@ -280,7 +291,7 @@ MmWaveMacSchedulerHarqRr::ScheduleUlHarq (MmWaveMacSchedulerNs3::PointInFTPlane 
           slotAlloc->m_varTtiAllocInfo.push_front (slotInfo);
           slotAlloc->m_numSymAlloc += dciInfoReTx->m_numSym;
 
-          ueMap.find (rnti)->second->m_ulMRBRetx = dciInfoReTx->m_numSym * m_phyMacConfig->GetBandwidthInRbg ();
+          ueMap.find (rnti)->second->m_ulMRBRetx = dciInfoReTx->m_numSym * GetBandwidthInRbg ();
         }
       else
         {
@@ -369,6 +380,12 @@ uint16_t MmWaveMacSchedulerHarqRr::GetBwpId () const
 uint16_t MmWaveMacSchedulerHarqRr::GetCellId () const
 {
   return m_getCellId ();
+}
+
+uint16_t
+MmWaveMacSchedulerHarqRr::GetBandwidthInRbg() const
+{
+  return m_getBwInRbg ();
 }
 
 } // namespace ns3

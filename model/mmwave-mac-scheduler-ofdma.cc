@@ -161,7 +161,7 @@ MmWaveMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &acti
   for (const auto &el : activeDl)
     {
       // Distribute the RBG evenly among UEs of the same beam
-      uint32_t resources = m_phyMacConfig->GetBandwidthInRbg ();
+      uint32_t resources = GetBandwidthInRbg ();
       uint32_t beamSym = symPerBeam.at (GetBeamId (el));
       uint32_t rbgAssignable = beamSym;
       std::vector<UePtrAndBufferReq> ueVector;
@@ -225,7 +225,7 @@ MmWaveMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &acti
             {
               if (GetUe (ue)->m_rnti != GetUe (*schedInfoIt)->m_rnti)
                 {
-                  NotAssignedDlResources (ue, FTResources (m_phyMacConfig->GetBandwidthInRbg (), 1),
+                  NotAssignedDlResources (ue, FTResources (GetBandwidthInRbg (), 1),
                                           assigned);
                 }
             }
@@ -254,7 +254,7 @@ MmWaveMacSchedulerOfdma::CreateDlDci (MmWaveMacSchedulerNs3::PointInFTPlane *spo
   uint32_t tbs = m_amc->CalculateTbSize (ueInfo->m_dlMcs,
                                          ueInfo->m_dlRBG * GetNumRbPerRbg ());
   NS_ASSERT_MSG (ueInfo->m_dlRBG % maxSym == 0, " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
-  NS_ASSERT (ueInfo->m_dlRBG <= maxSym * m_phyMacConfig->GetBandwidthInRbg ());
+  NS_ASSERT (ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg ());
   NS_ABORT_IF (maxSym > UINT8_MAX);
 
   // If is less than 4, then we can't transmit any new data, so don't create dci.
@@ -302,7 +302,7 @@ MmWaveMacSchedulerOfdma::CreateDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoin
   uint32_t RBGNum = ueInfo->m_dlRBG / numSym;
   std::vector<uint8_t> rbgBitmask;
 
-  for (uint32_t i = 0; i < m_phyMacConfig->GetBandwidthInRbg (); ++i)
+  for (uint32_t i = 0; i < GetBandwidthInRbg (); ++i)
     {
       if (i >= spoint->m_rbg && i < spoint->m_rbg + RBGNum)
         {

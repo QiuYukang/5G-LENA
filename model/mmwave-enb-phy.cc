@@ -319,18 +319,17 @@ void
 MmWaveEnbPhy::PushDlAllocation (const SfnSf &sfnSf) const
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Pushing DL CTRL symbol allocation for " << sfnSf);
+  NS_ASSERT (m_phySapUser);
 
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  auto dci = m_phySapUser->GetDlCtrlDci ();
+  VarTtiAllocInfo dlCtrlVarTti (dci);
+
   SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
 
-  slotAllocInfo.m_numSymAlloc = 1;
-  slotAllocInfo.m_type = SlotAllocInfo::BOTH;
-
-  auto dciDl = std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
-  VarTtiAllocInfo dlCtrlVarTti (dciDl);
-
+  slotAllocInfo.m_numSymAlloc = dlCtrlVarTti.m_dci->m_numSym;
+  slotAllocInfo.m_type = SlotAllocInfo::DL;
   slotAllocInfo.m_varTtiAllocInfo.emplace_back (dlCtrlVarTti);
+
   m_phySapProvider->SetSlotAllocInfo (slotAllocInfo);
 }
 
@@ -338,18 +337,17 @@ void
 MmWaveEnbPhy::PushUlAllocation (const SfnSf &sfnSf) const
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Pushing UL CTRL symbol allocation for " << sfnSf);
+  NS_ASSERT (m_phySapUser);
 
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  auto dci = m_phySapUser->GetUlCtrlDci ();
+  VarTtiAllocInfo ulCtrlVarTti (dci);
+
   SlotAllocInfo slotAllocInfo = SlotAllocInfo (sfnSf);
 
-  slotAllocInfo.m_numSymAlloc = 1;
-  slotAllocInfo.m_type = SlotAllocInfo::BOTH;
-
-  auto dciUl = std::make_shared<DciInfoElementTdma> (GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
-  VarTtiAllocInfo ulCtrlVarTti (dciUl);
-
+  slotAllocInfo.m_numSymAlloc = ulCtrlVarTti.m_dci->m_numSym;
+  slotAllocInfo.m_type = SlotAllocInfo::UL;
   slotAllocInfo.m_varTtiAllocInfo.emplace_back (ulCtrlVarTti);
+
   m_phySapProvider->SetSlotAllocInfo (slotAllocInfo);
 }
 

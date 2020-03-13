@@ -717,6 +717,11 @@ protected:
    */
   uint16_t GetCellId () const;
 
+  /**
+   * \return the bandwidth in RBG
+   */
+  uint16_t GetBandwidthInRbg () const;
+
 private:
   std::unordered_map<uint16_t, std::shared_ptr<MmWaveMacSchedulerUeInfo> > m_ueMap; //!< The map of between RNTI and their data
 
@@ -740,6 +745,8 @@ private:
   std::list<uint16_t> m_srList;  //!< List of RNTI of UEs that asked for a SR
 
   std::vector <struct RachListElement_s> m_rachList; //!< rach list
+
+  uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
 
   friend MmWaveSchedGeneralTestCase;
 };

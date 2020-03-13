@@ -86,8 +86,8 @@ public:
 
     struct SiConfiguration_s m_siConfiguration;
 
-    uint16_t m_ulBandwidth;
-    uint16_t m_dlBandwidth;
+    uint16_t m_ulBandwidth; //!< In number of RBG, created by MAC and passed to the scheduler
+    uint16_t m_dlBandwidth; //!< In number of RBG, created by MAC and passed to the scheduler
 
     enum NormalExtended_e m_ulCyclicPrefixLength;
     enum NormalExtended_e m_dlCyclicPrefixLength;

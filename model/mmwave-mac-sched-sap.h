@@ -180,6 +180,7 @@ public:
   virtual uint32_t GetSymbolsPerSlot () const = 0;
 
   virtual Time GetSlotPeriod () const = 0;
+
 };
 
 std::ostream & operator<< (std::ostream & os, MmWaveMacSchedSapProvider::SchedDlRlcBufferReqParameters const & p);

@@ -688,8 +688,6 @@ public:
    */
   uint32_t GetN2Delay (void) const;
 
-  uint32_t GetBandwidthInRbg () const;
-
   uint16_t GetL1L2CtrlLatency (void) const;
 
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);

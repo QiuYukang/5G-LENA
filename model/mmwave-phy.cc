@@ -166,7 +166,6 @@ MmWavePhy::GetTypeId ()
 std::vector<int>
 MmWavePhy::FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const
 {
-  NS_ASSERT (rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
   std::vector<int> ret;
 
   for (uint32_t i = 0; i < rbgBitmask.size (); ++i)

@@ -121,21 +121,20 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
                                        m_phyMacConfig->GetSubframesPerFrame ());
     }
 
-  /*
-  NS_LOG_DEBUG ("RB per RBG " << GetNumRbPerRbg () <<
-                " total RBG " << m_phyMacConfig->GetBandwidthInRbg ());
-  std::string tbs;
+//  NS_LOG_DEBUG ("RB per RBG " << GetNumRbPerRbg () <<
+//                " total RBG " << GetBandwidthInRbg ());
+//  std::string tbs;
 
-  for (uint32_t mcs = 0; mcs <= m_amc->GetMaxMcs (); ++mcs)
-    {
-      std::stringstream ss;
-      ss << "\nMCS " << mcs <<
-            " TBS in 1 RBG: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg ()) <<
-            "] TBS in 1 sym: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg() * m_phyMacConfig->GetBandwidthInRbg ()) <<
-            "]";
-      tbs += ss.str ();
-    }
-  NS_LOG_DEBUG (tbs);*/
+//  for (uint32_t mcs = 0; mcs <= m_amc->GetMaxMcs (); ++mcs)
+//    {
+//      std::stringstream ss;
+//      ss << "\nMCS " << mcs <<
+//            " TBS in 1 RBG: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg ()) <<
+//            "] TBS in 1 sym: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg() * GetBandwidthInRbg ()) <<
+//            "]";
+//      tbs += ss.str ();
+//    }
+//  NS_LOG_DEBUG (tbs);
 }
 
 /**
@@ -247,9 +246,9 @@ void
 MmWaveMacSchedulerNs3::DoCschedCellConfigReq (const MmWaveMacCschedSapProvider::CschedCellConfigReqParameters& params)
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (params);
 
-  // IGNORE THE PARAMETERS.
+  NS_ASSERT (params.m_ulBandwidth == params.m_dlBandwidth);
+  m_bandwidth = params.m_dlBandwidth;
 
   MmWaveMacCschedSapUser::CschedUeConfigCnfParameters cnf;
   cnf.m_result = SUCCESS;
@@ -819,11 +818,11 @@ MmWaveMacSchedulerNs3::PrependCtrlSym (uint8_t symStart, uint8_t numSymToAllocat
                                        DciInfoElementTdma::DciFormat mode,
                                        std::deque<VarTtiAllocInfo> *allocations) const
 {
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  std::vector<uint8_t> rbgBitmask (GetBandwidthInRbg (), 1);
 
-  NS_ASSERT_MSG (rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg (),
+  NS_ASSERT_MSG (rbgBitmask.size () == GetBandwidthInRbg (),
                  "bitmask size " << rbgBitmask.size () << " conf " <<
-                 m_phyMacConfig->GetBandwidthInRbg ());
+                 GetBandwidthInRbg ());
   if (mode == DciInfoElementTdma::DL)
     {
       NS_ASSERT (allocations->size () == 0); // no previous allocations
@@ -854,9 +853,9 @@ MmWaveMacSchedulerNs3::AppendCtrlSym (uint8_t symStart, uint8_t numSymToAllocate
                                       DciInfoElementTdma::DciFormat mode,
                                       std::deque<VarTtiAllocInfo> *allocations) const
 {
-  std::vector<uint8_t> rbgBitmask (m_phyMacConfig->GetBandwidthInRbg (), 1);
+  std::vector<uint8_t> rbgBitmask (GetBandwidthInRbg (), 1);
 
-  NS_ASSERT (rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
+  NS_ASSERT (rbgBitmask.size () == GetBandwidthInRbg ());
   if (mode == DciInfoElementTdma::DL)
     {
       NS_ASSERT (allocations->size () == 0); // no previous allocations
@@ -1123,13 +1122,13 @@ MmWaveMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAva
   uint8_t usedSym = 0;
   for (const auto &beam : activeDl)
     {
-      uint32_t availableRBG = (m_phyMacConfig->GetBandwidthInRbg () - spoint->m_rbg) * symPerBeam.at (GetBeam (beam));
+      uint32_t availableRBG = (GetBandwidthInRbg () - spoint->m_rbg) * symPerBeam.at (GetBeam (beam));
       bool assigned = false;
 
       NS_LOG_DEBUG (activeDl.size () << " active DL beam, this beam has " <<
                     symPerBeam.at (GetBeam (beam)) << " SYM, starts from RB " << static_cast<uint32_t> (spoint->m_rbg) <<
                     " and symbol " << static_cast<uint32_t> (spoint->m_sym) << " for a total of " <<
-                    availableRBG << " RBG. In one symbol we have " << m_phyMacConfig->GetBandwidthInRbg () <<
+                    availableRBG << " RBG. In one symbol we have " << GetBandwidthInRbg () <<
                     " RBG.");
 
       if (symPerBeam.at (GetBeam (beam)) == 0)
@@ -1283,7 +1282,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAva
   GetFirst GetBeam;
   for (const auto &beam : activeUl)
     {
-      uint32_t availableRBG = (m_phyMacConfig->GetBandwidthInRbg () - spoint->m_rbg) * symPerBeam.at (GetBeam (beam));
+      uint32_t availableRBG = (GetBandwidthInRbg () - spoint->m_rbg) * symPerBeam.at (GetBeam (beam));
       bool assigned = false;
 
       NS_LOG_DEBUG (activeUl.size () << " active UL beam, this beam has " <<
@@ -1292,7 +1291,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAva
                     " and symbol " << static_cast<uint32_t> (spoint->m_sym) <<
                     " (going backward) for a total of " << availableRBG <<
                     " RBG. In one symbol we have " <<
-                    m_phyMacConfig->GetBandwidthInRbg () << " RBG.");
+                    GetBandwidthInRbg () << " RBG.");
 
       if (symPerBeam.at (GetBeam (beam)) == 0)
         {
@@ -1422,7 +1421,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
       uint32_t assignedSym = 0;
       do
         {
-          ue->m_ulRBG += m_phyMacConfig->GetBandwidthInRbg ();
+          ue->m_ulRBG += GetBandwidthInRbg ();
 
           assignedSym++;
           tbs = m_amc->CalculateTbSize (ue->m_ulMcs,
@@ -1847,6 +1846,12 @@ MmWaveMacSchedulerNs3::GetCellId () const
       return UINT16_MAX;
     }
 
+}
+
+uint16_t
+MmWaveMacSchedulerNs3::GetBandwidthInRbg() const
+{
+  return m_bandwidth;
 }
 
 /**
