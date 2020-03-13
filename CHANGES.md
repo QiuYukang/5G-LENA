@@ -111,6 +111,9 @@ harq processes.
 * Removed GetNumRbPerRbg() from MmWavePhyMacCommon. It was already an attribute of
 MmWaveEnbMac
 
+* The number of DL and UL CTRL symbols can be configured now in MmWaveMacSchedulerNs3
+through the attributes DlCtrlSymbols and UlCtrlSymbols.
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

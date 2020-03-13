@@ -386,6 +386,14 @@ public:
    */
   uint8_t GetStartMcsUl () const;
 
+  void SetDlCtrlSymbols (uint8_t v);
+
+  uint8_t GetDlCtrlSymbols () const;
+
+  void SetUlCtrlSymbols (uint8_t v);
+
+  uint8_t GetUlCtrlSymbols () const;
+
 protected:
   /**
    * \brief Create an UE representation for the scheduler.
@@ -747,6 +755,8 @@ private:
   std::vector <struct RachListElement_s> m_rachList; //!< rach list
 
   uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
+  uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
+  uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
 
   friend MmWaveSchedGeneralTestCase;
 };

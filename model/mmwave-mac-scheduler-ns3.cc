@@ -85,6 +85,18 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetStartMcsUl,
                                          &MmWaveMacSchedulerNs3::GetStartMcsUl),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("DlCtrlSymbols",
+                   "Number of symbols allocated for DL CTRL",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetDlCtrlSymbols,
+                                         &MmWaveMacSchedulerNs3::GetDlCtrlSymbols),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("UlCtrlSymbols",
+                   "Number of symbols allocated for UL CTRL",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetUlCtrlSymbols,
+                                         &MmWaveMacSchedulerNs3::GetUlCtrlSymbols),
+                   MakeUintegerChecker<uint8_t> ())
   ;
 
   return tid;
@@ -234,6 +246,30 @@ MmWaveMacSchedulerNs3::GetStartMcsUl () const
 {
   NS_LOG_FUNCTION (this);
   return m_startMcsUl;
+}
+
+void
+MmWaveMacSchedulerNs3::SetDlCtrlSymbols (uint8_t v)
+{
+  m_dlCtrlSymbols = v;
+}
+
+uint8_t
+MmWaveMacSchedulerNs3::GetDlCtrlSymbols () const
+{
+  return m_dlCtrlSymbols;
+}
+
+void
+MmWaveMacSchedulerNs3::SetUlCtrlSymbols (uint8_t v)
+{
+  m_ulCtrlSymbols = v;
+}
+
+uint8_t
+MmWaveMacSchedulerNs3::GetUlCtrlSymbols () const
+{
+  return m_ulCtrlSymbols;
 }
 
 /**
@@ -1539,19 +1575,19 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   auto & ulAllocations = ulAllocationIt->second;
 
   // add slot for DL control, at symbol 0
-  PrependCtrlSym (0, m_phyMacConfig->GetDlCtrlSymbols (), DciInfoElementTdma::DL,
+  PrependCtrlSym (0, m_dlCtrlSymbols, DciInfoElementTdma::DL,
                   &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
-  dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetDlCtrlSymbols ();
+  dlSlot.m_slotAllocInfo.m_numSymAlloc += m_dlCtrlSymbols;
 
   // In case of S slot, add UL CTRL and update the symbol used count
   if (params.m_slotType == LteNrTddSlotType::S)
     {
       NS_LOG_INFO ("S slot, adding UL CTRL");
       AppendCtrlSym (static_cast<uint8_t> (m_macSchedSapUser->GetSymbolsPerSlot () - 1),
-                     m_phyMacConfig->GetUlCtrlSymbols (), DciInfoElementTdma::UL,
+                     m_ulCtrlSymbols, DciInfoElementTdma::UL,
                      &dlSlot.m_slotAllocInfo.m_varTtiAllocInfo);
-      ulAllocations.m_totUlSym += m_phyMacConfig->GetUlCtrlSymbols ();
-      dlSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetUlCtrlSymbols ();
+      ulAllocations.m_totUlSym += m_ulCtrlSymbols;
+      dlSlot.m_slotAllocInfo.m_numSymAlloc += m_ulCtrlSymbols;
     }
 
   // RACH
@@ -1641,9 +1677,9 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
 
   // add slot for UL control, at last symbol, for slot type F and UL.
   AppendCtrlSym (static_cast<uint8_t> (m_macSchedSapUser->GetSymbolsPerSlot () - 1),
-                 m_phyMacConfig->GetUlCtrlSymbols (), DciInfoElementTdma::UL,
+                 m_ulCtrlSymbols, DciInfoElementTdma::UL,
                  &ulSlot.m_slotAllocInfo.m_varTtiAllocInfo);
-  ulSlot.m_slotAllocInfo.m_numSymAlloc += m_phyMacConfig->GetUlCtrlSymbols ();
+  ulSlot.m_slotAllocInfo.m_numSymAlloc += m_ulCtrlSymbols;
 
   // Doing UL for slot ulSlot
   DoScheduleUl (ulHarqFeedback, params.m_snfSf, &ulSlot.m_slotAllocInfo, params.m_slotType);
@@ -1699,10 +1735,10 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
 
   NS_ASSERT (allocInfo->m_varTtiAllocInfo.size () == 1); // Just the UL CTRL
 
-  uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
+  uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot () - m_ulCtrlSymbols;
   if (type == LteNrTddSlotType::F)
     { // if it's a type F, we have to consider DL CTRL symbols, otherwise, don't
-      dataSymPerSlot -= m_phyMacConfig->GetDlCtrlSymbols ();
+      dataSymPerSlot -= m_dlCtrlSymbols;
     }
 
   ActiveHarqMap activeUlHarq;
@@ -1710,7 +1746,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
 
   // Start the assignation from the last available data symbol, and like a shrimp
   // go backward.
-  uint8_t lastSym = m_macSchedSapUser->GetSymbolsPerSlot () - m_phyMacConfig->GetUlCtrlSymbols ();
+  uint8_t lastSym = m_macSchedSapUser->GetSymbolsPerSlot () - m_ulCtrlSymbols;
   PointInFTPlane ulAssignationStartPoint (0, lastSym);
   uint8_t ulSymAvail = dataSymPerSlot;
 
@@ -1805,8 +1841,8 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
         }
     }
 
-  NS_ASSERT_MSG ((dataSymPerSlot + m_phyMacConfig->GetUlCtrlSymbols ()) - ulSymAvail == totUlSym,
-                 "UL symbols available: " << static_cast<uint32_t> (dataSymPerSlot + m_phyMacConfig->GetUlCtrlSymbols ()) <<
+  NS_ASSERT_MSG ((dataSymPerSlot + m_ulCtrlSymbols) - ulSymAvail == totUlSym,
+                 "UL symbols available: " << static_cast<uint32_t> (dataSymPerSlot + m_ulCtrlSymbols) <<
                  " UL symbols available at end of sched: " << static_cast<uint32_t> (ulSymAvail) <<
                  " total of symbols registered in the allocation: " << static_cast<uint32_t> (totUlSym) <<
                  " slot type " << type);
@@ -1884,16 +1920,16 @@ MmWaveMacSchedulerNs3::DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedb
   NS_LOG_INFO (this);
   NS_ASSERT (activeDlUe != nullptr);
 
-  uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot () - m_phyMacConfig->GetDlCtrlSymbols ();
+  uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot () - m_dlCtrlSymbols;
 
   uint8_t dlSymAvail = dataSymPerSlot - ulAllocations.m_totUlSym;
-  PointInFTPlane dlAssignationStartPoint (0, m_phyMacConfig->GetDlCtrlSymbols ());
+  PointInFTPlane dlAssignationStartPoint (0, m_dlCtrlSymbols);
 
   NS_LOG_DEBUG ("Scheduling DL for slot " << dlSfnSf <<
                 " DL HARQ to retransmit: " << dlHarqFeedback.size () <<
                 " Active Beams DL HARQ: " << activeDlHarq.size () <<
                 " sym available: " << static_cast<uint32_t> (dlSymAvail) <<
-                " starting from sym " << static_cast<uint32_t> (m_phyMacConfig->GetDlCtrlSymbols ()));
+                " starting from sym " << static_cast<uint32_t> (m_dlCtrlSymbols));
 
   if (activeDlHarq.size () > 0)
     {

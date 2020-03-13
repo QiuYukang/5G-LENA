@@ -64,8 +64,6 @@ MmWavePhyMacCommon::GetTypeId (void)
 
 MmWavePhyMacCommon::MmWavePhyMacCommon ()
   :
-  m_dlCtrlSymbols (1),
-  m_ulCtrlSymbols (1),
   m_l1L2CtrlLatency (2),
   m_n2Delay (2)
 {
@@ -73,30 +71,8 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
 }
 
 
-void
-MmWavePhyMacCommon::DoInitialize (void)
-{
-  NS_LOG_INFO ("Initialized MmWavePhyMacCommon");
-}
-
-void
-MmWavePhyMacCommon::DoDispose (void)
-{
-}
-
 MmWavePhyMacCommon::~MmWavePhyMacCommon (void)
 {
-}
-
-uint8_t
-MmWavePhyMacCommon::GetDlCtrlSymbols (void) const
-{
-  return m_dlCtrlSymbols;
-}
-
-uint8_t MmWavePhyMacCommon::GetUlCtrlSymbols (void) const
-{
-  return m_ulCtrlSymbols;
 }
 
 uint32_t
@@ -121,18 +97,6 @@ uint16_t
 MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const
 {
   return m_l1L2CtrlLatency;
-}
-
-void
-MmWavePhyMacCommon::SetDlCtrlSymbols (uint8_t ctrlSymbols)
-{
-  m_dlCtrlSymbols = ctrlSymbols;
-}
-
-void
-MmWavePhyMacCommon::SetUlCtrlSymbols (uint8_t ctrlSymbols)
-{
-  m_ulCtrlSymbols = ctrlSymbols;
 }
 
 void

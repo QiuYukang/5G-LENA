@@ -665,16 +665,7 @@ public:
 
   ~MmWavePhyMacCommon (void);
 
-  // inherited from Object
-  virtual void DoInitialize (void) override;
-
-  virtual void DoDispose (void) override;
-
   static TypeId GetTypeId (void);
-
-  uint8_t GetDlCtrlSymbols (void) const;
-
-  uint8_t GetUlCtrlSymbols (void) const;
 
   uint32_t GetSubframesPerFrame (void) const;
 
@@ -688,10 +679,6 @@ public:
 
   uint16_t GetL1L2CtrlLatency (void) const;
 
-  void SetDlCtrlSymbols (uint8_t ctrlSymbols);
-
-  void SetUlCtrlSymbols (uint8_t ctrlSymbols);
-
   /**
    * \brief: Set the minimum processing delay (in slots)
    * to decode UL DCI and prepare UL data
@@ -704,8 +691,6 @@ public:
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
 private:
-  uint8_t m_dlCtrlSymbols;      //!< number of OFDM symbols for downlink control at beginning of subframe
-  uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
   const uint32_t m_subframesPerFrame {10};
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)

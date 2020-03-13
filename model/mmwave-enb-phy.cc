@@ -906,9 +906,7 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
     }
 
   // TX control period
-  Time varTtiPeriod = GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
-
-  NS_ASSERT(dci->m_numSym == m_phyMacConfig->GetDlCtrlSymbols ());
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   // The function that is filling m_ctrlMsgs is MmWavePhy::encodeCtrlMsgs
   if (m_ctrlMsgs.size () > 0)
@@ -942,7 +940,7 @@ Time
 MmWaveEnbPhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
-  Time varTtiPeriod = GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   NS_LOG_DEBUG ("ENB RXng UL CTRL frame " << m_frameNum <<
                 " subframe " << static_cast<uint32_t> (m_subframeNum) <<

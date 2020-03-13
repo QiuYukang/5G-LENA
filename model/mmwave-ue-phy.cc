@@ -595,7 +595,7 @@ MmWaveUePhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  Time varTtiPeriod = GetSymbolPeriod () * m_phyMacConfig->GetDlCtrlSymbols ();
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL CTRL frame for"
@@ -614,7 +614,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  Time varTtiPeriod = GetSymbolPeriod () * m_phyMacConfig->GetUlCtrlSymbols ();
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   if (m_ctrlMsgs.size () == 0)
     {
