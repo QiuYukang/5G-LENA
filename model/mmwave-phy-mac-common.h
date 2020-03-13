@@ -690,8 +690,6 @@ public:
 
   uint32_t GetBandwidthInRbg () const;
 
-  uint32_t GetNumRbPerRbg (void) const;
-
   uint16_t GetL1L2CtrlLatency (void) const;
 
   void SetDlCtrlSymbols (uint8_t ctrlSymbols);
@@ -707,12 +705,6 @@ public:
    */
   void SetN2Delay (uint32_t delay);
 
-  /**
-   * \brief
-   * rbgSize size of RBG in number of resource blocks
-   */
-  void SetNumRbPerRbg (uint32_t rbgSize);
-
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
   void SetNumHarqProcess (uint32_t numProcess);
@@ -723,7 +715,6 @@ private:
   uint8_t m_dlCtrlSymbols;      //!< number of OFDM symbols for downlink control at beginning of subframe
   uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
   const uint32_t m_subframesPerFrame {10};
-  uint32_t m_numRbPerRbg;       //!< number of resource blocks within the channel bandwidth
   uint8_t m_harqTimeout;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)

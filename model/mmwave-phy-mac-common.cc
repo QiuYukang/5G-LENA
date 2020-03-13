@@ -53,11 +53,6 @@ MmWavePhyMacCommon::GetTypeId (void)
                    UintegerValue (2),
                    MakeUintegerAccessor (&MmWavePhyMacCommon::m_n2Delay),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("NumRbPerRbg",
-                   "Number of resource blocks per resource block group",
-                   UintegerValue (1),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_numRbPerRbg),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("L1L2CtrlLatency",
                    "L1L2 CTRL decode latency in slot",
                    UintegerValue (2),
@@ -71,7 +66,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   :
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
-  m_numRbPerRbg (1),
   m_harqTimeout (20),
   m_l1L2CtrlLatency (2),
   m_n2Delay (2)
@@ -124,17 +118,11 @@ MmWavePhyMacCommon::GetN2Delay (void) const
   return m_n2Delay;
 }
 
-
-uint32_t
-MmWavePhyMacCommon::GetNumRbPerRbg (void) const
-{
-  return m_numRbPerRbg;
-}
-
 uint32_t
 MmWavePhyMacCommon::GetBandwidthInRbg () const
 {
-  return 13 / m_numRbPerRbg;
+  // return m_rbNum / m_numRbPerRbg;
+  return 130 / 13;
 }
 
 uint16_t
@@ -159,16 +147,6 @@ void
 MmWavePhyMacCommon::SetN2Delay (uint32_t delay)
 {
   m_n2Delay = delay;
-}
-
-/**
- * \brief
- * rbgSize size of RBG in number of resource blocks
- */
-void
-MmWavePhyMacCommon::SetNumRbPerRbg (uint32_t rbgSize)
-{
-  m_numRbPerRbg = rbgSize;
 }
 
 void

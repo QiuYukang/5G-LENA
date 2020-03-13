@@ -108,6 +108,9 @@ NumHarqProcess is now attribute of MmWaveEnbMac and MmWaveUeMac, while HarqDlTim
 is completely removed since the timeout is equivalent to the (maximum) number of 
 harq processes. 
 
+* Removed GetNumRbPerRbg() from MmWavePhyMacCommon. It was already an attribute of
+MmWaveEnbMac
+
 ### Changed behavior:
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are

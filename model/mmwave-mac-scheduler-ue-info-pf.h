@@ -39,9 +39,10 @@ public:
    * \brief MmWaveMacSchedulerUeInfoPF constructor
    * \param rnti RNTI of the UE
    * \param beamId Beam ID of the UE
+   * \param fn A function that tells how many RB per RBG
    */
-  MmWaveMacSchedulerUeInfoPF (float alpha, uint16_t rnti, BeamId beamId)
-    : MmWaveMacSchedulerUeInfo (rnti, beamId),
+  MmWaveMacSchedulerUeInfoPF (float alpha, uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn)
+    : MmWaveMacSchedulerUeInfo (rnti, beamId, fn),
     m_alpha (alpha)
   {
   }
@@ -74,7 +75,6 @@ public:
 
   void UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTResources &totAssigned,
                          double timeWindow,
-                         const Ptr<MmWavePhyMacCommon> &config,
                          const Ptr<NrAmc> &amc);
   void CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
                                const Ptr<MmWavePhyMacCommon> &config,

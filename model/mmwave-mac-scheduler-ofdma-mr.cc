@@ -44,7 +44,8 @@ std::shared_ptr<MmWaveMacSchedulerUeInfo>
 MmWaveMacSchedulerOfdmaMR::CreateUeRepresentation (const MmWaveMacCschedSapProvider::CschedUeConfigReqParameters &params) const
 {
   NS_LOG_FUNCTION (this);
-  return std::make_shared <MmWaveMacSchedulerUeInfoMR> (params.m_rnti, params.m_beamId);
+  return std::make_shared <MmWaveMacSchedulerUeInfoMR> (params.m_rnti, params.m_beamId,
+                                                        std::bind (&MmWaveMacSchedulerOfdmaMR::GetNumRbPerRbg, this));
 }
 
 std::function<bool(const MmWaveMacSchedulerNs3::UePtrAndBufferReq &lhs,

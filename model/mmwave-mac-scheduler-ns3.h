@@ -544,7 +544,7 @@ protected:
    * configured.
    * \return Returns the number of RBs per RBG
    */
-  int64_t GetNumRbPerRbg () const;
+  uint64_t GetNumRbPerRbg() const;
 
   /**
    * \brief Represent an assignation of bytes to a LCG/LC

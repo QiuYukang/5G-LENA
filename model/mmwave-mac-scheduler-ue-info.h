@@ -66,14 +66,17 @@ public:
    */
   MmWaveMacSchedulerUeInfo () = delete;
 
+  typedef std::function <uint32_t ()> GetRbPerRbgFn;
+
   /**
    * \brief Create a new UE representation
    * \param rnti the RNTI of the UE
    * \param beamId the BeamID of the UE (can be updated later)
    */
-  MmWaveMacSchedulerUeInfo (uint16_t rnti, BeamId beamId) :
+  MmWaveMacSchedulerUeInfo (uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn) :
     m_rnti (rnti),
-    m_beamId (beamId)
+    m_beamId (beamId),
+    m_getNumRbPerRbg (fn)
   {
   }
 
@@ -169,9 +172,9 @@ public:
    *
    * The amount of assigned resources is stored inside m_dlRBG by the scheduler.
    */
-  virtual void UpdateDlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
+  virtual void UpdateDlMetric (const Ptr<NrAmc> &amc)
   {
-    m_dlTbSize = amc->CalculateTbSize (m_dlMcs, m_dlRBG * config->GetNumRbPerRbg ());
+    m_dlTbSize = amc->CalculateTbSize (m_dlMcs, m_dlRBG * GetNumRbPerRbg ());
   }
 
   /**
@@ -191,9 +194,9 @@ public:
    *
    * The amount of assigned resources is stored inside m_ulRBG by the scheduler.
    */
-  virtual void UpdateUlMetric (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
+  virtual void UpdateUlMetric (const Ptr<NrAmc> &amc)
   {
-    m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * config->GetNumRbPerRbg ());
+    m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * GetNumRbPerRbg ());
   }
 
   /**
@@ -252,6 +255,20 @@ public:
 
   MmWaveMacHarqVector m_dlHarq;     //!< HARQ process vector for DL
   MmWaveMacHarqVector m_ulHarq;     //!< HARQ process vector for UL
+
+protected:
+  /**
+   * \brief Retrieve the number of RB per RBG
+   *
+   * \return numRbPerRbg. Calls the MAC.
+   */
+  uint32_t GetNumRbPerRbg () const
+  {
+    return m_getNumRbPerRbg ();
+  }
+
+private:
+  const GetRbPerRbgFn m_getNumRbPerRbg; //!< Function that points to a method which knows the number of RB per RBG.
 };
 
 } // namespace ns3

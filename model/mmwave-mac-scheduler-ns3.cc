@@ -311,7 +311,7 @@ MmWaveMacSchedulerNs3::DoCschedUeReleaseReq (const MmWaveMacCschedSapProvider::C
   NS_LOG_INFO ("Release RNTI " << params.m_rnti);
 }
 
-int64_t
+uint64_t
 MmWaveMacSchedulerNs3::GetNumRbPerRbg () const
 {
   NS_LOG_FUNCTION (this);

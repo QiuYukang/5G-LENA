@@ -86,7 +86,8 @@ std::shared_ptr<MmWaveMacSchedulerUeInfo>
 MmWaveMacSchedulerOfdmaPF::CreateUeRepresentation (const MmWaveMacCschedSapProvider::CschedUeConfigReqParameters &params) const
 {
   NS_LOG_FUNCTION (this);
-  return std::make_shared <MmWaveMacSchedulerUeInfoPF> (m_alpha, params.m_rnti, params.m_beamId);
+  return std::make_shared <MmWaveMacSchedulerUeInfoPF> (m_alpha, params.m_rnti, params.m_beamId,
+                                                        std::bind(&MmWaveMacSchedulerOfdmaPF::GetNumRbPerRbg, this));
 }
 
 std::function<bool(const MmWaveMacSchedulerNs3::UePtrAndBufferReq &lhs,
@@ -111,7 +112,7 @@ MmWaveMacSchedulerOfdmaPF::AssignedDlResources (const UePtrAndBufferReq &ue,
   NS_LOG_FUNCTION (this);
   NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
-  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_phyMacConfig, m_amc);
+  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_amc);
 }
 
 void
@@ -122,7 +123,7 @@ MmWaveMacSchedulerOfdmaPF::NotAssignedDlResources (const MmWaveMacSchedulerNs3::
   NS_LOG_FUNCTION (this);
   NS_UNUSED (notAssigned);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
-  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_phyMacConfig, m_amc);
+  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_amc);
 }
 
 void
