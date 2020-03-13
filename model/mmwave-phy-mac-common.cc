@@ -48,11 +48,6 @@ MmWavePhyMacCommon::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWavePhyMacCommon")
     .SetParent<Object> ()
     .AddConstructor<MmWavePhyMacCommon> ()
-    .AddAttribute ("N2Delay",
-                   "Minimum processing delay needed to decode UL DCI and prepare UL data",
-                   UintegerValue (2),
-                   MakeUintegerAccessor (&MmWavePhyMacCommon::m_n2Delay),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("L1L2CtrlLatency",
                    "L1L2 CTRL decode latency in slot",
                    UintegerValue (2),
@@ -64,8 +59,7 @@ MmWavePhyMacCommon::GetTypeId (void)
 
 MmWavePhyMacCommon::MmWavePhyMacCommon ()
   :
-  m_l1L2CtrlLatency (2),
-  m_n2Delay (2)
+  m_l1L2CtrlLatency (2)
 {
   NS_LOG_INFO ("MmWavePhyMacCommon constructor");
 }
@@ -75,11 +69,6 @@ MmWavePhyMacCommon::~MmWavePhyMacCommon (void)
 {
 }
 
-uint32_t
-MmWavePhyMacCommon::GetSubframesPerFrame (void) const
-{
-  return m_subframesPerFrame;
-}
 
 uint32_t
 MmWavePhyMacCommon::GetSlotsPerSubframe (void) const
@@ -87,22 +76,10 @@ MmWavePhyMacCommon::GetSlotsPerSubframe (void) const
   return 13;
 }
 
-uint32_t
-MmWavePhyMacCommon::GetN2Delay (void) const
-{
-  return m_n2Delay;
-}
-
 uint16_t
 MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const
 {
   return m_l1L2CtrlLatency;
-}
-
-void
-MmWavePhyMacCommon::SetN2Delay (uint32_t delay)
-{
-  m_n2Delay = delay;
 }
 
 void

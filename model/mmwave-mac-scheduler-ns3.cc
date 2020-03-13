@@ -115,36 +115,6 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
   m_amc = CreateObject<NrAmc> (config);
   m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
                                              m_startMcsDl, m_startMcsUl);
-
-  NS_ABORT_IF (m_ulAllocationMap.size () > 0);
-  SfnSf first (0, 0, 0, 0);
-
-  for (uint16_t i = 0; i < m_phyMacConfig->GetL1L2CtrlLatency (); ++i)
-    {
-      first = first.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe ());
-    }
-
-  for (uint16_t i = 0; i < m_phyMacConfig->GetN2Delay (); ++i)
-    {
-      NS_LOG_INFO ("Creating dummy UL allocation for slot " << first);
-      m_ulAllocationMap.emplace (first.Encode (), SlotElem (0));
-      first = first.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe ());
-    }
-
-//  NS_LOG_DEBUG ("RB per RBG " << GetNumRbPerRbg () <<
-//                " total RBG " << GetBandwidthInRbg ());
-//  std::string tbs;
-
-//  for (uint32_t mcs = 0; mcs <= m_amc->GetMaxMcs (); ++mcs)
-//    {
-//      std::stringstream ss;
-//      ss << "\nMCS " << mcs <<
-//            " TBS in 1 RBG: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg ()) <<
-//            "] TBS in 1 sym: [" << m_amc->CalculateTbSize(mcs, GetNumRbPerRbg() * GetBandwidthInRbg ()) <<
-//            "]";
-//      tbs += ss.str ();
-//    }
-//  NS_LOG_DEBUG (tbs);
 }
 
 /**

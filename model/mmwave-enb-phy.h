@@ -102,6 +102,15 @@ public:
     */
    void SetN1Delay (uint32_t delay);
 
+   /**
+    * \brief: Set the minimum processing delay (in slots)
+    * to decode UL DCI and prepare UL data
+    *
+    * Please note that in the current implementation N2
+    * must be equal or larger than 1 (N2 >= 1)
+    */
+   void SetN2Delay (uint32_t delay);
+
   /**
    * \brief: Get the minimum processing delay (in slots)
    * to decode DL DCI and decode DL Data
@@ -113,6 +122,12 @@ public:
    * to decode DL Data and send Harq feedback
    */
   uint32_t GetN1Delay (void) const;
+
+  /**
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode UL DCI and prepare UL data
+   */
+  uint32_t GetN2Delay (void) const;
 
   /**
    * \brief Get the BeamId for the selected user
@@ -468,8 +483,9 @@ private:
 
   friend class LtePatternTestCase;
 
-  uint32_t m_n0Delay;           //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
-  uint32_t m_n1Delay;           //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+  uint32_t m_n0Delay {0}; //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n1Delay {0}; //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+  uint32_t m_n2Delay {0}; //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
 
   uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
 };

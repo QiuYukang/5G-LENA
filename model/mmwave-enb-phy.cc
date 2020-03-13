@@ -124,6 +124,12 @@ MmWaveEnbPhy::GetTypeId (void)
                     MakeUintegerAccessor (&MmWaveEnbPhy::SetN1Delay,
                                           &MmWaveEnbPhy::GetN1Delay),
                     MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("N2Delay",
+                   "Minimum processing delay needed to decode UL DCI and prepare UL data",
+                   UintegerValue (2),
+                   MakeUintegerAccessor (&MmWaveEnbPhy::SetN2Delay,
+                                         &MmWaveEnbPhy::GetN2Delay),
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("TbDecodeLatency",
                    "Transport block decode latency",
                     TimeValue (MicroSeconds (100)),
@@ -367,7 +373,7 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
   GenerateStructuresFromPattern (pattern, &m_toSendDl, &m_toSendUl,
                                  &m_generateDl, &m_generateUl,
                                  &m_dlHarqfbPosition, 0,
-                                 static_cast<uint32_t> (m_phyMacConfig->GetN2Delay ()),
+                                 static_cast<uint32_t> (GetN2Delay ()),
                                  GetN1Delay (),
                                  m_phyMacConfig->GetL1L2CtrlLatency ());
 }
@@ -425,6 +431,12 @@ MmWaveEnbPhy::GetN1Delay (void) const
   return m_n1Delay;
 }
 
+uint32_t
+MmWaveEnbPhy::GetN2Delay () const
+{
+  return m_n2Delay;
+}
+
 void
 MmWaveEnbPhy::SetN0Delay (uint32_t delay)
 {
@@ -435,6 +447,12 @@ void
 MmWaveEnbPhy::SetN1Delay (uint32_t delay)
 {
   m_n1Delay = delay;
+}
+
+void
+MmWaveEnbPhy::SetN2Delay (uint32_t delay)
+{
+  m_n2Delay = delay;
 }
 
 BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
@@ -608,9 +626,9 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   else
     {
       bool hasUlDci = false;
-      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetN2Delay (),
+      const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (GetN2Delay (),
                                                            m_phyMacConfig->GetSlotsPerSubframe ());
-      if (m_phyMacConfig->GetN2Delay () > 0)
+      if (GetN2Delay () > 0)
         {
           if (SlotAllocInfoExists (ulSfn))
             {

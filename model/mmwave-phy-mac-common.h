@@ -499,33 +499,18 @@ public:
 
   static TypeId GetTypeId (void);
 
-  uint32_t GetSubframesPerFrame (void) const;
-
   uint32_t GetSlotsPerSubframe (void) const;
 
-  /**
-   * \brief: Get the minimum processing delay (in slots)
-   * to decode UL DCI and prepare UL data
-   */
-  uint32_t GetN2Delay (void) const;
+
 
   uint16_t GetL1L2CtrlLatency (void) const;
 
-  /**
-   * \brief: Set the minimum processing delay (in slots)
-   * to decode UL DCI and prepare UL data
-   *
-   * Please note that in the current implementation N2
-   * must be equal or larger than 1 (N2 >= 1)
-   */
-  void SetN2Delay (uint32_t delay);
+
 
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
 private:
-  const uint32_t m_subframesPerFrame {10};
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
-  uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
 };
 
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);
