@@ -66,7 +66,6 @@ MmWavePhyMacCommon::MmWavePhyMacCommon ()
   :
   m_dlCtrlSymbols (1),
   m_ulCtrlSymbols (1),
-  m_harqTimeout (20),
   m_l1L2CtrlLatency (2),
   m_n2Delay (2)
 {
@@ -117,13 +116,6 @@ MmWavePhyMacCommon::GetN2Delay (void) const
 {
   return m_n2Delay;
 }
-
-//uint32_t
-//MmWavePhyMacCommon::GetBandwidthInRbg () const
-//{
-  // return m_rbNum / m_numRbPerRbg;
-//  return 130 / 13;
-//}
 
 uint16_t
 MmWavePhyMacCommon::GetL1L2CtrlLatency (void) const

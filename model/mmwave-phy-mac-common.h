@@ -676,8 +676,6 @@ public:
 
   uint8_t GetUlCtrlSymbols (void) const;
 
-  uint32_t GetVarTtisPerSlot (void) const;
-
   uint32_t GetSubframesPerFrame (void) const;
 
   uint32_t GetSlotsPerSubframe (void) const;
@@ -705,15 +703,10 @@ public:
 
   void SetL1L2CtrlLatency (uint32_t delaySfs);
 
-  void SetNumHarqProcess (uint32_t numProcess);
-
-  void SetHarqDlTimeout (uint8_t harqDlTimeout);
-
 private:
   uint8_t m_dlCtrlSymbols;      //!< number of OFDM symbols for downlink control at beginning of subframe
   uint8_t m_ulCtrlSymbols;      //!< number of OFDM symbols for uplink control at end of subframe
   const uint32_t m_subframesPerFrame {10};
-  uint8_t m_harqTimeout;
   uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
   uint32_t m_n2Delay;           //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
 };
