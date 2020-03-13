@@ -136,6 +136,14 @@ struct SfnSf
     return ret;
   }
 
+  /**
+   * \return the number of subframes per frame, 10
+   */
+  static uint32_t GetSubframesPerFrame ()
+  {
+    return 10;
+  }
+
   static uint64_t
   Encode (const SfnSf &p)
   {
@@ -168,25 +176,25 @@ struct SfnSf
   }
 
   SfnSf
-  IncreaseNoOfSlots (uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
+  IncreaseNoOfSlots (uint32_t slotsPerSubframe) const
   {
-    return IncreaseNoOfSlotsWithLatency (1, slotsPerSubframe, subframesPerFrame);
+    return IncreaseNoOfSlotsWithLatency (1, slotsPerSubframe);
   }
 
   SfnSf
-  CalculateUplinkSlot (uint32_t k2Delay, uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
+  CalculateUplinkSlot (uint32_t k2Delay, uint32_t slotsPerSubframe) const
   {
-    return IncreaseNoOfSlotsWithLatency (k2Delay, slotsPerSubframe, subframesPerFrame);
+    return IncreaseNoOfSlotsWithLatency (k2Delay, slotsPerSubframe);
   }
 
   SfnSf
-  IncreaseNoOfSlotsWithLatency (uint32_t latency, uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
+  IncreaseNoOfSlotsWithLatency (uint32_t latency, uint32_t slotsPerSubframe) const
   {
     SfnSf retVal = *this;
     // currently the default value of L1L2 latency is set to 2 and is interpreted as in the number of slots
     // will be probably reduced to order of symbols
-    retVal.m_frameNum += (this->m_subframeNum + (this->m_slotNum + latency) / slotsPerSubframe) / subframesPerFrame;
-    retVal.m_subframeNum = (this->m_subframeNum + (this->m_slotNum + latency) / slotsPerSubframe) % subframesPerFrame;
+    retVal.m_frameNum += (this->m_subframeNum + (this->m_slotNum + latency) / slotsPerSubframe) / GetSubframesPerFrame ();
+    retVal.m_subframeNum = (this->m_subframeNum + (this->m_slotNum + latency) / slotsPerSubframe) % GetSubframesPerFrame ();
     retVal.m_slotNum = (this->m_slotNum + latency) % slotsPerSubframe;
     return retVal;
   }
@@ -198,12 +206,12 @@ struct SfnSf
    * \return The number of total slots passed (can overlap)
    */
   uint64_t
-  Normalize (uint32_t slotsPerSubframe, uint32_t subframesPerFrame) const
+  Normalize (uint32_t slotsPerSubframe) const
   {
     uint64_t ret = 0;
     ret += m_slotNum;
     ret += m_subframeNum * slotsPerSubframe;
-    ret += m_frameNum * subframesPerFrame * slotsPerSubframe;
+    ret += m_frameNum * GetSubframesPerFrame () * slotsPerSubframe;
     return ret;
   }
 
@@ -214,10 +222,10 @@ struct SfnSf
    * \param subframesPerFrame Number of subframes per frame
    */
   void
-  Add (uint32_t slotN, uint32_t slotsPerSubframe, uint32_t subframesPerFrame)
+  Add (uint32_t slotN, uint32_t slotsPerSubframe)
   {
-    m_frameNum += (m_subframeNum + (m_slotNum + slotN) / slotsPerSubframe) / subframesPerFrame;
-    m_subframeNum = (m_subframeNum + (m_slotNum + slotN) / slotsPerSubframe) % subframesPerFrame;
+    m_frameNum += (m_subframeNum + (m_slotNum + slotN) / slotsPerSubframe) / GetSubframesPerFrame ();
+    m_subframeNum = (m_subframeNum + (m_slotNum + slotN) / slotsPerSubframe) % GetSubframesPerFrame ();
     m_slotNum = (m_slotNum + slotN) % slotsPerSubframe;
   }
 

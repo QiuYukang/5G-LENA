@@ -519,8 +519,7 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
 
   m_phySapUser->SetCurrentSfn (currentSlot);
 
-  uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
-                                                 m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
+  uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe ()) % m_tddPattern.size ();
 
   NS_LOG_INFO ("Start Slot " << currentSlot << ". In position " <<
                currentSlotN << " there is a slot of type " <<
@@ -530,8 +529,7 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
     {
       SfnSf targetSlot = currentSlot;
       targetSlot.Add (k2WithLatency,
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
+                      m_phyMacConfig->GetSlotsPerSubframe ());
 
       uint64_t pos = targetSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
                                            m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
@@ -546,8 +544,7 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
     {
       SfnSf targetSlot = currentSlot;
       targetSlot.Add (k0WithLatency,
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
+                      m_phyMacConfig->GetSlotsPerSubframe ());
 
       uint64_t pos = targetSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
                                            m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
@@ -612,8 +609,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
     {
       bool hasUlDci = false;
       const SfnSf ulSfn = currentSlot.CalculateUplinkSlot (m_phyMacConfig->GetN2Delay (),
-                                                           m_phyMacConfig->GetSlotsPerSubframe (),
-                                                           m_phyMacConfig->GetSubframesPerFrame ());
+                                                           m_phyMacConfig->GetSlotsPerSubframe ());
       if (m_phyMacConfig->GetN2Delay () > 0)
         {
           if (SlotAllocInfoExists (ulSfn))
@@ -644,8 +640,7 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
           // If the channel was not granted, queue back the allocation,
           // without calling the MAC for a new slot
           auto slotAllocCopy = m_currSlotAllocInfo;
-          auto newSfnSf = slotAllocCopy.m_sfnSf.IncreaseNoOfSlots(m_phyMacConfig->GetSlotsPerSubframe(),
-                                                                  m_phyMacConfig->GetSubframesPerFrame());
+          auto newSfnSf = slotAllocCopy.m_sfnSf.IncreaseNoOfSlots(m_phyMacConfig->GetSlotsPerSubframe());
           NS_LOG_INFO ("Queueing allocation in front for " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0));
           if (m_currSlotAllocInfo.ContainsDataAllocation ())
             {
@@ -820,8 +815,7 @@ std::list <Ptr<MmWaveControlMessage> >
 MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
 {
   std::list <Ptr<MmWaveControlMessage> > ctrlMsgs;
-  uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe (),
-                                                 m_phyMacConfig->GetSubframesPerFrame ()) % m_tddPattern.size ();
+  uint64_t currentSlotN = currentSlot.Normalize (m_phyMacConfig->GetSlotsPerSubframe ()) % m_tddPattern.size ();
 
   uint32_t k1delay = m_dlHarqfbPosition[currentSlotN];
 
@@ -831,8 +825,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
       SfnSf targetSlot = currentSlot;
 
       targetSlot.Add (k0delay,
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
+                      m_phyMacConfig->GetSlotsPerSubframe ());
 
       if (targetSlot == currentSlot)
         {
@@ -860,8 +853,7 @@ MmWaveEnbPhy::RetrieveMsgsFromDCIs (const SfnSf &currentSlot)
       SfnSf targetSlot = currentSlot;
 
       targetSlot.Add (k2delay,
-                      m_phyMacConfig->GetSlotsPerSubframe (),
-                      m_phyMacConfig->GetSubframesPerFrame ());
+                      m_phyMacConfig->GetSlotsPerSubframe ());
 
       if (targetSlot == currentSlot)
         {
@@ -1147,8 +1139,7 @@ MmWaveEnbPhy::EndSlot (void)
 
   SfnSf sfnf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
 
-  SfnSf retVal = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                         m_phyMacConfig->GetSubframesPerFrame ());
+  SfnSf retVal = sfnf.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe ());
 
   Simulator::Schedule (slotStart, &MmWaveEnbPhy::StartSlot, this,
                        retVal.m_frameNum, retVal.m_subframeNum,

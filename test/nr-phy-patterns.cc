@@ -103,7 +103,7 @@ TestEnbMac::~TestEnbMac ()
 void
 TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
-  uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe (), m_config->GetSubframesPerFrame ());
+  uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe ());
   pos = pos % m_pattern.size ();
 
   NS_ASSERT (type == LteNrTddSlotType::DL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
@@ -120,7 +120,7 @@ TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 void
 TestEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
-  uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe (), m_config->GetSubframesPerFrame ());
+  uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe ());
   pos = pos % m_pattern.size ();
 
   NS_ASSERT (type == LteNrTddSlotType::UL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);

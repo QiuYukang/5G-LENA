@@ -596,7 +596,7 @@ MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
       currentSfn.m_varTtiNum = 0;
       NS_LOG_INFO ("Set slot allocation for " << it->m_sfnSf << " to " << currentSfn);
       it->m_sfnSf = currentSfn;
-      currentSfn = currentSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+      currentSfn = currentSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe());
     }
 
   for (const auto & burstPair : newBursts)

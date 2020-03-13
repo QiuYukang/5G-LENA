@@ -664,8 +664,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
           {
             SfnSf dataSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, dciInfoElem->m_symStart);
             dataSfn = dataSfn.CalculateUplinkSlot (dciMsg->GetKDelay (),
-                                                   m_phyMacConfig->GetSlotsPerSubframe (),
-                                                   m_phyMacConfig->GetSubframesPerFrame ());
+                                                   m_phyMacConfig->GetSlotsPerSubframe ());
             NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
                          " TBS " << dciInfoElem->m_tbSize << " total queue " << GetTotalBufSize ());
             if (dciInfoElem->m_ndi == 1)

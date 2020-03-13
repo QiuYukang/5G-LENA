@@ -121,16 +121,14 @@ MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config
 
   for (uint16_t i = 0; i < m_phyMacConfig->GetL1L2CtrlLatency (); ++i)
     {
-      first = first.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                       m_phyMacConfig->GetSubframesPerFrame ());
+      first = first.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe ());
     }
 
   for (uint16_t i = 0; i < m_phyMacConfig->GetN2Delay (); ++i)
     {
       NS_LOG_INFO ("Creating dummy UL allocation for slot " << first);
       m_ulAllocationMap.emplace (first.Encode (), SlotElem (0));
-      first = first.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe (),
-                                       m_phyMacConfig->GetSubframesPerFrame ());
+      first = first.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe ());
     }
 
 //  NS_LOG_DEBUG ("RB per RBG " << GetNumRbPerRbg () <<
