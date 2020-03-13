@@ -320,7 +320,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
   phy->InstallCentralFrequency (gppChannel->GetFrequency ());
-  phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
+  phy->ScheduleStartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
   cam->SetNrSpectrumPhy (channelPhy);
@@ -506,7 +506,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   phy->InstallCentralFrequency (gppChannel->GetFrequency ());
   phy->SetConfigurationParameters (phyMacCommon);
 
-  phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
+  phy->ScheduleStartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
 
   // PHY <--> CAM
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_gnbChannelAccessManagerFactory.Create ());

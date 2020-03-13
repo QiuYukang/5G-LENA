@@ -164,7 +164,7 @@ public:
    */
   void InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
 
-  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
 
   /**
    * \return the BWP ID, set by the SAP

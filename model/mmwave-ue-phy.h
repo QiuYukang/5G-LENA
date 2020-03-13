@@ -238,7 +238,7 @@ public:
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
-  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
 
 protected:
   uint32_t GetNumRbPerRbg () const override;

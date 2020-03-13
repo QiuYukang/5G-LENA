@@ -984,7 +984,7 @@ MmWaveUePhy::GetBeamId (uint16_t rnti) const
 }
 
 void
-MmWaveUePhy::StartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
+MmWaveUePhy::ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
 {
   NS_LOG_FUNCTION (this);
   Simulator::ScheduleWithContext (nodeId, MilliSeconds (0),

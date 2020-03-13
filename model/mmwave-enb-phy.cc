@@ -372,61 +372,23 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
                                  static_cast<uint32_t> (m_phyMacConfig->GetN2Delay ()),
                                  GetN1Delay (),
                                  m_phyMacConfig->GetL1L2CtrlLatency ());
-
-  // At the beginning of the simulation, fill the slot allocations until
-  // the mac will generate one. It means from slot 0 up to slot indicated in
-  // the structure (with a possible wrap-around)
-  if (Simulator::GetContext() == Simulator::NO_CONTEXT)
-    {
-      NS_ASSERT (m_generateDl.begin() != m_generateDl.end());
-      NS_ASSERT (m_generateUl.begin() != m_generateUl.end());
-
-      SfnSf sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
-
-      uint32_t times = m_generateDl.begin()->first + 0 + m_phyMacConfig->GetL1L2CtrlLatency() - 1; // Missing K0
-
-      for (uint32_t i = 0; i <= times; ++i)
-        {
-          auto index = modulo (i, m_tddPattern.size ());
-          if (m_tddPattern[index] == DL || m_tddPattern[index] == S || m_tddPattern[index] == F)
-            {
-              PushDlAllocation (sfnSf);
-            }
-
-          sfnSf.Add (1, m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
-        }
-
-      sfnSf = SfnSf (m_frameNum, m_subframeNum, 0, 0);
-
-      times = m_generateUl.begin()->first + m_phyMacConfig->GetN2Delay () + m_phyMacConfig->GetL1L2CtrlLatency() - 1;
-
-      for (uint32_t i = 0; i <= times; ++i)
-        {
-          auto index = modulo (i, m_tddPattern.size ());
-          if (m_tddPattern[index] == UL || m_tddPattern[index] == F)
-            {
-              PushUlAllocation (sfnSf);
-            }
-
-          sfnSf.Add (1, m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
-        }
-    }
-  else
-    {
-      // Don't change dynamically the pattern. What would happen with the
-      // already scheduled slots?
-      NS_FATAL_ERROR ("Changing TDD pattern dynamically is disabled.");
-    }
 }
 
 void
-MmWaveEnbPhy::StartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
+MmWaveEnbPhy::ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot)
 {
   NS_LOG_FUNCTION (this);
   Simulator::ScheduleWithContext (nodeId, MilliSeconds (0),
-                                  &MmWaveEnbPhy::StartSlot, this,
-                                  startSlot.m_frameNum, startSlot.m_subframeNum,
-                                  startSlot.m_slotNum);
+                                  &MmWaveEnbPhy::StartEventLoop, this, startSlot);
+}
+
+void
+MmWaveEnbPhy::StartEventLoop (const SfnSf &startSlot)
+{
+  NS_LOG_FUNCTION (this);
+  SetTddPattern (m_tddPattern);
+  StartSlot (startSlot.m_frameNum, startSlot.m_subframeNum,
+             startSlot.m_slotNum);
 }
 
 void
@@ -437,8 +399,6 @@ MmWaveEnbPhy::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacC
   m_phyMacConfig = phyMacCommon;
 
   InitializeMessageList ();
-
-  SetTddPattern (m_tddPattern); // Initialize everything needed for the TDD patterns
 }
 
 void
@@ -614,29 +574,23 @@ MmWaveEnbPhy::StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum)
   m_varTtiNum = 0;
 
   m_lastSlotStart = Simulator::Now ();
-  m_currSlotAllocInfo = RetrieveSlotAllocInfo ();
-
   const SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0);
 
-  NS_ASSERT_MSG ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
-                 && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
-                 && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ),
-                 "Retrieved slot " << m_currSlotAllocInfo.m_sfnSf << " but we are on " << currentSlot );
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
+  // update the current slot allocation; if empty (e.g., at the beginning of simu)
+  // then insert a dummy allocation, without anything.
+  if (SlotAllocInfoExists (SfnSf (frameNum, sfNum, slotNum, m_varTtiNum)))
     {
-      NS_LOG_INFO ("gNB start  empty slot " << m_currSlotAllocInfo.m_sfnSf <<
-                   " scheduling directly the end of the slot");
-      Simulator::Schedule (GetSlotPeriod (), &MmWaveEnbPhy::EndSlot, this);
-      return;
+      m_currSlotAllocInfo = RetrieveSlotAllocInfo (currentSlot);
+    }
+  else
+    {
+      m_currSlotAllocInfo = SlotAllocInfo (currentSlot);
     }
 
   NS_ASSERT_MSG ((m_currSlotAllocInfo.m_sfnSf.m_frameNum == m_frameNum)
                  && (m_currSlotAllocInfo.m_sfnSf.m_subframeNum == m_subframeNum)
                  && (m_currSlotAllocInfo.m_sfnSf.m_slotNum == m_slotNum ),
-                 "Current slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0) <<
-                 " but allocation for " << m_currSlotAllocInfo.m_sfnSf);
-
+                 "Retrieved slot " << m_currSlotAllocInfo.m_sfnSf << " but we are on " << currentSlot );
 
   if (m_slotNum == 0)
     {
@@ -773,6 +727,14 @@ void MmWaveEnbPhy::DoStartSlot ()
                    " us, so we're NOT going to lose the channel");
     }
 
+  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
+    {
+      NS_LOG_INFO ("gNB start  empty slot " << m_currSlotAllocInfo.m_sfnSf <<
+                   " scheduling directly the end of the slot");
+      Simulator::Schedule (GetSlotPeriod (), &MmWaveEnbPhy::EndSlot, this);
+      return;
+    }
+
   auto currentDci = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum].m_dci;
   auto nextVarTtiStart = GetSymbolPeriod () * currentDci->m_symStart;
 
@@ -812,9 +774,8 @@ MmWaveEnbPhy::StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci
   else
     {
       auto & existingRBGBitmask = itAlloc->second;
-      NS_ASSERT (existingRBGBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
-      NS_ASSERT (dci->m_rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
-      for (uint32_t i = 0; i < m_phyMacConfig->GetBandwidthInRbg (); ++i)
+      NS_ASSERT (existingRBGBitmask.size () == dci->m_rbgBitmask.size ());
+      for (uint32_t i = 0; i < existingRBGBitmask.size (); ++i)
         {
           existingRBGBitmask.at (i) = existingRBGBitmask.at (i) | dci->m_rbgBitmask.at (i);
         }
@@ -1046,7 +1007,6 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_INFO (this);
 
   // Assert: we expect TDMA in UL
-  NS_ASSERT (dci->m_rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
   NS_ASSERT (static_cast<uint32_t> (std::count (dci->m_rbgBitmask.begin (),
                                                 dci->m_rbgBitmask.end (), 1U)) == dci->m_rbgBitmask.size ());
 
@@ -1188,10 +1148,6 @@ MmWaveEnbPhy::EndSlot (void)
       m_channelStatus = NONE;
       m_channelLostTimer.Cancel ();
     }
-
-  NS_ASSERT_MSG (slotStart > MilliSeconds (0),
-                 "lastStart=" << m_lastSlotStart + GetSlotPeriod () <<
-                 " now " <<  Simulator::Now () << " slotStart value" << slotStart);
 
   SfnSf sfnf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
 

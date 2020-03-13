@@ -229,7 +229,7 @@ public:
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
-  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
 
   /**
    *  TracedCallback signature for Received Control Messages.
@@ -409,10 +409,12 @@ private:
    */
   void PushUlAllocation (const SfnSf &sfnSf) const;
 
+  void StartEventLoop (const SfnSf &startSlot);
+
 private:
-  MmWaveEnbPhySapUser* m_phySapUser;           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
-  LteEnbCphySapProvider* m_enbCphySapProvider; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call e.g SetBandwidth
-  LteEnbCphySapUser* m_enbCphySapUser;         //!< PHY CSAP user pointer, RRC can receive control information by PHY, currently configured but not used
+  MmWaveEnbPhySapUser* m_phySapUser {nullptr};           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
+  LteEnbCphySapProvider* m_enbCphySapProvider {nullptr}; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call e.g SetBandwidth
+  LteEnbCphySapUser* m_enbCphySapUser {nullptr};         //!< PHY CSAP user pointer, RRC can receive control information by PHY, currently configured but not used
 
   std::set <uint64_t> m_ueAttached; //!< Set of attached UE (by IMSI)
   std::set <uint16_t> m_ueAttachedRnti; //!< Set of attached UE (by RNTI)
