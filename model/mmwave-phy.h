@@ -175,6 +175,15 @@ public:
    */
   uint16_t GetCellId () const;
 
+  /**
+   * \return the latency (in n. of slots) between L1 and L2 layers. Default to 2.
+   *
+   * Before it was an attribute; as we are unsure if it works for values different
+   * from 2, we decided to make it static until the need to have it different
+   * from 2 arises.
+   */
+  uint32_t GetL1L2CtrlLatency () const;
+
   // SAP
   /**
    * \brief In reality, set the BWP ID

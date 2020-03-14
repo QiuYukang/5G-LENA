@@ -500,17 +500,6 @@ public:
   static TypeId GetTypeId (void);
 
   uint32_t GetSlotsPerSubframe (void) const;
-
-
-
-  uint16_t GetL1L2CtrlLatency (void) const;
-
-
-
-  void SetL1L2CtrlLatency (uint32_t delaySfs);
-
-private:
-  uint16_t m_l1L2CtrlLatency;   //!< MAC-PHY processing delay for control (in slots)
 };
 
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);

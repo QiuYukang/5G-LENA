@@ -432,7 +432,7 @@ MmWavePhy::InitializeMessageList ()
   NS_LOG_FUNCTION (this);
   m_controlMessageQueue.clear ();
 
-  for (unsigned i = 0; i <= m_phyMacConfig->GetL1L2CtrlLatency (); i++)
+  for (unsigned i = 0; i <= GetL1L2CtrlLatency (); i++)
     {
       m_controlMessageQueue.push_back (std::list<Ptr<MmWaveControlMessage> > ());
     }
@@ -506,6 +506,12 @@ MmWavePhy::GetCellId () const
     {
       return ueNetDevice->GetCellId ();
     }
+}
+
+uint32_t
+MmWavePhy::GetL1L2CtrlLatency() const
+{
+  return 2;
 }
 
 Ptr<MmWaveSpectrumPhy>

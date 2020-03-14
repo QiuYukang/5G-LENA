@@ -373,9 +373,8 @@ MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
   GenerateStructuresFromPattern (pattern, &m_toSendDl, &m_toSendUl,
                                  &m_generateDl, &m_generateUl,
                                  &m_dlHarqfbPosition, 0,
-                                 static_cast<uint32_t> (GetN2Delay ()),
-                                 GetN1Delay (),
-                                 m_phyMacConfig->GetL1L2CtrlLatency ());
+                                 GetN2Delay (), GetN1Delay (),
+                                 GetL1L2CtrlLatency ());
 }
 
 void
