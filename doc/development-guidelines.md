@@ -7,9 +7,19 @@ force (not git --force)
 
 ### Table of Contents
 
-* [GPL header](#GPL-header)
-* [Header inclusion](#header-inclusion)
-* [API design](#api-design)
+[GPL header](#GPL-header)
+
+[Header inclusion](#header-inclusion)
+
+[API design](#api-design)
+
+[Finalizing your feature branch](#finalizing-your-feature-branch)
+
+1. [Run "test.py"](#run-test-py)
+2. [Fix code style](#fix-code-style)
+3. [Commit message format](#commit-message-format)
+4. [Rebase your branch](#rebase-your-branch)
+5. [Create Merge request](#create-merge-request)
 
 GPL header
 ----------
@@ -226,3 +236,195 @@ Put const everywhere. Always. When something is broken, check why. If it makes
 sense, then remove the const keyword.
 
 For everything else, please read [here](https://wiki.qt.io/API_Design_Principles)
+
+Finalizing your feature branch
+------------------------------
+
+Once you are done with your feature implementation or fixing a bug, following
+the underlying steps will ease the process to review, and merge your code into
+the master branch.
+
+### 1. Run "test.py"
+
+After successful compilation, and before doing a commit it is
+useful to run "test.py" script to make sure that the new changes have not
+caused other part of the code to fail. This script can be run from the
+**ns-3-dev** root folder:
+
+```
+./test.py
+```
+
+### 2. Fix code style
+
+**Note: check-style.py script should be run to fix the code style format of new files
+only (i.e., .cc or .h).**
+
+At all time, if possible, one should follow the ns-3 coding style guidelines
+listed [here](https://www.nsnam.org/develop/contributing-code/coding-style/).
+
+To expedite this process, ***ns-3*** provides a script **check-style.py**, found
+in **utils** directory. More details about this script and its usage can be
+found [here](https://www.nsnam.org/doxygen/group___check_style.html).
+
+To fix the style of a new file, issue the following command from the root folder of
+**ns-3-dev**:
+
+```
+utils/check-style.py --level=3 --in-place -f src/nr/model/your-new-file.cc
+```
+
+After the above two steps, we can commit our changes.
+
+### 3. Commit message format
+
+To the point and precise commit messages are always appreciated. Therefore,
+
+it is advised to follow the following rules to commit like a pro:
+
+1.  Subject of a commit message should not exceed 80 characters.
+
+2. More description about ***what*** and ***why*** should go to the body of a
+   commit message.
+
+3. Each commit message should start with a ***tag*** in small letters.
+
+4. Tag should immediately (no space) follow by a colon **":"** sign.
+
+5. Add space after the colon **":"** sign to start the message.
+
+6. This message should have the first letter as **capital**.
+
+7. Do not end the subject line with a period.
+
+For example, the following commit tells us that it introduced a change at the
+MAC layer, and specifically in the scheduler.
+
+```
+-------------- subject of a commit message -------------
+mac-sched: Do not assume there are always UE to schedule
+---Tag --- ----------- This is the message -------------
+```
+
+Now, lets assume that we need to include a description about the change, e.g,
+why that change was introduced, and which issue number this commit going to
+address. All of this information should go to the body of the commit message. To
+do this, issue the following command:
+
+```
+~/ns-3-dev/src/nr$ git commit
+```
+
+This would open your default Git editor, here we would use the default Vim editor.
+
+![git-commit](./figures/git-commit.png)
+
+Now, press **i** to insert your commit message, i.e., the commit subject line, the
+commit body, and the string to close the issue, each of them separated by a blank
+line. For example:
+
+![vim-insert](./figures/vim-insert.png)
+
+Notice, **Closes #1**. **Closes** is a special GitLab flag to close an issue
+automatically when the feature branch is merged into the master. And, **#** is
+used to reference an issue.
+
+Now, press **Esc** to go out of insert mode, and then type **:wq** to save and
+quit. It would look like the following:
+
+![vim-save-quit](./figures/vim-save-quit.png)
+
+It is time to hit the enter key! After this, you have successfully commit your
+new changes. We are almost there to generate a merge request. However, you should
+first check if the master branch has progressed or not. If it does not, go to step 5.
+Otherwise, we need to rebase our branch to include new changes in the master branch.
+
+
+### 4. Rebase your branch
+
+The primary reason for rebasing is to maintain a linear project history. For
+example, consider a situation where the master branch has progressed since you
+started working on a feature branch. You want to get the latest updates to the
+master branch in your feature branch, but you want to keep your branch's history
+clean so it appears as if you've been working off the latest master branch. This
+gives the later benefit of a clean merge of your feature branch back into the
+master branch. It's very important to understand that even though the branch
+looks the same, it's composed of entirely new commits.
+
+To rebase your branch over master first switch to your branch, and then run
+the following command:
+
+```
+git rebase master
+```
+If there are no conflicts, git will rewind the head of your branch and apply your
+changes on top of latest commit on master. In case of conflicts, solve them
+following your usual way, and then issue the following command:
+
+```
+git rebase --continue
+```
+In case, you have no idea what is going on and you need help, better abort:
+
+```
+git rebase --abort
+```
+
+Finally, we are now ready to create a merge request.
+
+### 5. Create Merge request
+
+Every merge request starts by creating a branch. So, if you are reading this
+section we believe that you have commit your changes in your new shiny branch,
+and have rebased it over master (If master branch has progressed). 
+
+Once you have pushed a new branch to GitLab, visit your repository in GitLab
+and to see a call-to-action at the top of your screen from which you can click
+the button Create Merge Request.
+
+![screen-shot-gitlab](./figures/merge-request-after-push.png)
+
+You can also create a merge request from the project page:
+
+* By expending the drop down menu with **+** sign icon.
+
+![merge-request-project-page](./figures/merge-request-project-page.png)
+
+* By clicking the **Merge Requests** option on the left.
+
+![merge-request-page](./figures/merge-request-page.png)
+
+
+Click the button **New merge request**. On the next page, choose your source and
+target branch. For example:
+
+![create-merge-request](./figures/create-merge-request.png)
+
+Click on the button **Compare branches and continue**, fill in the following fields:
+
+* Title
+* Description
+* Assignee (It is you)
+* Milestone
+* Labels
+
+For example:
+
+![new-merge-request-page](./figures/new-merge-request-page.png)
+
+Optionally, unchecked the box **"Delete source branch when merge request is accepted."**
+if it is not desirable. Then, click the button **Submit merge request**. Congratulations,
+you have created your first merge request.
+
+##### What if the master branch has progressed after creating the merge request? 
+
+This is a very usual case during an active development project. If this happens,
+we need to rebase our feature branch following the [Step 4][Rebase your branch],
+and force push to our remote branch using the following command.
+
+```
+git push -f
+```
+
+
+
