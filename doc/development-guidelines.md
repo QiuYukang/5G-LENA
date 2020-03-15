@@ -15,11 +15,11 @@ force (not git --force)
 
 [Finalizing your feature branch](#finalizing-your-feature-branch)
 
-1. [Run "test.py"](#run-test-py)
-2. [Fix code style](#fix-code-style)
-3. [Commit message format](#commit-message-format)
-4. [Rebase your branch](#rebase-your-branch)
-5. [Create Merge request](#create-merge-request)
+1. [Run "test.py"](#1-run-testpy)
+2. [Fix code style](#2-fix-code-style)
+3. [Commit message format](#3-commit-message-format)
+4. [Rebase your branch](#4-rebase-your-branch)
+5. [Create Merge request](#5-create-merge-request)
 
 GPL header
 ----------
@@ -419,7 +419,7 @@ you have created your first merge request.
 ##### What if the master branch has progressed after creating the merge request? 
 
 This is a very usual case during an active development project. If this happens,
-we need to rebase our feature branch following the [Step 4][Rebase your branch],
+we need to rebase our feature branch following the [Step 4](#4-rebase-your-branch),
 and force push to our remote branch using the following command.
 
 ```
