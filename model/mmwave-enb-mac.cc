@@ -451,7 +451,7 @@ MmWaveEnbMac::~MmWaveEnbMac (void)
 void
 MmWaveEnbMac::SetNumRbPerRbg (uint32_t rbgSize)
 {
-  NS_ABORT_MSG_IF(m_numRbPerRbg !=-1, "This attribute can not be reconfigured");
+  NS_ABORT_MSG_IF (m_numRbPerRbg !=-1, "This attribute can not be reconfigured");
   m_numRbPerRbg = rbgSize;
 }
 
@@ -972,7 +972,11 @@ MmWaveEnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 void
 MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndParameters ind)
 {
+  NS_ASSERT (ind.m_sfnSf.GetNumerology () == m_currentSlot.GetNumerology ());
   std::sort (ind.m_slotAllocInfo.m_varTtiAllocInfo.begin (), ind.m_slotAllocInfo.m_varTtiAllocInfo.end ());
+
+  NS_LOG_DEBUG ("Received from scheduler a new allocation: " << ind.m_slotAllocInfo);
+
   m_phySapProvider->SetSlotAllocInfo (ind.m_slotAllocInfo);
 
   // Random Access procedure: send RARs
@@ -1132,17 +1136,26 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
 void
 MmWaveEnbMac::DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
-  NS_LOG_FUNCTION (this << " ulBandwidth=" << (uint16_t) ulBandwidth << " dlBandwidth=" << (uint16_t) dlBandwidth);
+  NS_LOG_FUNCTION (this);
+
+  // The bandwidth arrived in Hz. We need to know it in number of RB, and then
+  // consider how many RB are inside a single RBG.
+  uint16_t bw_in_rbg = m_phySapProvider->GetRbNum () / GetNumRbPerRbg ();
+  m_bandwidthInRbg = bw_in_rbg;
+
+  NS_LOG_DEBUG ("Mac configured. Attributes:" << std::endl <<
+                "\t NumRbPerRbg: " << m_numRbPerRbg << std::endl <<
+                "\t NumHarqProcess: " << +m_numHarqProcess << std::endl <<
+                "Physical properties: " << std::endl <<
+                "\t Bandwidth provided: " << ulBandwidth * 1000 * 100 << " Hz" << std::endl <<
+                "\t that corresponds to " << bw_in_rbg << " RBG");
+
   MmWaveMacCschedSapProvider::CschedCellConfigReqParameters params;
-  // Configure the subset of parameters used by FfMacScheduler. Transform it in
-  // bandwidth by the number of RBG.
-  params.m_ulBandwidth = ulBandwidth / GetNumRbPerRbg ();
-  params.m_dlBandwidth = dlBandwidth / GetNumRbPerRbg ();
-  m_bandwidthInRbg = params.m_dlBandwidth;
-  //m_macChTtiDelay = m_phySapProvider->GetMacChTtiDelay ();  // Gets set by MmWavePhyMacCommon
+
+  params.m_ulBandwidth = m_bandwidthInRbg;
+  params.m_dlBandwidth = m_bandwidthInRbg;
+
   m_macCschedSapProvider->CschedCellConfigReq (params);
-
-
 }
 
 void

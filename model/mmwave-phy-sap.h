@@ -89,6 +89,11 @@ public:
    */
   virtual Time GetSlotPeriod () const = 0;
 
+  /**
+   * \return Get the number of resource blocks configured
+   */
+  virtual uint32_t GetRbNum () const = 0;
+
 };
 
 /* This SAP is normally used so that PHY can send to MAC indications

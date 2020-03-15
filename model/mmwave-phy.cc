@@ -73,6 +73,8 @@ public:
 
   virtual Time GetSlotPeriod () const override;
 
+  virtual uint32_t GetRbNum () const override;
+
 private:
   MmWavePhy* m_phy;
 };
@@ -147,6 +149,12 @@ Time
 MmWaveMemberPhySapProvider::GetSlotPeriod() const
 {
   return m_phy->GetSlotPeriod ();
+}
+
+uint32_t
+MmWaveMemberPhySapProvider::GetRbNum () const
+{
+  return m_phy->GetRbNum ();
 }
 
 /* ======= */
@@ -763,6 +771,5 @@ MmWavePhy::GetTbDecodeLatency (void) const
 {
   return m_tbDecodeLatencyUs;
 }
-
 
 }

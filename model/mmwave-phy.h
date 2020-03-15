@@ -176,6 +176,13 @@ public:
   uint16_t GetCellId () const;
 
   /**
+   * \brief Get the number of Resource block configured
+   *
+   * It changes with the numerology and the channel bandwidth
+   */
+  uint32_t GetRbNum () const;
+
+  /**
    * \return the latency (in n. of slots) between L1 and L2 layers. Default to 2.
    *
    * Before it was an attribute; as we are unsure if it works for values different
@@ -260,13 +267,6 @@ protected:
    * The function will assert if it is called without having set a frequency first.
    */
   double GetCentralFrequency () const;
-
-  /**
-   * \brief Get the number of Resource block configured
-   *
-   * It changes with the numerology and the channel bandwidth
-   */
-  uint32_t GetRbNum () const;
 
   /**
    * \brief Store the slot allocation info at the front
