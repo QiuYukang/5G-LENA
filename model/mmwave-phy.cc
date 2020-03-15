@@ -304,13 +304,11 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
   MmWaveMacPduTag tag;
   if (p->PeekPacketTag (tag))
     {
-      NS_ASSERT ((tag.GetSfn ().m_slotNum >= 0) && (tag.GetSfn ().m_varTtiNum < GetSymbolsPerSlot ()));
-
-      auto it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
+      auto it = m_packetBurstMap.find (tag.GetSfn ().GetEncodingWithSymStart (tag.GetSymStart ()));
 
       if (it == m_packetBurstMap.end ())
         {
-          it = m_packetBurstMap.insert (std::make_pair (tag.GetSfn ().Encode (), CreateObject<PacketBurst> ())).first;
+          it = m_packetBurstMap.insert (std::make_pair (tag.GetSfn ().GetEncoding (), CreateObject<PacketBurst> ())).first;
         }
       it->second->AddPacket (p);
       NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn ());
@@ -329,11 +327,11 @@ MmWavePhy::NotifyConnectionSuccessful ()
 }
 
 Ptr<PacketBurst>
-MmWavePhy::GetPacketBurst (SfnSf sfn)
+MmWavePhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 {
   NS_LOG_FUNCTION (this);
   Ptr<PacketBurst> pburst;
-  auto it = m_packetBurstMap.find (sfn.Encode ());
+  auto it = m_packetBurstMap.find (sfn.GetEncodingWithSymStart (sym));
 
   if (it == m_packetBurstMap.end ())
     {
@@ -584,13 +582,12 @@ MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
         {
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              slotSfn.m_varTtiNum = alloc.m_dci->m_symStart;
-              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn);
+              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn, alloc.m_dci->m_symStart);
               if (pburst && pburst->GetNPackets() > 0)
                 {
-                  currentSfn.m_varTtiNum = alloc.m_dci->m_symStart;
-                  newBursts.insert (std::make_pair (currentSfn.Encode(), pburst));
-                  sfnMap.insert (std::make_pair (currentSfn.Encode(), it->m_sfnSf.Encode()));
+                  newBursts.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart), pburst));
+                  sfnMap.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart),
+                                                 it->m_sfnSf.GetEncodingWithSymStart (alloc.m_dci->m_symStart)));
                 }
               else
                 {
@@ -599,10 +596,9 @@ MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
             }
         }
 
-      currentSfn.m_varTtiNum = 0;
       NS_LOG_INFO ("Set slot allocation for " << it->m_sfnSf << " to " << currentSfn);
       it->m_sfnSf = currentSfn;
-      currentSfn = currentSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe());
+      currentSfn.Add (1);
     }
 
   for (const auto & burstPair : newBursts)
@@ -648,7 +644,7 @@ MmWavePhy::RetrieveSlotAllocInfo ()
 {
   NS_LOG_FUNCTION (this);
   SlotAllocInfo ret = *m_slotAllocInfo.begin ();
-  m_slotAllocInfo.erase(m_slotAllocInfo.begin ());
+  m_slotAllocInfo.erase (m_slotAllocInfo.begin ());
   return ret;
 }
 

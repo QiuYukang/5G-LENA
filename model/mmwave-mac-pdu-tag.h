@@ -39,9 +39,7 @@ public:
   /**
    * Create an empty MacP PDU tag
    */
-  MmWaveMacPduTag ();
-
-  MmWaveMacPduTag (SfnSf sfn);
+  MmWaveMacPduTag () = default;
 
   MmWaveMacPduTag (SfnSf sfn, uint8_t symStart, uint8_t numSym);
 
@@ -82,9 +80,8 @@ public:
 
 protected:
   SfnSf m_sfnSf;
-  uint8_t m_symStart;
-  uint8_t m_numSym;
-  uint32_t m_tagSize;
+  uint8_t m_symStart {0};
+  uint8_t m_numSym {0};
 };
 
 } //namespace ns3

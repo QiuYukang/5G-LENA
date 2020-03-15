@@ -17,110 +17,112 @@
  *
  */
 #include "sfnsf.h"
+#include <math.h>
 
 namespace ns3 {
 
-SfnSf::SfnSf(uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t varTtiNum)
+SfnSf::SfnSf (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t numerology)
   : m_frameNum (frameNum),
     m_subframeNum (sfNum),
     m_slotNum (slotNum),
-    m_varTtiNum (varTtiNum)
+    m_numerology (numerology)
 {
 }
 
 uint64_t
-SfnSf::Encode() const
+SfnSf::GetEncoding () const
 {
+  NS_ASSERT (m_numerology > 0);
   uint64_t ret = 0ULL;
-  ret = (static_cast<uint64_t> (m_frameNum) << 32 ) |
-      (static_cast<uint64_t> (m_subframeNum) << 24) |
-      (static_cast<uint64_t> (m_slotNum) << 8) |
-      (static_cast<uint64_t> (m_varTtiNum));
+  ret =
+    (static_cast<uint64_t> (m_numerology) << 48) |
+    (static_cast<uint64_t> (m_frameNum) << 32 ) |
+    (static_cast<uint64_t> (m_subframeNum) << 24) |
+    (static_cast<uint64_t> (m_slotNum) << 8);
   return ret;
 }
 
+uint64_t
+SfnSf::GetEncodingWithSymStart (uint8_t symStart) const
+{
+  NS_ASSERT (m_numerology > 0);
+  uint64_t ret = 0ULL;
+  ret =
+    (static_cast<uint64_t> (m_numerology) << 48) |
+    (static_cast<uint64_t> (m_frameNum) << 32 ) |
+    (static_cast<uint64_t> (m_subframeNum) << 24) |
+    (static_cast<uint64_t> (m_slotNum) << 8) |
+    (static_cast<uint64_t> (symStart));
+  return ret;
+}
+
+void
+SfnSf::FromEncoding (uint64_t sfn)
+{
+  m_numerology = (sfn & 0x00FF000000000000) >> 48;
+  m_frameNum    =     (sfn & 0x0000FFFF00000000) >> 32;
+  m_subframeNum =     (sfn & 0x00000000FF000000) >> 24;
+  m_slotNum     =     (sfn & 0x0000000000FFFF00) >> 8;
+}
+
+// Static functions
 uint32_t
-SfnSf::GetSubframesPerFrame()
+SfnSf::GetSubframesPerFrame ()
 {
   return 10;
 }
 
-uint64_t
-SfnSf::Encode(const SfnSf &p)
+uint32_t
+SfnSf::GetSlotPerSubframe () const
 {
-  uint64_t ret = 0ULL;
-  ret = (static_cast<uint64_t> (p.m_frameNum) << 32 ) |
-      (static_cast<uint64_t> (p.m_subframeNum) << 24) |
-      (static_cast<uint64_t> (p.m_slotNum) << 8) |
-      (static_cast<uint64_t> (p.m_varTtiNum));
-  return ret;
+  return 1 << m_numerology;
 }
 
-void
-SfnSf::Decode(uint64_t sfn)
+uint64_t
+SfnSf::Encode (const SfnSf &p)
 {
-  m_frameNum    = (sfn & 0x0000FFFF00000000) >> 32;
-  m_subframeNum = (sfn & 0x00000000FF000000) >> 24;
-  m_slotNum     = (sfn & 0x0000000000FFFF00) >> 8;
-  m_varTtiNum   = (sfn & 0x00000000000000FF);
+  return p.GetEncoding ();
 }
 
 SfnSf
-SfnSf::FromEncoding(uint64_t sfn)
+SfnSf::Decode (uint64_t sfn)
 {
   SfnSf ret;
-  ret.m_frameNum    = (sfn & 0x0000FFFF00000000) >> 32;
-  ret.m_subframeNum = (sfn & 0x00000000FF000000) >> 24;
-  ret.m_slotNum     = (sfn & 0x0000000000FFFF00) >> 8;
-  ret.m_varTtiNum   = (sfn & 0x00000000000000FF);
+  ret.FromEncoding (sfn);
   return ret;
 }
 
-SfnSf
-SfnSf::IncreaseNoOfSlots(uint32_t slotsPerSubframe) const
-{
-  return IncreaseNoOfSlotsWithLatency (1, slotsPerSubframe);
-}
-
-SfnSf
-SfnSf::CalculateUplinkSlot(uint32_t k2Delay, uint32_t slotsPerSubframe) const
-{
-  return IncreaseNoOfSlotsWithLatency (k2Delay, slotsPerSubframe);
-}
-
-SfnSf
-SfnSf::IncreaseNoOfSlotsWithLatency(uint32_t latency, uint32_t slotsPerSubframe) const
-{
-  SfnSf retVal = *this;
-  // currently the default value of L1L2 latency is set to 2 and is interpreted as in the number of slots
-  // will be probably reduced to order of symbols
-  retVal.m_frameNum += (this->m_subframeNum + (this->m_slotNum + latency) / slotsPerSubframe) / GetSubframesPerFrame ();
-  retVal.m_subframeNum = (this->m_subframeNum + (this->m_slotNum + latency) / slotsPerSubframe) % GetSubframesPerFrame ();
-  retVal.m_slotNum = (this->m_slotNum + latency) % slotsPerSubframe;
-  return retVal;
-}
-
 uint64_t
-SfnSf::Normalize(uint32_t slotsPerSubframe) const
+SfnSf::Normalize () const
 {
   uint64_t ret = 0;
   ret += m_slotNum;
-  ret += m_subframeNum * slotsPerSubframe;
-  ret += m_frameNum * GetSubframesPerFrame () * slotsPerSubframe;
+  ret += m_subframeNum * GetSlotPerSubframe ();
+  ret += m_frameNum * GetSubframesPerFrame () * GetSlotPerSubframe ();
+  return ret;
+}
+
+SfnSf
+SfnSf::GetFutureSfnSf (uint32_t slotN)
+{
+  SfnSf ret = *this;
+  ret.Add (slotN);
   return ret;
 }
 
 void
-SfnSf::Add(uint32_t slotN, uint32_t slotsPerSubframe)
+SfnSf::Add (uint32_t slotN)
 {
-  m_frameNum += (m_subframeNum + (m_slotNum + slotN) / slotsPerSubframe) / GetSubframesPerFrame ();
-  m_subframeNum = (m_subframeNum + (m_slotNum + slotN) / slotsPerSubframe) % GetSubframesPerFrame ();
-  m_slotNum = (m_slotNum + slotN) % slotsPerSubframe;
+  NS_ASSERT (m_numerology > 0);
+  m_frameNum += (m_subframeNum + (m_slotNum + slotN) / GetSlotPerSubframe ()) / GetSubframesPerFrame ();
+  m_subframeNum = (m_subframeNum + (m_slotNum + slotN) / GetSlotPerSubframe ()) % GetSubframesPerFrame ();
+  m_slotNum = (m_slotNum + slotN) % GetSlotPerSubframe ();
 }
 
 bool
-SfnSf::operator <(const SfnSf &rhs) const
+SfnSf::operator < (const SfnSf &rhs) const
 {
+  NS_ASSERT (rhs.m_numerology == m_numerology);
   if (m_frameNum < rhs.m_frameNum)
     {
       return true;
@@ -140,16 +142,35 @@ SfnSf::operator <(const SfnSf &rhs) const
 }
 
 bool
-SfnSf::operator ==(const SfnSf &o) const
+SfnSf::operator == (const SfnSf &o) const
 {
+  NS_ASSERT (o.m_numerology == m_numerology);
   return (m_frameNum == o.m_frameNum) && (m_subframeNum == o.m_subframeNum)
-      && (m_slotNum == o.m_slotNum);
+         && (m_slotNum == o.m_slotNum);
 }
 
-bool
-SfnSf::IsTtiEqual(const SfnSf &o) const
+uint16_t
+SfnSf::GetFrame () const
 {
-  return (*this == o) && (m_varTtiNum == o.m_varTtiNum);
+  return m_frameNum;
+}
+
+uint8_t
+SfnSf::GetSubframe () const
+{
+  return m_subframeNum;
+}
+
+uint16_t
+SfnSf::GetSlot () const
+{
+  return m_slotNum;
+}
+
+uint16_t
+SfnSf::GetNumerology () const
+{
+  return m_numerology;
 }
 
 } // namespace ns3

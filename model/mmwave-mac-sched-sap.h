@@ -62,6 +62,7 @@ public:
   struct SchedUlCqiInfoReqParameters
   {
     SfnSf  m_sfnSf;
+    uint8_t m_symStart;
     struct UlCqiInfo m_ulCqi;
   };
 

@@ -54,11 +54,6 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
 {
   NS_LOG_INFO (this);
 
-  uint32_t frameNum = params.m_sfnSf.m_frameNum;
-  uint32_t subframeNum = params.m_sfnSf.m_subframeNum;
-  uint32_t slotNum = params.m_sfnSf.m_slotNum;
-  uint32_t startSymIdx =  params.m_sfnSf.m_varTtiNum;
-
   ueInfo->m_ulCqi.m_sinr = params.m_ulCqi.m_sinr;
   ueInfo->m_ulCqi.m_cqiType = MmWaveMacSchedulerUeInfo::CqiInfo::SB;
   ueInfo->m_ulCqi.m_timer = expirationTime;
@@ -69,10 +64,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
       NS_LOG_INFO ("UL CQI report for RNTI " << ueInfo->m_rnti <<
                    " SINR " << value <<
                    " in chunk " << i++ <<
-                   " frame " << frameNum <<
-                   " subframe " << subframeNum <<
-                   " slot " << slotNum <<
-                   " startSym " << startSymIdx);
+                   " frame " << params.m_sfnSf);
     }
 
 

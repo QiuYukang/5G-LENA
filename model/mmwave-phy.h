@@ -164,7 +164,7 @@ public:
    */
   void InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
 
-  virtual void ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) = 0;
 
   /**
    * \return the BWP ID, set by the SAP
@@ -233,7 +233,7 @@ protected:
    */
   virtual uint32_t GetChannelBandwidth () const = 0;
 
-  Ptr<PacketBurst> GetPacketBurst (SfnSf);
+  Ptr<PacketBurst> GetPacketBurst (SfnSf, uint8_t sym);
 
   /**
    * \brief Create Noise Power Spectral density
@@ -354,10 +354,6 @@ protected:
   std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
 
   SlotAllocInfo m_currSlotAllocInfo;
-  uint16_t m_frameNum {0};
-  uint8_t m_subframeNum {0};
-  uint8_t m_slotNum {0};
-  uint8_t m_varTtiNum {0};
 
   MmWavePhySapProvider* m_phySapProvider;
 

@@ -238,13 +238,16 @@ public:
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
-  virtual void ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
 protected:
   uint32_t GetNumRbPerRbg () const override;
   uint32_t GetChannelBandwidth () const override;
 
 private:
+
+  void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
+
   /**
    * \brief Channel access granted, invoked after the LBT
    *
@@ -309,9 +312,9 @@ private:
    */
   void TryToPerformLbt ();
 
-  void StartSlot (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
-  void StartVarTti ();
-  void EndVarTti ();
+  void StartSlot (const SfnSf &s);
+  void StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+  void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
   void SetSubChannelsForTransmission (std::vector <int> mask);
   /**
    * \brief Send ctrl msgs considering L1L2CtrlLatency
@@ -422,6 +425,8 @@ private:
   std::unordered_map<uint8_t, uint32_t> m_harqIdToK1Map;  //!< Map that holds the K1 delay for each Harq process id
 
   int64_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth, this parameter is configured by MAC through phy SAP provider interface
+
+  SfnSf m_currentSlot;
 
   /**
    * \brief Status of the channel for the PHY

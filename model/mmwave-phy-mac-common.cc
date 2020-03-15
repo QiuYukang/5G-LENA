@@ -62,14 +62,6 @@ MmWavePhyMacCommon::~MmWavePhyMacCommon (void)
 {
 }
 
-
-uint32_t
-MmWavePhyMacCommon::GetSlotsPerSubframe (void) const
-{
-  return 13;
-}
-
-
 void
 SlotAllocInfo::Merge (const SlotAllocInfo &other)
 {
@@ -163,10 +155,9 @@ std::ostream &operator<< (std::ostream &os, const UlHarqInfo &item)
 
 std::ostream & operator<< (std::ostream & os, SfnSf const & item)
 {
-  os << "FrameNum: " << static_cast<uint32_t> (item.m_frameNum) <<
-    " SubFrameNum: " << static_cast<uint32_t> (item.m_subframeNum) <<
-    " SlotNum: " << static_cast<uint32_t> (item.m_slotNum) <<
-    " VarTtiNum: " << static_cast<uint32_t> (item.m_varTtiNum);
+  os << "FrameNum: " << static_cast<uint32_t> (item.GetFrame ()) <<
+    " SubFrameNum: " << static_cast<uint32_t> (item.GetSubframe ()) <<
+    " SlotNum: " << static_cast<uint32_t> (item.GetSlot ());
   return os;
 }
 

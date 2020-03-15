@@ -620,16 +620,15 @@ MmWaveMacSchedulerNs3::DoSchedUlCqiInfoReq (const MmWaveMacSchedSapProvider::Sch
     case UlCqiInfo::PUSCH:
       {
         bool found = false;
-        auto symStart = params.m_sfnSf.m_varTtiNum;
-        auto ulSfnSf = params.m_sfnSf;
-        ulSfnSf.m_varTtiNum = 0;
+        uint8_t symStart = params.m_symStart;
+        SfnSf ulSfnSf = params.m_sfnSf;
 
-        NS_LOG_INFO ("CQI for allocation: " << params.m_sfnSf << " varTti: " <<
-                     static_cast<uint32_t> (params.m_sfnSf.m_varTtiNum) <<
+        NS_LOG_INFO ("CQI for allocation: " << params.m_sfnSf << " started at sym: " <<
+                     +symStart <<
                      " modified allocation " << ulSfnSf <<
                      " sym Start " << static_cast<uint32_t> (symStart));
 
-        auto itAlloc = m_ulAllocationMap.find (ulSfnSf.Encode ());
+        auto itAlloc = m_ulAllocationMap.find (ulSfnSf.GetEncoding ());
         NS_ASSERT_MSG (itAlloc != m_ulAllocationMap.end (),
                        "Can't find allocation for " << ulSfnSf);
         std::vector<AllocElem> & ulAllocations = itAlloc->second.m_ulAllocations;
@@ -1529,16 +1528,15 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
                                    const std::vector <DlHarqInfo> &dlHarqFeedback)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (params.m_snfSf.m_slotNum <= UINT8_MAX);
   NS_LOG_INFO ("Scheduling invoked for slot " << params.m_snfSf << " of type " << params.m_slotType);
 
   MmWaveMacSchedSapUser::SchedConfigIndParameters dlSlot (params.m_snfSf);
   dlSlot.m_slotAllocInfo.m_sfnSf = params.m_snfSf;
   dlSlot.m_slotAllocInfo.m_type = SlotAllocInfo::DL;
-  auto ulAllocationIt = m_ulAllocationMap.find (params.m_snfSf.Encode ()); // UL allocations for this slot
+  auto ulAllocationIt = m_ulAllocationMap.find (params.m_snfSf.GetEncoding ()); // UL allocations for this slot
   if (ulAllocationIt == m_ulAllocationMap.end ())
     {
-      ulAllocationIt = m_ulAllocationMap.insert(std::make_pair (params.m_snfSf.Encode (), SlotElem (0))).first;
+      ulAllocationIt = m_ulAllocationMap.insert(std::make_pair (params.m_snfSf.GetEncoding (), SlotElem (0))).first;
     }
   auto & ulAllocations = ulAllocationIt->second;
 
@@ -1636,7 +1634,6 @@ MmWaveMacSchedulerNs3::ScheduleUl (const MmWaveMacSchedSapProvider::SchedUlTrigg
                                    const std::vector <UlHarqInfo> &ulHarqFeedback)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (params.m_snfSf.m_slotNum <= UINT8_MAX);
   NS_LOG_INFO ("Scheduling invoked for slot " << params.m_snfSf);
 
   MmWaveMacSchedSapUser::SchedConfigIndParameters ulSlot (params.m_snfSf);
@@ -1719,7 +1716,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
   uint8_t ulSymAvail = dataSymPerSlot;
 
   // Create the UL allocation map entry
-  m_ulAllocationMap.emplace (ulSfn.Encode (), SlotElem (0));
+  m_ulAllocationMap.emplace (ulSfn.GetEncoding (), SlotElem (0));
 
   NS_LOG_DEBUG ("Scheduling UL " << ulSfn <<
                 " UL HARQ to retransmit: " << ulHarqFeedback.size () <<
@@ -1786,8 +1783,8 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
       ulSymAvail -= usedUl;
     }
 
-  auto & totUlSym = m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym;
-  auto & allocations = m_ulAllocationMap.at (ulSfn.Encode ()).m_ulAllocations;
+  auto & totUlSym = m_ulAllocationMap.at (ulSfn.GetEncoding ()).m_totUlSym;
+  auto & allocations = m_ulAllocationMap.at (ulSfn.GetEncoding ()).m_ulAllocations;
   for (const auto &alloc : allocInfo->m_varTtiAllocInfo)
     {
       if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
@@ -1819,7 +1816,7 @@ MmWaveMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedb
                static_cast<uint32_t> (totUlSym) <<
                " symbols and " << allocations.size () << " data allocations, with a total of " <<
                allocInfo->m_varTtiAllocInfo.size ());
-  NS_ASSERT (m_ulAllocationMap.at (ulSfn.Encode ()).m_totUlSym == totUlSym);
+  NS_ASSERT (m_ulAllocationMap.at (ulSfn.GetEncoding ()).m_totUlSym == totUlSym);
 
   return dataSymPerSlot - ulSymAvail;
 }

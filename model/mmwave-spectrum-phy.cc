@@ -714,10 +714,9 @@ MmWaveSpectrumPhy::EndRxData ()
 
           RxPacketTraceParams traceParams;
           traceParams.m_tbSize = GetTBInfo(*itTb).m_expected.m_tbSize;
-          traceParams.m_frameNum = pduTag.GetSfn ().m_frameNum;
-          traceParams.m_subframeNum = pduTag.GetSfn ().m_subframeNum;
-          traceParams.m_slotNum = pduTag.GetSfn ().m_slotNum;
-          traceParams.m_varTtiNum = pduTag.GetSfn ().m_varTtiNum;
+          traceParams.m_frameNum = pduTag.GetSfn ().GetFrame ();
+          traceParams.m_subframeNum = pduTag.GetSfn ().GetSubframe ();
+          traceParams.m_slotNum = pduTag.GetSfn ().GetSlot ();
           traceParams.m_rnti = rnti;
           traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
           traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;

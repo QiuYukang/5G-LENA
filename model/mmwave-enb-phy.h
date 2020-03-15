@@ -244,7 +244,7 @@ public:
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
-  virtual void ScheduleStartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
   /**
    *  TracedCallback signature for Received Control Messages.
@@ -278,11 +278,11 @@ public:
   uint32_t GetChannelBandwidth () const override;
 
 private:
-  void StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum);
+  void StartSlot (const SfnSf &startSlot);
   void EndSlot (void);
 
-  void StartVarTti (void);
-  void EndVarTti (void);
+  void StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+  void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &lastDci);
 
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
                          const VarTtiAllocInfo &varTtiInfo);
@@ -424,7 +424,7 @@ private:
    */
   void PushUlAllocation (const SfnSf &sfnSf) const;
 
-  void StartEventLoop (const SfnSf &startSlot);
+  void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
 
 private:
   MmWaveEnbPhySapUser* m_phySapUser {nullptr};           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
@@ -488,6 +488,8 @@ private:
   uint32_t m_n2Delay {0}; //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
 
   uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
+
+  SfnSf m_currentSlot;
 };
 
 }

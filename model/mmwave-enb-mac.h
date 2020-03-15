@@ -303,12 +303,6 @@ private:
   LteCcmMacSapProvider* m_ccmMacSapProvider;   ///< CCM MAC SAP provider
   LteCcmMacSapUser* m_ccmMacSapUser;   ///< CCM MAC SAP user
 
-
-  uint16_t m_frameNum {0};
-  uint8_t m_subframeNum {0};
-  uint16_t m_slotNum {0};
-  uint32_t m_varTtiNum {0};
-
   int32_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth
 
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
@@ -341,6 +335,8 @@ private:
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
 
   uint16_t m_bandwidthInRbg {0}; //!< BW in RBG. Set by RRC through ConfigureMac
+
+  SfnSf m_currentSlot;
 
   /**
    * Trace information regarding ENB MAC Received Control Messages

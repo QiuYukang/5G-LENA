@@ -487,8 +487,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
   Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
   msg->SetBsr (bsr);
 
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                          bsr.m_rnti, GetBwpId (), msg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, bsr.m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -533,11 +532,8 @@ void
 MmWaveUeMac::DoSlotIndication (SfnSf sfn)
 {
   NS_LOG_FUNCTION (this);
-  m_frameNum = sfn.m_frameNum;
-  m_subframeNum = sfn.m_subframeNum;
-  m_slotNum = sfn.m_slotNum;
-  m_varTtiNum = sfn.m_varTtiNum;
-  NS_LOG_INFO ("Slot " << sfn);
+  m_currentSlot = sfn;
+  NS_LOG_INFO ("Slot " << m_currentSlot);
 
   RefreshHarqProcessesPacketBuffer ();
 
@@ -567,8 +563,7 @@ MmWaveUeMac::SendSR () const
   msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
 
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                          m_rnti, GetBwpId (), msg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -631,16 +626,18 @@ std::map<uint32_t, struct MacPduInfo>::iterator
 MmWaveUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
                              unsigned activeLcs, const SfnSf &ulSfn)
 {
-  NS_LOG_DEBUG ("Adding PDU for slot " << ulSfn);
+  NS_LOG_FUNCTION (this);
 
-  MacPduInfo macPduInfo (SfnSf (ulSfn.m_frameNum, ulSfn.m_subframeNum, ulSfn.m_slotNum, dci->m_symStart), dci->m_tbSize, activeLcs);
+  NS_LOG_DEBUG ("Adding PDU at the position " << ulSfn);
+
+  MacPduInfo macPduInfo (ulSfn, activeLcs, *dci);
   std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
 
   if (it != m_macPduMap.end ())
     {
       m_macPduMap.erase (it);
     }
-  it = (m_macPduMap.insert (std::pair<uint32_t, struct MacPduInfo> (dci->m_harqProcess, macPduInfo))).first;
+  it = (m_macPduMap.insert (std::make_pair (dci->m_harqProcess, macPduInfo))).first;
   return it;
 }
 
@@ -656,15 +653,13 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast <MmWaveTdmaDciMessage> (msg);
         auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                m_rnti, GetBwpId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
 
         if (dciInfoElem->m_format == DciInfoElementTdma::UL
             && dciInfoElem->m_type == DciInfoElementTdma::DATA)
           {
-            SfnSf dataSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, dciInfoElem->m_symStart);
-            dataSfn = dataSfn.CalculateUplinkSlot (dciMsg->GetKDelay (),
-                                                   m_phyMacConfig->GetSlotsPerSubframe ());
+            SfnSf dataSfn = m_currentSlot;
+            dataSfn.Add (dciMsg->GetKDelay ());
             NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
                          " TBS " << dciInfoElem->m_tbSize << " total queue " << GetTotalBufSize ());
             if (dciInfoElem->m_ndi == 1)
@@ -698,7 +693,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     NS_LOG_DEBUG ("No active flows for this UL-DCI");
                     // the UE may have been scheduled when it has no buffered data due to BSR quantization, send empty packet
 
-                    MmWaveMacPduTag tag (dataSfn);
+                    MmWaveMacPduTag tag (dataSfn, dciInfoElem->m_symStart, dciInfoElem->m_numSym);
                     Ptr<Packet> emptyPdu = Create <Packet> ();
                     MmWaveMacPduHeader header;
                     MacSubheader subheader (3, 0);  // lcid = 3, size = 0
@@ -866,10 +861,9 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       }
     case (MmWaveControlMessage::RAR):
       {
-        NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+        NS_LOG_INFO ("Received RAR in slot " << m_currentSlot);
 
-        m_macRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                m_rnti, GetBwpId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
 
         if (m_waitingForRaResponse == true)
           {
@@ -922,8 +916,7 @@ void
 MmWaveUeMac::RandomlySelectAndSendRaPreamble ()
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_DEBUG (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
-                "Received System Information, send to PHY the RA preamble");
+  NS_LOG_DEBUG (m_currentSlot << " Received System Information, send to PHY the RA preamble");
   SendRaPreamble (true);
 }
 
@@ -939,7 +932,7 @@ MmWaveUeMac::SendRaPreamble (bool contention)
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, GetBwpId (), rachMsg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rachMsg);
 
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);
 }

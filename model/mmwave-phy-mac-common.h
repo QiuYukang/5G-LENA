@@ -412,7 +412,6 @@ struct RxPacketTraceParams
   uint32_t m_frameNum;
   uint8_t m_subframeNum;
   uint16_t  m_slotNum;
-  uint8_t m_varTtiNum;
   uint8_t m_symStart;
   uint8_t m_numSym;
   uint32_t m_tbSize;
@@ -498,8 +497,6 @@ public:
   ~MmWavePhyMacCommon (void);
 
   static TypeId GetTypeId (void);
-
-  uint32_t GetSlotsPerSubframe (void) const;
 };
 
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);

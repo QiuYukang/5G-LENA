@@ -27,28 +27,26 @@ namespace ns3 {
 class SfnSf : public SimpleRefCount<SfnSf>
 {
 public:
+
   SfnSf () = default;
 
-  SfnSf (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t varTtiNum);
+  SfnSf (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t numerology);
 
-  uint64_t Encode () const;
+  uint64_t GetEncoding () const;
+  uint64_t GetEncodingWithSymStart (uint8_t symStart) const;
+
+  void FromEncoding (uint64_t sfn);
+
+  static uint64_t Encode (const SfnSf &p);
+  static SfnSf Decode (uint64_t sfn);
 
   /**
    * \return the number of subframes per frame, 10
    */
   static uint32_t GetSubframesPerFrame ();
 
-  static uint64_t Encode (const SfnSf &p);
+  uint32_t GetSlotPerSubframe () const;
 
-  void Decode (uint64_t sfn);
-
-  static SfnSf FromEncoding (uint64_t sfn);
-
-  SfnSf IncreaseNoOfSlots (uint32_t slotsPerSubframe) const;
-
-  SfnSf CalculateUplinkSlot (uint32_t k2Delay, uint32_t slotsPerSubframe) const;
-
-  SfnSf IncreaseNoOfSlotsWithLatency (uint32_t latency, uint32_t slotsPerSubframe) const;
 
   /**
    * \brief Normalize the SfnSf in slot number
@@ -56,16 +54,15 @@ public:
    * \param subframesPerFrame Number of subframes per frame
    * \return The number of total slots passed (can overlap)
    */
-  uint64_t Normalize (uint32_t slotsPerSubframe) const;
+  uint64_t Normalize () const;
 
   /**
    * \brief Add to this SfnSf a number of slot indicated by the first parameter
    * \param slotN Number of slot to add
-   * \param slotsPerSubframe Number of slot per subframe
-   * \param subframesPerFrame Number of subframes per frame
    */
-  void
-  Add (uint32_t slotN, uint32_t slotsPerSubframe);
+  void Add (uint32_t slotN);
+
+  SfnSf GetFutureSfnSf (uint32_t slotN);
 
   /**
    * \brief operator < (less than)
@@ -88,19 +85,17 @@ public:
    */
   bool operator == (const SfnSf &o) const;
 
-  /**
-   * \brief Compares frame, subframe, slot, and varTti
-   * \param o other instance to compare
-   * \return true if this instance and the other have the same frame, subframe, slot, and varTti
-   *
-   * Used in PHY or in situation where VarTti is needed.
-   */
-  bool IsTtiEqual (const SfnSf &o) const;
+  uint16_t GetFrame () const;
+  uint8_t GetSubframe () const;
+  uint16_t GetSlot () const;
+  uint16_t GetNumerology () const;
 
-  uint16_t m_frameNum   {0}; //!< Frame Number
-  uint8_t m_subframeNum {0}; //!< SubFrame Number
-  uint16_t m_slotNum    {0}; //!< Slot number (a slot is made by 14 symbols)
-  uint8_t m_varTtiNum   {0}; //!< Equivalent to symStart: it is the symbol in which the sfnsf starts
+
+private:
+  uint16_t m_frameNum   { 0 };                         //!< Frame Number
+  uint8_t m_subframeNum { 0 };                         //!< SubFrame Number
+  uint16_t m_slotNum    { 0 };                         //!< Slot number (a slot is made by 14 symbols)
+  int16_t m_numerology  {-1 };                         //!< Slot per subframe: 2^{numerology}
 };
 
 } // namespace ns3

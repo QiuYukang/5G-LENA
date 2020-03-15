@@ -226,10 +226,7 @@ private:
   MmWaveUePhySapUser* m_phySapUser {nullptr};
   LteMacSapProvider* m_macSapProvider {nullptr};
 
-  uint16_t m_frameNum {0};
-  uint8_t m_subframeNum {0};
-  uint16_t m_slotNum {0};
-  uint8_t m_varTtiNum {0};
+  SfnSf m_currentSlot;
 
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 

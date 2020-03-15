@@ -94,9 +94,9 @@ MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
           }
       }
 
-  m_rxedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB MAC Rxed"  << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_rxedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB MAC Rxed"  << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::SR)
     {
@@ -143,9 +143,9 @@ MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
           }
       }
 
-  m_txedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB MAC Txed"  << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_txedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB MAC Txed"  << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::RAR)
     {
@@ -181,9 +181,9 @@ MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
           }
       }
 
-  m_rxedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  MAC Rxed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_rxedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  MAC Rxed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
     {
@@ -218,9 +218,9 @@ MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
           }
       }
 
-  m_txedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  MAC Txed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_txedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  MAC Txed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::BSR)
     {
