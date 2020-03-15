@@ -32,7 +32,7 @@ SfnSf::SfnSf (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t numero
 uint64_t
 SfnSf::GetEncoding () const
 {
-  NS_ASSERT (m_numerology > 0);
+  NS_ASSERT (m_numerology >= 0);
   uint64_t ret = 0ULL;
   ret =
     (static_cast<uint64_t> (m_numerology) << 48) |
@@ -45,7 +45,7 @@ SfnSf::GetEncoding () const
 uint64_t
 SfnSf::GetEncodingWithSymStart (uint8_t symStart) const
 {
-  NS_ASSERT (m_numerology > 0);
+  NS_ASSERT (m_numerology >= 0);
   uint64_t ret = 0ULL;
   ret =
     (static_cast<uint64_t> (m_numerology) << 48) |
