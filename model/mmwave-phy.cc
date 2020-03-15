@@ -312,14 +312,15 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
   MmWaveMacPduTag tag;
   if (p->PeekPacketTag (tag))
     {
-      auto it = m_packetBurstMap.find (tag.GetSfn ().GetEncodingWithSymStart (tag.GetSymStart ()));
+      uint64_t key = tag.GetSfn ().GetEncodingWithSymStart (tag.GetSymStart ());
+      auto it = m_packetBurstMap.find (key);
 
       if (it == m_packetBurstMap.end ())
         {
-          it = m_packetBurstMap.insert (std::make_pair (tag.GetSfn ().GetEncoding (), CreateObject<PacketBurst> ())).first;
+          it = m_packetBurstMap.insert (std::make_pair (key, CreateObject<PacketBurst> ())).first;
         }
       it->second->AddPacket (p);
-      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn ());
+      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn () << " at sym " << +tag.GetSymStart ());
     }
   else
     {
@@ -343,7 +344,7 @@ MmWavePhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 
   if (it == m_packetBurstMap.end ())
     {
-      NS_LOG_ERROR ("Packet burst not found for " << sfn);
+      NS_LOG_ERROR ("Packet burst not found for " << sfn << " at sym " << +sym);
       return pburst;
     }
   else

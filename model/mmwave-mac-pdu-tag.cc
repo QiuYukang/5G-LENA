@@ -65,7 +65,7 @@ MmWaveMacPduTag::Serialize (TagBuffer i) const
 void
 MmWaveMacPduTag::Deserialize (TagBuffer i)
 {
-  uint16_t v = i.ReadU64 ();
+  uint64_t v = i.ReadU64 ();
   m_sfnSf.FromEncoding (v);
 
   m_symStart = (uint8_t)i.ReadU8 ();
