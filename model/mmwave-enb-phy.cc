@@ -29,6 +29,7 @@
 #include <ns3/node.h>
 #include <algorithm>
 #include <functional>
+#include <string>
 
 #include "mmwave-enb-phy.h"
 #include "mmwave-ue-phy.h"
@@ -148,6 +149,12 @@ MmWaveEnbPhy::GetTypeId (void)
                    MakeUintegerAccessor (&MmWavePhy::SetSymbolsPerSlot,
                                          &MmWavePhy::GetSymbolsPerSlot),
                    MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("Pattern",
+                   "The slot pattern",
+                   StringValue ("F|F|F|F|F|F|F|F|F|F|"),
+                   MakeStringAccessor (&MmWaveEnbPhy::SetPattern,
+                                       &MmWaveEnbPhy::GetPattern),
+                   MakeStringChecker ())
     ;
   return tid;
 
@@ -361,7 +368,15 @@ void
 MmWaveEnbPhy::SetTddPattern (const std::vector<LteNrTddSlotType> &pattern)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_phyMacConfig != nullptr);
+
+  std::stringstream ss;
+
+  for (const auto & v : pattern)
+    {
+      ss << v << "|";
+    }
+  NS_LOG_DEBUG ("Set pattern : " << ss.str ());
+
   m_tddPattern = pattern;
 
   m_generateDl.clear ();
@@ -440,6 +455,7 @@ void
 MmWaveEnbPhy::SetN0Delay (uint32_t delay)
 {
   m_n0Delay = delay;
+  SetTddPattern (m_tddPattern); // Update the generate/send structures
 }
 
 void
@@ -452,6 +468,7 @@ void
 MmWaveEnbPhy::SetN2Delay (uint32_t delay)
 {
   m_n2Delay = delay;
+  SetTddPattern (m_tddPattern); // Update the generate/send structures
 }
 
 BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
@@ -1431,6 +1448,58 @@ MmWaveEnbPhy::ReportUlHarqFeedback (const UlHarqInfo &mes)
     {
       m_phySapUser->UlHarqFeedback (mes);
     }
+}
+
+void
+MmWaveEnbPhy::SetPattern (const std::string &pattern)
+{
+  NS_LOG_FUNCTION (this);
+
+  static std::unordered_map<std::string, LteNrTddSlotType> lookupTable =
+  {
+    { "DL", LteNrTddSlotType::DL },
+    { "UL", LteNrTddSlotType::UL },
+    { "S",  LteNrTddSlotType::S },
+    { "F",  LteNrTddSlotType::F },
+  };
+
+  std::vector<LteNrTddSlotType> vector;
+  std::stringstream ss (pattern);
+  std::string token;
+  std::vector<std::string> extracted;
+
+   while (std::getline(ss, token, '|'))
+     {
+       extracted.push_back(token);
+     }
+
+   for (const auto & v : extracted)
+     {
+       vector.push_back (lookupTable[v]);
+     }
+
+   SetTddPattern (vector);
+}
+
+std::string
+MmWaveEnbPhy::GetPattern () const
+{
+  static std::unordered_map<LteNrTddSlotType, std::string> lookupTable =
+  {
+    { LteNrTddSlotType::DL, "DL"},
+    { LteNrTddSlotType::UL, "UL"},
+    { LteNrTddSlotType::S,  "S"},
+    { LteNrTddSlotType::F,  "F"}
+  };
+
+  std::stringstream ss;
+
+  for (const auto & v : m_tddPattern)
+    {
+      ss << lookupTable[v] << "|";
+    }
+
+  return ss.str ();
 }
 
 void

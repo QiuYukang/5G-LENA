@@ -51,6 +51,8 @@ us a note on ns-developers mailing list.
 * Added GetSpectrumModel to the SAP interface between PHY and MAC, so the CQI calculation
 can see that value.
 
+* Added Pattern attribute to MmWaveEnbPhy, to set the TDD Pattern.
+
 ### Changes to existing API:
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
 are renamed to MmWaveLteEnbPhy::ReportUlHarqFeedback and MmWaveLteUePhy::EnqueueDlHarqFeedback,

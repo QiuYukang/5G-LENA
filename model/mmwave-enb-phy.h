@@ -231,13 +231,9 @@ public:
    */
   void ReportUlHarqFeedback (const UlHarqInfo &mes);
 
-  /**
-   * \brief Set the current slot pattern (better to call it only once..)
-   * \param pattern the pattern
-   *
-   * It does not support dynamic change of pattern during the simulation
-   */
-  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+  void SetPattern (const std::string &pattern);
+
+  std::string GetPattern() const;
 
   /**
    * \brief Start the ue Event Loop
@@ -278,6 +274,14 @@ public:
   uint32_t GetChannelBandwidth () const override;
 
 private:
+  /**
+   * \brief Set the current slot pattern (better to call it only once..)
+   * \param pattern the pattern
+   *
+   * It does not support dynamic change of pattern during the simulation
+   */
+  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+
   void StartSlot (const SfnSf &startSlot);
   void EndSlot (void);
 
