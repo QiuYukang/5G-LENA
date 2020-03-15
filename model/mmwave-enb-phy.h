@@ -289,7 +289,7 @@ private:
   void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &lastDci);
 
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
-                         const VarTtiAllocInfo &varTtiInfo);
+                         const std::shared_ptr<DciInfoElementTdma> &dci);
 
   void SendCtrlChannels (const Time &varTtiPeriod);
 
@@ -325,7 +325,7 @@ private:
    * \param varTtiInfo the current varTti
    * \return the time at which the transmission of DL data will end
    */
-  Time DlData (const VarTtiAllocInfo &varTtiInfo) __attribute__((warn_unused_result));
+  Time DlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
    * \brief Receive UL data and return the time at which the transmission will end
