@@ -1,4 +1,4 @@
-/* Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; */
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
@@ -30,6 +30,35 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
 
+/**
+ * \file cttc-error-model-comparison.cc
+ * \ingroup examples
+ * \brief Error model example comparison: TBS for all MCSs.
+ *
+ * This example allows the user to compare the Transport Block Size that is obtained
+ * for each MCS index under different error models (NR and LTE) and different MCS Tables.
+ * It allows the user to configure the MCS Table and the error model.
+ *
+ * For example, the MCS table can be toggled by the argument,
+ * e.g. "--eesmTable=1" for MCS Table1.
+ * The NR error model can be set as "--errorModel=ns3::NrEesmErrorModel",
+ * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
+ *
+ * There is no deployment scenario configured, the example directly computes the TBS
+ * for all MCSs of the configured error model and MCS Table, assuming numerology 4,
+ * 100 MHz of channel bandwidth, and 28 GHz of central channel frequency.
+ *
+ * This simulation prints the output to the terminal, showing for each MCS
+ * the TBS that fits in 1 OFDM symbol (whole bandwidth) and the TBS that fits
+ * in 1 OFDM symbol and a single RB.
+ *
+ * To run the simulation with the default configuration one shall run the
+ * following in the command line:
+ *
+ * ./waf --run cttc-error-model-comparison
+ *
+ */
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("CttcErrorModelComparisonExample");
@@ -37,16 +66,11 @@ NS_LOG_COMPONENT_DEFINE ("CttcErrorModelComparisonExample");
 int
 main (int argc, char *argv[])
 {
-  uint32_t mcs = 13;
-
   std::string errorModel = "ns3::NrEesmErrorModel";
   uint32_t eesmTable = 1;
 
   CommandLine cmd;
 
-  cmd.AddValue ("mcs",
-                "The MCS that will be used in this example",
-                mcs);
   cmd.AddValue("errorModelType",
                "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
                errorModel);
