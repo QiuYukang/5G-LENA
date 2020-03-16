@@ -977,8 +977,11 @@ void
 MmWaveUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
-  m_channelBandwidth = dlBandwidth;
-  UpdateRbNum ();
+  if (m_channelBandwidth != dlBandwidth)
+    {
+      m_channelBandwidth = dlBandwidth;
+      UpdateRbNum ();
+    }
 }
 
 
