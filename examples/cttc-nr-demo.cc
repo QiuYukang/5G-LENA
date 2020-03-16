@@ -80,7 +80,7 @@ main (int argc, char *argv[])
    */
   // Scenario parameters (that we will use inside this script):
   uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 1;
+  uint16_t ueNumPergNb = 2;
   bool logging = false;
   bool singleBwp = false;
 
@@ -101,7 +101,7 @@ main (int argc, char *argv[])
   int32_t fixedMcs = -1;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
-  uint16_t numerologyBwp1 = 4;
+  uint16_t numerologyBwp1 = 3;
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
   uint16_t numerologyBwp2 = 2;
@@ -239,6 +239,8 @@ main (int argc, char *argv[])
   gridScenario.SetUtHeight (1.5);
   gridScenario.SetBsNumber (gNbNum);
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
+  gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
+  gridScenario.SetScenarioLength (3); // be distribuited.
   gridScenario.CreateScenario ();
 
   /*
@@ -436,8 +438,6 @@ main (int argc, char *argv[])
   uint16_t dlPort = 1234;
   ApplicationContainer clientApps, serverApps;
 
-  ApplicationContainer clientAppsEmbb, serverAppsEmbb;
-
   UdpServerHelper dlPacketSinkHelper (dlPort);
   serverApps.Add (dlPacketSinkHelper.Install (gridScenario.GetUserTerminals ()));
 
@@ -448,8 +448,8 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      //dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
+      //dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(1));
 
       if (udpFullBuffer)
         {
@@ -502,8 +502,6 @@ main (int argc, char *argv[])
         {
           q = EpsBearer::GBR_CONV_VOICE;
         }
-
-      //      q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
 
       EpsBearer bearer (q);
       mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);

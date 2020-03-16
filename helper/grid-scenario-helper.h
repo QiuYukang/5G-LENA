@@ -25,6 +25,7 @@
 
 namespace ns3 {
 
+
 /**
  * @brief The GridScenarioHelper class
  *
@@ -65,7 +66,9 @@ public:
 
   void SetStartingPosition (const Vector &initialPos);
 
-  void SetUtDeltaFromBs (const Vector &delta);
+  void SetScenarioLength (double m);
+
+  void SetScenarioHeight (double m);
 
   // inherited
   virtual void CreateScenario () override;
@@ -76,7 +79,8 @@ private:
   uint32_t m_rows {0};        //!< Grid rows
   uint32_t m_columns {0};     //!< Grid columns
   Vector m_initialPos;        //!< Initial Position
-  Vector m_delta;             //!< UT delta from BS
+  double m_length {0};        //!< Scenario length
+  double m_height {0};        //!< Scenario height
 };
 
 } // namespace ns3
