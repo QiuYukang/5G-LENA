@@ -82,6 +82,8 @@ def build(bld):
         'model/ideal-beamforming-algorithm.cc',
         'model/sfnsf.cc',
         'model/lena-error-model.cc',
+        'model/nr-sl-resource-pool-factory.cc',
+        'model/nr-sl-preconfig-resource-pool-factory.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -181,6 +183,8 @@ def build(bld):
         'model/ideal-beamforming-algorithm.h',
         'model/sfnsf.h',
         'model/lena-error-model.h',
+        'model/nr-sl-resource-pool-factory.h',
+        'model/nr-sl-preconfig-resource-pool-factory.h'
         ]
 
     if bld.env.ENABLE_EXAMPLES:
