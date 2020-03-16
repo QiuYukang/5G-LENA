@@ -45,6 +45,12 @@ public:
   static TypeId GetTypeId ();
 
   /**
+   * \brief Set the algorithm
+   * \param algorithm pointer to the algorithm
+   */
+  void SetBwpManagerAlgorithm (const Ptr<BwpManagerAlgorithm> &algorithm);
+
+  /**
    * \brief Get the bwp index for the RNTI and LCID
    * \param rnti The RNTI of the user
    * \param lcid The LCID of the flow that we want to know the bwp index
@@ -80,9 +86,6 @@ public:
   uint8_t RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const;
 
 protected:
-  // Inherited methods
-  virtual void DoInitialize (void) override;
-
   /*
    * \brief This function contains most of the BwpManager logic.
    */
@@ -120,7 +123,7 @@ private:
    */
   bool IsGbr (LteMacSapProvider::ReportBufferStatusParameters params);
 
-  BwpManagerAlgorithm *m_algorithm; //!< The BWP selection algorithm.
+  Ptr<BwpManagerAlgorithm> m_algorithm; //!< The BWP selection algorithm.
 };
 
 } // end of namespace ns3

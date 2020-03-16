@@ -247,6 +247,14 @@ public:
 
   void SetSchedulerTypeId (const TypeId &typeId);
 
+  void SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId);
+
+  void SetGnbBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId);
+
+  void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+
 private:
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
@@ -311,6 +319,8 @@ private:
   ObjectFactory m_schedFactory;         //!< Scheduler factory
   ObjectFactory m_ueAntennaFactory;     //!< UE antenna factory
   ObjectFactory m_gnbAntennaFactory;    //!< UE antenna factory
+  ObjectFactory m_gnbBwpManagerAlgoFactory;//!< BWP manager algorithm factory
+  ObjectFactory m_ueBwpManagerAlgoFactory;//!< BWP manager algorithm factory
 
 
   uint64_t m_imsiCounter;

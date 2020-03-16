@@ -48,6 +48,7 @@
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/mmwave-mac-scheduler-tdma-rr.h>
 #include <ns3/mmwave-chunk-processor.h>
+#include <ns3/bwp-manager-algorithm.h>
 
 #include <algorithm>
 
@@ -80,6 +81,8 @@ MmWaveHelper::MmWaveHelper (void)
   m_phyMacCommonFactory.SetTypeId (MmWavePhyMacCommon::GetTypeId ());
   m_ueAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
   m_gnbAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
+  m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
+  m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
 
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
@@ -402,6 +405,7 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
     }
 
   Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (CreateObject <BwpManagerUe> ());
+  DynamicCast<BwpManagerUe> (ccmUe)->SetBwpManagerAlgorithm (m_ueBwpManagerAlgoFactory.Create <BwpManagerAlgorithm> ());
 
   Ptr<LteUeRrc> rrc = CreateObject<LteUeRrc> ();
   rrc->m_numberOfComponentCarriers = ueCcMap.size ();
@@ -623,6 +627,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 
   Ptr<LteEnbRrc> rrc = CreateObject<LteEnbRrc> ();
   Ptr<LteEnbComponentCarrierManager> ccmEnbManager = DynamicCast<LteEnbComponentCarrierManager> (CreateObject<BwpManagerGnb> ());
+  DynamicCast<BwpManagerGnb> (ccmEnbManager)->SetBwpManagerAlgorithm (m_gnbBwpManagerAlgoFactory.Create <BwpManagerAlgorithm> ());
 
   // Convert Enb carrier map to only PhyConf map
   // we want to make RRC to be generic, to be able to work with any type of carriers, not only strictly LTE carriers
@@ -953,6 +958,34 @@ MmWaveHelper::SetSchedulerTypeId (const TypeId &typeId)
 {
   NS_LOG_FUNCTION (this);
   m_schedFactory.SetTypeId (typeId);
+}
+
+void
+MmWaveHelper::SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId)
+{
+
+  NS_LOG_FUNCTION (this);
+  m_ueBwpManagerAlgoFactory.SetTypeId (typeId);
+}
+
+void
+MmWaveHelper::SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueBwpManagerAlgoFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBwpManagerAlgoFactory.SetTypeId (typeId);
+}
+
+void MmWaveHelper::SetGnbBwpManagerAlgorithmAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBwpManagerAlgoFactory.Set (n, v);
 }
 
 void
