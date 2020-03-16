@@ -385,6 +385,18 @@ main (int argc, char *argv[])
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBwp2/totalBandwidth) * x));
     }
 
+  // When all the configuration is done, explicitly call UpdateConfig ()
+
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
   // From here, it is standard NS3. In the future, we will create helpers
   // for this part as well.
 
@@ -430,7 +442,7 @@ main (int argc, char *argv[])
   serverApps.Add (dlPacketSinkHelper.Install (gridScenario.GetUserTerminals ()));
 
   // attach UEs to the closest eNB
-    mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // configure here UDP traffic
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)

@@ -65,7 +65,7 @@ public:
 
   Ptr<LteEnbRrc> GetRrc (void);
 
-  void SetCcMap (std::map<uint8_t, Ptr<BandwidthPartGnb> > ccm);
+  void SetCcMap (const std::map<uint8_t, Ptr<BandwidthPartGnb> > &ccm);
 
   /**
    * \brief Get the size of the component carriers map
@@ -90,9 +90,13 @@ public:
    */
   void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
 
+  /**
+   * \brief Update the RRC config. Must be called only once.
+   */
+  void UpdateConfig ();
+
 protected:
   virtual void DoInitialize (void);
-  void UpdateConfig ();
 
   virtual void DoDispose (void);
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
@@ -101,10 +105,6 @@ private:
   Ptr<LteEnbRrc> m_rrc;
 
   uint16_t m_cellId; //!< Cell ID. Set by the helper.
-
-  bool m_isConstructed;
-
-  bool m_isConfigured;
 
   std::map<uint8_t, Ptr<BandwidthPartGnb> > m_ccMap; /**< ComponentCarrier map */
 

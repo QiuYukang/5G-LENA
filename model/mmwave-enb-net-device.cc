@@ -58,9 +58,7 @@ MmWaveEnbNetDevice::GetTypeId ()
 }
 
 MmWaveEnbNetDevice::MmWaveEnbNetDevice ()
-  : m_cellId (0),
-  m_isConstructed (false),
-  m_isConfigured (false)
+  : m_cellId (0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -71,9 +69,9 @@ MmWaveEnbNetDevice::~MmWaveEnbNetDevice ()
 }
 
 void
-MmWaveEnbNetDevice::SetCcMap (std::map< uint8_t, Ptr<BandwidthPartGnb> > ccm)
+MmWaveEnbNetDevice::SetCcMap (const std::map< uint8_t, Ptr<BandwidthPartGnb> > &ccm)
 {
-  NS_ASSERT_MSG (!m_isConfigured, "attempt to set CC map after configuration");
+  NS_ABORT_IF (m_ccMap.size () > 0);
   m_ccMap = ccm;
 }
 
@@ -113,19 +111,9 @@ void
 MmWaveEnbNetDevice::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
-  m_isConstructed = true;
-  UpdateConfig ();
-
-  std::map<uint8_t, Ptr<BandwidthPartGnb> >::iterator it;
-  for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
-    {
-      it->second->Initialize ();
-    }
-
   m_rrc->Initialize ();
 
-  m_componentCarrierManager->Initialize ();
-  //m_phy->Initialize ();
+  MmWaveNetDevice::DoInitialize ();
 }
 
 void
@@ -136,15 +124,6 @@ MmWaveEnbNetDevice::DoDispose ()
   m_rrc->Dispose ();
   m_rrc = nullptr;
 
-  m_componentCarrierManager->Dispose ();
-  m_componentCarrierManager = nullptr;
-  // ComponentCarrierEnb::DoDispose() will call DoDispose
-  // of its PHY, MAC, FFR and scheduler instance
-  for (uint8_t i = 0; i < m_ccMap.size (); i++)
-    {
-      m_ccMap.at (i)->Dispose ();
-      m_ccMap.at (i) = nullptr;
-    }
   MmWaveNetDevice::DoDispose ();
 }
 
@@ -215,33 +194,16 @@ MmWaveEnbNetDevice::UpdateConfig (void)
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_isConstructed)
-    {
-      if (!m_isConfigured)
-        {
-          NS_LOG_LOGIC (this << " Configure cell " << m_cellId);
-          // we have to make sure that this function is called only once
-          NS_ASSERT (!m_ccMap.empty ());
+  NS_ASSERT (!m_ccMap.empty ());
 
-          std::map < uint8_t, Ptr<ComponentCarrierBaseStation> > ccPhyConfMap;
-          for (auto i:m_ccMap)
-            {
-              Ptr<ComponentCarrierBaseStation> c = i.second;
-              ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrierBaseStation> > (i.first,c));
-            }
-
-          m_rrc->ConfigureCell (ccPhyConfMap);
-          m_isConfigured = true;
-        }
-      //m_rrc->SetCsgId (m_csgId, m_csgIndication);
-    }
-  else
+  std::map < uint8_t, Ptr<ComponentCarrierBaseStation> > ccPhyConfMap;
+  for (auto i:m_ccMap)
     {
-      /*
-       * Lower layers are not ready yet, so do nothing now and expect
-       * ``DoInitialize`` to re-invoke this function.
-       */
+      Ptr<ComponentCarrierBaseStation> c = i.second;
+      ccPhyConfMap.insert (std::pair<uint8_t, Ptr<ComponentCarrierBaseStation> > (i.first,c));
     }
+
+  m_rrc->ConfigureCell (ccPhyConfMap);
 }
 
 }
