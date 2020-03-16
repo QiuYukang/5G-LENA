@@ -1148,7 +1148,9 @@ MmWaveEnbMac::DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
                 "\t NumHarqProcess: " << +m_numHarqProcess << std::endl <<
                 "Physical properties: " << std::endl <<
                 "\t Bandwidth provided: " << ulBandwidth * 1000 * 100 << " Hz" << std::endl <<
-                "\t that corresponds to " << bw_in_rbg << " RBG");
+                "\t that corresponds to " << bw_in_rbg << " RBG, as we have " <<
+                m_phySapProvider->GetRbNum () << " RB and " << GetNumRbPerRbg () <<
+                " RB per RBG");
 
   MmWaveMacCschedSapProvider::CschedCellConfigReqParameters params;
 
