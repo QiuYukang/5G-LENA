@@ -54,7 +54,6 @@ public:
   BandwidthPartGnb ();
 
   virtual ~BandwidthPartGnb (void) override;
-  virtual void DoDispose (void) override;
 
   /**
    * \return a pointer to the physical layer.
@@ -91,17 +90,10 @@ public:
   virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
   virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
 
-protected:
-  virtual void DoInitialize (void) override;
-
 private:
   Ptr<MmWaveEnbPhy> m_phy; ///< the Phy instance of this eNodeB component carrier
   Ptr<MmWaveEnbMac> m_mac; ///< the MAC instance of this eNodeB component carrier
   Ptr<MmWaveMacScheduler> m_scheduler; ///< the scheduler instance of this eNodeB component carrier
-
-/*  double m_centerFrequencyInHz;
-  double m_numerology;*/
-
 };
 
 } // namespace ns3

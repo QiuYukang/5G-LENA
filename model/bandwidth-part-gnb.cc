@@ -72,39 +72,6 @@ BandwidthPartGnb::~BandwidthPartGnb (void)
   NS_LOG_FUNCTION (this);
 }
 
-void
-BandwidthPartGnb::DoDispose ()
-{
-  NS_LOG_FUNCTION (this);
-  if (m_phy)
-    {
-      m_phy->Dispose ();
-      m_phy = 0;
-    }
-  if (m_mac)
-    {
-      m_mac->Dispose ();
-      m_mac = 0;
-    }
-  if (m_scheduler)
-    {
-      m_scheduler->Dispose ();
-      m_scheduler = 0;
-    }
-  Object::DoDispose ();
-}
-
-
-void
-BandwidthPartGnb::DoInitialize (void)
-{
-  NS_LOG_FUNCTION (this);
-  m_phy->Initialize ();
-  m_mac->Initialize ();
-  m_scheduler->Initialize ();
-  ComponentCarrierBaseStation::DoInitialize ();
-}
-
 Ptr<MmWaveEnbPhy>
 BandwidthPartGnb::GetPhy ()
 {
