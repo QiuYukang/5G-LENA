@@ -312,6 +312,7 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
   MmWaveMacPduTag tag;
   if (p->PeekPacketTag (tag))
     {
+      NS_ASSERT (tag.GetSfn ().GetNumerology () == GetNumerology());
       uint64_t key = tag.GetSfn ().GetEncodingWithSymStart (tag.GetSymStart ());
       auto it = m_packetBurstMap.find (key);
 
@@ -320,7 +321,8 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
           it = m_packetBurstMap.insert (std::make_pair (key, CreateObject<PacketBurst> ())).first;
         }
       it->second->AddPacket (p);
-      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn () << " at sym " << +tag.GetSymStart ());
+      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn () <<
+                   " at sym " << +tag.GetSymStart () << std::endl);
     }
   else
     {
@@ -339,12 +341,16 @@ Ptr<PacketBurst>
 MmWavePhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (sfn.GetNumerology () == GetNumerology());
   Ptr<PacketBurst> pburst;
   auto it = m_packetBurstMap.find (sfn.GetEncodingWithSymStart (sym));
 
   if (it == m_packetBurstMap.end ())
     {
-      NS_LOG_ERROR ("Packet burst not found for " << sfn << " at sym " << +sym);
+      // Changed to a fatal error; if it happens, the MAC has scheduled something
+      // that we, in reality, don't have. It is a symptom that something is
+      // going not so well...
+      NS_FATAL_ERROR ("Packet burst not found for " << sfn << " at sym " << +sym);
       return pburst;
     }
   else
@@ -638,6 +644,7 @@ bool
 MmWavePhy::SlotAllocInfoExists (const SfnSf &retVal) const
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (retVal.GetNumerology () == GetNumerology ());
   for (const auto & alloc : m_slotAllocInfo)
     {
       if (alloc.m_sfnSf == retVal)
@@ -662,6 +669,7 @@ SlotAllocInfo
 MmWavePhy::RetrieveSlotAllocInfo (const SfnSf &sfnsf)
 {
   NS_LOG_FUNCTION (" slot " << sfnsf);
+  NS_ASSERT (sfnsf.GetNumerology () == GetNumerology ());
 
   for (auto allocIt = m_slotAllocInfo.begin(); allocIt != m_slotAllocInfo.end (); ++allocIt)
     {
@@ -681,6 +689,7 @@ SlotAllocInfo &
 MmWavePhy::PeekSlotAllocInfo (const SfnSf &sfnsf)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (sfnsf.GetNumerology () == GetNumerology ());
   for (auto & alloc : m_slotAllocInfo)
     {
       if (alloc.m_sfnSf == sfnsf)
