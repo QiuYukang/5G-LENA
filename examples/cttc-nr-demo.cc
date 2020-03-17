@@ -324,6 +324,9 @@ main (int argc, char *argv[])
    *
    */
 
+  Packet::EnableChecking ();
+  Packet::EnablePrinting ();
+
   /*
    *  Case (i): Attributes valid for all the nodes
    */
@@ -434,22 +437,36 @@ main (int argc, char *argv[])
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-  // assign IP address to UEs, and install UDP downlink applications
-  uint16_t dlPort = 1234;
-  ApplicationContainer clientApps, serverApps;
-
-  UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (gridScenario.GetUserTerminals ()));
-
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+
+  uint16_t dlPortLowLat = 1234;
+  uint16_t dlPortVoice = 1235;
+
+  UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
+  UdpServerHelper dlPacketSinkVoice (dlPortVoice);
+
+  ApplicationContainer clientApps, serverApps;
+
+  // Install the sinks in all the UEs.
+  serverApps.Add (dlPacketSinkLowLat.Install (gridScenario.GetUserTerminals ()));
+  serverApps.Add (dlPacketSinkVoice.Install (gridScenario.GetUserTerminals ()));
 
   // configure here UDP traffic
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
     {
+      uint16_t dlPort = dlPortVoice;
+      bool isLowLat = false;
+
+      if (j % 2 == 0)
+        {
+          isLowLat = true;
+          dlPort = dlPortLowLat;
+        }
+
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      //dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(1));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+      //dlClient.SetAttribute ("MaxPackets", UintegerValue(1));
 
       if (udpFullBuffer)
         {
@@ -471,14 +488,14 @@ main (int argc, char *argv[])
           lambdaUll = 1.0 / ((udpPacketSizeBe * 8) / bitRate);
         }
 
-      if (j % 2 == 0)
+      if (isLowLat)
         {
-          dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
+          dlClient.SetAttribute ("PacketSize", UintegerValue(udpPacketSizeUll));
           dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
         }
       else
         {
-          dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
+          dlClient.SetAttribute ("PacketSize", UintegerValue(udpPacketSizeBe));
           dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
         }
 
@@ -489,7 +506,6 @@ main (int argc, char *argv[])
       EpcTft::PacketFilter dlpf;
       dlpf.localPortStart = dlPort;
       dlpf.localPortEnd = dlPort;
-      dlPort++;
       tft->Add (dlpf);
 
       enum EpsBearer::Qci q;
