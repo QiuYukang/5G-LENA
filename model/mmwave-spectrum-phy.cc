@@ -203,7 +203,7 @@ MmWaveSpectrumPhy::GetRxSpectrumModel () const
 Ptr<AntennaModel>
 MmWaveSpectrumPhy::GetRxAntenna ()
 {
-   NS_LOG_WARN("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
+   NS_LOG_INFO ("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
    return nullptr;
 }
 
@@ -630,11 +630,12 @@ MmWaveSpectrumPhy::EndRxData ()
 
       if (GetTBInfo (tbIt).m_isCorrupted)
         {
-          NS_LOG_INFO (" RNTI " << GetRnti (tbIt) << " size " <<
+          NS_LOG_INFO ("RNTI " << GetRnti (tbIt) << " processId " <<
+                       +GetTBInfo(tbIt).m_expected.m_harqProcessId << " size " <<
                        GetTBInfo (tbIt).m_expected.m_tbSize << " mcs " <<
                        (uint32_t)GetTBInfo (tbIt).m_expected.m_mcs << " bitmap " <<
                        GetTBInfo (tbIt).m_expected.m_rbBitmap.size () << " rv from MAC: " <<
-                       GetTBInfo (tbIt).m_expected.m_rv << " elements in the history: " <<
+                       +GetTBInfo (tbIt).m_expected.m_rv << " elements in the history: " <<
                        harqInfoList.size () << " TBLER " <<
                        GetTBInfo(tbIt).m_outputOfEM->m_tbler << " corrupted " <<
                        GetTBInfo (tbIt).m_isCorrupted);
@@ -778,10 +779,14 @@ MmWaveSpectrumPhy::EndRxData ()
                   // Arrange the history
                   if (! GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)
                     {
+                      NS_LOG_DEBUG ("Reset Dl process: " << +GetTBInfo(*itTb).m_expected.m_harqProcessId <<
+                                    " for RNTI " << rnti);
                       m_harqPhyModule->ResetDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId);
                     }
                   else
                     {
+                      NS_LOG_DEBUG ("Update Dl process: " << +GetTBInfo(*itTb).m_expected.m_harqProcessId <<
+                                    " for RNTI " << rnti);
                       m_harqPhyModule->UpdateDlHarqProcessStatus (rnti, GetTBInfo(*itTb).m_expected.m_harqProcessId,
                                                                   GetTBInfo(*itTb).m_outputOfEM);
                     }
@@ -1108,7 +1113,7 @@ void
 MmWaveSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
 {
   NS_LOG_FUNCTION (this << sinr);
-  NS_LOG_INFO ("Update SINR perceived with this value: " << sinr);
+  NS_LOG_LOGIC ("Update SINR perceived with this value: " << sinr);
   m_sinrPerceived = sinr;
 }
 
