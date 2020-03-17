@@ -1099,12 +1099,6 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                   NS_LOG_INFO ("DL retransmission");
                   if (dciElem->m_tbSize > 0)
                     {
-
-                      //uint16_t rnti,
-                      //uint8_t mcs0, uint16_t tbs0Size,
-                      //uint8_t mcs1, uint16_t tbs1Size);
-                      // HARQ retransmission -> retrieve TB from HARQ buffer
-
                       std::map <uint16_t, MmWaveDlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (rnti);
                       NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
                       Ptr<PacketBurst> pb = it->second.at (tbUid).m_pktBurst;
