@@ -991,8 +991,9 @@ MmWaveEnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   else
     {
-      // sometimes the UE will be scheduled when no data is queued
-      // in this case, send an empty PDU
+      // put an error, as something is wrong. The UE should not be scheduled
+      // if there is no data for him...
+      NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
       MmWaveMacPduTag tag (m_currentSlot, dci->m_symStart, dci->m_numSym);
       Ptr<Packet> emptyPdu = Create <Packet> ();
       MmWaveMacPduHeader header;
@@ -1328,7 +1329,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       Ptr<MmWaveDlHarqFeedbackMessage> dlharqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
       DlHarqInfo dlharq = dlharqMsg->GetDlHarqFeedback ();
 
-      NS_LOG_INFO (" received DL_HARQ from: " << dlharq.m_rnti);
+      NS_LOG_INFO (" received DL_HARQ: " << dlharq);
       // check whether the UE is connected
 
       if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
