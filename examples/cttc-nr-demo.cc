@@ -101,7 +101,7 @@ main (int argc, char *argv[])
   int32_t fixedMcs = -1;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
-  uint16_t numerologyBwp1 = 3;
+  uint16_t numerologyBwp1 = 4;
   double frequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
   uint16_t numerologyBwp2 = 2;
@@ -227,6 +227,18 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   /*
+   *  Temporal configuration for testing purposes to achieve the performance
+   *  that we had before moving to new 3gpp channel model. These confiugration
+   *  lines will be removed and the corresponding values will be configured
+   *  through mmmwave-helper.
+   *
+   *  TODO Open new issue to fix this.
+   */
+  Config::SetDefault ("ns3::ThreeGppChannelConditionModel::UpdatePeriod", TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppPropagationLossModel::ShadowingEnabled", BooleanValue (false));
+
+  /*
    * Create the scenario. In our examples, we heavily use helpers that setup
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * GridScenarioHelper documentation to see how the nodes will be distributed.
@@ -339,10 +351,12 @@ main (int argc, char *argv[])
   // Antennas for all the UEs
   mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
   mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForVoice = 0;
