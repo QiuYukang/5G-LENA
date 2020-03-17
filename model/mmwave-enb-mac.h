@@ -94,10 +94,6 @@ public:
    */
   uint8_t GetNumHarqProcess () const;
 
-
-  void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
-
   /**
    * \brief Perform DL scheduling decision for the indicated slot
    * \param sfnSf the slot to fill with scheduling decisions
@@ -286,7 +282,6 @@ private:
   };
 
   typedef std::vector < MmWaveDlHarqProcessInfo> MmWaveDlHarqProcessesBuffer_t;
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   LteMacSapProvider* m_macSapProvider;
   LteEnbCmacSapProvider* m_cmacSapProvider;

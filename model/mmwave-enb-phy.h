@@ -71,12 +71,6 @@ public:
   virtual ~MmWaveEnbPhy () override;
 
   /**
-   * \brief Set the configuration parameters for the gnb
-   * \param phyMacCommon configuration parameters
-   */
-  void SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacCommon);
-
-  /**
    * \brief Set the C PHY SAP user
    * \param s the C PHY SAP user
    */

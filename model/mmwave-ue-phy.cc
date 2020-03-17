@@ -194,12 +194,9 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 }
 
 void
-MmWaveUePhy::RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config)
+MmWaveUePhy::RegisterToEnb (uint16_t bwpId)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_phyMacConfig == nullptr); // Otherwise we probably have to change things..
-
-  m_phyMacConfig = config;
 
   InitializeMessageList ();
 
@@ -208,7 +205,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config)
 
   m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phySapUser->GetNumHarqProcess ());
 
-  m_amc = CreateObject <NrAmc> (m_phyMacConfig);
+  m_amc = CreateObject <NrAmc> ();
   DoSetCellId (bwpId);
 }
 

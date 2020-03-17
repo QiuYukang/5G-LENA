@@ -132,7 +132,7 @@ MmWaveMacSchedulerOfdmaPF::BeforeDlSched (const UePtrAndBufferReq &ue,
 {
   NS_LOG_FUNCTION (this);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
-  uePtr->CalculatePotentialTPut (assignableInIteration, m_phyMacConfig, m_amc);
+  uePtr->CalculatePotentialTPut (assignableInIteration, m_amc);
 }
 
 } // namespace ns3

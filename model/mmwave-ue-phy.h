@@ -100,14 +100,11 @@ public:
   /**
    * \brief Register the UE to a certain Enb
    *
-   * Install the configuration parameters in the UE. At the moment, the code
-   * does not reconfigure itself when the PhyMacCommon parameters change,
-   * so you can call this function only one (therefore, no handoff)
+   * Install the configuration parameters in the UE.
    *
    * \param bwpId the bwp id to which this PHY is attaching to
-   * \param config the ENB configuration
    */
-  void RegisterToEnb (uint16_t bwpId, Ptr<MmWavePhyMacCommon> config);
+  void RegisterToEnb (uint16_t bwpId);
 
   /**
    * \brief Function that sets the number of RBs per RBG.

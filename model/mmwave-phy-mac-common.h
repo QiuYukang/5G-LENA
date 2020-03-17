@@ -488,17 +488,6 @@ struct UlHarqInfo : public HarqInfo
   }
 };
 
-
-class MmWavePhyMacCommon : public Object
-{
-public:
-  MmWavePhyMacCommon (void);
-
-  ~MmWavePhyMacCommon (void);
-
-  static TypeId GetTypeId (void);
-};
-
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);
 std::ostream & operator<< (std::ostream & os, DlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, UlHarqInfo const & item);

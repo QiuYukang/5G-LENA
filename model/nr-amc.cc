@@ -31,8 +31,7 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("NrAmc");
 NS_OBJECT_ENSURE_REGISTERED (NrAmc);
 
-NrAmc::NrAmc (const Ptr<MmWavePhyMacCommon> & configParams)
-  : m_phyMacConfig (configParams)
+NrAmc::NrAmc ()
 {
   NS_LOG_INFO ("Initialze AMC module");
 }

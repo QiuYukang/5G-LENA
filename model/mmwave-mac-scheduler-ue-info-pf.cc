@@ -54,7 +54,6 @@ MmWaveMacSchedulerUeInfoPF::UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTRes
 
 void
 MmWaveMacSchedulerUeInfoPF::CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
-                                                    const Ptr<MmWavePhyMacCommon> &config,
                                                     const Ptr<NrAmc> &amc)
 {
   NS_LOG_FUNCTION (this);

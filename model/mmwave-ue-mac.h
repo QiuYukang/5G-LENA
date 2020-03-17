@@ -100,15 +100,6 @@ public:
   void SetPhySapProvider (MmWavePhySapProvider* ptr);
 
   /**
-   * \brief Set the configuration parameter for the mac
-   *
-   * Done only once in the helper (no handover)
-   *
-   * \param ptrConfig Config
-   */
-  void SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfig);
-
-  /**
    *  TracedCallback signature for Ue Mac Received Control Messages.
    *
    * \param [in] frame Frame number.
@@ -218,7 +209,6 @@ private:
                                                                   unsigned activeLcs, const SfnSf &ulSfn);
 
 private:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   LteUeCmacSapUser* m_cmacSapUser {nullptr};
   LteUeCmacSapProvider* m_cmacSapProvider {nullptr};

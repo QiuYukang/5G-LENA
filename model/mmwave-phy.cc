@@ -480,13 +480,6 @@ MmWavePhy::PopCurrentSlotCtrlMsgs (void)
     }
 }
 
-Ptr<MmWavePhyMacCommon>
-MmWavePhy::GetConfigurationParameters (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_phyMacConfig;
-}
-
 void
 MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
 {

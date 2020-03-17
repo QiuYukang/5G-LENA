@@ -276,9 +276,6 @@ public:
 
   typedef PointInFTPlane FTResources; //!< Represent an amount of RBG/symbols that can be, or is, assigned
 
-  // Inherited
-  virtual void
-  ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) override;
   virtual void
   DoCschedCellConfigReq (const MmWaveMacCschedSapProvider::CschedCellConfigReqParameters& params) override;
   virtual void
@@ -594,7 +591,6 @@ protected:
   };
 
 protected:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;   //!< Phy-mac config
   Ptr<NrAmc> m_amc;                     //!< AMC pointer
 
 private:

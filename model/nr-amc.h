@@ -51,7 +51,7 @@ public:
    * \brief NrAmc constructor
    * \param ConfigParams PhyMacCommon params that will be tied with the instance
    */
-  NrAmc (const Ptr<MmWavePhyMacCommon> & configParams);
+  NrAmc ();
 
   /**
    * \brief ~NrAmc deconstructor
@@ -170,7 +170,6 @@ public:
 private:
   double m_ber;             //!< Shannon based model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< Pointer to PHY-MAC config
   Ptr<NrErrorModel> m_errorModel;         //!< Pointer to an instance of ErrorModel
   TypeId m_errorModelType;                //!< Type of the error model
 

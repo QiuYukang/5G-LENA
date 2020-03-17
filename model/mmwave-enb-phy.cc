@@ -107,11 +107,6 @@ MmWaveEnbPhy::GetTypeId (void)
                      "Enb PHY Txed Control Messages Traces.",
                      MakeTraceSourceAccessor (&MmWaveEnbPhy::m_phyTxedCtrlMsgsTrace),
                      "ns3::MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsTracedCallback")
-    .AddAttribute ("MmWavePhyMacCommon",
-                   "The associated MmWavePhyMacCommon",
-                   PointerValue (),
-                   MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
-                   MakePointerChecker<MmWaveEnbPhy> ())
     .AddAttribute ("N0Delay",
                    "Minimum processing delay needed to decode DL DCI and decode DL data",
                     UintegerValue (0),
@@ -418,17 +413,8 @@ MmWaveEnbPhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
                 "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
                 "\t Num. RB: " << GetRbNum ());
   SfnSf startSlot (frame, subframe, slot, GetNumerology ());
-  StartSlot (startSlot);
-}
-
-void
-MmWaveEnbPhy::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacCommon)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_phyMacConfig == nullptr);
-  m_phyMacConfig = phyMacCommon;
-
   InitializeMessageList ();
+  StartSlot (startSlot);
 }
 
 void

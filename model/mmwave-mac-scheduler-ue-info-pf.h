@@ -77,7 +77,6 @@ public:
                          double timeWindow,
                          const Ptr<NrAmc> &amc);
   void CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
-                               const Ptr<MmWavePhyMacCommon> &config,
                                const Ptr<NrAmc> &amc);
 
   /**

@@ -76,11 +76,9 @@ public:
    * \param startMcsUl Default MCS when a CQI is reset (UL)
    */
   void
-  ConfigureCommonParameters (const Ptr<MmWavePhyMacCommon> &config,
-                             const Ptr<NrAmc> &amc,
+  ConfigureCommonParameters (const Ptr<NrAmc> &amc,
                              uint8_t startMcsDl, uint8_t startMcsUl)
   {
-    m_phyMacConfig = config;
     m_amc = amc;
     m_startMcsDl = startMcsDl;
     m_startMcsUl = startMcsUl;
@@ -166,7 +164,6 @@ private:
    */
   uint16_t GetCellId () const;
 
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< PhyMac config
   Ptr<NrAmc> m_amc;                       //!< NrAmc model pointer
   uint8_t m_startMcsDl {0};
   uint8_t m_startMcsUl {0};

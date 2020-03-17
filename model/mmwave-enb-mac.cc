@@ -481,18 +481,6 @@ MmWaveEnbMac::GetNumHarqProcess () const
 }
 
 void
-MmWaveEnbMac::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
-{
-  m_phyMacConfig = ptrConfig;
-}
-
-Ptr<MmWavePhyMacCommon>
-MmWaveEnbMac::GetConfigurationParameters (void) const
-{
-  return m_phyMacConfig;
-}
-
-void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();

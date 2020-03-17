@@ -72,12 +72,6 @@ public:
   virtual ~MmWaveMacScheduler ();
 
   /**
-   * \brief Save the common parameters between MAC and PHY
-   * \param config the MAC PHY parameters
-   */
-  virtual void ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) = 0;
-
-  /**
    * \brief Set the MacSchedSapUser pointer
    * \param sap pointer to the mac sched sap user class
    */

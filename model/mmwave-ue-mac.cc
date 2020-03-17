@@ -254,23 +254,6 @@ MmWaveUeMac::~MmWaveUeMac (void)
 }
 
 void
-MmWaveUeMac::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfig)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT(m_phyMacConfig == nullptr);
-
-  m_phyMacConfig = ptrConfig;
-
-  m_miUlHarqProcessesPacket.resize (GetNumHarqProcess ());
-  for (uint8_t i = 0; i < m_miUlHarqProcessesPacket.size (); i++)
-    {
-      Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
-      m_miUlHarqProcessesPacket.at (i).m_pktBurst = pb;
-    }
-  m_miUlHarqProcessesPacketTimer.resize (GetNumHarqProcess (), 0);
-}
-
-void
 MmWaveUeMac::SetRnti (uint16_t rnti)
 {
   NS_LOG_FUNCTION (this);
@@ -337,6 +320,17 @@ void
 MmWaveUeMac::SetNumHarqProcess (uint8_t numHarqProcess)
 {
   m_numHarqProcess = numHarqProcess;
+
+  m_miUlHarqProcessesPacket.resize (GetNumHarqProcess ());
+  for (uint8_t i = 0; i < m_miUlHarqProcessesPacket.size (); i++)
+    {
+      if (m_miUlHarqProcessesPacket.at (i).m_pktBurst == nullptr)
+        {
+          Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+          m_miUlHarqProcessesPacket.at (i).m_pktBurst = pb;
+        }
+    }
+  m_miUlHarqProcessesPacketTimer.resize (GetNumHarqProcess (), 0);
 }
 
 /**

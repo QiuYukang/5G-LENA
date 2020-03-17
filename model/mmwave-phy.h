@@ -29,10 +29,8 @@ namespace ns3 {
 
 class MmWaveNetDevice;
 class MmWaveControlMessage;
-class MmWavePhyMacCommon;
 class MmWaveSpectrumPhy;
 class AntennaArrayBasicModel;
-class MmWavePhyMacCommon;
 class BeamManager;
 class ThreeGppAntennaArrayModel;
 
@@ -146,8 +144,6 @@ public:
   uint16_t GetNumerology () const;
 
   void SetSymbolsPerSlot (uint16_t symbolsPerSlot);
-
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
   /**
    * \brief Retrieve the SpectrumPhy pointer
@@ -348,8 +344,6 @@ protected:
 
   double m_txPower {0.0};
   double m_noiseFigure {0.0};
-
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
 

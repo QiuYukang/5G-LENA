@@ -45,7 +45,6 @@ class EpcTft;
 class MmWaveBearerStatsCalculator;
 class MmwaveMacRxTrace;
 class MmWavePhyRxTrace;
-class MmWavePhyMacCommon;
 class ComponentCarrierEnb;
 class ComponentCarrier;
 class MmWaveMacScheduler;
@@ -235,8 +234,6 @@ public:
    */
   void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
 
-  void SetMmWavePhyMacCommonAttribute (const std::string &n, const AttributeValue &v);
-
   void SetUeAntennaAttribute (const std::string &n, const AttributeValue &v);
 
   void SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v);
@@ -268,13 +265,12 @@ private:
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
   Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n,
-                                  const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                   const Ptr<SpectrumChannel> &c,
                                   const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
                                   const Ptr<MmWaveEnbNetDevice> &dev,
                                   const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback);
-  Ptr<MmWaveMacScheduler> CreateGnbSched (const Ptr<MmWavePhyMacCommon>& conf);
-  Ptr<MmWaveEnbMac> CreateGnbMac (const Ptr<MmWavePhyMacCommon>& conf);
+  Ptr<MmWaveMacScheduler> CreateGnbSched ();
+  Ptr<MmWaveEnbMac> CreateGnbMac ();
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
   Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
@@ -307,7 +303,6 @@ private:
   ObjectFactory m_enbNetDeviceFactory;  //!< NetDevice factory for gnb
   ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue
   ObjectFactory m_channelFactory;       //!< Channel factory
-  ObjectFactory m_phyMacCommonFactory;  //!< PhyMacCommon factory
   ObjectFactory m_ueMacFactory;         //!< UE MAC factory
   ObjectFactory m_gnbMacFactory;        //!< GNB MAC factory
   ObjectFactory m_ueSpectrumFactory;    //!< UE Spectrum factory

@@ -34,33 +34,10 @@
 #include <ns3/string.h>
 #include <ns3/attribute-accessor-helper.h>
 #include <algorithm>
-#include "mmwave-mac-scheduler-tdma-rr.h"
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWavePhyMacCommon");
-
-NS_OBJECT_ENSURE_REGISTERED (MmWavePhyMacCommon);
-
-TypeId
-MmWavePhyMacCommon::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::MmWavePhyMacCommon")
-    .SetParent<Object> ()
-    .AddConstructor<MmWavePhyMacCommon> ()
-  ;
-  return tid;
-}
-
-MmWavePhyMacCommon::MmWavePhyMacCommon ()
-{
-  NS_LOG_INFO ("MmWavePhyMacCommon constructor");
-}
-
-
-MmWavePhyMacCommon::~MmWavePhyMacCommon (void)
-{
-}
 
 void
 SlotAllocInfo::Merge (const SlotAllocInfo &other)

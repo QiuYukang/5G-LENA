@@ -41,6 +41,8 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveMacSchedulerNs3);
 MmWaveMacSchedulerNs3::MmWaveMacSchedulerNs3 () : MmWaveMacScheduler ()
 {
   NS_LOG_FUNCTION_NOARGS ();
+  m_amc = CreateObject<NrAmc> ();
+  m_cqiManagement.ConfigureCommonParameters (m_amc, m_startMcsDl, m_startMcsUl);
   m_cqiManagement.InstallGetBwpIdFn (std::bind (&MmWaveMacSchedulerNs3::GetBwpId, this));
   m_cqiManagement.InstallGetCellIdFn (std::bind (&MmWaveMacSchedulerNs3::GetCellId, this));
 }
@@ -100,21 +102,6 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
   ;
 
   return tid;
-}
-
-/**
- * \brief Configure the common parameters, and create the instances of AMC and CQI management.
- * \param config Configuration options
- */
-void
-MmWaveMacSchedulerNs3::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config)
-{
-  NS_LOG_FUNCTION (this << config);
-  m_phyMacConfig = config;
-
-  m_amc = CreateObject<NrAmc> (config);
-  m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
-                                             m_startMcsDl, m_startMcsUl);
 }
 
 /**
@@ -189,8 +176,7 @@ MmWaveMacSchedulerNs3::SetStartMcsDl (uint8_t v)
 {
   NS_LOG_FUNCTION (this);
   m_startMcsDl = v;
-  m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
-                                             m_startMcsDl, m_startMcsUl);
+  m_cqiManagement.ConfigureCommonParameters (m_amc, m_startMcsDl, m_startMcsUl);
 }
 
 uint8_t
@@ -205,8 +191,7 @@ MmWaveMacSchedulerNs3::SetStartMcsUl (uint8_t v)
 {
   NS_LOG_FUNCTION (this);
   m_startMcsUl = v;
-  m_cqiManagement.ConfigureCommonParameters (m_phyMacConfig, m_amc,
-                                             m_startMcsDl, m_startMcsUl);
+  m_cqiManagement.ConfigureCommonParameters (m_amc, m_startMcsDl, m_startMcsUl);
 }
 
 uint8_t
@@ -1492,10 +1477,9 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
  * decides how the resources should be divided between UEs. An important
  * thing to remember is that the slot being considered for DL decision can be
  * different for the slot for UL decision. This offset is due to the parameter
- * N2Delay (previously: UlSchedDelay) of the class MmWavePhyMacCommon.
+ * N2Delay (previously: UlSchedDelay).
  *
- * Another parameter to consider is the L1L2CtrlLatency (present in
- * MmWavePhyMacCommon as well) that defines the delay (in slots number) between
+ * Another parameter to consider is the L1L2CtrlLatency that defines the delay (in slots number) between
  * the slot that is currently "in the air" and the slot which is being prepared
  * for DL.
  * The default value for both L1L2CtrlLatency and N2Delay (previously: UlSchedDelay)
@@ -1600,10 +1584,9 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
  * decides how the resources should be divided between UEs. An important
  * thing to remember is that the slot being considered for DL decision can be
  * different for the slot for UL decision. This offset is due to the parameter
- * N2Delay (previously: UlSchedDelay) of the class MmWavePhyMacCommon.
+ * N2Delay (previously: UlSchedDelay).
  *
- * Another parameter to consider is the L1L2CtrlLatency (present in
- * MmWavePhyMacCommon as well) that defines the delay (in slots number) between
+ * Another parameter to consider is the L1L2CtrlLatency  that defines the delay (in slots number) between
  * the slot that is currently "in the air" and the slot which is being prepared
  * for DL.
  * The default value for both L1L2CtrlLatency and N2Delay (previously: UlSchedDelay)
