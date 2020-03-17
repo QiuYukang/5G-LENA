@@ -42,19 +42,27 @@ public:
    * \brief Create LtePatternTestCase
    * \param name Name of the test
    */
-  TestSfnSfTestCase (const std::string &name)
-    : TestCase (name)
+  TestSfnSfTestCase (uint16_t num, const std::string &name)
+    : TestCase (name),
+      m_numerology (num)
   {}
 
 private:
   virtual void DoRun (void) override;
+  uint16_t m_numerology {0};
 };
 
 
 void
 TestSfnSfTestCase::DoRun ()
 {
+  SfnSf sfn (0,0,0, m_numerology);
 
+  for (uint32_t i = 0; i < 9999; ++i)
+    {
+      NS_TEST_ASSERT_MSG_EQ (sfn.Normalize (), i, "Mm");
+      sfn.Add (1);
+    }
 }
 
 class TestSfnSf : public TestSuite
@@ -62,6 +70,11 @@ class TestSfnSf : public TestSuite
 public:
   TestSfnSf () : TestSuite ("test-sfnsf", UNIT)
     {
+      AddTestCase (new TestSfnSfTestCase (0, "SfnSf TestAdd with num 2"), QUICK);
+      AddTestCase (new TestSfnSfTestCase (1, "SfnSf TestAdd with num 2"), QUICK);
+      AddTestCase (new TestSfnSfTestCase (2, "SfnSf TestAdd with num 2"), QUICK);
+      AddTestCase (new TestSfnSfTestCase (3, "SfnSf TestAdd with num 2"), QUICK);
+      AddTestCase (new TestSfnSfTestCase (4, "SfnSf TestAdd with num 2"), QUICK);
     }
 };
 

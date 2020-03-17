@@ -113,7 +113,7 @@ SfnSf::GetFutureSfnSf (uint32_t slotN)
 void
 SfnSf::Add (uint32_t slotN)
 {
-  NS_ASSERT (m_numerology > 0);
+  NS_ASSERT (m_numerology >= 0);
   m_frameNum += (m_subframeNum + (m_slotNum + slotN) / GetSlotPerSubframe ()) / GetSubframesPerFrame ();
   m_subframeNum = (m_subframeNum + (m_slotNum + slotN) / GetSlotPerSubframe ()) % GetSubframesPerFrame ();
   m_slotNum = (m_slotNum + slotN) % GetSlotPerSubframe ();
