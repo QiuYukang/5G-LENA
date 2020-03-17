@@ -25,7 +25,6 @@
 #include "mmwave-harq-phy.h"
 #include "mmwave-chunk-processor.h"
 #include "nr-lte-mi-error-model.h"
-
 #include <ns3/boolean.h>
 #include <ns3/double.h>
 #include <ns3/three-gpp-antenna-array-model.h>
@@ -145,15 +144,6 @@ MmWaveSpectrumPhy::GetTypeId (void)
                      "Indicates when the channel is being occupied by a ctrl transmission",
                      MakeTraceSourceAccessor (&MmWaveSpectrumPhy::m_txCtrlTrace),
                      "ns3::MmWaveSpectrumPhy::ChannelOccupiedTracedCallback")
-    .AddAttribute ("EnableAllInterferences",
-                   "If true, enables gNB-gNB and UE-UE interferences,"
-                   "if false, gNB-gNB and UE-UE are not taken into account. "
-                   "This parameter is true, requires generation of pathloss "
-                   "and channels in between gNB-gNB and UE-UE, through "
-                   "EnableAllChannels attribute in 3gpp-channel",
-                    BooleanValue (false),
-                    MakeBooleanAccessor (&MmWaveSpectrumPhy::m_enableAllInterferences),
-                    MakeBooleanChecker ())
   ;
 
   return tid;
@@ -327,26 +317,6 @@ MmWaveSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
   Ptr <const SpectrumValue> rxPsd = params->psd;
   Time duration = params->duration;
   NS_LOG_INFO ("Start receiving signal: " << rxPsd <<" duration= " << duration);
-
-  if (m_enableAllInterferences == false)
-    {
-      // if false, ignore gNB-to-gNB and UE-to-UE interferences
-      Ptr<MmWaveEnbNetDevice> enbTx =
-          DynamicCast<MmWaveEnbNetDevice> (params->txPhy->GetDevice ());
-      Ptr<MmWaveEnbNetDevice> enbRx =
-          DynamicCast<MmWaveEnbNetDevice> (GetDevice ());
-
-      Ptr<MmWaveUeNetDevice> ueTx =
-          DynamicCast<MmWaveUeNetDevice> (params->txPhy->GetDevice ());
-      Ptr<MmWaveUeNetDevice> ueRx =
-          DynamicCast<MmWaveUeNetDevice> (GetDevice ());
-
-      if ((enbTx != 0 && enbRx != 0) || (ueTx != 0 && ueRx != 0))
-        {
-          NS_LOG_INFO ("BS to BS or UE to UE transmission neglected.");
-          return;
-        }
-    }
 
   // pass it to interference calculations regardless of the type (mmwave or non-mmwave)
   m_interferenceData->AddSignal (rxPsd, duration);
