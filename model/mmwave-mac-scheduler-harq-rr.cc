@@ -104,6 +104,7 @@ uint8_t MmWaveMacSchedulerHarqRr::ScheduleDlHarq (MmWaveMacSchedulerNs3::PointIn
                          " is not in RECEIVED_FEEDBACK status");
 
           harqProcess.m_status = HarqProcess::WAITING_FEEDBACK;
+          harqProcess.m_timer = 0;
 
           auto & dciInfoReTx = harqProcess.m_dciElement;
 
