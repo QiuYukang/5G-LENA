@@ -344,13 +344,22 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
 
+  uint32_t bwpIdForLowLat = 0;
+  uint32_t bwpIdForVoice = 0;
+  if (! singleBwp)
+    {
+      bwpIdForVoice = 1;
+      bwpIdForLowLat = 0;
+    }
+
   // gNb routing between Bearer and bandwidh part
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (0));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (1));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
   // Ue routing between Bearer and bandwidth part
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (0));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (1));
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+
 
   /*
    * We miss many other parameters. By default, not configuring them is equivalent
@@ -510,7 +519,7 @@ main (int argc, char *argv[])
 
       enum EpsBearer::Qci q;
 
-      if (j % 2 == 0)
+      if (isLowLat)
         {
           q = EpsBearer::NGBR_LOW_LAT_EMBB;
         }
