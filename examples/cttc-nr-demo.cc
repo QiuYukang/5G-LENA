@@ -27,6 +27,9 @@
  * can choose the number of gNbs and UEs. Have a look at the possible parameters
  * to know what you can configure through the command line.
  *
+ * With the default configuration, the example will create two flows that will
+ * go through two different subband numerologies (or bandwidth parts).
+ *
  * The example will print on-screen the end-to-end result of one (or two) flows,
  * as well as writing them on a file.
  *
@@ -82,10 +85,9 @@ main (int argc, char *argv[])
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 2;
   bool logging = false;
-  bool singleBwp = false;
+  bool doubleOperationalBand = true;
 
   // Traffic parameters (that we will use inside this script:)
-  bool udpFullBuffer = false;
   uint32_t udpPacketSizeUll = 100;
   uint32_t udpPacketSizeBe = 1252;
   uint32_t lambdaUll = 10000;
@@ -98,14 +100,11 @@ main (int argc, char *argv[])
 
   // NR parameters. We will take the input from the command line, and then we
   // will pass them inside the NR module.
-  int32_t fixedMcs = -1;
-  bool cellScan = false;
-  double beamSearchAngleStep = 10.0;
   uint16_t numerologyBwp1 = 4;
-  double frequencyBwp1 = 28e9;
+  double centralFrequencyBwp1 = 28e9;
   double bandwidthBwp1 = 100e6;
   uint16_t numerologyBwp2 = 2;
-  double frequencyBwp2 = 28.2e9;
+  double centralFrequencyBwp2 = 28.2e9;
   double bandwidthBwp2 = 100e6;
   double totalTxPower = 4;
 
@@ -120,49 +119,20 @@ main (int argc, char *argv[])
    */
   CommandLine cmd;
 
-  cmd.AddValue ("simTimeMs",
-                "Simulation time",
-                simTimeMs);
-  cmd.AddValue ("udpFullBuffer",
-                "Whether to set the full buffer traffic; if this parameter is "
-                "set then the udpInterval parameter will be neglected.",
-                udpFullBuffer);
-  cmd.AddValue ("fixedMcs",
-                "The MCS that will be used in this example, -1 for auto",
-                fixedMcs);
   cmd.AddValue ("gNbNum",
                 "The number of gNbs in multiple-ue topology",
                 gNbNum);
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per gNb in multiple-ue topology",
                 ueNumPergNb);
-  cmd.AddValue ("cellScan",
-                "Use beam search method to determine beamforming vector,"
-                " the default is long-term covariance matrix method"
-                " true to use cell scanning method, false to use the default"
-                " power method.",
-                cellScan);
-  cmd.AddValue ("beamSearchAngleStep",
-                "Beam search angle step for beam search method",
-                beamSearchAngleStep);
-  cmd.AddValue ("numerologyBwp1",
-                "The numerology to be used in bandwidth part 1",
-                numerologyBwp1);
-  cmd.AddValue ("frequencyBwp1",
-                "The system frequency to be used in bandwidth part 1",
-                frequencyBwp1);
-  cmd.AddValue ("bandwidthBwp1",
-                "The system bandwidth to be used in bandwidth part 1",
-                bandwidthBwp1);
-  cmd.AddValue ("numerologyBwp2",
-                "The numerology to be used in bandwidth part 2",
-                numerologyBwp2);
-  cmd.AddValue ("frequencyBwp2",
-                "The system frequency to be used in bandwidth part 2",
-                frequencyBwp2);
-  cmd.AddValue ("bandwidthBwp2",
-                "The system bandwidth to be used in bandwidth part 2",
-                bandwidthBwp2);
+  cmd.AddValue ("logging",
+                "Enable logging",
+                logging);
+  cmd.AddValue ("doubleOperationalBand",
+                "If true, simulate two operational bands with one CC for each band,"
+                "and each CC will have 1 BWP that spans the entire CC.",
+                doubleOperationalBand);
+
   cmd.AddValue ("packetSizeUll",
                 "packet size in bytes to be used by ultra low latency traffic",
                 udpPacketSizeUll);
@@ -175,22 +145,40 @@ main (int argc, char *argv[])
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
-  cmd.AddValue ("singleBwp",
-                "Simulate with single BWP, BWP1 configuration will be used",
-                singleBwp);
+
+  cmd.AddValue ("simTimeMs",
+                "Simulation time",
+                simTimeMs);
+
+  cmd.AddValue ("numerologyBwp1",
+                "The numerology to be used in bandwidth part 1",
+                numerologyBwp1);
+  cmd.AddValue ("centralFrequencyBwp1",
+                "The system frequency to be used in bandwidth part 1",
+                centralFrequencyBwp1);
+  cmd.AddValue ("bandwidthBwp1",
+                "The system bandwidth to be used in bandwidth part 1",
+                bandwidthBwp1);
+  cmd.AddValue ("numerologyBwp2",
+                "The numerology to be used in bandwidth part 2",
+                numerologyBwp2);
+  cmd.AddValue ("centralFrequencyBwp2",
+                "The system frequency to be used in bandwidth part 2",
+                centralFrequencyBwp2);
+  cmd.AddValue ("bandwidthBwp2",
+                "The system bandwidth to be used in bandwidth part 2",
+                bandwidthBwp2);
+  cmd.AddValue ("totalTxPower",
+                "total tx power that will be proportionally assigned to"
+                " bandwidth parts depending on each BWP bandwidth ",
+                totalTxPower);
+
   cmd.AddValue ("simTag",
                 "tag to be appended to output filenames to distinguish simulation campaigns",
                 simTag);
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
-  cmd.AddValue ("totalTxPower",
-                "total tx power that will be proportionally assigned to"
-                " bandwidth parts depending on each BWP bandwidth ",
-                totalTxPower);
-  cmd.AddValue ("logging",
-                "Enable logging",
-                logging);
 
 
   // Parse the command line
@@ -200,8 +188,8 @@ main (int argc, char *argv[])
    * Check if the frequency is in the allowed range.
    * If you need to add other checks, here is the best position to put them.
    */
-  NS_ABORT_IF (frequencyBwp1 < 6e9 || frequencyBwp1 > 100e9);
-  NS_ABORT_IF (frequencyBwp2 < 6e9 || frequencyBwp2 > 100e9);
+  NS_ABORT_IF (centralFrequencyBwp1 < 6e9 || centralFrequencyBwp1 > 100e9);
+  NS_ABORT_IF (centralFrequencyBwp2 < 6e9 || centralFrequencyBwp2 > 100e9);
 
   /*
    * If the logging variable is set to true, enable the log of some components
@@ -244,6 +232,10 @@ main (int argc, char *argv[])
   gridScenario.CreateScenario ();
 
   /*
+   * TODO: Add a print, or a plot, that shows the scenario.
+   */
+
+  /*
    * Setup the NR module. We create the various helpers needed for the
    * NR simulation:
    * - EpcHelper, which will setup the core network
@@ -269,8 +261,8 @@ main (int argc, char *argv[])
   CcBwpCreator ccBwpCreator;
 
   // Create the configuration for the CcBwpHelper
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (frequencyBwp1, bandwidthBwp1, 1, BandwidthPartInfo::UMi_StreetCanyon);
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (frequencyBwp2, bandwidthBwp2, 1, BandwidthPartInfo::UMi_StreetCanyon);
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBwp1, bandwidthBwp1, 1, BandwidthPartInfo::UMi_StreetCanyon);
+  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBwp2, bandwidthBwp2, 1, BandwidthPartInfo::UMi_StreetCanyon);
 
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
@@ -303,7 +295,7 @@ main (int argc, char *argv[])
   /*
    * if not single BWP simulation, initialize and setup power in the second bwp
    */
-  if (!singleBwp)
+  if (doubleOperationalBand)
     {
       // Initialize channel and pathloss, plus other things inside band2
       mmWaveHelper->InitializeOperationBand (&band2);
@@ -357,7 +349,7 @@ main (int argc, char *argv[])
 
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForVoice = 0;
-  if (! singleBwp)
+  if (doubleOperationalBand)
     {
       bwpIdForVoice = 1;
       bwpIdForLowLat = 0;
@@ -402,7 +394,7 @@ main (int argc, char *argv[])
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBwp1/totalBandwidth) * x)));
 
-  if (!singleBwp)
+  if (doubleOperationalBand)
     {
       // Get the first netdevice (enbNetDev.Get (0)) and the second bandwidth part (1)
       // and set the attribute.
@@ -487,26 +479,6 @@ main (int argc, char *argv[])
       UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
       dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
       //dlClient.SetAttribute ("MaxPackets", UintegerValue(1));
-
-      if (udpFullBuffer)
-        {
-          double bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-
-          if (bandwidthBwp1 > 20e6)
-            {
-              bitRate *=  bandwidthBwp1 / 20e6;
-            }
-          lambdaUll = 1.0 / ((udpPacketSizeUll * 8) / bitRate);
-
-
-          bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-
-          if (bandwidthBwp2 > 20e6)
-            {
-              bitRate *=  bandwidthBwp2 / 20e6;
-            }
-          lambdaUll = 1.0 / ((udpPacketSizeBe * 8) / bitRate);
-        }
 
       if (isLowLat)
         {
