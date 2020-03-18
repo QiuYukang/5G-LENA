@@ -83,6 +83,14 @@ MmWaveHelper::MmWaveHelper (void)
   m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
 
+  m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
+
+  // Initialization that is there just because the user can configure attribute
+  // through the helper methods without making it sad that no TypeId is set.
+  // When the TypeId is changed, the user-set attribute will be maintained.
+  m_pathlossModelFactory.SetTypeId (ThreeGppPropagationLossModel::GetTypeId ());
+  m_channelConditionModelFactory.SetTypeId (ThreeGppChannelConditionModel::GetTypeId ());
+
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   m_phyStats = CreateObject<MmWavePhyRxTrace> ();
@@ -148,7 +156,7 @@ InitIndoorMixed (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCond
 }
 
 void
-MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
+MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
 {
   NS_LOG_FUNCTION (this);
 
@@ -160,14 +168,6 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
   };
-
-  ObjectFactory channelConditionModelFactory;
-  ObjectFactory spectrumPropagationFactory;
-  ObjectFactory pathlossModelFactory;
-  ObjectFactory channelFactory;
-
-  spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
-  channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
 
   // Iterate over all CCs, and instantiate the channel and propagation model
   for (const auto & cc : band->m_cc)
@@ -181,15 +181,15 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
 
           // Initialize the type ID of the factories by calling the relevant
           // static function defined above and stored inside the lookup table
-          initLookupTable.at (bwp->m_scenario) (&pathlossModelFactory, &channelConditionModelFactory);
+          initLookupTable.at (bwp->m_scenario) (&m_pathlossModelFactory, &m_channelConditionModelFactory);
 
-          Ptr<ChannelConditionModel> channelConditionModel  = channelConditionModelFactory.Create<ChannelConditionModel>();
+          Ptr<ChannelConditionModel> channelConditionModel  = m_channelConditionModelFactory.Create<ChannelConditionModel>();
 
-          bwp->m_propagation = pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
+          bwp->m_propagation = m_pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
           bwp->m_propagation->SetAttributeFailSafe ("Frequency", DoubleValue (bwp->m_centralFrequency));
           bwp->m_propagation->SetChannelConditionModel (channelConditionModel);
 
-          bwp->m_3gppChannel = spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
+          bwp->m_3gppChannel = m_spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
           bwp->m_3gppChannel->SetFrequency (bwp->m_centralFrequency);
           bwp->m_3gppChannel->SetScenario (bwp->GetScenario ());
           bwp->m_3gppChannel->SetChannelConditionModel (channelConditionModel);
@@ -958,6 +958,27 @@ MmWaveHelper::SetUeBwpManagerAlgorithmAttribute (const std::string &n, const Att
 {
   NS_LOG_FUNCTION (this);
   m_ueBwpManagerAlgoFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelConditionModelFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetSpectrumPropagationAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_spectrumPropagationFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetPathlossAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_pathlossModelFactory.Set (n, v);
 }
 
 void

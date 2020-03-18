@@ -227,18 +227,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   /*
-   *  Temporal configuration for testing purposes to achieve the performance
-   *  that we had before moving to new 3gpp channel model. These confiugration
-   *  lines will be removed and the corresponding values will be configured
-   *  through mmmwave-helper.
-   *
-   *  TODO Open new issue to fix this.
-   */
-  Config::SetDefault ("ns3::ThreeGppChannelConditionModel::UpdatePeriod", TimeValue (MilliSeconds(0)));
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
-  Config::SetDefault ("ns3::ThreeGppPropagationLossModel::ShadowingEnabled", BooleanValue (false));
-
-  /*
    * Create the scenario. In our examples, we heavily use helpers that setup
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * GridScenarioHelper documentation to see how the nodes will be distributed.
@@ -287,6 +275,15 @@ main (int argc, char *argv[])
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
   OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
+
+  /*
+   * Attributes of ThreeGppChannelModel still cannot be set in our way.
+   * TODO: Coordinate with Tommaso
+   */
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+
+  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   /*
    * Initialize channel and pathloss, plus other things inside band1. If needed,

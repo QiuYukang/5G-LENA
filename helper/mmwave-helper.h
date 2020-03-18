@@ -129,7 +129,7 @@ public:
    *
    * \param band the band representation
    */
-  void InitializeOperationBand (OperationBandInfo *band) const;
+  void InitializeOperationBand (OperationBandInfo *band);
 
   /**
    * Activate a dedicated EPS bearer on a given set of UE devices.
@@ -252,6 +252,21 @@ public:
 
   void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
+  void SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set Spectrum Propagation Attribute
+   * \param n name of the attribute
+   * \param v value of the attribute
+   *
+   * As the spectrum model used is ThreeGppSpectrumPropagationLossModel, you
+   * can set only attributes of this class.
+   *
+   */
+  void SetSpectrumPropagationAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
+
 private:
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
@@ -316,6 +331,9 @@ private:
   ObjectFactory m_gnbAntennaFactory;    //!< UE antenna factory
   ObjectFactory m_gnbBwpManagerAlgoFactory;//!< BWP manager algorithm factory
   ObjectFactory m_ueBwpManagerAlgoFactory;//!< BWP manager algorithm factory
+  ObjectFactory m_channelConditionModelFactory; //!< Channel condition factory
+  ObjectFactory m_spectrumPropagationFactory; //!< Spectrum Factory
+  ObjectFactory m_pathlossModelFactory;  //!< Pathloss factory
 
 
   uint64_t m_imsiCounter;
