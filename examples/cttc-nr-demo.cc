@@ -90,9 +90,9 @@ main (int argc, char *argv[])
   bool doubleOperationalBand = true;
 
   // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSizeUll = 100;
+  uint32_t udpPacketSizeULL = 100;
   uint32_t udpPacketSizeBe = 1252;
-  uint32_t lambdaUll = 10000;
+  uint32_t lambdaULL = 10000;
   uint32_t lambdaBe = 10000;
 
   // Simulation parameters. Please don't use double to indicate seconds, use
@@ -136,13 +136,13 @@ main (int argc, char *argv[])
                 doubleOperationalBand);
   cmd.AddValue ("packetSizeUll",
                 "packet size in bytes to be used by ultra low latency traffic",
-                udpPacketSizeUll);
+                udpPacketSizeULL);
   cmd.AddValue ("packetSizeBe",
                 "packet size in bytes to be used by best effort traffic",
                 udpPacketSizeBe);
   cmd.AddValue ("lambdaUll",
                 "Number of UDP packets in one second for ultra low latency traffic",
-                lambdaUll);
+                lambdaULL);
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
@@ -228,6 +228,26 @@ main (int argc, char *argv[])
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
   gridScenario.SetScenarioLength (3); // be distribuited.
   gridScenario.CreateScenario ();
+
+  /*
+   * Create two different NodeContainer for the different traffic type.
+   * In ueLowLat we will put the UEs that will receive low-latency traffic,
+   * while in ueVoice we will put the UEs that will receive the voice traffic.
+   */
+  NodeContainer ueLowLatContainer, ueVoiceContainer;
+
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
+    {
+      Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (j);
+      if (j % 2 == 0)
+        {
+          ueLowLatContainer.Add (ue);
+        }
+      else
+        {
+          ueVoiceContainer.Add (ue);
+        }
+    }
 
   /*
    * TODO: Add a print, or a plot, that shows the scenario.
@@ -389,7 +409,8 @@ main (int argc, char *argv[])
    */
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+  NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, allBwps);
+  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, allBwps);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -416,7 +437,12 @@ main (int argc, char *argv[])
       DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
 
-  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+  for (auto it = ueLowLatNetDev.Begin (); it != ueLowLatNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueVoiceNetDev.Begin (); it != ueVoiceNetDev.End (); ++it)
     {
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
@@ -446,8 +472,10 @@ main (int argc, char *argv[])
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
   internet.Install (gridScenario.GetUserTerminals ());
-  Ipv4InterfaceContainer ueIpIface;
-  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+
+
+  Ipv4InterfaceContainer ueLowLatIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLowLatNetDev));
+  Ipv4InterfaceContainer ueVoiceIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVoiceNetDev));
 
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
@@ -457,70 +485,102 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
 
+  /*
+   * Traffic part. Install two kind of traffic: low-latency and voice, each
+   * identified by a particular source port.
+   */
   uint16_t dlPortLowLat = 1234;
   uint16_t dlPortVoice = 1235;
 
+  ApplicationContainer serverApps;
+
+  // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
   UdpServerHelper dlPacketSinkVoice (dlPortVoice);
 
-  ApplicationContainer clientApps, serverApps;
+  // The server, that is the application which is listening, is installed in the UE
+  serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
+  serverApps.Add (dlPacketSinkVoice.Install (ueVoiceContainer));
 
-  // Install the sinks in all the UEs.
-  serverApps.Add (dlPacketSinkLowLat.Install (gridScenario.GetUserTerminals ()));
-  serverApps.Add (dlPacketSinkVoice.Install (gridScenario.GetUserTerminals ()));
 
-  // configure here UDP traffic
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
+  /*
+   * Configure attributes for the different generators, using user-provided
+   * parameters for generating a CBR traffic
+   *
+   * Low-Latency configuration and object creation:
+   */
+  UdpClientHelper dlClientLowLat;
+  dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
+  dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeULL));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaULL)));
+
+  // The bearer that will carry low latency traffic
+  EpsBearer lowLatBearer (EpsBearer::NGBR_LOW_LAT_EMBB);
+
+  // The filter for the low-latency traffic
+  Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfLowLat;
+  dlpfLowLat.localPortStart = dlPortLowLat;
+  dlpfLowLat.localPortEnd = dlPortLowLat;
+  lowLatTft->Add (dlpfLowLat);
+
+
+  // Voice configuration and object creation:
+  UdpClientHelper dlClientVoice;
+  dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
+  dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
+  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+
+  // The bearer that will carry voice traffic
+  EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
+
+  // The filter for the voice traffic
+  Ptr<EpcTft> voiceTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVoice;
+  dlpfVoice.localPortStart = dlPortLowLat;
+  dlpfVoice.localPortEnd = dlPortLowLat;
+  voiceTft->Add (dlpfVoice);
+
+  /*
+   * Let's install the applications!
+   */
+  ApplicationContainer clientApps;
+
+  for (uint32_t i = 0; i < ueLowLatContainer.GetN (); ++i)
     {
-      uint16_t dlPort = dlPortVoice;
-      bool isLowLat = false;
+      Ptr<Node> ue = ueLowLatContainer.Get (i);
+      Ptr<NetDevice> ueDevice = ueLowLatNetDev.Get(i);
+      Address ueAddress = ueLowLatIpIface.GetAddress (i);
 
-      if (j % 2 == 0)
-        {
-          isLowLat = true;
-          dlPort = dlPortLowLat;
-        }
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      clientApps.Add (dlClientLowLat.Install (remoteHost));
 
-      UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      //dlClient.SetAttribute ("MaxPackets", UintegerValue(1));
-
-      if (isLowLat)
-        {
-          dlClient.SetAttribute ("PacketSize", UintegerValue(udpPacketSizeUll));
-          dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
-        }
-      else
-        {
-          dlClient.SetAttribute ("PacketSize", UintegerValue(udpPacketSizeBe));
-          dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
-        }
-
-      clientApps.Add (dlClient.Install (remoteHost));
-
-
-      Ptr<EpcTft> tft = Create<EpcTft> ();
-      EpcTft::PacketFilter dlpf;
-      dlpf.localPortStart = dlPort;
-      dlpf.localPortEnd = dlPort;
-      tft->Add (dlpf);
-
-      enum EpsBearer::Qci q;
-
-      if (isLowLat)
-        {
-          q = EpsBearer::NGBR_LOW_LAT_EMBB;
-        }
-      else
-        {
-          q = EpsBearer::GBR_CONV_VOICE;
-        }
-
-      EpsBearer bearer (q);
-      mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
+      // Activate a dedicated bearer for the traffic type
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
+
+  for (uint32_t i = 0; i < ueVoiceContainer.GetN (); ++i)
+    {
+      Ptr<Node> ue = ueVoiceContainer.Get (i);
+      Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
+      Address ueAddress = ueVoiceIpIface.GetAddress (i);
+
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      clientApps.Add (dlClientVoice.Install (remoteHost));
+
+      // Activate a dedicated bearer for the traffic type
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+    }
+
   // start UDP server and client apps
   serverApps.Start(MilliSeconds(udpAppStartTimeMs));
   clientApps.Start(MilliSeconds(udpAppStartTimeMs));
