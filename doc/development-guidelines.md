@@ -443,7 +443,7 @@ for each of them. Any new test and/or example, needs to be included there as wel
 To compile the documentation file, from src/nr/doc, do:
 
 ```
-make latepdf
+make latexpdf
 ```
 
 and a PDF file (NRModule.pdf) will be created inside nr/doc/build/latex.
