@@ -45,11 +45,11 @@
  * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
  *
  * There is no deployment scenario configured, the example directly computes the TBS
- * for all MCSs of the configured error model and MCS Table, assuming numerology 4,
- * 100 MHz of channel bandwidth, and 28 GHz of central channel frequency.
+ * for all MCSs of the configured error model and MCS Table, assuming numerology 4
+ * and 100 MHz of channel bandwidth.
  *
- * This simulation prints the output to the terminal, showing for each MCS
- * the TBS that fits in 1 OFDM symbol (whole bandwidth) and the TBS that fits
+ * This simulation prints the output to the terminal, showing for each MCS: 1)
+ * the TBS that fits in 1 OFDM symbol (whole bandwidth) and 2) the TBS that fits
  * in 1 OFDM symbol and a single RB.
  *
  * To run the simulation with the default configuration one shall run the
@@ -80,6 +80,12 @@ main (int argc, char *argv[])
 
   cmd.Parse (argc, argv);
 
+  /*
+   * TODO: Default values for the simulation. We are progressively removing all
+   * the instances of SetDefault.
+   */
+  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
   if (eesmTable == 1)
     {
       Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
@@ -93,30 +99,27 @@ main (int argc, char *argv[])
       NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
     }
 
-  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
+  // Compute number of RBs that fit in 100 MHz channel bandwidth with numerology 4 (240 kHz SCS)
+  const uint8_t numerology = 4;
+  const uint32_t bandwidth = 100e6;
+  const uint32_t numRbsInBandwidth = bandwidth / (15e3 * std::pow(2,numerology) * 12) ;
 
-
-  Ptr<MmWavePhyMacCommon> config = CreateObject<MmWavePhyMacCommon> ();
-  config->SetNumerology (4);
-  config->SetBandwidth(100e6);
-
-  Ptr<NrAmc> amc = CreateObject<NrAmc> (config);
+  Ptr<NrAmc> amc = CreateObject<NrAmc> ();
 
   std::string tbs;
-
   for (uint32_t mcs = 0; mcs <= amc->GetMaxMcs (); ++mcs)
     {
       std::stringstream ss;
       ss << "\nMCS " << mcs <<
-            " TBS in 1 RBG: [" << amc->CalculateTbSize(mcs, config->GetNumRbPerRbg ()) <<
-            "] TBS in 1 sym: [" << amc->CalculateTbSize(mcs, config->GetNumRbPerRbg() * config->GetBandwidthInRbg ()) <<
-            "]";
+            ". TBS in 1 RB: [" << amc->CalculateTbSize(mcs, 1) <<
+            "] bytes. TBS in 1 sym: [" << amc->CalculateTbSize(mcs, numRbsInBandwidth) <<
+            "] bytes.";
       tbs += ss.str ();
     }
 
-  std::cout << "NUMEROLOGY 4, 100e6 BANDWIDTH, 28e9 CENTRE FREQ, Error Model: ";
-  std::cout << errorModel << "Table (if apply:) " << eesmTable << ". Results: " << std::endl;
+  std::cout << "NUMEROLOGY 4, 100e6 BANDWIDTH, Error Model: ";
+  std::cout << errorModel << ", MCS Table (if applies:) " << eesmTable <<
+               ". Results: " << std::endl;
   std::cout << tbs << std::endl;
 
   return 0;
