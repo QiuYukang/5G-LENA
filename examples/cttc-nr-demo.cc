@@ -28,7 +28,9 @@
  * to know what you can configure through the command line.
  *
  * With the default configuration, the example will create two flows that will
- * go through two different subband numerologies (or bandwidth parts).
+ * go through two different subband numerologies (or bandwidth parts). For that,
+ * specifically, two bands are created, each with a single CC, and each CC containing
+ * one bandwidth part.
  *
  * The example will print on-screen the end-to-end result of one (or two) flows,
  * as well as writing them on a file.
@@ -101,11 +103,11 @@ main (int argc, char *argv[])
   // NR parameters. We will take the input from the command line, and then we
   // will pass them inside the NR module.
   uint16_t numerologyBwp1 = 4;
-  double centralFrequencyBwp1 = 28e9;
-  double bandwidthBwp1 = 100e6;
+  double centralFrequencyBand1 = 28e9;
+  double bandwidthBand1 = 100e6;
   uint16_t numerologyBwp2 = 2;
-  double centralFrequencyBwp2 = 28.2e9;
-  double bandwidthBwp2 = 100e6;
+  double centralFrequencyBand2 = 28.2e9;
+  double bandwidthBand2 = 100e6;
   double totalTxPower = 4;
 
   // Where we will store the output files.
@@ -132,7 +134,6 @@ main (int argc, char *argv[])
                 "If true, simulate two operational bands with one CC for each band,"
                 "and each CC will have 1 BWP that spans the entire CC.",
                 doubleOperationalBand);
-
   cmd.AddValue ("packetSizeUll",
                 "packet size in bytes to be used by ultra low latency traffic",
                 udpPacketSizeUll);
@@ -145,34 +146,31 @@ main (int argc, char *argv[])
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
-
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
-
   cmd.AddValue ("numerologyBwp1",
                 "The numerology to be used in bandwidth part 1",
                 numerologyBwp1);
-  cmd.AddValue ("centralFrequencyBwp1",
-                "The system frequency to be used in bandwidth part 1",
-                centralFrequencyBwp1);
-  cmd.AddValue ("bandwidthBwp1",
-                "The system bandwidth to be used in bandwidth part 1",
-                bandwidthBwp1);
+  cmd.AddValue ("centralFrequencyBand1",
+                "The system frequency to be used in band 1",
+                centralFrequencyBand1);
+  cmd.AddValue ("bandwidthBand1",
+                "The system bandwidth to be used in band 1",
+                bandwidthBand1);
   cmd.AddValue ("numerologyBwp2",
                 "The numerology to be used in bandwidth part 2",
                 numerologyBwp2);
-  cmd.AddValue ("centralFrequencyBwp2",
-                "The system frequency to be used in bandwidth part 2",
-                centralFrequencyBwp2);
-  cmd.AddValue ("bandwidthBwp2",
-                "The system bandwidth to be used in bandwidth part 2",
-                bandwidthBwp2);
+  cmd.AddValue ("centralFrequencyBand2",
+                "The system frequency to be used in band 2",
+                centralFrequencyBand2);
+  cmd.AddValue ("bandwidthBand2",
+                "The system bandwidth to be used in band 2",
+                bandwidthBand2);
   cmd.AddValue ("totalTxPower",
                 "total tx power that will be proportionally assigned to"
-                " bandwidth parts depending on each BWP bandwidth ",
+                " bands, CCs and bandwidth parts depending on each BWP bandwidth ",
                 totalTxPower);
-
   cmd.AddValue ("simTag",
                 "tag to be appended to output filenames to distinguish simulation campaigns",
                 simTag);
@@ -188,8 +186,8 @@ main (int argc, char *argv[])
    * Check if the frequency is in the allowed range.
    * If you need to add other checks, here is the best position to put them.
    */
-  NS_ABORT_IF (centralFrequencyBwp1 < 6e9 || centralFrequencyBwp1 > 100e9);
-  NS_ABORT_IF (centralFrequencyBwp2 < 6e9 || centralFrequencyBwp2 > 100e9);
+  NS_ABORT_IF (centralFrequencyBand1 > 100e9);
+  NS_ABORT_IF (centralFrequencyBand2 > 100e9);
 
   /*
    * If the logging variable is set to true, enable the log of some components
@@ -253,27 +251,36 @@ main (int argc, char *argv[])
 
   /*
    * Spectrum division. We create two operational bands, each of them containing
-   * one bandwidth part centered at the frequency specified by the input parameters.
+   * one component carrier, and each CC containing a single bandwidth part
+   * centered at the frequency specified by the input parameters.
    * Each spectrum part length is, as well, specified by the input parameters.
    * Both operational bands will use the StreetCanyon channel modeling.
    */
   BandwidthPartInfoPtrVector allBwps;
   CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
 
-  // Create the configuration for the CcBwpHelper
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBwp1, bandwidthBwp1, 1, BandwidthPartInfo::UMi_StreetCanyon);
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBwp2, bandwidthBwp2, 1, BandwidthPartInfo::UMi_StreetCanyon);
+  // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
+  // a single BWP per CC
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
 
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
   OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
 
   /*
+   * The configured spectrum division is:
+   * ------------Band1--------------|--------------Band2-----------------
+   * ------------CC1----------------|--------------CC2-------------------
+   * ------------BWP1---------------|--------------BWP2------------------
+   */
+
+  /*
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
    * TODO: Coordinate with Tommaso
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
-
   mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -287,19 +294,19 @@ main (int argc, char *argv[])
 
   /*
    * Start to account for the bandwidth used by the example, as well as
-   * the total power that has to be divided among the bwp.
+   * the total power that has to be divided among the BWPs.
    */
   double x = pow (10, totalTxPower/10);
-  double totalBandwidth = bandwidthBwp1;
+  double totalBandwidth = bandwidthBand1;
 
   /*
-   * if not single BWP simulation, initialize and setup power in the second bwp
+   * if not single band simulation, initialize and setup power in the second band
    */
   if (doubleOperationalBand)
     {
       // Initialize channel and pathloss, plus other things inside band2
       mmWaveHelper->InitializeOperationBand (&band2);
-      totalBandwidth += bandwidthBwp2;
+      totalBandwidth += bandwidthBand2;
       allBwps = CcBwpCreator::GetAllBwps ({band1, band2});
     }
   else
@@ -392,14 +399,14 @@ main (int argc, char *argv[])
   // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
   // and set the attribute.
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBwp1/totalBandwidth) * x)));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand1/totalBandwidth) * x)));
 
   if (doubleOperationalBand)
     {
       // Get the first netdevice (enbNetDev.Get (0)) and the second bandwidth part (1)
       // and set the attribute.
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBwp2/totalBandwidth) * x));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBand2/totalBandwidth) * x));
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
