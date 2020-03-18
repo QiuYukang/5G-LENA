@@ -141,7 +141,7 @@ BwpManagerGnb::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParame
     }
   else
     {
-      NS_ABORT_MSG ("Bwp index not valid.");
+      NS_ABORT_MSG ("Bwp index " << +bwpIndex << " not valid.");
     }
 }
 
