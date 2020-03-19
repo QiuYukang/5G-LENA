@@ -594,15 +594,54 @@ In an NR system, the UL decisions for a slot are taken in a different moment tha
 At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
 
 
-Scheduling timings: K0, K1, K2
-==============================
-TBC [Kat]
+Timing Relations
+================
 
-**K0:**
+The 'NR' module supports flexible scheduling and DL HARQ Feedback timings in the
+communication between the gNB and the UE as specified in [TS38213]_, [TS38214]_.
+In particular, the following scheduling timings are defined:
 
-**K1:**
+* K0 → Delay in slots between DL DCI and corresponding DL Data reception
+* K1 → Delay in slots between DL Data (PDSCH) and corresponding ACK/NACK transmission on UL
+* K2 → Delay in slots between UL DCI reception in DL and UL Data (PUSCH) transmission
 
-**K2:**
+The values of the scheduling timings are calculated at the gNB side and result
+from the processing timings that are defined in the 'NR' module as:
+
+* N0 → minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+* N1 → minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+* N2 → minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
+
+The values of the processing delays depend on the UE processing time capabilities
+and can be configured by the user through the attributes ``N0Delay``, ``N1Delay``,
+``N2Delay``. Typical values for N0 are 0 and 1, whiler N1, N2, can vary form 0 to 4.
+For the scheduling timings let us note that each K cannot take a value smaller than
+the corresponding N value (e.g. K2 cannot be less than N2).
+
+The proceedure followed for the calculation of the scheduling and DL HARQ Feedback
+timings at the gNB side is briefly described below:
+
+For K0 the gNB calculates (based on the TDD pattern) which is the next DL (or F)
+slot that follows after (minimum) N0 slots. In the current implementation we use
+N0=0 (Self Contained Slot), as such in this case DL Data are scheduled in the same
+slot with the DL DCI.
+
+For K1/K2, the eNB calculates (based on the TDD pattern) which is the next UL (or F)
+slot that follows after (minimum) N1/N2 slots and calculates K1/K2 based on the
+resulted slot and the current slot.
+
+Then, the gNB communicates the scheduling timings to the UE through the DCI. In
+particular, K0 and K1 are passed to the UE through the DL DCI in the time domain
+resource assignment field and pdsch-to-harq_feedback timing indicator, respectively,
+while K2 is passed through the UL DCI in the time domain resource assignment field.
+Upon reception of the DL/UL DCI, the UE extracts the values of K0/K1/K2:
+
+* For the case of K0, UE extracts from the DL DCI its value and calculates the corresponding slot for the reception of the DL Data.
+* For the case of K2, UE extracts from the UL DCI its value and calculates the corresponding slot for the transmission of its UL Data.
+
+      For example, if UL DCI is received in slot n and K2 = 2, UE will transmit UL Data in slot (n + K2)
+
+* For the case of K1, UE extracts from the DL DCI its value and stores it in a map based on the HARQ Process Id. This way, when the UE is going to schedule the DL HARQ feedback, it can automatically find out in which slot it will have to schedule it.
 
 
 BWP manager
@@ -979,8 +1018,18 @@ Test case called ... TBC [Biljana]
 
 Test for TDD patterns
 =====================
-Test case called ... TBC [Kat, Nat] (2 tests: pattern generation, phy-patterns)
+Test case called ``LtePatternTestCase`` validates the maps generated from the function
+``MmWaveEnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
+DCI and DL HARQ Feedback have to be sent/generated, as well as the scheduling timings
+(K0, K1, k2) that indicate the slot offset to be applied at the UE side for the reception
+of DL Data, scheduling of DL HARQ Feedback and scheduling of UL Data, respectively.
+The test calls ``MmWaveEnbPhy::GenerateStructuresFromPattern`` for a number of possible
+TDD patterns and compares the output with a predefined set of the expected results.
 
+Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
+when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
+In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
+the test will fail.
 
 
 Open issues and future work
