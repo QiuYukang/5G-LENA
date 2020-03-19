@@ -397,18 +397,18 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   Ptr<MmWaveUeNetDevice> dev = m_ueNetDeviceFactory.Create<MmWaveUeNetDevice> ();
   std::map<uint8_t, Ptr<BandwidthPartUe> > ueCcMap;
 
-  // Create, for each ue, its component carriers
-  for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
+  // Create, for each ue, its bandwidth parts
+  for (uint32_t bwpId = 0; bwpId < allBwps.size (); ++bwpId)
     {
       Ptr <BandwidthPartUe> cc =  CreateObject<BandwidthPartUe> ();
-      double bwInKhz = allBwps[ccId].get()->m_channelBandwidth / 1000.0;
+      double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
       NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
       cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Used for nothing..
       cc->SetUlEarfcn (0); // Used for nothing..
 
-      if (ccId == 0)
+      if (bwpId == 0)
         {
           cc->SetAsPrimary (true);
         }
@@ -420,15 +420,16 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       auto mac = CreateUeMac ();
       cc->SetMac (mac);
 
-      auto phy = CreateUePhy (n, allBwps[ccId].get()->m_channel, allBwps[ccId].get ()->m_3gppChannel,
+      auto phy = CreateUePhy (n, allBwps[bwpId].get()->m_channel, allBwps[bwpId].get ()->m_3gppChannel,
                               dev, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev),
                               std::bind (&MmWaveUeNetDevice::RouteIngoingCtrlMsgs, dev,
-                                         std::placeholders::_1, ccId));
+                                         std::placeholders::_1, bwpId));
+      phy->SetBwpId (bwpId);
       phy->SetDevice (dev);
       phy->GetSpectrumPhy ()->SetDevice (dev);
       cc->SetPhy (phy);
 
-      ueCcMap.insert (std::make_pair (ccId, cc));
+      ueCcMap.insert (std::make_pair (bwpId, cc));
     }
 
   Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (CreateObject <BwpManagerUe> ());
@@ -605,7 +606,8 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
   Ptr<MmWaveEnbNetDevice> dev = m_enbNetDeviceFactory.Create<MmWaveEnbNetDevice> ();
 
   NS_LOG_DEBUG ("Creating gnb, cellId = " << m_cellIdCounter);
-  dev->SetCellId (m_cellIdCounter++);
+  uint16_t cellId = m_cellIdCounter++;
+  dev->SetCellId (cellId);
 
   // create component carrier map for this eNb device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
@@ -620,7 +622,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
-      cc->SetCellId (bwpId);
+      cc->SetCellId (m_cellIdCounter++);
 
       if (bwpId == 0)
         {
@@ -635,6 +637,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
                                allBwps[bwpId].get()->m_3gppChannel, dev,
                                std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
                                           dev, std::placeholders::_1, bwpId));
+      phy->SetBwpId (bwpId);
       cc->SetPhy (phy);
 
       auto mac = CreateGnbMac ();

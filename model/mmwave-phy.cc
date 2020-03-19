@@ -288,10 +288,10 @@ MmWavePhy::GetNumScsPerRb ()
 }
 
 void
-MmWavePhy::DoSetCellId (uint16_t bwpId)
+MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
-  m_bwpId = bwpId;
+  m_cellId = cellId;
 }
 
 void
@@ -489,6 +489,11 @@ MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 }
 
+void MmWavePhy::SetBwpId (uint16_t bwpId)
+{
+  m_bwpId = bwpId;
+}
+
 uint16_t
 MmWavePhy::GetBwpId () const
 {
@@ -498,20 +503,7 @@ MmWavePhy::GetBwpId () const
 uint16_t
 MmWavePhy::GetCellId () const
 {
-  if (!m_netDevice)
-    {
-      return UINT16_MAX;
-    }
-  auto enbNetDevice = DynamicCast<MmWaveEnbNetDevice> (m_netDevice);
-  auto ueNetDevice = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
-  if (enbNetDevice)
-    {
-      return enbNetDevice->GetCellId ();
-    }
-  else
-    {
-      return ueNetDevice->GetCellId ();
-    }
+  return m_cellId;
 }
 
 uint32_t

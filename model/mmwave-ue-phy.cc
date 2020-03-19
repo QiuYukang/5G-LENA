@@ -342,7 +342,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
   else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
     {
       Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
-      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetBwpId (), msg2->GetSib1 ()); 
+      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetCellId (), msg2->GetSib1 ());
       m_tddPattern = msg2->GetTddPattern ();
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
     }
@@ -940,8 +940,7 @@ void
 MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
-  NS_UNUSED (cellId);
-
+  DoSetCellId (cellId);
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity ());
 }
 

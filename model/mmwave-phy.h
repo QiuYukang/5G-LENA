@@ -163,11 +163,17 @@ public:
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) = 0;
 
   /**
-   * \return the BWP ID, set by the SAP
+   * \brief Set the bwp id. Called by helper.
+   */
+  void SetBwpId (uint16_t bwpId);
+
+  /**
+   * \return the BWP ID
    */
   uint16_t GetBwpId () const;
+
   /**
-   * \return the cell ID, taken from the netdevice
+   * \return the cell ID
    */
   uint16_t GetCellId () const;
 
@@ -189,12 +195,12 @@ public:
 
   // SAP
   /**
-   * \brief In reality, set the BWP ID
-   * \param bwpId the BWP ID
+   * \brief Set the cell ID
+   * \param cellId the cell id.
    *
-   * Called by lte-enb-cphy-sap only
+   * Called by lte-enb-cphy-sap only.
    */
-  void DoSetCellId (uint16_t bwpId);
+  void DoSetCellId (uint16_t cellId);
 
   /**
    * \brief Take the control messages, and put it in a list that will be sent at the first occasion
@@ -374,6 +380,8 @@ private:
   Time m_symbolPeriod {MilliSeconds (1) / 14};          //!< OFDM symbol length
   uint32_t m_subcarrierSpacing {15000};   //!< subcarrier spacing (it is determined by the numerology)
   uint32_t m_rbNum {0};             //!< number of resource blocks within the channel bandwidth
+
+  uint16_t m_cellId {0}; //!< Cell ID which identify this BWP.
 };
 
 }
