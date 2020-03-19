@@ -22,6 +22,7 @@
 
 #include <ns3/object.h>
 #include "beam-id.h"
+#include "beamforming-vector.h"
 #include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/mobility-module.h>
 
@@ -121,7 +122,7 @@ public:
    */
   virtual ~CellScanBeamforming () override = default;
 
-private:
+protected:
 
   /**
    * \brief Function that generates the beamforming vectors for a pair of
@@ -134,8 +135,6 @@ private:
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
-
-  void SetSector (uint16_t sector, double elevation,  Ptr<ThreeGppAntennaArrayModel> antennaArray) const;
 
   double m_beamSearchAngleStep {30};
 
@@ -153,7 +152,7 @@ public:
   static TypeId GetTypeId (void);
 
 
-private:
+protected:
 
   /**
    * \brief Function that generates the beamforming vectors for a pair of
@@ -175,10 +174,39 @@ private:
    * \param [in] aAntenna antenaArray of the first device
    * \param [out] bfv resulting beamforming vector for antenna array for the first device
    */
-  void DoGetDirectPathBeamformingVector (const Ptr<MobilityModel>& a,
-                                         const Ptr<MobilityModel>& b,
-                                         const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
-                                         BeamformingVector* bfv) const;
+  virtual void DoGetDirectPathBeamformingVector (const Ptr<MobilityModel>& a,
+                                                 const Ptr<MobilityModel>& b,
+                                                 const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
+                                                 BeamformingVector* bfv) const;
+};
+
+
+class QuasiOmniDirectPathBeamforming: public DirectPathBeamforming
+{
+
+public:
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+
+protected:
+
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using the quasi omni beamforming vector for gNB
+   * and direct path beamforming vector for UEs
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+
 };
 
 
@@ -194,7 +222,7 @@ public:
   static TypeId GetTypeId (void);
 
 
-private:
+protected:
 
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,

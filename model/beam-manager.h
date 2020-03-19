@@ -127,20 +127,13 @@ public:
    */
   virtual BeamId GetBeamId (const Ptr<NetDevice>& device) const;
 
-  /**
-   * \brief Generate a omni directional beamforming vector
-   * \param antennaNumDim1 First dimension of the antenna
-   * \param antennaNumDim2 Second dimension of the antenna
-   * \return the beamforming vector
-   */
-  BeamformingVector GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2) const;
-
-
   void SetSector (uint16_t sector, double elevation) const;
 
 private:
 
   Ptr<ThreeGppAntennaArrayModel> m_antennaArray;  // the antenna array instance for which is responsible this BeamManager
+  uint32_t m_numRows {0};//!< Number of rows of antenna array for which is calculated current quasi omni beamforming vector
+  uint32_t m_numColumns {0}; //!< Number of columns of antenna array for which is calculated current quasi omni beamforming vector
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
   BeamformingStorage m_beamformingVectorMap; //!< device to beamforming vector mapping
 
