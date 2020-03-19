@@ -51,7 +51,7 @@
  * to 30 m.
  *
  * By default, the program uses the 3GPP channel model, Urban Micro scenario, without shadowing and with
- * probabilistic line of sight / non-line of sight ('a') option. The program runs for
+ * probabilistic line of sight / non-line of sight option. The program runs for
  * 50 seconds and one packet is transmitted every 200 ms from gNB to UE (donwlink direction).
  * The packet size can be configured by using the following parameter: "--packetSize=1000".
  * The channel update period is 150 ms, so that every packet encounters a different
@@ -73,29 +73,20 @@ NS_LOG_COMPONENT_DEFINE ("CttcErrorModelExample");
 
 
 static Ptr<ListPositionAllocator>
-GetGnbPositions(uint32_t gNbNum, double gNbHeight = 10.0)
+GetGnbPositions(double gNbHeight = 10.0)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
   pos->Add (Vector (0.0, 0.0, gNbHeight));
-
-  if (gNbNum > 1)
-    {
-      pos->Add (Vector (5.0, 0.0, gNbHeight));
-    }
 
   return pos;
 }
 
 static Ptr<ListPositionAllocator>
-GetUePositions(double ueY, double ueHeight = 1.5, uint32_t gNbNum = 1)
+GetUePositions(double ueY, double ueHeight = 1.5)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
   pos->Add (Vector (0.0, ueY, ueHeight));
 
-  if (gNbNum > 1)
-    {
-      pos->Add (Vector (5.0, ueY, ueHeight));
-    }
   return pos;
 }
 
@@ -105,7 +96,7 @@ static void
 PrintRxPkt (std::string context, Ptr<const Packet> pkt)
 {
   NS_UNUSED(context);
-  // ASSUMING ONE UE!!!!
+  // ASSUMING ONE UE
 
   SeqTsHeader seqTs;
   pkt->PeekHeader (seqTs);
@@ -116,17 +107,15 @@ int
 main (int argc, char *argv[])
 {
   uint32_t mcs = 13;
-  uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 1;
-  bool cellScan = false;
-  double beamSearchAngleStep = 30.0;
+  const uint8_t gNbNum = 1;
+  const uint8_t ueNum = 1;
   double totalTxPower = 4;
-  uint16_t numerologyBwp1 = 4;
-  double frequencyBwp1 = 28e9;
-  double bandwidthBwp1 = 100e6;
+  uint16_t numerologyBwp = 4;
+  double centralFrequencyBand = 28e9;
+  double bandwidthBand = 100e6;
   double ueY = 30.0;
 
-  double simTime = 50.0; // seconds
+  double simTime = 10.0; // 50 seconds: to take statistics
   uint32_t pktSize = 500;
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
@@ -145,25 +134,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("mcs",
                 "The MCS that will be used in this example",
                 mcs);
-  cmd.AddValue ("gNbNum",
-                "The number of gNbs in multiple-ue topology",
-                gNbNum);
-  cmd.AddValue ("ueNumPergNb",
-                "The number of UE per gNb in multiple-ue topology",
-                ueNumPergNb);
-  cmd.AddValue ("cellScan",
-                "Use beam search method to determine beamforming vector,"
-                " the default is long-term covariance matrix method"
-                " true to use cell scanning method, false to use the default"
-                " power method.",
-                cellScan);
-  cmd.AddValue ("beamSearchAngleStep",
-                "Beam search angle step for beam search method",
-                beamSearchAngleStep);
-  cmd.AddValue ("totalTxPower",
-                "total tx power that will be proportionally assigned to"
-                " bandwidth parts depending on each BWP bandwidth ",
-                totalTxPower);
   cmd.AddValue("errorModelType",
                "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
                errorModel);
@@ -182,23 +152,16 @@ main (int argc, char *argv[])
 
   cmd.Parse (argc, argv);
 
-  Config::SetDefault ("ns3::MmWaveHelper::Scenario",
-                      StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
-
-  //Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
-    //                  TimeValue (updateChannelInterval));
-
+  /*
+   * Default values for the simulation. We are progressively removing all
+   * the instances of SetDefault, but we need it for legacy code (LTE)
+   */
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
 
-  Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
-  //Config::SetDefault("ns3::PointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
-
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue(true));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsUl", BooleanValue(true));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (mcs));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
-
+  /*
+   * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
+   */
   if (harqMethod == "HarqCc")
     {
       Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
@@ -226,74 +189,133 @@ main (int argc, char *argv[])
     }
 
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
-
-  Config::SetDefault("ns3::MmWaveSpectrumPhy::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-
+  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));  // NOT USED in this example. MCS is fixed.
 
   // create base stations and mobile terminals
   NodeContainer gNbNodes;
   NodeContainer ueNodes;
   MobilityHelper mobility;
 
-  double gNbHeight = 10;
+  double gNbHeight = 10.0;
   double ueHeight = 1.5;
 
   gNbNodes.Create (gNbNum);
-  ueNodes.Create (ueNumPergNb * gNbNum);
+  ueNodes.Create (ueNum);
 
-  Ptr<ListPositionAllocator> apPositionAlloc = GetGnbPositions(gNbNum, gNbHeight);
-  Ptr<ListPositionAllocator> staPositionAlloc = GetUePositions(ueY, ueHeight, gNbNum);
+  Ptr<ListPositionAllocator> gNbPositionAlloc = GetGnbPositions(gNbHeight);
+  Ptr<ListPositionAllocator> uePositionAlloc = GetUePositions(ueY, ueHeight);
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.SetPositionAllocator (apPositionAlloc);
+  mobility.SetPositionAllocator (gNbPositionAlloc);
   mobility.Install (gNbNodes);
 
-  mobility.SetPositionAllocator (staPositionAlloc);
+  mobility.SetPositionAllocator (uePositionAlloc);
   mobility.Install (ueNodes);
 
-  // setup the mmWave simulation
+  /*
+   * Setup the NR module. We create the various helpers needed for the
+   * NR simulation:
+   * - EpcHelper, which will setup the core network
+   * - IdealBeamformingHelper, which takes care of the beamforming part
+   * - MmWaveHelper, which takes care of creating and connecting the various
+   * part of the NR stack
+   */
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
-  phyMacCommonBwp1->SetNumerology(numerologyBwp1);
-  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-  phyMacCommonBwp1->SetCcId(0);
-
-  BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
-  mmWaveHelper->AddBandwidthPart(0, repr1);
-
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  // Put the pointers inside mmWaveHelper
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
   mmWaveHelper->SetEpcHelper (epcHelper);
-  mmWaveHelper->Initialize();
 
-  // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
+  /*
+   * Spectrum division. We create one operational band, with one CC, and the CC with a single bandwidth part.
+   */
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;
 
-  double x = pow(10, totalTxPower/10);
+  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
-  double totalBandwidth = bandwidthBwp1;
+  /*
+   * Attributes of ThreeGppChannelModel still cannot be set in our way.
+   * TODO: Coordinate with Tommaso
+   */
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue (updateChannelInterval));
+  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
-  for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
+  /*
+   * Initialize channel and pathloss, plus other things inside band.
+   */
+  mmWaveHelper->InitializeOperationBand (&band);
+  allBwps = CcBwpCreator::GetAllBwps ({band});
+
+  Packet::EnableChecking ();
+  Packet::EnablePrinting ();
+
+  /*
+   *  Case (i): Attributes valid for all the nodes
+   */
+  // Beamforming method
+  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+
+  // Core latency
+  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
+
+  // Antennas for all the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Antennas for all the gNbs
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Scheduler
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(true));
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(true));
+  mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (mcs));
+  mmWaveHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (mcs));
+
+  // Error Model
+  mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+  mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+
+
+  uint32_t bwpId = 0;
+
+  // gNb routing between Bearer and bandwidh part
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpId));
+
+  // Ue routing between Bearer and bandwidth part
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpId));
+
+  NetDeviceContainer gnbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+
+  /*
+   * Case (iii): Go node for node and change the attributes we have to setup
+   * per-node.
+   */
+
+  // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
+  // and set the attribute.
+  mmWaveHelper->GetEnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp));
+  mmWaveHelper->GetEnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (totalTxPower));
+
+  // When all the configuration is done, explicitly call UpdateConfig ()
+
+  for (auto it = gnbNetDev.Begin (); it != gnbNetDev.End (); ++it)
     {
-      ObjectMapValue objectMapValue;
-      Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice>(enbNetDev.Get(j));
-      netDevice->GetAttribute("BandwidthPartMap", objectMapValue);
-      for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
-        {
-          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
-          if (i==0)
-            {
-              bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp1/totalBandwidth)*x));
-            }
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
 
-          else
-            {
-              NS_FATAL_ERROR ("\n Please extend power assignment for additional bandwidht parts...");
-            }
-        }
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
 
   // create the internet and install the IP stack on the UEs
@@ -364,7 +386,7 @@ main (int argc, char *argv[])
   clientApps.Stop(Seconds(simTime));
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueNetDev, gnbNetDev);
 
   // enable the traces provided by the mmWave module
   //mmWaveHelper->EnableTraces();

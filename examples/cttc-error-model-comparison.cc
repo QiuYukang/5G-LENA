@@ -81,8 +81,7 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   /*
-   * TODO: Default values for the simulation. We are progressively removing all
-   * the instances of SetDefault.
+   * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
    */
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
