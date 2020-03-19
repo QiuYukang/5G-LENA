@@ -140,6 +140,12 @@ MmWaveEnbNetDevice::GetPhy (uint8_t index) const
   return m_ccMap.at (index)->GetPhy ();
 }
 
+Ptr<BwpManagerGnb>
+MmWaveEnbNetDevice::GetBwpManager () const
+{
+  return DynamicCast<BwpManagerGnb> (m_componentCarrierManager);
+}
+
 uint16_t
 MmWaveEnbNetDevice::GetCellId () const
 {

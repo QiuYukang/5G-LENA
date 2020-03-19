@@ -51,6 +51,8 @@ class MmWaveMacScheduler;
 class MmWaveEnbNetDevice;
 class MmWaveUeNetDevice;
 class MmWaveUeMac;
+class BwpManagerGnb;
+class BwpManagerUe;
 
 class MmWaveHelper : public Object
 {
@@ -74,8 +76,6 @@ public:
   NetDeviceContainer InstallGnbDevice (const NodeContainer &c,
                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
 
-  void ConfigureCarriers (std::map<uint8_t, Ptr<ComponentCarrierEnb> > ccPhyConf);
-
   /**
    * \brief Get the number of configured BWP for a specific GNB NetDevice
    * \param gnbDevice The GNB NetDevice
@@ -96,6 +96,10 @@ public:
    * \return A pointer to the MAC layer of the GNB, or nullptr if there are errors
    */
   static Ptr<MmWaveEnbMac> GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
+
+  static Ptr<BwpManagerGnb> GetBwpManagerGnb (const Ptr<NetDevice> &gnbDevice);
+
+  static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);
 
   /**
    * This method is used to send the ComponentCarrier map created with CcHelper

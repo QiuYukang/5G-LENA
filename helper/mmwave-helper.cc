@@ -239,6 +239,34 @@ MmWaveHelper::GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
   return netDevice->GetMac (static_cast<uint8_t> (bwpIndex));
 }
 
+Ptr<BwpManagerGnb>
+MmWaveHelper::GetBwpManagerGnb(const Ptr<NetDevice> &gnbDevice)
+{
+  NS_LOG_FUNCTION (gnbDevice);
+
+  Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+
+  return netDevice->GetBwpManager ();
+}
+
+Ptr<BwpManagerUe>
+MmWaveHelper::GetBwpManagerUe(const Ptr<NetDevice> &ueDevice)
+{
+  NS_LOG_FUNCTION (ueDevice);
+
+  Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice> (ueDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+
+  return netDevice->GetBwpManager ();
+}
+
 void
 MmWaveHelper::SetHarqEnabled (bool harqEnabled)
 {

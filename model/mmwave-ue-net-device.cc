@@ -201,28 +201,11 @@ MmWaveUeNetDevice::GetPhy (uint8_t index) const
   return m_ccMap.at (index)->GetPhy ();
 }
 
-Ptr<MmWavePhy>
-MmWaveUeNetDevice::GetPhyOnCenterFreq (double centerFrequency) const
+Ptr<BwpManagerUe>
+MmWaveUeNetDevice::GetBwpManager (void) const
 {
   NS_LOG_FUNCTION (this);
-
-  for (auto i:m_ccMap)
-    {
-      if (i.second->GetDlEarfcn())
-        {
-          return i.second->GetPhy();
-        }
-    }
-  NS_LOG_INFO ("PHY instance does not exist for center frequency:"<<centerFrequency);
-  return nullptr;
-}
-
-
-Ptr<LteUeComponentCarrierManager>
-MmWaveUeNetDevice::GetComponentCarrierManager (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_componentCarrierManager;
+  return DynamicCast<BwpManagerUe> (m_componentCarrierManager);
 }
 
 Ptr<EpcUeNas>
