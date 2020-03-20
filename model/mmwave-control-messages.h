@@ -261,6 +261,8 @@ public:
    */
   const std::vector<LteNrTddSlotType> & GetTddPattern () const;
 
+  uint8_t m_bwpId {0};
+
 private:
   LteRrcSap::SystemInformationBlockType1 m_sib1; //!< Sib1 content
   std::vector<LteNrTddSlotType> m_pattern;       //!< TDD Pattern

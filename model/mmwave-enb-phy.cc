@@ -539,6 +539,7 @@ void MmWaveEnbPhy::QueueSib ()
   NS_LOG_FUNCTION (this);
   Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
   msg->SetSib1 (m_sib1);
+  msg->m_bwpId = GetBwpId ();
   msg->SetTddPattern (m_tddPattern);
   EnqueueCtrlMsgNow (msg);
 }
