@@ -18,9 +18,11 @@
  */
 #include "bwp-manager-gnb.h"
 #include "bwp-manager-algorithm.h"
+#include "mmwave-control-messages.h"
 
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
+#include <ns3/object-map.h>
 
 namespace ns3 {
 
@@ -111,21 +113,55 @@ BwpManagerGnb::PeekBwpIndex (uint16_t rnti, uint8_t lcid) const
 }
 
 uint8_t
-BwpManagerGnb::RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+BwpManagerGnb::RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> &msg,
+                                     uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);
 
-  // Not so intelligent, for the moment...
-  return sourceBwpId;
+  NS_LOG_INFO ("Msg type " << msg->GetMessageType () <<
+               " from bwp " << +sourceBwpId << " that wants to go in the gnb, goes in BWP " <<
+               msg->GetSourceBwp ());
+  return msg->GetSourceBwp ();
+
 }
 
 uint8_t
-BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg,
+                                     uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);
 
-  // Not so intelligent, for the moment...
-  return sourceBwpId;
+  NS_LOG_INFO ("Msg type " << msg->GetMessageType () << " that wants to go out from gnb");
+
+  if (m_outputLinks.empty ())
+    {
+      NS_LOG_INFO ("No linked BWP, routing outgoing msg to the source: " << +sourceBwpId);
+      return sourceBwpId;
+    }
+
+  auto it = m_outputLinks.find (sourceBwpId);
+  if (it == m_outputLinks.end ())
+    {
+      NS_LOG_INFO ("Source BWP not in the map, routing outgoing msg to itself: " << +sourceBwpId);
+      return sourceBwpId;
+    }
+
+  std::stringstream ss;
+
+  for (const auto & v : m_outputLinks)
+    {
+      ss << "key: " << v.first << " value " << v.second;
+    }
+
+  NS_LOG_INFO ("OUTGOING SOURCE: " << +sourceBwpId << " map: " << ss.str());
+  return it->second;
+}
+
+void
+BwpManagerGnb::SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp)
+{
+  NS_LOG_FUNCTION (this);
+  m_outputLinks.insert (std::make_pair (sourceBwp, outputBwp));
 }
 
 void
