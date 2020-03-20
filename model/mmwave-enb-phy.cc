@@ -509,6 +509,7 @@ void
 MmWaveEnbPhy::SetN1Delay (uint32_t delay)
 {
   m_n1Delay = delay;
+  SetTddPattern (m_tddPattern); // Update the generate/send structures
 }
 
 void
