@@ -79,6 +79,8 @@ typedef std::unique_ptr<BandwidthPartInfo> BandwidthPartInfoPtr;
 typedef std::unique_ptr<const BandwidthPartInfo> BandwidthPartInfoConstPtr;
 typedef std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> BandwidthPartInfoPtrVector;
 
+std::ostream & operator<< (std::ostream & os, BandwidthPartInfo const & item);
+
 /**
  * \brief Component carrier configuration element
  */
@@ -168,7 +170,8 @@ public:
     }
     double m_centralFrequency {28e9};   //!< Central Freq
     double m_channelBandwidth        {400e6};  //!< Total Bandwidth of the operation band
-    uint8_t m_numCc           {1};      //!< Number of CC
+    uint8_t m_numCc           {1};      //!< Number of CC in this OpBand
+    uint8_t m_numBwp          {1};      //!< Number of BWP per CC
     BandwidthPartInfo::Scenario m_scenario {BandwidthPartInfo::RMa}; //!< Scenario
   };
 
@@ -216,8 +219,13 @@ public:
 
 private:
   void InitializeCc (std::unique_ptr<ComponentCarrierInfo> &cc,
-                     double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
-  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId, BandwidthPartInfo::Scenario scenario);
+                     double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId) const;
+  void InitializeBwp (std::unique_ptr<BandwidthPartInfo> &bwp,
+                      double bwOfBwp, double lowerFreq, uint8_t bwpPosition,
+                      uint8_t bwpId) const;
+  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq,
+                                                  uint8_t ccPosition, uint8_t ccId,
+                                                  uint8_t bwpNumber, BandwidthPartInfo::Scenario scenario);
 
   /**
    * \brief Plots a 2D rectangle defined by the input points and places a label
