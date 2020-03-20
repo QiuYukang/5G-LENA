@@ -115,6 +115,17 @@ BandwidthPartGnb::SetMmWaveMacScheduler (Ptr<MmWaveMacScheduler> s)
   m_scheduler = s;
 }
 
+void
+BandwidthPartGnb::SetAsPrimary (bool primaryCarrier)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_phy != nullptr);
+  if (primaryCarrier)
+    {
+      m_phy->SetPrimary ();
+    }
+}
+
 } // namespace ns3
 
 

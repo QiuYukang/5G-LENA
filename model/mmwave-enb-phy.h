@@ -230,6 +230,13 @@ public:
   std::string GetPattern() const;
 
   /**
+   * \brief Set this PHY as primary
+   *
+   * A primary PHY will send MIB and SIB1. By default, a PHY is "non-primary".
+   */
+  void SetPrimary ();
+
+  /**
    * \brief Start the ue Event Loop
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
@@ -488,6 +495,7 @@ private:
   uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
 
   SfnSf m_currentSlot;
+  bool m_isPrimary {false}; //!< Is this PHY a primary phy?
 };
 
 }

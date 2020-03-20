@@ -408,15 +408,6 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       cc->SetDlEarfcn (0); // Used for nothing..
       cc->SetUlEarfcn (0); // Used for nothing..
 
-      if (bwpId == 0)
-        {
-          cc->SetAsPrimary (true);
-        }
-      else
-        {
-          cc->SetAsPrimary (false);
-        }
-
       auto mac = CreateUeMac ();
       cc->SetMac (mac);
 
@@ -428,6 +419,15 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       phy->SetDevice (dev);
       phy->GetSpectrumPhy ()->SetDevice (dev);
       cc->SetPhy (phy);
+
+      if (bwpId == 0)
+        {
+          cc->SetAsPrimary (true);
+        }
+      else
+        {
+          cc->SetAsPrimary (false);
+        }
 
       ueCcMap.insert (std::make_pair (bwpId, cc));
     }
@@ -618,20 +618,12 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
       double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
       NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
+
       cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
       cc->SetCellId (m_cellIdCounter++);
-
-      if (bwpId == 0)
-        {
-          cc->SetAsPrimary (true);
-        }
-      else
-        {
-          cc->SetAsPrimary (false);
-        }
 
       auto phy = CreateGnbPhy (n, allBwps[bwpId].get()->m_channel,
                                allBwps[bwpId].get()->m_3gppChannel, dev,
@@ -646,6 +638,15 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 
       auto sched = CreateGnbSched ();
       cc->SetMmWaveMacScheduler (sched);
+
+      if (bwpId == 0)
+        {
+          cc->SetAsPrimary (true);
+        }
+      else
+        {
+          cc->SetAsPrimary (false);
+        }
 
       ccMap.insert (std::make_pair (bwpId, cc));
     }

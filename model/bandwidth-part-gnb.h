@@ -90,6 +90,16 @@ public:
   virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
   virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
 
+  /**
+   * \brief Set this bandwidth part as primary.
+   * \param primaryCarrier true or false.
+   *
+   * Unfortunately, for the "false" value, the method will do nothing. Every carrier
+   * starts as "not primary", so please, if you have to use SetAsPrimary (false)
+   * think two times.
+   */
+  void SetAsPrimary (bool primaryCarrier);
+
 private:
   Ptr<MmWaveEnbPhy> m_phy; ///< the Phy instance of this eNodeB component carrier
   Ptr<MmWaveEnbMac> m_mac; ///< the MAC instance of this eNodeB component carrier

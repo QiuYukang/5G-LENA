@@ -658,15 +658,18 @@ MmWaveEnbPhy::StartSlot (const SfnSf &startSlot)
       m_currSlotAllocInfo = SlotAllocInfo (m_currentSlot);
     }
 
-  if (m_currentSlot.GetSlot () == 0)
+  if (m_isPrimary)
     {
-      if (m_currentSlot.GetSubframe () == 0)   //send MIB at the beginning of each frame
+      if (m_currentSlot.GetSlot () == 0)
         {
-          QueueMib ();
-        }
-      else if (m_currentSlot.GetSubframe () == 5)   // send SIB at beginning of second half-frame
-        {
-          QueueSib ();
+          if (m_currentSlot.GetSubframe () == 0)   //send MIB at the beginning of each frame
+            {
+              QueueMib ();
+            }
+          else if (m_currentSlot.GetSubframe () == 5)   // send SIB at beginning of second half-frame
+            {
+              QueueSib ();
+            }
         }
     }
 
@@ -1547,6 +1550,13 @@ MmWaveEnbPhy::GetPattern () const
     }
 
   return ss.str ();
+}
+
+void
+MmWaveEnbPhy::SetPrimary ()
+{
+  NS_LOG_FUNCTION (this);
+  m_isPrimary = true;
 }
 
 void
