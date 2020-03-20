@@ -578,7 +578,7 @@ MmWaveEnbPhy::QueueMib ()
   mib.dlBandwidth = m_channelBandwidth;
   mib.systemFrameNumber = 1;
   Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
-  mibMsg->m_bwpId = GetBwpId ();
+  mibMsg->SetSourceBwp (GetBwpId ());
   mibMsg->SetMib (mib);
   EnqueueCtrlMsgNow (mibMsg);
 }
@@ -588,7 +588,7 @@ void MmWaveEnbPhy::QueueSib ()
   NS_LOG_FUNCTION (this);
   Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
   msg->SetSib1 (m_sib1);
-  msg->m_bwpId = GetBwpId ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetTddPattern (m_tddPattern);
   EnqueueCtrlMsgNow (msg);
 }
@@ -867,6 +867,7 @@ MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
 
           Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
 
+          dciMsg->SetSourceBwp (GetBwpId ());
           dciMsg->SetKDelay (kDelay);
           dciMsg->SetK1Delay (k1Delay);  //Set for both DL/UL however used only in DL (in UL UE ignors it)
 

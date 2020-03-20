@@ -51,8 +51,22 @@ public:
 
   messageType GetMessageType (void) const;
 
+  /**
+   * \brief Set the BWP in which this message has been generated
+   * \param bwpId the BwpId
+   */
+  void SetSourceBwp (uint16_t bwpId);
+
+  /**
+   * \return the BWP in which this message has been generated
+   *
+   * If SetSourceBwp() is not called beforehand, the method will ABORT.
+   */
+  uint16_t GetSourceBwp () const;
+
 private:
   messageType m_messageType;
+  int32_t m_bwpId {-1}; //!< Source BWP.
 };
 
 /**
@@ -214,8 +228,6 @@ public:
    */
   LteRrcSap::MasterInformationBlock GetMib () const;
 
-  uint8_t m_bwpId {0};
-
 private:
   LteRrcSap::MasterInformationBlock m_mib;
 
@@ -261,8 +273,6 @@ public:
    */
   const std::vector<LteNrTddSlotType> & GetTddPattern () const;
 
-  uint8_t m_bwpId {0};
-
 private:
   LteRrcSap::SystemInformationBlockType1 m_sib1; //!< Sib1 content
   std::vector<LteNrTddSlotType> m_pattern;       //!< TDD Pattern
@@ -292,8 +302,6 @@ public:
    * \return the RAPID
    */
   uint32_t GetRapId () const;
-
-  uint8_t m_bwpId {0};
 
 private:
   uint32_t m_rapId;

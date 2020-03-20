@@ -834,6 +834,7 @@ MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
   SpectrumValue newSinr = sinr;
   // CREATE DlCqiLteControlMessage
   Ptr<MmWaveDlCqiMessage> msg = Create<MmWaveDlCqiMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   DlCqiInfo dlcqi;
 
   dlcqi.m_rnti = m_rnti;
@@ -876,6 +877,7 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   NS_LOG_FUNCTION (this);
   // get the feedback from MmWaveSpectrumPhy and send it through ideal PUCCH to eNB
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetDlHarqFeedback (m);
 
   auto k1It = m_harqIdToK1Map.find (m.m_harqProcessId);

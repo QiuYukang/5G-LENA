@@ -479,6 +479,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
 
   // create the feedback to eNB
   Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetBsr (bsr);
 
   m_macTxedCtrlMsgsTrace (m_currentSlot, bsr.m_rnti, GetBwpId (), msg);
@@ -554,6 +555,7 @@ MmWaveUeMac::SendSR () const
 
   // create the SR to send to the gNB
   Ptr<MmWaveSRMessage> msg = Create<MmWaveSRMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
 
@@ -926,7 +928,7 @@ MmWaveUeMac::SendRaPreamble (bool contention)
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
-  rachMsg->m_bwpId = GetBwpId ();
+  rachMsg->SetSourceBwp (GetBwpId ());
   m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rachMsg);
 
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);

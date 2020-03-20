@@ -301,6 +301,7 @@ MmWavePhy::SendRachPreamble (uint32_t PreambleId, uint32_t Rnti)
   // This function is called by the SAP, SO it has to stay at the L1L2CtrlDelay rule
   m_raPreambleId = PreambleId;
   Ptr<MmWaveRachPreambleMessage> msg = Create<MmWaveRachPreambleMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetRapId (PreambleId);
   EnqueueCtrlMessage (msg); // Enqueue at the end
 }

@@ -484,6 +484,7 @@ void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
+  rachMsg->SetSourceBwp (GetBwpId ());
   m_macRxedCtrlMsgsTrace (m_currentSlot, raId, GetBwpId (), rachMsg);
 
   ++m_receivedRachPreambleCount[raId];
@@ -971,6 +972,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
   Ptr<MmWaveRarMessage> rarMsg = Create<MmWaveRarMessage> ();
   uint16_t raRnti = 1; // NO!! 38.321-5.1.3
   rarMsg->SetRaRnti (raRnti);
+  rarMsg->SetSourceBwp (GetBwpId ());
   for (const auto & rarAllocation : ind.m_buildRarList)
     {
       std::map <uint8_t, uint32_t>::iterator itRapId = m_rapIdRntiMap.find (rarAllocation.m_rnti);
