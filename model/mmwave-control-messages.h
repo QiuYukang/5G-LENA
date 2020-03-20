@@ -293,6 +293,8 @@ public:
    */
   uint32_t GetRapId () const;
 
+  uint8_t m_bwpId {0};
+
 private:
   uint32_t m_rapId;
 
