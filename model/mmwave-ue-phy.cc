@@ -336,7 +336,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       NS_LOG_INFO ("received MIB");
       Ptr<MmWaveMibMessage> msg2 = DynamicCast<MmWaveMibMessage> (msg);
-      m_ueCphySapUser->RecvMasterInformationBlock (GetBwpId (), msg2->GetMib ());
+      m_ueCphySapUser->RecvMasterInformationBlock (GetCellId (), msg2->GetMib ());
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
