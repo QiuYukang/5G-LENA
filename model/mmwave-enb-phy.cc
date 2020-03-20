@@ -278,6 +278,33 @@ static void GenerateDciMaps (const std::vector<LteNrTddSlotType> &pattern,
   (*generate)[indexGen].push_back (kWithCtrlLatency);
 }
 
+static bool
+IsTdd (const std::vector<LteNrTddSlotType> &pattern)
+{
+  bool anUl = false;
+  bool aDl = false;
+
+  for (const auto & v : pattern)
+    {
+      // An F slot: we are TDD
+      if (v == LteNrTddSlotType::F)
+        {
+          return true;
+        }
+
+      if (v == LteNrTddSlotType::UL)
+        {
+          anUl = true;
+        }
+      else if (v == LteNrTddSlotType::DL)
+        {
+          aDl = true;
+        }
+    }
+
+  return ! (anUl ^ aDl);
+}
+
 void
 MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType> &pattern,
                                              std::map<uint32_t, std::vector<uint32_t>> *toSendDl,
@@ -289,25 +316,47 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
 {
   const uint32_t n = static_cast<uint32_t> (pattern.size ());
 
+  // Create a pattern that is all F.
+  std::vector<LteNrTddSlotType> fddGenerationPattern;
+  fddGenerationPattern.resize (pattern.size (), LteNrTddSlotType::F);
+
+  /* if we have to generate structs for a TDD pattern, then use the input pattern.
+   * Otherwise, pass to the gen functions a pattern which is all F (therefore, the
+   * the function will think that they will be able to transmit or
+   * receive things following n0, n1, n2, that is what happen in FDD, just in
+   * another band..
+   */
+
+  const std::vector<LteNrTddSlotType> *generationPattern;
+
+  if (IsTdd (pattern))
+    {
+      generationPattern = &pattern;
+    }
+  else
+    {
+      generationPattern = &fddGenerationPattern;
+    }
+
   for (uint32_t i = 0; i < n; i++)
     {
-      if (pattern[i] == LteNrTddSlotType::UL)
+      if ((*generationPattern)[i] == LteNrTddSlotType::UL)
         {
-          GenerateDciMaps (pattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
         }
-      else if (pattern[i] == LteNrTddSlotType::DL || pattern[i] == LteNrTddSlotType::S)
+      else if ((*generationPattern)[i] == LteNrTddSlotType::DL || pattern[i] == LteNrTddSlotType::S)
         {
-          GenerateDciMaps (pattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
 
-          int32_t k1 = ReturnHarqSlot (pattern, i, n1);
+          int32_t k1 = ReturnHarqSlot (*generationPattern, i, n1);
           (*dlHarqfbPosition).insert (std::make_pair (i, k1));
         }
-      else if (pattern[i] == LteNrTddSlotType::F)
+      else if ((*generationPattern)[i] == LteNrTddSlotType::F)
         {
-          GenerateDciMaps (pattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
-          GenerateDciMaps (pattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
 
-          int32_t k1 = ReturnHarqSlot (pattern, i, n1);
+          int32_t k1 = ReturnHarqSlot (*generationPattern, i, n1);
           (*dlHarqfbPosition).insert (std::make_pair (i, k1));
         }
     }

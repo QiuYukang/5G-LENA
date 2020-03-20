@@ -167,6 +167,7 @@ LtePatternTestCase::DoRun()
                   {9, 4},
                }
              };
+
   TestPattern (one, a);
 
   Result b = {
@@ -637,6 +638,83 @@ LtePatternTestCase::DoRun()
             };
 
   TestPattern (twelve,l);
+
+  Result m = { {
+                 { 0, {0, } },
+                 { 1, {0, } },
+                 { 2, {0, } },
+                 { 3, {0, } },
+                 { 4, {0, } },
+                 { 5, {0, } },
+                 { 6, {0, } },
+                 { 7, {0, } },
+                 { 8, {0, } },
+                 { 9, {0, } },
+               },
+               {
+                 { 0, {2, } },
+                 { 1, {2, } },
+                 { 2, {2, } },
+                 { 3, {2, } },
+                 { 4, {2, } },
+                 { 5, {2, } },
+                 { 6, {2, } },
+                 { 7, {2, } },
+                 { 8, {2, } },
+                 { 9, {2, } },
+               },
+               {
+                 { 0, {2, } },
+                 { 1, {2, } },
+                 { 2, {2, } },
+                 { 3, {2, } },
+                 { 4, {2, } },
+                 { 5, {2, } },
+                 { 6, {2, } },
+                 { 7, {2, } },
+                 { 8, {2, } },
+                 { 9, {2, } },
+               },
+               {
+                 { 0, {4, } },
+                 { 1, {4, } },
+                 { 2, {4, } },
+                 { 3, {4, } },
+                 { 4, {4, } },
+                 { 5, {4, } },
+                 { 6, {4, } },
+                 { 7, {4, } },
+                 { 8, {4, } },
+                 { 9, {4, } },
+               },
+               {
+                 {0, 4},
+                 {1, 4},
+                 {2, 4},
+                 {3, 4},
+                 {4, 4},
+                 {5, 4},
+                 {6, 4},
+                 {7, 4},
+                 {8, 4},
+                 {9, 4},
+               }
+             };
+
+  auto thirtheen = {
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+               LteNrTddSlotType::DL,
+            };
+
+  TestPattern (thirtheen, m);
 }
 
 void
@@ -719,22 +797,61 @@ LtePatternTestCase::TestPattern (const std::vector<LteNrTddSlotType> &pattern,
 
   if (m_verbose)
     {
+      std::cout << std::endl << "PATTERN to test: ";
+      for (const auto & v : pattern)
+        {
+          std::cout << v << " ";
+        }
+      std::cout << std::endl;
+    }
+
+  if (m_verbose)
+    {
+      std::cout << "To Send DL theoretic:" << std::endl;
       Print (toSendDl);
+      std::cout << "To Send DL result:" << std::endl;
       Print (result.m_toSendDl);
+    }
+  CheckMap (toSendDl, result.m_toSendDl);
+
+  if (m_verbose)
+    {
+      std::cout << "To Send UL theoretic:" << std::endl;
       Print (toSendUl);
+      std::cout << "To Send UL result:" << std::endl;
       Print (result.m_toSendUl);
+    }
+
+  CheckMap (toSendUl, result.m_toSendUl);
+
+  if (m_verbose)
+    {
+      std::cout << "Generate DL theoretic:" << std::endl;
       Print (generateDl);
+      std::cout << "Generate DL result:" << std::endl;
       Print (result.m_generateDl);
+    }
+
+  CheckMap (generateDl, result.m_generateDl);
+
+  if (m_verbose)
+    {
+      std::cout << "Generate UL theoretic:" << std::endl;
       Print (generateUl);
+      std::cout << "Generate UL result:" << std::endl;
       Print (result.m_generateUl);
+    }
+
+  CheckMap (generateUl, result.m_generateUl);
+
+  if (m_verbose)
+    {
+      std::cout << "HarqFB theoretic:" << std::endl;
       PrintHarq (dlHarqFb);
+      std::cout << "HarqFB result:" << std::endl;
       PrintHarq (result.m_dlHarqFb);
     }
 
-  CheckMap (toSendDl, result.m_toSendDl);
-  CheckMap (toSendUl, result.m_toSendUl);
-  CheckMap (generateDl, result.m_generateDl);
-  CheckMap (generateUl, result.m_generateUl);
   CheckHarqMap (dlHarqFb, result.m_dlHarqFb);
 }
 
