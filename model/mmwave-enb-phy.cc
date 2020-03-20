@@ -529,6 +529,7 @@ MmWaveEnbPhy::QueueMib ()
   mib.dlBandwidth = m_channelBandwidth;
   mib.systemFrameNumber = 1;
   Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
+  mibMsg->m_bwpId = GetBwpId ();
   mibMsg->SetMib (mib);
   EnqueueCtrlMsgNow (mibMsg);
 }

@@ -214,6 +214,8 @@ public:
    */
   LteRrcSap::MasterInformationBlock GetMib () const;
 
+  uint8_t m_bwpId {0};
+
 private:
   LteRrcSap::MasterInformationBlock m_mib;
 
