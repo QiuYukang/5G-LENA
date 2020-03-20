@@ -1,7 +1,6 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*-
-
- *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -16,9 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author:  Biljana Bojovic <bbojovic@cttc.es>
- *
  */
 
 
@@ -27,21 +23,8 @@
  *
  * \file cttc-3gpp-channel-nums-fdm.cc
  * \ingroup examples
- * \brief Frequency division multiplexing example.
+ * \brief Frequency division multiplexing example, with TDD and FDD
  *
- * The simulation program allows the user to configure 2 UEs and 1 or 2 bandwidth parts (BWPs) and test the end-to-end performance.
- * This example is designed to expect the full configuration of each BWP. The configuration of BWP is composed of the following parameters:
- * central carrier frequency, bandwidth and numerology. There are 2 UEs, and each UE has one flow. One flow is of URLLC traffic type, while the another is eMBB.
- * URLLC is configured to be transmitted over the first BWP, and the eMBB over the second BWP.
- * Hence, in this example it is expected to configure the first BWP to use a higher numerology than the second BWP.
- * The simulation topology is as the one used in "cttc-3gpp-channel-nums.cc".
- * The user can run this example with UDP full buffer traffic or can specify the UDP packet interval and UDP packet size per type of traffic.
- * "--udpIntervalUll" and "--packetSizeUll" parameters are used to configure the UDP traffic of URLLC flow,
- * while "--udpIntervalBe" and "--packetSizeBe" parameters are used to configure the UDP traffic of eMBB flow.
- * If UDP full buffer traffic is configured, the packet interval for each flow is calculated based on approximated value of saturation rate for the bandwidth to
- * which the flow is mapped, and taking into account the packet size of the flow.
- * The total transmission power for each BWP depends on how the bandwidth is divided among BWP, and will be proportionally assigned to each BWP.
- * If the user configures only 1 BWP, then the configuration for the first BWP will be used.
  */
 
 #include "ns3/core-module.h"
@@ -51,386 +34,286 @@
 #include "ns3/internet-apps-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/log.h"
-#include "ns3/point-to-point-helper.h"
-#include "ns3/flow-monitor-helper.h"
-#include "ns3/ipv4-flow-classifier.h"
-#include "ns3/mmwave-helper.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
-#include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/flow-monitor-module.h"
+#include "ns3/nr-module.h"
 #include "ns3/config-store-module.h"
-#include "ns3/mmwave-mac-scheduler-tdma-rr.h"
-#include "ns3/bandwidth-part-gnb.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmBandwidthPartsExample");
-
-/**
- * \brief Global variable used to configure whether to configure a full buffer UDP traffic. It is accessible as "--udpFullBuffer" from CommandLine.
- */
-static ns3::GlobalValue g_udpRate ("udpFullBuffer",
-                                   "Whether to set the full buffer traffic; if this parameter is set then the udpInterval parameter"
-                                   "will be neglected.",
-                                   ns3::BooleanValue (false),
-                                   ns3::MakeBooleanChecker());
-
-/**
- * \brief Global variable used to configure whether to setup a single UE topology. It is accessible as "--singleUeTopology" from CommandLine.
- */
-static ns3::GlobalValue g_singleUeTopology ("singleUeTopology",
-                                            "When true the example uses a single UE topology, when false use topology with variable number of UEs"
-                                            "will be neglected.",
-                                            ns3::BooleanValue (false),
-                                            ns3::MakeBooleanChecker());
-
-/**
- * \brief Global variable used to configure whether to use the fixed MCS. It is accessible as "--useFixedMcs" from CommandLine.
- */
-static ns3::GlobalValue g_useFixedMcs ("useFixedMcs",
-                                       "Whether to use fixed mcs, normally used for testing purposes",
-                                        ns3::BooleanValue (false),
-                                        ns3::MakeBooleanChecker());
-/**
- * \brief Global variable used to configure the value of fixed MCS in the case it is used. It is accessible as "--fixedMcs" from CommandLine.
- */
-static ns3::GlobalValue g_fixedMcs ("fixedMcs",
-                                    "The MCS that will be used in this example",
-                                    ns3::UintegerValue (1),
-                                    ns3::MakeUintegerChecker<uint32_t>());
-/**
- * \brief Global variable used to configure the number of gNBs. It is accessible as "--gNbNum" from CommandLine.
- */
-static ns3::GlobalValue g_gNbNum ("gNbNum",
-                                  "The number of gNbs in multiple-ue topology",
-                                   ns3::UintegerValue (1),
-                                   ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the number of UEs per gNB. It is accessible as "--ueNumPergNb" from CommandLine.
- */
-static ns3::GlobalValue g_ueNum ("ueNumPergNb",
-                                  "The number of UE per gNb in multiple-ue topology",
-                                  ns3::UintegerValue (2),
-                                  ns3::MakeUintegerChecker<uint32_t>());
-
-/******************************** FDM parameters ******************************************/
-
-/**
- * \brief Global variable used to configure the numerology for BWP 1. It is accessible as "--numerologyBwp1" from CommandLine.
- */
-static ns3::GlobalValue g_numerologyBwp1 ("numerologyBwp1",
-                                          "The numerology to be used in bandwidth part 1",
-                                           ns3::UintegerValue (4),
-                                           ns3::MakeUintegerChecker<uint32_t>());
-/**
- * \brief Global variable used to configure the central system frequency for BWP 1. It is accessible as "--frequencyBwp1" from CommandLine.
- */
-static ns3::GlobalValue g_frequencyBwp1 ("frequencyBwp1",
-                                         "The system frequency to be used in bandwidth part 1",
-                                          ns3::DoubleValue(28e9),
-                                          ns3::MakeDoubleChecker<double>(6e9,100e9));
-/**
- * \brief Global variable used to configure the bandwidth for BWP 1. This value is expressed in Hz.It is accessible as "--bandwidthBwp1" from CommandLine.
- */
-static ns3::GlobalValue g_bandwidthBwp1 ("bandwidthBwp1",
-                                        "The system bandwidth to be used in bandwidth part 1",
-                                         ns3::DoubleValue(100e6),
-                                         ns3::MakeDoubleChecker<double>());
-
-/**
- * \brief Global variable used to configure the numerology for BWP 2. It is accessible as "--numerologyBwp2" from CommandLine.
- */
-static ns3::GlobalValue g_numerologyBwp2 ("numerologyBwp2",
-                                          "The numerology to be used in bandwidth part 2",
-                                           ns3::UintegerValue (2),
-                                           ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the central system frequency for BWP 2. It is accessible as "--frequencyBwp2" from CommandLine.
- */
-static ns3::GlobalValue g_frequencyBwp2 ("frequencyBwp2",
-                                         "The system frequency to be used in bandwidth part 2",
-                                          ns3::DoubleValue(28.2e9),
-                                          ns3::MakeDoubleChecker<double>(6e9,100e9));
-
-/**
- * \brief Global variable used to configure the bandwidth for BWP 2. This value is expressed in Hz.It is accessible as "--bandwidthBwp2" from CommandLine.
- */
-static ns3::GlobalValue g_bandwidthBwp2 ("bandwidthBwp2",
-                                         "The system bandwidth to be used in bandwidth part 2",
-                                          ns3::DoubleValue(100e6),
-                                          ns3::MakeDoubleChecker<double>());
-
-/**
- * \brief Global variable used to configure the packet size for ULL  type of traffic . This value is expressed in bytes. It is accessible as "--packetSizeUll" from CommandLine.
- */
-static ns3::GlobalValue g_udpPacketSizeUll ("packetSizeUll",
-                                            "packet size in bytes to be used by ultra low latency traffic",
-                                            ns3::UintegerValue (100),
-                                            ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the packet size for BE  type of traffic . This value is expressed in bytes. It is accessible as "--packetSizeBe" from CommandLine.
- */
-static ns3::GlobalValue g_udpPacketSizeBe ("packetSizeBe",
-                                           "packet size in bytes to be used by best effort traffic",
-                                           ns3::UintegerValue (1252),
-                                           ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the lambda parameter for ULL type of traffic . This value is expressed in bytes. It is accessible as "--lambdaUll" from CommandLine.
- */
-static ns3::GlobalValue g_udpIntervalUll ("lambdaUll",
-                                          "Number of UDP packets in one second for ultra low latency traffic",
-                                          ns3::UintegerValue (10),
-                                          ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the lambda parameter for BE type of traffic . This value is expressed in bytes. It is accessible as "--lambdaBe" from CommandLine.
- */
-static ns3::GlobalValue g_udpIntervalBe ("lambdaBe",
-                                         "Number of UDP packets in one second for best effor traffic",
-                                         ns3::UintegerValue (1),
-                                         ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the simulation tag. This value is expressed in bytes. It is accessible as "--simTag" from CommandLine.
- */
-static ns3::GlobalValue g_simTag ("simTag",
-                                  "tag to be appended to output filenames to distinguish simulation campaigns",
-                                  ns3::StringValue ("cttc-3gpp-channel-nums-fdm-output"),
-                                  ns3::MakeStringChecker ());
-
-/**
- * \brief Global variable used to configure the output results folder. This value is expressed in bytes. It is accessible as "--outputDir" from CommandLine.
- */
-static ns3::GlobalValue g_outputDir ("outputDir",
-                                     "directory where to store simulation results",
-                                     ns3::StringValue ("./"),
-                                     ns3::MakeStringChecker ());
-
-/**
- * \brief Global variable used to configure the total TX power. This value is expressed in bytes. It is accessible as "--totalTxPower" from CommandLine.
- */
-static ns3::GlobalValue g_totalTxPower ("totalTxPower",
-                                       "total tx power that will be proportionally assigned to bandwidth parts depending on each BWP bandwidth ",
-                                        ns3::DoubleValue (4),
-                                        ns3::MakeDoubleChecker<double>());
-
-/**
- * \brief Global variable used to configure whether to use on 1 BWP. This value is expressed in bytes. It is accessible as "--singleBwp" from CommandLine.
- */
-static ns3::GlobalValue g_singleBwp ("singleBwp",
-                                     "Simulate with single BWP, BWP1 configuration will be used",
-                                     ns3::BooleanValue (true),
-                                     ns3::MakeBooleanChecker());
+NS_LOG_COMPONENT_DEFINE ("3gppChannelNumsFdm");
 
 int 
 main (int argc, char *argv[])
 {
+  uint16_t gNbNum = 4;
+  uint16_t ueNum = 4;
 
-    CommandLine cmd;
-    cmd.Parse (argc, argv);
-    ConfigStore inputConfig;
-    inputConfig.ConfigureDefaults ();
-    // parse again so you can override input file default values via command line
-    cmd.Parse (argc, argv);
+  uint32_t udpPacketSizeVideo = 100;
+  uint32_t udpPacketSizeVoice = 1252;
+  uint32_t lambdaVideo = 50;
+  uint32_t lambdaVoice = 100;
 
-  // enable logging or not
-  bool logging = false;
-  if(logging)
-    {
-      LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
-      LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
+  uint32_t simTimeMs = 1400;
+  uint32_t udpAppStartTimeMs = 400;
 
-    }
+  double centralFrequencyBand1 = 28e9;
+  double bandwidthBand1 = 100e6;
+  double centralFrequencyBand2 = 28.2e9;
+  double bandwidthBand2 = 100e6;
+  double totalTxPower = 4;
+  std::string simTag = "default";
+  std::string outputDir = "./";
 
-  // set simulation time and mobility
-  double simTime = 1; // seconds
-  double udpAppStartTime = 0.4; //seconds
-  //double speed = 1; // 1 m/s for walking UT.
+  CommandLine cmd;
 
-  // parse the command line options
-  BooleanValue booleanValue;
-  StringValue stringValue;
-  IntegerValue integerValue;
-  UintegerValue uintegerValue;
-  DoubleValue doubleValue;
+  cmd.AddValue ("packetSizeUll",
+                "packet size in bytes to be used by ultra low latency traffic",
+                udpPacketSizeVideo);
+  cmd.AddValue ("packetSizeBe",
+                "packet size in bytes to be used by best effort traffic",
+                udpPacketSizeVoice);
+  cmd.AddValue ("lambdaUll",
+                "Number of UDP packets in one second for ultra low latency traffic",
+                lambdaVideo);
+  cmd.AddValue ("lambdaBe",
+                "Number of UDP packets in one second for best effor traffic",
+                lambdaVoice);
+  cmd.AddValue ("simTimeMs",
+                "Simulation time",
+                simTimeMs);
+  cmd.AddValue ("centralFrequencyBand1",
+                "The system frequency to be used in band 1",
+                centralFrequencyBand1);
+  cmd.AddValue ("bandwidthBand1",
+                "The system bandwidth to be used in band 1",
+                bandwidthBand1);
+  cmd.AddValue ("centralFrequencyBand2",
+                "The system frequency to be used in band 2",
+                centralFrequencyBand2);
+  cmd.AddValue ("bandwidthBand2",
+                "The system bandwidth to be used in band 2",
+                bandwidthBand2);
+  cmd.AddValue ("totalTxPower",
+                "total tx power that will be proportionally assigned to"
+                " bands, CCs and bandwidth parts depending on each BWP bandwidth ",
+                totalTxPower);
+  cmd.AddValue ("simTag",
+                "tag to be appended to output filenames to distinguish simulation campaigns",
+                simTag);
+  cmd.AddValue ("outputDir",
+                "directory where to store simulation results",
+                outputDir);
 
-  GlobalValue::GetValueByName("numerologyBwp1", uintegerValue); // use optional NLOS equation
-  uint16_t numerologyBwp1 = uintegerValue.Get();
-  GlobalValue::GetValueByName("frequencyBwp1", doubleValue); //
-  double frequencyBwp1 = doubleValue.Get();
-  GlobalValue::GetValueByName("bandwidthBwp1", doubleValue); //
-  double bandwidthBwp1 = doubleValue.Get();
-  GlobalValue::GetValueByName("numerologyBwp2", uintegerValue); // use optional NLOS equation
-  uint16_t numerologyBwp2 = uintegerValue.Get();
-  GlobalValue::GetValueByName("frequencyBwp2", doubleValue); //
-  double frequencyBwp2 = doubleValue.Get();
-  GlobalValue::GetValueByName("bandwidthBwp2", doubleValue); //
-  double bandwidthBwp2 = doubleValue.Get();
-  GlobalValue::GetValueByName("packetSizeUll", uintegerValue); // use optional NLOS equation
-  uint32_t udpPacketSizeUll = uintegerValue.Get();
-  GlobalValue::GetValueByName("packetSizeBe", uintegerValue); // use optional NLOS equation
-  uint32_t udpPacketSizeBe = uintegerValue.Get();
-  GlobalValue::GetValueByName("lambdaUll", uintegerValue); // use optional NLOS equation
-  uint32_t lambdaUll = uintegerValue.Get();
-  GlobalValue::GetValueByName("lambdaBe", uintegerValue); // use optional NLOS equation
-  uint32_t lambdaBe = uintegerValue.Get();
-  GlobalValue::GetValueByName ("simTag", stringValue);
-  std::string simTag = stringValue.Get ();
-  GlobalValue::GetValueByName ("outputDir", stringValue);
-  std::string outputDir = stringValue.Get ();
+  cmd.Parse (argc, argv);
 
-  GlobalValue::GetValueByName("totalTxPower", doubleValue); // use optional NLOS equation
-  double totalTxPower = doubleValue.Get();
-
-  GlobalValue::GetValueByName("fixedMcs", uintegerValue); // use optional NLOS equation
-  GlobalValue::GetValueByName("gNbNum", uintegerValue); // use optional NLOS equation
-  uint16_t gNbNum = uintegerValue.Get();
-  GlobalValue::GetValueByName("ueNumPergNb", uintegerValue); // use optional NLOS equation
-  uint16_t ueNumPergNb = uintegerValue.Get();
-  GlobalValue::GetValueByName("udpFullBuffer", booleanValue); //
-  bool udpFullBuffer = booleanValue.Get();
-  GlobalValue::GetValueByName("singleUeTopology", booleanValue); //
-  bool singleUeTopology = booleanValue.Get();
-  GlobalValue::GetValueByName("useFixedMcs", booleanValue); //
-  GlobalValue::GetValueByName("singleBwp", booleanValue); //
-  bool singleBwp = booleanValue.Get();
-
-
-  if (singleUeTopology)
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("RMa"));
-    }
-  else
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
-    }
+  NS_ABORT_IF (centralFrequencyBand1 > 100e9);
+  NS_ABORT_IF (centralFrequencyBand2 > 100e9);
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
-  Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
+  GridScenarioHelper gridScenario;
+  gridScenario.SetRows (gNbNum / 2);
+  gridScenario.SetColumns (gNbNum);
+  gridScenario.SetHorizontalBsDistance (5.0);
+  gridScenario.SetBsHeight (10.0);
+  gridScenario.SetUtHeight (1.5);
+  gridScenario.SetBsNumber (gNbNum);
+  gridScenario.SetUtNumber (ueNum);
+  gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
+  gridScenario.SetScenarioLength (3); // be distribuited.
+  gridScenario.CreateScenario ();
 
-  // Should be 8x8 = 64 antenna elements
-  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue (8));
-  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue (8));
-  // Should be 4x4 = 16 antenna elements
-  Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue (4));
-  Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue (4));
-
-  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
-  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
-
-  // setup the mmWave simulation
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
-  phyMacCommonBwp1->SetNumerology(numerologyBwp1);
-  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-
-  BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
-  mmWaveHelper->AddBandwidthPart(0, repr1);
-
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
-  phyMacCommonBwp2->SetNumerology(numerologyBwp2);
-
-  // if not single BWP simulation add second BWP configuration
-  if (!singleBwp)
-    {
-      BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
-      mmWaveHelper->AddBandwidthPart(1, repr2);
-    }
+  /*
+   * TODO: Add a print, or a plot, that shows the scenario.
+   */
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+
+  // Put the pointers inside mmWaveHelper
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
   mmWaveHelper->SetEpcHelper (epcHelper);
-  mmWaveHelper->Initialize();
 
-  // create base stations and mobile terminals
-  NodeContainer gNbNodes;
-  NodeContainer ueNodes;
-  MobilityHelper mobility;
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
 
-  double gNbHeight = 10;
-  double ueHeight = 1.5;
+  CcBwpCreator::SimpleOperationBandConf bandConfTdd (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  CcBwpCreator::SimpleOperationBandConf bandConfFdd (centralFrequencyBand2, bandwidthBand2, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
 
-  if (singleUeTopology)
+  bandConfFdd.m_numBwp = 2; // Here, bandFdd will have 2 BWPs
+
+  // By using the configuration created, it is time to make the operation bands
+  OperationBandInfo bandTdd = ccBwpCreator.CreateOperationBandContiguousCc (bandConfTdd);
+  OperationBandInfo bandFdd = ccBwpCreator.CreateOperationBandContiguousCc (bandConfFdd);
+
+  /*
+   * The configured spectrum division is:
+   * |------------BandTdd--------------|--------------BandFdd---------------|
+   * |------------CC0------------------|--------------CC1-------------------|
+   * |------------BWP0-----------------|------BWP1-------|-------BWP2-------|
+   *
+   * We will configure BWP1 as TDD, BWP2 as FDD-DL, BWP3 as FDD-UL.
+   */
+
+  /*
+   * Attributes of ThreeGppChannelModel still cannot be set in our way.
+   * TODO: Coordinate with Tommaso
+   */
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  mmWaveHelper->InitializeOperationBand (&bandTdd);
+  mmWaveHelper->InitializeOperationBand (&bandFdd);
+  allBwps = CcBwpCreator::GetAllBwps ({bandTdd, bandFdd});
+
+  // Beamforming method
+  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+
+  // Core latency
+  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
+
+  // Antennas for all the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Antennas for all the gNbs
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  mmWaveHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (4.0));
+
+  uint32_t bwpIdForVoice = 0;
+  uint32_t bwpIdForVideo = 1;
+  uint32_t bwpIdForGaming = 2;
+
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VIDEO", UintegerValue (bwpIdForVideo));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_GAMING", UintegerValue (bwpIdForGaming));
+
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VIDEO", UintegerValue (bwpIdForVideo));
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_GAMING", UintegerValue (bwpIdForGaming));
+
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+
+  NS_ASSERT (enbNetDev.GetN () == 4);
+
+  // -------------- First GNB:
+
+  // BWP0, the TDD one
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (0));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP1, FDD-DL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (0));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP2, FDD-UL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (0));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+
+  // Link the two FDD BWP:
+
+  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (2, 1);
+
+  // -------------- Second GNB:
+
+  // BWP0, the TDD one
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (1));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP1, FDD-DL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("Numerology", UintegerValue (1));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP2, FDD-UL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("Numerology", UintegerValue (1));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+
+  // Link the two FDD BWP:
+
+  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (1))->SetOutputLink (2, 1);
+
+  // -------------- Third GNB:
+
+  // BWP0, the TDD one
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("Numerology", UintegerValue (2));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP1, FDD-DL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("Numerology", UintegerValue (2));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP2, FDD-UL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("Numerology", UintegerValue (2));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+
+  // Link the two FDD BWP:
+
+  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (2))->SetOutputLink (2, 1);
+
+  // -------------- Fourth GNB:
+
+  // BWP0, the TDD one
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("Numerology", UintegerValue (3));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP1, FDD-DL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("Numerology", UintegerValue (3));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+
+  // BWP2, FDD-UL
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("Numerology", UintegerValue (3));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+
+  // Link the two FDD BWP:
+
+  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (3))->SetOutputLink (2, 1);
+
+  // Set the UE routing:
+
+  for (uint32_t i = 0; i < ueNetDev.GetN (); i++)
     {
-      gNbNodes.Create (1);
-      ueNodes.Create (1);
-      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-      mobility.Install (gNbNodes);
-      mobility.Install (ueNodes);
-      gNbNodes.Get(0)->GetObject<MobilityModel>()->SetPosition (Vector (0.0, 0.0, gNbHeight));
-      ueNodes.Get(0)->GetObject<MobilityModel> ()->SetPosition (Vector (0.0, 30.0 , ueHeight));
+      mmWaveHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (2, 1);
     }
-  else
+
+  // When all the configuration is done, explicitly call UpdateConfig ()
+
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      gNbNodes.Create (gNbNum);
-      ueNodes.Create (ueNumPergNb * gNbNum);
-
-      MobilityHelper mobility;
-      Ptr<ListPositionAllocator> apPositionAlloc = CreateObject<ListPositionAllocator> ();
-      Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
-      int32_t yValue = 0.0;
-
-      for (uint32_t i = 1; i <= gNbNodes.GetN(); ++i)
-        {
-          // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
-          if (i % 2 != 0)
-            {
-              yValue = static_cast<int>(i) * 30;
-            }
-          else
-            {
-              yValue = -yValue;
-            }
-
-          apPositionAlloc->Add (Vector (0.0, yValue, gNbHeight));
-
-
-          // 1.0, -1.0, 3.0, -3.0, 5.0, -5.0, ...
-          double xValue = 0.0;
-          for (uint32_t j = 1; j <= ueNumPergNb; ++j)
-            {
-              if (j % 2 != 0)
-                {
-                  xValue = j;
-                }
-              else
-                {
-                  xValue = -xValue;
-                }
-
-              if (yValue > 0)
-                {
-                  staPositionAlloc->Add (Vector (xValue, 10, ueHeight));
-                }
-              else
-                {
-                  staPositionAlloc->Add (Vector (xValue, -10, ueHeight));
-                }
-            }
-        }
-
-      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-      mobility.SetPositionAllocator (apPositionAlloc);
-      mobility.Install (gNbNodes);
-
-      mobility.SetPositionAllocator (staPositionAlloc);
-      mobility.Install (ueNodes);
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
 
-  // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
+
+  // From here, it is standard NS3. In the future, we will create helpers
+  // for this part as well.
 
   // create the internet and install the IP stack on the UEs
-  // get SGW/PGW and create a single RemoteHost 
+  // get SGW/PGW and create a single RemoteHost
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
@@ -445,145 +328,147 @@ main (int argc, char *argv[])
   p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.000)));
   NetDeviceContainer internetDevices = p2ph.Install (pgw, remoteHost);
   Ipv4AddressHelper ipv4h;
+  Ipv4StaticRoutingHelper ipv4RoutingHelper;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
-  Ipv4StaticRoutingHelper ipv4RoutingHelper;
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
-  internet.Install (ueNodes);
-  Ipv4InterfaceContainer ueIpIface;
-  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
-  // assign IP address to UEs, and install UDP downlink applications
-  uint16_t dlPort = 1234;
-  ApplicationContainer clientApps;
-  ApplicationContainer serverApps;
+  internet.Install (gridScenario.GetUserTerminals ());
 
-  ApplicationContainer clientAppsEmbb;
-  ApplicationContainer serverAppsEmbb;
-
-  ObjectMapValue objectMapValue;
-
-  double x = pow(10, totalTxPower/10);
-
-  double totalBandwidth = 0;
-
-  if (singleBwp)
-    {
-      totalBandwidth = bandwidthBwp1;
-    }
-  else
-    {
-      totalBandwidth = bandwidthBwp1 + bandwidthBwp2;
-    }
-
-
-  for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
-     {
-       enbNetDev.Get(j)->GetAttribute("BandwidthPartMap", objectMapValue);
-       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
-         {
-           Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
-           if (i==0)
-             {
-               bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp1/totalBandwidth)*x));
-               std::cout<<"\n txPower1 = "<<10*log10((bandwidthBwp1/totalBandwidth)*x)<<std::endl;
-             }
-           else if (i==1)
-             {
-               bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp2/totalBandwidth)*x));
-               std::cout<<"\n txPower2 = "<<10*log10((bandwidthBwp2/totalBandwidth)*x)<<std::endl;
-             }
-           else
-             {
-               std::cout<<"\n Please extend power assignment for additional bandwidht parts...";
-             }
-         }
-       //std::map<uint8_t, Ptr<BandwidthPartGnb> > ccMap = objectMapValue.GetN()
-     }
+  Ipv4InterfaceContainer ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-
-  UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (ueNodes));
-
-   // configure here UDP traffic
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  // Fix the attachment of the UEs: UE_i attached to GNB_i
+  for (uint32_t i = 0; i < ueNetDev.GetN(); ++i)
     {
-      UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      //dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
-
-      if (udpFullBuffer)
-        {
-          double bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-
-          if (bandwidthBwp1 > 20e6)
-            {
-              bitRate *=  bandwidthBwp1 / 20e6;
-            }
-          lambdaUll = 1.0 / ((udpPacketSizeUll * 8) / bitRate);
-
-
-          bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-
-          if (bandwidthBwp2 > 20e6)
-            {
-              bitRate *=  bandwidthBwp2 / 20e6;
-            }
-          lambdaUll = 1.0 / ((udpPacketSizeBe * 8) / bitRate);
-        }
-
-      if (j % 2 == 0)
-        {
-          dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
-          dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
-        }
-      else
-        {
-          dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
-          dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
-        }
-
-      clientApps.Add (dlClient.Install (remoteHost));
-
-
-      Ptr<EpcTft> tft = Create<EpcTft> ();
-      EpcTft::PacketFilter dlpf;
-      dlpf.localPortStart = dlPort;
-      dlpf.localPortEnd = dlPort;
-      dlPort++;
-      tft->Add (dlpf);
-
-      enum EpsBearer::Qci q;
-
-      if (j % 2 == 0)
-        {
-          q = EpsBearer:: NGBR_LOW_LAT_EMBB;
-        }
-      else
-        {
-          q = EpsBearer::GBR_CONV_VOICE;
-        }
-
-//      q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
-
-      EpsBearer bearer (q);
-      mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
+      auto enbDev = DynamicCast<MmWaveEnbNetDevice> (enbNetDev.Get (i));
+      auto ueDev = DynamicCast<MmWaveUeNetDevice> (ueNetDev.Get (i));
+      NS_ASSERT (enbDev != nullptr);
+      NS_ASSERT (ueDev != nullptr);
+      mmWaveHelper->AttachToEnb (ueDev, enbDev);
     }
-  // start UDP server and client apps
-  serverApps.Start(Seconds(udpAppStartTime));
-  clientApps.Start(Seconds(udpAppStartTime));
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime));
 
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  /*
+   * Traffic part. Install two kind of traffic: low-latency and voice, each
+   * identified by a particular source port.
+   */
+  uint16_t dlPortVideo = 1234;
+  uint16_t dlPortVoice = 1235;
+  //uint16_t ulPortGaming = 1236;
+
+  ApplicationContainer serverApps;
+
+  // The sink will always listen to the specified ports
+  UdpServerHelper dlPacketSinkVideo (dlPortVideo);
+  UdpServerHelper dlPacketSinkVoice (dlPortVoice);
+  //UdpServerHelper ulPacketSinkVoice (ulPortGaming);
+
+  // The server, that is the application which is listening, is installed in the UE
+  // for the DL traffic, and in the remote host for the UL traffic
+  serverApps.Add (dlPacketSinkVideo.Install (gridScenario.GetUserTerminals ()));
+  serverApps.Add (dlPacketSinkVoice.Install (gridScenario.GetUserTerminals ()));
+  //serverApps.Add (ulPacketSinkVoice.Install (remoteHost));
+
+
+  /*
+   * Configure attributes for the different generators, using user-provided
+   * parameters for generating a CBR traffic
+   *
+   * Low-Latency configuration and object creation:
+   */
+  UdpClientHelper dlClientVideo;
+  dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
+  dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeVideo));
+  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaVideo)));
+
+  // The bearer that will carry low latency traffic
+  EpsBearer videoBearer (EpsBearer::GBR_CONV_VIDEO);
+
+  // The filter for the low-latency traffic
+  Ptr<EpcTft> videoTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVideo;
+  dlpfVideo.localPortStart = dlPortVideo;
+  dlpfVideo.localPortEnd = dlPortVideo;
+  videoTft->Add (dlpfVideo);
+
+  // Voice configuration and object creation:
+  UdpClientHelper dlClientVoice;
+  dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
+  dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeVoice));
+  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaVoice)));
+
+  // The bearer that will carry voice traffic
+  EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
+
+  // The filter for the voice traffic
+  Ptr<EpcTft> voiceTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVoice;
+  dlpfVoice.localPortStart = dlPortVoice;
+  dlpfVoice.localPortEnd = dlPortVoice;
+  voiceTft->Add (dlpfVoice);
+
+  // Gaming configuration and object creation:
+  //UdpClientHelper ulClientGaming;
+  //ulClientGaming.SetAttribute ("RemotePort", UintegerValue (ulPortGaming));
+  //ulClientGaming.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  //ulClientGaming.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeVoice));
+  //dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaVoice)));
+
+  // The bearer that will carry gaming traffic
+  // EpsBearer gamingBearer (EpsBearer::GBR_GAMING);
+
+  // The filter for the gaming traffic
+  // Ptr<EpcTft> gamingTft = Create<EpcTft> ();
+  // EpcTft::PacketFilter dlpfGaming;
+  // dlpfGaming.remotePortStart = ulPortGaming;
+  // dlpfGaming.remotePortEnd = ulPortGaming;
+  // gamingTft->Add (dlpfGaming);
+
+  /*
+   * Let's install the applications!
+   */
+  ApplicationContainer clientApps;
+
+  for (uint32_t i = 0; i < gridScenario.GetUserTerminals ().GetN (); ++i)
+    {
+      Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (i);
+      Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
+      Address ueAddress = ueIpIface.GetAddress (i);
+
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      clientApps.Add (dlClientVoice.Install (remoteHost));
+
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+
+      dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      clientApps.Add (dlClientVideo.Install (remoteHost));
+
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+
+      // For the uplink, the installation happens in the UE, and the remote address
+      // is the one of the remote host
+
+      //ulClientGaming.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
+      //clientApps.Add (ulClientGaming.Install (ue));
+
+      //mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
+    }
+
+  // start UDP server and client apps
+  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+  clientApps.Start (MilliSeconds (udpAppStartTimeMs));
+  serverApps.Stop (MilliSeconds (simTimeMs));
+  clientApps.Stop (MilliSeconds (simTimeMs));
 
   // enable the traces provided by the mmWave module
   //mmWaveHelper->EnableTraces();
@@ -592,19 +477,19 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmonHelper;
   NodeContainer endpointNodes;
   endpointNodes.Add (remoteHost);
-  endpointNodes.Add (ueNodes);
+  endpointNodes.Add (gridScenario.GetUserTerminals ());
 
-  Ptr<FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
+  Ptr<ns3::FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
   monitor->SetAttribute ("DelayBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  Simulator::Stop (Seconds (simTime));
+  Simulator::Stop (MilliSeconds (simTimeMs));
   Simulator::Run ();
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> Numerology,
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */
@@ -619,15 +504,16 @@ main (int argc, char *argv[])
 
   std::ofstream outFile;
   std::string filename = outputDir + "/" + simTag;
-  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::app);
+  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
   if (!outFile.is_open ())
     {
-      NS_LOG_ERROR ("Can't open file " << filename);
+      std::cerr << "Can't open file " << filename << std::endl;
       return 1;
     }
+
   outFile.setf (std::ios_base::fixed);
 
- for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
       std::stringstream protoStream;
@@ -643,13 +529,13 @@ main (int argc, char *argv[])
       outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
       outFile << "  Tx Packets: " << i->second.txPackets << "\n";
       outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
-      outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / (simTime - udpAppStartTime) / 1000 / 1000  << " Mbps\n";
+      outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0  << " Mbps\n";
       outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
       if (i->second.rxPackets > 0)
         {
           // Measure the duration of the flow from receiver's perspective
           //double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-          double rxDuration = (simTime - udpAppStartTime);
+          double rxDuration = (simTimeMs - udpAppStartTimeMs) / 1000.0;
 
           averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
           averageFlowDelay += 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;

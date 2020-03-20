@@ -11,8 +11,8 @@ def build(bld):
 #    obj.source = 'cttc-3gpp-indoor-calibration.cc'
 #    obj = bld.create_ns3_program('cttc-3gpp-channel-nums', ['nr', 'flow-monitor'])
 #    obj.source = 'cttc-3gpp-channel-nums.cc'
-#    obj = bld.create_ns3_program('cttc-3gpp-channel-nums-fdm', ['nr','flow-monitor'])
-#    obj.source = 'cttc-3gpp-channel-nums-fdm.cc'
+    obj = bld.create_ns3_program('cttc-3gpp-channel-nums-fdm', ['nr','flow-monitor'])
+    obj.source = 'cttc-3gpp-channel-nums-fdm.cc'
 #    obj = bld.create_ns3_program('cttc-nr-cc-bwp-demo', ['nr','flow-monitor'])
 #    obj.source = 'cttc-nr-cc-bwp-demo.cc'
 #    obj = bld.create_ns3_program('cttc-nr-tdd-cc-bwp-demo', ['nr','flow-monitor'])
