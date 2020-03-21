@@ -293,7 +293,7 @@ main (int argc, char *argv[])
 
   for (uint32_t i = 0; i < ueNetDev.GetN (); i++)
     {
-      mmWaveHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (2, 1);
+      mmWaveHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (1, 2);
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
