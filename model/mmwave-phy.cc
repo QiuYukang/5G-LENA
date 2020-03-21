@@ -413,8 +413,32 @@ void
 MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
 {
   NS_LOG_FUNCTION (this);
-
   m_ctrlMsgs.push_back (msg);
+}
+
+bool
+MmWavePhy::HasDlSlot () const
+{
+  for (const auto & v : m_tddPattern)
+    {
+      if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::DL)
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+bool MmWavePhy::HasUlSlot () const
+{
+  for (const auto & v : m_tddPattern)
+    {
+      if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::UL)
+        {
+          return true;
+        }
+    }
+  return false;
 }
 
 void

@@ -208,6 +208,20 @@ public:
    */
   void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
 
+  /**
+   * \brief Pass the current pattern and see if at least one slot is DL or F.
+   *
+   * \return true if at least one slot is DL or F.
+   */
+  bool HasDlSlot () const;
+
+  /**
+   * \brief Pass the current pattern and see if at least one slot is UL or F.
+   *
+   * \return true if at least one slot is UL or F.
+   */
+  bool HasUlSlot () const;
+
 protected:
   /**
    * \brief Update the number of RB. Usually called after bandwidth changes
