@@ -214,6 +214,8 @@ protected:
    */
   void UpdateRbNum ();
 
+  static bool IsTdd (const std::vector<LteNrTddSlotType> &pattern);
+
   /**
    * \brief Transform a MAC-made vector of RBG to a PHY-ready vector of SINR indices
    * \param rbgBitmask Bitmask which indicates with 1 the RBG in which there is a transmission,
@@ -362,6 +364,8 @@ protected:
   Ptr<BeamManager> m_beamManager; //!< TODO
 
   std::list <Ptr<MmWaveControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
+
+  std::vector<LteNrTddSlotType> m_tddPattern = { F, F, F, F, F, F, F, F, F, F}; //!< Pattern
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list

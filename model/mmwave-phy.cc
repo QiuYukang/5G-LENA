@@ -440,6 +440,33 @@ MmWavePhy::UpdateRbNum ()
     }
 }
 
+bool
+MmWavePhy::IsTdd (const std::vector<LteNrTddSlotType> &pattern)
+{
+  bool anUl = false;
+  bool aDl = false;
+
+  for (const auto & v : pattern)
+    {
+      // An F slot: we are TDD
+      if (v == LteNrTddSlotType::F)
+        {
+          return true;
+        }
+
+      if (v == LteNrTddSlotType::UL)
+        {
+          anUl = true;
+        }
+      else if (v == LteNrTddSlotType::DL)
+        {
+          aDl = true;
+        }
+    }
+
+  return ! (anUl ^ aDl);
+}
+
 void
 MmWavePhy::InitializeMessageList ()
 {
