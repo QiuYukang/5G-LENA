@@ -98,7 +98,7 @@ public:
 
   /**
    * \brief Set a mapping between two BWP.
-   * \param sourceBwp The messages that comes from this value...
+   * \param sourceBwp The messages that come from this value...
    * \param outputBwp ... will get routed in this bandwidth part.
    *
    * Call it for each mapping you want to install.

@@ -153,7 +153,7 @@ BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg,
       ss << "key: " << v.first << " value " << v.second;
     }
 
-  NS_LOG_INFO ("OUTGOING SOURCE: " << +sourceBwpId << " map: " << ss.str());
+  NS_LOG_INFO ("routing outgoing msg to bwp: " << +it->second);
   return it->second;
 }
 
