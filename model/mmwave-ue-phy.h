@@ -118,6 +118,14 @@ public:
   void SetNumRbPerRbg (uint32_t numRbPerRbg);
 
   /**
+   * \brief Set the UE pattern.
+   *
+   * Temporary.
+   * \param pattern The UE pattern
+   */
+  void SetPattern (const std::string &pattern);
+
+  /**
    * \brief Receive a list of CTRL messages
    *
    * Connected by the helper to a callback of the spectrum.

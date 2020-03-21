@@ -590,7 +590,6 @@ void MmWaveEnbPhy::QueueSib ()
   Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
   msg->SetSib1 (m_sib1);
   msg->SetSourceBwp (GetBwpId ());
-  msg->SetTddPattern (m_tddPattern);
   EnqueueCtrlMsgNow (msg);
 }
 

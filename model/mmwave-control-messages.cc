@@ -211,22 +211,10 @@ MmWaveSib1Message::SetSib1 (LteRrcSap::SystemInformationBlockType1 sib1)
   m_sib1 = sib1;
 }
 
-void
-MmWaveSib1Message::SetTddPattern(const std::vector<LteNrTddSlotType> &pattern)
-{
-  m_pattern = pattern;
-}
-
 LteRrcSap::SystemInformationBlockType1
 MmWaveSib1Message::GetSib1 () const
 {
   return m_sib1;
-}
-
-const std::vector<LteNrTddSlotType> &
-MmWaveSib1Message::GetTddPattern() const
-{
-  return m_pattern;
 }
 
 // ----------------------------------------------------------------------------------------------------------

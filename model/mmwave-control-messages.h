@@ -257,25 +257,13 @@ public:
   void SetSib1 (LteRrcSap::SystemInformationBlockType1 sib1);
 
   /**
-   * \brief Replace the TDD pattern of this control message.
-   * \param pattern the TDD pattern to store
-   */
-  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
-
-  /**
    * \brief Retrieve the SIB1 content from this control message.
    * \return the current SIB1 content that this control message holds
    */
   LteRrcSap::SystemInformationBlockType1 GetSib1 () const;
 
-  /**
-   * \return Retrieve the TDD pattern stored in this message.
-   */
-  const std::vector<LteNrTddSlotType> & GetTddPattern () const;
-
 private:
   LteRrcSap::SystemInformationBlockType1 m_sib1; //!< Sib1 content
-  std::vector<LteNrTddSlotType> m_pattern;       //!< TDD Pattern
 
 }; // end of class MmWaveSib1Message
 // ---------------------------------------------------------------------------

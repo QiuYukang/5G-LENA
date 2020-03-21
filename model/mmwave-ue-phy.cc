@@ -215,6 +215,37 @@ MmWaveUePhy::SetNumRbPerRbg (uint32_t numRbPerRbg)
   m_numRbPerRbg = numRbPerRbg;
 }
 
+void
+MmWaveUePhy::SetPattern (const std::string &pattern)
+{
+  NS_LOG_FUNCTION (this);
+
+  static std::unordered_map<std::string, LteNrTddSlotType> lookupTable =
+  {
+    { "DL", LteNrTddSlotType::DL },
+    { "UL", LteNrTddSlotType::UL },
+    { "S",  LteNrTddSlotType::S },
+    { "F",  LteNrTddSlotType::F },
+  };
+
+  std::vector<LteNrTddSlotType> vector;
+  std::stringstream ss (pattern);
+  std::string token;
+  std::vector<std::string> extracted;
+
+   while (std::getline(ss, token, '|'))
+     {
+       extracted.push_back(token);
+     }
+
+   for (const auto & v : extracted)
+     {
+       vector.push_back (lookupTable[v]);
+     }
+
+   m_tddPattern = vector;
+}
+
 uint32_t
 MmWaveUePhy::GetNumRbPerRbg () const
 {
@@ -343,7 +374,6 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
       m_ueCphySapUser->RecvSystemInformationBlockType1 (GetCellId (), msg2->GetSib1 ());
-      m_tddPattern = msg2->GetTddPattern ();
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RAR)

@@ -820,6 +820,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
       ueNetDev->GetPhy (i)->SetSymbolsPerSlot (enbNetDev->GetPhy (i)->GetSymbolsPerSlot ());
       ueNetDev->GetPhy (i)->SetNumerology (enbNetDev->GetPhy(i)->GetNumerology ());
+      ueNetDev->GetPhy (i)->SetPattern (enbNetDev->GetPhy (i)->GetPattern ());
       Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
       ueNas->Connect (enbNetDev->GetBwpId (i), enbNetDev->GetEarfcn (i));
     }
