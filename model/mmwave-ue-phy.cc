@@ -395,6 +395,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 void
 MmWaveUePhy::TryToPerformLbt ()
 {
+  NS_LOG_FUNCTION (this);
   uint8_t ulCtrlSymStart = 0;
   uint8_t ulCtrlNumSym = 0;
 
@@ -455,6 +456,14 @@ MmWaveUePhy::TryToPerformLbt ()
           m_lbtEvent.Cancel ();
           m_lbtEvent = Simulator::Schedule (sched, &MmWaveUePhy::RequestAccess, this);
         }
+      else
+        {
+          NS_LOG_INFO ("Not scheduling LBT: the UE has a channel status that is GRANTED");
+        }
+    }
+  else
+    {
+      NS_LOG_INFO ("Not scheduling LBT; the UE has no UL CTRL symbols available");
     }
 }
 
@@ -574,12 +583,13 @@ MmWaveUePhy::StartSlot (const SfnSf &s)
                    " direction " << direction << " type " << type);
     }
 
+  TryToPerformLbt ();
+
   VarTtiAllocInfo allocation = m_currSlotAllocInfo.m_varTtiAllocInfo.front ();
   m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front ();
 
   auto nextVarTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
 
-  TryToPerformLbt ();
 
   auto ctrlMsgs = PopCurrentSlotCtrlMsgs ();
   if (m_netDevice)
