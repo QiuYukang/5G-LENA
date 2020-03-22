@@ -348,10 +348,9 @@ MmWavePhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 
   if (it == m_packetBurstMap.end ())
     {
-      // Changed to a fatal error; if it happens, the MAC has scheduled something
-      // that we, in reality, don't have. It is a symptom that something is
-      // going not so well...
-      NS_FATAL_ERROR ("Packet burst not found for " << sfn << " at sym " << +sym);
+      // For instance, this can happen with low BW and low MCS: The MAC
+      // ignores the txOpportunity.
+      NS_LOG_WARN ("Packet burst not found for " << sfn << " at sym " << +sym);
       return pburst;
     }
   else

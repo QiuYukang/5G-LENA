@@ -686,7 +686,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
 
                 if (activeLcs == 0)
                   {
-                    NS_LOG_DEBUG ("No active flows for this UL-DCI");
+                    NS_LOG_WARN ("No active flows for this UL-DCI");
                     // the UE may have been scheduled when it has no buffered data due to BSR quantization, send empty packet
 
                     MmWaveMacPduTag tag (dataSfn, dciInfoElem->m_symStart, dciInfoElem->m_numSym);
@@ -808,6 +808,10 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                         (*itBsr).second.txQueueSize = 0;
                                       }
                                   }
+                              }
+                            else
+                              {
+                                NS_LOG_WARN ("TxOpportunity of " << bytesForThisLc << " ignored");
                               }
                             NS_LOG_LOGIC (this << "\t" << bytesPerActiveLc << "\t new queues " << (uint32_t)(*lcIt).first << " statusQueue " << (*itBsr).second.statusPduSize << " retxQueue" << (*itBsr).second.retxQueueSize << " txQueue" <<  (*itBsr).second.txQueueSize);
                           }
