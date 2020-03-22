@@ -54,19 +54,25 @@ New user-visible features (old first)
 
 - The control message timings (from PHY to MAC or from MAC to PHY) can be adjusted
   in a flexible manner according to each release specifications.
-- Processing delays N0, N1, N2 are introduced in phy-mac-common, K0, K1, K2 are
-  removed form phy-mac-common and instead they are implemented as parameters of the
-  DCI, which are calculated in the gNb and communicated to the UE through the DCI.
-- The UlSchedDelay is replaced by N2Delay.
+- Processing delays N0, N1, N2 are introduced as attributes of MmWaveEnbPhy.
+  The values K0, K1, K2 are then calculated and communicated to the UE in the DCI.
+- The UlSchedDelay parameter is replaced by N2Delay.
 - UE receives DL data according to K0 and sends UL data according to K2
   (passed from the gNb in the DL and UL DCI, respectively). Moreover,the DL HARQ
   Feedback is scheduled according to K1 delay (passed from the gNb to the UE in
   the DL DCI).
-- Ue side control messages could be scheduled with Ul Data. This behavior is now
-  changed and therefore control messages are scheduled only in Ul Ctrl.
+- UE-side control messages could be scheduled with Ul Data. This behavior is now
+  changed and therefore control messages are sent only in Ul Ctrl.
 - Patterns of size different from 10 (less or greater) are now supported.
-  Changes mainly apply in the MmWaveEnbPhy::GenerateStructuresFromPattern that now
-  calculates k0, k1, k2
+- Ported the code to the ThreeGppChannel of ns-3-dev, developed under the GSoC 2019
+  framework.
+- A new Component Carrier/Bandwidth Part helper has been added in file `cc-bwp-helper.h`.
+  With this class, it is easy to divide the spectrum in different regions.
+- MmWaveHelper is now refactored to take into account Multi-Cell Configurations
+  (i.e., different configuration for different cells).
+- Introduced FDD operational mode for a Bandwidth Part.
+- Removed PhyMacCommon. Its attributes are now divided among different classes.
+  Please check CHANGES.md for the list.
 
 Bugs fixed
 ----------
@@ -83,6 +89,13 @@ Bugs fixed
 - N1 (used to schedule DL HARQ Feedback) could not be set to zero, because the way the
   calculation was carried out was resulting in negative delay. Calculation has been updated
   to take into account the case of N1=0.
+- The Harq timer is now set to 0 every time a retransmission is scheduled and
+  transmitted (before, it was just incremented)
+- The BwpManagerGnb now redirects BSR and SR to the source bandwidth part, as
+  the UE has already done the selection based on the configured QCI.
+- LBT at the gNb side is now scheduled (and done) every time there is a DL CTRL
+  to transmit, as in FDD configuration, other BWP can inject messages after
+  the start of the slot.
 
 Known issues
 ------------
