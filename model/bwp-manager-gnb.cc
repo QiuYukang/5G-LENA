@@ -131,7 +131,8 @@ BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg,
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_INFO ("Msg type " << msg->GetMessageType () << " that wants to go out from gnb");
+  NS_LOG_INFO ("Msg type " << msg->GetMessageType () << " from bwp " <<
+               +sourceBwpId << " that wants to go out from gnb");
 
   if (m_outputLinks.empty ())
     {
@@ -144,13 +145,6 @@ BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg,
     {
       NS_LOG_INFO ("Source BWP not in the map, routing outgoing msg to itself: " << +sourceBwpId);
       return sourceBwpId;
-    }
-
-  std::stringstream ss;
-
-  for (const auto & v : m_outputLinks)
-    {
-      ss << "key: " << v.first << " value " << v.second;
     }
 
   NS_LOG_INFO ("routing outgoing msg to bwp: " << +it->second);
