@@ -51,8 +51,10 @@ main (int argc, char *argv[])
 
   uint32_t udpPacketSizeVideo = 100;
   uint32_t udpPacketSizeVoice = 1252;
+  uint32_t udpPacketSizeGaming = 500;
   uint32_t lambdaVideo = 50;
   uint32_t lambdaVoice = 100;
+  uint32_t lambdaGaming = 250;
 
   uint32_t simTimeMs = 1400;
   uint32_t udpAppStartTimeMs = 400;
@@ -64,21 +66,39 @@ main (int argc, char *argv[])
   double totalTxPower = 4;
   std::string simTag = "default";
   std::string outputDir = "./";
+  bool enableVideo = true;
+  bool enableVoice = true;
+  bool enableGaming = true;
 
   CommandLine cmd;
 
-  cmd.AddValue ("packetSizeUll",
-                "packet size in bytes to be used by ultra low latency traffic",
+  cmd.AddValue ("packetSizeVideo",
+                "packet size in bytes to be used by video traffic",
                 udpPacketSizeVideo);
-  cmd.AddValue ("packetSizeBe",
-                "packet size in bytes to be used by best effort traffic",
+  cmd.AddValue ("packetSizeVoice",
+                "packet size in bytes to be used by voice traffic",
                 udpPacketSizeVoice);
-  cmd.AddValue ("lambdaUll",
-                "Number of UDP packets in one second for ultra low latency traffic",
+  cmd.AddValue ("packetSizeGaming",
+                "packet size in bytes to be used by gaming traffic",
+                udpPacketSizeGaming);
+  cmd.AddValue ("lambdaVideo",
+                "Number of UDP packets in one second for video traffic",
                 lambdaVideo);
-  cmd.AddValue ("lambdaBe",
-                "Number of UDP packets in one second for best effor traffic",
+  cmd.AddValue ("lambdaVoice",
+                "Number of UDP packets in one second for voice traffic",
                 lambdaVoice);
+  cmd.AddValue ("lambdaGaming",
+                "Number of UDP packets in one second for gaming traffic",
+                lambdaGaming);
+  cmd.AddValue ("enableVideo",
+                "If true, enables video traffic transmission (DL)",
+                enableVideo);
+  cmd.AddValue ("enableVoice",
+                "If true, enables voice traffic transmission (DL)",
+                enableVoice);
+  cmd.AddValue ("enableGaming",
+                "If true, enables gaming traffic transmission (UL)",
+                enableGaming);
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
@@ -360,20 +380,20 @@ main (int argc, char *argv[])
    */
   uint16_t dlPortVideo = 1234;
   uint16_t dlPortVoice = 1235;
-  //uint16_t ulPortGaming = 1236;
+  uint16_t ulPortGaming = 1236;
 
   ApplicationContainer serverApps;
 
   // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkVideo (dlPortVideo);
   UdpServerHelper dlPacketSinkVoice (dlPortVoice);
-  //UdpServerHelper ulPacketSinkVoice (ulPortGaming);
+  UdpServerHelper ulPacketSinkVoice (ulPortGaming);
 
   // The server, that is the application which is listening, is installed in the UE
   // for the DL traffic, and in the remote host for the UL traffic
   serverApps.Add (dlPacketSinkVideo.Install (gridScenario.GetUserTerminals ()));
   serverApps.Add (dlPacketSinkVoice.Install (gridScenario.GetUserTerminals ()));
-  //serverApps.Add (ulPacketSinkVoice.Install (remoteHost));
+  serverApps.Add (ulPacketSinkVoice.Install (remoteHost));
 
 
   /*
@@ -416,21 +436,21 @@ main (int argc, char *argv[])
   voiceTft->Add (dlpfVoice);
 
   // Gaming configuration and object creation:
-  //UdpClientHelper ulClientGaming;
-  //ulClientGaming.SetAttribute ("RemotePort", UintegerValue (ulPortGaming));
-  //ulClientGaming.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-  //ulClientGaming.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeVoice));
-  //dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaVoice)));
+  UdpClientHelper ulClientGaming;
+  ulClientGaming.SetAttribute ("RemotePort", UintegerValue (ulPortGaming));
+  ulClientGaming.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  ulClientGaming.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeGaming));
+  ulClientGaming.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaGaming)));
 
   // The bearer that will carry gaming traffic
-  // EpsBearer gamingBearer (EpsBearer::GBR_GAMING);
+  EpsBearer gamingBearer (EpsBearer::GBR_GAMING);
 
   // The filter for the gaming traffic
-  // Ptr<EpcTft> gamingTft = Create<EpcTft> ();
-  // EpcTft::PacketFilter dlpfGaming;
-  // dlpfGaming.remotePortStart = ulPortGaming;
-  // dlpfGaming.remotePortEnd = ulPortGaming;
-  // gamingTft->Add (dlpfGaming);
+  Ptr<EpcTft> gamingTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfGaming;
+  dlpfGaming.remotePortStart = ulPortGaming;
+  dlpfGaming.remotePortEnd = ulPortGaming;
+  gamingTft->Add (dlpfGaming);
 
   /*
    * Let's install the applications!
@@ -445,23 +465,32 @@ main (int argc, char *argv[])
 
       // The client, who is transmitting, is installed in the remote host,
       // with destination address set to the address of the UE
-      dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-      clientApps.Add (dlClientVoice.Install (remoteHost));
+      if (enableVoice)
+        {
+          dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientVoice.Install (remoteHost));
 
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+        }
 
-      dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-      clientApps.Add (dlClientVideo.Install (remoteHost));
+      if (enableVideo)
+        {
+          dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientVideo.Install (remoteHost));
 
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+        }
 
       // For the uplink, the installation happens in the UE, and the remote address
       // is the one of the remote host
 
-      //ulClientGaming.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
-      //clientApps.Add (ulClientGaming.Install (ue));
+      if (enableGaming)
+        {
+          ulClientGaming.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
+          clientApps.Add (ulClientGaming.Install (ue));
 
-      //mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
+        }
     }
 
   // start UDP server and client apps
