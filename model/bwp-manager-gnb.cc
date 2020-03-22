@@ -196,32 +196,14 @@ BwpManagerGnb::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrie
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_algorithm != nullptr);
   NS_ASSERT_MSG (bsr.m_macCeType == MacCeListElement_s::BSR, "Received a Control Message not allowed " << bsr.m_macCeType);
-
   NS_ASSERT_MSG (m_ccmMacSapProviderMap.find (componentCarrierId) != m_ccmMacSapProviderMap.end (), "Mac sap provider does not exist.");
 
-  uint8_t qci = 9;
+  NS_LOG_DEBUG ("Routing BSR for UE " << bsr.m_rnti << " to source CC id " <<
+                static_cast<uint32_t> (componentCarrierId));
 
-  if (m_rlcLcInstantiated.find (bsr.m_rnti) != m_rlcLcInstantiated.end ())
+  if (m_ccmMacSapProviderMap.find (componentCarrierId) != m_ccmMacSapProviderMap.end ())
     {
-      for (auto i: m_rlcLcInstantiated.find (bsr.m_rnti)->second)
-        {
-          // we do not consider first 3 lcids: signaling and default
-          if (i.first > 3)
-            {
-              qci = i.second.qci;
-              break;
-            }
-        }
-    }
-
-  uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
-
-  NS_LOG_DEBUG ("Routing BSR for UE " << bsr.m_rnti << " to CC id " <<
-                static_cast<uint32_t> (bwpIndex));
-
-  if (m_ccmMacSapProviderMap.find (bwpIndex) != m_ccmMacSapProviderMap.end ())
-    {
-      m_ccmMacSapProviderMap.find (bwpIndex)->second->ReportMacCeToScheduler (bsr);
+      m_ccmMacSapProviderMap.find (componentCarrierId)->second->ReportMacCeToScheduler (bsr);
     }
   else
     {
@@ -234,31 +216,14 @@ BwpManagerGnb::DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_algorithm != nullptr);
-  NS_UNUSED (componentCarrierId);
-  uint8_t qci = 9;
 
-  if (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end ())
-    {
-      for (auto i: m_rlcLcInstantiated.find (rnti)->second)
-        {
-          // we do not consider first 3 lcids: signaling and default
-          if (i.first > 3)
-            {
-              qci = i.second.qci;
-              break;
-            }
-        }
-    }
+  NS_LOG_DEBUG ("Routing SR for UE " << rnti << " to source CC id " <<
+                static_cast<uint32_t> (componentCarrierId));
 
-  uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
+  auto it = m_ccmMacSapProviderMap.find (componentCarrierId);
+  NS_ABORT_IF (it == m_ccmMacSapProviderMap.end ());
 
-  NS_LOG_DEBUG ("Routing SR for UE " << rnti << " to CC id " <<
-                static_cast<uint32_t> (bwpIndex));
-
-  auto it = m_ccmMacSapProviderMap.find (bwpIndex);
-  NS_ABORT_IF(it == m_ccmMacSapProviderMap.end ());
-
-  m_ccmMacSapProviderMap.find (bwpIndex)->second->ReportSrToScheduler (rnti);
+  m_ccmMacSapProviderMap.find (componentCarrierId)->second->ReportSrToScheduler (rnti);
 }
 
 
