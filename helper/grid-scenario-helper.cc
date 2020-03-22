@@ -22,6 +22,7 @@
 #include <ns3/mobility-helper.h>
 #include <ns3/double.h>
 #include <ns3/log.h>
+#include <math.h>
 
 namespace ns3 {
 
@@ -145,5 +146,179 @@ GridScenarioHelper::CreateScenario ()
   mobility.SetPositionAllocator (utPos);
   mobility.Install (m_ut);
 }
+
+
+HexagonalGridScenarioHelper::HexagonalGridScenarioHelper ()
+{
+  m_centralPos.x = 0.0;
+  m_centralPos.y = 0.0;
+  m_centralPos.z = 0.0;
+}
+
+HexagonalGridScenarioHelper::~HexagonalGridScenarioHelper ()
+{
+
+}
+
+void
+HexagonalGridScenarioHelper::SetNumRings (uint8_t numRings)
+{
+  NS_ABORT_MSG_IF(numRings > 3, "Unsupported number of outer rings (Maximum is 3");
+
+  m_numRings = numRings;
+
+  switch (numRings)
+  {
+    case 0:
+      m_numSites = 1;
+      break;
+    case 1:
+      m_numSites = 7;
+      break;
+    case 2:
+      m_numSites = 13;
+      break;
+    case 3:
+      m_numSites = 19;
+      break;
+  }
+}
+
+void
+HexagonalGridScenarioHelper::SetSectorization (SiteSectorizationType numSectors)
+{
+  m_siteSectorization = numSectors;
+}
+
+uint8_t
+HexagonalGridScenarioHelper::GetNumSites ()
+{
+  return m_numSites;
+}
+
+uint16_t
+HexagonalGridScenarioHelper::GetNumCells ()
+{
+  return m_numCells;
+}
+
+void
+HexagonalGridScenarioHelper::SetNumCells ()
+{
+  NS_ASSERT (m_numSites > 0);
+  NS_ASSERT (m_siteSectorization != SiteSectorizationType::NONE);
+
+  m_numCells = m_numSites * static_cast<uint16_t> (m_siteSectorization);
+
+  NS_ASSERT (m_numCells > 0);
+
+  m_bs.Create (m_numCells);
+}
+
+double
+HexagonalGridScenarioHelper::GetAntennaOrientation (uint16_t cellId,
+                                                    SiteSectorizationType numSectors)
+{
+  NS_ABORT_MSG_IF (numSectors == 1 || numSectors == 3, "Unsupported number of site sectors");
+
+  double orientation = 0.0;
+  if (numSectors == 3)
+    {
+      uint16_t sector = cellId % numSectors;
+      double sectorSize = 360 / numSectors;
+      orientation = 30 + sectorSize*sector;
+    }
+  return orientation;
+}
+
+void
+HexagonalGridScenarioHelper::SetUMaParameters ()
+{
+  m_isd = 500;
+  m_bsHeight = 25.0;
+  m_utHeight = 1.5;
+  m_siteSectorization = SiteSectorizationType::TRIPLE;
+}
+
+void
+HexagonalGridScenarioHelper::SetUMiParameters ()
+{
+  m_isd = 200;
+  m_bsHeight = 25.0;
+  m_utHeight = 1.5;
+  m_siteSectorization = SiteSectorizationType::TRIPLE;
+}
+
+void
+HexagonalGridScenarioHelper::CreateScenario ()
+{
+  NS_ASSERT (m_isd > 0);
+  NS_ASSERT (m_numSites > 0 && m_numSites < 4);
+  NS_ASSERT (m_numCells > 0);
+  NS_ASSERT (m_siteSectorization > 0);
+  NS_ASSERT (m_bsHeight >= 0.0);
+  NS_ASSERT (m_utHeight >= 0.0);
+  NS_ASSERT (m_bs.GetN () > 0);
+
+  MobilityHelper mobility;
+  Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> utPos = CreateObject<ListPositionAllocator> ();
+
+  // Site positions in terms of distance and angle w.r.t. the central site
+  float val = 2*cos(30*M_PI/180);
+  std::vector<float> siteDistances {0,1,1,1,1,1,1,val,val,val,val,val,val,2,2,2,2,2,2};
+  std::vector<float> siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
+
+  // BS position
+  for (uint16_t cellIndex = 0; cellIndex < m_numSites; cellIndex++)
+    {
+        uint16_t siteIndex = cellIndex % static_cast<uint16_t> (m_siteSectorization);
+        Vector pos (m_centralPos);
+        pos.x += 0.5 * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex)*M_PI/180);
+        pos.y += 0.5 * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex)*M_PI/180);
+        pos.z = m_bsHeight;
+
+        NS_LOG_DEBUG ("GNB Position: " << pos);
+        bsPos->Add (pos);
+
+        //What about the antenna orientation? It should be dealt with when installing the gNB
+    }
+
+  //TODO: To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
+  Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
+  Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
+  r->SetAttribute ("Min", DoubleValue (0.0));
+  r->SetAttribute ("Max", DoubleValue (m_isd/3));
+  theta->SetAttribute ("Min", DoubleValue (0.0));
+  theta->SetAttribute ("Max", DoubleValue (360.0));
+  // UT position
+  if (m_ut.GetN () > 0)
+    {
+      uint32_t utN = m_ut.GetN ();
+
+      for (uint32_t i = 0; i < utN; ++i)
+        {
+          // This is the site location, same for the number of sectors of the site.
+          // UEs shall be spread over the sector area
+          Vector pos = bsPos->GetNext ();
+
+          pos.x = x->GetValue ();
+          pos.y = y->GetValue ();
+          pos.z = m_utHeight;
+
+          NS_LOG_DEBUG ("UE Position: " << pos);
+
+          utPos->Add (pos);
+        }
+    }
+
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.SetPositionAllocator (bsPos);
+  mobility.Install (m_bs);
+
+  mobility.SetPositionAllocator (utPos);
+  mobility.Install (m_ut);
+}
+
 
 } // namespace ns3
