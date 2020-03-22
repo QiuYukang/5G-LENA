@@ -447,10 +447,11 @@ main (int argc, char *argv[])
 
   // The filter for the gaming traffic
   Ptr<EpcTft> gamingTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfGaming;
-  dlpfGaming.remotePortStart = ulPortGaming;
-  dlpfGaming.remotePortEnd = ulPortGaming;
-  gamingTft->Add (dlpfGaming);
+  EpcTft::PacketFilter ulpfGaming;
+  ulpfGaming.remotePortStart = ulPortGaming;
+  ulpfGaming.remotePortEnd = ulPortGaming;
+  ulpfGaming.direction = EpcTft::UPLINK;
+  gamingTft->Add (ulpfGaming);
 
   /*
    * Let's install the applications!
