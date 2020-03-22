@@ -334,6 +334,27 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
         }
     }
 
+  /*
+   * Now, if the input pattern is for FDD, remove the elements in the
+   * opposite generate* structures: in the end, we don't want to generate DL
+   * for a FDD-UL band, right?
+   *
+   * But.. maintain the toSend structures, as they will be used to send
+   * feedback or other messages, like DCI.
+   */
+
+  if (! IsTdd (pattern))
+    {
+      if (HasUlSlot (pattern))
+        {
+          generateDl->clear ();
+        }
+      else
+        {
+          generateUl->clear();
+        }
+    }
+
   for (auto & list : (*generateUl))
     {
       std::sort (list.second.begin (), list.second.end ());
@@ -570,8 +591,7 @@ void
 MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (!m_generateDl.empty());
-  NS_ASSERT (!m_generateUl.empty());
+  NS_ASSERT (!m_generateDl.empty() || !m_generateUl.empty());
 
   m_phySapUser->SetCurrentSfn (currentSlot);
 
@@ -1469,6 +1489,8 @@ MmWaveEnbPhy::ReportUlHarqFeedback (const UlHarqInfo &mes)
   // forward to scheduler
   if (m_ueAttachedRnti.find (mes.m_rnti) != m_ueAttachedRnti.end ())
     {
+      NS_LOG_INFO ("Received UL HARQ feedback " << mes.IsReceivedOk() <<
+                   " and forwarding to the scheduler");
       m_phySapUser->UlHarqFeedback (mes);
     }
 }
