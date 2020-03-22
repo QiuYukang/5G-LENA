@@ -679,14 +679,17 @@ MmWaveEnbPhy::StartSlot (const SfnSf &startSlot)
       ulSfn.Add (GetN2Delay ());
 
       if (GetN2Delay () > 0)
-        {
-          if (SlotAllocInfoExists (ulSfn))
-            {
-              SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
-              hasUlDci = ulSlot.ContainsDataAllocation ();
-            }
-        }
-      if (m_currSlotAllocInfo.ContainsDataAllocation () || ! IsCtrlMsgListEmpty () || hasUlDci)
+      {
+        if (SlotAllocInfoExists (ulSfn))
+          {
+            SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
+            hasUlDci = ulSlot.ContainsDataAllocation ();
+          }
+      }
+      // If there is a DL CTRL, try to obtain the channel to transmit it;
+      // because, even if right now there isn't any message, maybe they
+      // will come from another BWP.
+      if (m_currSlotAllocInfo.ContainsDataAllocation () || m_currSlotAllocInfo.ContainsDlCtrlAllocation () || hasUlDci)
         {
           // Request the channel access
           if (m_channelStatus == NONE)
