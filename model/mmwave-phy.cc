@@ -419,7 +419,18 @@ MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
 bool
 MmWavePhy::HasDlSlot () const
 {
-  for (const auto & v : m_tddPattern)
+  return MmWavePhy::HasDlSlot (m_tddPattern);
+}
+
+bool MmWavePhy::HasUlSlot () const
+{
+  return MmWavePhy::HasUlSlot (m_tddPattern);
+}
+
+bool
+MmWavePhy::HasDlSlot (const std::vector<LteNrTddSlotType> &pattern)
+{
+  for (const auto & v : pattern)
     {
       if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::DL)
         {
@@ -429,9 +440,10 @@ MmWavePhy::HasDlSlot () const
   return false;
 }
 
-bool MmWavePhy::HasUlSlot () const
+bool
+MmWavePhy::HasUlSlot (const std::vector<LteNrTddSlotType> &pattern)
 {
-  for (const auto & v : m_tddPattern)
+  for (const auto & v : pattern)
     {
       if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::UL)
         {

@@ -209,18 +209,34 @@ public:
   void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
 
   /**
-   * \brief Pass the current pattern and see if at least one slot is DL or F.
+   * \brief Go through the current pattern and see if at least one slot is DL or F.
    *
    * \return true if at least one slot is DL or F.
    */
   bool HasDlSlot () const;
 
   /**
-   * \brief Pass the current pattern and see if at least one slot is UL or F.
+   * \brief Go trough the current pattern and see if at least one slot is UL or F.
    *
    * \return true if at least one slot is UL or F.
    */
   bool HasUlSlot () const;
+
+  /**
+   * \brief See if at least one slot is DL or F.
+   *
+   * \param pattern Pattern to check
+   * \return true if at least one slot is DL or F.
+   */
+  static bool HasDlSlot (const std::vector<LteNrTddSlotType> &pattern);
+
+  /**
+   * \brief See if at least one slot is UL or F.
+   *
+   * \param pattern Pattern to check
+   * \return true if at least one slot is UL or F.
+   */
+  static bool HasUlSlot (const std::vector<LteNrTddSlotType> &pattern);
 
 protected:
   /**
