@@ -84,10 +84,11 @@ main (int argc, char *argv[])
    * command line. Each of them is initialized with a default value.
    */
   // Scenario parameters (that we will use inside this script):
-  uint16_t gNbNum = 1;
+  uint16_t numOuterRings = 3;
   uint16_t ueNumPergNb = 2;
   bool logging = false;
   bool doubleOperationalBand = true;
+  std::string scenario = "UMa";
 
   // Traffic parameters (that we will use inside this script:)
   uint32_t udpPacketSizeULL = 100;
@@ -121,11 +122,14 @@ main (int argc, char *argv[])
    */
   CommandLine cmd;
 
-  cmd.AddValue ("gNbNum",
-                "The number of gNbs in multiple-ue topology",
-                gNbNum);
+  cmd.AddValue ("scenario",
+                "The urban scenario string (UMa or UMi)",
+                scenario);
+  cmd.AddValue ("numRings",
+                "The number of rings around the central site",
+                numOuterRings);
   cmd.AddValue ("ueNumPergNb",
-                "The number of UE per gNb in multiple-ue topology",
+                "The number of UE per cell or gNB in multiple-ue topology",
                 ueNumPergNb);
   cmd.AddValue ("logging",
                 "Enable logging",
@@ -218,10 +222,10 @@ main (int argc, char *argv[])
    * GridScenarioHelper documentation to see how the nodes will be distributed.
    */
   HexagonalGridScenarioHelper gridScenario;
-  gridScenario.SetNumRings (3);
-  gridScenario.SetUMaParameters ();
-  gridScenario.SetNumCells ();  // Note it takes no argument since the number is obtained from the parameters in SetUMaParameters or SetUMiParameters
-  gNbNum = gridScenario.GetNumCells ();
+  gridScenario.SetNumRings (numOuterRings);
+  gridScenario.SetScenarioParamenters (scenario);
+  gridScenario.SetNumCells ();  // Note that the call takes no arguments since the number is obtained from the parameters in SetUMaParameters or SetUMiParameters
+  uint16_t gNbNum = gridScenario.GetNumCells ();
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
   gridScenario.CreateScenario ();
 
@@ -235,7 +239,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
       Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (j);
-      if (j % 2 == 0)
+      if (static_cast<uint32_t> (j / gNbNum) == 0)
         {
           ueLowLatContainer.Add (ue);
         }
@@ -416,14 +420,14 @@ main (int argc, char *argv[])
   // Sectors (cells) of a site are pointing at different directions
   for (uint16_t cellId = 0; cellId < gridScenario.GetNumCells (); ++cellId)
     {
-      double orientationDegrees = gridScenario.GetAntennaOrientation (cellId, gridScenario.GetNumSectorsPerSite ());
+      double orientationRads = gridScenario.GetAntennaOrientationRadians (cellId, gridScenario.GetNumSectorsPerSite ());
       uint32_t numBwps = mmWaveHelper->GetNumberBwp (enbNetDev.Get (cellId));
       for (uint32_t bwpId = 0; bwpId < numBwps; ++bwpId)
         {
           Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationDegrees * M_PI / 180));
+          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
         }
     }
 

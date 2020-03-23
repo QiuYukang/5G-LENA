@@ -154,13 +154,23 @@ public:
   void SetNumCells ();
 
   /**
-   * \brief Returns the orientation of the antenna for the given cellId and number of sectors of the site
+   * \brief Returns the orientation in degrees of the antenna array for the given cellId and number of sectors of the site the cell belongs to
    * \param cellId Cell Id
    * \param numSecors The number of sectors of a site
-   * \return The antenna orientation in degrees
+   * \return The antenna orientation in degrees [0º, 360º]
    */
-  double GetAntennaOrientation (uint16_t cellId,
-                                SiteSectorizationType numSectors);
+  double GetAntennaOrientationDegrees (uint16_t cellId,
+                                       SiteSectorizationType numSectors);
+
+  /**
+     * \brief Returns the orientation in radians of the antenna array for the given cellId and number of sectors of the site the cell belongs to
+     * \param cellId Cell Id
+     * \param numSecors The number of sectors of a site
+     * \return The antenna orientation in radians [-PI, PI]
+     */
+    double GetAntennaOrientationRadians (uint16_t cellId,
+                                         SiteSectorizationType numSectors);
+
 
   /**
    * \brief Returns the cell center coordinates
@@ -182,12 +192,18 @@ public:
   uint16_t GetSiteIndex (uint16_t cellId);
 
   /**
-   * \brief
+   * \brief Sets parameters to the specified scenario
+   * \param scenario Scenario to simulate
+   */
+  void SetScenarioParamenters (std::string scenario);
+
+  /**
+   * \brief Sets the Urban Macro (UMa) scenario parameters
    */
   void SetUMaParameters ();
 
   /**
-   * \brief
+   * \brief Sets the Urban Micro (UMi) scenario parameters
    */
   void SetUMiParameters ();
 

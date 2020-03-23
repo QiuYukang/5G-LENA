@@ -228,8 +228,8 @@ HexagonalGridScenarioHelper::SetNumCells ()
 }
 
 double
-HexagonalGridScenarioHelper::GetAntennaOrientation (uint16_t cellId,
-                                                    SiteSectorizationType numSectors)
+HexagonalGridScenarioHelper::GetAntennaOrientationDegrees (uint16_t cellId,
+                                                           SiteSectorizationType numSectors)
 {
   NS_ABORT_MSG_IF (numSectors != SINGLE && numSectors != TRIPLE, "Unsupported number of site sectors");
 
@@ -241,6 +241,13 @@ HexagonalGridScenarioHelper::GetAntennaOrientation (uint16_t cellId,
       orientation = 30 + sectorSize*sector;
     }
   return orientation;
+}
+
+double
+HexagonalGridScenarioHelper::GetAntennaOrientationRadians (uint16_t cellId,
+                                                           SiteSectorizationType numSectors)
+{
+  return GetAntennaOrientationDegrees (cellId, numSectors) * M_PI / 180 - M_PI;
 }
 
 Vector
@@ -295,6 +302,26 @@ HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId)
 }
 
 void
+HexagonalGridScenarioHelper::SetScenarioParamenters (std::string scenario)
+{
+  NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi", "Unrecognized scenario");
+
+  if (scenario == "UMa")
+    {
+      SetUMaParameters ();
+    }
+  else if (scenario == "UMi")
+    {
+      SetUMiParameters ();
+    }
+  else
+    {
+      NS_ABORT_MSG ("Should never be here");
+    }
+
+}
+
+void
 HexagonalGridScenarioHelper::SetUMaParameters ()
 {
   m_isd = 500;
@@ -318,7 +345,7 @@ void
 HexagonalGridScenarioHelper::CreateScenario ()
 {
   NS_ASSERT (m_isd > 0);
-  NS_ASSERT (m_numRings > 0 && m_numRings < 4);
+  NS_ASSERT (m_numRings < 4);
   NS_ASSERT (m_numCells > 0);
   NS_ASSERT (m_siteSectorization > 0);
   NS_ASSERT (m_hexagonalRadius > 0);
