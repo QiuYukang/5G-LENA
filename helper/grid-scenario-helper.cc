@@ -202,6 +202,12 @@ HexagonalGridScenarioHelper::GetNumCells ()
   return m_numCells;
 }
 
+SiteSectorizationType
+HexagonalGridScenarioHelper::GetNumSectorsPerSite ()
+{
+  return m_siteSectorization;
+}
+
 double
 HexagonalGridScenarioHelper::GetHexagonalCellRadius ()
 {
@@ -281,6 +287,13 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter (Vector sitePos,
   return center;
 }
 
+
+uint16_t
+HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId)
+{
+  return cellId / static_cast<uint16_t> (m_siteSectorization);
+}
+
 void
 HexagonalGridScenarioHelper::SetUMaParameters ()
 {
@@ -312,6 +325,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);
   NS_ASSERT (m_bs.GetN () > 0);
+  NS_ASSERT (m_ut.GetN () > 0);
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator> ();
@@ -325,10 +339,10 @@ HexagonalGridScenarioHelper::CreateScenario ()
   // BS position
   for (uint16_t cellIndex = 0; cellIndex < m_numSites; cellIndex++)
     {
-        uint16_t siteIndex = cellIndex % static_cast<uint16_t> (m_siteSectorization);
+        uint16_t siteIndex = GetSiteIndex (cellIndex);
         Vector pos (m_centralPos);
-        pos.x += 0.5 * m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex)*M_PI/180);
-        pos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex)*M_PI/180);
+        pos.x += 0.5 * m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
+        pos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
         pos.z = m_bsHeight;
 
         NS_LOG_DEBUG ("GNB Position: " << pos);
@@ -337,7 +351,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
         //What about the antenna orientation? It should be dealt with when installing the gNB
     }
 
-  //TODO: To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
+  // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
   Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
   Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
   r->SetAttribute ("Min", DoubleValue (0.0));

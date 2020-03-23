@@ -416,13 +416,13 @@ main (int argc, char *argv[])
   // Sectors (cells) of a site are pointing at different directions
   for (uint16_t cellId = 0; cellId < gridScenario.GetNumCells (); ++cellId)
     {
-      double orientationDegrees = gridScenario.GetAntennaOrientation (cellId, TRIPLE);
+      double orientationDegrees = gridScenario.GetAntennaOrientation (cellId, gridScenario.GetNumSectorsPerSite ());
       uint32_t numBwps = mmWaveHelper->GetNumberBwp (enbNetDev.Get (cellId));
       for (uint32_t bwpId = 0; bwpId < numBwps; ++bwpId)
         {
           Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId);
           Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel>(phy->GetSpectrumPhy ()->GetAntennaArray());
+              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationDegrees * M_PI / 180));
         }
     }

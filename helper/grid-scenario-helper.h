@@ -138,6 +138,11 @@ public:
   uint16_t GetNumCells ();
 
   /**
+   * \brief Gets the number of sectors per site
+   */
+  SiteSectorizationType GetNumSectorsPerSite ();
+
+  /**
    * \brief Gets the radius of the hexagonal cell
    * \returns Cell radius in meters
    */
@@ -168,6 +173,13 @@ public:
                                  uint16_t cellId,
                                  SiteSectorizationType numSectors,
                                  double hexagonRadius);
+
+  /**
+   * \brief Gets the site index the queried cell id belongs to
+   * \param cellId Cell index
+   * \return site id
+   */
+  uint16_t GetSiteIndex (uint16_t cellId);
 
   /**
    * \brief
