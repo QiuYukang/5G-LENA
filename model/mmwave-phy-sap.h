@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_PHY_SAP_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_PHY_SAP_H_
+#ifndef MMWAVE_PHY_SAP_H
+#define MMWAVE_PHY_SAP_H
 
 #include <ns3/packet-burst.h>
 #include <ns3/mmwave-phy-mac-common.h>
@@ -30,19 +30,62 @@ namespace ns3 {
 
 class MmWaveControlMessage;
 
-/* Mac to Phy comm*/
+/**
+ * \ingroup gnb-phy
+ * \ingroup gnb-mac
+ * \ingroup ue-phy
+ * \ingroup ue-mac
+ *
+ * \brief SAP interface between the MAC and the PHY
+ *
+ * The API between the MAC and the PHY classes, for UE and GNB, is defined in
+ * this class. The direction is from the MAC to the PHY (i.e., the MAC will
+ * have a pointer of this class, that points to a valid instance of the PHY).
+ *
+ * As a general rule, no caching is allowed for the values returned by any
+ * Get* method, becaue those values can change dynamically.
+ */
 class MmWavePhySapProvider
 {
 public:
+  /**
+   * \brief ~MmWavePhySapProvider
+   */
   virtual ~MmWavePhySapProvider ();
 
+  /**
+   * \brief Send a Mac PDU
+   * \param p PDU
+   *
+   * The MAC sends to the PHY a MAC PDU, represented by the packet p. The PDU
+   * MUST have a LteRadioBearerTag and a MmWaveMacPduHeader.
+   */
   virtual void SendMacPdu (Ptr<Packet> p ) = 0;
 
+  /**
+   * \brief Send a control message
+   * \param msg the message to send
+   *
+   * The MAC sends to the PHY a control message. The PHY will take care of
+   * considering the MAC-TO-PHY delay.
+   */
   virtual void SendControlMessage (Ptr<MmWaveControlMessage> msg) = 0;
 
+  /**
+   * \brief Send the RACH preamble
+   * \param PreambleId the ID of the preamble
+   * \param Rnti the RNTI
+   */
   virtual void SendRachPreamble (uint8_t PreambleId, uint8_t Rnti) = 0;
 
-  virtual void SetSlotAllocInfo (SlotAllocInfo slotAllocInfo) = 0;
+  /**
+   * \brief Set a SlotAllocInfo inside the PHY allocations
+   * \param slotAllocInfo the allocation
+   *
+   * Called by the MAC to install in the PHY the allocation that has been
+   * prepared.
+   */
+  virtual void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo) = 0;
 
   /**
    * \brief Notify PHY about the successful RRC connection
@@ -54,6 +97,8 @@ public:
    * \brief Get the beam ID from the RNTI specified. Not in any standard.
    * \param rnti RNTI of the user
    * \return Beam ID of the user
+   *
+   * The MAC asks for the BeamId of the specified used.
    */
   virtual BeamId GetBeamId (uint8_t rnti) const = 0;
 
@@ -68,48 +113,62 @@ public:
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
 
   /**
-   * \return the Bwp id of the PHY
+   * \brief Retrieve the bandwidth part id
+   * \return The Bwp id of the PHY
    */
   virtual uint16_t GetBwpId () const = 0;
 
   /**
-   * \return the cell id of the PHY
+   * \brief Retrieve the cell id
+   * \return The cell id of the PHY
    */
   virtual uint16_t GetCellId () const = 0;
-  /*
-   * \brief Get the number of symbols in one slot
+
+  /**
+   * \brief Retrieve the number of symbols in one slot
    * \return the number of symbols in one slot (it is an attribute in the PHY,
    * so it can be changed dynamically -- don't store the value)
    */
   virtual uint32_t GetSymbolsPerSlot () const = 0;
 
   /**
-   * \brief Get SlotPeriod
+   * \brief Retrieve the slot period
    * \return the slot period (don't store the value as it depends on the numerology)
    */
   virtual Time GetSlotPeriod () const = 0;
 
   /**
+   * \brief Retrieve the number of resource blocks
    * \return Get the number of resource blocks configured
    */
   virtual uint32_t GetRbNum () const = 0;
 
 };
 
-/* This SAP is normally used so that PHY can send to MAC indications
+/**
+ * \brief SAP interface between the ENB PHY and the ENB MAC
+ *
+ * This SAP is normally used so that PHY can send to MAC indications
  * and providing to MAC some information. The relationship between MAC and PHY
  * is that PHY is service provider to MAC, and MAC is user.
  * Exceptionally, PHY can also request some information from MAC through this
- * interface, such as e.g. GetNumRbPerRbg.*/
+ * interface, such as GetNumRbPerRbg.
+ *
+ * As a general rule, no caching is allowed for the values returned by any
+ * Get* method, becaue those values can change dynamically.
+ */
 class MmWaveEnbPhySapUser
 {
 public:
+  /**
+   * \brief ~MmWaveEnbPhySapUser
+   */
   virtual ~MmWaveEnbPhySapUser ()
   {
   }
 
   /**
-   * Called by the Phy to notify the MAC of the reception of a new PHY-PDU
+   * \brief Notify the MAC of the reception of a new PHY-PDU
    *
    * \param p
    */
@@ -125,7 +184,7 @@ public:
    * \brief Set the current Sfn. The state machine has advanced by one slot
    * \param sfn The current sfn
    */
-  virtual void SetCurrentSfn(const SfnSf &sfn) = 0;
+  virtual void SetCurrentSfn (const SfnSf &sfn) = 0;
 
   /**
    * \brief Trigger MAC layer to generate a DL slot for the SfnSf indicated
@@ -153,14 +212,14 @@ public:
   virtual void UlCqiReport (MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi) = 0;
 
   /**
-   * notify the reception of a RACH preamble on the PRACH
+   * \brief Notify the reception of a RACH preamble on the PRACH
    *
    * \param prachId the ID of the preamble
    */
   virtual void ReceiveRachPreamble (uint32_t raId) = 0;
 
   /**
-   * Notify the HARQ on the UL tranmission status
+   * \brief Notify the HARQ on the UL tranmission status
    *
    * \param params
    */
@@ -181,20 +240,37 @@ public:
    */
   virtual uint32_t GetNumRbPerRbg () const = 0;
 
+  /**
+   * \brief Retrieve a dci for a DL CTRL allocation
+   * \return a pointer to a dci that contains a DL CTRL allocation
+   */
   virtual std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const = 0;
 
+  /**
+   * \brief Retrieve a dci for a UL CTRL allocation
+   * \return a pointer to a dci that contains a UL CTRL allocation
+   */
   virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const = 0;
 };
 
+/**
+ * \brief SAP interface between the UE PHY and the UE MAC
+ *
+ * This interface specify the interaction between the UE PHY (that will use
+ * this interface) and the UE MAC, that will answer.
+ */
 class MmWaveUePhySapUser
 {
 public:
+  /**
+   * \brief ~MmWaveUePhySapUser
+   */
   virtual ~MmWaveUePhySapUser ()
   {
   }
 
   /**
-   * Called by the Phy to notify the MAC of the reception of a new PHY-PDU
+   * \brief Notify the MAC of the reception of a new PHY-PDU
    *
    * \param p
    */
@@ -207,17 +283,19 @@ public:
   virtual void ReceiveControlMessage (Ptr<MmWaveControlMessage> msg) = 0;
 
   /**
-   * \brief Trigger the start from a new slot (input from Phy layer)
+   * \brief Trigger the indication of a new slot for the MAC
    * \param frameNo frame number
    * \param subframeNo subframe number
    */
   virtual void SlotIndication (SfnSf) = 0;
 
-  //virtual void NotifyHarqDeliveryFailure (uint8_t harqId) = 0;
-
+  /**
+   * \brief Retrieve the number of HARQ processes configured
+   * \return the number of the configured HARQ processes.
+   */
   virtual uint8_t GetNumHarqProcess () const = 0;
 };
 
 }
 
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_PHY_SAP_H_ */
+#endif /* MMWAVE_PHY_SAP_H */
