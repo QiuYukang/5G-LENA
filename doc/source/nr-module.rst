@@ -10,106 +10,40 @@ Example Module Documentation
    ============= Subsection (#.#.#)
    ############# Paragraph (no number)
 
+..
+   The document is written following RST formatting. Please, check your writing on grammarly; to ease it, use the auto-wrapping feature of your text editor, without entering new lines unless you would like to start a new paragraph.
 
 
 Introduction
 ------------
-The 3rd Generation Partnership Project (3GPP) has devoted significant efforts to standardize the
-fifth generation (5G) New Radio (NR) access technology [TS38300]_,
-which is designed to be extremely flexible from its physical layer definition and up to the architecture,
-in order to be able to work in a wide range of frequency bands and address many different use cases
-and deployment options.
+The 3rd Generation Partnership Project (3GPP) has devoted significant efforts to standardize the fifth-generation (5G) New Radio (NR) access technology [TS38300]_, which is designed to be extremely flexible from its physical layer definition and up to the architecture. The objective is to be able to work in a wide range of frequency bands and address many different use cases and deployment options.
 
-As the NR specification is developed and evolves,
-a network simulator that is capable of simulating emerging NR
-features is of great interest for both, scientific and industrial communities.
-In recent years a lot effort has been done by New York University (NYU) Wireless and University of Padova to develop a simulator
-that will allow simulations of communications in millimeter-wave (mmWave) bands,
-which represent a central technology of future 5G cellular wireless systems,
-such as NR, public safety and vehicular communications.
-Hence, a new mmWave simulation tool has been developed as a new module of |ns3|.
-A complete description of the mmWave module is provided in [end-to-end-mezz]_.
-The mmWave module source code is still not part of the standard ns-3 distribution and
-is available at a different repository [mmwave-module]_.
-The 'mmWave' module implements a complete 3GPP protocol, where the physical (PHY) layer and
-medium access control (MAC) layer are custom implementations
-developed to support a new mmWave-based channel, propagation, beamforming and antenna models;
-and the MAC layer to support Time Division Duplexing (TDD),
-Time Division Multiple Access (TDMA) MAC scheduling, and
-enhanced Hybrid Automatic Repeat and reQuest (HARQ) for low latency applications.
-The higher layers are mostly based on |ns3| 'LTE' module functionalities, thus still
-following 3GPP LTE specifications,
-but extending it to involve some of advanced features that are expected to emerge in 5G networks,
-such as dual connectivity and low latency radio link control (RLC) layer.
+As the NR specification is developed and evolves, a network simulator that is capable of simulating emerging NR features is of great interest for both scientific and industrial communities. In recent years a lot of effort has been made by New York University (NYU) Wireless and the University of Padova to develop a simulator that will allow simulations of communications in millimeter-wave (mmWave) bands, the heart of future 5G cellular wireless systems. Hence, a new mmWave simulation tool has been developed as a new module of |ns3|. A complete description of the mmWave module is provided in [end-to-end-mezz]_. The mmWave module source code is still not part of the standard ns-3 distribution and is available at a different repository [mmwave-module]_. In the mmWave module, the physical (PHY) layer and medium access control (MAC) are a modified version of the |ns3| 'LTE' PHY and MAC layers, supporting a mmWave channel, propagation, beamforming, and antenna models. The MAC layer supports Time Division Duplexing (TDD), and a Time Division Multiple Access (TDMA) MAC scheduling, with enhanced Hybrid Automatic Repeat and reQuest (HARQ) for low latency applications. The higher layers are mostly based on |ns3| 'LTE' module functionalities but are extended to support features such as dual connectivity and low latency radio link control (RLC) layer.
 
-In this document, we describe the implementation that we have initiated to generate
-a 3GPP-compliant NR module able to
-provide |ns3| simulation capabilities in the bands above and below 6 GHz,
-aligned with 3GPP NR Release-15, following the description in [TS38300]_.
-The work has been initially
-funded by InterDigital Communications Inc, and continues with funding from the
-Lawrence Livermore National Lab (LLNL) and
-a grant from the National Institute of Standards and Technologies (NIST).
+In this document, we describe the implementation that we have initiated to generate a 3GPP-compliant NR module able to provide |ns3| simulation capabilities in the bands above and below 6 GHz, aligned with 3GPP NR Release-15, following the description in [TS38300]_. The work has been initially funded by InterDigital Communications Inc, and continues with funding from the Lawrence Livermore National Lab (LLNL) and a grant from the National Institute of Standards and Technologies (NIST).
 
-The 'NR' module is built upon the 'mmWave' simulator, as already mentioned, but is focused to
-target the 3GPP Release-15 NR specification. As such, it
-incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of
-multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs),
-Frequency Division Multiplexing (FDM) of
-numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA),
-flexible time- and frequency- resource allocation and scheduling,
-Low-Density Parity Check (LDPC) coding for data channels,
-modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others.
-The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC)
-based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
+The 'NR' module is a hard fork of the 'mmWave' simulator,  focused on targeting the 3GPP Release-15 NR specification. As such, it incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs), Frequency Division Multiplexing (FDM) of numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, Low-Density Parity Check (LDPC) coding for data channels, modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others. The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC) based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
 
 The source code for the 'NR' module lives currently in the directory ``src/nr``.
-
-This document describes the models available in the 'NR' module.
 
 Over time, extensions found in this module may migrate to the existing |ns3| main development tree.
 
 The rest of this document is organized into five major chapters:
 
-2. **Design:**  Describes the models developed for |ns3| extension to support NR
-   features and procedures.
+2. **Design:**  Describes the models developed for |ns3| extension to support NR features and procedures.
 3. **Usage:**  Documents how users may run and extend the NR test scenarios.
-4. **Validation:**  Documents how the models and scenarios have been verified
-   and validated by test programs.
-5. **Open Issues and Future Work:**  Describes topics for which future work
-   on model or scenario enhancements is recommended, or for which questions
-   on interpretations of standards documents may be listed.
+4. **Validation:**  Documents how the models and scenarios have been verified and validated by test programs.
+5. **Open Issues and Future Work:**  Describes topics for which future work on model or scenario enhancements is recommended, or for which questions on interpretations of standards documents may be listed.
 
 
 Design
 ------
-In this section, we present the design of the different features and procedures that we have
-developed following 3GPP Release-15 NR activity.
-For those features/mechanisms/layers that still have not been upgraded to NR,
-the current design following LTE specifications is also indicated.
+In this section, we present the design of the different features and procedures that we have developed following 3GPP Release-15 NR activity. For those features/mechanisms/layers that still have not been upgraded to NR, the current design following LTE specifications is also indicated.
 
 
 Architecture
 ************
-The 'NR' module has been designed to perform end-to-end simulations of
-3GPP-oriented cellular networks. The end-to-end overview of a typical simulation
-with the 'NR' module is drawn in Figure :ref:`fig-e2e`. In dark gray,
-we represent the existing, and unmodified, ns-3 and LENA components.
-In light gray, we represent the NR components.
-On one side, we have a remote host (depicted as a single node in the figure,
-for simplicity, but there can be multiple nodes)
-that connects to an SGW/PGW (Service Gateway and Packet Gateway), through a link. Such a connection can be of any
-technology that is currently available in ns-3. It is currently implemented
-through a single link, but it can be replaced by an entire subnetwork with many
-nodes and routing rules. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates
-the packet using the GTP protocol. Through an IP connection, which represents
-the backhaul of the NR network (again, represented with a single link in the figure,
-but the topology can vary), the GTP packet is received by the gNB.
-There, after decapsulating the payload, the packet is transmitted over the RAN
-through the entry point represented by the class ``NRGnbNetDevice``. The packet,
-if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``.
-The path crossed by packets in the UL case is the same as the one described
-above but on the contrary direction.
+The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure:ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an SGW/PGW (Service Gateway and Packet Gateway), through a link. Such a connection can be of any technology that is currently available in ns-3. It is showed through a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NRGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but on the contrary direction.
 
 .. _fig-e2e:
 
@@ -119,16 +53,7 @@ above but on the contrary direction.
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and
-``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC
-classes implement the LTE module SAP provider and user interfaces,
-enabling the communication with the LTE RLC layer. The module supports
-RLC TM, SM, UM and AM modes. The MAC layer contains the scheduler (``NRMacScheduler``
-and derived classes). Every scheduler also implements a SAP for LTE RRC layer
-configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform
-the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data
-and control channels. Each ``NRPhy`` class writes into an instance of ``MmWaveSpectrumPhy``
-class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -138,42 +63,17 @@ class, which is shared between the UL and DL parts.
 
    RAN class overview
 
-Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers.
-3GPP does not explicitly define them, and as such, they are virtual layers,
-but they help construct a fundamental feature of our simulator:
-the multiplexing of different parts of the bandwidth (like BWPs or CCs).
-NR has included the definition of BWP for energy-saving purposes,
-as well as to multiplex a variety of services with different QoS requirements. CC concept
-was already introduced in LTE, and persists in NR, as a way to aggregate different
-carriers and so improve the system capacity.
-In the 'NR' simulator, it is possible to divide the entire bandwidth into different
-BWPs and CCs. Each BWP/CC can have its own PHY and MAC configuration
-(e.g., a specific numerology, scheduler rationale, and so on).
-We added the possibility for any node to transmit and receive flows
-in different BWPs, by either assigning each bearer to a specific BWP
-or distributing the data flow among different CCs, according to the rules of the manager.
-The introduction of a proxy layer to multiplex and demultiplex the data
-was necessary to glue everything together, and this is the purpose
-of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different parts of the bandwidth (like BWPs or CCs). NR has included the definition of BWP for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. CC concept was already introduced in LTE, and persists in NR, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs and CCs. Each BWP/CC can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different CCs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
 
 
 PHY layer
 *********
-This section describes the different models supported and developed at PHY layer.
+This section describes in details the different models supported and developed at PHY layer.
 
 
 Frame structure model
 =====================
-In NR, the 'numerology' concept is introduced to flexibly define the frame structure,
-in such a way that it can work in both sub-6 GHz and mmWave bands.
-The flexible frame structure is defined by multiple numerologies formed by scaling
-the basic subcarrier spacing (SCS) of 15 KHz. The supported numerologies (0, 1, 2, 3, 4)  correspond
-to SCSs of 15 KHz, 30 KHz, 60 KHz, 120 KHz, and 240 KHz. 480 KHz is under study.
-Not all SCS options are supported in all carrier frequencies and channels. For example,
-for sub 6 GHz,
-only 15 KHz, 30 KHz, and 60 KHz are defined. Above 6 GHz the supported ones are 60 KHz,
-120 KHz and 240 KHz. Also, for numerology 2 (i.e., SCS = 60 KHz), two cyclic prefix (CP) overheads
-are considered: normal and extended. For the rest of numerologies,  normal CP is defined.
+In NR, the 'numerology' concept is introduced to flexibly define the frame structure in such a way that it can work in both sub-6 GHz and mmWave bands. The flexible frame structure is defined by multiple numerologies formed by scaling the subcarrier spacing (SCS) of 15 kHz. The supported numerologies (0, 1, 2, 3, 4)  correspond to SCSs of 15 kHz, 30 kHz, 60 kHz, 120 kHz, and 240 kHz. The SCS of 480 kHz is under study by 3GPP, but the simulator can support it. Theoretically, not all SCS options are supported in all carrier frequencies and channels. For example, for sub 6 GHz, only 15 kHz, 30 kHz, and 60 kHz are defined. Above 6 GHz, the supported ones are 60 kHz, 120 kHz, and 240 kHz. Also, for numerology 2 (i.e., SCS = 60 KHz), two cyclic prefixes (CP) overheads are considered: normal and extended. For the rest of the numerologies, only the normal overhead is taken into consideration.
 
 .. _tab-numerologies-3gpp:
 
@@ -189,23 +89,11 @@ are considered: normal and extended. For the rest of numerologies,  normal CP is
     4            240                         normal
    ===========   =========================   =============
 
-In the time domain, each frame of length of 10 ms is split in time into 10 subframes, each
-of duration of 1 ms. Every subframe is split in time into a variable number of slots, and each
-slot is composed of a fixed number of OFDM symbols.
-In particular, the length of the slot and the number of slots per subframe depend
-on the numerology, and the length
-of the OFDM symbol varies according to the numerology and CP.
-The number of OFDM symbols per slot is fixed to 14 symbols for normal CP, and to
-12 OFDM symbols for extended CP.
+In the time domain, each 10 ms frame is split in time into ten subframes, each of duration of 1 ms. Every subframe is split in time into a variable number of slots, and each slot is composed of a fixed number of OFDM symbols. In particular, the length of the slot and the number of slots per subframe depend on the numerology, and the length of the OFDM symbol varies according to the numerology and CP. The number of OFDM symbols per slot is fixed to 14 symbols for normal CP, and to 12 OFDM symbols for extended CP.
 
-In frequency domain, the number of subcarriers per physical resource block (PRB)
-is fixed to 12, and the maximum number of PRBs according to Release-15 is 275.
-The numerology defines also the size of a PRB, and the total number of PRBs of the NR system
-within a fixed bandwidth. PRBs are grouped into PRB groups at MAC scheduling time.
+In the frequency domain, the number of subcarriers per physical resource block (PRB) is fixed to 12, and the maximum number of PRBs, according to Release-15, is 275. With a particular channel bandwidth, the numerology defines the size of a PRB and the total number of PRBs usable by the system. PRBs are grouped into PRB groups at MAC scheduling time.
 
-Figure :ref:`fig-frame` shows the NR frame structure in time- and
-frequency- domains for numerology 3 with normal CP and a total
-channel bandwidth of 400 MHz.
+Figure :ref:`fig-frame` shows the NR frame structure in time- and frequency- domains for numerology 3 with normal CP and a total channel bandwidth of 400 MHz.
 
 .. _fig-frame:
 
@@ -215,14 +103,7 @@ channel bandwidth of 400 MHz.
 
    NR frame structure example
 
-The implementation in the 'NR' module currently supports the NR frame structures and numerologies
-shown in Table :ref:`tab-numerologies`. This corresponds to all the numerologies defined in NR Release-15
-with normal CP, plus numerology 5 (not yet supported in NR, but likely to be included
-in future releases).
-In the simulator, the numerology is specified by the attribute ``Numerology``.
-Once the numerology is configured, the lengths of the symbol,
-the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe,
-are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
+The implementation in the 'NR' module currently supports the NR frame structures and numerologies shown in Table :ref:`tab-numerologies`. Once the numerology is configured, the lengths of the symbol, the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe, are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
 
 .. _tab-numerologies:
 
@@ -239,41 +120,16 @@ are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
     5            32                        2.23                 0.03125            480                         14
    ===========   ==================   ==================     ================   =========================   ================
 
-In the 'NR' module, to support a realistic NR simulation, we properly model (as per the standard)
-the numerology-dependent slot and OFDM symbol granularity. This affects different parts
-of the simulator: the PHY transmission/reception
-functionality, the MAC
-scheduling and the resource allocation information, the processing delays,
-and the interaction of the PHY layer with the MAC layer.
-First, the transmission and the reception are per slot level, and are
-handled by the corresponding functions. These functions are executed with a
-fixed periodicity, i.e., every 14 OFDM symbols,
-but the real duration of the slot depends on the configured numerology.
-Second, the scheduling operation is done on a slot basis, and the scheduler
-assigns transmission time intervals (TTIs) no longer than that of one slot.
-Third, the MAC-to-PHY processing delay depends on the numerology, and defaults to 2 slots.
-See implementation details and evaluations in [WNS32018-NR]_, [CAMAD2018-NR]_.
+In the 'NR' module, to support a realistic NR simulation, we accurately model (as per the standard) the numerology-dependent slot and OFDM symbol granularity. We use the event scheduling feature of |ns3| to model the time advancement. Starting from time 0, we insert (and process) events that represent the advancement of the time. One of such events is the starting slot boundary, where the processing follows a logical order that involves the MAC, then the scheduler, before returning the control to the PHY. Here, allocations are extracted, and, for each assignment, a new event is inserted in the simulator. The last added event is the end of the slot, which in turn will invoke a new starting slot boundary event.
+
+Two factors influence the processing of events and allocations. The first is the availability of the channel: in NR, the channel is always available for transmission, while in the unlicensed spectrum, this may not be true. If the channel is not available, the event machine will go directly to the next slot boundary (with some details that are not explained here). The second is the MAC-to-PHY processing delay: a configurable parameter defaulted to 2 slots, indicates that the MAC is working ahead of the PHY to simulate the time needed for each component of the chain to perform its work. For example, in numerology 0, PHY level at Frame 10, Subframe 0, Slot 0, will call MAC to realize the allocations of Frame 10, Subframe 2, Slot 0.
+
+Some of the details of what is explained above is present in the papers [WNS32018-NR]_, [CAMAD2018-NR]_, along with some performance evaluations.
 
 
 FDM of numerologies
 ===================
-An additional level of flexibility in the NR system can be achieved by
-implementing the multiplexing of numerologies in the frequency domain.
-As an example, ultra-reliable and low-latency communications (URLLC) traffic
-requires a short slot length to meet strict latency requirements, while
-enhanced mobile nroadband (eMBB) use case in general aims at increasing
-throughput, which is achieved with a large slot length.
-Therefore, among the set of supported numerologies for a specific operational
-band and deployment configuration, URLLC can be served with the numerology
-that has the shortest slot length, and eMBB with the numerology associated
-to the largest slot length. To address that, NR enables FDM of numerologies through different
-BWPs, to address the trade-off between latency
-and throughput for different types of traffic by physically dividing the
-bandwidth in two or more BWPs. In Figure :ref:`fig-bwp`, we illustrate
-an example of FDM of numerologies. The channel is split into two BWPs
-that accommodate the two numerologies multiplexed in
-frequency domain. The total bandwidth :math:`B` is then divided into two parts
-of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
+An additional level of flexibility in the NR system can be achieved by implementing the multiplexing of numerologies in the frequency domain. As an example, ultra-reliable and low-latency communications (URLLC) traffic requires a short slot length to meet strict latency requirements, while enhanced mobile broadband (eMBB) use case in general aims at increasing throughput, which is achieved with a large slot length. Therefore, among the set of supported numerologies for a specific operational band and deployment configuration, URLLC can be served with the numerology that has the shortest slot length and eMBB with the numerology associated with the largest slot length. To address that, NR enables FDM of numerologies through different BWPs, to address the trade-off between latency and throughput for different types of traffic by physically dividing the bandwidth in two or more BWPs. In Figure :ref:`fig-bwp`, we illustrate an example of the FDM of numerologies. The channel is split into two BWPs that accommodate the two numerologies multiplexed in the frequency domain. The total bandwidth :math:`B` is then divided into two parts of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
 
 .. _fig-bwp:
 
@@ -283,18 +139,7 @@ of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+
 
    FDM of numerologies example
 
-In the 'NR' module, the user can configure FDM bands statically before the
-simulation starts. This is a critical design assumption based on two main reasons.
-First, the 'NR' module relies on the channel and the propagation loss model
-that is not able to allow runtime modifications
-of the physical configuration parameters related to time/frequency configuration
-(such as the system bandwidth, the central carrier frequency, and the symbol length).
-Thus, until the current channel model is not modified to allow
-these runtime configuration changes, it will not be possible to perform
-semi-static reconfiguration of BWPs. The second reason is that in the simulator
-the RRC messaging to configure the default bandwidth part, as well as the
-bandwidth part reconfiguration, are not implemented yet.
-See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
+In the 'NR' module, the user can configure FDM bands statically before the simulation starts. This is a critical design assumption based on two main reasons. First, the 'NR' module relies on the channel and the propagation loss model that is not able to allow runtime modifications of the physical configuration parameters related to time/frequency configuration (such as the system bandwidth, the central carrier frequency, and the symbol length). Thus, until the current channel model is not modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs. The second reason is that in the simulator, the RRC messaging to configure the default bandwidth part, as well as the bandwidth part reconfiguration, are not implemented yet. See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
 
 
 Duplexing schemes
