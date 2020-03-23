@@ -423,7 +423,7 @@ main (int argc, char *argv[])
           Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel>(phy->GetSpectrumPhy ()->GetAntennaArray());
-          antenna->SetAttribute ("BearingAngle", DoubleValue(orientationDegrees*M_PI/180));
+          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationDegrees * M_PI / 180));
         }
     }
 

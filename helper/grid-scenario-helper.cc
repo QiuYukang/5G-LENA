@@ -202,6 +202,12 @@ HexagonalGridScenarioHelper::GetNumCells ()
   return m_numCells;
 }
 
+double
+HexagonalGridScenarioHelper::GetHexagonalCellRadius ()
+{
+  return m_hexagonalRadius;
+}
+
 void
 HexagonalGridScenarioHelper::SetNumCells ()
 {
@@ -219,16 +225,60 @@ double
 HexagonalGridScenarioHelper::GetAntennaOrientation (uint16_t cellId,
                                                     SiteSectorizationType numSectors)
 {
-  NS_ABORT_MSG_IF (numSectors == 1 || numSectors == 3, "Unsupported number of site sectors");
+  NS_ABORT_MSG_IF (numSectors != SINGLE && numSectors != TRIPLE, "Unsupported number of site sectors");
 
   double orientation = 0.0;
-  if (numSectors == 3)
+  if (numSectors == TRIPLE)
     {
-      uint16_t sector = cellId % numSectors;
+      uint16_t sector = cellId % static_cast<uint16_t> (numSectors);
       double sectorSize = 360 / numSectors;
       orientation = 30 + sectorSize*sector;
     }
   return orientation;
+}
+
+Vector
+HexagonalGridScenarioHelper::GetHexagonalCellCenter (Vector sitePos,
+                                                     uint16_t cellId,
+                                                     SiteSectorizationType numSectors,
+                                                     double hexagonRadius)
+{
+  Vector center (sitePos);
+  uint16_t siteNum = cellId;
+
+  switch (numSectors)
+  {
+    case SiteSectorizationType::NONE:
+      NS_ABORT_MSG ("Number of sectors has not been defined");
+      break;
+
+    case SiteSectorizationType::SINGLE:
+      break;
+
+    case SiteSectorizationType::TRIPLE:
+      siteNum = cellId % (static_cast<uint16_t> (numSectors));
+      if (siteNum == 0)
+        {
+          center.x += hexagonRadius * std::sqrt (0.75);
+          center.y += hexagonRadius / 2;
+        }
+      else if (siteNum == 1)
+        {
+          center.x -= hexagonRadius * std::sqrt (0.75);
+          center.y += hexagonRadius / 2;
+        }
+      else
+        {
+          center.y -= hexagonRadius;
+        }
+      break;
+
+    default:
+      NS_ABORT_MSG("Unsupported number of sectors");
+      break;
+  }
+
+  return center;
 }
 
 void
@@ -238,6 +288,7 @@ HexagonalGridScenarioHelper::SetUMaParameters ()
   m_bsHeight = 25.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
+  m_hexagonalRadius = m_isd / 2 / 3;
 }
 
 void
@@ -247,15 +298,17 @@ HexagonalGridScenarioHelper::SetUMiParameters ()
   m_bsHeight = 25.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
+  m_hexagonalRadius = m_isd / 2 / 3;
 }
 
 void
 HexagonalGridScenarioHelper::CreateScenario ()
 {
   NS_ASSERT (m_isd > 0);
-  NS_ASSERT (m_numSites > 0 && m_numSites < 4);
+  NS_ASSERT (m_numRings > 0 && m_numRings < 4);
   NS_ASSERT (m_numCells > 0);
   NS_ASSERT (m_siteSectorization > 0);
+  NS_ASSERT (m_hexagonalRadius > 0);
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);
   NS_ASSERT (m_bs.GetN () > 0);
@@ -265,7 +318,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   Ptr<ListPositionAllocator> utPos = CreateObject<ListPositionAllocator> ();
 
   // Site positions in terms of distance and angle w.r.t. the central site
-  float val = 2*cos(30*M_PI/180);
+  float val = 2*cos (30 * M_PI / 180);
   std::vector<float> siteDistances {0,1,1,1,1,1,1,val,val,val,val,val,val,2,2,2,2,2,2};
   std::vector<float> siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
 
@@ -274,8 +327,8 @@ HexagonalGridScenarioHelper::CreateScenario ()
     {
         uint16_t siteIndex = cellIndex % static_cast<uint16_t> (m_siteSectorization);
         Vector pos (m_centralPos);
-        pos.x += 0.5 * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex)*M_PI/180);
-        pos.y += 0.5 * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex)*M_PI/180);
+        pos.x += 0.5 * m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex)*M_PI/180);
+        pos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex)*M_PI/180);
         pos.z = m_bsHeight;
 
         NS_LOG_DEBUG ("GNB Position: " << pos);
@@ -288,7 +341,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
   Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
   r->SetAttribute ("Min", DoubleValue (0.0));
-  r->SetAttribute ("Max", DoubleValue (m_isd/3));
+  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius));
   theta->SetAttribute ("Min", DoubleValue (0.0));
   theta->SetAttribute ("Max", DoubleValue (360.0));
   // UT position
@@ -298,12 +351,20 @@ HexagonalGridScenarioHelper::CreateScenario ()
 
       for (uint32_t i = 0; i < utN; ++i)
         {
-          // This is the site location, same for the number of sectors of the site.
-          // UEs shall be spread over the sector area
-          Vector pos = bsPos->GetNext ();
+          // This is the cell center location, same for cells belonging to the same site
+          Vector cellPos = bsPos->GetNext ();
+          // UEs shall be spread over the cell area (hexagonal cell)
+          uint16_t cellId = i % m_numCells;
+          Vector cellCenterPos = GetHexagonalCellCenter (cellPos,
+                                                         cellId,
+                                                         m_siteSectorization,
+                                                         m_hexagonalRadius);
+          float d = r->GetValue ();
+          float t = theta->GetValue ();
 
-          pos.x = x->GetValue ();
-          pos.y = y->GetValue ();
+          Vector pos (cellCenterPos);
+          pos.x += d * cos (t * M_PI / 180);
+          pos.y += d * sin (t * M_PI / 180);
           pos.z = m_utHeight;
 
           NS_LOG_DEBUG ("UE Position: " << pos);

@@ -138,6 +138,12 @@ public:
   uint16_t GetNumCells ();
 
   /**
+   * \brief Gets the radius of the hexagonal cell
+   * \returns Cell radius in meters
+   */
+  double GetHexagonalCellRadius ();
+
+  /**
    * \brief Sets the number of cells from the previously configured number of outer rings or sites and the site sectorization
    */
   void SetNumCells ();
@@ -150,6 +156,18 @@ public:
    */
   double GetAntennaOrientation (uint16_t cellId,
                                 SiteSectorizationType numSectors);
+
+  /**
+   * \brief Returns the cell center coordinates
+   * \param sitePos Site position coordinates
+   * \param cellId Cell Id
+   * \param numSecors The number of sectors of a site
+   * \param hexagonRadius Radius of the hexagonal cell
+   */
+  Vector GetHexagonalCellCenter (Vector sitePos,
+                                 uint16_t cellId,
+                                 SiteSectorizationType numSectors,
+                                 double hexagonRadius);
 
   /**
    * \brief
@@ -174,6 +192,7 @@ private:
   uint16_t m_numCells {0}; //!< Number of cells
   SiteSectorizationType m_siteSectorization {NONE};  //!< Number of sectors per site
   Vector m_centralPos;     //!< Central site position
+  double m_hexagonalRadius {0.0};  //!< Cell radius
 };
 
 } // namespace ns3
