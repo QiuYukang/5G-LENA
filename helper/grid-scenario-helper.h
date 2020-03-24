@@ -179,7 +179,7 @@ public:
    * \param numSecors The number of sectors of a site
    * \param hexagonRadius Radius of the hexagonal cell
    */
-  Vector GetHexagonalCellCenter (Vector sitePos,
+  Vector GetHexagonalCellCenter (const Vector &sitePos,
                                  uint16_t cellId,
                                  SiteSectorizationType numSectors,
                                  double hexagonRadius);
@@ -192,10 +192,22 @@ public:
   uint16_t GetSiteIndex (uint16_t cellId);
 
   /**
+   * \brief Returns the position of the cell antenna
+   * \param sitePos Site position coordinates in meters
+   * \param cell Id Cell id of the antenna
+   * \param numSectors Number of sectors of the site
+   * \param antennaOffset Distance in meters between the antenna and the site locations
+   */
+  Vector GetAntennaPos (const Vector &sitePos,
+                        uint16_t cellId,
+                        SiteSectorizationType numSectors,
+                        double antennaOffset);
+
+  /**
    * \brief Sets parameters to the specified scenario
    * \param scenario Scenario to simulate
    */
-  void SetScenarioParamenters (std::string scenario);
+  void SetScenarioParamenters (const std::string &scenario);
 
   /**
    * \brief Sets the Urban Macro (UMa) scenario parameters
@@ -220,6 +232,7 @@ private:
   uint16_t m_numCells {0}; //!< Number of cells
   SiteSectorizationType m_siteSectorization {NONE};  //!< Number of sectors per site
   Vector m_centralPos;     //!< Central site position
+  double m_antennaOffset {-1.0};   // Cell antenna offset in meters w.r.t. site location
   double m_hexagonalRadius {0.0};  //!< Cell radius
 };
 

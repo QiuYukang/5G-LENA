@@ -28,6 +28,9 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("GridScenarioHelper");
 
+
+static const double MAX_ANTENNA_OFFSET = 1;  //!< Maximum distance between a sector antenna panel and the site it belongs to
+
 GridScenarioHelper::GridScenarioHelper ()
 {
   m_initialPos.x = 0.0;
@@ -251,7 +254,7 @@ HexagonalGridScenarioHelper::GetAntennaOrientationRadians (uint16_t cellId,
 }
 
 Vector
-HexagonalGridScenarioHelper::GetHexagonalCellCenter (Vector sitePos,
+HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
                                                      uint16_t cellId,
                                                      SiteSectorizationType numSectors,
                                                      double hexagonRadius)
@@ -302,7 +305,7 @@ HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId)
 }
 
 void
-HexagonalGridScenarioHelper::SetScenarioParamenters (std::string scenario)
+HexagonalGridScenarioHelper::SetScenarioParamenters (const std::string &scenario)
 {
   NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi", "Unrecognized scenario");
 
@@ -329,6 +332,7 @@ HexagonalGridScenarioHelper::SetUMaParameters ()
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 2 / 3;
+  m_antennaOffset = 1.0;
 }
 
 void
@@ -339,6 +343,24 @@ HexagonalGridScenarioHelper::SetUMiParameters ()
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 2 / 3;
+  m_antennaOffset = 1.0;
+}
+
+Vector
+HexagonalGridScenarioHelper::GetAntennaPos (const Vector &sitePos,
+                                            uint16_t cellId,
+                                            SiteSectorizationType numSectors,
+                                            double antennaOffset)
+{
+
+  NS_ABORT_MSG_IF (antennaOffset > MAX_ANTENNA_OFFSET, "Antenna offset is too large");
+
+  Vector pos (sitePos);
+
+  double angle = GetAntennaOrientationDegrees(cellId, numSectors);
+  pos.x += antennaOffset * cos (angle * M_PI / 180);
+  pos.y += antennaOffset * sin (angle * M_PI / 180);
+  return pos;
 }
 
 void
@@ -364,18 +386,26 @@ HexagonalGridScenarioHelper::CreateScenario ()
   std::vector<float> siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
 
   // BS position
-  for (uint16_t cellIndex = 0; cellIndex < m_numSites; cellIndex++)
+  for (uint16_t cellIndex = 0; cellIndex < m_numCells; cellIndex++)
     {
-        uint16_t siteIndex = GetSiteIndex (cellIndex);
-        Vector pos (m_centralPos);
-        pos.x += 0.5 * m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
-        pos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
-        pos.z = m_bsHeight;
+      uint16_t siteIndex = GetSiteIndex (cellIndex);
+      Vector sitePos (m_centralPos);
+      sitePos.x += 0.5 * m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
+      sitePos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
+      sitePos.z = m_bsHeight;
 
-        NS_LOG_DEBUG ("GNB Position: " << pos);
-        bsPos->Add (pos);
+      // FIXME:
+      Vector pos = GetAntennaPos (sitePos,
+                                  cellIndex,
+                                  m_siteSectorization,
+                                  m_antennaOffset);
 
-        //What about the antenna orientation? It should be dealt with when installing the gNB
+//      NS_LOG_DEBUG ("Site position: " << sitePos);
+      NS_LOG_DEBUG ("GNB Position: " << pos);
+      std::cout << "GNB Position: " << pos << std::endl;
+      bsPos->Add (pos);
+
+      //What about the antenna orientation? It should be dealt with when installing the gNB
     }
 
   // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3

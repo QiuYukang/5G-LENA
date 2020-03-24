@@ -84,7 +84,7 @@ main (int argc, char *argv[])
    * command line. Each of them is initialized with a default value.
    */
   // Scenario parameters (that we will use inside this script):
-  uint16_t gNbNum = 1;
+  uint16_t gNbNum = 2;
   uint16_t ueNumPergNb = 2;
   bool logging = false;
   bool doubleOperationalBand = true;
