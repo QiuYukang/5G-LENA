@@ -28,8 +28,12 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("GridScenarioHelper");
 
+// Site positions in terms of distance and angle w.r.t. the central site
+static std::vector<double> siteDistances {0,1,1,1,1,1,1,std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),2,2,2,2,2,2};
+static std::vector<double> siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
 
 static const double MAX_ANTENNA_OFFSET = 1;  //!< Maximum distance between a sector antenna panel and the site it belongs to
+
 
 GridScenarioHelper::GridScenarioHelper ()
 {
@@ -380,11 +384,6 @@ HexagonalGridScenarioHelper::CreateScenario ()
   Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator> ();
   Ptr<ListPositionAllocator> utPos = CreateObject<ListPositionAllocator> ();
 
-  // Site positions in terms of distance and angle w.r.t. the central site
-  float val = 2*cos (30 * M_PI / 180);
-  std::vector<float> siteDistances {0,1,1,1,1,1,1,val,val,val,val,val,val,2,2,2,2,2,2};
-  std::vector<float> siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
-
   // BS position
   for (uint16_t cellIndex = 0; cellIndex < m_numCells; cellIndex++)
     {
@@ -394,15 +393,13 @@ HexagonalGridScenarioHelper::CreateScenario ()
       sitePos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
       sitePos.z = m_bsHeight;
 
-      // FIXME:
+      // FIXME: Until sites can have more than one antenna array, it is necessary to apply some distance offset from the site center (gNBs cannot have the same location)
       Vector pos = GetAntennaPos (sitePos,
                                   cellIndex,
                                   m_siteSectorization,
                                   m_antennaOffset);
 
-//      NS_LOG_DEBUG ("Site position: " << sitePos);
       NS_LOG_DEBUG ("GNB Position: " << pos);
-      std::cout << "GNB Position: " << pos << std::endl;
       bsPos->Add (pos);
 
       //What about the antenna orientation? It should be dealt with when installing the gNB

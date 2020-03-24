@@ -163,12 +163,12 @@ public:
                                        SiteSectorizationType numSectors);
 
   /**
-     * \brief Returns the orientation in radians of the antenna array for the given cellId and number of sectors of the site the cell belongs to
-     * \param cellId Cell Id
-     * \param numSecors The number of sectors of a site
-     * \return The antenna orientation in radians [-PI, PI]
-     */
-    double GetAntennaOrientationRadians (uint16_t cellId,
+   * \brief Returns the orientation in radians of the antenna array for the given cellId and number of sectors of the site the cell belongs to
+   * \param cellId Cell Id
+   * \param numSecors The number of sectors of a site
+   * \return The antenna orientation in radians [-PI, PI]
+   */
+  double GetAntennaOrientationRadians (uint16_t cellId,
                                          SiteSectorizationType numSectors);
 
 
