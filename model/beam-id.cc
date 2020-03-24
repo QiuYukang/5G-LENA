@@ -21,7 +21,7 @@
 
 namespace ns3 {
 
-std::ostream &operator<< (std::ostream &os, const BeamId &item)
+std::ostream& operator<< (std::ostream &os, const BeamId &item)
 {
   os << "[Sector: " << static_cast<uint16_t> (item.GetSector ())
                << " elevation: " << item.GetElevation () << "]";

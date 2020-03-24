@@ -39,8 +39,6 @@ BeamManager::BeamManager() {
 void
 BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray)
 {
-  // we assume that the antenna dimension will not change during the simulation,
-  // thus we create this omni vector only once
   m_antennaArray = antennaArray;
   ChangeToOmniTx ();
 }
