@@ -1313,80 +1313,55 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 {
   NS_LOG_FUNCTION (this);
 
-  // If I have received UL CTRL messages, and I was about to lose the channel,
-  // I can reuse through the cot gained by the UE.
-  // We maintain the total timer in m_channelLostTimer: when our first calculated
-  // MCOT expires, we release the channel anyway.
-  //if (msgList.size () > 0 && m_channelStatus == TO_LOSE)
-   // {
-   //   NS_LOG_INFO ("Received " << msgList.size() << " CTRL msgs, channel gained again");
-  //    m_channelStatus = GRANTED;
-   // }
-
   if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
     {
-      NS_LOG_INFO ("received CQI");
-
       Ptr<MmWaveDlCqiMessage> dlcqi = DynamicCast<MmWaveDlCqiMessage> (msg);
       DlCqiInfo dlcqiLE = dlcqi->GetDlCqi ();
       m_phyRxedCtrlMsgsTrace (m_currentSlot, dlcqiLE.m_rnti, GetBwpId (), msg);
 
       NS_LOG_INFO ("Received DL_CQI for RNTI: " << dlcqiLE.m_rnti << " in slot " <<
-                   m_currentSlot << ", scheduling MAC ReceiveControlMessage after the decode latency");
-      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+                   m_currentSlot);
+
+      m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::BSR)
     {
-      NS_LOG_INFO ("received BSR");
-
       Ptr<MmWaveBsrMessage> bsrmsg = DynamicCast<MmWaveBsrMessage> (msg);
       MacCeElement macCeEl = bsrmsg->GetBsr();
       m_phyRxedCtrlMsgsTrace (m_currentSlot, macCeEl.m_rnti, GetBwpId (), msg);
 
       NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
-                   m_currentSlot << ", scheduling MAC ReceiveControlMessage after the decode latency");
-      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+                   m_currentSlot);
+      m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
     {
       NS_LOG_INFO ("received RACH_PREAMBLE");
 
       Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
-      //          m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
       m_phyRxedCtrlMsgsTrace (m_currentSlot, 0, GetBwpId (), msg);
-      NS_LOG_INFO ("Received RACH Preamble in slot " << m_currentSlot <<
-                   ", scheduling MAC ReceiveControlMessage after the decode latency");
-      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveEnbPhySapUser::ReceiveRachPreamble, m_phySapUser,
-                           rachPreamble->GetRapId ());
+      NS_LOG_INFO ("Received RACH Preamble in slot " << m_currentSlot);
+      m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
 
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
     {
-
       Ptr<MmWaveDlHarqFeedbackMessage> dlharqMsg = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
       DlHarqInfo dlharq = dlharqMsg->GetDlHarqFeedback ();
-
-      NS_LOG_INFO (" received DL_HARQ: " << dlharq);
-      // check whether the UE is connected
-
       if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
         {
           m_phyRxedCtrlMsgsTrace (m_currentSlot, dlharq.m_rnti, GetBwpId (), msg);
 
           NS_LOG_INFO ("Received DL_HARQ for RNTI: " << dlharq.m_rnti << " in slot " <<
-                       m_currentSlot << ", scheduling MAC ReceiveControlMessage after the decode latency");
-          Simulator::Schedule (GetTbDecodeLatency(), &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+                       m_currentSlot);
+          m_phySapUser->ReceiveControlMessage (msg);
         }
     }
   else
     {
-      //m_phySapUser->ReceiveControlMessage (msg);
-
       m_phyRxedCtrlMsgsTrace (m_currentSlot, 0, GetBwpId (), msg);
-
-      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveEnbPhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+      m_phySapUser->ReceiveControlMessage (msg);
     }
-
 }
 
 

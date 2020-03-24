@@ -356,10 +356,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
               InsertFutureAllocation (ulSfnSf, dciInfoElem);
             }
         }
-
-      NS_LOG_INFO ("Received DCI_TDMA for RNTI: " << m_rnti << " in slot " <<
-                   m_currentSlot << ", scheduling MAC ReceiveControlMessage after the decode latency");
-      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveUePhySapUser::ReceiveControlMessage, m_phySapUser, msg);
+      m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
     {
@@ -383,8 +380,8 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
   else
     {
       NS_LOG_INFO ("Message type not recognized " << msg->GetMessageType ());
-      m_phySapUser->ReceiveControlMessage (msg);
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+      m_phySapUser->ReceiveControlMessage (msg);
     }
 }
 
