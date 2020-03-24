@@ -112,8 +112,8 @@ reconfigure the attribute at gNb MAC.
 
 * Removed MacSchedType attribute from PhyMacConfig.
 
-* Removed method GetNumScsPerRb() from PhyMacConfig, replaced by a static
-function in MmWavePhy.
+* Removed method GetNumScsPerRb() from PhyMacConfig replaced by a static
+const in mmwave-phy-mac-confg.h.
 
 * Removed Bandwidth, Numerology, SymbolsPerSlot attribute from MmWavePhyMacCommon.
 Moved to EnbPhy, while the UE get these values from RRC or from direct call by the
