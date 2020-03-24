@@ -118,6 +118,10 @@ public:
 
   /**
    * \brief Send the RachPreamble
+   *
+   * The RACH PREAMBLE is sent ASAP, without applying any delay,
+   * since it is sent in the PRACH channel
+   *
    * \param PreambleId preamble ID
    * \param Rnti RNTI
    */

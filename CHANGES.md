@@ -180,6 +180,7 @@ calculates k0, k1, k2
 * Starting with this release the default behaviour will be to calculate interference 
 for all the links, and will not be any more possible to exclude UE->UE and GNB->GNB 
 interference calculations (Removed attribute EnableAllInterference from MmWaveSpectrumPhy).
+* RACH Preamble is sent without applying any delay (i.e. L1l2CtrlLatency)
 
 
 ---

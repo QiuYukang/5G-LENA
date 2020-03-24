@@ -375,7 +375,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       Ptr<MmWaveRarMessage> rarMsg = DynamicCast<MmWaveRarMessage> (msg);
 
-      Simulator::Schedule (GetTbDecodeLatency(), &MmWaveUePhy::DoReceiveRar, this, rarMsg);
+      Simulator::Schedule ((GetSlotPeriod () * (GetL1L2CtrlLatency ()/2)), &MmWaveUePhy::DoReceiveRar, this, rarMsg);
     }
   else
     {
