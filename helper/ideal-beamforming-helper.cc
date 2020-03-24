@@ -89,7 +89,7 @@ IdealBeamformingHelper::Run () const
            Ptr<MmWaveUeNetDevice> ueDev = task.second;
 
            BeamformingVector gnbBfv, ueBfv;
-           m_idealBeamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv);
+           m_idealBeamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
            Ptr<MmWaveEnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
            Ptr<MmWaveUePhy> uePhy = ueDev->GetPhy (ccId);
 
