@@ -91,6 +91,7 @@ def build(bld):
 #        'test/nr-phy-patterns.cc',
         'test/test-sfnsf.cc',
         'test/test-timings.cc',
+        'test/test-mmwave-spectrum-phy.cc'
         ]
 
     headers = bld(features='ns3header')
