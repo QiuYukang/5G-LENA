@@ -239,6 +239,32 @@ MmWaveHelper::GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
   return netDevice->GetMac (static_cast<uint8_t> (bwpIndex));
 }
 
+Ptr<MmWaveUeMac>
+MmWaveHelper::GetUeMac(const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex)
+{
+  NS_LOG_FUNCTION (ueDevice << bwpIndex);
+  NS_ASSERT(bwpIndex < UINT8_MAX);
+  Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice> (ueDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+  return netDevice->GetMac (static_cast<uint8_t> (bwpIndex));
+}
+
+Ptr<MmWaveUePhy>
+MmWaveHelper::GetUePhy(const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex)
+{
+  NS_LOG_FUNCTION (ueDevice << bwpIndex);
+  NS_ASSERT(bwpIndex < UINT8_MAX);
+  Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice> (ueDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+  return netDevice->GetPhy (static_cast<uint8_t> (bwpIndex));
+}
+
 Ptr<BwpManagerGnb>
 MmWaveHelper::GetBwpManagerGnb(const Ptr<NetDevice> &gnbDevice)
 {
