@@ -21,6 +21,7 @@
 #define MMWAVE_PHY_H
 
 #include "mmwave-phy-sap.h"
+#include "mmwave-phy-mac-common.h"
 #include <ns3/spectrum-value.h>
 
 namespace ns3 {
@@ -191,17 +192,6 @@ public:
    * \return the slot period (depend on the numerology)
    */
   Time GetSlotPeriod () const;
-
-  /**
-   * \brief GetNumScsPerRb
-   *
-   * It is a static function as the value is fixed, and it is needed in NrAmc.
-   * Making this value changeable means creating an interface between PHY
-   * and AMC.
-   *
-   * \return 12, fixed value
-   */
-  static uint32_t GetNumScsPerRb ();
 
   /**
    * \brief Get SymbolPeriod

@@ -239,7 +239,7 @@ MmWavePhy::SetNumerology (uint16_t numerology)
   m_numerology = numerology;
   m_slotsPerSubframe  = static_cast<uint16_t> (std::pow (2, numerology));
   m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
-  m_subcarrierSpacing = 15 * static_cast<uint32_t> (std::pow (2, numerology)) * 1000;
+  m_subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
   m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
 
   UpdateRbNum ();
@@ -277,12 +277,6 @@ MmWavePhy::GetSlotPeriod () const
 {
   NS_ABORT_IF (m_slotPeriod.IsNegative ());
   return m_slotPeriod;
-}
-
-uint32_t
-MmWavePhy::GetNumScsPerRb ()
-{
-  return 12;
 }
 
 void
@@ -454,7 +448,7 @@ MmWavePhy::UpdateRbNum ()
 {
   NS_LOG_FUNCTION (this);
 
-  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * GetNumScsPerRb ()));
+  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * SUBCARRIERS_PER_RB ));
 
   NS_ASSERT (m_rbNum > 0);
 
@@ -773,7 +767,7 @@ MmWavePhy::GetSpectrumModel () const
 
   return MmWaveSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
                                                       GetCentralFrequency (),
-                                                      GetNumScsPerRb (),
+                                                      SUBCARRIERS_PER_RB,
                                                       m_subcarrierSpacing);
 }
 

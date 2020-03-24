@@ -48,6 +48,8 @@
 
 namespace ns3 {
 
+static const uint8_t SUBCARRIERS_PER_RB = 12;
+
 struct GetFirst
 {
   template <class First, class Second>

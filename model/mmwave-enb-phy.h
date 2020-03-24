@@ -19,7 +19,6 @@
 #define MMWAVE_ENB_PHY_H
 
 #include "mmwave-phy.h"
-#include "mmwave-phy-mac-common.h"
 #include "mmwave-control-messages.h"
 #include <ns3/lte-enb-phy-sap.h>
 #include <ns3/lte-enb-cphy-sap.h>
