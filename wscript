@@ -90,6 +90,7 @@ def build(bld):
         'test/nr-lte-pattern-generation.cc',
 #        'test/nr-phy-patterns.cc',
         'test/test-sfnsf.cc',
+        'test/test-timings.cc',
         ]
 
     headers = bld(features='ns3header')
