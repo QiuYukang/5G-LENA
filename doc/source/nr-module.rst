@@ -57,7 +57,7 @@ Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and `
 
 .. _fig-ran:
 
-.. figure:: figures/drawing1.*
+.. figure:: figures/drawing1.png
    :align: center
    :scale: 80 %
 
