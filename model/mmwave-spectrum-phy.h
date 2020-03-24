@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -17,38 +17,35 @@
  *
  */
 
-
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
 #define SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
 
-
-#include <ns3/spectrum-phy.h>
+#include <functional>
+#include <ns3/random-variable-stream.h>
 #include <ns3/traced-callback.h>
+#include <ns3/spectrum-channel.h>
+#include <ns3/net-device.h>
+#include "mmwave-phy.h"
+#include "mmwave-harq-phy.h"
+#include "mmwave-interference.h"
 #include "mmwave-spectrum-signal-parameters.h"
 #include "mmwave-control-messages.h"
-#include "nr-error-model.h"
-#include <functional>
 
 namespace ns3 {
-
-class ThreeGppAntennaArrayModel;
-class NetDevice;
-class SpectrumValue;
-class SpectrumChannel;
-class MmWavePhy;
-class mmWaveChunkProcessor;
-class mmWaveInterference;
-class MmWaveHarqPhy;
-class UniformRandomVariable;
 
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
+
   static TypeId GetTypeId (void);
 
   MmWaveSpectrumPhy ();
+
   virtual ~MmWaveSpectrumPhy () override;
 
+  /**
+   * \brief Enum that defines possible states of the spectrum phy
+   */
   enum State
   {
     IDLE = 0,
@@ -59,99 +56,187 @@ public:
     CCA_BUSY
   };
 
-  typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
-  typedef std::function<void (const std::list<Ptr<MmWaveControlMessage> > &, uint8_t)> MmWavePhyRxCtrlEndOkCallback;
-
+  //callbacks typefefs and setters
   /**
-   * This method is used by the LteSpectrumPhy to notify the PHY about
-   * the status of a certain DL HARQ process
+   * \brief This callback method type is used to notify that DATA is received
+   */
+  typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
+  /**
+   *\brif This callback method type is used to notify that CTRL is received
+   */
+  typedef std::function<void (const std::list<Ptr<MmWaveControlMessage> > &, uint8_t)> MmWavePhyRxCtrlEndOkCallback;
+  /**
+   * This callback method type is used by the MmWaveSpectrumPhy to notify the PHY about
+   * the status of a DL HARQ feedback
    */
   typedef Callback< void, const DlHarqInfo& > MmWavePhyDlHarqFeedbackCallback;
-
   /**
-   * This method is used by the LteSpectrumPhy to notify the PHY about
-   * the status of a certain UL HARQ process
+   * This callback method type is used by the MmWaveSpectrumPhy to notify the PHY about
+   * the status of a UL HARQ feedback
    */
   typedef Callback< void, const UlHarqInfo &> MmWavePhyUlHarqFeedbackCallback;
 
   /**
-   * \brief Typedef for a channel occupancy. Used by different traces.
+   * \brief Sets the callback to be called when DATA is received successfully
+   * \param c the callback function
    */
-  typedef TracedCallback <Time> ChannelOccupiedTracedCallback;
+  void SetPhyRxDataEndOkCallback (const MmWavePhyRxDataEndOkCallback& c);
+  /**
+   * \brief Sets the callback to be called when CTRL is received successfully
+   * \param c the callback function
+   */
+  void SetPhyRxCtrlEndOkCallback (const MmWavePhyRxCtrlEndOkCallback& c);
+  /**
+   * \brief Sets the callback to be called when DL HARQ feedback is generated
+   */
+  void SetPhyDlHarqFeedbackCallback (const MmWavePhyDlHarqFeedbackCallback& c);
+  /**
+   * \brief Sets the callback to be called when UL HARQ feedback is generated
+   */
+  void SetPhyUlHarqFeedbackCallback (const MmWavePhyUlHarqFeedbackCallback& c);
 
+  //Methods inherited from spectrum phy
+  /*
+   * \brief Inherited from SpectrumPhy
+   */
+  void SetDevice (Ptr<NetDevice> d) override;
+  /*
+   * \brief Inherited from SpectrumPhy
+   */
+  Ptr<NetDevice> GetDevice () const override;
+  /*
+   * \brief Inherited from SpectrumPhy
+   */
+  void SetMobility (Ptr<MobilityModel> m) override;
+  /*
+   * \brief Inherited from SpectrumPhy
+   */
+  Ptr<MobilityModel> GetMobility () override;
+  /*
+   * \brief Inherited from SpectrumPhy
+   */
+  void SetChannel (Ptr<SpectrumChannel> c) override;
+  /*
+   * \brief Inherited from SpectrumPhy
+   */
+  Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
+  /**
+   * \brief Inherited from SpectrumPhy
+   * Note: Implements GetRxAntenna function from SpectrumPhy. This
+   * function should not be called for NR devices, since NR devices do not use
+   * AntennaModel. This is because 3gpp channel model implementation only
+   * supports ThreeGppAntennaArrayModel antenna type.
+   * \return should not return anything
+   */
+  virtual Ptr<AntennaModel> GetRxAntenna () override;
+  /**
+   * \brief Inherited from SpectrumPhy. When this function is called
+   * this spectrum phy starts receiving a signal from its spectrum channel.
+   * \param params SpectrumSignalParameters object that will be used to process this signal
+   */
+  void StartRx (Ptr<SpectrumSignalParameters> params) override;
 
-  void InstallPhy (const Ptr<const MmWavePhy> &phyModel);
-
-  // Attributes
+  // Attributes setters
   /**
    * \brief Set clear channel assessment (CCA) threshold
    * \param thresholdDBm - CCA threshold in dBms
    */
   void SetCcaMode1Threshold (double thresholdDBm);
-
   /**
    * Returns clear channel assesment (CCA) threshold
    * \return CCA threshold in dBms
    */
   double GetCcaMode1Threshold (void) const;
-
-  // Inherited
-  void SetDevice (Ptr<NetDevice> d) override;
-  Ptr<NetDevice> GetDevice () const override;
-  void SetMobility (Ptr<MobilityModel> m) override;
-  Ptr<MobilityModel> GetMobility () override;
-  void SetChannel (Ptr<SpectrumChannel> c) override;
-  Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
-
   /**
-   * Implements GetRxAntenna function from SpectrumPhy. This
-   * function should not be called for NR devices, since NR devices do not use
-   * AntennaModel. This is because 3gpp channel model implementation only
-   * supports ThreeGppAntennaArrayModel antenna type.
-   *
-   * @return
+   * \brief Sets whether to perform in unclicensed mode in which the channel monitoring is enabled
+   * \param unlicensedMode if true the unlicensed mode is enabled
    */
-  virtual Ptr<AntennaModel> GetRxAntenna () override;
-
+  void SetUnlicensedMode (bool unlicensedMode);
   /**
-   * \brief Returns ThreeGppAntennaArrayModel instance of the device using this
-   * SpectrumPhy instance.
+   * \brief Enables or disabled data error model
+   * \param dataErrorModelEnabled boolean saying whether the data error model should be enabled
    */
-  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray() const;
+  void SetDataErrorModelEnabled (bool dataErrorModelEnabled);
+  /**
+   * \brief Sets the error model type
+   */
+  void SetErrorModelType (TypeId errorModelType);
 
-  void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
-  void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
-  void StartRx (Ptr<SpectrumSignalParameters> params) override;
-  void StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> params);
-  void StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params);
-  void StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params);
-  Ptr<SpectrumChannel> GetSpectrumChannel () const;
-
-  bool StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsgList, Time duration, uint8_t slotInd);
-
-  bool StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);   // control frames from enb to ue
-
-  bool StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);
-
-  void SetPhyRxDataEndOkCallback (MmWavePhyRxDataEndOkCallback c);
-  void SetPhyRxCtrlEndOkCallback (const MmWavePhyRxCtrlEndOkCallback &c);
-  void SetPhyDlHarqFeedbackCallback (MmWavePhyDlHarqFeedbackCallback c);
-  void SetPhyUlHarqFeedbackCallback (MmWavePhyUlHarqFeedbackCallback c);
-
-  void AddDataPowerChunkProcessor (Ptr<mmWaveChunkProcessor> p);
-  void AddDataSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p);
-
+  // other methods
+  /**
+   * \brief Sets noise power spectral density to be used by this device
+   * \param noisePsd SpectrumValue object holding noise PSD
+   */
+  void SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noisePsd);
+  /**
+   * \brief Sets transmit power spectral density
+   * \param txPsd transmit power spectral density to be used for the upcoming transmissions by this spectrum phy
+   */
+  void SetTxPowerSpectralDensity (const Ptr<SpectrumValue>& txPsd);
+  /**
+   * \brief Starts transmission of data frames on connected spectrum channel object
+   * \param pb packet burst to be transmitted
+   * \param ctrlMsgList conrol message list
+   * \param duration the duration of transmission
+   * \param slotInd the slot indication
+   */
+  void StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<MmWaveControlMessage> >& ctrlMsgList, Time duration, uint8_t slotInd);
+  /**
+   * \brief Starts transmission of DL CTRL
+   * \param duration the duration of this transmission
+   */
+  void StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);   // control frames from enb to ue
+  /*
+   * \brief Start transmission of UL CTRL
+   * \param ctrlMsgList the list of control messages to be transmitted in UL
+   * \param duration the duration of the CTRL messages transmission
+   */
+  void StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);
+  /**
+   * \brief Adds the chunk processor that will process the power for the data
+   * \param p the chunk processor
+   */
+  void AddDataPowerChunkProcessor (const Ptr<mmWaveChunkProcessor>& p);
+  /**
+   * \brief Adds the chunk processor that will process the interference
+   * \param p the chunk processor
+   */
+  void AddDataSinrChunkProcessor (const Ptr<mmWaveChunkProcessor>& p);
+  /**
+   * \brief SpectrumPhy that will be called when the SINR for the received
+   * DATA is being calculated by the interference object over DATA chunk
+   * processor
+   * \param sinr the resulting SINR spectrum value
+   */
   void UpdateSinrPerceived (const SpectrumValue& sinr);
-
-  void InstallHarqPhyModule (Ptr<MmWaveHarqPhy> harq);
-
-  Ptr<MmWaveHarqPhy> GetHarqPhyModule () const;
-
+  /**
+   * \brief Install HARQ phy module of this spectrum phy
+   * \param harq Harq module of this spectrum phy
+   */
+  void InstallHarqPhyModule (const Ptr<MmWaveHarqPhy>& harq);
+  /**
+   * \brief Set MmWavePhy of this spectrum phy in order to be able
+   * to obtain information such as cellId, bwpId, etc.
+   */
+  void InstallPhy (const Ptr<const MmWavePhy> &phyModel);
+  /**
+   * \return Returns ThreeGppAntennaArrayModel instance of this spectrum phy
+   */
+  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray (void) const;
+  /**
+   * \brief Returns spectrum channel object to which is attached this spectrum phy instance
+   */
+  Ptr<SpectrumChannel> GetSpectrumChannel (void) const;
+  /**
+   * \return HARQ module of this spectrum phy
+   */
+  Ptr<MmWaveHarqPhy> GetHarqPhyModule (void) const;
+  /**
+   * \return mmWaveInterference instance of this spectrum phy
+   */
   Ptr<mmWaveInterference> GetMmWaveInterference (void) const;
-
   /**
    * \brief Instruct the Spectrum Model of a incoming transmission.
-   *
    * \param rnti RNTI
    * \param ndi New data indicator (0 for retx)
    * \param size TB Size
@@ -167,6 +252,22 @@ public:
                       uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym);
 
 private:
+
+  /**
+   * \brief Function is called when what is being received is holding data
+   * \para params spectrum parameters that are holding information regarding data frame
+   */
+  void StartRxData (const Ptr<MmwaveSpectrumSignalParametersDataFrame>& params);
+  /**
+   * \brief Function that is called when is being received DL CTRL
+   * \param params holds DL CTRL frame signal parameters structure
+   */
+  void StartRxDlCtrl (const Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame>& params);
+  /**
+   * \brief Function that is called when is being received UL CTRL
+   * \param params holds UL CTRL frame signal parameters structure
+   */
+  void StartRxUlCtrl (const Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame>& params);
   /**
    * \return the cell id
    */
@@ -179,12 +280,46 @@ private:
    * \return true if this class is inside an enb/gnb
    */
   bool IsEnb () const;
-
   /**
-   * \brief Information about the expected transport block at a certain point in the slot
-   *
-   * Information passed by the PHY through a call to AddExpectedTb
+   * \brief Update the state of the spectrum phy. The states are:
+   *  IDLE, TX, RX_DATA, RX_DL_CTRL, RX_UL_CTRL, CCA_BUSY.
+   * \param newState the new state
+   * \param duration how much time the spectrum phy will be in the new state
    */
+  void ChangeState (State newState, Time duration);
+  /**
+   * \brief Function that is called when the transmission has ended. It is
+   * used to update spectrum phy state.
+   */
+  void EndTx ();
+  /**
+   * \brief Function that is called when the spectrum phy finishes the reception of DATA. This
+   * function processed the data being received and generated HARQ feedback.
+   * It also updates spectrum phy state.
+   */
+  void EndRxData ();
+  /**
+   * \brief Function that is called when the spectrum phy finishes the reception of CTRL.
+   * It stores CTRL messages and updates spectrum phy state.
+   */
+   void EndRxCtrl ();
+   /**
+    * \brief Check if the channel is busy. If yes, updates the spectrum phy state.
+    */
+   void MaybeCcaBusy ();
+   /**
+    * \brief Function used to schedule an event to check if state should be switched from CCA_BUSY to IDLE.
+    * This function should be used only for this transition of state machine. After finishing
+    * reception (RX_DL_CTRL or RX_UL_CTRL or RX_DATA) function MaybeCcaBusy should be called instead to check
+    * if to switch to IDLE or CCA_BUSY, and then new event may be created in the case that the
+    * channel is BUSY to switch back from busy to idle.
+    */
+   void CheckIfStillBusy ();
+   /**
+    * \brief Information about the expected transport block at a certain point in the slot
+    *
+    * Information passed by the PHY through a call to AddExpectedTb
+    */
   struct ExpectedTb
   {
     ExpectedTb (uint8_t ndi, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbBitmap,
@@ -228,74 +363,48 @@ private:
     double m_sinrMin {0.0};               //!< MIN SINR (only between the RB used to transmit the TB)
   };
 
-  //typedef std::unordered_map<uint16_t, TransportBlockInfo> TBMap; //!< Transport map with RNTI as key
+  //attributes
+  TypeId m_errorModelType {Object::GetTypeId()}; //!< Error model type by default is NrLteMiErrorModel
+  bool m_dataErrorModelEnabled {true}; //!< whether the phy error model for DATA is enabled, by default is enabled
+  double m_ccaMode1ThresholdW {0}; //!< Clear channel assessment (CCA) threshold in Watts, attribute that it configures it is
+                                   //   CcaMode1Threshold and is configured in dBm
+  bool m_unlicensedMode {false}; //!< Whether this spectrum phy is configure to work in an unlicensed mode.
+                                 //   Unlicensed mode additionally to licensed mode allows channel monitoring to discover if is busy before transmission.
 
-  std::unordered_map<uint16_t, TransportBlockInfo> m_transportBlocks; //!< Transport block map
-  TypeId m_errorModelType; //!< Error model type
+  Ptr<SpectrumChannel> m_channel {nullptr}; //!< channel is needed to be able to connect listener spectrum phy (AddRx) or to start transmission StartTx
+  Ptr<const SpectrumModel> m_rxSpectrumModel {nullptr}; //!< the spectrum model of this spectrum phy
+  Ptr<MobilityModel> m_mobility {nullptr}; //!< the mobility model of the node to which belongs this spectrum phy
+  Ptr<NetDevice> m_device {nullptr}; //!< the device to which belongs this spectrum phy
+  Ptr<const MmWavePhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
+  Ptr<MmWaveHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
+  Ptr<mmWaveInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
+  Ptr<SpectrumValue> m_txPsd {nullptr}; //!< tx power spectral density
+  Ptr<UniformRandomVariable> m_random {nullptr}; //!< the random variable used for TB decoding
 
-  void ChangeState (State newState, Time duration);
-  void EndTx ();
-  void EndRxData ();
-  void EndRxCtrl ();
+  std::unordered_map<uint16_t, TransportBlockInfo> m_transportBlocks; //!< Transport block map per RNTI of TBs which are expected to be received by reading DL or UL DCIs
+  std::list<Ptr<PacketBurst> > m_rxPacketBurstList; //!< the list of received packets
+  std::list<Ptr<MmWaveControlMessage> > m_rxControlMessageList; //!< the list of received control messages
 
-  void MaybeCcaBusy ();
-
-  /**
-   * \brief Function used to schedule event to check if state should be switched from CCA_BUSY to IDLE.
-   * This function should be used only for this transition of state machine. After finishing
-   * reception (RX_DL_CTRL or RX_UL_CTRL or RX_DATA) function MaybeCcaBusy should be called instead to check
-   * if to switch to IDLE or CCA_BUSY, and then new event may be created in the case that the
-   * channel is BUSY to switch back from busy to idle.
-   */
-  void CheckIfStillBusy ();
-
-  Ptr<mmWaveInterference> m_interferenceData;
-  Ptr<MobilityModel> m_mobility;
-  Ptr<NetDevice> m_device;
-  Ptr<SpectrumChannel> m_channel;
-  Ptr<const SpectrumModel> m_rxSpectrumModel;
-  Ptr<SpectrumValue> m_txPsd;
-  //Ptr<PacketBurst> m_txPacketBurst;
-  std::list<Ptr<PacketBurst> > m_rxPacketBurstList;
-  std::list<Ptr<MmWaveControlMessage> > m_rxControlMessageList;
-
-  Time m_firstRxStart;
-  Time m_firstRxDuration;
-
-  State m_state;
-
-  MmWavePhyRxCtrlEndOkCallback    m_phyRxCtrlEndOkCallback;
-  MmWavePhyRxDataEndOkCallback    m_phyRxDataEndOkCallback;
-
-  ChannelOccupiedTracedCallback m_channelOccupied;
-  ChannelOccupiedTracedCallback m_txDataTrace;
-  ChannelOccupiedTracedCallback m_txCtrlTrace;
-
-  MmWavePhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback;
-  MmWavePhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback;
-
-  TracedCallback<RxPacketTraceParams> m_rxPacketTraceEnb;
-  TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe;
-
-  TracedCallback<EnbPhyPacketCountParameter > m_txPacketTraceEnb;
-
-  SpectrumValue m_sinrPerceived;
-
-  Ptr<UniformRandomVariable> m_random;
-
-  bool m_dataErrorModelEnabled;   // when true (default) the phy error model is enabled
-
-  Ptr<MmWaveHarqPhy> m_harqPhyModule;
-
-  double m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in Watts
-
-  bool m_unlicensedMode {false};
-
+  Time m_firstRxStart {Seconds (0)}; //!< this is needed to save the time at which we lock down onto signal
+  Time m_firstRxDuration {Seconds (0)}; //!< the duration of the current reception
+  State m_state {IDLE}; //!<spectrum phy state
+  SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
   EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY to IDLE.
-
   Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time
 
-  Ptr<const MmWavePhy> m_phy;
+  //callbacks for CTRL and DATA, and UL/DL HARQ
+  MmWavePhyRxCtrlEndOkCallback m_phyRxCtrlEndOkCallback; //!< callback that is notified when the CTRL is received
+  MmWavePhyRxDataEndOkCallback m_phyRxDataEndOkCallback; //!< callback that is notified when the DATA is received
+  MmWavePhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is being generated
+  MmWavePhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is being generated
+
+  //traces
+  TracedCallback <Time> m_channelOccupied; //!< trace callback that is notifying of total time that this spectrum phy sees the channel occupied, by others and by itself
+  TracedCallback <Time> m_txDataTrace; //!< trace callback that is notifying when this spectrum phy starts to occupy the channel with data transmission
+  TracedCallback <Time> m_txCtrlTrace; //!< trace callback that is notifying when this spectrum phy starts to occupy the channel with transmission of CTRL
+  TracedCallback<RxPacketTraceParams> m_rxPacketTraceEnb; //!< trace callback that is notifying when eNb received the packet
+  TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
+  TracedCallback<EnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
 };
 
 }
