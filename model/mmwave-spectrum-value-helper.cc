@@ -17,31 +17,15 @@
  *
  */
 
+#include "mmwave-spectrum-value-helper.h"
 #include <map>
 #include <cmath>
 #include <ns3/log.h>
 #include <ns3/fatal-error.h>
 #include <ns3/string.h>
 #include <ns3/abort.h>
+#include "mmwave-phy-mac-common.h"
 
-#include "mmwave-spectrum-value-helper.h"
-
-namespace std {
-
-// ostream&
-// operator << (ostream& os, const vector<int>& v)
-// {
-//   vector<int>::const_iterator it = v.begin ();
-//   while (it != v.end ())
-//     {
-//       os << *it << " ";
-//       ++it;
-//     }
-//   os << endl;
-//   return os;
-// }
-
-}
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveSpectrumValueHelper");
@@ -53,62 +37,73 @@ struct MmWaveSpectrumModelId
    * Constructor
    *
    * \param f center frequency
-   * \param b bandwidth
+   * \param b bandwidth in RBs
+   * \param s subcarrierSpacing
    */
-  MmWaveSpectrumModelId (double f, uint8_t b);
+  MmWaveSpectrumModelId (double f, uint16_t b, double s);
   double frequency; ///<
-  uint8_t  bandwidth; ///< bandwidth
+  uint16_t bandwidth; ///< bandwidth
+  double subcarrierSpacing;
 };
 
-MmWaveSpectrumModelId::MmWaveSpectrumModelId (double f, uint8_t b)
+MmWaveSpectrumModelId::MmWaveSpectrumModelId (double f, uint16_t b, double s)
   : frequency (f),
-  bandwidth (b)
+  bandwidth (b),
+  subcarrierSpacing (s)
 {
 }
 
 /**
- * Constructor
- *
+ * \brief Operator < so that it can be the key in a g_mmWaveSpectrumModelMap
  * \param a lhs
  * \param b rhs
- * \returns true if earfcn less than of if earfcn equal and bandwidth less than
+ * \returns true if earfcn less than or if earfcn equal and bandwidth less than or if earfcn and bandwidth equal and sucarrier spacing less than
  */
 bool
 operator < (const MmWaveSpectrumModelId& a, const MmWaveSpectrumModelId& b)
 {
-  return ( (a.frequency < b.frequency) || ( (a.frequency == b.frequency) && (a.bandwidth < b.bandwidth) ) );
+  return ( (a.frequency < b.frequency) ||
+           ( (a.frequency == b.frequency) && (a.bandwidth < b.bandwidth) ) ||
+           ( (a.frequency == b.frequency) && (a.bandwidth == b.bandwidth ) && (a.subcarrierSpacing < b.subcarrierSpacing))
+         );
 }
-
-
-//Ptr<SpectrumModel> MmWaveSpectrumValueHelper::m_model = 0;
 
 static std::map<MmWaveSpectrumModelId, Ptr<SpectrumModel> > g_mmWaveSpectrumModelMap; ///< mmwave spectrum model map
 
-Ptr<const SpectrumModel> MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs)
-{
-  NS_LOG_FUNCTION (centerFrequency << numRbs << scsPerRb << scs);
 
-  MmWaveSpectrumModelId modelId = MmWaveSpectrumModelId (centerFrequency, numRbs);
+Ptr<const SpectrumModel>
+MmWaveSpectrumValueHelper::GetSpectrumModel (double bandwidth, double centerFrequency, uint8_t numerology)
+{
+  uint32_t scSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
+  uint32_t numRbs = static_cast<uint32_t> (bandwidth / (scSpacing * SUBCARRIERS_PER_RB));
+
+  NS_ABORT_MSG_IF (numRbs == 0, "Total bandwidth is less than the RB width. Total bandwidth should be increased.");
+
+  return GetSpectrumModel (numRbs, centerFrequency, scSpacing);
+}
+
+Ptr<const SpectrumModel>
+MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency, double subcarrierSpacing)
+{
+  NS_LOG_FUNCTION (centerFrequency << numRbs << subcarrierSpacing);
+
+  MmWaveSpectrumModelId modelId = MmWaveSpectrumModelId (centerFrequency, numRbs, subcarrierSpacing);
 
   if (g_mmWaveSpectrumModelMap.find (modelId) != g_mmWaveSpectrumModelMap.end ())
     {
       return g_mmWaveSpectrumModelMap.find (modelId)->second;
     }
 
-  double f = 0.00;
-
   NS_ASSERT_MSG (centerFrequency != 0, "The carrier frequency cannot be set to 0");
-
-  f = centerFrequency - (numRbs * scs * scsPerRb / 2.0);
-
+  double f = centerFrequency - (numRbs * subcarrierSpacing * SUBCARRIERS_PER_RB / 2.0);
   Bands rbs; // A vector representing all resource blocks
   for (uint32_t numrb = 0; numrb < numRbs; ++numrb)
     {
       BandInfo rb;
       rb.fl = f;
-      f += scs * scsPerRb / 2;
+      f += subcarrierSpacing * SUBCARRIERS_PER_RB / 2;
       rb.fc = f;
-      f += scs * scsPerRb / 2;
+      f += subcarrierSpacing * SUBCARRIERS_PER_RB / 2;
       rb.fh = f;
       rbs.push_back (rb);
     }
@@ -121,27 +116,38 @@ Ptr<const SpectrumModel> MmWaveSpectrumValueHelper::GetSpectrumModel (uint32_t n
 }
 
 Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, std::vector <int> activeRbs, Ptr<const SpectrumModel> spectrumModel, double bandwidth)
+MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, const std::vector <int>& activeRbs, const Ptr<const SpectrumModel>& spectrumModel)
 {
+  NS_LOG_FUNCTION (powerTx << activeRbs << spectrumModel);
   Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (spectrumModel);
   double powerTxW = std::pow (10., (powerTx - 30) / 10);
   double txPowerDensity = 0;
-  txPowerDensity = powerTxW / bandwidth;
-
-  for (std::vector <int>::iterator it = activeRbs.begin (); it != activeRbs.end (); it++)
+  double subbandWidth = (spectrumModel->Begin()->fh - spectrumModel->Begin()->fl);
+  NS_ABORT_MSG_IF(subbandWidth < 180000, "Erroneous spectrum model. RB width should be equal or greater than 180KHz");
+  txPowerDensity = powerTxW / (subbandWidth * spectrumModel->GetNumBands());
+  for (std::vector <int>::const_iterator it = activeRbs.begin (); it != activeRbs.end (); it++)
     {
       int rbId = (*it);
       (*txPsd)[rbId] = txPowerDensity;
     }
-
   NS_LOG_LOGIC (*txPsd);
-
   return txPsd;
-
 }
 
+Ptr<const SpectrumValue>
+MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, const Ptr<const SpectrumModel>& txSm)
+{
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < txSm->GetNumBands(); rbId++)
+    {
+      activeRbs.push_back(rbId);
+    }
+  return CreateTxPowerSpectralDensity (powerTx, activeRbs, txSm);
+}
+
+
 Ptr<SpectrumValue>
-MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<const SpectrumModel> spectrumModel)
+MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, const Ptr<const SpectrumModel>& spectrumModel)
 {
   NS_LOG_FUNCTION (noiseFigureDb << spectrumModel);
   const double kT_dBm_Hz = -174.0;  // dBm/Hz
@@ -152,6 +158,16 @@ MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb
   Ptr<SpectrumValue> noisePsd = Create <SpectrumValue> (spectrumModel);
   (*noisePsd) = noisePowerSpectralDensity;
   return noisePsd;
+}
+
+uint64_t
+MmWaveSpectrumValueHelper::GetEffectiveBandwidth (double bandwidth, uint8_t numerology)
+{
+  NS_LOG_FUNCTION (bandwidth << numerology);
+  uint32_t scSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
+  uint32_t numRbs = static_cast<uint32_t> (bandwidth / (scSpacing * SUBCARRIERS_PER_RB));
+  std::cout<<"\n total bandwidth: "<<bandwidth<<" effective bandwidth:"<<numRbs * (scSpacing * SUBCARRIERS_PER_RB)<<std::endl;
+  return numRbs * (scSpacing * SUBCARRIERS_PER_RB);
 }
 
 } // namespace ns3

@@ -64,8 +64,6 @@ public:
                                       const Ptr<const MmWaveUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const;
 
-  static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
-
 private:
 
   /**

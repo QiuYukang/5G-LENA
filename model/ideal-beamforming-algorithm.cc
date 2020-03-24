@@ -29,6 +29,7 @@
 #include <ns3/double.h>
 #include <ns3/angles.h>
 #include <ns3/uinteger.h>
+#include "mmwave-spectrum-value-helper.h"
 
 namespace ns3{
 
@@ -56,24 +57,6 @@ IdealBeamformingAlgorithm::GetTypeId (void)
   ;
 
   return tid;
-}
-
-
-Ptr<const SpectrumValue>
-IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm)
-{
-  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (txSm);
-  double powerTxW = std::pow (10., (powerTx - 30) / 10);
-  double bw =   (txPsd->GetSpectrumModel()->End()-1)->fh - txPsd->GetSpectrumModel()->Begin()->fl;
-  double txPowerDensity = powerTxW / bw;
-
-  std::vector<int> listOfSubchannels;
-  for (size_t rbId = 0; rbId < txSm->GetNumBands (); rbId++)
-    {
-      (*txPsd)[rbId] = txPowerDensity;
-    }
-  NS_LOG_LOGIC (*txPsd);
-  return txPsd;
 }
 
 void
@@ -139,7 +122,7 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice
 
   NS_ASSERT_MSG (txThreeGppSpectrumPropModel == rxThreeGppSpectrumPropModel, "Devices should be connected on the same spectrum channel");
 
-  Ptr<const SpectrumValue> fakePsd = IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (0.0, txSpectrumPhy->GetRxSpectrumModel());
+  Ptr<const SpectrumValue> fakePsd = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, txSpectrumPhy->GetRxSpectrumModel());
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;

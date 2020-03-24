@@ -363,7 +363,7 @@ MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) con
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, GetChannelBandwidth ());
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm );
 }
 
 double
@@ -767,7 +767,6 @@ MmWavePhy::GetSpectrumModel () const
 
   return MmWaveSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
                                                       GetCentralFrequency (),
-                                                      SUBCARRIERS_PER_RB,
                                                       m_subcarrierSpacing);
 }
 
