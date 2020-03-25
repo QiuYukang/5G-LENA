@@ -24,7 +24,7 @@
  * \brief Simple frequency division multiplexing example.
  *
  * This example describes how to setup a simple simulation with the frequency
- * division multiplexing. Simulation example allow configuration of the two
+ * division multiplexing. Simulation example allows configuration of the two
  * bandwidth parts where each is dedicated to different traffic type.
  * The topology is a simple topology that consists of 1 UE and 1 eNB. There
  * is one data bearer active and it will be multiplexed over a specific bandwidth
@@ -34,10 +34,9 @@
  *
  * ./waf --run cttc-3gpp-channel-simple-fdm
  *
- * Bellow are described the global variables that are accessible through the
- * command line. E.g. the numerology of the BWP 1 can be configured by using
- * as --numerologyBwp1=4, so if the user would like to specify this parameter
- * the program can be run in the following way:
+ * Variables that are accessible through the command line (e.g. numerology of
+ * BWP 1 can be configured by using --numerologyBwp1=4, so if the user would
+ * like to specify this parameter the program can be run in the following way:
  *
  * ./waf --run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=4"
  *
@@ -48,101 +47,36 @@
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
 #include "ns3/mmwave-helper.h"
-#include "ns3/log.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include "ns3/nr-module.h"
+#include "ns3/log.h"
+
 
 using namespace ns3;
 
-
-/**
- * \brief Global variable used to configure the numerology for BWP 1. It is accessible as "--numerologyBwp1" from CommandLine.
- */
-static ns3::GlobalValue g_numerologyBwp1 ("numerologyBwp1",
-                                          "The numerology to be used in bandwidth part 1",
-                                           ns3::UintegerValue (4),
-                                           ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the central system frequency for BWP 1. It is accessible as "--frequencyBwp1" from CommandLine.
- */
-static ns3::GlobalValue g_frequencyBwp1 ("frequencyBwp1",
-                                         "The system frequency to be used in bandwidth part 1",
-                                          ns3::DoubleValue(28.1e9),
-                                          ns3::MakeDoubleChecker<double>(6e9,100e9));
-
-/**
- * \brief Global variable used to configure the bandwidth for BWP 1. This value is expressed in Hz.It is accessible as "--bandwidthBwp1" from CommandLine.
- */
-static ns3::GlobalValue g_bandwidthBwp1 ("bandwidthBwp1",
-                                        "The system bandwidth to be used in bandwidth part 1",
-                                         ns3::DoubleValue(100e6),
-                                         ns3::MakeDoubleChecker<double>());
-
-/**
- * \brief Global variable used to configure the numerology for BWP 2. It is accessible as "--numerologyBwp2" from CommandLine.
- */
-static ns3::GlobalValue g_numerologyBwp2 ("numerologyBwp2",
-                                          "The numerology to be used in bandwidth part 2",
-                                           ns3::UintegerValue (2),
-                                           ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the central system frequency for BWP 2. It is accessible as "--frequencyBwp2" from CommandLine.
- */
-static ns3::GlobalValue g_frequencyBwp2 ("frequencyBwp2",
-                                         "The system frequency to be used in bandwidth part 2",
-                                          ns3::DoubleValue(28.1e9),
-                                          ns3::MakeDoubleChecker<double>(6e9,100e9));
-
-/**
- * \brief Global variable used to configure the bandwidth for BWP 2. This value is expressed in Hz.It is accessible as "--bandwidthBwp2" from CommandLine.
- */
-static ns3::GlobalValue g_bandwidthBwp2 ("bandwidthBwp2",
-                                         "The system bandwidth to be used in bandwidth part 2",
-                                          ns3::DoubleValue(100e6),
-                                          ns3::MakeDoubleChecker<double>());
-
-/**
- * \brief Global variable used to configure the packet size. This value is expressed in bytes. It is accessible as "--packetSize" from CommandLine.
- */
-static ns3::GlobalValue g_udpPacketSizeUll ("packetSize",
-                                            "packet size in bytes",
-                                            ns3::UintegerValue (1000),
-                                            ns3::MakeUintegerChecker<uint32_t>());
-
+NS_LOG_COMPONENT_DEFINE ("Cttc3gppChannelSimpleFdm");
 
 static int g_rlcTraceCallbackCalled = false; //!< Global variable used to check if the callback function for RLC is called and thus to determine if the example is run correctly or not
 static int g_pdcpTraceCallbackCalled = false; //!< Global variable used to check if the callback function for PDCP is called and thus to determine if the example is run correctly or not
-
-/**
- * \related Global boolean variable used to configure whether the flow is a low latency. It is accessible as "--isUll" from CommandLine.
- */
-static ns3::GlobalValue g_isUll ("isUll",
-                                 "Whether the flow is a low latency type of traffic.",
-                                 ns3::BooleanValue (true),
-                                 ns3::MakeBooleanChecker());
 
 /**
  * Function creates a single packet and directly calls the function send
  * of a device to send the packet to the destination address.
  * @param device Device that will send the packet to the destination address.
  * @param addr Destination address for a packet.
+ * @param packetSize The packet size.
  */
-static void SendPacket (Ptr<NetDevice> device, Address& addr)
+static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
 {
-  UintegerValue uintegerValue;
-  GlobalValue::GetValueByName("packetSize", uintegerValue); // use optional NLOS equation
-  uint16_t packetSize = uintegerValue.Get();
-
   Ptr<Packet> pkt = Create<Packet> (packetSize);
   // the dedicated bearer that we activate in the simulation 
   // will have bearerId = 2
-  EpsBearerTag tag (1, 2);
+  EpsBearerTag tag (1, 1);
   pkt->AddPacketTag (tag);
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
@@ -192,11 +126,11 @@ ConnectPdcpRlcTraces ()
 {
   // after recent changes in the EPC UE node ID has changed to 3
   // dedicated bearer that we have activated has bearer id 2
-  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/2/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LtePdcp/RxPDU",
                       MakeCallback (&RxPdcpPDU));
   // after recent changes in the EPC UE node ID has changed to 3
   // dedicated bearer that we have activated has bearer id 2
-  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/2/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LteRlc/RxPDU",
                       MakeCallback (&RxRlcPDU));
 
 }
@@ -204,84 +138,140 @@ ConnectPdcpRlcTraces ()
 int 
 main (int argc, char *argv[])
 {
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
-  ConfigStore inputConfig;
-  inputConfig.ConfigureDefaults ();
-  // parse again so you can override input file default values via command line
-  cmd.Parse (argc, argv);
+  uint16_t gNbNum = 1;
+  uint16_t ueNumPergNb = 1;
+  uint16_t numerologyBwp1 = 4;
+  double centralFrequencyBand = 28.1e9;
+  double bandwidthBand = 100e6;
+  uint16_t numerologyBwp2 = 2;
+  double txPower = 4;
+  uint32_t packetSize = 1000;
+  bool isUll = true;           // Whether the flow is a low latency type of traffic.
+
   Time sendPacketTime = Seconds(0.4);
 
-  UintegerValue uintegerValue;
-  DoubleValue doubleValue;
-  GlobalValue::GetValueByName("numerologyBwp1", uintegerValue); // use optional NLOS equation
-  uint16_t numerologyBwp1 = uintegerValue.Get();
-  GlobalValue::GetValueByName("frequencyBwp1", doubleValue); //
-  double frequencyBwp1 = doubleValue.Get();
-  GlobalValue::GetValueByName("bandwidthBwp1", doubleValue); //
-  double bandwidthBwp1 = doubleValue.Get();
-  GlobalValue::GetValueByName("numerologyBwp2", uintegerValue); // use optional NLOS equation
-  uint16_t numerologyBwp2 = uintegerValue.Get();
-  GlobalValue::GetValueByName("frequencyBwp2", doubleValue); //
-  double frequencyBwp2 = doubleValue.Get();
-  GlobalValue::GetValueByName("bandwidthBwp2", doubleValue); //
-  double bandwidthBwp2 = doubleValue.Get();
-  BooleanValue boolValue;
-  GlobalValue::GetValueByName("isUll", boolValue); //
-  double isUll = boolValue.Get();
 
-  Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("UMi-StreetCanyon"));
-  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
-  Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
-  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
-  Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(10));
+  CommandLine cmd;
+  cmd.AddValue ("gNbNum",
+                "The number of gNbs in multiple-ue topology",
+                gNbNum);
+  cmd.AddValue ("ueNumPergNb",
+                "The number of UE per gNb in multiple-ue topology",
+                ueNumPergNb);
+  cmd.AddValue ("numerologyBwp1",
+                "The numerology to be used in bandwidth part 1",
+                numerologyBwp1);
+  cmd.AddValue ("centralFrequencyBand",
+                "The system frequency to be used in bandwidth part 1",
+                centralFrequencyBand);
+  cmd.AddValue ("numerologyBwp2",
+                "The numerology to be used in bandwidth part 2",
+                numerologyBwp2);
+  cmd.AddValue ("packetSize",
+                "packet size in bytes",
+                 packetSize);
+  cmd.AddValue ("isUll",
+                "Enable Uplink",
+                isUll);
+  cmd.Parse (argc, argv);
 
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  //Create the scenario
+  GridScenarioHelper gridScenario;
+  gridScenario.SetRows (1);
+  gridScenario.SetColumns (gNbNum);
+  gridScenario.SetHorizontalBsDistance (5.0);
+  gridScenario.SetBsHeight (10.0);
+  gridScenario.SetUtHeight (1.5);
+  gridScenario.SetBsNumber (gNbNum);
+  gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
+  gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
+  gridScenario.SetScenarioLength (3); // be distribuited.
+  gridScenario.CreateScenario ();
+
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+
   mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
+  mmWaveHelper->SetEpcHelper (epcHelper);
 
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
-  phyMacCommonBwp1->SetNumerology(numerologyBwp1);
-  phyMacCommonBwp1->SetCcId(0);
-  BandwidthPartRepresentation repr (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
-  mmWaveHelper->AddBandwidthPart(0, repr);
+  // Create one operational band containing one CC with 2 bandwidth parts
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;
 
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
-  phyMacCommonBwp2->SetNumerology(numerologyBwp2);
-  phyMacCommonBwp2->SetCcId(1);
-  BandwidthPartRepresentation repr2 (1, phyMacCommonBwp2, nullptr, nullptr, nullptr);
-  mmWaveHelper->AddBandwidthPart(1, repr2);
+  // Create the configuration for the CcBwpHelper
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  bandConf1.m_numBwp = 2;
 
-  Ptr<Node> ueNode = CreateObject<Node> ();
-  Ptr<Node> gNbNode = CreateObject<Node> ();
+  // By using the configuration created, it is time to make the operation band
+  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
-  MobilityHelper mobility;
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (gNbNode);
-  mobility.Install (ueNode);
-  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0.0, 10 , 1.5));
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
+  mmWaveHelper->InitializeOperationBand (&band1);
+  allBwps = CcBwpCreator::GetAllBwps ({band1});
+
+  // Beamforming method
+  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+
+  // Antennas for all the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Antennas for all the gNbs
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  uint32_t bwpIdForLowLat = 0;
+  uint32_t bwpIdForVoice = 1;
+
+  // gNb routing between Bearer and bandwidh part
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+
+  // Ue routing between Bearer and bandwidth part
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+
+  //Install and get the pointers to the NetDevices
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+
+  // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (txPower));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (txPower);
+
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
 
   InternetStackHelper internet;
-  internet.Install (ueNode);
+  internet.Install (gridScenario.GetUserTerminals ());
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
-  Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress());
+  Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress(), packetSize);
 
-  mmWaveHelper->AttachToEnb (ueNetDev.Get(0), enbNetDev.Get(0));
+  // attach UEs to the closest eNB
+  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   Ptr<EpcTft> tft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpf;
   dlpf.localPortStart = 1234;
-  dlpf.localPortEnd = 1234;
+  dlpf.localPortEnd = 1235;
   tft->Add (dlpf);
   enum EpsBearer::Qci q;
 
