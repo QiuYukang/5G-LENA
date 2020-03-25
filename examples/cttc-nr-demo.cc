@@ -542,8 +542,8 @@ main (int argc, char *argv[])
   // The filter for the voice traffic
   Ptr<EpcTft> voiceTft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpfVoice;
-  dlpfVoice.localPortStart = dlPortLowLat;
-  dlpfVoice.localPortEnd = dlPortLowLat;
+  dlpfVoice.localPortStart = dlPortVoice;
+  dlpfVoice.localPortEnd = dlPortVoice;
   voiceTft->Add (dlpfVoice);
 
   /*
