@@ -27,18 +27,30 @@
  * division multiplexing. Simulation example allows configuration of the two
  * bandwidth parts where each is dedicated to different traffic type.
  * The topology is a simple topology that consists of 1 UE and 1 eNB. There
- * is one data bearer active and it will be multiplexed over a specific bandwidth
- * part depending on whether it is configured as low latency traffic.
- *
- * This example can be run from the command line in the following way:
+ * is one data bearer active and it will be multiplexed over a one of
+ * the two bandwidth parts depending on whether the traffic is configured to
+ * be low latency or not. By default the traffic is low latency. So,
+ * the example can be run from the command line in the following way:
  *
  * ./waf --run cttc-3gpp-channel-simple-fdm
+ *
+ * or to configure flow as not ultra low latency:
+ *
+ * ./waf --run 'cttc-3gpp-channel-simple-fdm --isUll=0'
  *
  * Variables that are accessible through the command line (e.g. numerology of
  * BWP 1 can be configured by using --numerologyBwp1=4, so if the user would
  * like to specify this parameter the program can be run in the following way:
  *
  * ./waf --run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=4"
+ *
+ *
+ *
+ * The configured spectrum division is as follows:
+ *
+ * -----------------------------Band 1---------------------------------
+ * -----------------------------CC1------------------------------------
+ * ------------BWP1---------------|--------------BWP2------------------
  *
  */
 
@@ -76,7 +88,7 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSiz
   Ptr<Packet> pkt = Create<Packet> (packetSize);
   // the dedicated bearer that we activate in the simulation 
   // will have bearerId = 2
-  EpsBearerTag tag (1, 1);
+  EpsBearerTag tag (1, 2);
   pkt->AddPacketTag (tag);
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
@@ -141,10 +153,10 @@ main (int argc, char *argv[])
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
   uint16_t numerologyBwp1 = 4;
-  double centralFrequencyBand = 28.1e9;
-  double bandwidthBand = 100e6;
   uint16_t numerologyBwp2 = 2;
-  double txPower = 4;
+  double centralFrequencyBand = 28.1e9;
+  double bandwidthBand = 200e6;
+  double txPowerPerBwp = 4;
   uint32_t packetSize = 1000;
   bool isUll = true;           // Whether the flow is a low latency type of traffic.
 
@@ -161,12 +173,15 @@ main (int argc, char *argv[])
   cmd.AddValue ("numerologyBwp1",
                 "The numerology to be used in bandwidth part 1",
                 numerologyBwp1);
-  cmd.AddValue ("centralFrequencyBand",
-                "The system frequency to be used in bandwidth part 1",
-                centralFrequencyBand);
   cmd.AddValue ("numerologyBwp2",
                 "The numerology to be used in bandwidth part 2",
                 numerologyBwp2);
+  cmd.AddValue ("frequency",
+                "The system frequency",
+                centralFrequencyBand);
+  cmd.AddValue ("bandwidthBand",
+                "The system bandwidth",
+                bandwidthBand);
   cmd.AddValue ("packetSize",
                 "packet size in bytes",
                  packetSize);
@@ -185,7 +200,7 @@ main (int argc, char *argv[])
   gridScenario.SetBsNumber (gNbNum);
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
-  gridScenario.SetScenarioLength (3); // be distribuited.
+  gridScenario.SetScenarioLength (3); // be distributed.
   gridScenario.CreateScenario ();
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
@@ -198,20 +213,19 @@ main (int argc, char *argv[])
   // Create one operational band containing one CC with 2 bandwidth parts
   BandwidthPartInfoPtrVector allBwps;
   CcBwpCreator ccBwpCreator;
-  const uint8_t numCcPerBand = 1;
+  const uint8_t numCcPerBand = 1; // one CC per Band
 
   // Create the configuration for the CcBwpHelper
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
-  bandConf1.m_numBwp = 2;
+  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  bandConf.m_numBwp = 2; // two BWPs per CC
 
   // By using the configuration created, it is time to make the operation band
-  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+  OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
-  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
-  mmWaveHelper->InitializeOperationBand (&band1);
-  allBwps = CcBwpCreator::GetAllBwps ({band1});
+  mmWaveHelper->InitializeOperationBand (&band);
+  allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Beamforming method
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
@@ -244,8 +258,8 @@ main (int argc, char *argv[])
   // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (txPower));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (txPower);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPowerPerBwp);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (txPowerPerBwp);
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
@@ -256,7 +270,6 @@ main (int argc, char *argv[])
     {
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
-
 
   InternetStackHelper internet;
   internet.Install (gridScenario.GetUserTerminals ());
