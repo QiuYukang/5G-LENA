@@ -34,7 +34,7 @@
 #include <unordered_map>
 
 // An essential include is test.h
-#include "ns3/test.h"
+#include <ns3/test.h>
 
 // Do not put your test classes in namespace ns3.  You may find it useful
 // to use the using directive to access the ns3 namespace directly
@@ -46,23 +46,53 @@ using namespace ns3;
   * \brief Check each numerology timings
   */
 
-static uint32_t packetSize = 1000;
+static uint32_t packetSize = 40;
+
+static const std::unordered_map<MmWaveControlMessage::messageType, bool> messageLog =
+{
+  { MmWaveControlMessage::messageType::DCI,      false },
+  { MmWaveControlMessage::messageType::DCI_TDMA, false },
+  { MmWaveControlMessage::messageType::DL_CQI,   false },
+  { MmWaveControlMessage::messageType::MIB,      false },
+  { MmWaveControlMessage::messageType::SIB1,     false },
+  { MmWaveControlMessage::messageType::RACH_PREAMBLE, false },
+  { MmWaveControlMessage::messageType::RAR,      false },
+  { MmWaveControlMessage::messageType::BSR,      false },
+  { MmWaveControlMessage::messageType::DL_HARQ,  false },
+  { MmWaveControlMessage::messageType::SR,       false },
+};
+
+typedef std::unordered_map<MmWaveControlMessage::messageType, uint64_t> TypeToResult;
+typedef std::unordered_map<uint32_t, TypeToResult> NumerologyToType;
 
 class NrTimingsTest : public TestCase
 {
 public:
-  NrTimingsTest (const std::string &name, uint32_t numerology);
+  NrTimingsTest (const std::string &name, uint32_t numerology, bool verbose);
   virtual ~NrTimingsTest ();
 
 private:
   virtual void DoRun (void);
+  void EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+
+  void EnbMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+
+  void UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+
+  void UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   uint32_t m_numerology;
+  bool verbose {false};
 };
 
-NrTimingsTest::NrTimingsTest (const std::string &name, uint32_t numerology)
+NrTimingsTest::NrTimingsTest (const std::string &name, uint32_t numerology, bool verbose)
   : TestCase (name),
-    m_numerology (numerology)
+    m_numerology (numerology),
+    verbose (verbose)
 {
 }
 
@@ -74,6 +104,7 @@ static void
 SendPacket (const Ptr<NetDevice> &device, const Address& addr)
 {
   Ipv4Header header;
+  NS_ASSERT (packetSize > header.GetSerializedSize ());
   Ptr<Packet> pkt = Create<Packet> (packetSize - header.GetSerializedSize ());
   header.SetProtocol (0x06);
   EpsBearerTag tag (1, 1);
@@ -96,78 +127,437 @@ static const std::unordered_map <MmWaveControlMessage::messageType, std::string>
   { MmWaveControlMessage::messageType::SR,       "SR" },
 };
 
-static void
-EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
-static void
-EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
-static void
-EnbMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 2, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 2, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 2, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
-static void
-EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
 // UE
 
-static void
-UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
-static void
-UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
-static void
-UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
-static void
-UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+void
+NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
-  std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
-            << " at " << sfn << std::endl;
+
+  static NumerologyToType res =
+  {
+    {
+      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () } },
+    },
+    {
+      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () } },
+    },
+    {
+      2, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } },
+    },
+    {
+      1, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () } },
+    },
+    {
+      0, { { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () } },
+    },
+  };
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " at " << sfn << " numerology " << m_numerology
+                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+    }
+
+  auto numMap = res.find (m_numerology);
+  if (numMap != res.end ())
+    {
+      auto resMap = numMap->second.find (msg->GetMessageType());
+      if (resMap != numMap->second.end ())
+        {
+          uint64_t slotN = resMap->second;
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
+              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
+              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+              sfn.Normalize () << " in numerology " << m_numerology);
+          return;
+        }
+    }
+
+  if (verbose && messageLog.at (msg->GetMessageType()))
+    {
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+                << " not found in the result map;" << std::endl;
+    }
 }
 
 // Ugly pre-processor macro, to speed up writing. The best way would be to use
@@ -240,17 +630,17 @@ NrTimingsTest::DoRun (void)
 
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (m_numerology));
 
-  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyTxedCtrlMsgsTrace", MakeCallback (&EnbPhyTx));
-  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyRxedCtrlMsgsTrace", MakeCallback (&EnbPhyRx));
+  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbPhyTx, this));
+  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbPhyRx, this));
 
-  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("EnbMacTxedCtrlMsgsTrace", MakeCallback (&EnbMacTx));
-  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("EnbMacRxedCtrlMsgsTrace", MakeCallback (&EnbMacRx));
+  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("EnbMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbMacTx, this));
+  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("EnbMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbMacRx, this));
 
-  GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyTxedCtrlMsgsTrace", MakeCallback (&UePhyTx));
-  GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyRxedCtrlMsgsTrace", MakeCallback (&UePhyRx));
+  GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyTx, this));
+  GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyRx, this));
 
-  GET_UE_MAC(0,0)->TraceConnectWithoutContext ("UeMacTxedCtrlMsgsTrace", MakeCallback (&UeMacTx));
-  GET_UE_MAC(0,0)->TraceConnectWithoutContext ("UeMacRxedCtrlMsgsTrace", MakeCallback (&UeMacRx));
+  GET_UE_MAC(0,0)->TraceConnectWithoutContext ("UeMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UeMacTx, this));
+  GET_UE_MAC(0,0)->TraceConnectWithoutContext ("UeMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UeMacRx, this));
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
@@ -278,6 +668,11 @@ NrTimingsTest::DoRun (void)
   Simulator::Schedule (MilliSeconds (800), &SendPacket, ueNetDev.Get(0), enbNetDev.Get(0)->GetAddress ());
 
   Simulator::Stop (MilliSeconds (1200));
+
+  if (verbose)
+    {
+      std::cerr << "Executing test for numerology " << m_numerology << std::endl;
+    }
   Simulator::Run ();
   Simulator::Destroy ();
 }
@@ -292,11 +687,11 @@ public:
 NrTimingsTestSuite::NrTimingsTestSuite ()
   : TestSuite ("test-timings", SYSTEM)
 {
-   AddTestCase (new NrTimingsTest ("num=0", 0), TestCase::QUICK);
-   AddTestCase (new NrTimingsTest ("num=1", 1), TestCase::QUICK);
-   AddTestCase (new NrTimingsTest ("num=2", 2), TestCase::QUICK);
-   AddTestCase (new NrTimingsTest ("num=3", 3), TestCase::QUICK);
-   AddTestCase (new NrTimingsTest ("num=4", 4), TestCase::QUICK);
+  AddTestCase (new NrTimingsTest ("num=4", 4, false), TestCase::QUICK);
+  AddTestCase (new NrTimingsTest ("num=3", 3, false), TestCase::QUICK);
+  AddTestCase (new NrTimingsTest ("num=2", 2, false), TestCase::QUICK);
+  AddTestCase (new NrTimingsTest ("num=1", 1, false), TestCase::QUICK);
+  AddTestCase (new NrTimingsTest ("num=0", 0, false), TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
