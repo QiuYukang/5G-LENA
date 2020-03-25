@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
+#ifndef MMWAVE_SPECTRUM_PHY_H
+#define MMWAVE_SPECTRUM_PHY_H
 
 #include <functional>
 #include <ns3/random-variable-stream.h>
@@ -33,14 +33,30 @@
 
 namespace ns3 {
 
+/**
+ * \ingroup ue-phy
+ * \ingroup gnb-phy
+ * \ingroup spectrum
+ *
+ * \brief Interface between the channel and the physical layer
+ */
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
-
+  /**
+   * \brief Get the object TypeId
+   * \return the object TypeId
+   */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief MmWaveSpectrumPhy constructor
+   */
   MmWaveSpectrumPhy ();
 
+  /**
+   * \brief ~MmWaveSpectrumPhy
+   */
   virtual ~MmWaveSpectrumPhy () override;
 
   /**
@@ -48,12 +64,12 @@ public:
    */
   enum State
   {
-    IDLE = 0,
-    TX,
-    RX_DATA,
-    RX_DL_CTRL,
-    RX_UL_CTRL,
-    CCA_BUSY
+    IDLE = 0,  //!< IDLE state (no action in progress)
+    TX,        //!< Transmitting state (data or ctrl)
+    RX_DATA,   //!< Receiving data
+    RX_DL_CTRL,//!< Receiveing DL CTRL
+    RX_UL_CTRL,//!< Receiving UL CTRL
+    CCA_BUSY   //!< BUSY state (channel occupied by another entity)
   };
 
   //callbacks typefefs and setters
@@ -62,7 +78,7 @@ public:
    */
   typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
   /**
-   *\brif This callback method type is used to notify that CTRL is received
+   * \brief This callback method type is used to notify that CTRL is received
    */
   typedef std::function<void (const std::list<Ptr<MmWaveControlMessage> > &, uint8_t)> MmWavePhyRxCtrlEndOkCallback;
   /**
@@ -96,29 +112,11 @@ public:
   void SetPhyUlHarqFeedbackCallback (const MmWavePhyUlHarqFeedbackCallback& c);
 
   //Methods inherited from spectrum phy
-  /*
-   * \brief Inherited from SpectrumPhy
-   */
   void SetDevice (Ptr<NetDevice> d) override;
-  /*
-   * \brief Inherited from SpectrumPhy
-   */
   Ptr<NetDevice> GetDevice () const override;
-  /*
-   * \brief Inherited from SpectrumPhy
-   */
   void SetMobility (Ptr<MobilityModel> m) override;
-  /*
-   * \brief Inherited from SpectrumPhy
-   */
   Ptr<MobilityModel> GetMobility () override;
-  /*
-   * \brief Inherited from SpectrumPhy
-   */
   void SetChannel (Ptr<SpectrumChannel> c) override;
-  /*
-   * \brief Inherited from SpectrumPhy
-   */
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
   /**
    * \brief Inherited from SpectrumPhy
@@ -186,7 +184,7 @@ public:
    * \param duration the duration of this transmission
    */
   void StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);   // control frames from enb to ue
-  /*
+  /**
    * \brief Start transmission of UL CTRL
    * \param ctrlMsgList the list of control messages to be transmitted in UL
    * \param duration the duration of the CTRL messages transmission
@@ -410,4 +408,4 @@ private:
 }
 
 
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_ */
+#endif /* MMWAVE_SPECTRUM_PHY_H */

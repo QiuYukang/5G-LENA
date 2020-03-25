@@ -21,7 +21,7 @@
 #ifndef MMWAVE_SPECTRUM_SIGNAL_PARAMETERS_H
 #define MMWAVE_SPECTRUM_SIGNAL_PARAMETERS_H
 
-
+#include <list>
 #include <ns3/spectrum-signal-parameters.h>
 
 namespace ns3 {
@@ -29,6 +29,14 @@ namespace ns3 {
 class PacketBurst;
 class MmWaveControlMessage;
 
+/**
+ * \ingroup spectrum
+ *
+ * \brief Data signal representation for the module
+ *
+ * This struct provides the generic signal representation to be used by the module
+ * for what regards the data part.
+ */
 struct MmwaveSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 {
 
@@ -36,25 +44,32 @@ struct MmwaveSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
   virtual Ptr<SpectrumSignalParameters> Copy ();
 
   /**
-  * default constructor
-  */
+   * \brief MmwaveSpectrumSignalParametersDataFrame
+   */
   MmwaveSpectrumSignalParametersDataFrame ();
 
+
   /**
-  * copy constructor
-  */
+   * \brief MmwaveSpectrumSignalParametersDataFrame copy constructor
+   * \param p the object from which we have to copy things
+   */
   MmwaveSpectrumSignalParametersDataFrame (const MmwaveSpectrumSignalParametersDataFrame& p);
 
-  Ptr<PacketBurst> packetBurst;
-
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;
-
-  uint16_t cellId;
-
-  uint8_t slotInd;
+  Ptr<PacketBurst> packetBurst;                       //!< Packet burst
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;  //!< List of contrl messages
+  uint16_t cellId;                                    //!< CellId
+  uint8_t slotInd;                                    //!< Slot indication (?)
 };
 
-
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * \brief DL CTRL signal representation for the module
+ *
+ * This struct provides the generic signal representation to be used by the module
+ * for what regards the downlink control part.
+ */
 struct MmWaveSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
 {
 
@@ -62,23 +77,31 @@ struct MmWaveSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParamete
   virtual Ptr<SpectrumSignalParameters> Copy ();
 
   /**
-  * default constructor
-  */
+   * \brief MmWaveSpectrumSignalParametersDlCtrlFrame
+   */
   MmWaveSpectrumSignalParametersDlCtrlFrame ();
 
   /**
-  * copy constructor
-  */
+   * \brief MmWaveSpectrumSignalParametersDlCtrlFrame copy constructor
+   * \param p the object from which we have to copy from
+   */
   MmWaveSpectrumSignalParametersDlCtrlFrame (const MmWaveSpectrumSignalParametersDlCtrlFrame& p);
 
 
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;
-
-  bool pss;
-  uint16_t cellId;
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;  //!< CTRL message list
+  bool pss;                                           //!< PSS (?)
+  uint16_t cellId;                                    //!< cell id
 };
 
-
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * \brief UL CTRL signal representation for the module
+ *
+ * This struct provides the generic signal representation to be used by the module
+ * for what regards the UL CTRL part.
+ */
 struct MmWaveSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
 {
 
@@ -86,18 +109,20 @@ struct MmWaveSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParamete
   virtual Ptr<SpectrumSignalParameters> Copy ();
 
   /**
-  * default constructor
-  */
+   * \brief MmWaveSpectrumSignalParametersUlCtrlFrame
+   */
   MmWaveSpectrumSignalParametersUlCtrlFrame ();
 
+
   /**
-  * copy constructor
-  */
+   * \brief MmWaveSpectrumSignalParametersUlCtrlFrame copy constructor
+   * \param p the object from which we have to copy from
+   */
   MmWaveSpectrumSignalParametersUlCtrlFrame (const MmWaveSpectrumSignalParametersUlCtrlFrame& p);
 
 
-  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;
-  uint16_t cellId;
+  std::list<Ptr<MmWaveControlMessage> > ctrlMsgList;  //!< CTRL message list
+  uint16_t cellId;                                    //!< cell id
 };
 
 

@@ -18,8 +18,8 @@
  */
 
 
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_RADIO_BEARER_TAG_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_RADIO_BEARER_TAG_H_
+#ifndef MMWAVE_RADIO_BEARER_TAG_H
+#define MMWAVE_RADIO_BEARER_TAG_H
 
 
 #include "ns3/tag.h"
@@ -30,13 +30,23 @@ class Tag;
 
 
 /**
- * Tag used to define the RNTI and LC id for each MAC packet trasmitted
+ * \ingroup spectrum
+ *
+ * \brief Tag used to define the RNTI and LC id for each MAC packet trasmitted
  */
-
 class MmWaveRadioBearerTag : public Tag
 {
 public:
+  /**
+   * \brief Get the object TypeId
+   * \return the object type id
+   */
   static TypeId GetTypeId (void);
+
+  /**
+   * \brief Get the InstanceTypeId
+   * \return the TypeId of the instance
+   */
   virtual TypeId GetInstanceTypeId (void) const;
 
   /**
@@ -57,53 +67,65 @@ public:
   /**
    * Set the RNTI to the given value.
    *
-   * @param rnti the value of the RNTI to set
+   * \param rnti the value of the RNTI to set
    */
   void SetRnti (uint16_t rnti);
 
   /**
    * Set the LC id to the given value.
    *
-   * @param lcid the value of the RNTI to set
+   * \param lcid the value of the RNTI to set
    */
   void SetLcid (uint8_t lcid);
 
   /**
   * Set the layer id to the given value.
   *
-  * @param layer the value of the layer to set
+  * \param layer the value of the layer to set
   */
   void SetLayer (uint8_t layer);
 
   /**
   * Set the size of the RLC PDU in bytes.
   *
-  * @param size the size of the RLC PDU in bytes
+  * \param size the size of the RLC PDU in bytes
   */
   void SetSize (uint32_t size);
 
-
+  // inherited
   virtual void Serialize (TagBuffer i) const;
   virtual void Deserialize (TagBuffer i);
   virtual uint32_t GetSerializedSize () const;
   virtual void Print (std::ostream &os) const;
 
+  /**
+   * \brief Get the Rnti
+   * \return the RNTI
+   */
   uint16_t GetRnti (void) const;
+  /**
+   * \brief Get the Lcid
+   * \return the LCID
+   */
   uint8_t GetLcid (void) const;
+  /**
+   * \brief Get the Layer
+   * \return the layer (?)
+   */
   uint8_t GetLayer (void) const;
+  /**
+   * \brief Get Size
+   * \return size in bytes of RLC PDU
+   */
   uint32_t GetSize (void) const;
 
 private:
-  uint16_t m_rnti;
-  uint8_t m_lcid;
-  uint8_t m_layer;
-  uint32_t        m_size;        // size in bytes of RLC PDU
+  uint16_t m_rnti;  //!< RNTI
+  uint8_t m_lcid;   //!< LCID
+  uint8_t m_layer;  //!< Layer
+  uint32_t m_size;  //!< Size in bytes of RLC PDU
 };
-
-
 
 } // namespace ns3
 
-
-
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_RADIO_BEARER_TAG_H_ */
+#endif /* MMWAVE_RADIO_BEARER_TAG_H */

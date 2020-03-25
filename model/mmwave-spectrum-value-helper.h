@@ -27,7 +27,7 @@ namespace ns3 {
 
 
 /**
- * \ingroup mmwave
+ * \ingroup spectrum
  *
  * \brief This class provides a set of useful functions when working with spectrum model for NR
  */
