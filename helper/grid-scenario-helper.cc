@@ -23,6 +23,8 @@
 #include <ns3/double.h>
 #include <ns3/log.h>
 #include <math.h>
+#include "ns3/core-module.h"
+#include "ns3/mobility-model.h"
 
 namespace ns3 {
 
@@ -33,6 +35,99 @@ static std::vector<double> siteDistances {0,1,1,1,1,1,1,std::sqrt(3),std::sqrt(3
 static std::vector<double> siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
 
 static const double MAX_ANTENNA_OFFSET = 1;  //!< Maximum distance between a sector antenna panel and the site it belongs to
+
+/**
+ * \brief Creates a GNUPLOT with the hexagonal deployment including base stations
+ * (BS), their hexagonal cell areas and user terminals (UT). Positions and cell
+ * radius must be given in meters
+ *
+ * \param sitePosVector Vector of site positions
+ * \param cellCenterVector Vector of cell center positions
+ * \param utPosVector Vector of user terminals positions
+ * \param cellRadius Hexagonal cell radius in meters
+ */
+static void
+PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
+                         const Ptr<const ListPositionAllocator> &cellCenterVector,
+                         const Ptr<const ListPositionAllocator> &utPosVector,
+                         double cellRadius)
+{
+
+  NS_ASSERT (sitePosVector->GetSize() > 0);
+  NS_ASSERT (cellCenterVector->GetSize() > 0);
+  NS_ASSERT (utPosVector->GetSize() > 0);
+
+  // Try to open a new GNUPLOT file
+  std::ofstream topologyOutfile;
+  NS_LOG_LOGIC ("generate gnuplottable topology file");
+  std::string topologyFileName = "./hexagonal-topology.gnuplot";
+  topologyOutfile.open (topologyFileName.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!topologyOutfile.is_open ())
+    {
+      NS_ABORT_MSG ("Can't open " << topologyFileName);
+    }
+
+  uint16_t numCells = cellCenterVector->GetSize ();
+  uint16_t numSites = sitePosVector->GetSize ();
+  uint16_t numSectors = numCells / numSites;
+  NS_ASSERT (numSectors > 0);
+//  uint16_t numUts = utPos->GetSize ();
+
+  topologyOutfile << "set term eps" << std::endl;
+  topologyOutfile << "set output \"" << topologyFileName << ".pdf\"" << std::endl;
+  topologyOutfile << "set style arrow 1 lc \"black\" lt 1 head filled" << std::endl;
+  topologyOutfile << "set autoscale" << std::endl;
+  topologyOutfile << "set xrange [-500:500]" << std::endl;
+  topologyOutfile << "set yrange [-500:500]" << std::endl;
+
+  double arrowLength = cellRadius/4.0;  //<! Control the arrow length that indicates the orientation of the sectorized antenna
+  std::vector<double> hx {0.0,-0.5,-0.5,0.0,0.5,0.5,0.0};   //<! Hexagon vertices in x-axis
+  std::vector<double> hy {-1.0,-0.5,0.5,1.0,0.5,-0.5,-1.0}; //<! Hexagon vertices in y-axis
+  Vector sitePos;
+
+  for (uint16_t cellId = 0; cellId < numCells; ++cellId)
+    {
+      NS_LOG_LOGIC ("output gnuplottable hexagon for macroCellId " << cellId);
+
+      Vector cellPos = cellCenterVector->GetNext ();
+      double angleDeg = 30 + 120 * (cellId % 3);
+      double angleRad = angleDeg * M_PI / 180;
+      double x, y;
+
+      // Draw the hexagon arond the cell center
+      topologyOutfile << "set object " << cellId + 1 << " polygon from \\\n";
+
+      for (uint16_t vertexId = 0; vertexId <= 6; ++vertexId)
+        {
+          // angle of the vertex w.r.t. y-axis
+          x = cellRadius * std::sqrt(3.0) * hx.at (vertexId) + cellPos.x;
+          y = cellRadius * hy.at (vertexId) + cellPos.y;
+          topologyOutfile << x << ", " << y;
+          if (vertexId == 6)
+            {
+              topologyOutfile << " front fs empty \n";
+            }
+          else
+            {
+              topologyOutfile << " to \\\n";
+            }
+        }
+
+      NS_LOG_LOGIC ("output gnuplottable arrow indicating macro cell antenna boresight");
+
+      if (cellId % numSectors == 0)
+        {
+          sitePos = sitePosVector->GetNext ();
+        }
+      topologyOutfile << "set arrow " << cellId + 1 << " from " << sitePos.x
+          << "," << sitePos.y << " rto " << arrowLength * std::cos(angleRad)
+          << "," << arrowLength * std::sin(angleRad) << " arrowstyle 1 \n";
+    }
+
+   topologyOutfile << "unset key" << std::endl; //!< Disable plot legends
+   topologyOutfile << "plot 1/0" << std::endl;  //!< Need to plot a function
+
+}
 
 
 GridScenarioHelper::GridScenarioHelper ()
@@ -381,8 +476,10 @@ HexagonalGridScenarioHelper::CreateScenario ()
   NS_ASSERT (m_ut.GetN () > 0);
 
   MobilityHelper mobility;
-  Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator> ();
-  Ptr<ListPositionAllocator> utPos = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> bsPosVector = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> bsCenterVector = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> sitePosVector = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator> ();
 
   // BS position
   for (uint16_t cellIndex = 0; cellIndex < m_numCells; cellIndex++)
@@ -393,14 +490,26 @@ HexagonalGridScenarioHelper::CreateScenario ()
       sitePos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
       sitePos.z = m_bsHeight;
 
+      if (cellIndex % static_cast<uint16_t> (m_siteSectorization) == 0)
+        {
+          sitePosVector->Add (sitePos);
+        }
+
       // FIXME: Until sites can have more than one antenna array, it is necessary to apply some distance offset from the site center (gNBs cannot have the same location)
-      Vector pos = GetAntennaPos (sitePos,
+      Vector bsPos = GetAntennaPos (sitePos,
                                   cellIndex,
                                   m_siteSectorization,
                                   m_antennaOffset);
 
-      NS_LOG_DEBUG ("GNB Position: " << pos);
-      bsPos->Add (pos);
+      NS_LOG_DEBUG ("GNB Position: " << bsPos);
+      bsPosVector->Add (bsPos);
+
+      // Store cell center position for plotting the deployment
+      Vector cellCenterPos = GetHexagonalCellCenter (bsPos,
+                                                     cellIndex,
+                                                     m_siteSectorization,
+                                                     m_hexagonalRadius);
+      bsCenterVector->Add (cellCenterPos);
 
       //What about the antenna orientation? It should be dealt with when installing the gNB
     }
@@ -420,33 +529,37 @@ HexagonalGridScenarioHelper::CreateScenario ()
       for (uint32_t i = 0; i < utN; ++i)
         {
           // This is the cell center location, same for cells belonging to the same site
-          Vector cellPos = bsPos->GetNext ();
+          Vector cellPos = bsPosVector->GetNext ();
           // UEs shall be spread over the cell area (hexagonal cell)
           uint16_t cellId = i % m_numCells;
           Vector cellCenterPos = GetHexagonalCellCenter (cellPos,
                                                          cellId,
                                                          m_siteSectorization,
                                                          m_hexagonalRadius);
+
           float d = r->GetValue ();
           float t = theta->GetValue ();
 
-          Vector pos (cellCenterPos);
-          pos.x += d * cos (t * M_PI / 180);
-          pos.y += d * sin (t * M_PI / 180);
-          pos.z = m_utHeight;
+          Vector utPos (cellCenterPos);
+          utPos.x += d * cos (t * M_PI / 180);
+          utPos.y += d * sin (t * M_PI / 180);
+          utPos.z = m_utHeight;
 
-          NS_LOG_DEBUG ("UE Position: " << pos);
+          NS_LOG_DEBUG ("UE Position: " << utPos);
 
-          utPos->Add (pos);
+          utPosVector->Add (utPos);
         }
     }
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.SetPositionAllocator (bsPos);
+  mobility.SetPositionAllocator (bsPosVector);
   mobility.Install (m_bs);
 
-  mobility.SetPositionAllocator (utPos);
+  mobility.SetPositionAllocator (utPosVector);
   mobility.Install (m_ut);
+
+  PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius);
+
 }
 
 
