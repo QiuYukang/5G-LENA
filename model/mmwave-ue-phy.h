@@ -1,23 +1,21 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
-*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
 #ifndef MMWAVE_UE_PHY_H
 #define MMWAVE_UE_PHY_H
@@ -36,9 +34,25 @@ class BeamManager;
 class BeamId;
 
 /**
+ * \ingroup ue-phy
  * \brief The UE PHY class
  *
- * To initialize it, you must call also SetSpectrumPhy and StartEventLoop.
+ * This class represents the PHY in the User Equipment. Much of the processing
+ * and scheduling is done inside the gNb, so the user is a mere "executor"
+ * of the decision of the base station.
+ *
+ * The slot processing is the same as the gnb phy, working as a state machine
+ * in which the processing is done at the beginning of the slot.
+ *
+ * <b>Configuration</b>
+ *
+ * In theory, much of the configuration should pass through RRC, and through
+ * messages that come from the gNb. However, we still are not at this level,
+ * and we have to rely on direct calls to configure the same values between
+ * the gnb and the ue. At this moment, the call that the helper has to perform
+ * are in MmWaveHelper::AttachToEnb().
+ *
+ * To initialize the class, you must call also SetSpectrumPhy and StartEventLoop.
  *
  * \see SetSpectrumPhy
  * \see StartEventLoop
@@ -49,7 +63,10 @@ class MmWaveUePhy : public MmWavePhy
   friend class MemberLteUeCphySapProvider<MmWaveUePhy>;
 
 public:
-  // inherited from Object
+  /**
+   * \brief Get the object TypeId
+   * \return the object type id
+   */
   static TypeId GetTypeId (void);
 
   /**
@@ -317,9 +334,48 @@ private:
    */
   void TryToPerformLbt ();
 
+  /**
+   * \brief Start the slot processing
+   * \param s the slot number
+   */
   void StartSlot (const SfnSf &s);
+
+  /**
+   * \brief Start the processing of a variable TTI
+   * \param dci the DCI of the variable TTI
+   *
+   * This time can be a DL CTRL, a DL data, a UL data, or UL CTRL, with
+   * any number of symbols (limited to the number of symbols per slot).
+   *
+   * At the end of processing, schedule the method EndVarTtti that will finish
+   * the processing of the variable tti allocation.
+   *
+   * \see DlCtrl
+   * \see UlCtrl
+   * \see DlData
+   * \see UlData
+   */
   void StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+
+  /**
+   * \brief End the processing of a variable tti
+   * \param lastDci the DCI of the variable TTI that has just passed
+   *
+   * The end of the variable tti indicates that the allocation has been
+   * transmitted/received. Depending on the variable tti left, the method
+   * will schedule another var tti (StartVarTti()) or will wait until the
+   * end of the slot (EndSlot()).
+   *
+   * \see StartVarTti
+   * \see EndSlot
+   */
   void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+
+  /**
+   * \brief Set the Tx power spectral density based on the RB index vector
+   * \param mask vector of the index of the RB (in SpectrumValue array)
+   * in which there is a transmission
+   */
   void SetSubChannelsForTransmission (std::vector <int> mask);
   /**
    * \brief Send ctrl msgs considering L1L2CtrlLatency
@@ -331,7 +387,25 @@ private:
    * \param msg The ctrl msg to be sent
    */
   void DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg);
-  void SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd);
+
+  /**
+   * \brief Transmit to the spectrum phy the data stored in pb
+   *
+   * \param pb Data to transmit
+   * \param duration period of transmission
+   * \param ctrlMsg Control messages
+   * \param slotInd slot indication (?)
+   */
+  void SendDataChannels (const Ptr<PacketBurst> &pb,
+                         const std::list<Ptr<MmWaveControlMessage> > &ctrlMsg,
+                         const Time &duration, uint8_t slotInd);
+  /**
+   * \brief Transmit the control channel
+   *
+   * \param varTtiPeriod the period of transmission
+   *
+   * Call the MmWaveSpectrumPhy class, indicating the control message to transmit.
+   */
   void SendCtrlChannels (Time prd);
 
   // SAP methods

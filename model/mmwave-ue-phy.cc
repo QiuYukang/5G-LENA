@@ -844,7 +844,9 @@ MmWaveUePhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 }
 
 void
-MmWaveUePhy::SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd)
+MmWaveUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
+                               const std::list<Ptr<MmWaveControlMessage> > &ctrlMsg,
+                               const Time &duration, uint8_t slotInd)
 {
   if (pb->GetNPackets () > 0)
     {
