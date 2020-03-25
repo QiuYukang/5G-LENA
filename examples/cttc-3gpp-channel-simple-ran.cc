@@ -142,8 +142,8 @@ main (int argc, char *argv[])
 {
     uint16_t numerologyBwp1 = 0;
     uint32_t udpPacketSize = 1000;
-    double frequencyBwp1 = 28e9;
-    double bandwidthBwp1 = 400e6;
+    double centralFrequencyBand1 = 28e9;
+    double bandwidthBand1 = 400e6;
     uint16_t gNbNum = 1;
     uint16_t ueNumPergNb = 1;
     bool enableUl = false;
@@ -154,6 +154,12 @@ main (int argc, char *argv[])
     cmd.AddValue ("numerologyBwp1",
                   "The numerology to be used in bandwidth part 1",
                   numerologyBwp1);
+    cmd.AddValue ("centralFrequencyBand1",
+                  "The system frequency to be used in band 1",
+                  centralFrequencyBand1);
+    cmd.AddValue ("bandwidthBand1",
+                  "The system bandwidth to be used in band 1",
+                  bandwidthBand1);
     cmd.AddValue ("packetSize",
                   "packet size in bytes",
                    udpPacketSize);
@@ -183,12 +189,13 @@ main (int argc, char *argv[])
     mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
     mmWaveHelper->SetEpcHelper (epcHelper);
 
-    // Create one operational band containing one bandwidth part
+    // Create one operational band containing one CC with one bandwidth part
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
+    const uint8_t numCcPerBand = 1;
 
     // Create the configuration for the CcBwpHelper
-    CcBwpCreator::SimpleOperationBandConf bandConf1 (frequencyBwp1, bandwidthBwp1, 1, BandwidthPartInfo::UMi_StreetCanyon);
+    CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
 
     // By using the configuration created, it is time to make the operation band
     OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
