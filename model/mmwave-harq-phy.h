@@ -29,15 +29,17 @@ namespace ns3 {
 
 /**
  * \ingroup error-models
- * \brief The MmWaveHarqPhy class implements the HARQ functionalities related to PHY layer
- *(i.e., decodification buffers for incremental redundancy managment)
+ *
+ * \brief HARQ functionalities for the PHY layer
+ *
+ * (i.e., decodification buffers for incremental redundancy managment)
  *
 */
 class MmWaveHarqPhy : public SimpleRefCount<MmWaveHarqPhy>
 {
 public:
   /**
-    *
+    * \brief Constructor
     */
   ~MmWaveHarqPhy ();
 
