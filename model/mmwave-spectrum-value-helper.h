@@ -33,7 +33,10 @@ namespace ns3 {
  */
 class MmWaveSpectrumValueHelper
 {
+
 public:
+
+  static const uint8_t SUBCARRIERS_PER_RB = 12; //!< subcarriers per resource block
 
   /**
    * \brief Creates or obtains from a global map a spectrum model for a given bandwidth,

@@ -448,7 +448,7 @@ MmWavePhy::UpdateRbNum ()
 {
   NS_LOG_FUNCTION (this);
 
-  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * SUBCARRIERS_PER_RB ));
+  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB ));
 
   NS_ASSERT (m_rbNum > 0);
 

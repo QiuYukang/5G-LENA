@@ -24,7 +24,6 @@
 #include <ns3/fatal-error.h>
 #include <ns3/string.h>
 #include <ns3/abort.h>
-#include "mmwave-phy-mac-common.h"
 
 namespace ns3 {
 

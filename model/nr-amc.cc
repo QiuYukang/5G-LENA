@@ -24,6 +24,7 @@
 #include "ns3/enum.h"
 #include "nr-error-model.h"
 #include "nr-lte-mi-error-model.h"
+#include "mmwave-spectrum-value-helper.h"
 
 namespace ns3 {
 
@@ -97,7 +98,7 @@ NrAmc::GetMcsFromCqi (uint8_t cqi) const
 uint32_t
 NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
 {
-  return m_errorModel->GetPayloadSize (SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
+  return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
                                        mcs, nprb);
 }
 
