@@ -71,14 +71,17 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
   uint16_t numSites = sitePosVector->GetSize ();
   uint16_t numSectors = numCells / numSites;
   NS_ASSERT (numSectors > 0);
-//  uint16_t numUts = utPos->GetSize ();
+  uint16_t numUts = utPosVector->GetSize ();
 
   topologyOutfile << "set term eps" << std::endl;
   topologyOutfile << "set output \"" << topologyFileName << ".pdf\"" << std::endl;
   topologyOutfile << "set style arrow 1 lc \"black\" lt 1 head filled" << std::endl;
-  topologyOutfile << "set autoscale" << std::endl;
-  topologyOutfile << "set xrange [-500:500]" << std::endl;
-  topologyOutfile << "set yrange [-500:500]" << std::endl;
+//  topologyOutfile << "set autoscale" << std::endl;
+
+  uint16_t margin = (8 * cellRadius) + 1;  //!< This is the farthest hexagonal vertex from the cell center
+  topologyOutfile << "set xrange [-" << margin << ":" << margin <<"]" << std::endl;
+  topologyOutfile << "set yrange [-" << margin << ":" << margin <<"]" << std::endl;
+  //FIXME: Need to recalculate ranges if the scenario origin is different to (0,0)
 
   double arrowLength = cellRadius/4.0;  //<! Control the arrow length that indicates the orientation of the sectorized antenna
   std::vector<double> hx {0.0,-0.5,-0.5,0.0,0.5,0.5,0.0};   //<! Hexagon vertices in x-axis
@@ -87,13 +90,21 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
 
   for (uint16_t cellId = 0; cellId < numCells; ++cellId)
     {
-      NS_LOG_LOGIC ("output gnuplottable hexagon for macroCellId " << cellId);
-
       Vector cellPos = cellCenterVector->GetNext ();
       double angleDeg = 30 + 120 * (cellId % 3);
       double angleRad = angleDeg * M_PI / 180;
       double x, y;
 
+      NS_LOG_LOGIC ("output gnuplottable arrow indicating macro cell antenna boresight");
+      if (cellId % numSectors == 0)
+        {
+          sitePos = sitePosVector->GetNext ();
+        }
+      topologyOutfile << "set arrow " << cellId + 1 << " from " << sitePos.x
+          << "," << sitePos.y << " rto " << arrowLength * std::cos(angleRad)
+      << "," << arrowLength * std::sin(angleRad) << " arrowstyle 1 \n";
+
+      NS_LOG_LOGIC ("output gnuplottable hexagon for macroCellId " << cellId);
       // Draw the hexagon arond the cell center
       topologyOutfile << "set object " << cellId + 1 << " polygon from \\\n";
 
@@ -113,15 +124,19 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
             }
         }
 
-      NS_LOG_LOGIC ("output gnuplottable arrow indicating macro cell antenna boresight");
+      topologyOutfile << "set label " << cellId + 1 << " \"" << (cellId + 1) <<
+          "\" at " << cellPos.x << " , " << cellPos.y << " center" << std::endl;
 
-      if (cellId % numSectors == 0)
-        {
-          sitePos = sitePosVector->GetNext ();
-        }
-      topologyOutfile << "set arrow " << cellId + 1 << " from " << sitePos.x
-          << "," << sitePos.y << " rto " << arrowLength * std::cos(angleRad)
-          << "," << arrowLength * std::sin(angleRad) << " arrowstyle 1 \n";
+    }
+
+  NS_LOG_LOGIC ("output gnuplottable location of UTs as points");
+
+  for (uint16_t utId = 0; utId < numUts; ++utId)
+    {
+      Vector utPos = utPosVector->GetNext ();
+//      set label at xPos, yPos, zPos "" point pointtype 7 pointsize 2
+      topologyOutfile << "set label at " << utPos.x << " , " << utPos.y <<
+          " point pointtype 7 pointsize 0.2 center" << std::endl;
     }
 
    topologyOutfile << "unset key" << std::endl; //!< Disable plot legends
@@ -430,7 +445,7 @@ HexagonalGridScenarioHelper::SetUMaParameters ()
   m_bsHeight = 25.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
-  m_hexagonalRadius = m_isd / 2 / 3;
+  m_hexagonalRadius = m_isd / 3;
   m_antennaOffset = 1.0;
 }
 
@@ -441,7 +456,7 @@ HexagonalGridScenarioHelper::SetUMiParameters ()
   m_bsHeight = 25.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
-  m_hexagonalRadius = m_isd / 2 / 3;
+  m_hexagonalRadius = m_isd / 3;
   m_antennaOffset = 1.0;
 }
 
@@ -486,8 +501,8 @@ HexagonalGridScenarioHelper::CreateScenario ()
     {
       uint16_t siteIndex = GetSiteIndex (cellIndex);
       Vector sitePos (m_centralPos);
-      sitePos.x += 0.5 * m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
-      sitePos.y += 0.5 * m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
+      sitePos.x += m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
+      sitePos.y += m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
       sitePos.z = m_bsHeight;
 
       if (cellIndex % static_cast<uint16_t> (m_siteSectorization) == 0)
