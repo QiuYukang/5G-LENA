@@ -17,21 +17,21 @@
 *
 */
 
-#ifndef NR_SL_PRE_CONFIG_RESOURCE_POOL_FACTORY_H
-#define NR_SL_PRE_CONFIG_RESOURCE_POOL_FACTORY_H
+#ifndef NR_SL_COMM_PRE_CONFIG_RESOURCE_POOL_FACTORY_H
+#define NR_SL_COMM_PRE_CONFIG_RESOURCE_POOL_FACTORY_H
 
 #include <ns3/simple-ref-count.h>
 #include <ns3/lte-rrc-sap.h>
-#include "nr-sl-resource-pool-factory.h"
+#include "nr-sl-comm-resource-pool-factory.h"
 
 namespace ns3 {
 
 /** Class to configure and generate resource pools */
-class NrSlPreconfigResourcePoolFactory : public NrSlResourcePoolFactory
+class NrSlCommPreconfigResourcePoolFactory : public NrSlCommResourcePoolFactory
 {
 public:
-  NrSlPreconfigResourcePoolFactory ();
-  virtual ~NrSlPreconfigResourcePoolFactory ();
+  NrSlCommPreconfigResourcePoolFactory ();
+  virtual ~NrSlCommPreconfigResourcePoolFactory ();
 
 
 
@@ -44,4 +44,4 @@ private:
 
 }
 
-#endif /* NR_SL_PRE_CONFIG_RESOURCE_POOL_FACTORY_H */
+#endif /* NR_SL_COMM_PRE_CONFIG_RESOURCE_POOL_FACTORY_H */

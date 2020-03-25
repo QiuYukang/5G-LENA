@@ -18,8 +18,8 @@
  */
 
 #include "nr-sl-helper.h"
-#include <ns3/nr-sl-resource-pool-factory.h>
-#include <ns3/nr-sl-preconfig-resource-pool-factory.h>
+#include <ns3/nr-sl-comm-resource-pool-factory.h>
+#include <ns3/nr-sl-comm-preconfig-resource-pool-factory.h>
 #include <ns3/nr-ue-net-device.h>
 #include <ns3/lte-rrc-sap.h>
 #include <ns3/nr-sl-ue-rrc.h>

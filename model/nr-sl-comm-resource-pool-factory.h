@@ -17,8 +17,8 @@
 *
 */
 
-#ifndef NR_SL_RESOURCE_POOL_FACTORY_H
-#define NR_SL_RESOURCE_POOL_FACTORY_H
+#ifndef NR_SL_COMM_RESOURCE_POOL_FACTORY_H
+#define NR_SL_COMM_RESOURCE_POOL_FACTORY_H
 
 #include <ns3/simple-ref-count.h>
 #include <ns3/lte-rrc-sap.h>
@@ -27,11 +27,11 @@
 namespace ns3 {
 
 /** Class to configure and generate resource pools */
-class NrSlResourcePoolFactory : public SimpleRefCount<NrSlResourcePoolFactory>
+class NrSlCommResourcePoolFactory : public SimpleRefCount<NrSlCommResourcePoolFactory>
 {
 public:
-  NrSlResourcePoolFactory ();
-  virtual ~NrSlResourcePoolFactory ();
+  NrSlCommResourcePoolFactory ();
+  virtual ~NrSlCommResourcePoolFactory ();
 
 
   const LteRrcSap::SlResourcePoolNr CreatePool (void);
@@ -144,4 +144,4 @@ protected:
 
 }
 
-#endif /* NR_SL_RESOURCE_POOL_FACTORY_H */
+#endif /* NR_SL_COMM_RESOURCE_POOL_FACTORY_H */

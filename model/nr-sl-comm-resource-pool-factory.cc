@@ -17,14 +17,14 @@
 *
 */
 
-#include "nr-sl-resource-pool-factory.h"
+#include "nr-sl-comm-resource-pool-factory.h"
 #include "ns3/log.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("NrSlResourcePoolFactory");
+NS_LOG_COMPONENT_DEFINE ("NrSlCommResourcePoolFactory");
 
-NrSlResourcePoolFactory::NrSlResourcePoolFactory ()
+NrSlCommResourcePoolFactory::NrSlCommResourcePoolFactory ()
 {
   m_setupReleasePscch = "SETUP";
   m_slTimeResourcePscch = 2;
@@ -37,13 +37,13 @@ NrSlResourcePoolFactory::NrSlResourcePoolFactory ()
   NS_LOG_FUNCTION (this);
 }
 
-NrSlResourcePoolFactory::~NrSlResourcePoolFactory ()
+NrSlCommResourcePoolFactory::~NrSlCommResourcePoolFactory ()
 {
   NS_LOG_FUNCTION (this);
 }
 
 const LteRrcSap::SlResourcePoolNr
-NrSlResourcePoolFactory::CreatePool ()
+NrSlCommResourcePoolFactory::CreatePool ()
 {
   if (m_setupReleasePscch == "SETUP")
     {
@@ -245,7 +245,7 @@ NrSlResourcePoolFactory::CreatePool ()
 }
 
 bool
-NrSlResourcePoolFactory::IsSetupPscchResources () const
+NrSlCommResourcePoolFactory::IsSetupPscchResources () const
 {
   bool isSetup = false;
   if (m_setupReleasePscch == "SETUP")
@@ -257,92 +257,92 @@ NrSlResourcePoolFactory::IsSetupPscchResources () const
 }
 
 void
-NrSlResourcePoolFactory::SetupPscchResources ()
+NrSlCommResourcePoolFactory::SetupPscchResources ()
 {
   m_setupReleasePscch = LteRrcSap::SlPscchConfig::SETUP;
 }
 
 uint16_t
-NrSlResourcePoolFactory::GetSlFreqResourcePscch () const
+NrSlCommResourcePoolFactory::GetSlFreqResourcePscch () const
 {
   return m_slFreqResourcePscch;
 }
 
 uint16_t
-NrSlResourcePoolFactory::GetSlTimeResourcePscch () const
+NrSlCommResourcePoolFactory::GetSlTimeResourcePscch () const
 {
   return m_slTimeResourcePscch;
 }
 
 void
-NrSlResourcePoolFactory::SetSlTimeResourcePscch (uint16_t slTimeResourcePscch)
+NrSlCommResourcePoolFactory::SetSlTimeResourcePscch (uint16_t slTimeResourcePscch)
 {
   m_slTimeResourcePscch = slTimeResourcePscch;
 }
 
 void
-NrSlResourcePoolFactory::SetSlFreqResourcePscch (uint16_t slFreqResourcePscch)
+NrSlCommResourcePoolFactory::SetSlFreqResourcePscch (uint16_t slFreqResourcePscch)
 {
   m_slFreqResourcePscch = slFreqResourcePscch;
 }
 
 uint16_t
-NrSlResourcePoolFactory::GetSlSubchannelSize () const
+NrSlCommResourcePoolFactory::GetSlSubchannelSize () const
 {
   return m_slSubchannelSize;
 }
 
 void
-NrSlResourcePoolFactory::SetSlSubchannelSize (uint16_t slSubchannelSize)
+NrSlCommResourcePoolFactory::SetSlSubchannelSize (uint16_t slSubchannelSize)
 {
   m_slSubchannelSize = slSubchannelSize;
 }
 
 uint16_t
-NrSlResourcePoolFactory::GetSlSensingWindow () const
+NrSlCommResourcePoolFactory::GetSlSensingWindow () const
 {
   return m_slSensingWindow;
 }
 
 void
-NrSlResourcePoolFactory::SetSlSensingWindow (uint16_t slSensingWindow)
+NrSlCommResourcePoolFactory::SetSlSensingWindow (uint16_t slSensingWindow)
 {
   m_slSensingWindow = slSensingWindow;
 }
 
 uint16_t
-NrSlResourcePoolFactory::GetSlSelectionWindow () const
+NrSlCommResourcePoolFactory::GetSlSelectionWindow () const
 {
   return m_slSelectionWindow;
 }
 
 void
-NrSlResourcePoolFactory::SetSlSelectionWindow (uint16_t slSelectionWindow)
+NrSlCommResourcePoolFactory::SetSlSelectionWindow (uint16_t slSelectionWindow)
 {
   m_slSelectionWindow = slSelectionWindow;
 }
 
 
 const std::array<uint16_t, 16>&
-NrSlResourcePoolFactory::GetSlResourceReservePeriodList () const
+NrSlCommResourcePoolFactory::GetSlResourceReservePeriodList () const
 {
   return m_slResourceReservePeriodList;
 }
 
 void
-NrSlResourcePoolFactory::SetSlResourceReservePeriodList (std::array<uint16_t, 16>& slResourceReservePeriodList)
+NrSlCommResourcePoolFactory::SetSlResourceReservePeriodList (std::array<uint16_t, 16>& slResourceReservePeriodList)
 {
   m_slResourceReservePeriodList = slResourceReservePeriodList;
 }
 
 const std::vector<std::bitset<1> >&
-NrSlResourcePoolFactory::GetSlTimeResources () const
+NrSlCommResourcePoolFactory::GetSlTimeResources () const
 {
   return m_slTimeResource;
 }
 
 void
-NrSlResourcePoolFactory::SetSlTimeResources (std::vector <std::bitset<1> >& slBitmap)
+NrSlCommResourcePoolFactory::SetSlTimeResources (std::vector <std::bitset<1> >& slBitmap)
 {
   m_slTimeResource = slBitmap;
 }

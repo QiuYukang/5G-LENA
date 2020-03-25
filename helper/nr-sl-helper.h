@@ -28,8 +28,8 @@
 namespace ns3 {
 
 class NetDeviceContainer;
-class NrSlResourcePoolFactory;
-class NrSlPreconfigResourcePoolFactory;
+class NrSlCommResourcePoolFactory;
+class NrSlCommPreconfigResourcePoolFactory;
 
 
 class NrSlHelper : public Object
@@ -49,8 +49,8 @@ public:
 
 
 private:
-  Ptr<NrSlResourcePoolFactory> m_slResoPoolFactory {nullptr};
-  Ptr<NrSlPreconfigResourcePoolFactory> m_slPreConfigResoPoolFactory {nullptr};
+  Ptr<NrSlCommResourcePoolFactory> m_slResoPoolFactory {nullptr};
+  Ptr<NrSlCommPreconfigResourcePoolFactory> m_slPreConfigResoPoolFactory {nullptr};
 };
 
 }

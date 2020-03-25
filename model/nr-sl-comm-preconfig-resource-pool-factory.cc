@@ -17,14 +17,14 @@
 *
 */
 
-#include "nr-sl-preconfig-resource-pool-factory.h"
+#include "nr-sl-comm-preconfig-resource-pool-factory.h"
 #include "ns3/log.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("NrSlPreconfigResourcePoolFactory");
+NS_LOG_COMPONENT_DEFINE ("NrSlCommPreconfigResourcePoolFactory");
 
-NrSlPreconfigResourcePoolFactory::NrSlPreconfigResourcePoolFactory ()
+NrSlCommPreconfigResourcePoolFactory::NrSlCommPreconfigResourcePoolFactory ()
 {
   m_setupReleasePscch = "SETUP";
   m_slTimeResourcePscch = 2;
@@ -37,12 +37,12 @@ NrSlPreconfigResourcePoolFactory::NrSlPreconfigResourcePoolFactory ()
   NS_LOG_FUNCTION (this);
 }
 
-NrSlPreconfigResourcePoolFactory::~NrSlPreconfigResourcePoolFactory ()
+NrSlCommPreconfigResourcePoolFactory::~NrSlCommPreconfigResourcePoolFactory ()
 {
   NS_LOG_FUNCTION (this);
 }
 const LteRrcSap::SlResourcePoolNr
-NrSlPreconfigResourcePoolFactory::CreatePool ()
+NrSlCommPreconfigResourcePoolFactory::CreatePool ()
 {
   NS_LOG_FUNCTION (this);
   if (m_setupReleasePscch == "SETUP")
