@@ -606,7 +606,7 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
       SfnSf targetSlot = currentSlot;
       targetSlot.Add (k2WithLatency);
 
-      uint64_t pos = targetSlot.Normalize ();
+      uint64_t pos = targetSlot.Normalize () % m_tddPattern.size ();
 
       NS_LOG_INFO (" in slot " << currentSlot << " generate UL for " <<
                      targetSlot << " which is of type " << m_tddPattern[pos]);
@@ -619,7 +619,7 @@ MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
       SfnSf targetSlot = currentSlot;
       targetSlot.Add (k0WithLatency);
 
-      uint64_t pos = targetSlot.Normalize ();
+      uint64_t pos = targetSlot.Normalize () % m_tddPattern.size ();
 
       NS_LOG_INFO (" in slot " << currentSlot << " generate DL for " <<
                      targetSlot << " which is of type " << m_tddPattern[pos]);
@@ -755,7 +755,7 @@ void MmWaveEnbPhy::DoStartSlot ()
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_ctrlMsgs.size () == 0);
 
-  uint64_t currentSlotN = m_currentSlot.Normalize ();
+  uint64_t currentSlotN = m_currentSlot.Normalize () % m_tddPattern.size ();;
 
   NS_LOG_DEBUG ("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
   NS_LOG_INFO ("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
