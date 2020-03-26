@@ -165,7 +165,6 @@ MmWaveSpectrumValueHelper::GetEffectiveBandwidth (double bandwidth, uint8_t nume
   NS_LOG_FUNCTION (bandwidth << numerology);
   uint32_t scSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
   uint32_t numRbs = static_cast<uint32_t> (bandwidth / (scSpacing * SUBCARRIERS_PER_RB));
-  std::cout<<"\n total bandwidth: "<<bandwidth<<" effective bandwidth:"<<numRbs * (scSpacing * SUBCARRIERS_PER_RB)<<std::endl;
   return numRbs * (scSpacing * SUBCARRIERS_PER_RB);
 }
 
