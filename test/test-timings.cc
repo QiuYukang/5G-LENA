@@ -46,7 +46,7 @@ using namespace ns3;
   * \brief Check each numerology timings
   */
 
-static uint32_t packetSize = 40;
+static uint32_t packetSize = 21;
 
 static const std::unordered_map<MmWaveControlMessage::messageType, bool> messageLog =
 {
@@ -135,19 +135,35 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+         },
     },
     {
-      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () }
+         },
+
     },
     {
-      2, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () }
+         },
     },
     {
-      1, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () }
+         },
     },
     {
-      0, { { MmWaveControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () }
+         },
     },
   };
 
@@ -353,7 +369,9 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+         },
     },
     {
       3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
@@ -407,19 +425,34 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+         },
     },
     {
-      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+         },
     },
     {
-      2, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } ,
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+         },
     },
     {
-      1, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+         },
     },
     {
-      0, { { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+         },
     },
   };
 
@@ -625,10 +658,16 @@ NrTimingsTest::DoRun (void)
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
+  mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (28));
+  mmWaveHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (28));
+
+  mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (m_numerology));
+  mmWaveHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (50.0));
+
+  mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (50.0));
+
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode, allBwps);
-
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (m_numerology));
 
   GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbPhyTx, this));
   GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbPhyRx, this));
@@ -665,7 +704,7 @@ NrTimingsTest::DoRun (void)
   Simulator::Schedule (MilliSeconds (400), &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress ());
 
   // UL at 0.8
-  Simulator::Schedule (MilliSeconds (800), &SendPacket, ueNetDev.Get(0), enbNetDev.Get(0)->GetAddress ());
+  //Simulator::Schedule (MilliSeconds (800), &SendPacket, ueNetDev.Get(0), enbNetDev.Get(0)->GetAddress ());
 
   Simulator::Stop (MilliSeconds (1200));
 
