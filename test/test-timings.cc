@@ -138,31 +138,36 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
       4, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
            { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () }
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
 
     },
     {
       2, {
            { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () }
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
            { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () }
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
            { MmWaveControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () }
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          },
     },
   };
@@ -205,19 +210,49 @@ NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 6, 4).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+         },
     },
     {
-      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 6, 3).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+         },
     },
     {
-      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 1, 2, 2).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+         },
     },
     {
-      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 3, 0, 1).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+         },
     },
     {
-      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 6, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+         },
     },
   };
 
@@ -313,19 +348,44 @@ NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 7, 4).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 6, 4).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+         },
     },
     {
-      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 7, 3).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 6, 3).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+         },
     },
     {
-      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 1, 3, 2).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 1, 2, 2).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+         },
     },
     {
-      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 3, 1, 1).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 3, 0, 1).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+         },
     },
     {
-      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 7, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 6, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+         },
     },
   };
 
@@ -371,19 +431,47 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
     {
       4, {
            { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 6, 4).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
          },
     },
     {
-      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 6, 3).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+         },
     },
     {
-      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 1, 2, 2).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+         },
     },
     {
-      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 3, 0, 1).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+         },
     },
     {
-      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 6, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+         },
     },
   };
 
@@ -428,30 +516,35 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
       4, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
            { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
            { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
     },
     {
       2, {
            { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } ,
            { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
            { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
            { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
            { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
            { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          },
     },
   };
@@ -494,19 +587,39 @@ NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+         },
     },
     {
-      3, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+         },
     },
     {
-      2, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+         },
     },
     {
-      1, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () },
+          //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+          //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+         },
     },
     {
-      0, { { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+         },
     },
   };
 
@@ -548,19 +661,39 @@ NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () } },
+      4, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+         },
     },
     {
-      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () } },
+      3, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+         },
     },
     {
-      2, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } },
+      2, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+         },
     },
     {
-      1, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () } },
+      1, {
+           { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+         },
     },
     {
-      0, { { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () } },
+      0, {
+           { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize ()  },
+           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+         }
     },
   };
 
