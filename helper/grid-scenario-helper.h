@@ -234,6 +234,7 @@ private:
   Vector m_centralPos;     //!< Central site position
   double m_antennaOffset {-1.0};   // Cell antenna offset in meters w.r.t. site location
   double m_hexagonalRadius {0.0};  //!< Cell radius
+  double m_minBsUtdistance {-1.0}; //!< Minimum distance between BS and UT in meters
 };
 
 } // namespace ns3

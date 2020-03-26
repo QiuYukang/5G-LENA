@@ -446,6 +446,7 @@ HexagonalGridScenarioHelper::SetUMaParameters ()
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 3;
+  m_minBsUtdistance = 35;
   m_antennaOffset = 1.0;
 }
 
@@ -457,6 +458,7 @@ HexagonalGridScenarioHelper::SetUMiParameters ()
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 3;
+  m_minBsUtdistance = 10;
   m_antennaOffset = 1.0;
 }
 
@@ -532,8 +534,8 @@ HexagonalGridScenarioHelper::CreateScenario ()
   // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
   Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
   Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
-  r->SetAttribute ("Min", DoubleValue (0.0));
-  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius));
+  r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
+  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2));  //Spread UEs inside the inner hexagonal radius
   theta->SetAttribute ("Min", DoubleValue (0.0));
   theta->SetAttribute ("Max", DoubleValue (360.0));
   // UT position
