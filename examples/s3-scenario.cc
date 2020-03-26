@@ -76,6 +76,119 @@ using namespace ns3;
  */
 NS_LOG_COMPONENT_DEFINE ("S3Scenario");
 
+
+class RadioNetworkParametersHelper
+{
+public:
+
+  /**
+   * \brief Set the radio network parameters to LTE
+   */
+  void SetNetworkToLte (const std::string scenario);
+
+  /**
+   * \brief Set the radio network parameters to NR
+   * \param scenario Urban scenario (UMa or UMi)
+   * \param numerology Numerology to use
+   */
+  void SetNetworkToNr (const std::string scenario, uint16_t numerology);
+
+  /**
+   * \brief Gets the BS transmit power
+   * \return Transmit power in dBW
+   */
+  double GetTxPower ();
+
+  /**
+   * \brief Gets the operation bandwidth
+   * \return Bandwidth in Hz
+   */
+  double GetBandwidth ();
+
+  /**
+   * \brief Gets the central frequency
+   * \return Central frequency in Hz
+   */
+  double GetCentralFrequency ();
+
+  /**
+   * \brief Gets the band numerology
+   * \return Numerology
+   */
+  uint16_t GetNumerology ();
+
+private:
+  double m_txPower {-1.0};            //!< Transmit power in dBm
+  double m_bandwidth {0.0};           //!< System bandwidth in Hz
+  double m_centralFrequency {-1.0};   //!< Band central frequency in Hz
+  uint16_t m_numerology {0};          //!< Operation band numerology
+};
+
+void
+RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
+{
+  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
+                   "Unsupported scenario");
+
+  m_numerology = 0;
+  m_centralFrequency = 2e9;
+  m_bandwidth = 20e6;
+  if (scenario == "UMa")
+    {
+      m_txPower = 19;
+    }
+  else
+    {
+      m_txPower = 14;
+    }
+}
+
+void
+RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
+                                              uint16_t numerology)
+{
+  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
+                   "Unsupported scenario");
+
+  m_numerology = numerology;
+  m_centralFrequency = 2e9;
+  m_bandwidth = 20e6;
+  if (scenario == "UMa")
+    {
+      m_txPower = 19;
+    }
+  else
+    {
+      m_txPower = 14;
+    }
+}
+
+double
+RadioNetworkParametersHelper::GetTxPower ()
+{
+  return m_txPower;
+}
+
+double
+RadioNetworkParametersHelper::GetBandwidth ()
+{
+  return m_bandwidth;
+}
+
+double
+RadioNetworkParametersHelper::GetCentralFrequency ()
+{
+  return m_centralFrequency;
+}
+
+uint16_t
+RadioNetworkParametersHelper::GetNumerology ()
+{
+  return m_numerology;
+}
+
+
+
 int 
 main (int argc, char *argv[])
 {
@@ -87,8 +200,8 @@ main (int argc, char *argv[])
   uint16_t numOuterRings = 3;
   uint16_t ueNumPergNb = 2;
   bool logging = false;
-  bool doubleOperationalBand = true;
   std::string scenario = "UMa";
+  std::string radioNetwork = "NR";  // LTE or NR
 
   // Traffic parameters (that we will use inside this script:)
   uint32_t udpPacketSizeULL = 100;
@@ -101,15 +214,11 @@ main (int argc, char *argv[])
   uint32_t simTimeMs = 1000;
   uint32_t udpAppStartTimeMs = 400;
 
-  // NR parameters. We will take the input from the command line, and then we
-  // will pass them inside the NR module.
-  uint16_t numerologyBwp1 = 4;
-  double centralFrequencyBand1 = 28e9;
-  double bandwidthBand1 = 100e6;
-  uint16_t numerologyBwp2 = 2;
-  double centralFrequencyBand2 = 28.2e9;
-  double bandwidthBand2 = 100e6;
-  double totalTxPower = 4;
+  // Spectrum parameters. We will take the input from the command line, and then
+  //  we will pass them inside the NR module.
+  uint16_t numerologyBwp = 0;
+  double centralFrequencyBand;  // RadioNetworkParametersHelper provides this hard-coded value
+  double bandwidthBand;  // RadioNetworkParametersHelper provides this hard-coded values
 
   // Where we will store the output files.
   std::string simTag = "default";
@@ -134,10 +243,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("logging",
                 "Enable logging",
                 logging);
-  cmd.AddValue ("doubleOperationalBand",
-                "If true, simulate two operational bands with one CC for each band,"
-                "and each CC will have 1 BWP that spans the entire CC.",
-                doubleOperationalBand);
   cmd.AddValue ("packetSizeUll",
                 "packet size in bytes to be used by ultra low latency traffic",
                 udpPacketSizeULL);
@@ -153,28 +258,18 @@ main (int argc, char *argv[])
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
-  cmd.AddValue ("numerologyBwp1",
-                "The numerology to be used in bandwidth part 1",
-                numerologyBwp1);
-  cmd.AddValue ("centralFrequencyBand1",
-                "The system frequency to be used in band 1",
-                centralFrequencyBand1);
-  cmd.AddValue ("bandwidthBand1",
-                "The system bandwidth to be used in band 1",
-                bandwidthBand1);
-  cmd.AddValue ("numerologyBwp2",
-                "The numerology to be used in bandwidth part 2",
-                numerologyBwp2);
-  cmd.AddValue ("centralFrequencyBand2",
-                "The system frequency to be used in band 2",
-                centralFrequencyBand2);
-  cmd.AddValue ("bandwidthBand2",
-                "The system bandwidth to be used in band 2",
-                bandwidthBand2);
-  cmd.AddValue ("totalTxPower",
-                "total tx power that will be proportionally assigned to"
-                " bands, CCs and bandwidth parts depending on each BWP bandwidth ",
-                totalTxPower);
+  cmd.AddValue ("numerologyBwp",
+                "The numerology to be used",
+                numerologyBwp);
+//  cmd.AddValue ("centralFrequencyBand",
+//                "The system frequency to be used in band 1",
+//                centralFrequencyBand);
+//  cmd.AddValue ("bandwidthBand",
+//                "The system bandwidth to be used in band 1",
+//                bandwidthBand);
+  cmd.AddValue ("technology",
+                "The radio access network technology",
+                radioNetwork);
   cmd.AddValue ("simTag",
                 "tag to be appended to output filenames to distinguish simulation campaigns",
                 simTag);
@@ -187,11 +282,11 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   /*
-   * Check if the frequency is in the allowed range.
+   * Check if the frequency and numerology are in the allowed range.
    * If you need to add other checks, here is the best position to put them.
    */
-  NS_ABORT_IF (centralFrequencyBand1 > 100e9);
-  NS_ABORT_IF (centralFrequencyBand2 > 100e9);
+//  NS_ABORT_IF (centralFrequencyBand > 100e9);
+  NS_ABORT_IF (numerologyBwp > 4);
 
   /*
    * If the logging variable is set to true, enable the log of some components
@@ -227,31 +322,36 @@ main (int argc, char *argv[])
   gridScenario.SetNumCells ();  // Note that the call takes no arguments since the number is obtained from the parameters in SetUMaParameters or SetUMiParameters
   uint16_t gNbNum = gridScenario.GetNumCells ();
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
-  gridScenario.CreateScenario ();
+  gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
+
+  /*
+   * Create the radio network related parameters
+   */
+  RadioNetworkParametersHelper ranHelper;
+  if (radioNetwork == "LTE")
+    {
+      ranHelper.SetNetworkToLte (scenario);
+    }
+  else if (radioNetwork == "NR")
+    {
+      ranHelper.SetNetworkToNr (scenario, numerologyBwp);
+    }
+  else
+    {
+      NS_ABORT_MSG ("Unrecognized radio network technology");
+    }
 
   /*
    * Create two different NodeContainer for the different traffic type.
-   * In ueLowLat we will put the UEs that will receive low-latency traffic,
-   * while in ueVoice we will put the UEs that will receive the voice traffic.
+   * In ueLowLat we will put the UEs that will receive low-latency traffic.
    */
-  NodeContainer ueLowLatContainer, ueVoiceContainer;
+  NodeContainer ueLowLatContainer;
 
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
       Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (j);
-      if (static_cast<uint32_t> (j / gNbNum) == 0)
-        {
-          ueLowLatContainer.Add (ue);
-        }
-      else
-        {
-          ueVoiceContainer.Add (ue);
-        }
+      ueLowLatContainer.Add (ue);
     }
-
-  /*
-   * TODO: Add a print, or a plot, that shows the scenario.
-   */
 
   /*
    * Setup the NR module. We create the various helpers needed for the
@@ -278,22 +378,33 @@ main (int argc, char *argv[])
    */
   BandwidthPartInfoPtrVector allBwps;
   CcBwpCreator ccBwpCreator;
-  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
-
   // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
-  // a single BWP per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
-
+  // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
+  centralFrequencyBand = ranHelper.GetCentralFrequency ();
+  bandwidthBand = ranHelper.GetBandwidth ();
+  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
+  BandwidthPartInfo::Scenario scene;
+  if (scenario == "UMi")
+    {
+      scene =  BandwidthPartInfo::UMi_StreetCanyon;
+    }
+  else if (scenario == "UMa")
+    {
+      scene = BandwidthPartInfo::UMa;
+    }
+  else
+    {
+      NS_ABORT_MSG ("Unsupported scenario");
+    }
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numCcPerBand, scene);
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
-  OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
 
   /*
    * The configured spectrum division is:
-   * ------------Band1--------------|--------------Band2-----------------
-   * ------------CC1----------------|--------------CC2-------------------
-   * ------------BWP1---------------|--------------BWP2------------------
+   * ------------Band1--------------
+   * ------------CC1----------------
+   * ------------BWP1---------------
    */
 
   /*
@@ -311,28 +422,16 @@ main (int argc, char *argv[])
    * of all the spectrum initialization needs.
    */
   mmWaveHelper->InitializeOperationBand (&band1);
+  allBwps = CcBwpCreator::GetAllBwps ({band1});
 
   /*
    * Start to account for the bandwidth used by the example, as well as
-   * the total power that has to be divided among the BWPs.
+   * the total power that has to be divided among the BWPs. Since there is only
+   * one band and one BWP occupying the entire band, there is no need to divide
+   * power among BWPs.
    */
+  double totalTxPower = ranHelper.GetTxPower ();
   double x = pow (10, totalTxPower/10);
-  double totalBandwidth = bandwidthBand1;
-
-  /*
-   * if not single band simulation, initialize and setup power in the second band
-   */
-  if (doubleOperationalBand)
-    {
-      // Initialize channel and pathloss, plus other things inside band2
-      mmWaveHelper->InitializeOperationBand (&band2);
-      totalBandwidth += bandwidthBand2;
-      allBwps = CcBwpCreator::GetAllBwps ({band1, band2});
-    }
-  else
-    {
-      allBwps = CcBwpCreator::GetAllBwps ({band1});
-    }
 
   /*
    * allBwps contains all the spectrum configuration needed for the mmWaveHelper.
@@ -375,20 +474,12 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   uint32_t bwpIdForLowLat = 0;
-  uint32_t bwpIdForVoice = 0;
-  if (doubleOperationalBand)
-    {
-      bwpIdForVoice = 1;
-      bwpIdForLowLat = 0;
-    }
 
-  // gNb routing between Bearer and bandwidh part
+  // gNb routing between Bearer and bandwidth part
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
   // Ue routing between Bearer and bandwidth part
   mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
 
   /*
@@ -410,7 +501,6 @@ main (int argc, char *argv[])
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, allBwps);
-  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, allBwps);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -433,16 +523,8 @@ main (int argc, char *argv[])
 
   // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
   // and set the attribute.
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand1/totalBandwidth) * x)));
-
-  if (doubleOperationalBand)
-    {
-      // Get the first netdevice (enbNetDev.Get (0)) and the second bandwidth part (1)
-      // and set the attribute.
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBand2/totalBandwidth) * x));
-    }
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
@@ -452,11 +534,6 @@ main (int argc, char *argv[])
     }
 
   for (auto it = ueLowLatNetDev.Begin (); it != ueLowLatNetDev.End (); ++it)
-    {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueVoiceNetDev.Begin (); it != ueVoiceNetDev.End (); ++it)
     {
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
@@ -489,7 +566,6 @@ main (int argc, char *argv[])
 
 
   Ipv4InterfaceContainer ueLowLatIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLowLatNetDev));
-  Ipv4InterfaceContainer ueVoiceIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVoiceNetDev));
 
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
@@ -500,7 +576,6 @@ main (int argc, char *argv[])
 
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
-  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
 
   /*
    * Traffic part. Install two kind of traffic: low-latency and voice, each
@@ -517,7 +592,6 @@ main (int argc, char *argv[])
 
   // The server, that is the application which is listening, is installed in the UE
   serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
-  serverApps.Add (dlPacketSinkVoice.Install (ueVoiceContainer));
 
 
   /*
@@ -542,24 +616,6 @@ main (int argc, char *argv[])
   dlpfLowLat.localPortEnd = dlPortLowLat;
   lowLatTft->Add (dlpfLowLat);
 
-
-  // Voice configuration and object creation:
-  UdpClientHelper dlClientVoice;
-  dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
-  dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-  dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
-
-  // The bearer that will carry voice traffic
-  EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
-
-  // The filter for the voice traffic
-  Ptr<EpcTft> voiceTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfVoice;
-  dlpfVoice.localPortStart = dlPortLowLat;
-  dlpfVoice.localPortEnd = dlPortLowLat;
-  voiceTft->Add (dlpfVoice);
-
   /*
    * Let's install the applications!
    */
@@ -578,21 +634,6 @@ main (int argc, char *argv[])
 
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-    }
-
-  for (uint32_t i = 0; i < ueVoiceContainer.GetN (); ++i)
-    {
-      Ptr<Node> ue = ueVoiceContainer.Get (i);
-      Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
-      Address ueAddress = ueVoiceIpIface.GetAddress (i);
-
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-      clientApps.Add (dlClientVoice.Install (remoteHost));
-
-      // Activate a dedicated bearer for the traffic type
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
     }
 
   // start UDP server and client apps
