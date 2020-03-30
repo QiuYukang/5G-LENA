@@ -1498,6 +1498,10 @@ MmWaveEnbPhy::SetPattern (const std::string &pattern)
 
    for (const auto & v : extracted)
      {
+       if (lookupTable.find (v) == lookupTable.end())
+         {
+           NS_FATAL_ERROR ("Pattern type " << v << " not valid. Valid values are: DL UL F S");
+         }
        vector.push_back (lookupTable[v]);
      }
 

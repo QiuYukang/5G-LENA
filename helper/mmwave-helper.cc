@@ -190,9 +190,9 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
           bwp->m_propagation->SetChannelConditionModel (channelConditionModel);
 
           bwp->m_3gppChannel = m_spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
-          bwp->m_3gppChannel->SetFrequency (bwp->m_centralFrequency);
-          bwp->m_3gppChannel->SetScenario (bwp->GetScenario ());
-          bwp->m_3gppChannel->SetChannelConditionModel (channelConditionModel);
+          bwp->m_3gppChannel->SetChannelModelAttribute ("Frequency", DoubleValue (bwp->m_centralFrequency));
+          bwp->m_3gppChannel->SetChannelModelAttribute ("Scenario", StringValue (bwp->GetScenario ()));
+          bwp->m_3gppChannel->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (channelConditionModel));
 
           bwp->m_channel = m_channelFactory.Create<SpectrumChannel> ();
           bwp->m_channel->AddPropagationLossModel (bwp->m_propagation);
@@ -375,7 +375,9 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
 
   Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
-  phy->InstallCentralFrequency (gppChannel->GetFrequency ());
+  DoubleValue frequency;
+  gppChannel->GetChannelModelAttribute("Frequency", frequency);
+  phy->InstallCentralFrequency (frequency.Get ());
   phy->ScheduleStartEventLoop (n->GetId (), 0, 0, 0);
 
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
@@ -421,6 +423,8 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveUeNetDevice> dev = m_ueNetDeviceFactory.Create<MmWaveUeNetDevice> ();
+  dev->SetNode (n);
+
   std::map<uint8_t, Ptr<BandwidthPartUe> > ueCcMap;
 
   // Create, for each ue, its bandwidth parts
@@ -528,7 +532,6 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   NS_ABORT_MSG_IF (m_imsiCounter >= 0xFFFFFFFF, "max num UEs exceeded");
   uint64_t imsi = ++m_imsiCounter;
 
-  dev->SetNode (n);
   dev->SetAttribute ("Imsi", UintegerValue (imsi));
   dev->SetCcMap (ueCcMap);
   dev->SetAttribute ("mmWaveUeRrc", PointerValue (rrc));
@@ -560,7 +563,10 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   Ptr<MmWaveEnbPhy> phy = m_gnbPhyFactory.Create <MmWaveEnbPhy> ();
   Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
-  phy->InstallCentralFrequency (gppChannel->GetFrequency ());
+  DoubleValue frequency;
+  gppChannel->GetChannelModelAttribute("Frequency", frequency);
+
+  phy->InstallCentralFrequency (frequency.Get ());
 
   phy->ScheduleStartEventLoop (n->GetId (), 0, 0, 0);
 
@@ -633,7 +639,9 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 
   NS_LOG_DEBUG ("Creating gnb, cellId = " << m_cellIdCounter);
   uint16_t cellId = m_cellIdCounter++;
+
   dev->SetCellId (cellId);
+  dev->SetNode (n);
 
   // create component carrier map for this eNb device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
@@ -767,7 +775,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       ccmEnbManager->SetMacSapProvider (it->first, it->second->GetMac ()->GetMacSapProvider ());
     }
 
-  dev->SetNode (n);
+
   dev->SetAttribute ("LteEnbComponentCarrierManager", PointerValue (ccmEnbManager));
   dev->SetCcMap (ccMap);
   dev->SetAttribute ("LteEnbRrc", PointerValue (rrc));
