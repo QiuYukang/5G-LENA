@@ -219,6 +219,8 @@ main (int argc, char *argv[])
   uint16_t numerologyBwp = 0;
   double centralFrequencyBand;  // RadioNetworkParametersHelper provides this hard-coded value
   double bandwidthBand;  // RadioNetworkParametersHelper provides this hard-coded values
+//  std::string pattern = "D|S|U|U|D|D|S|U|U|D|";
+  std::string pattern = "F|F|F|F|F|F|F|F|F|F|";
 
   // Where we will store the output files.
   std::string simTag = "default";
@@ -261,6 +263,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("numerologyBwp",
                 "The numerology to be used",
                 numerologyBwp);
+  cmd.AddValue ("pattern",
+                "The TDD pattern to use",
+                pattern);
 //  cmd.AddValue ("centralFrequencyBand",
 //                "The system frequency to be used in band 1",
 //                centralFrequencyBand);
@@ -514,17 +519,25 @@ main (int argc, char *argv[])
       uint32_t numBwps = mmWaveHelper->GetNumberBwp (enbNetDev.Get (cellId));
       for (uint32_t bwpId = 0; bwpId < numBwps; ++bwpId)
         {
+          // Change the antenna orientation
           Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+          // Set numerology
+          mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId)
+                        ->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          // Set TxPower
+          mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId)
+                                  ->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          // Set the TDD pattern
+          mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId)
+              ->SetAttribute ("Pattern", StringValue (pattern));
         }
     }
 
-  // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
-  // and set the attribute.
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+//  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+//  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
@@ -582,17 +595,14 @@ main (int argc, char *argv[])
    * identified by a particular source port.
    */
   uint16_t dlPortLowLat = 1234;
-  uint16_t dlPortVoice = 1235;
 
   ApplicationContainer serverApps;
 
   // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
-  UdpServerHelper dlPacketSinkVoice (dlPortVoice);
 
   // The server, that is the application which is listening, is installed in the UE
   serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
-
 
   /*
    * Configure attributes for the different generators, using user-provided
