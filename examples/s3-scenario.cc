@@ -135,11 +135,11 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
   m_bandwidth = 20e6;
   if (scenario == "UMa")
     {
-      m_txPower = 19;
+      m_txPower = 49;
     }
   else
     {
-      m_txPower = 14;
+      m_txPower = 44;
     }
 }
 
@@ -155,11 +155,11 @@ RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
   m_bandwidth = 20e6;
   if (scenario == "UMa")
     {
-      m_txPower = 19;
+      m_txPower = 49;
     }
   else
     {
-      m_txPower = 14;
+      m_txPower = 44;
     }
 }
 
@@ -213,14 +213,14 @@ main (int argc, char *argv[])
   // milliseconds and integers to avoid representation errors.
   uint32_t simTimeMs = 1000;
   uint32_t udpAppStartTimeMs = 400;
+  std::string direction = "DL";
 
   // Spectrum parameters. We will take the input from the command line, and then
   //  we will pass them inside the NR module.
   uint16_t numerologyBwp = 0;
   double centralFrequencyBand;  // RadioNetworkParametersHelper provides this hard-coded value
   double bandwidthBand;  // RadioNetworkParametersHelper provides this hard-coded values
-//  std::string pattern = "D|S|U|U|D|D|S|U|U|D|";
-  std::string pattern = "F|F|F|F|F|F|F|F|F|F|";
+  std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
 
   // Where we will store the output files.
   std::string simTag = "default";
@@ -266,6 +266,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("pattern",
                 "The TDD pattern to use",
                 pattern);
+  cmd.AddValue ("direction",
+                "The flow direction (DL or UL)",
+                direction);
 //  cmd.AddValue ("centralFrequencyBand",
 //                "The system frequency to be used in band 1",
 //                centralFrequencyBand);
@@ -345,6 +348,8 @@ main (int argc, char *argv[])
     {
       NS_ABORT_MSG ("Unrecognized radio network technology");
     }
+
+  NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
 
   /*
    * Create two different NodeContainer for the different traffic type.
@@ -470,12 +475,12 @@ main (int argc, char *argv[])
 
   // Antennas for all the UEs
   mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (2));
   mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   uint32_t bwpIdForLowLat = 0;
@@ -536,8 +541,6 @@ main (int argc, char *argv[])
         }
     }
 
-//  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-//  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
@@ -639,11 +642,17 @@ main (int argc, char *argv[])
 
       // The client, who is transmitting, is installed in the remote host,
       // with destination address set to the address of the UE
-      dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-      clientApps.Add (dlClientLowLat.Install (remoteHost));
-
-      // Activate a dedicated bearer for the traffic type
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+      if (direction == "DL")
+        {
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientLowLat.Install (remoteHost));
+        }
+      else
+        {
+          NS_ABORT_MSG ("UL not supported yet");
+        }
+      // Activate a dedicated bearer for the traffic type (no needed when there is one BWP
+//      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
   // start UDP server and client apps
@@ -653,7 +662,7 @@ main (int argc, char *argv[])
   clientApps.Stop(MilliSeconds(simTimeMs));
 
   // enable the traces provided by the mmWave module
-  //mmWaveHelper->EnableTraces();
+  mmWaveHelper->EnableTraces ();
 
 
   FlowMonitorHelper flowmonHelper;
