@@ -34,9 +34,9 @@ This release has been tested on the following platforms:
 Important news
 --------------
 - This release is aligned with CTTC's ns-3-dev commit id
-217b410c lte-rlc: TM is now sending more than one packet per transmission opportunity
+8b9decb34 lte: Add enum for TDD slot type  [ZorazeAli]
 that is on top of the nsnam ns-3-dev master commit id
-578c107eb internet: fix packet deduplication test .
+ea3506784 Merge branch 'gsoc-2019-tommaso'  [Natale Patriciello]
 To upgrade CTTC's ns-3-dev, please run the following (save any non-official
 commit, as they will be deleted):
 
