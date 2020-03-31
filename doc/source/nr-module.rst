@@ -22,7 +22,7 @@ As the NR specification is developed and evolves, a network simulator that is ca
 
 In this document, we describe the implementation that we have initiated to generate a 3GPP-compliant NR module able to provide |ns3| simulation capabilities in the bands above and below 6 GHz, aligned with 3GPP NR Release-15, following the description in [TS38300]_. The work has been initially funded by InterDigital Communications Inc, and continues with funding from the Lawrence Livermore National Lab (LLNL) and a grant from the National Institute of Standards and Technologies (NIST).
 
-The 'NR' module is a hard fork of the 'mmWave' simulator,  focused on targeting the 3GPP Release-15 NR specification. As such, it incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs), Frequency Division Multiplexing (FDM) of numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, Low-Density Parity Check (LDPC) coding for data channels, modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others. The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC) based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
+The 'NR' module is a hard fork of the 'mmWave' simulator,  focused on targeting the 3GPP Release-15 NR specification. As such, it incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of multiple numerologies support, bandwidth parts (BWPs), Frequency Division Multiplexing (FDM) of numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, Low-Density Parity Check (LDPC) coding for data channels, modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others. The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC) based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
 
 The source code for the 'NR' module lives currently in the directory ``src/nr``.
 
@@ -53,7 +53,17 @@ The 'NR' module has been designed to perform end-to-end simulations of 3GPP-orie
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and
+``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac``
+MAC classes implement the LTE module SAP provider and user interfaces,
+enabling the communication with the LTE RLC layer. The module supports RLC
+TM, SM, UM, and AM modes. The MAC layer contains the scheduler
+(``NRMacScheduler`` and derived classes). Every scheduler also implements an
+SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes
+are used to perform the directional communication for both downlink (DL)
+and uplink (UL), to transmit/receive the data and control channels. Each
+``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class,
+which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -63,7 +73,25 @@ Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and `
 
    RAN class overview
 
-Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different parts of the bandwidth (like BWPs or CCs). NR has included the definition of BWP for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. CC concept was already introduced in LTE, and persists in NR, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs and CCs. Each BWP/CC can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different CCs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. Component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+
+Note: Through the code, as well as through the documentation, we refer to a BWP
+as a piece of the spectrum. In particular, a BWP is characterized by a center frequency, a channel
+bandwidth, and a numerology. Each device is able to handle multiple BWPs, through
+the new BWP manager, but such multiple BWPs are orthogonal in frequency (i.e., they span over
+different frequency spectrum regions, that can be contiguous or not, up to the user configuration).
+In the 'NR' module, each BWP is associated to a PHY and a MAC entity,
+as well as to one spectrum channel and one antenna instance. The router in between the RLC
+queues and the different MAC entities is the BWP manager.
+Our BWP terminology can refer to 3GPP BWPs, as well
+as to 3GPP component carriers, and it is up to the BWP manager to route the flows
+accordingly based on the behaviour the user wants to implement. Note that our BWP definition
+differs from the 3GPP BWP, which was basically defined for energy saving purposes
+at the UE nodes, and for which the active 3GPP BWP at a UE can vary semi-statically
+and multiple 3GPP BWPs can span over the same frequency spectrum
+region. We support 3GPP BWPs, through our BWPs, for the case that 3GPP BWPs are
+orthogonal. This is useful for energy savings, as well as to accomodate different
+flow qualities through different BWPs.
 
 
 PHY layer
