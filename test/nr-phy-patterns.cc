@@ -21,10 +21,11 @@
 #include <ns3/mmwave-enb-phy.h>
 #include <ns3/node.h>
 #include <ns3/nr-ch-access-manager.h>
+#include <ns3/mmwave-mac-scheduler-tdma-rr.h>
 #include <ns3/multi-model-spectrum-channel.h>
 
 /**
- * \file nr-lte-pattern-generation
+ * \file nr-phy-patterns.cc
  * \ingroup test
  * \brief Unit-testing for the LTE/NR TDD pattern
  *
@@ -40,8 +41,7 @@ class TestEnbMac : public MmWaveEnbMac
 {
 public:
   static TypeId GetTypeId (void);
-  TestEnbMac (const std::vector<LteNrTddSlotType> &pattern,
-              const Ptr<MmWavePhyMacCommon> &config);
+  TestEnbMac (const std::string &pattern);
   virtual ~TestEnbMac (void) override;
   virtual void DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) override;
   virtual void DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) override;
@@ -49,7 +49,6 @@ public:
 
 private:
   std::vector<LteNrTddSlotType> m_pattern;
-  Ptr<MmWavePhyMacCommon> m_config;
   std::set <uint32_t> m_slotCreated;
   uint32_t m_totalSlotToCreate {0};
 };
@@ -66,12 +65,34 @@ TestEnbMac::GetTypeId()
   return tid;
 }
 
-TestEnbMac::TestEnbMac (const std::vector<LteNrTddSlotType> &pattern,
-                        const Ptr<MmWavePhyMacCommon> &config)
-  : MmWaveEnbMac(),
-    m_pattern (pattern),
-    m_config (config)
+TestEnbMac::TestEnbMac (const std::string &pattern)
 {
+  static std::unordered_map<std::string, LteNrTddSlotType> lookupTable =
+  {
+    { "DL", LteNrTddSlotType::DL },
+    { "UL", LteNrTddSlotType::UL },
+    { "S",  LteNrTddSlotType::S },
+    { "F",  LteNrTddSlotType::F },
+  };
+
+  std::stringstream ss (pattern);
+  std::string token;
+  std::vector<std::string> extracted;
+
+   while (std::getline(ss, token, '|'))
+     {
+       extracted.push_back(token);
+     }
+
+   for (const auto & v : extracted)
+     {
+       if (lookupTable.find (v) == lookupTable.end())
+         {
+           NS_FATAL_ERROR ("Pattern type " << v << " not valid. Valid values are: DL UL F S");
+         }
+       m_pattern.push_back (lookupTable[v]);
+     }
+
   for (const auto & v : m_pattern)
     {
       switch (v) {
@@ -103,7 +124,7 @@ TestEnbMac::~TestEnbMac ()
 void
 TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
-  uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe ());
+  uint32_t pos = sfnSf.Normalize ();
   pos = pos % m_pattern.size ();
 
   NS_ASSERT (type == LteNrTddSlotType::DL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
@@ -120,7 +141,7 @@ TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 void
 TestEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
-  uint32_t pos = sfnSf.Normalize (m_config->GetSlotsPerSubframe ());
+  uint32_t pos = sfnSf.Normalize ();
   pos = pos % m_pattern.size ();
 
   NS_ASSERT (type == LteNrTddSlotType::UL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
@@ -149,7 +170,7 @@ public:
    * \brief Create LtePatternTestCase
    * \param name Name of the test
    */
-  LtePhyPatternTestCase (const std::vector<LteNrTddSlotType> &pattern, const std::string &name)
+  LtePhyPatternTestCase (const std::string &pattern, const std::string &name)
     : TestCase (name), m_pattern (pattern)
   {}
 
@@ -158,35 +179,25 @@ private:
   void Print (const std::string &msg1, const std::string& msg2,
               const std::map<uint32_t, std::vector<uint32_t> > &str);
   void StartSimu ();
-  Ptr<MmWaveEnbMac> CreateMac (const Ptr<MmWavePhyMacCommon> &config, const Ptr<MmWaveMacScheduler> &sched) const;
-  Ptr<MmWaveEnbPhy> CreatePhy (const Ptr<MmWavePhyMacCommon> &config, const Ptr<MmWaveEnbMac> &mac) const;
+  Ptr<MmWaveEnbMac> CreateMac (const Ptr<MmWaveMacScheduler> &sched) const;
+  Ptr<MmWaveEnbPhy> CreatePhy (const Ptr<MmWaveEnbMac> &mac) const;
 
   bool m_verbose = true;
   Ptr<MmWaveEnbPhy> m_phy;
-  std::vector<LteNrTddSlotType> m_pattern;
+  std::string m_pattern;
 };
-
-static void
-PerformBeamforming (const Ptr<NetDevice> &a, const Ptr<NetDevice> &b)
-{
-  NS_UNUSED (a);
-  NS_UNUSED (b);
-}
 
 void
 LtePhyPatternTestCase::DoRun ()
 {
-  Ptr<MmWavePhyMacCommon> configParams = CreateObject<MmWavePhyMacCommon> ();
-  configParams->SetNumerology (0); // can it change?
-
   ObjectFactory schedFactory;
-  schedFactory.SetTypeId (configParams->GetMacSchedType ());
+  schedFactory.SetTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
   Ptr<MmWaveMacScheduler> sched = DynamicCast<MmWaveMacScheduler> (schedFactory.Create ());
 
-  auto mac = CreateMac (configParams, sched);
-  m_phy = CreatePhy (configParams, mac);
+  auto mac = CreateMac (sched);
+  m_phy = CreatePhy (mac);
 
-  m_phy->SetTddPattern (m_pattern);
+  m_phy->SetPattern (m_pattern);
 
   // Finishing initialization
   m_phy->SetPhySapUser (mac->GetPhySapUser());
@@ -206,18 +217,15 @@ LtePhyPatternTestCase::StartSimu()
 }
 
 Ptr<MmWaveEnbPhy>
-LtePhyPatternTestCase::CreatePhy (const Ptr<MmWavePhyMacCommon> &config, const Ptr<MmWaveEnbMac> &mac) const
+LtePhyPatternTestCase::CreatePhy (const Ptr<MmWaveEnbMac> &mac) const
 {
-  static Node n;
-  Ptr<MmWaveEnbPhy> phy;
   Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
+  Ptr<MmWaveEnbPhy> phy = CreateObject <MmWaveEnbPhy> ();
+  Ptr<ThreeGppAntennaArrayModel> antenna = CreateObject <ThreeGppAntennaArrayModel> ();
 
-  phy = CreateObject<MmWaveEnbPhy> (channelPhy, &n);
+  phy->InstallCentralFrequency (28e9);
 
-  // PHY <--> Beamforming
-  MmWaveEnbPhy::PerformBeamformingFn beamformingFn;
-  beamformingFn = std::bind (&PerformBeamforming, std::placeholders::_1, std::placeholders::_2);
-  phy->SetPerformBeamformingFn (beamformingFn);
+  phy->ScheduleStartEventLoop (0, 0, 0, 0);
 
   // PHY <--> CAM
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (CreateObject<NrAlwaysOnAccessManager> ());
@@ -225,22 +233,24 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<MmWavePhyMacCommon> &config, const P
   cam->SetNrEnbMac (mac);
   phy->SetCam (cam);
 
-  // PHY <--> HARQ
-  Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> (20);
-  channelPhy->SetHarqPhyModule (harq);
+  Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
+  channelPhy->InstallHarqPhyModule (harq);
 
-  phy->SetConfigurationParameters (config);
+  Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
+  channelPhy->AddDataSinrChunkProcessor (pData);
+
+  channelPhy->InstallPhy (phy);
+
+  phy->InstallSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
+
   return phy;
 }
 
 Ptr<MmWaveEnbMac>
-LtePhyPatternTestCase::CreateMac(const Ptr<MmWavePhyMacCommon> &config,
-                                 const Ptr<MmWaveMacScheduler> &sched) const
+LtePhyPatternTestCase::CreateMac (const Ptr<MmWaveMacScheduler> &sched) const
 {
-  Ptr<MmWaveEnbMac> mac = CreateObject<TestEnbMac> (m_pattern, config);
-  mac->SetConfigurationParameters (config);
-
-  sched->ConfigureCommonParameters (config);
+  Ptr<MmWaveEnbMac> mac = CreateObject<TestEnbMac> (m_pattern);
 
   sched->SetMacSchedSapUser (mac->GetMmWaveMacSchedSapUser ());
   sched->SetMacCschedSapUser (mac->GetMmWaveMacCschedSapUser ());
@@ -272,110 +282,29 @@ public:
   NrLtePatternsTestSuite () : TestSuite ("nr-phy-patterns", UNIT)
     {
 
-      auto one = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  };
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|DL|DL|S|UL|UL|DL|",
+                                             "LTE TDD Pattern 1 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase (one, "LTE TDD Pattern 1 test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|DL|DL|DL|S|UL|DL|DL|",
+                                             "LTE TDD Pattern 2 test"), QUICK);
 
-      auto two = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (two, "LTE TDD Pattern 2 test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|DL|DL|DL|DL|",
+                                             "LTE TDD Pattern 3 test"), QUICK);
 
-      auto three = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (three, "LTE TDD Pattern 3 test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|DL|DL|DL|DL|DL|DL|",
+                                             "LTE TDD Pattern 4 test"), QUICK);
 
-      auto four = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (four, "LTE TDD Pattern 4 test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|DL|DL|DL|DL|DL|DL|DL|",
+                                             "LTE TDD Pattern 5 test"), QUICK);
 
-      auto five = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::DL,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (five, "LTE TDD Pattern 5 test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|S|UL|UL|DL|",
+                                             "LTE TDD Pattern 6 test"), QUICK);
 
-      auto six = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (six, "LTE TDD Pattern 6 test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|S|UL|UL|UL|",
+                                             "LTE TDD Pattern 0 test"), QUICK);
 
-      auto zero = {LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::DL,
-                  LteNrTddSlotType::S,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                  LteNrTddSlotType::UL,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (zero, "LTE TDD Pattern 0 test"), QUICK);
-
-      auto nr = {LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                  LteNrTddSlotType::F,
-                 };
-      AddTestCase(new LtePhyPatternTestCase (nr, "LTE TDD Pattern NR test"), QUICK);
+      AddTestCase(new LtePhyPatternTestCase ("F|F|F|F|F|F|F|F|F|F|",
+                                             "LTE TDD Pattern NR test"), QUICK);
 
     }
 };

@@ -257,7 +257,14 @@ MmWaveSpectrumPhy::SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>&
   NS_ASSERT (noisePsd);
   m_rxSpectrumModel = noisePsd->GetSpectrumModel ();
   m_interferenceData->SetNoisePowerSpectralDensity (noisePsd);
-  m_channel->AddRx (this);
+  if (m_channel)
+    {
+      m_channel->AddRx (this);
+    }
+  else
+    {
+      NS_LOG_WARN ("Working without channel (i.e., under test)");
+    }
 }
 
 void
