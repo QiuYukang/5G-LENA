@@ -360,9 +360,23 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports two methods: long-term covariance matrix and beam-search. The former assumes knowledge of the channel matrix to produce the optimal transmit and receive beam. In the latter, a set of predefined beams is tested, and the beam-pair providing a highest average SNR is selected. For the beam-search method, our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). A new interface allows you to have the beam ID available at MAC layer for scheduling purposes.
+The 'NR' module supports different methods: long-term covariance matrix
+(OptimalCovMatrixBeamforming), beam-search (CellScanBeamforming),
+LOS path (DirectPathBeamforming), and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming).
+OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce
+the optimal transmit and receive beam. In CellScanBeamforming, a set of predefined
+beams is tested, and the beam-pair providing a highest average SNR is selected.
+For the beam-search method, our simulator supports abstraction of the beam ID
+through two angles (azimuth and elevation). A new interface allows you to have
+the beam ID available at MAC layer for scheduling purposes. DirectPathBeamforming assumes
+knowledge of the pointing angle in between devices, and configures transmit/receive
+beams pointing into the LOS path direction. QuasiOmniDirectPathBeamforming uses the LOS
+path for configuring gNB beams, while configures quasi-omnidirectional beamforming vectors at UEs for
+transmission and reception.
 
-Both methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
+All methods are, as of today, ideal in the sense that no physical resources are
+employed to do the beam selection procedure, and as such no errors in the selection
+are taken into account.
 
 
 HARQ
@@ -377,15 +391,19 @@ In our module, for simplicity, we assume that retransmissions
 of the same HARQ process use the same MCS and the same number of RBs,
 although the specific RBs' time/frequency positions within a slot may vary
 in between the retransmissions. Also, the SINRs experienced
-on each RB may vary through retransmissions. As such, HARQ affects both the PHY and MAC layers.
+on each RB may vary through retransmissions. As such, HARQ affects both the PHY
+and MAC layers.
 
 The 'NR' module supports two HARQ methods: Chase Combining (HARQ-CC)
-and Incremental Redundancy (HARQ-IR), which can be selected by the user through the attribute ``HarqMethod``.
+and Incremental Redundancy (HARQ-IR), which can be selected by the user through
+the attribute ``HarqMethod``.
 
-At the PHY layer, the error model has been extended to support HARQ with retransmission combining.
+At the PHY layer, the error model has been extended to support HARQ with
+retransmission combining.
 Basically, it is used to evaluate the correctness of the blocks received and
 includes the messaging algorithm in charge of communicating to the HARQ entity
-in the scheduler the result of the combined decodifications. The EESM for combined retransmissions
+in the scheduler the result of the combined decodifications. The EESM for
+combined retransmissions
 varies with the underline HARQ method, as detailed next.
 
 **HARQ-CC:** In HARQ-CC, every retransmission contains the same coded bits
@@ -443,13 +461,43 @@ This section describes the different models supported and developed at MAC layer
 
 Resource allocation model: OFDMA and TDMA
 =========================================
-The 'NR' module supports variable TTI DL-TDMA and DL-OFDMA with a single-beam capability. In the UL direction, we support TDMA with variable TTI only. The single-beam capability for DL-OFDMA implies that only a single receive or transmit beam can be used at any given time instant. The variable TTI means that the number of allocated symbols to one user is variable, based on the scheduler allocation, and not fixed as was happening in LTE. Of course, LTE-like behaviors can be emulated through a scheduler that always assigns all the available symbols.
+The 'NR' module supports variable TTI DL-TDMA and DL-OFDMA with a single-beam
+capability. In the UL direction, we support TDMA with variable TTI only. The
+single-beam capability for DL-OFDMA implies that only a single receive or transmit
+beam can be used at any given time instant. The variable TTI means that the number
+of allocated symbols to one user is variable, based on the scheduler allocation,
+and not fixed as was happening in LTE. Of course, LTE-like behaviors can be emulated
+through a scheduler that always assigns all the available symbols.
 
-In OFDMA, under the single-beam capability constraint, UEs that are served by different beams cannot be scheduled at the same time. But we do not have any limitations for what regards UEs that are served by the same beam, meaning that the simulator can schedule these UEs at the same time in the frequency domain. The implementation, as it is, is compatible with radio-frequency architectures based on single-beam capability, which is one of the main requirements for operation in bands with a high center carrier frequency (mmWave bands). Secondly, it allows meeting the occupied channel bandwidth constraint in the unlicensed spectrum. Such restriction, for example, is required at the 5 GHz and 60 GHz bands. The scheduler meets the requirements by grouping UEs per beam and, within a TTI, only UEs that are served by the same gNB beam would be allowed to be scheduled for DL transmission in different RBGs.
+In OFDMA, under the single-beam capability constraint, UEs that are served by
+different beams cannot be scheduled at the same time. But we do not have any
+limitations for what regards UEs that are served by the same beam, meaning that
+the simulator can schedule these UEs at the same time in the frequency domain.
+The implementation, as it is, is compatible with radio-frequency architectures
+based on single-beam capability, which is one of the main requirements for
+operation in bands with a high center carrier frequency (mmWave bands).
+Secondly, it allows meeting the occupied channel bandwidth constraint in the
+unlicensed spectrum. Such restriction, for example, is required at the 5 GHz
+and 60 GHz bands. The scheduler meets the requirements by grouping UEs per
+beam and, within a TTI, only UEs that are served by the same gNB beam would be
+allowed to be scheduled for DL transmission in different RBGs.
 
-For decoding any transmission, the UE relies on a bitmask (that is an output of the scheduler) sent through the DCI. The bitmask is of length equal to the number of RBGs, to indicate (with 1's) the RBGs assigned to the UE. This bitmask is translated into a vector of assigned RB indices at PHY. In NR, an RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational band. a TDMA transmission will have this bitmask all set to 1, while OFDMA transmissions will have enabled only the RBG where the UE has to listen.
+For decoding any transmission, the UE relies on a bitmask (that is an output
+of the scheduler) sent through the DCI. The bitmask is of length equal to the
+number of RBGs, to indicate (with 1's) the RBGs assigned to the UE. This bitmask
+is translated into a vector of assigned RB indices at PHY. In NR, an RBG may
+encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending
+on the SCS and the operational band. a TDMA transmission will have this bitmask
+all set to 1, while OFDMA transmissions will have enabled only the RBG where the
+UE has to listen.
 
-An implementation detail that differentiates the 'NR' module from the 'mmWave' module, among the others, is that the scheduler has to know the beam assigned by the physical layer to each UE. Two parameters, azimuth and elevation, characterize the beam, and it is only valid for the beam search beamforming method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook).
+An implementation detail that differentiates the 'NR' module from the 'mmWave'
+module, among the others, is that the scheduler has to know the beam assigned
+by the physical layer to each UE. Two parameters, azimuth and elevation,
+characterize the beam in case of CellScanBeamforming. This is only valid for
+the beam search beamforming
+method (i.e., for each UE, the transmission/reception beams are selected from
+a set of beams or codebook).
 
 
 Scheduler
@@ -646,24 +694,40 @@ Upon reception of the DL/UL DCI, the UE extracts the values of K0/K1/K2:
 
 BWP manager
 ===========
-Our implementation has a layer that acts as a 'router' of messages. Initially, it was depicted as a middle layer between the RLC and the MAC, but with time it got more functionalities. The purpose of this layer, called the bandwidth part manager, is twofold. On the first hand, as we have already seen, it is used to route the control messages to realize the FDD bandwidth part pairing. On the other hand, it is used to split or route traffic over different spectrum parts.
+Our implementation has a layer that acts as a 'router' of messages. Initially,
+it was depicted as a middle layer between the RLC and the MAC, but with time it
+got more functionalities. The purpose of this layer, called the bandwidth part
+manager, is twofold. On the first hand, as we have already seen, it is used to
+route the control messages to realize the FDD bandwidth part pairing. On the other
+hand, it is used to split or route traffic over different spectrum parts.
 
-For the FDD pairing functionality, the user has to enter the pairing configuration that applies to his/her scenario. The NetDevice will then ask the manager for the input/output bandwidth part to which the message should be routed. It is important to note that this feature virtually connects different physical layers.
+For the FDD pairing functionality, the user has to enter the pairing configuration
+that applies to his/her scenario. The NetDevice will then ask the manager for the
+input/output bandwidth part to which the message should be routed. It is important
+to note that this feature virtually connects different physical layers.
 
-For the flows routing among different spectrum, the layer intercepts the BSR from the RLC queues, and route them to the correct stack (MAC and PHY) that is attached to a particular spectrum region. The algorithmic part of the split is separated from the Bandwidth Part Manager. In other words, the algorithm is modularized to let the user write, change, and test different ways of performing the split. The only requirement is that such routing is done based on the QCI of the flow.
+For the flows routing among different spectrum, the layer intercepts the BSR from
+the RLC queues, and route them to the correct stack (MAC and PHY) that is attached
+to a particular spectrum region. The algorithmic part of the split is separated
+from the Bandwidth Part Manager. In other words, the algorithm is modularized to
+let the user write, change, and test different ways of performing the split.
+The only requirement is that such routing is done based on the QCI of the flow.
 
 
 Adaptive modulation and coding model
 ====================================
 MCS selection in NR is an implementation specific procedure.
-The 'NR' module supports 1) fixing the MCS to a predefined value, both for downlink and uplink
+The 'NR' module supports 1) fixing the MCS to a predefined value, both for
+downlink and uplink
 transmissions, separately, and 2) two different AMC models for link adaptation:
 
-* Error model-based: in which the MCS index is selected to meet a target transport BLER (e.g., of at most 0.1)
-* Shannon-based: which chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate
+* Error model-based: in which the MCS index is selected to meet a target transport
+BLER (e.g., of at most 0.1)
+* Shannon-based: which chooses the highest MCS that gives a spectral efficiency
+lower than the one provided by the Shannon rate
 
-In the Error model-based AMC, the PHY abstraction model described in PHY layer section is used
-for link adaptation, i.e.,
+In the Error model-based AMC, the PHY abstraction model described in PHY layer
+section is used for link adaptation, i.e.,
 to determine an MCS that satisfies the target transport BLER based
 on the actual channel conditions. In particular, for a given set of SINR values,
 a target transport BLER, an MCS table, and considering a transport block
@@ -689,7 +753,14 @@ and such index is then communicated to the gNB through a CQI index (quantized by
 
 Transport block model
 =====================
-The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
+The model of the MAC Transport Blocks (TBs) provided by the simulator is
+simplified with respect to the 3GPP specifications. In particular, a
+simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve
+the simulator’s equivalent of a TB, without the corresponding implementation
+complexity. The multiplexing of different logical channels to and from the RLC
+layer is performed using a dedicated packet tag (LteRadioBearerTag), which
+produces a functionality which is partially equivalent to that of the MAC
+headers specified by 3GPP.
 
 
 RLC layer
@@ -860,8 +931,8 @@ https://cttc-lena.gitlab.io/nr/cttc-3gpp-indoor-calibration_8cc.html
 
 cttc-error-model.cc
 ===================
-The program ``examples/cttc-error-model`` allows the user to test the end-to-end performance
-with the new NR PHY abstraction model for error modeling by using a fixed MCS.
+The program ``examples/cttc-error-model`` allows the user to test the end-to-end
+performance with the new NR PHY abstraction model for error modeling by using a fixed MCS.
 It allows the user to set the MCS, the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
 The complete details of the simulation script are provided in
@@ -871,7 +942,8 @@ cttc-error-model-comparison.cc
 ==============================
 The program ``examples/cttc-error-model-comparison`` allows the user to compare the Transport
 Block Size that is obtained for each MCS index under different error models (NR and LTE)
-and different MCS Tables. It allows the user to configure the MCS Table and the error model type.
+and different MCS Tables. It allows the user to configure the MCS Table and the
+error model type.
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-error-model-comparison_8cc.html
@@ -879,9 +951,9 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-comparison_8cc.html
 
 cttc-error-model-amc.cc
 =======================
-The program ``examples/cttc-error-model-amc`` allows the user to test the end-to-end performance
-with the new NR PHY abstraction model for error modeling by using adaptive modulation and
-coding (AMC).
+The program ``examples/cttc-error-model-amc`` allows the user to test the end-to-end
+performance with the new NR PHY abstraction model for error modeling by using
+adaptive modulation and coding (AMC).
 It allows the user to set the AMC approach (error model-based or Shannon-based),
 the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
@@ -891,34 +963,34 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
 
 cttc-3gpp-channel-example.cc
 ============================
-The program ``examples/cttc-3gpp-channel-example`` ... TBC [Biljana]
+The program ``examples/cttc-3gpp-channel-example`` ... TBC [B]
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
 
 cttc-simple-interference-example.cc
 ===================================
-The program ``examples/cttc-simple-interference-example`` ... TBC [Biljana]
+The program ``examples/cttc-simple-interference-example`` ... TBC [B]
 
 
 cttc-lte-ca-demo.cc
 ===================
-The program ``examples/cttc-lte-ca-demo`` ... TBC [Carlos]
+The program ``examples/cttc-lte-ca-demo`` ... TBC [C]
 
 
 cttc-nr-cc-bwp-demo.cc
 ======================
-The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC [Carlos]
+The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC [C]
 
 
 cttc-nr-demo.cc
 ===============
-The program ``examples/cttc-nr-demo`` ...  TBC [Nat]
+The program ``examples/cttc-nr-demo`` ...  TBC [N]
 
 
 cttc-nr-tdd-cc-bwp-demo.cc
 ==========================
-The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC [Kat]
+The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC [K]
 
 
 
@@ -968,19 +1040,27 @@ numerologies.
 Test of numerology FDM
 ======================
 To test the FDM of numerologies, we have implemented
-the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to operate with
-2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the
+the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
+operate with
+2 BWPs. The test checks if the achieved throughput of a flow over a specific
+BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
 
 
 Test for NR schedulers
 ======================
-To test the NR schedulers, we have implemented a system test called ``MmWaveSystemTestSchedulers`` whose purpose is to test that the
-NR schedulers provide a required amount of resources to all UEs, for both cases, the downlink and the uplink. The topology consists of a single gNB and
-variable number of UEs, which are distributed among variable number of beams. Test cases are designed in such a way that the offered rate for the flow
-of each UE is dimensioned in such a way that each of the schedulers under the selected topology shall provide at least the required service to each of the UEs.
-The system test suite for NR schedulers creates a various number of test cases that check different system configuration by choosing
-different number of UEs, number of beams, numerology, traffic direction (DL, UL, DL and UL), modes of scheduling (OFDMA and TDMA) and
+To test the NR schedulers, we have implemented a system test called
+``MmWaveSystemTestSchedulers`` whose purpose is to test that the
+NR schedulers provide a required amount of resources to all UEs, for both cases,
+the downlink and the uplink. The topology consists of a single gNB and
+variable number of UEs, which are distributed among variable number of beams.
+Test cases are designed in such a way that the offered rate for the flow
+of each UE is dimensioned in such a way that each of the schedulers under the
+selected topology shall provide at least the required service to each of the UEs.
+The system test suite for NR schedulers creates a various number of test cases
+that check different system configuration by choosing
+different number of UEs, number of beams, numerology, traffic direction (DL, UL,
+DL and UL), modes of scheduling (OFDMA and TDMA) and
 different scheduling algorithms (RR, PR, MR).
 
 
@@ -1000,20 +1080,21 @@ single gNB is transmitting.
 
 Test for error model
 ====================
-Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR PHY abstraction model.
+Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR
+PHY abstraction model.
 The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
-BLER values are properly obtained from the BLER-SINR look up tables for different block sizes, MCS
-Tables, BG types, and SINR values.
+BLER values are properly obtained from the BLER-SINR look up tables for different
+block sizes, MCS Tables, BG types, and SINR values.
 
 
 Test for channel model
 ======================
-Test case called ``NrTest3gppChannelTestCase`` validates the channel model.  TBC [Biljana]
+Test case called ``NrTest3gppChannelTestCase`` validates the channel model.  TBC [B]
 
 
 Test for antenna model
 ======================
-Test case called ... TBC [Biljana]
+Test case called ... TBC [B]
 
 
 Test for TDD patterns
@@ -1056,6 +1137,8 @@ Open issues and future work
 .. [TS38300] 3GPP TS 38.300, TSG RAN; NR; Overall description; Stage 2 (Release 16), v16.0.0, Dec. 2019
 
 .. [TS38214] 3GPP  TS  38.214, TSG  RAN;  NR;  Physical  layer  procedures  for  data (Release 16), v16.0.0, Dec. 2019.
+
+.. [TS38213] 3GPP  TS  38.213, TSG  RAN;  NR;  Physical  layer  procedures  for  control (Release 16), v16.0.0, Dec. 2019.
 
 .. [TS38212] 3GPP  TS  38.212, TSG  RAN;  NR;  Multiplexing  and  channel  coding (Release 16), v16.0.0, Dec. 2019.
 
