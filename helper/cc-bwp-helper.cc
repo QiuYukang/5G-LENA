@@ -158,7 +158,7 @@ CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition
   for (uint8_t i = 0; i < bwpNumber; ++i)
     {
       std::unique_ptr<BandwidthPartInfo> bwp (new BandwidthPartInfo ());
-      InitializeBwp (bwp, bwpBandwidth, lowerFreq, i, m_bandwidthPartCounter++);
+      InitializeBwp (bwp, bwpBandwidth, cc->m_lowerFrequency, i, m_bandwidthPartCounter++);
       bwp->m_scenario = scenario;
       bool ret = cc->AddBwp (std::move (bwp));
       NS_ASSERT (ret);
