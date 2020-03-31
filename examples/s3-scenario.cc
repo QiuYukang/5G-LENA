@@ -132,7 +132,7 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
 
   m_numerology = 0;
   m_centralFrequency = 2e9;
-  m_bandwidth = 20e6;
+  m_bandwidth = 60e6;
   if (scenario == "UMa")
     {
       m_txPower = 49;
@@ -152,7 +152,7 @@ RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
 
   m_numerology = numerology;
   m_centralFrequency = 2e9;
-  m_bandwidth = 20e6;
+  m_bandwidth = 60e6;
   if (scenario == "UMa")
     {
       m_txPower = 49;
@@ -204,10 +204,12 @@ main (int argc, char *argv[])
   std::string radioNetwork = "NR";  // LTE or NR
 
   // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSizeULL = 100;
-  uint32_t udpPacketSizeBe = 1252;
+  uint32_t udpPacketSizeULL = 400;
+  uint32_t udpPacketSizeBe = 400;
+  uint32_t udpPacketSizeVi = 400;
   uint32_t lambdaULL = 10000;
   uint32_t lambdaBe = 10000;
+  uint32_t lambdaVi = 10000;
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
@@ -225,6 +227,10 @@ main (int argc, char *argv[])
   // Where we will store the output files.
   std::string simTag = "default";
   std::string outputDir = "./";
+
+  // Error models
+  std::string errorModel = "ns3::NrEesmErrorModel";
+  uint32_t eesmTable = 1;
 
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -251,17 +257,23 @@ main (int argc, char *argv[])
   cmd.AddValue ("packetSizeBe",
                 "packet size in bytes to be used by best effort traffic",
                 udpPacketSizeBe);
+  cmd.AddValue ("packetSizeVi",
+                "packet size in bytes to be used by video traffic",
+                udpPacketSizeVi);
   cmd.AddValue ("lambdaUll",
                 "Number of UDP packets in one second for ultra low latency traffic",
                 lambdaULL);
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
+  cmd.AddValue ("lambdaVi",
+                "Number of UDP packets in one second for video traffic",
+                lambdaVi);
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
   cmd.AddValue ("numerologyBwp",
-                "The numerology to be used",
+                "The numerology to be used (NR only)",
                 numerologyBwp);
   cmd.AddValue ("pattern",
                 "The TDD pattern to use",
@@ -284,6 +296,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
+  cmd.AddValue("errorModelType",
+               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
+               errorModel);
+  cmd.AddValue("eesmTable",
+               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
+               eesmTable);
 
 
   // Parse the command line
@@ -331,6 +349,7 @@ main (int argc, char *argv[])
   uint16_t gNbNum = gridScenario.GetNumCells ();
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
+  const uint8_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
 
   /*
    * Create the radio network related parameters
@@ -339,14 +358,37 @@ main (int argc, char *argv[])
   if (radioNetwork == "LTE")
     {
       ranHelper.SetNetworkToLte (scenario);
+      errorModel = "ns3::NrLteMiErrorModel";
     }
   else if (radioNetwork == "NR")
     {
       ranHelper.SetNetworkToNr (scenario, numerologyBwp);
+      errorModel = "ns3::NrEesmErrorModel";
     }
   else
     {
       NS_ABORT_MSG ("Unrecognized radio network technology");
+    }
+
+  /*
+   * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
+   */
+  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
+  if (radioNetwork == "NR")
+    {
+      if (eesmTable == 1)
+        {
+          Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
+        }
+      else if (eesmTable == 2)
+        {
+          Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
+        }
+      else
+        {
+          NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
+        }
     }
 
   NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
@@ -355,12 +397,26 @@ main (int argc, char *argv[])
    * Create two different NodeContainer for the different traffic type.
    * In ueLowLat we will put the UEs that will receive low-latency traffic.
    */
-  NodeContainer ueLowLatContainer;
+  NodeContainer ueLowLatContainer, ueVoiceContainer, ueVideoContainer;
 
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
       Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (j);
-      ueLowLatContainer.Add (ue);
+      switch (j % ffr)
+      {
+        case 0:
+          ueLowLatContainer.Add (ue);
+          break;
+        case 1:
+          ueVoiceContainer.Add (ue);
+          break;
+        case 2:
+          ueVideoContainer.Add (ue);
+          break;
+        default:
+          NS_ABORT_MSG("ffr param cannot be larger than 3");
+          break;
+      }
     }
 
   /*
@@ -380,11 +436,11 @@ main (int argc, char *argv[])
   mmWaveHelper->SetEpcHelper (epcHelper);
 
   /*
-   * Spectrum division. We create two operational bands, each of them containing
-   * one component carrier, and each CC containing a single bandwidth part
+   * Spectrum division. We create one operational band containing three
+   * component carriers, and each CC containing a single bandwidth part
    * centered at the frequency specified by the input parameters.
    * Each spectrum part length is, as well, specified by the input parameters.
-   * Both operational bands will use the StreetCanyon channel modeling.
+   * The operational band will use StreetCanyon channel or UrbanMacro modeling.
    */
   BandwidthPartInfoPtrVector allBwps;
   CcBwpCreator ccBwpCreator;
@@ -392,7 +448,8 @@ main (int argc, char *argv[])
   // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
   centralFrequencyBand = ranHelper.GetCentralFrequency ();
   bandwidthBand = ranHelper.GetBandwidth ();
-  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
+  const uint8_t numCcPerBand = 1; // In this example, each cell will have one CC with one BWP
+  uint8_t numBwps = numCcPerBand * ffr;  // But, the number of created BWPs depends on FFR (3)
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
@@ -406,15 +463,15 @@ main (int argc, char *argv[])
     {
       NS_ABORT_MSG ("Unsupported scenario");
     }
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numCcPerBand, scene);
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numBwps, scene);
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
   /*
    * The configured spectrum division is:
-   * ------------Band1--------------
-   * ------------CC1----------------
-   * ------------BWP1---------------
+   * |----------------------------------Band1--------------------------------|
+   * |----------CC1----------|----------CC2----------|----------CC3----------|
+   * |----------BWP1---------|----------BWP2---------|----------BWP3---------|
    */
 
   /*
@@ -474,23 +531,28 @@ main (int argc, char *argv[])
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
   mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
   uint32_t bwpIdForLowLat = 0;
+  uint32_t bwpIdForConvVoice = 1;
+  uint32_t bwpIdForConvVideo = 2;
 
   // gNb routing between Bearer and bandwidth part
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForConvVoice));
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_OPERATOR", UintegerValue (bwpIdForConvVideo));
 
   // Ue routing between Bearer and bandwidth part
   mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForConvVoice));
+  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_OPERATOR", UintegerValue (bwpIdForConvVideo));
 
   /*
    * We miss many other parameters. By default, not configuring them is equivalent
@@ -511,6 +573,8 @@ main (int argc, char *argv[])
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, allBwps);
+  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, allBwps);
+  NetDeviceContainer ueVideoNetDev = mmWaveHelper->InstallUeDevice (ueVideoContainer, allBwps);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -554,6 +618,17 @@ main (int argc, char *argv[])
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
 
+  for (auto it = ueVoiceNetDev.Begin (); it != ueVoiceNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueVideoNetDev.Begin (); it != ueVideoNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
+
   // From here, it is standard NS3. In the future, we will create helpers
   // for this part as well.
 
@@ -582,6 +657,8 @@ main (int argc, char *argv[])
 
 
   Ipv4InterfaceContainer ueLowLatIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLowLatNetDev));
+  Ipv4InterfaceContainer ueVoiceIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVoiceNetDev));
+  Ipv4InterfaceContainer ueVideoIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVideoNetDev));
 
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
@@ -590,22 +667,30 @@ main (int argc, char *argv[])
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-  // attach UEs to the closest eNB
+  // attach UEs to its eNB
   mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueVideoNetDev, enbNetDev);
 
   /*
    * Traffic part. Install two kind of traffic: low-latency and voice, each
    * identified by a particular source port.
    */
   uint16_t dlPortLowLat = 1234;
+  uint16_t dlPortVoice = 1235;
+  uint16_t dlPortVideo = 1236;
 
   ApplicationContainer serverApps;
 
   // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
+  UdpServerHelper dlPacketSinkVoice (dlPortVoice);
+  UdpServerHelper dlPacketSinkVideo (dlPortVideo);
 
   // The server, that is the application which is listening, is installed in the UE
   serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
+  serverApps.Add (dlPacketSinkVoice.Install (ueVoiceContainer));
+  serverApps.Add (dlPacketSinkVideo.Install (ueVideoContainer));
 
   /*
    * Configure attributes for the different generators, using user-provided
@@ -629,6 +714,40 @@ main (int argc, char *argv[])
   dlpfLowLat.localPortEnd = dlPortLowLat;
   lowLatTft->Add (dlpfLowLat);
 
+  // Voice configuration and object creation:
+  UdpClientHelper dlClientVoice;
+  dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
+  dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
+  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+
+  // The bearer that will carry voice traffic
+  EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
+
+  // The filter for the voice traffic
+  Ptr<EpcTft> voiceTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVoice;
+  dlpfVoice.localPortStart = dlPortVoice;
+  dlpfVoice.localPortEnd = dlPortVoice;
+  voiceTft->Add (dlpfVoice);
+
+  // Video configuration and object creation:
+  UdpClientHelper dlClientVideo;
+  dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
+  dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
+  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+
+  // The bearer that will carry voice traffic
+  EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_OPERATOR);
+
+  // The filter for the voice traffic
+  Ptr<EpcTft> videoTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVideo;
+  dlpfVideo.localPortStart = dlPortVideo;
+  dlpfVideo.localPortEnd = dlPortVideo;
+  videoTft->Add (dlpfVideo);
+
   /*
    * Let's install the applications!
    */
@@ -651,8 +770,50 @@ main (int argc, char *argv[])
         {
           NS_ABORT_MSG ("UL not supported yet");
         }
-      // Activate a dedicated bearer for the traffic type (no needed when there is one BWP
-//      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+      // Activate a dedicated bearer for the traffic type
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+    }
+
+  for (uint32_t i = 0; i < ueVoiceContainer.GetN (); ++i)
+    {
+      Ptr<Node> ue = ueVoiceContainer.Get (i);
+      Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
+      Address ueAddress = ueVoiceIpIface.GetAddress (i);
+
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      if (direction == "DL")
+        {
+          dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientVoice.Install (remoteHost));
+        }
+      else
+        {
+          NS_ABORT_MSG ("UL not supported yet");
+        }
+      // Activate a dedicated bearer for the traffic type
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+    }
+
+  for (uint32_t i = 0; i < ueVideoContainer.GetN (); ++i)
+    {
+      Ptr<Node> ue = ueVideoContainer.Get (i);
+      Ptr<NetDevice> ueDevice = ueVideoNetDev.Get(i);
+      Address ueAddress = ueVideoIpIface.GetAddress (i);
+
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      if (direction == "DL")
+        {
+          dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientVideo.Install (remoteHost));
+        }
+      else
+        {
+          NS_ABORT_MSG ("UL not supported yet");
+        }
+      // Activate a dedicated bearer for the traffic type
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
     }
 
   // start UDP server and client apps
