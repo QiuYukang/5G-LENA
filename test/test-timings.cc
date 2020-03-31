@@ -50,8 +50,8 @@ static uint32_t packetSize = 21;
 
 static const std::unordered_map<MmWaveControlMessage::messageType, bool> messageLog =
 {
-  { MmWaveControlMessage::messageType::DCI,      false },
-  { MmWaveControlMessage::messageType::DCI_TDMA, false },
+  { MmWaveControlMessage::messageType::UL_DCI,      false },
+  { MmWaveControlMessage::messageType::DL_DCI, false },
   { MmWaveControlMessage::messageType::DL_CQI,   false },
   { MmWaveControlMessage::messageType::MIB,      false },
   { MmWaveControlMessage::messageType::SIB1,     false },
@@ -115,8 +115,8 @@ SendPacket (const Ptr<NetDevice> &device, const Address& addr)
 
 static const std::unordered_map <MmWaveControlMessage::messageType, std::string> TYPE_TO_STRING =
 {
-  { MmWaveControlMessage::messageType::DCI,      "DCI" },
-  { MmWaveControlMessage::messageType::DCI_TDMA, "DCI_TDMA" },
+  { MmWaveControlMessage::messageType::UL_DCI,   "UL_DCI" },
+  { MmWaveControlMessage::messageType::DL_DCI,   "DL_DCI" },
   { MmWaveControlMessage::messageType::DL_CQI,   "DL_CQI" },
   { MmWaveControlMessage::messageType::MIB,      "MIB" },
   { MmWaveControlMessage::messageType::SIB1,     "SIB1" },
@@ -137,14 +137,14 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
     {
       4, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
 
@@ -152,21 +152,21 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
     {
       2, {
            { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
            { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
            { MmWaveControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          },
     },
@@ -515,35 +515,35 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
     {
       4, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
     },
     {
       2, {
            { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } ,
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
            { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
            { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          },
     },
@@ -663,35 +663,35 @@ NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
     {
       4, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 4).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
            { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 3).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
     },
     {
       2, {
            { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 0, 2, 2).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
            { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 1, 0, 1).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
            { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize ()  },
-           { MmWaveControlMessage::DCI_TDMA, SfnSf (40, 2, 0, 0).Normalize () },
+           { MmWaveControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
            //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          }
     },

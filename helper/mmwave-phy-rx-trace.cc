@@ -218,9 +218,13 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
     {
       m_txedEnbPhyCtrlMsgsFile << "RAR";
     }
-  else if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_DCI)
     {
-      m_txedEnbPhyCtrlMsgsFile << "DCI_TDMA";
+      m_txedEnbPhyCtrlMsgsFile << "DL_DCI";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::UL_DCI)
+    {
+      m_txedEnbPhyCtrlMsgsFile << "UL_UCI";
     }
   else
     {
@@ -251,9 +255,13 @@ MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
           << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
           << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
-  if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
+  if (msg->GetMessageType () == MmWaveControlMessage::UL_DCI)
     {
-      m_rxedUePhyCtrlMsgsFile << "DCI_TDMA";
+      m_rxedUePhyCtrlMsgsFile << "UL_DCI";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_DCI)
+    {
+      m_rxedUePhyCtrlMsgsFile << "DL_DCI";
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::MIB)
     {

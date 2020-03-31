@@ -32,8 +32,8 @@ class MmWaveControlMessage : public SimpleRefCount<MmWaveControlMessage>
 public:
   enum messageType
   {
-    DCI,          //!< The resources allocation map from the BS to the attached UEs
-    DCI_TDMA,
+    UL_DCI,          //!< The resources allocation map from the BS to the attached UEs
+    DL_DCI,
     DL_CQI,
     MIB,          //!< Master Information Block
     SIB1,         //!< System Information Block Type 1
@@ -102,32 +102,24 @@ private:
   uint16_t m_rnti {0}; //!< RNTI
 };
 
-/************************************************************
- * Defines the time and frequency based resource allocation *
- * for the UEs attached to a given BS.                      *
- ************************************************************/
-
-class MmWaveTdmaDciMessage : public MmWaveControlMessage
+class MmWaveDlDciMessage : public MmWaveControlMessage
 {
 public:
-  MmWaveTdmaDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci);
-  virtual ~MmWaveTdmaDciMessage (void);
-
-//	void SetRbAllocationMap (SlotAllocInfo allocMap);
-//	SlotAllocInfo GetRbAllocationMap (void);
+  MmWaveDlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci);
+  virtual ~MmWaveDlDciMessage (void);
 
   std::shared_ptr<DciInfoElementTdma> GetDciInfoElement (void);
 
   /**
-   * \brief Set the delay (in slots) between DL/UL DCI
+   * \brief Set the delay (in slots) between DL DCI
    * reception and subframe to which it applies for
-   * reception/transmission of Data (k0/k2)
+   * reception/transmission of Data (k0)
    */
   void SetKDelay (uint32_t delay);
   /**
-   * \brief Get the delay (in slots) between DL/UL DCI
+   * \brief Get the delay (in slots) between DCI
    * reception and subframe to which it applies for
-   * reception/transmission of Data (k0/k2)
+   * reception/transmission of Data (k0)
    * \return k delay
    */
   uint32_t GetKDelay (void) const;
@@ -152,8 +144,34 @@ public:
 private:
   uint32_t m_k;         //!< delay (in slots) between DL/UL DCI reception and subframe to which it applies for reception/transmission of Data (k0/k2)
   uint32_t m_k1;        //!< delay (in slots) between DL Data reception and subframe to which it applies for Harq feedback (k1)
-  //bool	m_ulGrant;	// is ul grant
-//	SlotAllocInfo m_rscAllocationMap;
+  std::shared_ptr<DciInfoElementTdma> m_dciInfoElement;
+};
+
+class MmWaveUlDciMessage : public MmWaveControlMessage
+{
+public:
+  MmWaveUlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci);
+  virtual ~MmWaveUlDciMessage (void);
+
+  std::shared_ptr<DciInfoElementTdma> GetDciInfoElement (void);
+
+  /**
+   * \brief Set the delay (in slots) between UCI
+   * reception and subframe to which it applies for
+   * reception/transmission of Data (k2)
+   */
+  void SetKDelay (uint32_t delay);
+  /**
+   * \brief Get the delay (in slots) between UCI
+   * reception and subframe to which it applies for
+   * reception/transmission of Data (k2)
+   * \return k delay
+   */
+  uint32_t GetKDelay (void) const;
+
+
+private:
+  uint32_t m_k;         //!< delay (in slots) between UCI reception and subframe to which it applies for reception/transmission of Data (k2)
   std::shared_ptr<DciInfoElementTdma> m_dciInfoElement;
 };
 

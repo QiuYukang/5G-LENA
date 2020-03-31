@@ -35,6 +35,7 @@ class MmWavePhySapProvider;
 class MmWaveControlMessage;
 class UniformRandomVariable;
 class PacketBurst;
+class MmWaveUlDciMessage;
 
 /**
  * \ingroup ue
@@ -207,6 +208,9 @@ private:
 
   std::map<uint32_t, struct MacPduInfo>::iterator AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci,
                                                                   unsigned activeLcs, const SfnSf &ulSfn);
+
+private:
+  void ProcessUlDci (const Ptr<MmWaveUlDciMessage> &dciMsg);
 
 private:
 

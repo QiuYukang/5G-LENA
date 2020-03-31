@@ -185,9 +185,13 @@ MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
           << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
           << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
-  if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
+  if (msg->GetMessageType () == MmWaveControlMessage::UL_DCI)
     {
-      m_rxedUeMacCtrlMsgsFile << "DCI_TDMA";
+      m_rxedUeMacCtrlMsgsFile << "UL_DCI";
+    }
+  else if (msg->GetMessageType () == MmWaveControlMessage::DL_DCI)
+    {
+      m_rxedUeMacCtrlMsgsFile << "DL_DCI";
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
     {

@@ -864,13 +864,27 @@ MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
           NS_LOG_INFO ("Send DCI to " << dciElem->m_rnti << " from sym " <<
                          +dciElem->m_symStart << " to " << +dciElem->m_symStart + dciElem->m_numSym);
 
-          Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
+          Ptr<MmWaveControlMessage> msg;
 
-          dciMsg->SetSourceBwp (GetBwpId ());
-          dciMsg->SetKDelay (kDelay);
-          dciMsg->SetK1Delay (k1Delay);  //Set for both DL/UL however used only in DL (in UL UE ignors it)
+          if (dciElem->m_format == DciInfoElementTdma::DL)
+            {
+              Ptr<MmWaveDlDciMessage> dciMsg = Create<MmWaveDlDciMessage> (dciElem);
 
-          ctrlMsgs.push_back (dciMsg);
+              dciMsg->SetSourceBwp (GetBwpId ());
+              dciMsg->SetKDelay (kDelay);
+              dciMsg->SetK1Delay (k1Delay);
+              msg = dciMsg;
+            }
+          else
+            {
+              Ptr<MmWaveUlDciMessage> dciMsg = Create<MmWaveUlDciMessage> (dciElem);
+
+              dciMsg->SetSourceBwp (GetBwpId ());
+              dciMsg->SetKDelay (kDelay);
+              msg = dciMsg;
+            }
+
+          ctrlMsgs.push_back (msg);
         }
     }
 
