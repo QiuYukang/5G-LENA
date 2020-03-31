@@ -262,17 +262,6 @@ public:
 
   void SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v);
 
-  /**
-   * \brief Set Spectrum Propagation Attribute
-   * \param n name of the attribute
-   * \param v value of the attribute
-   *
-   * As the spectrum model used is ThreeGppSpectrumPropagationLossModel, you
-   * can set only attributes of this class.
-   *
-   */
-  void SetSpectrumPropagationAttribute (const std::string &n, const AttributeValue &v);
-
   void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
 
 private:
