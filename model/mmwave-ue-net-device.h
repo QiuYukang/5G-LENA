@@ -51,7 +51,9 @@ public:
   void SetCsgId (uint32_t csgId);
 
 
-  virtual Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
+  Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
+
+  Ptr<MmWaveUeMac> GetMac (uint8_t index) const;
 
   Ptr<BwpManagerUe> GetBwpManager (void) const;
 

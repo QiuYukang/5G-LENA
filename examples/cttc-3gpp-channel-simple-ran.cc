@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2017 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -15,25 +15,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
  */
-
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/config-store.h"
-#include "ns3/mmwave-helper.h"
-#include <ns3/buildings-helper.h>
-#include "ns3/log.h"
-#include <ns3/buildings-module.h>
-#include "ns3/nr-point-to-point-epc-helper.h"
-#include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
-#include "ns3/internet-module.h"
-#include "ns3/eps-bearer-tag.h"
-
-using namespace ns3;
 
 /**
  * \ingroup examples
@@ -42,37 +24,33 @@ using namespace ns3;
  *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.900. This example consists of a simple topology of 1 UE and 1 gNb,
- * and only NR RAN part is simulated. A packet is created and directly sent to
- * gNb device by SendPacket function. Then several functions are connected to
- * PDCP and RLC traces and the delay is printed.
+ * and only NR RAN part is simulated. One Bandwidth part and one CC are defined.
+ * A packet is created and directly sent to gNb device by SendPacket function.
+ * Then several functions are connected to PDCP and RLC traces and the delay is
+ * printed.
  */
 
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/config-store.h"
+#include "ns3/mmwave-helper.h"
+#include "ns3/nr-module.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/internet-module.h"
+#include "ns3/eps-bearer-tag.h"
+#include "ns3/grid-scenario-helper.h"
+#include "ns3/log.h"
 
-/**
- * \brief Global variable used to configure the numerology. It is accessible as "--numerology" from CommandLine.
+using namespace ns3;
+
+/*
+ * Enable the logs of the file by enabling the component "Cttc3gppChannelSimpleRan",
+ * in this way:
+ * $ export NS_LOG="Cttc3gppChannelSimpleRan=level_info|prefix_func|prefix_time"
  */
-static ns3::GlobalValue g_numerology ("numerology",
-                                      "The default 3GPP NR numerology to be used",
-                                      ns3::UintegerValue (0),
-                                      ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global variable used to configure the bandwidth for packet size. This value is expressed in bytes. It is accessible as "--packetSize" from CommandLine.
- */
-
-static ns3::GlobalValue g_udpInterval ("packetSize",
-                                      "packet size in bytes",
-                                      ns3::UintegerValue (1000),
-                                      ns3::MakeUintegerChecker<uint32_t>());
-
-/**
- * \brief Global boolean variable used to configure whether the UE performs the uplink traffic. It is accessible as "--isUplink" from CommandLine.
- */
-static ns3::GlobalValue g_isUplink ("isUplink",
-                                 "whether to perform uplink",
-                                 ns3::BooleanValue (false),
-                                 ns3::MakeBooleanChecker());
-
+NS_LOG_COMPONENT_DEFINE ("Cttc3gppChannelSimpleRan");
 
 static bool g_rxPdcpCallbackCalled = false;
 static bool g_rxRxRlcPDUCallbackCalled = false;
@@ -82,13 +60,10 @@ static bool g_rxRxRlcPDUCallbackCalled = false;
  * of a device to send the packet to the destination address.
  * @param device Device that will send the packet to the destination address.
  * @param addr Destination address for a packet.
+ * @param packetSize The packet size.
  */
-static void SendPacket (Ptr<NetDevice> device, Address& addr)
+static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
 {
-  UintegerValue uintegerValue;
-  GlobalValue::GetValueByName("packetSize", uintegerValue); // use optional NLOS equation
-  uint16_t packetSize = uintegerValue.Get();
-
   Ptr<Packet> pkt = Create<Packet> (packetSize);
   Ipv4Header ipv4Header;
   ipv4Header.SetProtocol(UdpL4Protocol::PROT_NUMBER);
@@ -141,10 +116,10 @@ RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_
 void
 ConnectPdcpRlcTraces ()
 {
-  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
                       MakeCallback (&RxPdcpPDU));
 
-  Config::Connect ("/NodeList/3/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
                       MakeCallback (&RxRlcPDU));
 }
 
@@ -154,96 +129,153 @@ ConnectPdcpRlcTraces ()
 void
 ConnectUlPdcpRlcTraces ()
 {
-  Config::Connect ("/NodeList/3/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LtePdcp/RxPDU",
                       MakeCallback (&RxPdcpPDU));
 
-  Config::Connect ("/NodeList/3/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LteRlc/RxPDU",
                       MakeCallback (&RxRlcPDU));
 }
 
-int 
+
+int
 main (int argc, char *argv[])
 {
+    uint16_t numerologyBwp1 = 0;
+    uint32_t udpPacketSize = 1000;
+    double centralFrequencyBand1 = 28e9;
+    double bandwidthBand1 = 400e6;
+    uint16_t gNbNum = 1;
+    uint16_t ueNumPergNb = 1;
+    bool enableUl = false;
 
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
-  ConfigStore inputConfig;
-  inputConfig.ConfigureDefaults ();
-  // parse again so you can override input file default values via command line
-  cmd.Parse (argc, argv);
-  Time sendPacketTime = Seconds(0.4);
+    Time sendPacketTime = Seconds(0.4);
 
-  UintegerValue uintegerValue;
-  GlobalValue::GetValueByName("numerology", uintegerValue); // numerology to use
-  uint16_t numerology = uintegerValue.Get();
+    CommandLine cmd;
+    cmd.AddValue ("numerologyBwp1",
+                  "The numerology to be used in bandwidth part 1",
+                  numerologyBwp1);
+    cmd.AddValue ("centralFrequencyBand1",
+                  "The system frequency to be used in band 1",
+                  centralFrequencyBand1);
+    cmd.AddValue ("bandwidthBand1",
+                  "The system bandwidth to be used in band 1",
+                  bandwidthBand1);
+    cmd.AddValue ("packetSize",
+                  "packet size in bytes",
+                   udpPacketSize);
+    cmd.AddValue ("enableUl",
+                  "Enable Uplink",
+                  enableUl);
+    cmd.Parse (argc, argv);
 
-  BooleanValue boolValue;
-  GlobalValue::GetValueByName("isUplink", boolValue); // use uplink
-  bool uplink = boolValue.Get();
+    //Create the scenario
+    GridScenarioHelper gridScenario;
+    gridScenario.SetRows (1);
+    gridScenario.SetColumns (gNbNum);
+    gridScenario.SetHorizontalBsDistance (5.0);
+    gridScenario.SetBsHeight (10.0);
+    gridScenario.SetUtHeight (1.5);
+    gridScenario.SetBsNumber (gNbNum);
+    gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
+    gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
+    gridScenario.SetScenarioLength (3); // be distribuited.
+    gridScenario.CreateScenario ();
 
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(28e9));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(400e6));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(numerology));
-  Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("UMi-StreetCanyon"));
 
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue (true));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (28));
+    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+    Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+    Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
+    mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    mmWaveHelper->SetEpcHelper (epcHelper);
 
-  Ptr<Node> ueNode = CreateObject<Node> ();
-  Ptr<Node> gNbNode = CreateObject<Node> ();
+    // Create one operational band containing one CC with one bandwidth part
+    BandwidthPartInfoPtrVector allBwps;
+    CcBwpCreator ccBwpCreator;
+    const uint8_t numCcPerBand = 1;
 
-  MobilityHelper mobility;
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (gNbNode);
-  mobility.Install (ueNode);
-  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
+    // Create the configuration for the CcBwpHelper
+    CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
+    // By using the configuration created, it is time to make the operation band
+    OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
-  InternetStackHelper internet;
-  internet.Install (ueNode);
-  Ipv4InterfaceContainer ueIpIface;
-  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+    Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+    mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue (true));
+    mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue(28));
+    mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+    mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
-  if (uplink)
-    Simulator::Schedule (sendPacketTime, &SendPacket, ueNetDev.Get(0), enbNetDev.Get(0)->GetAddress());
-  else
-    Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress());
+    mmWaveHelper->InitializeOperationBand (&band1);
+    allBwps = CcBwpCreator::GetAllBwps ({band1});
 
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+    // Beamforming method
+    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
-  if (uplink)
-    {
-      std::cout<<"\n Sending data in uplink."<<std::endl;
-      Simulator::Schedule(Seconds(0.2), &ConnectUlPdcpRlcTraces);
-    }
-  else
-    {
-      std::cout<<"\n Sending data in downlink."<<std::endl;
-      Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
-    }
+    // Antennas for all the UEs
+    mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+    mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+    mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
-  mmWaveHelper->EnableTraces();
+    // Antennas for all the gNbs
+    mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+    mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+    mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
-  Simulator::Stop (Seconds (1));
-  Simulator::Run ();
-  Simulator::Destroy ();
+    //Install and get the pointers to the NetDevices
+    NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+    NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
 
-  if (g_rxPdcpCallbackCalled && g_rxRxRlcPDUCallbackCalled)
-    {
-      return EXIT_SUCCESS;
-    }
-  else
-    {
-      return EXIT_FAILURE;
-    }
+    // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)
+    mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
+
+    for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+      {
+        DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      }
+
+    for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+      {
+        DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      }
+
+    InternetStackHelper internet;
+    internet.Install (gridScenario.GetUserTerminals ());
+    Ipv4InterfaceContainer ueIpIface;
+    ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+
+    if (enableUl)
+      Simulator::Schedule (sendPacketTime, &SendPacket, ueNetDev.Get(0), enbNetDev.Get(0)->GetAddress(), udpPacketSize);
+    else
+      Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress(), udpPacketSize);
+
+    // attach UEs to the closest eNB
+    mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+
+    if (enableUl)
+      {
+        std::cout<<"\n Sending data in uplink."<<std::endl;
+        Simulator::Schedule(Seconds(0.2), &ConnectUlPdcpRlcTraces);
+      }
+    else
+      {
+        std::cout<<"\n Sending data in downlink."<<std::endl;
+        Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
+      }
+
+    mmWaveHelper->EnableTraces();
+
+    Simulator::Stop (Seconds (1));
+    Simulator::Run ();
+    Simulator::Destroy ();
+
+    if (g_rxPdcpCallbackCalled && g_rxRxRlcPDUCallbackCalled)
+      {
+        return EXIT_SUCCESS;
+      }
+    else
+      {
+        return EXIT_FAILURE;
+      }
+
 }
-
-

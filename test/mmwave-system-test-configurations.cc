@@ -1,23 +1,21 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2017 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *  
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
  *   published by the Free Software Foundation;
- *  
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *  
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *  
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
+ *
  */
-
 
 // Include a header file from your module to test.
 #include "ns3/mmwave-helper.h"
@@ -68,7 +66,6 @@ MmwaveSystemTestConfigurationsTestCase1::MmwaveSystemTestConfigurationsTestCase1
                                                                                   std::string scheduler)
 : TestCase (name)
 {
-
   m_numerology = numerology;
   m_scheduler = scheduler;
 }
@@ -80,44 +77,10 @@ MmwaveSystemTestConfigurationsTestCase1::~MmwaveSystemTestConfigurationsTestCase
 
 void
 MmwaveSystemTestConfigurationsTestCase1::DoRun (void)
-{
-
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("a"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::OptionalNlos", BooleanValue(false));
-  // important to set frequency into the 3gpp model
-  Config::SetDefault ("ns3::AntennaArrayModel::AntennaHorizontalSpacing", DoubleValue(0.5));
-  Config::SetDefault ("ns3::AntennaArrayModel::AntennaVerticalSpacing", DoubleValue(0.5));
-  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(100))); // interval after which the channel for a moving user is updated,
-  // with spatial consistency procedure. If 0, spatial consistency is not used
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue(false)); // Set true to use cell scanning method, false to use the default power method.
-  Config::SetDefault ("ns3::MmWave3gppChannel::Blockage", BooleanValue(true)); // use blockage or not
-  Config::SetDefault ("ns3::MmWave3gppChannel::PortraitMode", BooleanValue(true)); // use blockage model with UT in portrait mode
-  Config::SetDefault ("ns3::MmWave3gppChannel::NumNonselfBlocking", IntegerValue(4)); // number of non-self blocking obstacles
-  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
-
-  // default 28e9
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(28e9)); // check MmWavePhyMacCommon for other PHY layer parameters
-
-  // changing parameters in frequency domain
-  Config::SetDefault("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(m_numerology));// set numerology, and set full frame structure just with this single parameter
-  Config::SetDefault("ns3::MmWavePhyMacCommon::Scheduler", TypeIdValue (TypeId::LookupByName(m_scheduler)));
-
+{  
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
-  double hBS; //base station antenna height in meters;
-  double hUT; //user antenna height in meters;
-
-  hBS = 35;
-  hUT = 1.5;
-
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
-  mmWaveHelper->Initialize();
+  double hBS = 35.0; //base station antenna height in meters;
+  double hUT = 1.5; //user antenna height in meters;
 
   // create base stations and mobile terminals
   NodeContainer enbNode;
@@ -141,9 +104,42 @@ MmwaveSystemTestConfigurationsTestCase1::DoRun (void)
 
   ueNode.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10, hUT));
 
+
+
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+
+  // Put the pointers inside mmWaveHelper
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  mmWaveHelper->SetEpcHelper (epcHelper);
+
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
+
+  // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
+  // a single BWP per CC
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+
+  // By using the configuration created, it is time to make the operation bands
+  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
+  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (100)));
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  mmWaveHelper->InitializeOperationBand (&band1);
+
+  allBwps = CcBwpCreator::GetAllBwps ({band1});
+
+  mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (m_numerology));
+  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName (m_scheduler));
+
+
   // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (enbNode);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (enbNode, allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode, allBwps);
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost

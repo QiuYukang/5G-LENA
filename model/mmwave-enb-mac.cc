@@ -544,6 +544,13 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
     m_dlCqiReceived.erase (m_dlCqiReceived.begin (), m_dlCqiReceived.end ());
 
     m_macSchedSapProvider->SchedDlCqiInfoReq (dlCqiInfoReq);
+
+    for (const auto & v : dlCqiInfoReq.m_cqiList)
+      {
+        Ptr<MmWaveDlCqiMessage> msg = Create<MmWaveDlCqiMessage> ();
+        msg->SetDlCqi (v);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, v.m_rnti, GetBwpId (), msg);
+      }
   }
 
   if (!m_receivedRachPreambleCount.empty ())
@@ -581,6 +588,13 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
       // empty local buffer
       m_dlHarqInfoReceived.clear ();
+
+      for (const auto & v : dlParams.m_dlHarqInfoList)
+        {
+          Ptr<MmWaveDlHarqFeedbackMessage> msg = Create <MmWaveDlHarqFeedbackMessage> ();
+          msg->SetDlHarqFeedback (v);
+          m_macRxedCtrlMsgsTrace (m_currentSlot, v.m_rnti, GetBwpId (), msg);
+        }
     }
 
   {
@@ -620,6 +634,13 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
     m_srRntiList.clear();
 
     m_macSchedSapProvider->SchedUlSrInfoReq (params);
+
+    for (const auto & v : params.m_srList)
+      {
+        Ptr<MmWaveSRMessage> msg =  Create<MmWaveSRMessage> ();
+        msg->SetRNTI (v);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, v, GetBwpId (), msg);
+      }
   }
 
   // Send UL BSR reports to the scheduler
@@ -630,6 +651,13 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       ulMacReq.m_macCeList.insert (ulMacReq.m_macCeList.begin (), m_ulCeReceived.begin (), m_ulCeReceived.end ());
       m_ulCeReceived.erase (m_ulCeReceived.begin (), m_ulCeReceived.end ());
       m_macSchedSapProvider->SchedUlMacCtrlInfoReq (ulMacReq);
+
+      for (const auto & v : ulMacReq.m_macCeList)
+        {
+          Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
+          msg->SetBsr (v);
+          m_macRxedCtrlMsgsTrace (m_currentSlot, v.m_rnti, GetBwpId (), msg);
+        }
     }
 
   MmWaveMacSchedSapProvider::SchedUlTriggerReqParameters ulParams;
@@ -726,7 +754,7 @@ MmWaveEnbMac::DoReportMacCeToScheduler (MacCeListElement_s bsr)
 }
 
 void
-MmWaveEnbMac::DoReportSrToScheduler(uint16_t rnti)
+MmWaveEnbMac::DoReportSrToScheduler (uint16_t rnti)
 {
   NS_LOG_FUNCTION (this);
   m_srRntiList.push_back (rnti);
@@ -844,7 +872,6 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         // Report it to the CCM. Then he will call the right MAC
         Ptr<MmWaveSRMessage> sr = DynamicCast<MmWaveSRMessage> (msg);
         m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), GetBwpId ());
-        m_macRxedCtrlMsgsTrace (m_currentSlot, sr->GetRNTI (), GetBwpId (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_CQI):
@@ -853,21 +880,18 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         DlCqiInfo cqiElement = cqi->GetDlCqi ();
         NS_ASSERT (cqiElement.m_rnti != 0);
         m_dlCqiReceived.push_back (cqiElement);
-        m_macRxedCtrlMsgsTrace (m_currentSlot, cqiElement.m_rnti, GetBwpId (), msg);
         break;
       }
     case (MmWaveControlMessage::BSR):
       {
         Ptr<MmWaveBsrMessage> bsr = DynamicCast<MmWaveBsrMessage> (msg);
         ReceiveBsrMessage (bsr->GetBsr ());
-        m_macRxedCtrlMsgsTrace (m_currentSlot, bsr->GetBsr().m_rnti, GetBwpId (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_HARQ):
       {
         Ptr<MmWaveDlHarqFeedbackMessage> dlharq = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
         DoDlHarqFeedback (dlharq->GetDlHarqFeedback ());
-        m_macRxedCtrlMsgsTrace (m_currentSlot, dlharq->GetDlHarqFeedback().m_rnti, GetBwpId (), msg);
         break;
       }
     default:

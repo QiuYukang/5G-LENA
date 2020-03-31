@@ -176,6 +176,13 @@ MmWaveUeNetDevice::SetCsgId (uint32_t csgId)
   UpdateConfig (); // propagate the change down to NAS and RRC
 }
 
+Ptr<MmWaveUeMac>
+MmWaveUeNetDevice::GetMac(uint8_t index) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ccMap.at (index)->GetMac ();
+}
+
 void
 MmWaveUeNetDevice::UpdateConfig (void)
 {

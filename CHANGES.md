@@ -113,7 +113,7 @@ reconfigure the attribute at gNb MAC.
 * Removed MacSchedType attribute from PhyMacConfig.
 
 * Removed method GetNumScsPerRb() from PhyMacConfig, replaced by a static
-function in MmWavePhy.
+const in mmwave-phy-mac-confg.h.
 
 * Removed Bandwidth, Numerology, SymbolsPerSlot attribute from MmWavePhyMacCommon.
 Moved to EnbPhy, while the UE get these values from RRC or from direct call by the
@@ -154,7 +154,7 @@ and direct path. User can configure ideal beamforming method by using
 attribute of IdealBeamformingHelper which is in charge of creating 
 the corresponding beamforming algorithm and calling it with configured 
 periodicity to generate beamforming vectors for pairs of gNBs and UEs. 
-BeamManager class is then resposnible to cache beamforming vectors for 
+BeamManager class is then responsible to cache beamforming vectors for 
 antenna. For example, at gNB BeamManager for each connected UE device 
 there will be cached the beamforming vector that will be used for  
 communication with that UE. In the same way, the BeamManager at UE 
@@ -180,6 +180,7 @@ calculates k0, k1, k2
 * Starting with this release the default behaviour will be to calculate interference 
 for all the links, and will not be any more possible to exclude UE->UE and GNB->GNB 
 interference calculations (Removed attribute EnableAllInterference from MmWaveSpectrumPhy).
+* RACH Preamble is sent without applying any delay (i.e. L1l2CtrlLatency)
 
 
 ---
@@ -320,7 +321,7 @@ to send to the UEs.
 * The control message timings are implemented in such a way that the delay can
 be adjusted in a flexible manner. In particular, when a control message is passed
 from PHY to MAC or from MAC to PHY, the user can adjust the delay according to each
-release specifications. As default we apply a delay of 1 ms, exept of some cases
+release specifications. As default we apply a delay of 1 ms, except of some cases
 (e.g. RAR msg), where the delay is set to 2 ms.
 
 ---

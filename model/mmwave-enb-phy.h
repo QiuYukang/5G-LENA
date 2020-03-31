@@ -19,7 +19,6 @@
 #define MMWAVE_ENB_PHY_H
 
 #include "mmwave-phy.h"
-#include "mmwave-phy-mac-common.h"
 #include "mmwave-control-messages.h"
 #include <ns3/lte-enb-phy-sap.h>
 #include <ns3/lte-enb-cphy-sap.h>
@@ -37,12 +36,58 @@ class NrChAccessManager;
 class BeamManager;
 
 /**
- * \brief The GNB PHY class
  *
- * To initialize it, you must call also SetSpectrumPhy and StartEventLoop.
+ * \ingroup gnb-phy
+ *
+ * \brief The gNb physical layer
+ *
+ * This class represent the gNb physical layer, and is the main class for
+ * what regards the gNb. It has different features, that spans from the
+ * spectrum transmission (delegated to the MmWaveSpectrumPhy class), the
+ * slot timings and settings (including numerology, pattern...), and the
+ * channel access in unlicensed spectrum.
+ *
+ * <b>Spectrum transmission</b>
+ *
+ * The PHY has a pointer to MmWaveSpectrumPhy class, which is the entry point
+ * in the spectrum transmission domain, and the connection point with the channel.
+ * The PHY has an attribute, TxPower, that is responsible of the transmission
+ * power of the node. The selection of the RB where that power is set is done
+ * by the MAC during the scheduling phase, generating a DCI that will be used
+ * as a reference.
+ *
+ * The transmission of control message is fictitious; the scheduler will reserve
+ * symbols in which the transmission will be done, but the list of the messages
+ * will be passed to the UE without any interference or error model applied.
+ *
+ * <b> Slot Timings, and event processing</b>
+ *
+ * The node works as a state-machine where all the processing is done at the
+ * beginning of the slot boundary. The slot duration is dictated by the
+ * selected numerology and the number of symbols per slot. At the beginning
+ * of the slot (StartSlot()) the PHY will check the channel status, and (if
+ * applicable) will call the MAC for its processing, through the SAP interface.
+ * The MAC will pass the allocations that it has generated, and the PHY will
+ * transmit on the air the allocations that are planned for this slot.
+ *
+ * We model the processing times of the layer through a parameter called
+ * L1L2CtrlLatency. This latency, set to 2, indicates that a DL allocation done by
+ * MAC will require two slot before going in the air. For this reason, MAC always
+ * work "in the future".
+ *
+ * <b>Unlicensed access</b>
+ *
+ * The PHY is prepared to postpone its processing if the channel access manager
+ * (an interface specified in the NrChAccessManager class) indicates that
+ * the channel is busy, hence not available for the transmission.
+ *
+ * The initialization of the class in done through MmWaveHelper; the user
+ * can interact with it through the various attribute that are present, trying
+ * to avoid using direct function calls.
  *
  * \see SetSpectrumPhy
  * \see StartEventLoop
+ * \see StartSlot
  */
 class MmWaveEnbPhy : public MmWavePhy
 {
@@ -225,8 +270,25 @@ public:
    */
   void ReportUlHarqFeedback (const UlHarqInfo &mes);
 
+  /**
+   * \brief Set the pattern that the gnb will utilize.
+   *
+   * \param pattern A string containing slot types separated by the character '|'.
+   *
+   * For example, a valid pattern would be "DL|DL|UL|UL|DL|DL|UL|UL|". The slot
+   * types allowed are:
+   *
+   * - "DL" for downlink only
+   * - "UL" for uplink only
+   * - "F" for flexible (dl and ul)
+   * - "S" for special slot (LTE-compatibility)
+   */
   void SetPattern (const std::string &pattern);
 
+  /**
+   * \brief Retrieve the currently installed pattern
+   * \return the installed pattern
+   */
   std::string GetPattern() const;
 
   /**
@@ -271,7 +333,18 @@ public:
   typedef void (* TxedEnbPhyCtrlMsgsTracedCallback)
       (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
+  /**
+   * \brief Retrieve the number of RB per RBG
+   * \return the number of RB per RBG
+   *
+   * The method will ask the MAC for the value. Don't store it as it may change.
+   */
   uint32_t GetNumRbPerRbg () const override;
+
+  /**
+   * \brief Retrieve the channel bandwidth, in Hz
+   * \return the channel bandwidth in Hz
+   */
   uint32_t GetChannelBandwidth () const override;
 
 private:
@@ -283,17 +356,83 @@ private:
    */
   void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
 
+  /**
+   * \brief Start the slot processing.
+   * \param startSlot slot number
+   *
+   * The method will look at the channel status, and if applicable, will start
+   * the MAC processing. If the channel is available, it will start the real
+   * slot processing in the method DoStartSlot().
+   *
+   * \see DoStartSlot
+   */
   void StartSlot (const SfnSf &startSlot);
+
+  /**
+   * \brief End the slot processing
+   *
+   * It will close the slot processing, calling then StartSlot for the next
+   * slot that is coming.
+   *
+   * \see StartSlot
+   */
   void EndSlot (void);
 
+  /**
+   * \brief Start the processing of a variable TTI
+   * \param dci the DCI of the variable TTI
+   *
+   * This time can be a DL CTRL, a DL data, a UL data, or UL CTRL, with
+   * any number of symbols (limited to the number of symbols per slot).
+   *
+   * At the end of processing, schedule the method EndVarTtti that will finish
+   * the processing of the variable tti allocation.
+   *
+   * \see DlCtrl
+   * \see UlCtrl
+   * \see DlData
+   * \see UlData
+   */
   void StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+
+  /**
+   * \brief End the processing of a variable tti
+   * \param lastDci the DCI of the variable TTI that has just passed
+   *
+   * The end of the variable tti indicates that the allocation has been
+   * transmitted/received. Depending on the variable tti left, the method
+   * will schedule another var tti (StartVarTti()) or will wait until the
+   * end of the slot (EndSlot()).
+   *
+   * \see StartVarTti
+   * \see EndSlot
+   */
   void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &lastDci);
 
+  /**
+   * \brief Transmit to the spectrum phy the data stored in pb
+   *
+   * \param pb Data to transmit
+   * \param varTtiPeriod period of transmission
+   * \param dci DCI of the transmission
+   */
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
                          const std::shared_ptr<DciInfoElementTdma> &dci);
 
+  /**
+   * \brief Transmit the control channel
+   *
+   * \param varTtiPeriod the period of transmission
+   *
+   * Call the MmWaveSpectrumPhy class, indicating the control message to transmit.
+   */
   void SendCtrlChannels (const Time &varTtiPeriod);
 
+  /**
+   * \brief Create a list of messages that contains the DCI to send in the slot specified
+   * \param sfn Slot from which take all the DCI
+   * \return a list of DCI
+   */
   std::list <Ptr<MmWaveControlMessage>> RetrieveMsgsFromDCIs (const SfnSf &sfn) __attribute__((warn_unused_result));
 
   /**
@@ -312,12 +451,19 @@ private:
    * \brief Transmit DL CTRL and return the time at which the transmission will end
    * \param dci the current DCI
    * \return the time at which the transmission of DL CTRL will end
+   *
+   * The method will get the messages to transmit, and call SendCtrlChannels.
+   *
+   * \see SendCtrlChannels
    */
   Time DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
   /**
    * \brief Receive UL CTRL and return the time at which the transmission will end
    * \param dci the current DCI
    * \return the time at which the reception of UL CTRL will end
+   *
+   * The method will put the PHY in the listening mode, to get any control message
+   * sent by the UEs.
    */
   Time UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
@@ -325,6 +471,10 @@ private:
    * \brief Transmit DL data and return the time at which the transmission will end
    * \param varTtiInfo the current varTti
    * \return the time at which the transmission of DL data will end
+   *
+   * The method will get the data to transmit, and call SendDataChannels.
+   *
+   * \see SendDataChannels
    */
   Time DlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
@@ -332,20 +482,31 @@ private:
    * \brief Receive UL data and return the time at which the transmission will end
    * \param dci the current DCI
    * \return the time at which the reception of UL data will end
+   *
+   * The method will put the PHY in listening mode, to get any data sent by
+   * the UEs.
    */
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
    * \brief Queue a MIB message, to be sent (hopefully) in this slot
+   *
+   * Only "primary" PHY will send the message.
    */
   void QueueMib ();
   /**
    * \brief Queue a SIB message, to be sent (hopefully) in this slot
+   *
+   * Only "primary" PHY will send the message.
    */
   void QueueSib ();
 
   /**
    * \brief Effectively start the slot, as we have the channel.
+   *
+   * For each variable TTI, schedule a call to StartVarTti.
+   *
+   * \see StartVarTti.
    */
   void DoStartSlot ();
 
@@ -429,6 +590,12 @@ private:
    */
   void PushUlAllocation (const SfnSf &sfnSf) const;
 
+  /**
+   * \brief Start the processing event loop
+   * \param frame Frame number
+   * \param subframe Subframe number
+   * \param slot Slot number
+   */
   void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
 
 private:
@@ -475,8 +642,8 @@ private:
   {
     NONE,        //!< The PHY doesn't know the channel status
     REQUESTED,   //!< The PHY requested channel access
-    GRANTED,      //!< The PHY has the channel, it can transmit
-    TO_LOSE
+    GRANTED,     //!< The PHY has the channel, it can transmit
+    TO_LOSE      //!< The PHY channel is granted, but it will be lost at the end of the slot
   };
 
   ChannelStatus m_channelStatus {NONE}; //!< The channel status
@@ -492,7 +659,7 @@ private:
 
   uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
 
-  SfnSf m_currentSlot;
+  SfnSf m_currentSlot;      //!< The current slot number
   bool m_isPrimary {false}; //!< Is this PHY a primary phy?
 };
 

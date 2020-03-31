@@ -60,16 +60,9 @@ public:
    */
   virtual ~IdealBeamformingAlgorithm ();
 
-  /**
-   * \brief Set bwp id to which belongs this ideal beamforming algorithm
-   */
-  void SetOwner (uint8_t bwpId);
-
   virtual void GetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                       const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
-
-  static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
+                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const;
 
 private:
 
@@ -83,11 +76,8 @@ private:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const = 0;
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const = 0;
 
-protected:
-
-  uint8_t m_bwpId {0};
 
 };
 
@@ -134,7 +124,7 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 
   double m_beamSearchAngleStep {30};
 
@@ -164,7 +154,7 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 
   /**
    * \brief Get directs path beamforming vector bfv for a device with the mobility model
@@ -177,7 +167,7 @@ protected:
   virtual void DoGetDirectPathBeamformingVector (const Ptr<MobilityModel>& a,
                                                  const Ptr<MobilityModel>& b,
                                                  const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
-                                                 BeamformingVector* bfv) const;
+                                                 BeamformingVector* bfv, uint16_t ccId) const;
 };
 
 
@@ -205,7 +195,7 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 
 };
 
@@ -226,7 +216,7 @@ protected:
 
   virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                         const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 };
 
 

@@ -34,6 +34,11 @@
 
 namespace ns3 {
 
+/**
+ * \ingroup spectrum
+ *
+ * \brief The mmWaveInterference class
+ */
 class mmWaveInterference : public Object
 {
 public:

@@ -29,6 +29,7 @@
 #include <ns3/double.h>
 #include <ns3/angles.h>
 #include <ns3/uinteger.h>
+#include "mmwave-spectrum-value-helper.h"
 
 namespace ns3{
 
@@ -58,38 +59,14 @@ IdealBeamformingAlgorithm::GetTypeId (void)
   return tid;
 }
 
-
-Ptr<const SpectrumValue>
-IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm)
-{
-  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (txSm);
-  double powerTxW = std::pow (10., (powerTx - 30) / 10);
-  double bw =   (txPsd->GetSpectrumModel()->End()-1)->fh - txPsd->GetSpectrumModel()->Begin()->fl;
-  double txPowerDensity = powerTxW / bw;
-
-  std::vector<int> listOfSubchannels;
-  for (size_t rbId = 0; rbId < txSm->GetNumBands (); rbId++)
-    {
-      (*txPsd)[rbId] = txPowerDensity;
-    }
-  NS_LOG_LOGIC (*txPsd);
-  return txPsd;
-}
-
 void
 IdealBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                                  const Ptr<const MmWaveUeNetDevice>& ueDev,
                                                  BeamformingVector* gnbBfv,
-                                                 BeamformingVector* ueBfv) const
+                                                 BeamformingVector* ueBfv,
+                                                 uint16_t ccId) const
 {
-  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv);
-}
-
-
-void
-IdealBeamformingAlgorithm::SetOwner (uint8_t bwpId)
-{
-  m_bwpId = bwpId;
+  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
 }
 
 TypeId
@@ -123,7 +100,7 @@ CellScanBeamforming::GetBeamSearchAngleStep () const
 void
 CellScanBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                               const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                              BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+                                              BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const
 {
   NS_ABORT_MSG_IF (gnbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
 
@@ -131,8 +108,8 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice
                    "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
   // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
-  Ptr<const MmWaveEnbPhy> txPhy = gnbDev->GetPhy(m_bwpId);
-  Ptr<const MmWaveUePhy> rxPhy = ueDev->GetPhy(m_bwpId);
+  Ptr<const MmWaveEnbPhy> txPhy = gnbDev->GetPhy(ccId);
+  Ptr<const MmWaveUePhy> rxPhy = ueDev->GetPhy(ccId);
 
   Ptr<const MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
   Ptr<const MmWaveSpectrumPhy> rxSpectrumPhy = rxPhy->GetSpectrumPhy();
@@ -145,7 +122,7 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice
 
   NS_ASSERT_MSG (txThreeGppSpectrumPropModel == rxThreeGppSpectrumPropModel, "Devices should be connected on the same spectrum channel");
 
-  Ptr<const SpectrumValue> fakePsd = IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (0.0, txSpectrumPhy->GetRxSpectrumModel());
+  Ptr<const SpectrumValue> fakePsd = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, txSpectrumPhy->GetRxSpectrumModel());
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
@@ -226,17 +203,17 @@ DirectPathBeamforming::GetTypeId (void)
 void
 DirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice> &gnbDev,
                                                 const Ptr<const MmWaveUeNetDevice> &ueDev,
-                                                BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+                                                BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const
 {
   NS_LOG_FUNCTION (this);
 
   Ptr<MobilityModel> gnbMob = gnbDev->GetNode()->GetObject<MobilityModel>();
   Ptr<MobilityModel> ueMob = ueDev->GetNode()->GetObject<MobilityModel>();
-  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(m_bwpId)->GetAntennaArray();
-  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(m_bwpId)->GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(ccId)->GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(ccId)->GetAntennaArray();
 
-  DoGetDirectPathBeamformingVector (gnbMob, ueMob, gnbAntenna, gnbBfv);
-  DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv);
+  DoGetDirectPathBeamformingVector (gnbMob, ueMob, gnbAntenna, gnbBfv, ccId);
+  DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv, ccId);
 
 }
 
@@ -244,7 +221,7 @@ void
 DirectPathBeamforming::DoGetDirectPathBeamformingVector(const Ptr<MobilityModel>& a,
                                                         const Ptr<MobilityModel>& b,
                                                         const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
-                                                        BeamformingVector* bfv) const
+                                                        BeamformingVector* bfv, uint16_t ccId) const
 {
   complexVector_t antennaWeights;
 
@@ -303,14 +280,14 @@ QuasiOmniDirectPathBeamforming::GetTypeId (void)
 void
 QuasiOmniDirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice> &gnbDev,
                                                          const Ptr<const MmWaveUeNetDevice> &ueDev,
-                                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+                                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const
 {
   NS_LOG_FUNCTION (this);
 
   Ptr<MobilityModel> gnbMob = gnbDev->GetNode()->GetObject<MobilityModel>();
   Ptr<MobilityModel> ueMob = ueDev->GetNode()->GetObject<MobilityModel>();
-  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(m_bwpId)->GetAntennaArray();
-  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(m_bwpId)->GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(ccId)->GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(ccId)->GetAntennaArray();
 
   // configure gNb beamforming vector to be quasi omni
   UintegerValue numRows, numColumns;
@@ -319,7 +296,7 @@ QuasiOmniDirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveE
   *gnbBfv = std::make_pair (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
 
   //configure UE beamforming vector to be directed towards gNB
-  DirectPathBeamforming::DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv);
+  DirectPathBeamforming::DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv, ccId);
 
 }
 
@@ -338,7 +315,7 @@ OptimalCovMatrixBeamforming::GetTypeId (void)
 void
 OptimalCovMatrixBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
                                                       const Ptr<const MmWaveUeNetDevice>& ueDev,
-                                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+                                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const
 {
   NS_UNUSED (gnbDev);
   NS_UNUSED (ueDev);

@@ -1,28 +1,27 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
-*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
+#ifndef MMWAVE_PHY_H
+#define MMWAVE_PHY_H
 
 #include "mmwave-phy-sap.h"
+#include "mmwave-phy-mac-common.h"
 #include <ns3/spectrum-value.h>
 
 namespace ns3 {
@@ -34,13 +33,72 @@ class AntennaArrayBasicModel;
 class BeamManager;
 class ThreeGppAntennaArrayModel;
 
+/**
+ * \ingroup ue-phy
+ * \ingroup gnb-phy
+ *
+ * \brief The base class for gNb and UE physical layer
+ *
+ * From this class descends MmWaveEnbPhy and MmWaveUePhy, the physical layer
+ * classes for the gNb and the UE. This class has four main duties:
+ *
+ * <b>Management of the control message list</b>
+ *
+ * The control message list is maintained as a list that has, always, a number
+ * of element equals to the latency between PHY and MAC, plus one. The list
+ * is initialized by a call to InitializeMessageList(). The messages
+ * are enqueued by MAC at the end of the list through the method EnqueueCtrlMessage().
+ * If the PHY has the necessity of adding a message, then it can use the
+ * no-latency version of it, namely EnqueueCtrlMsgNow(). The messages for the
+ * current slot (i.e., the messages at the front of the list) can be retrieved
+ * with PopCurrentSlotCtrlMsgs(). To know if there are messages for the current
+ * slot, use IsCtrlMsgListEmpty(). The list is stored in the variable
+ * m_controlMessageQueue.
+ *
+ * <b>Management of the slot allocation list</b>
+ *
+ * At the gNb, After the MAC does the slot allocation, it is saved in the PHY with the method
+ * PushBackSlotAllocInfo(), and if an allocation for the same slot is already
+ * present, the two will be merged together. The slot allocation is stored
+ * inside the variable m_slotAllocInfo.
+ *
+ * <b>Management of the MAC PDU that waits to be transmitted</b>
+ *
+ * With each allocation, will come also one (or more) MAC PDU, that are stored
+ * within the method SetMacPdu(). The storage is based on the SfnSf inside the
+ * variable m_packetBurstMap.
+ *
+ * <b>Configuration of the numerology and the related settings</b>
+ *
+ * When the numerology is configured, quite a lot of parameters change as well.
+ * The entire process of updating the relative parameters is done inside the
+ * function SetNumerology().
+ *
+ * <b>Antenna and BeamManager object installation</b>
+ *
+ * Through the method InstallAntenna() is possible to install the antenna model
+ * for the PHY. At each invokation, a BeamManager object is also constructed.
+ *
+ * Please note that methods prefixed with Install* are meant to be called only
+ * once (and, hopefully, from an helper).
+ */
 class MmWavePhy : public Object
 {
 public:
+  /**
+   * \brief MmWavePhy constructor
+   */
   MmWavePhy ();
 
+  /**
+   * \brief ~MmWavePhy
+   */
   virtual ~MmWavePhy () override;
 
+  /**
+   * \brief Get the TypeId of the Object
+   * \return the TypeId of the Object
+   */
   static TypeId GetTypeId (void);
 
   // Called by SAP
@@ -50,7 +108,23 @@ public:
    */
   void EnqueueCtrlMessage (const Ptr<MmWaveControlMessage> &m);
 
+  /**
+   * \brief Store a MAC PDU
+   * \param pb the MAC PDU
+   *
+   * It will be saved in the PacketBurst map following the SfnSf present in the tag.
+   */
   void SetMacPdu (Ptr<Packet> pb);
+
+  /**
+   * \brief Send the RachPreamble
+   *
+   * The RACH PREAMBLE is sent ASAP, without applying any delay,
+   * since it is sent in the PRACH channel
+   *
+   * \param PreambleId preamble ID
+   * \param Rnti RNTI
+   */
   void SendRachPreamble (uint32_t PreambleId, uint32_t Rnti);
 
   /**
@@ -70,38 +144,58 @@ public:
 
   /**
    * \brief Configures TB decode latency
+   * \param us decode latency
    */
-  virtual void SetTbDecodeLatency (Time us);
+  virtual void SetTbDecodeLatency (const Time &us);
 
   /**
-   * \brief Returns TB decode latency
+   * \brief Returns Transport Block decode latency
+   * \return The TB decode latency
    */
   virtual Time GetTbDecodeLatency (void) const;
 
+  /**
+   * \brief Get the beam id for the specified user
+   * \param rnti RNTI
+   * \return the BeamId associated to the specified RNTI
+   */
   virtual BeamId GetBeamId (uint16_t rnti) const = 0;
 
+  /**
+   * \brief Install the antenna in the PHY
+   * \param antenna pointer to the antenna model
+   *
+   * Usually called by the helper. It will install a new BeamManager object.
+   */
   void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
 
   // Note: Returning a BeamManger, it means that someone outside this class
   // can change the beamforming vector, BUT the phy will not learn it.
+  /**
+   * \brief Get the BeamManager object of the class
+   * \return a pointer to the BeamManager instance
+   *
+   * Valid only after a call to InstallAntenna
+   */
   Ptr<BeamManager> GetBeamManager () const;
 
+  /**
+   * \brief Get the spectrum model of the PHY
+   * \return a pointer to the spectrum model
+   */
   Ptr<const SpectrumModel> GetSpectrumModel () const;
 
+  /**
+   * \brief Get the number of symbols in a slot
+   * \return the number of symbol per slot
+   */
   uint32_t GetSymbolsPerSlot () const;
 
-  Time GetSlotPeriod () const;
-
   /**
-   * \brief GetNumScsPerRb
-   *
-   * It is a static function as the value is fixed, and it is needed in NrAmc.
-   * Making this value changeable means creating an interface between PHY
-   * and AMC.
-   *
-   * \return 12, fixed value
+   * \brief Get the slot period
+   * \return the slot period (depend on the numerology)
    */
-  static uint32_t GetNumScsPerRb ();
+  Time GetSlotPeriod () const;
 
   /**
    * \brief Get SymbolPeriod
@@ -116,12 +210,29 @@ public:
    */
   Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
+  /**
+   * \brief Set the NoiseFigure value
+   * \param d the Noise figure value
+   */
   void SetNoiseFigure (double d);
+
+  /**
+   * \brief Get the NoiseFigure value
+   * \return the noise figure
+   */
   double GetNoiseFigure () const;
 
   // Installation / Helpers
+  /**
+   * \brief Retrieve a pointer to an instance of MmWavePhySapProvider
+   * \return MmWavePhySapProvider pointer, that points at this instance
+   */
   MmWavePhySapProvider* GetPhySapProvider ();
 
+  /**
+   * \brief Set the owner device
+   * \param d the owner device
+   */
   void SetDevice (Ptr<MmWaveNetDevice> d);
 
   /**
@@ -141,8 +252,16 @@ public:
    */
   void SetNumerology (uint16_t numerology);
 
+  /**
+   * \brief Get the configured numerology
+   * \return the configured numerology
+   */
   uint16_t GetNumerology () const;
 
+  /**
+   * \brief Set the number of symbol per slot
+   * \param symbolsPerSlot the value of symbol per slot (12 or 14)
+   */
   void SetSymbolsPerSlot (uint16_t symbolsPerSlot);
 
   /**
@@ -160,6 +279,16 @@ public:
    */
   void InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
 
+  /**
+   * \brief Schedule the start of the NR event loop
+   *
+   * \param nodeId node id (for log messages)
+   * \param frame Starting frame number
+   * \param subframe Starting subframe number
+   * \param slot Starting slot number
+   *
+   * The method is scheduling the start of the first slot at time 0.0.
+   */
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) = 0;
 
   /**
@@ -244,6 +373,11 @@ protected:
    */
   void UpdateRbNum ();
 
+  /**
+   * \brief Check if a pattern is TDD
+   * \param pattern the pattern to check
+   * \return true if the pattern has at least one mixed DL/UL
+   */
   static bool IsTdd (const std::vector<LteNrTddSlotType> &pattern);
 
   /**
@@ -274,7 +408,12 @@ protected:
    */
   virtual uint32_t GetChannelBandwidth () const = 0;
 
-  Ptr<PacketBurst> GetPacketBurst (SfnSf, uint8_t sym);
+  /**
+   * \brief Retrieve the PacketBurst at the slot/symbol specified
+   * \param sym Symbol at which the PacketBurst should be sent
+   * \return a pointer to the burst, if present, otherwise nullptr
+   */
+  Ptr<PacketBurst> GetPacketBurst (SfnSf sf, uint8_t sym);
 
   /**
    * \brief Create Noise Power Spectral density
@@ -361,8 +500,8 @@ protected:
   void EnqueueCtrlMsgNow (const Ptr<MmWaveControlMessage> &msg);
 
   /**
-   * @brief Enqueue a CTRL message without considering L1L2CtrlLatency
-   * @param listOfMsgs The list of messages to enqueue
+   * \brief Enqueue a CTRL message without considering L1L2CtrlLatency
+   * \param listOfMsgs The list of messages to enqueue
    */
   void EnqueueCtrlMsgNow (const std::list<Ptr<MmWaveControlMessage> > &listOfMsgs);
 
@@ -377,21 +516,20 @@ protected:
   virtual std::list<Ptr<MmWaveControlMessage> > PopCurrentSlotCtrlMsgs (void);
 
 protected:
-  Ptr<MmWaveNetDevice> m_netDevice;
-  Ptr<MmWaveSpectrumPhy> m_spectrumPhy;
+  Ptr<MmWaveNetDevice> m_netDevice;      //!< Pointer to the owner netDevice.
+  Ptr<MmWaveSpectrumPhy> m_spectrumPhy;  //!< Pointed to the (owned) spectrum phy
 
-  double m_txPower {0.0};
-  double m_noiseFigure {0.0};
+  double m_txPower {0.0};                //!< Transmission power (attribute)
+  double m_noiseFigure {0.0};            //!< Noise figure (attribute)
 
-  std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
+  std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap; //!< Map between SfnSf and PacketBurst
 
-  SlotAllocInfo m_currSlotAllocInfo;
+  SlotAllocInfo m_currSlotAllocInfo;  //!< Current slot allocation
 
-  MmWavePhySapProvider* m_phySapProvider;
+  MmWavePhySapProvider* m_phySapProvider; //!< Pointer to the MAC
 
-  uint32_t m_raPreambleId {0};
-  bool m_isConnected {false}; ///< set when UE RRC is in CONNECTED_NORMALLY state
-  Ptr<BeamManager> m_beamManager; //!< TODO
+  uint32_t m_raPreambleId {0}; //!< Preamble ID
+  Ptr<BeamManager> m_beamManager; //!< Pointer to the beam manager object
 
   std::list <Ptr<MmWaveControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 
@@ -402,23 +540,20 @@ private:
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
-  double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
+  double m_centralFrequency {-1.0};             //!< Channel central frequency -- set by the helper
 
-  uint16_t m_bwpId {UINT16_MAX}; //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper when attaching to a gnb
-  uint16_t m_numerology {0};         //!< NR numerology: defines the subcarrier spacing, RB width, slot length, and number of slots per subframe
-  uint16_t m_symbolsPerSlot {14};    //!< number of OFDM symbols per slot (in 3GPP NR: 12 for normal CP, 14 for extended CP)
+  uint16_t m_cellId {0};             //!< Cell ID which identify this BWP.
+  uint16_t m_bwpId {UINT16_MAX};     //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper
+  uint16_t m_numerology {0};         //!< Numerology: defines the scs, RB width, slot length, slots per subframe
+  uint16_t m_symbolsPerSlot {14};    //!< number of OFDM symbols per slot
 
-  // CHECK!
-  uint16_t m_slotsPerSubframe {1};
-  Time m_slotPeriod {MilliSeconds (1)};            //!< NR slot length
-  Time m_symbolPeriod {MilliSeconds (1) / 14};          //!< OFDM symbol length
-  uint32_t m_subcarrierSpacing {15000};   //!< subcarrier spacing (it is determined by the numerology)
-  uint32_t m_rbNum {0};             //!< number of resource blocks within the channel bandwidth
-
-  uint16_t m_cellId {0}; //!< Cell ID which identify this BWP.
+  uint16_t m_slotsPerSubframe {1};              //!< Number of slots per subframe, changes with numerology
+  Time m_slotPeriod {MilliSeconds (1)};         //!< NR slot length (changes with numerology and symbolsPerSlot)
+  Time m_symbolPeriod {MilliSeconds (1) / 14};  //!< OFDM symbol length (changes with numerology)
+  uint32_t m_subcarrierSpacing {15000};         //!< subcarrier spacing (it is determined by the numerology)
+  uint32_t m_rbNum {0};                         //!< number of resource blocks within the channel bandwidth
 };
 
-}
+} // namespace ns3
 
-
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_PHY_H_ */
+#endif /* MMWAVE_PHY_H */

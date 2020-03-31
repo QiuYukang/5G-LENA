@@ -23,30 +23,76 @@
 #include <ns3/spectrum-value.h>
 #include <vector>
 
-
 namespace ns3 {
 
 
 /**
- * \ingroup mmwave
+ * \ingroup spectrum
  *
- * \brief This class defines all functions to create spectrum model for mmwave
+ * \brief This class provides a set of useful functions when working with spectrum model for NR
  */
 class MmWaveSpectrumValueHelper
 {
+
 public:
 
-  static Ptr<const SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, uint32_t scsPerRb, double scs);
+  static const uint8_t SUBCARRIERS_PER_RB = 12; //!< subcarriers per resource block
 
+  /**
+   * \brief Creates or obtains from a global map a spectrum model for a given bandwidth,
+   * center frequency and numerology.
+   * \param bandwidth of this band in Hz
+   * \param centerFrequency the center frequency of this band
+   * \param numerology the NR numerology with which will be compatible this spectrum model
+   * \return pointer to a spectrum model with defined characteristics
+   */
+  static Ptr<const SpectrumModel> GetSpectrumModel (double bandwidth, double centerFrequency, uint8_t numerology);
+
+  /**
+   * \brief Creates or obtains from a global map a spectrum model with a given number of RBs,
+   * center frequency and subcarrier spacing.
+   * \param numRbs bandwidth in number of RBs
+   * \param centerFrequency the center frequency of this band
+   * \param scs the subcarrier spacing
+   * \param pointer to a spectrum model with defined characteristics
+   */
+  static Ptr<const SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, double subcarrierSpacing);
+
+  /**
+   * \brief Create SpectrumValue that will represent transmit power spectral density
+   * \param powerTx total power in dBm
+   * \param activeRbs vector of RBs that are active for this transmission
+   * \param spectrumModel spectrumModel to be used to create this SpectrumValue
+   * \return spectrum value representing power spectral density for given parameters
+   */
   static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (double powerTx,
-                                                          std::vector <int> activeRbs,
-                                                          Ptr<const SpectrumModel> spectrumModel,
-                                                          double bandwidth);
+                                                          const std::vector <int>& activeRbs,
+                                                          const Ptr<const SpectrumModel>& spectrumModel);
 
-  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (double noiseFigure, Ptr<const SpectrumModel> spectrumModel);
+  /**
+    * \brief Create SpectrumValue that will represent transmit power spectral density,
+    * and assuming that all RBs are active.
+    * \param powerTx total power in dBm
+    * \param spectrumModel spectrumModel to be used to create this SpectrumValue
+    * \return spectrum value representing power spectral density for given parameters
+    */
+  static Ptr<const SpectrumValue> CreateTxPowerSpectralDensity (double powerTx, const Ptr<const SpectrumModel>& txSm);
 
-private:
-  //static Ptr<SpectrumModel> m_model;
+  /**
+   * \brief Create a SpectrumValue that models the power spectral density of AWGN
+   * \param noiseFigure the noise figure in dB  w.r.t. a reference temperature of 290K
+   * \param spectrumModel the SpectrumModel instance to be used to create the output spectrum value
+   * \return a pointer to a newly allocated SpectrumValue representing the noise Power Spectral Density in W/Hz for each Resource Block
+   */
+  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (double noiseFigure, const Ptr<const SpectrumModel>& spectrumModel);
+
+  /**
+   * \brief Returns the effective bandwidth for the total system bandwidth
+   * \param bandwidth the total system bandwidth in Hz
+   * \param numerology the numerology to be used over the whole bandwidth
+   * \return effective bandwidth which is the sum of bandwidths of all sub-bands, in Hz
+   */
+  static uint64_t GetEffectiveBandwidth (double bandwidth, uint8_t numerology);
 };
 
 

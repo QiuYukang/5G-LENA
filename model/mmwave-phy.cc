@@ -1,23 +1,21 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*   Copyright (c) 2015 NYU WIRELESS, Tandon School of Engineering, New York University
-*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
@@ -57,7 +55,7 @@ public:
 
   virtual void SendRachPreamble (uint8_t PreambleId, uint8_t Rnti) override;
 
-  virtual void SetSlotAllocInfo (SlotAllocInfo slotAllocInfo) override;
+  virtual void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo) override;
 
   virtual BeamId GetBeamId (uint8_t rnti) const override;
 
@@ -104,7 +102,7 @@ MmWaveMemberPhySapProvider::SendRachPreamble (uint8_t PreambleId, uint8_t Rnti)
 }
 
 void
-MmWaveMemberPhySapProvider::SetSlotAllocInfo (SlotAllocInfo slotAllocInfo)
+MmWaveMemberPhySapProvider::SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 {
   m_phy->PushBackSlotAllocInfo (slotAllocInfo);
 }
@@ -241,7 +239,7 @@ MmWavePhy::SetNumerology (uint16_t numerology)
   m_numerology = numerology;
   m_slotsPerSubframe  = static_cast<uint16_t> (std::pow (2, numerology));
   m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
-  m_subcarrierSpacing = 15 * static_cast<uint32_t> (std::pow (2, numerology)) * 1000;
+  m_subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
   m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
 
   UpdateRbNum ();
@@ -281,12 +279,6 @@ MmWavePhy::GetSlotPeriod () const
   return m_slotPeriod;
 }
 
-uint32_t
-MmWavePhy::GetNumScsPerRb ()
-{
-  return 12;
-}
-
 void
 MmWavePhy::DoSetCellId (uint16_t cellId)
 {
@@ -298,12 +290,11 @@ void
 MmWavePhy::SendRachPreamble (uint32_t PreambleId, uint32_t Rnti)
 {
   NS_LOG_FUNCTION (this);
-  // This function is called by the SAP, SO it has to stay at the L1L2CtrlDelay rule
   m_raPreambleId = PreambleId;
   Ptr<MmWaveRachPreambleMessage> msg = Create<MmWaveRachPreambleMessage> ();
   msg->SetSourceBwp (GetBwpId ());
   msg->SetRapId (PreambleId);
-  EnqueueCtrlMessage (msg); // Enqueue at the end
+  EnqueueCtrlMsgNow (msg);
 }
 
 void
@@ -335,7 +326,6 @@ void
 MmWavePhy::NotifyConnectionSuccessful ()
 {
   NS_LOG_FUNCTION (this);
-  m_isConnected = true;
 }
 
 Ptr<PacketBurst>
@@ -372,7 +362,7 @@ MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) con
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, GetChannelBandwidth ());
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm );
 }
 
 double
@@ -457,7 +447,7 @@ MmWavePhy::UpdateRbNum ()
 {
   NS_LOG_FUNCTION (this);
 
-  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * GetNumScsPerRb ()));
+  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB ));
 
   NS_ASSERT (m_rbNum > 0);
 
@@ -776,7 +766,6 @@ MmWavePhy::GetSpectrumModel () const
 
   return MmWaveSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
                                                       GetCentralFrequency (),
-                                                      GetNumScsPerRb (),
                                                       m_subcarrierSpacing);
 }
 
@@ -819,7 +808,7 @@ MmWavePhy::GetNoiseFigure () const
 
 
 void
-MmWavePhy::SetTbDecodeLatency (Time us)
+MmWavePhy::SetTbDecodeLatency (const Time &us)
 {
   m_tbDecodeLatencyUs = us;
 }

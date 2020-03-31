@@ -97,6 +97,10 @@ public:
    */
   static Ptr<MmWaveEnbMac> GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
 
+  static Ptr<MmWaveUeMac> GetUeMac (const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex);
+
+  static Ptr<MmWaveUePhy> GetUePhy (const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex);
+
   static Ptr<BwpManagerGnb> GetBwpManagerGnb (const Ptr<NetDevice> &gnbDevice);
 
   static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);

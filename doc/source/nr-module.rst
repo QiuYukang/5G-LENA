@@ -10,106 +10,40 @@ Example Module Documentation
    ============= Subsection (#.#.#)
    ############# Paragraph (no number)
 
+..
+   The document is written following RST formatting. Please, check your writing on grammarly; to ease it, use the auto-wrapping feature of your text editor, without entering new lines unless you would like to start a new paragraph.
 
 
 Introduction
 ------------
-The 3rd Generation Partnership Project (3GPP) has devoted significant efforts to standardize the
-fifth generation (5G) New Radio (NR) access technology [TS38300]_,
-which is designed to be extremely flexible from its physical layer definition and up to the architecture,
-in order to be able to work in a wide range of frequency bands and address many different use cases
-and deployment options.
+The 3rd Generation Partnership Project (3GPP) has devoted significant efforts to standardize the fifth-generation (5G) New Radio (NR) access technology [TS38300]_, which is designed to be extremely flexible from its physical layer definition and up to the architecture. The objective is to be able to work in a wide range of frequency bands and address many different use cases and deployment options.
 
-As the NR specification is developed and evolves,
-a network simulator that is capable of simulating emerging NR
-features is of great interest for both, scientific and industrial communities.
-In recent years a lot effort has been done by New York University (NYU) Wireless and University of Padova to develop a simulator
-that will allow simulations of communications in millimeter-wave (mmWave) bands,
-which represent a central technology of future 5G cellular wireless systems,
-such as NR, public safety and vehicular communications.
-Hence, a new mmWave simulation tool has been developed as a new module of |ns3|.
-A complete description of the mmWave module is provided in [end-to-end-mezz]_.
-The mmWave module source code is still not part of the standard ns-3 distribution and
-is available at a different repository [mmwave-module]_.
-The 'mmWave' module implements a complete 3GPP protocol, where the physical (PHY) layer and
-medium access control (MAC) layer are custom implementations
-developed to support a new mmWave-based channel, propagation, beamforming and antenna models;
-and the MAC layer to support Time Division Duplexing (TDD),
-Time Division Multiple Access (TDMA) MAC scheduling, and
-enhanced Hybrid Automatic Repeat and reQuest (HARQ) for low latency applications.
-The higher layers are mostly based on |ns3| 'LTE' module functionalities, thus still
-following 3GPP LTE specifications,
-but extending it to involve some of advanced features that are expected to emerge in 5G networks,
-such as dual connectivity and low latency radio link control (RLC) layer.
+As the NR specification is developed and evolves, a network simulator that is capable of simulating emerging NR features is of great interest for both scientific and industrial communities. In recent years a lot of effort has been made by New York University (NYU) Wireless and the University of Padova to develop a simulator that will allow simulations of communications in millimeter-wave (mmWave) bands, the heart of future 5G cellular wireless systems. Hence, a new mmWave simulation tool has been developed as a new module of |ns3|. A complete description of the mmWave module is provided in [end-to-end-mezz]_. The mmWave module source code is still not part of the standard ns-3 distribution and is available at a different repository [mmwave-module]_. In the mmWave module, the physical (PHY) layer and medium access control (MAC) are a modified version of the |ns3| 'LTE' PHY and MAC layers, supporting a mmWave channel, propagation, beamforming, and antenna models. The MAC layer supports Time Division Duplexing (TDD), and a Time Division Multiple Access (TDMA) MAC scheduling, with enhanced Hybrid Automatic Repeat and reQuest (HARQ) for low latency applications. The higher layers are mostly based on |ns3| 'LTE' module functionalities but are extended to support features such as dual connectivity and low latency radio link control (RLC) layer.
 
-In this document, we describe the implementation that we have initiated to generate
-a 3GPP-compliant NR module able to
-provide |ns3| simulation capabilities in the bands above and below 6 GHz,
-aligned with 3GPP NR Release-15, following the description in [TS38300]_.
-The work has been initially
-funded by InterDigital Communications Inc, and continues with funding from the
-Lawrence Livermore National Lab (LLNL) and
-a grant from the National Institute of Standards and Technologies (NIST).
+In this document, we describe the implementation that we have initiated to generate a 3GPP-compliant NR module able to provide |ns3| simulation capabilities in the bands above and below 6 GHz, aligned with 3GPP NR Release-15, following the description in [TS38300]_. The work has been initially funded by InterDigital Communications Inc, and continues with funding from the Lawrence Livermore National Lab (LLNL) and a grant from the National Institute of Standards and Technologies (NIST).
 
-The 'NR' module is built upon the 'mmWave' simulator, as already mentioned, but is focused to
-target the 3GPP Release-15 NR specification. As such, it
-incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of
-multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs),
-Frequency Division Multiplexing (FDM) of
-numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA),
-flexible time- and frequency- resource allocation and scheduling,
-Low-Density Parity Check (LDPC) coding for data channels,
-modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others.
-The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC)
-based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
+The 'NR' module is a hard fork of the 'mmWave' simulator,  focused on targeting the 3GPP Release-15 NR specification. As such, it incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs), Frequency Division Multiplexing (FDM) of numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, Low-Density Parity Check (LDPC) coding for data channels, modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others. The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC) based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
 
 The source code for the 'NR' module lives currently in the directory ``src/nr``.
-
-This document describes the models available in the 'NR' module.
 
 Over time, extensions found in this module may migrate to the existing |ns3| main development tree.
 
 The rest of this document is organized into five major chapters:
 
-2. **Design:**  Describes the models developed for |ns3| extension to support NR
-   features and procedures.
+2. **Design:**  Describes the models developed for |ns3| extension to support NR features and procedures.
 3. **Usage:**  Documents how users may run and extend the NR test scenarios.
-4. **Validation:**  Documents how the models and scenarios have been verified
-   and validated by test programs.
-5. **Open Issues and Future Work:**  Describes topics for which future work
-   on model or scenario enhancements is recommended, or for which questions
-   on interpretations of standards documents may be listed.
+4. **Validation:**  Documents how the models and scenarios have been verified and validated by test programs.
+5. **Open Issues and Future Work:**  Describes topics for which future work on model or scenario enhancements is recommended, or for which questions on interpretations of standards documents may be listed.
 
 
 Design
 ------
-In this section, we present the design of the different features and procedures that we have
-developed following 3GPP Release-15 NR activity.
-For those features/mechanisms/layers that still have not been upgraded to NR,
-the current design following LTE specifications is also indicated.
+In this section, we present the design of the different features and procedures that we have developed following 3GPP Release-15 NR activity. For those features/mechanisms/layers that still have not been upgraded to NR, the current design following LTE specifications is also indicated.
 
 
 Architecture
 ************
-The 'NR' module has been designed to perform end-to-end simulations of
-3GPP-oriented cellular networks. The end-to-end overview of a typical simulation
-with the 'NR' module is drawn in Figure :ref:`fig-e2e`. In dark gray,
-we represent the existing, and unmodified, ns-3 and LENA components.
-In light gray, we represent the NR components.
-On one side, we have a remote host (depicted as a single node in the figure,
-for simplicity, but there can be multiple nodes)
-that connects to an SGW/PGW (Service Gateway and Packet Gateway), through a link. Such a connection can be of any
-technology that is currently available in ns-3. It is currently implemented
-through a single link, but it can be replaced by an entire subnetwork with many
-nodes and routing rules. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates
-the packet using the GTP protocol. Through an IP connection, which represents
-the backhaul of the NR network (again, represented with a single link in the figure,
-but the topology can vary), the GTP packet is received by the gNB.
-There, after decapsulating the payload, the packet is transmitted over the RAN
-through the entry point represented by the class ``NRGnbNetDevice``. The packet,
-if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``.
-The path crossed by packets in the UL case is the same as the one described
-above but on the contrary direction.
+The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure:ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an SGW/PGW (Service Gateway and Packet Gateway), through a link. Such a connection can be of any technology that is currently available in ns-3. It is showed through a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NRGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but on the contrary direction.
 
 .. _fig-e2e:
 
@@ -119,61 +53,27 @@ above but on the contrary direction.
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and
-``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC
-classes implement the LTE module SAP provider and user interfaces,
-enabling the communication with the LTE RLC layer. The module supports
-RLC TM, SM, UM and AM modes. The MAC layer contains the scheduler (``NRMacScheduler``
-and derived classes). Every scheduler also implements a SAP for LTE RRC layer
-configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform
-the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data
-and control channels. Each ``NRPhy`` class writes into an instance of ``MmWaveSpectrumPhy``
-class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
-.. figure:: figures/drawing1.*
+.. figure:: figures/drawing1.png
    :align: center
    :scale: 80 %
 
    RAN class overview
 
-Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers.
-3GPP does not explicitly define them, and as such, they are virtual layers,
-but they help construct a fundamental feature of our simulator:
-the multiplexing of different parts of the bandwidth (like BWPs or CCs).
-NR has included the definition of BWP for energy-saving purposes,
-as well as to multiplex a variety of services with different QoS requirements. CC concept
-was already introduced in LTE, and persists in NR, as a way to aggregate different
-carriers and so improve the system capacity.
-In the 'NR' simulator, it is possible to divide the entire bandwidth into different
-BWPs and CCs. Each BWP/CC can have its own PHY and MAC configuration
-(e.g., a specific numerology, scheduler rationale, and so on).
-We added the possibility for any node to transmit and receive flows
-in different BWPs, by either assigning each bearer to a specific BWP
-or distributing the data flow among different CCs, according to the rules of the manager.
-The introduction of a proxy layer to multiplex and demultiplex the data
-was necessary to glue everything together, and this is the purpose
-of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different parts of the bandwidth (like BWPs or CCs). NR has included the definition of BWP for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. CC concept was already introduced in LTE, and persists in NR, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs and CCs. Each BWP/CC can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different CCs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
 
 
 PHY layer
 *********
-This section describes the different models supported and developed at PHY layer.
+This section describes in details the different models supported and developed at PHY layer.
 
 
 Frame structure model
 =====================
-In NR, the 'numerology' concept is introduced to flexibly define the frame structure,
-in such a way that it can work in both sub-6 GHz and mmWave bands.
-The flexible frame structure is defined by multiple numerologies formed by scaling
-the basic subcarrier spacing (SCS) of 15 KHz. The supported numerologies (0, 1, 2, 3, 4)  correspond
-to SCSs of 15 KHz, 30 KHz, 60 KHz, 120 KHz, and 240 KHz. 480 KHz is under study.
-Not all SCS options are supported in all carrier frequencies and channels. For example,
-for sub 6 GHz,
-only 15 KHz, 30 KHz, and 60 KHz are defined. Above 6 GHz the supported ones are 60 KHz,
-120 KHz and 240 KHz. Also, for numerology 2 (i.e., SCS = 60 KHz), two cyclic prefix (CP) overheads
-are considered: normal and extended. For the rest of numerologies,  normal CP is defined.
+In NR, the 'numerology' concept is introduced to flexibly define the frame structure in such a way that it can work in both sub-6 GHz and mmWave bands. The flexible frame structure is defined by multiple numerologies formed by scaling the subcarrier spacing (SCS) of 15 kHz. The supported numerologies (0, 1, 2, 3, 4)  correspond to SCSs of 15 kHz, 30 kHz, 60 kHz, 120 kHz, and 240 kHz. The SCS of 480 kHz is under study by 3GPP, but the simulator can support it. Theoretically, not all SCS options are supported in all carrier frequencies and channels. For example, for sub 6 GHz, only 15 kHz, 30 kHz, and 60 kHz are defined. Above 6 GHz, the supported ones are 60 kHz, 120 kHz, and 240 kHz. Also, for numerology 2 (i.e., SCS = 60 KHz), two cyclic prefixes (CP) overheads are considered: normal and extended. For the rest of the numerologies, only the normal overhead is taken into consideration.
 
 .. _tab-numerologies-3gpp:
 
@@ -189,23 +89,11 @@ are considered: normal and extended. For the rest of numerologies,  normal CP is
     4            240                         normal
    ===========   =========================   =============
 
-In the time domain, each frame of length of 10 ms is split in time into 10 subframes, each
-of duration of 1 ms. Every subframe is split in time into a variable number of slots, and each
-slot is composed of a fixed number of OFDM symbols.
-In particular, the length of the slot and the number of slots per subframe depend
-on the numerology, and the length
-of the OFDM symbol varies according to the numerology and CP.
-The number of OFDM symbols per slot is fixed to 14 symbols for normal CP, and to
-12 OFDM symbols for extended CP.
+In the time domain, each 10 ms frame is split in time into ten subframes, each of duration of 1 ms. Every subframe is split in time into a variable number of slots, and each slot is composed of a fixed number of OFDM symbols. In particular, the length of the slot and the number of slots per subframe depend on the numerology, and the length of the OFDM symbol varies according to the numerology and CP. The number of OFDM symbols per slot is fixed to 14 symbols for normal CP, and to 12 OFDM symbols for extended CP.
 
-In frequency domain, the number of subcarriers per physical resource block (PRB)
-is fixed to 12, and the maximum number of PRBs according to Release-15 is 275.
-The numerology defines also the size of a PRB, and the total number of PRBs of the NR system
-within a fixed bandwidth. PRBs are grouped into PRB groups at MAC scheduling time.
+In the frequency domain, the number of subcarriers per physical resource block (PRB) is fixed to 12, and the maximum number of PRBs, according to Release-15, is 275. With a particular channel bandwidth, the numerology defines the size of a PRB and the total number of PRBs usable by the system. PRBs are grouped into PRB groups at MAC scheduling time.
 
-Figure :ref:`fig-frame` shows the NR frame structure in time- and
-frequency- domains for numerology 3 with normal CP and a total
-channel bandwidth of 400 MHz.
+Figure :ref:`fig-frame` shows the NR frame structure in time- and frequency- domains for numerology 3 with normal CP and a total channel bandwidth of 400 MHz.
 
 .. _fig-frame:
 
@@ -215,14 +103,7 @@ channel bandwidth of 400 MHz.
 
    NR frame structure example
 
-The implementation in the 'NR' module currently supports the NR frame structures and numerologies
-shown in Table :ref:`tab-numerologies`. This corresponds to all the numerologies defined in NR Release-15
-with normal CP, plus numerology 5 (not yet supported in NR, but likely to be included
-in future releases).
-In the simulator, the numerology is specified by the attribute ``Numerology``.
-Once the numerology is configured, the lengths of the symbol,
-the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe,
-are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
+The implementation in the 'NR' module currently supports the NR frame structures and numerologies shown in Table :ref:`tab-numerologies`. Once the numerology is configured, the lengths of the symbol, the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe, are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
 
 .. _tab-numerologies:
 
@@ -239,41 +120,16 @@ are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
     5            32                        2.23                 0.03125            480                         14
    ===========   ==================   ==================     ================   =========================   ================
 
-In the 'NR' module, to support a realistic NR simulation, we properly model (as per the standard)
-the numerology-dependent slot and OFDM symbol granularity. This affects different parts
-of the simulator: the PHY transmission/reception
-functionality, the MAC
-scheduling and the resource allocation information, the processing delays,
-and the interaction of the PHY layer with the MAC layer.
-First, the transmission and the reception are per slot level, and are
-handled by the corresponding functions. These functions are executed with a
-fixed periodicity, i.e., every 14 OFDM symbols,
-but the real duration of the slot depends on the configured numerology.
-Second, the scheduling operation is done on a slot basis, and the scheduler
-assigns transmission time intervals (TTIs) no longer than that of one slot.
-Third, the MAC-to-PHY processing delay depends on the numerology, and defaults to 2 slots.
-See implementation details and evaluations in [WNS32018-NR]_, [CAMAD2018-NR]_.
+In the 'NR' module, to support a realistic NR simulation, we accurately model (as per the standard) the numerology-dependent slot and OFDM symbol granularity. We use the event scheduling feature of |ns3| to model the time advancement. Starting from time 0, we insert (and process) events that represent the advancement of the time. One of such events is the starting slot boundary, where the processing follows a logical order that involves the MAC, then the scheduler, before returning the control to the PHY. Here, allocations are extracted, and, for each assignment, a new event is inserted in the simulator. The last added event is the end of the slot, which in turn will invoke a new starting slot boundary event.
+
+Two factors influence the processing of events and allocations. The first is the availability of the channel: in NR, the channel is always available for transmission, while in the unlicensed spectrum, this may not be true. If the channel is not available, the event machine will go directly to the next slot boundary (with some details that are not explained here). The second is the MAC-to-PHY processing delay: a configurable parameter defaulted to 2 slots, indicates that the MAC is working ahead of the PHY to simulate the time needed for each component of the chain to perform its work. For example, in numerology 0, PHY level at Frame 10, Subframe 0, Slot 0, will call MAC to realize the allocations of Frame 10, Subframe 2, Slot 0.
+
+Some of the details of what is explained above is present in the papers [WNS32018-NR]_, [CAMAD2018-NR]_, along with some performance evaluations.
 
 
 FDM of numerologies
 ===================
-An additional level of flexibility in the NR system can be achieved by
-implementing the multiplexing of numerologies in the frequency domain.
-As an example, ultra-reliable and low-latency communications (URLLC) traffic
-requires a short slot length to meet strict latency requirements, while
-enhanced mobile nroadband (eMBB) use case in general aims at increasing
-throughput, which is achieved with a large slot length.
-Therefore, among the set of supported numerologies for a specific operational
-band and deployment configuration, URLLC can be served with the numerology
-that has the shortest slot length, and eMBB with the numerology associated
-to the largest slot length. To address that, NR enables FDM of numerologies through different
-BWPs, to address the trade-off between latency
-and throughput for different types of traffic by physically dividing the
-bandwidth in two or more BWPs. In Figure :ref:`fig-bwp`, we illustrate
-an example of FDM of numerologies. The channel is split into two BWPs
-that accommodate the two numerologies multiplexed in
-frequency domain. The total bandwidth :math:`B` is then divided into two parts
-of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
+An additional level of flexibility in the NR system can be achieved by implementing the multiplexing of numerologies in the frequency domain. As an example, ultra-reliable and low-latency communications (URLLC) traffic requires a short slot length to meet strict latency requirements, while enhanced mobile broadband (eMBB) use case in general aims at increasing throughput, which is achieved with a large slot length. Therefore, among the set of supported numerologies for a specific operational band and deployment configuration, URLLC can be served with the numerology that has the shortest slot length and eMBB with the numerology associated with the largest slot length. To address that, NR enables FDM of numerologies through different BWPs, to address the trade-off between latency and throughput for different types of traffic by physically dividing the bandwidth in two or more BWPs. In Figure :ref:`fig-bwp`, we illustrate an example of the FDM of numerologies. The channel is split into two BWPs that accommodate the two numerologies multiplexed in the frequency domain. The total bandwidth :math:`B` is then divided into two parts of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
 
 .. _fig-bwp:
 
@@ -283,104 +139,48 @@ of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+
 
    FDM of numerologies example
 
-In the 'NR' module, the user can configure FDM bands statically before the
-simulation starts. This is a critical design assumption based on two main reasons.
-First, the 'NR' module relies on the channel and the propagation loss model
-that is not able to allow runtime modifications
-of the physical configuration parameters related to time/frequency configuration
-(such as the system bandwidth, the central carrier frequency, and the symbol length).
-Thus, until the current channel model is not modified to allow
-these runtime configuration changes, it will not be possible to perform
-semi-static reconfiguration of BWPs. The second reason is that in the simulator
-the RRC messaging to configure the default bandwidth part, as well as the
-bandwidth part reconfiguration, are not implemented yet.
-See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
+In the 'NR' module, the user can configure FDM bands statically before the simulation starts. This is a critical design assumption based on two main reasons. First, the 'NR' module relies on the channel and the propagation loss model that is not able to allow runtime modifications of the physical configuration parameters related to time/frequency configuration (such as the system bandwidth, the central carrier frequency, and the symbol length). Thus, until the current channel model is not modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs. The second reason is that in the simulator, the RRC messaging to configure the default bandwidth part, as well as the bandwidth part reconfiguration, are not implemented yet. See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
 
 
 Duplexing schemes
 =================
-The 'NR' simulator supports both TDD and FDD duplexing modes, in a flexible manner.
-Indeed a gNB can be configured with multiple carriers, some of them being paired (for FDD), and
-others being TDD. Each carrier can be further split into multiple BWPs, under the
-assumption that all the BWPs are orthogonal in frequency, to enable compatibility
-with the channel instances. The gNB can simultaneously transmit and/or receive from
-multiple BWPs. However, from the UE side, we assume the UE is active in a single
-BWP at a time.
+The 'NR' simulator supports both TDD and FDD duplexing modes in a flexible manner. Indeed a gNB can be configured with multiple carriers, some of them being paired (for FDD), and others being TDD. Each carrier can be further split into various BWPs, under the assumption that all the BWPs are orthogonal in frequency, to enable compatibility with the channel instances. The gNB can simultaneously transmit and receive from multiple BWPs. However, from the UE side, we assume the UE is active in a single BWP at a time.
 
 
 TDD model
 #########
-In case of TDD, NR allows different slot types: DL-only ("DL" slots), UL-only ("UL"
-slots), and Flexible ("F" slots).
-The TDD pattern in NR, which is repeated with a pre-configured periodicity, is composed of a
-set of consecutive DL-only slots, a set of consecutive DL symbols, a guard band, a set of
-consecutive UL symbols,
-and a set of consecutive UL-only slots. In case the set of DL symbols, guard band, and UL symbols
-fit in a slot, this slot is a Flexible one.
+NR allows different slot types: DL-only ("DL" slots), UL-only ("UL" slots), and Flexible ("F" slots). Flexible slots have a certain number of DL symbols, a guard band, and a certain number of UL symbols. For the DL-only and UL-only case, the slots have, as the name suggests, only DL or only UL symbols. A TDD pattern in NR, repeated with a pre-configured periodicity, is a set of the previously defined slot types.
 
-In the 'NR' module, we let the user configure the TDD pattern by specifying
-the type of slot for each slot within the pattern, with a length that can be set
-by the end user. In case of Flexible slots,
-the first and the last OFDM symbols of the slot are reserved for
-DL CTRL and UL CTRL, repectively (e.g., DCI and UCI). The symbols in between can be
-dynamically allocated to DL and/or UL data. Thus, dynamic TDD is supported.
-In the case of DL-only slots, the first
-symbol is reserved for DL CTRL and the rest of symbols are available for DL data.
-In the case of UL-only slots, the last
-symbol is reserved for UL CTRL and the rest of symbols are available for UL data.
+In the 'NR' module, the TDD pattern is represented by a vector of slot types, where the length and the content of such vector are user-defined. In the case of Flexible slots, the first and the last OFDM symbols are reserved for DL CTRL and UL CTRL, respectively (e.g., DCI and UCI). The symbols in between can be dynamically allocated to DL and UL data, hence supporting dynamic TDD. In the case of DL-only slots, the first symbol is reserved for DL CTRL, and the rest of the symbols are available for DL data. In the case of UL-only slots, the last symbol is reserved for UL CTRL, and the rest of the symbols are available for UL data.
 
-Also, the model supports configuring special slots ("S" slots) in order to emulate
-LTE. In those slots, the first symbol is reserved for DL CTRL, the
-last slot is reserved for UL CTRL, and the rest of symbols are available for DL data.
+The model also supports the special slot type ("S" slots) to emulate LTE. In those slots, the first symbol is reserved for DL CTRL, the last slot is reserved for UL CTRL, and the rest of the symbols are available for DL data.
 
 
 FDD model
 #########
-TBC [Nat]
+In the 'NR' module, FDD duplexing is modeled through the usage of two paired bandwidth parts, where one is dedicated to transmitting DL data and contrl, and the other for the transmission of the UL data and control. The user would configure each bandwidth part with a DL-only (or UL-only) pattern, and then configure a linking between the two bandwidth parts for the correct routing of the control messages. As an example, the HARQ feedback for a DL transmission will be uploaded through the UL-only bandwidth part, but it applies to the DL-only bandwidth part: the configuration is needed for correctly routing that message from one bandwidth part to the other.
+
+This FDD model supports the pairing only between bandwidth parts configured with the same numerology.
 
 
 CQI feedback
 ============
-NR defines the Channel Quality Indicator (CQI), which is reported by
-the UE and can be used for MCS index selection at the gNB.
-NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_),
-each table being associated with one MCS table.
+NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table.
 
-We consider the generation of periodic wideband CQI. That is, a single value
-of channel state that is deemed representative of all RBs in use.
+At the moment, we support the generation of a periodic *wideband* CQI. Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the transmission.
 
-The CQI index to be reported is obtained by first obtaining a SINR measurement
-and then passing this SINR measurement to the Adaptive Modulation and Coding
-module (see details in AMC section) that maps it to the CQI index.
+The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index.
 
 
 Interference model
 ==================
-The PHY model is based on the well-known Gaussian interference models, according
-to which the powers of interfering signals (in linear units) are summed up together
-to determine the overall interference power.
-The useful and interfering signals, as well as the noise power spectral density,
-are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
+The PHY model is based on the well-known Gaussian interference models, according to which the powers of interfering signals (in linear units) are summed up together to determine the overall interference power. The useful and interfering signals, as well as the noise power spectral density, are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
 
-Also, such powers are used to determine if the channel is busy or empty. For that,
-we are creating two events, one that adds, for any signal, the received power and
-another that substracts the received power at the end time. These events are then
-used to determine if the channel is busy (by comparing to a threshold)
-and for how long.
-
+Also, such powers are used to determine if the channel is busy or empty. For that, we are creating two events, one that adds, for any signal, the received power and another that subtracts the received power at the end time. These events determine if the channel is busy (by comparing it to a threshold) and for how long.
 
 Spectrum model
 ==============
-In the simulator, radio spectrum usage is modeled as follows. A Spectrum Model is defined in the
-simulation for each set of central carrier frequency, transmission bandwidth (in number
-of PRBs), subcarrier spacing, and number of subcarriers per PRB, using the
-Spectrum framework [baldo2009]_. A spectrum model is configured for every bandwidth part (BWP)
-of each gNB instantiated in the simulation; hence, each gNB-BWP can use a different spectrum model.
-Every UE will automatically use the spectrum model of the gNB it is attached to.
-Using the MultiModelSpectrumChannel described in [baldo2009]_, the interference among gNBs and UEs
-that use different spectrum models is properly accounted for. This allows to
-simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering
-downlink-to-uplink and uplink-to-downlink interferences.
+In the simulator, radio spectrum usage follows the usual way to represent radio transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents the channel characteristic, including the propagation, following the 3GPP specifications [gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs, remembering that two (or more) channel models cannot overlap over the spectrum frequencies. In the NR nodes, there will be as many physical layers as the number of channel models; each physical layer communicates to its channel model through a spectrum model instance that owns a model of the physical layer antenna. The combination of the sender's and receiver's antenna gain (given by the configured beam and the antenna element radiation pattern), the propagation loss, and the channel characteristics, provide the value of the received power spectral density for each transmitted signal. The interference among different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_. In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering downlink-to-uplink and uplink-to-downlink interferences.
 
 
 Data PHY error model
@@ -560,17 +360,9 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports two methods: long-term covariance matrix and beam-search.
-The former assumes knowledge of the channel matrix to produce the optimal transmit
-and receive beam.
-In the later, a set of predefined beams is tested, and the beam-pair providing a
-highest average SNR is selected. For the beam-search method, our simulator supports
-abstraction of the beam ID through two angles (azimuth and elevation).
-A new interface allows you to have the beam ID available at MAC layer for scheduling purposes.
+The 'NR' module supports two methods: long-term covariance matrix and beam-search. The former assumes knowledge of the channel matrix to produce the optimal transmit and receive beam. In the latter, a set of predefined beams is tested, and the beam-pair providing a highest average SNR is selected. For the beam-search method, our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). A new interface allows you to have the beam ID available at MAC layer for scheduling purposes.
 
-Both methods are, as of today, ideal in the sense that no physical resources are employed
-to do the beam selection procedure, and as such no errors in the selection are taken into
-account.
+Both methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
 
 
 HARQ
@@ -651,74 +443,13 @@ This section describes the different models supported and developed at MAC layer
 
 Resource allocation model: OFDMA and TDMA
 =========================================
-The 'NR' module supports TDMA and OFDMA with single-beam capability and variable TTI
-in the DL direction. In the UL direction, only TDMA with variable
-TTI is supported (and so, single-beam capability by definition).
-The single-beam capability implies that a single receive or transmit beam can be used
-at any given time instant. The variable TTI means that the number of allocated
-symbols to one user (either to receive or transmit) is variable, based on the scheduler
-allocation.
+The 'NR' module supports variable TTI DL-TDMA and DL-OFDMA with a single-beam capability. In the UL direction, we support TDMA with variable TTI only. The single-beam capability for DL-OFDMA implies that only a single receive or transmit beam can be used at any given time instant. The variable TTI means that the number of allocated symbols to one user is variable, based on the scheduler allocation, and not fixed as was happening in LTE. Of course, LTE-like behaviors can be emulated through a scheduler that always assigns all the available symbols.
 
-The implementation of OFDMA under the single-beam capability constraint
-means that frequency-domain multiplexing of
-different UEs is allowed among UEs associated to the same beam. So, in one OFDM
-symbol, or group of OFDM symbols, UEs that
-are attached to the same gNB beam can be scheduled in different RBGs, but not are UEs attached
-to different beams. This is motivated by
-two main reasons. First, it is compatible with radio-frequency architectures based
-on single-beam capability, which is one of
-the main requirements for operation in bands with a high centre carrier frequency
-(mmWave bands). Second, it allows meeting the
-occupied channel bandwidth constraint in the unlicensed spectrum, e.g., that is
-required at the 5 GHz and 60 GHz bands, for any
-scheduling decision under the aforementioned constraint, since the scheduler will
-group UEs per beam and, within a TTI, only
-UEs that are attached to the same gNB beam would be allowed to be scheduled
-for DL transmission in different RBGs.
+In OFDMA, under the single-beam capability constraint, UEs that are served by different beams cannot be scheduled at the same time. But we do not have any limitations for what regards UEs that are served by the same beam, meaning that the simulator can schedule these UEs at the same time in the frequency domain. The implementation, as it is, is compatible with radio-frequency architectures based on single-beam capability, which is one of the main requirements for operation in bands with a high center carrier frequency (mmWave bands). Secondly, it allows meeting the occupied channel bandwidth constraint in the unlicensed spectrum. Such restriction, for example, is required at the 5 GHz and 60 GHz bands. The scheduler meets the requirements by grouping UEs per beam and, within a TTI, only UEs that are served by the same gNB beam would be allowed to be scheduled for DL transmission in different RBGs.
 
-The implementation of OFDMA with variable TTI is motivated by the NR specifications,
-which encompass slot- and mini-slot-based
-transmissions, and thus a variable TTI length composed by a flexible number of
-symbols may be encountered.
+For decoding any transmission, the UE relies on a bitmask (that is an output of the scheduler) sent through the DCI. The bitmask is of length equal to the number of RBGs, to indicate (with 1's) the RBGs assigned to the UE. This bitmask is translated into a vector of assigned RB indices at PHY. In NR, an RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational band. a TDMA transmission will have this bitmask all set to 1, while OFDMA transmissions will have enabled only the RBG where the UE has to listen.
 
-To account for OFDMA, the code relies on a bitmask per UE that is an output of
-the scheduler and then introduced in the DCI to
-enable correct decoding at the receiver. The bitmask is used at MAC level, and
-it is a vector of 0s and 1s, of length equal to
-the number of RBGs, to indicate the RBGs assigned to a particular UE. This bitmask
-is translated into a vector of assigned RB
-indeces at PHY, of variable length, at most the number of available RBs, for
-compatibility issues with PHY layer functions. In
-NR, a RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1,
-depending on the SCS and the operational
-band. This is a configuration parameter. In case the number of RBs in a RBG equals
-to the number of RBs in the whole channel
-bandwidth, then one can properly configure a TDMA-based channel access with variable TTI.
-
-The implementation of an OFDMA-based access in the 'NR' module affects the scheduler,
-HARQ operation, AMC model, temporal evolution,
-interference computation at PHY, and packet burst generation. Schedulers for OFDMA are
-detailed in next section. For OFDMA with variable TTI,
-all the temporal references are such that enable a correct PHY behaviour
-both at gNBs and UEs. That is, the reference
-is not based on the transmitted TBs per UE (as in the
-'mmWave' module, for which each symbol was assigned at most to a single UE),
-but on the TTIs assigned on different beams. Note that
-now, in the 'NR' module, within one symbol multiple UEs may be scheduled
-in different RBGs, so that the TBs do not indicate the
-temporal reference. This affects the timing update at the devices.
-Finally the packet burst is generated in a way
-such that it may include different UEs in a TTI.
-
-Due to the OFDMA with single-beam capability, the 'NR' module has a
-PHY-MAC interface to enable communication to the MAC entity
-of the beam ID, which is computed at PHY, and thus allow the OFDMA with variable TTI
-scheduler at MAC to consider this
-information. This is done through the corresponding interfaces, to obtain
-the beam ID of a UE, and change it.
-The beam ID is characterized by two parameters, azimuth and elevation, and
-it is only valid for the beam seach beamforming method (i.e.,
-for each UE, the transmission/reception beams are selected from a set of beams or codebook).
+An implementation detail that differentiates the 'NR' module from the 'mmWave' module, among the others, is that the scheduler has to know the beam assigned by the physical layer to each UE. Two parameters, azimuth and elevation, characterize the beam, and it is only valid for the beam search beamforming method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook).
 
 
 Scheduler
@@ -858,41 +589,68 @@ the frequency-domain, and thus the resources being allocated are symbols instead
 
 Scheduler operation
 ===================
-In an NR system, the UL decisions for a slot are taken in a different moment
-than the DL decision for the same slot. In particular, since the UE must have
-the time to prepare the data to send, the gNB takes the UL scheduler decision
-in advance and then sends the UL grant taking into account these timings.
-For example, consider that the DCIs for DL are usually prepared two slots in
-advance with respect to when the MAC PDU is actually over the air. For example,
-for UL, the UL grant must be prepared four slots before the actual time in
-which the UE transmission is over the air transmission: after two slots,
-the UL grant will be sent to the UE, and after two more slots, the gNB is
-expected to receive the UL data.
+In an NR system, the UL decisions for a slot are taken in a different moment than the DL decision for the same slot. In particular, since the UE must have the time to prepare the data to send, the gNB takes the UL scheduler decision in advance and then sends the UL grant taking into account these timings. Consider that the DL-DCIs are usually prepared two slots in advance with respect to when the MAC PDU is actually over the air. For the UL case, to permit two slots to the UE for preparing the data, the UL grant must be prepared four slots before the actual time in which the UE transmission is over the air. In two slots, the UL grant will be sent to the UE, and after two more slots, the gNB is expected to receive the UL data.
 
-At PHY layer, the gNB stores all the relevant information to properly schedule
-reception/transmission of data in a vector of slot allocations. The vector
-is guaranteed to be sorted by the starting symbol, to maintain the timing
-order between allocations. Each allocation contains the DCI created by the
-MAC, as well as other useful information.
-
-To accommodate the NR UL scheduling delay, the new MAC scheduler design is
-actively considering these delays during each phase.
+At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
 
 
-Scheduling timings: K0, K1, K2
-==============================
-TBC [Kat]
+Timing Relations
+================
 
-**K0:**
+The 'NR' module supports flexible scheduling and DL HARQ Feedback timings in the
+communication between the gNB and the UE as specified in [TS38213]_, [TS38214]_.
+In particular, the following scheduling timings are defined:
 
-**K1:**
+* K0 → Delay in slots between DL DCI and corresponding DL Data reception
+* K1 → Delay in slots between DL Data (PDSCH) and corresponding ACK/NACK transmission on UL
+* K2 → Delay in slots between UL DCI reception in DL and UL Data (PUSCH) transmission
 
-**K2:**
+The values of the scheduling timings are calculated at the gNB side and result
+from the processing timings that are defined in the 'NR' module as:
+
+* N0 → minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+* N1 → minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+* N2 → minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
+
+The values of the processing delays depend on the UE processing time capabilities
+and can be configured by the user through the attributes ``N0Delay``, ``N1Delay``,
+``N2Delay``. Typical values for N0 are 0 and 1, whiler N1, N2, can vary form 0 to 4.
+For the scheduling timings let us note that each K cannot take a value smaller than
+the corresponding N value (e.g. K2 cannot be less than N2).
+
+The proceedure followed for the calculation of the scheduling and DL HARQ Feedback
+timings at the gNB side is briefly described below:
+
+For K0 the gNB calculates (based on the TDD pattern) which is the next DL (or F)
+slot that follows after (minimum) N0 slots. In the current implementation we use
+N0=0 (Self Contained Slot), as such in this case DL Data are scheduled in the same
+slot with the DL DCI.
+
+For K1/K2, the eNB calculates (based on the TDD pattern) which is the next UL (or F)
+slot that follows after (minimum) N1/N2 slots and calculates K1/K2 based on the
+resulted slot and the current slot.
+
+Then, the gNB communicates the scheduling timings to the UE through the DCI. In
+particular, K0 and K1 are passed to the UE through the DL DCI in the time domain
+resource assignment field and pdsch-to-harq_feedback timing indicator, respectively,
+while K2 is passed through the UL DCI in the time domain resource assignment field.
+Upon reception of the DL/UL DCI, the UE extracts the values of K0/K1/K2:
+
+* For the case of K0, UE extracts from the DL DCI its value and calculates the corresponding slot for the reception of the DL Data.
+* For the case of K2, UE extracts from the UL DCI its value and calculates the corresponding slot for the transmission of its UL Data.
+
+      For example, if UL DCI is received in slot n and K2 = 2, UE will transmit UL Data in slot (n + K2)
+
+* For the case of K1, UE extracts from the DL DCI its value and stores it in a map based on the HARQ Process Id. This way, when the UE is going to schedule the DL HARQ feedback, it can automatically find out in which slot it will have to schedule it.
 
 
 BWP manager
 ===========
-TBC [Nat, Carlos]
+Our implementation has a layer that acts as a 'router' of messages. Initially, it was depicted as a middle layer between the RLC and the MAC, but with time it got more functionalities. The purpose of this layer, called the bandwidth part manager, is twofold. On the first hand, as we have already seen, it is used to route the control messages to realize the FDD bandwidth part pairing. On the other hand, it is used to split or route traffic over different spectrum parts.
+
+For the FDD pairing functionality, the user has to enter the pairing configuration that applies to his/her scenario. The NetDevice will then ask the manager for the input/output bandwidth part to which the message should be routed. It is important to note that this feature virtually connects different physical layers.
+
+For the flows routing among different spectrum, the layer intercepts the BSR from the RLC queues, and route them to the correct stack (MAC and PHY) that is attached to a particular spectrum region. The algorithmic part of the split is separated from the Bandwidth Part Manager. In other words, the algorithm is modularized to let the user write, change, and test different ways of performing the split. The only requirement is that such routing is done based on the QCI of the flow.
 
 
 Adaptive modulation and coding model
@@ -931,14 +689,7 @@ and such index is then communicated to the gNB through a CQI index (quantized by
 
 Transport block model
 =====================
-The model of the MAC Transport Blocks (TBs) provided by the simulator
-is simplified with respect to the 3GPP specifications. In particular,
-a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs in
-order to achieve the simulator’s equivalent of a TB, without the corresponding
-implementation complexity. The multiplexing of different logical channels
-to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag),
-which performs a functionality which is partially equivalent to that of the MAC headers
-specified by 3GPP.
+The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
 
 
 RLC layer
@@ -1267,8 +1018,18 @@ Test case called ... TBC [Biljana]
 
 Test for TDD patterns
 =====================
-Test case called ... TBC [Kat, Nat] (2 tests: pattern generation, phy-patterns)
+Test case called ``LtePatternTestCase`` validates the maps generated from the function
+``MmWaveEnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
+DCI and DL HARQ Feedback have to be sent/generated, as well as the scheduling timings
+(K0, K1, k2) that indicate the slot offset to be applied at the UE side for the reception
+of DL Data, scheduling of DL HARQ Feedback and scheduling of UL Data, respectively.
+The test calls ``MmWaveEnbPhy::GenerateStructuresFromPattern`` for a number of possible
+TDD patterns and compares the output with a predefined set of the expected results.
 
+Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
+when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
+In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
+the test will fail.
 
 
 Open issues and future work

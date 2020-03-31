@@ -2,7 +2,90 @@
 #define GROUPS_H
 
 /**
-  * \defgroup mac-schedulers
+  * \defgroup test Test
+  *
+  * \brief Test module
+  *
+  * Contains all the test for the NR 5G-LENA module.
+  */
+
+/**
+  * \defgroup examples Examples
+  *
+  * \brief Usage examples of the NR module
+  *
+  * If you are unsure how to use the NR module, we provide some examples that may
+  * help you.
+  */
+
+/**
+  * \defgroup gnb g-Node-B classes
+  *
+  * \brief Grouping of the gNb-related classes
+  */
+
+/**
+  * \defgroup ue User Equipment classes
+  *
+  * \brief Grouping of the ue-related classes.
+  */
+
+
+/**
+  * \addtogroup ue-phy User Equipment PHY classes
+  * \ingroup ue
+  *
+  * \brief Grouping of the UE physical layer related classes
+  */
+
+/**
+  * \addtogroup gnb-phy g-Node-B PHY classes
+  * \ingroup gnb
+  *
+  * \brief Grouping of the gNb physical layer related classes
+  */
+
+/**
+  * \addtogroup ue-mac User Equipment MAC classes
+  * \ingroup ue
+  *
+  * \brief Grouping of the UE MAC related classes
+  */
+
+/**
+  * \addtogroup ue-bwp User Equipment BWP management classes
+  * \ingroup ue
+  *
+  * \brief Grouping of the UE BWP related classes
+  *
+  * The details of the implementation are present in the paper
+  * Implementation and evaluation of frequency division multiplexing of
+  * numerologies for 5G new radio in ns-3, (B Bojovic, S Lagen, L Giupponi),
+  * in Proceedings of the 10th Workshop on ns-3, 37-44.
+  */
+
+/**
+  * \addtogroup gnb-mac g-Node-B MAC classes
+  * \ingroup gnb
+  *
+  * \brief Grouping of the gNb MAC related classes
+  */
+
+/**
+  * \addtogroup gnb-bwp g-Node-B BWP management classes
+  * \ingroup gnb
+  *
+  * \brief Grouping of the gNb BWP management related classes
+  *
+  * The details of the implementation are present in the paper
+  * Implementation and evaluation of frequency division multiplexing of
+  * numerologies for 5G new radio in ns-3, (B Bojovic, S Lagen, L Giupponi),
+  * in Proceedings of the 10th Workshop on ns-3, 37-44.
+  */
+
+/**
+  * \addtogroup scheduler g-Node-B scheduler classes
+  * \ingroup gnb
   *
   * \brief NR-enabled schedulers module
   *
@@ -62,42 +145,47 @@
   */
 
 /**
-  * \defgroup test
+  * \defgroup propagation Propagation
   *
-  * \brief Test module
+  * \brief Classes related to the propagation modeling
   *
-  * Contains all the test for the NR 5G-LENA module.
   */
 
 /**
-  * \defgroup examples
-  *
-  * \brief Usage examples of the NR module
-  *
-  * If you are unsure how to use the NR module, we provide some examples that may
-  * help you.
+  * \addtogroup spectrum Physical layer spectrum modeling
+  * \ingroup propagation
   */
 
 /**
-  * \defgroup bwp Bandwidth Part
-  *
-  * \brief Bandwidth part management module
-  *
-  * The details of the implementation are present in the paper
-  * Implementation and evaluation of frequency division multiplexing of
-  * numerologies for 5G new radio in ns-3, (B Bojovic, S Lagen, L Giupponi),
-  * in Proceedings of the 10th Workshop on ns-3, 37-44.
-  */
+ * \addtogroup error-models Error models
+ * \ingroup propagation
+ *
+ * \brief Error models for the NR module
+ *
+ * The error models are used for calculating the error probability after a packet
+ * is received (in the class MmWaveSpectrumPhy) but also can be used for calculating the
+ * best MCS to use before a transmission (in the class NrAmc). Please
+ * take a look to the documentation of these classes if you wish to get more
+ * information about their operations.
+ *
+ * The error model interface is defined in the class NrErrorModel. Each model
+ * should implement the pure virtual functions defined there, to be ready
+ * to work with the spectrum and the amc.
+ *
+ * The main output of an error model is a subclass of NrErrorModelOutput.
+ * The spectrum will take care of creating a vector of all instances returned
+ * by the error model for the same transmission (e.g., after a retransmission
+ * of the original transmission), in order to create an "history" of the outputs
+ * returned by the model.
+ *
+ * \see NrErrorModel
+ * \see NrErrorModelOutput
+ */
 
 /**
-  * \defgroup gnb G Node B PHY and MAC classes
+  * \defgroup helper Helpers
+  * \brief Helper code to setup and configure the NR module.
   *
-  * We group the PHY and MAC (and related) classes for the Gnb.
   */
 
-/**
-  * \defgroup ue User Equipment PHY and MAC classes
-  *
-  * We group the PHY and MAC (and related) classes for the UE.
-  */
 #endif // GROUPS_H

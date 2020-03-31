@@ -25,31 +25,6 @@
 namespace ns3 {
 
 /**
- * \defgroup error-models
- *
- * \brief Error models for the NR module
- *
- * The error models are used for calculating the error probability after a packet
- * is received (in the class MmWaveSpectrumPhy) but also can be used for calculating the
- * best MCS to use before a transmission (in the class NrAmc). Please
- * take a look to the documentation of these classes if you wish to get more
- * information about their operations.
- *
- * The error model interface is defined in the class NrErrorModel. Each model
- * should implement the pure virtual functions defined there, to be ready
- * to work with the spectrum and the amc.
- *
- * The main output of an error model is a subclass of NrErrorModelOutput.
- * The spectrum will take care of creating a vector of all instances returned
- * by the error model for the same transmission (e.g., after a retransmission
- * of the original transmission), in order to create an "history" of the outputs
- * returned by the model.
- *
- * \see NrErrorModel
- * \see NrErrorModelOutput
- */
-
-/**
  * \ingroup error-models
  * \brief Store the output of an NRErrorModel
  *
