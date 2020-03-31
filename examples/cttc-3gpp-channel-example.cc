@@ -44,6 +44,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
+#include "ns3/nr-module.h"
 
 using namespace ns3;
 
@@ -202,7 +203,6 @@ main (int argc, char *argv[])
 
   // Configure scheduler
   mmWaveHelper->SetSchedulerTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
-  mmWaveHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPower));
 
   // Antennas for the UEs
   mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
@@ -217,6 +217,20 @@ main (int argc, char *argv[])
   // install mmWave net devices
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice(enbNodes, allBwps);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPower);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetTxPower (txPower);
+
+  // When all the configuration is done, explicitly call UpdateConfig ()
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost 
@@ -267,14 +281,15 @@ main (int argc, char *argv[])
       dlClient.SetAttribute ("PacketSize", UintegerValue (1500));
       clientApps.Add (dlClient.Install (remoteHost));
     }
+
+  // attach UEs to the closest eNB
+  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+
   // start server and client apps
   serverApps.Start(Seconds(0.4));
   clientApps.Start(Seconds(0.4));
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime-0.2));
-
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // enable the traces provided by the mmWave module
   mmWaveHelper->EnableTraces();
