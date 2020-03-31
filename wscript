@@ -188,7 +188,7 @@ def build(bld):
         'model/lena-error-model.h',
         'model/nr-sl-comm-resource-pool-factory.h',
         'model/nr-sl-comm-preconfig-resource-pool-factory.h',
-        'model/nr-sl-comm-resource-pool.h'
+        'model/nr-sl-comm-resource-pool.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
