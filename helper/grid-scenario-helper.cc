@@ -534,10 +534,10 @@ HexagonalGridScenarioHelper::CreateScenario ()
   // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
   Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
   Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
-  r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
-  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2));  //Spread UEs inside the inner hexagonal radius
-  theta->SetAttribute ("Min", DoubleValue (0.0));
-  theta->SetAttribute ("Max", DoubleValue (360.0));
+  r->SetAttribute ("Min", DoubleValue (0));
+  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
+  theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
+  theta->SetAttribute ("Max", DoubleValue (M_PI));
   // UT position
   if (m_ut.GetN () > 0)
     {
@@ -554,12 +554,12 @@ HexagonalGridScenarioHelper::CreateScenario ()
                                                          m_siteSectorization,
                                                          m_hexagonalRadius);
 
-          float d = r->GetValue ();
-          float t = theta->GetValue ();
+          double d = r->GetValue ();
+          double t = theta->GetValue ();
 
           Vector utPos (cellCenterPos);
-          utPos.x += d * cos (t * M_PI / 180);
-          utPos.y += d * sin (t * M_PI / 180);
+          utPos.x += d * cos (t);
+          utPos.y += d * sin (t);
           utPos.z = m_utHeight;
 
           NS_LOG_DEBUG ("UE Position: " << utPos);
