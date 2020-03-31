@@ -53,17 +53,7 @@ The 'NR' module has been designed to perform end-to-end simulations of 3GPP-orie
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and
-``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac``
-MAC classes implement the LTE module SAP provider and user interfaces,
-enabling the communication with the LTE RLC layer. The module supports RLC
-TM, SM, UM, and AM modes. The MAC layer contains the scheduler
-(``NRMacScheduler`` and derived classes). Every scheduler also implements an
-SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes
-are used to perform the directional communication for both downlink (DL)
-and uplink (UL), to transmit/receive the data and control channels. Each
-``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class,
-which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -75,23 +65,13 @@ which is shared between the UL and DL parts.
 
 Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. Component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
 
-Note: Through the code, as well as through the documentation, we refer to a BWP
-as a piece of the spectrum. In particular, a BWP is characterized by a center frequency, a channel
-bandwidth, and a numerology. Each device is able to handle multiple BWPs, through
-the new BWP manager, but such multiple BWPs are orthogonal in frequency (i.e., they span over
-different frequency spectrum regions, that can be contiguous or not, up to the user configuration).
-In the 'NR' module, each BWP is associated to a PHY and a MAC entity,
-as well as to one spectrum channel and one antenna instance. The router in between the RLC
-queues and the different MAC entities is the BWP manager.
-Our BWP terminology can refer to 3GPP BWPs, as well
-as to 3GPP component carriers, and it is up to the BWP manager to route the flows
-accordingly based on the behaviour the user wants to implement. Note that our BWP definition
-differs from the 3GPP BWP, which was basically defined for energy saving purposes
-at the UE nodes, and for which the active 3GPP BWP at a UE can vary semi-statically
-and multiple 3GPP BWPs can span over the same frequency spectrum
-region. We support 3GPP BWPs, through our BWPs, for the case that 3GPP BWPs are
-orthogonal. This is useful for energy savings, as well as to accomodate different
-flow qualities through different BWPs.
+Note: The 3GPP definition for "Bandwidth Part" (BWP) is made for energy-saving purposes at the UE nodes. As per the 3GPP standard, the active 3GPP BWP at a UE can vary semi-statically, and multiple 3GPP BWPs can span over the same frequency spectrum region. In this text, and through the code, we use the word BWP to refer to various things that are not in line with the 3GPP definition.
+
+First of all, we use it to indicate the minimum piece of spectrum that can be modeled. In this regard, a BWP has a center frequency and a bandwidth, plus some characteristics for the 3GPP channel model (e.g., the scenario). Each device can handle multiple BWPs, but such BWPs must be orthogonal in frequency (i.e., they must span over different frequency spectrum regions, that can be contiguous or not, depending on the user-made configuration).
+
+Secondly, the 'NR' module is communicating through each BWP with a PHY and a MAC entity, as well as with one spectrum channel and one antenna instance. In other words, for every spectrum bandwidth part, the module will create a PHY, a MAC, a Spectrum channel, and an antenna. We consider, in the code, that this set of components forms a Bandwidth Part. Moreover, we have a router between the RLC queues and the different MAC entities, which is called the BWP manager.
+
+Summarizing, our BWP terminology can refer to orthogonal 3GPP BWPs, as well as to orthogonal 3GPP CCs, and it is up to the BWP manager to route the flows accordingly based on the behavior the user wants to implement. Our primary use case for bandwidth part is to avoid interferences, as well as to send different flow types through different BWPs, to achieve a dedicated-resource RAN slicing.
 
 
 PHY layer
@@ -388,23 +368,9 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports different methods: long-term covariance matrix
-(OptimalCovMatrixBeamforming), beam-search (CellScanBeamforming),
-LOS path (DirectPathBeamforming), and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming).
-OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce
-the optimal transmit and receive beam. In CellScanBeamforming, a set of predefined
-beams is tested, and the beam-pair providing a highest average SNR is selected.
-For the beam-search method, our simulator supports abstraction of the beam ID
-through two angles (azimuth and elevation). A new interface allows you to have
-the beam ID available at MAC layer for scheduling purposes. DirectPathBeamforming assumes
-knowledge of the pointing angle in between devices, and configures transmit/receive
-beams pointing into the LOS path direction. QuasiOmniDirectPathBeamforming uses the LOS
-path for configuring gNB beams, while configures quasi-omnidirectional beamforming vectors at UEs for
-transmission and reception.
+The 'NR' module supports different methods: long-term covariance matrix (OptimalCovMatrixBeamforming), beam-search (CellScanBeamforming), LOS path (DirectPathBeamforming), and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming). OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce the optimal transmit and receive beam. In CellScanBeamforming, a set of predefined beams is tested, and the beam-pair providing a highest average SNR is selected. For the beam-search method, our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). A new interface allows you to have the beam ID available at MAC layer for scheduling purposes. DirectPathBeamforming assumes knowledge of the pointing angle in between devices, and configures transmit/receive beams pointing into the LOS path direction. QuasiOmniDirectPathBeamforming uses the LOS path for configuring gNB beams, while configures quasi-omnidirectional beamforming vectors at UEs for transmission and reception.
 
-All methods are, as of today, ideal in the sense that no physical resources are
-employed to do the beam selection procedure, and as such no errors in the selection
-are taken into account.
+All methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
 
 
 HARQ
@@ -489,43 +455,13 @@ This section describes the different models supported and developed at MAC layer
 
 Resource allocation model: OFDMA and TDMA
 =========================================
-The 'NR' module supports variable TTI DL-TDMA and DL-OFDMA with a single-beam
-capability. In the UL direction, we support TDMA with variable TTI only. The
-single-beam capability for DL-OFDMA implies that only a single receive or transmit
-beam can be used at any given time instant. The variable TTI means that the number
-of allocated symbols to one user is variable, based on the scheduler allocation,
-and not fixed as was happening in LTE. Of course, LTE-like behaviors can be emulated
-through a scheduler that always assigns all the available symbols.
+The 'NR' module supports variable TTI DL-TDMA and DL-OFDMA with a single-beam capability. In the UL direction, we support TDMA with variable TTI only. The single-beam capability for DL-OFDMA implies that only a single receive or transmit beam can be used at any given time instant. The variable TTI means that the number of allocated symbols to one user is variable, based on the scheduler allocation, and not fixed as was happening in LTE. Of course, LTE-like behaviors can be emulated through a scheduler that always assigns all the available symbols.
 
-In OFDMA, under the single-beam capability constraint, UEs that are served by
-different beams cannot be scheduled at the same time. But we do not have any
-limitations for what regards UEs that are served by the same beam, meaning that
-the simulator can schedule these UEs at the same time in the frequency domain.
-The implementation, as it is, is compatible with radio-frequency architectures
-based on single-beam capability, which is one of the main requirements for
-operation in bands with a high center carrier frequency (mmWave bands).
-Secondly, it allows meeting the occupied channel bandwidth constraint in the
-unlicensed spectrum. Such restriction, for example, is required at the 5 GHz
-and 60 GHz bands. The scheduler meets the requirements by grouping UEs per
-beam and, within a TTI, only UEs that are served by the same gNB beam would be
-allowed to be scheduled for DL transmission in different RBGs.
+In OFDMA, under the single-beam capability constraint, UEs that are served by different beams cannot be scheduled at the same time. But we do not have any limitations for what regards UEs that are served by the same beam, meaning that the simulator can schedule these UEs at the same time in the frequency domain. The implementation, as it is, is compatible with radio-frequency architectures based on single-beam capability, which is one of the main requirements for operation in bands with a high center carrier frequency (mmWave bands). Secondly, it allows meeting the occupied channel bandwidth constraint in the unlicensed spectrum. Such restriction, for example, is required at the 5 GHz and 60 GHz bands. The scheduler meets the requirements by grouping UEs per beam and, within a TTI, only UEs that are served by the same gNB beam would be allowed to be scheduled for DL transmission in different RBGs.
 
-For decoding any transmission, the UE relies on a bitmask (that is an output
-of the scheduler) sent through the DCI. The bitmask is of length equal to the
-number of RBGs, to indicate (with 1's) the RBGs assigned to the UE. This bitmask
-is translated into a vector of assigned RB indices at PHY. In NR, an RBG may
-encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending
-on the SCS and the operational band. a TDMA transmission will have this bitmask
-all set to 1, while OFDMA transmissions will have enabled only the RBG where the
-UE has to listen.
+For decoding any transmission, the UE relies on a bitmask (that is an output of the scheduler) sent through the DCI. The bitmask is of length equal to the number of RBGs, to indicate (with 1's) the RBGs assigned to the UE. This bitmask is translated into a vector of assigned RB indices at PHY. In NR, an RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational band. a TDMA transmission will have this bitmask all set to 1, while OFDMA transmissions will have enabled only the RBG where the UE has to listen.
 
-An implementation detail that differentiates the 'NR' module from the 'mmWave'
-module, among the others, is that the scheduler has to know the beam assigned
-by the physical layer to each UE. Two parameters, azimuth and elevation,
-characterize the beam in case of CellScanBeamforming. This is only valid for
-the beam search beamforming
-method (i.e., for each UE, the transmission/reception beams are selected from
-a set of beams or codebook).
+An implementation detail that differentiates the 'NR' module from the 'mmWave' module, among the others, is that the scheduler has to know the beam assigned by the physical layer to each UE. Two parameters, azimuth and elevation, characterize the beam in case of CellScanBeamforming. This is only valid for the beam search beamforming method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook).
 
 
 Scheduler
@@ -722,24 +658,11 @@ Upon reception of the DL/UL DCI, the UE extracts the values of K0/K1/K2:
 
 BWP manager
 ===========
-Our implementation has a layer that acts as a 'router' of messages. Initially,
-it was depicted as a middle layer between the RLC and the MAC, but with time it
-got more functionalities. The purpose of this layer, called the bandwidth part
-manager, is twofold. On the first hand, as we have already seen, it is used to
-route the control messages to realize the FDD bandwidth part pairing. On the other
-hand, it is used to split or route traffic over different spectrum parts.
+Our implementation has a layer that acts as a 'router' of messages. Initially, it was depicted as a middle layer between the RLC and the MAC, but with time it got more functionalities. The purpose of this layer, called the bandwidth part manager, is twofold. On the first hand, as we have already seen, it is used to route the control messages to realize the FDD bandwidth part pairing. On the other hand, it is used to split or route traffic over different spectrum parts.
 
-For the FDD pairing functionality, the user has to enter the pairing configuration
-that applies to his/her scenario. The NetDevice will then ask the manager for the
-input/output bandwidth part to which the message should be routed. It is important
-to note that this feature virtually connects different physical layers.
+For the FDD pairing functionality, the user has to enter the pairing configuration that applies to his/her scenario. The NetDevice will then ask the manager for the input/output bandwidth part to which the message should be routed. It is important to note that this feature virtually connects different physical layers.
 
-For the flows routing among different spectrum, the layer intercepts the BSR from
-the RLC queues, and route them to the correct stack (MAC and PHY) that is attached
-to a particular spectrum region. The algorithmic part of the split is separated
-from the Bandwidth Part Manager. In other words, the algorithm is modularized to
-let the user write, change, and test different ways of performing the split.
-The only requirement is that such routing is done based on the QCI of the flow.
+For the flows routing among different spectrum, the layer intercepts the BSR from the RLC queues, and route them to the correct stack (MAC and PHY) that is attached to a particular spectrum region. The algorithmic part of the split is separated from the Bandwidth Part Manager. In other words, the algorithm is modularized to let the user write, change, and test different ways of performing the split. The only requirement is that such routing is done based on the QCI of the flow.
 
 
 Adaptive modulation and coding model
@@ -781,14 +704,7 @@ and such index is then communicated to the gNB through a CQI index (quantized by
 
 Transport block model
 =====================
-The model of the MAC Transport Blocks (TBs) provided by the simulator is
-simplified with respect to the 3GPP specifications. In particular, a
-simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve
-the simulator’s equivalent of a TB, without the corresponding implementation
-complexity. The multiplexing of different logical channels to and from the RLC
-layer is performed using a dedicated packet tag (LteRadioBearerTag), which
-produces a functionality which is partially equivalent to that of the MAC
-headers specified by 3GPP.
+The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
 
 
 RLC layer
