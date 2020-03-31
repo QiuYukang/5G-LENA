@@ -1035,13 +1035,6 @@ MmWaveHelper::SetChannelConditionModelAttribute (const std::string &n, const Att
 }
 
 void
-MmWaveHelper::SetSpectrumPropagationAttribute (const std::string &n, const AttributeValue &v)
-{
-  NS_LOG_FUNCTION (this);
-  m_spectrumPropagationFactory.Set (n, v);
-}
-
-void
 MmWaveHelper::SetPathlossAttribute(const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
