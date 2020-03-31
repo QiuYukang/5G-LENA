@@ -91,4 +91,29 @@ LteMacSapUser
   return SimpleUeComponentCarrierManager::DoConfigureSignalBearer (lcId, lcConfig, msu);
 }
 
+uint8_t
+BwpManagerUe::RouteDlHarqFeedback (const DlHarqInfo &m) const
+{
+  NS_LOG_FUNCTION (this);
+
+  return m.m_bwpIndex;
+}
+
+uint8_t
+BwpManagerUe::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  return sourceBwpId;
+}
+
+uint8_t
+BwpManagerUe::RouteIngoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  // Not so intelligent, for the moment...
+  return sourceBwpId;
+}
+
 } // namespace ns3

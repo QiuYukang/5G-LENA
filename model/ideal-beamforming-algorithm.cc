@@ -20,13 +20,12 @@
 #include "ideal-beamforming-algorithm.h"
 #include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/node.h>
-#include "beam-manager.h"
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-enb-phy.h"
 #include "mmwave-enb-net-device.h"
 #include "mmwave-ue-net-device.h"
-
+#include "beam-manager.h"
 
 namespace ns3{
 
@@ -75,26 +74,16 @@ IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (double powerTx, Ptr
 }
 
 void
-IdealBeamformingAlgorithm::Run() const
+IdealBeamformingAlgorithm::GetBeamformingVectors(const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
-  for (const auto & dev : m_ueDeviceMap)
-    {
-      DoRun (m_netDevice, dev);
-    }
+  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv);
 }
 
 
 void
-IdealBeamformingAlgorithm::SetOwner (Ptr<MmWaveEnbNetDevice> gNbDev, uint8_t ccId)
+IdealBeamformingAlgorithm::SetOwner (uint8_t ccId)
 {
-  m_netDevice = gNbDev;
   m_ccId = ccId;
-}
-
-void
-IdealBeamformingAlgorithm::AddUeDevice (Ptr<MmWaveUeNetDevice> ueDevice)
-{
-  m_ueDeviceMap.push_back(ueDevice);
 }
 
 TypeId
@@ -110,15 +99,15 @@ CellScanBeamforming::GetTypeId (void)
 
 
 void
-CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const
+CellScanBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
-  NS_ABORT_MSG_IF (gNbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
+  NS_ABORT_MSG_IF (gnbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
 
-  NS_ABORT_MSG_IF (gNbDev->GetNode()->GetObject<MobilityModel>()->GetDistanceFrom( ueDev->GetNode()->GetObject<MobilityModel>()) == 0,
+  NS_ABORT_MSG_IF (gnbDev->GetNode()->GetObject<MobilityModel>()->GetDistanceFrom( ueDev->GetNode()->GetObject<MobilityModel>()) == 0,
                    "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
   // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
-  Ptr<MmWaveEnbPhy> txPhy = gNbDev->GetPhy(m_ccId);
+  Ptr<MmWaveEnbPhy> txPhy = gnbDev->GetPhy(m_ccId);
   Ptr<MmWaveUePhy> rxPhy = ueDev->GetPhy(m_ccId);
 
   Ptr<MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
@@ -132,61 +121,52 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
 
   NS_ASSERT_MSG (txThreeGppSpectrumPropModel == rxThreeGppSpectrumPropModel, "Devices should be connected on the same spectrum channel");
 
-  Ptr<BeamManager> txBeamManager = txPhy->GetBeamManager();
-  Ptr<BeamManager> rxBeamManager = rxPhy->GetBeamManager();
-
-  NS_ABORT_MSG_IF (txBeamManager == nullptr || rxBeamManager == nullptr, "Tx or Rx antenna beam managers are not set");
-
   Ptr<const SpectrumValue> fakePsd = IdealBeamformingAlgorithm::CreateFakeTxPowerSpectralDensity (0.0, txSpectrumPhy->GetRxSpectrumModel());
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
-  size_t maxTx = 0, maxRx = 0;
+  uint16_t maxTxSector = 0, maxRxSector = 0;
   complexVector_t  maxLongTerm, maxTxW, maxRxW;
 
   UintegerValue uintValue;
-  txBeamManager->GetAntennaArray()->GetAttribute("NumRows", uintValue);
+  txSpectrumPhy->GetAntennaArray()->GetAttribute("NumRows", uintValue);
   uint32_t txNumRows = uintValue.Get();
-  rxBeamManager->GetAntennaArray()->GetAttribute("NumRows", uintValue);
+  rxSpectrumPhy->GetAntennaArray()->GetAttribute("NumRows", uintValue);
   uint32_t rxNumRows = uintValue.Get();
 
-  NS_LOG_LOGIC ("BeamSearchBeamforming method at time " << Simulator::Now ().GetSeconds ());
-  for (uint16_t txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
+  for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-      for (size_t tx = 0; tx <= txNumRows; tx++)
+      for (uint16_t txSector = 0; txSector <= txNumRows; txSector++)
         {
-          NS_ASSERT(tx < UINT8_MAX);
-          SetSector (static_cast<uint8_t> (tx), txTheta, txBeamManager);
+          NS_ASSERT(txSector < UINT16_MAX);
 
-          complexVector_t txW = txBeamManager->GetCurrentBeamformingVector();
+          txPhy->GetBeamManager()->SetSector (txSector, txTheta);
+          complexVector_t txW = txPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-          for (uint16_t rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
+          for (double rxTheta = 60; rxTheta < 121; rxTheta = static_cast<uint16_t> (rxTheta + m_beamSearchAngleStep))
             {
-              for (size_t rx = 0; rx <= rxNumRows; rx++)
+              for (uint16_t rxSector = 0; rxSector <= rxNumRows; rxSector++)
                 {
-                  NS_LOG_LOGIC ("txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
-                                (M_PI * (double)tx / (double)txNumRows - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
-                                (M_PI * (double)rx / (double)rxNumRows - 0.5 * M_PI) / (M_PI) * 180);
+                  NS_ASSERT(rxSector < UINT16_MAX);
 
-                  NS_ASSERT(rx < UINT8_MAX);
+                  rxPhy->GetBeamManager()->SetSector (rxSector, rxTheta);
+                  complexVector_t rxW = rxPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-                  SetSector (static_cast<uint8_t> (rx), rxTheta, rxBeamManager);
+                  NS_ABORT_MSG_IF (txW.size()==0 || rxW.size()==0, "Beamforming vectors must be initialized in order to calculate the long term matrix.");
 
-                  complexVector_t rxW = rxBeamManager->GetCurrentBeamformingVector ();
+                  Ptr<SpectrumValue> rxPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd, gnbDev->GetNode()->GetObject<MobilityModel>(), ueDev->GetNode()->GetObject<MobilityModel>());
 
-                  NS_ABORT_MSG_IF (txW.size()==0 || rxW.size()==0, "Beamforming vectors must be initialized in order to caclulate the long term matrix.");
+                  size_t nbands = rxPsd->GetSpectrumModel ()->GetNumBands ();
+                  double power = Sum (*rxPsd) / nbands;
+                  
+                  NS_LOG_LOGIC (" Rx power: "<< power << "txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
+                                (M_PI *  static_cast<double> (txSector) / static_cast<double>(txNumRows) - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
+                                (M_PI * static_cast<double> (rxSector) / static_cast<double> (rxNumRows) - 0.5 * M_PI) / (M_PI) * 180);
 
-                  Ptr<SpectrumValue> bfPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd, gNbDev->GetNode()->GetObject<MobilityModel>(), ueDev->GetNode()->GetObject<MobilityModel>());
-
-                  SpectrumValue bfGain = (*bfPsd) / (*fakePsd);  // TODO!!! BILJANA TO CHECK WITH SANDRA
-                  size_t nbands = bfGain.GetSpectrumModel ()->GetNumBands ();
-                  double power = Sum (bfGain) / nbands;
-
-                  NS_LOG_LOGIC ("gain " << power);
                   if (max < power)
                     {
                       max = power;
-                      maxTx = tx;
-                      maxRx = rx;
+                      maxTxSector = txSector;
+                      maxRxSector = rxSector;
                       maxTxTheta = txTheta;
                       maxRxTheta = rxTheta;
                       maxTxW = txW;
@@ -197,34 +177,14 @@ CellScanBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevic
         }
     }
 
-  txBeamManager->SetBeamformingVector (maxTxW, BeamId (maxTx, maxTxTheta), ueDev);
-  rxBeamManager->SetBeamformingVector (maxRxW, BeamId (maxRx, maxRxTheta), gNbDev);
-}
+  *gnbBfv = BeamformingVector (std::make_pair(maxTxW, BeamId (maxTxSector, maxTxTheta)));
+  *ueBfv = BeamformingVector (std::make_pair (maxRxW, BeamId (maxRxSector, maxRxTheta)));
 
-
-void
-CellScanBeamforming::SetSector (uint16_t sector, double elevation, Ptr<BeamManager> beamManager) const
-{
-  NS_LOG_INFO ("Set sector to :"<< (unsigned) sector<< ", and elevation to:"<< elevation);
-  complexVector_t tempVector;
-
-  UintegerValue uintValueNumRows;
-  beamManager->GetAntennaArray()->GetAttribute("NumRows", uintValueNumRows);
-
-
-  double hAngle_radian = M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumRows.Get())) - 0.5 * M_PI;
-  double vAngle_radian = elevation * M_PI / 180;
-  uint16_t size = beamManager->GetAntennaArray()->GetNumberOfElements();
-  double power = 1 / sqrt (size);
-  for (auto ind = 0; ind < size; ind++)
-    {
-      Vector loc = beamManager->GetAntennaArray()->GetElementLocation(ind);
-      double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
-                                  + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
-                                  + cos (vAngle_radian) * loc.z);
-      tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
-    }
-   beamManager->GetAntennaArray()->SetBeamformingVector(tempVector);
+  NS_LOG_DEBUG ("Beamforming vectors for gNB with node id: "<< gnbDev->GetNode()->GetId ()<<
+                " and UE with node id: " << ueDev->GetNode()->GetId ()<<
+                " are txTheta " << maxTxTheta << " rxTheta " << maxRxTheta <<
+                " tx sector " << (M_PI * static_cast<double> (maxTxSector) / static_cast<double> (txNumRows) - 0.5 * M_PI) / (M_PI) * 180 <<
+                " rx sector " << (M_PI * static_cast<double> (maxRxSector) / static_cast<double> (rxNumRows) - 0.5 * M_PI) / (M_PI) * 180);
 }
 
 
@@ -235,16 +195,15 @@ DirectPathBeamforming::GetTypeId (void)
     .SetParent<IdealBeamformingAlgorithm> ()
     .AddConstructor<DirectPathBeamforming>()
   ;
-
   return tid;
 }
 
+
 void
-DirectPathBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const
+DirectPathBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
 
 }
-
 
 TypeId
 OptimalCovMatrixBeamforming::GetTypeId (void)
@@ -258,7 +217,7 @@ OptimalCovMatrixBeamforming::GetTypeId (void)
 }
 
 void
-OptimalCovMatrixBeamforming::DoRun (Ptr<MmWaveEnbNetDevice> gNbDev, Ptr<MmWaveUeNetDevice> ueDev) const
+OptimalCovMatrixBeamforming::DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
 {
 
 }

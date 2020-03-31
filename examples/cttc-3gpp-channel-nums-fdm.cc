@@ -60,7 +60,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
-#include "ns3/component-carrier-gnb.h"
+#include "ns3/bandwidth-part-gnb.h"
 
 using namespace ns3;
 
@@ -481,10 +481,10 @@ main (int argc, char *argv[])
 
   for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
      {
-       enbNetDev.Get(j)->GetAttribute("ComponentCarrierMap", objectMapValue);
+       enbNetDev.Get(j)->GetAttribute("BandwidthPartMap", objectMapValue);
        for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
          {
-           Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
+           Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
            if (i==0)
              {
                bandwidthPart->GetPhy()->SetTxPower(10*log10((bandwidthBwp1/totalBandwidth)*x));
@@ -500,7 +500,7 @@ main (int argc, char *argv[])
                std::cout<<"\n Please extend power assignment for additional bandwidht parts...";
              }
          }
-       //std::map<uint8_t, Ptr<ComponentCarrierGnb> > ccMap = objectMapValue.GetN()
+       //std::map<uint8_t, Ptr<BandwidthPartGnb> > ccMap = objectMapValue.GetN()
      }
 
   // Set the default gateway for the UEs
@@ -606,7 +606,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> ComponentCarrierMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

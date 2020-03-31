@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <map>
+#include <vector>
 #include <complex>
 #include <unordered_map>
 
@@ -97,6 +98,22 @@ struct BeamIdHash {
 };
 
 std::ostream &operator<< (std::ostream &os, const BeamId &item);
+
+
+typedef std::vector<std::complex<double>> complexVector_t; //!< type definition for complex vectors
+
+/**
+ * \ingroup beam-management
+ * \brief Physical representation of a beam.
+ *
+ * Contains the vector of the antenna weight, as well as the beam id. These
+ * values are stored as std::pair, and we provide utilities functions to
+ * extract them.
+ *
+ * \see GetVector
+ * \see GetBeamId
+ */
+typedef std::pair<complexVector_t, BeamId>  BeamformingVector;
 
 } /* namespace ns3 */
 

@@ -106,6 +106,24 @@ BwpManagerGnb::PeekBwpIndex (uint16_t rnti, uint8_t lcid) const
   return m_algorithm->GetBwpForEpsBearer (static_cast<EpsBearer::Qci> (qci));
 }
 
+uint8_t
+BwpManagerGnb::RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  // Not so intelligent, for the moment...
+  return sourceBwpId;
+}
+
+uint8_t
+BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  // Not so intelligent, for the moment...
+  return sourceBwpId;
+}
+
 void
 BwpManagerGnb::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params)
 {

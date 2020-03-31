@@ -33,7 +33,7 @@ class LteUeComponentCarrierManager;
 class EpcUeNas;
 class LteUeRrc;
 class MmWaveEnbNetDevice;
-class ComponentCarrierMmWaveUe;
+class BandwidthPartUe;
 
 class MmWaveUeNetDevice : public MmWaveNetDevice
 {
@@ -80,19 +80,47 @@ public:
    * \brief Set the ComponentCarrier Map for the UE
    * \param ccm the map of ComponentCarrierUe
    */
-  void SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> > ccm);
+  void SetCcMap (std::map< uint8_t, Ptr<BandwidthPartUe> > ccm);
 
   /**
    * \brief Get the ComponentCarrier Map for the UE
    * \returns the map of ComponentCarrierUe
    */
-  std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> >  GetCcMap (void);
+  std::map< uint8_t, Ptr<BandwidthPartUe> >  GetCcMap (void);
 
   /**
    * \brief Get the size of the component carriers map
    * \return the number of cc that we have
    */
   uint32_t GetCcMapSize () const;
+
+  /**
+   * \brief Spectrum has calculated the HarqFeedback for one DL transmission,
+   * and give it to the NetDevice of the UE.
+   *
+   * The NetDevice find the best BWP to forward the Harq Feedback, and then
+   * forward it to the PHY of the selected BWP.
+   *
+   * \param m feedback
+   */
+  void EnqueueDlHarqFeedback (const DlHarqInfo &m) const;
+
+  /**
+   * \brief The UE received a CTRL message list.
+   *
+   * The UE should divide the messages to the BWP they pertain to.
+   *
+   * \param msgList Message list
+   * \param sourceBwpId BWP Id from which the list originated
+   */
+  void RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
+
+  /**
+   * \brief Route the outgoing messages to the right BWP
+   * \param msgList the list of messages
+   * \param sourceBwpId the source bwp of the messages
+   */
+  void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
 
 protected:
   // inherited from Object
@@ -112,7 +140,7 @@ private:
   uint32_t m_csgId;
   bool m_isConstructed;
 
-  std::map < uint8_t, Ptr<ComponentCarrierMmWaveUe> > m_ccMap; ///< component carrier map
+  std::map < uint8_t, Ptr<BandwidthPartUe> > m_ccMap; ///< component carrier map
   Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
 
 };

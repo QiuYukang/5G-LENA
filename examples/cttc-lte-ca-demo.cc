@@ -24,11 +24,55 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
-#include "ns3/component-carrier-gnb.h"
+#include "ns3/bandwidth-part-gnb.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmLteComponentCarriersExample");
+
+
+// All LTE TDD patterns are defined here
+static  std::vector<LteNrTddSlotType> ltePattern0 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
+    LteNrTddSlotType::UL};
+static  std::vector<LteNrTddSlotType> ltePattern1 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::UL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
+    LteNrTddSlotType::DL};
+static  std::vector<LteNrTddSlotType> ltePattern2 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL};
+static std::vector<LteNrTddSlotType> ltePattern3 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL};
+static std::vector<LteNrTddSlotType> ltePattern4 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::UL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL};
+static  std::vector<LteNrTddSlotType> ltePattern5 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL};
+static  std::vector<LteNrTddSlotType> ltePattern6 {
+    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
+    LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
+    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
+    LteNrTddSlotType::DL};
+static  std::vector<LteNrTddSlotType> ltePatternFs {
+    LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
+    LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
+    LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
+    LteNrTddSlotType::F};
+
 
 int 
 main (int argc, char *argv[])
@@ -36,7 +80,7 @@ main (int argc, char *argv[])
   bool udpFullBuffer = false;
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
-  uint16_t numFlowsUe = 2;
+  uint16_t numFlowsUe = 1;
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
   uint32_t udpPacketSizeUll = 1000;
@@ -255,60 +299,130 @@ main (int argc, char *argv[])
    * n1 and n3. n1 has a secondary carrier of 20 MHz and n3 has two non-contiguous carriers
    * of 20 MHz each, one primary carrier and another secondary carrier. Transmission of a
    * single DL UDP flow occurs on the primary carrier.
+   *
+   * Thius example manually creates a non-contiguous CC configuration with 2 CCs.
+   * First CC has two BWPs and the second only one.
    */
   ComponentCarrierBandwidthPartCreator ccBwpManager(numBands);  //<! A first CA/BWP manager with numBands operation bands
 
   uint8_t ccId = 0;
   uint8_t bwpCount = 0;
 
-  // Manually creates a non-contiguous CC configuration with 2 CCs. First CC has two BWPs and the second only one.
+  // Set the TDD pattern to apply
+  std::vector <LteNrTddSlotType> pattern;
+   switch (tddPattern)
+   {
+     case 0:
+       pattern = ltePattern0;
+       break;
+     case 1:
+       pattern = ltePattern1;
+       break;
+     case 2:
+       pattern = ltePattern2;
+       break;
+     case 3:
+       pattern = ltePattern3;
+       break;
+     case 4:
+       pattern = ltePattern4;
+       break;
+     case 5:
+       pattern = ltePattern5;
+       break;
+     case 6:
+       pattern = ltePattern6;
+       break;
+     case 15:
+       pattern = ltePatternFs;
+       break;
+   }
 
-  //Lowerst frequency band
+  //Lowest frequency band
   OperationBandInfo band40;
   band40.m_bandId = 40;
   band40.m_centralFrequency  = 2350e6;
   band40.m_bandwidth = 100e6;
-  band40.m_lowerFrequency = band40.m_centralFrequency - static_cast<double>(band40.m_bandwidth) / 2;
-  band40.m_higherFrequency = band40.m_centralFrequency + static_cast<double>(band40.m_bandwidth) / 2;
+  band40.m_lowerFrequency = band40.m_centralFrequency -
+      static_cast<double>(band40.m_bandwidth) / 2;
+  band40.m_higherFrequency = band40.m_centralFrequency +
+      static_cast<double>(band40.m_bandwidth) / 2;
 
   ComponentCarrierInfo cc0;
   cc0.m_ccId = 1;
-  cc0.m_primaryCc = PRIMARY;
+  cc0.m_primaryCc = CellType::PCell;
   cc0.m_centralFrequency = band40.m_lowerFrequency + 10e6;
   cc0.m_bandwidth = 18e6;
-  cc0.m_lowerFrequency = cc0.m_centralFrequency - static_cast<double>(cc0.m_bandwidth) / 2;
-  cc0.m_higherFrequency = cc0.m_centralFrequency + static_cast<double>(cc0.m_bandwidth) / 2;
-  cc0.m_activeBwp = bwpCount;
+  cc0.m_lowerFrequency = cc0.m_centralFrequency -
+      static_cast<double>(cc0.m_bandwidth) / 2;
+  cc0.m_higherFrequency = cc0.m_centralFrequency +
+      static_cast<double>(cc0.m_bandwidth) / 2;
+  cc0.m_mode = OperationMode::TDD;
 
-  ComponentCarrierBandwidthPartElement bwp0;
-  bwp0.m_bwpId = bwpCount;
-  bwp0.m_numerology = 0;
-  bwp0.m_centralFrequency = cc0.m_centralFrequency;
-  bwp0.m_bandwidth = cc0.m_bandwidth;
-  bwp0.m_lowerFrequency = cc0.m_lowerFrequency;
-  bwp0.m_higherFrequency = cc0.m_higherFrequency;
-  cc0.AddBwp(bwp0);
-  ++bwpCount;
+  // The NR module works with BWPs. To emulate LTE you must create them occupying the whole CC
+  // Avoid using the base struct BandwidthPartInfo instead of the TDD/FDD versions. Simulation will not continue
+  if (cc0.m_mode == OperationMode::TDD)
+    {
+      Ptr<BandwidthPartInfoTdd> bwp0 = CreateObject<BandwidthPartInfoTdd> ();
+      bwp0->m_bwpId = bwpCount;
+      bwp0->m_numerology = 0;
+      bwp0->m_centralFrequency = cc0.m_centralFrequency;
+      bwp0->m_bandwidth = cc0.m_bandwidth;
+      bwp0->m_lowerFrequency = cc0.m_lowerFrequency;
+      bwp0->m_higherFrequency = cc0.m_higherFrequency;
+      bwp0->m_tddPattern = pattern; //Set the desired TDD pattern for the BWP
+      cc0.AddBwp (bwp0);
+      ++bwpCount;
+    }
+  else
+    {
+      Ptr<BandwidthPartInfoFdd> bwp0dl = CreateObject<BandwidthPartInfoFdd> ();
+      bwp0dl->m_bwpId = bwpCount;
+      bwp0dl->m_numerology = 0;
+      bwp0dl->m_bandwidth = cc0.m_bandwidth / 2;
+      bwp0dl->m_lowerFrequency = cc0.m_lowerFrequency;
+      bwp0dl->m_higherFrequency = cc0.m_lowerFrequency + bwp0dl->m_bandwidth;
+      bwp0dl->m_centralFrequency = bwp0dl->m_lowerFrequency +
+          (bwp0dl->m_higherFrequency - bwp0dl->m_lowerFrequency) / 2;
+      bwp0dl->m_direction = BandwidthPartInfoFdd::DL;
+      bwp0dl->m_linkedBwps.push_back (bwpCount + 1);
+      cc0.AddBwp (bwp0dl);  // Add the BWP to the containing carrier descriptor
+      ++bwpCount;
+      Ptr<BandwidthPartInfoFdd> bwp0ul = CreateObject<BandwidthPartInfoFdd> ();
+      bwp0ul->m_bwpId = bwpCount;
+      bwp0ul->m_numerology = 0;
+      bwp0ul->m_bandwidth = cc0.m_bandwidth - bwp0dl->m_bandwidth;
+      bwp0ul->m_lowerFrequency = bwp0dl->m_higherFrequency;
+      bwp0ul->m_higherFrequency = cc0.m_higherFrequency;
+      bwp0ul->m_centralFrequency = bwp0ul->m_lowerFrequency +
+          (bwp0ul->m_higherFrequency - bwp0ul->m_lowerFrequency) / 2;
+      bwp0ul->m_direction = BandwidthPartInfoFdd::UL;
+      bwp0ul->m_linkedBwps.push_back (bwp0dl->m_bwpId);
+      cc0.AddBwp (bwp0ul);  // Add the BWP to the containing carrier descriptor
+      ++bwpCount;
+    }
 
-  band40.AddCc(cc0);//<! Adds the CC to the band
+  // Add the created CC to the frequency band configuration structure
+  band40.AddCc(cc0);
 
 
   ComponentCarrierInfo cc1;
   cc1.m_ccId = 2;
-  cc1.m_primaryCc = SECONDARY;
+  cc1.m_primaryCc = CellType::SCell;
+  cc1.m_mode = OperationMode::TDD;
   cc1.m_centralFrequency = band40.m_higherFrequency-10e6;
   cc1.m_bandwidth = 18e6;
-  cc1.m_lowerFrequency = cc1.m_centralFrequency - (double)cc1.m_bandwidth/2;
-  cc1.m_higherFrequency = cc1.m_centralFrequency + (double)cc1.m_bandwidth/2;
-  cc1.m_activeBwp = bwpCount;
+  cc1.m_lowerFrequency = cc1.m_centralFrequency - static_cast<double> (cc1.m_bandwidth / 2);
+  cc1.m_higherFrequency = cc1.m_centralFrequency + static_cast<double> (cc1.m_bandwidth / 2);
 
-  ComponentCarrierBandwidthPartElement bwp1;
-  bwp1.m_bwpId = bwpCount;
-  bwp1.m_numerology = 0;
-  bwp1.m_centralFrequency = cc1.m_centralFrequency;
-  bwp1.m_bandwidth = cc1.m_bandwidth;
-  bwp1.m_lowerFrequency = cc1.m_lowerFrequency;
-  bwp1.m_higherFrequency = cc1.m_higherFrequency;
+  Ptr<BandwidthPartInfoTdd> bwp1 = CreateObject<BandwidthPartInfoTdd> ();
+  bwp1->m_bwpId = bwpCount;
+  bwp1->m_numerology = 0;
+  bwp1->m_centralFrequency = cc1.m_centralFrequency;
+  bwp1->m_bandwidth = cc1.m_bandwidth;
+  bwp1->m_lowerFrequency = cc1.m_lowerFrequency;
+  bwp1->m_higherFrequency = cc1.m_higherFrequency;
+  bwp1->m_tddPattern = pattern;  //Set the desired TDD pattern for the BWP
   cc1.AddBwp(bwp1);
   ++bwpCount;
 
@@ -326,23 +440,24 @@ main (int argc, char *argv[])
   band38.m_lowerFrequency = band38.m_centralFrequency - static_cast<double> (band38.m_bandwidth) / 2;
   band38.m_higherFrequency = band38.m_centralFrequency + static_cast<double> (band38.m_bandwidth) / 2;
 
-  // Component Carrier 1
+  // Component Carrier 2
   ComponentCarrierInfo cc2;
   cc2.m_ccId = 0;
-  cc2.m_primaryCc = SECONDARY;
+  cc2.m_primaryCc = CellType::SCell;
+  cc2.m_mode = OperationMode::TDD;
   cc2.m_centralFrequency = band38.m_centralFrequency;
   cc2.m_bandwidth = 18e6;
   cc2.m_lowerFrequency = cc2.m_centralFrequency - static_cast<double> (cc2.m_bandwidth) / 2;
   cc2.m_higherFrequency = cc2.m_centralFrequency + static_cast<double> (cc2.m_bandwidth) / 2;
-  cc2.m_activeBwp = bwpCount;
-  // The NR module works with BWPs, so yous should create it occupying the whole CC
-  ComponentCarrierBandwidthPartElement bwp2;
-  bwp2.m_bwpId = bwpCount;
-  bwp2.m_numerology = 0;
-  bwp2.m_centralFrequency = cc2.m_centralFrequency;
-  bwp2.m_bandwidth = cc2.m_bandwidth;
-  bwp2.m_lowerFrequency = cc2.m_lowerFrequency;
-  bwp2.m_higherFrequency = cc2.m_higherFrequency;
+
+  Ptr<BandwidthPartInfoTdd> bwp2 = CreateObject<BandwidthPartInfoTdd> ();
+  bwp2->m_bwpId = bwpCount;
+  bwp2->m_numerology = 0;
+  bwp2->m_centralFrequency = cc2.m_centralFrequency;
+  bwp2->m_bandwidth = cc2.m_bandwidth;
+  bwp2->m_lowerFrequency = cc2.m_lowerFrequency;
+  bwp2->m_higherFrequency = cc2.m_higherFrequency;
+  bwp2->m_tddPattern = pattern;  //Set the desired TDD pattern for the BWP
   cc2.AddBwp (bwp2);
   ++bwpCount;
 
@@ -359,53 +474,91 @@ main (int argc, char *argv[])
   // Plot operation bands
   ccBwpManager.PlotLteCaConfiguration ("TestLteBandPlot");
 
-
+  // TODO: This could be a function that automatically gets the configurations and creates the BandwidthPartRepresentations
   // Create BandwidthPartRepresentations referred to the active BWP only of each CC
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon> ();
-  phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Just to force the RBG size for the given CC bandwidth
-  ComponentCarrierBandwidthPartElement recBwp0 = bwp0;
-  phyMacCommonBwp0->SetCentreFrequency (recBwp0.m_centralFrequency);
-  phyMacCommonBwp0->SetBandwidth (recBwp0.m_bandwidth);
-  phyMacCommonBwp0->SetNumerology ((uint32_t)recBwp0.m_numerology);
-  phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-  phyMacCommonBwp0->SetCcId (ccId);
-  BandwidthPartRepresentation repr0 (ccId, phyMacCommonBwp0, nullptr, nullptr, nullptr);
-  mmWaveHelper->AddBandwidthPart (ccId, repr0);
-  ++ccId;
-  std::cout << "CC0" << std::endl;
-  std::cout << "  Central frequency (MHz): " << recBwp0.m_centralFrequency/1000/1000 << std::endl;
-  std::cout << "  Bandwidth (MHz): " << recBwp0.m_bandwidth/1000/1000 << std::endl;
+  if (cc0.m_mode == OperationMode::TDD)
+    {
+      Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon> ();
+      phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
+      Ptr<BandwidthPartInfo> recBwp0 = cc0.m_bwp.begin ()->second;
+      phyMacCommonBwp0->SetCentreFrequency (recBwp0->m_centralFrequency);
+      phyMacCommonBwp0->SetBandwidth (recBwp0->m_bandwidth);
+      phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (recBwp0->m_numerology));
+      phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+      phyMacCommonBwp0->SetCcId (ccId);
+      BandwidthPartRepresentation repr0 (ccId, phyMacCommonBwp0, nullptr, nullptr, nullptr);
+      mmWaveHelper->AddBandwidthPart (ccId, repr0);
+      ++ccId;
+      std::cout << "CC0" << std::endl;
+      std::cout << "  Central frequency (MHz): " << recBwp0->m_centralFrequency/1000/1000 << std::endl;
+      std::cout << "  Bandwidth (MHz): " << recBwp0->m_bandwidth/1000/1000 << std::endl;
+    }
+  else
+    {
+      Ptr<MmWavePhyMacCommon> phyMacCommonBwp0dl = CreateObject<MmWavePhyMacCommon> ();
+      phyMacCommonBwp0dl->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
+      std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator it = cc0.m_bwp.begin ();
+      Ptr<BandwidthPartInfo> recBwp0dl = it->second;
+      phyMacCommonBwp0dl->SetCentreFrequency (recBwp0dl->m_centralFrequency);
+      phyMacCommonBwp0dl->SetBandwidth (recBwp0dl->m_bandwidth);
+      phyMacCommonBwp0dl->SetNumerology (static_cast<uint32_t> (recBwp0dl->m_numerology));
+      phyMacCommonBwp0dl->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+      phyMacCommonBwp0dl->SetCcId (ccId);
+      BandwidthPartRepresentation repr0dl (ccId, phyMacCommonBwp0dl, nullptr, nullptr, nullptr);
+      mmWaveHelper->AddBandwidthPart (ccId, repr0dl);
+      ++ccId;
+      ++it;
+      std::cout << "CC0" << std::endl;
+      std::cout << "  DL Central frequency (MHz): " << recBwp0dl->m_centralFrequency/1000/1000 << std::endl;
+      std::cout << "  DL Bandwidth (MHz): " << recBwp0dl->m_bandwidth/1000/1000 << std::endl;
+
+      Ptr<MmWavePhyMacCommon> phyMacCommonBwp0ul = CreateObject<MmWavePhyMacCommon> ();
+      phyMacCommonBwp0ul->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
+      Ptr<BandwidthPartInfo> recBwp0ul = it->second;
+      phyMacCommonBwp0ul->SetCentreFrequency (recBwp0ul->m_centralFrequency);
+      phyMacCommonBwp0ul->SetBandwidth (recBwp0ul->m_bandwidth);
+      phyMacCommonBwp0ul->SetNumerology (static_cast<uint32_t> (recBwp0ul->m_numerology));
+      phyMacCommonBwp0ul->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+      phyMacCommonBwp0ul->SetCcId (ccId);
+      BandwidthPartRepresentation repr0ul (ccId, phyMacCommonBwp0ul, nullptr, nullptr, nullptr);
+      mmWaveHelper->AddBandwidthPart (ccId, repr0ul);
+      ++ccId;
+      std::cout << "CC0" << std::endl;
+      std::cout << "  UL Central frequency (MHz): " << recBwp0ul->m_centralFrequency/1000/1000 << std::endl;
+      std::cout << "  UL Bandwidth (MHz): " << recBwp0ul->m_bandwidth/1000/1000 << std::endl;
+
+    }
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetNumRbPerRbg (4); //<! Just to force the RBG size for the given CC bandwidth
-  ComponentCarrierBandwidthPartElement recBwp1 = bwp1;
-  phyMacCommonBwp1->SetCentreFrequency (recBwp1.m_centralFrequency);
-  phyMacCommonBwp1->SetBandwidth (recBwp1.m_bandwidth);
-  phyMacCommonBwp1->SetNumerology ((uint32_t)recBwp1.m_numerology);
+  phyMacCommonBwp1->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
+  Ptr<BandwidthPartInfo> recBwp1 = bwp1;
+  phyMacCommonBwp1->SetCentreFrequency (recBwp1->m_centralFrequency);
+  phyMacCommonBwp1->SetBandwidth (recBwp1->m_bandwidth);
+  phyMacCommonBwp1->SetNumerology (static_cast<uint32_t> (recBwp1->m_numerology));
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
   phyMacCommonBwp1->SetCcId (ccId);
   BandwidthPartRepresentation repr1 (ccId, phyMacCommonBwp1, nullptr, nullptr, nullptr);
   mmWaveHelper->AddBandwidthPart (ccId, repr1);
   ++ccId;
   std::cout << "CC1" << std::endl;
-  std::cout << "  Central frequency (MHz): " << recBwp1.m_centralFrequency/1000/1000 << std::endl;
-  std::cout << "  Bandwidth (MHz): " << recBwp1.m_bandwidth/1000/1000 << std::endl;
+  std::cout << "  Central frequency (MHz): " << recBwp1->m_centralFrequency/1000/1000 << std::endl;
+  std::cout << "  Bandwidth (MHz): " << recBwp1->m_bandwidth/1000/1000 << std::endl;
 
-  //Create the third CC and more if they are going to be used to convey data
-//  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-//  phyMacCommonBwp2->SetNumRbPerRbg (4); //<! Just to force the RBG size for the given CC bandwidth
-//  ComponentCarrierBandwidthPartElement recBwp2 = bwp2;
-//  phyMacCommonBwp2->SetCentreFrequency(recBwp2.m_centralFrequency);
-//  phyMacCommonBwp2->SetBandwidth (recBwp2.m_bandwidth);
-//  phyMacCommonBwp2->SetNumerology((uint32_t)recBwp2.m_numerology);
-//  phyMacCommonBwp2->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
-//  phyMacCommonBwp2->SetCcId (ccId);
-//  BandwidthPartRepresentation repr2 (ccId, phyMacCommonBwp2, nullptr, nullptr, nullptr);
-//  mmWaveHelper->AddBandwidthPart (ccId, repr2);
-//  ++ccId;
-//  std::cout << "CC2" << std::endl;
-//  std::cout << "  Central frequency (MHz): " << recBwp2.m_centralFrequency/1000/1000 << std::endl;
-//  std::cout << "  Bandwidth (MHz): " << recBwp2.m_bandwidth/1000/1000 << std::endl;
+  //Create the third CC and more only if they are going to be used to convey data
+  Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
+  phyMacCommonBwp2->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
+  Ptr<BandwidthPartInfo> recBwp2 = bwp2;
+  phyMacCommonBwp2->SetCentreFrequency(recBwp2->m_centralFrequency);
+  phyMacCommonBwp2->SetBandwidth (recBwp2->m_bandwidth);
+  phyMacCommonBwp2->SetNumerology (static_cast<uint32_t> (recBwp2->m_numerology));
+  phyMacCommonBwp2->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+  phyMacCommonBwp2->SetCcId (ccId);
+  BandwidthPartRepresentation repr2 (ccId, phyMacCommonBwp2, nullptr, nullptr, nullptr);
+  mmWaveHelper->AddBandwidthPart (ccId, repr2);
+  ++ccId;
+  std::cout << "CC2" << std::endl;
+  std::cout << "  Central frequency (MHz): " << recBwp2->m_centralFrequency/1000/1000 << std::endl;
+  std::cout << "  Bandwidth (MHz): " << recBwp2->m_bandwidth/1000/1000 << std::endl;
 
 
   NS_ABORT_MSG_IF(ccId < 1,"No CC created");
@@ -425,100 +578,41 @@ main (int argc, char *argv[])
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
 
-  // All LTE TDD patterns are defined here
-  std::vector<LteNrTddSlotType> ltePattern0 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
-    LteNrTddSlotType::UL};
-  std::vector<LteNrTddSlotType> ltePattern1 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::UL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
-    LteNrTddSlotType::DL};
-  std::vector<LteNrTddSlotType> ltePattern2 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL};
-  std::vector<LteNrTddSlotType> ltePattern3 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL};
-  std::vector<LteNrTddSlotType> ltePattern4 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::UL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL};
-  std::vector<LteNrTddSlotType> ltePattern5 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL, LteNrTddSlotType::DL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::DL};
-  std::vector<LteNrTddSlotType> ltePattern6 {
-    LteNrTddSlotType::DL, LteNrTddSlotType::S, LteNrTddSlotType::UL,
-    LteNrTddSlotType::UL, LteNrTddSlotType::UL, LteNrTddSlotType::DL,
-    LteNrTddSlotType::S, LteNrTddSlotType::UL, LteNrTddSlotType::UL,
-    LteNrTddSlotType::DL};
-  std::vector<LteNrTddSlotType> ltePatternFs {
-    LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
-    LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
-    LteNrTddSlotType::F, LteNrTddSlotType::F, LteNrTddSlotType::F,
-    LteNrTddSlotType::F};
-  std::vector<LteNrTddSlotType> ltePattern;
-  switch (tddPattern)
-  {
-    case 0:
-      ltePattern = ltePattern0;
-      break;
-    case 1:
-      ltePattern = ltePattern1;
-      break;
-    case 2:
-      ltePattern = ltePattern2;
-      break;
-    case 3:
-      ltePattern = ltePattern3;
-      break;
-    case 4:
-      ltePattern = ltePattern4;
-      break;
-    case 5:
-      ltePattern = ltePattern5;
-      break;
-    case 6:
-      ltePattern = ltePattern6;
-      break;
-    case 15:	//<! All 'F's pattern to get kind of FDD operation
-      ltePattern = ltePatternFs;
-      break;
-    default:
-      NS_ABORT_MSG("Wrong LTE pattern id");
-  }
-  // Set the TDD patterns for all the component carriers you've created
-  // Example: I want to set the ltePattern on bwp 0 of gnb 0
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 0)->SetTddPattern (ltePattern);
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 1)->SetTddPattern (ltePattern);
-//  mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 2)->SetTddPattern (ltePattern);
-
+  // Set the TDD patterns for all the bandwidth parts (aka carriers) you've created
+  if (cc0.m_mode == OperationMode::TDD)
+    {
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 0)->SetTddPattern (pattern);
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 1)->SetTddPattern (pattern);
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 2)->SetTddPattern (pattern);
+    }
+  else
+    {
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 2)->SetTddPattern (pattern);
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 3)->SetTddPattern (pattern);
+    }
 
   // Share the total transmission power among CCs proportionally with the BW
   double x = pow(10, totalTxPower/10);
+  double totalBandwidth = ccBwpManager.GetAggregatedBandwidth(); //TODO: replace by GetUeAggregatedBandwidth
 
-  double totalBandwidth = ccBwpManager.GetAggregatedBandwidth();
+  /*
+  *  In FDD, DL and UL might not be symmetric. A simple way to automatically set
+  *  BWP powers is to loop all PHYs and apply the BW of the attached BWP
+  */
+  std::vector<Ptr<BandwidthPartInfo>> bwpList;
+  ccBwpManager.GetConfiguredBwp (&bwpList);
 
-  ObjectMapValue objectMapValue;
-  // set tx power of gNBs
-  for (uint32_t j = 0; j < enbNetDev.GetN(); ++j)
+  for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
     {
-      enbNetDev.Get(j)->GetAttribute("ComponentCarrierMap", objectMapValue);
+      ObjectMapValue objectMapValue;
+      enbNetDev.Get(j)->GetAttribute("BandwidthPartMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
-          Ptr<ComponentCarrierGnb> bandwidthPart = DynamicCast<ComponentCarrierGnb>(objectMapValue.Get(i));
-          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(i);
-          bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
-          std::cout<<"\n txPower" << i <<" = "<<10*log10((bwCc/totalBandwidth)*x)<<std::endl;
+          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb>(objectMapValue.Get(i));
+          uint8_t bwdId = bandwidthPart->GetPhy ()->GetConfigurationParameters ()->GetCcId ();
+          uint32_t bw = (bwpList.at (bwdId))->m_bandwidth;
+          bandwidthPart->GetPhy ()->SetTxPower (10 * log10 ((bw / totalBandwidth) * x));
+          std::cout << "\n txPower" << i << " = " << 10 * log10 ((bw / totalBandwidth) * x) << std::endl;
         }
     }
 
@@ -526,10 +620,10 @@ main (int argc, char *argv[])
 //  for (uint32_t j = 0; j < ueNetDev.GetN(); ++j)
 //    {
 //      Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice>(ueNetDev.Get(j));
-//      netDevice->GetAttribute("ComponentCarrierMapUe", objectMapValue);
+//      netDevice->GetAttribute("BandwidthPartMapUe", objectMapValue);
 //      for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
 //        {
-//          Ptr<ComponentCarrierMmWaveUe> bandwidthPart = DynamicCast<ComponentCarrierMmWaveUe>(objectMapValue.Get(i));
+//          Ptr<BandwidthPartUe> bandwidthPart = DynamicCast<BandwidthPartUe>(objectMapValue.Get(i));
 //          uint32_t bwCc = ccBwpManager.GetCarrierBandwidth(i);
 //          bandwidthPart->GetPhy()->SetTxPower(10*log10((bwCc/totalBandwidth)*x));
 //        }
@@ -637,8 +731,8 @@ main (int argc, char *argv[])
 
               Ptr<EpcTft> tft = Create<EpcTft> ();
               EpcTft::PacketFilter ulpf;
-              ulpf.localPortStart = ulPort;
-              ulpf.localPortEnd = ulPort;
+              ulpf.remotePortStart = ulPort;
+              ulpf.remotePortEnd = ulPort;
               ++ulPort;
               tft->Add (ulpf);
 
@@ -695,7 +789,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> ComponentCarrierMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

@@ -20,10 +20,12 @@
 #define BWPMANAGERUE_H
 
 #include <ns3/simple-ue-component-carrier-manager.h>
+#include <ns3/mmwave-phy-mac-common.h>
 
 namespace ns3 {
 
 class BwpManagerAlgorithm;
+class MmWaveControlMessage;
 
 /**
  * \ingroup bwp
@@ -36,6 +38,32 @@ public:
 
   BwpManagerUe ();
   virtual ~BwpManagerUe () override;
+
+  /**
+   * \brief The UE received a HARQ feedback from spectrum. Where this feedback
+   * should be forwarded?
+   *
+   * \param m the feedback
+   * \return the BWP index in which the feedback can be transmitted to the gNB.
+   */
+  uint8_t RouteDlHarqFeedback (const DlHarqInfo &m) const;
+
+  /**
+   * \brief Decide the BWP for the control message received.
+   * \param msg Message
+   * \param bwpId BWP Id from which this message come from.
+   * \return the BWP Id to which this message should be routed to.
+   */
+  uint8_t RouteIngoingCtrlMsg (const Ptr<MmWaveControlMessage> & msg, uint8_t sourceBwpId) const;
+
+  /**
+   * \brief Route the outgoing messages to the right BWP
+   * \param msgList the list of messages
+   * \param sourceBwpId the source bwp of the messages
+   * \return the bwp to which the ctrl messages should be redirected
+   */
+  uint8_t RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const;
+
 protected:
   virtual void DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params) override;
   virtual std::vector<LteUeCcmRrcSapProvider::LcsConfig> DoAddLc (uint8_t lcId,  LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu) override;

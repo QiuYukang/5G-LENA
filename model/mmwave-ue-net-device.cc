@@ -18,10 +18,11 @@
  */
 
 #include "mmwave-ue-net-device.h"
-#include "component-carrier-mmwave-ue.h"
+#include "bandwidth-part-ue.h"
 #include "mmwave-ue-mac.h"
 #include "mmwave-ue-phy.h"
 #include "mmwave-enb-net-device.h"
+#include "bwp-manager-ue.h"
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/epc-ue-nas.h>
 #include <ns3/lte-ue-component-carrier-manager.h>
@@ -69,7 +70,7 @@ MmWaveUeNetDevice::GetTypeId (void)
     .AddAttribute ("ComponentCarrierMapUe", "List of all component Carrier.",
                    ObjectMapValue (),
                    MakeObjectMapAccessor (&MmWaveUeNetDevice::m_ccMap),
-                   MakeObjectMapChecker<ComponentCarrierMmWaveUe> ())
+                   MakeObjectMapChecker<BandwidthPartUe> ())
   ;
   return tid;
 }
@@ -92,10 +93,9 @@ MmWaveUeNetDevice::DoInitialize (void)
   m_isConstructed = true;
   UpdateConfig ();
 
-  std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> >::iterator it;
+  std::map< uint8_t, Ptr<BandwidthPartUe> >::iterator it;
   for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
     {
-      it->second->GetPhy ()->DoInitialize ();
       it->second->GetMac ()->Initialize ();
     }
   m_rrc->Initialize ();
@@ -107,7 +107,7 @@ MmWaveUeNetDevice::DoDispose ()
   m_rrc->Dispose ();
 }
 
-std::map < uint8_t, Ptr<ComponentCarrierMmWaveUe> >
+std::map < uint8_t, Ptr<BandwidthPartUe> >
 MmWaveUeNetDevice::GetCcMap ()
 {
   NS_LOG_FUNCTION (this);
@@ -122,7 +122,43 @@ MmWaveUeNetDevice::GetCcMapSize() const
 }
 
 void
-MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierMmWaveUe> > ccm)
+MmWaveUeNetDevice::EnqueueDlHarqFeedback (const DlHarqInfo &m) const
+{
+  NS_LOG_FUNCTION (this);
+
+  auto ccManager = DynamicCast<BwpManagerUe> (m_componentCarrierManager);
+  NS_ASSERT (ccManager != nullptr);
+  uint8_t index = ccManager->RouteDlHarqFeedback (m);
+  m_ccMap.at (index)->GetPhy ()->EnqueueDlHarqFeedback (m);
+}
+
+void
+MmWaveUeNetDevice::RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerUe> (m_componentCarrierManager)->RouteIngoingCtrlMsg (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->PhyCtrlMessagesReceived (msg);
+    }
+}
+
+void
+MmWaveUeNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList,
+                                          uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerUe> (m_componentCarrierManager)->RouteOutgoingCtrlMsg (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->EncodeCtrlMsg (msg);
+    }
+}
+
+void
+MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<BandwidthPartUe> > ccm)
 {
   NS_LOG_FUNCTION (this);
   m_ccMap = ccm;

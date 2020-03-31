@@ -18,7 +18,7 @@
  * Author: Biljana Bojovic <bbojovic@cttc.es>
  */
 
-#include "component-carrier-mmwave-ue.h"
+#include "bandwidth-part-ue.h"
 
 #include <ns3/uinteger.h>
 #include <ns3/boolean.h>
@@ -31,44 +31,44 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("ComponentCarrierMmWaveUe");
+NS_LOG_COMPONENT_DEFINE ("BandwidthPartUe");
 
-NS_OBJECT_ENSURE_REGISTERED ( ComponentCarrierMmWaveUe);
+NS_OBJECT_ENSURE_REGISTERED (BandwidthPartUe);
 
-TypeId ComponentCarrierMmWaveUe::GetTypeId (void)
+TypeId BandwidthPartUe::GetTypeId (void)
 {
   static TypeId
     tid =
-    TypeId ("ns3::ComponentCarrierMmWaveUe")
+    TypeId ("ns3::BandwidthPartUe")
     .SetParent<ComponentCarrier> ()
-    .AddConstructor<ComponentCarrierMmWaveUe> ()
+    .AddConstructor<BandwidthPartUe> ()
     .AddAttribute ("MmWaveUePhy",
-                   "The PHY associated to this ComponentCarrierMmWaveUe",
+                   "The PHY associated to this BandwidthPartUe",
                    PointerValue (),
-                   MakePointerAccessor (&ComponentCarrierMmWaveUe::m_phy),
+                   MakePointerAccessor (&BandwidthPartUe::m_phy),
                    MakePointerChecker <MmWaveUePhy> ())
     .AddAttribute ("MmWaveUeMac",
-                   "The MAC associated to this ComponentCarrierMmWaveUe",
+                   "The MAC associated to this BandwidthPartUe",
                    PointerValue (),
-                   MakePointerAccessor (&ComponentCarrierMmWaveUe::m_mac),
+                   MakePointerAccessor (&BandwidthPartUe::m_mac),
                    MakePointerChecker <MmWaveUeMac> ())
   ;
   return tid;
 }
-ComponentCarrierMmWaveUe::ComponentCarrierMmWaveUe ()
+BandwidthPartUe::BandwidthPartUe ()
   : ComponentCarrier()
 {
   NS_LOG_FUNCTION (this);
   m_phy = nullptr;
 }
 
-ComponentCarrierMmWaveUe::~ComponentCarrierMmWaveUe (void)
+BandwidthPartUe::~BandwidthPartUe (void)
 {
   NS_LOG_FUNCTION (this);
 }
 
 void
-ComponentCarrierMmWaveUe::DoDispose ()
+BandwidthPartUe::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   m_phy->Dispose ();
@@ -80,7 +80,7 @@ ComponentCarrierMmWaveUe::DoDispose ()
 
 
 void
-ComponentCarrierMmWaveUe::DoInitialize (void)
+BandwidthPartUe::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
   m_isConstructed = true;
@@ -89,7 +89,7 @@ ComponentCarrierMmWaveUe::DoInitialize (void)
 }
 
 void
-ComponentCarrierMmWaveUe::SetPhy (Ptr<MmWaveUePhy> s)
+BandwidthPartUe::SetPhy (Ptr<MmWaveUePhy> s)
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_phy != nullptr);
@@ -98,21 +98,21 @@ ComponentCarrierMmWaveUe::SetPhy (Ptr<MmWaveUePhy> s)
 
 
 Ptr<MmWaveUePhy>
-ComponentCarrierMmWaveUe::GetPhy () const
+BandwidthPartUe::GetPhy () const
 {
   NS_LOG_FUNCTION (this);
   return m_phy;
 }
 
 void
-ComponentCarrierMmWaveUe::SetMac (Ptr<MmWaveUeMac> s)
+BandwidthPartUe::SetMac (Ptr<MmWaveUeMac> s)
 {
   NS_LOG_FUNCTION (this);
   m_mac = s;
 }
 
 Ptr<MmWaveUeMac>
-ComponentCarrierMmWaveUe::GetMac () const
+BandwidthPartUe::GetMac () const
 {
   NS_LOG_FUNCTION (this);
   return m_mac;

@@ -25,19 +25,25 @@ NS_LOG_COMPONENT_DEFINE ("MmWaveHarqPhy");
 
 namespace ns3 {
 
-MmWaveHarqPhy::MmWaveHarqPhy (uint32_t harqNum)
-{
-  NS_LOG_FUNCTION (this);
-  m_harqNum = harqNum;
-  NS_LOG_DEBUG ("m_dlHistory size == " << m_dlHistory.size ());
-}
-
-
 MmWaveHarqPhy::~MmWaveHarqPhy ()
 {
   NS_LOG_FUNCTION (this);
   m_dlHistory.clear ();
   m_ulHistory.clear ();
+}
+
+void MmWaveHarqPhy::SetHarqNum (uint32_t harqNum)
+{
+  NS_LOG_FUNCTION (this);
+  m_harqNum = harqNum;
+  for (auto & v : m_dlHistory)
+    {
+      v.second.resize (m_harqNum);
+    }
+  for (auto & v : m_ulHistory)
+    {
+      v.second.resize (m_harqNum);
+    }
 }
 
 const NrErrorModel::NrErrorModelHistory &

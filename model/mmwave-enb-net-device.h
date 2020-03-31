@@ -30,7 +30,7 @@ class Node;
 class MmWaveEnbPhy;
 class MmWaveEnbMac;
 class LteEnbRrc;
-class ComponentCarrierGnb;
+class BandwidthPartGnb;
 class LteEnbComponentCarrierManager;
 
 class MmWaveEnbNetDevice : public MmWaveNetDevice
@@ -56,13 +56,30 @@ public:
 
   Ptr<LteEnbRrc> GetRrc (void);
 
-  void SetCcMap (std::map<uint8_t, Ptr<ComponentCarrierGnb> > ccm);
+  void SetCcMap (std::map<uint8_t, Ptr<BandwidthPartGnb> > ccm);
 
   /**
    * \brief Get the size of the component carriers map
    * \return the number of cc that we have
    */
   uint32_t GetCcMapSize () const;
+
+  /**
+   * \brief The gNB received a CTRL message list.
+   *
+   * The gNB should divide the messages to the BWP they pertain to.
+   *
+   * \param msgList Message list
+   * \param sourceBwpId BWP Id from which the list originated
+   */
+  void RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
+
+  /**
+   * \brief Route the outgoing messages to the right BWP
+   * \param msgList the list of messages
+   * \param sourceBwpId the source bwp of the messages
+   */
+  void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
 
 protected:
   virtual void DoInitialize (void);
@@ -80,7 +97,7 @@ private:
 
   bool m_isConfigured;
 
-  std::map<uint8_t, Ptr<ComponentCarrierGnb> > m_ccMap; /**< ComponentCarrier map */
+  std::map<uint8_t, Ptr<BandwidthPartGnb> > m_ccMap; /**< ComponentCarrier map */
 
   Ptr<LteEnbComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager of this eNb
 

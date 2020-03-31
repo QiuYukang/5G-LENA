@@ -86,6 +86,7 @@ MmWaveSpectrumPhy::GetTypeId (void)
     tid =
     TypeId ("ns3::MmWaveSpectrumPhy")
     .SetParent<NetDevice> ()
+    .AddConstructor<MmWaveSpectrumPhy> ()
     .AddAttribute ("UnlicensedMode",
                    "Activate/Deactivate unlicensed mode in which energy detection is performed" 
                    " and PHY state machine has an additional state CCA_BUSY.",
@@ -273,7 +274,7 @@ MmWaveSpectrumPhy::SetPhyRxDataEndOkCallback (MmWavePhyRxDataEndOkCallback c)
 
 
 void
-MmWaveSpectrumPhy::SetPhyRxCtrlEndOkCallback (MmWavePhyRxCtrlEndOkCallback c)
+MmWaveSpectrumPhy::SetPhyRxCtrlEndOkCallback (const MmWavePhyRxCtrlEndOkCallback &c)
 {
   m_phyRxCtrlEndOkCallback = c;
 }
@@ -782,6 +783,7 @@ MmWaveSpectrumPhy::EndRxData ()
                   harqDlInfo.m_rnti = rnti;
                   harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
                   harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                  harqDlInfo.m_bwpIndex = m_componentCarrierId;
                   if (GetTBInfo(*itTb).m_isCorrupted)
                     {
                       harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
@@ -817,9 +819,9 @@ MmWaveSpectrumPhy::EndRxData ()
 
   // forward control messages of this frame to MmWavePhy
 
-  if (!m_rxControlMessageList.empty () && !m_phyRxCtrlEndOkCallback.IsNull ())
+  if (!m_rxControlMessageList.empty () && m_phyRxCtrlEndOkCallback)
     {
-      m_phyRxCtrlEndOkCallback (m_rxControlMessageList);
+      m_phyRxCtrlEndOkCallback (m_rxControlMessageList, m_componentCarrierId);
     }
 
   // if in unlicensed mode check after reception if the state should be 
@@ -910,9 +912,9 @@ MmWaveSpectrumPhy::EndRxCtrl ()
   // forward control messages of this frame to LtePhy
   if (!m_rxControlMessageList.empty ())
     {
-      if (!m_phyRxCtrlEndOkCallback.IsNull ())
+      if (m_phyRxCtrlEndOkCallback)
         {
-          m_phyRxCtrlEndOkCallback (m_rxControlMessageList);
+          m_phyRxCtrlEndOkCallback (m_rxControlMessageList, m_componentCarrierId);
         }
     }
 
@@ -1153,6 +1155,12 @@ void
 MmWaveSpectrumPhy::SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq)
 {
   m_harqPhyModule = harq;
+}
+
+Ptr<MmWaveHarqPhy>
+MmWaveSpectrumPhy::GetHarqPhyModule() const
+{
+  return m_harqPhyModule;
 }
 
 Ptr<mmWaveInterference>

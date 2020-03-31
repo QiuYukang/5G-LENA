@@ -36,6 +36,7 @@
 #include "mmwave-mac-pdu-tag.h"
 #include "mmwave-net-device.h"
 #include "beam-manager.h"
+#include <ns3/boolean.h>
 
 #include <algorithm>
 
@@ -149,14 +150,6 @@ MmWavePhy::MmWavePhy ()
   : m_currSlotAllocInfo (SfnSf (0,0,0,0))
 {
   NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("This constructor should not be called");
-}
-
-MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy):
-    m_spectrumPhy (channelPhy),
-  m_currSlotAllocInfo (SfnSf (0,0,0,0))
-{
-  NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
 }
 
@@ -164,23 +157,24 @@ MmWavePhy::~MmWavePhy ()
 {
   NS_LOG_FUNCTION (this);
   m_slotAllocInfo.clear ();
-}
-
-void
-MmWavePhy::InstallBeamManager ()
-{
-  m_beamManager = CreateObject<BeamManager>();
-  m_beamManager->InstallAntenna (m_antennaNumDim1, m_antennaNumDim2, m_areIsotropicElements);
-  m_spectrumPhy->SetAntennaArray (m_beamManager->GetAntennaArray());
-}
-
-void
-MmWavePhy::DoDispose ()
-{
-  NS_LOG_FUNCTION (this);
   m_controlMessageQueue.clear ();
   delete m_phySapProvider;
-  Object::DoDispose ();
+}
+
+void
+MmWavePhy::DoInitialize ()
+{
+  NS_ASSERT (m_spectrumPhy != nullptr);
+
+  Ptr<ThreeGppAntennaArrayModel> antennaArray = CreateObject<ThreeGppAntennaArrayModel> ();
+  antennaArray->SetAttribute ("NumColumns", UintegerValue(m_antennaNumDim1));
+  antennaArray->SetAttribute ("NumRows", UintegerValue(m_antennaNumDim2));
+  antennaArray->SetAttribute ("IsotropicElements", BooleanValue (m_areIsotropicElements));
+
+  m_beamManager = CreateObject<BeamManager>();
+  m_beamManager->Configure(antennaArray, m_antennaNumDim1, m_antennaNumDim2);
+
+  m_spectrumPhy->SetAntennaArray (antennaArray);
 }
 
 void
@@ -194,6 +188,7 @@ void
 MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_spectrumPhy != nullptr);
   m_cellId = cellId;
   m_spectrumPhy->SetCellId (cellId);
 }
@@ -318,6 +313,14 @@ MmWavePhy::EnqueueCtrlMsgNow (const std::list<Ptr<MmWaveControlMessage> > &listO
 }
 
 void
+MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_ctrlMsgs.push_back (msg);
+}
+
+void
 MmWavePhy::InitializeMessageList ()
 {
   NS_LOG_FUNCTION (this);
@@ -363,6 +366,20 @@ MmWavePhy::GetConfigurationParameters (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_phyMacConfig;
+}
+
+void
+MmWavePhy::SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_spectrumPhy != nullptr);
+  m_spectrumPhy = spectrumPhy;
+}
+
+Ptr<MmWaveSpectrumPhy>
+MmWavePhy::GetSpectrumPhy () const
+{
+  return m_spectrumPhy;
 }
 
 

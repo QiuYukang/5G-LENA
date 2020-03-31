@@ -31,6 +31,7 @@ namespace ns3 {
 class UeManager;
 class LteCcmRrcSapProvider;
 class BwpManagerAlgorithm;
+class MmWaveControlMessage;
 
 /**
  * \ingroup bwp
@@ -58,9 +59,25 @@ public:
    * \return The index of the BWP in which that LCID should go
    *
    * Why this method? I wonder if you can imagine it... Hint: Think in a RR
-   * algorithm that returns a different bwp index for every call...´
+   * algorithm that returns a different bwp index for every call...
    */
   uint8_t PeekBwpIndex (uint16_t rnti, uint8_t lcid) const;
+
+  /**
+   * \brief Decide the BWP for the control message received.
+   * \param msg Message
+   * \param bwpId BWP Id from which this message come from.
+   * \return the BWP Id to which this message should be routed to.
+   */
+  uint8_t RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> & msg, uint8_t sourceBwpId) const;
+
+  /**
+   * \brief Route the outgoing messages to the right BWP
+   * \param msgList the list of messages
+   * \param sourceBwpId the source bwp of the messages
+   * \return the bwp to which the ctrl messages should be redirected
+   */
+  uint8_t RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const;
 
 protected:
   // Inherited methods

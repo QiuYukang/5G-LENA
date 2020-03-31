@@ -34,6 +34,7 @@
 #include "mmwave-control-messages.h"
 #include "mmwave-harq-phy.h"
 #include "nr-error-model.h"
+#include <functional>
 
 namespace ns3 {
 
@@ -46,7 +47,7 @@ class MmWaveSpectrumPhy : public SpectrumPhy
 {
 public:
   MmWaveSpectrumPhy ();
-  virtual ~MmWaveSpectrumPhy ();
+  virtual ~MmWaveSpectrumPhy () override;
 
   enum State
   {
@@ -59,7 +60,7 @@ public:
   };
 
   typedef Callback< void, const Ptr<Packet> &> MmWavePhyRxDataEndOkCallback;
-  typedef Callback< void, const std::list<Ptr<MmWaveControlMessage> > &> MmWavePhyRxCtrlEndOkCallback;
+  typedef std::function<void (const std::list<Ptr<MmWaveControlMessage> > &, uint8_t)> MmWavePhyRxCtrlEndOkCallback;
 
   /**
    * This method is used by the LteSpectrumPhy to notify the PHY about
@@ -144,7 +145,7 @@ public:
   bool StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMessage> > &ctrlMsgList, const Time &duration);
 
   void SetPhyRxDataEndOkCallback (MmWavePhyRxDataEndOkCallback c);
-  void SetPhyRxCtrlEndOkCallback (MmWavePhyRxCtrlEndOkCallback c);
+  void SetPhyRxCtrlEndOkCallback (const MmWavePhyRxCtrlEndOkCallback &c);
   void SetPhyDlHarqFeedbackCallback (MmWavePhyDlHarqFeedbackCallback c);
   void SetPhyUlHarqFeedbackCallback (MmWavePhyUlHarqFeedbackCallback c);
 
@@ -154,6 +155,8 @@ public:
   void UpdateSinrPerceived (const SpectrumValue& sinr);
 
   void SetHarqPhyModule (Ptr<MmWaveHarqPhy> harq);
+
+  Ptr<MmWaveHarqPhy> GetHarqPhyModule () const;
 
   Ptr<mmWaveInterference> GetMmWaveInterference (void) const;
 

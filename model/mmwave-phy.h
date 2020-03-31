@@ -40,8 +40,6 @@ class MmWavePhy : public Object
 public:
   MmWavePhy ();
 
-  MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy);
-
   virtual ~MmWavePhy () override;
 
   static TypeId GetTypeId (void);
@@ -88,14 +86,33 @@ public:
 
   Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
 
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const = 0;
+  /**
+   * \brief Retrieve the SpectrumPhy pointer
+   *
+   * As this function is used mainly to get traced values out of Spectrum,
+   * it should be removed and the traces connected (and redirected) here.
+   * \return A pointer to the SpectrumPhy of this UE
+   */
+  Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const;
+
+  /**
+   * \brief Set the SpectrumPhy associated with this PHY
+   * \param spectrumPhy the spectrumPhy
+   */
+  void SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
+
+  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
 
   // SAP
   void DoSetCellId (uint16_t cellId);
 
-protected:
+  /**
+   * \brief Take the control messages, and put it in a list that will be sent at the first occasion
+   * \param msg Message to "encode" and transmit
+   */
+  void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
 
-  virtual void DoDispose () override;
+protected:
 
   /**
    * \brief Transform a MAC-made vector of RBG to a PHY-ready vector of SINR indices
@@ -113,7 +130,8 @@ protected:
    */
   std::vector<int> FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const;
 
-  void InstallBeamManager ();
+  //From Object
+  virtual void DoInitialize (void) override;
 
   Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
@@ -241,6 +259,8 @@ protected:
   uint32_t m_raPreambleId {0};
   bool m_isConnected {false}; ///< set when UE RRC is in CONNECTED_NORMALLY state
   Ptr<BeamManager> m_beamManager; //!< TODO
+
+  std::list <Ptr<MmWaveControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list

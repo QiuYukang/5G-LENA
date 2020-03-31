@@ -34,6 +34,14 @@ class NrChAccessManager;
 class BeamManager;
 class BeamId;
 
+/**
+ * \brief The UE PHY class
+ *
+ * To initialize it, you must call also SetSpectrumPhy and StartEventLoop.
+ *
+ * \see SetSpectrumPhy
+ * \see StartEventLoop
+ */
 class MmWaveUePhy : public MmWavePhy
 {
   friend class UeMemberLteUePhySapProvider;
@@ -42,22 +50,11 @@ class MmWaveUePhy : public MmWavePhy
 public:
   // inherited from Object
   static TypeId GetTypeId (void);
-  virtual void DoInitialize (void) override; // Public because it's called by hand,
-                                             // and not by aggregation, in MmWaveNetDevice
 
   /**
-   * \brief MmWaveUePhy default constructor. Is there for ns-3 object system, but should not be used.
+   * \brief MmWaveUePhy default constructor.
    */
   MmWaveUePhy ();
-
-  /**
-   * \brief MmWaveUePhy real constructor
-   * \param channelPhy spectrum phy
-   * \param n Pointer to the node owning this instance
-   *
-   * Usually called by the helper. It starts the event loop for the ue.
-   */
-  MmWaveUePhy (Ptr<MmWaveSpectrumPhy> channelPhy, const Ptr<Node> &n);
 
   /**
    * \brief ~MmWaveUePhy
@@ -99,6 +96,9 @@ public:
    */
   double GetTxPower () const __attribute__((warn_unused_result));
 
+  // From object
+  virtual void DoInitialize (void) override;
+
   /**
    * \brief Register the UE to a certain Enb
    *
@@ -112,22 +112,13 @@ public:
   void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
 
   /**
-   * \brief Retrieve the SpectrumPhy pointer
-   *
-   * As this function is used mainly to get traced values out of Spectrum,
-   * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the SpectrumPhy of this UE
-   */
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
-
-  /**
    * \brief Receive a list of CTRL messages
    *
    * Connected by the helper to a callback of the spectrum.
    *
    * \param msgList message list
    */
-  void PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList);
+  void PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg);
 
   /**
    * \brief Receive a PHY data packet
@@ -233,9 +224,12 @@ public:
   // From mmwave phy. Not used in the UE
   virtual BeamId GetBeamId (uint16_t rnti) const override;
 
-protected:
-  // From object
-  virtual void DoDispose (void) override;
+  /**
+   * \brief Start the ue Event Loop
+   * \param nodeId the UE nodeId
+   * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
+   */
+  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
 
 private:
   /**
@@ -317,7 +311,7 @@ private:
    */
   void DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg);
   void SendDataChannels (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time duration, uint8_t slotInd);
-  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > ctrlMsg, Time prd);
+  void SendCtrlChannels (Time prd);
 
   // SAP methods
   void DoReset ();

@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -15,8 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
  */
 
 /**
@@ -50,9 +48,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
 #include "ns3/mmwave-helper.h"
-#include <ns3/buildings-helper.h>
 #include "ns3/log.h"
-#include <ns3/buildings-module.h>
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
@@ -238,11 +234,13 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
-  Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
+  Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(10));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
@@ -268,7 +266,7 @@ main (int argc, char *argv[])
   mobility.Install (gNbNode);
   mobility.Install (ueNode);
   gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
+  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0.0, 10 , 1.5));
 
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
@@ -280,8 +278,7 @@ main (int argc, char *argv[])
 
   Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress());
 
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  mmWaveHelper->AttachToEnb (ueNetDev.Get(0), enbNetDev.Get(0));
 
   Ptr<EpcTft> tft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpf;

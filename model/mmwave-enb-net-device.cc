@@ -25,9 +25,10 @@
 #include <ns3/lte-enb-component-carrier-manager.h>
 #include <ns3/ipv4-l3-protocol.h>
 
-#include "component-carrier-gnb.h"
+#include "bandwidth-part-gnb.h"
 #include "mmwave-enb-mac.h"
 #include "mmwave-enb-phy.h"
+#include "bwp-manager-gnb.h"
 
 namespace ns3 {
 
@@ -45,10 +46,10 @@ MmWaveEnbNetDevice::GetTypeId ()
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbNetDevice::m_componentCarrierManager),
                    MakePointerChecker <LteEnbComponentCarrierManager> ())
-    .AddAttribute ("ComponentCarrierMap", "List of component carriers.",
+    .AddAttribute ("BandwidthPartMap", "List of Bandwidth Part container.",
                    ObjectMapValue (),
                    MakeObjectMapAccessor (&MmWaveEnbNetDevice::m_ccMap),
-                   MakeObjectMapChecker<ComponentCarrierGnb> ())
+                   MakeObjectMapChecker<BandwidthPartGnb> ())
     .AddAttribute ("LteEnbRrc", "The RRC layer associated with the ENB", PointerValue (),
                    MakePointerAccessor (&MmWaveEnbNetDevice::m_rrc),
                    MakePointerChecker<LteEnbRrc> ())
@@ -72,15 +73,42 @@ MmWaveEnbNetDevice::~MmWaveEnbNetDevice ()
 }
 
 void
-MmWaveEnbNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierGnb> > ccm)
+MmWaveEnbNetDevice::SetCcMap (std::map< uint8_t, Ptr<BandwidthPartGnb> > ccm)
 {
   NS_ASSERT_MSG (!m_isConfigured, "attempt to set CC map after configuration");
   m_ccMap = ccm;
 }
 
-uint32_t MmWaveEnbNetDevice::GetCcMapSize() const
+uint32_t
+MmWaveEnbNetDevice::GetCcMapSize() const
 {
   return static_cast<uint32_t> (m_ccMap.size ());
+}
+
+void
+MmWaveEnbNetDevice::RouteIngoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList,
+                                          uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerGnb> (m_componentCarrierManager)->RouteIngoingCtrlMsgs (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->PhyCtrlMessagesReceived (msg);
+    }
+}
+
+void
+MmWaveEnbNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList,
+                                           uint8_t sourceBwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & msg : msgList)
+    {
+      uint8_t bwpId = DynamicCast<BwpManagerGnb> (m_componentCarrierManager)->RouteOutgoingCtrlMsg (msg, sourceBwpId);
+      m_ccMap.at (bwpId)->GetPhy ()->EncodeCtrlMsg (msg);
+    }
 }
 
 void
@@ -90,7 +118,7 @@ MmWaveEnbNetDevice::DoInitialize (void)
   m_isConstructed = true;
   UpdateConfig ();
 
-  std::map<uint8_t, Ptr<ComponentCarrierGnb> >::iterator it;
+  std::map<uint8_t, Ptr<BandwidthPartGnb> >::iterator it;
   for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
     {
       it->second->Initialize ();

@@ -36,6 +36,14 @@ class MmWaveEnbMac;
 class NrChAccessManager;
 class BeamManager;
 
+/**
+ * \brief The GNB PHY class
+ *
+ * To initialize it, you must call also SetSpectrumPhy and StartEventLoop.
+ *
+ * \see SetSpectrumPhy
+ * \see StartEventLoop
+ */
 class MmWaveEnbPhy : public MmWavePhy
 {
   friend class MemberLteEnbCphySapProvider<MmWaveEnbPhy>;
@@ -121,15 +129,6 @@ public:
   void SetSubChannels (const std::vector<int> &rbIndexVector);
 
   /**
-   * \brief Retrieve the SpectrumPhy pointer
-   *
-   * As this function is used mainly to get traced values out of Spectrum,
-   * it should be removed and the traces connected (and redirected) here.
-   * \return A pointer to the SpectrumPhy of this UE
-   */
-  virtual Ptr<MmWaveSpectrumPhy> GetSpectrumPhy () const override __attribute__((warn_unused_result));
-
-  /**
    * \brief Add the UE to the list of this gnb UEs.
    *
    * Usually called by the helper when a UE register to this gnb.
@@ -164,7 +163,7 @@ public:
    *
    * \param msgList message list
    */
-  void PhyCtrlMessagesReceived (const std::list<Ptr<MmWaveControlMessage> > &msgList);
+  void PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg);
 
   /**
    * \brief Get the power of the enb
@@ -198,6 +197,13 @@ public:
   void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
 
   /**
+   * \brief Start the ue Event Loop
+   * \param nodeId the UE nodeId
+   * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
+   */
+  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+
+  /**
    *  TracedCallback signature for Received Control Messages.
    *
    * \param [in] frame Frame number.
@@ -227,7 +233,6 @@ public:
 
 protected:
   // From object
-  virtual void DoDispose (void) override;
   virtual void DoInitialize (void) override;
 
 private:
@@ -240,8 +245,7 @@ private:
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
                          const VarTtiAllocInfo &varTtiInfo);
 
-  void SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
-                         const Time &varTtiPeriod);
+  void SendCtrlChannels (const Time &varTtiPeriod);
 
   std::list <Ptr<MmWaveControlMessage>> RetrieveMsgsFromDCIs (const SfnSf &sfn) __attribute__((warn_unused_result));
 
@@ -406,8 +410,6 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
-
-  std::list <Ptr<MmWaveControlMessage> > m_ctrlMsgs; //!< DL CTRL messages to be sent
 
   std::vector<LteNrTddSlotType> m_tddPattern = { F, F, F, F, F, F, F, F, F, F}; //!< Per-slot pattern
 
