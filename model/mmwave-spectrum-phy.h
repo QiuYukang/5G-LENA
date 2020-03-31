@@ -38,7 +38,31 @@ namespace ns3 {
  * \ingroup gnb-phy
  * \ingroup spectrum
  *
- * \brief Interface between the channel and the physical layer
+ * \brief MmWaveSpectrumPhy models some of the basic
+ * physical layer functionalities such as transmitting CTRL or DATA,
+ * receiving the signals, decoding them, and distinguishing whether the
+ * signal is useful (CTRL, DATA), i.e. sent to this NR device MmWavePhy
+ * instance, or it should be considered as interference. It
+ * is also responsible for obtaining measurements, and for HARQ feedback
+ * generation by leveraging HARQ module.
+ *
+ * This class implements the interface between the MmWavePhy
+ * and the spectrum channel, and provides to MmWavePhy aforementioned
+ * functionalities. Each NR device's MmWavePhy has its
+ * own MmWaveSpectrumPhy that is in charge of providing these basic
+ * phy layer functionalities. In order to be able to receive signals from the channel,
+ * each MmWaveSpectrumPhy should be registered to listen events from its channel.
+ * To achieve that, during the configuration of NR device's MmWavePhy
+ * at some point should be called AddRx function of the spectrum channel
+ * to register the MmWaveSpectrumPhy instance as a receiver on that channel.
+ *
+ * This class also has the interface with mmWaveInterference class to
+ * pass the necessary information for the interference calculation and to
+ * obtain the interference calculation results.
+ *
+ * Also it has interface with HARQ module, to which it passes necessary
+ * information for the HARQ feedback generation, which is then forwarded
+ * to MmWavePhy.
  */
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
