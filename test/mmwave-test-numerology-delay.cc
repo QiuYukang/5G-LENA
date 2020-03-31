@@ -1,22 +1,20 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2011 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *   Copyright (c) 2015, NYU WIRELESS, Tandon School of Engineering, New York University
- *  
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
  *   published by the Free Software Foundation;
- *  
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *  
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *  
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
+ *
  */
 
 #include "ns3/mmwave-helper.h"
@@ -34,6 +32,9 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
+#include "ns3/mmwave-enb-net-device.h"
+#include "ns3/mmwave-ue-net-device.h"
+#include "ns3/mmwave-enb-phy.h"
 
 // An essential include is test.h
 #include "ns3/test.h"
@@ -70,32 +71,29 @@ public:
 private:
   virtual void DoRun (void);
 
-  uint32_t m_numerology;
-  Ptr<MmWavePhyMacCommon> m_mmWavePhyMacCommon;
-  Time m_sendPacketTime;
-  uint32_t m_numSym;
-  bool m_firstMacPdu;
-  bool m_firstDlTransmission;
-  bool m_firstDlReception;
-  bool m_firstRxPlcPDU;
-  Time m_lastDlReceptionFinished;
-  uint32_t m_slotsCounter;
-  uint32_t m_totalNumberOfSymbols;
-  uint32_t m_firstMacPduMcs;
+  static Time GetSlotTime (uint32_t numerology);
+  static Time GetSymbolPeriod (uint32_t numerology);
+
+  uint32_t m_numerology {0};
+  Time m_sendPacketTime {Seconds (0)};
+  uint32_t m_numSym {0};
+  bool m_firstMacPdu {true};
+  bool m_firstDlTransmission {true};
+  bool m_firstDlReception {true};
+  bool m_firstRxPlcPDU {true};
+  Time m_lastDlReceptionFinished {Seconds (0)};
+  uint32_t m_slotsCounter {0};
+  uint32_t m_totalNumberOfSymbols {0};
+  uint32_t m_firstMacPduMcs {0};
+  uint32_t m_l1l2 {0};
+  Time m_tbDecodeLatency {Seconds (0)};
 };
 
 // Add some help text to this case to describe what it is intended to test
 MmwaveTestNumerologyDelayCase1::MmwaveTestNumerologyDelayCase1 (std::string name, uint32_t numerology)
-: TestCase (name)
+  : TestCase (name),
+    m_numerology (numerology)
 {
-  m_numerology = numerology;
-  m_firstMacPdu = true;
-  m_firstDlTransmission = true;
-  m_firstDlReception = true;
-  m_firstRxPlcPDU = true;
-  m_lastDlReceptionFinished = Seconds (0);
-  m_slotsCounter = 0;
-  m_firstMacPduMcs = 0;
 }
 
 // This destructor does nothing but we include it as a reminder that
@@ -189,28 +187,6 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr)
 void
 MmwaveTestNumerologyDelayCase1::DoRun (void)
 {
-  m_sendPacketTime = MilliSeconds(400);
-
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(28e9));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(400e6));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(m_numerology));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("n"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
-  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
-
-  Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue(true));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (1));
-
-  ns3::SeedManager::SetRun(5);
-
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
-
   Ptr<Node> ueNode = CreateObject<Node> ();
   Ptr<Node> gNbNode = CreateObject<Node> ();
 
@@ -221,8 +197,54 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
   ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNode);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode);
+  m_sendPacketTime = MilliSeconds(400);
+
+  ns3::SeedManager::SetRun (5);
+
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  mmWaveHelper->SetEpcHelper (epcHelper);
+
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;
+
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 400e6, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+
+  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue (true));
+  mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (1));
+
+  mmWaveHelper->SetGnbPhyAttribute ("SymbolsPerSlot", UintegerValue (14));
+
+  mmWaveHelper->InitializeOperationBand (&band1);
+  allBwps = CcBwpCreator::GetAllBwps ({band1});
+
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNode, allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode, allBwps);
+
+  m_l1l2 = mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 0)->GetL1L2CtrlLatency ();
+  m_tbDecodeLatency = mmWaveHelper->GetEnbPhy (enbNetDev.Get(0), 0)->GetTbDecodeLatency ();
+
+
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
 
   InternetStackHelper internet;
   internet.Install (ueNode);
@@ -233,9 +255,6 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
 
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
-
-  m_mmWavePhyMacCommon =  CreateObject<MmWavePhyMacCommon>();
-  m_mmWavePhyMacCommon->DoInitialize();
 
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/DlScheduling",
                       MakeBoundCallback (&LteTestDlSchedCallback, this));
@@ -255,7 +274,18 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   Simulator::Destroy ();
 }
 
+Time
+MmwaveTestNumerologyDelayCase1::GetSlotTime (uint32_t numerology)
+{
+  uint16_t slotsPerSubframe  = static_cast<uint16_t> (std::pow (2, numerology));
+  return Seconds (0.001 / slotsPerSubframe);
+}
 
+Time
+MmwaveTestNumerologyDelayCase1::GetSymbolPeriod (uint32_t numerology)
+{
+  return GetSlotTime(numerology) / 14; // Fix number of symbols to 14 in this test
+}
 
 void
 MmwaveTestNumerologyDelayCase1::TxPdcpPDU (uint16_t rnti, uint8_t lcid, uint32_t bytes)
@@ -307,8 +337,8 @@ MmwaveTestNumerologyDelayCase1::DlSpectrumEnbStartTx (EnbPhyPacketCountParameter
   std::cout<<"\n cell id :"<<params.m_cellId<<std::endl;
   std::cout<<"\n no of bytes :"<<(unsigned)params.m_noBytes<<std::endl;
   std::cout<<"\n subframe no:"<<params.m_subframeno<<std::endl;*/
-  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod();
-  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod();
+  Time delay = m_l1l2 * GetSlotTime (m_numerology);
+  Time ctrlDuration = GetSymbolPeriod (m_numerology);
   // first there is L1L2 processing delay
   // the, before it start the transmission of the DATA symbol, there is 1 DL CTRL symbol
   // and then we are here already in the following nano second
@@ -329,9 +359,9 @@ MmwaveTestNumerologyDelayCase1::DlSpectrumUeEndRx (RxPacketTraceParams params)
   std::cout<<"\n slot :"<<(unsigned int)params.m_slotNum<<std::endl;
   std::cout<<"\n rnti:"<<params.m_rnti<<std::endl;*/
 
-  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod ();
-  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod ();
-  Time dataDuration = (m_mmWavePhyMacCommon->GetSymbolPeriod () * params.m_numSym) - NanoSeconds (1);
+  Time delay = m_l1l2 * GetSlotTime (m_numerology);
+  Time ctrlDuration = GetSymbolPeriod (m_numerology);
+  Time dataDuration = (GetSymbolPeriod (m_numerology) * params.m_numSym) - NanoSeconds (1);
 
 /*  std::cout<<"\n symbol duration:"<<  Seconds (m_mmWavePhyMacCommon->GetSymbolPeriod());
   std::cout<<"\n symbols:" << (unsigned) params.m_numSym;
@@ -358,10 +388,10 @@ MmwaveTestNumerologyDelayCase1::RxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t 
   std::cout<<"\n bytes :"<< bytes<<std::endl;
   std::cout<<"\n delay :"<< rlcDelay<<std::endl;*/
 
-  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod();
-  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod();
-  Time dataDuration = (m_mmWavePhyMacCommon->GetSymbolPeriod() * m_numSym) - NanoSeconds(1);
-  Time tbDecodeDelay = MicroSeconds(m_mmWavePhyMacCommon->GetTbDecodeLatency());
+  Time delay = m_l1l2 * GetSlotTime (m_numerology);
+  Time ctrlDuration = GetSymbolPeriod (m_numerology);
+  Time dataDuration = (GetSymbolPeriod(m_numerology) * m_numSym) - NanoSeconds(1);
+  Time tbDecodeDelay = MicroSeconds(m_tbDecodeLatency);
 
   if (m_firstRxPlcPDU)
     {
@@ -380,10 +410,10 @@ MmwaveTestNumerologyDelayCase1::RxPdcpPDU (uint16_t rnti, uint8_t lcid, uint32_t
   std::cout<<"\n bytes :"<< bytes<<std::endl;
   std::cout<<"\n delay :"<<pdcpDelay<<std::endl;*/
 
-  Time delay = m_mmWavePhyMacCommon->GetL1L2CtrlLatency() * m_mmWavePhyMacCommon->GetSlotPeriod();
-  Time ctrlDuration = m_mmWavePhyMacCommon->GetSymbolPeriod();
-  Time dataDuration = (m_mmWavePhyMacCommon->GetSymbolPeriod() * m_numSym) - NanoSeconds(1);
-  Time tbDecodeDelay = MicroSeconds(m_mmWavePhyMacCommon->GetTbDecodeLatency());
+  Time delay = m_l1l2 * GetSlotTime (m_numerology);
+  Time ctrlDuration = GetSymbolPeriod (m_numerology);
+  Time dataDuration = (GetSymbolPeriod (m_numerology) * m_numSym) - NanoSeconds(1);
+  Time tbDecodeDelay = MicroSeconds(m_tbDecodeLatency);
 
   NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_lastDlReceptionFinished + tbDecodeDelay,
                            "The duration of the reception by PDCP is not correct.");
