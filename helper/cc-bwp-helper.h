@@ -214,8 +214,8 @@ public:
      * \brief Default constructor
      * \param centralFreq Central Frequency
      * \param channelBw Bandwidth
-     * \param num Numerology
-     * \param scenario Channel scenario
+     * \param numCc number of component carriers in this operation band
+     * \param scenario which 3gpp scenario path loss model will be installed for this band
      */
     SimpleOperationBandConf (double centralFreq = 28e9, double channelBw = 400e6, uint8_t numCc = 1,
                              BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa)
