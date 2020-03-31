@@ -166,11 +166,11 @@ class MacUeMemberPhySapUser : public MmWaveUePhySapUser
 public:
   MacUeMemberPhySapUser (MmWaveUeMac* mac);
 
-  virtual void ReceivePhyPdu (Ptr<Packet> p);
+  virtual void ReceivePhyPdu (Ptr<Packet> p) override;
 
-  virtual void ReceiveControlMessage (Ptr<MmWaveControlMessage> msg);
+  virtual void ReceiveControlMessage (Ptr<MmWaveControlMessage> msg) override;
 
-  virtual void SlotIndication (SfnSf sfn);
+  virtual void SlotIndication (SfnSf sfn) override;
 
   //virtual void NotifyHarqDeliveryFailure (uint8_t harqId);
 
@@ -902,7 +902,7 @@ void
 MmWaveUeMac::DoConfigureRach (LteUeCmacSapProvider::RachConfig rc)
 {
   NS_LOG_FUNCTION (this);
-
+  NS_UNUSED (rc);
 }
 
 void
@@ -942,6 +942,7 @@ void
 MmWaveUeMac::DoStartNonContentionBasedRandomAccessProcedure (uint16_t rnti, uint8_t preambleId, uint8_t prachMask)
 {
   NS_LOG_FUNCTION (this << " rnti" << rnti);
+  NS_UNUSED (preambleId);
   NS_ASSERT_MSG (prachMask == 0, "requested PRACH MASK = " << (uint32_t) prachMask << ", but only PRACH MASK = 0 is supported");
   m_rnti = rnti;
 }
