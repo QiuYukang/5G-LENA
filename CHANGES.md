@@ -139,6 +139,10 @@ through the attributes DlCtrlSymbols and UlCtrlSymbols.
 * Removed EnableAllInterferences from MmWaveSpectrumPhy which was used to 
 enable or disable interference calculations for all links. 
 
+* Replaced the message DCI_TDMA with UL_DCI and DL_DCI, to differentiate among
+the allocations.
+
+
 ### Changed behavior:
 
 * Starting with this release the simulator is using new ns-3-dev 3ggp 

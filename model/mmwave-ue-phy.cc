@@ -293,10 +293,9 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 {
   NS_LOG_FUNCTION (this);
 
-  if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
+  if (msg->GetMessageType () == MmWaveControlMessage::DL_DCI)
     {
-      Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast<MmWaveTdmaDciMessage> (msg);
-
+      auto dciMsg = DynamicCast<MmWaveDlDciMessage> (msg);
       auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
@@ -306,56 +305,65 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
           return;   // DCI not for me
         }
 
-      if (dciInfoElem->m_format == DciInfoElementTdma::DL
-          && dciInfoElem->m_type == DciInfoElementTdma::DATA)
+
+      SfnSf dciSfn = m_currentSlot;
+      uint32_t k0Delay = dciMsg->GetKDelay ();
+      dciSfn.Add (k0Delay);
+
+      NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
+                    " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
+                    " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
+                    " tbs " << dciInfoElem->m_tbSize <<
+                    " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+
+      /* BIG ASSUMPTION: We assume that K0 is always 0 */
+
+      auto it = m_harqIdToK1Map.find (dciInfoElem->m_harqProcess);
+      if (it!=m_harqIdToK1Map.end ())
         {
-          SfnSf dciSfn = m_currentSlot;
-          uint32_t k0Delay = dciMsg->GetKDelay ();
-          dciSfn.Add (k0Delay);
+          m_harqIdToK1Map.erase (m_harqIdToK1Map.find (dciInfoElem->m_harqProcess));
+        }
 
-          NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
-                        " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
-                        " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                        " tbs " << dciInfoElem->m_tbSize <<
-                        " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+      m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
 
-          /* BIG ASSUMPTION: We assume that K0 is always 0 */
+      m_phyUeRxedDlDciTrace (m_currentSlot, m_rnti, GetBwpId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
 
-          auto it = m_harqIdToK1Map.find (dciInfoElem->m_harqProcess);
-          if (it!=m_harqIdToK1Map.end ())
-            {
-              m_harqIdToK1Map.erase (m_harqIdToK1Map.find (dciInfoElem->m_harqProcess));
-            }
+      InsertAllocation (dciInfoElem);
 
-          m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
+      m_phySapUser->ReceiveControlMessage (msg);
+    }
+  if (msg->GetMessageType () == MmWaveControlMessage::UL_DCI)
+    {
+      auto dciMsg = DynamicCast<MmWaveUlDciMessage> (msg);
+      auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
-          m_phyUeRxedDlDciTrace (m_currentSlot, m_rnti, GetBwpId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
+      m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
 
+      if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
+        {
+          return;   // DCI not for me
+        }
+
+      SfnSf ulSfnSf = m_currentSlot;
+      uint32_t k2Delay = dciMsg->GetKDelay ();
+      ulSfnSf.Add (k2Delay);
+
+      NS_LOG_DEBUG ("UE" << m_rnti <<
+                    " UL-DCI received for slot " << ulSfnSf <<
+                    " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
+                    " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
+                    " tbs " << dciInfoElem->m_tbSize <<
+                    " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+
+      if (ulSfnSf == m_currentSlot)
+        {
           InsertAllocation (dciInfoElem);
         }
-      else if (dciInfoElem->m_format == DciInfoElementTdma::UL
-               && dciInfoElem->m_type == DciInfoElementTdma::DATA)   // set downlink slot schedule for t+Tul_sched slot
+      else
         {
-          SfnSf ulSfnSf = m_currentSlot;
-          uint32_t k2Delay = dciMsg->GetKDelay ();
-          ulSfnSf.Add (k2Delay);
-
-          NS_LOG_DEBUG ("UE" << m_rnti <<
-                        " UL-DCI received for slot " << ulSfnSf <<
-                        " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
-                        " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                        " tbs " << dciInfoElem->m_tbSize <<
-                        " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
-
-          if (ulSfnSf == m_currentSlot)
-            {
-              InsertAllocation (dciInfoElem);
-            }
-          else
-            {
-              InsertFutureAllocation (ulSfnSf, dciInfoElem);
-            }
+          InsertFutureAllocation (ulSfnSf, dciInfoElem);
         }
+
       m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::MIB)

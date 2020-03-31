@@ -81,46 +81,76 @@ MmWaveSRMessage::GetRNTI () const
   return m_rnti;
 }
 
-MmWaveTdmaDciMessage::MmWaveTdmaDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci)
+MmWaveDlDciMessage::MmWaveDlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci)
   : m_dciInfoElement (dci)
 {
   NS_LOG_INFO (this);
-  SetMessageType (MmWaveControlMessage::DCI_TDMA);
+  SetMessageType (MmWaveControlMessage::DL_DCI);
 }
 
-MmWaveTdmaDciMessage::~MmWaveTdmaDciMessage (void)
+MmWaveDlDciMessage::~MmWaveDlDciMessage (void)
 {
   NS_LOG_INFO (this);
 }
 
 std::shared_ptr<DciInfoElementTdma>
-MmWaveTdmaDciMessage::GetDciInfoElement (void)
+MmWaveDlDciMessage::GetDciInfoElement (void)
 {
   return m_dciInfoElement;
 }
 
 void
-MmWaveTdmaDciMessage::SetKDelay (uint32_t delay)
+MmWaveDlDciMessage::SetKDelay (uint32_t delay)
 {
   m_k = delay;
 }
 
 void
-MmWaveTdmaDciMessage::SetK1Delay (uint32_t delay)
+MmWaveDlDciMessage::SetK1Delay (uint32_t delay)
 {
   m_k1 = delay;
 }
 
 uint32_t
-MmWaveTdmaDciMessage::GetKDelay (void) const
+MmWaveDlDciMessage::GetKDelay (void) const
 {
   return m_k;
 }
 
 uint32_t
-MmWaveTdmaDciMessage::GetK1Delay (void) const
+MmWaveDlDciMessage::GetK1Delay (void) const
 {
   return m_k1;
+}
+
+MmWaveUlDciMessage::MmWaveUlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci)
+  : m_dciInfoElement (dci)
+{
+  NS_LOG_INFO (this);
+  SetMessageType (MmWaveControlMessage::UL_DCI);
+}
+
+MmWaveUlDciMessage::~MmWaveUlDciMessage (void)
+{
+  NS_LOG_INFO (this);
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveUlDciMessage::GetDciInfoElement (void)
+{
+  return m_dciInfoElement;
+}
+
+void
+MmWaveUlDciMessage::SetKDelay (uint32_t delay)
+{
+  m_k = delay;
+}
+
+uint32_t
+MmWaveUlDciMessage::GetKDelay (void) const
+{
+  return m_k;
 }
 
 MmWaveDlCqiMessage::MmWaveDlCqiMessage (void)
