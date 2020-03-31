@@ -20,6 +20,7 @@
 #include "bwp-manager-algorithm.h"
 #include <ns3/log.h>
 #include <ns3/pointer.h>
+#include "mmwave-control-messages.h"
 
 namespace ns3 {
 
@@ -110,12 +111,35 @@ BwpManagerUe::RouteDlHarqFeedback (const DlHarqInfo &m) const
   return m.m_bwpIndex;
 }
 
+void
+BwpManagerUe::SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp)
+{
+  NS_LOG_FUNCTION (this);
+  m_outputLinks.insert (std::make_pair (sourceBwp, outputBwp));
+}
+
 uint8_t
 BwpManagerUe::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);
 
-  return sourceBwpId;
+  NS_LOG_INFO ("Msg type " << msg->GetMessageType () << " that wants to go out from UE");
+
+  if (m_outputLinks.empty ())
+    {
+      NS_LOG_INFO ("No linked BWP, routing outgoing msg to the source: " << +sourceBwpId);
+      return sourceBwpId;
+    }
+
+  auto it = m_outputLinks.find (sourceBwpId);
+  if (it == m_outputLinks.end ())
+    {
+      NS_LOG_INFO ("Source BWP not in the map, routing outgoing msg to itself: " << +sourceBwpId);
+      return sourceBwpId;
+    }
+
+  NS_LOG_INFO ("routing outgoing msg to bwp: " << +it->second);
+  return it->second;
 }
 
 uint8_t
@@ -123,8 +147,9 @@ BwpManagerUe::RouteIngoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t
 {
   NS_LOG_FUNCTION (this);
 
-  // Not so intelligent, for the moment...
-  return sourceBwpId;
+  NS_LOG_INFO ("Msg type " << msg->GetMessageType () << " comes from BWP " <<
+               +sourceBwpId << " that wants to go in the UE, goes in BWP " << msg->GetSourceBwp ());
+  return msg->GetSourceBwp ();
 }
 
 } // namespace ns3

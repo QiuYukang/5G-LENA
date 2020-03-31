@@ -32,6 +32,7 @@ class MmWaveEnbMac;
 class LteEnbRrc;
 class BandwidthPartGnb;
 class LteEnbComponentCarrierManager;
+class BwpManagerGnb;
 
 class MmWaveEnbNetDevice : public MmWaveNetDevice
 {
@@ -44,7 +45,9 @@ public:
 
   Ptr<MmWaveEnbMac> GetMac (uint8_t index) const;
 
-  Ptr<MmWaveEnbPhy> GetPhy(uint8_t index) const;
+  Ptr<MmWaveEnbPhy> GetPhy (uint8_t index) const;
+
+  Ptr<BwpManagerGnb> GetBwpManager () const;
 
   uint16_t GetBwpId (uint8_t index) const;
 

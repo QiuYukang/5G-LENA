@@ -51,6 +51,8 @@ class MmWaveMacScheduler;
 class MmWaveEnbNetDevice;
 class MmWaveUeNetDevice;
 class MmWaveUeMac;
+class BwpManagerGnb;
+class BwpManagerUe;
 
 class MmWaveHelper : public Object
 {
@@ -74,8 +76,6 @@ public:
   NetDeviceContainer InstallGnbDevice (const NodeContainer &c,
                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
 
-  void ConfigureCarriers (std::map<uint8_t, Ptr<ComponentCarrierEnb> > ccPhyConf);
-
   /**
    * \brief Get the number of configured BWP for a specific GNB NetDevice
    * \param gnbDevice The GNB NetDevice
@@ -96,6 +96,10 @@ public:
    * \return A pointer to the MAC layer of the GNB, or nullptr if there are errors
    */
   static Ptr<MmWaveEnbMac> GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
+
+  static Ptr<BwpManagerGnb> GetBwpManagerGnb (const Ptr<NetDevice> &gnbDevice);
+
+  static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);
 
   /**
    * This method is used to send the ComponentCarrier map created with CcHelper
@@ -129,7 +133,7 @@ public:
    *
    * \param band the band representation
    */
-  void InitializeOperationBand (OperationBandInfo *band) const;
+  void InitializeOperationBand (OperationBandInfo *band);
 
   /**
    * Activate a dedicated EPS bearer on a given set of UE devices.
@@ -252,6 +256,21 @@ public:
 
   void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
+  void SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set Spectrum Propagation Attribute
+   * \param n name of the attribute
+   * \param v value of the attribute
+   *
+   * As the spectrum model used is ThreeGppSpectrumPropagationLossModel, you
+   * can set only attributes of this class.
+   *
+   */
+  void SetSpectrumPropagationAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
+
 private:
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
@@ -316,6 +335,9 @@ private:
   ObjectFactory m_gnbAntennaFactory;    //!< UE antenna factory
   ObjectFactory m_gnbBwpManagerAlgoFactory;//!< BWP manager algorithm factory
   ObjectFactory m_ueBwpManagerAlgoFactory;//!< BWP manager algorithm factory
+  ObjectFactory m_channelConditionModelFactory; //!< Channel condition factory
+  ObjectFactory m_spectrumPropagationFactory; //!< Spectrum Factory
+  ObjectFactory m_pathlossModelFactory;  //!< Pathloss factory
 
 
   uint64_t m_imsiCounter;

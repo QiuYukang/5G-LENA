@@ -34,6 +34,7 @@ class EpcUeNas;
 class LteUeRrc;
 class MmWaveEnbNetDevice;
 class BandwidthPartUe;
+class BwpManagerUe;
 
 class MmWaveUeNetDevice : public MmWaveNetDevice
 {
@@ -52,15 +53,7 @@ public:
 
   virtual Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
 
-  /**
-   * Returns the PHY instance that is configured to operate on the provided
-   * central carrier frequency
-   * @param centerFrequency The central carrier frequency in Hz
-   * @return A pointer to the PHY instance it it exist, otherwise a nullptr
-   */
-  virtual Ptr<MmWavePhy> GetPhyOnCenterFreq (double centerFrequency) const;
-
-  Ptr<LteUeComponentCarrierManager> GetComponentCarrierManager (void) const;
+  Ptr<BwpManagerUe> GetBwpManager (void) const;
 
   uint64_t GetImsi () const;
 

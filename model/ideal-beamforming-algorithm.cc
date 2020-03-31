@@ -35,8 +35,8 @@ namespace ns3{
 NS_LOG_COMPONENT_DEFINE ("IdealBeamformingAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (CellScanBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (DirectPathBeamforming);
+NS_OBJECT_ENSURE_REGISTERED (QuasiOmniDirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (OptimalCovMatrixBeamforming);
-
 
 IdealBeamformingAlgorithm::IdealBeamformingAlgorithm ()
 {
@@ -52,7 +52,7 @@ TypeId
 IdealBeamformingAlgorithm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::IdealBeamformingAlgorithm")
-    .SetParent<Object> ()
+                      .SetParent<Object> ()
   ;
 
   return tid;
@@ -96,15 +96,14 @@ TypeId
 CellScanBeamforming::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::CellScanBeamforming")
-    .SetParent<IdealBeamformingAlgorithm> ()
-    .AddConstructor<CellScanBeamforming>()
-    .AddAttribute ("BeamSearchAngleStep",
-                   "Angle step when searching for the best beam",
-                   DoubleValue (30),
-                   MakeDoubleAccessor (&CellScanBeamforming::SetBeamSearchAngleStep,
-                                       &CellScanBeamforming::GetBeamSearchAngleStep),
-                   MakeDoubleChecker<double> ())
-  ;
+                     .SetParent<IdealBeamformingAlgorithm> ()
+                     .AddConstructor<CellScanBeamforming>()
+                     .AddAttribute ("BeamSearchAngleStep",
+                                    "Angle step when searching for the best beam",
+                                    DoubleValue (30),
+                                    MakeDoubleAccessor (&CellScanBeamforming::SetBeamSearchAngleStep,
+                                                        &CellScanBeamforming::GetBeamSearchAngleStep),
+                                    MakeDoubleChecker<double> ());
 
   return tid;
 }
@@ -217,8 +216,8 @@ TypeId
 DirectPathBeamforming::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::DirectPathBeamforming")
-    .SetParent<IdealBeamformingAlgorithm> ()
-    .AddConstructor<DirectPathBeamforming>()
+                     .SetParent<IdealBeamformingAlgorithm> ()
+                     .AddConstructor<DirectPathBeamforming>()
   ;
   return tid;
 }
@@ -289,6 +288,41 @@ DirectPathBeamforming::DoGetDirectPathBeamformingVector(const Ptr<MobilityModel>
   // store the antenna weights
   *bfv = BeamformingVector (std::make_pair(antennaWeights, BeamId (0, 0)));
 }
+
+
+TypeId
+QuasiOmniDirectPathBeamforming::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::QuasiOmniDirectPathBeamforming")
+                      .SetParent<DirectPathBeamforming> ()
+                      .AddConstructor<QuasiOmniDirectPathBeamforming>();
+  return tid;
+}
+
+
+void
+QuasiOmniDirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice> &gnbDev,
+                                                         const Ptr<const MmWaveUeNetDevice> &ueDev,
+                                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<MobilityModel> gnbMob = gnbDev->GetNode()->GetObject<MobilityModel>();
+  Ptr<MobilityModel> ueMob = ueDev->GetNode()->GetObject<MobilityModel>();
+  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(m_bwpId)->GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(m_bwpId)->GetAntennaArray();
+
+  // configure gNb beamforming vector to be quasi omni
+  UintegerValue numRows, numColumns;
+  gnbAntenna->GetAttribute ("NumRows", numRows);
+  gnbAntenna->GetAttribute ("NumColumns", numColumns);
+  *gnbBfv = std::make_pair (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
+
+  //configure UE beamforming vector to be directed towards gNB
+  DirectPathBeamforming::DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv);
+
+}
+
 
 TypeId
 OptimalCovMatrixBeamforming::GetTypeId (void)

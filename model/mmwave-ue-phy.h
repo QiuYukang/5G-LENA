@@ -118,6 +118,14 @@ public:
   void SetNumRbPerRbg (uint32_t numRbPerRbg);
 
   /**
+   * \brief Set the UE pattern.
+   *
+   * Temporary.
+   * \param pattern The UE pattern
+   */
+  void SetPattern (const std::string &pattern);
+
+  /**
    * \brief Receive a list of CTRL messages
    *
    * Connected by the helper to a callback of the spectrum.
@@ -418,7 +426,6 @@ private:
   uint16_t m_rnti {0};             //!< Current RNTI of the user
   uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
   uint64_t m_imsi {0}; ///< The IMSI of the UE
-  std::vector<LteNrTddSlotType> m_tddPattern;  //!< TDD pattern received through SIB msgs
   std::unordered_map<uint8_t, uint32_t> m_harqIdToK1Map;  //!< Map that holds the K1 delay for each Harq process id
 
   int64_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth, this parameter is configured by MAC through phy SAP provider interface

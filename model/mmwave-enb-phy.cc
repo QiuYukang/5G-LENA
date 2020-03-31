@@ -289,26 +289,69 @@ MmWaveEnbPhy::GenerateStructuresFromPattern (const std::vector<LteNrTddSlotType>
 {
   const uint32_t n = static_cast<uint32_t> (pattern.size ());
 
+  // Create a pattern that is all F.
+  std::vector<LteNrTddSlotType> fddGenerationPattern;
+  fddGenerationPattern.resize (pattern.size (), LteNrTddSlotType::F);
+
+  /* if we have to generate structs for a TDD pattern, then use the input pattern.
+   * Otherwise, pass to the gen functions a pattern which is all F (therefore, the
+   * the function will think that they will be able to transmit or
+   * receive things following n0, n1, n2, that is what happen in FDD, just in
+   * another band..
+   */
+
+  const std::vector<LteNrTddSlotType> *generationPattern;
+
+  if (IsTdd (pattern))
+    {
+      generationPattern = &pattern;
+    }
+  else
+    {
+      generationPattern = &fddGenerationPattern;
+    }
+
   for (uint32_t i = 0; i < n; i++)
     {
-      if (pattern[i] == LteNrTddSlotType::UL)
+      if ((*generationPattern)[i] == LteNrTddSlotType::UL)
         {
-          GenerateDciMaps (pattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
         }
-      else if (pattern[i] == LteNrTddSlotType::DL || pattern[i] == LteNrTddSlotType::S)
+      else if ((*generationPattern)[i] == LteNrTddSlotType::DL || pattern[i] == LteNrTddSlotType::S)
         {
-          GenerateDciMaps (pattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
 
-          int32_t k1 = ReturnHarqSlot (pattern, i, n1);
+          int32_t k1 = ReturnHarqSlot (*generationPattern, i, n1);
           (*dlHarqfbPosition).insert (std::make_pair (i, k1));
         }
-      else if (pattern[i] == LteNrTddSlotType::F)
+      else if ((*generationPattern)[i] == LteNrTddSlotType::F)
         {
-          GenerateDciMaps (pattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
-          GenerateDciMaps (pattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
+          GenerateDciMaps (*generationPattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
 
-          int32_t k1 = ReturnHarqSlot (pattern, i, n1);
+          int32_t k1 = ReturnHarqSlot (*generationPattern, i, n1);
           (*dlHarqfbPosition).insert (std::make_pair (i, k1));
+        }
+    }
+
+  /*
+   * Now, if the input pattern is for FDD, remove the elements in the
+   * opposite generate* structures: in the end, we don't want to generate DL
+   * for a FDD-UL band, right?
+   *
+   * But.. maintain the toSend structures, as they will be used to send
+   * feedback or other messages, like DCI.
+   */
+
+  if (! IsTdd (pattern))
+    {
+      if (HasUlSlot (pattern))
+        {
+          generateDl->clear ();
+        }
+      else
+        {
+          generateUl->clear();
         }
     }
 
@@ -460,6 +503,7 @@ void
 MmWaveEnbPhy::SetN1Delay (uint32_t delay)
 {
   m_n1Delay = delay;
+  SetTddPattern (m_tddPattern); // Update the generate/send structures
 }
 
 void
@@ -529,6 +573,7 @@ MmWaveEnbPhy::QueueMib ()
   mib.dlBandwidth = m_channelBandwidth;
   mib.systemFrameNumber = 1;
   Ptr<MmWaveMibMessage> mibMsg = Create<MmWaveMibMessage> ();
+  mibMsg->SetSourceBwp (GetBwpId ());
   mibMsg->SetMib (mib);
   EnqueueCtrlMsgNow (mibMsg);
 }
@@ -538,7 +583,7 @@ void MmWaveEnbPhy::QueueSib ()
   NS_LOG_FUNCTION (this);
   Ptr<MmWaveSib1Message> msg = Create<MmWaveSib1Message> ();
   msg->SetSib1 (m_sib1);
-  msg->SetTddPattern (m_tddPattern);
+  msg->SetSourceBwp (GetBwpId ());
   EnqueueCtrlMsgNow (msg);
 }
 
@@ -546,8 +591,7 @@ void
 MmWaveEnbPhy::CallMacForSlotIndication (const SfnSf &currentSlot)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (!m_generateDl.empty());
-  NS_ASSERT (!m_generateUl.empty());
+  NS_ASSERT (!m_generateDl.empty() || !m_generateUl.empty());
 
   m_phySapUser->SetCurrentSfn (currentSlot);
 
@@ -607,15 +651,18 @@ MmWaveEnbPhy::StartSlot (const SfnSf &startSlot)
       m_currSlotAllocInfo = SlotAllocInfo (m_currentSlot);
     }
 
-  if (m_currentSlot.GetSlot () == 0)
+  if (m_isPrimary)
     {
-      if (m_currentSlot.GetSubframe () == 0)   //send MIB at the beginning of each frame
+      if (m_currentSlot.GetSlot () == 0)
         {
-          QueueMib ();
-        }
-      else if (m_currentSlot.GetSubframe () == 5)   // send SIB at beginning of second half-frame
-        {
-          QueueSib ();
+          if (m_currentSlot.GetSubframe () == 0)   //send MIB at the beginning of each frame
+            {
+              QueueMib ();
+            }
+          else if (m_currentSlot.GetSubframe () == 5)   // send SIB at beginning of second half-frame
+            {
+              QueueSib ();
+            }
         }
     }
 
@@ -632,14 +679,17 @@ MmWaveEnbPhy::StartSlot (const SfnSf &startSlot)
       ulSfn.Add (GetN2Delay ());
 
       if (GetN2Delay () > 0)
-        {
-          if (SlotAllocInfoExists (ulSfn))
-            {
-              SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
-              hasUlDci = ulSlot.ContainsDataAllocation ();
-            }
-        }
-      if (m_currSlotAllocInfo.ContainsDataAllocation () || ! IsCtrlMsgListEmpty () || hasUlDci)
+      {
+        if (SlotAllocInfoExists (ulSfn))
+          {
+            SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
+            hasUlDci = ulSlot.ContainsDataAllocation ();
+          }
+      }
+      // If there is a DL CTRL, try to obtain the channel to transmit it;
+      // because, even if right now there isn't any message, maybe they
+      // will come from another BWP.
+      if (m_currSlotAllocInfo.ContainsDataAllocation () || m_currSlotAllocInfo.ContainsDlCtrlAllocation () || hasUlDci)
         {
           // Request the channel access
           if (m_channelStatus == NONE)
@@ -816,6 +866,7 @@ MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
 
           Ptr<MmWaveTdmaDciMessage> dciMsg = Create<MmWaveTdmaDciMessage> (dciElem);
 
+          dciMsg->SetSourceBwp (GetBwpId ());
           dciMsg->SetKDelay (kDelay);
           dciMsg->SetK1Delay (k1Delay);  //Set for both DL/UL however used only in DL (in UL UE ignors it)
 
@@ -1441,6 +1492,8 @@ MmWaveEnbPhy::ReportUlHarqFeedback (const UlHarqInfo &mes)
   // forward to scheduler
   if (m_ueAttachedRnti.find (mes.m_rnti) != m_ueAttachedRnti.end ())
     {
+      NS_LOG_INFO ("Received UL HARQ feedback " << mes.IsReceivedOk() <<
+                   " and forwarding to the scheduler");
       m_phySapUser->UlHarqFeedback (mes);
     }
 }
@@ -1495,6 +1548,13 @@ MmWaveEnbPhy::GetPattern () const
     }
 
   return ss.str ();
+}
+
+void
+MmWaveEnbPhy::SetPrimary ()
+{
+  NS_LOG_FUNCTION (this);
+  m_isPrimary = true;
 }
 
 void

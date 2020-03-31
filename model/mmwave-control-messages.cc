@@ -46,6 +46,19 @@ MmWaveControlMessage::GetMessageType (void) const
   return m_messageType;
 }
 
+void
+MmWaveControlMessage::SetSourceBwp (uint16_t bwpId)
+{
+  m_bwpId = bwpId;
+}
+
+uint16_t
+MmWaveControlMessage::GetSourceBwp () const
+{
+  NS_ABORT_IF (m_bwpId < 0);
+  return static_cast<uint16_t> (m_bwpId);
+}
+
 MmWaveSRMessage::MmWaveSRMessage () : MmWaveControlMessage ()
 {
   NS_LOG_INFO (this);
@@ -198,22 +211,10 @@ MmWaveSib1Message::SetSib1 (LteRrcSap::SystemInformationBlockType1 sib1)
   m_sib1 = sib1;
 }
 
-void
-MmWaveSib1Message::SetTddPattern(const std::vector<LteNrTddSlotType> &pattern)
-{
-  m_pattern = pattern;
-}
-
 LteRrcSap::SystemInformationBlockType1
 MmWaveSib1Message::GetSib1 () const
 {
   return m_sib1;
-}
-
-const std::vector<LteNrTddSlotType> &
-MmWaveSib1Message::GetTddPattern() const
-{
-  return m_pattern;
 }
 
 // ----------------------------------------------------------------------------------------------------------

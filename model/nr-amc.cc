@@ -59,7 +59,9 @@ NrAmc::GetTypeId (void)
                    MakeEnumChecker (NrAmc::ErrorModel, "ErrorModel",
                                     NrAmc::ShannonModel, "ShannonModel"))
     .AddAttribute ("ErrorModelType",
-                   "Type of the Error Model to use when AmcModel is set to ErrorModel",
+                   "Type of the Error Model to use when AmcModel is set to ErrorModel. "
+                   "This parameter has to match the ErrorModelType in mmwave-spectrum-model,"
+                   "because they need to refer to same MCS tables and indexes",
                    TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
                    MakeTypeIdAccessor (&NrAmc::SetErrorModelType,
                                        &NrAmc::GetErrorModelType),

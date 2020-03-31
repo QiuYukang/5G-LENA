@@ -230,6 +230,13 @@ public:
   std::string GetPattern() const;
 
   /**
+   * \brief Set this PHY as primary
+   *
+   * A primary PHY will send MIB and SIB1. By default, a PHY is "non-primary".
+   */
+  void SetPrimary ();
+
+  /**
    * \brief Start the ue Event Loop
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
@@ -454,8 +461,6 @@ private:
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 
-  std::vector<LteNrTddSlotType> m_tddPattern = { F, F, F, F, F, F, F, F, F, F}; //!< Per-slot pattern
-
   std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_generateUl; //!< Map that indicates, for each slot, what UL DCI we have to generate
@@ -488,6 +493,7 @@ private:
   uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
 
   SfnSf m_currentSlot;
+  bool m_isPrimary {false}; //!< Is this PHY a primary phy?
 };
 
 }

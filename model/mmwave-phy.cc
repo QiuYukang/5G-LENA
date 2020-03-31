@@ -288,10 +288,10 @@ MmWavePhy::GetNumScsPerRb ()
 }
 
 void
-MmWavePhy::DoSetCellId (uint16_t bwpId)
+MmWavePhy::DoSetCellId (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this);
-  m_bwpId = bwpId;
+  m_cellId = cellId;
 }
 
 void
@@ -301,6 +301,7 @@ MmWavePhy::SendRachPreamble (uint32_t PreambleId, uint32_t Rnti)
   // This function is called by the SAP, SO it has to stay at the L1L2CtrlDelay rule
   m_raPreambleId = PreambleId;
   Ptr<MmWaveRachPreambleMessage> msg = Create<MmWaveRachPreambleMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetRapId (PreambleId);
   EnqueueCtrlMessage (msg); // Enqueue at the end
 }
@@ -347,10 +348,9 @@ MmWavePhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 
   if (it == m_packetBurstMap.end ())
     {
-      // Changed to a fatal error; if it happens, the MAC has scheduled something
-      // that we, in reality, don't have. It is a symptom that something is
-      // going not so well...
-      NS_FATAL_ERROR ("Packet burst not found for " << sfn << " at sym " << +sym);
+      // For instance, this can happen with low BW and low MCS: The MAC
+      // ignores the txOpportunity.
+      NS_LOG_WARN ("Packet burst not found for " << sfn << " at sym " << +sym);
       return pburst;
     }
   else
@@ -412,8 +412,44 @@ void
 MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
 {
   NS_LOG_FUNCTION (this);
-
   m_ctrlMsgs.push_back (msg);
+}
+
+bool
+MmWavePhy::HasDlSlot () const
+{
+  return MmWavePhy::HasDlSlot (m_tddPattern);
+}
+
+bool MmWavePhy::HasUlSlot () const
+{
+  return MmWavePhy::HasUlSlot (m_tddPattern);
+}
+
+bool
+MmWavePhy::HasDlSlot (const std::vector<LteNrTddSlotType> &pattern)
+{
+  for (const auto & v : pattern)
+    {
+      if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::DL)
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+bool
+MmWavePhy::HasUlSlot (const std::vector<LteNrTddSlotType> &pattern)
+{
+  for (const auto & v : pattern)
+    {
+      if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::UL)
+        {
+          return true;
+        }
+    }
+  return false;
 }
 
 void
@@ -437,6 +473,33 @@ MmWavePhy::UpdateRbNum ()
     {
       NS_LOG_INFO ("Noise Power Spectral Density NOT updated");
     }
+}
+
+bool
+MmWavePhy::IsTdd (const std::vector<LteNrTddSlotType> &pattern)
+{
+  bool anUl = false;
+  bool aDl = false;
+
+  for (const auto & v : pattern)
+    {
+      // An F slot: we are TDD
+      if (v == LteNrTddSlotType::F)
+        {
+          return true;
+        }
+
+      if (v == LteNrTddSlotType::UL)
+        {
+          anUl = true;
+        }
+      else if (v == LteNrTddSlotType::DL)
+        {
+          aDl = true;
+        }
+    }
+
+  return ! (anUl ^ aDl);
 }
 
 void
@@ -489,6 +552,11 @@ MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 }
 
+void MmWavePhy::SetBwpId (uint16_t bwpId)
+{
+  m_bwpId = bwpId;
+}
+
 uint16_t
 MmWavePhy::GetBwpId () const
 {
@@ -498,20 +566,7 @@ MmWavePhy::GetBwpId () const
 uint16_t
 MmWavePhy::GetCellId () const
 {
-  if (!m_netDevice)
-    {
-      return UINT16_MAX;
-    }
-  auto enbNetDevice = DynamicCast<MmWaveEnbNetDevice> (m_netDevice);
-  auto ueNetDevice = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
-  if (enbNetDevice)
-    {
-      return enbNetDevice->GetCellId ();
-    }
-  else
-    {
-      return ueNetDevice->GetCellId ();
-    }
+  return m_cellId;
 }
 
 uint32_t

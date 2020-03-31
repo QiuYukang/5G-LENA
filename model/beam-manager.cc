@@ -42,11 +42,6 @@ BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray)
   // we assume that the antenna dimension will not change during the simulation,
   // thus we create this omni vector only once
   m_antennaArray = antennaArray;
-  UintegerValue numRows, numColumn;
-  m_antennaArray->GetAttribute ("NumRows", numRows);
-  m_antennaArray->GetAttribute ("NumColumns", numColumn);
-  m_omniTxRxW = GenerateOmniTxRxW (numRows.Get (), numColumn.Get ());
-
   ChangeToOmniTx ();
 }
 
@@ -131,6 +126,25 @@ void
 BeamManager::ChangeToOmniTx ()
 {
   NS_LOG_FUNCTION (this);
+
+  UintegerValue numRows, numColumns;
+  m_antennaArray->GetAttribute ("NumRows", numRows);
+  m_antennaArray->GetAttribute ("NumColumns", numColumns);
+
+  /**
+   * Before configuring omni beamforming vector,
+   * we want to make sure that it is being calculated
+   * with the actual number of antenna rows and columns.
+   * We want to avoid recalculations, if these numbers didn't
+   * change. Which will normally be the case.
+   */
+  if (numRows.Get() != m_numRows || numColumns.Get() != m_numColumns)
+    {
+      m_numRows = numRows.Get();
+      m_numColumns = numColumns.Get();
+      m_omniTxRxW = std::make_pair (CreateQuasiOmniBfv (m_numRows, m_numColumns), OMNI_BEAM_ID);
+    }
+
   m_antennaArray->SetBeamformingVector(m_omniTxRxW.first);
 }
 
@@ -167,67 +181,11 @@ BeamManager::GetBeamId (const Ptr<NetDevice>& device) const
   return beamId;
 }
 
-BeamformingVector
-BeamManager::GenerateOmniTxRxW (uint32_t antennaNumDim1, uint32_t antennaNumDim2) const
-{
-  NS_LOG_FUNCTION (this);
-  complexVector_t omni;
-  uint32_t size = antennaNumDim1 * antennaNumDim2;
-  double power = 1 / sqrt (size);
-  for (uint32_t ind = 0; ind < antennaNumDim1; ind++)
-    {
-      std::complex<double> c = 0.0;
-      if (antennaNumDim1 % 2 == 0)
-        {
-          c = exp(std::complex<double> (0, M_PI*ind*ind/antennaNumDim1));
-        }
-      else
-        {
-          c = exp(std::complex<double> (0, M_PI*ind*(ind+1)/antennaNumDim1));
-        }
-
-      for (uint32_t ind2 = 0; ind2 < antennaNumDim2; ind2++)
-        {
-          std::complex<double> d = 0.0;
-          if (antennaNumDim2 % 2 == 0)
-            {
-              d = exp(std::complex<double> (0, M_PI*ind2*ind2/antennaNumDim2));
-            }
-          else
-            {
-              d = exp(std::complex<double> (0, M_PI*ind2*(ind2+1)/antennaNumDim2));
-            }
-
-          omni.push_back (c * d * power);
-        }
-    }
-
-  return std::make_pair(omni, OMNI_BEAM_ID);
-}
-
 void
 BeamManager::SetSector (uint16_t sector, double elevation) const
 {
   NS_LOG_INFO ("Set sector to :"<< (unsigned) sector<< ", and elevation to:"<< elevation);
-  complexVector_t tempVector;
-
-  UintegerValue uintValueNumRows;
-  m_antennaArray->GetAttribute("NumRows", uintValueNumRows);
-
-
-  double hAngle_radian = M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumRows.Get())) - 0.5 * M_PI;
-  double vAngle_radian = elevation * M_PI / 180;
-  uint16_t size = m_antennaArray->GetNumberOfElements();
-  double power = 1 / sqrt (size);
-  for (auto ind = 0; ind < size; ind++)
-    {
-      Vector loc = m_antennaArray->GetElementLocation(ind);
-      double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
-                                  + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
-                                  + cos (vAngle_radian) * loc.z);
-      tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
-    }
-  m_antennaArray->SetBeamformingVector(tempVector);
+  m_antennaArray->SetBeamformingVector(CreateDirectionalBfv (m_antennaArray, sector, elevation));
 }
 
 } /* namespace ns3 */

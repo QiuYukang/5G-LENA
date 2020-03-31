@@ -103,6 +103,9 @@ MmWaveEnbNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMess
   for (const auto & msg : msgList)
     {
       uint8_t bwpId = DynamicCast<BwpManagerGnb> (m_componentCarrierManager)->RouteOutgoingCtrlMsg (msg, sourceBwpId);
+      NS_ASSERT_MSG (m_ccMap.size () > bwpId, "Returned bwp " << +bwpId << " is not present. Check your configuration");
+      NS_ASSERT_MSG (m_ccMap.at (bwpId)->GetPhy ()->HasDlSlot (),
+                     "Returned bwp " << +bwpId << " has no DL slot, so the message can't go out. Check your configuration");
       m_ccMap.at (bwpId)->GetPhy ()->EncodeCtrlMsg (msg);
     }
 }
@@ -138,6 +141,12 @@ MmWaveEnbNetDevice::GetPhy (uint8_t index) const
 {
   NS_LOG_FUNCTION (this);
   return m_ccMap.at (index)->GetPhy ();
+}
+
+Ptr<BwpManagerGnb>
+MmWaveEnbNetDevice::GetBwpManager () const
+{
+  return DynamicCast<BwpManagerGnb> (m_componentCarrierManager);
 }
 
 uint16_t

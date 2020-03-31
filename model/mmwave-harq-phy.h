@@ -42,12 +42,6 @@ public:
   ~MmWaveHarqPhy ();
 
   /**
-   * \brief Set a new harq number, resizing the existing vector
-   * \param harqNum new harq number
-   */
-  void SetHarqNum (uint32_t harqNum);
-
-  /**
   * \brief Return the info of the HARQ procId in case of retranmissions
   * for DL (asynchronous)
   * \param harqProcId the HARQ proc id
@@ -99,9 +93,26 @@ public:
   void ResetUlHarqProcessStatus (uint16_t rnti, uint8_t id);
 
 private:
-  uint32_t m_harqNum;
-  std::unordered_map <uint16_t, std::vector<NrErrorModel::NrErrorModelHistory> > m_dlHistory;
-  std::unordered_map <uint16_t, std::vector<NrErrorModel::NrErrorModelHistory> > m_ulHistory;
+
+  /**
+   * \brief Map between a process ID and it's history (a vector of pointers)
+   */
+  typedef std::unordered_map <uint8_t, NrErrorModel::NrErrorModelHistory> ProcIdHistoryMap;
+  /**
+   * \brief Map between a RNTI and its ProcIdHistoryMap
+   */
+  typedef std::unordered_map <uint16_t, ProcIdHistoryMap> HistoryMap;
+
+  HistoryMap::iterator GetHistoryMapOf (HistoryMap *map, uint16_t rnti) const;
+  ProcIdHistoryMap::iterator GetProcIdHistoryMapOf (ProcIdHistoryMap *map, uint16_t procId) const;
+
+
+  void ResetHarqProcessStatus (HistoryMap *map, uint16_t rnti, uint8_t harqProcId) const;
+  void UpdateHarqProcessStatus (HistoryMap *map, uint16_t rnti, uint8_t harqProcId, const Ptr<NrErrorModelOutput> &output) const;
+  const NrErrorModel::NrErrorModelHistory & GetHarqProcessInfo (HistoryMap *map, uint16_t rnti, uint8_t harqProcId) const;
+
+  HistoryMap m_dlHistory;
+  HistoryMap m_ulHistory;
 };
 
 

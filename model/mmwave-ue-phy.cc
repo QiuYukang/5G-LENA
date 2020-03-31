@@ -203,8 +203,6 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId)
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
 
-  m_spectrumPhy->GetHarqPhyModule ()->SetHarqNum (m_phySapUser->GetNumHarqProcess ());
-
   m_amc = CreateObject <NrAmc> ();
   DoSetCellId (bwpId);
 }
@@ -213,6 +211,37 @@ void
 MmWaveUePhy::SetNumRbPerRbg (uint32_t numRbPerRbg)
 {
   m_numRbPerRbg = numRbPerRbg;
+}
+
+void
+MmWaveUePhy::SetPattern (const std::string &pattern)
+{
+  NS_LOG_FUNCTION (this);
+
+  static std::unordered_map<std::string, LteNrTddSlotType> lookupTable =
+  {
+    { "DL", LteNrTddSlotType::DL },
+    { "UL", LteNrTddSlotType::UL },
+    { "S",  LteNrTddSlotType::S },
+    { "F",  LteNrTddSlotType::F },
+  };
+
+  std::vector<LteNrTddSlotType> vector;
+  std::stringstream ss (pattern);
+  std::string token;
+  std::vector<std::string> extracted;
+
+   while (std::getline(ss, token, '|'))
+     {
+       extracted.push_back(token);
+     }
+
+   for (const auto & v : extracted)
+     {
+       vector.push_back (lookupTable[v]);
+     }
+
+   m_tddPattern = vector;
 }
 
 uint32_t
@@ -336,14 +365,13 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       NS_LOG_INFO ("received MIB");
       Ptr<MmWaveMibMessage> msg2 = DynamicCast<MmWaveMibMessage> (msg);
-      m_ueCphySapUser->RecvMasterInformationBlock (GetBwpId (), msg2->GetMib ());
+      m_ueCphySapUser->RecvMasterInformationBlock (GetCellId (), msg2->GetMib ());
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
     {
       Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
-      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetBwpId (), msg2->GetSib1 ()); 
-      m_tddPattern = msg2->GetTddPattern ();
+      m_ueCphySapUser->RecvSystemInformationBlockType1 (GetCellId (), msg2->GetSib1 ());
       m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
@@ -365,6 +393,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 void
 MmWaveUePhy::TryToPerformLbt ()
 {
+  NS_LOG_FUNCTION (this);
   uint8_t ulCtrlSymStart = 0;
   uint8_t ulCtrlNumSym = 0;
 
@@ -425,6 +454,14 @@ MmWaveUePhy::TryToPerformLbt ()
           m_lbtEvent.Cancel ();
           m_lbtEvent = Simulator::Schedule (sched, &MmWaveUePhy::RequestAccess, this);
         }
+      else
+        {
+          NS_LOG_INFO ("Not scheduling LBT: the UE has a channel status that is GRANTED");
+        }
+    }
+  else
+    {
+      NS_LOG_INFO ("Not scheduling LBT; the UE has no UL CTRL symbols available");
     }
 }
 
@@ -544,12 +581,13 @@ MmWaveUePhy::StartSlot (const SfnSf &s)
                    " direction " << direction << " type " << type);
     }
 
+  TryToPerformLbt ();
+
   VarTtiAllocInfo allocation = m_currSlotAllocInfo.m_varTtiAllocInfo.front ();
   m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front ();
 
   auto nextVarTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
 
-  TryToPerformLbt ();
 
   auto ctrlMsgs = PopCurrentSlotCtrlMsgs ();
   if (m_netDevice)
@@ -834,6 +872,7 @@ MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
   SpectrumValue newSinr = sinr;
   // CREATE DlCqiLteControlMessage
   Ptr<MmWaveDlCqiMessage> msg = Create<MmWaveDlCqiMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   DlCqiInfo dlcqi;
 
   dlcqi.m_rnti = m_rnti;
@@ -876,6 +915,7 @@ MmWaveUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   NS_LOG_FUNCTION (this);
   // get the feedback from MmWaveSpectrumPhy and send it through ideal PUCCH to eNB
   Ptr<MmWaveDlHarqFeedbackMessage> msg = Create<MmWaveDlHarqFeedbackMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetDlHarqFeedback (m);
 
   auto k1It = m_harqIdToK1Map.find (m.m_harqProcessId);
@@ -940,8 +980,7 @@ void
 MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
-  NS_UNUSED (cellId);
-
+  DoSetCellId (cellId);
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity ());
 }
 

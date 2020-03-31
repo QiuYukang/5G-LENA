@@ -73,6 +73,9 @@ public:
    * \brief Decide the BWP for the control message received.
    * \param msg Message
    * \param bwpId BWP Id from which this message come from.
+   *
+   * The routing is made following the bandwidth part reported in the message.
+   *
    * \return the BWP Id to which this message should be routed to.
    */
   uint8_t RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> & msg, uint8_t sourceBwpId) const;
@@ -81,9 +84,26 @@ public:
    * \brief Route the outgoing messages to the right BWP
    * \param msgList the list of messages
    * \param sourceBwpId the source bwp of the messages
+   *
+   * The routing is made by following the mapping provided through the function
+   * SetOutputLink. If no mapping has been installed, or if the sourceBwpId
+   * provided is not in the mapping, then forward the message back to the
+   * originating BWP.
+   *
+   * \see SetOutputLink
+   *
    * \return the bwp to which the ctrl messages should be redirected
    */
   uint8_t RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const;
+
+  /**
+   * \brief Set a mapping between two BWP.
+   * \param sourceBwp The messages that come from this value...
+   * \param outputBwp ... will get routed in this bandwidth part.
+   *
+   * Call it for each mapping you want to install.
+   */
+  void SetOutputLink (uint32_t sourceBwp, uint32_t outputBwp);
 
 protected:
   /*
@@ -124,6 +144,8 @@ private:
   bool IsGbr (LteMacSapProvider::ReportBufferStatusParameters params);
 
   Ptr<BwpManagerAlgorithm> m_algorithm; //!< The BWP selection algorithm.
+
+  std::unordered_map <uint32_t, uint32_t> m_outputLinks; //!< Mapping between BWP.
 };
 
 } // end of namespace ns3

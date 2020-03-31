@@ -20,6 +20,7 @@ force (not git --force)
 3. [Commit message format](#3-commit-message-format)
 4. [Rebase your branch](#4-rebase-your-branch)
 5. [Create Merge request](#5-create-merge-request)
+6. [Documentation](#6-documentation)
 
 GPL header
 ----------
@@ -426,5 +427,23 @@ and force push to our remote branch using the following command.
 git push -f
 ```
 
+### 6. Documentation
 
+The design of new features implemented in the module has to be documented in nr-module.rst
+within the nr/doc/source folder, Section 2 (design). The design description
+includes: the current NR specification (with references to NR docs)
+and the design choice in the module (with supported features and functionalities).
+References to classes are not included; however, attributes are detailed,
+to give the user a high-level description of what can be configured.
 
+Also, nr-module.rst file includes the list of tests and examples with a brief
+description and a link to the corresponding doxygen documentation
+for each of them. Any new test and/or example, needs to be included there as well.
+
+To compile the documentation file, from src/nr/doc, do:
+
+```
+make latexpdf
+```
+
+and a PDF file (NRModule.pdf) will be created inside nr/doc/build/latex.

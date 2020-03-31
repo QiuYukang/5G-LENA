@@ -146,6 +146,9 @@ MmWaveUeNetDevice::RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessa
   for (const auto & msg : msgList)
     {
       uint8_t bwpId = DynamicCast<BwpManagerUe> (m_componentCarrierManager)->RouteOutgoingCtrlMsg (msg, sourceBwpId);
+      NS_ASSERT_MSG (m_ccMap.size () > bwpId, "Returned bwp " << +bwpId << " is not present. Check your configuration");
+      NS_ASSERT_MSG (m_ccMap.at (bwpId)->GetPhy ()->HasUlSlot (),
+                     "Returned bwp " << +bwpId << " has no UL slot, so the message can't go out. Check your configuration");
       m_ccMap.at (bwpId)->GetPhy ()->EncodeCtrlMsg (msg);
     }
 }
@@ -201,28 +204,11 @@ MmWaveUeNetDevice::GetPhy (uint8_t index) const
   return m_ccMap.at (index)->GetPhy ();
 }
 
-Ptr<MmWavePhy>
-MmWaveUeNetDevice::GetPhyOnCenterFreq (double centerFrequency) const
+Ptr<BwpManagerUe>
+MmWaveUeNetDevice::GetBwpManager (void) const
 {
   NS_LOG_FUNCTION (this);
-
-  for (auto i:m_ccMap)
-    {
-      if (i.second->GetDlEarfcn())
-        {
-          return i.second->GetPhy();
-        }
-    }
-  NS_LOG_INFO ("PHY instance does not exist for center frequency:"<<centerFrequency);
-  return nullptr;
-}
-
-
-Ptr<LteUeComponentCarrierManager>
-MmWaveUeNetDevice::GetComponentCarrierManager (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_componentCarrierManager;
+  return DynamicCast<BwpManagerUe> (m_componentCarrierManager);
 }
 
 Ptr<EpcUeNas>

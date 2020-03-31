@@ -83,6 +83,14 @@ MmWaveHelper::MmWaveHelper (void)
   m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
 
+  m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
+
+  // Initialization that is there just because the user can configure attribute
+  // through the helper methods without making it sad that no TypeId is set.
+  // When the TypeId is changed, the user-set attribute will be maintained.
+  m_pathlossModelFactory.SetTypeId (ThreeGppPropagationLossModel::GetTypeId ());
+  m_channelConditionModelFactory.SetTypeId (ThreeGppChannelConditionModel::GetTypeId ());
+
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   m_phyStats = CreateObject<MmWavePhyRxTrace> ();
@@ -148,7 +156,7 @@ InitIndoorMixed (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCond
 }
 
 void
-MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
+MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
 {
   NS_LOG_FUNCTION (this);
 
@@ -160,14 +168,6 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
   };
-
-  ObjectFactory channelConditionModelFactory;
-  ObjectFactory spectrumPropagationFactory;
-  ObjectFactory pathlossModelFactory;
-  ObjectFactory channelFactory;
-
-  spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
-  channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
 
   // Iterate over all CCs, and instantiate the channel and propagation model
   for (const auto & cc : band->m_cc)
@@ -181,15 +181,15 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band) const
 
           // Initialize the type ID of the factories by calling the relevant
           // static function defined above and stored inside the lookup table
-          initLookupTable.at (bwp->m_scenario) (&pathlossModelFactory, &channelConditionModelFactory);
+          initLookupTable.at (bwp->m_scenario) (&m_pathlossModelFactory, &m_channelConditionModelFactory);
 
-          Ptr<ChannelConditionModel> channelConditionModel  = channelConditionModelFactory.Create<ChannelConditionModel>();
+          Ptr<ChannelConditionModel> channelConditionModel  = m_channelConditionModelFactory.Create<ChannelConditionModel>();
 
-          bwp->m_propagation = pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
+          bwp->m_propagation = m_pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
           bwp->m_propagation->SetAttributeFailSafe ("Frequency", DoubleValue (bwp->m_centralFrequency));
           bwp->m_propagation->SetChannelConditionModel (channelConditionModel);
 
-          bwp->m_3gppChannel = spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
+          bwp->m_3gppChannel = m_spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
           bwp->m_3gppChannel->SetFrequency (bwp->m_centralFrequency);
           bwp->m_3gppChannel->SetScenario (bwp->GetScenario ());
           bwp->m_3gppChannel->SetChannelConditionModel (channelConditionModel);
@@ -237,6 +237,34 @@ MmWaveHelper::GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
       return nullptr;
     }
   return netDevice->GetMac (static_cast<uint8_t> (bwpIndex));
+}
+
+Ptr<BwpManagerGnb>
+MmWaveHelper::GetBwpManagerGnb(const Ptr<NetDevice> &gnbDevice)
+{
+  NS_LOG_FUNCTION (gnbDevice);
+
+  Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+
+  return netDevice->GetBwpManager ();
+}
+
+Ptr<BwpManagerUe>
+MmWaveHelper::GetBwpManagerUe(const Ptr<NetDevice> &ueDevice)
+{
+  NS_LOG_FUNCTION (ueDevice);
+
+  Ptr<MmWaveUeNetDevice> netDevice = DynamicCast<MmWaveUeNetDevice> (ueDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+
+  return netDevice->GetBwpManager ();
 }
 
 void
@@ -369,18 +397,30 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   Ptr<MmWaveUeNetDevice> dev = m_ueNetDeviceFactory.Create<MmWaveUeNetDevice> ();
   std::map<uint8_t, Ptr<BandwidthPartUe> > ueCcMap;
 
-  // Create, for each ue, its component carriers
-  for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
+  // Create, for each ue, its bandwidth parts
+  for (uint32_t bwpId = 0; bwpId < allBwps.size (); ++bwpId)
     {
       Ptr <BandwidthPartUe> cc =  CreateObject<BandwidthPartUe> ();
-      double bwInKhz = allBwps[ccId].get()->m_channelBandwidth / 1000.0;
+      double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
       NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
       cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Used for nothing..
       cc->SetUlEarfcn (0); // Used for nothing..
 
-      if (ccId == 0)
+      auto mac = CreateUeMac ();
+      cc->SetMac (mac);
+
+      auto phy = CreateUePhy (n, allBwps[bwpId].get()->m_channel, allBwps[bwpId].get ()->m_3gppChannel,
+                              dev, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev),
+                              std::bind (&MmWaveUeNetDevice::RouteIngoingCtrlMsgs, dev,
+                                         std::placeholders::_1, bwpId));
+      phy->SetBwpId (bwpId);
+      phy->SetDevice (dev);
+      phy->GetSpectrumPhy ()->SetDevice (dev);
+      cc->SetPhy (phy);
+
+      if (bwpId == 0)
         {
           cc->SetAsPrimary (true);
         }
@@ -389,18 +429,7 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
           cc->SetAsPrimary (false);
         }
 
-      auto mac = CreateUeMac ();
-      cc->SetMac (mac);
-
-      auto phy = CreateUePhy (n, allBwps[ccId].get()->m_channel, allBwps[ccId].get ()->m_3gppChannel,
-                              dev, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev),
-                              std::bind (&MmWaveUeNetDevice::RouteIngoingCtrlMsgs, dev,
-                                         std::placeholders::_1, ccId));
-      phy->SetDevice (dev);
-      phy->GetSpectrumPhy ()->SetDevice (dev);
-      cc->SetPhy (phy);
-
-      ueCcMap.insert (std::make_pair (ccId, cc));
+      ueCcMap.insert (std::make_pair (bwpId, cc));
     }
 
   Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (CreateObject <BwpManagerUe> ());
@@ -577,7 +606,8 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
   Ptr<MmWaveEnbNetDevice> dev = m_enbNetDeviceFactory.Create<MmWaveEnbNetDevice> ();
 
   NS_LOG_DEBUG ("Creating gnb, cellId = " << m_cellIdCounter);
-  dev->SetCellId (m_cellIdCounter++);
+  uint16_t cellId = m_cellIdCounter++;
+  dev->SetCellId (cellId);
 
   // create component carrier map for this eNb device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
@@ -588,11 +618,26 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
       double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
       NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
+
       cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
-      cc->SetCellId (bwpId);
+      cc->SetCellId (m_cellIdCounter++);
+
+      auto phy = CreateGnbPhy (n, allBwps[bwpId].get()->m_channel,
+                               allBwps[bwpId].get()->m_3gppChannel, dev,
+                               std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
+                                          dev, std::placeholders::_1, bwpId));
+      phy->SetBwpId (bwpId);
+      cc->SetPhy (phy);
+
+      auto mac = CreateGnbMac ();
+      cc->SetMac (mac);
+      phy->GetCam ()->SetNrEnbMac (mac);
+
+      auto sched = CreateGnbSched ();
+      cc->SetMmWaveMacScheduler (sched);
 
       if (bwpId == 0)
         {
@@ -602,19 +647,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
         {
           cc->SetAsPrimary (false);
         }
-
-      auto phy = CreateGnbPhy (n, allBwps[bwpId].get()->m_channel,
-                               allBwps[bwpId].get()->m_3gppChannel, dev,
-                               std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
-                                          dev, std::placeholders::_1, bwpId));
-      cc->SetPhy (phy);
-
-      auto mac = CreateGnbMac ();
-      cc->SetMac (mac);
-      phy->GetCam ()->SetNrEnbMac (mac);
-
-      auto sched = CreateGnbSched ();
-      cc->SetMmWaveMacScheduler (sched);
 
       ccMap.insert (std::make_pair (bwpId, cc));
     }
@@ -788,6 +820,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
       ueNetDev->GetPhy (i)->SetSymbolsPerSlot (enbNetDev->GetPhy (i)->GetSymbolsPerSlot ());
       ueNetDev->GetPhy (i)->SetNumerology (enbNetDev->GetPhy(i)->GetNumerology ());
+      ueNetDev->GetPhy (i)->SetPattern (enbNetDev->GetPhy (i)->GetPattern ());
       Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
       ueNas->Connect (enbNetDev->GetBwpId (i), enbNetDev->GetEarfcn (i));
     }
@@ -958,6 +991,27 @@ MmWaveHelper::SetUeBwpManagerAlgorithmAttribute (const std::string &n, const Att
 {
   NS_LOG_FUNCTION (this);
   m_ueBwpManagerAlgoFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelConditionModelFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetSpectrumPropagationAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_spectrumPropagationFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetPathlossAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_pathlossModelFactory.Set (n, v);
 }
 
 void

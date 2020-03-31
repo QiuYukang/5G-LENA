@@ -479,6 +479,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
 
   // create the feedback to eNB
   Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetBsr (bsr);
 
   m_macTxedCtrlMsgsTrace (m_currentSlot, bsr.m_rnti, GetBwpId (), msg);
@@ -554,6 +555,7 @@ MmWaveUeMac::SendSR () const
 
   // create the SR to send to the gNB
   Ptr<MmWaveSRMessage> msg = Create<MmWaveSRMessage> ();
+  msg->SetSourceBwp (GetBwpId ());
   msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
 
@@ -684,7 +686,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
 
                 if (activeLcs == 0)
                   {
-                    NS_LOG_DEBUG ("No active flows for this UL-DCI");
+                    NS_LOG_WARN ("No active flows for this UL-DCI");
                     // the UE may have been scheduled when it has no buffered data due to BSR quantization, send empty packet
 
                     MmWaveMacPduTag tag (dataSfn, dciInfoElem->m_symStart, dciInfoElem->m_numSym);
@@ -807,6 +809,10 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                       }
                                   }
                               }
+                            else
+                              {
+                                NS_LOG_WARN ("TxOpportunity of " << bytesForThisLc << " ignored");
+                              }
                             NS_LOG_LOGIC (this << "\t" << bytesPerActiveLc << "\t new queues " << (uint32_t)(*lcIt).first << " statusQueue " << (*itBsr).second.statusPduSize << " retxQueue" << (*itBsr).second.retxQueueSize << " txQueue" <<  (*itBsr).second.txQueueSize);
                           }
                       }
@@ -926,6 +932,7 @@ MmWaveUeMac::SendRaPreamble (bool contention)
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
+  rachMsg->SetSourceBwp (GetBwpId ());
   m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rachMsg);
 
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);

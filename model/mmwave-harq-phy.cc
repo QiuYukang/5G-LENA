@@ -32,59 +32,18 @@ MmWaveHarqPhy::~MmWaveHarqPhy ()
   m_ulHistory.clear ();
 }
 
-void MmWaveHarqPhy::SetHarqNum (uint32_t harqNum)
-{
-  NS_LOG_FUNCTION (this);
-  m_harqNum = harqNum;
-  for (auto & v : m_dlHistory)
-    {
-      v.second.resize (m_harqNum);
-    }
-  for (auto & v : m_ulHistory)
-    {
-      v.second.resize (m_harqNum);
-    }
-}
-
 const NrErrorModel::NrErrorModelHistory &
 MmWaveHarqPhy::GetHarqProcessInfoDl (uint16_t rnti, uint8_t harqProcId)
 {
   NS_LOG_FUNCTION (this);
-
-  auto it = m_dlHistory.find (rnti);
-  if (it == m_dlHistory.end ())
-    {
-      // new entry
-      m_dlHistory.insert(std::make_pair (rnti, std::vector<NrErrorModel::NrErrorModelHistory> ()));
-      it = m_dlHistory.find (rnti);
-      it->second.resize (m_harqNum);
-      return it->second.at (harqProcId);
-    }
-  else
-    {
-      return (it->second.at (harqProcId));
-    }
+  return GetHarqProcessInfo (&m_dlHistory, rnti, harqProcId);
 }
 
 const NrErrorModel::NrErrorModelHistory &
 MmWaveHarqPhy::GetHarqProcessInfoUl (uint16_t rnti, uint8_t harqProcId)
 {
   NS_LOG_FUNCTION (this);
-
-  auto it = m_ulHistory.find (rnti);
-  if (it == m_ulHistory.end ())
-    {
-      // new entry
-
-      m_ulHistory.insert(std::make_pair (rnti, std::vector<NrErrorModel::NrErrorModelHistory> ()));
-      it = m_ulHistory.find (rnti);
-      it->second.resize (m_harqNum);
-      return it->second.at (harqProcId);
-    }
-  else
-    {
-      return (it->second.at (harqProcId));
-    }
+  return GetHarqProcessInfo (&m_ulHistory, rnti, harqProcId);
 }
 
 void
@@ -92,21 +51,7 @@ MmWaveHarqPhy::UpdateDlHarqProcessStatus (uint16_t rnti, uint8_t harqProcId,
                                           const Ptr<NrErrorModelOutput> &output)
 {
   NS_LOG_FUNCTION (this);
-
-  auto it = m_dlHistory.find (rnti);
-  if (it == m_dlHistory.end ())
-    {
-      // new entry
-      m_dlHistory.insert(std::make_pair (rnti, std::vector<NrErrorModel::NrErrorModelHistory> ()));
-      it = m_dlHistory.find (rnti);
-      it->second.resize (m_harqNum);
-
-      it->second.at (harqProcId).emplace_back (output);
-    }
-  else
-    {
-      it->second.at (harqProcId).emplace_back (output);
-    }
+  UpdateHarqProcessStatus (&m_dlHistory, rnti, harqProcId, output);
 }
 
 
@@ -114,19 +59,7 @@ void
 MmWaveHarqPhy::ResetDlHarqProcessStatus (uint16_t rnti, uint8_t id)
 {
   NS_LOG_FUNCTION (this);
-
-  auto it = m_dlHistory.find (rnti);
-  if (it == m_dlHistory.end ())
-    {
-      // new entry
-      m_dlHistory.insert(std::make_pair (rnti, std::vector<NrErrorModel::NrErrorModelHistory> ()));
-      it = m_dlHistory.find (rnti);
-      it->second.resize (m_harqNum);
-    }
-  else
-    {
-      it->second.at (id).clear ();
-    }
+  ResetHarqProcessStatus (&m_dlHistory, rnti, id);
 }
 
 void
@@ -134,40 +67,87 @@ MmWaveHarqPhy::UpdateUlHarqProcessStatus (uint16_t rnti, uint8_t harqProcId,
                                           const Ptr<NrErrorModelOutput> &output)
 {
   NS_LOG_FUNCTION (this);
-
-  auto it = m_ulHistory.find (rnti);
-  if (it == m_ulHistory.end ())
-    {
-      // new entry
-      m_ulHistory.insert(std::make_pair (rnti, std::vector<NrErrorModel::NrErrorModelHistory> ()));
-      it = m_ulHistory.find (rnti);
-      it->second.resize (m_harqNum);
-
-      it->second.at (harqProcId).emplace_back (output);
-    }
-  else
-    {
-      it->second.at (harqProcId).emplace_back (output);
-    }
+  UpdateHarqProcessStatus (&m_ulHistory, rnti, harqProcId, output);
 }
 
 void
 MmWaveHarqPhy::ResetUlHarqProcessStatus (uint16_t rnti, uint8_t id)
 {
   NS_LOG_FUNCTION (this);
+  ResetHarqProcessStatus (&m_ulHistory, rnti, id);
+}
 
-  auto it = m_ulHistory.find (rnti);
-  if (it == m_ulHistory.end ())
+MmWaveHarqPhy::HistoryMap::iterator
+MmWaveHarqPhy::GetHistoryMapOf (MmWaveHarqPhy::HistoryMap *map, uint16_t rnti) const
+{
+  NS_LOG_FUNCTION (this);
+
+  MmWaveHarqPhy::HistoryMap::iterator it = map->find (rnti);
+  if (it == map->end ())
     {
-      // new entry
-      m_ulHistory.insert(std::make_pair (rnti, std::vector<NrErrorModel::NrErrorModelHistory> ()));
-      it = m_ulHistory.find (rnti);
-      it->second.resize (m_harqNum);
+      auto ret = map->insert (std::make_pair (rnti, ProcIdHistoryMap ()));
+      NS_ASSERT (ret.second);
+
+      it = ret.first;
     }
-  else
+
+  return it;
+}
+
+MmWaveHarqPhy::ProcIdHistoryMap::iterator
+MmWaveHarqPhy::GetProcIdHistoryMapOf (MmWaveHarqPhy::ProcIdHistoryMap *map, uint16_t procId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  MmWaveHarqPhy::ProcIdHistoryMap::iterator it = map->find (procId);
+  if (it == map->end())
     {
-      it->second.at (id).clear ();
+      auto ret = map->insert (std::make_pair (procId, NrErrorModel::NrErrorModelHistory ()));
+      NS_ASSERT (ret.second);
+
+      it = ret.first;
     }
+
+  return it;
+}
+
+void
+MmWaveHarqPhy::ResetHarqProcessStatus (MmWaveHarqPhy::HistoryMap *map, uint16_t rnti,
+                                       uint8_t harqProcId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  MmWaveHarqPhy::HistoryMap::iterator historyMap = GetHistoryMapOf (map, rnti);
+
+  ProcIdHistoryMap * procIdMap = &(historyMap->second);
+
+  GetProcIdHistoryMapOf (procIdMap, harqProcId)->second.clear ();
+}
+
+void
+MmWaveHarqPhy::UpdateHarqProcessStatus (MmWaveHarqPhy::HistoryMap *map, uint16_t rnti,
+                                        uint8_t harqProcId, const Ptr<NrErrorModelOutput> &output) const
+{
+  NS_LOG_FUNCTION (this);
+
+  MmWaveHarqPhy::HistoryMap::iterator historyMap = GetHistoryMapOf (map, rnti);
+
+  ProcIdHistoryMap * procIdMap = &(historyMap->second);
+
+  GetProcIdHistoryMapOf (procIdMap, harqProcId)->second.emplace_back (output);
+}
+
+const NrErrorModel::NrErrorModelHistory &
+MmWaveHarqPhy::GetHarqProcessInfo (MmWaveHarqPhy::HistoryMap *map, uint16_t rnti,
+                                   uint8_t harqProcId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  MmWaveHarqPhy::HistoryMap::iterator historyMap = GetHistoryMapOf (map, rnti);
+
+  ProcIdHistoryMap * procIdMap = &(historyMap->second);
+
+  return GetProcIdHistoryMapOf (procIdMap, harqProcId)->second;
 }
 
 

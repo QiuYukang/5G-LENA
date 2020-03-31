@@ -51,8 +51,22 @@ public:
 
   messageType GetMessageType (void) const;
 
+  /**
+   * \brief Set the BWP in which this message has been generated
+   * \param bwpId the BwpId
+   */
+  void SetSourceBwp (uint16_t bwpId);
+
+  /**
+   * \return the BWP in which this message has been generated
+   *
+   * If SetSourceBwp() is not called beforehand, the method will ABORT.
+   */
+  uint16_t GetSourceBwp () const;
+
 private:
   messageType m_messageType;
+  int32_t m_bwpId {-1}; //!< Source BWP.
 };
 
 /**
@@ -243,25 +257,13 @@ public:
   void SetSib1 (LteRrcSap::SystemInformationBlockType1 sib1);
 
   /**
-   * \brief Replace the TDD pattern of this control message.
-   * \param pattern the TDD pattern to store
-   */
-  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
-
-  /**
    * \brief Retrieve the SIB1 content from this control message.
    * \return the current SIB1 content that this control message holds
    */
   LteRrcSap::SystemInformationBlockType1 GetSib1 () const;
 
-  /**
-   * \return Retrieve the TDD pattern stored in this message.
-   */
-  const std::vector<LteNrTddSlotType> & GetTddPattern () const;
-
 private:
   LteRrcSap::SystemInformationBlockType1 m_sib1; //!< Sib1 content
-  std::vector<LteNrTddSlotType> m_pattern;       //!< TDD Pattern
 
 }; // end of class MmWaveSib1Message
 // ---------------------------------------------------------------------------
