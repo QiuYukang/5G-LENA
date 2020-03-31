@@ -20,14 +20,11 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
+
 #include "mmwave-mac-scheduler-ofdma.h"
 #include <ns3/log.h>
 #include <algorithm>
@@ -164,7 +161,7 @@ MmWaveMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &acti
   for (const auto &el : activeDl)
     {
       // Distribute the RBG evenly among UEs of the same beam
-      uint32_t resources = m_phyMacConfig->GetBandwidthInRbg ();
+      uint32_t resources = GetBandwidthInRbg ();
       uint32_t beamSym = symPerBeam.at (GetBeamId (el));
       uint32_t rbgAssignable = beamSym;
       std::vector<UePtrAndBufferReq> ueVector;
@@ -228,7 +225,7 @@ MmWaveMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &acti
             {
               if (GetUe (ue)->m_rnti != GetUe (*schedInfoIt)->m_rnti)
                 {
-                  NotAssignedDlResources (ue, FTResources (m_phyMacConfig->GetBandwidthInRbg (), 1),
+                  NotAssignedDlResources (ue, FTResources (GetBandwidthInRbg (), 1),
                                           assigned);
                 }
             }
@@ -255,9 +252,9 @@ MmWaveMacSchedulerOfdma::CreateDlDci (MmWaveMacSchedulerNs3::PointInFTPlane *spo
   NS_LOG_FUNCTION (this);
 
   uint32_t tbs = m_amc->CalculateTbSize (ueInfo->m_dlMcs,
-                                         ueInfo->m_dlRBG * m_phyMacConfig->GetNumRbPerRbg ());
+                                         ueInfo->m_dlRBG * GetNumRbPerRbg ());
   NS_ASSERT_MSG (ueInfo->m_dlRBG % maxSym == 0, " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
-  NS_ASSERT (ueInfo->m_dlRBG <= maxSym * m_phyMacConfig->GetBandwidthInRbg ());
+  NS_ASSERT (ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg ());
   NS_ABORT_IF (maxSym > UINT8_MAX);
 
   // If is less than 4, then we can't transmit any new data, so don't create dci.
@@ -305,7 +302,7 @@ MmWaveMacSchedulerOfdma::CreateDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoin
   uint32_t RBGNum = ueInfo->m_dlRBG / numSym;
   std::vector<uint8_t> rbgBitmask;
 
-  for (uint32_t i = 0; i < m_phyMacConfig->GetBandwidthInRbg (); ++i)
+  for (uint32_t i = 0; i < GetBandwidthInRbg (); ++i)
     {
       if (i >= spoint->m_rbg && i < spoint->m_rbg + RBGNum)
         {
@@ -323,8 +320,7 @@ MmWaveMacSchedulerOfdma::CreateDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoin
                static_cast<uint32_t> (numSym) << " SYM.");
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
-      (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA,
-       m_phyMacConfig->GetCcId ());
+      (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId ());
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 

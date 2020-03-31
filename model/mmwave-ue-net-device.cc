@@ -28,6 +28,7 @@
 #include <ns3/lte-ue-component-carrier-manager.h>
 #include <ns3/ipv4-l3-protocol.h>
 #include <ns3/object-map.h>
+#include <ns3/pointer.h>
 
 namespace ns3 {
 
@@ -76,7 +77,6 @@ MmWaveUeNetDevice::GetTypeId (void)
 }
 
 MmWaveUeNetDevice::MmWaveUeNetDevice (void)
-  : m_isConstructed (false)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -90,14 +90,7 @@ void
 MmWaveUeNetDevice::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
-  m_isConstructed = true;
-  UpdateConfig ();
 
-  std::map< uint8_t, Ptr<BandwidthPartUe> >::iterator it;
-  for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
-    {
-      it->second->GetMac ()->Initialize ();
-    }
   m_rrc->Initialize ();
 }
 void
@@ -161,6 +154,7 @@ void
 MmWaveUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<BandwidthPartUe> > ccm)
 {
   NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_ccMap.size () > 0);
   m_ccMap = ccm;
 }
 
@@ -183,22 +177,9 @@ void
 MmWaveUeNetDevice::UpdateConfig (void)
 {
   NS_LOG_FUNCTION (this);
-
-  if (m_isConstructed)
-    {
-      NS_LOG_LOGIC (this << " Updating configuration: IMSI " << m_imsi
-                         << " CSG ID " << m_csgId);
-      m_nas->SetImsi (m_imsi);
-      m_rrc->SetImsi (m_imsi);
-      m_nas->SetCsgId (m_csgId); // this also handles propagation to RRC
-    }
-  else
-    {
-      /*
-       * NAS and RRC instances are not be ready yet, so do nothing now and
-       * expect ``DoInitialize`` to re-invoke this function.
-       */
-    }
+  m_nas->SetImsi (m_imsi);
+  m_rrc->SetImsi (m_imsi);
+  m_nas->SetCsgId (m_csgId); // this also handles propagation to RRC
 }
 
 bool
@@ -273,6 +254,20 @@ MmWaveUeNetDevice::GetEarfcn () const
   return m_earfcn;
 }
 
+uint16_t
+MmWaveUeNetDevice::GetCellId () const
+{
+  auto gnb = GetTargetEnb ();
+  if (gnb)
+    {
+      return GetTargetEnb ()->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+}
+
 void
 MmWaveUeNetDevice::SetEarfcn (uint16_t earfcn)
 {
@@ -287,8 +282,8 @@ MmWaveUeNetDevice::SetTargetEnb (Ptr<MmWaveEnbNetDevice> enb)
   m_targetEnb = enb;
 }
 
-Ptr<MmWaveEnbNetDevice>
-MmWaveUeNetDevice::GetTargetEnb (void)
+Ptr<const MmWaveEnbNetDevice>
+MmWaveUeNetDevice::GetTargetEnb (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_targetEnb;

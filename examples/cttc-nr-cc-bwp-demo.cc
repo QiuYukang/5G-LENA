@@ -285,7 +285,6 @@ main (int argc, char *argv[])
       // The example continues extracting the different CCs to activate the BWP of each CC in the band
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
       ComponentCarrierInfo cc0 = ccBwpManager.GetComponentCarrierInfo (0);
-      phyMacCommonBwp0->SetCentreFrequency (cc0.m_bwp.at (0)->m_centralFrequency);
       phyMacCommonBwp0->SetBandwidth (cc0.m_bwp.at (0)->m_bandwidth);
       phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (cc0.m_bwp.at (0)->m_numerology));
       phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -296,7 +295,6 @@ main (int argc, char *argv[])
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
       ComponentCarrierInfo cc1 = ccBwpManager.GetComponentCarrierInfo (1);
-      phyMacCommonBwp1->SetCentreFrequency (cc1.m_bwp.at (0)->m_centralFrequency);
       phyMacCommonBwp1->SetBandwidth (cc1.m_bwp.at (0)->m_bandwidth);
       phyMacCommonBwp1->SetNumerology (static_cast<uint32_t> (cc1.m_bwp.at (0)->m_numerology));
       phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));

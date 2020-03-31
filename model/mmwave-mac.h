@@ -26,17 +26,8 @@ namespace ns3 {
 
 struct MacPduInfo
 {
-  MacPduInfo (SfnSf sfn, uint32_t size, uint8_t numRlcPdu) :
-    m_sfnSf (sfn), m_size (size), m_numRlcPdu (numRlcPdu)
-  {
-    m_pdu = Create<Packet> ();
-    m_macHeader = MmWaveMacPduHeader ();
-    MmWaveMacPduTag tag (sfn);
-    m_pdu->AddPacketTag (tag);
-  }
-
-  MacPduInfo (SfnSf sfn, uint32_t size, uint8_t numRlcPdu, DciInfoElementTdma dci) :
-    m_sfnSf (sfn), m_size (size), m_numRlcPdu (numRlcPdu)
+  MacPduInfo (SfnSf sfn, uint8_t numRlcPdu, DciInfoElementTdma dci) :
+    m_sfnSf (sfn), m_size (dci.m_tbSize), m_numRlcPdu (numRlcPdu), m_symStart (dci.m_symStart)
   {
     m_pdu = Create<Packet> ();
     m_macHeader = MmWaveMacPduHeader ();
@@ -47,6 +38,7 @@ struct MacPduInfo
   SfnSf m_sfnSf;
   uint32_t m_size;
   uint8_t m_numRlcPdu;
+  uint8_t m_symStart;
   Ptr<Packet> m_pdu;
   MmWaveMacPduHeader m_macHeader;
 };

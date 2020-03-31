@@ -20,18 +20,18 @@
 #include "grid-scenario-helper.h"
 #include <ns3/position-allocator.h>
 #include <ns3/mobility-helper.h>
+#include <ns3/double.h>
+#include <ns3/log.h>
 
 namespace ns3 {
+
+NS_LOG_COMPONENT_DEFINE ("GridScenarioHelper");
 
 GridScenarioHelper::GridScenarioHelper ()
 {
   m_initialPos.x = 0.0;
   m_initialPos.y = 0.0;
   m_initialPos.z = 0.0;
-
-  m_delta.x = 1.5;
-  m_delta.y = 1.0;
-  m_delta.z = 0.0;
 }
 
 GridScenarioHelper::~GridScenarioHelper ()
@@ -61,6 +61,16 @@ void
 GridScenarioHelper::SetColumns (uint32_t c)
 {
   m_columns = c;
+}
+
+void GridScenarioHelper::SetScenarioLength(double m)
+{
+  m_length = m;
+}
+
+void GridScenarioHelper::SetScenarioHeight(double m)
+{
+  m_height = m;
 }
 
 void
@@ -95,6 +105,7 @@ GridScenarioHelper::CreateScenario ()
               pos.x = m_initialPos.x + (i * m_horizontalBsDistance);
               pos.y = m_initialPos.y + (j * m_verticalBsDistance);
 
+              NS_LOG_DEBUG ("GNB Position: " << pos);
               bsPos->Add (pos);
 
               bsN--;
@@ -102,27 +113,28 @@ GridScenarioHelper::CreateScenario ()
         }
     }
 
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  Ptr<UniformRandomVariable> y = CreateObject<UniformRandomVariable> ();
+  x->SetAttribute ("Min", DoubleValue (0.0));
+  x->SetAttribute ("Max", DoubleValue (m_height));
+  y->SetAttribute ("Min", DoubleValue (0.0));
+  y->SetAttribute ("Max", DoubleValue (m_length));
   // UT position
   if (m_ut.GetN () > 0)
     {
       uint32_t utN = m_ut.GetN ();
 
-      for (uint32_t i = 0; i < bsPos->GetSize (); ++i)
+      for (uint32_t i = 0; i < utN; ++i)
         {
-          if (utN == 0)
-            {
-              break;
-            }
-
           Vector pos = bsPos->GetNext ();
 
-          pos.x += m_delta.x;
-          pos.y += m_delta.y;
+          pos.x = x->GetValue ();
+          pos.y = y->GetValue ();
           pos.z = m_utHeight;
 
-          utPos->Add (pos);
+          NS_LOG_DEBUG ("UE Position: " << pos);
 
-          utN--;
+          utPos->Add (pos);
         }
     }
 

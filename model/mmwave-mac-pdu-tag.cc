@@ -27,17 +27,9 @@ namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED (MmWaveMacPduTag);
 
-MmWaveMacPduTag::MmWaveMacPduTag () : m_sfnSf (SfnSf ()), m_symStart (0), m_numSym (0), m_tagSize (7)
-{
-}
-
-MmWaveMacPduTag::MmWaveMacPduTag (SfnSf sfn)
-  :  m_sfnSf (sfn), m_symStart (0), m_numSym (0), m_tagSize (7)
-{
-}
 
 MmWaveMacPduTag::MmWaveMacPduTag (SfnSf sfn, uint8_t symStart, uint8_t numSym)
-  :  m_sfnSf (sfn), m_symStart (symStart), m_numSym (numSym), m_tagSize (7)
+  :  m_sfnSf (sfn), m_symStart (symStart), m_numSym (numSym)
 {
 }
 
@@ -59,17 +51,13 @@ MmWaveMacPduTag::GetInstanceTypeId (void) const
 uint32_t
 MmWaveMacPduTag::GetSerializedSize (void) const
 {
-  return (m_tagSize);
+  return 8 + 1 + 1;
 }
 
 void
 MmWaveMacPduTag::Serialize (TagBuffer i) const
 {
-  i.WriteU16 (m_sfnSf.m_frameNum);
-  i.WriteU8 (m_sfnSf.m_subframeNum);
-  i.WriteU8 (m_sfnSf.m_slotNum);
-  i.WriteU8 (m_sfnSf.m_varTtiNum);
-  //i.WriteU8 (m_sfnSf.m_slotNum);
+  i.WriteU64 (m_sfnSf.GetEncoding ());
   i.WriteU8 (m_symStart);
   i.WriteU8 (m_numSym);
 }
@@ -77,19 +65,17 @@ MmWaveMacPduTag::Serialize (TagBuffer i) const
 void
 MmWaveMacPduTag::Deserialize (TagBuffer i)
 {
-  m_sfnSf.m_frameNum = (uint16_t)i.ReadU16 ();
-  m_sfnSf.m_subframeNum = (uint8_t)i.ReadU8 ();
-  m_sfnSf.m_slotNum = (uint8_t)i.ReadU8 ();
-  m_sfnSf.m_varTtiNum = (uint8_t)i.ReadU8 ();
+  uint64_t v = i.ReadU64 ();
+  m_sfnSf.FromEncoding (v);
+
   m_symStart = (uint8_t)i.ReadU8 ();
   m_numSym = (uint8_t)i.ReadU8 ();
-  m_tagSize = 7;
 }
 
 void
 MmWaveMacPduTag::Print (std::ostream &os) const
 {
-  os << m_sfnSf.m_subframeNum << " " << m_sfnSf.m_varTtiNum;
+  os << m_sfnSf << " " << +m_symStart << " " << +m_numSym;
 }
 
 } // namespace ns3

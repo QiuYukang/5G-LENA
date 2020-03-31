@@ -72,12 +72,6 @@ public:
   virtual ~MmWaveMacScheduler ();
 
   /**
-   * \brief Save the common parameters between MAC and PHY
-   * \param config the MAC PHY parameters
-   */
-  virtual void ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) = 0;
-
-  /**
    * \brief Set the MacSchedSapUser pointer
    * \param sap pointer to the mac sched sap user class
    */
@@ -257,8 +251,6 @@ protected:
   MmWaveMacCschedSapUser* m_macCschedSapUser         {nullptr};  //!< SAP User
   MmWaveMacCschedSapProvider* m_macCschedSapProvider {nullptr};  //!< SAP Provider
   MmWaveMacSchedSapProvider* m_macSchedSapProvider   {nullptr};  //!< SAP Provider
-
-  uint32_t m_ccId {UINT32_MAX}; //!< Component carrier ID.
 };
 
 } // namespace ns3

@@ -243,7 +243,6 @@ main (int argc, char *argv[])
   mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetCcId(0);
@@ -251,7 +250,6 @@ main (int argc, char *argv[])
   mmWaveHelper->AddBandwidthPart(0, repr);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
   phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
   phyMacCommonBwp2->SetNumerology(numerologyBwp2);
   phyMacCommonBwp2->SetCcId(1);

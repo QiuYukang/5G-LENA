@@ -47,7 +47,8 @@ std::shared_ptr<MmWaveMacSchedulerUeInfo>
 MmWaveMacSchedulerTdmaRR::CreateUeRepresentation (const MmWaveMacCschedSapProvider::CschedUeConfigReqParameters &params) const
 {
   NS_LOG_FUNCTION (this);
-  return std::make_shared <MmWaveMacSchedulerUeInfoRR> (params.m_rnti, params.m_beamId);
+  return std::make_shared <MmWaveMacSchedulerUeInfoRR> (params.m_rnti, params.m_beamId,
+                                                        std::bind (&MmWaveMacSchedulerTdmaRR::GetNumRbPerRbg, this));
 }
 
 void
@@ -59,7 +60,7 @@ MmWaveMacSchedulerTdmaRR::AssignedDlResources (const UePtrAndBufferReq &ue,
   NS_UNUSED (assigned);
   NS_UNUSED (totAssigned);
   GetFirst GetUe;
-  GetUe (ue)->UpdateDlMetric (m_phyMacConfig, m_amc);
+  GetUe (ue)->UpdateDlMetric (m_amc);
 }
 
 void
@@ -71,7 +72,7 @@ MmWaveMacSchedulerTdmaRR::AssignedUlResources (const UePtrAndBufferReq &ue,
   NS_UNUSED (assigned);
   NS_UNUSED (totAssigned);
   GetFirst GetUe;
-  GetUe (ue)->UpdateUlMetric (m_phyMacConfig, m_amc);
+  GetUe (ue)->UpdateUlMetric (m_amc);
 }
 
 std::function<bool(const MmWaveMacSchedulerNs3::UePtrAndBufferReq &lhs,

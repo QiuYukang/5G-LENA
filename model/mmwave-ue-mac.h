@@ -26,12 +26,15 @@
 
 #include <ns3/lte-ue-cmac-sap.h>
 #include <ns3/lte-ccm-mac-sap.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3 {
 
 class MmWaveUePhySapUser;
 class MmWavePhySapProvider;
 class MmWaveControlMessage;
+class UniformRandomVariable;
+class PacketBurst;
 
 /**
  * \ingroup ue
@@ -97,26 +100,17 @@ public:
   void SetPhySapProvider (MmWavePhySapProvider* ptr);
 
   /**
-   * \brief Set the configuration parameter for the mac
-   *
-   * Done only once in the helper (no handover)
-   *
-   * \param ptrConfig Config
-   */
-  void SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfig);
-
-  /**
    *  TracedCallback signature for Ue Mac Received Control Messages.
    *
    * \param [in] frame Frame number.
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUeMacCtrlMsgsTracedCallback)
-    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Mac Transmitted Control Messages.
@@ -125,17 +119,36 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUeMacCtrlMsgsTracedCallback)
-    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
+  /**
+   * \brief Sets the number of HARQ processes
+   * \param numHarqProcesses the maximum number of harq processes
+   */
+  void SetNumHarqProcess (uint8_t numHarqProcesses);
+
+  /**
+   * \return number of HARQ processes
+   */
+  uint8_t GetNumHarqProcess () const;
 
 
 protected:
-  // From object
-  virtual void DoDispose (void) override;
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
 
 private:
   void RecvRaResponse (BuildRarListElement_s raResponse);
@@ -196,18 +209,16 @@ private:
                                                                   unsigned activeLcs, const SfnSf &ulSfn);
 
 private:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
-  LteUeCmacSapUser* m_cmacSapUser;
-  LteUeCmacSapProvider* m_cmacSapProvider;
-  MmWavePhySapProvider* m_phySapProvider;
-  MmWaveUePhySapUser* m_phySapUser;
-  LteMacSapProvider* m_macSapProvider;
+  LteUeCmacSapUser* m_cmacSapUser {nullptr};
+  LteUeCmacSapProvider* m_cmacSapProvider {nullptr};
+  MmWavePhySapProvider* m_phySapProvider {nullptr};
+  MmWaveUePhySapUser* m_phySapUser {nullptr};
+  LteMacSapProvider* m_macSapProvider {nullptr};
 
-  uint16_t m_frameNum {0};
-  uint8_t m_subframeNum {0};
-  uint16_t m_slotNum {0};
-  uint8_t m_varTtiNum {0};
+  SfnSf m_currentSlot;
+
+  uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
   std::map<uint32_t, struct MacPduInfo> m_macPduMap;
 
@@ -270,14 +281,14 @@ private:
 
   /**
    * Trace information regarding Ue MAC Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue MAC Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;

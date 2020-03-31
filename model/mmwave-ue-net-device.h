@@ -66,6 +66,8 @@ public:
 
   uint16_t GetEarfcn () const;
 
+  uint16_t GetCellId () const;
+
   Ptr<EpcUeNas> GetNas (void) const;
 
   Ptr<LteUeRrc> GetRrc () const;
@@ -74,7 +76,7 @@ public:
 
   void SetTargetEnb (Ptr<MmWaveEnbNetDevice> enb);
 
-  Ptr<MmWaveEnbNetDevice> GetTargetEnb (void);
+  Ptr<const MmWaveEnbNetDevice> GetTargetEnb (void) const;
 
   /**
    * \brief Set the ComponentCarrier Map for the UE
@@ -122,12 +124,16 @@ public:
    */
   void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
 
+  /**
+   * \brief Update the RRC config. Must be called only once.
+   */
+  void UpdateConfig (void);
+
 protected:
   // inherited from Object
   virtual void DoInitialize (void);
   virtual void DoDispose ();
 
-  void UpdateConfig (void);
 
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
@@ -138,7 +144,6 @@ private:
   uint64_t m_imsi;
   uint16_t m_earfcn;
   uint32_t m_csgId;
-  bool m_isConstructed;
 
   std::map < uint8_t, Ptr<BandwidthPartUe> > m_ccMap; ///< component carrier map
   Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager

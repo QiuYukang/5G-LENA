@@ -27,10 +27,10 @@
 #include <ns3/propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/spectrum-channel.h>
 #include <memory>
 
 namespace ns3 {
-
 
 /*
  * Upper limits of the number of component carriers used for Carrier
@@ -50,7 +50,7 @@ struct BandwidthPartInfo
   double m_centralFrequency {0.0};   //!< BWP central frequency
   double m_lowerFrequency {0.0};     //!< BWP lower frequency
   double m_higherFrequency {0.0};    //!< BWP higher frequency
-  double m_bandwidth {0.0};        //!< BWP bandwidth
+  double m_channelBandwidth {0.0};   //!< BWP bandwidth
 
   /**
    * \brief Different types for the propagation loss model of this bandwidth parth
@@ -88,7 +88,7 @@ struct ComponentCarrierInfo
   double m_centralFrequency {0};   //!< BWP central frequency
   double m_lowerFrequency {0};     //!< BWP lower frequency
   double m_higherFrequency {0};    //!< BWP higher frequency
-  double m_bandwidth {0};          //!< BWP bandwidth
+  double m_channelBandwidth {0};   //!< BWP bandwidth
 
   std::vector<BandwidthPartInfoPtr> m_bwp;  //!< Space for BWP
 
@@ -101,6 +101,8 @@ struct ComponentCarrierInfo
 };
 
 typedef std::unique_ptr<ComponentCarrierInfo> ComponentCarrierInfoPtr;
+
+std::ostream & operator<< (std::ostream & os, ComponentCarrierInfo const & item);
 
 
 /**
@@ -115,7 +117,7 @@ struct OperationBandInfo
   double m_centralFrequency {0.0};  //!< Operation band central frequency
   double m_lowerFrequency   {0.0};  //!< Operation band lower frequency
   double m_higherFrequency  {0.0};  //!< Operation band higher frequency
-  double m_bandwidth        {0};    //!< Operation band bandwidth
+  double m_channelBandwidth {0};    //!< Operation band bandwidth
 
   std::vector<ComponentCarrierInfoPtr> m_cc;
 
@@ -139,6 +141,8 @@ struct OperationBandInfo
   BandwidthPartInfoPtrVector GetBwps() const;
 };
 
+std::ostream & operator<< (std::ostream & os, OperationBandInfo const & item);
+
 /**
  * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
  */
@@ -153,17 +157,19 @@ public:
     /**
      * \brief Default constructor
      * \param centralFreq Central Frequency
-     * \param bw Bandwidth
+     * \param channelBw Bandwidth
      * \param num Numerology
      * \param sched Scheduler
      */
-    SimpleOperationBandConf (double centralFreq = 28e9, double bw = 400e6, uint8_t numCc = 1)
-      : m_centralFrequency (centralFreq), m_bandwidth (bw), m_numCc (numCc)
+    SimpleOperationBandConf (double centralFreq = 28e9, double channelBw = 400e6, uint8_t numCc = 1,
+                             BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa)
+      : m_centralFrequency (centralFreq), m_channelBandwidth (channelBw), m_numCc (numCc), m_scenario (scenario)
     {
     }
     double m_centralFrequency {28e9};   //!< Central Freq
-    double m_bandwidth        {400e6};  //!< Total Bandwidth of the operation band
+    double m_channelBandwidth        {400e6};  //!< Total Bandwidth of the operation band
     uint8_t m_numCc           {1};      //!< Number of CC
+    BandwidthPartInfo::Scenario m_scenario {BandwidthPartInfo::RMa}; //!< Scenario
   };
 
   /**
@@ -211,7 +217,7 @@ public:
 private:
   void InitializeCc (std::unique_ptr<ComponentCarrierInfo> &cc,
                      double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
-  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId);
+  std::unique_ptr<ComponentCarrierInfo> CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId, BandwidthPartInfo::Scenario scenario);
 
   /**
    * \brief Plots a 2D rectangle defined by the input points and places a label

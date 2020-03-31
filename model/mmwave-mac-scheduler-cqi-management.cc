@@ -20,12 +20,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 #include "mmwave-mac-scheduler-cqi-management.h"
@@ -53,14 +49,10 @@ void
 MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
                                                   uint32_t tbs,
                                                   const MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
-                                                  const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const
+                                                  const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
+                                                  const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
-
-  uint32_t frameNum = params.m_sfnSf.m_frameNum;
-  uint32_t subframeNum = params.m_sfnSf.m_subframeNum;
-  uint32_t slotNum = params.m_sfnSf.m_slotNum;
-  uint32_t startSymIdx =  params.m_sfnSf.m_varTtiNum;
 
   ueInfo->m_ulCqi.m_sinr = params.m_ulCqi.m_sinr;
   ueInfo->m_ulCqi.m_cqiType = MmWaveMacSchedulerUeInfo::CqiInfo::SB;
@@ -72,19 +64,13 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
       NS_LOG_INFO ("UL CQI report for RNTI " << ueInfo->m_rnti <<
                    " SINR " << value <<
                    " in chunk " << i++ <<
-                   " frame " << frameNum <<
-                   " subframe " << subframeNum <<
-                   " slot " << slotNum <<
-                   " startSym " << startSymIdx);
+                   " frame " << params.m_sfnSf);
     }
 
 
-  SpectrumValue specVals (MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                      m_phyMacConfig->GetCenterFrequency(),
-                                                                      m_phyMacConfig->GetNumScsPerRb(),
-                                                                      m_phyMacConfig->GetSubcarrierSpacing()));
+  SpectrumValue specVals (model);
   Values::iterator specIt = specVals.ValuesBegin ();
-  for (uint32_t ichunk = 0; ichunk < m_phyMacConfig->GetBandwidthInRbs (); ichunk++)
+  for (uint32_t ichunk = 0; ichunk < model->GetNumBands (); ichunk++)
     {
       NS_ASSERT (specIt != specVals.ValuesEnd ());
       *specIt = ueInfo->m_ulCqi.m_sinr.at (ichunk);   //sinrLin;
@@ -93,6 +79,20 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
 
   // MCS updated inside the function; crappy API... but we can't fix everything
   ueInfo->m_ulCqi.m_cqi = m_amc->CreateCqiFeedbackWbTdma (specVals, tbs, ueInfo->m_ulMcs);
+}
+
+void
+MmWaveMacSchedulerCQIManagement::InstallGetBwpIdFn (const std::function<uint16_t ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getBwpId = fn;
+}
+
+void
+MmWaveMacSchedulerCQIManagement::InstallGetCellIdFn (const std::function<uint16_t ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getCellId = fn;
 }
 
 void
@@ -156,6 +156,18 @@ MmWaveMacSchedulerCQIManagement::RefreshUlCqiMaps (const std::unordered_map<uint
           ue->m_ulCqi.m_timer -= 1;
         }
     }
+}
+
+uint16_t
+MmWaveMacSchedulerCQIManagement::GetBwpId () const
+{
+  return m_getBwpId ();
+}
+
+uint16_t
+MmWaveMacSchedulerCQIManagement::GetCellId () const
+{
+  return m_getCellId ();
 }
 
 } // namespace ns3

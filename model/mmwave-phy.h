@@ -23,15 +23,14 @@
 #define SRC_MMWAVE_MODEL_MMWAVE_PHY_H_
 
 #include "mmwave-phy-sap.h"
+#include <ns3/spectrum-value.h>
 
 namespace ns3 {
 
 class MmWaveNetDevice;
 class MmWaveControlMessage;
-class MmWavePhyMacCommon;
 class MmWaveSpectrumPhy;
 class AntennaArrayBasicModel;
-class MmWavePhyMacCommon;
 class BeamManager;
 class ThreeGppAntennaArrayModel;
 
@@ -69,22 +68,82 @@ public:
    */
   void NotifyConnectionSuccessful ();
 
+  /**
+   * \brief Configures TB decode latency
+   */
+  virtual void SetTbDecodeLatency (Time us);
+
+  /**
+   * \brief Returns TB decode latency
+   */
+  virtual Time GetTbDecodeLatency (void) const;
+
   virtual BeamId GetBeamId (uint16_t rnti) const = 0;
 
-  Ptr<BeamManager> GetBeamManager ();
+  void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
+
+  // Note: Returning a BeamManger, it means that someone outside this class
+  // can change the beamforming vector, BUT the phy will not learn it.
+  Ptr<BeamManager> GetBeamManager () const;
+
+  Ptr<const SpectrumModel> GetSpectrumModel () const;
+
+  uint32_t GetSymbolsPerSlot () const;
+
+  Time GetSlotPeriod () const;
+
+  /**
+   * \brief GetNumScsPerRb
+   *
+   * It is a static function as the value is fixed, and it is needed in NrAmc.
+   * Making this value changeable means creating an interface between PHY
+   * and AMC.
+   *
+   * \return 12, fixed value
+   */
+  static uint32_t GetNumScsPerRb ();
+
+  /**
+   * \brief Get SymbolPeriod
+   * \return the symbol period; the value changes every time the user changes
+   * the numerology
+   */
+  Time GetSymbolPeriod () const;
 
   // Attributes
   /**
    * \return The antena array that is being used by this PHY
    */
-  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray () const;
+  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray () const;
+
+  void SetNoiseFigure (double d);
+  double GetNoiseFigure () const;
 
   // Installation / Helpers
   MmWavePhySapProvider* GetPhySapProvider ();
 
   void SetDevice (Ptr<MmWaveNetDevice> d);
 
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
+  /**
+   * \brief Install the PHY over a particular central frequency
+   * \param f the frequency in Hz
+   * The helper will call this function, making sure it is equal to the value
+   * of the channel.
+   */
+  void InstallCentralFrequency (double f);
+
+  /**
+   * \brief Set GNB or UE numerology
+   * \param numerology numerology
+   *
+   * For the GNB, this is an attribute that can be changed at any time; for the
+   * UE, it is set by the helper at the attachment, and then is not changed anymore.
+   */
+  void SetNumerology (uint16_t numerology);
+
+  uint16_t GetNumerology () const;
+
+  void SetSymbolsPerSlot (uint16_t symbolsPerSlot);
 
   /**
    * \brief Retrieve the SpectrumPhy pointer
@@ -99,12 +158,43 @@ public:
    * \brief Set the SpectrumPhy associated with this PHY
    * \param spectrumPhy the spectrumPhy
    */
-  void SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
+  void InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy);
 
-  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) = 0;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) = 0;
+
+  /**
+   * \return the BWP ID, set by the SAP
+   */
+  uint16_t GetBwpId () const;
+  /**
+   * \return the cell ID, taken from the netdevice
+   */
+  uint16_t GetCellId () const;
+
+  /**
+   * \brief Get the number of Resource block configured
+   *
+   * It changes with the numerology and the channel bandwidth
+   */
+  uint32_t GetRbNum () const;
+
+  /**
+   * \return the latency (in n. of slots) between L1 and L2 layers. Default to 2.
+   *
+   * Before it was an attribute; as we are unsure if it works for values different
+   * from 2, we decided to make it static until the need to have it different
+   * from 2 arises.
+   */
+  uint32_t GetL1L2CtrlLatency () const;
 
   // SAP
-  void DoSetCellId (uint16_t cellId);
+  /**
+   * \brief In reality, set the BWP ID
+   * \param bwpId the BWP ID
+   *
+   * Called by lte-enb-cphy-sap only
+   */
+  void DoSetCellId (uint16_t bwpId);
 
   /**
    * \brief Take the control messages, and put it in a list that will be sent at the first occasion
@@ -113,6 +203,10 @@ public:
   void EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg);
 
 protected:
+  /**
+   * \brief Update the number of RB. Usually called after bandwidth changes
+   */
+  void UpdateRbNum ();
 
   /**
    * \brief Transform a MAC-made vector of RBG to a PHY-ready vector of SINR indices
@@ -130,17 +224,26 @@ protected:
    */
   std::vector<int> FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const;
 
-  //From Object
-  virtual void DoInitialize (void) override;
+  /**
+   * \brief Protected function that is used to get the number of resource
+   * blocks per resource block group.
+   * \return Returns the number of RBs per RBG
+   */
+  virtual uint32_t GetNumRbPerRbg () const = 0;
 
-  Ptr<PacketBurst> GetPacketBurst (SfnSf);
+  /**
+   * \return the channel bandwidth in Hz
+   */
+  virtual uint32_t GetChannelBandwidth () const = 0;
+
+  Ptr<PacketBurst> GetPacketBurst (SfnSf, uint8_t sym);
 
   /**
    * \brief Create Noise Power Spectral density
    * \return A SpectrumValue array with fixed size, in which a value is
    * update to a particular value of the noise
    */
-  Ptr<SpectrumValue> GetNoisePowerSpectralDensity ();
+  Ptr<SpectrumValue> GetNoisePowerSpectralDensity () const;
 
   /**
    * Create Tx Power Spectral Density
@@ -154,12 +257,12 @@ protected:
   Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
 
   /**
-   * \brief Get the component carrier ID
-   * \return the component carrier ID
+   * \brief Retrieve the frequency (in Hz) of this PHY's channel
+   * \return the frequency of the channel in Hz
    *
-   * Take the value from PhyMacCommon. If it's not set, then return 777.
+   * The function will assert if it is called without having set a frequency first.
    */
-  uint32_t GetCcId () const;
+  double GetCentralFrequency () const;
 
   /**
    * \brief Store the slot allocation info at the front
@@ -242,17 +345,9 @@ protected:
   double m_txPower {0.0};
   double m_noiseFigure {0.0};
 
-  uint16_t m_cellId {0};
-
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
-
   std::unordered_map<uint64_t, Ptr<PacketBurst> > m_packetBurstMap;
 
   SlotAllocInfo m_currSlotAllocInfo;
-  uint16_t m_frameNum {0};
-  uint8_t m_subframeNum {0};
-  uint8_t m_slotNum {0};
-  uint8_t m_varTtiNum {0};
 
   MmWavePhySapProvider* m_phySapProvider;
 
@@ -266,10 +361,19 @@ private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
-public:
-  bool m_areIsotropicElements {false}; //!< Whether to use isotropic antenna elements, default is false which means that 3gpp antenna elements will be used
-  uint8_t m_antennaNumDim1 {0};
-  uint8_t m_antennaNumDim2 {0};
+  Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
+  double m_centralFrequency {-1.0}; //!< Channel central frequency -- set by the helper
+
+  uint16_t m_bwpId {UINT16_MAX}; //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper when attaching to a gnb
+  uint16_t m_numerology {0};         //!< NR numerology: defines the subcarrier spacing, RB width, slot length, and number of slots per subframe
+  uint16_t m_symbolsPerSlot {14};    //!< number of OFDM symbols per slot (in 3GPP NR: 12 for normal CP, 14 for extended CP)
+
+  // CHECK!
+  uint16_t m_slotsPerSubframe {1};
+  Time m_slotPeriod {MilliSeconds (1)};            //!< NR slot length
+  Time m_symbolPeriod {MilliSeconds (1) / 14};          //!< OFDM symbol length
+  uint32_t m_subcarrierSpacing {15000};   //!< subcarrier spacing (it is determined by the numerology)
+  uint32_t m_rbNum {0};             //!< number of resource blocks within the channel bandwidth
 };
 
 }

@@ -24,14 +24,14 @@
 #include "ns3/enum.h"
 #include "nr-error-model.h"
 #include "nr-lte-mi-error-model.h"
+#include "mmwave-phy.h"
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("NrAmc");
 NS_OBJECT_ENSURE_REGISTERED (NrAmc);
 
-NrAmc::NrAmc (const Ptr<MmWavePhyMacCommon> & configParams)
-  : m_phyMacConfig (configParams)
+NrAmc::NrAmc ()
 {
   NS_LOG_INFO ("Initialze AMC module");
 }
@@ -96,8 +96,14 @@ NrAmc::GetMcsFromCqi (uint8_t cqi) const
 uint32_t
 NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
 {
-  return m_errorModel->GetPayloadSize (m_phyMacConfig->GetNumScsPerRb () - m_phyMacConfig->GetNumRefScPerRb (),
+  return m_errorModel->GetPayloadSize (MmWavePhy::GetNumScsPerRb () - GetNumRefScPerRb (),
                                        mcs, nprb);
+}
+
+uint32_t
+NrAmc::GetNumRefScPerRb () const
+{
+  return 1;
 }
 
 uint32_t
@@ -125,7 +131,6 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
     }
 
   NS_LOG_INFO (" mcs:" << (unsigned) mcs <<
-               " subcarriers" << m_phyMacConfig->GetNumScsPerRb () * m_phyMacConfig->GetBandwidthInRbs () <<
                " TB size:" << tbSize);
 
   return tbSize;

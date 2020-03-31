@@ -24,7 +24,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("BandwidthPartRepresentation");
+NS_LOG_COMPONENT_DEFINE ("CcBwpHelper");
 
 bool
 ComponentCarrierInfo::AddBwp (BandwidthPartInfoPtr &&bwp)
@@ -72,6 +72,8 @@ OperationBandInfo::AddCc (ComponentCarrierInfoPtr &&cc)
       auto & nextCc = m_cc.at (i + 1);
       if (cc->m_higherFrequency <= nextCc->m_lowerFrequency)
         {
+          NS_LOG_WARN ("Cc at " << i << " has higher freq " << cc->m_higherFrequency <<
+                       " while Cc at " << i + 1 << " has freq at " << m_lowerFrequency);
           ret = false;
         }
       ++i;
@@ -115,12 +117,16 @@ CcBwpCreator::InitializeCc (std::unique_ptr<ComponentCarrierInfo> &cc,
   cc->m_centralFrequency = lowerFreq + ccPosition * ccBandwidth + ccBandwidth / 2;
   cc->m_lowerFrequency = lowerFreq + ccPosition * ccBandwidth;
   cc->m_higherFrequency = lowerFreq + (ccPosition + 1) * ccBandwidth - 1;
-  cc->m_bandwidth = ccBandwidth;
+  cc->m_channelBandwidth = ccBandwidth;
   cc->m_ccId = ccId;
+  NS_LOG_INFO ("Initialize the op band " << +ccPosition << "st (or nd) CC of BW " <<
+               ccBandwidth/1e6 << " MHz " << " from " << lowerFreq/1e6 <<
+               "MHz, resulting in: " << *cc);
 }
 
 std::unique_ptr<ComponentCarrierInfo>
-CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId)
+CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition, uint8_t ccId,
+                        BandwidthPartInfo::Scenario scenario)
 {
   // Create a CC with a single BWP
   std::unique_ptr<ComponentCarrierInfo> cc (new ComponentCarrierInfo ());
@@ -132,7 +138,8 @@ CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition
   bwp->m_centralFrequency = cc->m_centralFrequency;
   bwp->m_lowerFrequency = cc->m_lowerFrequency;
   bwp->m_higherFrequency = cc->m_higherFrequency;
-  bwp->m_bandwidth = cc->m_bandwidth;
+  bwp->m_channelBandwidth = cc->m_channelBandwidth;
+  bwp->m_scenario = scenario;
 
   bool ret = cc->AddBwp (std::move (bwp));
   NS_ASSERT (ret);
@@ -144,12 +151,19 @@ CcBwpCreator::CreateCc (double ccBandwidth, double lowerFreq, uint8_t ccPosition
 OperationBandInfo
 CcBwpCreator::CreateOperationBandContiguousCc (const SimpleOperationBandConf &conf)
 {
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("Creating an op band formed by " << +conf.m_numCc << " contingous CC" <<
+               " central freq " << conf.m_centralFrequency/1e6 << " MHz with BW " <<
+               conf.m_channelBandwidth/1e6 << " MHz");
+
   OperationBandInfo band;
   band.m_bandId = m_operationBandCounter++;
   band.m_centralFrequency = conf.m_centralFrequency;
-  band.m_bandwidth = conf.m_bandwidth;
-  band.m_lowerFrequency = conf.m_centralFrequency - conf.m_bandwidth / 2.0;
-  band.m_higherFrequency = conf.m_centralFrequency + conf.m_bandwidth / 2.0;
+  band.m_channelBandwidth = conf.m_channelBandwidth;
+  band.m_lowerFrequency = band.m_centralFrequency - (conf.m_channelBandwidth / 2.0);
+  band.m_higherFrequency = band.m_centralFrequency + (conf.m_channelBandwidth / 2.0);
+
+  NS_LOG_INFO ("Resulting OpBand: " << band);
 
   uint32_t maxCcBandwidth = 198e6;
 
@@ -159,11 +173,11 @@ CcBwpCreator::CreateOperationBandContiguousCc (const SimpleOperationBandConf &co
     }
 
   double ccBandwidth = std::min (static_cast<double> (maxCcBandwidth),
-                                 static_cast<double> (conf.m_bandwidth) / conf.m_numCc);
+                                 static_cast<double> (conf.m_channelBandwidth) / conf.m_numCc);
 
   for (uint8_t ccPosition = 0; ccPosition < conf.m_numCc; ++ccPosition)
     {
-      bool ret = band.AddCc (CreateCc (ccBandwidth, band.m_lowerFrequency, ccPosition, m_componentCarrierCounter++));
+      bool ret = band.AddCc (CreateCc (ccBandwidth, band.m_lowerFrequency, ccPosition, m_componentCarrierCounter++, conf.m_scenario));
       NS_ASSERT (ret);
     }
 
@@ -179,7 +193,7 @@ CcBwpCreator::CreateOperationBandNonContiguousCc (const std::vector<SimpleOperat
 
   for (const auto & conf : configuration)
     {
-      band.AddCc (CreateCc (conf.m_bandwidth, band.m_lowerFrequency, 0, m_componentCarrierCounter++));
+      band.AddCc (CreateCc (conf.m_channelBandwidth, band.m_lowerFrequency, 0, m_componentCarrierCounter++, conf.m_scenario));
     }
 
   return band;
@@ -382,6 +396,24 @@ BandwidthPartInfo::GetScenario () const
   };
 
   return lookupTable[m_scenario];
+}
+
+std::ostream &
+operator<< (std::ostream & os, ComponentCarrierInfo const & item)
+{
+  os << "id: " << +item.m_ccId << " lower freq " << item.m_lowerFrequency/1e6 <<
+        " MHz central freq " << item.m_centralFrequency/1e6 << " MHz higher freq " <<
+        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz.";
+  return os;
+}
+
+std::ostream &
+operator<< (std::ostream & os, OperationBandInfo const & item)
+{
+  os << "id: " << +item.m_bandId << " lower freq " << item.m_lowerFrequency/1e6 <<
+        " MHz central freq " << item.m_centralFrequency/1e6 << " MHz higher freq " <<
+        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz.";
+  return os;
 }
 
 }

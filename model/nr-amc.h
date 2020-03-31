@@ -51,7 +51,7 @@ public:
    * \brief NrAmc constructor
    * \param ConfigParams PhyMacCommon params that will be tied with the instance
    */
-  NrAmc (const Ptr<MmWavePhyMacCommon> & configParams);
+  NrAmc ();
 
   /**
    * \brief ~NrAmc deconstructor
@@ -83,6 +83,14 @@ public:
    * \return the payload size in bytes
    */
   uint32_t GetPayloadSize (uint8_t mcs, uint32_t nprb) const;
+
+  /**
+   * \return The number of reference subcarrier per resource block
+   *
+   * For the moment is fixed at 1. When it has to change... someone will add an
+   * attribute.
+   */
+  uint32_t GetNumRefScPerRb () const;
 
   /**
    * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned
@@ -162,7 +170,6 @@ public:
 private:
   double m_ber;             //!< Shannon based model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< Pointer to PHY-MAC config
   Ptr<NrErrorModel> m_errorModel;         //!< Pointer to an instance of ErrorModel
   TypeId m_errorModelType;                //!< Type of the error model
 

@@ -328,7 +328,6 @@ main (int argc, char *argv[])
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -337,7 +336,6 @@ main (int argc, char *argv[])
   mmWaveHelper->AddBandwidthPart(0, repr1);
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp2->SetCentreFrequency(frequencyBwp2);
   phyMacCommonBwp2->SetBandwidth (bandwidthBwp2);
   phyMacCommonBwp2->SetNumerology(numerologyBwp2);
 

@@ -37,12 +37,15 @@ BeamManager::BeamManager() {
 }
 
 void
-BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray, uint32_t antennaNumDim1, uint32_t antennaNumDim2) //TODO check whether to remove spectrum model as parameter, it is needed for cell scan?
+BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray)
 {
   // we assume that the antenna dimension will not change during the simulation,
   // thus we create this omni vector only once
   m_antennaArray = antennaArray;
-  m_omniTxRxW = GenerateOmniTxRxW (antennaNumDim1, antennaNumDim2);
+  UintegerValue numRows, numColumn;
+  m_antennaArray->GetAttribute ("NumRows", numRows);
+  m_antennaArray->GetAttribute ("NumColumns", numColumn);
+  m_omniTxRxW = GenerateOmniTxRxW (numRows.Get (), numColumn.Get ());
 
   ChangeToOmniTx ();
 }
@@ -57,6 +60,12 @@ BeamId
 BeamManager::GetBeamId (const BeamformingVector&v) const
 {
   return v.second;
+}
+
+Ptr<const ThreeGppAntennaArrayModel>
+BeamManager::GetAntennaArray() const
+{
+  return m_antennaArray;
 }
 
 BeamManager::~BeamManager() {
@@ -78,7 +87,7 @@ void
 BeamManager::SaveBeamformingVector (const BeamformingVector& bfv,
                                     const Ptr<const NetDevice>& device)
 {
-  NS_LOG_INFO ("Save beamforming vector on node id:"<<device->GetNode()->GetId()<<" with BeamId:" << bfv.second);
+  NS_LOG_INFO ("Save beamforming vector toward device with node id:"<<device->GetNode()->GetId()<<" with BeamId:" << bfv.second);
 
   if (device != nullptr)
     {

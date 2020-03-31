@@ -444,7 +444,6 @@ main (int argc, char *argv[])
       // Create BandwidthPartRepresentations referred to the active BWP only of each CC
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon>();
       Ptr<BandwidthPartInfo> recBwp0 = cc0.m_bwp.begin ()->second; // TODO
-      phyMacCommonBwp0->SetCentreFrequency (recBwp0->m_centralFrequency);
       phyMacCommonBwp0->SetBandwidth (recBwp0->m_bandwidth);
       phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (recBwp0->m_numerology));
       phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -455,7 +454,6 @@ main (int argc, char *argv[])
 
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
       Ptr<BandwidthPartInfo> recBwp1 = cc1.m_bwp.begin ()->second; // TODO
-      phyMacCommonBwp1->SetCentreFrequency (recBwp1->m_centralFrequency);
       phyMacCommonBwp1->SetBandwidth (recBwp1->m_bandwidth);
       phyMacCommonBwp1->SetNumerology (static_cast<uint32_t> (recBwp1->m_numerology));
       phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));

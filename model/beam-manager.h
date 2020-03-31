@@ -57,10 +57,8 @@ public:
   /**
    * \brief Configures quasi-omni beamforming vector and sets up the expire timer
    * for beamforming
-   * \param antennaNumDim1 the first antenna dimension in number of elements
-   * \param antennaNumDim2 the second antenna dimension in number of elements
    */
-  void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray, uint32_t antennaNumDim1, uint32_t antennaNumDim2);
+  void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray);
 
   /**
    * \brief Get weight vector from a BeamformingVector
@@ -75,6 +73,12 @@ public:
    * \param v the beamforming vector
    */
   BeamId GetBeamId (const BeamformingVector &v) const;
+
+  /**
+   * \brief Get a pointer to the current antenna
+   * \return the antenna
+   */
+  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
 
   typedef std::map<const Ptr<const NetDevice>, BeamformingVector> BeamformingStorage; //!< BeamformingStorage type used to save the map of beamforming vectors per device

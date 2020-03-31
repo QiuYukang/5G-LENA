@@ -68,27 +68,6 @@ BandwidthPartUe::~BandwidthPartUe (void)
 }
 
 void
-BandwidthPartUe::DoDispose ()
-{
-  NS_LOG_FUNCTION (this);
-  m_phy->Dispose ();
-  m_phy = 0;
-  m_mac->Dispose ();
-  m_mac = 0;
-  Object::DoDispose ();
-}
-
-
-void
-BandwidthPartUe::DoInitialize (void)
-{
-  NS_LOG_FUNCTION (this);
-  m_isConstructed = true;
-  m_phy->Initialize ();
-  m_mac->Initialize ();
-}
-
-void
 BandwidthPartUe::SetPhy (Ptr<MmWaveUePhy> s)
 {
   NS_LOG_FUNCTION (this);

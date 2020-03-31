@@ -47,6 +47,8 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/mmwave-mac-scheduler-tdma-rr.h>
+#include <ns3/mmwave-chunk-processor.h>
+#include <ns3/bwp-manager-algorithm.h>
 
 #include <algorithm>
 
@@ -76,7 +78,10 @@ MmWaveHelper::MmWaveHelper (void)
   m_ueChannelAccessManagerFactory.SetTypeId (NrAlwaysOnAccessManager::GetTypeId ());
   m_gnbChannelAccessManagerFactory.SetTypeId (NrAlwaysOnAccessManager::GetTypeId ());
   m_schedFactory.SetTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
-  m_phyMacCommonFactory.SetTypeId (MmWavePhyMacCommon::GetTypeId ());
+  m_ueAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
+  m_gnbAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
+  m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
+  m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
 
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
@@ -314,14 +319,16 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   Ptr<MmWaveUePhy> phy = m_uePhyFactory.Create <MmWaveUePhy> ();
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
 
-  phy->SetSpectrumPhy (channelPhy);
-  phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
+  Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
+
+  phy->InstallCentralFrequency (gppChannel->GetFrequency ());
+  phy->ScheduleStartEventLoop (n->GetId (), 0, 0, 0);
 
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
   cam->SetNrSpectrumPhy (channelPhy);
   phy->SetCam (cam);
 
-  channelPhy->SetHarqPhyModule (harq);
+  channelPhy->InstallHarqPhyModule (harq);
 
   Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
   pData->AddCallback (MakeCallback (&MmWaveUePhy::GenerateDlCqiReport, phy));
@@ -334,6 +341,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
     }
 
   channelPhy->SetChannel (c);
+  channelPhy->InstallPhy (phy);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallUeDevice ()");
@@ -342,8 +350,12 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveUePhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
+  phy->InstallSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
+
   // TODO: If antenna changes, we are fucked!
-  gppChannel->AddDevice (dev,  phy->GetSpectrumPhy()->GetAntennaArray());
+  // TODO: Remove const_cast once final Tommaso version is merged
+  gppChannel->AddDevice (dev,  ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy()->GetAntennaArray()));
 
   return phy;
 }
@@ -361,8 +373,10 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
     {
       Ptr <BandwidthPartUe> cc =  CreateObject<BandwidthPartUe> ();
-      cc->SetUlBandwidth (allBwps[ccId].get()->m_bandwidth);
-      cc->SetDlBandwidth (allBwps[ccId].get()->m_bandwidth);
+      double bwInKhz = allBwps[ccId].get()->m_channelBandwidth / 1000.0;
+      NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
+      cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
+      cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Used for nothing..
       cc->SetUlEarfcn (0); // Used for nothing..
 
@@ -390,6 +404,7 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
     }
 
   Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (CreateObject <BwpManagerUe> ());
+  DynamicCast<BwpManagerUe> (ccmUe)->SetBwpManagerAlgorithm (m_ueBwpManagerAlgoFactory.Create <BwpManagerAlgorithm> ());
 
   Ptr<LteUeRrc> rrc = CreateObject<LteUeRrc> ();
   rrc->m_numberOfComponentCarriers = ueCcMap.size ();
@@ -480,18 +495,19 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
 
 Ptr<MmWaveEnbPhy>
 MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
-                            const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                             const Ptr<SpectrumChannel> &c, const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
-                            const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+                            const Ptr<MmWaveEnbNetDevice> &dev,
                             const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback)
 {
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create <MmWaveSpectrumPhy> ();
   Ptr<MmWaveEnbPhy> phy = m_gnbPhyFactory.Create <MmWaveEnbPhy> ();
+  Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
-  phy->SetSpectrumPhy (channelPhy);
-  phy->StartEventLoop (n->GetId (), SfnSf (0, 0, 0, 0));
+  phy->InstallCentralFrequency (gppChannel->GetFrequency ());
+
+  phy->ScheduleStartEventLoop (n->GetId (), 0, 0, 0);
 
   // PHY <--> CAM
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_gnbChannelAccessManagerFactory.Create ());
@@ -499,8 +515,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   phy->SetCam (cam);
 
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
-  harq->SetHarqNum(phyMacCommon->GetNumHarqProcess ());
-  channelPhy->SetHarqPhyModule (harq);
+  channelPhy->InstallHarqPhyModule (harq);
 
   Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
   if (!m_snrTest)
@@ -510,47 +525,46 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
     }
   channelPhy->AddDataSinrChunkProcessor (pData);
 
-  phy->SetConfigurationParameters (phyMacCommon);
   phy->SetDevice (dev);
 
   channelPhy->SetChannel (c);
+  channelPhy->InstallPhy (phy);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling MmWaveHelper::InstallEnbDevice ()");
   channelPhy->SetMobility (mm);
 
   channelPhy->SetDevice (dev);
-  channelPhy->SetCellId (cellId);
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&MmWaveEnbPhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (phyEndCtrlCallback);
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&MmWaveEnbPhy::ReportUlHarqFeedback, phy));
 
-  phy->Initialize ();
+  phy->InstallSpectrumPhy (channelPhy);
+  phy->InstallAntenna (antenna);
 
   c->AddRx (channelPhy);
   // TODO: NOTE: if changing the Antenna Array, this will broke
-  gppChannel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
+  // TODO: Remove const_cast after final Tommaso merge is done
+  gppChannel->AddDevice (dev, ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy()->GetAntennaArray()));
 
   return phy;
 }
 
 Ptr<MmWaveEnbMac>
-MmWaveHelper::CreateGnbMac (const Ptr<MmWavePhyMacCommon>& conf)
+MmWaveHelper::CreateGnbMac ()
 {
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveEnbMac> mac = m_gnbMacFactory.Create <MmWaveEnbMac> ();
-  mac->SetConfigurationParameters (conf);
   return mac;
 }
 
 Ptr<MmWaveMacScheduler>
-MmWaveHelper::CreateGnbSched (const Ptr<MmWavePhyMacCommon>& conf)
+MmWaveHelper::CreateGnbSched ()
 {
   NS_LOG_FUNCTION (this);
 
   Ptr<MmWaveMacScheduler> sched = m_schedFactory.Create <MmWaveMacScheduler> ();
-  sched->ConfigureCommonParameters (conf);
   return sched;
 }
 
@@ -560,24 +574,27 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 {
   NS_ABORT_MSG_IF (m_cellIdCounter == 65535, "max num eNBs exceeded");
 
-  uint16_t cellId = m_cellIdCounter;
-
   Ptr<MmWaveEnbNetDevice> dev = m_enbNetDeviceFactory.Create<MmWaveEnbNetDevice> ();
-  Ptr<MmWavePhyMacCommon> phyMacCommon = m_phyMacCommonFactory.Create <MmWavePhyMacCommon> ();
+
+  NS_LOG_DEBUG ("Creating gnb, cellId = " << m_cellIdCounter);
+  dev->SetCellId (m_cellIdCounter++);
 
   // create component carrier map for this eNb device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
 
-  for (uint32_t ccId = 0; ccId < allBwps.size (); ++ccId)
+  for (uint32_t bwpId = 0; bwpId < allBwps.size (); ++bwpId)
     {
+      NS_LOG_DEBUG ("Creating BandwidthPart, id = " << bwpId);
       Ptr <BandwidthPartGnb> cc =  CreateObject<BandwidthPartGnb> ();
-      cc->SetUlBandwidth (allBwps[ccId].get()->m_bandwidth);
-      cc->SetDlBandwidth (allBwps[ccId].get()->m_bandwidth);
+      double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
+      NS_ABORT_MSG_IF (bwInKhz/100.0 > 65535.0, "A bandwidth of " << bwInKhz/100.0 << " kHz cannot be represented");
+      cc->SetUlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
+      cc->SetDlBandwidth (static_cast<uint16_t> (bwInKhz / 100));
       cc->SetDlEarfcn (0); // Argh... handover not working
       cc->SetUlEarfcn (0); // Argh... handover not working
-      cc->SetCellId (m_cellIdCounter++);
+      cc->SetCellId (bwpId);
 
-      if (ccId == 0)
+      if (bwpId == 0)
         {
           cc->SetAsPrimary (true);
         }
@@ -586,24 +603,25 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
           cc->SetAsPrimary (false);
         }
 
-      auto phy = CreateGnbPhy (n, phyMacCommon, allBwps[ccId].get()->m_channel,
-                               allBwps[ccId].get()->m_3gppChannel, dev, cellId,
+      auto phy = CreateGnbPhy (n, allBwps[bwpId].get()->m_channel,
+                               allBwps[bwpId].get()->m_3gppChannel, dev,
                                std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
-                                          dev, std::placeholders::_1, ccId));
+                                          dev, std::placeholders::_1, bwpId));
       cc->SetPhy (phy);
 
-      auto mac = CreateGnbMac (phyMacCommon);
+      auto mac = CreateGnbMac ();
       cc->SetMac (mac);
       phy->GetCam ()->SetNrEnbMac (mac);
 
-      auto sched = CreateGnbSched (phyMacCommon);
+      auto sched = CreateGnbSched ();
       cc->SetMmWaveMacScheduler (sched);
 
-      ccMap.insert (std::make_pair (ccId, cc));
+      ccMap.insert (std::make_pair (bwpId, cc));
     }
 
   Ptr<LteEnbRrc> rrc = CreateObject<LteEnbRrc> ();
   Ptr<LteEnbComponentCarrierManager> ccmEnbManager = DynamicCast<LteEnbComponentCarrierManager> (CreateObject<BwpManagerGnb> ());
+  DynamicCast<BwpManagerGnb> (ccmEnbManager)->SetBwpManagerAlgorithm (m_gnbBwpManagerAlgoFactory.Create <BwpManagerAlgorithm> ());
 
   // Convert Enb carrier map to only PhyConf map
   // we want to make RRC to be generic, to be able to work with any type of carriers, not only strictly LTE carriers
@@ -632,7 +650,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       rrcProtocol->SetLteEnbRrcSapProvider (rrc->GetLteEnbRrcSapProvider ());
       rrc->SetLteEnbRrcSapUser (rrcProtocol->GetLteEnbRrcSapUser ());
       rrc->AggregateObject (rrcProtocol);
-      rrcProtocol->SetCellId (cellId);
     }
   else
     {
@@ -640,7 +657,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       rrcProtocol->SetLteEnbRrcSapProvider (rrc->GetLteEnbRrcSapProvider ());
       rrc->SetLteEnbRrcSapUser (rrcProtocol->GetLteEnbRrcSapUser ());
       rrc->AggregateObject (rrcProtocol);
-      rrcProtocol->SetCellId (cellId);
     }
 
   if (m_epcHelper != nullptr)
@@ -694,7 +710,6 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
     }
 
   dev->SetNode (n);
-  dev->SetAttribute ("CellId", UintegerValue (cellId));
   dev->SetAttribute ("LteEnbComponentCarrierManager", PointerValue (ccmEnbManager));
   dev->SetCcMap (ccMap);
   dev->SetAttribute ("LteEnbRrc", PointerValue (rrc));
@@ -768,12 +783,13 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
 
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
-      Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
       enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
-      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
-      ueNetDev->GetCcMap()[i]->GetMac()->SetConfigurationParameters (configParams);
+      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i));
+      ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
+      ueNetDev->GetPhy (i)->SetSymbolsPerSlot (enbNetDev->GetPhy (i)->GetSymbolsPerSlot ());
+      ueNetDev->GetPhy (i)->SetNumerology (enbNetDev->GetPhy(i)->GetNumerology ());
       Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
-      ueNas->Connect (enbNetDev->GetCellId (i), enbNetDev->GetEarfcn (i));
+      ueNas->Connect (enbNetDev->GetBwpId (i), enbNetDev->GetEarfcn (i));
     }
 
   if (m_epcHelper != nullptr)
@@ -895,10 +911,17 @@ MmWaveHelper::SetGnbPhyAttribute(const std::string &n, const AttributeValue &v)
 }
 
 void
-MmWaveHelper::SetMmWavePhyMacCommonAttribute(const std::string &n, const AttributeValue &v)
+MmWaveHelper::SetUeAntennaAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
-  m_phyMacCommonFactory.Set (n, v);
+  m_ueAntennaFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbAntennaFactory.Set (n, v);
 }
 
 void
@@ -920,6 +943,34 @@ MmWaveHelper::SetSchedulerTypeId (const TypeId &typeId)
 {
   NS_LOG_FUNCTION (this);
   m_schedFactory.SetTypeId (typeId);
+}
+
+void
+MmWaveHelper::SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId)
+{
+
+  NS_LOG_FUNCTION (this);
+  m_ueBwpManagerAlgoFactory.SetTypeId (typeId);
+}
+
+void
+MmWaveHelper::SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueBwpManagerAlgoFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBwpManagerAlgoFactory.SetTypeId (typeId);
+}
+
+void MmWaveHelper::SetGnbBwpManagerAlgorithmAttribute(const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBwpManagerAlgoFactory.Set (n, v);
 }
 
 void
@@ -989,7 +1040,7 @@ MmWaveDrbActivator::ActivateDrb (uint64_t imsi, uint16_t cellId, uint16_t rnti)
       Ptr<LteUeRrc> ueRrc = m_ueDevice->GetObject<MmWaveUeNetDevice> ()->GetRrc ();
       NS_ASSERT (ueRrc->GetState () == LteUeRrc::CONNECTED_NORMALLY);
       uint16_t rnti = ueRrc->GetRnti ();
-      Ptr<MmWaveEnbNetDevice> enbLteDevice = m_ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
+      Ptr<const MmWaveEnbNetDevice> enbLteDevice = m_ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
       Ptr<LteEnbRrc> enbRrc = enbLteDevice->GetObject<MmWaveEnbNetDevice> ()->GetRrc ();
       NS_ASSERT (ueRrc->GetCellId () == enbLteDevice->GetCellId ());
       Ptr<UeManager> ueManager = enbRrc->GetUeManager (rnti);
@@ -1025,7 +1076,7 @@ MmWaveHelper::ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer
   // to the Enb RRC Connection Established trace source
 
 
-  Ptr<MmWaveEnbNetDevice> enbmmWaveDevice = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
+  Ptr<const MmWaveEnbNetDevice> enbmmWaveDevice = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetTargetEnb ();
 
   std::ostringstream path;
   path << "/NodeList/" << enbmmWaveDevice->GetNode ()->GetId ()

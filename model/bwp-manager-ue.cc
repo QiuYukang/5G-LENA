@@ -19,6 +19,7 @@
 #include "bwp-manager-ue.h"
 #include "bwp-manager-algorithm.h"
 #include <ns3/log.h>
+#include <ns3/pointer.h>
 
 namespace ns3 {
 
@@ -28,14 +29,18 @@ NS_OBJECT_ENSURE_REGISTERED (BwpManagerUe);
 BwpManagerUe::BwpManagerUe () : SimpleUeComponentCarrierManager ()
 {
   NS_LOG_FUNCTION (this);
-  m_algorithm = new BwpManagerAlgorithmStatic (); // When we will have different types,
-  // Then we will add an Attribute.
 }
 
 BwpManagerUe::~BwpManagerUe ()
 {
   NS_LOG_FUNCTION (this);
-  delete m_algorithm;
+}
+
+void
+BwpManagerUe::SetBwpManagerAlgorithm(const Ptr<BwpManagerAlgorithm> &algorithm)
+{
+  NS_LOG_FUNCTION (this);
+  m_algorithm = algorithm;
 }
 
 
@@ -46,6 +51,11 @@ BwpManagerUe::GetTypeId ()
     .SetParent<SimpleUeComponentCarrierManager> ()
     .SetGroupName ("nr")
     .AddConstructor<BwpManagerUe> ()
+    .AddAttribute ("BwpManagerAlgorithm",
+                   "The algorithm pointer",
+                   PointerValue (),
+                   MakePointerAccessor (&BwpManagerUe::m_algorithm),
+                   MakePointerChecker <BwpManagerAlgorithm> ())
   ;
   return tid;
 }
@@ -54,6 +64,7 @@ void
 BwpManagerUe::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_algorithm != nullptr);
 
   uint8_t bwpIndex = m_algorithm->GetBwpForEpsBearer (m_lcToBearerMap.at (params.lcid));
 

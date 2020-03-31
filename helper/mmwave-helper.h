@@ -45,7 +45,6 @@ class EpcTft;
 class MmWaveBearerStatsCalculator;
 class MmwaveMacRxTrace;
 class MmWavePhyRxTrace;
-class MmWavePhyMacCommon;
 class ComponentCarrierEnb;
 class ComponentCarrier;
 class MmWaveMacScheduler;
@@ -235,13 +234,23 @@ public:
    */
   void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
 
-  void SetMmWavePhyMacCommonAttribute (const std::string &n, const AttributeValue &v);
+  void SetUeAntennaAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v);
 
   void SetUeChannelAccessManagerTypeId (const TypeId &typeId);
 
   void SetGnbChannelAccessManagerTypeId (const TypeId &typeId);
 
   void SetSchedulerTypeId (const TypeId &typeId);
+
+  void SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId);
+
+  void SetGnbBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId);
+
+  void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
 private:
   /**
@@ -256,13 +265,12 @@ private:
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
   Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n,
-                                  const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                   const Ptr<SpectrumChannel> &c,
                                   const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
-                                  const Ptr<MmWaveEnbNetDevice> &dev, uint16_t cellId,
+                                  const Ptr<MmWaveEnbNetDevice> &dev,
                                   const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback);
-  Ptr<MmWaveMacScheduler> CreateGnbSched (const Ptr<MmWavePhyMacCommon>& conf);
-  Ptr<MmWaveEnbMac> CreateGnbMac (const Ptr<MmWavePhyMacCommon>& conf);
+  Ptr<MmWaveMacScheduler> CreateGnbSched ();
+  Ptr<MmWaveEnbMac> CreateGnbMac ();
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
   Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
@@ -295,7 +303,6 @@ private:
   ObjectFactory m_enbNetDeviceFactory;  //!< NetDevice factory for gnb
   ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue
   ObjectFactory m_channelFactory;       //!< Channel factory
-  ObjectFactory m_phyMacCommonFactory;  //!< PhyMacCommon factory
   ObjectFactory m_ueMacFactory;         //!< UE MAC factory
   ObjectFactory m_gnbMacFactory;        //!< GNB MAC factory
   ObjectFactory m_ueSpectrumFactory;    //!< UE Spectrum factory
@@ -305,6 +312,10 @@ private:
   ObjectFactory m_ueChannelAccessManagerFactory; //!< UE Channel access manager factory
   ObjectFactory m_gnbChannelAccessManagerFactory; //!< GNB Channel access manager factory
   ObjectFactory m_schedFactory;         //!< Scheduler factory
+  ObjectFactory m_ueAntennaFactory;     //!< UE antenna factory
+  ObjectFactory m_gnbAntennaFactory;    //!< UE antenna factory
+  ObjectFactory m_gnbBwpManagerAlgoFactory;//!< BWP manager algorithm factory
+  ObjectFactory m_ueBwpManagerAlgoFactory;//!< BWP manager algorithm factory
 
 
   uint64_t m_imsiCounter;

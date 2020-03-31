@@ -30,7 +30,7 @@ namespace ns3 {
  *
  * \see GetBwpForEpsBearer
  */
-class BwpManagerAlgorithm : public ObjectBase
+class BwpManagerAlgorithm : public Object
 {
 public:
   /**
@@ -39,14 +39,8 @@ public:
    */
   static TypeId GetTypeId ();
 
-  BwpManagerAlgorithm () : ObjectBase ()
-  {
-  }
-  virtual ~BwpManagerAlgorithm () override
-  {
-  }
-  virtual TypeId GetInstanceTypeId (void) const override;
-
+  BwpManagerAlgorithm () = default;
+  virtual ~BwpManagerAlgorithm () override = default;
   virtual uint8_t GetBwpForEpsBearer (const EpsBearer::Qci &v) const = 0;
 };
 
@@ -65,17 +59,8 @@ public:
    */
   static TypeId GetTypeId ();
 
-  virtual TypeId GetInstanceTypeId (void) const override { return BwpManagerAlgorithmStatic::GetTypeId (); }
-
-  BwpManagerAlgorithmStatic () : BwpManagerAlgorithm ()
-  {
-    ObjectBase::ConstructSelf (AttributeConstructionList ());
-    NS_ABORT_IF(m_qciToBwpMap.size() == 0);
-  }
-  virtual ~BwpManagerAlgorithmStatic () override
-  {
-  }
-
+  BwpManagerAlgorithmStatic () = default;
+  virtual ~BwpManagerAlgorithmStatic () override = default;
   virtual uint8_t GetBwpForEpsBearer (const EpsBearer::Qci &v) const override;
 
   /**

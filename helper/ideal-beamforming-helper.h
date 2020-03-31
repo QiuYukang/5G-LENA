@@ -42,31 +42,22 @@ public:
 
   static TypeId GetTypeId (void);
 
-  virtual void DoDispose (void);
-
   void AddBeamformingTask (const Ptr<MmWaveEnbNetDevice>& gNbDev,
                            const Ptr<MmWaveUeNetDevice>& ueDev);
 
-  void SetIdealBeamformingMethod (TypeId beamformingMethod);
+  void SetIdealBeamformingMethod (const TypeId &beamformingMethod);
 
   void Run () const;
-
-protected:
-
-  virtual void DoInitialize ();
 
 private:
 
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.
    *
-   * This function just set to true a boolean variable that will be checked in
-   * StartVarTti().
    */
   void ExpireBeamformingTimer ();
 
   std::vector<std::pair<Ptr<MmWaveEnbNetDevice>, Ptr<MmWaveUeNetDevice> > > m_beamformingTasks;
-  TypeId m_idealBeamformingAlgorithmType;
   Time m_beamformingPeriodicity;
   Ptr<IdealBeamformingAlgorithm> m_idealBeamformingAlgorithm;
   EventId m_beamformingTimer; //!< Beamforming timer

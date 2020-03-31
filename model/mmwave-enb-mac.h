@@ -31,6 +31,7 @@
 #include <ns3/lte-ccm-mac-sap.h>
 #include <ns3/lte-mac-sap.h>
 #include <ns3/lte-enb-cmac-sap.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3 {
 
@@ -63,8 +64,35 @@ public:
   MmWaveEnbMac (void);
   virtual ~MmWaveEnbMac (void) override;
 
-  void SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig);
-  Ptr<MmWavePhyMacCommon> GetConfigurationParameters (void) const;
+  /**
+   * \brief Sets the number of RBs per RBG. Currently it can be 
+   * configured by the user, while in the future it will be configured 
+   * by the RRC based on the type of configuration and the bandwidth.
+   * \param rbgSize Number of RBs per RBG
+   */
+  void SetNumRbPerRbg (uint32_t rbgSize);
+
+  /**
+   * \return The number of resource blocks per resource block group.
+   * This function will be called through SAP interfaces by PHY and scheduler,
+   * to obtain this information from MAC.
+   * Note that this functions can be named without "Do" prefix,
+   * since it does not change the state of the object and can be exposed to
+   * everyone, not only through SAP.
+   *
+   */
+  uint32_t GetNumRbPerRbg (void) const;
+
+  /**
+   * \brief Sets the number of HARQ processes
+   * \param numHarqProcesses the maximum number of harq processes
+   */
+  void SetNumHarqProcess (uint8_t numHarqProcess);
+
+  /**
+   * \return number of HARQ processes
+   */
+  uint8_t GetNumHarqProcess () const;
 
   /**
    * \brief Perform DL scheduling decision for the indicated slot
@@ -148,9 +176,9 @@ public:
    * TracedCallback signature for SR scheduling events.
    *
    * \param [in] rnti The C-RNTI identifying the UE.
-   * \param [in] ccId The component carrier ID of this MAC.
+   * \param [in] bwpId The component carrier ID of this MAC.
    */
-  typedef void (* SrTracedCallback) (const uint8_t ccId, const uint16_t rnti);
+  typedef void (* SrTracedCallback) (const uint8_t bwpId, const uint16_t rnti);
 
   /**
    *  TracedCallback signature for Enb Mac Received Control Messages.
@@ -160,11 +188,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedEnbMacCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Enb Mac Transmitted Control Messages.
@@ -174,14 +202,36 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedEnbMacCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
 protected:
-  virtual void DoDispose (void) override;
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
+  /**
+   * \brief GetDlCtrlAllocation
+   * \return
+   */
+  std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const;
+
+  /**
+   * \brief GetUlCtrlAllocation
+   * \return
+   */
+  std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const;
 
 private:
   void ReceiveRachPreamble (uint32_t raId);
@@ -209,7 +259,7 @@ private:
   void DoCschedUeConfigUpdateInd (MmWaveMacCschedSapUser::CschedUeConfigUpdateIndParameters params);
   void DoCschedCellConfigUpdateInd (MmWaveMacCschedSapUser::CschedCellConfigUpdateIndParameters params);
   // forwarded from LteEnbCmacSapProvider
-  void DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  void DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth);
   void DoAddUe (uint16_t rnti);
   void DoRemoveUe (uint16_t rnti);
   void DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu);
@@ -232,7 +282,6 @@ private:
   };
 
   typedef std::vector < MmWaveDlHarqProcessInfo> MmWaveDlHarqProcessesBuffer_t;
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;
 
   LteMacSapProvider* m_macSapProvider;
   LteEnbCmacSapProvider* m_cmacSapProvider;
@@ -249,11 +298,9 @@ private:
   LteCcmMacSapProvider* m_ccmMacSapProvider;   ///< CCM MAC SAP provider
   LteCcmMacSapUser* m_ccmMacSapUser;   ///< CCM MAC SAP user
 
+  int32_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth
 
-  uint16_t m_frameNum {0};
-  uint8_t m_subframeNum {0};
-  uint16_t m_slotNum {0};
-  uint32_t m_varTtiNum {0};
+  uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
   std::map<uint32_t, struct MacPduInfo> m_macPduMap;
 
@@ -282,16 +329,20 @@ private:
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
 
+  uint16_t m_bandwidthInRbg {0}; //!< BW in RBG. Set by RRC through ConfigureMac
+
+  SfnSf m_currentSlot;
+
   /**
    * Trace information regarding ENB MAC Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding ENB MAC Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;

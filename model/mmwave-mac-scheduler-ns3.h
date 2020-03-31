@@ -183,7 +183,7 @@ class MmWaveSchedGeneralTestCase;
  * \section Scheduling UL
  * It is worth explaining that the
  * schedulers working on slot x for DL, are working on slot \f$x + y\f$
- * (where y is the value of PhyMacCommon::GetN2Delay -previously:GetULSchedDelay-).
+ * (where y is the value of N2 delay).
  * This delay is implemented to simulate the fact that the UE receives the DCI at
  * time \f$t\f$, and then has some time (the delay) to prepare its UL data.
  * So, if the scheduler assigns some symbols for uplink data in slot \f$x + y\f$,
@@ -276,9 +276,6 @@ public:
 
   typedef PointInFTPlane FTResources; //!< Represent an amount of RBG/symbols that can be, or is, assigned
 
-  // Inherited
-  virtual void
-  ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) override;
   virtual void
   DoCschedCellConfigReq (const MmWaveMacCschedSapProvider::CschedCellConfigReqParameters& params) override;
   virtual void
@@ -385,6 +382,14 @@ public:
    * \return the value
    */
   uint8_t GetStartMcsUl () const;
+
+  void SetDlCtrlSymbols (uint8_t v);
+
+  uint8_t GetDlCtrlSymbols () const;
+
+  void SetUlCtrlSymbols (uint8_t v);
+
+  uint8_t GetUlCtrlSymbols () const;
 
 protected:
   /**
@@ -539,6 +544,14 @@ protected:
   CreateLC (const LogicalChannelConfigListElement_s &config) const;
 
   /**
+   * \brief Private function that is used to get the number of resource
+   * blocks per resource block group and also to check whether this value is
+   * configured.
+   * \return Returns the number of RBs per RBG
+   */
+  uint64_t GetNumRbPerRbg() const;
+
+  /**
    * \brief Represent an assignation of bytes to a LCG/LC
    */
   struct Assignation
@@ -578,7 +591,6 @@ protected:
   };
 
 protected:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;   //!< Phy-mac config
   Ptr<NrAmc> m_amc;                     //!< AMC pointer
 
 private:
@@ -598,18 +610,16 @@ private:
     /**
      * \brief AllocElem constructor
      * \param rnti RNTI
-     * \param rb Resource Blocks
      * \param tbs Transport Block Size
      * \param numSym Number of symbols
      * \param mcs MCS
      */
-    AllocElem (uint16_t rnti, uint32_t rb, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs)
-      : m_rnti (rnti), m_rb (rb), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs)
+    AllocElem (uint16_t rnti, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs)
+      : m_rnti (rnti), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs)
     {
     }
 
     uint16_t m_rnti {0};  //!< Allocated RNTI
-    uint32_t m_rb   {0};  //!< Allocated RB
     uint32_t m_tbs  {0};  //!< Allocated TBS
     uint8_t m_symStart {0}; //!< Sym start
     uint8_t m_numSym {0}; //!< Allocated symbols
@@ -698,6 +708,24 @@ private:
   static const uint32_t m_subHdrSize = 4;  //!< Sub Header size (?)
   static const unsigned m_rlcHdrSize = 3;  //!< RLC Header size
 
+protected:
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
+  /**
+   * \return the bandwidth in RBG
+   */
+  uint16_t GetBandwidthInRbg () const;
+
 private:
   std::unordered_map<uint16_t, std::shared_ptr<MmWaveMacSchedulerUeInfo> > m_ueMap; //!< The map of between RNTI and their data
 
@@ -721,6 +749,10 @@ private:
   std::list<uint16_t> m_srList;  //!< List of RNTI of UEs that asked for a SR
 
   std::vector <struct RachListElement_s> m_rachList; //!< rach list
+
+  uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
+  uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
+  uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
 
   friend MmWaveSchedGeneralTestCase;
 };

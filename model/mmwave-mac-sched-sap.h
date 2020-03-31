@@ -23,6 +23,8 @@
 
 namespace ns3 {
 
+class SpectrumModel;
+
 class MmWaveMacSchedSapProvider
 {
 public:
@@ -60,6 +62,7 @@ public:
   struct SchedUlCqiInfoReqParameters
   {
     SfnSf  m_sfnSf;
+    uint8_t m_symStart;
     struct UlCqiInfo m_ulCqi;
   };
 
@@ -164,6 +167,21 @@ public:
   };
 
   virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) = 0;
+
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+
+  virtual uint32_t GetNumRbPerRbg () const = 0;
+
+  virtual uint8_t GetNumHarqProcess () const = 0;
+
+  virtual uint16_t GetBwpId () const = 0;
+
+  virtual uint16_t GetCellId () const = 0;
+
+  virtual uint32_t GetSymbolsPerSlot () const = 0;
+
+  virtual Time GetSlotPeriod () const = 0;
+
 };
 
 std::ostream & operator<< (std::ostream & os, MmWaveMacSchedSapProvider::SchedDlRlcBufferReqParameters const & p);

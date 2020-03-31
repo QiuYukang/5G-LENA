@@ -481,7 +481,6 @@ main (int argc, char *argv[])
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0 = CreateObject<MmWavePhyMacCommon> ();
       phyMacCommonBwp0->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
       Ptr<BandwidthPartInfo> recBwp0 = cc0.m_bwp.begin ()->second;
-      phyMacCommonBwp0->SetCentreFrequency (recBwp0->m_centralFrequency);
       phyMacCommonBwp0->SetBandwidth (recBwp0->m_bandwidth);
       phyMacCommonBwp0->SetNumerology (static_cast<uint32_t> (recBwp0->m_numerology));
       phyMacCommonBwp0->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -499,7 +498,6 @@ main (int argc, char *argv[])
       phyMacCommonBwp0dl->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
       std::map<uint8_t, Ptr<BandwidthPartInfo>>::iterator it = cc0.m_bwp.begin ();
       Ptr<BandwidthPartInfo> recBwp0dl = it->second;
-      phyMacCommonBwp0dl->SetCentreFrequency (recBwp0dl->m_centralFrequency);
       phyMacCommonBwp0dl->SetBandwidth (recBwp0dl->m_bandwidth);
       phyMacCommonBwp0dl->SetNumerology (static_cast<uint32_t> (recBwp0dl->m_numerology));
       phyMacCommonBwp0dl->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -515,7 +513,6 @@ main (int argc, char *argv[])
       Ptr<MmWavePhyMacCommon> phyMacCommonBwp0ul = CreateObject<MmWavePhyMacCommon> ();
       phyMacCommonBwp0ul->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
       Ptr<BandwidthPartInfo> recBwp0ul = it->second;
-      phyMacCommonBwp0ul->SetCentreFrequency (recBwp0ul->m_centralFrequency);
       phyMacCommonBwp0ul->SetBandwidth (recBwp0ul->m_bandwidth);
       phyMacCommonBwp0ul->SetNumerology (static_cast<uint32_t> (recBwp0ul->m_numerology));
       phyMacCommonBwp0ul->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -532,7 +529,6 @@ main (int argc, char *argv[])
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
   Ptr<BandwidthPartInfo> recBwp1 = bwp1;
-  phyMacCommonBwp1->SetCentreFrequency (recBwp1->m_centralFrequency);
   phyMacCommonBwp1->SetBandwidth (recBwp1->m_bandwidth);
   phyMacCommonBwp1->SetNumerology (static_cast<uint32_t> (recBwp1->m_numerology));
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
@@ -548,7 +544,6 @@ main (int argc, char *argv[])
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp2->SetNumRbPerRbg (4); //<! Force the RBG size for the given CC bandwidth as in LTE
   Ptr<BandwidthPartInfo> recBwp2 = bwp2;
-  phyMacCommonBwp2->SetCentreFrequency(recBwp2->m_centralFrequency);
   phyMacCommonBwp2->SetBandwidth (recBwp2->m_bandwidth);
   phyMacCommonBwp2->SetNumerology (static_cast<uint32_t> (recBwp2->m_numerology));
   phyMacCommonBwp2->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));

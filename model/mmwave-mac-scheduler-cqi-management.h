@@ -57,6 +57,18 @@ public:
   ~MmWaveMacSchedulerCQIManagement () = default;
 
   /**
+   * \brief Install a function to retrieve the bwp id
+   * \param fn the function
+   */
+  void InstallGetBwpIdFn (const std::function<uint16_t ()> &fn);
+
+  /**
+   * \brief Install a function to retrieve the cell id
+   * \param fn the function
+   */
+  void InstallGetCellIdFn (const std::function<uint16_t ()> & fn);
+
+  /**
    * \brief Set the pointer to the NrAmc model
    * \param config PhyMac config
    * \param amc AMC model to calculate CQI
@@ -64,11 +76,9 @@ public:
    * \param startMcsUl Default MCS when a CQI is reset (UL)
    */
   void
-  ConfigureCommonParameters (const Ptr<MmWavePhyMacCommon> &config,
-                             const Ptr<NrAmc> &amc,
+  ConfigureCommonParameters (const Ptr<NrAmc> &amc,
                              uint8_t startMcsDl, uint8_t startMcsUl)
   {
-    m_phyMacConfig = config;
     m_amc = amc;
     m_startMcsDl = startMcsDl;
     m_startMcsUl = startMcsUl;
@@ -102,6 +112,7 @@ public:
    * \param tbs TBS of the allocation
    * \param params parameters of the received CQI
    * \param ueInfo UE info
+   * \param model SpectrumModel to calculate the CQI
    *
    * To calculate the UL MCS, is necessary to remember the allocation done to
    * be able to retrieve the number of symbols and the TBS assigned. This is
@@ -115,7 +126,8 @@ public:
    */
   void UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                         const MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
-                        const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const;
+                        const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
+                        const Ptr<const SpectrumModel> &model) const;
 
   /**
    * \brief Refresh the DL CQI for all the UE
@@ -140,10 +152,23 @@ public:
   void RefreshUlCqiMaps (const std::unordered_map<uint16_t, std::shared_ptr<MmWaveMacSchedulerUeInfo> > &m_ueMap) const;
 
 private:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig; //!< PhyMac config
-  Ptr<NrAmc> m_amc;                   //!< NrAmc model pointer
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
+  Ptr<NrAmc> m_amc;                       //!< NrAmc model pointer
   uint8_t m_startMcsDl {0};
   uint8_t m_startMcsUl {0};
+  std::function<uint16_t ()> m_getBwpId;  //!< Function to retrieve bwp id
+  std::function<uint16_t ()> m_getCellId; //!< Function to retrieve cell id
 };
 
 } // namespace ns3

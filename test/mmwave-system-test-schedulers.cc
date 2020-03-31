@@ -154,7 +154,6 @@ MmWaveSystemTestScheduling::DoRun (void)
 
 
     Ptr<MmWavePhyMacCommon> phyMacCommonBwp = CreateObject<MmWavePhyMacCommon>();
-    phyMacCommonBwp->SetCentreFrequency(28e9);
     phyMacCommonBwp->SetBandwidth (m_bw1);
     phyMacCommonBwp->SetNumerology(m_numerology);
     phyMacCommonBwp->SetAttribute ("MacSchedulerType", TypeIdValue (TypeId::LookupByName(m_schedulerType)));

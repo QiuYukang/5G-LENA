@@ -57,9 +57,50 @@ public:
    */
   virtual BeamId GetBeamId (uint8_t rnti) const = 0;
 
+  /**
+   * \brief Retrieve the spectrum model used by the PHY layer.
+   * \return the SpectrumModel
+   *
+   * It is used to calculate the CQI. In the future, this method may be removed
+   * if the CQI calculation is done in the PHY layer, just reporting to MAC
+   * its value.
+   */
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+
+  /**
+   * \return the Bwp id of the PHY
+   */
+  virtual uint16_t GetBwpId () const = 0;
+
+  /**
+   * \return the cell id of the PHY
+   */
+  virtual uint16_t GetCellId () const = 0;
+  /*
+   * \brief Get the number of symbols in one slot
+   * \return the number of symbols in one slot (it is an attribute in the PHY,
+   * so it can be changed dynamically -- don't store the value)
+   */
+  virtual uint32_t GetSymbolsPerSlot () const = 0;
+
+  /**
+   * \brief Get SlotPeriod
+   * \return the slot period (don't store the value as it depends on the numerology)
+   */
+  virtual Time GetSlotPeriod () const = 0;
+
+  /**
+   * \return Get the number of resource blocks configured
+   */
+  virtual uint32_t GetRbNum () const = 0;
+
 };
 
-/* Phy to Mac comm */
+/* This SAP is normally used so that PHY can send to MAC indications
+ * and providing to MAC some information. The relationship between MAC and PHY
+ * is that PHY is service provider to MAC, and MAC is user.
+ * Exceptionally, PHY can also request some information from MAC through this
+ * interface, such as e.g. GetNumRbPerRbg.*/
 class MmWaveEnbPhySapUser
 {
 public:
@@ -131,6 +172,18 @@ public:
    * \param rnti the RNTI of the user
    */
   virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) = 0;
+
+  /**
+   * \brief PHY requests information from MAC.
+   * While MAC normally act as user of PHY services, in this case
+   * exceptionally MAC provides information/service to PHY.
+   * \return number of resource block per resource block group
+   */
+  virtual uint32_t GetNumRbPerRbg () const = 0;
+
+  virtual std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const = 0;
+
+  virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const = 0;
 };
 
 class MmWaveUePhySapUser
@@ -161,6 +214,8 @@ public:
   virtual void SlotIndication (SfnSf) = 0;
 
   //virtual void NotifyHarqDeliveryFailure (uint8_t harqId) = 0;
+
+  virtual uint8_t GetNumHarqProcess () const = 0;
 };
 
 }

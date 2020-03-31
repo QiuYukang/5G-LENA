@@ -46,9 +46,18 @@ public:
 
   Ptr<MmWaveEnbPhy> GetPhy(uint8_t index) const;
 
-  uint16_t GetCellId (uint8_t index) const;
+  uint16_t GetBwpId (uint8_t index) const;
 
+  /**
+   * \return the cell id
+   */
   uint16_t GetCellId () const;
+
+  /**
+   * \brief Set this gnb cell id
+   * \param cellId the cell id
+   */
+  void SetCellId (uint16_t cellId);
 
   uint16_t GetEarfcn (uint8_t index) const;
 
@@ -56,7 +65,7 @@ public:
 
   Ptr<LteEnbRrc> GetRrc (void);
 
-  void SetCcMap (std::map<uint8_t, Ptr<BandwidthPartGnb> > ccm);
+  void SetCcMap (const std::map<uint8_t, Ptr<BandwidthPartGnb> > &ccm);
 
   /**
    * \brief Get the size of the component carriers map
@@ -81,9 +90,13 @@ public:
    */
   void RouteOutgoingCtrlMsgs (const std::list<Ptr<MmWaveControlMessage> > &msgList, uint8_t sourceBwpId);
 
+  /**
+   * \brief Update the RRC config. Must be called only once.
+   */
+  void UpdateConfig ();
+
 protected:
   virtual void DoInitialize (void);
-  void UpdateConfig ();
 
   virtual void DoDispose (void);
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
@@ -91,11 +104,7 @@ protected:
 private:
   Ptr<LteEnbRrc> m_rrc;
 
-  uint16_t m_cellId; /* Cell Identifer. To uniquely identify an E-nodeB  */
-
-  bool m_isConstructed;
-
-  bool m_isConfigured;
+  uint16_t m_cellId; //!< Cell ID. Set by the helper.
 
   std::map<uint8_t, Ptr<BandwidthPartGnb> > m_ccMap; /**< ComponentCarrier map */
 

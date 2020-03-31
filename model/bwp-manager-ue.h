@@ -40,6 +40,12 @@ public:
   virtual ~BwpManagerUe () override;
 
   /**
+   * \brief Set the algorithm
+   * \param algorithm pointer to the algorithm
+   */
+  void SetBwpManagerAlgorithm (const Ptr<BwpManagerAlgorithm> &algorithm);
+
+  /**
    * \brief The UE received a HARQ feedback from spectrum. Where this feedback
    * should be forwarded?
    *
@@ -70,7 +76,7 @@ protected:
   virtual LteMacSapUser* DoConfigureSignalBearer (uint8_t lcId,  LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu) override;
 
 private:
-  BwpManagerAlgorithm *m_algorithm;
+  Ptr<BwpManagerAlgorithm> m_algorithm;
   std::unordered_map<uint8_t, EpsBearer::Qci> m_lcToBearerMap; //!< Map from LCID to bearer ID
 };
 

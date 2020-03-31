@@ -20,14 +20,11 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
+
 #include "mmwave-enb-mac.h"
 #include "mmwave-phy-mac-common.h"
 #include "mmwave-mac-pdu-header.h"
@@ -36,6 +33,7 @@
 #include "mmwave-control-messages.h"
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
+#include <ns3/spectrum-model.h>
 #include <algorithm>
 #include "beam-id.h"
 
@@ -57,7 +55,7 @@ public:
   MmWaveEnbMacMemberEnbCmacSapProvider (MmWaveEnbMac* mac);
 
   // inherited from LteEnbCmacSapProvider
-  virtual void ConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  virtual void ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth);
   virtual void AddUe (uint16_t rnti);
   virtual void RemoveUe (uint16_t rnti);
   virtual void AddLc (LcInfo lcinfo, LteMacSapUser* msu);
@@ -66,8 +64,6 @@ public:
   virtual void UeUpdateConfigurationReq (UeConfig params);
   virtual RachConfig GetRachConfig ();
   virtual AllocateNcRaPreambleReturnValue AllocateNcRaPreamble (uint16_t rnti);
-
-
 private:
   MmWaveEnbMac* m_mac;
 };
@@ -79,7 +75,7 @@ MmWaveEnbMacMemberEnbCmacSapProvider::MmWaveEnbMacMemberEnbCmacSapProvider (MmWa
 }
 
 void
-MmWaveEnbMacMemberEnbCmacSapProvider::ConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
+MmWaveEnbMacMemberEnbCmacSapProvider::ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   m_mac->DoConfigureMac (ulBandwidth, dlBandwidth);
 }
@@ -134,8 +130,9 @@ MmWaveEnbMacMemberEnbCmacSapProvider::AllocateNcRaPreamble (uint16_t rnti)
 
 
 
-// SAP
-// ENB MAC-Phy
+// SAP interface between ENB PHY AND MAC
+// PHY is provider and MAC is user of its service following OSI model.
+// However, PHY may request some information from MAC.
 class MmWaveMacEnbMemberPhySapUser : public MmWaveEnbPhySapUser
 {
 public:
@@ -158,6 +155,11 @@ public:
   virtual void UlHarqFeedback (UlHarqInfo params) override;
 
   virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) override;
+
+  virtual uint32_t GetNumRbPerRbg () const override;
+
+  virtual std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const override;
+  virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const override;
 
 private:
   MmWaveEnbMac* m_mac;
@@ -223,13 +225,39 @@ MmWaveMacEnbMemberPhySapUser::BeamChangeReport (BeamId beamId, uint8_t rnti)
   m_mac->BeamChangeReport (beamId, rnti);
 }
 
+uint32_t
+MmWaveMacEnbMemberPhySapUser::GetNumRbPerRbg () const
+{
+  return m_mac->GetNumRbPerRbg();
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveMacEnbMemberPhySapUser::GetDlCtrlDci() const
+{
+  return m_mac->GetDlCtrlDci ();
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveMacEnbMemberPhySapUser::GetUlCtrlDci() const
+{
+  return m_mac->GetUlCtrlDci ();
+}
+
+
 // MAC Sched
 
 class MmWaveMacMemberMacSchedSapUser : public MmWaveMacSchedSapUser
 {
 public:
   MmWaveMacMemberMacSchedSapUser (MmWaveEnbMac* mac);
-  virtual void SchedConfigInd (const struct SchedConfigIndParameters& params);
+  virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) override;
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
+  virtual uint32_t GetNumRbPerRbg () const override;
+  virtual uint8_t GetNumHarqProcess () const override;
+  virtual uint16_t GetBwpId () const override;
+  virtual uint16_t GetCellId () const override;
+  virtual uint32_t GetSymbolsPerSlot () const override;
+  virtual Time GetSlotPeriod () const override;
 private:
   MmWaveEnbMac* m_mac;
 };
@@ -246,6 +274,47 @@ MmWaveMacMemberMacSchedSapUser::SchedConfigInd (const struct SchedConfigIndParam
   m_mac->DoSchedConfigIndication (params);
 }
 
+Ptr<const SpectrumModel>
+MmWaveMacMemberMacSchedSapUser::GetSpectrumModel () const
+{
+  return m_mac->m_phySapProvider->GetSpectrumModel (); //  MAC forwards the call from scheduler to PHY; i.e. this function connects two providers of MAC: scheduler and PHY
+}
+
+uint32_t
+MmWaveMacMemberMacSchedSapUser::GetNumRbPerRbg () const
+{
+  return m_mac->GetNumRbPerRbg ();
+}
+
+uint8_t
+MmWaveMacMemberMacSchedSapUser::GetNumHarqProcess () const
+{
+  return m_mac->GetNumHarqProcess();
+}
+
+uint16_t
+MmWaveMacMemberMacSchedSapUser::GetBwpId() const
+{
+  return m_mac->GetBwpId ();
+}
+
+uint16_t
+MmWaveMacMemberMacSchedSapUser::GetCellId() const
+{
+  return m_mac->GetCellId ();
+}
+
+uint32_t
+MmWaveMacMemberMacSchedSapUser::GetSymbolsPerSlot() const
+{
+  return m_mac->m_phySapProvider->GetSymbolsPerSlot ();
+}
+
+Time
+MmWaveMacMemberMacSchedSapUser::GetSlotPeriod() const
+{
+  return m_mac->m_phySapProvider->GetSlotPeriod ();
+}
 
 class MmWaveMacMemberMacCschedSapUser : public MmWaveMacCschedSapUser
 {
@@ -318,6 +387,18 @@ MmWaveEnbMac::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWaveEnbMac")
     .SetParent<Object> ()
     .AddConstructor<MmWaveEnbMac> ()
+    .AddAttribute ("NumRbPerRbg",
+                   "Number of resource blocks per resource block group.",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&MmWaveEnbMac::SetNumRbPerRbg,
+                                         &MmWaveEnbMac::GetNumRbPerRbg),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("NumHarqProcess",
+                   "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
+                    UintegerValue (20),
+                    MakeUintegerAccessor (&MmWaveEnbMac::SetNumHarqProcess,
+                                          &MmWaveEnbMac::GetNumHarqProcess),
+                    MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("DlScheduling",
                      "Information regarding DL scheduling.",
                      MakeTraceSourceAccessor (&MmWaveEnbMac::m_dlScheduling),
@@ -356,12 +437,6 @@ MmWaveEnbMac::MmWaveEnbMac (void) : Object ()
 MmWaveEnbMac::~MmWaveEnbMac (void)
 {
   NS_LOG_FUNCTION (this);
-}
-
-void
-MmWaveEnbMac::DoDispose (void)
-{
-  NS_LOG_FUNCTION (this);
   m_dlCqiReceived.clear ();
   m_ulCqiReceived.clear ();
   m_ulCeReceived.clear ();
@@ -374,22 +449,42 @@ MmWaveEnbMac::DoDispose (void)
 }
 
 void
-MmWaveEnbMac::SetConfigurationParameters (Ptr<MmWavePhyMacCommon> ptrConfig)
+MmWaveEnbMac::SetNumRbPerRbg (uint32_t rbgSize)
 {
-  m_phyMacConfig = ptrConfig;
+  NS_ABORT_MSG_IF (m_numRbPerRbg !=-1, "This attribute can not be reconfigured");
+  m_numRbPerRbg = rbgSize;
 }
 
-Ptr<MmWavePhyMacCommon>
-MmWaveEnbMac::GetConfigurationParameters (void) const
+uint32_t
+MmWaveEnbMac::GetNumRbPerRbg (void) const
 {
-  return m_phyMacConfig;
+  return m_numRbPerRbg;
+}
+
+/**
+ * \brief Sets the number of HARQ processes
+ * \param numHarqProcesses the maximum number of harq processes
+ */
+void
+MmWaveEnbMac::SetNumHarqProcess (uint8_t numHarqProcess)
+{
+  m_numHarqProcess = numHarqProcess;
+}
+
+/**
+ * \return number of HARQ processes
+ */
+uint8_t
+MmWaveEnbMac::GetNumHarqProcess () const
+{
+  return m_numHarqProcess;
 }
 
 void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
-  m_macRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), raId, m_phyMacConfig->GetCcId(), rachMsg);
+  m_macRxedCtrlMsgsTrace (m_currentSlot, raId, GetBwpId (), rachMsg);
 
   ++m_receivedRachPreambleCount[raId];
 }
@@ -429,10 +524,7 @@ void
 MmWaveEnbMac::SetCurrentSfn (const SfnSf &sfnSf)
 {
   NS_LOG_FUNCTION (this);
-  m_frameNum = sfnSf.m_frameNum;
-  m_subframeNum = sfnSf.m_subframeNum;
-  m_slotNum = sfnSf.m_slotNum;
-  m_varTtiNum = sfnSf.m_varTtiNum;
+  m_currentSlot = sfnSf;
 }
 
 void
@@ -477,34 +569,31 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       m_macSchedSapProvider->SchedDlRachInfoReq (rachInfoReqParams);
     }
 
-  if (m_varTtiNum == 0)
+  MmWaveMacSchedSapProvider::SchedDlTriggerReqParameters dlParams;
+
+  dlParams.m_slotType = type;
+  dlParams.m_snfSf = sfnSf;
+
+  // Forward DL HARQ feedbacks collected during last subframe TTI
+  if (m_dlHarqInfoReceived.size () > 0)
     {
-      MmWaveMacSchedSapProvider::SchedDlTriggerReqParameters dlParams;
-
-      dlParams.m_slotType = type;
-      dlParams.m_snfSf = sfnSf;
-
-      // Forward DL HARQ feedbacks collected during last subframe TTI
-      if (m_dlHarqInfoReceived.size () > 0)
-        {
-          dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
-          // empty local buffer
-          m_dlHarqInfoReceived.clear ();
-        }
-
-      {
-        for (const auto & ue : m_rlcAttached)
-          {
-            MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
-            params.m_rnti = ue.first;
-            params.m_beamId = m_phySapProvider->GetBeamId (ue.first);
-            params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
-            m_macCschedSapProvider->CschedUeConfigReq (params);
-          }
-      }
-
-      m_macSchedSapProvider->SchedDlTriggerReq (dlParams);
+      dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
+      // empty local buffer
+      m_dlHarqInfoReceived.clear ();
     }
+
+  {
+    for (const auto & ue : m_rlcAttached)
+      {
+        MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
+        params.m_rnti = ue.first;
+        params.m_beamId = m_phySapProvider->GetBeamId (ue.first);
+        params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
+        m_macCschedSapProvider->CschedUeConfigReq (params);
+      }
+  }
+
+  m_macSchedSapProvider->SchedDlTriggerReq (dlParams);
 }
 
 void
@@ -525,7 +614,7 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
   // Send SR info to the scheduler
   {
     MmWaveMacSchedSapProvider::SchedUlSrInfoReqParameters params;
-    params.m_snfSf = SfnSf (m_frameNum, m_subframeNum, m_slotNum, 0);
+    params.m_snfSf = m_currentSlot;
     params.m_srList.insert (params.m_srList.begin(), m_srRntiList.begin (), m_srRntiList.end ());
     m_srRntiList.clear();
 
@@ -542,23 +631,21 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       m_macSchedSapProvider->SchedUlMacCtrlInfoReq (ulMacReq);
     }
 
-  if (m_varTtiNum == 0)
+  MmWaveMacSchedSapProvider::SchedUlTriggerReqParameters ulParams;
+
+  ulParams.m_snfSf = sfnSf;
+  ulParams.m_slotType = type;
+
+  // Forward UL HARQ feebacks collected during last TTI
+  if (m_ulHarqInfoReceived.size () > 0)
     {
-      MmWaveMacSchedSapProvider::SchedUlTriggerReqParameters ulParams;
-
-      ulParams.m_snfSf = sfnSf;
-      ulParams.m_slotType = type;
-
-      // Forward UL HARQ feebacks collected during last TTI
-      if (m_ulHarqInfoReceived.size () > 0)
-        {
-          ulParams.m_ulHarqInfoList = m_ulHarqInfoReceived;
-          // empty local buffer
-          m_ulHarqInfoReceived.clear ();
-        }
-
-      m_macSchedSapProvider->SchedUlTriggerReq (ulParams);
+      ulParams.m_ulHarqInfoList = m_ulHarqInfoReceived;
+      // empty local buffer
+      m_ulHarqInfoReceived.clear ();
     }
+
+  m_macSchedSapProvider->SchedUlTriggerReq (ulParams);
+
 }
 
 void
@@ -593,7 +680,7 @@ MmWaveEnbMac::ReceiveBsrMessage  (MacCeElement bsr)
       mcle.m_macCeType = MacCeListElement_s::PHR;
     }
 
-  m_ccmMacSapUser->UlReceiveMacCe (mcle, m_phyMacConfig->GetCcId ());
+  m_ccmMacSapUser->UlReceiveMacCe (mcle, GetBwpId ());
 }
 
 void
@@ -642,7 +729,7 @@ MmWaveEnbMac::DoReportSrToScheduler(uint16_t rnti)
 {
   NS_LOG_FUNCTION (this);
   m_srRntiList.push_back (rnti);
-  m_srCallback (m_phyMacConfig->GetCcId (), rnti);
+  m_srCallback (GetBwpId (), rnti);
 }
 
 void
@@ -738,10 +825,7 @@ MmWaveEnbMac::DoUlCqiReport (MmWaveMacSchedSapProvider::SchedUlCqiInfoReqParamet
       NS_LOG_DEBUG (this << " eNB rxed an SRS UL-CQI");
     }
   NS_LOG_INFO ("*** UL CQI report SINR " << LteFfConverter::fpS11dot3toDouble (ulcqi.m_ulCqi.m_sinr[0]) <<
-               " frame " << m_frameNum <<
-               " subframe " << m_subframeNum <<
-               " slot" << m_slotNum <<
-               " varTtiNum " << m_varTtiNum );
+               " slot: " << m_currentSlot);
 
   // NS_ASSERT (ulcqi.m_sfnSf.m_varTtiNum != 0); Now UL data can be the first TTI..
   m_ulCqiReceived.push_back (ulcqi);
@@ -758,9 +842,8 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       {
         // Report it to the CCM. Then he will call the right MAC
         Ptr<MmWaveSRMessage> sr = DynamicCast<MmWaveSRMessage> (msg);
-        m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), m_phyMacConfig->GetCcId ());
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                sr->GetRNTI (), m_phyMacConfig->GetCcId (), msg);
+        m_ccmMacSapUser->UlReceiveSr (sr->GetRNTI (), GetBwpId ());
+        m_macRxedCtrlMsgsTrace (m_currentSlot, sr->GetRNTI (), GetBwpId (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_CQI):
@@ -769,24 +852,21 @@ MmWaveEnbMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         DlCqiInfo cqiElement = cqi->GetDlCqi ();
         NS_ASSERT (cqiElement.m_rnti != 0);
         m_dlCqiReceived.push_back (cqiElement);
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                cqiElement.m_rnti, m_phyMacConfig->GetCcId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, cqiElement.m_rnti, GetBwpId (), msg);
         break;
       }
     case (MmWaveControlMessage::BSR):
       {
         Ptr<MmWaveBsrMessage> bsr = DynamicCast<MmWaveBsrMessage> (msg);
         ReceiveBsrMessage (bsr->GetBsr ());
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                bsr->GetBsr().m_rnti, m_phyMacConfig->GetCcId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, bsr->GetBsr().m_rnti, GetBwpId (), msg);
         break;
       }
     case (MmWaveControlMessage::DL_HARQ):
       {
         Ptr<MmWaveDlHarqFeedbackMessage> dlharq = DynamicCast<MmWaveDlHarqFeedbackMessage> (msg);
         DoDlHarqFeedback (dlharq->GetDlHarqFeedback ());
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                dlharq->GetDlHarqFeedback().m_rnti, m_phyMacConfig->GetCcId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, dlharq->GetDlHarqFeedback().m_rnti, GetBwpId (), msg);
         break;
       }
     default:
@@ -852,7 +932,7 @@ MmWaveEnbMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParamet
 void
 MmWaveEnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 {
-  params.componentCarrierId = m_phyMacConfig->GetCcId ();
+  params.componentCarrierId = GetBwpId ();
   // TB UID passed back along with RLC data as HARQ process ID
   uint32_t tbMapKey = ((params.rnti & 0xFFFF) << 8) | (params.harqProcessId & 0xFF);
   std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
@@ -880,7 +960,11 @@ MmWaveEnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 void
 MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndParameters ind)
 {
+  NS_ASSERT (ind.m_sfnSf.GetNumerology () == m_currentSlot.GetNumerology ());
   std::sort (ind.m_slotAllocInfo.m_varTtiAllocInfo.begin (), ind.m_slotAllocInfo.m_varTtiAllocInfo.end ());
+
+  NS_LOG_DEBUG ("Received from scheduler a new allocation: " << ind.m_slotAllocInfo);
+
   m_phySapProvider->SetSlotAllocInfo (ind.m_slotAllocInfo);
 
   // Random Access procedure: send RARs
@@ -898,11 +982,10 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
       rar.rapId = itRapId->second;
       rar.rarPayload = rarAllocation;
       rarMsg->AddRar (rar);
-      NS_LOG_INFO ("In slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
+      NS_LOG_INFO ("In slot " << m_currentSlot <<
                    " send to PHY the RAR message for RNTI " <<
                    rarAllocation.m_rnti << " rapId " << itRapId->second);
-      m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                              rarAllocation.m_rnti, m_phyMacConfig->GetCcId (), rarMsg);
+      m_macTxedCtrlMsgsTrace (m_currentSlot, rarAllocation.m_rnti, GetBwpId (), rarMsg);
     }
 
   if (ind.m_buildRarList.size () > 0)
@@ -936,9 +1019,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                   NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
                   std::vector<RlcPduInfo> &rlcPduInfo = varTtiAllocInfo.m_rlcPduInfo;
                   NS_ASSERT (rlcPduInfo.size () > 0);
-                  SfnSf pduSfn = ind.m_sfnSf;
-                  pduSfn.m_varTtiNum = varTtiAllocInfo.m_dci->m_symStart;
-                  MacPduInfo macPduInfo (pduSfn, varTtiAllocInfo.m_dci->m_tbSize, rlcPduInfo.size (), *dciElem.get ());
+                  MacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), *dciElem.get ());
                   // insert into MAC PDU map
                   uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
                   std::pair <std::map<uint32_t, struct MacPduInfo>::iterator, bool> mapRet =
@@ -968,9 +1049,9 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                       // The MAC and RLC already consider 2 bytes for the header.
                       // that's a repetition, and prevent transmitting very small
                       // portions.
-                      //(*lcidIt).second->NotifyTxOpportunity ((rlcPduInfo[ipdu].m_size)-subheader.GetSize (), 0, tbUid, m_phyMacConfig->GetCcId (), rnti, rlcPduInfo[ipdu].m_lcid);
+                      //(*lcidIt).second->NotifyTxOpportunity ((rlcPduInfo[ipdu].m_size)-subheader.GetSize (), 0, tbUid, GetBwpId (), rnti, rlcPduInfo[ipdu].m_lcid);
 
-                      (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo[ipdu].m_size), 0, tbUid, m_phyMacConfig->GetCcId (), rnti, rlcPduInfo[ipdu].m_lcid));
+                      (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo[ipdu].m_size), 0, tbUid, GetBwpId (), rnti, rlcPduInfo[ipdu].m_lcid));
                       harqIt->second.at (tbUid).m_lcidList.push_back (rlcPduInfo[ipdu].m_lcid);
                     }
 
@@ -998,20 +1079,14 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                   m_phySapProvider->SendMacPdu (pduMapIt->second.m_pdu);
                   m_macPduMap.erase (pduMapIt);    // delete map entry
 
-                  m_dlScheduling (ind.m_sfnSf.m_frameNum, ind.m_sfnSf.m_subframeNum, ind.m_sfnSf.m_slotNum,
-                                  dciElem->m_tbSize, dciElem->m_mcs, dciElem->m_rnti, m_phyMacConfig->GetCcId ());
+                  m_dlScheduling (ind.m_sfnSf.GetFrame (), ind.m_sfnSf.GetSubframe (), ind.m_sfnSf.GetSlot (),
+                                  dciElem->m_tbSize, dciElem->m_mcs, dciElem->m_rnti, GetBwpId ());
                 }
               else
                 {
                   NS_LOG_INFO ("DL retransmission");
                   if (dciElem->m_tbSize > 0)
                     {
-
-                      //uint16_t rnti,
-                      //uint8_t mcs0, uint16_t tbs0Size,
-                      //uint8_t mcs1, uint16_t tbs1Size);
-                      // HARQ retransmission -> retrieve TB from HARQ buffer
-
                       std::map <uint16_t, MmWaveDlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (rnti);
                       NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
                       Ptr<PacketBurst> pb = it->second.at (tbUid).m_pktBurst;
@@ -1023,7 +1098,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
                             {
                               NS_FATAL_ERROR ("No MAC PDU tag");
                             }
-                          tag.SetSfn (SfnSf (ind.m_sfnSf.m_frameNum, ind.m_sfnSf.m_subframeNum, ind.m_sfnSf.m_slotNum, dciElem->m_symStart));
+                          tag.SetSfn (ind.m_sfnSf);
                           tag.SetSymStart (dciElem->m_symStart);
                           tag.SetNumSym (dciElem->m_numSym);
                           pkt->AddPacketTag (tag);
@@ -1041,14 +1116,29 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
 // ////////////////////////////////////////////
 
 void
-MmWaveEnbMac::DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
+MmWaveEnbMac::DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
-  NS_LOG_FUNCTION (this << " ulBandwidth=" << (uint16_t) ulBandwidth << " dlBandwidth=" << (uint16_t) dlBandwidth);
+  NS_LOG_FUNCTION (this);
+
+  // The bandwidth arrived in Hz. We need to know it in number of RB, and then
+  // consider how many RB are inside a single RBG.
+  uint16_t bw_in_rbg = m_phySapProvider->GetRbNum () / GetNumRbPerRbg ();
+  m_bandwidthInRbg = bw_in_rbg;
+
+  NS_LOG_DEBUG ("Mac configured. Attributes:" << std::endl <<
+                "\t NumRbPerRbg: " << m_numRbPerRbg << std::endl <<
+                "\t NumHarqProcess: " << +m_numHarqProcess << std::endl <<
+                "Physical properties: " << std::endl <<
+                "\t Bandwidth provided: " << ulBandwidth * 1000 * 100 << " Hz" << std::endl <<
+                "\t that corresponds to " << bw_in_rbg << " RBG, as we have " <<
+                m_phySapProvider->GetRbNum () << " RB and " << GetNumRbPerRbg () <<
+                " RB per RBG");
+
   MmWaveMacCschedSapProvider::CschedCellConfigReqParameters params;
-  // Configure the subset of parameters used by FfMacScheduler
-  params.m_ulBandwidth = ulBandwidth;
-  params.m_dlBandwidth = dlBandwidth;
-  //m_macChTtiDelay = m_phySapProvider->GetMacChTtiDelay ();  // Gets set by MmWavePhyMacCommon
+
+  params.m_ulBandwidth = m_bandwidthInRbg;
+  params.m_dlBandwidth = m_bandwidthInRbg;
+
   m_macCschedSapProvider->CschedCellConfigReq (params);
 }
 
@@ -1060,6 +1150,58 @@ MmWaveEnbMac::BeamChangeReport (BeamId beamId, uint8_t rnti)
   params.m_beamId = beamId;
   params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
   m_macCschedSapProvider->CschedUeConfigReq (params);
+}
+
+uint16_t
+MmWaveEnbMac::GetBwpId () const
+{
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetBwpId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+
+}
+
+uint16_t
+MmWaveEnbMac::GetCellId () const
+{
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveEnbMac::GetDlCtrlDci () const
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_ASSERT (m_bandwidthInRbg > 0);
+  std::vector<uint8_t> rbgBitmask (m_bandwidthInRbg , 1);
+
+  // Fix: Insert number of dl ctrl symbols
+  return std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
+}
+
+std::shared_ptr<DciInfoElementTdma>
+MmWaveEnbMac::GetUlCtrlDci () const
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_ASSERT (m_bandwidthInRbg > 0);
+  std::vector<uint8_t> rbgBitmask (m_bandwidthInRbg , 1);
+
+  // Fix: Insert number of ul ctrl symbols
+  return std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
 }
 
 void
@@ -1080,7 +1222,7 @@ MmWaveEnbMac::DoAddUe (uint16_t rnti)
 
   // Create DL transmission HARQ buffers
   MmWaveDlHarqProcessesBuffer_t buf;
-  uint16_t harqNum = m_phyMacConfig->GetNumHarqProcess ();
+  uint16_t harqNum = GetNumHarqProcess ();
   buf.resize (harqNum);
   for (uint8_t i = 0; i < harqNum; i++)
     {

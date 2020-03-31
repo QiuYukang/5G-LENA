@@ -72,7 +72,8 @@ def build(bld):
         'model/nr-ch-access-manager.cc',
         'model/beam-id.cc',
         'model/beam-manager.cc',
-        'model/ideal-beamforming-algorithm.cc'
+        'model/ideal-beamforming-algorithm.cc',
+        'model/sfnsf.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -159,7 +160,8 @@ def build(bld):
         'model/nr-ch-access-manager.h',
         'model/beam-id.h',
         'model/beam-manager.h',
-        'model/ideal-beamforming-algorithm.h'
+        'model/ideal-beamforming-algorithm.h',
+        'model/sfnsf.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

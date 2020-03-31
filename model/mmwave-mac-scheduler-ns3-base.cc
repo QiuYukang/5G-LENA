@@ -20,12 +20,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "                                         \
-                    << static_cast<uint32_t> (m_phyMacConfig->GetCcId ())\
-                    << "] ";                                             \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 #include "mmwave-mac-scheduler-ns3-base.h"
@@ -48,15 +44,11 @@ MmWaveMacSchedulerNs3Base::GetTypeId (void)
 
 MmWaveMacSchedulerNs3Base::MmWaveMacSchedulerNs3Base () : MmWaveMacSchedulerNs3 ()
 {
-
-}
-
-void
-MmWaveMacSchedulerNs3Base::ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config)
-{
-  MmWaveMacSchedulerNs3::ConfigureCommonParameters (config);
   // Hardcoded, but the type can be a parameter if needed
-  m_schedHarq = std::unique_ptr<MmWaveMacSchedulerHarqRr> (new MmWaveMacSchedulerHarqRr (m_phyMacConfig, m_amc));
+  m_schedHarq = std::unique_ptr<MmWaveMacSchedulerHarqRr> (new MmWaveMacSchedulerHarqRr (m_amc));
+  m_schedHarq->InstallGetBwInRBG (std::bind (&MmWaveMacSchedulerNs3Base::GetBandwidthInRbg, this));
+  m_schedHarq->InstallGetBwpIdFn (std::bind (&MmWaveMacSchedulerNs3Base::GetBwpId, this));
+  m_schedHarq->InstallGetCellIdFn (std::bind (&MmWaveMacSchedulerNs3Base::GetCellId, this));
 }
 
 /**

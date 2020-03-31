@@ -69,9 +69,6 @@ public:
   static std::vector<UePtrAndBufferReq>
   GetUeVectorFromActiveUeMap (const ActiveUeMap &activeUes);
 
-  // inherited
-  virtual void ConfigureCommonParameters (Ptr<MmWavePhyMacCommon> config) override;
-
 protected:
   virtual uint8_t ScheduleDlHarq (MmWaveMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,

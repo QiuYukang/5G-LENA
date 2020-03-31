@@ -21,6 +21,8 @@
 #define SRC_MMWAVE_MODEL_MMWAVE_CONTROL_MESSAGES_H_
 
 #include <ns3/simple-ref-count.h>
+#include <ns3/lte-rrc-sap.h>
+#include <ns3/ff-mac-common.h>
 #include "mmwave-phy-mac-common.h"
 
 namespace ns3 {

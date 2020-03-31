@@ -115,7 +115,6 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
     Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-    phyMacCommonBwp1->SetCentreFrequency(28e9);
     phyMacCommonBwp1->SetBandwidth (m_bw1);
     phyMacCommonBwp1->SetNumerology(m_numerology);
     phyMacCommonBwp1->SetCcId(0);
@@ -124,7 +123,6 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
     mmWaveHelper->AddBandwidthPart(0, repr1);
 
     Ptr<MmWavePhyMacCommon> phyMacCommonBwp2 = CreateObject<MmWavePhyMacCommon>();
-    phyMacCommonBwp2->SetCentreFrequency(28.2e9);
     phyMacCommonBwp2->SetBandwidth (m_bw2);
     phyMacCommonBwp2->SetNumerology(m_numerology);
     phyMacCommonBwp2->SetCcId(1);

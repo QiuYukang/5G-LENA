@@ -47,6 +47,7 @@ class BeamManager;
 class MmWaveEnbPhy : public MmWavePhy
 {
   friend class MemberLteEnbCphySapProvider<MmWaveEnbPhy>;
+  friend class MmWaveMemberPhySapProvider;
 public:
   /**
    * \brief Get Type id
@@ -70,12 +71,6 @@ public:
   virtual ~MmWaveEnbPhy () override;
 
   /**
-   * \brief Set the configuration parameters for the gnb
-   * \param phyMacCommon configuration parameters
-   */
-  void SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &phyMacCommon);
-
-  /**
    * \brief Set the C PHY SAP user
    * \param s the C PHY SAP user
    */
@@ -85,6 +80,48 @@ public:
    * \return the C PHY SAP provider pointer
    */
   LteEnbCphySapProvider* GetEnbCphySapProvider ();
+
+  /**
+    * \brief: Set the minimum processing delay (in slots)
+    * to decode DL DCI and decode DL data
+    */
+   void SetN0Delay (uint32_t delay);
+
+   /**
+    * \brief: Set the minimum processing delay (in slots)
+    * to decode DL Data and send Harq feedback
+    *
+    * Please note that in the current implementation N1
+    * must be equal or larger than 1 (N1 >= 1)
+    */
+   void SetN1Delay (uint32_t delay);
+
+   /**
+    * \brief: Set the minimum processing delay (in slots)
+    * to decode UL DCI and prepare UL data
+    *
+    * Please note that in the current implementation N2
+    * must be equal or larger than 1 (N2 >= 1)
+    */
+   void SetN2Delay (uint32_t delay);
+
+  /**
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL DCI and decode DL Data
+   */
+  uint32_t GetN0Delay (void) const;
+
+  /**
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode DL Data and send Harq feedback
+   */
+  uint32_t GetN1Delay (void) const;
+
+  /**
+   * \brief: Get the minimum processing delay (in slots)
+   * to decode UL DCI and prepare UL data
+   */
+  uint32_t GetN2Delay (void) const;
 
   /**
    * \brief Get the BeamId for the selected user
@@ -172,7 +209,7 @@ public:
   int8_t DoGetReferenceSignalPower () const;
 
   /**
-   * \brief Install the PHY sap user (AKA the UE MAC)
+   * \brief Install the PHY SAP user (which is in this case the MAC)
    *
    * \param ptr the PHY SAP user pointer to install
    */
@@ -188,20 +225,16 @@ public:
    */
   void ReportUlHarqFeedback (const UlHarqInfo &mes);
 
-  /**
-   * \brief Set the current slot pattern (better to call it only once..)
-   * \param pattern the pattern
-   *
-   * It does not support dynamic change of pattern during the simulation
-   */
-  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+  void SetPattern (const std::string &pattern);
+
+  std::string GetPattern() const;
 
   /**
    * \brief Start the ue Event Loop
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
-  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
   /**
    *  TracedCallback signature for Received Control Messages.
@@ -211,11 +244,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedEnbPhyCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Transmitted Control Messages.
@@ -225,25 +258,32 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedEnbPhyCtrlMsgsTracedCallback)
-      (const SfnSf sfn, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfn, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
-protected:
-  // From object
-  virtual void DoInitialize (void) override;
+  uint32_t GetNumRbPerRbg () const override;
+  uint32_t GetChannelBandwidth () const override;
 
 private:
-  void StartSlot (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum);
+  /**
+   * \brief Set the current slot pattern (better to call it only once..)
+   * \param pattern the pattern
+   *
+   * It does not support dynamic change of pattern during the simulation
+   */
+  void SetTddPattern (const std::vector<LteNrTddSlotType> &pattern);
+
+  void StartSlot (const SfnSf &startSlot);
   void EndSlot (void);
 
-  void StartVarTti (void);
-  void EndVarTti (void);
+  void StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+  void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &lastDci);
 
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
-                         const VarTtiAllocInfo &varTtiInfo);
+                         const std::shared_ptr<DciInfoElementTdma> &dci);
 
   void SendCtrlChannels (const Time &varTtiPeriod);
 
@@ -279,7 +319,7 @@ private:
    * \param varTtiInfo the current varTti
    * \return the time at which the transmission of DL data will end
    */
-  Time DlData (const VarTtiAllocInfo &varTtiInfo) __attribute__((warn_unused_result));
+  Time DlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
    * \brief Receive UL data and return the time at which the transmission will end
@@ -303,7 +343,7 @@ private:
   void DoStartSlot ();
 
   // LteEnbCphySapProvider forwarded methods
-  void DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
+  void DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth);
   void DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn);
   void DoAddUe (uint16_t rnti);
   void DoRemoveUe (uint16_t rnti);
@@ -312,8 +352,9 @@ private:
   void DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi);
   void DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib);
   void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
-  void DoSetBandwidth (uint8_t Bandwidth );
+  void DoSetBandwidth (uint16_t Bandwidth );
   void DoSetEarfcn (uint16_t Earfcn );
+
   /**
    * \brief Store the RBG allocation in the symStart, rbg map.
    * \param dci DCI
@@ -381,10 +422,12 @@ private:
    */
   void PushUlAllocation (const SfnSf &sfnSf) const;
 
+  void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
+
 private:
-  MmWaveEnbPhySapUser* m_phySapUser;           //!< SAP pointer
-  LteEnbCphySapProvider* m_enbCphySapProvider; //!< SAP pointer
-  LteEnbCphySapUser* m_enbCphySapUser;         //!< SAP pointer
+  MmWaveEnbPhySapUser* m_phySapUser {nullptr};           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
+  LteEnbCphySapProvider* m_enbCphySapProvider {nullptr}; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call e.g SetBandwidth
+  LteEnbCphySapUser* m_enbCphySapUser {nullptr};         //!< PHY CSAP user pointer, RRC can receive control information by PHY, currently configured but not used
 
   std::set <uint64_t> m_ueAttached; //!< Set of attached UE (by IMSI)
   std::set <uint16_t> m_ueAttachedRnti; //!< Set of attached UE (by RNTI)
@@ -399,14 +442,14 @@ private:
 
   /**
    * Trace information regarding Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
@@ -438,8 +481,13 @@ private:
 
   friend class LtePatternTestCase;
 
-  bool m_idealBeamformingEnabled; //!< If true ideal beamforming method is performed
-  TypeId m_idealBeamformingAlgorithmType; //!< Ideal beamforming vector algorythm type
+  uint32_t m_n0Delay {0}; //!< minimum processing delay (in slots) needed to decode DL DCI and decode DL data (UE side)
+  uint32_t m_n1Delay {0}; //!< minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
+  uint32_t m_n2Delay {0}; //!< minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
+
+  uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
+
+  SfnSf m_currentSlot;
 };
 
 }

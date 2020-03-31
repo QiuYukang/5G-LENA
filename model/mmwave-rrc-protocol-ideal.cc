@@ -175,7 +175,7 @@ mmWaveUeRrcProtocolIdeal::DoSendIdealUeContextRemoveRequest (uint16_t rnti)
 void
 mmWaveUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
 {
-  uint16_t cellId = m_rrc->GetCellId ();
+  uint16_t bwpId = m_rrc->GetCellId ();
 
   // walk list of all nodes to get the peer eNB
   Ptr<MmWaveEnbNetDevice> enbDev;
@@ -194,7 +194,7 @@ mmWaveUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
             {
               for (uint32_t h = 0; h < enbDev->GetCcMapSize (); ++h)
                 {
-                  if (enbDev->GetCellId (h) == cellId)
+                  if (enbDev->GetBwpId (h) == bwpId)
                     {
                       found = true;
                       break;
@@ -203,7 +203,7 @@ mmWaveUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
             }
         }
     }
-  NS_ASSERT_MSG (found, " Unable to find eNB with CellId =" << cellId);
+  NS_ASSERT_MSG (found, " Unable to find eNB with BwpID =" << bwpId);
   m_enbRrcSapProvider = enbDev->GetRrc ()->GetLteEnbRrcSapProvider ();
   Ptr<MmWaveEnbRrcProtocolIdeal> enbRrcProtocolIdeal = enbDev->GetRrc ()->GetObject<MmWaveEnbRrcProtocolIdeal> ();
   enbRrcProtocolIdeal->SetUeRrcSapProvider (m_rnti, m_ueRrcSapProvider);
@@ -251,12 +251,6 @@ LteEnbRrcSapUser*
 MmWaveEnbRrcProtocolIdeal::GetLteEnbRrcSapUser ()
 {
   return m_enbRrcSapUser;
-}
-
-void
-MmWaveEnbRrcProtocolIdeal::SetCellId (uint16_t cellId)
-{
-  m_cellId = cellId;
 }
 
 LteUeRrcSapProvider*

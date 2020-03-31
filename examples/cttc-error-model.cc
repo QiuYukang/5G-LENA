@@ -256,7 +256,6 @@ main (int argc, char *argv[])
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));

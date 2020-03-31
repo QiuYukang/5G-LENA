@@ -49,8 +49,6 @@ public:
   BandwidthPartUe ();
 
   virtual ~BandwidthPartUe (void) override;
-  virtual void DoDispose (void) override;
-
 
   /**
    * \return a pointer to the physical layer.
@@ -74,12 +72,8 @@ public:
    */
   void SetMac (Ptr<MmWaveUeMac> s);
 
-  virtual void SetDlBandwidth (uint8_t bw) override { m_dlBandwidth = bw; }
-  virtual void SetUlBandwidth (uint8_t bw) override { m_ulBandwidth = bw; }
-
-protected:
-  // inherited from Object
-  virtual void DoInitialize (void) override;
+  virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
+  virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
 
 private:
   Ptr<MmWaveUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier

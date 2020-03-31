@@ -39,9 +39,10 @@ public:
    * \brief MmWaveMacSchedulerUeInfoRR constructor
    * \param rnti RNTI of the UE
    * \param beamId Beam ID of the UE
+   * \param fn A function that tells how many RB per RBG
    */
-  MmWaveMacSchedulerUeInfoRR (uint16_t rnti, BeamId beamId)
-    : MmWaveMacSchedulerUeInfo (rnti, beamId)
+  MmWaveMacSchedulerUeInfoRR (uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn)
+    : MmWaveMacSchedulerUeInfo (rnti, beamId, fn)
   {
   }
 

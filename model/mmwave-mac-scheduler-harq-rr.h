@@ -44,16 +44,30 @@ public:
    * \param config Mac-Phy config
    * \param amc AMC
    */
-  MmWaveMacSchedulerHarqRr (const Ptr<MmWavePhyMacCommon> &config, const Ptr<NrAmc> &amc)
-  {
-    m_phyMacConfig = config;
-    m_amc = amc;
-  }
+  MmWaveMacSchedulerHarqRr (const Ptr<NrAmc> &amc);
 
   /**
     * \brief Default deconstructor
     */
   virtual ~MmWaveMacSchedulerHarqRr () = default;
+
+  /**
+   * \brief Install a function to retrieve the bwp id
+   * \param fn the function
+   */
+  void InstallGetBwpIdFn (const std::function<uint16_t ()> &fn);
+
+  /**
+   * \brief Install a function to retrieve the cell id
+   * \param fn the function
+   */
+  void InstallGetCellIdFn (const std::function<uint16_t ()> & fn);
+
+  /**
+   * \brief Install a function to retrieve the bandwidth in RBG
+   * \param fn
+   */
+  void InstallGetBwInRBG (const std::function<uint16_t ()> & fn);
 
   virtual uint8_t ScheduleDlHarq (MmWaveMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,
@@ -72,13 +86,34 @@ public:
   virtual void SortUlHarq (MmWaveMacSchedulerNs3::ActiveHarqMap *activeUlHarq) const;
 
 protected:
-  Ptr<MmWavePhyMacCommon> m_phyMacConfig;  //!< phy mac config
   Ptr<NrAmc> m_amc;                    //!< AMC
 
 protected:
   void BufferHARQFeedback (const std::vector <DlHarqInfo> &dlHarqFeedback,
                            std::vector<DlHarqInfo> *dlHarqToRetransmit,
                            uint16_t rnti, uint8_t harqProcess) const;
+  /**
+   * \brief Get the bwp id of this MAC
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+
+  /**
+   * \brief Get the cell id of this MAC
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+
+  /**
+   * \brief Get the bandwidth in RBG
+   * \return the BW in RBG
+   */
+  uint16_t GetBandwidthInRbg () const;
+
+private:
+  std::function<uint16_t ()> m_getBwpId;  //!< Function to retrieve bwp id
+  std::function<uint16_t ()> m_getCellId; //!< Function to retrieve cell id
+  std::function<uint16_t ()> m_getBwInRbg; //!< Function to retrieve bw in rbg
 };
 
 } // namespace ns3

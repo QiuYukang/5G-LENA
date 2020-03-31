@@ -27,25 +27,15 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("BwpManagerGnb");
 NS_OBJECT_ENSURE_REGISTERED (BwpManagerGnb);
 
-void
-BwpManagerGnb::DoInitialize ()
-{
-  NS_LOG_FUNCTION (this);
-  RrComponentCarrierManager::DoInitialize ();
-}
-
 BwpManagerGnb::BwpManagerGnb () :
   RrComponentCarrierManager ()
 {
   NS_LOG_FUNCTION (this);
-  m_algorithm = new BwpManagerAlgorithmStatic (); // When we will have different types,
-                                                  // Then we will add an Attribute.
 }
 
 BwpManagerGnb::~BwpManagerGnb ()
 {
   NS_LOG_FUNCTION (this);
-  delete m_algorithm;
 }
 
 
@@ -56,8 +46,20 @@ BwpManagerGnb::GetTypeId ()
     .SetParent<NoOpComponentCarrierManager> ()
     .SetGroupName ("nr")
     .AddConstructor<BwpManagerGnb> ()
+    .AddAttribute ("BwpManagerAlgorithm",
+                   "The algorithm pointer",
+                   PointerValue (),
+                   MakePointerAccessor (&BwpManagerGnb::m_algorithm),
+                   MakePointerChecker <BwpManagerAlgorithm> ())
     ;
   return tid;
+}
+
+void
+BwpManagerGnb::SetBwpManagerAlgorithm (const Ptr<BwpManagerAlgorithm> &algorithm)
+{
+  NS_LOG_FUNCTION (this);
+  m_algorithm = algorithm;
 }
 
 bool
@@ -81,6 +83,7 @@ uint8_t
 BwpManagerGnb::GetBwpIndex (uint16_t rnti, uint8_t lcid)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_algorithm != nullptr);
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti)->second.find (lcid) != m_rlcLcInstantiated.find (rnti)->second.end (), "Unknown logical channel of UE");
 
@@ -95,6 +98,7 @@ uint8_t
 BwpManagerGnb::PeekBwpIndex (uint16_t rnti, uint8_t lcid) const
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_algorithm != nullptr);
   // For the moment, Get and Peek are the same, but they'll change
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
   NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti)->second.find (lcid) != m_rlcLcInstantiated.find (rnti)->second.end (), "Unknown logical channel of UE");
@@ -160,6 +164,7 @@ void
 BwpManagerGnb::DoUlReceiveMacCe (MacCeListElement_s bsr, uint8_t componentCarrierId)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_algorithm != nullptr);
   NS_ASSERT_MSG (bsr.m_macCeType == MacCeListElement_s::BSR, "Received a Control Message not allowed " << bsr.m_macCeType);
 
   NS_ASSERT_MSG (m_ccmMacSapProviderMap.find (componentCarrierId) != m_ccmMacSapProviderMap.end (), "Mac sap provider does not exist.");
@@ -198,6 +203,7 @@ void
 BwpManagerGnb::DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_algorithm != nullptr);
   NS_UNUSED (componentCarrierId);
   uint8_t qci = 9;
 

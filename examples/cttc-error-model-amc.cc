@@ -255,7 +255,6 @@ main (int argc, char *argv[])
   mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
-  phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);
   phyMacCommonBwp1->SetBandwidth (bandwidthBwp1);
   phyMacCommonBwp1->SetNumerology(numerologyBwp1);
   phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));

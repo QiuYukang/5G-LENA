@@ -22,11 +22,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ CellId " << m_cellId << ", ccId "             \
-                    << +m_phyMacConfig->GetCcId () << "] ";              \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 
@@ -35,6 +32,8 @@
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-mac-pdu-tag.h"
 #include "mmwave-net-device.h"
+#include "mmwave-ue-net-device.h"
+#include "mmwave-enb-net-device.h"
 #include "beam-manager.h"
 #include <ns3/boolean.h>
 
@@ -62,7 +61,19 @@ public:
 
   virtual BeamId GetBeamId (uint8_t rnti) const override;
 
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
+
   virtual void NotifyConnectionSuccessful () override;
+
+  virtual uint16_t GetBwpId () const override;
+
+  virtual uint16_t GetCellId () const override;
+
+  virtual uint32_t GetSymbolsPerSlot () const override;
+
+  virtual Time GetSlotPeriod () const override;
+
+  virtual uint32_t GetRbNum () const override;
 
 private:
   MmWavePhy* m_phy;
@@ -104,10 +115,46 @@ MmWaveMemberPhySapProvider::GetBeamId (uint8_t rnti) const
   return m_phy->GetBeamId (rnti);
 }
 
+Ptr<const SpectrumModel>
+MmWaveMemberPhySapProvider::GetSpectrumModel() const
+{
+  return m_phy->GetSpectrumModel ();
+}
+
 void
 MmWaveMemberPhySapProvider::NotifyConnectionSuccessful ()
 {
   m_phy->NotifyConnectionSuccessful ();
+}
+
+uint16_t
+MmWaveMemberPhySapProvider::GetBwpId() const
+{
+  return m_phy->GetBwpId ();
+}
+
+uint16_t
+MmWaveMemberPhySapProvider::GetCellId() const
+{
+  return m_phy->GetCellId ();
+}
+
+uint32_t
+MmWaveMemberPhySapProvider::GetSymbolsPerSlot() const
+{
+  return m_phy->GetSymbolsPerSlot ();
+}
+
+Time
+MmWaveMemberPhySapProvider::GetSlotPeriod() const
+{
+  return m_phy->GetSlotPeriod ();
+}
+
+uint32_t
+MmWaveMemberPhySapProvider::GetRbNum () const
+{
+  return m_phy->GetRbNum ();
 }
 
 /* ======= */
@@ -127,27 +174,27 @@ MmWavePhy::GetTypeId ()
 std::vector<int>
 MmWavePhy::FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const
 {
-  NS_ASSERT (rbgBitmask.size () == m_phyMacConfig->GetBandwidthInRbg ());
   std::vector<int> ret;
 
   for (uint32_t i = 0; i < rbgBitmask.size (); ++i)
     {
       if (rbgBitmask.at (i) == 1)
         {
-          for (uint32_t k = 0; k < m_phyMacConfig->GetNumRbPerRbg (); ++k)
+          for (uint32_t k = 0; k < GetNumRbPerRbg (); ++k)
             {
-              ret.push_back ((i * m_phyMacConfig->GetNumRbPerRbg ()) + k);
+              ret.push_back ((i * GetNumRbPerRbg ()) + k);
             }
         }
     }
 
-  NS_ASSERT (static_cast<uint32_t> (std::count (rbgBitmask.begin (), rbgBitmask.end (), 1) * m_phyMacConfig->GetNumRbPerRbg ())
+  NS_ASSERT (static_cast<uint32_t> (std::count (rbgBitmask.begin (), rbgBitmask.end (), 1) * GetNumRbPerRbg ())
              == ret.size ());
   return ret;
 }
 
 MmWavePhy::MmWavePhy ()
-  : m_currSlotAllocInfo (SfnSf (0,0,0,0))
+  : m_currSlotAllocInfo (SfnSf (0,0,0,0)),
+    m_tbDecodeLatencyUs (100.0)
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
@@ -162,19 +209,13 @@ MmWavePhy::~MmWavePhy ()
 }
 
 void
-MmWavePhy::DoInitialize ()
+MmWavePhy::InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna)
 {
+  NS_LOG_FUNCTION (this);
   NS_ASSERT (m_spectrumPhy != nullptr);
 
-  Ptr<ThreeGppAntennaArrayModel> antennaArray = CreateObject<ThreeGppAntennaArrayModel> ();
-  antennaArray->SetAttribute ("NumColumns", UintegerValue(m_antennaNumDim1));
-  antennaArray->SetAttribute ("NumRows", UintegerValue(m_antennaNumDim2));
-  antennaArray->SetAttribute ("IsotropicElements", BooleanValue (m_areIsotropicElements));
-
   m_beamManager = CreateObject<BeamManager>();
-  m_beamManager->Configure(antennaArray, m_antennaNumDim1, m_antennaNumDim2);
-
-  m_spectrumPhy->SetAntennaArray (antennaArray);
+  m_beamManager->Configure(antenna);
 }
 
 void
@@ -185,12 +226,72 @@ MmWavePhy::SetDevice (Ptr<MmWaveNetDevice> d)
 }
 
 void
-MmWavePhy::DoSetCellId (uint16_t cellId)
+MmWavePhy::InstallCentralFrequency (double f)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_spectrumPhy != nullptr);
-  m_cellId = cellId;
-  m_spectrumPhy->SetCellId (cellId);
+  NS_ABORT_IF (m_centralFrequency >= 0.0);
+  m_centralFrequency = f;
+}
+
+void
+MmWavePhy::SetNumerology (uint16_t numerology)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_numerology = numerology;
+  m_slotsPerSubframe  = static_cast<uint16_t> (std::pow (2, numerology));
+  m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
+  m_subcarrierSpacing = 15 * static_cast<uint32_t> (std::pow (2, numerology)) * 1000;
+  m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
+
+  UpdateRbNum ();
+
+  NS_LOG_INFO (" Numerology configured:" << m_numerology <<
+               " slots per subframe: " << m_slotsPerSubframe <<
+               " slot period:" << m_slotPeriod <<
+               " symbol period:" << m_symbolPeriod <<
+               " subcarrier spacing: " << m_subcarrierSpacing <<
+               " number of RBs: " << m_rbNum );
+}
+
+uint16_t
+MmWavePhy::GetNumerology() const
+{
+  return m_numerology;
+}
+
+void
+MmWavePhy::SetSymbolsPerSlot (uint16_t symbolsPerSlot)
+{
+  NS_LOG_FUNCTION (this);
+  m_symbolsPerSlot = symbolsPerSlot;
+  m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
+}
+
+uint32_t
+MmWavePhy::GetSymbolsPerSlot () const
+{
+  return m_symbolsPerSlot;
+}
+
+Time
+MmWavePhy::GetSlotPeriod () const
+{
+  NS_ABORT_IF (m_slotPeriod.IsNegative ());
+  return m_slotPeriod;
+}
+
+uint32_t
+MmWavePhy::GetNumScsPerRb ()
+{
+  return 12;
+}
+
+void
+MmWavePhy::DoSetCellId (uint16_t bwpId)
+{
+  NS_LOG_FUNCTION (this);
+  m_bwpId = bwpId;
 }
 
 void
@@ -211,16 +312,17 @@ MmWavePhy::SetMacPdu (Ptr<Packet> p)
   MmWaveMacPduTag tag;
   if (p->PeekPacketTag (tag))
     {
-      NS_ASSERT ((tag.GetSfn ().m_slotNum >= 0) && (tag.GetSfn ().m_varTtiNum < m_phyMacConfig->GetSymbolsPerSlot ()));
-
-      auto it = m_packetBurstMap.find (tag.GetSfn ().Encode ());
+      NS_ASSERT (tag.GetSfn ().GetNumerology () == GetNumerology());
+      uint64_t key = tag.GetSfn ().GetEncodingWithSymStart (tag.GetSymStart ());
+      auto it = m_packetBurstMap.find (key);
 
       if (it == m_packetBurstMap.end ())
         {
-          it = m_packetBurstMap.insert (std::make_pair (tag.GetSfn ().Encode (), CreateObject<PacketBurst> ())).first;
+          it = m_packetBurstMap.insert (std::make_pair (key, CreateObject<PacketBurst> ())).first;
         }
       it->second->AddPacket (p);
-      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn ());
+      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn () <<
+                   " at sym " << +tag.GetSymStart () << std::endl);
     }
   else
     {
@@ -236,15 +338,19 @@ MmWavePhy::NotifyConnectionSuccessful ()
 }
 
 Ptr<PacketBurst>
-MmWavePhy::GetPacketBurst (SfnSf sfn)
+MmWavePhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (sfn.GetNumerology () == GetNumerology());
   Ptr<PacketBurst> pburst;
-  auto it = m_packetBurstMap.find (sfn.Encode ());
+  auto it = m_packetBurstMap.find (sfn.GetEncodingWithSymStart (sym));
 
   if (it == m_packetBurstMap.end ())
     {
-      NS_LOG_ERROR ("Packet burst not found for " << sfn);
+      // Changed to a fatal error; if it happens, the MAC has scheduled something
+      // that we, in reality, don't have. It is a symptom that something is
+      // going not so well...
+      NS_FATAL_ERROR ("Packet burst not found for " << sfn << " at sym " << +sym);
       return pburst;
     }
   else
@@ -256,35 +362,25 @@ MmWavePhy::GetPacketBurst (SfnSf sfn)
 }
 
 Ptr<SpectrumValue>
-MmWavePhy::GetNoisePowerSpectralDensity ()
+MmWavePhy::GetNoisePowerSpectralDensity () const
 {
-  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                      m_phyMacConfig->GetCenterFrequency(),
-                                                                      m_phyMacConfig->GetNumScsPerRb(),
-                                                                      m_phyMacConfig->GetSubcarrierSpacing());
-
-  return MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity(m_noiseFigure, sm);
+  return MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigure, GetSpectrumModel ());
 }
 
 Ptr<SpectrumValue>
 MmWavePhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
 {
-  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                           m_phyMacConfig->GetCenterFrequency(),
-                                                                           m_phyMacConfig->GetNumScsPerRb(),
-                                                                           m_phyMacConfig->GetSubcarrierSpacing());
+  Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, m_phyMacConfig->GetBandwidth());
+  return MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm, GetChannelBandwidth ());
 }
 
-uint32_t
-MmWavePhy::GetCcId() const
+double
+MmWavePhy::GetCentralFrequency() const
 {
-  if (m_phyMacConfig != nullptr)
-    {
-      return m_phyMacConfig->GetCcId ();
-    }
-  return 777;
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (m_centralFrequency < 0.0);
+  return m_centralFrequency;
 }
 
 void
@@ -321,12 +417,35 @@ MmWavePhy::EncodeCtrlMsg (const Ptr<MmWaveControlMessage> &msg)
 }
 
 void
+MmWavePhy::UpdateRbNum ()
+{
+  NS_LOG_FUNCTION (this);
+
+  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * GetNumScsPerRb ()));
+
+  NS_ASSERT (m_rbNum > 0);
+
+  NS_LOG_INFO ("Updated RbNum to " << m_rbNum);
+
+  if (m_spectrumPhy)
+    {
+      // Update the noisePowerSpectralDensity, as it depends on m_rbNum
+      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+      NS_LOG_INFO ("Noise Power Spectral Density updated");
+    }
+  else
+    {
+      NS_LOG_INFO ("Noise Power Spectral Density NOT updated");
+    }
+}
+
+void
 MmWavePhy::InitializeMessageList ()
 {
   NS_LOG_FUNCTION (this);
   m_controlMessageQueue.clear ();
 
-  for (unsigned i = 0; i <= m_phyMacConfig->GetL1L2CtrlLatency (); i++)
+  for (unsigned i = 0; i <= GetL1L2CtrlLatency (); i++)
     {
       m_controlMessageQueue.push_back (std::list<Ptr<MmWaveControlMessage> > ());
     }
@@ -361,19 +480,44 @@ MmWavePhy::PopCurrentSlotCtrlMsgs (void)
     }
 }
 
-Ptr<MmWavePhyMacCommon>
-MmWavePhy::GetConfigurationParameters (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_phyMacConfig;
-}
-
 void
-MmWavePhy::SetSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
+MmWavePhy::InstallSpectrumPhy (const Ptr<MmWaveSpectrumPhy> &spectrumPhy)
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_spectrumPhy != nullptr);
   m_spectrumPhy = spectrumPhy;
+  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+}
+
+uint16_t
+MmWavePhy::GetBwpId () const
+{
+  return m_bwpId;
+}
+
+uint16_t
+MmWavePhy::GetCellId () const
+{
+  if (!m_netDevice)
+    {
+      return UINT16_MAX;
+    }
+  auto enbNetDevice = DynamicCast<MmWaveEnbNetDevice> (m_netDevice);
+  auto ueNetDevice = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
+  if (enbNetDevice)
+    {
+      return enbNetDevice->GetCellId ();
+    }
+  else
+    {
+      return ueNetDevice->GetCellId ();
+    }
+}
+
+uint32_t
+MmWavePhy::GetL1L2CtrlLatency() const
+{
+  return 2;
 }
 
 Ptr<MmWaveSpectrumPhy>
@@ -395,8 +539,7 @@ MmWavePhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_DEBUG ("ccId:" << static_cast<uint32_t> (GetCcId ()) <<
-               " setting info for slot " << slotAllocInfo.m_sfnSf);
+  NS_LOG_DEBUG ("setting info for slot " << slotAllocInfo.m_sfnSf);
 
   // That's not so complex, as the list would typically be of 2 or 3 elements.
   bool updated = false;
@@ -447,13 +590,12 @@ MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
         {
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              slotSfn.m_varTtiNum = alloc.m_dci->m_symStart;
-              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn);
+              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn, alloc.m_dci->m_symStart);
               if (pburst && pburst->GetNPackets() > 0)
                 {
-                  currentSfn.m_varTtiNum = alloc.m_dci->m_symStart;
-                  newBursts.insert (std::make_pair (currentSfn.Encode(), pburst));
-                  sfnMap.insert (std::make_pair (currentSfn.Encode(), it->m_sfnSf.Encode()));
+                  newBursts.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart), pburst));
+                  sfnMap.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart),
+                                                 it->m_sfnSf.GetEncodingWithSymStart (alloc.m_dci->m_symStart)));
                 }
               else
                 {
@@ -462,10 +604,9 @@ MmWavePhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
             }
         }
 
-      currentSfn.m_varTtiNum = 0;
       NS_LOG_INFO ("Set slot allocation for " << it->m_sfnSf << " to " << currentSfn);
       it->m_sfnSf = currentSfn;
-      currentSfn = currentSfn.IncreaseNoOfSlots (m_phyMacConfig->GetSlotsPerSubframe(), m_phyMacConfig->GetSubframesPerFrame());
+      currentSfn.Add (1);
     }
 
   for (const auto & burstPair : newBursts)
@@ -496,6 +637,7 @@ bool
 MmWavePhy::SlotAllocInfoExists (const SfnSf &retVal) const
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (retVal.GetNumerology () == GetNumerology ());
   for (const auto & alloc : m_slotAllocInfo)
     {
       if (alloc.m_sfnSf == retVal)
@@ -511,7 +653,7 @@ MmWavePhy::RetrieveSlotAllocInfo ()
 {
   NS_LOG_FUNCTION (this);
   SlotAllocInfo ret = *m_slotAllocInfo.begin ();
-  m_slotAllocInfo.erase(m_slotAllocInfo.begin ());
+  m_slotAllocInfo.erase (m_slotAllocInfo.begin ());
   return ret;
 }
 
@@ -519,8 +661,8 @@ MmWavePhy::RetrieveSlotAllocInfo ()
 SlotAllocInfo
 MmWavePhy::RetrieveSlotAllocInfo (const SfnSf &sfnsf)
 {
-  NS_LOG_FUNCTION ("ccId:" << +GetCcId () << " slot " << sfnsf);
-
+  NS_LOG_FUNCTION (" slot " << sfnsf);
+  NS_ASSERT (sfnsf.GetNumerology () == GetNumerology ());
 
   for (auto allocIt = m_slotAllocInfo.begin(); allocIt != m_slotAllocInfo.end (); ++allocIt)
     {
@@ -540,6 +682,7 @@ SlotAllocInfo &
 MmWavePhy::PeekSlotAllocInfo (const SfnSf &sfnsf)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT (sfnsf.GetNumerology () == GetNumerology ());
   for (auto & alloc : m_slotAllocInfo)
     {
       if (alloc.m_sfnSf == sfnsf)
@@ -565,11 +708,71 @@ MmWavePhy::IsCtrlMsgListEmpty() const
   return m_controlMessageQueue.empty () || m_controlMessageQueue.at (0).empty();
 }
 
-Ptr<BeamManager>
-MmWavePhy::GetBeamManager ()
+Ptr<BeamManager> MmWavePhy::GetBeamManager() const
 {
   return m_beamManager;
 }
 
+Ptr<const SpectrumModel>
+MmWavePhy::GetSpectrumModel () const
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_IF (m_subcarrierSpacing < 0.0, "Set a valid numerology");
+
+  return MmWaveSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
+                                                      GetCentralFrequency (),
+                                                      GetNumScsPerRb (),
+                                                      m_subcarrierSpacing);
+}
+
+Time
+MmWavePhy::GetSymbolPeriod () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_symbolPeriod;
+}
+
+uint32_t
+MmWavePhy::GetRbNum () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_rbNum;
+}
+
+Ptr<const ThreeGppAntennaArrayModel>
+MmWavePhy::GetAntennaArray() const
+{
+  return m_beamManager->GetAntennaArray ();
+}
+
+void
+MmWavePhy::SetNoiseFigure (double d)
+{
+  m_noiseFigure = d;
+
+  if (m_spectrumPhy)
+    {
+      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+    }
+}
+
+double
+MmWavePhy::GetNoiseFigure () const
+{
+  return m_noiseFigure;
+}
+
+
+void
+MmWavePhy::SetTbDecodeLatency (Time us)
+{
+  m_tbDecodeLatencyUs = us;
+}
+
+Time
+MmWavePhy::GetTbDecodeLatency (void) const
+{
+  return m_tbDecodeLatencyUs;
+}
 
 }

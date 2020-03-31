@@ -22,11 +22,12 @@
 #ifndef MMWAVE_UE_PHY_H
 #define MMWAVE_UE_PHY_H
 
-#include <ns3/mmwave-phy.h>
+#include "mmwave-phy.h"
 #include "nr-amc.h"
+#include "mmwave-harq-phy.h"
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
-#include <ns3/mmwave-harq-phy.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3 {
 
@@ -96,20 +97,25 @@ public:
    */
   double GetTxPower () const __attribute__((warn_unused_result));
 
-  // From object
-  virtual void DoInitialize (void) override;
-
   /**
    * \brief Register the UE to a certain Enb
    *
-   * Install the configuration parameters in the UE. At the moment, the code
-   * does not reconfigure itself when the PhyMacCommon parameters change,
-   * so you can call this function only one (therefore, no handoff)
+   * Install the configuration parameters in the UE.
    *
-   * \param cellId the CELL ID of the ENB
-   * \param config the ENB configuration
+   * \param bwpId the bwp id to which this PHY is attaching to
    */
-  void RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config);
+  void RegisterToEnb (uint16_t bwpId);
+
+  /**
+   * \brief Function that sets the number of RBs per RBG.
+   * This function will be soon deprecated, as soon as all the functions at
+   * gNb PHY, MAC and UE PHY that work with DCI bitmask start
+   * to work on level of RBs instead of RBGs.
+   * This function is configured by helper
+   *
+   * \param numRbPerRbg Number of RBs per RBG
+   */
+  void SetNumRbPerRbg (uint32_t numRbPerRbg);
 
   /**
    * \brief Receive a list of CTRL messages
@@ -163,11 +169,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy Transmitted Control Messages.
@@ -177,11 +183,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy DL DCI reception.
@@ -191,12 +197,12 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] harq ID
    * \param [in] K1 Delay
    */
   typedef void (* RxedUePhyDlDciTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId,
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId,
        uint8_t harqId, uint32_t K1Delay);
 
   /**
@@ -207,12 +213,12 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] harq ID
    * \param [in] K1 Delay
    */
   typedef void (* TxedUePhyHarqFeedbackTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t ccId,
+      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId,
        uint8_t harqId, uint32_t K1Delay);
 
   /**
@@ -229,9 +235,16 @@ public:
    * \param nodeId the UE nodeId
    * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
    */
-  virtual void StartEventLoop (uint32_t nodeId, const SfnSf &startSlot) override;
+  virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
+
+protected:
+  uint32_t GetNumRbPerRbg () const override;
+  uint32_t GetChannelBandwidth () const override;
 
 private:
+
+  void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
+
   /**
    * \brief Channel access granted, invoked after the LBT
    *
@@ -296,9 +309,9 @@ private:
    */
   void TryToPerformLbt ();
 
-  void StartSlot (uint16_t frameNum, uint8_t subframeNum, uint16_t slotNum);
-  void StartVarTti ();
-  void EndVarTti ();
+  void StartSlot (const SfnSf &s);
+  void StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
+  void EndVarTti (const std::shared_ptr<DciInfoElementTdma> &dci);
   void SetSubChannelsForTransmission (std::vector <int> mask);
   /**
    * \brief Send ctrl msgs considering L1L2CtrlLatency
@@ -326,7 +339,7 @@ private:
    * If equals to 0, no layer 3 filtering is applicable.
    */
   void DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient);
-  void DoSetDlBandwidth (uint8_t ulBandwidth);
+  void DoSetDlBandwidth (uint16_t ulBandwidth);
   void DoConfigureUplink (uint16_t ulEarfcn, uint8_t ulBandwidth);
   void DoConfigureReferenceSignalPower (int8_t referenceSignalPower);
   void DoSetRnti (uint16_t rnti);
@@ -390,7 +403,6 @@ private:
    */
   void InsertFutureAllocation (const SfnSf &sfnSf, const std::shared_ptr<DciInfoElementTdma> &dci);
 
-private:
   MmWaveUePhySapUser* m_phySapUser;             //!< SAP pointer
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
@@ -409,6 +421,10 @@ private:
   std::vector<LteNrTddSlotType> m_tddPattern;  //!< TDD pattern received through SIB msgs
   std::unordered_map<uint8_t, uint32_t> m_harqIdToK1Map;  //!< Map that holds the K1 delay for each Harq process id
 
+  int64_t m_numRbPerRbg {-1};   //!< number of resource blocks within the channel bandwidth, this parameter is configured by MAC through phy SAP provider interface
+
+  SfnSf m_currentSlot;
+
   /**
    * \brief Status of the channel for the PHY
    */
@@ -424,6 +440,7 @@ private:
   Time m_lbtThresholdForCtrl; //!< Threshold for LBT before the UL CTRL
   bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
   EventId m_lbtEvent;
+  uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
@@ -431,28 +448,28 @@ private:
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Rxed DL DCI Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeRxedDlDciTrace;
 
   /**
    * Trace information regarding Ue PHY Txed Harq Feedback
-   * Frame number, Subframe number, slot, VarTtti, rnti, ccId,
+   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
    * Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeTxedHarqFeedbackTrace;

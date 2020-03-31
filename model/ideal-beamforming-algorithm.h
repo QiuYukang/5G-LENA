@@ -23,6 +23,7 @@
 #include <ns3/object.h>
 #include "beam-id.h"
 #include <ns3/three-gpp-antenna-array-model.h>
+#include <ns3/mobility-module.h>
 
 namespace ns3 {
 
@@ -59,11 +60,13 @@ public:
   virtual ~IdealBeamformingAlgorithm ();
 
   /**
-   * \brief Set ccId to which belongs this ideal beamforming algorithm
+   * \brief Set bwp id to which belongs this ideal beamforming algorithm
    */
-  void SetOwner (uint8_t ccId);
+  void SetOwner (uint8_t bwpId);
 
-  virtual void GetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
+  virtual void GetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                      const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const;
 
   static Ptr<const SpectrumValue> CreateFakeTxPowerSpectralDensity (double powerTx, Ptr<const SpectrumModel> txSm);
 
@@ -77,11 +80,13 @@ private:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const = 0;
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const = 0;
 
 protected:
 
-  uint8_t m_ccId {0};
+  uint8_t m_bwpId {0};
 
 };
 
@@ -97,18 +102,38 @@ public:
   static TypeId GetTypeId (void);
 
   /**
+   * \return Gets value of BeamSearchAngleStep attribute
+   */
+  double GetBeamSearchAngleStep () const;
+
+  /**
+   * \brief Sets the value of BeamSearchAngleStep attribute
+   */
+  void SetBeamSearchAngleStep (double beamSearchAngleStep);
+
+  /**
    * \brief constructor
    */
-  CellScanBeamforming () {}
+  CellScanBeamforming () = default;
 
   /**
    * \brief destructor
    */
-  virtual ~CellScanBeamforming () {}
+  virtual ~CellScanBeamforming () override = default;
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using cell scan method
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 
   void SetSector (uint16_t sector, double elevation,  Ptr<ThreeGppAntennaArrayModel> antennaArray) const;
 
@@ -117,7 +142,8 @@ private:
 };
 
 
-class DirectPathBeamforming: public IdealBeamformingAlgorithm {
+class DirectPathBeamforming: public IdealBeamformingAlgorithm
+{
 
 public:
   /**
@@ -129,7 +155,30 @@ public:
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using the direct path direction
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+
+  /**
+   * \brief Get directs path beamforming vector bfv for a device with the mobility model
+   * a for transmission toward device with a mobility model b, by using antenna aAntenna.
+   * \param [in] a mobility model of the first device
+   * \param [in] b mobility model of the second device
+   * \param [in] aAntenna antenaArray of the first device
+   * \param [out] bfv resulting beamforming vector for antenna array for the first device
+   */
+  void DoGetDirectPathBeamformingVector (const Ptr<MobilityModel>& a,
+                                         const Ptr<MobilityModel>& b,
+                                         const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
+                                         BeamformingVector* bfv) const;
 };
 
 
@@ -147,7 +196,9 @@ public:
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<MmWaveEnbNetDevice>& gnbDev, const Ptr<MmWaveUeNetDevice>& ueDev, BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
+  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
+                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv) const override;
 };
 
 

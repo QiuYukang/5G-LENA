@@ -48,7 +48,28 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+* Added GetSpectrumModel to the SAP interface between PHY and MAC, so the CQI calculation
+can see that value.
+
+* Added Pattern attribute to MmWaveEnbPhy, to set the TDD Pattern.
+
+* Added IdealBeamformingHelper class that is used to configure ideal beamforming 
+algorithm and the periodicity of performing the ideal beamforming methods. 
+Attribute IdealBeamformingMethod will be used to configure the beamforming algorithm. 
+And BeamformingPeriodicity to configure the beamforming periodicity.
+
+* Added IdealBeamformingAlgorithm class and its subclasses that are used to 
+configure beamforming vectors for the pairs of devices, normally between gNB and UE, 
+but is possible to use it in future for UE to UE.  
+
+* Added BeamManager class at gNB and UE phy that is responsible for caching 
+beamforming vectors to use when communicating with connected devices. It is also 
+responsible for configuring quasi-omni beamforming vector for omni transmissions.
+This class should be used by gNB and UE to control its ThreeGppAntennaArrayModel 
+instances.
+
 ### Changes to existing API:
+
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
 are renamed to MmWaveLteEnbPhy::ReportUlHarqFeedback and MmWaveLteUePhy::EnqueueDlHarqFeedback,
 respectively to avoid confusion. mmwave-helper callbacks are updated accordingly
@@ -64,14 +85,89 @@ along with Ul Data).
 
 * Renamed MmWaveEnbNetDevice attribute ComponentCarrierMap into BandwidthPartMap
 
+* Removed CentreFrequency attribute from MmWavePhyMacCommon: it is now set by the helper.
+
+* Removed N0Delay,N1Delay, attributes from MmWavePhyMacCommon: they are now in MmWaveEnbPhy.
+
+* Removed TbDecodeLatency attribute from MmWavePhyMacCommon: it is now attribute of 
+MmWaveEnbPhy and MmWaveUePhy.
+
+* Removed NumRbPerRbg attribute from MmWavePhyMacCommon to MmWaveEnbMac. 
+This attribute is still needed by UE PHY, thus for the moment this attribute 
+cannot be reconfigured once being set. Once that DCI bitmask is changed to 
+work per the RB granularity, this attribute can be reconfigured.
+
+* Removed CellId attribute from MmWaveEnbNetDevice, as it was not used.
+
+* Removed NumRbPerRbg attribute from MmWavePhyMacCommon to MmWaveEnbMac. This 
+value is used by PHY and scheduler and they obtain it through SAP interface 
+by calling MAC public function GetNumPerRbg. This attribute is currently 
+needed by UE PHY, and is configured in MmWaveHelper in AttachToEnb function, 
+thus this attribute cannot be reconfigured once UEs attachment has started.
+When DCI bitmask is changed to work per the RB granularity, UE will not need 
+anymore this information, and consequently it will be possible to 
+reconfigure the attribute at gNb MAC.
+
+* Removed CcId attribute from PhyMacConfig.
+
+* Removed MacSchedType attribute from PhyMacConfig.
+
+* Removed method GetNumScsPerRb() from PhyMacConfig, replaced by a static
+function in MmWavePhy.
+
+* Removed Bandwidth, Numerology, SymbolsPerSlot attribute from MmWavePhyMacCommon.
+Moved to EnbPhy, while the UE get these values from RRC or from direct call by the
+helper at the attaching moment.
+
+* Moved GetNumRefScPerRb() from MmWavePhyMacCommon to NrAmc.
+
+* Removed NumHarqProcess and HarqDlTimeout from MmWavePhyMacCommon. 
+NumHarqProcess is now attribute of MmWaveEnbMac and MmWaveUeMac, while HarqDlTimeout 
+is completely removed since the timeout is equivalent to the (maximum) number of 
+harq processes. 
+
+* Removed GetNumRbPerRbg() from MmWavePhyMacCommon. It was already an attribute of
+MmWaveEnbMac
+
+* The number of DL and UL CTRL symbols can be configured now in MmWaveMacSchedulerNs3
+through the attributes DlCtrlSymbols and UlCtrlSymbols.
+
+* GetN2Delay moved to MmWaveEnbPhy.
+
+* Removed attribute L1L2CtrlLatency, and fixed it to 2 in MmWavePhy.
+
+* Removed EnableAllInterferences from MmWaveSpectrumPhy which was used to 
+enable or disable interference calculations for all links. 
+
 ### Changed behavior:
+
+* Starting with this release the simulator is using new ns-3-dev 3ggp 
+channel, spectrum, propagation, channel condition and antenna models 
+that are implemented in spectrum, propagation and antenna modules of 
+ns-3-dev. To allow usage of this new channel and antenna models, we have 
+introduced a new BeamManager class which is responsible configuration of 
+beamforming vectors of antenna arrays. BeamManager class is also responsible 
+of configuring quasi-omni beamforming vector for omni transmissions. 
+Since real beamforming management methods are still not implemented 
+in our module, there are available ideal beamforming methods: cell scan 
+and direct path. User can configure ideal beamforming method by using 
+attribute of IdealBeamformingHelper which is in charge of creating 
+the corresponding beamforming algorithm and calling it with configured 
+periodicity to generate beamforming vectors for pairs of gNBs and UEs. 
+BeamManager class is then resposnible to cache beamforming vectors for 
+antenna. For example, at gNB BeamManager for each connected UE device 
+there will be cached the beamforming vector that will be used for  
+communication with that UE. In the same way, the BeamManager at UE 
+serves the same purpose, with the difference that it will be normally just one 
+element in the map and that is toward its own gNB.
 
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are
 implemented as parameters of the DCI.
 * In the DCI message, the gNb reports the K{0,1,2} delay instead of the
 sfn number.
 * L1L2DataLatency is removed (defined in phy-mac common).
-* N0, N1, N2 processing delays are defined in phy-mac common.
+* N0, N1, N2 processing delays were initially defined in phy-mac common but are 
+latter moved to MmWaveEnbPhy.
 * The UlSchedDelay is replaced by N2Delay.
 * UE receives DL data according to K0 and sends UL data according to K2
 (passed from the gNb in the DL and UL DCI, respectively).
@@ -81,6 +177,9 @@ gNb to the UE in the DL DCI).
 Changes mainly apply in the MmWaveEnbPhy::GenerateStructuresFromPattern that now
 calculates k0, k1, k2
 * Enb first schedules UL and then DL
+* Starting with this release the default behaviour will be to calculate interference 
+for all the links, and will not be any more possible to exclude UE->UE and GNB->GNB 
+interference calculations (Removed attribute EnableAllInterference from MmWaveSpectrumPhy).
 
 
 ---

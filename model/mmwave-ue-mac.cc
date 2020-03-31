@@ -20,12 +20,8 @@
 #define NS_LOG_APPEND_CONTEXT                                            \
   do                                                                     \
     {                                                                    \
-      if (m_phyMacConfig)                                                \
-        {                                                                \
-          std::clog << " [ccId "             \
-                    << +m_phyMacConfig->GetCcId ()                       \
-                    << ", RNTI " << m_rnti << "] ";                      \
-        }                                                                \
+      std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
+                << GetBwpId () << "] ";                                  \
     }                                                                    \
   while (false);
 
@@ -33,6 +29,7 @@
 #include <ns3/log.h>
 #include <ns3/boolean.h>
 #include <ns3/lte-radio-bearer-tag.h>
+#include <ns3/random-variable-stream.h>
 #include "mmwave-phy-sap.h"
 #include "mmwave-control-messages.h"
 
@@ -177,6 +174,8 @@ public:
 
   //virtual void NotifyHarqDeliveryFailure (uint8_t harqId);
 
+  virtual uint8_t GetNumHarqProcess () const override;
+
 private:
   MmWaveUeMac* m_mac;
 };
@@ -204,6 +203,12 @@ MacUeMemberPhySapUser::SlotIndication (SfnSf sfn)
   m_mac->DoSlotIndication (sfn);
 }
 
+uint8_t
+MacUeMemberPhySapUser::GetNumHarqProcess () const
+{
+  return m_mac->GetNumHarqProcess();
+}
+
 //-----------------------------------------------------------------------
 
 TypeId
@@ -212,6 +217,12 @@ MmWaveUeMac::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWaveUeMac")
     .SetParent<Object> ()
     .AddConstructor<MmWaveUeMac> ()
+    .AddAttribute ("NumHarqProcess",
+                   "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
+                    UintegerValue (20),
+                    MakeUintegerAccessor (&MmWaveUeMac::SetNumHarqProcess,
+                                          &MmWaveUeMac::GetNumHarqProcess),
+                    MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("UeMacRxedCtrlMsgsTrace",
                      "Ue MAC Control Messages Traces.",
                      MakeTraceSourceAccessor (&MmWaveUeMac::m_macRxedCtrlMsgsTrace),
@@ -236,35 +247,10 @@ MmWaveUeMac::MmWaveUeMac (void) : Object ()
 MmWaveUeMac::~MmWaveUeMac (void)
 {
   NS_LOG_FUNCTION (this);
-}
-
-void
-MmWaveUeMac::DoDispose ()
-{
-  NS_LOG_FUNCTION (this);
-  m_miUlHarqProcessesPacket.clear ();
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
-  m_raPreambleUniformVariable = nullptr;
-  Object::DoDispose ();
-}
-
-void
-MmWaveUeMac::SetConfigurationParameters (const Ptr<MmWavePhyMacCommon> &ptrConfig)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT(m_phyMacConfig == nullptr);
-
-  m_phyMacConfig = ptrConfig;
-
-  m_miUlHarqProcessesPacket.resize (m_phyMacConfig->GetNumHarqProcess ());
-  for (uint8_t i = 0; i < m_miUlHarqProcessesPacket.size (); i++)
-    {
-      Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
-      m_miUlHarqProcessesPacket.at (i).m_pktBurst = pb;
-    }
-  m_miUlHarqProcessesPacketTimer.resize (m_phyMacConfig->GetNumHarqProcess (), 0);
+  m_miUlHarqProcessesPacket.clear ();
 }
 
 void
@@ -288,6 +274,31 @@ MmWaveUeMac::DoSetImsi (uint64_t imsi)
   m_imsi = imsi;
 }
 
+uint16_t
+MmWaveUeMac::GetBwpId () const
+{
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetBwpId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+}
+
+uint16_t
+MmWaveUeMac::GetCellId () const
+{
+  if (m_phySapProvider)
+    {
+      return m_phySapProvider->GetCellId ();
+    }
+  else
+    {
+      return UINT16_MAX;
+    }
+}
 
 uint32_t
 MmWaveUeMac::GetTotalBufSize () const
@@ -299,6 +310,36 @@ MmWaveUeMac::GetTotalBufSize () const
       ret += ((*it).second.txQueueSize + (*it).second.retxQueueSize + (*it).second.statusPduSize);
     }
   return ret;
+}
+
+/**
+ * \brief Sets the number of HARQ processes
+ * \param numHarqProcesses the maximum number of harq processes
+ */
+void
+MmWaveUeMac::SetNumHarqProcess (uint8_t numHarqProcess)
+{
+  m_numHarqProcess = numHarqProcess;
+
+  m_miUlHarqProcessesPacket.resize (GetNumHarqProcess ());
+  for (uint8_t i = 0; i < m_miUlHarqProcessesPacket.size (); i++)
+    {
+      if (m_miUlHarqProcessesPacket.at (i).m_pktBurst == nullptr)
+        {
+          Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+          m_miUlHarqProcessesPacket.at (i).m_pktBurst = pb;
+        }
+    }
+  m_miUlHarqProcessesPacketTimer.resize (GetNumHarqProcess (), 0);
+}
+
+/**
+ * \return number of HARQ processes
+ */
+uint8_t
+MmWaveUeMac::GetNumHarqProcess () const
+{
+  return m_numHarqProcess;
 }
 
 // forwarded from MAC SAP
@@ -352,8 +393,8 @@ MmWaveUeMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
           LteRadioBearerTag bearerTag (params.rnti, 0, 0);
           it->second.m_pdu->AddPacketTag (bearerTag);
           m_miUlHarqProcessesPacket.at (params.harqProcessId).m_pktBurst->AddPacket (it->second.m_pdu);
-          m_miUlHarqProcessesPacketTimer.at (params.harqProcessId) = m_phyMacConfig->GetHarqTimeout ();
-          //m_harqProcessId = (m_harqProcessId + 1) % m_phyMacConfig->GetHarqTimeout();
+          m_miUlHarqProcessesPacketTimer.at (params.harqProcessId) = GetNumHarqProcess();
+          //m_harqProcessId = (m_harqProcessId + 1) % GetNumHarqProcess;
           m_phySapProvider->SendMacPdu (it->second.m_pdu);
           m_macPduMap.erase (it);    // delete map entry
         }
@@ -440,8 +481,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
   Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
   msg->SetBsr (bsr);
 
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                          bsr.m_rnti, m_phyMacConfig->GetCcId (), msg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, bsr.m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -486,11 +526,8 @@ void
 MmWaveUeMac::DoSlotIndication (SfnSf sfn)
 {
   NS_LOG_FUNCTION (this);
-  m_frameNum = sfn.m_frameNum;
-  m_subframeNum = sfn.m_subframeNum;
-  m_slotNum = sfn.m_slotNum;
-  m_varTtiNum = sfn.m_varTtiNum;
-  NS_LOG_INFO ("Slot " << sfn);
+  m_currentSlot = sfn;
+  NS_LOG_INFO ("Slot " << m_currentSlot);
 
   RefreshHarqProcessesPacketBuffer ();
 
@@ -520,8 +557,7 @@ MmWaveUeMac::SendSR () const
   msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
 
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                          m_rnti, m_phyMacConfig->GetCcId (), msg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -584,16 +620,18 @@ std::map<uint32_t, struct MacPduInfo>::iterator
 MmWaveUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
                              unsigned activeLcs, const SfnSf &ulSfn)
 {
-  NS_LOG_DEBUG ("Adding PDU for slot " << ulSfn);
+  NS_LOG_FUNCTION (this);
 
-  MacPduInfo macPduInfo (SfnSf (ulSfn.m_frameNum, ulSfn.m_subframeNum, ulSfn.m_slotNum, dci->m_symStart), dci->m_tbSize, activeLcs);
+  NS_LOG_DEBUG ("Adding PDU at the position " << ulSfn);
+
+  MacPduInfo macPduInfo (ulSfn, activeLcs, *dci);
   std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
 
   if (it != m_macPduMap.end ())
     {
       m_macPduMap.erase (it);
     }
-  it = (m_macPduMap.insert (std::pair<uint32_t, struct MacPduInfo> (dci->m_harqProcess, macPduInfo))).first;
+  it = (m_macPduMap.insert (std::make_pair (dci->m_harqProcess, macPduInfo))).first;
   return it;
 }
 
@@ -609,16 +647,13 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
         Ptr<MmWaveTdmaDciMessage> dciMsg = DynamicCast <MmWaveTdmaDciMessage> (msg);
         auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
-        m_macRxedCtrlMsgsTrace (SfnSf(m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                m_rnti, m_phyMacConfig->GetCcId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
 
         if (dciInfoElem->m_format == DciInfoElementTdma::UL
             && dciInfoElem->m_type == DciInfoElementTdma::DATA)
           {
-            SfnSf dataSfn = SfnSf (m_frameNum, m_subframeNum, m_slotNum, dciInfoElem->m_symStart);
-            dataSfn = dataSfn.CalculateUplinkSlot (dciMsg->GetKDelay (),
-                                                   m_phyMacConfig->GetSlotsPerSubframe (),
-                                                   m_phyMacConfig->GetSubframesPerFrame ());
+            SfnSf dataSfn = m_currentSlot;
+            dataSfn.Add (dciMsg->GetKDelay ());
             NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
                          " TBS " << dciInfoElem->m_tbSize << " total queue " << GetTotalBufSize ());
             if (dciInfoElem->m_ndi == 1)
@@ -652,7 +687,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     NS_LOG_DEBUG ("No active flows for this UL-DCI");
                     // the UE may have been scheduled when it has no buffered data due to BSR quantization, send empty packet
 
-                    MmWaveMacPduTag tag (dataSfn);
+                    MmWaveMacPduTag tag (dataSfn, dciInfoElem->m_symStart, dciInfoElem->m_numSym);
                     Ptr<Packet> emptyPdu = Create <Packet> ();
                     MmWaveMacPduHeader header;
                     MacSubheader subheader (3, 0);  // lcid = 3, size = 0
@@ -662,8 +697,8 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     LteRadioBearerTag bearerTag (dciInfoElem->m_rnti, 3, 0);
                     emptyPdu->AddPacketTag (bearerTag);
                     m_miUlHarqProcessesPacket.at (dciInfoElem->m_harqProcess).m_pktBurst->AddPacket (emptyPdu);
-                    m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = m_phyMacConfig->GetHarqTimeout ();
-                    //m_harqProcessId = (m_harqProcessId + 1) % m_phyMacConfig->GetHarqTimeout();
+                    m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = GetNumHarqProcess ();
+                    //m_harqProcessId = (m_harqProcessId + 1) % GetNumHarqProcess;
                     m_phySapProvider->SendMacPdu (emptyPdu);
                     return;
                   }
@@ -695,7 +730,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                         if ((statusPduPriority) && ((*itBsr).second.statusPduSize == statusPduMinSize))
                           {
                             MacSubheader subheader ((*lcIt).first,(*itBsr).second.statusPduSize);
-                            (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first));
+                            (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first));
                             NS_LOG_LOGIC (this << "\t" << bytesPerActiveLc << " send  " << (*itBsr).second.statusPduSize << " status bytes to LC " << (uint32_t)(*lcIt).first << " statusQueue " << (*itBsr).second.statusPduSize << " retxQueue" << (*itBsr).second.retxQueueSize << " txQueue" <<  (*itBsr).second.txQueueSize);
                             (*itBsr).second.statusPduSize = 0;
                             break;
@@ -711,7 +746,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                     macPduIt->second.m_numRlcPdu++;  // send status PDU + data PDU
                                   }
                                 //MacSubheader subheader((*lcIt).first,(*itBsr).second.statusPduSize);
-                                (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first));
+                                (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters (((*itBsr).second.statusPduSize), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first));
                                 bytesForThisLc -= (*itBsr).second.statusPduSize;
                                 NS_LOG_DEBUG (this << " serve STATUS " << (*itBsr).second.statusPduSize);
                                 (*itBsr).second.statusPduSize = 0;
@@ -732,7 +767,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                   {
                                     NS_LOG_DEBUG (this << " serve retx DATA, bytes " << bytesForThisLc);
                                     MacSubheader subheader ((*lcIt).first, bytesForThisLc);
-                                    (*lcIt).second.macSapUser->NotifyTxOpportunity ( LteMacSapUser::TxOpportunityParameters ((bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
+                                    (*lcIt).second.macSapUser->NotifyTxOpportunity ( LteMacSapUser::TxOpportunityParameters ((bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
                                     if ((*itBsr).second.retxQueueSize >= bytesForThisLc)
                                       {
                                         (*itBsr).second.retxQueueSize -= bytesForThisLc;
@@ -761,7 +796,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                                       }
                                     NS_LOG_DEBUG (this << " serve tx DATA, bytes " << bytesForThisLc << ", RLC overhead " << rlcOverhead);
                                     MacSubheader subheader ((*lcIt).first, bytesForThisLc);
-                                    (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ( (bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, m_phyMacConfig->GetCcId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
+                                    (*lcIt).second.macSapUser->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ( (bytesForThisLc - subheader.GetSize () - 1), 0, dciInfoElem->m_harqProcess, GetBwpId (), m_rnti, (*lcIt).first)); //zml add 1 byte overhead
                                     if ((*itBsr).second.txQueueSize >= bytesForThisLc - rlcOverhead)
                                       {
                                         (*itBsr).second.txQueueSize -= bytesForThisLc - rlcOverhead;
@@ -801,7 +836,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
                     pkt->AddPacketTag (tag);
                     m_phySapProvider->SendMacPdu (pkt);
                   }
-                m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = m_phyMacConfig->GetHarqTimeout ();
+                m_miUlHarqProcessesPacketTimer.at (dciInfoElem->m_harqProcess) = GetNumHarqProcess();
               }
 
             // After a DCI UL, if I have data in the buffer, I can report a BSR
@@ -820,10 +855,9 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       }
     case (MmWaveControlMessage::RAR):
       {
-        NS_LOG_INFO ("Received RAR in slot " << SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum));
+        NS_LOG_INFO ("Received RAR in slot " << m_currentSlot);
 
-        m_macRxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum),
-                                m_rnti, m_phyMacConfig->GetCcId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
 
         if (m_waitingForRaResponse == true)
           {
@@ -876,8 +910,7 @@ void
 MmWaveUeMac::RandomlySelectAndSendRaPreamble ()
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_DEBUG (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum) <<
-                "Received System Information, send to PHY the RA preamble");
+  NS_LOG_DEBUG (m_currentSlot << " Received System Information, send to PHY the RA preamble");
   SendRaPreamble (true);
 }
 
@@ -893,8 +926,7 @@ MmWaveUeMac::SendRaPreamble (bool contention)
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
-  m_macTxedCtrlMsgsTrace (SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum), m_rnti, m_phyMacConfig->GetCcId(), rachMsg);
-
+  m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rachMsg);
 
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);
 }

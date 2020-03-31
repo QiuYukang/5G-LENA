@@ -152,9 +152,9 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
           }
       }
 
-  m_rxedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Rxed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_rxedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Rxed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
 
   if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
@@ -202,9 +202,9 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
           }
       }
 
-  m_txedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Txed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_txedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Txed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::MIB)
     {
@@ -247,9 +247,9 @@ MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
           }
       }
 
-  m_rxedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Rxed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_rxedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Rxed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::DCI_TDMA)
     {
@@ -292,9 +292,9 @@ MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
           }
       }
 
-  m_txedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Txed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_txedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Txed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
     {
@@ -341,9 +341,9 @@ MmWavePhyRxTrace::RxedUePhyDlDciCallback (Ptr<MmWavePhyRxTrace> phyStats, std::s
           }
       }
 
-  m_rxedUePhyDlDciFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "DL DCI Rxed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t"
+  m_rxedUePhyDlDciFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "DL DCI Rxed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t"
           << static_cast<uint32_t> (harqId) << "\t" << k1Delay << std::endl;
 
 }
@@ -366,9 +366,9 @@ MmWavePhyRxTrace::TxedUePhyHarqFeedbackCallback (Ptr<MmWavePhyRxTrace> phyStats,
           }
       }
 
-  m_rxedUePhyDlDciFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "HARQ FD Txed" << "\t" << sfn.m_frameNum
-          << "\t" << static_cast<uint32_t> (sfn.m_subframeNum) << "\t" << static_cast<uint32_t> (sfn.m_slotNum)
-          << "\t" << static_cast<uint32_t> (sfn.m_varTtiNum) << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t"
+  m_rxedUePhyDlDciFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "HARQ FD Txed" << "\t" << sfn.GetFrame ()
+          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
+          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t"
           << static_cast<uint32_t> (harqId) << "\t" << k1Delay << std::endl;
 
 }
@@ -519,7 +519,7 @@ MmWavePhyRxTrace::RxPacketTraceUeCallback (Ptr<MmWavePhyRxTrace> phyStats, std::
                       << "\t" << 10 * log10 (params.m_sinr)
                       << "\t" << params.m_corrupt
                       << "\t" << params.m_tbler
-                      << "\t" << (unsigned)params.m_ccId << std::endl;
+                      << "\t" << (unsigned)params.m_bwpId << std::endl;
 
   if (params.m_corrupt)
     {
@@ -535,7 +535,7 @@ MmWavePhyRxTrace::RxPacketTraceUeCallback (Ptr<MmWavePhyRxTrace> phyStats, std::
                     "\t" << params.m_sinr <<
                     "\t" << params.m_tbler <<
                     "\t" << params.m_corrupt <<
-                    "\t" << (unsigned)params.m_ccId);
+                    "\t" << (unsigned)params.m_bwpId);
     }
 }
 void
@@ -557,7 +557,7 @@ MmWavePhyRxTrace::RxPacketTraceEnbCallback (Ptr<MmWavePhyRxTrace> phyStats, std:
                       << "\t" << (unsigned)params.m_symStart
                       << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId
                       << "\t" << params.m_rnti << "\t" << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rv << "\t"
-                      << 10 * log10 (params.m_sinr) << "\t\t" << params.m_corrupt << " \t" << params.m_tbler << " \t" << params.m_ccId << std::endl;
+                      << 10 * log10 (params.m_sinr) << "\t\t" << params.m_corrupt << " \t" << params.m_tbler << " \t" << params.m_bwpId << std::endl;
 
   if (params.m_corrupt)
     {
@@ -566,7 +566,7 @@ MmWavePhyRxTrace::RxPacketTraceEnbCallback (Ptr<MmWavePhyRxTrace> phyStats, std:
                                     << "\t" << (unsigned)params.m_symStart
                                     << "\t" << (unsigned)params.m_numSym
                                     << "\t" << params.m_rnti << "\t" << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rv << "\t"
-                                    << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t" << params.m_sinrMin << " \t" << params.m_ccId);
+                                    << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t" << params.m_sinrMin << " \t" << params.m_bwpId);
     }
 }
 

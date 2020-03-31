@@ -25,12 +25,6 @@ NS_LOG_COMPONENT_DEFINE ("BwpManagerAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (BwpManagerAlgorithm);
 
 TypeId
-BwpManagerAlgorithm::GetInstanceTypeId () const
-{
-  return BwpManagerAlgorithm::GetTypeId ();
-}
-
-TypeId
 BwpManagerAlgorithm::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::BwpManagerAlgorithm")
