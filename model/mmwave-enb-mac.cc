@@ -37,6 +37,7 @@
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
 #include <algorithm>
+#include "beam-id.h"
 
 namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("MmWaveEnbMac");
@@ -156,7 +157,7 @@ public:
 
   virtual void UlHarqFeedback (UlHarqInfo params) override;
 
-  virtual void BeamChangeReport (AntennaArrayModel::BeamId beamId, uint8_t rnti) override;
+  virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) override;
 
 private:
   MmWaveEnbMac* m_mac;
@@ -217,7 +218,7 @@ MmWaveMacEnbMemberPhySapUser::UlHarqFeedback (UlHarqInfo params)
 }
 
 void
-MmWaveMacEnbMemberPhySapUser::BeamChangeReport (AntennaArrayModel::BeamId beamId, uint8_t rnti)
+MmWaveMacEnbMemberPhySapUser::BeamChangeReport (BeamId beamId, uint8_t rnti)
 {
   m_mac->BeamChangeReport (beamId, rnti);
 }
@@ -1052,7 +1053,7 @@ MmWaveEnbMac::DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth)
 }
 
 void
-MmWaveEnbMac::BeamChangeReport (AntennaArrayModel::BeamId beamId, uint8_t rnti)
+MmWaveEnbMac::BeamChangeReport (BeamId beamId, uint8_t rnti)
 {
   MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
   params.m_rnti = rnti;

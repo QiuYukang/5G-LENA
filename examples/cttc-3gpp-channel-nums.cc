@@ -72,7 +72,7 @@ NS_LOG_COMPONENT_DEFINE ("3gppChannelNumerologiesExample");
 
 static ns3::GlobalValue g_frequency("frequency",
                                     "The system frequency",
-                                     ns3::DoubleValue(28e9),
+                                     ns3::DoubleValue(7e9),
                                      ns3::MakeDoubleChecker<double>(6e9,100e9));//!< Global variable used to configure the frequency. It is accessible as "--frequency" from CommandLine.
 
 static ns3::GlobalValue g_bandwidth("bandwidth",
@@ -127,17 +127,6 @@ static ns3::GlobalValue g_ueNum ("ueNumPergNb",
                                   ns3::UintegerValue (1),
                                   ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure the number of UEs in multi-UE topology. It is accessible as "--ueNumPergNb" from CommandLine.
 
-static ns3::GlobalValue g_cellScan ("cellScan",
-                                    "Use beam search method to determine beamforming vector, the default is long-term covariance matrix method"
-                                    "true to use cell scanning method, false to use the default power method.",
-                                    ns3::BooleanValue (false),
-                                    ns3::MakeBooleanChecker()); //!< Global variable used to configure whether to use Beam Search of Long-Term Cov. matrix for beamforming. It is accessible as "--cellScan" from CommandLine.
-
-static ns3::GlobalValue g_beamSearchAngleStep ("beamSearchAngleStep",
-                                               "Beam search angle step for beam search method",
-                                               ns3::DoubleValue (10),
-                                               ns3::MakeDoubleChecker<double>()); //!< Global variable used to configure beam search angle step in the case that beam search method is used. It is accessible as "--beamSearchAngleStep" from CommandLine.
-
 static ns3::GlobalValue g_txPower ("txPower",
                                    "Tx power",
                                     ns3::DoubleValue (1),
@@ -168,9 +157,6 @@ main (int argc, char *argv[])
   bool logging = false;
   if(logging)
     {
-      LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
@@ -208,12 +194,8 @@ main (int argc, char *argv[])
   bool singleUeTopology = booleanValue.Get();
   GlobalValue::GetValueByName("bandwidth", doubleValue); //
   double bandwidth = doubleValue.Get();
-  GlobalValue::GetValueByName("cellScan", booleanValue); //
-  bool cellScan = booleanValue.Get();
   GlobalValue::GetValueByName("useFixedMcs", booleanValue); //
   bool useFixedMcs = booleanValue.Get();
-  GlobalValue::GetValueByName("beamSearchAngleStep", doubleValue); // use optional NLOS equation
-  double beamSearchAngleStep = doubleValue.Get();
   GlobalValue::GetValueByName("txPower", doubleValue); // use optional NLOS equation
   double txPower = doubleValue.Get();
   GlobalValue::GetValueByName ("simTag", stringValue);
@@ -221,24 +203,14 @@ main (int argc, char *argv[])
   GlobalValue::GetValueByName ("outputDir", stringValue);
   std::string outputDir = stringValue.Get ();
 
-  // attributes that can be set for this channel model
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(frequency));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
-
   if (singleUeTopology)
     {
-    //Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
-      Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("RMa"));
+      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("RMa")); //RMa scenario is valid for frequencies between 0.5 and 7 GHz
     }
   else
     {
-      Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("InH-OfficeOpen"));
+      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("InH-OfficeOpen"));
     }
-
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
-
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue(cellScan));
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue(beamSearchAngleStep));
 
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequency));
   Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(bandwidth));
@@ -255,9 +227,7 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::MmWaveEnbPhy::TxPower", DoubleValue (txPower));
 
   // setup the mmWave simulation
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> (); 
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);

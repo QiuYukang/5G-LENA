@@ -15,29 +15,19 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Authors: Biljana Bojovic <biljana.bojovic@cttc.es>
- *   Inspired by lte-specterum-phy.cc
  */
 
 #include "mmwave-spectrum-phy.h"
-
-#include <ns3/object-factory.h>
-#include <ns3/log.h>
-#include <ns3/boolean.h>
-#include <cmath>
-#include <ns3/trace-source-accessor.h>
-#include <ns3/antenna-model.h>
-#include "mmwave-phy-mac-common.h"
-#include <ns3/mmwave-enb-net-device.h>
-#include <ns3/mmwave-ue-net-device.h>
-#include <ns3/mmwave-ue-phy.h>
-#include "mmwave-radio-bearer-tag.h"
-#include <stdio.h>
-#include <ns3/double.h>
+#include "mmwave-enb-net-device.h"
+#include "mmwave-ue-net-device.h"
 #include "mmwave-mac-pdu-tag.h"
-#include "nr-lte-mi-error-model.h"
+#include <ns3/boolean.h>
+#include <ns3/double.h>
 #include <functional>
+#include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/lte-radio-bearer-tag.h>
+#include <ns3/trace-source-accessor.h>
+#include "nr-lte-mi-error-model.h"
 
 namespace ns3 {
 
@@ -228,11 +218,19 @@ MmWaveSpectrumPhy::GetRxSpectrumModel () const
 Ptr<AntennaModel>
 MmWaveSpectrumPhy::GetRxAntenna ()
 {
-  return m_antenna;
+   NS_LOG_WARN("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
+   return nullptr;
+}
+
+
+Ptr<ThreeGppAntennaArrayModel>
+MmWaveSpectrumPhy::GetAntennaArray ()
+{
+   return m_antenna;
 }
 
 void
-MmWaveSpectrumPhy::SetAntenna (Ptr<AntennaModel> a)
+MmWaveSpectrumPhy::SetAntennaArray (Ptr<ThreeGppAntennaArrayModel> a)
 {
   NS_ABORT_IF (m_antenna != nullptr);
   m_antenna = a;
@@ -965,7 +963,6 @@ MmWaveSpectrumPhy::StartTxDataFrames (Ptr<PacketBurst> pb, std::list<Ptr<MmWaveC
         txParams->cellId = m_cellId;
         txParams->ctrlMsgList = ctrlMsgList;
         txParams->slotInd = slotInd;
-        txParams->txAntenna = m_antenna;
 
         /* This section is used for trace */
         if (m_isEnb)
@@ -1032,7 +1029,7 @@ MmWaveSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<MmWaveControlMess
         txParams->cellId = m_cellId;
         txParams->pss = true;
         txParams->ctrlMsgList = ctrlMsgList;
-        txParams->txAntenna = m_antenna;
+
         m_txCtrlTrace (duration);
         if (m_channel)
           {
@@ -1081,7 +1078,7 @@ MmWaveSpectrumPhy::StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMess
         txParams->psd = m_txPsd;
         txParams->cellId = m_cellId;
         txParams->ctrlMsgList = ctrlMsgList;
-        txParams->txAntenna = m_antenna;
+
         m_txCtrlTrace (duration);
         if (m_channel)
           {

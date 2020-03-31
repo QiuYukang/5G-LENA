@@ -42,6 +42,7 @@
 #include <ns3/component-carrier.h>
 #include <ns3/enum.h>
 #include <memory>
+#include <ns3/string.h>
 
 
 namespace ns3 {
@@ -856,6 +857,7 @@ private:
   uint8_t m_numHarqProcess;
   uint8_t m_harqTimeout;
   double m_centerFrequency;
+
   double m_bandwidth;
   bool m_bandwidthConfigured;
   uint16_t m_l1L2CtrlLatency;   // In no. of sub-frames

@@ -309,8 +309,6 @@ public:
   DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
 
   // to save some typing
-  using BeamId = AntennaArrayModel::BeamId;
-  using BeamIdHash = AntennaArrayModel::BeamIdHash;
   using HarqVectorIterator = MmWaveMacHarqVector::iterator;
   using HarqVectorIteratorList = std::vector<HarqVectorIterator>;
 

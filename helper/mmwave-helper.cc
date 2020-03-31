@@ -24,7 +24,6 @@
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/epc-ue-nas.h>
 #include <ns3/names.h>
-
 #include <ns3/mmwave-rrc-protocol-ideal.h>
 #include <ns3/mmwave-enb-mac.h>
 #include <ns3/mmwave-enb-phy.h>
@@ -43,9 +42,11 @@
 #include <ns3/mmwave-phy-rx-trace.h>
 #include <ns3/mmwave-mac-rx-trace.h>
 #include <ns3/mmwave-bearer-stats-calculator.h>
-#include <ns3/mmwave-3gpp-channel.h>
 #include <ns3/component-carrier-mmwave-ue.h>
 #include <ns3/component-carrier-gnb.h>
+#include <ns3/beam-manager.h>
+#include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 
 #include <algorithm>
 
@@ -83,18 +84,11 @@ MmWaveHelper::GetTypeId (void)
     TypeId ("ns3::MmWaveHelper")
     .SetParent<Object> ()
     .AddConstructor<MmWaveHelper> ()
-    .AddAttribute ("PathlossModel",
-                   "The type of path-loss model to be used. "
-                   "The allowed values for this attributes are the type names "
-                   "of any class inheriting from ns3::PropagationLossModel.",
-                   StringValue ("ns3::MmWavePropagationLossModel"),
-                   MakeStringAccessor (&MmWaveHelper::SetPathlossModelType),
-                   MakeStringChecker ())
     .AddAttribute ("ChannelModel",
                    "The type of MIMO channel model to be used. "
                    "The allowed values for this attributes are the type names "
                    "of any class inheriting from ns3::SpectrumPropagationLossModel.",
-                   StringValue ("ns3::MmWaveBeamforming"),
+                   StringValue ("ns3::ThreeGppSpectrumPropagationLossModel"),
                    MakeStringAccessor (&MmWaveHelper::SetChannelModelType),
                    MakeStringChecker ())
     .AddAttribute ("HarqEnabled",
@@ -102,6 +96,13 @@ MmWaveHelper::GetTypeId (void)
                    BooleanValue (true),
                    MakeBooleanAccessor (&MmWaveHelper::m_harqEnabled),
                    MakeBooleanChecker ())
+    .AddAttribute ("Scenario",
+                   "Scenario configuration to be used in ThreeGppPropagationLossModel which will be used to select the type of "
+                   "PropagationLossModel and ConditionModel instances. Possible options for this parameter are the following "
+                   "values : RMa, UMa,UMi-StreetCanyon, InH-OfficeOpen, InH-OfficeMixed.",
+                    StringValue ("InH-OfficeOpen"),
+                    MakeStringAccessor(&MmWaveHelper::m_scenario),
+                    MakeStringChecker())
     ;
   return tid;
 }
@@ -119,8 +120,7 @@ void
 MmWaveHelper::DoInitialize ()
 {
   NS_LOG_FUNCTION (this);
-  NS_ABORT_MSG_IF (m_pathlossModelType.empty (), "You forget to set a Pathloss model");
-  NS_ABORT_MSG_IF (m_channelModelType != "ns3::MmWave3gppChannel", "Cannot set a different type of channel");
+  NS_ABORT_MSG_IF (m_channelModelType != "ns3::ThreeGppSpectrumPropagationLossModel", "Cannot set a different type of channel");
 
   if (m_bwpConfiguration.empty())
     {
@@ -133,16 +133,52 @@ MmWaveHelper::DoInitialize ()
     {
       if (conf.second.m_channel == nullptr && conf.second.m_propagation == nullptr && conf.second.m_3gppChannel == nullptr)
         {
-          // Create everything inside, and connect things
-          NS_ABORT_UNLESS (m_pathlossModelType == "ns3::MmWave3gppBuildingsPropagationLossModel" || m_pathlossModelType == "ns3::MmWave3gppPropagationLossModel");
+          ObjectFactory pathlossModelFactory = ObjectFactory ();
+          ObjectFactory channelConditionModelFactory = ObjectFactory ();
+
+          if (m_scenario == "RMa")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppRmaPropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppRmaChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "UMa")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppUmaChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "UMi-StreetCanyon")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppUmiStreetCanyonChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "InH-OfficeOpen")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppIndoorOpenOfficeChannelConditionModel::GetTypeId ());
+            }
+          else if (m_scenario == "InH-OfficeMixed")
+            {
+              pathlossModelFactory.SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+              channelConditionModelFactory.SetTypeId (ThreeGppIndoorMixedOfficeChannelConditionModel::GetTypeId ());
+            }
+          else
+             {
+                NS_FATAL_ERROR ("Unknown scenario");
+             }
+
+          Ptr<ChannelConditionModel> channelConditionModel  = channelConditionModelFactory.Create<ChannelConditionModel>();
+
           conf.second.m_channel = m_channelFactory.Create<SpectrumChannel> ();
-          conf.second.m_propagation = DynamicCast<PropagationLossModel> (m_pathlossModelFactory.Create ());
+          conf.second.m_propagation = pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
           conf.second.m_propagation->SetAttributeFailSafe("Frequency", DoubleValue(conf.second.m_phyMacCommon->GetCenterFrequency()));
+          conf.second.m_propagation->SetChannelConditionModel (channelConditionModel);
           conf.second.m_channel->AddPropagationLossModel (conf.second.m_propagation);
 
-          conf.second.m_3gppChannel = CreateObject<MmWave3gppChannel> ();
-          conf.second.m_3gppChannel->SetPathlossModel (conf.second.m_propagation);
-          conf.second.m_3gppChannel->SetAttribute ("CenterFrequency", DoubleValue (conf.second.m_phyMacCommon->GetCenterFrequency()));
+          pathlossModelFactory.SetTypeId(m_channelModelType);
+          conf.second.m_3gppChannel = pathlossModelFactory.Create<ThreeGppSpectrumPropagationLossModel>();
+          conf.second.m_3gppChannel->SetFrequency (conf.second.m_phyMacCommon->GetCenterFrequency());
+          conf.second.m_3gppChannel->SetScenario (m_scenario);
+          conf.second.m_3gppChannel->SetChannelConditionModel (channelConditionModel);
 
           conf.second.m_channel->AddSpectrumPropagationLossModel (conf.second.m_3gppChannel);
         }
@@ -167,24 +203,6 @@ MmWaveHelper::DoInitialize ()
   m_initialized = true;
 
   Object::DoInitialize ();
-}
-
-void
-MmWaveHelper::SetPathlossModelType (std::string type)
-{
-  NS_LOG_FUNCTION (this << type);
-  m_pathlossModelType = type;
-  if (!type.empty ())
-    {
-      m_pathlossModelFactory = ObjectFactory ();
-      m_pathlossModelFactory.SetTypeId (type);
-    }
-}
-
-Ptr<PropagationLossModel>
-MmWaveHelper::GetPathLossModel (uint8_t index)
-{
-  return m_pathlossModel.at (index)->GetObject<PropagationLossModel> ();
 }
 
 void
@@ -499,11 +517,6 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentatio
   Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
   Ptr<MmWaveEnbPhy> phy = CreateObject<MmWaveEnbPhy> (channelPhy, n);
 
-  MmWaveEnbPhy::PerformBeamformingFn beamformingFn;
-  beamformingFn = std::bind (&MmWave3gppChannel::PerformBeamforming, conf.m_3gppChannel,
-                             std::placeholders::_1, std::placeholders::_2);
-  phy->SetPerformBeamformingFn (beamformingFn);
-
   // PHY <--> CAM
   channelAccessManagerFactory.SetTypeId (conf.m_gnbChannelAccessManagerType);
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (channelAccessManagerFactory.Create ());
@@ -541,7 +554,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const BandwidthPartRepresentatio
 
   conf.m_channel->AddRx(channelPhy);
   // TODO: NOTE: if changing the Antenna Array, this will broke
-  conf.m_3gppChannel->RegisterDevicesAntennaArray (dev, phy->GetAntennaArray ());
+  conf.m_3gppChannel->AddDevice (dev, phy->GetBeamManager()->GetAntennaArray());
 
   return phy;
 }
@@ -773,25 +786,25 @@ void
 MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
                            const Ptr<NetDevice> &gnbDevice)
 {
-  auto enbNetDev = gnbDevice->GetObject<MmWaveEnbNetDevice> ();
-  auto ueNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
+  Ptr<MmWaveEnbNetDevice> enbNetDev = gnbDevice->GetObject<MmWaveEnbNetDevice> ();
+  Ptr<MmWaveUeNetDevice> ueNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
 
   NS_ABORT_IF (enbNetDev == nullptr || ueNetDev == nullptr);
 
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
       Ptr<MmWavePhyMacCommon> configParams = enbNetDev->GetPhy (i)->GetConfigurationParameters ();
-      (DynamicCast<MmWaveEnbPhy>(enbNetDev->GetPhy(i)))->RegisterUe (ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), ueDevice);
-      (DynamicCast<MmWaveUePhy>(ueNetDev->GetPhy (i)))->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
-      Ptr<EpcUeNas> ueNas = ueDevice->GetObject<MmWaveUeNetDevice> ()->GetNas ();
-      ueNas->Connect (gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetCellId (i),
-                      gnbDevice->GetObject<MmWaveEnbNetDevice> ()->GetEarfcn (i));
+      enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
+      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetCellId (i), configParams);
+      Ptr<EpcUeNas> ueNas = ueNetDev->GetNas ();
+      ueNas->Connect (enbNetDev->GetCellId (i),
+                      enbNetDev->GetEarfcn (i));
     }
 
   if (m_epcHelper != 0)
     {
       // activate default EPS bearer
-      m_epcHelper->ActivateEpsBearer (ueDevice, ueDevice->GetObject<MmWaveUeNetDevice> ()->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+      m_epcHelper->ActivateEpsBearer (ueDevice, ueNetDev->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
   // tricks needed for the simplified LTE-only simulations
@@ -803,8 +816,7 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
     for (const auto &it : m_bwpConfiguration)
       {
         NS_ABORT_IF (it.second.m_3gppChannel == nullptr);
-        Ptr<AntennaArrayBasicModel> ueAntenna = ueNetDev->GetPhy(it.first)->GetAntennaArray();
-        it.second.m_3gppChannel->RegisterDevicesAntennaArray (ueNetDev, ueAntenna, true);
+        it.second.m_3gppChannel->AddDevice(ueNetDev, ueNetDev->GetPhy(it.first)->GetBeamManager()->GetAntennaArray());
       }
 }
 
@@ -1086,8 +1098,8 @@ MmWaveHelper::GetPdcpStats (void)
 BandwidthPartRepresentation::BandwidthPartRepresentation(uint32_t id,
                                                          const Ptr<MmWavePhyMacCommon> &phyMacCommon,
                                                          const Ptr<SpectrumChannel> &channel,
-                                                         const Ptr<PropagationLossModel> &propagation,
-                                                         const Ptr<MmWave3gppChannel> & spectrumPropagation)
+                                                         const Ptr<ThreeGppPropagationLossModel> &propagation,
+                                                         const Ptr<ThreeGppSpectrumPropagationLossModel> & spectrumPropagation)
   : m_id (id),
     m_phyMacCommon (phyMacCommon),
     m_channel (channel),

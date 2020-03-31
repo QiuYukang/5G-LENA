@@ -41,6 +41,8 @@
 #include <ns3/double.h>
 #include <ns3/lte-radio-bearer-tag.h>
 #include <algorithm>
+#include <ns3/boolean.h>
+#include "beam-manager.h"
 
 namespace ns3 {
 
@@ -97,28 +99,25 @@ MmWaveUePhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveUePhy::GetSpectrumPhy),
                    MakePointerChecker <MmWaveSpectrumPhy> ())
-    .AddAttribute ("AntennaArrayType",
-                    "AntennaArray of this UE phy. There are two types of antenna array available: "
-                    "a) AntennaArrayModel which is using isotropic antenna elements, and "
-                    "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
-                    "Another important parameters to specify is the number of antenna elements by "
-                    "dimension.",
-                    TypeIdValue(ns3::AntennaArrayModel::GetTypeId()),
-                    MakeTypeIdAccessor (&MmWavePhy::SetAntennaArrayType,
-                                        &MmWavePhy::GetAntennaArrayType),
-                    MakeTypeIdChecker())
+	.AddAttribute ("IsotropicAntennaElements",
+	               "Defines type of antenna elements to be used: "
+				   "a) when true, isotropic, and "
+				   "b) when false, 3gpp."
+				   "Another important parameter to specify is the number of antenna elements by "
+				   "dimension.",
+				   BooleanValue(false),
+				   MakeBooleanAccessor(&MmWaveUePhy::m_areIsotropicElements),
+				   MakeBooleanChecker())
     .AddAttribute ("AntennaNumDim1",
                    "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
                    UintegerValue (2),
-                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim1,
-                                         &MmWavePhy::GetAntennaNumDim1),
-                   MakeUintegerChecker<uint8_t> ())
+				   MakeUintegerAccessor (&MmWaveUePhy::m_antennaNumDim1),
+				   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("AntennaNumDim2",
                    "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
                    UintegerValue (4),
-                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
-                                         &MmWavePhy::GetAntennaNumDim2),
-                   MakeUintegerChecker<uint8_t> ())
+				   MakeUintegerAccessor (&MmWaveUePhy::m_antennaNumDim2),
+				   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("LBTThresholdForCtrl",
                    "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
                    TimeValue (MicroSeconds (25)),
@@ -244,25 +243,18 @@ MmWaveUePhy::RegisterToEnb (uint16_t cellId, Ptr<MmWavePhyMacCommon> config)
 
   InitializeMessageList ();
 
-  MmWavePhy::InstallAntenna ();
-  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
-  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
-
-  if (antenna3gpp)
-    {
-      antenna3gpp->SetIsUe(true);
-    }
-
+  MmWavePhy::InstallBeamManager();
+  NS_ASSERT_MSG (m_beamManager, "Error in initialization of the BeamManager object");
 
   m_spectrumPhy->SetComponentCarrierId (m_phyMacConfig->GetCcId ());
-  m_spectrumPhy->SetAntenna (GetAntennaArray());
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   m_spectrumPhy->GetSpectrumChannel ()->AddRx (m_spectrumPhy);
   m_spectrumPhy->SetCellId (m_cellId);
 
-  GetAntennaArray()->SetSpectrumModel (m_spectrumPhy->GetRxSpectrumModel());
+
+
 
   m_amc = CreateObject <NrAmc> (m_phyMacConfig);
 }
@@ -1027,7 +1019,7 @@ MmWaveUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   m_spectrumPhy->SetCellId (m_cellId);
 }
 
-AntennaArrayBasicModel::BeamId
+BeamId
 MmWaveUePhy::GetBeamId (uint16_t rnti) const
 {
   NS_LOG_FUNCTION (this);

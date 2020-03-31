@@ -37,6 +37,7 @@
 #include "mmwave-ue-phy.h"
 #include "mmwave-net-device.h"
 #include "mmwave-ue-net-device.h"
+#include "mmwave-enb-net-device.h"
 #include "mmwave-radio-bearer-tag.h"
 #include "nr-ch-access-manager.h"
 
@@ -44,6 +45,8 @@
 #include <ns3/node.h>
 #include <ns3/pointer.h>
 #include <ns3/double.h>
+#include <ns3/boolean.h>
+#include "beam-manager.h"
 
 namespace ns3 {
 
@@ -118,33 +121,37 @@ MmWaveEnbPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&MmWaveEnbPhy::m_phyMacConfig),
                    MakePointerChecker<MmWaveEnbPhy> ())
-    .AddAttribute ("AntennaArrayType",
-                   "AntennaArray of this enb phy. There are two types of antenna array available: "
-                   "a) AntennaArrayModel which is using isotropic antenna elements, and "
-                   "b) AntennaArray3gppModel which is using directional 3gpp antenna elements."
-                   "Another important parameters to specify is the number of antenna elements by "
+    .AddAttribute ("IsotropicAntennaElements",
+                   "Defines type of antenna elements to be used: "
+                   "a) when true, isotropic, and "
+                   "b) when false, 3gpp."
+                   "Another important parameter to specify is the number of antenna elements by "
                    "dimension.",
-                   TypeIdValue(ns3::AntennaArrayModel::GetTypeId()),
-                   MakeTypeIdAccessor (&MmWavePhy::SetAntennaArrayType,
-                                       &MmWavePhy::GetAntennaArrayType),
-                   MakeTypeIdChecker())
+                   BooleanValue(false),
+                   MakeBooleanAccessor(&MmWaveEnbPhy::m_areIsotropicElements),
+                   MakeBooleanChecker())
     .AddAttribute ("AntennaNumDim1",
                    "Size of the first dimension of the antenna sector/panel expressed in number of antenna elements",
                    UintegerValue (4),
-                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim1,
-                                         &MmWavePhy::GetAntennaNumDim1),
-                   MakeUintegerChecker<uint8_t> ())
+                   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim1),
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("AntennaNumDim2",
                    "Size of the second dimension of the antenna sector/panel expressed in number of antenna elements",
                    UintegerValue (8),
-                   MakeUintegerAccessor (&MmWavePhy::SetAntennaNumDim2,
-                                         &MmWavePhy::GetAntennaNumDim2),
-                   MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("BeamformingPeriodicity",
-                   "Interval between beamforming phases",
-                   TimeValue (MilliSeconds (100)),
-                   MakeTimeAccessor (&MmWaveEnbPhy::m_beamformingPeriodicity),
-                   MakeTimeChecker())
+                   MakeUintegerAccessor (&MmWaveEnbPhy::m_antennaNumDim2),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("IdealBeamformingEnabled",
+                   "If true, ideal beamforming will be performed between gNB and its ideally attached UE devices."
+                   "If false, no ideal beamforming will be performed. By default is ideal, until "
+                   "real beamforming methods are implemented.",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&MmWaveEnbPhy::m_idealBeamformingEnabled),
+                   MakeBooleanChecker ())
+     .AddAttribute ("IdealBeamformingAlgorithmType",
+                    "Type of the ideal beamforming algorithm in the case that it is enabled, by default is \"cell scan\" method.",
+                    TypeIdValue (CellScanBeamforming::GetTypeId ()),
+                    MakeTypeIdAccessor (&MmWaveEnbPhy::m_idealBeamformingAlgorithmType),
+                    MakeTypeIdChecker ())
     ;
   return tid;
 
@@ -157,26 +164,21 @@ MmWaveEnbPhy::DoInitialize (void)
 
   m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
-  MmWavePhy::InstallAntenna();
-  NS_ASSERT_MSG (GetAntennaArray(), "Error in initialization of the AntennaModel object");
-  Ptr<AntennaArray3gppModel> antenna3gpp = DynamicCast<AntennaArray3gppModel> (GetAntennaArray());
-  if (antenna3gpp)
+  MmWavePhy::InstallBeamManager();
+
+  if (m_idealBeamformingEnabled)
     {
-      antenna3gpp->SetIsUe(false);
-    }
+      ObjectFactory objectFactory = ObjectFactory ();
+      objectFactory.SetTypeId (m_idealBeamformingAlgorithmType);
 
-  m_spectrumPhy->SetAntenna (GetAntennaArray());
-
-  NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim1()) <<
-               ", " << static_cast<uint32_t> (GetAntennaArray()->GetAntennaNumDim2()));
-
-  if (m_beamformingPeriodicity != MilliSeconds (0))
-    {
-      m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
-                                                &MmWaveEnbPhy::ExpireBeamformingTimer, this);
+      Ptr<IdealBeamformingAlgorithm> idealAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
+      idealAlgorithm->SetOwner (DynamicCast<MmWaveEnbNetDevice>(m_netDevice), m_phyMacConfig->GetCcId());
+      m_beamManager->SetIdeamBeamformingAlgorithm (idealAlgorithm);
     }
 
   MmWavePhy::DoInitialize ();
+  NS_LOG_INFO ("eNb antenna array initialised:" << static_cast<uint32_t> (m_beamManager->GetAntennaArray()->GetNumberOfElements()));
+
 }
 
 void
@@ -471,7 +473,7 @@ MmWaveEnbPhy::GetEnbCphySapProvider ()
   return m_enbCphySapProvider;
 }
 
-AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
+BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 {
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
@@ -480,11 +482,10 @@ AntennaArrayModel::BeamId MmWaveEnbPhy::GetBeamId (uint16_t rnti) const
 
       if (ueRnti == rnti)
         {
-          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
-          return AntennaArrayModel::GetBeamId (antennaArray->GetBeamformingVector (m_deviceMap.at (i)));
+          return m_beamManager->GetBeamId (m_deviceMap.at(i));
         }
     }
-  return AntennaArrayModel::BeamId (std::make_pair (0,0));
+  return BeamId (0,0);
 }
 
 void
@@ -800,16 +801,6 @@ MmWaveEnbPhy::StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci
     }
 }
 
-void
-MmWaveEnbPhy::ExpireBeamformingTimer()
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Beamforming timer expired; programming a beamforming");
-  m_performBeamforming = true;
-  m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
-                                            &MmWaveEnbPhy::ExpireBeamformingTimer, this);
-}
-
 std::list <Ptr<MmWaveControlMessage>>
 MmWaveEnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
                                          const DciInfoElementTdma::DciFormat &format,
@@ -921,15 +912,6 @@ Time
 MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
-
-  if (m_performBeamforming)
-    {
-      m_performBeamforming = false;
-      for (const auto & dev : m_deviceMap)
-        {
-          m_doBeamforming (m_netDevice, dev);
-        }
-    }
 
   SfnSf currentSlot = SfnSf (m_frameNum, m_subframeNum, m_slotNum, m_varTtiNum);
 
@@ -1070,8 +1052,8 @@ MmWaveEnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       uint64_t ueRnti = (DynamicCast<MmWaveUePhy>(ueDev->GetPhy (0)))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
-          Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
-          antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
+    	  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+    	  m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
           found = true;
           break;
         }
@@ -1094,8 +1076,8 @@ MmWaveEnbPhy::StartVarTti (void)
   NS_LOG_FUNCTION (this);
 
   //assume the control signal is omni
-  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
-  antennaArray->ChangeToOmniTx ();
+  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
 
   VarTtiAllocInfo & currVarTti = m_currSlotAllocInfo.m_varTtiAllocInfo[m_varTtiNum];
   m_currSymStart = currVarTti.m_dci->m_symStart;
@@ -1141,9 +1123,8 @@ MmWaveEnbPhy::EndVarTti (void)
                " which lasted for " << static_cast<uint32_t> (lastDci->m_numSym) <<
                " symbols finished");
 
-  Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
-
-  antennaArray->ChangeToOmniTx ();
+  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
 
   if (m_varTtiNum == m_currSlotAllocInfo.m_varTtiAllocInfo.size () - 1)
     {
@@ -1215,8 +1196,8 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
 {
   if (varTtiInfo.m_isOmni)
     {
-      Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
-      antennaArray->ChangeToOmniTx ();
+	  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+	  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
     }
   else
     {   // update beamforming vectors (currently supports 1 user only)
@@ -1230,9 +1211,8 @@ MmWaveEnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPe
           //NS_LOG_INFO ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
           if (varTtiInfo.m_dci->m_rnti == ueRnti)
             {
-              //NS_LOG_INFO ("Change Beamforming Vector");
-              Ptr<AntennaArrayModel> antennaArray = DynamicCast<AntennaArrayModel> (GetSpectrumPhy ()->GetRxAntenna ());
-              antennaArray->ChangeBeamformingVector (m_deviceMap.at (i));
+              NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+              m_beamManager->ChangeBeamformingVector(m_deviceMap.at (i));
               found = true;
               break;
             }
@@ -1273,7 +1253,7 @@ MmWaveEnbPhy::SendCtrlChannels (std::list<Ptr<MmWaveControlMessage> > *ctrlMsgs,
 }
 
 bool
-MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<NetDevice> &ueDevice)
+MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<MmWaveUeNetDevice> &ueDevice)
 {
   NS_LOG_FUNCTION (this << imsi);
   std::set <uint64_t>::iterator it;
@@ -1283,6 +1263,10 @@ MmWaveEnbPhy::RegisterUe (uint64_t imsi, const Ptr<NetDevice> &ueDevice)
     {
       m_ueAttached.insert (imsi);
       m_deviceMap.push_back (ueDevice);
+      if (m_idealBeamformingEnabled)
+        {
+          m_beamManager->GetIdealBeamformingAlgorithm ()->AddUeDevice (ueDevice);
+        }
       return (true);
     }
   else
@@ -1539,13 +1523,6 @@ MmWaveEnbPhy::ReportUlHarqFeedback (const UlHarqInfo &mes)
     {
       m_phySapUser->UlHarqFeedback (mes);
     }
-}
-
-void
-MmWaveEnbPhy::SetPerformBeamformingFn(const MmWaveEnbPhy::PerformBeamformingFn &fn)
-{
-  NS_LOG_FUNCTION (this);
-  m_doBeamforming = fn;
 }
 
 void

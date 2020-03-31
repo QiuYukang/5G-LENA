@@ -114,22 +114,6 @@ static ns3::GlobalValue g_ueNum ("ueNumPergNb",
                                   ns3::UintegerValue (2),
                                   ns3::MakeUintegerChecker<uint32_t>());
 
-/**
- * \brief Global variable used to configure the beamforming method. It is accessible as "--cellScan" from CommandLine.
- */
-static ns3::GlobalValue g_cellScan ("cellScan",
-                                    "Use beam search method to determine beamforming vector, the default is long-term covariance matrix method"
-                                    "true to use cell scanning method, false to use the default power method.",
-                                    ns3::BooleanValue (false),
-                                    ns3::MakeBooleanChecker());
-/**
- * \brief Global variable used to configure the beam searcg angle step. It is accessible as "--beamSearchAngleStep" from CommandLine.
- */
-static ns3::GlobalValue g_beamSearchAngleStep ("beamSearchAngleStep",
-                                      "Beam search angle step for beam search method",
-                                      ns3::DoubleValue (10),
-                                      ns3::MakeDoubleChecker<double>());
-
 /******************************** FDM parameters ******************************************/
 
 /**
@@ -257,9 +241,6 @@ main (int argc, char *argv[])
   bool logging = false;
   if(logging)
     {
-      LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
@@ -315,47 +296,28 @@ main (int argc, char *argv[])
   bool udpFullBuffer = booleanValue.Get();
   GlobalValue::GetValueByName("singleUeTopology", booleanValue); //
   bool singleUeTopology = booleanValue.Get();
-  GlobalValue::GetValueByName("cellScan", booleanValue); //
-  bool cellScan = booleanValue.Get();
   GlobalValue::GetValueByName("useFixedMcs", booleanValue); //
-  GlobalValue::GetValueByName("beamSearchAngleStep", doubleValue); // use optional NLOS equation
-  double beamSearchAngleStep = doubleValue.Get();
   GlobalValue::GetValueByName("singleBwp", booleanValue); //
   bool singleBwp = booleanValue.Get();
 
-  // attributes that can be set for this channel model
-  //Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(frequencyBwp1));
-
-
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
 
   if (singleUeTopology)
     {
-    //Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
-      Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("RMa"));
+      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("RMa"));
     }
   else
     {
-      //Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("InH-OfficeOpen")); // antenna height should be 1.5 m
-      Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
+      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
     }
-
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
-
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue(cellScan));
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue(beamSearchAngleStep));
-
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
 
   // Should be 8x8 = 64 antenna elements
-  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(ns3::AntennaArrayModel::GetTypeId()));
   Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue (8));
   Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue (8));
   // Should be 4x4 = 16 antenna elements
-  Config::SetDefault ("ns3::MmWaveUePhy::AntennaArrayType", TypeIdValue(ns3::AntennaArrayModel::GetTypeId()));
   Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue (4));
   Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue (4));
 
@@ -363,9 +325,7 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
 
   // setup the mmWave simulation
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> (); 
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);

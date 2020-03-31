@@ -19,7 +19,6 @@
 
 #include <ns3/object.h>
 #include <ns3/nstime.h>
-#include <ns3/antenna-array-basic-model.h>
 #include <ns3/event-id.h>
 #include <functional>
 #include "mmwave-enb-mac.h"

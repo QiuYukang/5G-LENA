@@ -40,9 +40,9 @@
 #include "ns3/mmwave-mac-scheduler-ofdma-rr.h"
 #include "ns3/mmwave-phy-mac-common.h"
 #include "ns3/basic-data-calculators.h"
-#include "ns3/antenna-array-3gpp-model.h"
 #include "ns3/mmwave-spectrum-phy.h"
 #include "ns3/mmwave-ue-net-device.h"
+#include <ns3/mmwave-ue-phy.h>
 
 using namespace ns3;
 
@@ -114,17 +114,6 @@ static ns3::GlobalValue g_duration ("duration",
                                      ns3::UintegerValue (150),
                                      ns3::MakeUintegerChecker<uint32_t>());
 
-static ns3::GlobalValue g_shadowing ("shadowing",
-                                     "if true, shadowing is enabled in 3gpp propagation loss model;"
-                                     "if false, shadowing is disabled",
-                                     ns3::BooleanValue (true),
-                                     ns3::MakeBooleanChecker ());
-
-static ns3::GlobalValue g_antennaOrientation ("antennaOrientation",
-                                              "the orientation of the antenna on gNB and UE",
-                                              ns3::EnumValue (AntennaArray3gppModel::Z0),
-                                              ns3::MakeEnumChecker (AntennaArray3gppModel::Z0, "Z0",
-                                                                    AntennaArray3gppModel::X0, "X0"));
 static ns3::GlobalValue g_antennaModelgNb ("antennaModelGnb",
                                            "the antenna model of gNb, can be ISO or 3GPP",
                                            ns3::EnumValue (_3GPP),
@@ -148,31 +137,14 @@ static ns3::GlobalValue g_simTag ("simTag",
                                   ns3::MakeStringChecker ());
 
 static ns3::GlobalValue g_indoorScenario ("indoorScenario",
-                                          "the indoor scenario to be used can be: InH-OfficeMixed, InH-OfficeOpen or InH-ShoppingMall",
-                                          ns3::StringValue ("InH-ShoppingMall"),
+                                          "the indoor scenario to be used can be: InH-OfficeMixed or InH-OfficeOpen",
+                                          ns3::StringValue ("InH-OfficeOpen"),
                                           ns3::MakeStringChecker ());
 
 static ns3::GlobalValue g_speed ("speed",
                                  "UE speed in km/h",
                                  ns3::DoubleValue (3.00),
                                  ns3::MakeDoubleChecker<double> (0.0, 10.0));
-
-static ns3::GlobalValue g_isBeamSearchMethod ("isBeamSearchMethod",
-                                              "if true, beam search method will be used;"
-                                              "if false, long term covariance matrix will be used",
-                                              ns3::BooleanValue (true),
-                                              ns3::MakeBooleanChecker ());
-
-static ns3::GlobalValue g_beamSearchMethodAngle ("beamSearchMethodAngle",
-                                                 "beam search method angle step",
-                                                 ns3::DoubleValue (30.00),
-                                                 ns3::MakeDoubleChecker<double> (0.0, 360.0));
-
-static ns3::GlobalValue g_gNbAntennaMount ("gnbAntennaMount",
-                                           "gNb antenna mount type. Can be Wall mount or Sector mount. Doc: 38.802-e20. A.2.1-7",
-                                           ns3::EnumValue (ns3::AntennaArray3gppModel::GnbWallMount),
-                                           ns3::MakeEnumChecker (ns3::AntennaArray3gppModel::GnbWallMount, "WALL",
-                                                                 ns3::AntennaArray3gppModel::GnbSingleSector, "SECT"));
 
 /**
  * \brief Main class
@@ -228,11 +200,9 @@ public:
    * @param beamSearchMethodAngle beam search method angle step
    * @param
    */
-  void Run (bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation, TypeId gNbAntennaModel,
-            TypeId ueAntennaModel, std::string scenario, double speed,
-            std::string resultsDirPath, std::string tag,
-            bool isBeamSearchMethod, double beamSearchMethodAngle,
-            AntennaArray3gppModel::GnbAntennaMount gNbAntennaMount, uint32_t duration);
+  void Run (bool gNbAntennaModel,
+            bool ueAntennaModel, std::string scenario, double speed,
+            std::string resultsDirPath, std::string tag, uint32_t duration);
   /**
    * \brief Destructor that closes the output file stream and finished the
    * writing into the files.
@@ -282,8 +252,6 @@ BuildFileNameString (std::string directoryName, std::string filePrefix, std::str
  * Creates a string tag that contains some simulation run specific values in
  * order to be able to distinguish the results files for different runs for
  * different parameters.
- * @param shadowing whether the shadowing is enabled
- * @param antOrientation antenna orientation
  * @param gNbAntennaModel gNb antenna model
  * @param ueAntennaModel UE antenna model
  * @param scenario The indoor scenario to be used
@@ -291,72 +259,36 @@ BuildFileNameString (std::string directoryName, std::string filePrefix, std::str
  * @return the parameter specific simulation name
  */
 std::string
-BuildTag(bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation,
-         TypeId gNbAntennaModel, TypeId ueAntennaModel, std::string scenario,
-         double speed, bool isBeamSearchMethod, double beamSearchMethodAngle,
-         AntennaArray3gppModel::GnbAntennaMount gNbAntennaMount = AntennaArray3gppModel::GnbWallMount)
+BuildTag(bool gNbAntennaModel, bool ueAntennaModel, std::string scenario,
+         double speed)
 {
 
   std::ostringstream oss;
   std::string ao;
 
-  if (antOrientation == AntennaArrayModel::X0)
-    {
-      ao = "X0";
-    }
-  else if (antOrientation == AntennaArrayModel::Z0)
-    {
-      ao = "Z0";
-    }
-  else
-    {
-      NS_ABORT_MSG("unknown antenna orientation..");
-    }
-
   std::string gnbAm;
-  if (gNbAntennaModel == AntennaArrayModel::GetTypeId())
+  if (gNbAntennaModel)
     {
       gnbAm = "ISO";
     }
-  else if (gNbAntennaModel == AntennaArray3gppModel::GetTypeId())
+  else
     {
       gnbAm = "3GPP";
     }
 
   std::string ueAm;
-  if (ueAntennaModel == AntennaArrayModel::GetTypeId())
+  if (ueAntennaModel)
     {
       ueAm = "ISO";
     }
-  else if (ueAntennaModel == AntennaArray3gppModel::GetTypeId())
+  else
     {
       ueAm = "3GPP";
     }
 
-  double angl = 0;
-
-  if (isBeamSearchMethod)
-    {
-      angl = beamSearchMethodAngle;
-    }
-
   std::string gm = "";
-
-  if (gNbAntennaMount == AntennaArray3gppModel::GnbWallMount)
-    {
-      gm = "WALL";
-    }
-  else if (gNbAntennaMount == AntennaArray3gppModel::GnbSingleSector)
-    {
-      gm = "SECT";
-    }
-  else
-    {
-      NS_ABORT_MSG("unknown antenna orientation..");
-    }
-
-  oss <<"-sh"<<shadowing<<"-ao"<<ao<<"-amGnb"<<gnbAm<<"-amUE"<<ueAm<<
-      "-sc"<<scenario<<"-sp"<<speed<<"-bs"<<isBeamSearchMethod<<"-angl"<<angl<<"-gm"<<gm;
+  oss <<"-ao"<<ao<<"-amGnb"<<gnbAm<<"-amUE"<<ueAm<<
+      "-sc"<<scenario<<"-sp"<<speed<<"-gm"<<gm;
 
   return oss.str ();
 }
@@ -464,11 +396,8 @@ Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes, const
 }
 
 void
-Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientation antOrientation,
-                              TypeId gNbAntennaModel, TypeId ueAntennaModel, std::string scenario, double speed,
-                              std::string resultsDirPath, std::string tag,
-                              bool isBeamSearchMethod, double beamSearchMethodAngle,
-                              AntennaArray3gppModel::GnbAntennaMount gNbAntennaMount, uint32_t duration)
+Nr3gppIndoorCalibration::Run (bool gNbAntennaModel, bool ueAntennaModel, std::string scenario, double speed,
+                              std::string resultsDirPath, std::string tag, uint32_t duration)
 {
     Time simTime = MilliSeconds (duration);
     Time udpAppStartTimeDl = MilliSeconds (100);
@@ -488,7 +417,7 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     // if simulation tag is not provided create one
     if (tag=="")
       {
-        tag = BuildTag(shadowing, antOrientation, gNbAntennaModel, ueAntennaModel, scenario, speed, isBeamSearchMethod, beamSearchMethodAngle, gNbAntennaMount);
+        tag = BuildTag (gNbAntennaModel, ueAntennaModel, scenario, speed);
       }
     std::string filenameSinr = BuildFileNameString ( resultsDirPath , "sinrs", tag);
     std::string filenameSnr = BuildFileNameString ( resultsDirPath , "snrs", tag);
@@ -545,25 +474,14 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
          NS_ABORT_MSG("Can't open file " << filenameDistances);
        }
 
-    Config::SetDefault ("ns3::AntennaArray3gppModel::GnbAntennaMountType", EnumValue (gNbAntennaMount));
-    Config::SetDefault ("ns3::AntennaArrayModel::AntennaOrientation", EnumValue (antOrientation));
     // configure antenna gain for the ISO antenna
-    Config::SetDefault ("ns3::AntennaArrayModel::AntennaGain", DoubleValue (5));
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue(scenario));
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(shadowing));
+    Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue(scenario));
 
-    // we tried also with the optional nLos model and both 3gpp antennas, and it is not better calibrated
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::OptionalNlos", BooleanValue(false));
-
-    // Default scenario configuration that are summarised in to R1-1703534 3GPP TSG RAN WG1 Meeting #88
-    Config::SetDefault ("ns3::MmWave3gppChannel::Speed", DoubleValue (speed*1000/3600));
     // Disable channel matrix update to speed up the simulation execution
-    Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
+    //Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
     Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaPF")));
     // Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     // Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue (isBeamSearchMethod));
-    Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (beamSearchMethodAngle));
 
     Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
     // Parameters according to R1-1703534 3GPP TSG RAN WG1 Meetging #88, 2017
@@ -574,12 +492,12 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(40e6));
 
     // Should be 4x8 = 32 antenna elements
-    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaArrayType", TypeIdValue(gNbAntennaModel));
+    Config::SetDefault ("ns3::MmWaveEnbPhy::IsotropicAntennaElements", BooleanValue (gNbAntennaModel));
     Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue(4));
     Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue(8));
 
     // Should be 2x4 = 8 antenna elements
-    Config::SetDefault ("ns3::MmWaveUePhy::AntennaArrayType", TypeIdValue(ueAntennaModel));
+    Config::SetDefault ("ns3::MmWaveUePhy::IsotropicAntennaElements", BooleanValue (ueAntennaModel));
     Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue(2));
     Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue(4));
 
@@ -588,12 +506,8 @@ Nr3gppIndoorCalibration::Run (bool shadowing, AntennaArrayModel::AntennaOrientat
     Config::SetDefault("ns3::MmWaveEnbPhy::NoiseFigure", DoubleValue (7));
     // UE noise figure shall be set to 10 dB
     Config::SetDefault("ns3::MmWaveUePhy::NoiseFigure", DoubleValue (10));
-    // set LOS,NLOS condition
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("a"));
     // setup the mmWave simulation
     Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-    mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-    mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
     mmWaveHelper->SetEpcHelper (epcHelper);
@@ -797,34 +711,28 @@ main (int argc, char *argv[])
   GlobalValue::GetValueByName ("duration", uintValue);
   uint32_t duration = uintValue.Get ();
 
-  GlobalValue::GetValueByName ("shadowing", booleanValue);
-  bool shadowing = booleanValue.Get ();
-
-  GlobalValue::GetValueByName ("antennaOrientation", enumValue);
-  enum AntennaArray3gppModel::AntennaOrientation antennaOrientation = (AntennaArray3gppModel::AntennaOrientation) enumValue.Get ();
-
   GlobalValue::GetValueByName ("antennaModelGnb", enumValue);
   enum AntennaModelEnum antennaGnb = (AntennaModelEnum) enumValue.Get ();
-  TypeId antennaModelGnb;
+  bool antennaModelGnb;
   if (antennaGnb == _3GPP)
     {
-      antennaModelGnb = AntennaArray3gppModel::GetTypeId();
+      antennaModelGnb = false; //not isotropic antenna elements
     }
   else
     {
-      antennaModelGnb = AntennaArrayModel::GetTypeId();
+      antennaModelGnb = true;  // isotropic antenna elements
     }
 
   GlobalValue::GetValueByName ("antennaModelUe", enumValue);
   enum AntennaModelEnum antennaUe = (AntennaModelEnum) enumValue.Get ();
-  TypeId antennaModelUe;
+  bool antennaModelUe;
   if (antennaUe == _3GPP)
     {
-      antennaModelUe = AntennaArray3gppModel::GetTypeId();
+      antennaModelUe = false; //not isotropic antenna elements
     }
   else
     {
-      antennaModelUe = AntennaArrayModel::GetTypeId();
+      antennaModelUe = true; //isotropic antenna elements
     }
 
   GlobalValue::GetValueByName ("indoorScenario", stringValue);
@@ -839,19 +747,9 @@ main (int argc, char *argv[])
   GlobalValue::GetValueByName ("simTag", stringValue);
   std::string tag = stringValue.Get ();
 
-  GlobalValue::GetValueByName ("isBeamSearchMethod", booleanValue);
-  bool isBeamSearchMethod = booleanValue.Get ();
-
-  GlobalValue::GetValueByName ("beamSearchMethodAngle", doubleValue);
-  double beamSearchMethodAngle = doubleValue.Get ();
-
-  GlobalValue::GetValueByName ("gnbAntennaMount", enumValue);
-  enum AntennaArray3gppModel::GnbAntennaMount gnbAntennaMount = (AntennaArray3gppModel::GnbAntennaMount) enumValue.Get ();
-
-
   Nr3gppIndoorCalibration phase1CalibrationScenario;
-  phase1CalibrationScenario.Run(shadowing, antennaOrientation, antennaModelGnb, antennaModelUe,
-             indoorScenario, speed, resultsDir, tag, isBeamSearchMethod, beamSearchMethodAngle, gnbAntennaMount, duration);
+  phase1CalibrationScenario.Run(antennaModelGnb, antennaModelUe,
+             indoorScenario, speed, resultsDir, tag, duration);
 
   return 0;
 }

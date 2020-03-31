@@ -85,18 +85,6 @@ TraceBuildingLoc()
 static ns3::GlobalValue g_scenario("scenario",
                                    "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen', 'InH-ShoppingMall'",
                                    ns3::StringValue("UMa"), ns3::MakeStringChecker());
-/**
- * \brief Global variable used to configure whether the buildings are used in the scenario. It is accessible as "--enableBuildings" from CommandLine.
- */
-static ns3::GlobalValue g_enableBuildings("enableBuildings", "If true, use MmWave3gppBuildingsPropagationLossModel, else use MmWave3gppPropagationLossModel",
-                                          ns3::BooleanValue(true), ns3::MakeBooleanChecker());
-
-/**
- * \brief Global variable used to configure LOS condition. It is accessible as "--losCondition" from CommandLine.
- */
-static ns3::GlobalValue g_losCondition("losCondition",
-                                       "The LOS condition for the simulation, if MmWave3gppPropagationLossModel is used. Choose 'l' for LOS only, 'n' for NLOS only, 'a' for the probabilistic model",
-                                       ns3::StringValue("a"), ns3::MakeStringChecker());
 
 /**
  * \brief Global variable used to configure optional NLOS equation from 3GPP TR 38.900. It is accessible as "--optionNlos" from CommandLine.
@@ -127,9 +115,9 @@ main (int argc, char *argv[])
   bool logging = true;
   if(logging)
     {
-      //LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
-      //LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
-      //LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
+      //LogComponentEnable ("ThreeGppSpectrumPropagationLossModel", LOG_LEVEL_ALL);
+      //LogComponentEnable ("ThreeGppPropagationLossModel", LOG_LEVEL_ALL);
+      //LogComponentEnable ("ThreeGppChannel", LOG_LEVEL_ALL);
       //LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       //LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
@@ -142,42 +130,18 @@ main (int argc, char *argv[])
   double speed = 1; // 1 m/s for walking UT.
 
   // parse the command line options
-  BooleanValue booleanValue;
   StringValue stringValue;
-  IntegerValue integerValue;
-  DoubleValue doubleValue;
   GlobalValue::GetValueByName("scenario", stringValue); // set the scenario
   std::string scenario = stringValue.Get();
-  GlobalValue::GetValueByName("enableBuildings", booleanValue); // use buildings or not
-  bool enableBuildings = booleanValue.Get();
-  GlobalValue::GetValueByName("losCondition", stringValue); // set the losCondition
-  std::string condition = stringValue.Get();
-  GlobalValue::GetValueByName("optionNlos", booleanValue); // use optional NLOS equation
-  bool optionNlos = booleanValue.Get();
 
+  DoubleValue doubleValue;
   GlobalValue::GetValueByName("frequency", doubleValue); //
   double frequencyInGHz = doubleValue.Get();
 
-  // attributes that can be set for this channel model
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue(condition));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue(scenario));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::OptionalNlos", BooleanValue(optionNlos));
+  Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue(scenario)); // define propagation loss and channel condition model scenario
 
-  // important to set frequency into the 3gpp model
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(frequencyInGHz));
-  Config::SetDefault ("ns3::MmWave3gppBuildingsPropagationLossModel::Frequency", DoubleValue(frequencyInGHz));
-
-  // other parameters of buildings model
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(true)); // enable or disable the shadowing effect
-  Config::SetDefault ("ns3::MmWave3gppBuildingsPropagationLossModel::UpdateCondition", BooleanValue(true)); // enable or disable the LOS/NLOS update when the UE moves
-
-  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(100))); // interval after which the channel for a moving user is updated, 
-  // with spatial consistency procedure. If 0, spatial consistency is not used
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue(false)); // Set true to use cell scanning method, false to use the default power method.
-  Config::SetDefault ("ns3::MmWave3gppChannel::Blockage", BooleanValue(true)); // use blockage or not
-  Config::SetDefault ("ns3::MmWave3gppChannel::PortraitMode", BooleanValue(true)); // use blockage model with UT in portrait mode
-  Config::SetDefault ("ns3::MmWave3gppChannel::NumNonselfBlocking", IntegerValue(4)); // number of non-self blocking obstacles
-
+  Config::SetDefault ("ns3::ThreeGppChannel::UpdatePeriod", TimeValue(MilliSeconds (100))); // update the channel at each iteration
+  Config::SetDefault ("ns3::ThreeGppChannelConditionModel::UpdatePeriod", TimeValue(MilliSeconds (0.0))); // do not update the channel condition
   // default 28e9
   Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequencyInGHz)); // check MmWavePhyMacCommon for other PHY layer parameters
   Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaRR")));
@@ -217,18 +181,8 @@ main (int argc, char *argv[])
     }
 
   // setup the mmWave simulation
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> (); 
-  if(enableBuildings)
-    {
-      mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppBuildingsPropagationLossModel"));
-    }
-  else
-    {
-      mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-    }
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
-
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
   mmWaveHelper->Initialize();
@@ -238,32 +192,6 @@ main (int argc, char *argv[])
   NodeContainer ueNodes;
   enbNodes.Create (2);
   ueNodes.Create (2);
-
-  // deploy buildings if the option is enabled
-  if(enableBuildings)
-    {
-      Ptr < Building > building1;
-      building1 = Create<Building> ();
-      building1->SetBoundaries (Box (50.0,60.0, // xMin, xMax
-                                     0.0, 10, // yMin, yMax
-                                     0.0, 20)); // zMin, zMax
-      Ptr < Building > building2;
-      building2 = Create<Building> ();
-      building2->SetBoundaries (Box (50.0,60.0,
-                                     10.0, 30,
-                                     0.0, 9));
-      Ptr < Building > building3;
-      building3 = Create<Building> ();
-      building3->SetBoundaries (Box (20.0,40.0,
-                                     30.0, 40,
-                                     0.0, 50));
-
-      Ptr < Building > building4;
-      building4 = Create<Building> ();
-      building4->SetBoundaries (Box (30.0,70.0,
-                                     60.0, 80,
-                                     0.0, 20));
-    }
 
   // position the base stations
   Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator> ();
@@ -278,11 +206,7 @@ main (int argc, char *argv[])
   MobilityHelper uemobility;
   uemobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   uemobility.Install (ueNodes);
-  if(enableBuildings)
-    {
-      BuildingsHelper::Install (enbNodes);
-      BuildingsHelper::Install (ueNodes);
-    }
+
   bool mobility = true;
   if(mobility)
     {
@@ -356,13 +280,6 @@ main (int argc, char *argv[])
 
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
-
-  // print the position of the buildings
-  if(enableBuildings)
-    {
-      BuildingsHelper::MakeMobilityModelConsistent ();
-      TraceBuildingLoc();
-    }
 
   // enable the traces provided by the mmWave module
   mmWaveHelper->EnableTraces();

@@ -31,6 +31,9 @@ class MmWaveControlMessage;
 class MmWavePhyMacCommon;
 class MmWaveSpectrumPhy;
 class AntennaArrayBasicModel;
+class MmWavePhyMacCommon;
+class BeamManager;
+class ThreeGppAntennaArrayModel;
 
 class MmWavePhy : public Object
 {
@@ -68,49 +71,15 @@ public:
    */
   void NotifyConnectionSuccessful ();
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint16_t rnti) const = 0;
+  virtual BeamId GetBeamId (uint16_t rnti) const = 0;
+
+  Ptr<BeamManager> GetBeamManager ();
 
   // Attributes
   /**
    * \return The antena array that is being used by this PHY
    */
-  Ptr<AntennaArrayBasicModel> GetAntennaArray () const;
-
-  /**
-   * \brief Sets the antenna array type used by this PHY
-   * \param antennaArrayTypeId antennaArray to be used by this PHY
-   * */
-  void SetAntennaArrayType (const TypeId antennaArrayTypeId);
-
-  /**
-   * \brief Set the first dimension of panel/sector in number of antenna elements
-   * \param antennaNumDim1 the size of the first dimension of the panel/sector
-   */
-  void SetAntennaNumDim1 (uint8_t antennaNumDim1);
-
-  /**
-   * \brief Returns the size of the first dimension of the panel/sector in the number of antenna elements
-   * \return the size of the first dimension
-   */
-  uint8_t GetAntennaNumDim1 () const;
-
-  /**
-   * \brief Set the second dimension of panel sector in number of antenna elements
-   * \param antennaNumDim2 the size of the second dimension of the panel/sector
-   */
-  void SetAntennaNumDim2 (uint8_t antennaNumDim2);
-
-  /**
-   * \brief Returns the size of the second dimension of the panel/sector in the number of antenna elements
-   * \return the size of the second dimension
-   */
-  uint8_t GetAntennaNumDim2 () const;
-
-  /**
-   * \brief Returns the antenna array TypeId
-   * \return antenna array TypeId
-   */
-  TypeId GetAntennaArrayType () const;
+  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray () const;
 
   // Installation / Helpers
   MmWavePhySapProvider* GetPhySapProvider ();
@@ -144,7 +113,7 @@ protected:
    */
   std::vector<int> FromRBGBitmaskToRBAssignment (const std::vector<uint8_t> rbgBitmask) const;
 
-  void InstallAntenna ();
+  void InstallBeamManager ();
 
   Ptr<PacketBurst> GetPacketBurst (SfnSf);
 
@@ -271,16 +240,16 @@ protected:
 
   uint32_t m_raPreambleId {0};
   bool m_isConnected {false}; ///< set when UE RRC is in CONNECTED_NORMALLY state
+  Ptr<BeamManager> m_beamManager; //!< TODO
 
 private:
   std::list<SlotAllocInfo> m_slotAllocInfo; //!< slot allocation info list
   std::vector<std::list<Ptr<MmWaveControlMessage>>> m_controlMessageQueue; //!< CTRL message queue
 
+public:
+  bool m_areIsotropicElements {false}; //!< Whether to use isotropic antenna elements, default is false which means that 3gpp antenna elements will be used
   uint8_t m_antennaNumDim1 {0};
   uint8_t m_antennaNumDim2 {0};
-  TypeId m_antennaArrayType {AntennaArrayModel::GetTypeId()};
-
-  Ptr<AntennaArrayBasicModel> m_antennaArray {nullptr};
 };
 
 }

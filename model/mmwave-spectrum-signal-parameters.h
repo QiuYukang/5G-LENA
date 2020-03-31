@@ -29,33 +29,6 @@ namespace ns3 {
 class PacketBurst;
 class MmWaveControlMessage;
 
-/**
- * \ingroup mmwave
- *
- * Signal parameters for mmwave
- */
-struct mmwaveSpectrumSignalParameters : public SpectrumSignalParameters
-{
-
-  // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy ();
-
-  /**
-   * default constructor
-   */
-  mmwaveSpectrumSignalParameters ();
-
-  /**
-   * copy constructor
-   */
-  mmwaveSpectrumSignalParameters (const mmwaveSpectrumSignalParameters& p);
-
-  Ptr<PacketBurst> packetBurst;
-
-};
-
-
-
 struct MmwaveSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 {
 

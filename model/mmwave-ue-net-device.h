@@ -50,7 +50,7 @@ public:
   void SetCsgId (uint32_t csgId);
 
 
-  virtual Ptr<MmWavePhy> GetPhy (uint8_t index) const;
+  virtual Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
 
   /**
    * Returns the PHY instance that is configured to operate on the provided

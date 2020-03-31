@@ -23,11 +23,12 @@
 
 #include <stdint.h>
 #include <vector>
-
-#include <ns3/antenna-array-model.h>
 #include <ns3/ff-mac-common.h>
+#include "beam-id.h"
 
 namespace ns3 {
+
+
 
 /**
  * \ingroup ff-api
@@ -134,7 +135,7 @@ public:
   struct CschedUeConfigReqParameters
   {
     uint16_t  m_rnti;
-    AntennaArrayModel::BeamId   m_beamId; //!< Beam Id
+    BeamId   m_beamId; //!< Beam Id
     bool      m_reconfigureFlag;
     bool      m_drxConfigPresent;
     struct DrxConfig_s m_drxConfig;

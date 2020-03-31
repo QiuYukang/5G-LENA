@@ -28,35 +28,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("mmwaveSpectrumSignalParameters");
-
-mmwaveSpectrumSignalParameters::mmwaveSpectrumSignalParameters ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-mmwaveSpectrumSignalParameters::mmwaveSpectrumSignalParameters (const mmwaveSpectrumSignalParameters& p)
-  : SpectrumSignalParameters (p)
-{
-  NS_LOG_FUNCTION (this << &p);
-  packetBurst = p.packetBurst->Copy ();
-}
-
-Ptr<SpectrumSignalParameters>
-mmwaveSpectrumSignalParameters::Copy ()
-{
-  NS_LOG_FUNCTION (this);
-  // Ideally we would use:
-  //   return Copy<mmwaveSpectrumSignalParameters> (*this);
-  // but for some reason it doesn't work. Another alternative is
-  //   return Copy<mmwaveSpectrumSignalParameters> (this);
-  // but it causes a double creation of the object, hence it is less efficient.
-  // The solution below is copied from the implementation of Copy<> (Ptr<>) in ptr.h
-  Ptr<mmwaveSpectrumSignalParameters> lssp (new mmwaveSpectrumSignalParameters (*this), false);
-  return lssp;
-}
-
-
+NS_LOG_COMPONENT_DEFINE ("MmWaveSpectrumSignalParameters");
 
 MmwaveSpectrumSignalParametersDataFrame::MmwaveSpectrumSignalParametersDataFrame ()
 {

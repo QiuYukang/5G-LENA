@@ -38,7 +38,6 @@ class MmWaveMacSchedulerHarqRr
 {
 public:
   using Ns3Sched = MmWaveMacSchedulerNs3;
-  using BeamId = AntennaArrayModel::BeamId;
 
   /**
    * \brief MmWaveMacSchedulerHarqRr constructor

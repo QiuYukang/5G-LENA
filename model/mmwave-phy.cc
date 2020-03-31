@@ -35,6 +35,7 @@
 #include "mmwave-spectrum-phy.h"
 #include "mmwave-mac-pdu-tag.h"
 #include "mmwave-net-device.h"
+#include "beam-manager.h"
 
 #include <algorithm>
 
@@ -58,7 +59,7 @@ public:
 
   virtual void SetSlotAllocInfo (SlotAllocInfo slotAllocInfo) override;
 
-  virtual AntennaArrayModel::BeamId GetBeamId (uint8_t rnti) const override;
+  virtual BeamId GetBeamId (uint8_t rnti) const override;
 
   virtual void NotifyConnectionSuccessful () override;
 
@@ -96,7 +97,7 @@ MmWaveMemberPhySapProvider::SetSlotAllocInfo (SlotAllocInfo slotAllocInfo)
   m_phy->PushBackSlotAllocInfo (slotAllocInfo);
 }
 
-AntennaArrayModel::BeamId
+BeamId
 MmWaveMemberPhySapProvider::GetBeamId (uint8_t rnti) const
 {
   return m_phy->GetBeamId (rnti);
@@ -157,7 +158,6 @@ MmWavePhy::MmWavePhy (Ptr<MmWaveSpectrumPhy> channelPhy):
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new MmWaveMemberPhySapProvider (this);
-  m_antennaArray = nullptr;
 }
 
 MmWavePhy::~MmWavePhy ()
@@ -167,20 +167,11 @@ MmWavePhy::~MmWavePhy ()
 }
 
 void
-MmWavePhy::InstallAntenna ()
+MmWavePhy::InstallBeamManager ()
 {
-  ObjectFactory antennaFactory = ObjectFactory ();
-  antennaFactory.SetTypeId (m_antennaArrayType);
-  m_antennaArray = antennaFactory.Create<AntennaArrayBasicModel>();
-  m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
-  m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
-
-  Ptr<const SpectrumModel> sm = MmWaveSpectrumValueHelper::GetSpectrumModel(m_phyMacConfig->GetBandwidthInRbs(),
-                                                                            m_phyMacConfig->GetCenterFrequency(),
-                                                                            m_phyMacConfig->GetNumScsPerRb(),
-                                                                            m_phyMacConfig->GetSubcarrierSpacing());
-  m_antennaArray->SetSpectrumModel (sm);
-  m_antennaArray->Initialize();
+  m_beamManager = CreateObject<BeamManager>();
+  m_beamManager->InstallAntenna (m_antennaNumDim1, m_antennaNumDim2, m_areIsotropicElements);
+  m_spectrumPhy->SetAntennaArray (m_beamManager->GetAntennaArray());
 }
 
 void
@@ -557,59 +548,11 @@ MmWavePhy::IsCtrlMsgListEmpty() const
   return m_controlMessageQueue.empty () || m_controlMessageQueue.at (0).empty();
 }
 
-Ptr<AntennaArrayBasicModel>
-MmWavePhy::GetAntennaArray () const
+Ptr<BeamManager>
+MmWavePhy::GetBeamManager ()
 {
-  return m_antennaArray;
+  return m_beamManager;
 }
 
-void
-MmWavePhy::SetAntennaArrayType (const TypeId antennaArrayTypeId)
-{
-  NS_ABORT_MSG_IF (m_antennaArray != nullptr, "Antenna's array type has been already configured. "
-      "Antenna's type cannot be changed once that the anntena is created");
-  m_antennaArrayType = antennaArrayTypeId ;
-}
-
-TypeId
-MmWavePhy::GetAntennaArrayType () const
-{
-  return m_antennaArrayType;
-}
-
-void
-MmWavePhy::SetAntennaNumDim1 (uint8_t antennaNumDim1)
-{
-  m_antennaNumDim1 = antennaNumDim1;
-  // if the antennaArray is already created then forward the value to the antenna object
-  if (m_antennaArray != nullptr)
-    {
-      m_antennaArray->SetAntennaNumDim1 (m_antennaNumDim1);
-    }
-
-}
-
-uint8_t
-MmWavePhy::GetAntennaNumDim1 () const
-{
-  return m_antennaNumDim1;
-}
-
-void
-MmWavePhy::SetAntennaNumDim2 (uint8_t antennaNumDim2)
-{
-  m_antennaNumDim2 = antennaNumDim2;
-  // if the antennaArray is already created then forward the value to the antenna object
-  if (m_antennaArray != nullptr)
-    {
-      return m_antennaArray->SetAntennaNumDim2 (m_antennaNumDim2);
-    }
-}
-
-uint8_t
-MmWavePhy::GetAntennaNumDim2 () const
-{
-  return m_antennaNumDim2;
-}
 
 }

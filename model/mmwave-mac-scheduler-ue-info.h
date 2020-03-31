@@ -18,13 +18,13 @@
  */
 #pragma once
 
-#include <ns3/antenna-array-model.h>
 #include "mmwave-mac-sched-sap.h"
 #include "mmwave-mac-harq-vector.h"
 #include "mmwave-mac-scheduler-lcg.h"
 #include "nr-amc.h"
 #include <unordered_map>
 #include <functional>
+#include "beam-id.h"
 
 namespace ns3 {
 
@@ -71,7 +71,7 @@ public:
    * \param rnti the RNTI of the UE
    * \param beamId the BeamID of the UE (can be updated later)
    */
-  MmWaveMacSchedulerUeInfo (uint16_t rnti, AntennaArrayModel::BeamId beamId) :
+  MmWaveMacSchedulerUeInfo (uint16_t rnti, BeamId beamId) :
     m_rnti (rnti),
     m_beamId (beamId)
   {
@@ -229,7 +229,7 @@ public:
   };
 
   uint16_t m_rnti            {0};             //!< RNTI of the UE
-  AntennaArrayModel::BeamId   m_beamId;       //!< Beam ID of the UE (kept updated as much as possible by MAC)
+  BeamId   m_beamId;       //!< Beam ID of the UE (kept updated as much as possible by MAC)
 
   std::unordered_map<uint8_t, LCGPtr> m_dlLCG;//!< DL LCG
   std::unordered_map<uint8_t, LCGPtr> m_ulLCG;//!< UL LCG

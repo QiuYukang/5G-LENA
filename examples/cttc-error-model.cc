@@ -182,25 +182,17 @@ main (int argc, char *argv[])
 
   cmd.Parse (argc, argv);
 
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
-                      StringValue("a"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
+  Config::SetDefault ("ns3::MmWaveHelper::Scenario",
                       StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing",
-                      BooleanValue(false));
 
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan",
-                      BooleanValue(cellScan));
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
-                      DoubleValue(beamSearchAngleStep));
-  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
-                      TimeValue (updateChannelInterval));
+  //Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
+    //                  TimeValue (updateChannelInterval));
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
 
   Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
-  Config::SetDefault("ns3::PointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
+  //Config::SetDefault("ns3::PointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
 
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue(true));
   Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsUl", BooleanValue(true));
@@ -219,9 +211,6 @@ main (int argc, char *argv[])
     {
       NS_FATAL_ERROR ("HARQ method not valid, you set " << harqMethod);
     }
-
-  Config::SetDefault ("ns3::MmWave3gppChannel::EnableAllChannels", BooleanValue (true));
-  Config::SetDefault ("ns3::MmWaveSpectrumPhy::EnableAllInterferences", BooleanValue (true));
 
   if (eesmTable == 1)
     {
@@ -265,8 +254,6 @@ main (int argc, char *argv[])
 
   // setup the mmWave simulation
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
   Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
   phyMacCommonBwp1->SetCentreFrequency(frequencyBwp1);

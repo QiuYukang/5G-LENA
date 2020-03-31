@@ -58,6 +58,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/eps-bearer-tag.h"
+#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
 
 using namespace ns3;
 
@@ -233,18 +234,13 @@ main (int argc, char *argv[])
   GlobalValue::GetValueByName("isUll", boolValue); //
   double isUll = boolValue.Get();
 
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Frequency", DoubleValue(28e9));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
+  Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("UMi-StreetCanyon"));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::NGBR_LOW_LAT_EMBB", UintegerValue (0));
   Config::SetDefault ("ns3::BwpManagerAlgorithmStatic::GBR_CONV_VOICE", UintegerValue (1));
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
   Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
 
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
 

@@ -15,12 +15,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *
- *   Author: Biljana Bojovic <biljana.bojovic@cttc.es>
- *   Inspired by lte-specterum-phy.h
- *
  */
-
 
 
 #ifndef SRC_MMWAVE_MODEL_MMWAVE_SPECTRUM_PHY_H_
@@ -29,25 +24,23 @@
 
 #include <ns3/object-factory.h>
 #include <ns3/event-id.h>
-#include <ns3/spectrum-value.h>
-#include <ns3/mobility-model.h>
 #include <ns3/packet.h>
 #include <ns3/nstime.h>
-#include <ns3/net-device.h>
 #include <ns3/spectrum-phy.h>
-#include <ns3/spectrum-channel.h>
-#include <ns3/spectrum-interference.h>
-#include <ns3/data-rate.h>
-#include <ns3/generic-phy.h>
 #include <ns3/packet-burst.h>
+#include <ns3/random-variable-stream.h>
 #include "mmwave-spectrum-signal-parameters.h"
-#include "ns3/random-variable-stream.h"
 #include "mmwave-interference.h"
 #include "mmwave-control-messages.h"
 #include "mmwave-harq-phy.h"
 #include "nr-error-model.h"
 
 namespace ns3 {
+
+class ThreeGppAntennaArrayModel;
+class NetDevice;
+class SpectrumValue;
+class SpectrumChannel;
 
 class MmWaveSpectrumPhy : public SpectrumPhy
 {
@@ -86,9 +79,9 @@ public:
   typedef TracedCallback <Time> ChannelOccupiedTracedCallback;
 
   static TypeId GetTypeId (void);
-  virtual void DoDispose ();
+  virtual void DoDispose () override;
 
-  void SetDevice (Ptr<NetDevice> d);
+  void SetDevice (Ptr<NetDevice> d) override;
 
   /**
    * \brief Set clear channel assessment (CCA) threshold
@@ -102,18 +95,37 @@ public:
    */
   double GetCcaMode1Threshold (void) const;
 
-  Ptr<NetDevice> GetDevice () const;
-  void SetMobility (Ptr<MobilityModel> m);
-  Ptr<MobilityModel> GetMobility ();
-  void SetChannel (Ptr<SpectrumChannel> c);
-  Ptr<const SpectrumModel> GetRxSpectrumModel () const;
+  Ptr<NetDevice> GetDevice () const override;
+  void SetMobility (Ptr<MobilityModel> m) override;
+  Ptr<MobilityModel> GetMobility () override;
+  void SetChannel (Ptr<SpectrumChannel> c) override;
+  Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
 
-  Ptr<AntennaModel> GetRxAntenna ();
-  void SetAntenna (Ptr<AntennaModel> a);
+  /**
+   * Implements GetRxAntenna function from SpectrumPhy. This
+   * function should not be called for NR devices, since NR devices do not use
+   * AntennaModel. This is because 3gpp channel model implementation only
+   * supports ThreeGppAntennaArrayModel antenna type.
+   *
+   * @return
+   */
+  virtual Ptr<AntennaModel> GetRxAntenna () override;
+
+  /**
+   * \brief Returns ThreeGppAntennaArrayModel instance of the device using this
+   * SpectrumPhy instance.
+   */
+  Ptr<ThreeGppAntennaArrayModel> GetAntennaArray ();
+
+  /**
+   * \brief Set ThreeGppAntennaArrayModel instance for the device using this
+   * SpectrumPhy instance.
+   */
+  void SetAntennaArray (Ptr<ThreeGppAntennaArrayModel> a);
 
   void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
   void SetTxPowerSpectralDensity (Ptr<SpectrumValue> TxPsd);
-  void StartRx (Ptr<SpectrumSignalParameters> params);
+  void StartRx (Ptr<SpectrumSignalParameters> params) override;
   void StartRxData (Ptr<MmwaveSpectrumSignalParametersDataFrame> params);
   void StartRxDlCtrl (Ptr<MmWaveSpectrumSignalParametersDlCtrlFrame> params);
   void StartRxUlCtrl (Ptr<MmWaveSpectrumSignalParametersUlCtrlFrame> params);
@@ -245,7 +257,7 @@ private:
   Time m_firstRxStart;
   Time m_firstRxDuration;
 
-  Ptr<AntennaModel> m_antenna;
+  Ptr<ThreeGppAntennaArrayModel> m_antenna; //!< AntennaArray object used by the device to which belongs this spectrum phy instance
 
   uint16_t m_cellId;
 
