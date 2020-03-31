@@ -30,6 +30,7 @@
 #include <ns3/trace-source-accessor.h>
 #include <ns3/traced-callback.h>
 #include <ns3/vector.h>
+#include <ns3/lte-interference.h>
 
 
 namespace ns3 {
@@ -39,19 +40,21 @@ namespace ns3 {
  *
  * \brief The mmWaveInterference class
  */
-class mmWaveInterference : public Object
+class mmWaveInterference : public LteInterference
 {
 public:
   mmWaveInterference ();
   virtual ~mmWaveInterference ();
   static TypeId GetTypeId (void);
   virtual void DoDispose () override;
-  void StartRx (Ptr<const SpectrumValue> rxPsd);
-  void EndRx ();
-  void AddSignal (Ptr<const SpectrumValue> spd, const Time duration);
-  void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
-  void AddPowerChunkProcessor (Ptr<mmWaveChunkProcessor> p);
-  void AddSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p);
+
+  //inherited from LteInterference
+  virtual void StartRx (const Ptr<const SpectrumValue>& rxPsd) override;
+  virtual void EndRx () override;
+  virtual void AddSignal (const Ptr<const SpectrumValue>& spd, const Time& duration) override;
+  virtual void SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noisePsd) override;
+  virtual void AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p) override;
+  virtual void AddSinrChunkProcessor (const Ptr<LteChunkProcessor>& p) override;
 
   /**
    * \brief Checks if the sum of the energy, including the energies that start
@@ -96,7 +99,7 @@ private:
      */
     class NiChange
     {
-      public:
+    public:
       /**
        * Create a NiChange at the given time and the amount of NI change.
        *
@@ -124,21 +127,22 @@ private:
        */
       bool operator < (const NiChange& o) const;
 
+    private:
 
-  private:
-      Time m_time;
-      double m_delta;
+        Time m_time;
+        double m_delta;
     };
    /**
     * typedef for a vector of NiChanges
     */
-   typedef std::vector <NiChange> NiChanges;
+  typedef std::vector <NiChange> NiChanges;
 
-   mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
+  mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
 
-  void ConditionallyEvaluateChunk ();
-  void DoAddSignal (Ptr<const SpectrumValue> spd);
-  void DoSubtractSignal  (Ptr<const SpectrumValue> spd, uint32_t signalId);
+  //inherited from LteInterference
+  virtual void ConditionallyEvaluateChunk ();
+  virtual void DoAddSignal (const Ptr<const SpectrumValue>& spd);
+  virtual void DoSubtractSignal  (const Ptr<const SpectrumValue>& spd, uint32_t signalId) override;
 
   /**
    * Add NiChange to the list at the appropriate position.
@@ -147,8 +151,8 @@ private:
    */
   void AddNiChangeEvent (NiChange change);
 
-  std::list<Ptr<mmWaveChunkProcessor> > m_PowerChunkProcessorList;
-  std::list<Ptr<mmWaveChunkProcessor> > m_sinrChunkProcessorList;
+  std::list<Ptr<LteChunkProcessor> > m_PowerChunkProcessorList;
+  std::list<Ptr<LteChunkProcessor> > m_sinrChunkProcessorList;
 
   TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
   TracedCallback<double> m_rssiPerProcessedChunk;  ///<! Trace for RSSI pre processed chunk.

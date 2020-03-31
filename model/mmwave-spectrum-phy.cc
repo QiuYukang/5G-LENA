@@ -519,14 +519,14 @@ MmWaveSpectrumPhy::StartTxUlControlFrames (const std::list<Ptr<MmWaveControlMess
 }
 
 void
-MmWaveSpectrumPhy::AddDataPowerChunkProcessor (const Ptr<mmWaveChunkProcessor>& p)
+MmWaveSpectrumPhy::AddDataPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
-  m_interferenceData->AddPowerChunkProcessor (p);
+  m_interferenceData->AddRsPowerChunkProcessor (p);
 }
 
 void
-MmWaveSpectrumPhy::AddDataSinrChunkProcessor (const Ptr<mmWaveChunkProcessor>& p)
+MmWaveSpectrumPhy::AddDataSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
   m_interferenceData->AddSinrChunkProcessor (p);
