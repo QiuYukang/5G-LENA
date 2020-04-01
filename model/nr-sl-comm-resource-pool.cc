@@ -104,13 +104,20 @@ NrSlCommResourcePool::GetSlCommOpportunities (uint16_t absIndexCurretSlot, uint1
 
   const LteRrcSap::SlResourcePoolNr pool = GetSlResourcePoolNr (bwpId, poolId);
   uint16_t t2 = LteRrcSap::GetSlSelWindowValue (pool.slUeSelectedConfigRp.slSelectionWindow);
-  uint16_t slotIndex = absIndexCurretSlot + t1;
+  uint16_t firstAbsSlotIndex = absIndexCurretSlot + t1;
+  uint16_t lastAbsSlotIndex =  absIndexCurretSlot + t2;
+
+  NS_LOG_DEBUG ("Starting absolute slot number of the selection window = " << firstAbsSlotIndex);
+  NS_LOG_DEBUG ("Last absolute slot number of the selection window =  " << lastAbsSlotIndex);
+  NS_LOG_DEBUG ("Final selection Window Length = " << lastAbsSlotIndex - firstAbsSlotIndex);
 
   std::list <NrSlCommResourcePool::SlotInfo> list;
-  uint16_t poolIndex = 0;
-  for (uint16_t i = slotIndex; i < t2 + slotIndex; ++i)
+  uint16_t absPoolIndex = firstAbsSlotIndex % itPhyPool->second.size ();
+  NS_LOG_DEBUG ("Absolute pool index = " << absPoolIndex);
+  for (uint16_t i = firstAbsSlotIndex; i <= lastAbsSlotIndex; ++i)
     {
-      if (itPhyPool->second [poolIndex] == 1)
+
+      if (itPhyPool->second [absPoolIndex] == 1)
         {
           NrSlCommResourcePool::SlotInfo info;
           //PSCCH
@@ -124,7 +131,7 @@ NrSlCommResourcePool::GetSlCommOpportunities (uint16_t absIndexCurretSlot, uint1
           info.absSlotIndex = i;
           list.emplace_back (info);
         }
-      ++poolIndex;
+      ++absPoolIndex;
     }
 
   return list;
