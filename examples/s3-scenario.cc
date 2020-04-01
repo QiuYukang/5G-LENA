@@ -135,11 +135,11 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
   m_bandwidth = 60e6;
   if (scenario == "UMa")
     {
-      m_txPower = 9;
+      m_txPower = 49;
     }
   else
     {
-      m_txPower = 4;
+      m_txPower = 44;
     }
 }
 
@@ -155,11 +155,11 @@ RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
   m_bandwidth = 60e6;
   if (scenario == "UMa")
     {
-      m_txPower = 9;
+      m_txPower = 49;
     }
   else
     {
-      m_txPower = 4;
+      m_txPower = 44;
     }
 }
 
