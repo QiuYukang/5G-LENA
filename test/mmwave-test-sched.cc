@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Natale Patriciello <natale.patriciello@gmail.com>
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -26,7 +26,10 @@
  * \ingroup test
  * \brief Unit-testing the Scheduler interface class.
  *
- * TODO
+ * The class is a stub for a future, unit-testing component for the various
+ * kind of schedulers. The idea is to check what is happening to the scheduling
+ * part following a black-box approach: passing inputs, and then see what
+ * is the output, and if it is like we would expect.
  */
 namespace ns3 {
 
@@ -118,6 +121,44 @@ public:
   {
     m_testCase->SchedConfigInd (params);
   }
+
+  // For the rest, setup some hard-coded values; for the moment, there is
+  // no need to have real values here.
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override
+  {
+    return nullptr;
+  }
+
+  virtual uint32_t GetNumRbPerRbg () const override
+  {
+    return 1;
+  }
+
+  virtual uint8_t GetNumHarqProcess () const override
+  {
+    return 20;
+  }
+
+  virtual uint16_t GetBwpId () const override
+  {
+    return 0;
+  }
+
+  virtual uint16_t GetCellId () const override
+  {
+    return 0;
+  }
+
+  virtual uint32_t GetSymbolsPerSlot () const override
+  {
+    return 14;
+  }
+
+  virtual Time GetSlotPeriod () const override
+  {
+    return MilliSeconds (1);
+  }
+
 private:
   MmWaveSchedGeneralTestCase *m_testCase;
 };
@@ -142,7 +183,7 @@ MmWaveSchedGeneralTestCase::AddOneUser(uint16_t rnti, const Ptr<MmWaveMacSchedul
 {
   MmWaveMacCschedSapProvider::CschedUeConfigReqParameters params;
   params.m_rnti = rnti;
-  params.m_beamId = AntennaArrayModel::BeamId (8, 120.0);
+  params.m_beamId = BeamId (8, 120.0);
   sched->DoCschedUeConfigReq (params);
 }
 
@@ -225,13 +266,10 @@ MmWaveSchedGeneralTestCase::DoRun()
 {
   m_cSchedSapUser = new TestCschedSapUser ();
   m_schedSapUser = new TestSchedSapUser (this);
-  Ptr<MmWavePhyMacCommon> phyMacConfig = CreateObject<MmWavePhyMacCommon> ();
-  phyMacConfig->SetNumerology (0); // Doesn't matter, for the moment, what numerology
 
   ObjectFactory factory;
   factory.SetTypeId(m_scheduler);
   Ptr<MmWaveMacSchedulerNs3> sched = DynamicCast<MmWaveMacSchedulerNs3> (factory.Create());
-  sched->ConfigureCommonParameters (phyMacConfig);
   NS_ABORT_MSG_IF(sched == nullptr, "Can't create a MmWaveMacSchedulerNs3 from type " + m_scheduler);
 
   TestSAPInterface (sched);
