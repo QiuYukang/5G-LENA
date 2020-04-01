@@ -26,7 +26,6 @@
 #include <ns3/nstime.h>
 #include <ns3/spectrum-value.h>
 #include <string.h>
-#include <ns3/mmwave-chunk-processor.h>
 #include <ns3/trace-source-accessor.h>
 #include <ns3/traced-callback.h>
 #include <ns3/vector.h>
@@ -49,12 +48,7 @@ public:
   virtual void DoDispose () override;
 
   //inherited from LteInterference
-  virtual void StartRx (const Ptr<const SpectrumValue>& rxPsd) override;
-  virtual void EndRx () override;
   virtual void AddSignal (const Ptr<const SpectrumValue>& spd, const Time& duration) override;
-  virtual void SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noisePsd) override;
-  virtual void AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p) override;
-  virtual void AddSinrChunkProcessor (const Ptr<LteChunkProcessor>& p) override;
 
   /**
    * \brief Checks if the sum of the energy, including the energies that start
@@ -138,11 +132,9 @@ private:
   typedef std::vector <NiChange> NiChanges;
 
   mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
-
+  
   //inherited from LteInterference
   virtual void ConditionallyEvaluateChunk ();
-  virtual void DoAddSignal (const Ptr<const SpectrumValue>& spd);
-  virtual void DoSubtractSignal  (const Ptr<const SpectrumValue>& spd, uint32_t signalId) override;
 
   /**
    * Add NiChange to the list at the appropriate position.
@@ -154,10 +146,10 @@ private:
 protected:
 
   TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
-  TracedCallback<double> m_rssiPerProcessedChunk;  ///<! Trace for RSSI pre processed chunk.
+  TracedCallback<double> m_rssiPerProcessedChunk; ///<! Trace for RSSI pre processed chunk.
 
   /// Used for energy duration calculation, inspired by wifi/model/interference-helper implementation
-  NiChanges m_niChanges; //!< List of events in whitch there is some change in the energy
+  NiChanges m_niChanges; //!< List of events in which there is some change in the energy
   double m_firstPower; //!< This contains the accumulated sum of the energy events until the certain moment it has been calculated
 
 
