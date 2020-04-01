@@ -135,11 +135,11 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
   m_bandwidth = 60e6;
   if (scenario == "UMa")
     {
-      m_txPower = 49;
+      m_txPower = 9;
     }
   else
     {
-      m_txPower = 44;
+      m_txPower = 4;
     }
 }
 
@@ -155,11 +155,11 @@ RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
   m_bandwidth = 60e6;
   if (scenario == "UMa")
     {
-      m_txPower = 49;
+      m_txPower = 9;
     }
   else
     {
-      m_txPower = 44;
+      m_txPower = 4;
     }
 }
 
@@ -213,7 +213,7 @@ main (int argc, char *argv[])
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
-  uint32_t simTimeMs = 1000;
+  uint32_t simTimeMs = 1400;
   uint32_t udpAppStartTimeMs = 400;
   std::string direction = "DL";
 
@@ -497,7 +497,7 @@ main (int argc, char *argv[])
    * one band and one BWP occupying the entire band, there is no need to divide
    * power among BWPs.
    */
-  double totalTxPower = ranHelper.GetTxPower ();
+  double totalTxPower = ranHelper.GetTxPower (); //Convert to dBW
   double x = pow (10, totalTxPower/10);
 
   /*
@@ -659,10 +659,11 @@ main (int argc, char *argv[])
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
   internet.Install (gridScenario.GetUserTerminals ());
 
-
   Ipv4InterfaceContainer ueLowLatIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLowLatNetDev));
   Ipv4InterfaceContainer ueVoiceIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVoiceNetDev));
   Ipv4InterfaceContainer ueVideoIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVideoNetDev));
+
+  Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
@@ -692,9 +693,18 @@ main (int argc, char *argv[])
   UdpServerHelper dlPacketSinkVideo (dlPortVideo);
 
   // The server, that is the application which is listening, is installed in the UE
-  serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
-  serverApps.Add (dlPacketSinkVoice.Install (ueVoiceContainer));
-  serverApps.Add (dlPacketSinkVideo.Install (ueVideoContainer));
+  if (direction == "DL")
+    {
+      serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
+      serverApps.Add (dlPacketSinkVoice.Install (ueVoiceContainer));
+      serverApps.Add (dlPacketSinkVideo.Install (ueVideoContainer));
+    }
+  else
+    {
+      serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
+      serverApps.Add (dlPacketSinkVoice.Install (remoteHost));
+      serverApps.Add (dlPacketSinkVideo.Install (remoteHost));
+    }
 
   /*
    * Configure attributes for the different generators, using user-provided
@@ -714,8 +724,18 @@ main (int argc, char *argv[])
   // The filter for the low-latency traffic
   Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpfLowLat;
-  dlpfLowLat.localPortStart = dlPortLowLat;
-  dlpfLowLat.localPortEnd = dlPortLowLat;
+  if (direction == "DL")
+    {
+      dlpfLowLat.localPortStart = dlPortLowLat;
+      dlpfLowLat.localPortEnd = dlPortLowLat;
+      dlpfLowLat.direction = EpcTft::DOWNLINK;
+    }
+  else
+    {
+      dlpfLowLat.remotePortStart = dlPortLowLat;
+      dlpfLowLat.remotePortEnd = dlPortLowLat;
+      dlpfLowLat.direction = EpcTft::UPLINK;
+      }
   lowLatTft->Add (dlpfLowLat);
 
   // Voice configuration and object creation:
@@ -731,8 +751,18 @@ main (int argc, char *argv[])
   // The filter for the voice traffic
   Ptr<EpcTft> voiceTft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpfVoice;
-  dlpfVoice.localPortStart = dlPortVoice;
-  dlpfVoice.localPortEnd = dlPortVoice;
+  if (direction == "DL")
+    {
+      dlpfVoice.localPortStart = dlPortVoice;
+      dlpfVoice.localPortEnd = dlPortVoice;
+      dlpfVoice.direction = EpcTft::DOWNLINK;
+    }
+  else
+    {
+      dlpfVoice.remotePortStart = dlPortVoice;
+      dlpfVoice.remotePortEnd = dlPortVoice;
+      dlpfVoice.direction = EpcTft::UPLINK;
+    }
   voiceTft->Add (dlpfVoice);
 
   // Video configuration and object creation:
@@ -748,8 +778,18 @@ main (int argc, char *argv[])
   // The filter for the voice traffic
   Ptr<EpcTft> videoTft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpfVideo;
-  dlpfVideo.localPortStart = dlPortVideo;
-  dlpfVideo.localPortEnd = dlPortVideo;
+  if (direction == "DL")
+    {
+      dlpfVideo.localPortStart = dlPortVideo;
+      dlpfVideo.localPortEnd = dlPortVideo;
+      dlpfVideo.direction = EpcTft::DOWNLINK;
+    }
+  else
+    {
+      dlpfVideo.remotePortStart = dlPortVideo;
+      dlpfVideo.remotePortEnd = dlPortVideo;
+      dlpfVideo.direction = EpcTft::UPLINK;
+    }
   videoTft->Add (dlpfVideo);
 
   /*
@@ -772,7 +812,9 @@ main (int argc, char *argv[])
         }
       else
         {
-          NS_ABORT_MSG ("UL not supported yet");
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+          clientApps.Add (dlClientLowLat.Install (ue));
+//          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
@@ -793,7 +835,9 @@ main (int argc, char *argv[])
         }
       else
         {
-          NS_ABORT_MSG ("UL not supported yet");
+          dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+          clientApps.Add (dlClientVoice.Install (ue));
+//          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
@@ -814,7 +858,9 @@ main (int argc, char *argv[])
         }
       else
         {
-          NS_ABORT_MSG ("UL not supported yet");
+          dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+          clientApps.Add (dlClientVideo.Install (ue));
+//          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
