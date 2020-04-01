@@ -156,7 +156,7 @@ InitUma_LoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditio
 }
 
 static void
-InitUma_nLos (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+InitUma_nLoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
 {
   pathlossModelFactory->SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
   channelConditionModelFactory->SetTypeId (NeverLosChannelConditionModel::GetTypeId ());
@@ -167,6 +167,20 @@ InitUmi (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionMod
 {
   pathlossModelFactory->SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
   channelConditionModelFactory->SetTypeId (ThreeGppUmiStreetCanyonChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitUmi_LoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitUmi_nLoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (NeverLosChannelConditionModel::GetTypeId ());
 }
 
 static void
@@ -197,6 +211,8 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
     {BandwidthPartInfo::UMa_LoS, std::bind (&InitUma_LoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMa_nLoS, std::bind (&InitUma_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMi_StreetCanyon, std::bind (&InitUmi, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMi_StreetCanyon_LoS, std::bind (&InitUmi_LoS, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMi_StreetCanyon_nLoS, std::bind (&InitUmi_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
   };

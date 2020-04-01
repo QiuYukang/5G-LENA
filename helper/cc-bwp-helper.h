@@ -64,6 +64,8 @@ struct BandwidthPartInfo
     UMa_nLoS,
     UMa,
     UMi_StreetCanyon,
+    UMi_StreetCanyon_LoS,
+    UMi_StreetCanyon_nLoS,
     InH_OfficeOpen,
     InH_OfficeMixed
   } m_scenario {RMa};
