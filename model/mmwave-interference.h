@@ -37,12 +37,23 @@ namespace ns3 {
 /**
  * \ingroup spectrum
  *
- * \brief The mmWaveInterference class
+ * \brief The mmWaveInterference class inherits LteInterference which
+ * implements a gaussian interference model, i.e., all
+ * incoming signals are added to the total interference.
+ * mmWaveInterference class extends this functionality to support
+ * energy detection functionality.
+ *
  */
 class mmWaveInterference : public LteInterference
 {
 public:
+  /**
+  * \brief mmWaveInterference constructor
+  */
   mmWaveInterference ();
+  /*
+   *\brief ~mmWaveInterference
+   */
   virtual ~mmWaveInterference ();
   static TypeId GetTypeId (void);
   virtual void DoDispose () override;
@@ -76,6 +87,8 @@ public:
   * \brief Crates events corresponding to the new energy. One event corresponds
   * to the moment when the energy starts, and another to the moment that energy
   * ends and in that event the energy is negative, or it is being substracted.
+  * This function also updates the list of events, i.e. it removed the events
+  * belonging to the signals that have finished.
   * @param startTime Energy start time
   * @param endTime Energy end time
   * @param rxPowerW Power of the energy in Watts
@@ -131,6 +144,16 @@ private:
     */
   typedef std::vector <NiChange> NiChanges;
 
+  /**
+   * \brief Find a position in event list that corresponds to a given
+   * moment. Note that all events are saved when they start and when
+   * they end. When they start, the energy the signal brings is saved as
+   * the positive value, and the event when the energy finish is
+   * saved with a negative prefix. By using this position, one
+   * can know which signals have finished, and can be removed from
+   * the list because after the given moment they do not contribute
+   * anymore to the total energy received.
+   */
   mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
   
   //inherited from LteInterference
@@ -138,7 +161,6 @@ private:
 
   /**
    * Add NiChange to the list at the appropriate position.
-   *
    * \param change
    */
   void AddNiChangeEvent (NiChange change);
