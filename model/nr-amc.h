@@ -85,12 +85,19 @@ public:
   uint32_t GetPayloadSize (uint8_t mcs, uint32_t nprb) const;
 
   /**
-   * \return The number of reference subcarrier per resource block
-   *
-   * For the moment is fixed at 1. When it has to change... someone will add an
-   * attribute.
+   * \return The number of reference subcarriers per resource block
    */
-  uint32_t GetNumRefScPerRb () const;
+  uint8_t GetNumRefScPerRb () const;
+
+  /**
+   * \brief Set the the number of subcarriers carrying reference signals per resource block
+   *
+   * By default it is fixed at 1. For LTE, it should be 4.
+   *
+   * \param nref the number of reference subcarriers
+   *
+   */
+  void SetNumRefScPerRb (uint8_t nref);
 
   /**
    * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned
@@ -141,7 +148,7 @@ public:
   void SetBer (double v);
   /**
    * \brief Get the BER value
-   * \return
+   * \return BER
    */
   double GetBer () const;
 
@@ -174,6 +181,8 @@ private:
   TypeId m_errorModelType;                //!< Type of the error model
 
   static const unsigned int m_crcLen = 24 / 8; //!< CRC length (in bytes)
+  uint8_t m_numRefScPerRb {1}; //!< number of reference subcarriers per RB
+
 };
 
 } // end namespace ns3
