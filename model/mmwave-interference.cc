@@ -45,12 +45,7 @@ void
 mmWaveInterference::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
-  m_rsPowerChunkProcessorList.clear ();
-  m_sinrChunkProcessorList.clear ();
-  m_rxSignal = 0;
-  m_allSignals = 0;
-  m_noise = 0;
-  Object::DoDispose ();
+  LteInterference::DoDispose ();
 }
 
 

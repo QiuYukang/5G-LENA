@@ -55,10 +55,14 @@ public:
    *\brief ~mmWaveInterference
    */
   virtual ~mmWaveInterference ();
+  /**
+   * \brief Get the object TypeId
+   * \return the object TypeId
+   */
   static TypeId GetTypeId (void);
-  virtual void DoDispose () override;
 
   //inherited from LteInterference
+  virtual void DoDispose () override;
   virtual void AddSignal (const Ptr<const SpectrumValue>& spd, const Time& duration) override;
 
   /**
@@ -81,7 +85,6 @@ public:
    * threshold.
    */
   Time GetEnergyDuration (double energyW);
-
 
   /**
   * \brief Crates events corresponding to the new energy. One event corresponds
