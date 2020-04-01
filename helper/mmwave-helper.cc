@@ -128,10 +128,38 @@ InitRma (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionMod
 }
 
 static void
+InitRma_LoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppRmaPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitRma_nLoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppRmaPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (NeverLosChannelConditionModel::GetTypeId ());
+}
+
+static void
 InitUma (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
 {
   pathlossModelFactory->SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
   channelConditionModelFactory->SetTypeId (ThreeGppUmaChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitUma_LoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitUma_nLos (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (NeverLosChannelConditionModel::GetTypeId ());
 }
 
 static void
@@ -163,7 +191,11 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
   static std::unordered_map<BandwidthPartInfo::Scenario, InitPathLossFn> initLookupTable
   {
     {BandwidthPartInfo::RMa, std::bind (&InitRma, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::RMa_LoS, std::bind (&InitRma_LoS, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::RMa_nLoS, std::bind (&InitRma_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMa, std::bind (&InitUma, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMa_LoS, std::bind (&InitUma_LoS, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMa_nLoS, std::bind (&InitUma_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMi_StreetCanyon, std::bind (&InitUmi, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
