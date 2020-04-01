@@ -99,7 +99,7 @@ public:
    * \param map RB map
    * \param size Transport block size in Bytes
    * \param mcs MCS
-   * \param history History of the retransmission
+   * \param sinrHistory History of the retransmission
    * \return A pointer to an output, with the tbler and SINR vector, effective
    * SINR, RB map, code bits, and info bits.
    */
@@ -202,7 +202,7 @@ private:
    * \param map RB map
    * \param size Transport block size in BITS
    * \param mcs MCS
-   * \param history History of the retransmission
+   * \param sinrHistory History of the retransmission
    * \return A pointer to an output, with the tbler and SINR vector, effective
    * SINR, RB map, code bits, and info bits.
    */
