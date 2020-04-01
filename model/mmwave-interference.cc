@@ -91,18 +91,7 @@ mmWaveInterference::AddSignal (const Ptr<const SpectrumValue>& spd, const Time& 
   // for how long.
   AppendEvent (Simulator::Now(), Simulator::Now() + duration, rxPowerW);
 
-  DoAddSignal (spd);
-  uint32_t signalId = ++m_lastSignalId;
-  if (signalId == m_lastSignalIdBeforeReset)
-    {
-      // This happens when m_lastSignalId eventually wraps around. Given that so
-      // many signals have elapsed since the last reset, we hope that by now there is
-      // no stale pending signal (i.e., a signal that was scheduled
-      // for subtraction before the reset). So we just move the
-      // boundary further.
-      m_lastSignalIdBeforeReset += 0x10000000;
-    }
-  Simulator::Schedule (duration, &mmWaveInterference::DoSubtractSignal, this, spd, signalId);
+  LteInterference::AddSignal (spd, duration);
 }
 
 void
