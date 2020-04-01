@@ -22,7 +22,7 @@ As the NR specification is developed and evolves, a network simulator that is ca
 
 In this document, we describe the implementation that we have initiated to generate a 3GPP-compliant NR module able to provide |ns3| simulation capabilities in the bands above and below 6 GHz, aligned with 3GPP NR Release-15, following the description in [TS38300]_. The work has been initially funded by InterDigital Communications Inc, and continues with funding from the Lawrence Livermore National Lab (LLNL) and a grant from the National Institute of Standards and Technologies (NIST).
 
-The 'NR' module is a hard fork of the 'mmWave' simulator,  focused on targeting the 3GPP Release-15 NR specification. As such, it incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of multiple numerologies support, bandwidth parts (BWPs) and Component Carriers (CCs), Frequency Division Multiplexing (FDM) of numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, Low-Density Parity Check (LDPC) coding for data channels, modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others. The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC) based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
+The 'NR' module is a hard fork of the 'mmWave' simulator,  focused on targeting the 3GPP Release-15 NR specification. As such, it incorporates fundamental PHY-MAC NR features like a flexible frame structure by means of multiple numerologies support, bandwidth parts (BWPs), Frequency Division Multiplexing (FDM) of numerologies, Orthogonal Frequency-Division Multiple Access (OFDMA), flexible time- and frequency- resource allocation and scheduling, Low-Density Parity Check (LDPC) coding for data channels, modulation and coding schemes (MCSs) with up to 256-QAM, and dynamic TDD, among others. The NR module still relies on higher layers and core network (RLC, PDCP, RRC, NAS, EPC) based on |ns3| 'LTE' module, thus providing an NR non-standalone (NSA) implementation.
 
 The source code for the 'NR' module lives currently in the directory ``src/nr``.
 
@@ -63,7 +63,15 @@ Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and `
 
    RAN class overview
 
-Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different parts of the bandwidth (like BWPs or CCs). NR has included the definition of BWP for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. CC concept was already introduced in LTE, and persists in NR, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs and CCs. Each BWP/CC can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different CCs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. Component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+
+Note: The 3GPP definition for "Bandwidth Part" (BWP) is made for energy-saving purposes at the UE nodes. As per the 3GPP standard, the active 3GPP BWP at a UE can vary semi-statically, and multiple 3GPP BWPs can span over the same frequency spectrum region. In this text, and through the code, we use the word BWP to refer to various things that are not in line with the 3GPP definition.
+
+First of all, we use it to indicate the minimum piece of spectrum that can be modeled. In this regard, a BWP has a center frequency and a bandwidth, plus some characteristics for the 3GPP channel model (e.g., the scenario). Each device can handle multiple BWPs, but such BWPs must be orthogonal in frequency (i.e., they must span over different frequency spectrum regions, that can be contiguous or not, depending on the user-made configuration).
+
+Secondly, the 'NR' module is communicating through each BWP with a PHY and a MAC entity, as well as with one spectrum channel and one antenna instance. In other words, for every spectrum bandwidth part, the module will create a PHY, a MAC, a Spectrum channel, and an antenna. We consider, in the code, that this set of components form a BWP. Moreover, we have a router between the RLC queues and the different MAC entities, which is called the BWP manager.
+
+Summarizing, our BWP terminology can refer to orthogonal 3GPP BWPs, as well as to orthogonal 3GPP Component Carriers, and it is up to the BWP manager to route the flows accordingly based on the behavior the user wants to implement. Our primary use case for bandwidth part is to avoid interferences, as well as to send different flow types through different BWPs, to achieve a dedicated-resource RAN slicing.
 
 
 PHY layer
@@ -139,7 +147,7 @@ An additional level of flexibility in the NR system can be achieved by implement
 
    FDM of numerologies example
 
-In the 'NR' module, the user can configure FDM bands statically before the simulation starts. This is a critical design assumption based on two main reasons. First, the 'NR' module relies on the channel and the propagation loss model that is not able to allow runtime modifications of the physical configuration parameters related to time/frequency configuration (such as the system bandwidth, the central carrier frequency, and the symbol length). Thus, until the current channel model is not modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs. The second reason is that in the simulator, the RRC messaging to configure the default bandwidth part, as well as the bandwidth part reconfiguration, are not implemented yet. See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
+In the 'NR' module, the user can configure FDM bands statically before the simulation starts. This is a critical design assumption based on two main reasons. First, the 'NR' module relies on the channel and the propagation loss model that is not able to allow runtime modifications of the physical configuration parameters related to time/frequency configuration (such as the system bandwidth, the central carrier frequency, and the symbol length). Thus, until the current channel model is not modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs. The second reason is that in the simulator, the RRC messaging to configure the default BWP, as well as the BWP reconfiguration, are not supported yet. See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
 
 
 Duplexing schemes
@@ -360,9 +368,9 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports two methods: long-term covariance matrix and beam-search. The former assumes knowledge of the channel matrix to produce the optimal transmit and receive beam. In the latter, a set of predefined beams is tested, and the beam-pair providing a highest average SNR is selected. For the beam-search method, our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). A new interface allows you to have the beam ID available at MAC layer for scheduling purposes.
+The 'NR' module supports different methods: long-term covariance matrix (OptimalCovMatrixBeamforming), beam-search (CellScanBeamforming), LOS path (DirectPathBeamforming), and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming). OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce the optimal transmit and receive beam. In CellScanBeamforming, a set of predefined beams is tested, and the beam-pair providing a highest average SNR is selected. For the beam-search method, our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). A new interface allows you to have the beam ID available at MAC layer for scheduling purposes. DirectPathBeamforming assumes knowledge of the pointing angle in between devices, and configures transmit/receive beams pointing into the LOS path direction. QuasiOmniDirectPathBeamforming uses the LOS path for configuring gNB beams, while configures quasi-omnidirectional beamforming vectors at UEs for transmission and reception.
 
-Both methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
+All methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
 
 
 HARQ
@@ -377,15 +385,19 @@ In our module, for simplicity, we assume that retransmissions
 of the same HARQ process use the same MCS and the same number of RBs,
 although the specific RBs' time/frequency positions within a slot may vary
 in between the retransmissions. Also, the SINRs experienced
-on each RB may vary through retransmissions. As such, HARQ affects both the PHY and MAC layers.
+on each RB may vary through retransmissions. As such, HARQ affects both the PHY
+and MAC layers.
 
 The 'NR' module supports two HARQ methods: Chase Combining (HARQ-CC)
-and Incremental Redundancy (HARQ-IR), which can be selected by the user through the attribute ``HarqMethod``.
+and Incremental Redundancy (HARQ-IR), which can be selected by the user through
+the attribute ``HarqMethod``.
 
-At the PHY layer, the error model has been extended to support HARQ with retransmission combining.
+At the PHY layer, the error model has been extended to support HARQ with
+retransmission combining.
 Basically, it is used to evaluate the correctness of the blocks received and
 includes the messaging algorithm in charge of communicating to the HARQ entity
-in the scheduler the result of the combined decodifications. The EESM for combined retransmissions
+in the scheduler the result of the combined decodifications. The EESM for
+combined retransmissions
 varies with the underline HARQ method, as detailed next.
 
 **HARQ-CC:** In HARQ-CC, every retransmission contains the same coded bits
@@ -449,7 +461,7 @@ In OFDMA, under the single-beam capability constraint, UEs that are served by di
 
 For decoding any transmission, the UE relies on a bitmask (that is an output of the scheduler) sent through the DCI. The bitmask is of length equal to the number of RBGs, to indicate (with 1's) the RBGs assigned to the UE. This bitmask is translated into a vector of assigned RB indices at PHY. In NR, an RBG may encompass a group of 2, 4, 8, or 16 RBs [TS38214]_ Table 5.1.2.2.1-1, depending on the SCS and the operational band. a TDMA transmission will have this bitmask all set to 1, while OFDMA transmissions will have enabled only the RBG where the UE has to listen.
 
-An implementation detail that differentiates the 'NR' module from the 'mmWave' module, among the others, is that the scheduler has to know the beam assigned by the physical layer to each UE. Two parameters, azimuth and elevation, characterize the beam, and it is only valid for the beam search beamforming method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook).
+An implementation detail that differentiates the 'NR' module from the 'mmWave' module, among the others, is that the scheduler has to know the beam assigned by the physical layer to each UE. Two parameters, azimuth and elevation, characterize the beam in case of CellScanBeamforming. This is only valid for the beam search beamforming method (i.e., for each UE, the transmission/reception beams are selected from a set of beams or codebook).
 
 
 Scheduler
@@ -656,14 +668,17 @@ For the flows routing among different spectrum, the layer intercepts the BSR fro
 Adaptive modulation and coding model
 ====================================
 MCS selection in NR is an implementation specific procedure.
-The 'NR' module supports 1) fixing the MCS to a predefined value, both for downlink and uplink
+The 'NR' module supports 1) fixing the MCS to a predefined value, both for
+downlink and uplink
 transmissions, separately, and 2) two different AMC models for link adaptation:
 
-* Error model-based: in which the MCS index is selected to meet a target transport BLER (e.g., of at most 0.1)
-* Shannon-based: which chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate
+* Error model-based: in which the MCS index is selected to meet a target transport
+BLER (e.g., of at most 0.1)
+* Shannon-based: which chooses the highest MCS that gives a spectral efficiency
+lower than the one provided by the Shannon rate
 
-In the Error model-based AMC, the PHY abstraction model described in PHY layer section is used
-for link adaptation, i.e.,
+In the Error model-based AMC, the PHY abstraction model described in PHY layer
+section is used for link adaptation, i.e.,
 to determine an MCS that satisfies the target transport BLER based
 on the actual channel conditions. In particular, for a given set of SINR values,
 a target transport BLER, an MCS table, and considering a transport block
@@ -860,8 +875,8 @@ https://cttc-lena.gitlab.io/nr/cttc-3gpp-indoor-calibration_8cc.html
 
 cttc-error-model.cc
 ===================
-The program ``examples/cttc-error-model`` allows the user to test the end-to-end performance
-with the new NR PHY abstraction model for error modeling by using a fixed MCS.
+The program ``examples/cttc-error-model`` allows the user to test the end-to-end
+performance with the new NR PHY abstraction model for error modeling by using a fixed MCS.
 It allows the user to set the MCS, the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
 The complete details of the simulation script are provided in
@@ -871,7 +886,8 @@ cttc-error-model-comparison.cc
 ==============================
 The program ``examples/cttc-error-model-comparison`` allows the user to compare the Transport
 Block Size that is obtained for each MCS index under different error models (NR and LTE)
-and different MCS Tables. It allows the user to configure the MCS Table and the error model type.
+and different MCS Tables. It allows the user to configure the MCS Table and the
+error model type.
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-error-model-comparison_8cc.html
@@ -879,9 +895,9 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-comparison_8cc.html
 
 cttc-error-model-amc.cc
 =======================
-The program ``examples/cttc-error-model-amc`` allows the user to test the end-to-end performance
-with the new NR PHY abstraction model for error modeling by using adaptive modulation and
-coding (AMC).
+The program ``examples/cttc-error-model-amc`` allows the user to test the end-to-end
+performance with the new NR PHY abstraction model for error modeling by using
+adaptive modulation and coding (AMC).
 It allows the user to set the AMC approach (error model-based or Shannon-based),
 the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
@@ -891,34 +907,34 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
 
 cttc-3gpp-channel-example.cc
 ============================
-The program ``examples/cttc-3gpp-channel-example`` ... TBC [Biljana]
+The program ``examples/cttc-3gpp-channel-example`` ... TBC [B]
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
 
 cttc-simple-interference-example.cc
 ===================================
-The program ``examples/cttc-simple-interference-example`` ... TBC [Biljana]
+The program ``examples/cttc-simple-interference-example`` ... TBC [B]
 
 
 cttc-lte-ca-demo.cc
 ===================
-The program ``examples/cttc-lte-ca-demo`` ... TBC [Carlos]
+The program ``examples/cttc-lte-ca-demo`` ... TBC [C]
 
 
 cttc-nr-cc-bwp-demo.cc
 ======================
-The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC [Carlos]
+The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC [C]
 
 
 cttc-nr-demo.cc
 ===============
-The program ``examples/cttc-nr-demo`` ...  TBC [Nat]
+The program ``examples/cttc-nr-demo`` ...  TBC [N]
 
 
 cttc-nr-tdd-cc-bwp-demo.cc
 ==========================
-The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC [Kat]
+The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC [K]
 
 
 
@@ -968,19 +984,27 @@ numerologies.
 Test of numerology FDM
 ======================
 To test the FDM of numerologies, we have implemented
-the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to operate with
-2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the
+the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
+operate with
+2 BWPs. The test checks if the achieved throughput of a flow over a specific
+BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
 
 
 Test for NR schedulers
 ======================
-To test the NR schedulers, we have implemented a system test called ``MmWaveSystemTestSchedulers`` whose purpose is to test that the
-NR schedulers provide a required amount of resources to all UEs, for both cases, the downlink and the uplink. The topology consists of a single gNB and
-variable number of UEs, which are distributed among variable number of beams. Test cases are designed in such a way that the offered rate for the flow
-of each UE is dimensioned in such a way that each of the schedulers under the selected topology shall provide at least the required service to each of the UEs.
-The system test suite for NR schedulers creates a various number of test cases that check different system configuration by choosing
-different number of UEs, number of beams, numerology, traffic direction (DL, UL, DL and UL), modes of scheduling (OFDMA and TDMA) and
+To test the NR schedulers, we have implemented a system test called
+``MmWaveSystemTestSchedulers`` whose purpose is to test that the
+NR schedulers provide a required amount of resources to all UEs, for both cases,
+the downlink and the uplink. The topology consists of a single gNB and
+variable number of UEs, which are distributed among variable number of beams.
+Test cases are designed in such a way that the offered rate for the flow
+of each UE is dimensioned in such a way that each of the schedulers under the
+selected topology shall provide at least the required service to each of the UEs.
+The system test suite for NR schedulers creates a various number of test cases
+that check different system configuration by choosing
+different number of UEs, number of beams, numerology, traffic direction (DL, UL,
+DL and UL), modes of scheduling (OFDMA and TDMA) and
 different scheduling algorithms (RR, PR, MR).
 
 
@@ -1000,20 +1024,21 @@ single gNB is transmitting.
 
 Test for error model
 ====================
-Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR PHY abstraction model.
+Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR
+PHY abstraction model.
 The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
-BLER values are properly obtained from the BLER-SINR look up tables for different block sizes, MCS
-Tables, BG types, and SINR values.
+BLER values are properly obtained from the BLER-SINR look up tables for different
+block sizes, MCS Tables, BG types, and SINR values.
 
 
 Test for channel model
 ======================
-Test case called ``NrTest3gppChannelTestCase`` validates the channel model.  TBC [Biljana]
+Test case called ``NrTest3gppChannelTestCase`` validates the channel model.  TBC [B]
 
 
 Test for antenna model
 ======================
-Test case called ... TBC [Biljana]
+Test case called ... TBC [B]
 
 
 Test for TDD patterns
@@ -1056,6 +1081,8 @@ Open issues and future work
 .. [TS38300] 3GPP TS 38.300, TSG RAN; NR; Overall description; Stage 2 (Release 16), v16.0.0, Dec. 2019
 
 .. [TS38214] 3GPP  TS  38.214, TSG  RAN;  NR;  Physical  layer  procedures  for  data (Release 16), v16.0.0, Dec. 2019.
+
+.. [TS38213] 3GPP  TS  38.213, TSG  RAN;  NR;  Physical  layer  procedures  for  control (Release 16), v16.0.0, Dec. 2019.
 
 .. [TS38212] 3GPP  TS  38.212, TSG  RAN;  NR;  Multiplexing  and  channel  coding (Release 16), v16.0.0, Dec. 2019.
 
