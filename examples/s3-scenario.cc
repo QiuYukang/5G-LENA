@@ -252,7 +252,7 @@ main (int argc, char *argv[])
                 "Enable logging",
                 logging);
   cmd.AddValue ("packetSizeUll",
-                "packet size in bytes to be used by ultra low latency traffic",
+                "packet size in bytes to be used by ultra-low latency traffic",
                 udpPacketSizeULL);
   cmd.AddValue ("packetSizeBe",
                 "packet size in bytes to be used by best effort traffic",
@@ -261,10 +261,10 @@ main (int argc, char *argv[])
                 "packet size in bytes to be used by video traffic",
                 udpPacketSizeVi);
   cmd.AddValue ("lambdaUll",
-                "Number of UDP packets in one second for ultra low latency traffic",
+                "Number of UDP packets in one second for ultra-low latency traffic",
                 lambdaULL);
   cmd.AddValue ("lambdaBe",
-                "Number of UDP packets in one second for best effor traffic",
+                "Number of UDP packets in one second for best effort traffic",
                 lambdaBe);
   cmd.AddValue ("lambdaVi",
                 "Number of UDP packets in one second for video traffic",
@@ -297,7 +297,7 @@ main (int argc, char *argv[])
                 "directory where to store simulation results",
                 outputDir);
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
+               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
                errorModel);
   cmd.AddValue("eesmTable",
                "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
@@ -469,7 +469,7 @@ main (int argc, char *argv[])
 
   /*
    * The configured spectrum division is:
-   * |----------------------------------Band1--------------------------------|
+   * |---------------------------------Band1---------------------------------|
    * |----------CC1----------|----------CC2----------|----------CC3----------|
    * |----------BWP1---------|----------BWP2---------|----------BWP3---------|
    */
@@ -543,6 +543,10 @@ main (int argc, char *argv[])
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForConvVoice = 1;
   uint32_t bwpIdForConvVideo = 2;
+
+  // Error Model
+  mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+  mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
 
   // gNb routing between Bearer and bandwidth part
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
