@@ -109,12 +109,12 @@ NrSlCommResourcePool::GetSlCommOpportunities (uint16_t absIndexCurretSlot, uint1
 
   NS_LOG_DEBUG ("Starting absolute slot number of the selection window = " << firstAbsSlotIndex);
   NS_LOG_DEBUG ("Last absolute slot number of the selection window =  " << lastAbsSlotIndex);
-  NS_LOG_DEBUG ("Final selection Window Length = " << (lastAbsSlotIndex - firstAbsSlotIndex) + 1);
+  NS_LOG_DEBUG ("Final selection Window Length = " << lastAbsSlotIndex - firstAbsSlotIndex);
 
   std::list <NrSlCommResourcePool::SlotInfo> list;
   uint16_t absPoolIndex = firstAbsSlotIndex % itPhyPool->second.size ();
   NS_LOG_DEBUG ("Absolute pool index = " << absPoolIndex);
-  for (uint16_t i = firstAbsSlotIndex; i <= lastAbsSlotIndex; ++i)
+  for (uint16_t i = firstAbsSlotIndex; i < lastAbsSlotIndex; ++i)
     {
 
       if (itPhyPool->second [absPoolIndex] == 1)
