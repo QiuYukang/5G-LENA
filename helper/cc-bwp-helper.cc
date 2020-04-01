@@ -412,9 +412,15 @@ BandwidthPartInfo::GetScenario () const
   NS_LOG_FUNCTION (this);
   static std::unordered_map <Scenario, std::string> lookupTable
   {
-    { BandwidthPartInfo::RMa, "RMa"},
+    { RMa, "RMa"},
+    { RMa_LoS, "RMa"},
+    { RMa_nLoS, "RMa"},
     { UMa, "UMa" },
+    { UMa_LoS, "UMa" },
+    { UMa_nLoS, "UMa" },
     { UMi_StreetCanyon, "UMi-StreetCanyon" },
+    { UMi_StreetCanyon_LoS, "UMi-StreetCanyon" },
+    { UMi_StreetCanyon_nLoS, "UMi-StreetCanyon" },
     { InH_OfficeOpen, "InH-OfficeOpen" },
     { InH_OfficeMixed, "InH-OfficeMixed" },
   };
