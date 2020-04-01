@@ -151,22 +151,10 @@ private:
    */
   void AddNiChangeEvent (NiChange change);
 
-  std::list<Ptr<LteChunkProcessor> > m_PowerChunkProcessorList;
-  std::list<Ptr<LteChunkProcessor> > m_sinrChunkProcessorList;
+protected:
 
   TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
   TracedCallback<double> m_rssiPerProcessedChunk;  ///<! Trace for RSSI pre processed chunk.
-
-  bool m_receiving;
-
-  Ptr<SpectrumValue> m_rxSignal;
-  Ptr<SpectrumValue> m_allSignals;
-  Ptr<const SpectrumValue> m_noise;
-
-  Time m_lastChangeTime;
-
-  uint32_t m_lastSignalId;
-  uint32_t m_lastSignalIdBeforeReset;
 
   /// Used for energy duration calculation, inspired by wifi/model/interference-helper implementation
   NiChanges m_niChanges; //!< List of events in whitch there is some change in the energy

@@ -30,9 +30,7 @@ namespace ns3 {
 
 
 mmWaveInterference::mmWaveInterference ()
-  : m_receiving (false),
-  m_lastSignalId (0),
-  m_lastSignalIdBeforeReset (0),
+  : LteInterference (),
   m_firstPower (0.0)
 {
   NS_LOG_FUNCTION (this);
@@ -47,7 +45,7 @@ void
 mmWaveInterference::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
-  m_PowerChunkProcessorList.clear ();
+  m_rsPowerChunkProcessorList.clear ();
   m_sinrChunkProcessorList.clear ();
   m_rxSignal = 0;
   m_allSignals = 0;
@@ -84,7 +82,7 @@ mmWaveInterference::StartRx (const Ptr<const SpectrumValue>& rxPsd)
       m_rxSignal = rxPsd->Copy ();
       m_lastChangeTime = Now ();
       m_receiving = true;
-      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)
         {
           (*it)->Start ();
         }
@@ -116,7 +114,7 @@ mmWaveInterference::EndRx ()
     {
       ConditionallyEvaluateChunk ();
       m_receiving = false;
-      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)
         {
           (*it)->End ();
         }
@@ -212,7 +210,7 @@ mmWaveInterference::ConditionallyEvaluateChunk ()
       m_rssiPerProcessedChunk(rssidBm);
       
       Time duration = Now () - m_lastChangeTime;
-      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)
         {
           (*it)->EvaluateChunk (*m_rxSignal, duration);
         }
@@ -243,7 +241,7 @@ void
 mmWaveInterference::AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this << p);
-  m_PowerChunkProcessorList.push_back (p);
+  m_rsPowerChunkProcessorList.push_back (p);
 }
 
 void
