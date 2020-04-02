@@ -45,7 +45,7 @@ MmWaveMacSchedulerNs3Base::GetTypeId (void)
 MmWaveMacSchedulerNs3Base::MmWaveMacSchedulerNs3Base () : MmWaveMacSchedulerNs3 ()
 {
   // Hardcoded, but the type can be a parameter if needed
-  m_schedHarq = std::unique_ptr<MmWaveMacSchedulerHarqRr> (new MmWaveMacSchedulerHarqRr (m_amc));
+  m_schedHarq = std::unique_ptr<MmWaveMacSchedulerHarqRr> (new MmWaveMacSchedulerHarqRr ());
   m_schedHarq->InstallGetBwInRBG (std::bind (&MmWaveMacSchedulerNs3Base::GetBandwidthInRbg, this));
   m_schedHarq->InstallGetBwpIdFn (std::bind (&MmWaveMacSchedulerNs3Base::GetBwpId, this));
   m_schedHarq->InstallGetCellIdFn (std::bind (&MmWaveMacSchedulerNs3Base::GetCellId, this));
