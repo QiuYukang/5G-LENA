@@ -105,6 +105,8 @@ public:
 
   static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);
 
+  static Ptr<MmWaveMacScheduler> GetScheduler (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
+
   /**
    * This method is used to send the ComponentCarrier map created with CcHelper
    * to the helper, the structure will be used within InstallSingleEnbDevice

@@ -33,6 +33,7 @@ class LteEnbRrc;
 class BandwidthPartGnb;
 class LteEnbComponentCarrierManager;
 class BwpManagerGnb;
+class MmWaveMacScheduler;
 
 class MmWaveEnbNetDevice : public MmWaveNetDevice
 {
@@ -42,6 +43,8 @@ public:
   MmWaveEnbNetDevice ();
 
   virtual ~MmWaveEnbNetDevice (void);
+
+  Ptr<MmWaveMacScheduler> GetScheduler (uint8_t index) const;
 
   Ptr<MmWaveEnbMac> GetMac (uint8_t index) const;
 

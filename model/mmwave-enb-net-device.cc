@@ -68,6 +68,13 @@ MmWaveEnbNetDevice::~MmWaveEnbNetDevice ()
   NS_LOG_FUNCTION (this);
 }
 
+Ptr<MmWaveMacScheduler>
+MmWaveEnbNetDevice::GetScheduler(uint8_t index) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ccMap.at (index)->GetScheduler ();
+}
+
 void
 MmWaveEnbNetDevice::SetCcMap (const std::map< uint8_t, Ptr<BandwidthPartGnb> > &ccm)
 {

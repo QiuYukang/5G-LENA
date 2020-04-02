@@ -68,7 +68,7 @@ public:
   /**
    * \return a pointer to the Mac Scheduler.
    */
-  Ptr<MmWaveMacScheduler> GetMmWaveMacScheduler ();
+  Ptr<MmWaveMacScheduler> GetScheduler ();
 
   /**
    * Set the LteEnbPhy

@@ -341,6 +341,20 @@ MmWaveHelper::GetBwpManagerUe(const Ptr<NetDevice> &ueDevice)
   return netDevice->GetBwpManager ();
 }
 
+Ptr<MmWaveMacScheduler>
+MmWaveHelper::GetScheduler(const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
+{
+  NS_LOG_FUNCTION (gnbDevice << bwpIndex);
+
+  Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+
+  return netDevice->GetScheduler (bwpIndex);
+}
+
 void
 MmWaveHelper::SetHarqEnabled (bool harqEnabled)
 {
@@ -809,11 +823,11 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       // PHY <--> MAC SAP END
 
       //Scheduler SAP
-      it->second->GetMac ()->SetMmWaveMacSchedSapProvider (it->second->GetMmWaveMacScheduler ()->GetMacSchedSapProvider ());
-      it->second->GetMac ()->SetMmWaveMacCschedSapProvider (it->second->GetMmWaveMacScheduler ()->GetMacCschedSapProvider ());
+      it->second->GetMac ()->SetMmWaveMacSchedSapProvider (it->second->GetScheduler ()->GetMacSchedSapProvider ());
+      it->second->GetMac ()->SetMmWaveMacCschedSapProvider (it->second->GetScheduler ()->GetMacCschedSapProvider ());
 
-      it->second->GetMmWaveMacScheduler ()->SetMacSchedSapUser (it->second->GetMac ()->GetMmWaveMacSchedSapUser ());
-      it->second->GetMmWaveMacScheduler ()->SetMacCschedSapUser (it->second->GetMac ()->GetMmWaveMacCschedSapUser ());
+      it->second->GetScheduler ()->SetMacSchedSapUser (it->second->GetMac ()->GetMmWaveMacSchedSapUser ());
+      it->second->GetScheduler ()->SetMacCschedSapUser (it->second->GetMac ()->GetMmWaveMacCschedSapUser ());
       // Scheduler SAP END
 
       it->second->GetMac ()->SetLteCcmMacSapUser (ccmEnbManager->GetLteCcmMacSapUser ());
