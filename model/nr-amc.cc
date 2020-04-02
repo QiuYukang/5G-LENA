@@ -73,6 +73,7 @@ NrAmc::GetTypeId (void)
                    MakeTypeIdAccessor (&NrAmc::SetErrorModelType,
                                        &NrAmc::GetErrorModelType),
                    MakeTypeIdChecker ())
+    .AddConstructor <NrAmc> ()
   ;
   return tid;
 }
@@ -154,7 +155,7 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
 
 uint8_t
 NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
-                                    uint8_t &mcs)
+                                    uint8_t &mcs) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -267,7 +268,7 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
 }
 
 uint8_t
-NrAmc::GetCqiFromSpectralEfficiency (double s)
+NrAmc::GetCqiFromSpectralEfficiency (double s) const
 {
   NS_LOG_FUNCTION (s);
   NS_ASSERT_MSG (s >= 0.0, "negative spectral efficiency = " << s);
@@ -281,7 +282,7 @@ NrAmc::GetCqiFromSpectralEfficiency (double s)
 }
 
 uint8_t
-NrAmc::GetMcsFromSpectralEfficiency (double s)
+NrAmc::GetMcsFromSpectralEfficiency (double s) const
 {
   NS_LOG_FUNCTION (s);
   NS_ASSERT_MSG (s >= 0.0, "negative spectral efficiency = " << s);

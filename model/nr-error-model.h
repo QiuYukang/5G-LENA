@@ -134,7 +134,7 @@ public:
    * \param mcs MCS to take into consideration
    * \return the spectral efficiency
    */
-  virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) = 0;
+  virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) const = 0;
 
   /**
    * \brief Get the payload size (in bytes) for a given mcs and resource block number
@@ -160,7 +160,7 @@ public:
    *
    * \return the maximum MCS that is permitted with the error model
    */
-  virtual uint8_t GetMaxMcs () = 0;
+  virtual uint8_t GetMaxMcs () const = 0;
 };
 
 } // namespace ns3

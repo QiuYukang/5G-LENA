@@ -49,7 +49,6 @@ public:
 
   /**
    * \brief NrAmc constructor
-   * \param ConfigParams PhyMacCommon params that will be tied with the instance
    */
   NrAmc ();
 
@@ -119,21 +118,21 @@ public:
    * \param mcsWb The calculated MCS
    * \return The calculated CQI
    */
-  uint8_t CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbs, uint8_t &mcsWb);
+  uint8_t CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbs, uint8_t &mcsWb) const;
 
   /**
    * \brief Get CQI from a SpectralEfficiency value
    * \param s spectral efficiency
    * \return the CQI (depends on the Error Model)
    */
-  uint8_t GetCqiFromSpectralEfficiency (double s);
+  uint8_t GetCqiFromSpectralEfficiency (double s) const;
 
   /**
    * \brief Get MCS from a SpectralEfficiency value
    * \param s spectral efficiency
    * \return the MCS (depends on the Error Model)
    */
-  uint8_t GetMcsFromSpectralEfficiency (double s);
+  uint8_t GetMcsFromSpectralEfficiency (double s) const;
 
  /**
   * \brief Get the maximum MCS (depends on the underlying error model)
