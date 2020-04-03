@@ -134,7 +134,7 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
                    MakePointerAccessor (&MmWaveMacSchedulerNs3::m_dlAmc),
                    MakePointerChecker <NrAmc> ())
     .AddAttribute ("UlAmc",
-                   "The DL AMC of this scheduler",
+                   "The UL AMC of this scheduler",
                    PointerValue (),
                    MakePointerAccessor (&MmWaveMacSchedulerNs3::m_ulAmc),
                    MakePointerChecker <NrAmc> ())
