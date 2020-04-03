@@ -207,9 +207,9 @@ main (int argc, char *argv[])
   uint32_t udpPacketSizeULL = 400;
   uint32_t udpPacketSizeBe = 400;
   uint32_t udpPacketSizeVi = 400;
-  uint32_t lambdaULL = 10000;
-  uint32_t lambdaBe = 10000;
-  uint32_t lambdaVi = 10000;
+  uint32_t lambdaULL = 15000;
+  uint32_t lambdaBe = 15000;
+  uint32_t lambdaVi = 15000;
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
@@ -347,7 +347,8 @@ main (int argc, char *argv[])
   gridScenario.SetScenarioParamenters (scenario);
   gridScenario.SetNumCells ();  // Note that the call takes no arguments since the number is obtained from the parameters in SetUMaParameters or SetUMiParameters
   uint16_t gNbNum = gridScenario.GetNumCells ();
-  gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
+  uint32_t ueNum = ueNumPergNb * gNbNum;
+  gridScenario.SetUtNumber (ueNum);
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
   const uint8_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
 
@@ -374,7 +375,7 @@ main (int argc, char *argv[])
    * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
    */
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
+  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ErrorModel));
   if (radioNetwork == "NR")
     {
       if (eesmTable == 1)
@@ -453,11 +454,11 @@ main (int argc, char *argv[])
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
-      scene =  BandwidthPartInfo::UMi_StreetCanyon;
+      scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
     }
   else if (scenario == "UMa")
     {
-      scene = BandwidthPartInfo::UMa;
+      scene = BandwidthPartInfo::UMa_LoS;
     }
   else
     {
@@ -478,7 +479,7 @@ main (int argc, char *argv[])
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
    * TODO: Coordinate with Tommaso
    */
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
   mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -673,9 +674,34 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to its eNB
-  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
-  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
-  mmWaveHelper->AttachToClosestEnb (ueVideoNetDev, enbNetDev);
+//  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
+//  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
+//  mmWaveHelper->AttachToClosestEnb (ueVideoNetDev, enbNetDev);
+  for (uint32_t i = 0; i < ueNum; ++i)
+    {
+      Ptr<NetDevice> gnbNetDev, ueNetDev;
+      gnbNetDev = enbNetDev.Get (i % gNbNum);
+      switch (i % 3)
+      {
+        case 0:
+          ueNetDev = ueLowLatNetDev.Get(i / 3);
+          break;
+        case 1:
+          ueNetDev = ueVoiceNetDev.Get(i / 3);
+          break;
+        case 2:
+          ueNetDev = ueVideoNetDev.Get(i / 3);
+          break;
+        default:
+          NS_ABORT_MSG ("Programming error");
+          break;
+      }
+      mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+      Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+      Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+      double distance = CalculateDistance (gnbpos, uepos);
+      std::cout << "Distance = " << distance << " meters" << std::endl;
+    }
 
   /*
    * Traffic part. Install two kind of traffic: low-latency and voice, each
