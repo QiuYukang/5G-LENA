@@ -47,6 +47,9 @@ public:
 
   void SetIdealBeamformingMethod (const TypeId &beamformingMethod);
 
+  void SetIdealBeamformingPeriodicity (const Time &v);
+  Time GetIdealBeamformingPeriodicity () const;
+
   void Run () const;
 
 private:
