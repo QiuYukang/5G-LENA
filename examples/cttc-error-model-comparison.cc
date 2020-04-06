@@ -66,8 +66,7 @@ NS_LOG_COMPONENT_DEFINE ("CttcErrorModelComparisonExample");
 int
 main (int argc, char *argv[])
 {
-  std::string errorModel = "ns3::NrEesmErrorModel";
-  uint32_t eesmTable = 1;
+  std::string errorModel = "ns3::NrEesmCcT1";
 
   CommandLine cmd;
 

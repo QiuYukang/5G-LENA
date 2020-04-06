@@ -125,7 +125,7 @@ main (int argc, char *argv[])
   NS_ABORT_IF (packets == 0);
 
 
-  std::string errorModel = "ns3::NrEesmErrorModel";
+  std::string errorModel = "ns3::NrEesmCcT1";
 
   CommandLine cmd;
 
