@@ -82,6 +82,8 @@ MmWaveHelper::MmWaveHelper (void)
   m_gnbAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
   m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
+  m_gnbUlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
+  m_gnbDlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
 
   m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
 
@@ -687,7 +689,13 @@ MmWaveHelper::CreateGnbSched ()
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<MmWaveMacScheduler> sched = m_schedFactory.Create <MmWaveMacScheduler> ();
+  auto sched = m_schedFactory.Create <MmWaveMacSchedulerNs3> ();
+  auto dlAmc = m_gnbDlAmcFactory.Create <NrAmc> ();
+  auto ulAmc = m_gnbUlAmcFactory.Create <NrAmc> ();
+
+  sched->InstallDlAmc (dlAmc);
+  sched->InstallUlAmc (ulAmc);
+
   return sched;
 }
 
@@ -912,7 +920,8 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
       enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
-      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i));
+      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i),
+                                           DynamicCast<MmWaveMacSchedulerNs3> (enbNetDev->GetScheduler (i))->GetDlAmc ());
       ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
       ueNetDev->GetPhy (i)->SetSymbolsPerSlot (enbNetDev->GetPhy (i)->GetSymbolsPerSlot ());
       ueNetDev->GetPhy (i)->SetNumerology (enbNetDev->GetPhy(i)->GetNumerology ());
@@ -1101,6 +1110,20 @@ MmWaveHelper::SetPathlossAttribute(const std::string &n, const AttributeValue &v
 {
   NS_LOG_FUNCTION (this);
   m_pathlossModelFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbDlAmcAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbDlAmcFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbUlAmcFactory.Set (n, v);
 }
 
 void

@@ -194,7 +194,7 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 }
 
 void
-MmWaveUePhy::RegisterToEnb (uint16_t bwpId)
+MmWaveUePhy::RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc)
 {
   NS_LOG_FUNCTION (this);
 
@@ -203,7 +203,7 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId)
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
 
-  m_amc = CreateObject <NrAmc> ();
+  m_amc = amc;
   DoSetCellId (bwpId);
 }
 

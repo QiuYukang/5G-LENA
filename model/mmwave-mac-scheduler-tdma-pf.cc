@@ -112,7 +112,7 @@ MmWaveMacSchedulerTdmaPF::AssignedDlResources (const UePtrAndBufferReq &ue,
   NS_LOG_FUNCTION (this);
   NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
-  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_amc);
+  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_dlAmc);
 }
 
 void
@@ -123,7 +123,7 @@ MmWaveMacSchedulerTdmaPF::NotAssignedDlResources (const MmWaveMacSchedulerNs3::U
   NS_LOG_FUNCTION (this);
   NS_UNUSED (notAssigned);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
-  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_amc);
+  uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_dlAmc);
 }
 
 void
@@ -132,7 +132,7 @@ MmWaveMacSchedulerTdmaPF::BeforeDlSched (const UePtrAndBufferReq &ue,
 {
   NS_LOG_FUNCTION (this);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
-  uePtr->CalculatePotentialTPut (assignableInIteration, m_amc);
+  uePtr->CalculatePotentialTPut (assignableInIteration, m_dlAmc);
 }
 
 } //namespace ns3

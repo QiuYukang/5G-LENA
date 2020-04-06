@@ -78,7 +78,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
     }
 
   // MCS updated inside the function; crappy API... but we can't fix everything
-  ueInfo->m_ulCqi.m_cqi = m_amc->CreateCqiFeedbackWbTdma (specVals, tbs, ueInfo->m_ulMcs);
+  ueInfo->m_ulCqi.m_cqi = GetAmcUl ()->CreateCqiFeedbackWbTdma (specVals, tbs, ueInfo->m_ulMcs);
 }
 
 void
@@ -96,6 +96,34 @@ MmWaveMacSchedulerCQIManagement::InstallGetCellIdFn (const std::function<uint16_
 }
 
 void
+MmWaveMacSchedulerCQIManagement::InstallGetStartMcsDlFn (const std::function<uint8_t ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getStartMcsDl = fn;
+}
+
+void
+MmWaveMacSchedulerCQIManagement::InstallGetStartMcsUlFn (const std::function<uint8_t ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getStartMcsUl = fn;
+}
+
+void
+MmWaveMacSchedulerCQIManagement::InstallGetNrAmcDlFn (const std::function<Ptr<const NrAmc> ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getAmcDl = fn;
+}
+
+void
+MmWaveMacSchedulerCQIManagement::InstallGetNrAmcUlFn (const std::function<Ptr<const NrAmc> ()> &fn)
+{
+  NS_LOG_FUNCTION (this);
+  m_getAmcUl = fn;
+}
+
+void
 MmWaveMacSchedulerCQIManagement::DlWBCQIReported (const DlCqiInfo &info,
                                                   const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
                                                   uint32_t expirationTime) const
@@ -105,7 +133,7 @@ MmWaveMacSchedulerCQIManagement::DlWBCQIReported (const DlCqiInfo &info,
   ueInfo->m_dlCqi.m_cqiType = MmWaveMacSchedulerUeInfo::CqiInfo::WB;
   ueInfo->m_dlCqi.m_cqi = info.m_wbCqi;
   ueInfo->m_dlCqi.m_timer = expirationTime;
-  ueInfo->m_dlMcs = static_cast<uint8_t> (m_amc->GetMcsFromCqi (ueInfo->m_dlCqi.m_cqi));
+  ueInfo->m_dlMcs = static_cast<uint8_t> (GetAmcDl()->GetMcsFromCqi (ueInfo->m_dlCqi.m_cqi));
   NS_LOG_INFO ("Calculated MCS for UE " << static_cast<uint16_t> (ueInfo->m_rnti) <<
                " is " << static_cast<uint32_t> (ueInfo->m_dlMcs));
 
@@ -127,7 +155,7 @@ MmWaveMacSchedulerCQIManagement::RefreshDlCqiMaps (const std::unordered_map<uint
         {
           ue->m_dlCqi.m_cqi = 1; // lowest value for trying a transmission
           ue->m_dlCqi.m_cqiType = MmWaveMacSchedulerUeInfo::CqiInfo::WB;
-          ue->m_dlMcs = m_startMcsDl;
+          ue->m_dlMcs = GetStartMcsDl ();
         }
       else
         {
@@ -149,7 +177,7 @@ MmWaveMacSchedulerCQIManagement::RefreshUlCqiMaps (const std::unordered_map<uint
         {
           ue->m_ulCqi.m_cqi = 1; // lowest value for trying a transmission
           ue->m_ulCqi.m_cqiType = MmWaveMacSchedulerUeInfo::CqiInfo::WB;
-          ue->m_ulMcs = m_startMcsUl;
+          ue->m_ulMcs = GetStartMcsUl ();
         }
       else
         {
@@ -168,6 +196,30 @@ uint16_t
 MmWaveMacSchedulerCQIManagement::GetCellId () const
 {
   return m_getCellId ();
+}
+
+uint8_t
+MmWaveMacSchedulerCQIManagement::GetStartMcsDl() const
+{
+  return m_getStartMcsDl ();
+}
+
+uint8_t
+MmWaveMacSchedulerCQIManagement::GetStartMcsUl() const
+{
+  return m_getStartMcsUl ();
+}
+
+Ptr<const NrAmc>
+MmWaveMacSchedulerCQIManagement::GetAmcDl() const
+{
+  return m_getAmcDl ();
+}
+
+Ptr<const NrAmc>
+MmWaveMacSchedulerCQIManagement::GetAmcUl() const
+{
+  return m_getAmcUl ();
 }
 
 } // namespace ns3

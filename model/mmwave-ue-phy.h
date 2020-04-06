@@ -120,8 +120,10 @@ public:
    * Install the configuration parameters in the UE.
    *
    * \param bwpId the bwp id to which this PHY is attaching to
+   * \param amc The DL AMC of the GNB. This will be used to create the DL CQI
+   * that will be sent to the GNB.
    */
-  void RegisterToEnb (uint16_t bwpId);
+  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc);
 
   /**
    * \brief Function that sets the number of RBs per RBG.
@@ -489,7 +491,7 @@ private:
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
 
-  Ptr<NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
+  Ptr<const NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
 
   Time m_wbCqiPeriod;       /**< Wideband Periodic CQI: 2, 5, 10, 16, 20, 32, 40, 64, 80 or 160 ms */
   Time m_wbCqiLast;

@@ -266,6 +266,10 @@ public:
 
   void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
 
+  void SetGnbDlAmcAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v);
+
 private:
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
@@ -333,6 +337,8 @@ private:
   ObjectFactory m_channelConditionModelFactory; //!< Channel condition factory
   ObjectFactory m_spectrumPropagationFactory; //!< Spectrum Factory
   ObjectFactory m_pathlossModelFactory;  //!< Pathloss factory
+  ObjectFactory m_gnbDlAmcFactory;       //!< DL AMC factory
+  ObjectFactory m_gnbUlAmcFactory;       //!< UL AMC factory
 
 
   uint64_t m_imsiCounter;

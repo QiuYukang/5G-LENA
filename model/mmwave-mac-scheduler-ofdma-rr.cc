@@ -55,7 +55,7 @@ MmWaveMacSchedulerOfdmaRR::AssignedDlResources (const UePtrAndBufferReq &ue,
   NS_UNUSED (assigned);
   NS_UNUSED (totAssigned);
   GetFirst GetUe;
-  GetUe (ue)->UpdateDlMetric (m_amc);
+  GetUe (ue)->UpdateDlMetric (m_dlAmc);
 }
 
 void
@@ -67,7 +67,7 @@ MmWaveMacSchedulerOfdmaRR::AssignedUlResources (const UePtrAndBufferReq &ue,
   NS_UNUSED (assigned);
   NS_UNUSED (totAssigned);
   GetFirst GetUe;
-  GetUe (ue)->UpdateUlMetric (m_amc);
+  GetUe (ue)->UpdateUlMetric (m_dlAmc);
 }
 
 std::function<bool(const MmWaveMacSchedulerNs3::UePtrAndBufferReq &lhs,

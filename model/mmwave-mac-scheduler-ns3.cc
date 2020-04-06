@@ -32,6 +32,7 @@
 #include <ns3/uinteger.h>
 #include <ns3/log.h>
 #include <ns3/eps-bearer.h>
+#include <ns3/pointer.h>
 
 namespace ns3 {
 
@@ -41,15 +42,43 @@ NS_OBJECT_ENSURE_REGISTERED (MmWaveMacSchedulerNs3);
 MmWaveMacSchedulerNs3::MmWaveMacSchedulerNs3 () : MmWaveMacScheduler ()
 {
   NS_LOG_FUNCTION_NOARGS ();
-  m_amc = CreateObject<NrAmc> ();
-  m_cqiManagement.ConfigureCommonParameters (m_amc, m_startMcsDl, m_startMcsUl);
   m_cqiManagement.InstallGetBwpIdFn (std::bind (&MmWaveMacSchedulerNs3::GetBwpId, this));
   m_cqiManagement.InstallGetCellIdFn (std::bind (&MmWaveMacSchedulerNs3::GetCellId, this));
+  m_cqiManagement.InstallGetNrAmcDlFn (std::bind ([this] () { return m_dlAmc; }));
+  m_cqiManagement.InstallGetNrAmcUlFn (std::bind ([this] () { return m_ulAmc; }));
+  m_cqiManagement.InstallGetStartMcsDlFn (std::bind ([this] () { return m_startMcsDl; }));
+  m_cqiManagement.InstallGetStartMcsUlFn (std::bind ([this] () { return m_startMcsUl; }));
 }
 
 MmWaveMacSchedulerNs3::~MmWaveMacSchedulerNs3 ()
 {
   m_ueMap.clear ();
+}
+
+void
+MmWaveMacSchedulerNs3::InstallDlAmc (const Ptr<NrAmc> &dlAmc)
+{
+  m_dlAmc = dlAmc;
+}
+
+void
+MmWaveMacSchedulerNs3::InstallUlAmc (const Ptr<NrAmc> &ulAmc)
+{
+  m_ulAmc = ulAmc;
+}
+
+Ptr<const NrAmc>
+MmWaveMacSchedulerNs3::GetUlAmc() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ulAmc;
+}
+
+Ptr<const NrAmc>
+MmWaveMacSchedulerNs3::GetDlAmc() const
+{
+  NS_LOG_FUNCTION (this);
+  return m_dlAmc;
 }
 
 TypeId
@@ -99,6 +128,16 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetUlCtrlSymbols,
                                          &MmWaveMacSchedulerNs3::GetUlCtrlSymbols),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("DlAmc",
+                   "The DL AMC of this scheduler",
+                   PointerValue (),
+                   MakePointerAccessor (&MmWaveMacSchedulerNs3::m_dlAmc),
+                   MakePointerChecker <NrAmc> ())
+    .AddAttribute ("UlAmc",
+                   "The DL AMC of this scheduler",
+                   PointerValue (),
+                   MakePointerAccessor (&MmWaveMacSchedulerNs3::m_ulAmc),
+                   MakePointerChecker <NrAmc> ())
   ;
 
   return tid;
@@ -176,7 +215,6 @@ MmWaveMacSchedulerNs3::SetStartMcsDl (uint8_t v)
 {
   NS_LOG_FUNCTION (this);
   m_startMcsDl = v;
-  m_cqiManagement.ConfigureCommonParameters (m_amc, m_startMcsDl, m_startMcsUl);
 }
 
 uint8_t
@@ -191,7 +229,6 @@ MmWaveMacSchedulerNs3::SetStartMcsUl (uint8_t v)
 {
   NS_LOG_FUNCTION (this);
   m_startMcsUl = v;
-  m_cqiManagement.ConfigureCommonParameters (m_amc, m_startMcsDl, m_startMcsUl);
 }
 
 uint8_t
@@ -1412,8 +1449,8 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
           ue->m_ulRBG += GetBandwidthInRbg ();
 
           assignedSym++;
-          tbs = m_amc->CalculateTbSize (ue->m_ulMcs,
-                                        ue->m_ulRBG * GetNumRbPerRbg ());
+          tbs = m_ulAmc->CalculateTbSize (ue->m_ulMcs,
+                                          ue->m_ulRBG * GetNumRbPerRbg ());
         }
       while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
 
