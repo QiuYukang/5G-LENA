@@ -68,6 +68,9 @@ responsible for configuring quasi-omni beamforming vector for omni transmissions
 This class should be used by gNB and UE to control its ThreeGppAntennaArrayModel 
 instances.
 
+* Added attribute "NumRefScPerRb" in NrAmc, to indicate the number of reference
+subcarriers per RB.
+
 ### Changes to existing API:
 
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
