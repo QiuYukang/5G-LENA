@@ -150,6 +150,11 @@ enable or disable interference calculations for all links.
 * Replaced the message DCI_TDMA with UL_DCI and DL_DCI, to differentiate among
 the allocations.
 
+* The EESM error model class has been separated, and the attributes HarqMethod and
+McsTable removed. Now, to configure different error model based on EESM,
+you have to specify directly the Harq method and the table name in the
+error model name: the new classes are NrEesmIrT1, NrEesmIrT2, NrEesmCcT1,
+NrEesmCcT2.
 
 ### Changed behavior:
 
