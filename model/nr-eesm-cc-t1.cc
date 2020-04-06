@@ -47,37 +47,37 @@ NrEesmCcT1::GetTypeId (void)
 const std::vector<double> *
 NrEesmCcT1::GetBetaTable() const
 {
-  return m_t2.m_betaTable;
+  return m_t1.m_betaTable;
 }
 
 const std::vector<double> *
 NrEesmCcT1::GetMcsEcrTable() const
 {
-  return m_t2.m_mcsEcrTable;
+  return m_t1.m_mcsEcrTable;
 }
 
 const NrEesmErrorModel::SimulatedBlerFromSINR *
 NrEesmCcT1::GetSimulatedBlerFromSINR() const
 {
-  return m_t2.m_simulatedBlerFromSINR;
+  return m_t1.m_simulatedBlerFromSINR;
 }
 
 const std::vector<uint8_t> *
 NrEesmCcT1::GetMcsMTable() const
 {
-  return m_t2.m_mcsMTable;
+  return m_t1.m_mcsMTable;
 }
 
 const std::vector<double> *
 NrEesmCcT1::GetSpectralEfficiencyForMcs() const
 {
-  return m_t2.m_spectralEfficiencyForMcs;
+  return m_t1.m_spectralEfficiencyForMcs;
 }
 
 const std::vector<double> *
 NrEesmCcT1::GetSpectralEfficiencyForCqi() const
 {
-  return m_t2.m_spectralEfficiencyForCqi;
+  return m_t1.m_spectralEfficiencyForCqi;
 }
 
 } // namespace ns3

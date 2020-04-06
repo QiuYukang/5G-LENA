@@ -48,7 +48,7 @@ protected:
   virtual const std::vector<double> * GetSpectralEfficiencyForCqi () const override;
 
 private:
-  NrEesmT1 m_t2;
+  NrEesmT1 m_t1;
 };
 
 } // namespace ns3
