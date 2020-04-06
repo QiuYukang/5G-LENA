@@ -40,11 +40,13 @@
  * NR PHY abstraction model for error modeling by using a fixed MCS. It allows the user to set the MCS, the
  * gNB-UE distance, the MCS table, the error model type, and the HARQ method.
  *
- * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1",
+ * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1", for HARQ-CC and MCS Table1,
  * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
  * For NR, you can choose between different types of error model, which use
- * different tables and different methods to process the HARQ history.
- * You can fix also the MCS to use with "--mcs=7" (7 in this case).
+ * different tables and different methods to process the HARQ history, e.g.,
+ * "--errorModel=ns3::NrEesmIrT1", for HARQ-IR and MCS Table2.
+ * You can fix also the MCS index to use with "--mcs=7" (7 in this case), which refers
+ * to the configured MCS table.
  *
  * The scenario consists of a single gNB and a single UE, placed at positions (0.0, 0.0, 10), and
  * (0.0, ueY, 1.5), respectively. ueY can be configured by the user, e.g. "ueY=20", and defaults

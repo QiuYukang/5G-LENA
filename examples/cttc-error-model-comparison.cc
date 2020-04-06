@@ -38,10 +38,11 @@
  * This example allows the user to compare the Transport Block Size that is obtained
  * for each MCS index under different error models (NR and LTE) and different MCS Tables.
  *
- * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1",
+ * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1", for HARQ-CC and MCS Table1,
  * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
  * For NR, you can choose between different types of error model, which use
- * different tables and different methods to process the HARQ history.
+ * different tables and different methods to process the HARQ history, e.g.,
+ * "--errorModel=ns3::NrEesmIrT1", for HARQ-IR and MCS Table2.
  *
  * There is no deployment scenario configured, the example directly computes the TBS
  * for all MCSs of the configured error model and MCS Table, assuming numerology 4
