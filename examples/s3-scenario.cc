@@ -376,21 +376,6 @@ main (int argc, char *argv[])
    */
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ErrorModel));
-  if (radioNetwork == "NR")
-    {
-      if (eesmTable == 1)
-        {
-          Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
-        }
-      else if (eesmTable == 2)
-        {
-          Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
-        }
-      else
-        {
-          NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
-        }
-    }
 
   NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
 

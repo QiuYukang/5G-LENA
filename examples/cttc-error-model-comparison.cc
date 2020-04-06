@@ -72,11 +72,8 @@ main (int argc, char *argv[])
   CommandLine cmd;
 
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
+               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
-  cmd.AddValue("eesmTable",
-               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
-               eesmTable);
 
   cmd.Parse (argc, argv);
 
@@ -85,18 +82,6 @@ main (int argc, char *argv[])
    */
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
-  if (eesmTable == 1)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
-    }
-  else if (eesmTable == 2)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
-    }
-  else
-    {
-      NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
-    }
 
   // Compute number of RBs that fit in 100 MHz channel bandwidth with numerology 4 (240 kHz SCS)
   const uint8_t numerology = 4;

@@ -124,9 +124,7 @@ main (int argc, char *argv[])
   NS_ABORT_IF (packets == 0);
 
 
-  std::string errorModel = "ns3::NrEesmErrorModel";
-  uint32_t eesmTable = 1;
-  std::string harqMethod = "HarqIr";
+  std::string errorModel = "ns3::NrEesmCcT1";
 
   CommandLine cmd;
 
@@ -135,20 +133,14 @@ main (int argc, char *argv[])
                 "The MCS that will be used in this example",
                 mcs);
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
+               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
-  cmd.AddValue("eesmTable",
-               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
-               eesmTable);
   cmd.AddValue("ueY",
                "Y position of any UE",
                ueY);
   cmd.AddValue("pktSize",
                "Packet Size",
                pktSize);
-  cmd.AddValue("harqMethod",
-               "The HARQ method to be used in case of Eesm (HarqCc or HarqIr)",
-               harqMethod);
 
   cmd.Parse (argc, argv);
 
@@ -158,35 +150,6 @@ main (int argc, char *argv[])
    */
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
-
-  /*
-   * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
-   */
-  if (harqMethod == "HarqCc")
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
-    }
-  else if (harqMethod == "HarqIr")
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqIr));
-    }
-  else
-    {
-      NS_FATAL_ERROR ("HARQ method not valid, you set " << harqMethod);
-    }
-
-  if (eesmTable == 1)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
-    }
-  else if (eesmTable == 2)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
-    }
-  else
-    {
-      NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
-    }
 
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));  // NOT USED in this example. MCS is fixed.
