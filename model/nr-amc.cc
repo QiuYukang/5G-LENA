@@ -51,6 +51,12 @@ NrAmc::GetTypeId (void)
                    MakeDoubleAccessor (&NrAmc::SetBer,
                                        &NrAmc::GetBer),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("NumRefScPerRb",
+                   "Number of Subcarriers carrying Reference Signals per RB",
+                   UintegerValue (1),
+                   MakeDoubleAccessor (&NrAmc::SetNumRefScPerRb,
+                                       &NrAmc::GetNumRefScPerRb),
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("AmcModel",
                    "AMC model used to assign CQI",
                    EnumValue (NrAmc::ErrorModel),
@@ -102,10 +108,17 @@ NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
                                        mcs, nprb);
 }
 
-uint32_t
+uint8_t
 NrAmc::GetNumRefScPerRb () const
 {
-  return 1;
+  NS_LOG_FUNCTION (this);
+  return m_numRefScPerRb;
+}
+
+void NrAmc::SetNumRefScPerRb(uint8_t nref)
+{
+  NS_LOG_FUNCTION (this);
+  m_numRefScPerRb = nref;
 }
 
 uint32_t
