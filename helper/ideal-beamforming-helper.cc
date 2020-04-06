@@ -146,4 +146,14 @@ IdealBeamformingHelper::GetIdealBeamformingPeriodicity () const
   return m_beamformingPeriodicity;
 }
 
+void
+IdealBeamformingHelper::SetIdealBeamFormingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_idealBeamformingAlgorithm != nullptr, "Call SetIdealBeamformingMethod before this function");
+
+  m_idealBeamformingAlgorithm->SetAttribute (n, v);
+}
+
+
 }
