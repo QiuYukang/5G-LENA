@@ -26,7 +26,10 @@ namespace ns3 {
 
 /**
  * \ingroup error-models
- * @brief The NrEesmIrT1 class
+ * \brief The NrEesmIrT1 class
+ *
+ * Class that implements the IR-HARQ combining with Table 1. It can be used
+ * directly in the code.
  */
 class NrEesmIrT1 : public NrEesmIr
 {

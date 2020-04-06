@@ -26,7 +26,10 @@ namespace ns3 {
 
 /**
  * \ingroup error-models
- * @brief The NrEesmIrT2 class
+ * \brief The NrEesmIrT2 class
+ *
+ * Class that implements the IR-HARQ combining with Table 2. It can be used
+ * directly in the code.
  */
 class NrEesmIrT2 : public NrEesmIr
 {
@@ -37,7 +40,13 @@ public:
    */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief NrEesmIrT2 constructor
+   */
   NrEesmIrT2 ();
+  /**
+   * \brief ~NrEesmIrT2 deconstructor
+   */
   virtual ~NrEesmIrT2 ();
 
 protected:

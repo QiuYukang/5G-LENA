@@ -25,7 +25,7 @@ namespace ns3 {
 
 /**
  * \ingroup error-models
- * @brief The NrEesmCc class
+ * \brief The NrEesmCc class
  *
  * In HARQ-CC, every retransmission contains the same coded bits
  * (information and coding bits). Therefore, the ECR after the q-th retransmission
@@ -38,7 +38,8 @@ namespace ns3 {
  * SINR vector and RB map, and the HARQ history, the effective SINR is computed
  * according to EESM.
  *
- * Functions used inside NrEesmCcT1 and NrEesmCcT2 classes
+ * Please, don't use this class directly, but one between NrEesmCcT1 or NrEesmCcT2,
+ * depending on what table you want to use.
  */
 class NrEesmCc : public NrEesmErrorModel
 {

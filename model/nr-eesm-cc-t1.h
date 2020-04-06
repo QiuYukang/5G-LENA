@@ -26,7 +26,10 @@ namespace ns3 {
 
 /**
  * \ingroup error-models
- * @brief The NrEesmCcT1 class
+ * \brief The NrEesmCcT1 class
+ *
+ * Class that implements the IR-HARQ combining with Table 1. It can be used
+ * directly in the code.
  */
 class NrEesmCcT1 : public NrEesmCc
 {
@@ -36,7 +39,13 @@ public:
    * \return the type id of the object
    */
   static TypeId GetTypeId (void);
+  /**
+   * \brief NrEesmCcT1 constructor
+   */
   NrEesmCcT1 ();
+  /**
+   * \brief ~NrEesmCcT1 deconstructor
+   */
   virtual ~NrEesmCcT1 ();
 
 protected:

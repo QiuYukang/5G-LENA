@@ -36,10 +36,12 @@ namespace ns3 {
  * number of coded bits of each of the previous retransmissions. Given the current
  * SINR vector and the HARQ history, the effective SINR is computed according to EESM.
  *
- * Functions used inside NrEesmIrT1 and NrEesmIrT2 classes
- *
  * NOTE: The method GetMcsEq() must be called after ComputeSINR(), as it uses
  * the value m_Reff.
+ *
+ * Please, don't use this class directly, but one between NrEesmIrT1 or NrEesmIrT2,
+ * depending on what table you want to use.
+ *
  */
 class NrEesmIr : public NrEesmErrorModel
 {
