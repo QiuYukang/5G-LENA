@@ -626,7 +626,8 @@ from the processing timings that are defined in the 'NR' module as:
 
 The values of the processing delays depend on the UE processing time capabilities
 and can be configured by the user through the attributes ``N0Delay``, ``N1Delay``,
-``N2Delay``. Typical values for N0 are 0 and 1, whiler N1, N2, can vary form 0 to 4.
+``N2Delay``. Typical values for N0 are 0 and 1, while N1, N2, can vary form 0 to 15,
+and 0 to 32, respectively, with most common values form 0 to 4.
 For the scheduling timings let us note that each K cannot take a value smaller than
 the corresponding N value (e.g. K2 cannot be less than N2).
 
@@ -635,8 +636,7 @@ timings at the gNB side is briefly described below:
 
 For K0 the gNB calculates (based on the TDD pattern) which is the next DL (or F)
 slot that follows after (minimum) N0 slots. In the current implementation we use
-N0=0 (Self Contained Slot), as such in this case DL Data are scheduled in the same
-slot with the DL DCI.
+N0=0, as such in this case DL Data are scheduled in the same slot with the DL DCI.
 
 For K1/K2, the eNB calculates (based on the TDD pattern) which is the next UL (or F)
 slot that follows after (minimum) N1/N2 slots and calculates K1/K2 based on the
