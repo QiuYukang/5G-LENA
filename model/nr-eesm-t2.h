@@ -28,7 +28,13 @@ namespace ns3 {
  * \ingroup error-models
  * \brief The NrEesmT2 struct
  *
- * NR MCS/CQI Table2 (refers to tables 5.1.3.1-2 and 5.2.2.1-3 in TS38.214)
+ * This class provides the NR Tables to be used for MCS/CQI Table2, corresponding
+ * to tables  5.1.3.1-2 and 5.2.2.1-3 in TS 38.214. It includes the beta values
+ * (obtained from link-to-sytem mapping techniques) for EESM under MCS Table2, the
+ * Effective Code Rate (ECR) corresponding to MCS Table2, the BLER-SINR tables
+ * for different MCS, Block Sizes and LDPC base graph types, the M tables
+ * (modulation order for each MCS index in MCS Table2), the Spectral Efficiency
+ * (SE) for MCS indexes in MCS Table2, and the SE for CQI indexes in CQI Table2.
  *
  * Values used inside NrEesmIrT2 and NrEesmCcT2 classes
  *
