@@ -101,8 +101,7 @@ main (int argc, char *argv[])
     }
 
   std::cout << "NUMEROLOGY 4, 100e6 BANDWIDTH, Error Model: ";
-  std::cout << errorModel << ", MCS Table (if applies:) " << eesmTable <<
-               ". Results: " << std::endl;
+  std::cout << errorModel << ". Results: " << std::endl;
   std::cout << tbs << std::endl;
 
   return 0;
