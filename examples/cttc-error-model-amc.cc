@@ -40,11 +40,11 @@
  * NR PHY abstraction model for error modeling by using adaptive modulation and coding (AMC).
  * It allows the user to set the gNB-UE distance, the MCS table, the error model type, and the HARQ method.
  *
- * For example, the HARQ method can be configured by setting e.g.
- * "--harqMethod=HarqIr" for HARQ-IR. The MCS table can be toggled by the argument,
- * e.g. "--eesmTable=1" for MCS Table1.
- * The NR error model can be set as "--errorModel=ns3::NrEesmErrorModel",
+ * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1",
  * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
+ * For NR, you can choose between different types of error model, which use
+ * different tables and different methods to process the HARQ history.
+ *
  * The AMC model defaults to the Error-model based AMC, but can
  * be changed through to use the Shannon-based model, through the AmcModel attribute, manually.
  *
