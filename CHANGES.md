@@ -48,6 +48,11 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+* Extended the GridScenarioHelper with the introduction of the GridScenarioHelper
+class. This new class creates a hexagonal grid deployment consisiting of up to 19 
+sites with 3 sectors of 120º each, resulting in 57 hexagonal cells. The resulting
+location of sites and UEs can be represented with gnuplot.
+
 * Added GetSpectrumModel to the SAP interface between PHY and MAC, so the CQI calculation
 can see that value.
 

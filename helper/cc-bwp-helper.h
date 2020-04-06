@@ -58,8 +58,14 @@ struct BandwidthPartInfo
   enum Scenario
   {
     RMa,
+    RMa_LoS,
+    RMa_nLoS,
+    UMa_LoS,
+    UMa_nLoS,
     UMa,
     UMi_StreetCanyon,
+    UMi_StreetCanyon_LoS,
+    UMi_StreetCanyon_nLoS,
     InH_OfficeOpen,
     InH_OfficeMixed
   } m_scenario {RMa};
