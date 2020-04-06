@@ -82,16 +82,21 @@ class RadioNetworkParametersHelper
 public:
 
   /**
-   * \brief Set the radio network parameters to LTE
+   * \brief Set the radio network parameters to LTE.
+   * \param freqReuse The cell frequency reuse.
    */
-  void SetNetworkToLte (const std::string scenario);
+  void SetNetworkToLte (const std::string scenario,
+                        uint16_t freqReuse);
 
   /**
-   * \brief Set the radio network parameters to NR
-   * \param scenario Urban scenario (UMa or UMi)
-   * \param numerology Numerology to use
+   * \brief Set the radio network parameters to NR.
+   * \param scenario Urban scenario (UMa or UMi).
+   * \param numerology Numerology to use.
+   * \param freqReuse The cell frequency reuse.
    */
-  void SetNetworkToNr (const std::string scenario, uint16_t numerology);
+  void SetNetworkToNr (const std::string scenario,
+                       uint16_t numerology,
+                       uint16_t freqReuse);
 
   /**
    * \brief Gets the BS transmit power
@@ -125,14 +130,15 @@ private:
 };
 
 void
-RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
+RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario,
+                                               uint16_t freqReuse)
 {
   NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
                    "Unsupported scenario");
 
   m_numerology = 0;
   m_centralFrequency = 2e9;
-  m_bandwidth = 60e6;
+  m_bandwidth = 18e6 * freqReuse;  // 100 RBs per CC (freqReuse)
   if (scenario == "UMa")
     {
       m_txPower = 49;
@@ -145,14 +151,15 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario)
 
 void
 RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
-                                              uint16_t numerology)
+                                              uint16_t numerology,
+                                              uint16_t freqReuse)
 {
   NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
                    "Unsupported scenario");
 
   m_numerology = numerology;
   m_centralFrequency = 2e9;
-  m_bandwidth = 60e6;
+  m_bandwidth = 18e6 * freqReuse;  // 100 RBs per CC (freqReuse)
   if (scenario == "UMa")
     {
       m_txPower = 49;
@@ -204,12 +211,12 @@ main (int argc, char *argv[])
   std::string radioNetwork = "NR";  // LTE or NR
 
   // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSizeULL = 400;
-  uint32_t udpPacketSizeBe = 400;
-  uint32_t udpPacketSizeVi = 400;
-  uint32_t lambdaULL = 15000;
-  uint32_t lambdaBe = 15000;
-  uint32_t lambdaVi = 15000;
+  uint32_t udpPacketSizeULL = 600;
+  uint32_t udpPacketSizeBe = 600;
+  uint32_t udpPacketSizeVi = 600;
+  uint32_t lambdaULL = 10000;
+  uint32_t lambdaBe = 10000;
+  uint32_t lambdaVi = 10000;
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
@@ -230,7 +237,7 @@ main (int argc, char *argv[])
 
   // Error models
   std::string errorModel = "ns3::NrEesmErrorModel";
-  uint32_t eesmTable = 1;
+  uint32_t eesmTable = 2;  //EESM table is more aggressive (less conservative) than table 1
 
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -350,26 +357,34 @@ main (int argc, char *argv[])
   uint32_t ueNum = ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
-  const uint8_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
+  const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
 
   /*
    * Create the radio network related parameters
    */
   RadioNetworkParametersHelper ranHelper;
+  uint16_t numScPerRb = 1;
   if (radioNetwork == "LTE")
     {
-      ranHelper.SetNetworkToLte (scenario);
+      ranHelper.SetNetworkToLte (scenario, ffr);
       errorModel = "ns3::NrLteMiErrorModel";
+      numScPerRb = 4;
     }
   else if (radioNetwork == "NR")
     {
-      ranHelper.SetNetworkToNr (scenario, numerologyBwp);
+      ranHelper.SetNetworkToNr (scenario, numerologyBwp, ffr);
       errorModel = "ns3::NrEesmErrorModel";
     }
   else
     {
       NS_ABORT_MSG ("Unrecognized radio network technology");
     }
+
+  /**
+   * Adjust the average number of Reference symbols per RB only for LTE case,
+   * which is larger than in NR. We assume a value of 4 (could be 3 too).
+   */
+  Config::SetDefault("ns3::NrAmc::NumRefScPerRb", UintegerValue (numScPerRb));
 
   /*
    * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
@@ -435,7 +450,7 @@ main (int argc, char *argv[])
   centralFrequencyBand = ranHelper.GetCentralFrequency ();
   bandwidthBand = ranHelper.GetBandwidth ();
   const uint8_t numCcPerBand = 1; // In this example, each cell will have one CC with one BWP
-  uint8_t numBwps = numCcPerBand * ffr;  // But, the number of created BWPs depends on FFR (3)
+  uint8_t numCcs = numCcPerBand * ffr;  // But, the number of created BWPs depends on FFR (3)
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
@@ -449,7 +464,7 @@ main (int argc, char *argv[])
     {
       NS_ABORT_MSG ("Unsupported scenario");
     }
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numBwps, scene);
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numCcs, scene);
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
@@ -483,7 +498,7 @@ main (int argc, char *argv[])
    * one band and one BWP occupying the entire band, there is no need to divide
    * power among BWPs.
    */
-  double totalTxPower = ranHelper.GetTxPower (); //Convert to dBW
+  double totalTxPower = ranHelper.GetTxPower (); //Convert to mW
   double x = pow (10, totalTxPower/10);
 
   /*
