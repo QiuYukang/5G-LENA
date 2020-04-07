@@ -159,7 +159,7 @@ protected:
   double SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs) const;
 
   /**
-   * \brief Compute the SINR
+   * \brief Compute the effective SINR after retransmission combining
    * \param sinr SINR of the new transmission
    * \param map RB map
    * \param mcs MCS of the transmission
@@ -178,7 +178,7 @@ protected:
                               uint32_t sizeBit, const NrErrorModel::NrErrorModelHistory &sinrHistory) const = 0;
 
   /**
-   * \brief Get the "Equivalent MCS"
+   * \brief Get the "Equivalent MCS" after retransmission combining
    * \param mcsTx MCS of the transmission
    * \return the equivalent MCS
    *
@@ -186,7 +186,7 @@ protected:
    * \see NrEesmIr
    * \see NrEesmCc
    */
-  virtual double GetMcsEq (uint16_t mcsTx) const = 0;
+  virtual double GetMcsEq (uint8_t mcsTx) const = 0;
 
   /**
    * \return pointer to a static vector that represents the beta table

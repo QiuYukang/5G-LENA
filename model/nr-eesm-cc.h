@@ -74,7 +74,7 @@ protected:
    * \param mcs the MCS of the transmission
    * \return The equivalent MCS after retransmissions
    */
-  double GetMcsEq (uint16_t mcsTx) const override;
+  double GetMcsEq (uint8_t mcsTx) const override;
 };
 
 } // namespace ns3

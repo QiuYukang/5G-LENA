@@ -300,7 +300,11 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " needs of " << B1 <<
                " bits distributed in " << C << " CBs of " << K << " bits");
 
-  uint8_t mcs_eq = GetMcsEq (mcs);
+  uint8_t mcs_eq = mcs;
+  if ((sinrHistory.size () > 0) && (mcs > 0))
+    {
+      mcs_eq = GetMcsEq (mcs);
+    }
 
   NS_LOG_INFO (" MCS of tx " << +mcs <<
                " Equivalent MCS for PHY abstraction (just for HARQ-IR) " << +mcs_eq);

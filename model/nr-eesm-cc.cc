@@ -126,7 +126,7 @@ NrEesmCc::ComputeSINR (const SpectrumValue& sinr, const std::vector<int>& map, u
 }
 
 double
-NrEesmCc::GetMcsEq (uint16_t mcsTx) const
+NrEesmCc::GetMcsEq (uint8_t mcsTx) const
 {
   NS_LOG_FUNCTION (this);
   return mcsTx;

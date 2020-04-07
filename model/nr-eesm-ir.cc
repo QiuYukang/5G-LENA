@@ -96,13 +96,13 @@ NrEesmIr::ComputeSINR (const SpectrumValue &sinr, const std::vector<int> &map,
 }
 
 double
-NrEesmIr::GetMcsEq (uint16_t mcsTx) const
+NrEesmIr::GetMcsEq (uint8_t mcsTx) const
 {
   NS_LOG_FUNCTION (this);
   // PHY abstraction for HARQ-IR retx -> get closest ECR to Reff from the
   // available ones that belong to the same modulation order
 
-  uint16_t mcs_eq = mcsTx;
+  uint8_t mcs_eq = mcsTx;
 
   uint8_t ModOrder = GetMcsMTable ()->at (mcsTx);
 
