@@ -49,6 +49,9 @@ struct NrEesmErrorModelOutput : public NrErrorModelOutput
 
 /**
  * \ingroup error-models
+ *
+ * \brief Eesm error model
+ *
  * This class provides the BLER estimation based on EESM metrics, assuming LDPC
  * coding with block segmentation as per TS 38.212 Sect. 5.2.2, and modulation
  * and coding of MCS Table1/Table2 in TS 38.214 including up to 256-QAM. The MCS
@@ -57,6 +60,21 @@ struct NrEesmErrorModelOutput : public NrErrorModelOutput
  * coding and said MCSs. In case of HARQ, the model currently follows HARQ with
  * Chase Combining, so that the SINReff is updated, but not the ECR, as per
  * IEEE 802.16m-08/004r2.
+ *
+ * The classes to use in your simulations are:
+ *
+ * * NrEesmIrT1, for IR - Table 1
+ * * NrEesmIrT2, for IR - Table 2
+ * * NrEesmCcT1, for CC - Table 1
+ * * NrEesmCcT2, for CC - Table 2
+ *
+ * We provide the implementation of the Chase Combining-HARQ and the IR-HARQ
+ * in NrEesmCc and NrEesmIr, respectively.
+ *
+ * \see NrEesmIrT1
+ * \see NrEesmIrT2
+ * \see NrEesmCcT1
+ * \see NrEesmCcT2
  */
 class NrEesmErrorModel : public NrErrorModel
 {
@@ -72,23 +90,6 @@ public:
 
   NrEesmErrorModel ();
   virtual ~NrEesmErrorModel () override;
-
-  /**
-   * \brief NR Table to be used for MCSs and CQIs in TS38.214.
-   */
-  enum McsTable
-  {
-    McsTable1 = 0,  //!< NR MCS/CQI Table1 (corresponds to tables 5.1.3.1-1 and 5.2.2.1-2 in TS38.214)
-    McsTable2 = 1   //!< NR MCS/CQI Table2 (refers to tables 5.1.3.1-2 and 5.2.2.1-3 in TS38.214)
-  };
-  /**
-   * \brief HARQ method used for PHY abstraction retransmissions combining
-   */
-  enum HarqMethod
-  {
-    HarqCc = 0,  //!< HARC Chase Combining
-    HarqIr = 1   //!< HARQ Incremental Redundancy
-  };
 
   /**
    * \brief Get an output for the decodification error probability of a given
@@ -134,42 +135,17 @@ public:
   */
   virtual uint8_t GetMaxMcs () override;
 
-  /**
-   * \brief Set the NR Tables to be used for MCSs and CQIs in TS38.214, based on
-   * m_mcsTable parameter. It icludes configuraiton of the beta tables
-   * ECR tables, BLER-SINR tables, M tables, SE for MCS tables, SE for CQI tables
-   */
-  void SetMcsTable (McsTable input);
-  /**
-   * \brief Get the NR Table being used for MCSs and CQIs in TS38.214
-   */
-  McsTable GetMcsTable () const;
-
-  /**
-   * \brief Set the HARQ method, based on m_harqMethod parameter.
-   */
-  void SetHarqMethod (HarqMethod input);
-  /**
-   * \brief Get the HARQ method
-   */
-  HarqMethod GetHarqMethod () const;
-
   typedef std::vector<double> DoubleVector;
   typedef std::tuple<DoubleVector, DoubleVector> DoubleTuple;
   typedef std::vector<std::vector<std::map<uint32_t, DoubleTuple> > > SimulatedBlerFromSINR;
 
-
-private:
-  static std::vector<std::string> m_bgTypeName;
-
-  McsTable m_mcsTable {McsTable1};
-  HarqMethod m_harqMethod {HarqCc};
-  const std::vector<double> *m_betaTable {nullptr};
-  const std::vector<double> *m_mcsEcrTable {nullptr};
-  const SimulatedBlerFromSINR *m_simulatedBlerFromSINR {nullptr};
-  const std::vector<uint8_t> *m_mcsMTable {nullptr};
-  const std::vector<double> *m_spectralEfficiencyForMcs {nullptr};
-  const std::vector<double> *m_spectralEfficiencyForCqi {nullptr};
+protected:
+  /**
+   * \brief function to print the RB map
+   * \param map the RB map
+   * \return a string that contains the RB map in a readable way
+   */
+  std::string PrintMap (const std::vector<int> &map) const;
 
   /**
    * \brief compute the effective SINR for the specified MCS and SINR, according
@@ -180,7 +156,65 @@ private:
    * \param mcs the MCS of the TB
    * \return the effective SINR
    */
-  double SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs);
+  double SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs) const;
+
+  /**
+   * \brief Compute the effective SINR after retransmission combining
+   * \param sinr SINR of the new transmission
+   * \param map RB map
+   * \param mcs MCS of the transmission
+   * \param sizeBit size (in bit) of the transmission
+   * \param sinrHistory history of the SINR of the previous transmission
+   * \return the single SINR value
+   *
+   * Called in GetTbBitDecodificationStats(). Please implement this function
+   * in a way that calculating the SINR of the new transmission
+   * takes in consideration the sinr history.
+   *
+   * \see NrEesmIr
+   * \see NrEesmCc
+   */
+  virtual double ComputeSINR (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs,
+                              uint32_t sizeBit, const NrErrorModel::NrErrorModelHistory &sinrHistory) const = 0;
+
+  /**
+   * \brief Get the "Equivalent MCS" after retransmission combining
+   * \param mcsTx MCS of the transmission
+   * \return the equivalent MCS
+   *
+   * Called in GetTbDecodificationStats()
+   * \see NrEesmIr
+   * \see NrEesmCc
+   */
+  virtual double GetMcsEq (uint8_t mcsTx) const = 0;
+
+  /**
+   * \return pointer to a static vector that represents the beta table
+   */
+  virtual const std::vector<double> * GetBetaTable () const = 0;
+  /**
+   * \return pointer to a static vector that represents the MCS-ECR table
+   */
+  virtual const std::vector<double> * GetMcsEcrTable () const = 0;
+  /**
+   * \return pointer to a table of BLER vs SINR
+   */
+  virtual const SimulatedBlerFromSINR * GetSimulatedBlerFromSINR () const = 0;
+  /**
+   * \return pointer to a static vector that represents the MCS-M table
+   */
+  virtual const std::vector<uint8_t> * GetMcsMTable () const = 0;
+  /**
+   * \return pointer to a static vector that represents the spectral efficiency for MCS
+   */
+  virtual const std::vector<double> * GetSpectralEfficiencyForMcs () const = 0;
+  /**
+   * \return pointer to a static vector that represents the spectral efficiency for CQI
+   */
+  virtual const std::vector<double> * GetSpectralEfficiencyForCqi () const = 0;
+
+private:
+  static std::vector<std::string> m_bgTypeName;
 
   /**
    * \brief map the effective SINR into CBLER for the specified MCS and CB size,

@@ -73,6 +73,9 @@ New user-visible features (old first)
 - Introduced FDD operational mode for a Bandwidth Part.
 - Removed PhyMacCommon. Its attributes are now divided among different classes.
   Please check CHANGES.md for the list.
+- Separated NrEesmErrorModel in four different classes: NrEesmIrT1, NrEesmIrT2,
+  NrEesmCcT1, NrEesmCcT2. These classes encapsulate the properties (harq method, table) that
+  were an attribute of NrEesmErrorModel.
 
 Bugs fixed
 ----------

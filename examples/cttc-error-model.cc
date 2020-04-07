@@ -40,11 +40,13 @@
  * NR PHY abstraction model for error modeling by using a fixed MCS. It allows the user to set the MCS, the
  * gNB-UE distance, the MCS table, the error model type, and the HARQ method.
  *
- * For example, the HARQ method can be configured by setting e.g.
- * "--harqMethod=HarqIr" for HARQ-IR. The MCS table can be toggled by the argument,
- * e.g. "--eesmTable=1" for MCS Table1, and the MCS value to be used as e.g. "--mcs=7".
- * The NR error model can be set as "--errorModel=ns3::NrEesmErrorModel",
+ * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1", for HARQ-CC and MCS Table1,
  * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
+ * For NR, you can choose between different types of error model, which use
+ * different tables and different methods to process the HARQ history, e.g.,
+ * "--errorModel=ns3::NrEesmIrT1", for HARQ-IR and MCS Table2.
+ * You can fix also the MCS index to use with "--mcs=7" (7 in this case), which refers
+ * to the configured MCS table.
  *
  * The scenario consists of a single gNB and a single UE, placed at positions (0.0, 0.0, 10), and
  * (0.0, ueY, 1.5), respectively. ueY can be configured by the user, e.g. "ueY=20", and defaults
@@ -124,9 +126,7 @@ main (int argc, char *argv[])
   NS_ABORT_IF (packets == 0);
 
 
-  std::string errorModel = "ns3::NrEesmErrorModel";
-  uint32_t eesmTable = 1;
-  std::string harqMethod = "HarqIr";
+  std::string errorModel = "ns3::NrEesmCcT1";
 
   CommandLine cmd;
 
@@ -135,20 +135,14 @@ main (int argc, char *argv[])
                 "The MCS that will be used in this example",
                 mcs);
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
+               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
-  cmd.AddValue("eesmTable",
-               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
-               eesmTable);
   cmd.AddValue("ueY",
                "Y position of any UE",
                ueY);
   cmd.AddValue("pktSize",
                "Packet Size",
                pktSize);
-  cmd.AddValue("harqMethod",
-               "The HARQ method to be used in case of Eesm (HarqCc or HarqIr)",
-               harqMethod);
 
   cmd.Parse (argc, argv);
 
@@ -158,35 +152,6 @@ main (int argc, char *argv[])
    */
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
-
-  /*
-   * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
-   */
-  if (harqMethod == "HarqCc")
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqCc));
-    }
-  else if (harqMethod == "HarqIr")
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::HarqMethod", EnumValue (NrEesmErrorModel::HarqIr));
-    }
-  else
-    {
-      NS_FATAL_ERROR ("HARQ method not valid, you set " << harqMethod);
-    }
-
-  if (eesmTable == 1)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
-    }
-  else if (eesmTable == 2)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
-    }
-  else
-    {
-      NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
-    }
 
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));  // NOT USED in this example. MCS is fixed.

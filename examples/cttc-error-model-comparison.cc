@@ -37,12 +37,12 @@
  *
  * This example allows the user to compare the Transport Block Size that is obtained
  * for each MCS index under different error models (NR and LTE) and different MCS Tables.
- * It allows the user to configure the MCS Table and the error model.
  *
- * For example, the MCS table can be toggled by the argument,
- * e.g. "--eesmTable=1" for MCS Table1.
- * The NR error model can be set as "--errorModel=ns3::NrEesmErrorModel",
+ * The NR error model can be set as "--errorModel=ns3::NrEesmCcT1", for HARQ-CC and MCS Table1,
  * while "--errorModel=ns3::NrLteMiErrorModel" configures the LTE error model.
+ * For NR, you can choose between different types of error model, which use
+ * different tables and different methods to process the HARQ history, e.g.,
+ * "--errorModel=ns3::NrEesmIrT1", for HARQ-IR and MCS Table2.
  *
  * There is no deployment scenario configured, the example directly computes the TBS
  * for all MCSs of the configured error model and MCS Table, assuming numerology 4
@@ -66,17 +66,13 @@ NS_LOG_COMPONENT_DEFINE ("CttcErrorModelComparisonExample");
 int
 main (int argc, char *argv[])
 {
-  std::string errorModel = "ns3::NrEesmErrorModel";
-  uint32_t eesmTable = 1;
+  std::string errorModel = "ns3::NrEesmCcT1";
 
   CommandLine cmd;
 
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteErrorModel",
+               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
-  cmd.AddValue("eesmTable",
-               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
-               eesmTable);
 
   cmd.Parse (argc, argv);
 
@@ -85,18 +81,6 @@ main (int argc, char *argv[])
    */
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
-  if (eesmTable == 1)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable1));
-    }
-  else if (eesmTable == 2)
-    {
-      Config::SetDefault("ns3::NrEesmErrorModel::McsTable", EnumValue (NrEesmErrorModel::McsTable2));
-    }
-  else
-    {
-      NS_FATAL_ERROR ("Valid tables are 1 or 2, you set " << eesmTable);
-    }
 
   // Compute number of RBs that fit in 100 MHz channel bandwidth with numerology 4 (240 kHz SCS)
   const uint8_t numerology = 4;
@@ -117,8 +101,7 @@ main (int argc, char *argv[])
     }
 
   std::cout << "NUMEROLOGY 4, 100e6 BANDWIDTH, Error Model: ";
-  std::cout << errorModel << ", MCS Table (if applies:) " << eesmTable <<
-               ". Results: " << std::endl;
+  std::cout << errorModel << ". Results: " << std::endl;
   std::cout << tbs << std::endl;
 
   return 0;
