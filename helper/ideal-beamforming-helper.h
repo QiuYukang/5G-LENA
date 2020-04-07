@@ -47,6 +47,17 @@ public:
 
   void SetIdealBeamformingMethod (const TypeId &beamformingMethod);
 
+  void SetIdealBeamformingPeriodicity (const Time &v);
+  Time GetIdealBeamformingPeriodicity () const;
+
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetIdealBeamFormingAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+
   void Run () const;
 
 private:

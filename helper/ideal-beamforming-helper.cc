@@ -59,7 +59,8 @@ IdealBeamformingHelper::GetTypeId (void)
       .AddAttribute ("BeamformingPeriodicity",
                      "Interval between consecutive beamforming method executions.",
                       TimeValue (MilliSeconds (100)),
-                      MakeTimeAccessor (&IdealBeamformingHelper::m_beamformingPeriodicity),
+                      MakeTimeAccessor (&IdealBeamformingHelper::SetIdealBeamformingPeriodicity,
+                                        &IdealBeamformingHelper::GetIdealBeamformingPeriodicity),
                       MakeTimeChecker())
       ;
     return tid;
@@ -128,5 +129,31 @@ IdealBeamformingHelper::ExpireBeamformingTimer()
   m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
                                             &IdealBeamformingHelper::ExpireBeamformingTimer, this);
 }
+
+void
+IdealBeamformingHelper::SetIdealBeamformingPeriodicity (const Time &v)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_beamformingPeriodicity = v;
+}
+
+Time
+IdealBeamformingHelper::GetIdealBeamformingPeriodicity () const
+{
+  NS_LOG_FUNCTION (this);
+
+  return m_beamformingPeriodicity;
+}
+
+void
+IdealBeamformingHelper::SetIdealBeamFormingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_idealBeamformingAlgorithm != nullptr, "Call SetIdealBeamformingMethod before this function");
+
+  m_idealBeamformingAlgorithm->SetAttribute (n, v);
+}
+
 
 }

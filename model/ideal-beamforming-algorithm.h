@@ -64,6 +64,16 @@ public:
                                       const Ptr<const MmWaveUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const;
 
+  /**
+   * \return Gets value of BeamSearchAngleStep attribute
+   */
+  double GetBeamSearchAngleStep () const;
+
+  /**
+   * \brief Sets the value of BeamSearchAngleStep attribute
+   */
+  void SetBeamSearchAngleStep (double beamSearchAngleStep);
+
 private:
 
   /**
