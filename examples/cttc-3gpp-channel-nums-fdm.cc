@@ -175,7 +175,7 @@ main (int argc, char *argv[])
    * |------------CC0------------------|--------------CC1-------------------|
    * |------------BWP0-----------------|------BWP1-------|-------BWP2-------|
    *
-   * We will configure BWP1 as TDD, BWP2 as FDD-DL, BWP3 as FDD-UL.
+   * We will configure BWP0 as TDD, BWP1 as FDD-DL, BWP2 as FDD-UL.
    */
 
   /*
@@ -243,7 +243,6 @@ main (int argc, char *argv[])
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-
   mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (2, 1);
 
   // -------------- Second GNB:
@@ -264,7 +263,6 @@ main (int argc, char *argv[])
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-
   mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (1))->SetOutputLink (2, 1);
 
   // -------------- Third GNB:
@@ -285,7 +283,6 @@ main (int argc, char *argv[])
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-
   mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (2))->SetOutputLink (2, 1);
 
   // -------------- Fourth GNB:
@@ -306,7 +303,6 @@ main (int argc, char *argv[])
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-
   mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (3))->SetOutputLink (2, 1);
 
   // Set the UE routing:
