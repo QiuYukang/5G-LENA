@@ -270,6 +270,30 @@ public:
 
   void SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * \brief Set the ErrorModel for UL AMC and UE spectrum at the same time
+   * \param errorModelTypeId The TypeId of the error model
+   *
+   * Equivalent to the calls to
+   *
+   * * SetGnbUlAmcAttribute ("ErrorModelType", ....
+   * * SetUeSpectrumAttribute ("ErrorModelType", ...
+   *
+   */
+  void SetUlErrorModel (const std::string & errorModelTypeId);
+
+  /**
+   * \brief Set the ErrorModel for DL AMC and GNB spectrum at the same time
+   * \param errorModelTypeId The TypeId of the error model
+   *
+   * Equivalent to the calls to
+   *
+   * * SetGnbDlAmcAttribute ("ErrorModelType", ....
+   * * SetGnbSpectrumAttribute ("ErrorModelType", ...
+   *
+   */
+  void SetDlErrorModel (const std::string & errorModelTypeId);
+
 private:
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
