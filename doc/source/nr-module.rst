@@ -211,12 +211,7 @@ abstraction model supports HARQ
 based on Incremental Redundancy (IR) and on Chase Combining (CC), as we will present in
 the corresponding section.
 
-The MCS table and
-the HARQ method can be configured in the 'NR' module by the user through the attributes
-``McsTable`` and ``HarqMethod``. Let us note that the attribute ``ErrorModelType`` configures
-the type of error modelling, which can be set to NR (ns3::NrEesmErrorModel) or to
-LTE (ns3::NrLteMiErrorModel) in case one wants to
-reproduce LTE PHY layer.
+Let us note that the attribute ``ErrorModelType`` configures the type of error modelling, which can be set to NR (ns3::NrEesmCcT1, ns3::NrEesmIrT1, ns3::NrEesmCcT2, ns3::NrEesmIrT2) or to LTE (ns3::NrLteMiErrorModel) in case one wants to reproduce LTE PHY layer. In the NR case, the HARQ method and MCS table are configured according to the selected error model, e.g., ns3::NrEesmCcT1 uses HARQ-CC and MCS Table1.
 
 The error model of the NR data plane in the 'NR' module is developed according to standard
 link-to-system mapping (L2SM) techniques. The L2SM choice is aligned with the
@@ -389,8 +384,7 @@ on each RB may vary through retransmissions. As such, HARQ affects both the PHY
 and MAC layers.
 
 The 'NR' module supports two HARQ methods: Chase Combining (HARQ-CC)
-and Incremental Redundancy (HARQ-IR), which can be selected by the user through
-the attribute ``HarqMethod``.
+and Incremental Redundancy (HARQ-IR).
 
 At the PHY layer, the error model has been extended to support HARQ with
 retransmission combining.
@@ -694,7 +688,7 @@ The AMC model can be configured by the user through the attribute ``AmcModel``. 
 the Error model-based AMC is selected, the attribute ``ErrorModelType`` defines
 the type of the Error Model that is used when AmcModel is set to ErrorModel, which takes
 the same error model type as the one configured for error modeling. In case the
-Shannon-based AMC is selected, the attribute ``Ber`` sets the requested bit error rate
+Shannon-based AMC is selected, the value :math:`Ber` sets the requested bit error rate
 in assigning the MCS.
 
 In the 'NR' module, link adaptation is done at the UE side, which selects the MCS index (quantized
