@@ -46,12 +46,6 @@ NrAmc::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrAmc")
     .SetParent<Object> ()
-    .AddAttribute ("Ber",
-                   "The requested BER in assigning MCS (default is 0.00005). Only used with ShannonModel",
-                   DoubleValue (0.00005),
-                   MakeDoubleAccessor (&NrAmc::SetBer,
-                                       &NrAmc::GetBer),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("NumRefScPerRb",
                    "Number of Subcarriers carrying Reference Signals per RB",
                    UintegerValue (1),
@@ -171,6 +165,7 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
   if (m_amcModel == ShannonModel)
     {
       //use shannon model
+      double m_ber = GetBer();   // Shannon based model reference BER
       uint32_t rbNum = 0;
       for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
         {
@@ -303,20 +298,6 @@ NrAmc::GetMaxMcs() const
 }
 
 void
-NrAmc::SetBer (double v)
-{
-  NS_LOG_FUNCTION (this);
-  m_ber = v;
-}
-
-double
-NrAmc::GetBer () const
-{
-  NS_LOG_FUNCTION (this);
-  return m_ber;
-}
-
-void
 NrAmc::SetAmcModel (NrAmc::AmcModel m)
 {
   NS_LOG_FUNCTION (this);
@@ -348,6 +329,21 @@ NrAmc::GetErrorModelType () const
   NS_LOG_FUNCTION (this);
   return m_errorModelType;
 }
+
+double
+NrAmc::GetBer () const
+{
+  NS_LOG_FUNCTION (this);
+  if (GetErrorModelType() == NrLteMiErrorModel::GetTypeId ())
+    {
+      return 0.00005;  // Value for LTE error model
+    }
+  else
+    {
+      return 0.00001;  // Value for NR error model
+    }
+}
+
 
 } // namespace ns3
 

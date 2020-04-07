@@ -141,17 +141,6 @@ public:
   uint32_t GetMaxMcs () const;
 
   /**
-   * \brief Set the the requested BER in assigning MCS
-   * \param v the BER
-   */
-  void SetBer (double v);
-  /**
-   * \brief Get the BER value
-   * \return BER
-   */
-  double GetBer () const;
-
-  /**
    * \brief Set the AMC model type
    * \param m the AMC model
    */
@@ -174,13 +163,18 @@ public:
   TypeId GetErrorModelType () const;
 
 private:
-  double m_ber;             //!< Shannon based model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
   Ptr<NrErrorModel> m_errorModel;         //!< Pointer to an instance of ErrorModel
   TypeId m_errorModelType;                //!< Type of the error model
 
   static const unsigned int m_crcLen = 24 / 8; //!< CRC length (in bytes)
   uint8_t m_numRefScPerRb {1}; //!< number of reference subcarriers per RB
+
+  /**
+   * \brief Get the requested BER in assigning MCS (Shannon-bound model)
+   * \return BER
+   */
+  double GetBer () const;
 
 };
 

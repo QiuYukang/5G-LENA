@@ -76,6 +76,8 @@ instances.
 * Added attribute "NumRefScPerRb" in NrAmc, to indicate the number of reference
 subcarriers per RB.
 
+* Removed attribute "Ber" in NrAmc, which is now set based on the error model in use.
+
 ### Changes to existing API:
 
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
