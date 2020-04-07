@@ -76,6 +76,8 @@ instances.
 * Added attribute "NumRefScPerRb" in NrAmc, to indicate the number of reference
 subcarriers per RB.
 
+* Removed attribute "Ber" in NrAmc, which is now set based on the error model in use.
+
 ### Changes to existing API:
 
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
@@ -155,6 +157,10 @@ McsTable removed. Now, to configure different error model based on EESM,
 you have to specify directly the Harq method and the table name in the
 error model name: the new classes are NrEesmIrT1, NrEesmIrT2, NrEesmCcT1,
 NrEesmCcT2.
+
+* The AMC inside the scheduler has been separated into an UL and a DL part.
+Methods in the helper have been added to help the user configuring that part.
+In particular, have a look at SetGnbDlAmcAttribute and SetGnbUlAmcAttribute.
 
 ### Changed behavior:
 

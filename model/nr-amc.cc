@@ -46,12 +46,6 @@ NrAmc::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrAmc")
     .SetParent<Object> ()
-    .AddAttribute ("Ber",
-                   "The requested BER in assigning MCS (default is 0.00005). Only used with ShannonModel",
-                   DoubleValue (0.00005),
-                   MakeDoubleAccessor (&NrAmc::SetBer,
-                                       &NrAmc::GetBer),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("NumRefScPerRb",
                    "Number of Subcarriers carrying Reference Signals per RB",
                    UintegerValue (1),
@@ -73,6 +67,7 @@ NrAmc::GetTypeId (void)
                    MakeTypeIdAccessor (&NrAmc::SetErrorModelType,
                                        &NrAmc::GetErrorModelType),
                    MakeTypeIdChecker ())
+    .AddConstructor <NrAmc> ()
   ;
   return tid;
 }
@@ -154,7 +149,7 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
 
 uint8_t
 NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
-                                    uint8_t &mcs)
+                                    uint8_t &mcs) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -170,6 +165,7 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
   if (m_amcModel == ShannonModel)
     {
       //use shannon model
+      double m_ber = GetBer();   // Shannon based model reference BER
       uint32_t rbNum = 0;
       for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
         {
@@ -267,7 +263,7 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
 }
 
 uint8_t
-NrAmc::GetCqiFromSpectralEfficiency (double s)
+NrAmc::GetCqiFromSpectralEfficiency (double s) const
 {
   NS_LOG_FUNCTION (s);
   NS_ASSERT_MSG (s >= 0.0, "negative spectral efficiency = " << s);
@@ -281,7 +277,7 @@ NrAmc::GetCqiFromSpectralEfficiency (double s)
 }
 
 uint8_t
-NrAmc::GetMcsFromSpectralEfficiency (double s)
+NrAmc::GetMcsFromSpectralEfficiency (double s) const
 {
   NS_LOG_FUNCTION (s);
   NS_ASSERT_MSG (s >= 0.0, "negative spectral efficiency = " << s);
@@ -299,20 +295,6 @@ NrAmc::GetMaxMcs() const
 {
   NS_LOG_FUNCTION (this);
   return m_errorModel->GetMaxMcs ();
-}
-
-void
-NrAmc::SetBer (double v)
-{
-  NS_LOG_FUNCTION (this);
-  m_ber = v;
-}
-
-double
-NrAmc::GetBer () const
-{
-  NS_LOG_FUNCTION (this);
-  return m_ber;
 }
 
 void
@@ -347,6 +329,21 @@ NrAmc::GetErrorModelType () const
   NS_LOG_FUNCTION (this);
   return m_errorModelType;
 }
+
+double
+NrAmc::GetBer () const
+{
+  NS_LOG_FUNCTION (this);
+  if (GetErrorModelType() == NrLteMiErrorModel::GetTypeId ())
+    {
+      return 0.00005;  // Value for LTE error model
+    }
+  else
+    {
+      return 0.00001;  // Value for NR error model
+    }
+}
+
 
 } // namespace ns3
 

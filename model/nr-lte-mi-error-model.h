@@ -96,7 +96,7 @@ public:
   /**
    * \brief Get the SE for a given MCS, following the MCSs in LTE
    */
-  virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) override;
+  virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) const override;
   /**
    * \brief Get the payload size, following the MCSs in LTE
    */
@@ -105,7 +105,7 @@ public:
    * \brief Get the maximum code block size, as per LTE
    */
   virtual uint32_t GetMaxCbSize (uint32_t tbSize, uint8_t mcs) const override;
-  virtual uint8_t GetMaxMcs () override;
+  virtual uint8_t GetMaxMcs () const override;
 
 private:
   /**

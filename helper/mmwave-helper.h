@@ -105,6 +105,8 @@ public:
 
   static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);
 
+  static Ptr<MmWaveMacScheduler> GetScheduler (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
+
   /**
    * This method is used to send the ComponentCarrier map created with CcHelper
    * to the helper, the structure will be used within InstallSingleEnbDevice
@@ -264,6 +266,34 @@ public:
 
   void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
 
+  void SetGnbDlAmcAttribute (const std::string &n, const AttributeValue &v);
+
+  void SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set the ErrorModel for UL AMC and UE spectrum at the same time
+   * \param errorModelTypeId The TypeId of the error model
+   *
+   * Equivalent to the calls to
+   *
+   * * SetGnbUlAmcAttribute ("ErrorModelType", ....
+   * * SetUeSpectrumAttribute ("ErrorModelType", ...
+   *
+   */
+  void SetUlErrorModel (const std::string & errorModelTypeId);
+
+  /**
+   * \brief Set the ErrorModel for DL AMC and GNB spectrum at the same time
+   * \param errorModelTypeId The TypeId of the error model
+   *
+   * Equivalent to the calls to
+   *
+   * * SetGnbDlAmcAttribute ("ErrorModelType", ....
+   * * SetGnbSpectrumAttribute ("ErrorModelType", ...
+   *
+   */
+  void SetDlErrorModel (const std::string & errorModelTypeId);
+
 private:
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
@@ -331,6 +361,8 @@ private:
   ObjectFactory m_channelConditionModelFactory; //!< Channel condition factory
   ObjectFactory m_spectrumPropagationFactory; //!< Spectrum Factory
   ObjectFactory m_pathlossModelFactory;  //!< Pathloss factory
+  ObjectFactory m_gnbDlAmcFactory;       //!< DL AMC factory
+  ObjectFactory m_gnbUlAmcFactory;       //!< UL AMC factory
 
 
   uint64_t m_imsiCounter;

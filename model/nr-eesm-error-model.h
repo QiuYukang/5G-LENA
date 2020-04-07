@@ -118,7 +118,7 @@ public:
    * \brief Get the SE for a given MCS, following the MCSs in NR Table1/Table2
    * in TS38.214
    */
-  virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) override;
+  virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) const override;
   /**
    * \brief Get the payload size in Bytes, following the MCSs in NR
    */
@@ -133,7 +133,7 @@ public:
   /**
   * \brief Get the maximum MCS. It depends on NR tables being used
   */
-  virtual uint8_t GetMaxMcs () override;
+  virtual uint8_t GetMaxMcs () const override;
 
   typedef std::vector<double> DoubleVector;
   typedef std::tuple<DoubleVector, DoubleVector> DoubleTuple;

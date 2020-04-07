@@ -653,7 +653,7 @@ NrLteMiErrorModel::GetSpectralEfficiencyForCqi (uint8_t cqi)
 }
 
 double
-NrLteMiErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs)
+NrLteMiErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs) const
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (mcs > GetMaxMcs ());
@@ -687,7 +687,7 @@ NrLteMiErrorModel::GetMaxCbSize (uint32_t tbSize, uint8_t mcs) const
 }
 
 uint8_t
-NrLteMiErrorModel::GetMaxMcs ()
+NrLteMiErrorModel::GetMaxMcs () const
 {
   return 28;
 }

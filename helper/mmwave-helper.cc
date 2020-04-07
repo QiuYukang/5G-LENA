@@ -82,6 +82,8 @@ MmWaveHelper::MmWaveHelper (void)
   m_gnbAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
   m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
+  m_gnbUlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
+  m_gnbDlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
 
   m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
 
@@ -339,6 +341,20 @@ MmWaveHelper::GetBwpManagerUe(const Ptr<NetDevice> &ueDevice)
     }
 
   return netDevice->GetBwpManager ();
+}
+
+Ptr<MmWaveMacScheduler>
+MmWaveHelper::GetScheduler(const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex)
+{
+  NS_LOG_FUNCTION (gnbDevice << bwpIndex);
+
+  Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice> (gnbDevice);
+  if (netDevice == nullptr)
+    {
+      return nullptr;
+    }
+
+  return netDevice->GetScheduler (bwpIndex);
 }
 
 void
@@ -673,7 +689,13 @@ MmWaveHelper::CreateGnbSched ()
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<MmWaveMacScheduler> sched = m_schedFactory.Create <MmWaveMacScheduler> ();
+  auto sched = m_schedFactory.Create <MmWaveMacSchedulerNs3> ();
+  auto dlAmc = m_gnbDlAmcFactory.Create <NrAmc> ();
+  auto ulAmc = m_gnbUlAmcFactory.Create <NrAmc> ();
+
+  sched->InstallDlAmc (dlAmc);
+  sched->InstallUlAmc (ulAmc);
+
   return sched;
 }
 
@@ -809,11 +831,11 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       // PHY <--> MAC SAP END
 
       //Scheduler SAP
-      it->second->GetMac ()->SetMmWaveMacSchedSapProvider (it->second->GetMmWaveMacScheduler ()->GetMacSchedSapProvider ());
-      it->second->GetMac ()->SetMmWaveMacCschedSapProvider (it->second->GetMmWaveMacScheduler ()->GetMacCschedSapProvider ());
+      it->second->GetMac ()->SetMmWaveMacSchedSapProvider (it->second->GetScheduler ()->GetMacSchedSapProvider ());
+      it->second->GetMac ()->SetMmWaveMacCschedSapProvider (it->second->GetScheduler ()->GetMacCschedSapProvider ());
 
-      it->second->GetMmWaveMacScheduler ()->SetMacSchedSapUser (it->second->GetMac ()->GetMmWaveMacSchedSapUser ());
-      it->second->GetMmWaveMacScheduler ()->SetMacCschedSapUser (it->second->GetMac ()->GetMmWaveMacCschedSapUser ());
+      it->second->GetScheduler ()->SetMacSchedSapUser (it->second->GetMac ()->GetMmWaveMacSchedSapUser ());
+      it->second->GetScheduler ()->SetMacCschedSapUser (it->second->GetMac ()->GetMmWaveMacCschedSapUser ());
       // Scheduler SAP END
 
       it->second->GetMac ()->SetLteCcmMacSapUser (ccmEnbManager->GetLteCcmMacSapUser ());
@@ -898,7 +920,8 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
       enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
-      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i));
+      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i),
+                                           DynamicCast<MmWaveMacSchedulerNs3> (enbNetDev->GetScheduler (i))->GetDlAmc ());
       ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());
       ueNetDev->GetPhy (i)->SetSymbolsPerSlot (enbNetDev->GetPhy (i)->GetSymbolsPerSlot ());
       ueNetDev->GetPhy (i)->SetNumerology (enbNetDev->GetPhy(i)->GetNumerology ());
@@ -1087,6 +1110,38 @@ MmWaveHelper::SetPathlossAttribute(const std::string &n, const AttributeValue &v
 {
   NS_LOG_FUNCTION (this);
   m_pathlossModelFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbDlAmcAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbDlAmcFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbUlAmcFactory.Set (n, v);
+}
+
+void
+MmWaveHelper::SetUlErrorModel(const std::string &errorModelTypeId)
+{
+  NS_LOG_FUNCTION (this);
+
+  SetGnbUlAmcAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModelTypeId)));
+  SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
+}
+
+void
+MmWaveHelper::SetDlErrorModel(const std::string &errorModelTypeId)
+{
+  NS_LOG_FUNCTION (this);
+
+  SetGnbDlAmcAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModelTypeId)));
+  SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
 }
 
 void

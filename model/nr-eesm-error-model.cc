@@ -344,7 +344,7 @@ NrEesmErrorModel::GetSpectralEfficiencyForCqi (uint8_t cqi)
 }
 
 double
-NrEesmErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs)
+NrEesmErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs) const
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (GetSpectralEfficiencyForMcs () != nullptr);
@@ -380,7 +380,7 @@ NrEesmErrorModel::GetMaxCbSize (uint32_t tbSize, uint8_t mcs) const
 }
 
 uint8_t
-NrEesmErrorModel::GetMaxMcs ()
+NrEesmErrorModel::GetMaxMcs () const
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (GetMcsEcrTable () != nullptr);

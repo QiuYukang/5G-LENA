@@ -41,10 +41,8 @@ public:
 
   /**
    * \brief MmWaveMacSchedulerHarqRr constructor
-   * \param config Mac-Phy config
-   * \param amc AMC
    */
-  MmWaveMacSchedulerHarqRr (const Ptr<NrAmc> &amc);
+  MmWaveMacSchedulerHarqRr ();
 
   /**
     * \brief Default deconstructor
@@ -84,9 +82,6 @@ public:
                                   SlotAllocInfo *slotAlloc) const;
   virtual void SortDlHarq (MmWaveMacSchedulerNs3::ActiveHarqMap *activeDlHarq) const;
   virtual void SortUlHarq (MmWaveMacSchedulerNs3::ActiveHarqMap *activeUlHarq) const;
-
-protected:
-  Ptr<NrAmc> m_amc;                    //!< AMC
 
 protected:
   void BufferHARQFeedback (const std::vector <DlHarqInfo> &dlHarqFeedback,

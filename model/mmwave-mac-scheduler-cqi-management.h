@@ -68,21 +68,13 @@ public:
    */
   void InstallGetCellIdFn (const std::function<uint16_t ()> & fn);
 
-  /**
-   * \brief Set the pointer to the NrAmc model
-   * \param config PhyMac config
-   * \param amc AMC model to calculate CQI
-   * \param startMcsDl Default MCS when a CQI is reset (DL)
-   * \param startMcsUl Default MCS when a CQI is reset (UL)
-   */
-  void
-  ConfigureCommonParameters (const Ptr<NrAmc> &amc,
-                             uint8_t startMcsDl, uint8_t startMcsUl)
-  {
-    m_amc = amc;
-    m_startMcsDl = startMcsDl;
-    m_startMcsUl = startMcsUl;
-  }
+  void InstallGetStartMcsDlFn (const std::function<uint8_t ()> & fn);
+
+  void InstallGetStartMcsUlFn (const std::function<uint8_t ()> & fn);
+
+  void InstallGetNrAmcDlFn (const std::function<Ptr<const NrAmc> ()> &fn);
+
+  void InstallGetNrAmcUlFn (const std::function<Ptr<const NrAmc> ()> & fn);
 
   /**
    * \brief A wideband CQI has been reported for the specified UE
@@ -164,11 +156,32 @@ private:
    */
   uint16_t GetCellId () const;
 
-  Ptr<NrAmc> m_amc;                       //!< NrAmc model pointer
-  uint8_t m_startMcsDl {0};
-  uint8_t m_startMcsUl {0};
+  /**
+   * \return the starting MCS for DL
+   */
+  uint8_t GetStartMcsDl () const;
+
+  /**
+   * \return the starting MCS for UL
+   */
+  uint8_t GetStartMcsUl () const;
+
+  /**
+   * \return the AMC for DL
+   */
+  Ptr<const NrAmc> GetAmcDl () const;
+
+  /**
+   * \return the AMC for UL
+   */
+  Ptr<const NrAmc> GetAmcUl () const;
+
   std::function<uint16_t ()> m_getBwpId;  //!< Function to retrieve bwp id
   std::function<uint16_t ()> m_getCellId; //!< Function to retrieve cell id
+  std::function<uint8_t ()> m_getStartMcsDl; //!< Function to retrieve the starting MCS for DL
+  std::function<uint8_t ()> m_getStartMcsUl; //!< Function to retrieve the starting MCS for UL
+  std::function<Ptr<const NrAmc> ()> m_getAmcDl; //!< Function to retrieve the AMC for DL
+  std::function<Ptr<const NrAmc> ()> m_getAmcUl; //!< Function to retrieve the AMC for UL
 };
 
 } // namespace ns3

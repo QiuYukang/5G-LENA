@@ -253,6 +253,34 @@ public:
   ~MmWaveMacSchedulerNs3 () override;
 
   /**
+   * \brief Install the AMC for the DL part
+   * \param dlAmc DL AMC
+   *
+   * Usually called by the helper
+   */
+  void InstallDlAmc (const Ptr<NrAmc> &dlAmc);
+
+  /**
+   * \brief Install the AMC for the DL part
+   * \param dlAmc DL AMC
+   *
+   * Usually called by the helper
+   */
+  void InstallUlAmc (const Ptr<NrAmc> &ulAmc);
+
+  /**
+   * \brief Get the AMC for UL
+   * \return the UL AMC
+   */
+  Ptr<const NrAmc> GetUlAmc () const;
+
+  /**
+   * \brief Get the AMC for DL
+   * \return the DL AMC
+   */
+  Ptr<const NrAmc> GetDlAmc () const;
+
+  /**
    * \brief Point in the Frequency/Time plane
    *
    * The first element represent the RB (not the RBG), while the second element
@@ -591,7 +619,8 @@ protected:
   };
 
 protected:
-  Ptr<NrAmc> m_amc;                     //!< AMC pointer
+  Ptr<NrAmc> m_dlAmc; //!< AMC pointer
+  Ptr<NrAmc> m_ulAmc; //!< AMC pointer
 
 private:
   /**

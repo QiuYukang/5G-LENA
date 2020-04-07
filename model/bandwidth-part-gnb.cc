@@ -102,7 +102,7 @@ BandwidthPartGnb::SetMac (Ptr<MmWaveEnbMac> s)
 
 
 Ptr<MmWaveMacScheduler>
-BandwidthPartGnb::GetMmWaveMacScheduler ()
+BandwidthPartGnb::GetScheduler ()
 {
   NS_LOG_FUNCTION (this);
   return m_scheduler;

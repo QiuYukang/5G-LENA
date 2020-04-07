@@ -33,9 +33,8 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MmWaveMacSchedulerHarqRr");
 
-MmWaveMacSchedulerHarqRr::MmWaveMacSchedulerHarqRr (const Ptr<NrAmc> &amc)
+MmWaveMacSchedulerHarqRr::MmWaveMacSchedulerHarqRr ()
 {
-  m_amc = amc;
 }
 
 void

@@ -49,7 +49,6 @@ public:
 
   /**
    * \brief NrAmc constructor
-   * \param ConfigParams PhyMacCommon params that will be tied with the instance
    */
   NrAmc ();
 
@@ -119,38 +118,27 @@ public:
    * \param mcsWb The calculated MCS
    * \return The calculated CQI
    */
-  uint8_t CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbs, uint8_t &mcsWb);
+  uint8_t CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbs, uint8_t &mcsWb) const;
 
   /**
    * \brief Get CQI from a SpectralEfficiency value
    * \param s spectral efficiency
    * \return the CQI (depends on the Error Model)
    */
-  uint8_t GetCqiFromSpectralEfficiency (double s);
+  uint8_t GetCqiFromSpectralEfficiency (double s) const;
 
   /**
    * \brief Get MCS from a SpectralEfficiency value
    * \param s spectral efficiency
    * \return the MCS (depends on the Error Model)
    */
-  uint8_t GetMcsFromSpectralEfficiency (double s);
+  uint8_t GetMcsFromSpectralEfficiency (double s) const;
 
  /**
   * \brief Get the maximum MCS (depends on the underlying error model)
   * \return the maximum MCS
   */
   uint32_t GetMaxMcs () const;
-
-  /**
-   * \brief Set the the requested BER in assigning MCS
-   * \param v the BER
-   */
-  void SetBer (double v);
-  /**
-   * \brief Get the BER value
-   * \return BER
-   */
-  double GetBer () const;
 
   /**
    * \brief Set the AMC model type
@@ -175,13 +163,18 @@ public:
   TypeId GetErrorModelType () const;
 
 private:
-  double m_ber;             //!< Shannon based model reference BER
   AmcModel m_amcModel;      //!< Type of the CQI feedback model
   Ptr<NrErrorModel> m_errorModel;         //!< Pointer to an instance of ErrorModel
   TypeId m_errorModelType;                //!< Type of the error model
 
   static const unsigned int m_crcLen = 24 / 8; //!< CRC length (in bytes)
   uint8_t m_numRefScPerRb {1}; //!< number of reference subcarriers per RB
+
+  /**
+   * \brief Get the requested BER in assigning MCS (Shannon-bound model)
+   * \return BER
+   */
+  double GetBer () const;
 
 };
 

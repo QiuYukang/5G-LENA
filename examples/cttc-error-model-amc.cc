@@ -244,10 +244,13 @@ main (int argc, char *argv[])
   mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(false));
   mmWaveHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(false));
 
-  // Error Model
-  mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+  // Error Model: UE and GNB with same spectrum error model.
+  mmWaveHelper->SetUlErrorModel (errorModel);
+  mmWaveHelper->SetDlErrorModel (errorModel);
 
+  // Both DL and UL AMC will have the same model behind.
+  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
 
   uint32_t bwpId = 0;
 
