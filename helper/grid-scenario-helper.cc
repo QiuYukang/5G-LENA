@@ -364,7 +364,13 @@ double
 HexagonalGridScenarioHelper::GetAntennaOrientationRadians (uint16_t cellId,
                                                            SiteSectorizationType numSectors)
 {
-  return GetAntennaOrientationDegrees (cellId, numSectors) * M_PI / 180 - M_PI;
+  double orientationRads = GetAntennaOrientationDegrees (cellId, numSectors) * M_PI / 180;
+  if (orientationRads > M_PI)
+    {
+      orientationRads -= 2 * M_PI;
+    }
+
+  return orientationRads;
 }
 
 Vector
