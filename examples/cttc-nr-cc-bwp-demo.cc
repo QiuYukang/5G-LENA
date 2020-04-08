@@ -22,7 +22,6 @@
 #include "ns3/internet-module.h"
 #include "ns3/internet-apps-module.h"
 #include "ns3/applications-module.h"
-#include "ns3/mobility-module.h"
 #include "ns3/log.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/flow-monitor-module.h"
@@ -312,7 +311,7 @@ main (int argc, char *argv[])
 
       // Create the configuration for the CcBwpHelper
       CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand,
-                                                      numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+                                                      numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon_LoS);
 
       bandConf.m_numBwp = 1; // 1 BWP per CC
 
