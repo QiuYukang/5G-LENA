@@ -31,7 +31,6 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
 #include "ns3/mmwave-mac-scheduler-tdma-rr.h"
-#include "ns3/bandwidth-part-gnb.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/ideal-beamforming-algorithm.h"
@@ -45,49 +44,44 @@ NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmComponentCarriersBandwidthPartsExample")
 int
 main (int argc, char *argv[])
 {
-  bool udpFullBuffer = false;
-  int32_t fixedMcs = -1;
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 2;
   uint16_t numFlowsUe = 2;
 
-  bool cellScan = false;
-  double beamSearchAngleStep = 10.0;
-
+  uint8_t numBands = 1;
   double centralFrequencyBand = 28e9;
   double bandwidthBand = 3e9;
-  uint16_t numerology = 3;
-  std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
+
+  bool contiguousCc = false;
+  uint16_t numerology = 3;                      //numerology for contiguous case
 
   //non-contiguous case
   double centralFrequencyCc0 = 28e9;
   double centralFrequencyCc1 = 29e9;
   double bandwidthCc0 = 400e6;
   double bandwidthCc1 = 100e6;
-
   uint16_t numerologyCc0Bwp0 = 3;
   uint16_t numerologyCc0Bwp1 = 4;
   uint16_t numerologyCc1Bwp0 = 3;
 
+  std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
   double totalTxPower = 8;
-  uint16_t tddPattern = 15;
+  bool cellScan = false;
+  double beamSearchAngleStep = 10.0;
 
+  bool udpFullBuffer = false;
   uint32_t udpPacketSizeUll = 100;
   uint32_t udpPacketSizeBe = 1252;
   uint32_t lambdaUll = 10000;
   uint32_t lambdaBe = 1000;
 
-  bool singleBwp = false;
-  uint8_t numBands = 1;
-  bool contiguousCc = false;
-
-  std::string simTag = "default";
-  std::string outputDir = "./";
-
   bool logging = false;
 
   bool disableDl = false;
   bool disableUl = true;
+
+  std::string simTag = "default";
+  std::string outputDir = "./";
 
   double simTime = 1; // seconds
   double udpAppStartTime = 0.4; //seconds
@@ -95,34 +89,27 @@ main (int argc, char *argv[])
   CommandLine cmd;
 
   cmd.AddValue ("simTime", "Simulation time", simTime);
-  cmd.AddValue ("udpFullBuffer",
-                "Whether to set the full buffer traffic; if this parameter is "
-                "set then the udpInterval parameter will be neglected.",
-                udpFullBuffer);
-  cmd.AddValue ("fixedMcs",
-                "The MCS that will be used in this example, -1 for auto",
-                fixedMcs);
   cmd.AddValue ("gNbNum",
                 "The number of gNbs in multiple-ue topology",
                 gNbNum);
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per gNb in multiple-ue topology",
                 ueNumPergNb);
-  cmd.AddValue ("cellScan",
-                "Use beam search method to determine beamforming vector,"
-                " the default is long-term covariance matrix method"
-                " true to use cell scanning method, false to use the default"
-                " power method.",
-                cellScan);
-  cmd.AddValue ("beamSearchAngleStep",
-                "Beam search angle step for beam search method",
-                beamSearchAngleStep);
+  cmd.AddValue ("numBands",
+                "Number of operation bands. More than one implies non-contiguous CC",
+                numBands);
   cmd.AddValue ("centralFrequencyBand",
                 "The system frequency to be used in band 1",
                 centralFrequencyBand);
   cmd.AddValue ("bandwidthBand",
                 "The system bandwidth to be used in band 1",
                 bandwidthBand);
+  cmd.AddValue ("contiguousCc",
+                "Simulate with contiguous CC or non-contiguous CC example",
+                contiguousCc);
+  cmd.AddValue ("numerology",
+                "Numerlogy to be used in contiguous case",
+                numerology);
   cmd.AddValue ("centralFrequencyCc0",
                 "The system frequency to be used in CC 0",
                 centralFrequencyCc0);
@@ -144,6 +131,26 @@ main (int argc, char *argv[])
   cmd.AddValue ("numerologyCc1Bwp0",
                 "Numerlogy to be used in CC 1, BWP 0",
                 numerologyCc1Bwp0);
+  cmd.AddValue ("tddPattern",
+                "LTE TDD pattern to use (e.g. --tddPattern=DL|S|UL|UL|UL|DL|S|UL|UL|UL|)",
+                pattern);
+  cmd.AddValue ("totalTxPower",
+                "total tx power that will be proportionally assigned to"
+                " bandwidth parts depending on each BWP bandwidth ",
+                totalTxPower);
+  cmd.AddValue ("cellScan",
+                "Use beam search method to determine beamforming vector,"
+                " the default is long-term covariance matrix method"
+                " true to use cell scanning method, false to use the default"
+                " power method.",
+                cellScan);
+  cmd.AddValue ("beamSearchAngleStep",
+                "Beam search angle step for beam search method",
+                beamSearchAngleStep);
+  cmd.AddValue ("udpFullBuffer",
+                "Whether to set the full buffer traffic; if this parameter is "
+                "set then the udpInterval parameter will be neglected.",
+                udpFullBuffer);
   cmd.AddValue ("packetSizeUll",
                 "packet size in bytes to be used by ultra low latency traffic",
                 udpPacketSizeUll);
@@ -156,37 +163,21 @@ main (int argc, char *argv[])
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
-  cmd.AddValue ("singleBwp",
-                "Simulate with a single BWP occupying all the carrier or a fraction of the carrier",
-                singleBwp);
-  cmd.AddValue ("numBands",
-                "Number of operation bands. More than one implies non-contiguous CC",
-                numBands);
-  cmd.AddValue ("contiguousCc",
-                "Simulate with contiguous CC or non-contiguous CC example",
-                contiguousCc);
-  cmd.AddValue ("simTag",
-                "tag to be appended to output filenames to distinguish simulation campaigns",
-                simTag);
-  cmd.AddValue ("outputDir",
-                "directory where to store simulation results",
-                outputDir);
-  cmd.AddValue ("totalTxPower",
-                "total tx power that will be proportionally assigned to"
-                " bandwidth parts depending on each BWP bandwidth ",
-                totalTxPower);
   cmd.AddValue ("logging",
                 "Enable logging",
                 logging);
-  cmd.AddValue ("tddPattern",
-                "LTE TDD pattern to use",
-                tddPattern);
   cmd.AddValue ("disableDl",
                 "Disable DL flow",
                 disableDl);
   cmd.AddValue ("disableUl",
                 "Disable UL flow",
                 disableUl);
+  cmd.AddValue ("simTag",
+                "tag to be appended to output filenames to distinguish simulation campaigns",
+                simTag);
+  cmd.AddValue ("outputDir",
+                "directory where to store simulation results",
+                outputDir);
 
   cmd.Parse (argc, argv);
 
@@ -209,27 +200,70 @@ main (int argc, char *argv[])
 /*
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
                       StringValue ("l"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
-                      StringValue ("UMi-StreetCanyon")); // with antenna height of 10 m
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue (false));
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue (cellScan));
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
 */
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
+  // create base stations and mobile terminals
+  NodeContainer gNbNodes;
+  NodeContainer ueNodes;
+  MobilityHelper mobility;
 
-  //Create the scenario
-  GridScenarioHelper gridScenario;
-  gridScenario.SetRows (1);
-  gridScenario.SetColumns (gNbNum);
-  gridScenario.SetHorizontalBsDistance (5.0);
-  gridScenario.SetBsHeight (10.0);
-  gridScenario.SetUtHeight (1.5);
-  gridScenario.SetBsNumber (gNbNum);
-  gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
-  gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
-  gridScenario.SetScenarioLength (3); // be distributed.
-  gridScenario.CreateScenario ();
+  double gNbHeight = 10;
+  double ueHeight = 1.5;
+
+  gNbNodes.Create (gNbNum);
+  ueNodes.Create (ueNumPergNb * gNbNum);
+
+  Ptr<ListPositionAllocator> apPositionAlloc = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
+  int32_t yValue = 0.0;
+
+  for (uint32_t i = 1; i <= gNbNodes.GetN (); ++i)
+    {
+      // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
+      if (i % 2 != 0)
+        {
+          yValue = static_cast<int> (i) * 30;
+        }
+      else
+        {
+          yValue = -yValue;
+        }
+
+      apPositionAlloc->Add (Vector (0.0, yValue, gNbHeight));
+
+
+      // 1.0, -1.0, 3.0, -3.0, 5.0, -5.0, ...
+      double xValue = 0.0;
+      for (uint32_t j = 1; j <= ueNumPergNb; ++j)
+        {
+          if (j % 2 != 0)
+            {
+              xValue = j;
+            }
+          else
+            {
+              xValue = -xValue;
+            }
+
+          if (yValue > 0)
+            {
+              staPositionAlloc->Add (Vector (xValue, 10, ueHeight));
+            }
+          else
+            {
+              staPositionAlloc->Add (Vector (xValue, -10, ueHeight));
+            }
+        }
+    }
+
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.SetPositionAllocator (apPositionAlloc);
+  mobility.Install (gNbNodes);
+
+  mobility.SetPositionAllocator (staPositionAlloc);
+  mobility.Install (ueNodes);
+
 
   // setup the mmWave simulation
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
@@ -239,8 +273,6 @@ main (int argc, char *argv[])
   mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
   mmWaveHelper->SetEpcHelper (epcHelper);
 
-  //mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  //mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
 
   /*
    * Setup the configuration of the spectrum. There is a contiguous and a non-contiguous
@@ -359,10 +391,18 @@ main (int argc, char *argv[])
   //NS_ABORT_MSG_IF (ccId < 1,"No CC created");
 
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
-  // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-  //idealBeamformingAlgorithm->SetBeamSearchAngleStep ("", BeamSearchAngleStep, DoubleValue (beamSearchAngleStep));
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
+  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerTdmaRR"));
+  // Beamforming method
+  if (cellScan)
+  {
+    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+  }
+  else
+  {
+    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  }
 
   mmWaveHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
@@ -386,15 +426,14 @@ main (int argc, char *argv[])
   uint32_t bwpIdForVideo = 2;
   uint32_t bwpIdForVideoGaming = 3;
 
-
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
 
   //Install and get the pointers to the NetDevices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
 
   /*
    * In FDD, DL and UL might not be symmetric. A simple way to set BWP powers is
@@ -487,17 +526,17 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
-  internet.Install (gridScenario.GetUserTerminals ());
+  internet.Install (ueNodes);
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
     {
       Ptr<Ipv4StaticRouting> ueStaticRouting =
-              ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get (j)->GetObject<Ipv4> ());
+              ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -509,14 +548,14 @@ main (int argc, char *argv[])
   uint16_t ulPort = dlPort + gNbNum * ueNumPergNb * numFlowsUe + 1;
   ApplicationContainer clientApps, serverApps;
 
-  for (uint32_t u = 0; u < gridScenario.GetUserTerminals ().GetN(); ++u)
+  for (uint32_t u = 0; u < ueNodes.GetN(); ++u)
     {
       for (uint16_t flow = 0; flow < numFlowsUe; ++flow)
         {
           if (!disableDl)
             {
               PacketSinkHelper dlPacketSinkHelper ("ns3::UdpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dlPort));
-              serverApps.Add (dlPacketSinkHelper.Install (gridScenario.GetUserTerminals ().Get (u)));
+              serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get (u)));
 
               UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
               dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
@@ -565,7 +604,7 @@ main (int argc, char *argv[])
               ulClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
               ulClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
               ulClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-              clientApps.Add (ulClient.Install (gridScenario.GetUserTerminals ().Get(u)));
+              clientApps.Add (ulClient.Install (ueNodes.Get(u)));
 
               Ptr<EpcTft> tft = Create<EpcTft> ();
               EpcTft::PacketFilter ulpf;
@@ -615,7 +654,7 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmonHelper;
   NodeContainer endpointNodes;
   endpointNodes.Add (remoteHost);
-  endpointNodes.Add (gridScenario.GetUserTerminals ());
+  endpointNodes.Add (ueNodes);
 
   Ptr<ns3::FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
   monitor->SetAttribute ("DelayBinWidth", DoubleValue (0.001));
