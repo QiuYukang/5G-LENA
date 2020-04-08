@@ -1598,9 +1598,10 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   DoScheduleDl (dlHarqFeedback, activeDlHarq, &activeDlUe, params.m_snfSf,
                 ulAllocations, &dlSlot.m_slotAllocInfo);
 
-  // if no UL allocation, then erase the element. If UL allocation, then
-  // the element will be erased when the CQI for that UL allocation will be received
-  if (ulAllocations.m_totUlSym == 0)
+  // if the number of allocated symbols is greater than GetUlCtrlSymbols (), then don't delete
+  // the allocation, as it will be removed when the CQI will be processed.
+  // Otherwise, delete the allocation history for the slot.
+  if (ulAllocations.m_totUlSym <= GetUlCtrlSymbols ())
     {
       NS_LOG_INFO ("Removing UL allocation for slot " << params.m_snfSf <<
                    " size " << m_ulAllocationMap.size ());
