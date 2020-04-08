@@ -17,16 +17,12 @@
  *
  */
 
-
-
 #include "mmwave-interference.h"
 #include <ns3/simulator.h>
 #include <ns3/log.h>
-#include "mmwave-chunk-processor.h"
+#include <ns3/lte-chunk-processor.h>
 #include <stdio.h>
 #include <algorithm>
-
-
 
 NS_LOG_COMPONENT_DEFINE ("mmWaveInterference");
 
@@ -34,9 +30,7 @@ namespace ns3 {
 
 
 mmWaveInterference::mmWaveInterference ()
-  : m_receiving (false),
-  m_lastSignalId (0),
-  m_lastSignalIdBeforeReset (0),
+  : LteInterference (),
   m_firstPower (0.0)
 {
   NS_LOG_FUNCTION (this);
@@ -51,12 +45,7 @@ void
 mmWaveInterference::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
-  m_PowerChunkProcessorList.clear ();
-  m_sinrChunkProcessorList.clear ();
-  m_rxSignal = 0;
-  m_allSignals = 0;
-  m_noise = 0;
-  Object::DoDispose ();
+  LteInterference::DoDispose ();
 }
 
 
@@ -77,64 +66,8 @@ mmWaveInterference::GetTypeId (void)
   return tid;
 }
 
-
 void
-mmWaveInterference::StartRx (Ptr<const SpectrumValue> rxPsd)
-{
-  NS_LOG_FUNCTION (this << *rxPsd);
-  if (m_receiving == false)
-    {
-      NS_LOG_INFO ("first signal: " << *rxPsd);
-      m_rxSignal = rxPsd->Copy ();
-      m_lastChangeTime = Now ();
-      m_receiving = true;
-      for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
-        {
-          (*it)->Start ();
-        }
-      for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_sinrChunkProcessorList.begin (); it != m_sinrChunkProcessorList.end (); ++it)
-        {
-          (*it)->Start ();
-        }
-    }
-  else
-    {
-      NS_LOG_INFO ("additional signal " << *m_rxSignal);
-      // receiving multiple simultaneous signals, make sure they are synchronized
-      NS_ASSERT (m_lastChangeTime == Now ());
-      // make sure they use orthogonal resource blocks
-      NS_ASSERT (Sum ((*rxPsd) * (*m_rxSignal)) == 0.0);
-      (*m_rxSignal) += (*rxPsd);
-    }
-}
-
-
-void
-mmWaveInterference::EndRx ()
-{
-  NS_LOG_FUNCTION (this);
-  if (m_receiving != true)
-    {
-      NS_LOG_INFO ("EndRx was already evaluated or RX was aborted");
-    }
-  else
-    {
-      ConditionallyEvaluateChunk ();
-      m_receiving = false;
-      for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
-        {
-          (*it)->End ();
-        }
-      for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_sinrChunkProcessorList.begin (); it != m_sinrChunkProcessorList.end (); ++it)
-        {
-          (*it)->End ();
-        }
-    }
-}
-
-
-void
-mmWaveInterference::AddSignal (Ptr<const SpectrumValue> spd, const Time duration)
+mmWaveInterference::AddSignal (Ptr<const SpectrumValue> spd, Time duration)
 {
   NS_LOG_FUNCTION (this << *spd << duration);
 
@@ -153,45 +86,8 @@ mmWaveInterference::AddSignal (Ptr<const SpectrumValue> spd, const Time duration
   // for how long.
   AppendEvent (Simulator::Now(), Simulator::Now() + duration, rxPowerW);
 
-  DoAddSignal (spd);
-  uint32_t signalId = ++m_lastSignalId;
-  if (signalId == m_lastSignalIdBeforeReset)
-    {
-      // This happens when m_lastSignalId eventually wraps around. Given that so
-      // many signals have elapsed since the last reset, we hope that by now there is
-      // no stale pending signal (i.e., a signal that was scheduled
-      // for subtraction before the reset). So we just move the
-      // boundary further.
-      m_lastSignalIdBeforeReset += 0x10000000;
-    }
-  Simulator::Schedule (duration, &mmWaveInterference::DoSubtractSignal, this, spd, signalId);
+  LteInterference::AddSignal (spd, duration);
 }
-
-
-void
-mmWaveInterference::DoAddSignal  (Ptr<const SpectrumValue> spd)
-{
-  NS_LOG_FUNCTION (this << *spd);
-  ConditionallyEvaluateChunk ();
-  (*m_allSignals) += (*spd);
-}
-
-void
-mmWaveInterference::DoSubtractSignal  (Ptr<const SpectrumValue> spd, uint32_t signalId)
-{
-  NS_LOG_FUNCTION (this << *spd);
-  ConditionallyEvaluateChunk ();
-  int32_t deltaSignalId = signalId - m_lastSignalIdBeforeReset;
-  if (deltaSignalId > 0)
-    {
-      (*m_allSignals) -= (*spd);
-    }
-  else
-    {
-      NS_LOG_INFO ("ignoring signal scheduled for subtraction before last reset");
-    }
-}
-
 
 void
 mmWaveInterference::ConditionallyEvaluateChunk ()
@@ -217,45 +113,16 @@ mmWaveInterference::ConditionallyEvaluateChunk ()
       m_rssiPerProcessedChunk(rssidBm);
       
       Time duration = Now () - m_lastChangeTime;
-      for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_PowerChunkProcessorList.begin (); it != m_PowerChunkProcessorList.end (); ++it)
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)
         {
           (*it)->EvaluateChunk (*m_rxSignal, duration);
         }
-      for (std::list<Ptr<mmWaveChunkProcessor> >::const_iterator it = m_sinrChunkProcessorList.begin (); it != m_sinrChunkProcessorList.end (); ++it)
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_sinrChunkProcessorList.begin (); it != m_sinrChunkProcessorList.end (); ++it)
         {
           (*it)->EvaluateChunk (sinr, duration);
         }
       m_lastChangeTime = Now ();
     }
-}
-
-void
-mmWaveInterference::SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd)
-{
-  NS_LOG_FUNCTION (this << *noisePsd);
-  ConditionallyEvaluateChunk ();
-  m_noise = noisePsd;
-  m_allSignals = Create<SpectrumValue> (noisePsd->GetSpectrumModel ());
-  if (m_receiving == true)
-    {
-      // abort rx
-      m_receiving = false;
-    }
-  m_lastSignalIdBeforeReset = m_lastSignalId;
-}
-
-void
-mmWaveInterference::AddPowerChunkProcessor (Ptr<mmWaveChunkProcessor> p)
-{
-  NS_LOG_FUNCTION (this << p);
-  m_PowerChunkProcessorList.push_back (p);
-}
-
-void
-mmWaveInterference::AddSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p)
-{
-  NS_LOG_FUNCTION (this << p);
-  m_sinrChunkProcessorList.push_back (p);
 }
 
 /****************************************************************

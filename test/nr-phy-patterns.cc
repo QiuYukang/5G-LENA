@@ -236,7 +236,7 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<MmWaveEnbMac> &mac) const
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
   channelPhy->InstallHarqPhyModule (harq);
 
-  Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
+  Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> ();
   channelPhy->AddDataSinrChunkProcessor (pData);
 
   channelPhy->InstallPhy (phy);

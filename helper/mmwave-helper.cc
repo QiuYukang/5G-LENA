@@ -22,6 +22,7 @@
 #include <ns3/lte-rrc-protocol-real.h>
 #include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/lte-ue-rrc.h>
+#include <ns3/lte-chunk-processor.h>
 #include <ns3/epc-ue-nas.h>
 #include <ns3/names.h>
 #include <ns3/mmwave-rrc-protocol-ideal.h>
@@ -47,7 +48,6 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/mmwave-mac-scheduler-tdma-rr.h>
-#include <ns3/mmwave-chunk-processor.h>
 #include <ns3/bwp-manager-algorithm.h>
 
 #include <algorithm>
@@ -450,7 +450,7 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
 
   channelPhy->InstallHarqPhyModule (harq);
 
-  Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
+  Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> ();
   pData->AddCallback (MakeCallback (&MmWaveUePhy::GenerateDlCqiReport, phy));
   pData->AddCallback (MakeCallback (&MmWaveSpectrumPhy::UpdateSinrPerceived, channelPhy));
   channelPhy->AddDataSinrChunkProcessor (pData);
@@ -642,7 +642,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
   channelPhy->InstallHarqPhyModule (harq);
 
-  Ptr<mmWaveChunkProcessor> pData = Create<mmWaveChunkProcessor> ();
+  Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> ();
   if (!m_snrTest)
     {
       pData->AddCallback (MakeCallback (&MmWaveEnbPhy::GenerateDataCqiReport, phy));

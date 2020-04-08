@@ -26,10 +26,10 @@
 #include <ns3/nstime.h>
 #include <ns3/spectrum-value.h>
 #include <string.h>
-#include <ns3/mmwave-chunk-processor.h>
 #include <ns3/trace-source-accessor.h>
 #include <ns3/traced-callback.h>
 #include <ns3/vector.h>
+#include <ns3/lte-interference.h>
 
 
 namespace ns3 {
@@ -37,21 +37,33 @@ namespace ns3 {
 /**
  * \ingroup spectrum
  *
- * \brief The mmWaveInterference class
+ * \brief The mmWaveInterference class inherits LteInterference which
+ * implements a gaussian interference model, i.e., all
+ * incoming signals are added to the total interference.
+ * mmWaveInterference class extends this functionality to support
+ * energy detection functionality.
+ *
  */
-class mmWaveInterference : public Object
+class mmWaveInterference : public LteInterference
 {
 public:
+  /**
+  * \brief mmWaveInterference constructor
+  */
   mmWaveInterference ();
+  /*
+   *\brief ~mmWaveInterference
+   */
   virtual ~mmWaveInterference ();
+  /**
+   * \brief Get the object TypeId
+   * \return the object TypeId
+   */
   static TypeId GetTypeId (void);
+
+  //inherited from LteInterference
   virtual void DoDispose () override;
-  void StartRx (Ptr<const SpectrumValue> rxPsd);
-  void EndRx ();
-  void AddSignal (Ptr<const SpectrumValue> spd, const Time duration);
-  void SetNoisePowerSpectralDensity (Ptr<const SpectrumValue> noisePsd);
-  void AddPowerChunkProcessor (Ptr<mmWaveChunkProcessor> p);
-  void AddSinrChunkProcessor (Ptr<mmWaveChunkProcessor> p);
+  virtual void AddSignal (Ptr<const SpectrumValue> spd, Time duration) override;
 
   /**
    * \brief Checks if the sum of the energy, including the energies that start
@@ -74,11 +86,12 @@ public:
    */
   Time GetEnergyDuration (double energyW);
 
-
   /**
   * \brief Crates events corresponding to the new energy. One event corresponds
   * to the moment when the energy starts, and another to the moment that energy
   * ends and in that event the energy is negative, or it is being substracted.
+  * This function also updates the list of events, i.e. it removed the events
+  * belonging to the signals that have finished.
   * @param startTime Energy start time
   * @param endTime Energy end time
   * @param rxPowerW Power of the energy in Watts
@@ -96,7 +109,7 @@ private:
      */
     class NiChange
     {
-      public:
+    public:
       /**
        * Create a NiChange at the given time and the amount of NI change.
        *
@@ -124,48 +137,44 @@ private:
        */
       bool operator < (const NiChange& o) const;
 
+    private:
 
-  private:
-      Time m_time;
-      double m_delta;
+        Time m_time;
+        double m_delta;
     };
    /**
     * typedef for a vector of NiChanges
     */
-   typedef std::vector <NiChange> NiChanges;
+  typedef std::vector <NiChange> NiChanges;
 
-   mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
-
-  void ConditionallyEvaluateChunk ();
-  void DoAddSignal (Ptr<const SpectrumValue> spd);
-  void DoSubtractSignal  (Ptr<const SpectrumValue> spd, uint32_t signalId);
+  /**
+   * \brief Find a position in event list that corresponds to a given
+   * moment. Note that all events are saved when they start and when
+   * they end. When they start, the energy the signal brings is saved as
+   * the positive value, and the event when the energy finish is
+   * saved with a negative prefix. By using this position, one
+   * can know which signals have finished, and can be removed from
+   * the list because after the given moment they do not contribute
+   * anymore to the total energy received.
+   */
+  mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
+  
+  //inherited from LteInterference
+  virtual void ConditionallyEvaluateChunk ();
 
   /**
    * Add NiChange to the list at the appropriate position.
-   *
    * \param change
    */
   void AddNiChangeEvent (NiChange change);
 
-  std::list<Ptr<mmWaveChunkProcessor> > m_PowerChunkProcessorList;
-  std::list<Ptr<mmWaveChunkProcessor> > m_sinrChunkProcessorList;
+protected:
 
   TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
-  TracedCallback<double> m_rssiPerProcessedChunk;  ///<! Trace for RSSI pre processed chunk.
-
-  bool m_receiving;
-
-  Ptr<SpectrumValue> m_rxSignal;
-  Ptr<SpectrumValue> m_allSignals;
-  Ptr<const SpectrumValue> m_noise;
-
-  Time m_lastChangeTime;
-
-  uint32_t m_lastSignalId;
-  uint32_t m_lastSignalIdBeforeReset;
+  TracedCallback<double> m_rssiPerProcessedChunk; ///<! Trace for RSSI pre processed chunk.
 
   /// Used for energy duration calculation, inspired by wifi/model/interference-helper implementation
-  NiChanges m_niChanges; //!< List of events in whitch there is some change in the energy
+  NiChanges m_niChanges; //!< List of events in which there is some change in the energy
   double m_firstPower; //!< This contains the accumulated sum of the energy events until the certain moment it has been calculated
 
 

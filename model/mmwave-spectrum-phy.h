@@ -30,6 +30,7 @@
 #include "mmwave-interference.h"
 #include "mmwave-spectrum-signal-parameters.h"
 #include "mmwave-control-messages.h"
+#include <ns3/lte-chunk-processor.h>
 
 namespace ns3 {
 
@@ -218,12 +219,12 @@ public:
    * \brief Adds the chunk processor that will process the power for the data
    * \param p the chunk processor
    */
-  void AddDataPowerChunkProcessor (const Ptr<mmWaveChunkProcessor>& p);
+  void AddDataPowerChunkProcessor (const Ptr<LteChunkProcessor>& p);
   /**
    * \brief Adds the chunk processor that will process the interference
    * \param p the chunk processor
    */
-  void AddDataSinrChunkProcessor (const Ptr<mmWaveChunkProcessor>& p);
+  void AddDataSinrChunkProcessor (const Ptr<LteChunkProcessor>& p);
   /**
    * \brief SpectrumPhy that will be called when the SINR for the received
    * DATA is being calculated by the interference object over DATA chunk
