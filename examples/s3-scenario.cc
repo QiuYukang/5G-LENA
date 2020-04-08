@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -19,24 +19,28 @@
 
 /**
  * \ingroup examples
- * \file cttc-nr-demo.cc
- * \brief A cozy, simple, NR demo (in a tutorial style)
+ * \file s3-scenario.cc
+ * \brief A multi-cell network deployment with site sectorization
  *
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of a simple grid topology, in which you
- * can choose the number of gNbs and UEs. Have a look at the possible parameters
- * to know what you can configure through the command line.
+ * from TR 38.900. This example consists of an hexagonal grid deployment
+ * consisting on a central site and a number of outer rings of sites around this
+ * central site. Each site is sectorized, meaning that a number of three antenna
+ * arrays or panels are deployed per gNB. These three antennas are pointing to
+ * 30º, 150º and 270º w.r.t. the horizontal axis. We allocate a band to each
+ * sector of a site, and the bands are contiguous in frequency.
  *
- * With the default configuration, the example will create two flows that will
- * go through two different subband numerologies (or bandwidth parts). For that,
- * specifically, two bands are created, each with a single CC, and each CC containing
- * one bandwidth part.
+ * We provide a number of simulation parameters that can be configured in the
+ * command line, such as the number of UEs per cell or the number of outer rings.
+ * Please have a look at the possible parameters to know what you can configure
+ * through the command line.
  *
- * The example will print on-screen the end-to-end result of one (or two) flows,
+ * With the default configuration, the example will create one DL flow per UE.
+ * The example will print on-screen the end-to-end result of each flow,
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-nr-demo --Help"
+$ ./waf --run "s3-scenario --Help"
     \endcode
  *
  */
@@ -86,7 +90,8 @@ public:
    * \param freqReuse The cell frequency reuse.
    */
   void SetNetworkToLte (const std::string scenario,
-                        uint16_t freqReuse);
+                        const std::string operationMode,
+                        uint16_t numCcs);
 
   /**
    * \brief Set the radio network parameters to NR.
@@ -95,8 +100,9 @@ public:
    * \param freqReuse The cell frequency reuse.
    */
   void SetNetworkToNr (const std::string scenario,
+                       const std::string operationMode,
                        uint16_t numerology,
-                       uint16_t freqReuse);
+                       uint16_t numCcs);
 
   /**
    * \brief Gets the BS transmit power
@@ -131,14 +137,19 @@ private:
 
 void
 RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario,
-                                               uint16_t freqReuse)
+                                               const std::string operationMode,
+                                               uint16_t numCcs)
 {
   NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
                    "Unsupported scenario");
 
   m_numerology = 0;
   m_centralFrequency = 2e9;
-  m_bandwidth = 18e6 * freqReuse;  // 100 RBs per CC (freqReuse)
+  m_bandwidth = 18e6 * numCcs;  // 100 RBs per CC (freqReuse)
+  if (operationMode == "FDD")
+    {
+      m_bandwidth += m_bandwidth;
+    }
   if (scenario == "UMa")
     {
       m_txPower = 49;
@@ -151,15 +162,20 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario,
 
 void
 RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
+                                              const std::string operationMode,
                                               uint16_t numerology,
-                                              uint16_t freqReuse)
+                                              uint16_t numCcs)
 {
   NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
                    "Unsupported scenario");
 
   m_numerology = numerology;
   m_centralFrequency = 2e9;
-  m_bandwidth = 18e6 * freqReuse;  // 100 RBs per CC (freqReuse)
+  m_bandwidth = 18e6 * numCcs;  // 100 RBs per CC (freqReuse)
+  if (operationMode == "FDD")
+    {
+      m_bandwidth += m_bandwidth;
+    }
   if (scenario == "UMa")
     {
       m_txPower = 49;
@@ -209,14 +225,11 @@ main (int argc, char *argv[])
   bool logging = false;
   std::string scenario = "UMa";
   std::string radioNetwork = "NR";  // LTE or NR
+  std::string operationMode = "TDD";  // TDD or FDD
 
   // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSizeULL = 600;
-  uint32_t udpPacketSizeBe = 600;
-  uint32_t udpPacketSizeVi = 600;
-  uint32_t lambdaULL = 10000;
-  uint32_t lambdaBe = 10000;
-  uint32_t lambdaVi = 10000;
+  uint32_t udpPacketSize = 600;
+  uint32_t lambda = 10000;
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
@@ -227,8 +240,8 @@ main (int argc, char *argv[])
   // Spectrum parameters. We will take the input from the command line, and then
   //  we will pass them inside the NR module.
   uint16_t numerologyBwp = 0;
-  double centralFrequencyBand;  // RadioNetworkParametersHelper provides this hard-coded value
-  double bandwidthBand;  // RadioNetworkParametersHelper provides this hard-coded values
+  double centralFrequencyBand = 0.0;  // RadioNetworkParametersHelper provides this hard-coded value
+  double bandwidthBand = 0.0;  // RadioNetworkParametersHelper provides this hard-coded values
   std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
 
   // Where we will store the output files.
@@ -258,24 +271,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("logging",
                 "Enable logging",
                 logging);
-  cmd.AddValue ("packetSizeUll",
-                "packet size in bytes to be used by ultra-low latency traffic",
-                udpPacketSizeULL);
-  cmd.AddValue ("packetSizeBe",
-                "packet size in bytes to be used by best effort traffic",
-                udpPacketSizeBe);
-  cmd.AddValue ("packetSizeVi",
-                "packet size in bytes to be used by video traffic",
-                udpPacketSizeVi);
-  cmd.AddValue ("lambdaUll",
-                "Number of UDP packets in one second for ultra-low latency traffic",
-                lambdaULL);
-  cmd.AddValue ("lambdaBe",
-                "Number of UDP packets in one second for best effort traffic",
-                lambdaBe);
-  cmd.AddValue ("lambdaVi",
-                "Number of UDP packets in one second for video traffic",
-                lambdaVi);
+  cmd.AddValue ("packetSize",
+                "packet size in bytes to be used by UE traffic",
+                udpPacketSize);
+  cmd.AddValue ("lambda",
+                "Number of UDP packets generated in one second per UE",
+                lambda);
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
@@ -297,6 +298,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("technology",
                 "The radio access network technology",
                 radioNetwork);
+  cmd.AddValue ("operationMode",
+                "The network operation mode can be TDD or FDD",
+                operationMode);
   cmd.AddValue ("simTag",
                 "tag to be appended to output filenames to distinguish simulation campaigns",
                 simTag);
@@ -318,8 +322,11 @@ main (int argc, char *argv[])
    * Check if the frequency and numerology are in the allowed range.
    * If you need to add other checks, here is the best position to put them.
    */
-//  NS_ABORT_IF (centralFrequencyBand > 100e9);
+  NS_ABORT_IF (centralFrequencyBand > 100e9);
   NS_ABORT_IF (numerologyBwp > 4);
+  NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
+  NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD", "Operation mode can only be TDD or FDD");
+  NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR", "Unrecognized radio network technology");
 
   /*
    * If the logging variable is set to true, enable the log of some components
@@ -366,13 +373,13 @@ main (int argc, char *argv[])
   uint16_t numScPerRb = 1;
   if (radioNetwork == "LTE")
     {
-      ranHelper.SetNetworkToLte (scenario, ffr);
+      ranHelper.SetNetworkToLte (scenario, operationMode, 1);
       errorModel = "ns3::NrLteMiErrorModel";
       numScPerRb = 4;
     }
   else if (radioNetwork == "NR")
     {
-      ranHelper.SetNetworkToNr (scenario, numerologyBwp, ffr);
+      ranHelper.SetNetworkToNr (scenario, operationMode, numerologyBwp, 1);
       errorModel = "ns3::NrEesmErrorModel";
     }
   else
@@ -392,7 +399,26 @@ main (int argc, char *argv[])
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ErrorModel));
 
-  NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
+  NodeContainer gnbLowLatContainer, gnbVoiceContainer, gnbVideoContainer;
+  for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
+    {
+      Ptr<Node> gnb = gridScenario.GetBaseStations ().Get (j);
+      switch (j % ffr)
+      {
+        case 0:
+          gnbLowLatContainer.Add (gnb);
+          break;
+        case 1:
+          gnbVoiceContainer.Add (gnb);
+          break;
+        case 2:
+          gnbVideoContainer.Add (gnb);
+          break;
+        default:
+          NS_ABORT_MSG("ffr param cannot be larger than 3");
+          break;
+      }
+    }
 
   /*
    * Create two different NodeContainer for the different traffic type.
@@ -443,14 +469,13 @@ main (int argc, char *argv[])
    * Each spectrum part length is, as well, specified by the input parameters.
    * The operational band will use StreetCanyon channel or UrbanMacro modeling.
    */
-  BandwidthPartInfoPtrVector allBwps;
+  BandwidthPartInfoPtrVector allBwps, bwps1, bwps2, bwps3;
   CcBwpCreator ccBwpCreator;
   // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
   // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
   centralFrequencyBand = ranHelper.GetCentralFrequency ();
   bandwidthBand = ranHelper.GetBandwidth ();
   const uint8_t numCcPerBand = 1; // In this example, each cell will have one CC with one BWP
-  uint8_t numCcs = numCcPerBand * ffr;  // But, the number of created BWPs depends on FFR (3)
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
@@ -464,16 +489,6 @@ main (int argc, char *argv[])
     {
       NS_ABORT_MSG ("Unsupported scenario");
     }
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand, bandwidthBand, numCcs, scene);
-  // By using the configuration created, it is time to make the operation bands
-  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
-
-  /*
-   * The configured spectrum division is:
-   * |---------------------------------Band1---------------------------------|
-   * |----------CC1----------|----------CC2----------|----------CC3----------|
-   * |----------BWP1---------|----------BWP2---------|----------BWP3---------|
-   */
 
   /*
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
@@ -484,13 +499,62 @@ main (int argc, char *argv[])
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   /*
+   * Create the necessary operation bands. In this example, each sector operates
+   * in a separate band. Each band contains a single component carrier (CC),
+   * which is made of one BWP in TDD operation mode or two BWPs in FDD mode.
+   * Note that BWPs have the same bandwidth. Therefore, CCs and bands in FDD are
+   * twice larger than in TDD.
+   *
+   * The configured spectrum division for TDD operation is:
+   * |---Band1---|---Band2---|---Band3---|
+   * |----CC1----|----CC2----|----CC3----|
+   * |----BWP1---|----BWP2---|----BWP3---|
+   *
+   * And the configured spectrum division for FDD operation is:
+   * |---------Band1---------|---------Band2---------|---------Band3---------|
+   * |----------CC1----------|----------CC2----------|----------CC3----------|
+   * |----BWP1---|----BWP2---|----BWP3---|----BWP4---|----BWP5---|----BWP6---|
+   */
+  double centralFrequencyBand1 = centralFrequencyBand - bandwidthBand;
+  double centralFrequencyBand2 = centralFrequencyBand;
+  double centralFrequencyBand3 = centralFrequencyBand + bandwidthBand;
+  double bandwidthBand1 = bandwidthBand;
+  double bandwidthBand2 = bandwidthBand;
+  double bandwidthBand3 = bandwidthBand;
+
+  uint8_t numBwpPerCc = 1;
+  if (operationMode == "FDD")
+    {
+      numBwpPerCc = 2; // FDD will have 2 BWPs per CC
+    }
+
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, scene);
+  bandConf1.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
+  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, scene);
+  bandConf2.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
+  CcBwpCreator::SimpleOperationBandConf bandConf3 (centralFrequencyBand3, bandwidthBand3, numCcPerBand, scene);
+  bandConf3.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
+
+  // By using the configuration created, it is time to make the operation bands
+  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+  OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
+  OperationBandInfo band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3);
+
+  /*
    * Initialize channel and pathloss, plus other things inside band1. If needed,
    * the band configuration can be done manually, but we leave it for more
    * sophisticated examples. For the moment, this method will take care
    * of all the spectrum initialization needs.
    */
   mmWaveHelper->InitializeOperationBand (&band1);
-  allBwps = CcBwpCreator::GetAllBwps ({band1});
+  mmWaveHelper->InitializeOperationBand (&band2);
+  mmWaveHelper->InitializeOperationBand (&band3);
+  allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
+  bwps1 = CcBwpCreator::GetAllBwps ({band1});
+  bwps2 = CcBwpCreator::GetAllBwps ({band2});
+  bwps3 = CcBwpCreator::GetAllBwps ({band3});
+
+
 
   /*
    * Start to account for the bandwidth used by the example, as well as
@@ -541,23 +605,22 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
-  uint32_t bwpIdForLowLat = 0;
-  uint32_t bwpIdForConvVoice = 1;
-  uint32_t bwpIdForConvVideo = 2;
-
   // Error Model
   mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
 
+  // We assume a common traffic pattern for all UEs
+  uint32_t bwpIdForLowLat = 0;
+  if (direction == "UL")
+    {
+      bwpIdForLowLat = 1;
+    }
+
   // gNb routing between Bearer and bandwidth part
   mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForConvVoice));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_OPERATOR", UintegerValue (bwpIdForConvVideo));
 
   // Ue routing between Bearer and bandwidth part
   mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForConvVoice));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_OPERATOR", UintegerValue (bwpIdForConvVideo));
 
   /*
    * We miss many other parameters. By default, not configuring them is equivalent
@@ -576,10 +639,13 @@ main (int argc, char *argv[])
    * to the NetDevices, which contains all the NR stack:
    */
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, allBwps);
-  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, allBwps);
-  NetDeviceContainer ueVideoNetDev = mmWaveHelper->InstallUeDevice (ueVideoContainer, allBwps);
+//  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer gnbLowLatNetDev = mmWaveHelper->InstallGnbDevice (gnbLowLatContainer, bwps1);
+  NetDeviceContainer gnbVoiceNetDev = mmWaveHelper->InstallGnbDevice (gnbVoiceContainer, bwps2);
+  NetDeviceContainer gnbVideoNetDev = mmWaveHelper->InstallGnbDevice (gnbVideoContainer, bwps3);
+  NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, bwps1);
+  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, bwps2);
+  NetDeviceContainer ueVideoNetDev = mmWaveHelper->InstallUeDevice (ueVideoContainer, bwps3);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -587,33 +653,234 @@ main (int argc, char *argv[])
    */
 
   // Sectors (cells) of a site are pointing at different directions
-  for (uint16_t cellId = 0; cellId < gridScenario.GetNumCells (); ++cellId)
+  double orientationRads = gridScenario.GetAntennaOrientationRadians (0, gridScenario.GetNumSectorsPerSite ());
+  for (uint32_t numCell = 0; numCell < gnbLowLatNetDev.GetN (); ++numCell)
     {
-      double orientationRads = gridScenario.GetAntennaOrientationRadians (cellId, gridScenario.GetNumSectorsPerSite ());
-      uint32_t numBwps = mmWaveHelper->GetNumberBwp (enbNetDev.Get (cellId));
-      for (uint32_t bwpId = 0; bwpId < numBwps; ++bwpId)
+      Ptr<NetDevice> gnb = gnbLowLatNetDev.Get (numCell);
+      uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
+      if (numBwps == 1)  // TDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId);
+          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<ThreeGppAntennaArrayModel> antenna =
+                    ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
+          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // Set numerology
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+
+          // Set TX power
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+
+          // Set TDD pattern
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+        }
+
+      else if (numBwps == 2)  //FDD
+        {
+          // Change the antenna orientation
+          Ptr<MmWaveEnbPhy> phy0 = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<ThreeGppAntennaArrayModel> antenna0 =
+              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+          Ptr<MmWaveEnbPhy> phy1 = mmWaveHelper->GetEnbPhy (gnb, 1);
+          Ptr<ThreeGppAntennaArrayModel> antenna1 =
+              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // Set numerology
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+
+          // Set TX power
+          if (direction == "DL")
+            {
+              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
+            }
+          else
+            {
+              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (-30.0));
+              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+            }
+          // Set TDD pattern
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+
+          // Link the two FDD BWP
+          mmWaveHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
+        }
+
+      else
+        {
+          NS_ABORT_MSG("Incorrect number of BWPs per CC");
+        }
+    }
+
+  orientationRads = gridScenario.GetAntennaOrientationRadians (1, gridScenario.GetNumSectorsPerSite ());
+  for (uint32_t numCell = 0; numCell < gnbVoiceNetDev.GetN (); ++numCell)
+    {
+      Ptr<NetDevice> gnb = gnbVoiceNetDev.Get (numCell);
+      uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
+      if (numBwps == 1)  // TDD
+        {
+          // Change the antenna orientation
+          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
           // Set numerology
-          mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId)
-                        ->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          // Set TxPower
-          mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId)
-                                  ->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          // Set the TDD pattern
-          mmWaveHelper->GetEnbPhy (enbNetDev.Get (cellId), bwpId)
-              ->SetAttribute ("Pattern", StringValue (pattern));
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+
+          // Set TX power
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+
+          // Set TDD pattern
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+        }
+
+      else if (numBwps == 2)  //FDD
+        {
+          // Change the antenna orientation
+          Ptr<MmWaveEnbPhy> phy0 = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<ThreeGppAntennaArrayModel> antenna0 =
+              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+          Ptr<MmWaveEnbPhy> phy1 = mmWaveHelper->GetEnbPhy (gnb, 1);
+          Ptr<ThreeGppAntennaArrayModel> antenna1 =
+              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // Set numerology
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+
+          // Set TX power
+          if (direction == "DL")
+            {
+              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
+            }
+          else
+            {
+              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (-30.0));
+              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+            }
+
+          // Set TDD pattern
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+
+          // Link the two FDD BWP
+          mmWaveHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
+        }
+
+      else
+        {
+          NS_ABORT_MSG("Incorrect number of BWPs per CC");
+        }
+    }
+
+  orientationRads = gridScenario.GetAntennaOrientationRadians (2, gridScenario.GetNumSectorsPerSite ());
+  for (uint32_t numCell = 0; numCell < gnbVideoNetDev.GetN (); ++numCell)
+    {
+      Ptr<NetDevice> gnb = gnbVideoNetDev.Get (numCell);
+      uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
+      if (numBwps == 1)  // TDD
+        {
+          // Change the antenna orientation
+          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<ThreeGppAntennaArrayModel> antenna =
+              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
+          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // Set numerology
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+
+          // Set TX power
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+
+          // Set TDD pattern
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+        }
+
+      else if (numBwps == 2)  //FDD
+        {
+          // Change the antenna orientation
+          Ptr<MmWaveEnbPhy> phy0 = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<ThreeGppAntennaArrayModel> antenna0 =
+              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+          Ptr<MmWaveEnbPhy> phy1 = mmWaveHelper->GetEnbPhy (gnb, 1);
+          Ptr<ThreeGppAntennaArrayModel> antenna1 =
+              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // Set numerology
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+
+          // Set TX power
+          if (direction == "DL")
+            {
+              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
+            }
+          else
+            {
+              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (-30.0));
+              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+            }
+
+          // Set TDD pattern
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+
+          // Link the two FDD BWP
+          mmWaveHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
+        }
+
+      else
+        {
+          NS_ABORT_MSG("Incorrect number of BWPs per CC");
         }
     }
 
 
+  // Set the UE routing:
+
+  if (operationMode == "FDD")
+    {
+      for (uint32_t i = 0; i < ueLowLatNetDev.GetN (); i++)
+        {
+          mmWaveHelper->GetBwpManagerUe (ueLowLatNetDev.Get (i))->SetOutputLink (0, 1);
+        }
+
+      for (uint32_t i = 0; i < ueVoiceNetDev.GetN (); i++)
+        {
+          mmWaveHelper->GetBwpManagerUe (ueVoiceNetDev.Get (i))->SetOutputLink (0, 1);
+        }
+
+      for (uint32_t i = 0; i < ueVideoNetDev.GetN (); i++)
+        {
+          mmWaveHelper->GetBwpManagerUe (ueVideoNetDev.Get (i))->SetOutputLink (0, 1);
+        }
+    }
+
   // When all the configuration is done, explicitly call UpdateConfig ()
 
-  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+  for (auto it = gnbLowLatNetDev.Begin (); it != gnbLowLatNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = gnbVoiceNetDev.Begin (); it != gnbVoiceNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = gnbVideoNetDev.Begin (); it != gnbVideoNetDev.End (); ++it)
     {
       DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
@@ -674,62 +941,61 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to its eNB
-//  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
-//  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
-//  mmWaveHelper->AttachToClosestEnb (ueVideoNetDev, enbNetDev);
-  for (uint32_t i = 0; i < ueNum; ++i)
-    {
-      Ptr<NetDevice> gnbNetDev, ueNetDev;
-      gnbNetDev = enbNetDev.Get (i % gNbNum);
-      switch (i % 3)
-      {
-        case 0:
-          ueNetDev = ueLowLatNetDev.Get(i / 3);
-          break;
-        case 1:
-          ueNetDev = ueVoiceNetDev.Get(i / 3);
-          break;
-        case 2:
-          ueNetDev = ueVideoNetDev.Get(i / 3);
-          break;
-        default:
-          NS_ABORT_MSG ("Programming error");
-          break;
-      }
-      mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
-      Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-      Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-      double distance = CalculateDistance (gnbpos, uepos);
-      std::cout << "Distance = " << distance << " meters" << std::endl;
-    }
+  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, gnbLowLatNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, gnbVoiceNetDev);
+  mmWaveHelper->AttachToClosestEnb (ueVideoNetDev, gnbVideoNetDev);
+//  for (uint32_t i = 0; i < ueNum; ++i)
+//    {
+//      Ptr<NetDevice> gnbNetDev, ueNetDev;
+//      gnbNetDev = enbNetDev.Get (i % gNbNum);
+//      switch (i % 3)
+//      {
+//        case 0:
+//          ueNetDev = ueLowLatNetDev.Get(i / 3);
+//          break;
+//        case 1:
+//          ueNetDev = ueVoiceNetDev.Get(i / 3);
+//          break;
+//        case 2:
+//          ueNetDev = ueVideoNetDev.Get(i / 3);
+//          break;
+//        default:
+//          NS_ABORT_MSG ("Programming error");
+//          break;
+//      }
+//      mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+//      if (logging == true)
+//        {
+//          Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+//          Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+//          double distance = CalculateDistance (gnbpos, uepos);
+//          std::cout << "Distance = " << distance << " meters" << std::endl;
+//        }
+//    }
 
   /*
    * Traffic part. Install two kind of traffic: low-latency and voice, each
    * identified by a particular source port.
    */
   uint16_t dlPortLowLat = 1234;
-  uint16_t dlPortVoice = 1235;
-  uint16_t dlPortVideo = 1236;
 
   ApplicationContainer serverApps;
 
   // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
-  UdpServerHelper dlPacketSinkVoice (dlPortVoice);
-  UdpServerHelper dlPacketSinkVideo (dlPortVideo);
 
   // The server, that is the application which is listening, is installed in the UE
   if (direction == "DL")
     {
       serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
-      serverApps.Add (dlPacketSinkVoice.Install (ueVoiceContainer));
-      serverApps.Add (dlPacketSinkVideo.Install (ueVideoContainer));
+      serverApps.Add (dlPacketSinkLowLat.Install (ueVoiceContainer));
+      serverApps.Add (dlPacketSinkLowLat.Install (ueVideoContainer));
     }
   else
     {
       serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
-      serverApps.Add (dlPacketSinkVoice.Install (remoteHost));
-      serverApps.Add (dlPacketSinkVideo.Install (remoteHost));
+      serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
+      serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
     }
 
   /*
@@ -741,8 +1007,8 @@ main (int argc, char *argv[])
   UdpClientHelper dlClientLowLat;
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-  dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeULL));
-  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaULL)));
+  dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
 
   // The bearer that will carry low latency traffic
   EpsBearer lowLatBearer (EpsBearer::NGBR_LOW_LAT_EMBB);
@@ -763,60 +1029,6 @@ main (int argc, char *argv[])
       dlpfLowLat.direction = EpcTft::UPLINK;
       }
   lowLatTft->Add (dlpfLowLat);
-
-  // Voice configuration and object creation:
-  UdpClientHelper dlClientVoice;
-  dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
-  dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-  dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
-
-  // The bearer that will carry voice traffic
-  EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
-
-  // The filter for the voice traffic
-  Ptr<EpcTft> voiceTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfVoice;
-  if (direction == "DL")
-    {
-      dlpfVoice.localPortStart = dlPortVoice;
-      dlpfVoice.localPortEnd = dlPortVoice;
-      dlpfVoice.direction = EpcTft::DOWNLINK;
-    }
-  else
-    {
-      dlpfVoice.remotePortStart = dlPortVoice;
-      dlpfVoice.remotePortEnd = dlPortVoice;
-      dlpfVoice.direction = EpcTft::UPLINK;
-    }
-  voiceTft->Add (dlpfVoice);
-
-  // Video configuration and object creation:
-  UdpClientHelper dlClientVideo;
-  dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
-  dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-  dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
-
-  // The bearer that will carry voice traffic
-  EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_OPERATOR);
-
-  // The filter for the voice traffic
-  Ptr<EpcTft> videoTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfVideo;
-  if (direction == "DL")
-    {
-      dlpfVideo.localPortStart = dlPortVideo;
-      dlpfVideo.localPortEnd = dlPortVideo;
-      dlpfVideo.direction = EpcTft::DOWNLINK;
-    }
-  else
-    {
-      dlpfVideo.remotePortStart = dlPortVideo;
-      dlpfVideo.remotePortEnd = dlPortVideo;
-      dlpfVideo.direction = EpcTft::UPLINK;
-    }
-  videoTft->Add (dlpfVideo);
 
   /*
    * Let's install the applications!
@@ -856,17 +1068,17 @@ main (int argc, char *argv[])
       // with destination address set to the address of the UE
       if (direction == "DL")
         {
-          dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientVoice.Install (remoteHost));
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientLowLat.Install (remoteHost));
         }
       else
         {
-          dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientVoice.Install (ue));
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+          clientApps.Add (dlClientLowLat.Install (ue));
 //          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
   for (uint32_t i = 0; i < ueVideoContainer.GetN (); ++i)
@@ -879,17 +1091,17 @@ main (int argc, char *argv[])
       // with destination address set to the address of the UE
       if (direction == "DL")
         {
-          dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientVideo.Install (remoteHost));
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientLowLat.Install (remoteHost));
         }
       else
         {
-          dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientVideo.Install (ue));
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+          clientApps.Add (dlClientLowLat.Install (ue));
 //          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
   // start UDP server and client apps
