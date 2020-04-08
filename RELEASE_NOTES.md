@@ -99,6 +99,8 @@ Bugs fixed
 - LBT at the gNb side is now scheduled (and done) every time there is a DL CTRL
   to transmit, as in FDD configuration, other BWP can inject messages after
   the start of the slot.
+- NrLteErrorModel contained a bug that prevented the calculation of the right
+  error value.
 
 Known issues
 ------------

@@ -563,7 +563,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
     {
       auto KMinusIt = KplusIt;
       // second segmentation size: K- = maximum K in table such that K < K+
-      Kminus = (KMinusIt == cbSizeTable.begin ()) ? *KMinusIt : *(KMinusIt--);
+      Kminus = (KMinusIt == cbSizeTable.begin ()) ? *KMinusIt : *(--KMinusIt);
       NS_ASSERT (Kplus >= Kminus);
       deltaK = Kplus - Kminus;
       Cminus = floor ((((double) C * Kplus) - (double)B1) / (double)deltaK);
