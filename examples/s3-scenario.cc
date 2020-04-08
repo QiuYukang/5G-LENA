@@ -249,8 +249,7 @@ main (int argc, char *argv[])
   std::string outputDir = "./";
 
   // Error models
-  std::string errorModel = "ns3::NrEesmErrorModel";
-  uint32_t eesmTable = 2;  //EESM table is more aggressive (less conservative) than table 1
+  std::string errorModel = "";
 
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -308,12 +307,8 @@ main (int argc, char *argv[])
                 "directory where to store simulation results",
                 outputDir);
   cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmErrorModel , ns3::NrLteMiErrorModel",
+               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
-  cmd.AddValue("eesmTable",
-               "Table to use when error model is Eesm (1 for McsTable1 or 2 for McsTable2)",
-               eesmTable);
-
 
   // Parse the command line
   cmd.Parse (argc, argv);
@@ -340,9 +335,10 @@ main (int argc, char *argv[])
    */
   if (logging)
     {
-      LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
-      LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
+//      LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
+//      LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
+//      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
+      LogComponentEnable ("MmWaveMacSchedulerOfdma", LOG_LEVEL_ALL);
     }
 
   /*
@@ -374,13 +370,27 @@ main (int argc, char *argv[])
   if (radioNetwork == "LTE")
     {
       ranHelper.SetNetworkToLte (scenario, operationMode, 1);
-      errorModel = "ns3::NrLteMiErrorModel";
+      if (errorModel == "")
+        {
+          errorModel = "ns3::NrLteMiErrorModel";
+        }
+      else if (errorModel != "ns3::NrLteMiErrorModel")
+        {
+          NS_ABORT_MSG ("The selected error model is not recommended for LTE");
+        }
       numScPerRb = 4;
     }
   else if (radioNetwork == "NR")
     {
       ranHelper.SetNetworkToNr (scenario, operationMode, numerologyBwp, 1);
-      errorModel = "ns3::NrEesmErrorModel";
+      if (errorModel == "")
+        {
+          errorModel = "ns3::NrEesmCcT2";
+        }
+      else if (errorModel == "ns3::NrLteMiErrorModel")
+        {
+          NS_ABORT_MSG ("The selected error model is not recommended for NR");
+        }
     }
   else
     {
@@ -607,9 +617,9 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
-  // Error Model
-  mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+//  // Error Model
+//  mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+//  mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
 
   // We assume a common traffic pattern for all UEs
   uint32_t bwpIdForLowLat = 0;
