@@ -393,12 +393,6 @@ main (int argc, char *argv[])
    */
   Config::SetDefault("ns3::NrAmc::NumRefScPerRb", UintegerValue (numScPerRb));
 
-  /*
-   * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
-   */
-  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ErrorModel));
-
   NodeContainer gnbLowLatContainer, gnbVoiceContainer, gnbVideoContainer;
   for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
     {
@@ -497,6 +491,14 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
   mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  // Error Model: UE and GNB with same spectrum error model.
+  mmWaveHelper->SetUlErrorModel (errorModel);
+  mmWaveHelper->SetDlErrorModel (errorModel);
+
+  // Both DL and UL AMC will have the same model behind.
+  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
