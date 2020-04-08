@@ -335,10 +335,10 @@ main (int argc, char *argv[])
    */
   if (logging)
     {
-//      LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
-//      LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-//      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
-      LogComponentEnable ("MmWaveMacSchedulerOfdma", LOG_LEVEL_ALL);
+      LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
+      LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
+      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
+//      LogComponentEnable ("MmWaveMacSchedulerOfdma", LOG_LEVEL_ALL);
     }
 
   /*
@@ -403,20 +403,20 @@ main (int argc, char *argv[])
    */
   Config::SetDefault("ns3::NrAmc::NumRefScPerRb", UintegerValue (numScPerRb));
 
-  NodeContainer gnbLowLatContainer, gnbVoiceContainer, gnbVideoContainer;
+  NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
   for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
     {
       Ptr<Node> gnb = gridScenario.GetBaseStations ().Get (j);
       switch (j % ffr)
       {
         case 0:
-          gnbLowLatContainer.Add (gnb);
+          gnbSector1Container.Add (gnb);
           break;
         case 1:
-          gnbVoiceContainer.Add (gnb);
+          gnbSector2Container.Add (gnb);
           break;
         case 2:
-          gnbVideoContainer.Add (gnb);
+          gnbSector3Container.Add (gnb);
           break;
         default:
           NS_ABORT_MSG("ffr param cannot be larger than 3");
@@ -428,7 +428,7 @@ main (int argc, char *argv[])
    * Create two different NodeContainer for the different traffic type.
    * In ueLowLat we will put the UEs that will receive low-latency traffic.
    */
-  NodeContainer ueLowLatContainer, ueVoiceContainer, ueVideoContainer;
+  NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
 
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
@@ -436,13 +436,13 @@ main (int argc, char *argv[])
       switch (j % ffr)
       {
         case 0:
-          ueLowLatContainer.Add (ue);
+          ueSector1Container.Add (ue);
           break;
         case 1:
-          ueVoiceContainer.Add (ue);
+          ueSector2Container.Add (ue);
           break;
         case 2:
-          ueVideoContainer.Add (ue);
+          ueSector3Container.Add (ue);
           break;
         default:
           NS_ABORT_MSG("ffr param cannot be larger than 3");
@@ -603,6 +603,9 @@ main (int argc, char *argv[])
    */
   // Beamforming method
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+//  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+  // Scheduler type
+//  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaRR"));
 
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
@@ -619,7 +622,7 @@ main (int argc, char *argv[])
 
   // We assume a common traffic pattern for all UEs
   uint32_t bwpIdForLowLat = 0;
-  if (direction == "UL")
+  if (operationMode == "FDD" && direction == "UL")
     {
       bwpIdForLowLat = 1;
     }
@@ -648,12 +651,12 @@ main (int argc, char *argv[])
    */
 
 //  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer gnbLowLatNetDev = mmWaveHelper->InstallGnbDevice (gnbLowLatContainer, bwps1);
-  NetDeviceContainer gnbVoiceNetDev = mmWaveHelper->InstallGnbDevice (gnbVoiceContainer, bwps2);
-  NetDeviceContainer gnbVideoNetDev = mmWaveHelper->InstallGnbDevice (gnbVideoContainer, bwps3);
-  NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, bwps1);
-  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, bwps2);
-  NetDeviceContainer ueVideoNetDev = mmWaveHelper->InstallUeDevice (ueVideoContainer, bwps3);
+  NetDeviceContainer gnbSector1NetDev = mmWaveHelper->InstallGnbDevice (gnbSector1Container, bwps1);
+  NetDeviceContainer gnbSector2NetDev = mmWaveHelper->InstallGnbDevice (gnbSector2Container, bwps2);
+  NetDeviceContainer gnbSector3NetDev = mmWaveHelper->InstallGnbDevice (gnbSector3Container, bwps3);
+  NetDeviceContainer ueSector1NetDev = mmWaveHelper->InstallUeDevice (ueSector1Container, bwps1);
+  NetDeviceContainer ueSector2NetDev = mmWaveHelper->InstallUeDevice (ueSector2Container, bwps2);
+  NetDeviceContainer ueSector3NetDev = mmWaveHelper->InstallUeDevice (ueSector3Container, bwps3);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -662,9 +665,9 @@ main (int argc, char *argv[])
 
   // Sectors (cells) of a site are pointing at different directions
   double orientationRads = gridScenario.GetAntennaOrientationRadians (0, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbLowLatNetDev.GetN (); ++numCell)
+  for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN (); ++numCell)
     {
-      Ptr<NetDevice> gnb = gnbLowLatNetDev.Get (numCell);
+      Ptr<NetDevice> gnb = gnbSector1NetDev.Get (numCell);
       uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
       if (numBwps == 1)  // TDD
         {
@@ -726,9 +729,9 @@ main (int argc, char *argv[])
     }
 
   orientationRads = gridScenario.GetAntennaOrientationRadians (1, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbVoiceNetDev.GetN (); ++numCell)
+  for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN (); ++numCell)
     {
-      Ptr<NetDevice> gnb = gnbVoiceNetDev.Get (numCell);
+      Ptr<NetDevice> gnb = gnbSector2NetDev.Get (numCell);
       uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
       if (numBwps == 1)  // TDD
         {
@@ -791,9 +794,9 @@ main (int argc, char *argv[])
     }
 
   orientationRads = gridScenario.GetAntennaOrientationRadians (2, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbVideoNetDev.GetN (); ++numCell)
+  for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN (); ++numCell)
     {
-      Ptr<NetDevice> gnb = gnbVideoNetDev.Get (numCell);
+      Ptr<NetDevice> gnb = gnbSector3NetDev.Get (numCell);
       uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
       if (numBwps == 1)  // TDD
         {
@@ -860,50 +863,50 @@ main (int argc, char *argv[])
 
   if (operationMode == "FDD")
     {
-      for (uint32_t i = 0; i < ueLowLatNetDev.GetN (); i++)
+      for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueLowLatNetDev.Get (i))->SetOutputLink (0, 1);
+          mmWaveHelper->GetBwpManagerUe (ueSector1NetDev.Get (i))->SetOutputLink (0, 1);
         }
 
-      for (uint32_t i = 0; i < ueVoiceNetDev.GetN (); i++)
+      for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueVoiceNetDev.Get (i))->SetOutputLink (0, 1);
+          mmWaveHelper->GetBwpManagerUe (ueSector2NetDev.Get (i))->SetOutputLink (0, 1);
         }
 
-      for (uint32_t i = 0; i < ueVideoNetDev.GetN (); i++)
+      for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueVideoNetDev.Get (i))->SetOutputLink (0, 1);
+          mmWaveHelper->GetBwpManagerUe (ueSector3NetDev.Get (i))->SetOutputLink (0, 1);
         }
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
-  for (auto it = gnbLowLatNetDev.Begin (); it != gnbLowLatNetDev.End (); ++it)
+  for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
     {
       DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
 
-  for (auto it = gnbVoiceNetDev.Begin (); it != gnbVoiceNetDev.End (); ++it)
+  for (auto it = gnbSector2NetDev.Begin (); it != gnbSector2NetDev.End (); ++it)
     {
       DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
 
-  for (auto it = gnbVideoNetDev.Begin (); it != gnbVideoNetDev.End (); ++it)
+  for (auto it = gnbSector3NetDev.Begin (); it != gnbSector3NetDev.End (); ++it)
     {
       DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
 
-  for (auto it = ueLowLatNetDev.Begin (); it != ueLowLatNetDev.End (); ++it)
+  for (auto it = ueSector1NetDev.Begin (); it != ueSector1NetDev.End (); ++it)
     {
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
 
-  for (auto it = ueVoiceNetDev.Begin (); it != ueVoiceNetDev.End (); ++it)
+  for (auto it = ueSector2NetDev.Begin (); it != ueSector2NetDev.End (); ++it)
     {
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
 
-  for (auto it = ueVideoNetDev.Begin (); it != ueVideoNetDev.End (); ++it)
+  for (auto it = ueSector3NetDev.Begin (); it != ueSector3NetDev.End (); ++it)
     {
       DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
     }
@@ -935,9 +938,9 @@ main (int argc, char *argv[])
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
   internet.Install (gridScenario.GetUserTerminals ());
 
-  Ipv4InterfaceContainer ueLowLatIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLowLatNetDev));
-  Ipv4InterfaceContainer ueVoiceIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVoiceNetDev));
-  Ipv4InterfaceContainer ueVideoIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVideoNetDev));
+  Ipv4InterfaceContainer ueSector1IpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueSector1NetDev));
+  Ipv4InterfaceContainer ueSector2IpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueSector2NetDev));
+  Ipv4InterfaceContainer ueSector3IpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueSector3NetDev));
 
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
@@ -948,38 +951,55 @@ main (int argc, char *argv[])
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-  // attach UEs to its eNB
-  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, gnbLowLatNetDev);
-  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, gnbVoiceNetDev);
-  mmWaveHelper->AttachToClosestEnb (ueVideoNetDev, gnbVideoNetDev);
-//  for (uint32_t i = 0; i < ueNum; ++i)
-//    {
-//      Ptr<NetDevice> gnbNetDev, ueNetDev;
-//      gnbNetDev = enbNetDev.Get (i % gNbNum);
-//      switch (i % 3)
-//      {
-//        case 0:
-//          ueNetDev = ueLowLatNetDev.Get(i / 3);
-//          break;
-//        case 1:
-//          ueNetDev = ueVoiceNetDev.Get(i / 3);
-//          break;
-//        case 2:
-//          ueNetDev = ueVideoNetDev.Get(i / 3);
-//          break;
-//        default:
-//          NS_ABORT_MSG ("Programming error");
-//          break;
-//      }
-//      mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
-//      if (logging == true)
-//        {
-//          Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-//          Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-//          double distance = CalculateDistance (gnbpos, uepos);
-//          std::cout << "Distance = " << distance << " meters" << std::endl;
-//        }
-//    }
+  // attach UEs to their gNB. Try to attach them per cellId order
+  for (uint32_t u = 0; u < ueNum; ++u)
+    {
+      uint32_t sector = u % ffr;
+      uint32_t i = u / ffr;
+      if (sector == 0)
+        {
+          Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get (i % gridScenario.GetNumSites ());
+          Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get (i);
+          mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+          if (logging == true)
+            {
+              Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+              Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+              double distance = CalculateDistance (gnbpos, uepos);
+              std::cout << "Distance = " << distance << " meters" << std::endl;
+            }
+        }
+      else if (sector == 1)
+        {
+          Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get (i % gridScenario.GetNumSites ());
+          Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get (i);
+          mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+          if (logging == true)
+            {
+              Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+              Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+              double distance = CalculateDistance (gnbpos, uepos);
+              std::cout << "Distance = " << distance << " meters" << std::endl;
+            }
+        }
+      else if (sector == 2)
+        {
+          Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get (i % gridScenario.GetNumSites ());
+          Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get (i);
+          mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+          if (logging == true)
+            {
+              Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+              Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+              double distance = CalculateDistance (gnbpos, uepos);
+              std::cout << "Distance = " << distance << " meters" << std::endl;
+            }
+        }
+      else
+        {
+          NS_ABORT_MSG("Number of sector cannot be larger than 3");
+        }
+    }
 
   /*
    * Traffic part. Install two kind of traffic: low-latency and voice, each
@@ -995,9 +1015,9 @@ main (int argc, char *argv[])
   // The server, that is the application which is listening, is installed in the UE
   if (direction == "DL")
     {
-      serverApps.Add (dlPacketSinkLowLat.Install (ueLowLatContainer));
-      serverApps.Add (dlPacketSinkLowLat.Install (ueVoiceContainer));
-      serverApps.Add (dlPacketSinkLowLat.Install (ueVideoContainer));
+      serverApps.Add (dlPacketSinkLowLat.Install (ueSector1Container));
+      serverApps.Add (dlPacketSinkLowLat.Install (ueSector2Container));
+      serverApps.Add (dlPacketSinkLowLat.Install (ueSector3Container));
     }
   else
     {
@@ -1043,11 +1063,11 @@ main (int argc, char *argv[])
    */
   ApplicationContainer clientApps;
 
-  for (uint32_t i = 0; i < ueLowLatContainer.GetN (); ++i)
+  for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
     {
-      Ptr<Node> ue = ueLowLatContainer.Get (i);
-      Ptr<NetDevice> ueDevice = ueLowLatNetDev.Get(i);
-      Address ueAddress = ueLowLatIpIface.GetAddress (i);
+      Ptr<Node> ue = ueSector1Container.Get (i);
+      Ptr<NetDevice> ueDevice = ueSector1NetDev.Get(i);
+      Address ueAddress = ueSector1IpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
       // with destination address set to the address of the UE
@@ -1060,17 +1080,16 @@ main (int argc, char *argv[])
         {
           dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
           clientApps.Add (dlClientLowLat.Install (ue));
-//          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
-  for (uint32_t i = 0; i < ueVoiceContainer.GetN (); ++i)
+  for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
     {
-      Ptr<Node> ue = ueVoiceContainer.Get (i);
-      Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
-      Address ueAddress = ueVoiceIpIface.GetAddress (i);
+      Ptr<Node> ue = ueSector2Container.Get (i);
+      Ptr<NetDevice> ueDevice = ueSector2NetDev.Get(i);
+      Address ueAddress = ueSector2IpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
       // with destination address set to the address of the UE
@@ -1083,17 +1102,16 @@ main (int argc, char *argv[])
         {
           dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
           clientApps.Add (dlClientLowLat.Install (ue));
-//          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
-  for (uint32_t i = 0; i < ueVideoContainer.GetN (); ++i)
+  for (uint32_t i = 0; i < ueSector3Container.GetN (); ++i)
     {
-      Ptr<Node> ue = ueVideoContainer.Get (i);
-      Ptr<NetDevice> ueDevice = ueVideoNetDev.Get(i);
-      Address ueAddress = ueVideoIpIface.GetAddress (i);
+      Ptr<Node> ue = ueSector3Container.Get (i);
+      Ptr<NetDevice> ueDevice = ueSector3NetDev.Get(i);
+      Address ueAddress = ueSector3IpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
       // with destination address set to the address of the UE
@@ -1106,7 +1124,6 @@ main (int argc, char *argv[])
         {
           dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
           clientApps.Add (dlClientLowLat.Install (ue));
-//          NS_ABORT_MSG ("UL not supported yet");
         }
       // Activate a dedicated bearer for the traffic type
       mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
