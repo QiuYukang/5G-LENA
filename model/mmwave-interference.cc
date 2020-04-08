@@ -67,7 +67,7 @@ mmWaveInterference::GetTypeId (void)
 }
 
 void
-mmWaveInterference::AddSignal (const Ptr<const SpectrumValue>& spd, const Time& duration)
+mmWaveInterference::AddSignal (Ptr<const SpectrumValue> spd, Time duration)
 {
   NS_LOG_FUNCTION (this << *spd << duration);
 

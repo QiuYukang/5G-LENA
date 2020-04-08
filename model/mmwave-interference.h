@@ -63,7 +63,7 @@ public:
 
   //inherited from LteInterference
   virtual void DoDispose () override;
-  virtual void AddSignal (const Ptr<const SpectrumValue>& spd, const Time& duration) override;
+  virtual void AddSignal (Ptr<const SpectrumValue> spd, Time duration) override;
 
   /**
    * \brief Checks if the sum of the energy, including the energies that start
