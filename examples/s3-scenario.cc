@@ -617,10 +617,6 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
-//  // Error Model
-//  mmWaveHelper->SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-//  mmWaveHelper->SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-
   // We assume a common traffic pattern for all UEs
   uint32_t bwpIdForLowLat = 0;
   if (direction == "UL")
