@@ -232,7 +232,7 @@ public:
   /**
    * \brief Generate a DL CQI report
    *
-   * Connected by the helper to a callback in mmWaveChunkProcessor.
+   * Connected by the helper to a callback in corresponding ChunkProcessor
    *
    * \param sinr the SINR
    */
