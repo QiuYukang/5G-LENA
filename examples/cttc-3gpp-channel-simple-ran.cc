@@ -195,7 +195,8 @@ main (int argc, char *argv[])
     const uint8_t numCcPerBand = 1;
 
     // Create the configuration for the CcBwpHelper
-    CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+    CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1,
+                                                     numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon_LoS);
 
     // By using the configuration created, it is time to make the operation band
     OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
