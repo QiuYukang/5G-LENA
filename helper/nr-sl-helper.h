@@ -30,6 +30,7 @@ namespace ns3 {
 class NetDeviceContainer;
 class NrSlCommResourcePoolFactory;
 class NrSlCommPreconfigResourcePoolFactory;
+class NrUeNetDevice;
 
 
 class NrSlHelper : public Object
@@ -44,11 +45,16 @@ public:
 */
   void InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::SidelinkPreconfigNr preConfig);
 
+
   static TypeId GetTypeId (void);
   virtual void DoDispose (void);
 
 
 private:
+
+  void SetPhyParamPerUe (const Ptr<NrUeNetDevice> &dev,
+                         const LteRrcSap::SlFreqConfigCommonNr &freqCommon,
+                         const LteRrcSap::SlPreconfigGeneralNr &general);
   Ptr<NrSlCommResourcePoolFactory> m_slResoPoolFactory {nullptr};
   Ptr<NrSlCommPreconfigResourcePoolFactory> m_slPreConfigResoPoolFactory {nullptr};
 };

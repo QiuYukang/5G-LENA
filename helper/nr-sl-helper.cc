@@ -23,6 +23,8 @@
 #include <ns3/nr-ue-net-device.h>
 #include <ns3/lte-rrc-sap.h>
 #include <ns3/nr-sl-ue-rrc.h>
+#include <ns3/lte-ue-rrc.h>
+#include <ns3/nr-ue-phy.h>
 
 
 
@@ -37,7 +39,6 @@
 
 namespace ns3 {
 
-/* ... */
 NS_LOG_COMPONENT_DEFINE ("NrSlHelper");
 
 NS_OBJECT_ENSURE_REGISTERED (NrSlHelper);
@@ -98,21 +99,46 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
 {
   NS_LOG_FUNCTION (this);
 
+  struct LteRrcSap::SlFreqConfigCommonNr slFreqConfigCommonNr = preConfig.slPreconfigFreqInfoList [0];
+  LteRrcSap::SlPreconfigGeneralNr slPreconfigGeneralNr = preConfig.slPreconfigGeneral;
+
   for (NetDeviceContainer::Iterator i = c.Begin (); i != c.End (); ++i)
     {
       Ptr<NetDevice> netDev = *i;
       Ptr<NrUeNetDevice> nrUeDev = netDev->GetObject <NrUeNetDevice>();
-      Ptr<NrSlUeRrc> nrSlUeRrc = nrUeDev->GetObject <NrSlUeRrc> ();
+      Ptr<LteUeRrc> lteUeRrc = nrUeDev->GetRrc ();
+      Ptr<NrSlUeRrc> nrSlUeRrc = lteUeRrc->GetObject <NrSlUeRrc> ();
+      NS_ASSERT_MSG (nrSlUeRrc != nullptr, " No sidelink UE RRC object found");
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
-
-
-
-    //  Ptr<NetDevice> device = InstallSingleUeDevice (node);
-    //  device->SetAddress (Mac48Address::Allocate ());
-    //  devices.Add (device);
+      SetPhyParamPerUe (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
     }
- // return devices;
+}
 
+void
+NrSlHelper::SetPhyParamPerUe (const Ptr<NrUeNetDevice> &dev,
+                              const LteRrcSap::SlFreqConfigCommonNr &freqCommon,
+                              const LteRrcSap::SlPreconfigGeneralNr &general)
+{
+  NS_LOG_FUNCTION (this);
+  bool found = false;
+  std::string tddPattern = general.slTddConfig.tddPattern;
+
+  for (uint8_t index = 0; index < freqCommon.slBwpList.size (); ++index)
+    {
+      //configure the parameters if both BWP generic and SL pools are configured.
+      if (freqCommon.slBwpList [index].haveSlBwpGeneric && freqCommon.slBwpList [index].haveSlBwpPoolConfigCommonNr)
+        {
+          NS_LOG_INFO ("Configuring BWP id " << +index << " for SL");
+          dev->GetPhy (index)->RegisterSlBwpId (static_cast <uint16_t> (index));
+          dev->GetPhy (index)->SetNumerology (freqCommon.slBwpList [index].slBwpGeneric.bwp.numerology);
+          dev->GetPhy (index)->SetSymbolsPerSlot (freqCommon.slBwpList [index].slBwpGeneric.bwp.symbolsPerSlots);
+          dev->GetPhy (index)->PreConfigSlBandwidth (freqCommon.slBwpList [index].slBwpGeneric.bwp.bandwidth);
+          dev->GetPhy (index)->SetNumRbPerRbg (freqCommon.slBwpList [index].slBwpGeneric.bwp.rbPerRbg);
+          dev->GetPhy (index)->SetPattern (tddPattern);
+          found = true;
+        }
+    }
+  NS_ABORT_MSG_IF (found == false, "No SL configuration found");
 }
 
 
