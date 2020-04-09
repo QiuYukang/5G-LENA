@@ -704,16 +704,8 @@ main (int argc, char *argv[])
           mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          if (direction == "DL")
-            {
-              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-            }
-          else
-            {
-              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (-30.0));
-              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-            }
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
           // Set TDD pattern
           mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
           mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
@@ -768,16 +760,8 @@ main (int argc, char *argv[])
           mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          if (direction == "DL")
-            {
-              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-            }
-          else
-            {
-              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (-30.0));
-              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-            }
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
 
           // Set TDD pattern
           mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
@@ -833,16 +817,8 @@ main (int argc, char *argv[])
           mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          if (direction == "DL")
-            {
-              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-            }
-          else
-            {
-              mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (-30.0));
-              mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-            }
+          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
 
           // Set TDD pattern
           mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
