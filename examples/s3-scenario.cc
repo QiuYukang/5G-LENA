@@ -1015,14 +1015,10 @@ main (int argc, char *argv[])
   // The server, that is the application which is listening, is installed in the UE
   if (direction == "DL")
     {
-      serverApps.Add (dlPacketSinkLowLat.Install (ueSector1Container));
-      serverApps.Add (dlPacketSinkLowLat.Install (ueSector2Container));
-      serverApps.Add (dlPacketSinkLowLat.Install (ueSector3Container));
+      serverApps.Add (dlPacketSinkLowLat.Install ({ueSector1Container,ueSector2Container,ueSector3Container}));
     }
   else
     {
-      serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
-      serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
       serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
     }
 
