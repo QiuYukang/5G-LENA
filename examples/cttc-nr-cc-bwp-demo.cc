@@ -1,18 +1,46 @@
 /*
  -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*-
  *
- * An simple example of Carrier Aggregation (CA) and Bandwidth Part (BWP)
- * configuration in NR, where a number of Component Carriers (CC) (up to 16 in
- * the best case scenario) are allocated in different operation bands in
- * Frequency Range 2 (FR2) or mmWave band. CA can aggregate contiguous and
- * non-contiguous CCs, and each CC may have up to 4 BWP. Only one BWP per CC can
- * be active at a time.
+ * Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
- * In this example, each UE generates numFlows flows with non-repeating QCI.
- * Since Static CA Algorithm is used, each flow will be transmitted on a
- * dedicated component carrier. Therefore, the number of component carriers
- * matches the number of flows. Each carrier will multiplex flows from
- * different UEs but with the same CQI
+ * \ingroup examples
+ * \file cttc-nr-bwp-demo.cc
+ * \brief Creates a NR TDD deployment with a configurable number of sites, UEs, downlink and uplink flows.
+ *
+ * This example describes how to setup a simulation using the 3GPP channel model
+ * from TR 38.900. This example consists of configurable number of NR base stations
+ * (gNBs) with an also configurable number of UEs attached to each gNB.
+ *
+ * In this example, the network operates in TDD in a given band. This band is
+ * splited in a number of Component Carriers (CC). There are two methods to do
+ * this separation: automatic or manual.
+ * The automatic way divides the bandwidth in a given number of equally-sized
+ * contiguous CCs. In the example, the number of contiguous CCs is 4, but can be
+ * changed. In the manual way, the simulator user is free to create CCs and
+ * bandwidth parts (BWPs) on their way. The helper will take care of validating
+ * the customized spectrum allocation. The example provides 2 CCs, one with 2
+ * BWPs and another one with one single BWP occupying the whole CC bandwidth.
+ *
+ * By default, the example uses the non-automatic spectrum division. The number
+ * of gNBs and UEs is 1. The UE may generate 3 different flows in downlink and
+ * other 3 flows in uplink. Each directional flow belongs to a different traffic
+ * pattern, which is map to a unique BWP in the configuration, demonstrating that
+ * carrier aggregation can be done in our module just by multiplexing flows on
+ * different CCs.
+ *
+ * We provide a number of simulation parameters that can be configured in the
+ * command line, such as the number of UEs per gNB or traffic flow directions.
+ * Please have a look at the possible parameters to know what you can configure
+ * through the command line.
+ *
+ * The example will print on-screen the end-to-end result of one (or two) flows,
+ * With the default configuration, the example will create one DL flow per UE.
+ * The example will print on-screen the end-to-end result of each flow,
+ * as well as writing them on a file.
+ *
+ * \code{.unparsed}
+$ ./waf --run "cttc-nr-bwp-demo --Help"
+    \endcode
  */
 
 
