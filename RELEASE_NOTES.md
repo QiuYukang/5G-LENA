@@ -101,6 +101,8 @@ Bugs fixed
   the start of the slot.
 - NrLteErrorModel contained a bug that prevented the calculation of the right
   error value.
+- Scheduler contained a bug that was forcing, in some situation, a double SR
+  scheduling, stopped by a FATAL_ERROR.
 
 Known issues
 ------------

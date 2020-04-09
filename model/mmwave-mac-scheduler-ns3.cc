@@ -33,6 +33,7 @@
 #include <ns3/log.h>
 #include <ns3/eps-bearer.h>
 #include <ns3/pointer.h>
+#include <algorithm>
 
 namespace ns3 {
 
@@ -1457,6 +1458,7 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
       if (tbs < 4)
         {
           // Our try is a fail: we can't schedule this SR
+          scheduled.erase(scheduled.find (rnti));
           notScheduled.push_back (rnti);
           ue->ResetUlSchedInfo ();
           continue;
@@ -2132,15 +2134,17 @@ void
 MmWaveMacSchedulerNs3::DoSchedUlSrInfoReq (const MmWaveMacSchedSapProvider::SchedUlSrInfoReqParameters &params)
 {
   NS_LOG_FUNCTION (this);
-  for (const auto & ue : params.m_srList)
-    {
-      NS_LOG_INFO ("UE " << ue << " asked for a SR ");
-    }
 
   // Merge RNTI in our current list
   for (const auto & ue : params.m_srList)
     {
-      m_srList.push_back (ue);
+      NS_LOG_INFO ("UE " << ue << " asked for a SR ");
+
+      auto it = std::find (m_srList.begin(), m_srList.end(), ue);
+      if (it == m_srList.end())
+        {
+          m_srList.push_back (ue);
+        }
     }
   NS_ASSERT (m_srList.size () >= params.m_srList.size ());
 }
