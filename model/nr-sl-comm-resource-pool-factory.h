@@ -33,8 +33,16 @@ public:
   NrSlCommResourcePoolFactory ();
   virtual ~NrSlCommResourcePoolFactory ();
 
-
-  const LteRrcSap::SlResourcePoolNr CreatePool (void);
+  /*
+   * \brief Create pool
+   *
+   * Until 3GPP TS 38.331 is not making a clear distinction between a dedicated
+   * and preconfigured pool, we are making this method virtual so child class
+   * can override it.
+   *
+   * \return The struct of type LteRrcSap::SlResourcePoolNr defining the SL pool
+   */
+  virtual const LteRrcSap::SlResourcePoolNr CreatePool (void);
 
   /**
    * \brief Setup PSCCH resources

@@ -33,9 +33,14 @@ public:
   NrSlCommPreconfigResourcePoolFactory ();
   virtual ~NrSlCommPreconfigResourcePoolFactory ();
 
-
-
-  const LteRrcSap::SlResourcePoolNr CreatePool (void);
+  /*
+   * \brief Create pool
+   *
+   * Inherited from NrSlCommResourcePoolFactory class
+   *
+   * \return The struct of type LteRrcSap::SlResourcePoolNr defining the SL pool
+   */
+  const LteRrcSap::SlResourcePoolNr CreatePool (void) override;
 
 
 private:
