@@ -347,6 +347,12 @@ public:
    */
   uint32_t GetChannelBandwidth () const override;
 
+protected:
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
+
 private:
   /**
    * \brief Set the current slot pattern (better to call it only once..)

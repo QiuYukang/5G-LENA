@@ -72,6 +72,18 @@ BandwidthPartGnb::~BandwidthPartGnb (void)
   NS_LOG_FUNCTION (this);
 }
 
+void
+BandwidthPartGnb::DoDispose ()
+{
+  NS_LOG_FUNCTION (this);
+  m_phy->Dispose ();
+  m_phy = nullptr;
+  m_mac->Dispose ();
+  m_mac = nullptr;
+  m_scheduler = nullptr;
+  Object::DoDispose ();
+}
+
 Ptr<MmWaveEnbPhy>
 BandwidthPartGnb::GetPhy ()
 {

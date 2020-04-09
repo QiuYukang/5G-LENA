@@ -369,6 +369,10 @@ public:
 
 protected:
   /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
+  /**
    * \brief Update the number of RB. Usually called after bandwidth changes
    */
   void UpdateRbNum ();

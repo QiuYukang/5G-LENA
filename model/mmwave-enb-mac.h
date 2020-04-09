@@ -210,6 +210,10 @@ public:
 
 protected:
   /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
+  /**
    * \brief Get the bwp id of this MAC
    * \return the bwp id
    */

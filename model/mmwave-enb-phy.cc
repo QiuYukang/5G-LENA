@@ -62,7 +62,15 @@ MmWaveEnbPhy::MmWaveEnbPhy ():
 
 MmWaveEnbPhy::~MmWaveEnbPhy ()
 {
+}
+
+
+void
+MmWaveEnbPhy::DoDispose ()
+{
+  NS_LOG_FUNCTION (this);
   delete m_enbCphySapProvider;
+  MmWavePhy::DoDispose ();
 }
 
 TypeId

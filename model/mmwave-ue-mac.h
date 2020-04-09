@@ -70,6 +70,7 @@ public:
     */
   ~MmWaveUeMac (void) override;
 
+
   /**
    * \brief Set the C MAC SAP user (AKA the RRC representation for the MAC)
    * \param s the SAP pointer
@@ -139,6 +140,10 @@ public:
 
 
 protected:
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
   /**
    * \brief Get the bwp id of this MAC
    * \return the bwp id

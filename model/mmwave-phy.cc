@@ -201,8 +201,20 @@ MmWavePhy::MmWavePhy ()
 MmWavePhy::~MmWavePhy ()
 {
   NS_LOG_FUNCTION (this);
+}
+
+void
+MmWavePhy::DoDispose ()
+{
+  NS_LOG_FUNCTION (this);
   m_slotAllocInfo.clear ();
   m_controlMessageQueue.clear ();
+  m_packetBurstMap.clear();
+  m_ctrlMsgs.clear ();
+  m_tddPattern.clear ();
+  m_netDevice = nullptr;
+  m_beamManager = nullptr;
+  m_spectrumPhy->Dispose ();
   delete m_phySapProvider;
 }
 

@@ -133,7 +133,13 @@ MmWaveEnbNetDevice::DoDispose ()
 
   m_rrc->Dispose ();
   m_rrc = nullptr;
-
+  for (const auto &it: m_ccMap)
+    {
+      it.second->Dispose ();
+    }
+  m_ccMap.clear ();
+  m_componentCarrierManager->Dispose ();
+  m_componentCarrierManager = nullptr;
   MmWaveNetDevice::DoDispose ();
 }
 

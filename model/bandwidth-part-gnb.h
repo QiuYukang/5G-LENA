@@ -100,6 +100,12 @@ public:
    */
   void SetAsPrimary (bool primaryCarrier);
 
+protected:
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
+
 private:
   Ptr<MmWaveEnbPhy> m_phy; ///< the Phy instance of this eNodeB component carrier
   Ptr<MmWaveEnbMac> m_mac; ///< the MAC instance of this eNodeB component carrier
