@@ -1153,6 +1153,27 @@ NrUePhy::DoSetImsi (uint64_t imsi)
   m_imsi = imsi;
 }
 
+void
+NrUePhy::PreConfigSlBandwidth (uint16_t slBandwidth)
+{
+  NS_LOG_FUNCTION (this << slBandwidth);
+  if (m_channelBandwidth != slBandwidth)
+    {
+      m_channelBandwidth = slBandwidth;
+      UpdateRbNum ();
+    }
+}
+
+void
+NrUePhy::RegisterSlBwpId (uint16_t bwpId)
+{
+  NS_LOG_FUNCTION (this);
+
+  // we might need to do the same for SL InitializeMessageList ();
+
+  DoSetCellId (bwpId);
+}
+
 
 }
 

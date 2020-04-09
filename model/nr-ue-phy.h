@@ -314,6 +314,26 @@ public:
    */
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
+  //NR SL
+
+  /**
+   * \brief pre-configure sidelink bandwidth
+   *
+   * This method will used in out of coverage
+   * scenarios to set the channel bandwidth.
+   * In in-coverage scenario the channel bandwidth
+   * is configured by RRC after receiving the MIB.
+   *
+   * \param slBandwidth The total sidelink channel bandwidth
+   */
+  void PreConfigSlBandwidth (uint16_t slBandwidth);
+  /**
+   * \brief Register sidelink bandwidthpart id
+   *
+   * \param bwpId The bandwidthpart id
+   */
+  void RegisterSlBwpId (uint16_t bwpId);
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
