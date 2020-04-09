@@ -44,8 +44,8 @@ int
 main (int argc, char *argv[])
 {
   uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 2;
-  uint16_t numFlowsUe = 2;
+  uint16_t ueNumPergNb = 1;
+  uint16_t numFlowsUe = 3;
 
   uint8_t numBands = 1;
   double centralFrequencyBand = 28e9;
@@ -139,9 +139,7 @@ main (int argc, char *argv[])
                 totalTxPower);
   cmd.AddValue ("cellScan",
                 "Use beam search method to determine beamforming vector,"
-                " the default is long-term covariance matrix method"
-                " true to use cell scanning method, false to use the default"
-                " power method.",
+                "true to use cell scanning method",
                 cellScan);
   cmd.AddValue ("beamSearchAngleStep",
                 "Beam search angle step for beam search method",
@@ -307,11 +305,11 @@ main (int argc, char *argv[])
        * ------BWP0-----|------BWP0------|-------BWP0------|-------BWP0------
        */
 
-      const uint8_t numCcPerBand = 4; // 4 CCs per Band
+      const uint8_t numContiguousCcs = 4; // 4 CCs per Band
 
       // Create the configuration for the CcBwpHelper
       CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand,
-                                                      numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon_LoS);
+                                                      numContiguousCcs, BandwidthPartInfo::UMi_StreetCanyon_LoS);
 
       bandConf.m_numBwp = 1; // 1 BWP per CC
 
@@ -407,7 +405,6 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   double x = pow (10, totalTxPower/10);
-  double totalBandwidth = bandwidthBand;
 
   // Antennas for all the UEs
   mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
@@ -458,21 +455,21 @@ main (int argc, char *argv[])
 
   if (contiguousCc == true)
     {
-      // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
+      // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
 
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
 
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
 
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Pattern", StringValue (pattern));
 
   }
@@ -480,15 +477,15 @@ main (int argc, char *argv[])
   {
       // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp0));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(0,0)->m_channelBandwidth/bandwidthBand) * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
 
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp1));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(1,0)->m_channelBandwidth/bandwidthBand) * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
 
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyCc1Bwp0));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand/totalBandwidth) * x)));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(1,1)->m_channelBandwidth/bandwidthBand) * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
   }
 
