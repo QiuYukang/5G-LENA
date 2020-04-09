@@ -194,10 +194,7 @@ main (int argc, char *argv[])
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
     }
-/*
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
-                      StringValue ("l"));
-*/
+
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   // create base stations and mobile terminals
@@ -315,8 +312,6 @@ main (int argc, char *argv[])
 
       // By using the configuration created, it is time to make the operation band
       band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
-
-      //OperationMode mode = OperationMode::TDD;
     }
   else
     {
@@ -431,31 +426,10 @@ main (int argc, char *argv[])
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
 
-  /*
-   * In FDD, DL and UL might not be symmetric. A simple way to set BWP powers is
-   * to loop all PHYs and apply the BW of the attached BWP
-   */
-/*  std::vector<Ptr<BandwidthPartInfo>> bwpList;
-  ccBwpManager.GetConfiguredBwp (&bwpList);
-
-  for (uint32_t j = 0; j < enbNetDev.GetN (); ++j)
-    {
-      ObjectMapValue objectMapValue;
-      enbNetDev.Get (j)->GetAttribute ("BandwidthPartMap", objectMapValue);
-      for (uint32_t i = 0; i < objectMapValue.GetN (); i++)
-        {
-          Ptr<BandwidthPartGnb> bandwidthPart = DynamicCast<BandwidthPartGnb> (objectMapValue.Get (i));
-          uint8_t bwdId = bandwidthPart->GetPhy ()->GetConfigurationParameters ()->GetCcId ();
-          uint32_t bw = (bwpList.at (bwdId))->m_bandwidth;
-          bandwidthPart->GetPhy ()->SetTxPower (10 * log10 ((bw / totalBandwidth) * x));
-          std::cout << "\n txPower" << i << " = " << 10 * log10 ((bw / totalBandwidth) * x) << std::endl;
-        }
-    }
-*/
 
   if (contiguousCc == true)
     {
-      // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
+      // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0), (1), ...
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
@@ -475,7 +449,7 @@ main (int argc, char *argv[])
   }
   else
   {
-      // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
+      // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0), (1), ...
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp0));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(0,0)->m_channelBandwidth/bandwidthBand) * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
