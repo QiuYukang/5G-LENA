@@ -483,11 +483,11 @@ main (int argc, char *argv[])
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
-      scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
+      scene =  BandwidthPartInfo::UMi_StreetCanyon;
     }
   else if (scenario == "UMa")
     {
-      scene = BandwidthPartInfo::UMa_LoS;
+      scene = BandwidthPartInfo::UMa;
     }
   else
     {
@@ -604,6 +604,7 @@ main (int argc, char *argv[])
   // Beamforming method
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 //  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+
   // Scheduler type
 //  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaRR"));
 
