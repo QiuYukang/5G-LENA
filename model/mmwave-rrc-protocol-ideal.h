@@ -38,6 +38,11 @@ class LteUeRrc;
 
 
 /**
+ * \ingroup ue
+ * \ingroup gnb
+ *
+ * \brief RRC message passing from the UE to the GNB
+ *
  * Models the transmission of RRC messages from the UE to the eNB in
  * an ideal fashion, without errors and without consuming any radio
  * resources.
@@ -48,19 +53,39 @@ class mmWaveUeRrcProtocolIdeal : public Object
   friend class MemberLteUeRrcSapUser<mmWaveUeRrcProtocolIdeal>;
 
 public:
+  /**
+   * \brief mmWaveUeRrcProtocolIdeal constructor
+   */
   mmWaveUeRrcProtocolIdeal ();
+  /**
+   * \brief ~mmWaveUeRrcProtocolIdeal
+   */
   virtual ~mmWaveUeRrcProtocolIdeal ();
 
   // inherited from Object
   virtual void DoDispose (void) override;
+  /**
+   * \brief GetTypeId
+   * \return the type id of the object
+   */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief SetLteUeRrcSapProvider
+   * \param p
+   */
   void SetLteUeRrcSapProvider (LteUeRrcSapProvider* p);
+  /**
+   * \brief GetLteUeRrcSapUser
+   * \return
+   */
   LteUeRrcSapUser* GetLteUeRrcSapUser ();
 
+  /**
+   * \brief SetUeRrc
+   * \param rrc
+   */
   void SetUeRrc (Ptr<LteUeRrc> rrc);
-
-
 private:
   // methods forwarded from LteUeRrcSapUser
   void DoSetup (LteUeRrcSapUser::SetupParameters params);

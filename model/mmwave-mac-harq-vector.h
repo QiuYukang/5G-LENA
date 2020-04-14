@@ -24,6 +24,7 @@
 namespace ns3 {
 
 /**
+ * \ingroup scheduler
  * \brief Data structure to save all the HARQ process of an UE
  *
  * The data is stored as an unordered_map between the process ID and the

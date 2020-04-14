@@ -24,8 +24,18 @@
 
 namespace ns3 {
 
+/**
+ * \ingroup helper
+ * \brief The MacPduInfo struct
+ */
 struct MacPduInfo
 {
+  /**
+   * \brief Construct a MacPduInfo
+   * \param sfn SfnSf of the PDU
+   * \param numRlcPdu Number of PDU inside this struct
+   * \param dci DCI of the PDU
+   */
   MacPduInfo (SfnSf sfn, uint8_t numRlcPdu, DciInfoElementTdma dci) :
     m_sfnSf (sfn), m_size (dci.m_tbSize), m_numRlcPdu (numRlcPdu), m_symStart (dci.m_symStart)
   {
@@ -35,12 +45,12 @@ struct MacPduInfo
     m_pdu->AddPacketTag (tag);
   }
 
-  SfnSf m_sfnSf;
-  uint32_t m_size;
-  uint8_t m_numRlcPdu;
-  uint8_t m_symStart;
-  Ptr<Packet> m_pdu;
-  MmWaveMacPduHeader m_macHeader;
+  SfnSf m_sfnSf;                  //!< SfnSf of the PDU
+  uint32_t m_size;                //!< Size of the PDU
+  uint8_t m_numRlcPdu;            //!< Number of RLC PDU
+  uint8_t m_symStart;             //!< The start symbol of this PDU
+  Ptr<Packet> m_pdu;              //!< The data of the PDU
+  MmWaveMacPduHeader m_macHeader; //!< The MAC header
 };
 
 } // namespace ns3

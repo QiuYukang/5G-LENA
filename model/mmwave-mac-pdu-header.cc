@@ -143,7 +143,7 @@ MmWaveMacPduHeader::Print (std::ostream &os) const
 }
 
 void
-MmWaveMacPduHeader::AddSubheader (MacSubheader macSubheader)
+MmWaveMacPduHeader::AddSubheader (const MacSubheader &macSubheader)
 {
   this->m_subheaderList.push_back (macSubheader);
   if (macSubheader.m_size > 0x3FFF)

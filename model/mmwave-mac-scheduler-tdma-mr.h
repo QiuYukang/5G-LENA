@@ -23,7 +23,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Assign entire symbols in a maximum-rate fashion
  *
  * The UEs will be sorted by their MCS. Higher MCS will always be scheduled

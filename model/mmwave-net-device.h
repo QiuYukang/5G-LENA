@@ -29,16 +29,32 @@ namespace ns3 {
 class Node;
 class Packet;
 
+/**
+ * \ingroup ue
+ * \ingroup gnb
+ * \brief The MmWaveNetDevice class
+ *
+ * This is the base class for MmWaveUeNetDevice and MmWaveEnbNetDevice.
+ */
 class MmWaveNetDevice : public NetDevice
 {
 public:
+  /**
+   * \brief GetTypeId
+   * \return the object type id
+   */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief MmWaveNetDevice
+   */
   MmWaveNetDevice (void);
+  /**
+   * \brief ~MmWaveNetDevice
+   */
   virtual ~MmWaveNetDevice (void);
 
-  virtual void DoDispose (void);
-
+  // inherit
   virtual void SetIfIndex (const uint32_t index);
   virtual uint32_t GetIfIndex (void) const;
   virtual Ptr<Channel> GetChannel (void) const;
@@ -66,6 +82,8 @@ public:
   void Receive (Ptr<Packet> p);
 
 protected:
+  virtual void DoDispose (void);
+
   NetDevice::ReceiveCallback m_rxCallback;
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
 

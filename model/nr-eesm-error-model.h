@@ -35,7 +35,14 @@ class NrL2smEesmTestCase;
  */
 struct NrEesmErrorModelOutput : public NrErrorModelOutput
 {
+  /**
+   * \brief NrEesmErrorModelOutput constructor (deleted)
+   */
   NrEesmErrorModelOutput () = delete;
+  /**
+   * \brief NrEesmErrorModelOutput constructor to use
+   * \param tbler the reference TBler
+   */
   NrEesmErrorModelOutput (double tbler) : NrErrorModelOutput (tbler)
   {
   }
@@ -80,6 +87,10 @@ class NrEesmErrorModel : public NrErrorModel
 {
 public:
   friend NrL2smEesmTestCase;
+  /**
+   * \brief GetTypeId
+   * \return the type id of the object
+   */
   static TypeId GetTypeId ();
 
   /**
@@ -88,7 +99,13 @@ public:
    */
   TypeId GetInstanceTypeId (void) const override;
 
+  /**
+   * \brief NrEesmErrorModel constructor
+   */
   NrEesmErrorModel ();
+  /**
+   * \brief ~NrEesmErrorModel
+   */
   virtual ~NrEesmErrorModel () override;
 
   /**
@@ -214,7 +231,7 @@ protected:
   virtual const std::vector<double> * GetSpectralEfficiencyForCqi () const = 0;
 
 private:
-  static std::vector<std::string> m_bgTypeName;
+  static std::vector<std::string> m_bgTypeName; //!< Base graph name
 
   /**
    * \brief map the effective SINR into CBLER for the specified MCS and CB size,
@@ -263,7 +280,21 @@ private:
    */
   GraphType GetBaseGraphType (uint32_t tbSize, uint8_t mcs) const;
 
+  /**
+   * \brief Get SinrDb Vector From Simulated Values
+   * \param graphType
+   * \param mcs
+   * \param cbSizeIndex
+   * \return
+   */
   const std::vector<double> & GetSinrDbVectorFromSimulatedValues (GraphType graphType, uint8_t mcs, uint32_t cbSizeIndex) const;
+  /**
+   * \brief Get BLER Vector From Simulated Values
+   * \param graphType
+   * \param mcs
+   * \param cbSizeIndex
+   * \return
+   */
   const std::vector<double> & GetBLERVectorFromSimulatedValues (GraphType graphType, uint8_t mcs, uint32_t cbSizeIndex) const;
 };
 

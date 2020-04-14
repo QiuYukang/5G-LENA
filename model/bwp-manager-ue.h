@@ -28,15 +28,25 @@ class BwpManagerAlgorithm;
 class MmWaveControlMessage;
 
 /**
- * \ingroup bwp
+ * \ingroup ue-bwp
  * \brief The BwpManagerUe class
  */
 class BwpManagerUe : public SimpleUeComponentCarrierManager
 {
 public:
+  /**
+   * \brief GetTypeId
+   * \return the type id for the object
+   */
   static TypeId GetTypeId ();
 
+  /**
+   * \brief BwpManagerUe constructor
+   */
   BwpManagerUe ();
+  /**
+   * \brief ~BwpManagerUe
+   */
   virtual ~BwpManagerUe () override;
 
   /**

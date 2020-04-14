@@ -29,6 +29,24 @@
 
 namespace ns3 {
 
+/**
+ * \ingroup nru
+ * \brief The Channel Access Manager class
+ *
+ * This is the interface for any channel access manager. A channel access manager
+ * is responsible to listen to the channel, informing the PHY when it is free
+ * for transmitting.
+ *
+ * <b> Requesting the channel </b>
+ *
+ * The PHY would call the method RequestAccess(). Then, when the channel is
+ * available for transmission, the channel access manager would call the
+ * callback set with the method SetAccessGrantedCallback(). If the channel
+ * cannot be access, then the callback set with SetAccessDeniedCallback()
+ * will be called, instead. The request can be cancelled by calling Cancel().
+ *
+ * \see NrAlwaysOnAccessManager
+ */
 class NrChAccessManager : public Object
 {
 public:
@@ -71,39 +89,49 @@ public:
   typedef std::function<void ()> AccessDeniedCallback;
 
   /**
-   * @brief RequestAccess
+   * \brief RequestAccess
+   *
+   * When the channel is granted, the callback set with SetAccessGrantedCallback()
+   * will be called.
    */
   virtual void RequestAccess () = 0;
   /**
-   * @brief SetAccessGrantedCallback
-   * @param cb
+   * \brief Set Access-Granted Callback
+   * \param cb the callback to invoke when the channel access is granted
    */
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) = 0;
+  /**
+   * \brief Set Access-Denied Callback
+   * \param cb the callback to invoke when the channel access is denied
+   */
   virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) = 0;
 
+  /**
+   * \brief Cancel a previously invoked request for accesing the channel
+   */
   virtual void Cancel () = 0;
 
   /**
-   * @brief Set spectrum phy instance for this channel access manager
-   * @param spectrumPhy specturm phy instance
+   * \brief Set spectrum phy instance for this channel access manager
+   * \param spectrumPhy specturm phy instance
    */
   virtual void SetNrSpectrumPhy (Ptr<MmWaveSpectrumPhy> spectrumPhy);
 
   /**
-   * Getter for spectrum phy instance to which is connected this channel access manager
-   * @return pointer to spectrum phy instance
+   * \brief Getter for spectrum phy instance to which is connected this channel access manager
+   * \return pointer to spectrum phy instance
    */
   Ptr<MmWaveSpectrumPhy> GetNrSpectrumPhy ();
 
   /**
    * \brief Set MAC instance for this channel access manager
-   * @param mac eNB mac instance
+   * \param mac eNB mac instance
    */
   virtual void SetNrEnbMac (Ptr<MmWaveEnbMac> mac);
 
   /**
-   * Getter for MAC instance to which is connected this channel access manager
-   * @return pointer to MAC instance
+   * \brief Getter for MAC instance to which is connected this channel access manager
+   * \return pointer to MAC instance
    */
   Ptr<MmWaveEnbMac> GetNrEnbMac ();
 
@@ -114,6 +142,31 @@ private:
   Ptr<MmWaveSpectrumPhy> m_spectrumPhy; //!< SpectrumPhy instance to which is connected this channel access manager
 };
 
+/**
+ * \ingroup nru
+ * \brief A Channel access manager that sees the channel always free for transmitting
+ *
+ * This channel access manager is installed by default in NR instances.
+ *
+ * <b> Usage </b>
+ *
+ * This is the CAM that is created by default. However, if you want to set it
+ * manually, you can invoke the helper function before installing the gnb:
+ *
+\verbatim
+  mmWaveHelper->SetGnbChannelAccessManagerTypeId (NrAlwaysOnAccessManager::GetTypeId());
+  ...
+  mmWaveHelper->InstallGnb ...
+\endverbatim
+ *
+ * or the UE-side:
+\verbatim
+  mmWaveHelper->SetUeChannelAccessManagerTypeId (NrAlwaysOnAccessManager::GetTypeId());
+  ...
+  mmWaveHelper->InstallUe ...
+\endverbatim
+ *
+ */
 class NrAlwaysOnAccessManager : public NrChAccessManager
 {
 public:
@@ -123,16 +176,23 @@ public:
    */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief NrAlwaysOnAccessManager constructor
+   */
   NrAlwaysOnAccessManager ();
+  /**
+    * \brief destructor
+    */
   ~NrAlwaysOnAccessManager () override;
 
+  // inherited
   virtual void RequestAccess () override;
   virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) override;
   virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) override;
   virtual void Cancel () override;
 
 private:
-  std::vector<AccessGrantedCallback> m_accessGrantedCb;
+  std::vector<AccessGrantedCallback> m_accessGrantedCb; //!< Access granted CB
 };
 
 }

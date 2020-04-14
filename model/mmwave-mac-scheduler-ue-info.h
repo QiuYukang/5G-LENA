@@ -35,7 +35,7 @@ class MmWaveMacSchedulerUeInfo;
 typedef std::shared_ptr<MmWaveMacSchedulerUeInfo> UePtr;
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief The representation of an user for any Mac scheduler
  *
  * Basic representation for an UE inside any scheduler. The class is responsible
@@ -87,50 +87,110 @@ public:
   {
   }
 
+  /**
+   * \brief GetDlRBG
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint32_t & GetDlRBG (const UePtr &ue)
   {
     return ue->m_dlRBG;
   }
+  /**
+   * \brief GetUlRBG
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint32_t & GetUlRBG (const UePtr &ue)
   {
     return ue->m_ulRBG;
   }
+  /**
+   * \brief GetDlSym
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint8_t & GetDlSym (const UePtr &ue)
   {
     return ue->m_dlSym;
   }
+  /**
+   * \brief GetUlSym
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint8_t & GetUlSym (const UePtr &ue)
   {
     return ue->m_ulSym;
   }
+  /**
+   * \brief GetDlMcs
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint8_t & GetDlMcs (const UePtr &ue)
   {
     return ue->m_dlMcs;
   }
+  /**
+   * \brief GetUlMcs
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint8_t & GetUlMcs (const UePtr &ue)
   {
     return ue->m_ulMcs;
   }
+  /**
+   * \brief GetDlTBS
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint32_t & GetDlTBS (const UePtr &ue)
   {
     return ue->m_dlTbSize;
   }
+  /**
+   * \brief GetUlTBS
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static uint32_t & GetUlTBS (const UePtr &ue)
   {
     return ue->m_ulTbSize;
   }
+  /**
+   * \brief GetDlLCG
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static std::unordered_map<uint8_t, LCGPtr> & GetDlLCG (const UePtr &ue)
   {
     return ue->m_dlLCG;
   }
+  /**
+   * \brief GetUlLCG
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static std::unordered_map<uint8_t, LCGPtr> & GetUlLCG (const UePtr &ue)
   {
     return ue->m_ulLCG;
   }
+  /**
+   * \brief GetDlHarqVector
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static MmWaveMacHarqVector & GetDlHarqVector (const UePtr &ue)
   {
     return ue->m_dlHarq;
   }
+  /**
+   * \brief GetUlHarqVector
+   * \param ue UE pointer from which obtain the value
+   * \return
+   */
   static MmWaveMacHarqVector & GetUlHarqVector (const UePtr &ue)
   {
     return ue->m_ulHarq;

@@ -24,7 +24,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief UE representation for a maximum rate scheduler
  *
  * The class does not store anything more than the MmWaveMacSchedulerUeInfo

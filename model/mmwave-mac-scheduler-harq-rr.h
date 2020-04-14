@@ -26,7 +26,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Schedule the HARQ retransmission
  *
  * The class manages, in a round-robin fashion, the retransmission to be

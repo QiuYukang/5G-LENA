@@ -28,12 +28,25 @@
 
 namespace ns3 {
 
-struct SfnSf;
-
+/**
+ * \ingroup ue-mac
+ * \ingroup gnb-mac
+ *
+ * \brief The MmWaveMacPduTag class
+ */
 class MmWaveMacPduTag : public Tag
 {
 public:
+  /**
+   * \brief GetTypeId
+   * \return the type id object
+   */
   static TypeId  GetTypeId (void);
+
+  /**
+   * \brief GetInstanceTypeId
+   * \return the instance of the object
+   */
   virtual TypeId  GetInstanceTypeId (void) const;
 
   /**
@@ -41,6 +54,12 @@ public:
    */
   MmWaveMacPduTag () = default;
 
+  /**
+   * \brief MmWaveMacPduTag constructor
+   * \param sfn the SfnSf
+   * \param symStart the sym start
+   * \param numSym the number of symbol
+   */
   MmWaveMacPduTag (SfnSf sfn, uint8_t symStart, uint8_t numSym);
 
   virtual void  Serialize (TagBuffer i) const;
@@ -48,40 +67,64 @@ public:
   virtual uint32_t  GetSerializedSize () const;
   virtual void Print (std::ostream &os) const;
 
+  /**
+   * \brief GetSfn
+   * \return the SfnSf installed in this object
+   */
   SfnSf  GetSfn () const
   {
     return m_sfnSf;
   }
 
+  /**
+   * \brief SetSfn
+   * \param sfn the SfnSf to install
+   */
   void  SetSfn (SfnSf sfn)
   {
     this->m_sfnSf = sfn;
   }
 
-  uint8_t GetSymStart ()
+  /**
+   * \brief GetSymStart
+   * \return the symStart variable installed in this object
+   */
+  uint8_t GetSymStart () const
   {
     return m_symStart;
   }
 
-  uint8_t GetNumSym ()
+  /**
+   * \brief GetNumSym
+   * \return the numSym variable installed in this object
+   */
+  uint8_t GetNumSym () const
   {
     return m_numSym;
   }
 
+  /**
+   * \brief SetSymStart
+   * \param symStart the symStart value to install
+   */
   void SetSymStart (uint8_t symStart)
   {
     m_symStart = symStart;
   }
 
+  /**
+   * \brief SetNumSym
+   * \param numSym the numSym value to install
+   */
   void SetNumSym (uint8_t numSym)
   {
     m_numSym = numSym;
   }
 
 protected:
-  SfnSf m_sfnSf;
-  uint8_t m_symStart {0};
-  uint8_t m_numSym {0};
+  SfnSf m_sfnSf;           //!< SfnSf
+  uint8_t m_symStart {0};  //!< Symstart
+  uint8_t m_numSym {0};    //!< Num sym
 };
 
 } //namespace ns3

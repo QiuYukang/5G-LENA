@@ -33,8 +33,11 @@ class MmWaveEnbNetDevice;
 class IdealBeamformingHelper;
 
 /**
- * \ingroup beam-management
- * \brief BeamManager is responsible of installation and configuration of antenna
+ * \ingroup gnb-phy
+ *
+ * \brief Antenna array management
+ *
+ * BeamManager is responsible of installation and configuration of antenna
  * array. Additionally, in the case of gNB it saves the map of beamforming
  * vectors per device.
  */
@@ -43,9 +46,14 @@ class BeamManager: public Object {
 friend IdealBeamformingHelper;
 
 public:
-
+  /**
+   * \brief BeamManager constructor
+   */
   BeamManager();
 
+  /**
+   * \brief ~BeamManager
+   */
   virtual ~BeamManager();
 
   /**
@@ -91,7 +99,6 @@ public:
    * \param device device to which it is being transmitted, or from which is
    * being received
    */
-public:
   virtual void SaveBeamformingVector (const BeamformingVector& bfv,
                                       const Ptr<const NetDevice>& device);
   /**
@@ -127,11 +134,16 @@ public:
    */
   virtual BeamId GetBeamId (const Ptr<NetDevice>& device) const;
 
+  /**
+   * \brief Set the Sector
+   * \param sector sector
+   * \param elevation elevation
+   */
   void SetSector (uint16_t sector, double elevation) const;
 
 private:
 
-  Ptr<ThreeGppAntennaArrayModel> m_antennaArray;  // the antenna array instance for which is responsible this BeamManager
+  Ptr<ThreeGppAntennaArrayModel> m_antennaArray;  //!< the antenna array instance for which is responsible this BeamManager
   uint32_t m_numRows {0};//!< Number of rows of antenna array for which is calculated current quasi omni beamforming vector
   uint32_t m_numColumns {0}; //!< Number of columns of antenna array for which is calculated current quasi omni beamforming vector
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception

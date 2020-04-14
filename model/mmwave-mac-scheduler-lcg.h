@@ -26,7 +26,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Represent a DL Logical Channel of an UE
  *
  * The scheduler stores here the information that comes from BSR, arriving
@@ -114,12 +114,12 @@ public:
 
 /**
  * \brief Unique pointer to an instance of MmWaveMacSchedulerLC
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  */
 typedef std::unique_ptr<MmWaveMacSchedulerLC> LCPtr;
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Represent an UE LCG (can be DL or UL)
  *
  * A Logical Channel Group has an id (represented by m_id) and can contain
@@ -290,7 +290,7 @@ private:
 
 /**
  * \brief LCGPtr unique pointer to a LCG
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  */
 typedef std::unique_ptr<MmWaveMacSchedulerLCG> LCGPtr;
 

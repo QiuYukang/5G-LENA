@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_ENB_NET_DEVICE_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_ENB_NET_DEVICE_H_
+#ifndef MMWAVE_ENB_NET_DEVICE_H
+#define MMWAVE_ENB_NET_DEVICE_H
 
 #include "mmwave-net-device.h"
 
@@ -35,6 +35,12 @@ class LteEnbComponentCarrierManager;
 class BwpManagerGnb;
 class MmWaveMacScheduler;
 
+/**
+ * \ingroup gnb
+ * \brief The MMWaveEnbNetDevice class
+ *
+ * This class represent the GNB NetDevice.
+ */
 class MmWaveEnbNetDevice : public MmWaveNetDevice
 {
 public:
@@ -120,4 +126,4 @@ private:
 
 }
 
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_ENB_NET_DEVICE_H_ */
+#endif /* MMWAVE_ENB_NET_DEVICE_H */

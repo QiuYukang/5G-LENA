@@ -59,9 +59,10 @@ MmWaveControlMessage::GetSourceBwp () const
   return static_cast<uint16_t> (m_bwpId);
 }
 
-MmWaveSRMessage::MmWaveSRMessage () : MmWaveControlMessage ()
+MmWaveSRMessage::MmWaveSRMessage ()
 {
   NS_LOG_INFO (this);
+  SetMessageType (MmWaveControlMessage::SR);
 }
 
 MmWaveSRMessage::~MmWaveSRMessage ()

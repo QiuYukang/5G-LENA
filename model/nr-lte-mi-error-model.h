@@ -26,16 +26,26 @@ namespace ns3 {
 
 /**
  * \ingroup error-models
- * @brief The NrLteMiErrorModelOutput struct
+ * \brief The NrLteMiErrorModelOutput struct
  * Error model output returned by the class NrLteMiErrorModel
  * \see NrLteMiErrorModel
  */
 struct NrLteMiErrorModelOutput : public NrErrorModelOutput
 {
+  /**
+   * \brief NrLteMiErrorModelOutput default constructor (deleted)
+   */
   NrLteMiErrorModelOutput () = delete;
+  /**
+   * \brief NrLteMiErrorModelOutput constructor with tbler parameter
+   * \param tbler the reference TBler
+   */
   NrLteMiErrorModelOutput (double tbler) : NrErrorModelOutput (tbler)
   {
   }
+  /**
+   * \brief ~NrLteMiErrorModelOutput
+   */
   virtual ~NrLteMiErrorModelOutput ()
   {
   }
@@ -59,6 +69,10 @@ struct NrLteMiErrorModelOutput : public NrErrorModelOutput
 class NrLteMiErrorModel : public NrErrorModel
 {
 public:
+  /**
+   * \brief GetTypeId
+   * \return the object type id
+   */
   static TypeId GetTypeId ();
 
   /**
@@ -67,8 +81,14 @@ public:
    */
   TypeId GetInstanceTypeId (void) const override;
 
+  /**
+   * \brief NrLteMiErrorModel constructor
+   */
   NrLteMiErrorModel ();
 
+  /**
+   * \brief ~NrLteMiErrorModel
+   */
   virtual ~NrLteMiErrorModel () override;
 
   /**

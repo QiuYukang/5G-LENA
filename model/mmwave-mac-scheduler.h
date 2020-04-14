@@ -26,7 +26,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Interface for all the mmWave schedulers
  *
  * TODO: Add description of SAP user/providers

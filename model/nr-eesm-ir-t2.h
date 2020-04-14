@@ -25,8 +25,8 @@
 namespace ns3 {
 
 /**
- * \ingroup error-models
  * \brief The NrEesmIrT2 class
+ * \ingroup error-models
  *
  * Class that implements the IR-HARQ combining with Table 2. It can be used
  * directly in the code.
@@ -58,7 +58,7 @@ protected:
   virtual const std::vector<double> * GetSpectralEfficiencyForCqi () const override;
 
 private:
-  NrEesmT2 m_t2;
+  NrEesmT2 m_t2; //!< The reference table
 };
 
 } // namespace ns3

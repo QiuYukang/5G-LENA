@@ -37,10 +37,10 @@ class MmWaveEnbMac;
 class MmWaveMacScheduler;
 
 /**
- * \ingroup mmwave
+ * \ingroup gnb-bwp
+ * \brief GNB bandwidth part representation
  *
- * Defines a single carrier for gnb.
- *
+ * Defines a single bandwidth part for the GNB.
  */
 class BandwidthPartGnb : public ComponentCarrierBaseStation
 {

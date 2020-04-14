@@ -28,7 +28,6 @@ namespace ns3 {
  * \ingroup error-models
  * \brief Store the output of an NRErrorModel
  *
- * Each error model
  */
 struct NrErrorModelOutput : public SimpleRefCount<NrErrorModelOutput>
 {

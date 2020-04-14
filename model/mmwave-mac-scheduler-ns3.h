@@ -33,7 +33,7 @@ namespace ns3 {
 
 class MmWaveSchedGeneralTestCase;
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief A general scheduler for mmWave in NS3
  *
  * This abstract class is taking care of creating a solid base for any schedulers

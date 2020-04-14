@@ -23,7 +23,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Assign frequencies in a round-robin fashion
  *
  * Each UE will receive a proportional number of frequencies, with a fixed
