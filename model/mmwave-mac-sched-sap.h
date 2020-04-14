@@ -25,12 +25,26 @@ namespace ns3 {
 
 class SpectrumModel;
 
+/**
+ * \ingroup scheduler
+ * \brief The SAP interface between MAC and scheduler
+ */
 class MmWaveMacSchedSapProvider
 {
 public:
+  /**
+   * \brief constructor
+   */
   MmWaveMacSchedSapProvider () = default;
+  /**
+   * \brief MmWaveMacSchedSapProvider copy constructor (deleted)
+   * \param o other instance
+   */
   MmWaveMacSchedSapProvider (const MmWaveMacSchedSapProvider &o) = delete;
 
+  /**
+   * ~MmWaveMacSchedSapProvider
+   */
   virtual ~MmWaveMacSchedSapProvider () = default;
 
   /**
@@ -38,32 +52,41 @@ public:
    */
   struct SchedDlRlcBufferReqParameters
   {
-    uint16_t  m_rnti;                                    //!< The RNTI identifying the UE.
-    uint8_t   m_logicalChannelIdentity;                  //!< The logical channel ID, range: 0..10
-    uint32_t  m_rlcTransmissionQueueSize;                //!< The current size of the new transmission queue in byte.
-    uint16_t  m_rlcTransmissionQueueHolDelay;            //!< Head of line delay of new transmissions in ms.
-    uint32_t  m_rlcRetransmissionQueueSize;              //!< The current size of the retransmission queue in byte.
-    uint16_t  m_rlcRetransmissionHolDelay;               //!< Head of line delay of retransmissions in ms.
-    uint16_t  m_rlcStatusPduSize;                        //!< The current size of the pending STATUS message in byte.
+    uint16_t  m_rnti;                         //!< The RNTI identifying the UE.
+    uint8_t   m_logicalChannelIdentity;       //!< The logical channel ID, range: 0..10
+    uint32_t  m_rlcTransmissionQueueSize;     //!< The current size of the new transmission queue in byte.
+    uint16_t  m_rlcTransmissionQueueHolDelay; //!< Head of line delay of new transmissions in ms.
+    uint32_t  m_rlcRetransmissionQueueSize;   //!< The current size of the retransmission queue in byte.
+    uint16_t  m_rlcRetransmissionHolDelay;    //!< Head of line delay of retransmissions in ms.
+    uint16_t  m_rlcStatusPduSize;             //!< The current size of the pending STATUS message in byte.
   };
 
+  /**
+   * \brief The SchedDlCqiInfoReqParameters struct
+   */
   struct SchedDlCqiInfoReqParameters
   {
-    SfnSf m_sfnsf;
-    std::vector <struct DlCqiInfo> m_cqiList;
+    SfnSf m_sfnsf;                            //!< SfnSf
+    std::vector <struct DlCqiInfo> m_cqiList; //!< cqi list
   };
 
+  /**
+   * \brief The SchedUlMacCtrlInfoReqParameters struct
+   */
   struct SchedUlMacCtrlInfoReqParameters
   {
-    SfnSf  m_sfnSf;
-    std::vector <struct MacCeElement> m_macCeList;
+    SfnSf  m_sfnSf;                                 //!< SfnSf
+    std::vector <struct MacCeElement> m_macCeList;  //!< MacCeElement list
   };
 
+  /**
+   * \brief The SchedUlCqiInfoReqParameters struct
+   */
   struct SchedUlCqiInfoReqParameters
   {
-    SfnSf  m_sfnSf;
-    uint8_t m_symStart;
-    struct UlCqiInfo m_ulCqi;
+    SfnSf  m_sfnSf;            //!< SfnSf
+    uint8_t m_symStart;        //!< Sym start of the transmission to which this CQI refers to
+    struct UlCqiInfo m_ulCqi;  //!< UL CQI
   };
 
   /**
@@ -71,8 +94,8 @@ public:
    */
   struct SchedUlTriggerReqParameters
   {
-    SfnSf m_snfSf;
-    std::vector <struct UlHarqInfo> m_ulHarqInfoList;
+    SfnSf m_snfSf;    //!< SfnSf
+    std::vector <struct UlHarqInfo> m_ulHarqInfoList; //!< UL HARQ info list
     LteNrTddSlotType m_slotType {F}; //!< Indicate the type of slot requested
   };
 
@@ -81,8 +104,8 @@ public:
    */
   struct SchedDlTriggerReqParameters
   {
-    SfnSf m_snfSf;
-    std::vector <struct DlHarqInfo> m_dlHarqInfoList;
+    SfnSf m_snfSf; //!< SfnSf
+    std::vector <struct DlHarqInfo> m_dlHarqInfoList; //!< DL HARQ info list
     LteNrTddSlotType m_slotType {F}; //!< Indicate the type of slot requested
   };
 
@@ -149,37 +172,83 @@ public:
 private:
 };
 
+/**
+ * \ingroup scheduler
+ * \brief The Interface between Scheduler and MAC
+ */
 class MmWaveMacSchedSapUser
 {
 public:
+  /**
+   * \brief ~MmWaveMacSchedSapUser
+   */
   virtual ~MmWaveMacSchedSapUser ();
 
+  /**
+   * \brief The SchedConfigIndParameters struct
+   */
   struct SchedConfigIndParameters
   {
+    /**
+     * \brief SchedConfigIndParameters
+     * \param sfnSf sfnSf
+     */
     SchedConfigIndParameters (const SfnSf sfnSf)
       : m_sfnSf (sfnSf),
         m_slotAllocInfo (sfnSf)
     {
     }
-    const SfnSf m_sfnSf;
-    SlotAllocInfo m_slotAllocInfo;
+    const SfnSf m_sfnSf;                 //!< The SfnSf
+    SlotAllocInfo m_slotAllocInfo;       //!< The allocation info
     std::vector <BuildRarListElement_s> m_buildRarList; ///< build rar list
   };
 
+  /**
+   * \brief Install a scheduling decision
+   * \param params the scheduling decision
+   */
   virtual void SchedConfigInd (const struct SchedConfigIndParameters& params) = 0;
 
+  /**
+   * \brief Get the SpectrumModel
+   * \return the spectrum model
+   */
   virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
 
+  /**
+   * \brief Get the number of RB per RBG
+   * \return Number of RB per RBG
+   */
   virtual uint32_t GetNumRbPerRbg () const = 0;
 
+  /**
+   * \brief Get the number of HARQ process
+   * \return the number of HARQ processes
+   */
   virtual uint8_t GetNumHarqProcess () const = 0;
 
+  /**
+   * \brief Get the BWP ID
+   * \return the BWP ID
+   */
   virtual uint16_t GetBwpId () const = 0;
 
+  /**
+   * \brief Get the Cell ID
+   * \return the Cell ID
+   */
   virtual uint16_t GetCellId () const = 0;
 
+  /**
+   * \brief Get the Symbol per slot
+   * \return the symbol per slot
+   */
   virtual uint32_t GetSymbolsPerSlot () const = 0;
 
+  /**
+   * \brief Get the slot period
+   * \return the slot period
+   */
   virtual Time GetSlotPeriod () const = 0;
 
 };

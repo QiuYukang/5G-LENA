@@ -25,7 +25,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief The base for all the TDMA schedulers
  *
  * An example of TDMA-based scheduling is the following:

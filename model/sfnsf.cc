@@ -170,6 +170,7 @@ SfnSf::GetSlot () const
 uint16_t
 SfnSf::GetNumerology () const
 {
+  NS_ASSERT (m_numerology >= 0);
   return m_numerology;
 }
 

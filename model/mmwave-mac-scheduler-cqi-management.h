@@ -27,7 +27,7 @@ namespace ns3 {
 class NrAmc;
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief CQI management for schedulers.
  *
  * The scheduler will call either DlWBCQIReported or DlSBCQIReported to calculate

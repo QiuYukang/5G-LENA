@@ -51,8 +51,8 @@ public:
   * \brief mmWaveInterference constructor
   */
   mmWaveInterference ();
-  /*
-   *\brief ~mmWaveInterference
+  /**
+   * \brief ~mmWaveInterference
    */
   virtual ~mmWaveInterference ();
   /**
@@ -67,9 +67,9 @@ public:
    * \brief Checks if the sum of the energy, including the energies that start
    * at this moment is greater than provided energy detection threshold.
    * If yes it returns true, otherwise false.
-   * @param energyW energy detection threshold used to evaluate if the channel
+   * \param energyW energy detection threshold used to evaluate if the channel
    * is busy
-   * @return Returns true if the energy is above provided threshold. Otherwise
+   * \return Returns true if the energy is above provided threshold. Otherwise
    * false.
    */
   bool IsChannelBusyNow (double energyW);
@@ -77,9 +77,9 @@ public:
   /**
    * \brief Returns the duration of the energy that is above the energy
    * provided detection threshold
-   * @param energyW energy detection threshold used to evaluate if the channel
+   * \param energyW energy detection threshold used to evaluate if the channel
    * is busy
-   * @return Duration of the energy that is above provided energy detection
+   * \return Duration of the energy that is above provided energy detection
    * threshold.
    */
   Time GetEnergyDuration (double energyW);
@@ -90,9 +90,9 @@ public:
   * ends and in that event the energy is negative, or it is being substracted.
   * This function also updates the list of events, i.e. it removed the events
   * belonging to the signals that have finished.
-  * @param startTime Energy start time
-  * @param endTime Energy end time
-  * @param rxPowerW Power of the energy in Watts
+  * \param startTime Energy start time
+  * \param endTime Energy end time
+  * \param rxPowerW Power of the energy in Watts
   */
   void AppendEvent (Time startTime, Time endTime, double rxPowerW);
   /**
@@ -158,7 +158,7 @@ private:
   mmWaveInterference::NiChanges::iterator GetPosition (Time moment);
   
   //inherited from LteInterference
-  virtual void ConditionallyEvaluateChunk ();
+  virtual void ConditionallyEvaluateChunk () override;
 
   /**
    * Add NiChange to the list at the appropriate position.

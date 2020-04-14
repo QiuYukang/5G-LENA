@@ -114,6 +114,10 @@ struct GetSecond
   }
 };
 
+/**
+ * \ingroup helper
+ * \brief The TbInfoElement struct
+ */
 struct TbInfoElement
 {
   TbInfoElement () :
@@ -140,14 +144,18 @@ struct TbInfoElement
 };
 
 /**
+ * \ingroup helper
  * \brief Scheduling information. Despite the name, it is not TDMA.
  */
 struct DciInfoElementTdma
 {
+  /**
+   * \brief Format of the DCI
+   */
   enum DciFormat
   {
-    DL = 0,
-    UL = 1
+    DL = 0, //!< DL DCI
+    UL = 1  //!< UL DCI
   };
 
   /**
@@ -238,6 +246,10 @@ struct DciInfoElementTdma
   std::vector<uint8_t> m_rbgBitmask  {};   //!< RBG mask: 0 if the RBG is not used, 1 otherwise
 };
 
+/**
+ * \ingroup helper
+ * \brief The TbAllocInfo struct
+ */
 struct TbAllocInfo
 {
   TbAllocInfo () :
@@ -252,6 +264,10 @@ struct TbAllocInfo
   TbInfoElement m_tbInfo;
 };
 
+/**
+ * \ingroup helper
+ * \brief The RlcPduInfo struct
+ */
 struct RlcPduInfo
 {
   RlcPduInfo () = default;
@@ -286,6 +302,10 @@ struct VarTtiAllocInfo
   }
 };
 
+/**
+ * \ingroup helper
+ * \brief The SlotAllocInfo struct
+ */
 struct SlotAllocInfo
 {
   SlotAllocInfo (SfnSf sfn)
@@ -338,6 +358,10 @@ struct SlotAllocInfo
   bool operator < (const SlotAllocInfo& rhs) const;
 };
 
+/**
+ * \ingroup helper
+ * \brief The DlCqiInfo struct
+ */
 struct DlCqiInfo
 {
   uint16_t m_rnti {0};
@@ -351,6 +375,10 @@ struct DlCqiInfo
   uint8_t m_wbPmi {0};
 };
 
+/**
+ * \ingroup helper
+ * \brief The UlCqiInfo struct
+ */
 struct UlCqiInfo
 {
   //std::vector <uint16_t> m_sinr;
@@ -361,6 +389,10 @@ struct UlCqiInfo
   } m_type;
 };
 
+/**
+ * \ingroup helper
+ * \brief The MacCeValue struct
+ */
 struct MacCeValue
 {
   MacCeValue () :
@@ -373,6 +405,7 @@ struct MacCeValue
 };
 
 /**
+ * \ingroup helper
  * \brief See section 4.3.14 macCEListElement
  */
 struct MacCeElement
@@ -389,11 +422,19 @@ struct MacCeElement
   struct MacCeValue m_macCeValue;
 };
 
+/**
+ * \ingroup helper
+ * \brief The RlcListElement struct
+ */
 struct RlcListElement
 {
   std::vector<struct RlcPduInfo> m_rlcPduElements;
 };
 
+/**
+ * \ingroup helper
+ * \brief The UePhyPacketCountParameter struct
+ */
 struct UePhyPacketCountParameter
 {
   uint64_t m_imsi;
@@ -402,6 +443,10 @@ struct UePhyPacketCountParameter
   uint32_t m_subframeno;
 };
 
+/**
+ * \ingroup helper
+ * \brief The EnbPhyPacketCountParameter struct
+ */
 struct EnbPhyPacketCountParameter
 {
   uint64_t m_cellId;
@@ -410,6 +455,10 @@ struct EnbPhyPacketCountParameter
   uint32_t m_subframeno;
 };
 
+/**
+ * \ingroup helper
+ * \brief The RxPacketTraceParams struct
+ */
 struct RxPacketTraceParams
 {
   uint64_t m_cellId;
@@ -431,6 +480,7 @@ struct RxPacketTraceParams
 };
 
 /**
+ * \ingroup helper
  * \brief Store information about HARQ
  *
  * \see DlHarqInfo
@@ -454,6 +504,7 @@ struct HarqInfo
 };
 
 /**
+ * \ingroup helper
  * \brief A struct that contains info for the DL HARQ
  *
  * http://www.eurecom.fr/~kaltenbe/fapi-2.0/structDlInfoListElement__s.html
@@ -476,6 +527,7 @@ struct DlHarqInfo : public HarqInfo
 };
 
 /**
+ * \ingroup helper
  * \brief A struct that contains info for the UL HARQ
  */
 struct UlHarqInfo : public HarqInfo

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef SRC_MMWAVE_MODEL_MMWAVE_UE_NET_DEVICE_H_
-#define SRC_MMWAVE_MODEL_MMWAVE_UE_NET_DEVICE_H_
+#ifndef MMWAVE_UE_NET_DEVICE_H
+#define MMWAVE_UE_NET_DEVICE_H
 
 #include "mmwave-net-device.h"
 
@@ -36,41 +36,101 @@ class MmWaveEnbNetDevice;
 class BandwidthPartUe;
 class BwpManagerUe;
 
+/**
+ * \ingroup ue
+ * \brief The User Equipment NetDevice
+ *
+ * This class represent the netdevice of the UE. This class is the contact
+ * point between the TCP/IP part (from internet and network modules) and the
+ * NR part.
+ */
 class MmWaveUeNetDevice : public MmWaveNetDevice
 {
-
 public:
+  /**
+   * \brief GetTypeId
+   * \return
+   */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief MmWaveUeNetDevice
+   */
   MmWaveUeNetDevice (void);
 
+  /**
+   * \brief ~MmWaveUeNetDevice
+   */
   virtual ~MmWaveUeNetDevice (void);
 
+  /**
+   * \brief GetCsgId ?
+   * \return ?
+   */
   uint32_t GetCsgId () const;
 
+  /**
+   * \brief SetCsgId ?
+   * \param csgId ?
+   */
   void SetCsgId (uint32_t csgId);
 
-
+  /**
+   * \brief Obtain a pointer to the PHY at the index specified
+   * \param index bandwidth part index
+   * \return the pointer to the PHY selected
+   */
   Ptr<MmWaveUePhy> GetPhy (uint8_t index) const;
 
+  /**
+   * \brief Obtain a pointer to the MAC at the index specified
+   * \param index bandwidth part index
+   * \return the pointer to the MAC selected
+   */
   Ptr<MmWaveUeMac> GetMac (uint8_t index) const;
 
+  /**
+   * \brief Get the bandwidth part manager
+   * \return a pointer to the BWP manager
+   */
   Ptr<BwpManagerUe> GetBwpManager (void) const;
 
+  /**
+   * \brief Get the Imsi
+   * \return UE imsi
+   */
   uint64_t GetImsi () const;
 
-  uint16_t GetEarfcn () const;
-
+  /**
+   * \brief Get the CellId
+   * \return cell ID
+   */
   uint16_t GetCellId () const;
 
+  /**
+   * \brief Get a pointer to the Nas
+   * \return the NAS pointer
+   */
   Ptr<EpcUeNas> GetNas (void) const;
 
+  /**
+   * \brief Get a Rrc pointer
+   * \return RRC pointer
+   */
   Ptr<LteUeRrc> GetRrc () const;
 
-  void SetEarfcn (uint16_t earfcn);
-
+  /**
+   * \brief Set the GNB to which this UE is attached to
+   * \param enb GNB to attach to
+   *
+   * This method may change once we implement handover.
+   */
   void SetTargetEnb (Ptr<MmWaveEnbNetDevice> enb);
 
+  /**
+   * \brief Obtain a pointer to the target enb
+   * \return a pointer to the target enb
+   */
   Ptr<const MmWaveEnbNetDevice> GetTargetEnb (void) const;
 
   /**
@@ -129,16 +189,15 @@ protected:
   virtual void DoInitialize (void);
   virtual void DoDispose ();
 
-
+  // inherited from NetDevice
   virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
 
 private:
-  Ptr<MmWaveEnbNetDevice> m_targetEnb;
-  Ptr<LteUeRrc> m_rrc;
-  Ptr<EpcUeNas> m_nas;
-  uint64_t m_imsi;
-  uint16_t m_earfcn;
-  uint32_t m_csgId;
+  Ptr<MmWaveEnbNetDevice> m_targetEnb;   //!< GNB pointer
+  Ptr<LteUeRrc> m_rrc;                   //!< RRC pointer
+  Ptr<EpcUeNas> m_nas;                   //!< NAS pointer
+  uint64_t m_imsi;                       //!< UE IMSI
+  uint32_t m_csgId;                      //!< ?_?
 
   std::map < uint8_t, Ptr<BandwidthPartUe> > m_ccMap; ///< component carrier map
   Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
@@ -146,4 +205,4 @@ private:
 };
 
 }
-#endif /* SRC_MMWAVE_MODEL_MMWAVE_UE_NET_DEVICE_H_ */
+#endif /* MMWAVE_UE_NET_DEVICE_H */

@@ -49,7 +49,13 @@ public:
    * \return the type id of the object
    */
   static TypeId GetTypeId (void);
+  /**
+   * \brief NrEesmCc constructor
+   */
   NrEesmCc();
+  /**
+   * \brief ~NrEesmCc
+   */
   virtual ~NrEesmCc () override;
 
 protected:

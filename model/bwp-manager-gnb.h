@@ -34,7 +34,7 @@ class BwpManagerAlgorithm;
 class MmWaveControlMessage;
 
 /**
- * \ingroup bwp
+ * \ingroup gnb-bwp
  * \brief Bandwidth part manager that coordinates traffic over different bandwidth parts.
  */
 class BwpManagerGnb : public RrComponentCarrierManager

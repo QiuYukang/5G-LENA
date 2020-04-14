@@ -23,7 +23,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief UE representation for a round-robin scheduler
  *
  * The UE representation does not store any additional information,

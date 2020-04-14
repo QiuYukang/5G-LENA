@@ -22,7 +22,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Assign frequencies in a proportional fair fashion
  *
  * Sort the UE by their current throughput. Number of symbols is fixed depending

@@ -254,13 +254,6 @@ MmWaveUeNetDevice::GetImsi () const
 }
 
 uint16_t
-MmWaveUeNetDevice::GetEarfcn () const
-{
-  NS_LOG_FUNCTION (this);
-  return m_earfcn;
-}
-
-uint16_t
 MmWaveUeNetDevice::GetCellId () const
 {
   auto gnb = GetTargetEnb ();
@@ -272,13 +265,6 @@ MmWaveUeNetDevice::GetCellId () const
     {
       return UINT16_MAX;
     }
-}
-
-void
-MmWaveUeNetDevice::SetEarfcn (uint16_t earfcn)
-{
-  NS_LOG_FUNCTION (this);
-  m_earfcn = earfcn;
 }
 
 void

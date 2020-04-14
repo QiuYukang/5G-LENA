@@ -45,6 +45,10 @@ public:
    */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief GetInstanceTypeId
+   * \return the instance typeid
+   */
   TypeId GetInstanceTypeId () const override;
 
   /**

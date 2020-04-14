@@ -38,10 +38,12 @@ class PacketBurst;
 class MmWaveUlDciMessage;
 
 /**
- * \ingroup ue
+ * \ingroup ue-mac
  * \brief The MAC class for the UE
  *
- * \section CTRL-trace Traces for CTRL messages
+ * <b> General informations </b>
+ *
+ * <b> CTRL-trace Traces for CTRL messages</b>
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is UeMacRxedCtrlMsgsTrace,
@@ -57,7 +59,7 @@ class MmWaveUeMac : public Object
 public:
   /**
    * \brief Get the Type id
-   * @return the type id
+   * \return the type id
    */
   static TypeId GetTypeId (void);
 

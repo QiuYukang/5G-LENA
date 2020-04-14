@@ -567,7 +567,6 @@ MmWaveUeMac::SendSR () const
   // create the SR to send to the gNB
   Ptr<MmWaveSRMessage> msg = Create<MmWaveSRMessage> ();
   msg->SetSourceBwp (GetBwpId ());
-  msg->SetMessageType (MmWaveControlMessage::SR);
   msg->SetRNTI (m_rnti);
 
   m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);

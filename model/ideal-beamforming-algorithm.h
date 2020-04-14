@@ -34,7 +34,10 @@ class MmWaveEnbNetDevice;
 class MmWaveUeNetDevice;
 
 /**
- * \brief IdealBeamformingAlgorithm purpose is to generate beams for the pair
+ * \ingroup gnb-phy
+ * \brief Generate "Ideal" beamforming vectors
+ *
+ * IdealBeamformingAlgorithm purpose is to generate beams for the pair
  * of communicating devices. This group of algorithms assumes
  * a perfect knowledge of the channel, because of which is called "ideal"
  * algorithm.
@@ -48,7 +51,6 @@ public:
    * \return the type id of the class
    */
   static TypeId GetTypeId (void);
-
 
   /**
    * \brief constructor
@@ -91,7 +93,10 @@ private:
 
 };
 
-
+/**
+ * \ingroup gnb-phy
+ * \brief The CellScanBeamforming class
+ */
 class CellScanBeamforming: public IdealBeamformingAlgorithm
 {
 
@@ -140,7 +145,10 @@ protected:
 
 };
 
-
+/**
+ * \ingroup gnb-phy
+ * \brief The DirectPathBeamforming class
+ */
 class DirectPathBeamforming: public IdealBeamformingAlgorithm
 {
 
@@ -180,7 +188,10 @@ protected:
                                                  BeamformingVector* bfv, uint16_t ccId) const;
 };
 
-
+/**
+ * \ingroup gnb-phy
+ * \brief The QuasiOmniDirectPathBeamforming class
+ */
 class QuasiOmniDirectPathBeamforming: public DirectPathBeamforming
 {
 
@@ -209,7 +220,10 @@ protected:
 
 };
 
-
+/**
+ * \ingroup gnb-phy
+ * \brief The OptimalCovMatrixBeamforming class
+ */
 class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm
 {
 

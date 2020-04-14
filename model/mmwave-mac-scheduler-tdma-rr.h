@@ -23,7 +23,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief Assign entire symbols in a round-robin fashion
  *
  * Each UE will receive a proportional number of symbols. With \f$n\f$ UE,

@@ -24,6 +24,7 @@
 
 namespace ns3 {
 /**
+ * \ingroup scheduler
  * \brief The HarqProcess struct
  *
  * The struct represent a single HARQ process, identified by an ID

@@ -23,7 +23,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief UE representation for a proportional fair scheduler
  *
  * The representation stores the current throughput, the average throughput,
@@ -73,9 +73,20 @@ public:
     m_avgTputDl = m_lastAvgTputDl;
   }
 
+  /**
+   * \brief Update the PF metric for downlink
+   * \param totAssigned the resources assigned
+   * \param timeWindow the time window
+   * \param amc a pointer to the AMC
+   */
   void UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTResources &totAssigned,
                          double timeWindow,
                          const Ptr<NrAmc> &amc);
+  /**
+   * \brief Calculate the Potential throughput
+   * \param assignableInIteration resources assignable
+   * \param amc a pointer to the AMC
+   */
   void CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
                                const Ptr<NrAmc> &amc);
 

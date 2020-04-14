@@ -32,10 +32,11 @@
 namespace ns3 {
 
 class MmWaveUeMac;
+
 /**
- * \ingroup lte
+ * \ingroup ue-bwp
+ * \brief Bandwidth part representation for a UE
  *
- * BandwidthPartUe
  */
 class BandwidthPartUe : public ComponentCarrier
 {
@@ -46,8 +47,14 @@ public:
    */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief BandwidthPartUe constructor
+   */
   BandwidthPartUe ();
 
+  /**
+   * \brief ~BandwidthPartUe
+   */
   virtual ~BandwidthPartUe (void) override;
 
   /**
@@ -87,10 +94,6 @@ private:
 
 };
 
-
-
 } // namespace ns3
-
-
 
 #endif /* COMPONENT_CARRIER_UE_H */

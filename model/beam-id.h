@@ -39,7 +39,6 @@ namespace ns3 {
  * \see GetSector
  * \see GetElevation
  */
-
 class BeamId {
 
 public:

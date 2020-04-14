@@ -28,6 +28,7 @@
 namespace ns3 {
 
 /**
+ * \ingroup helpers
  * \brief Available TDD slot types. Ordering is important.
  */
 enum LteNrTddSlotType : uint8_t
@@ -40,14 +41,25 @@ enum LteNrTddSlotType : uint8_t
 
 std::ostream & operator<< (std::ostream & os, LteNrTddSlotType const & item);
 
+/**
+ * \ingroup helper
+ * \brief The MmWaveControlMessage class
+ *
+ * Base class for all the messages types that the UE and the GNB can exchange. The
+ * use is not usually involved in the message creation; however, you can read them
+ * with the trace sources that are at your disposal in the MAC and PHY classes.
+ */
 class MmWaveControlMessage : public SimpleRefCount<MmWaveControlMessage>
 {
 public:
+  /**
+   * \brief The Message Type
+   */
   enum messageType
   {
-    UL_DCI,          //!< The resources allocation map from the BS to the attached UEs
-    DL_DCI,
-    DL_CQI,
+    UL_DCI,       //!< The resources allocation map from the BS to the attached UEs (UL)
+    DL_DCI,       //!< The resources allocation map from the BS to the attached UEs (DL)
+    DL_CQI,       //!< DL CQI message
     MIB,          //!< Master Information Block
     SIB1,         //!< System Information Block Type 1
     RACH_PREAMBLE,//!< Random Access Preamble
@@ -57,11 +69,19 @@ public:
     SR,           //!< Scheduling Request: asking for space
   };
 
+  /**
+   * \brief MmWaveControlMessage
+   */
   MmWaveControlMessage (void);
+  /**
+   * \brief ~MmWaveControlMessage
+   */
   virtual ~MmWaveControlMessage (void);
 
-  void SetMessageType (messageType type);
-
+  /**
+   * \brief Get the MessageType
+   * \return the message type
+   */
   messageType GetMessageType (void) const;
 
   /**
@@ -77,15 +97,24 @@ public:
    */
   uint16_t GetSourceBwp () const;
 
+protected:
+  /**
+   * \brief Set the MessageType
+   * \param type type of the message
+   */
+  void SetMessageType (messageType type);
+
 private:
-  messageType m_messageType;
+  messageType m_messageType; //!< The message type
   int32_t m_bwpId {-1}; //!< Source BWP.
 };
 
 /**
+ * \ingroup helper
  * \brief SR message
  *
- * Just as any other message, but with the RNTI from which this message is coming.
+ * Message that represent a scheduling request, with the RNTI from
+ * which this message is coming.
  */
 class MmWaveSRMessage : public MmWaveControlMessage
 {
@@ -115,12 +144,27 @@ private:
   uint16_t m_rnti {0}; //!< RNTI
 };
 
+/**
+ * \brief The message that represents a DL DCI message
+ * \ingroup helper
+ */
 class MmWaveDlDciMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveDlDciMessage constructor
+   * \param dci the DCI
+   */
   MmWaveDlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci);
+  /**
+   * \brief ~MmWaveDlDciMessage
+   */
   virtual ~MmWaveDlDciMessage (void);
 
+  /**
+   * \brief Get the DCI
+   * \return the DCI
+   */
   std::shared_ptr<DciInfoElementTdma> GetDciInfoElement (void);
 
   /**
@@ -160,12 +204,27 @@ private:
   std::shared_ptr<DciInfoElementTdma> m_dciInfoElement;
 };
 
+/**
+ * \brief The message that represents a UL DCI message
+ * \ingroup helper
+ */
 class MmWaveUlDciMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveUlDciMessage constructor
+   * \param dci DCI
+   */
   MmWaveUlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci);
+  /**
+   * \brief ~MmWaveUlDciMessage
+   */
   virtual ~MmWaveUlDciMessage (void);
 
+  /**
+   * \brief Get the DCI
+   * \return the DCI
+   */
   std::shared_ptr<DciInfoElementTdma> GetDciInfoElement (void);
 
   /**
@@ -185,32 +244,58 @@ public:
 
 private:
   uint32_t m_k;         //!< delay (in slots) between UCI reception and subframe to which it applies for reception/transmission of Data (k2)
-  std::shared_ptr<DciInfoElementTdma> m_dciInfoElement;
+  std::shared_ptr<DciInfoElementTdma> m_dciInfoElement; //!< the DCI
 };
 
+/**
+ * \brief The message that represents a DL CQI message
+ * \ingroup helper
+ */
 class MmWaveDlCqiMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveDlCqiMessage constructor
+   */
   MmWaveDlCqiMessage (void);
+  /**
+   * \brief ~MmWaveDlCqiMessage
+   */
   virtual ~MmWaveDlCqiMessage (void);
 
+  /**
+   * \brief Set the DlCqi to transmit
+   * \param cqi the DlCqi info
+   */
   void SetDlCqi (DlCqiInfo cqi);
+  /**
+   * \brief Get the DlCqi in this message
+   * \return the DL CQI
+   */
   DlCqiInfo GetDlCqi ();
 
 private:
-  DlCqiInfo m_cqi;
+  DlCqiInfo m_cqi; //!< The DlCqiInfo struct
 };
 
 
 /**
- * \ingroup mmwave
+ * \ingroup helper
+ * \brief the BSR message
+ *
  * The uplink BsrLteControlMessage defines the specific
  * extension of the CE element for reporting the buffer status report
  */
 class MmWaveBsrMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveBsrMessage constructor
+   */
   MmWaveBsrMessage (void);
+  /**
+   * \brief ~MmWaveBsrMessage
+   */
   virtual ~MmWaveBsrMessage (void);
 
   /**
@@ -226,7 +311,7 @@ public:
   MacCeElement GetBsr (void);
 
 private:
-  MacCeElement m_bsr;
+  MacCeElement m_bsr; //!< The BSR
 
 };
 
@@ -234,7 +319,7 @@ private:
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup mmWave
+ * \ingroup helper
  * \brief Abstract model for broadcasting the Master Information Block (MIB)
  *        within the control channel (BCCH).
  *
@@ -260,15 +345,15 @@ public:
   LteRrcSap::MasterInformationBlock GetMib () const;
 
 private:
-  LteRrcSap::MasterInformationBlock m_mib;
+  LteRrcSap::MasterInformationBlock m_mib; //!< The MIB
 
-}; // end of class MmWaveMibMessage
+};
 
 
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup mmWave
+ * \ingroup helper
  * \brief Abstract model for broadcasting the System Information Block Type 1
  *        (SIB1) within the control channel (BCCH).
  *
@@ -296,18 +381,27 @@ public:
 private:
   LteRrcSap::SystemInformationBlockType1 m_sib1; //!< Sib1 content
 
-}; // end of class MmWaveSib1Message
+};
+
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup mmWave
+ * \ingroup helper
  *
- * abstract model for the Random Access Preamble
+ * \brief Abstract model for the Random Access Preamble
  */
 class MmWaveRachPreambleMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveRachPreambleMessage constructor
+   */
   MmWaveRachPreambleMessage (void);
+
+  /**
+   * \brief ~MmWaveRachPreambleMessage
+   */
+  virtual ~MmWaveRachPreambleMessage (void);
 
   /**
    * Set the Random Access Preamble Identifier (RAPID), see 3GPP TS 36.321 6.2.2
@@ -323,20 +417,28 @@ public:
   uint32_t GetRapId () const;
 
 private:
-  uint32_t m_rapId;
+  uint32_t m_rapId; //!< The RAP ID
 
 };
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup mmWave
+ * \ingroup helper
  *
- * abstract model for the MAC Random Access Response message
+ * \brief Abstract model for the MAC Random Access Response message
  */
 class MmWaveRarMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveRarMessage constructor
+   */
   MmWaveRarMessage (void);
+
+  /**
+   * \brief ~MmWaveRarMessage
+   */
+  virtual ~MmWaveRarMessage (void);
 
   /**
    *
@@ -356,8 +458,8 @@ public:
    */
   struct Rar
   {
-    uint8_t rapId;
-    BuildRarListElement_s rarPayload;
+    uint8_t rapId;                      //!< RA ID
+    BuildRarListElement_s rarPayload;   //!< RA Payload
   };
 
   /**
@@ -380,21 +482,29 @@ public:
   std::list<Rar>::const_iterator RarListEnd () const;
 
 private:
-  std::list<Rar> m_rarList;
-  uint16_t m_raRnti;
+  std::list<Rar> m_rarList;  //!< RAR List
+  uint16_t m_raRnti;         //!< RNTI
 
 };
 
 
 /**
- * \ingroup mmEave
+ * \ingroup helper
+ * \brief DlHarqFeedback message
+ *
  * The downlink MmwaveDlHarqFeedbackMessage defines the specific
  * messages for transmitting the DL HARQ feedback through PUCCH
  */
 class MmWaveDlHarqFeedbackMessage : public MmWaveControlMessage
 {
 public:
+  /**
+   * \brief MmWaveDlHarqFeedbackMessage constructor
+   */
   MmWaveDlHarqFeedbackMessage (void);
+  /**
+   * \brief ~MmWaveDlHarqFeedbackMessage
+   */
   virtual ~MmWaveDlHarqFeedbackMessage (void);
 
   /**
@@ -410,7 +520,7 @@ public:
   DlHarqInfo GetDlHarqFeedback (void);
 
 private:
-  DlHarqInfo m_dlHarqInfo;
+  DlHarqInfo m_dlHarqInfo; //!< DL Harq Info
 
 };
 

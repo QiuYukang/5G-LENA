@@ -24,7 +24,7 @@
 namespace ns3 {
 
 /**
- * \ingroup mac-schedulers
+ * \ingroup scheduler
  * \brief The MmWaveMacSchedulerNs3Base class: add Harq on top of MmWaveMacSchedulerNs3
  *
  * The class is responsible to manage the HARQ retransmission on behalf of

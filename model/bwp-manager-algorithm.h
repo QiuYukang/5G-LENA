@@ -39,8 +39,19 @@ public:
    */
   static TypeId GetTypeId ();
 
+  /**
+   * \brief constructor
+   */
   BwpManagerAlgorithm () = default;
+  /**
+    * ~BwpManagerAlgorithm
+    */
   virtual ~BwpManagerAlgorithm () override = default;
+  /**
+   * \brief Get the bandwidth part id for the Qci specified
+   * \param v the qci
+   * \return the bwp id that the algorithm selects for the qci specified
+   */
   virtual uint8_t GetBwpForEpsBearer (const EpsBearer::Qci &v) const = 0;
 };
 
@@ -59,8 +70,16 @@ public:
    */
   static TypeId GetTypeId ();
 
+  /**
+   * \brief constructor
+   */
   BwpManagerAlgorithmStatic () = default;
+  /**
+    * \brief deconstructor
+    */
   virtual ~BwpManagerAlgorithmStatic () override = default;
+
+  // inherited
   virtual uint8_t GetBwpForEpsBearer (const EpsBearer::Qci &v) const override;
 
   /**
