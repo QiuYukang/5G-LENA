@@ -1132,7 +1132,7 @@ MmWaveHelper::SetUlErrorModel(const std::string &errorModelTypeId)
   NS_LOG_FUNCTION (this);
 
   SetGnbUlAmcAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModelTypeId)));
-  SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
+  SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
 }
 
 void
@@ -1141,7 +1141,7 @@ MmWaveHelper::SetDlErrorModel(const std::string &errorModelTypeId)
   NS_LOG_FUNCTION (this);
 
   SetGnbDlAmcAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModelTypeId)));
-  SetGnbSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
+  SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
 }
 
 void
