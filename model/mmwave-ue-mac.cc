@@ -943,7 +943,6 @@ MmWaveUeMac::SendRaPreamble (bool contention)
   m_raRnti = 1;
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
-  rachMsg->SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
   rachMsg->SetSourceBwp (GetBwpId ());
   m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rachMsg);
 

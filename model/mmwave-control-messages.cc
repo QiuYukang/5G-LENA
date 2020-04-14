@@ -255,6 +255,11 @@ MmWaveRachPreambleMessage::MmWaveRachPreambleMessage (void)
   SetMessageType (MmWaveControlMessage::RACH_PREAMBLE);
 }
 
+MmWaveRachPreambleMessage::~MmWaveRachPreambleMessage()
+{
+
+}
+
 void
 MmWaveRachPreambleMessage::SetRapId (uint32_t rapId)
 {
@@ -275,6 +280,10 @@ MmWaveRarMessage::MmWaveRarMessage (void)
   SetMessageType (MmWaveControlMessage::RAR);
 }
 
+MmWaveRarMessage::~MmWaveRarMessage()
+{
+
+}
 
 void
 MmWaveRarMessage::SetRaRnti (uint16_t raRnti)
@@ -287,7 +296,6 @@ MmWaveRarMessage::GetRaRnti () const
 {
   return m_raRnti;
 }
-
 
 void
 MmWaveRarMessage::AddRar (Rar rar)
