@@ -81,14 +81,14 @@ public:
    */
   void UpdateDlPFMetric (const MmWaveMacSchedulerNs3::FTResources &totAssigned,
                          double timeWindow,
-                         const Ptr<NrAmc> &amc);
+                         const Ptr<const NrAmc> &amc);
   /**
    * \brief Calculate the Potential throughput
    * \param assignableInIteration resources assignable
    * \param amc a pointer to the AMC
    */
   void CalculatePotentialTPut (const MmWaveMacSchedulerNs3::FTResources &assignableInIteration,
-                               const Ptr<NrAmc> &amc);
+                               const Ptr<const NrAmc> &amc);
 
   /**
    * \brief comparison function object (i.e. an object that satisfies the
