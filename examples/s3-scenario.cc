@@ -621,6 +621,9 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
+  // UE transmit power
+  mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
+
   // We assume a common traffic pattern for all UEs
   uint32_t bwpIdForLowLat = 0;
   if (operationMode == "FDD" && direction == "UL")
