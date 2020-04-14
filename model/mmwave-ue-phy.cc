@@ -56,7 +56,14 @@ MmWaveUePhy::MmWaveUePhy ()
 MmWaveUePhy::~MmWaveUePhy ()
 {
   NS_LOG_FUNCTION (this);
+}
+
+void
+MmWaveUePhy::DoDispose ()
+{
+  NS_LOG_FUNCTION (this);
   delete m_ueCphySapProvider;
+  MmWavePhy::DoDispose ();
 }
 
 TypeId

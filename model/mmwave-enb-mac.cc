@@ -437,6 +437,12 @@ MmWaveEnbMac::MmWaveEnbMac (void) : Object ()
 MmWaveEnbMac::~MmWaveEnbMac (void)
 {
   NS_LOG_FUNCTION (this);
+}
+
+void
+MmWaveEnbMac::DoDispose ()
+{
+  NS_LOG_FUNCTION (this);
   m_dlCqiReceived.clear ();
   m_ulCqiReceived.clear ();
   m_ulCeReceived.clear ();
@@ -446,6 +452,7 @@ MmWaveEnbMac::~MmWaveEnbMac (void)
   delete m_macSchedSapUser;
   delete m_macCschedSapUser;
   delete m_phySapUser;
+  delete m_ccmMacSapProvider;
 }
 
 void

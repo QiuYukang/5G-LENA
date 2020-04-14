@@ -274,6 +274,12 @@ public:
   void AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t mcs, const std::vector<int> &rbMap,
                       uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym);
 
+protected:
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
+
 private:
 
   /**

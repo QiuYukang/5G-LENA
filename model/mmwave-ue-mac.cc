@@ -247,10 +247,21 @@ MmWaveUeMac::MmWaveUeMac (void) : Object ()
 MmWaveUeMac::~MmWaveUeMac (void)
 {
   NS_LOG_FUNCTION (this);
+}
+
+void
+MmWaveUeMac::DoDispose ()
+{
+  NS_LOG_FUNCTION (this);
+  m_miUlHarqProcessesPacket.clear ();
+  m_miUlHarqProcessesPacketTimer.clear ();
+  m_ulBsrReceived.clear ();
+  m_lcInfoMap.clear ();
+  m_macPduMap.clear ();
+  m_raPreambleUniformVariable = nullptr;
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
-  m_miUlHarqProcessesPacket.clear ();
 }
 
 void

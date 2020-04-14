@@ -75,6 +75,12 @@ public:
   virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
   virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
 
+protected:
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
+
 private:
   Ptr<MmWaveUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier
   Ptr<MmWaveUeMac> m_mac; ///< the MAC instance of this eNodeB component carrier

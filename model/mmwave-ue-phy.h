@@ -265,6 +265,10 @@ public:
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
 protected:
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
   uint32_t GetNumRbPerRbg () const override;
   uint32_t GetChannelBandwidth () const override;
 

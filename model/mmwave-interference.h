@@ -61,8 +61,6 @@ public:
    */
   static TypeId GetTypeId (void);
 
-  //inherited from LteInterference
-  virtual void DoDispose () override;
   virtual void AddSignal (Ptr<const SpectrumValue> spd, Time duration) override;
 
   /**
@@ -169,6 +167,11 @@ private:
   void AddNiChangeEvent (NiChange change);
 
 protected:
+
+  /**
+   * \brief DoDispose method inherited from Object
+   */
+  void virtual DoDispose () override;
 
   TracedCallback<double> m_snrPerProcessedChunk; ///<! Trace for SNR per processed chunk.
   TracedCallback<double> m_rssiPerProcessedChunk; ///<! Trace for RSSI pre processed chunk.
