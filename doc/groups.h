@@ -145,15 +145,16 @@
   */
 
 /**
-  * \defgroup propagation Propagation
+  * \defgroup propagation Propagation models
   *
   * \brief Classes related to the propagation modeling
   *
   */
 
 /**
-  * \addtogroup spectrum Physical layer spectrum modeling
+  * \addtogroup spectrum Spectrum models
   * \ingroup propagation
+  * \brief Physical layer spectrum modeling
   */
 
 /**
@@ -183,9 +184,15 @@
  */
 
 /**
-  * \defgroup helper Helpers
-  * \brief Helper code to setup and configure the NR module.
-  *
-  */
+ * \defgroup helper Helpers
+ * \brief Helper code to setup and configure the NR module.
+ *
+ */
+
+/**
+ * \defgroup nru NR-U Classes
+ * \brief Code to deal with NR-U regulation
+ *
+ */
 
 #endif // GROUPS_H
