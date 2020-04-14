@@ -76,8 +76,6 @@ instances.
 * Added attribute "NumRefScPerRb" in NrAmc, to indicate the number of reference
 subcarriers per RB.
 
-* Removed attribute "Ber" in NrAmc, which is now set based on the error model in use.
-
 ### Changes to existing API:
 
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
@@ -161,6 +159,8 @@ NrEesmCcT2.
 * The AMC inside the scheduler has been separated into an UL and a DL part.
 Methods in the helper have been added to help the user configuring that part.
 In particular, have a look at SetGnbDlAmcAttribute and SetGnbUlAmcAttribute.
+
+* Removed attribute "Ber" in NrAmc, which is now set based on the error model in use.
 
 ### Changed behavior:
 
