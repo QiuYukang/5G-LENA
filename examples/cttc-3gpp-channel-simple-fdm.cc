@@ -203,6 +203,8 @@ main (int argc, char *argv[])
   gridScenario.SetScenarioLength (3); // be distributed.
   gridScenario.CreateScenario ();
 
+  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
+
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
@@ -216,7 +218,8 @@ main (int argc, char *argv[])
   const uint8_t numCcPerBand = 1; // one CC per Band
 
   // Create the configuration for the CcBwpHelper
-  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand,
+                                                  numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon_LoS);
   bandConf.m_numBwp = 2; // two BWPs per CC
 
   // By using the configuration created, it is time to make the operation band
