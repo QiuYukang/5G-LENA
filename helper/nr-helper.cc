@@ -573,6 +573,7 @@ NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
   if (m_slEnabled)
     {
       Ptr<NrSlUeRrc> slUeRrc = CreateObject<NrSlUeRrc> ();
+      slUeRrc->SetNrSlEnabled (m_slEnabled);
       rrc->AggregateObject (slUeRrc);
       slUeRrc->SetNrSlUeRrcSapProvider (rrc->GetNrSlUeRrcSapProvider());
       rrc->SetNrSlUeRrcSapUser (slUeRrc->GetNrSlUeRrcSapUser());
