@@ -31,5 +31,3 @@ def build(bld):
 #    obj.source = 'cttc-simple-interference-example.cc'
     obj = bld.create_ns3_program('s3-scenario', ['nr','flow-monitor'])
     obj.source = 's3-scenario.cc'
-    obj = bld.create_ns3_program('lte-s3-scenario', ['nr','flow-monitor'])
-    obj.source = 'lte-s3-scenario.cc'
