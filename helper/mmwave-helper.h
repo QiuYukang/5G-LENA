@@ -460,42 +460,51 @@ public:
   void SetUeSpectrumAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE channel access manager, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see NrChAccessManager
    */
   void SetUeChannelAccessManagerAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB channel access manager, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see NrChAccessManager
    */
   void SetGnbChannelAccessManagerAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the scheduler, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   * \see MmWaveMacSchedulerNs3
    */
   void SetSchedulerAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE PHY, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see MmWaveUePhy
    */
   void SetUePhyAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB PHY, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see MmWaveGnbPhy
    */
   void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
 
@@ -519,6 +528,17 @@ public:
 
   void SetGnbChannelAccessManagerTypeId (const TypeId &typeId);
 
+  /**
+   * \brief Set the Scheduler TypeId. Works only before it is created.
+   * \param typeId The scheduler type
+   *
+   * \see MmWaveMacSchedulerOfdmaPF
+   * \see MmWaveMacSchedulerOfdmaRR
+   * \see MmWaveMacSchedulerOfdmaMR
+   * \see MmWaveMacSchedulerTdmaPF
+   * \see MmWaveMacSchedulerTdmaRR
+   * \see MmWaveMacSchedulerTdmaMR
+   */
   void SetSchedulerTypeId (const TypeId &typeId);
 
   void SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId);

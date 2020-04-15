@@ -44,7 +44,13 @@ class BeamId;
  * The slot processing is the same as the gnb phy, working as a state machine
  * in which the processing is done at the beginning of the slot.
  *
- * <b>Configuration</b>
+ * \section ue_phy_conf Configuration
+ *
+ * The attributes of this class (described in the section Attributes) can be
+ * configured through a direct call to `SetAttribute` or, before the PHY creation,
+ * with the helper method MmWaveHelper::SetUePhyAttribute().
+ *
+ * \section ue_phy_attach Attachment to a GNB
  *
  * In theory, much of the configuration should pass through RRC, and through
  * messages that come from the gNb. However, we still are not at this level,
@@ -52,10 +58,11 @@ class BeamId;
  * the gnb and the ue. At this moment, the call that the helper has to perform
  * are in MmWaveHelper::AttachToEnb().
  *
- * To initialize the class, you must call also SetSpectrumPhy and StartEventLoop.
+ * To initialize the class, you must call also SetSpectrumPhy() and StartEventLoop().
+ * Usually, this is taken care inside the helper.
  *
- * \see SetSpectrumPhy
- * \see StartEventLoop
+ * \see MmWavePhy::SetSpectrumPhy()
+ * \see MmWavePhy::StartEventLoop()
  */
 class MmWaveUePhy : public MmWavePhy
 {
