@@ -38,35 +38,55 @@ class NrSlHelper : public Object
 {
 
 public:
+  /**
+   * \brief Constructor
+   */
   NrSlHelper (void);
+  /**
+   * \brief Destructor
+   */
   virtual ~NrSlHelper (void);
-  /*
-  void SetSlPoolFactory (Ptr <NrSlResourcePoolFactory> poolFactory);
-  void SetSlPreConfigPoolFactory (Ptr <NrSlPreconfigResourcePoolFactory> preconfigPoolFactory);
+  /**
+   * \brief \c GetTypeId, inherited from Object
+   *
+   * \returns The \c TypeId
+   */
+  static TypeId GetTypeId (void);
+  /**
+   * \brief Install NR sidelink pre-configuration in the UEs expected to use
+   *        sidelink.
+   *
+   * \param c The \c NetDeviceContainer
+   * \param preConfig The <tt> struct LteRrcSap::SidelinkPreconfigNr </tt>
    */
   void InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::SidelinkPreconfigNr preConfig);
-
-  void SetUeSlAmcAttribute (const std::string &n, const AttributeValue &v);
-
   /**
-   * \brief Set the ErrorModel for SL AMC and UE spectrum at the same time
+   * \brief Set UE sidelink AMC attribute
+   *
+   * \param n The attribute name
+   * \param v The attribute value
+   */
+  void SetUeSlAmcAttribute (const std::string &n, const AttributeValue &v);
+  /**
+   * \brief Set the \c ErrorModel for SL AMC and UE spectrum at the same time
+   *
    * \param errorModelTypeId The TypeId of the error model
    *
    * Equivalent to the calls to
    *
-   * * SetUeSlAmcAttribute ("ErrorModelType", ....
-   * * SetUeSpectrumAttribute ("SlErrorModelType", ...
+   * <tt> SetUeSlAmcAttribute ("ErrorModelType", ....
+   * SetUeSpectrumAttribute ("SlErrorModelType", ... </tt>
    *
    */
-  void SetSlErrorModel(const std::string &errorModelTypeId);
+  void SetSlErrorModel (const std::string &errorModelTypeId);
 
-
-  static TypeId GetTypeId (void);
-  virtual void DoDispose (void);
-
+protected:
+  /**
+   * \brief \c DoDispose method inherited from \c Object
+   */
+  virtual void DoDispose (void) override;
 
 private:
-
   /**
    * \brief Configure the UE parameters
    *
@@ -76,7 +96,7 @@ private:
    * \param dev The NrUeNetDevice
    * \param freqCommon The <tt> struct SlFreqConfigCommonNr </tt> to retrieve
    *        SL BWP related configuration
-   * \paran general The <tt> struct SlPreconfigGeneralNr </tt> to retrieve
+   * \param general The <tt> struct SlPreconfigGeneralNr </tt> to retrieve
    *        general parameters for a BWP, e.g., TDD pattern
    */
   bool ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
@@ -85,11 +105,10 @@ private:
   /*
    * brief Create UE SL AMC object from UE SL AMC factory
    *
-   * \returns Ptr of type NrAmc
+   * \returns Ptr of type \c NrAmc
    */
-   Ptr<NrAmc> CreateUeSlAmc () const;
-  //Ptr<NrSlCommResourcePoolFactory> m_slResoPoolFactory {nullptr};
-  //Ptr<NrSlCommPreconfigResourcePoolFactory> m_slPreConfigResoPoolFactory {nullptr};
+  Ptr<NrAmc> CreateUeSlAmc () const;
+
   ObjectFactory m_ueSlAmcFactory;        //!< UE SL AMC Object factory
 
 };

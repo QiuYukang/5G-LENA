@@ -29,8 +29,6 @@
 #include <ns3/nr-amc.h>
 #include <ns3/nr-spectrum-phy.h>
 
-
-
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
 #include <ns3/abort.h>
@@ -51,11 +49,6 @@ NrSlHelper::NrSlHelper (void)
 {
   NS_LOG_FUNCTION (this);
   m_ueSlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
-  //m_channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
- // m_enbNetDeviceFactory.SetTypeId (NrEnbNetDevice::GetTypeId ());
- // m_ueNetDeviceFactory.SetTypeId (NrUeNetDevice::GetTypeId ());
-
-  //Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 }
 
 NrSlHelper::~NrSlHelper (void)
@@ -70,7 +63,7 @@ NrSlHelper::GetTypeId (void)
     tid =
     TypeId ("ns3::NrSlHelper")
     .SetParent<Object> ()
-    .SetGroupName("nr")
+    .SetGroupName ("nr")
     .AddConstructor<NrSlHelper> ();
   return tid;
 }
@@ -79,28 +72,11 @@ void
 NrSlHelper::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
-  //m_slResoPoolFactory = nullptr;
-  //m_slPreConfigResoPoolFactory = nullptr;
   Object::DoDispose ();
 }
-/*
-void
-NrSlHelper::SetSlPoolFactory (Ptr<NrSlResourcePoolFactory> poolFactory)
-{
-  NS_LOG_FUNCTION (this);
-  m_slResoPoolFactory = poolFactory;
-}
 
 void
-NrSlHelper::SetSlPreConfigPoolFactory (Ptr<NrSlPreconfigResourcePoolFactory> preconfigPoolFactory)
-{
-  NS_LOG_FUNCTION (this);
-  m_slPreConfigResoPoolFactory = preconfigPoolFactory;
-}
-*/
-
-void
-NrSlHelper::SetSlErrorModel(const std::string &errorModelTypeId)
+NrSlHelper::SetSlErrorModel (const std::string &errorModelTypeId)
 {
   NS_LOG_FUNCTION (this);
 
@@ -140,8 +116,8 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
       Ptr<NrSlUeRrc> nrSlUeRrc = CreateObject<NrSlUeRrc> ();
       nrSlUeRrc->SetNrSlEnabled (true);
       lteUeRrc->AggregateObject (nrSlUeRrc);
-      nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider());
-      lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser());
+      nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider ());
+      lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser ());
 
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
       bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
@@ -174,7 +150,7 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
           Ptr<NrAmc> slAmc = CreateUeSlAmc ();
           TypeIdValue typeIdValue;
           slAmc->GetAttribute ("ErrorModelType", typeIdValue);
-          dev->GetPhy (index)->GetSpectrumPhy()->SetAttribute ("SlErrorModelType", typeIdValue);
+          dev->GetPhy (index)->GetSpectrumPhy ()->SetAttribute ("SlErrorModelType", typeIdValue);
           dev->GetMac (index)->SetSlAmcModel (slAmc);
           found = true;
         }
@@ -182,11 +158,6 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
 
   return found;
 }
-
-
-
-
-
 
 
 } // namespace ns3
