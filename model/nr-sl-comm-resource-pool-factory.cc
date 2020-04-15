@@ -115,7 +115,7 @@ NrSlCommResourcePoolFactory::CreatePool ()
       m_pool.slSubchannelSize.numPrbs = LteRrcSap::SlSubchannelSize::N100;
       break;
     default:
-      NS_FATAL_ERROR ("Invalid subchannel size in RBs : " << m_slFreqResourcePscch);
+      NS_FATAL_ERROR ("Invalid subchannel size in RBs : " << m_slSubchannelSize);
     }
 
   switch (m_slSensingWindow)
