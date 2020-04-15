@@ -366,7 +366,7 @@ main (int argc, char *argv[])
    * Create the radio network related parameters
    */
   RadioNetworkParametersHelper ranHelper;
-  uint16_t numScPerRb = 1;
+  uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
   if (radioNetwork == "LTE")
     {
       ranHelper.SetNetworkToLte (scenario, operationMode, 1);
@@ -378,7 +378,7 @@ main (int argc, char *argv[])
         {
           NS_ABORT_MSG ("The selected error model is not recommended for LTE");
         }
-      numScPerRb = 4;
+      numScPerRb = 2;
     }
   else if (radioNetwork == "NR")
     {
@@ -396,12 +396,6 @@ main (int argc, char *argv[])
     {
       NS_ABORT_MSG ("Unrecognized radio network technology");
     }
-
-  /**
-   * Adjust the average number of Reference symbols per RB only for LTE case,
-   * which is larger than in NR. We assume a value of 4 (could be 3 too).
-   */
-  Config::SetDefault("ns3::NrAmc::NumRefScPerRb", UintegerValue (numScPerRb));
 
   NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
   for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
@@ -509,6 +503,13 @@ main (int argc, char *argv[])
   // Both DL and UL AMC will have the same model behind.
   mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
   mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+
+  /*
+   * Adjust the average number of Reference symbols per RB only for LTE case,
+   * which is larger than in NR. We assume a value of 4 (could be 3 too).
+   */
+  mmWaveHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (numScPerRb));
+  mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
@@ -623,6 +624,12 @@ main (int argc, char *argv[])
 
   // UE transmit power
   mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
+
+  // Set LTE RBG size
+  if (radioNetwork == "LTE")
+    {
+      mmWaveHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+    }
 
   // We assume a common traffic pattern for all UEs
   uint32_t bwpIdForLowLat = 0;
