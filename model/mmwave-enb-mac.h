@@ -40,7 +40,7 @@ class MmWaveRarMessage;
 class BeamId;
 
 /**
- * \ingroup gnb
+ * \ingroup gnb-mac
  * \brief The MAC class for the gnb
  *
  * \section gnb_mac_general General information
