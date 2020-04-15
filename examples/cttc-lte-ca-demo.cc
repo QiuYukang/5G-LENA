@@ -40,7 +40,6 @@ main (int argc, char *argv[])
   uint16_t numFlowsUe = 2;
 
   uint8_t numBands = 2;
-  bool contiguousCc = false;
   double centralFrequencyBand40 = 2350e6;
   double bandwidthBand40 = 100e6;
   double centralFrequencyBand38 = 2595e6;
@@ -55,10 +54,10 @@ main (int argc, char *argv[])
   uint16_t numerologyBwp2 = 0;
 
   double totalTxPower = 13;
-  std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
+  std::string pattern = "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
   std::string patternDL = "DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|";
   std::string patternUL = "UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|";
-  std::string operationMode = "FDD";  // TDD or FDD
+  std::string operationMode = "TDD";  // TDD or FDD
 
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
@@ -94,9 +93,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("numBands",
                 "Number of operation bands. More than one implies non-contiguous CC",
                 numBands);
-  cmd.AddValue ("contiguousCc",
-                "Simulate with contiguous CC or non-contiguous CC example",
-                contiguousCc);
   cmd.AddValue ("bandwidthBand40",
                 "The system bandwidth to be used in band 1",
                 bandwidthBand40);
@@ -253,8 +249,8 @@ main (int argc, char *argv[])
   mobility.SetPositionAllocator (staPositionAlloc);
   mobility.Install (ueNodes);
 
-  // setup the mmWave simulation
-   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
@@ -274,6 +270,30 @@ main (int argc, char *argv[])
   }
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
+  std::string errorModel = "ns3::NrLteMiErrorModel";
+  // Scheduler
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(false));
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(false));
+
+  // Error Model: UE and GNB with same spectrum error model.
+  mmWaveHelper->SetUlErrorModel (errorModel);
+  mmWaveHelper->SetDlErrorModel (errorModel);
+
+  // Both DL and UL AMC will have the same model behind.
+  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+
+  /*
+   * Adjust the average number of Reference symbols per RB only for LTE case,
+   * which is larger than in NR. We assume a value of 4 (could be 3 too).
+   */
+  mmWaveHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (2));     //4 for lte
+  mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));  //FIXME: Might change in LTE
+
+  mmWaveHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+
+  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
+
   /*
    * Setup the operation bands.
    * In this example, two standard operation bands are deployed:
@@ -286,9 +306,9 @@ main (int argc, char *argv[])
    * First CC has two BWPs and the second only one.
    *
    * The configured spectrum division for TDD mode is:
-   * |------------- Band 40 -----------|   |------------- Band 38 ------------|
-   * |----- CC0-----|   |----- CC1-----|        |--------- CC2 ----------|
-   * |---- BWP0 ----|   |---- BWP1 ----|        |--------- BWP2 ---------|
+   * |------------- Band 40 ------------|   |------------- Band 38 ------------|
+   * |------ CC0------||------ CC1------|        |--------- CC2 ----------|
+   * |----- BWP0 -----||----- BWP1 -----|        |--------- BWP2 ---------|
    *
    * The configured spectrum division for FDD mode is:
    * |----------------- Band 40 ----------------|   |------------- Band 38 ------------|
@@ -338,53 +358,50 @@ main (int argc, char *argv[])
       band40.m_lowerFrequency = band40.m_centralFrequency - band40.m_channelBandwidth / 2;
       band40.m_higherFrequency = band40.m_centralFrequency + band40.m_channelBandwidth / 2;
 
-      uint8_t bwpCount = 0;
-
       // Component Carrier 0
       cc0->m_ccId = 0;
-      cc0->m_centralFrequency = band40.m_lowerFrequency + 10e6;
+      cc0->m_centralFrequency = band40.m_lowerFrequency + bandwidthCc0;
       cc0->m_channelBandwidth = bandwidthCc0;
       cc0->m_lowerFrequency = cc0->m_centralFrequency - cc0->m_channelBandwidth / 2;
       cc0->m_higherFrequency = cc0->m_centralFrequency + cc0->m_channelBandwidth / 2;
+
       // BWP 0 DL
-      bwp0dl->m_bwpId = bwpCount;
+      bwp0dl->m_bwpId = 0;
       bwp0dl->m_channelBandwidth = cc0->m_channelBandwidth / 2;
       bwp0dl->m_lowerFrequency = cc0->m_lowerFrequency;
-      bwp0dl->m_higherFrequency = cc0->m_lowerFrequency + bwp0dl->m_channelBandwidth;
-      bwp0dl->m_centralFrequency = bwp0dl->m_lowerFrequency +
-                (bwp0dl->m_higherFrequency - bwp0dl->m_lowerFrequency) / 2;
-      ++bwpCount;
-      // BWP 0 UL
-      bwp0ul->m_bwpId = bwpCount;
-      bwp0ul->m_channelBandwidth = cc0->m_channelBandwidth - bwp0dl->m_channelBandwidth;
-      bwp0ul->m_lowerFrequency = bwp0dl->m_higherFrequency;
-      bwp0ul->m_higherFrequency = cc0->m_higherFrequency;
-      bwp0ul->m_centralFrequency = bwp0ul->m_lowerFrequency +
-                (bwp0ul->m_higherFrequency - bwp0ul->m_lowerFrequency) / 2;
-      ++bwpCount;
+      bwp0dl->m_higherFrequency = bwp0dl->m_lowerFrequency + bwp0dl->m_channelBandwidth;
+      bwp0dl->m_centralFrequency = bwp0dl->m_lowerFrequency + bwp0dl->m_channelBandwidth / 2;
 
       cc0->AddBwp (std::move(bwp0dl));
+
+      // BWP 0 UL
+      bwp0ul->m_bwpId = 1;
+      bwp0ul->m_channelBandwidth = cc0->m_channelBandwidth / 2;
+      bwp0ul->m_lowerFrequency = cc0->m_centralFrequency;
+      bwp0ul->m_higherFrequency = cc0->m_higherFrequency;
+      bwp0ul->m_centralFrequency = bwp0ul->m_lowerFrequency + bwp0ul->m_channelBandwidth / 2;
+
       cc0->AddBwp (std::move(bwp0ul));
 
+
       // Component Carrier 1
-      cc1->m_ccId = 0;
-      cc1->m_centralFrequency = band40.m_higherFrequency-10e6;
+      cc1->m_ccId = 1;
+      cc1->m_centralFrequency = band40.m_higherFrequency - bandwidthCc1;
       cc1->m_channelBandwidth = bandwidthCc1;
       cc1->m_lowerFrequency = cc1->m_centralFrequency - cc1->m_channelBandwidth / 2;
       cc1->m_higherFrequency = cc1->m_centralFrequency + cc1->m_channelBandwidth / 2;
+
       // BWP 1
-      bwp1->m_bwpId = bwpCount;
+      bwp1->m_bwpId = 2;
       bwp1->m_centralFrequency = cc1->m_centralFrequency;
       bwp1->m_channelBandwidth = cc1->m_channelBandwidth;
       bwp1->m_lowerFrequency = cc1->m_lowerFrequency;
       bwp1->m_higherFrequency = cc1->m_higherFrequency;
-      ++bwpCount;
 
       cc1->AddBwp (std::move(bwp1));
 
-      band40.AddCc (std::move(cc1));
       band40.AddCc (std::move(cc0));
-
+      band40.AddCc (std::move(cc1));
   }
 
   // Create the configuration for band38 (CC2 - BWP2)
@@ -421,12 +438,6 @@ main (int argc, char *argv[])
   mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
   mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
 
-  // Enable CA if there are more than one component carrier. Disabled by default
-/*  if (ccId > 0)
-    {
-      mmWaveHelper->SetAttribute ("UseCa", BooleanValue (true));
-    }
-*/
 
   // install mmWave net devices
   NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
