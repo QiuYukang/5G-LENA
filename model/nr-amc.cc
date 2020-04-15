@@ -49,9 +49,9 @@ NrAmc::GetTypeId (void)
     .AddAttribute ("NumRefScPerRb",
                    "Number of Subcarriers carrying Reference Signals per RB",
                    UintegerValue (1),
-                   MakeDoubleAccessor (&NrAmc::SetNumRefScPerRb,
-                                       &NrAmc::GetNumRefScPerRb),
-                   MakeUintegerChecker<uint8_t> ())
+                   MakeUintegerAccessor (&NrAmc::SetNumRefScPerRb,
+                                         &NrAmc::GetNumRefScPerRb),
+                   MakeUintegerChecker<uint8_t> (0, 12))
     .AddAttribute ("AmcModel",
                    "AMC model used to assign CQI",
                    EnumValue (NrAmc::ErrorModel),
