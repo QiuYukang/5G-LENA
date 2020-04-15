@@ -25,6 +25,9 @@
 #include <ns3/nr-sl-ue-rrc.h>
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/nr-ue-phy.h>
+#include <ns3/nr-ue-mac.h>
+#include <ns3/nr-amc.h>
+#include <ns3/nr-spectrum-phy.h>
 
 
 
@@ -47,6 +50,7 @@ NrSlHelper::NrSlHelper (void)
 
 {
   NS_LOG_FUNCTION (this);
+  m_ueSlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
   //m_channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
  // m_enbNetDeviceFactory.SetTypeId (NrEnbNetDevice::GetTypeId ());
  // m_ueNetDeviceFactory.SetTypeId (NrUeNetDevice::GetTypeId ());
@@ -75,8 +79,8 @@ void
 NrSlHelper::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
-  m_slResoPoolFactory = nullptr;
-  m_slPreConfigResoPoolFactory = nullptr;
+  //m_slResoPoolFactory = nullptr;
+  //m_slPreConfigResoPoolFactory = nullptr;
   Object::DoDispose ();
 }
 /*
@@ -94,6 +98,31 @@ NrSlHelper::SetSlPreConfigPoolFactory (Ptr<NrSlPreconfigResourcePoolFactory> pre
   m_slPreConfigResoPoolFactory = preconfigPoolFactory;
 }
 */
+
+void
+NrSlHelper::SetSlErrorModel(const std::string &errorModelTypeId)
+{
+  NS_LOG_FUNCTION (this);
+
+  SetUeSlAmcAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModelTypeId)));
+}
+
+void
+NrSlHelper::SetUeSlAmcAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueSlAmcFactory.Set (n, v);
+}
+
+Ptr<NrAmc>
+NrSlHelper::CreateUeSlAmc () const
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<NrAmc> slAmc = m_ueSlAmcFactory.Create <NrAmc> ();
+  return slAmc;
+}
+
 void
 NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::SidelinkPreconfigNr preConfig)
 {
@@ -107,17 +136,23 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
       Ptr<NetDevice> netDev = *i;
       Ptr<NrUeNetDevice> nrUeDev = netDev->GetObject <NrUeNetDevice>();
       Ptr<LteUeRrc> lteUeRrc = nrUeDev->GetRrc ();
-      Ptr<NrSlUeRrc> nrSlUeRrc = lteUeRrc->GetObject <NrSlUeRrc> ();
-      NS_ASSERT_MSG (nrSlUeRrc != nullptr, " No sidelink UE RRC object found");
+
+      Ptr<NrSlUeRrc> nrSlUeRrc = CreateObject<NrSlUeRrc> ();
+      nrSlUeRrc->SetNrSlEnabled (true);
+      lteUeRrc->AggregateObject (nrSlUeRrc);
+      nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider());
+      lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser());
+
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
-      SetPhyParamPerUe (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
+      bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
+      NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
     }
 }
 
-void
-NrSlHelper::SetPhyParamPerUe (const Ptr<NrUeNetDevice> &dev,
-                              const LteRrcSap::SlFreqConfigCommonNr &freqCommon,
-                              const LteRrcSap::SlPreconfigGeneralNr &general)
+bool
+NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
+                            const LteRrcSap::SlFreqConfigCommonNr &freqCommon,
+                            const LteRrcSap::SlPreconfigGeneralNr &general)
 {
   NS_LOG_FUNCTION (this);
   bool found = false;
@@ -135,10 +170,17 @@ NrSlHelper::SetPhyParamPerUe (const Ptr<NrUeNetDevice> &dev,
           dev->GetPhy (index)->PreConfigSlBandwidth (freqCommon.slBwpList [index].slBwpGeneric.bwp.bandwidth);
           dev->GetPhy (index)->SetNumRbPerRbg (freqCommon.slBwpList [index].slBwpGeneric.bwp.rbPerRbg);
           dev->GetPhy (index)->SetPattern (tddPattern);
+          //Error model and UE MAC AMC
+          Ptr<NrAmc> slAmc = CreateUeSlAmc ();
+          TypeIdValue typeIdValue;
+          slAmc->GetAttribute ("ErrorModelType", typeIdValue);
+          dev->GetPhy (index)->GetSpectrumPhy()->SetAttribute ("SlErrorModelType", typeIdValue);
+          dev->GetMac (index)->SetSlAmcModel (slAmc);
           found = true;
         }
     }
-  NS_ABORT_MSG_IF (found == false, "No SL configuration found");
+
+  return found;
 }
 
 
