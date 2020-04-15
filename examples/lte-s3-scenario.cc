@@ -67,32 +67,36 @@ main (int argc, char *argv[])
   CommandLine cmd;
 
   uint16_t numOuterRings = 0;
-  uint16_t ueNumPerEnb = 2;
+  uint16_t ueNumPerEnb = 1;
 
   bool logging = false;
 
   std::string scenario = "UMi";
-  double txPower = 46;
-  uint32_t bandwidthBandDl = 50; // 18MHz
-  uint32_t bandwidthBandUl = 50; //
+  double txPower = 46; //dBm
+  double uetxPower = 20; //dBm
+  uint32_t bandwidthBandDl = 100; // 18MHz
+  uint32_t bandwidthBandUl = 100; //
 
   uint32_t simTimeMs = 1400;
   uint32_t udpAppStartTimeMs = 400;
-  std::string direction = "DL";
+  std::string direction = "UL";
 
-  std::string pathlossModel = "ns3::FriisPropagationLossModel";
+  std::string pathlossModel = "";
 
   // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSize = 600;
+  uint32_t udpPacketSize = 1252;
   uint32_t lambda = 10000;
 
   // Where we will store the output files.
   std::string simTag = "default";
   std::string outputDir = "./";
 
+
   cmd.AddValue ("scenario",
-                "The urban scenario string (UMa or UMi or Friis)",
+                "The urban scenario string (UMa or UMi)",
                  scenario);
+  // We scenario UMa or Umi so that we can use HexagonalGridScenarioHelper for positions, etc,
+  // but, we want to be able to use not only Uma/Umi that are defined in the HexagonalGridScenarioHelper, so we add this additional parameter
   cmd.AddValue ("numRings",
                 "The number of rings around the central site",
                  numOuterRings);
@@ -152,11 +156,11 @@ main (int argc, char *argv[])
       txPower = 44;
       pathlossModel = "ns3::ThreeGppUmiStreetCanyonPropagationLossModel";
     }
-  else
+/*  else
     {
       txPower = 46;
       pathlossModel = "ns3::FriisPropagationLossModel";
-    }
+    }*/
 
   if (logging)
     {
@@ -165,8 +169,6 @@ main (int argc, char *argv[])
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
       LogComponentEnable ("LteSpectrumValueHelper", LOG_LEVEL_INFO);
     }
-
-  pathlossModel = "ns3::FriisPropagationLossModel";
 
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (numOuterRings);
@@ -231,11 +233,14 @@ main (int argc, char *argv[])
   lteHelper->SetEpcHelper (epcHelper);
 
   // ALL SECTORS AND BANDS configuration
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
   Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (txPower));
+  Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (uetxPower));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
+  lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
   lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-  lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (100));
-  lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0.0));
+  lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
+  lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDl));
   lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUl));
 
@@ -365,14 +370,10 @@ main (int argc, char *argv[])
    // The server, that is the application which is listening, is installed in the UE
    if (direction == "DL")
      {
-       serverApps.Add (dlPacketSinkLowLat.Install (ueSector1Container));
-       serverApps.Add (dlPacketSinkLowLat.Install (ueSector2Container));
-       serverApps.Add (dlPacketSinkLowLat.Install (ueSector3Container));
+       serverApps.Add (dlPacketSinkLowLat.Install ({ueSector1Container,ueSector2Container,ueSector3Container}));
      }
    else
      {
-       serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
-       serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
        serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
      }
 
