@@ -41,9 +41,17 @@ class MmWaveUlDciMessage;
  * \ingroup ue-mac
  * \brief The MAC class for the UE
  *
- * <b> General informations </b>
+ * \section ue_mac_general General information
  *
- * <b> CTRL-trace Traces for CTRL messages</b>
+ * \todo fill ue-mac general information doxygen part
+ *
+ * \section ue_mac_configuration Configuration
+ *
+ * The user can configure the class using the method MmWaveHelper::SetUeMacAttribute(),
+ * or by directly calling `SetAttribute` on the MAC pointer. The list of
+ * attributes is reported below, in the Attributes section.
+ *
+ * \section ue_mac_traces CTRL-trace Traces for CTRL messages
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is UeMacRxedCtrlMsgsTrace,

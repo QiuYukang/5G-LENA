@@ -25,7 +25,8 @@
 namespace ns3 {
 
 /**
- * \ingroup helper
+ * \ingroup ue-mac
+ * \ingroup gnb-mac
  * \brief The MacPduInfo struct
  */
 struct MacPduInfo

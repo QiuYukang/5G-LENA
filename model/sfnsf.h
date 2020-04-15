@@ -26,7 +26,7 @@ namespace ns3 {
 
 /**
  * \brief The SfnSf class
- * \ingroup helper
+ * \ingroup utils
  *
  * Keep track of the frame, subframe, slot number. The value can be normalized
  * in the number of slot. Please keep in mind that a SfnSf is valid only when

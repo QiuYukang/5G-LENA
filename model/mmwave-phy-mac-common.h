@@ -115,7 +115,7 @@ struct GetSecond
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The TbInfoElement struct
  */
 struct TbInfoElement
@@ -144,7 +144,7 @@ struct TbInfoElement
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief Scheduling information. Despite the name, it is not TDMA.
  */
 struct DciInfoElementTdma
@@ -247,7 +247,7 @@ struct DciInfoElementTdma
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The TbAllocInfo struct
  */
 struct TbAllocInfo
@@ -265,7 +265,7 @@ struct TbAllocInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The RlcPduInfo struct
  */
 struct RlcPduInfo
@@ -303,7 +303,7 @@ struct VarTtiAllocInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The SlotAllocInfo struct
  */
 struct SlotAllocInfo
@@ -359,7 +359,7 @@ struct SlotAllocInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The DlCqiInfo struct
  */
 struct DlCqiInfo
@@ -376,7 +376,7 @@ struct DlCqiInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The UlCqiInfo struct
  */
 struct UlCqiInfo
@@ -390,7 +390,7 @@ struct UlCqiInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The MacCeValue struct
  */
 struct MacCeValue
@@ -405,7 +405,7 @@ struct MacCeValue
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief See section 4.3.14 macCEListElement
  */
 struct MacCeElement
@@ -423,7 +423,7 @@ struct MacCeElement
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The RlcListElement struct
  */
 struct RlcListElement
@@ -432,7 +432,7 @@ struct RlcListElement
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The UePhyPacketCountParameter struct
  */
 struct UePhyPacketCountParameter
@@ -444,7 +444,7 @@ struct UePhyPacketCountParameter
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The EnbPhyPacketCountParameter struct
  */
 struct EnbPhyPacketCountParameter
@@ -456,7 +456,7 @@ struct EnbPhyPacketCountParameter
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The RxPacketTraceParams struct
  */
 struct RxPacketTraceParams
@@ -480,7 +480,7 @@ struct RxPacketTraceParams
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief Store information about HARQ
  *
  * \see DlHarqInfo
@@ -504,7 +504,7 @@ struct HarqInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief A struct that contains info for the DL HARQ
  *
  * http://www.eurecom.fr/~kaltenbe/fapi-2.0/structDlInfoListElement__s.html
@@ -527,7 +527,7 @@ struct DlHarqInfo : public HarqInfo
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief A struct that contains info for the UL HARQ
  */
 struct UlHarqInfo : public HarqInfo

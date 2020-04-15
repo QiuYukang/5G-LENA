@@ -43,7 +43,17 @@ class BeamId;
  * \ingroup gnb
  * \brief The MAC class for the gnb
  *
- * \section trace CTRL Traces for CTRL messages
+ * \section gnb_mac_general General information
+ *
+ * \todo fill gnb-mac general information doxygen part
+ *
+ * \section gnb_mac_configuration Configuration
+ *
+ * The user can configure the class using the method MmWaveHelper::SetGnbMacAttribute(),
+ * or by directly calling `SetAttribute` on the MAC pointer. The list of
+ * attributes is reported below, in the Attributes section.
+ *
+ * \section gnb_mac_trace CTRL Traces for CTRL messages
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is EnbMacRxedCtrlMsgsTrace,

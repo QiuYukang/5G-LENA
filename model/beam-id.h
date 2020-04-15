@@ -39,8 +39,8 @@ namespace ns3 {
  * \see GetSector
  * \see GetElevation
  */
-class BeamId {
-
+class BeamId
+{
 public:
 
   /**
@@ -85,15 +85,24 @@ private:
 
 
 // we reserve pair 65535, 65535 to identify the OMNI beam
+/**
+ * \brief Name of the OMNI beam
+ * \ingroup utils
+ */
 const BeamId OMNI_BEAM_ID = BeamId (UINT16_MAX, UINT16_MAX);
 
 /**
  * \brief Calculate the hash of a BeamId
+ * \ingroup utils
  */
-struct BeamIdHash {
-
+struct BeamIdHash
+{
+  /**
+   * \brief operator ()
+   * \param x beam id
+   * \return the beam id hash
+   */
   size_t operator() (const BeamId &x) const;
-
 };
 
 std::ostream &operator<< (std::ostream &os, const BeamId &item);
