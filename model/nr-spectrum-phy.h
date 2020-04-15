@@ -445,6 +445,19 @@ private:
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceEnb; //!< trace callback that is notifying when eNb received the packet
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
+
+  //SL
+public:
+  //SL
+  /**
+   * \brief Sets the NR sidelink error model type
+   *
+   * \param errorModelType The TypeId of the error model to be used.
+   */
+  void SetSlErrorModelType (TypeId errorModelType);
+
+private:
+  TypeId m_slErrorModelType {Object::GetTypeId()}; //!< Sidelink Error model type by default is NrLteMiErrorModel
 };
 
 }

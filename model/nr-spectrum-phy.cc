@@ -122,6 +122,11 @@ NrSpectrumPhy::GetTypeId (void)
                     TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
                     MakeTypeIdAccessor (&NrSpectrumPhy::SetErrorModelType),
                     MakeTypeIdChecker ())
+    .AddAttribute ("SlErrorModelType",
+                   "Type of the Error Model to be used for NR sidelink",
+                   TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
+                   MakeTypeIdAccessor (&NrSpectrumPhy::SetSlErrorModelType),
+                   MakeTypeIdChecker ())
     .AddAttribute ("UnlicensedMode",
                    "Activate/Deactivate unlicensed mode in which energy detection is performed" 
                    " and PHY state machine has an additional state CCA_BUSY.",
@@ -1191,6 +1196,12 @@ NrSpectrumPhy::CheckIfStillBusy ()
           NS_LOG_INFO (" Wait while channel BUSY for: "<<delayUntilCcaEnd<<" ns.");
         }
     }
+}
+
+void
+NrSpectrumPhy::SetSlErrorModelType (TypeId errorModelType)
+{
+  m_slErrorModelType = errorModelType;
 }
 
 
