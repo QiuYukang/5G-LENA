@@ -762,8 +762,6 @@ private:
   Ptr<NrBearerStatsCalculator> m_pdcpStats; //!< ?
   NrBearerStatsConnector m_radioBearerStatsConnector; //!< ?
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
-
-  bool m_slEnabled; //!< Flag to enable sidelink
 };
 
 }

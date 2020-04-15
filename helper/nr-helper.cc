@@ -49,7 +49,6 @@
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/bwp-manager-algorithm.h>
-#include <ns3/nr-sl-ue-rrc.h>
 
 #include <algorithm>
 
@@ -113,11 +112,6 @@ NrHelper::GetTypeId (void)
                    BooleanValue (true),
                    MakeBooleanAccessor (&NrHelper::m_harqEnabled),
                    MakeBooleanChecker ())
-     .AddAttribute ("SidelinkEnabled",
-                    "Enable sidelink",
-                    BooleanValue (false),
-                    MakeBooleanAccessor (&NrHelper::m_slEnabled),
-                    MakeBooleanChecker ())
     ;
   return tid;
 }
@@ -568,15 +562,6 @@ NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       rrc->AggregateObject (rrcProtocol);
       rrcProtocol->SetLteUeRrcSapProvider (rrc->GetLteUeRrcSapProvider ());
       rrc->SetLteUeRrcSapUser (rrcProtocol->GetLteUeRrcSapUser ());
-    }
-
-  if (m_slEnabled)
-    {
-      Ptr<NrSlUeRrc> slUeRrc = CreateObject<NrSlUeRrc> ();
-      slUeRrc->SetNrSlEnabled (m_slEnabled);
-      rrc->AggregateObject (slUeRrc);
-      slUeRrc->SetNrSlUeRrcSapProvider (rrc->GetNrSlUeRrcSapProvider());
-      rrc->SetNrSlUeRrcSapUser (slUeRrc->GetNrSlUeRrcSapUser());
     }
 
   if (m_epcHelper != nullptr)
