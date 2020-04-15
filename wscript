@@ -192,6 +192,11 @@ def build(bld):
             if os.path.exists(os.path.join(path, 'wscript')):
                 bld.recurse(dirname)
 
+    obj = bld.create_ns3_program('nr-print-introspected-doxygen', ['nr'])
+    obj.source = 'utils/print-introspected-doxygen.cc'
+    #obj.use = ['nr']
+
+
 
     # bld.ns3_python_bindings()
 
