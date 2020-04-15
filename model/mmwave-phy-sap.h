@@ -147,6 +147,8 @@ public:
 
 /**
  * \brief SAP interface between the ENB PHY and the ENB MAC
+ * \ingroup gnb-phy
+ * \ingroup gnb-mac
  *
  * This SAP is normally used so that PHY can send to MAC indications
  * and providing to MAC some information. The relationship between MAC and PHY
@@ -255,6 +257,9 @@ public:
 
 /**
  * \brief SAP interface between the UE PHY and the UE MAC
+ *
+ * \ingroup ue-phy
+ * \ingroup ue-mac
  *
  * This interface specify the interaction between the UE PHY (that will use
  * this interface) and the UE MAC, that will answer.

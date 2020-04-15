@@ -54,80 +54,331 @@ class MmWaveUeMac;
 class BwpManagerGnb;
 class BwpManagerUe;
 
+/**
+ * \ingroup helper
+ * \brief Helper for a correct setup of every NR simulation
+ *
+ * This class will help you in setting up a single- or multi-cell scenario
+ * with NR. Most probably, you will interact with the NR module only through
+ * this class, so make sure everthing that is written in the following is
+ * clear enough to start creating your own scenario.
+ *
+ * <b> Pre-requisite: Node creation and placement </b>
+ *
+ * We assume that you read the ns-3 tutorials, and you're able to create
+ * your own node placement, as well as the mobility model that you prefer
+ * for your scenario. For simple cases, we provide a class that can help you
+ * in setting up a grid-like scenario. Please take a look at the
+ * GridScenarioHelper documentation in that case.
+ *
+ * <b> Creating the helper </b>
+ *
+ * Usually, the helper is created on the heap, and have to live till the end
+ * of the simulation program:
+ *
+\verbatim
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  mmWaveHelper->SetEpcHelper (epcHelper);
+\endverbatim
+ *
+ * As you can see, we have created two other object that can help this class:
+ * the IdealBeamformingHelper and the NrPointToPointEpcHelper. Please refer to
+ * the documentation of such classes if you need more information about them.
+ *
+ * <b> Dividing the spectrum and creating the channels </b>
+ *
+ * The spectrum management is delegated to the class CcBwpHelper. Please
+ * refer to its documentation to have more information. After having divided
+ * the spectrum in component carriers and bandwidth part, use the method
+ * InitializeOperationBand() to create the channels and other things that will
+ * be used by the channel modeling part.
+ *
+ * <b> Configuring the cells </b>
+ *
+ * After the spectrum part is ready, it is time to check how to configure the
+ * cells. The configuration is done in the most typical ns-3 way, through the
+ * Attributes. We assume that you already know what an attribute is; if not,
+ * please read the ns-3 documentation about objects and attributes.
+ *
+ *
+ * We have two different ways to configure the attributes of our objects
+ * (and, therefore, configure the cell). The first is before the object are
+ * created: as this class is responsible to create all the object that are needed
+ * in the module, we provide many methods (prefixed with "Set") that can
+ * store the attribute values for the objects, until they are created and then
+ * these values applied. For instance, we can set the antenna dimensions for
+ * all the UEs with:
+ *
+\verbatim
+  // Antennas for all the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+\endverbatim
+ *
+ * These attributes will be stored, and then used inside the creation methods
+ * InstallGnbDevice() and InstallUeDevice(). In this case, the antenna dimensions
+ * will be taken inside the InstallUeDevice() method, and all the UEs created
+ * will have these dimensions.
+ *
+ * Of course, it is possible to divide the nodes, and install them separately
+ * with different attributes. For example:
+ *
+\verbatim
+  NodeContainer ueFirstSet;
+  NodeContainer ueSecondSet;
+  ...
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  ...
+  NetDeviceContainer ueFirstSetNetDevs = mmWaveHelper->InstallUeDevice (ueFirstSet, allBwps);
+  ...
+  // Then, prepare the second set:
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (8));
+  ...
+  NetDeviceContainer ueSecondSetNetDevs = mmWaveHelper->InstallUeDevice (ueSecondSet, allBwps);
+  ...
+\endverbatim
+ *
+ * In this way, you can configure different sets of nodes with different properties.
+ *
+ * The second configuration option is setting the attributes after the object are
+ * created. Once you have a pointer to the object, you can use the Object::SetAttribute()
+ * method on it. To get the pointer, use one of the helper methods to retrieve
+ * a pointer to the PHY, MAC, or scheduler, given the index of the bandwidth part:
+ *
+\verbatim
+  ...
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gnbContainer, allBwps);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (2));
+\endverbatim
+ *
+ * In the snippet, we are selecting the first gnb (`enbNetDev.Get (0)`) and
+ * then selecting the first BWP (`, 0`). We are using the method GetEnbPhy()
+ * to obtain the PHY pointer, and then setting the `Numerology` attribute
+ * on it. The list of attributes is present in the class description, as well
+ * as some reminder on how configure it through the helper.
+ *
+ * <b> Installing UEs and GNBs </b>
+ *
+ * The installation part is done through two methods: InstallGnbDevice()
+ * and InstallUeDevice(). Pass to these methods the container of the nodes,
+ * plus the spectrum configuration that comes from CcBwpHelper.
+ *
+ * <b> Finishing the configuration </b>
+ *
+ * After you finish the configuration, please remember to call UpdateConfig()
+ * on all the NetDevices:
+ *
+\verbatim
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+\endverbatim
+ *
+ * The call to UpdateConfig() will finish the configuration, and update the
+ * RRC layer.
+ *
+ * <b> Dedicated bearers </b>
+ *
+ * We have methods to open dedicated UE bearers: ActivateDedicatedEpsBearer()
+ * and DeActivateDedicatedEpsBearer(). Please take a look at their documentation
+ * for more information.
+ *
+ * <b> Attachment of UEs to GNBs </b>
+ *
+ * We provide two methods to attach a set of UE to a GNB: AttachToClosestEnb()
+ * and AttachToEnb(). Through these function, you will manually attach one or
+ * more UEs to a specified GNB.
+ *
+ * <b> Traces </b>
+ *
+ * Kat to fill :-)
+ *
+ */
 class MmWaveHelper : public Object
 {
-
 public:
+  /**
+   * \brief MmWaveHelper constructor
+   */
   MmWaveHelper (void);
+  /**
+   * \brief ~MmWaveHelper
+   */
   virtual ~MmWaveHelper (void);
 
+  /**
+   * \brief GetTypeId
+   * \return the type id of the object
+   */
   static TypeId GetTypeId (void);
 
   /**
-   * @brief InstallUeDevice
-   * @param c
-   * @param allBwps
-   * @return
+   * \brief Install one (or more) UEs
+   * \param c Node container with the UEs
+   * \param allBwps The spectrum configuration that comes from CcBwpHelper
+   * \return a NetDeviceContainer with the net devices that have been installed.
    *
-   * The position on the vector of bwp will be the bwp id
    */
   NetDeviceContainer InstallUeDevice (const NodeContainer &c,
                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> &allBwps);
+  /**
+   * \brief Install one (or more) GNBs
+   * \param c Node container with the GNB
+   * \param allBwps The spectrum configuration that comes from CcBwpHelper
+   * \return a NetDeviceContainer with the net devices that have been installed.
+   */
   NetDeviceContainer InstallGnbDevice (const NodeContainer &c,
                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
 
   /**
    * \brief Get the number of configured BWP for a specific GNB NetDevice
-   * \param gnbDevice The GNB NetDevice
+   * \param gnbDevice The GNB NetDevice, obtained from InstallGnbDevice()
    * \return the number of BWP installed, or 0 if there are errors
    */
   static uint32_t GetNumberBwp (const Ptr<const NetDevice> &gnbDevice);
   /**
    * \brief Get a pointer to the PHY of the GNB at the specified BWP
-   * \param gnbDevice The GNB NetDevice
+   * \param gnbDevice The GNB NetDevice, obtained from InstallGnbDevice()
    * \param bwpIndex The index of the BWP required
    * \return A pointer to the PHY layer of the GNB, or nullptr if there are errors
    */
   static Ptr<MmWaveEnbPhy> GetEnbPhy (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
   /**
    * \brief Get a pointer to the MAC of the GNB at the specified BWP
-   * \param gnbDevice The GNB NetDevice
+   * \param gnbDevice The GNB NetDevice, obtained from InstallGnbDevice()
    * \param bwpIndex The index of the BWP required
    * \return A pointer to the MAC layer of the GNB, or nullptr if there are errors
    */
   static Ptr<MmWaveEnbMac> GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
-
+  /**
+   * \brief Get a pointer to the MAC of the UE at the specified BWP
+   * \param gnbDevice The UE NetDevice, obtained from InstallUeDevice()
+   * \param bwpIndex The index of the BWP required
+   * \return A pointer to the MAC layer of the UE, or nullptr if there are errors
+   */
   static Ptr<MmWaveUeMac> GetUeMac (const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex);
-
+  /**
+   * \brief Get a pointer to the PHY of the UE at the specified BWP
+   * \param gnbDevice The UE NetDevice, obtained from InstallUeDevice()
+   * \param bwpIndex The index of the BWP required
+   * \return A pointer to the PHY layer of the UE, or nullptr if there are errors
+   */
   static Ptr<MmWaveUePhy> GetUePhy (const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex);
-
+  /**
+   * \brief Get the BwpManager of the GNB
+   * \param gnbDevice the GNB NetDevice, obtained from InstallGnbDevice()
+   * \return A pointer to the BwpManager of the GNB, or nullptr if there are errors
+   */
   static Ptr<BwpManagerGnb> GetBwpManagerGnb (const Ptr<NetDevice> &gnbDevice);
-
+  /**
+   * \brief Get the BwpManager of the UE
+   * \param gnbDevice the UE NetDevice, obtained from InstallGnbDevice()
+   * \return A pointer to the BwpManager of the UE, or nullptr if there are errors
+   */
   static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);
-
+  /**
+   * \brief Get the Scheduler from the GNB specified
+   * \param gnbDevice The GNB NetDevice, obtained from InstallGnbDevice()
+   * \param bwpIndex The index of the BWP required
+   * \return A pointer to the scheduler, or nullptr if there are errors
+   */
   static Ptr<MmWaveMacScheduler> GetScheduler (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
 
   /**
-   * This method is used to send the ComponentCarrier map created with CcHelper
-   * to the helper, the structure will be used within InstallSingleEnbDevice
-   *
-   * \param ccmap the component carrier map
+   * \brief Attach the UE specified to the closest GNB
+   * \param ueDevices UE devices to attach
+   * \param enbDevices GNB devices from which the algorithm has to select the closest
    */
-  void SetCcPhyParams (const std::map<uint8_t, ComponentCarrier> &ccmap);
-
   void AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+  /**
+   * \brief Attach a UE to a particular GNB
+   * \param ueDevice the UE device
+   * \param gnbDevice the GNB device to which attach the UE
+   */
   void AttachToEnb (const Ptr<NetDevice> &ueDevice, const Ptr<NetDevice> &gnbDevice);
 
+  /**
+   * \brief Enable the traces
+   *
+   * Kat ?
+   */
   void EnableTraces ();
 
+  /**
+   * \brief Activate a Data Radio Bearer on a given UE devices
+   *
+   * \param ueDevices the set of UE devices
+   * \param bearer the characteristics of the bearer to be activated
+   */
   void ActivateDataRadioBearer (NetDeviceContainer ueDevices, EpsBearer bearer);
+  /**
+   * \brief Activate a Data Radio Bearer on a UE device.
+   *
+   * This method will schedule the actual activation
+   * the bearer so that it happens after the UE got connected.
+   *
+   * \param ueDevice the UE device
+   * \param bearer the characteristics of the bearer to be activated
+   */
   void ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer);
+  /**
+   * Set the EpcHelper to be used to setup the EPC network in
+   * conjunction with the setup of the LTE radio access network.
+   *
+   * \note if no EpcHelper is ever set, then LteHelper will default
+   * to creating a simulation with no EPC, using LteRlcSm as
+   * the RLC model, and without supporting any IP networking. In other
+   * words, it will be a radio-level simulation involving only LTE PHY
+   * and MAC and the Scheduler, with a saturation traffic model for
+   * the RLC.
+   *
+   * \param h a pointer to the EpcHelper to be used
+   */
   void SetEpcHelper (Ptr<EpcHelper> epcHelper);
+
+  /**
+   * \brief Set an ideal beamforming helper
+   * \param idealBeamformingHelper a pointer to the ideal beamforming helper
+   *
+   * Biljana?
+   */
   void SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper);
 
+  /**
+   * \brief SetHarqEnabled
+   * \param harqEnabled
+   *
+   * We never really tested this function, so please be careful when using it.
+   */
   void SetHarqEnabled (bool harqEnabled);
+  /**
+   * \brief GetHarqEnabled
+   * \return the value of HarqEnabled variable
+   */
   bool GetHarqEnabled ();
+  /**
+   * \brief SetSnrTest
+   * \param snrTest
+   *
+   * We never really tested this function, so please be careful when using it.
+   */
   void SetSnrTest (bool snrTest);
+  /**
+   * \brief GetSnrTest
+   * \return the value of SnrTest variable
+   */
   bool GetSnrTest ();
 
   /**
@@ -173,68 +424,89 @@ public:
   void DeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE MAC, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   * \see MmWaveUeMac
    */
   void SetUeMacAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB MAC, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   * \see MmWaveEnbMac
    */
   void SetGnbMacAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB spectrum, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   * \see MmWaveSpectrumPhy
    */
   void SetGnbSpectrumAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE spectrum, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   * \see MmWaveSpectrumPhy
    */
   void SetUeSpectrumAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE channel access manager, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see NrChAccessManager
    */
   void SetUeChannelAccessManagerAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB channel access manager, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see NrChAccessManager
    */
   void SetGnbChannelAccessManagerAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the scheduler, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   * \see MmWaveMacSchedulerNs3
    */
   void SetSchedulerAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE PHY, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see MmWaveUePhy
    */
   void SetUePhyAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set an attribute for the GNB PHY, before it is created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   *
+   * \see MmWaveGnbPhy
+   */
+  void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
 
   /**
    * Set an attribute for the <> to be created.
@@ -242,32 +514,83 @@ public:
    * \param n the name of the attribute
    * \param v the value of the attribute
    */
-  void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
-
   void SetUeAntennaAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v);
 
   void SetUeChannelAccessManagerTypeId (const TypeId &typeId);
 
   void SetGnbChannelAccessManagerTypeId (const TypeId &typeId);
 
+  /**
+   * \brief Set the Scheduler TypeId. Works only before it is created.
+   * \param typeId The scheduler type
+   *
+   * \see MmWaveMacSchedulerOfdmaPF
+   * \see MmWaveMacSchedulerOfdmaRR
+   * \see MmWaveMacSchedulerOfdmaMR
+   * \see MmWaveMacSchedulerTdmaPF
+   * \see MmWaveMacSchedulerTdmaRR
+   * \see MmWaveMacSchedulerTdmaMR
+   */
   void SetSchedulerTypeId (const TypeId &typeId);
 
   void SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetGnbBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
   void SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetGnbDlAmcAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
   void SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v);
 
   /**

@@ -28,7 +28,7 @@
 namespace ns3 {
 
 /**
- * \ingroup helpers
+ * \ingroup utils
  * \brief Available TDD slot types. Ordering is important.
  */
 enum LteNrTddSlotType : uint8_t
@@ -42,7 +42,7 @@ enum LteNrTddSlotType : uint8_t
 std::ostream & operator<< (std::ostream & os, LteNrTddSlotType const & item);
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief The MmWaveControlMessage class
  *
  * Base class for all the messages types that the UE and the GNB can exchange. The
@@ -110,7 +110,7 @@ private:
 };
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief SR message
  *
  * Message that represent a scheduling request, with the RNTI from
@@ -146,7 +146,7 @@ private:
 
 /**
  * \brief The message that represents a DL DCI message
- * \ingroup helper
+ * \ingroup utils
  */
 class MmWaveDlDciMessage : public MmWaveControlMessage
 {
@@ -206,7 +206,7 @@ private:
 
 /**
  * \brief The message that represents a UL DCI message
- * \ingroup helper
+ * \ingroup utils
  */
 class MmWaveUlDciMessage : public MmWaveControlMessage
 {
@@ -249,7 +249,7 @@ private:
 
 /**
  * \brief The message that represents a DL CQI message
- * \ingroup helper
+ * \ingroup utils
  */
 class MmWaveDlCqiMessage : public MmWaveControlMessage
 {
@@ -280,7 +280,7 @@ private:
 
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief the BSR message
  *
  * The uplink BsrLteControlMessage defines the specific
@@ -319,7 +319,7 @@ private:
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief Abstract model for broadcasting the Master Information Block (MIB)
  *        within the control channel (BCCH).
  *
@@ -353,7 +353,7 @@ private:
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief Abstract model for broadcasting the System Information Block Type 1
  *        (SIB1) within the control channel (BCCH).
  *
@@ -386,7 +386,7 @@ private:
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup helper
+ * \ingroup utils
  *
  * \brief Abstract model for the Random Access Preamble
  */
@@ -423,7 +423,7 @@ private:
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup helper
+ * \ingroup utils
  *
  * \brief Abstract model for the MAC Random Access Response message
  */
@@ -489,7 +489,7 @@ private:
 
 
 /**
- * \ingroup helper
+ * \ingroup utils
  * \brief DlHarqFeedback message
  *
  * The downlink MmwaveDlHarqFeedbackMessage defines the specific

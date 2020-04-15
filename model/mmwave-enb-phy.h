@@ -47,7 +47,7 @@ class BeamManager;
  * slot timings and settings (including numerology, pattern...), and the
  * channel access in unlicensed spectrum.
  *
- * <b>Spectrum transmission</b>
+ * \section gnb_phy_spectrum Spectrum transmission
  *
  * The PHY has a pointer to MmWaveSpectrumPhy class, which is the entry point
  * in the spectrum transmission domain, and the connection point with the channel.
@@ -60,7 +60,7 @@ class BeamManager;
  * symbols in which the transmission will be done, but the list of the messages
  * will be passed to the UE without any interference or error model applied.
  *
- * <b> Slot Timings, and event processing</b>
+ * \section gnb_phy_timings Slot Timings, and event processing
  *
  * The node works as a state-machine where all the processing is done at the
  * beginning of the slot boundary. The slot duration is dictated by the
@@ -75,19 +75,24 @@ class BeamManager;
  * MAC will require two slot before going in the air. For this reason, MAC always
  * work "in the future".
  *
- * <b>Unlicensed access</b>
+ * \section gnb_phy_unlicensed Unlicensed access
  *
  * The PHY is prepared to postpone its processing if the channel access manager
  * (an interface specified in the NrChAccessManager class) indicates that
  * the channel is busy, hence not available for the transmission.
  *
+ * \section gnb_phy_conf Configuration
+ *
  * The initialization of the class in done through MmWaveHelper; the user
  * can interact with it through the various attribute that are present, trying
- * to avoid using direct function calls.
+ * to avoid using direct function calls. The attributes can be changed by
+ * a direct call to `SetAttribute` on the pointer of the PHY, or (before the PHY
+ * creation) through the helper method MmWaveHelper::SetGnbPhyAttribute().
  *
- * \see SetSpectrumPhy
- * \see StartEventLoop
- * \see StartSlot
+ *
+ * \see MmWavePhy::SetSpectrumPhy
+ * \see MmWavePhy::StartEventLoop
+ * \see MmWavePhy::StartSlot
  */
 class MmWaveEnbPhy : public MmWavePhy
 {

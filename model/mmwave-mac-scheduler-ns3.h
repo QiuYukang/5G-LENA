@@ -51,9 +51,15 @@ class MmWaveSchedGeneralTestCase;
  * Please refer to the function documentation to see a detailed description
  * of the steps done during all the phases.
  *
- * \section Registration and Configuration
+ * \section scheduler_registration Registration and Configuration
  *
- * \section User management (creation and removal)
+ * The attribute of any scheduler can be set directly calling `SetAttribute`
+ * on the pointer obtained through MmWaveHelper::GetScheduler() or, before
+ * it is created, through MmWaveHelper::SetSchedulerAttribute(). The type of
+ * the scheduler can be set only before its creation, through the method
+ * MmWaveHelper::SetSchedulerTypeId().
+ *
+ * \section scheduler_user_managment User management (creation and removal)
  *
  * When a user arrives in the cell, it is registered with a call to
  * DoCschedUeConfigReq. When the user leaves, the class is made aware with
@@ -65,11 +71,11 @@ class MmWaveSchedGeneralTestCase;
  * information such as Logical Channels, CQI, and other things. Please refer
  * to its documentation for a broader overview of its possibilities.
  *
- * \section Cell configuration
+ * \section scheduler_cell_conf Cell configuration
  *
  * The cell configuration, done with a call to DoCschedCellConfigReq, is ignored.
  *
- * \section LC creation and removal
+ * \section scheduler_lc_creation LC creation and removal
  *
  * After the registration of a UE, the scheduler has to know how many bytes
  * there are in its queue, for both uplink and downlink. Before that,
@@ -87,7 +93,7 @@ class MmWaveSchedGeneralTestCase;
  * reimplementing the methods CreateLCG() and CreateLC() to return a pointer to
  * a created instance.
  *
- * \section Updating the LC bytes
+ * \section scheduler_update_lc Updating the LC bytes
  *
  * For the downlink case, the LC is updated with a message between the gNB RLC
  * layer and the MAC.  The scheduler receives a call to the method
@@ -99,7 +105,7 @@ class MmWaveSchedGeneralTestCase;
  * More details can be found in the documentation of the class MmWaveMacSchedulerLCG
  * and MmWaveMacSchedulerLC.
  *
- * \section CQI Management
+ * \section scheduler_cqi CQI Management
  *
  * The CQI is based on a parameter (m_cqiTimersThreshold) that indicates how
  * long a received CQI is valid. Every time that a Dl CQI is received, the
@@ -117,7 +123,7 @@ class MmWaveSchedGeneralTestCase;
  * At the end of these evaluations, inside the UE representation, is available
  * the value of the DL/UL MCS, ready to be used.
  *
- * \section Scheduling phase
+ * \section scheduler_scheduling_general Scheduling phase
  *
  * After gathering the information regarding CQI, active users and flows, it is
  * time to take a look into how the class manages the most important thing,
@@ -125,7 +131,7 @@ class MmWaveSchedGeneralTestCase;
  * space, assigning resources to HARQ retransmission or DL/UL new data transmission.
  * The main scheduling function is MmWaveMacSchedulerNs3::DoSchedTriggerReq.
  *
- * \section Refreshing CQI
+ * \section scheduler_cqi Refreshing CQI
  *
  * The refreshing of CQI consists in evaluating the validity timer of the value.
  * If the timer is equal to 0, the valued is expired, and the value is reset
@@ -134,7 +140,7 @@ class MmWaveSchedGeneralTestCase;
  * MmWaveMacSchedulerCQIManagement::RefreshDlCQIMaps and
  * MmWaveMacSchedulerCQIManagement::RefreshUlCQIMaps.
  *
- * \section Process HARQ feedbacks
+ * \section scheduler_process_harq Process HARQ feedbacks
  *
  * To decide if it is necessary to perform HARQ retransmission, and to decide
  * how many retransmission perform, the first step is to evaluate the HARQ
@@ -151,7 +157,7 @@ class MmWaveSchedGeneralTestCase;
  * To discover more about how HARQ processes are stored and managed, please take
  * a look at the HarqProcess and MmWaveMacHarqVector documentation.
  *
- * \section The concept of scheduling
+ * \section scheduler_general The concept of scheduling
  *
  * The scheduling of the resources is a process that should fill the slot time
  * and the slot frequencies with retransmitted or fresh data. To simplify the
@@ -168,7 +174,7 @@ class MmWaveSchedGeneralTestCase;
  * Please refer to the DoScheduling() documentation to know how the
  * scheduling is performed.
  *
- * \section Spatial multiplexing
+ * \section scheduler_spat_mult Spatial multiplexing
  *
  * The code does not support Spatial Multiplexing. It means that it is not possible
  * to schedule UEs that are in different beams at the same time. While this has
@@ -180,7 +186,7 @@ class MmWaveSchedGeneralTestCase;
  * data structures that group UE and retransmission by BeamID
  * (ActiveUeMap and ActiveHarqMap).
  *
- * \section Scheduling UL
+ * \section scheduler_sched_ul Scheduling UL
  * It is worth explaining that the
  * schedulers working on slot x for DL, are working on slot \f$x + y\f$
  * (where y is the value of N2 delay).
@@ -195,7 +201,7 @@ class MmWaveSchedGeneralTestCase;
  * All this details are considered in the functions ScheduleUl() and ScheduleDl().
  *
  *
- * \section HARQ
+ * \section scheduler_harq HARQ
  * The HARQ scheduling is done, if symbols for HARQ are available, before transmitting
  * new data, and this happens for both DL and UL. The detailed documentation
  * is available in the methods ScheduleDlHarq() and ScheduleUlHarq(),
@@ -203,7 +209,7 @@ class MmWaveSchedGeneralTestCase;
  * The subclass responsible to manage HARQ is MmWaveMacSchedulerNs3Base, that
  * in turn calls the methods in the class MmWaveMacSchedulerHarqRr.
  *
- * \section Scheduling new data
+ * \section scheduler_sched Scheduling new data
  *
  * The scheduling of new data is performed by functions ScheduleUlData() and
  * ScheduleDlData(). The priority is for HARQ retransmission, so if the
