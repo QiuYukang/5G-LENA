@@ -36,6 +36,7 @@ class NrControlMessage;
 class UniformRandomVariable;
 class PacketBurst;
 class NrUlDciMessage;
+class NrAmc;
 
 /**
  * \ingroup ue-mac
@@ -315,6 +316,22 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_macTxedCtrlMsgsTrace;
+
+  //SL
+public:
+
+  /**
+   * \brief Set the sidelink AMC model
+   *
+   * Usually it will be set by the NrSlHelper
+   *
+   * \param slAmc The AMC to be used for sidelink
+   */
+  void SetSlAmcModel (const Ptr<NrAmc> &slAmc);
+
+private:
+
+  Ptr<const NrAmc> m_slAmc {nullptr};  //!< AMC model used to compute SL Transport block size
 };
 
 }

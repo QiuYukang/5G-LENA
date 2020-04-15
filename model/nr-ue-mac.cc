@@ -32,6 +32,7 @@
 #include <ns3/random-variable-stream.h>
 #include "nr-phy-sap.h"
 #include "nr-control-messages.h"
+#include "nr-amc.h"
 
 namespace ns3 {
 
@@ -262,6 +263,7 @@ NrUeMac::DoDispose ()
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
+  m_slAmc = nullptr;
 }
 
 void
@@ -986,6 +988,15 @@ void
 NrUeMac::DoReset ()
 {
   NS_LOG_FUNCTION (this);
+}
+
+//SL
+
+void
+NrUeMac::SetSlAmcModel (const Ptr<NrAmc> &slAmc)
+{
+  NS_LOG_FUNCTION (this);
+  m_slAmc = slAmc;
 }
 //////////////////////////////////////////////
 
