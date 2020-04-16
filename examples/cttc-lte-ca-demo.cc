@@ -8,6 +8,34 @@
  * and each CC has 20 MHz bandwidth.
  */
 
+/**
+ * \ingroup examples
+ * \file cttc-lte-ca-demo.cc
+ * \brief Example for setting LTE CA scenario
+ *
+ * This example describes how to setup a simulation using the 3GPP channel model
+ * from TR 38.900. This example consists of 1 gNb and 1 UE. Have a look at the
+ * possible parameters to know what you can configure through the command line.
+ *
+ * The example allows 2 configurations:
+ *
+ * An exclusivley TDD scenario, with 2 bands including 1 and 2 CCs respectively.
+ * Each CC includes 1 BWP. In this case 3 flows are created, 2 DL and 1 UL.
+ *
+ * A mixed TDD/FDD scenario with 2 bands including 1 and 2 CCs respectively. The
+ * 1st and the 2nd CC include 1 BWP each of TDD operation, while the 3rd CC is
+ * set to FDD operation mode, thus it includes 2 BWPs (one DL and 1 UL). In this
+ * case 4 flows are created, 2 DL and 1 UL.
+ *
+ * The example will print on-screen the end-to-end result of one (or two) flows,
+ * as well as writing them on a file.
+ *
+ * \code{.unparsed}
+$ ./waf --run "cttc-lte-ca-demo --Help"
+    \endcode
+ *
+ */
+
 
 #include "ns3/core-module.h"
 #include "ns3/config-store.h"
@@ -23,9 +51,9 @@
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
-#include "ns3/mmwave-mac-scheduler-tdma-rr.h"
 #include "ns3/bandwidth-part-gnb.h"
 #include "ns3/nr-module.h"
+
 
 using namespace ns3;
 
@@ -37,7 +65,6 @@ main (int argc, char *argv[])
 {
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
-  uint16_t numFlowsUe = 3;
 
   uint8_t numBands = 2;
   double centralFrequencyBand40 = 2350e6;
@@ -45,7 +72,7 @@ main (int argc, char *argv[])
   double centralFrequencyBand38 = 2595e6;
   double bandwidthBand38 = 100e6;
 
-  double bandwidthFDD = 18e6;
+  double bandwidth = 18e6;
 
   uint16_t numerologyBwp0 = 0;
   uint16_t numerologyBwp1 = 0;
@@ -62,14 +89,15 @@ main (int argc, char *argv[])
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
 
-  bool udpFullBuffer = false;
-  uint32_t udpPacketSizeUll = 1000;
-  uint32_t udpPacketSizeBe = 1252;
+  uint32_t udpPacketSizeUll = 600;
+  uint32_t udpPacketSizeBe = 600;
   uint32_t lambdaUll = 10000;
-  uint32_t lambdaBe = 1000;
+  uint32_t lambdaBe = 10000;
 
-  bool enableDl = true;
-  bool enableUl = true;
+  bool enableLowLat = true;
+  bool enableVideo = true;
+  bool enableVoice = true;
+  bool enableGaming = false;  //If FDD is selected is set automaticaly to true
 
   bool logging = false;
 
@@ -97,11 +125,11 @@ main (int argc, char *argv[])
                 "The system bandwidth to be used in band 1",
                 bandwidthBand40);
   cmd.AddValue ("bandwidthBand38",
-                "The system bandwidth to be used in band 1",
+                "The system bandwidth to be used in band 2",
                 bandwidthBand38);
-  cmd.AddValue ("bandwidthFDD",
-                "The bandwidth to be used in CC 2",
-                bandwidthFDD);
+  cmd.AddValue ("bandwidth",
+                "The bandwidth of the CCs ",
+                bandwidth);
   cmd.AddValue ("numerologyBwp0",
                 "The numerology to be used in bandwidth part 1",
                 numerologyBwp0);
@@ -134,10 +162,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("beamSearchAngleStep",
                 "Beam search angle step for beam search method",
                 beamSearchAngleStep);
-  cmd.AddValue ("udpFullBuffer",
-                "Whether to set the full buffer traffic; if this parameter is "
-                "set then the udpInterval parameter will be neglected.",
-                udpFullBuffer);
   cmd.AddValue ("packetSizeUll",
                 "packet size in bytes to be used by ultra low latency traffic",
                 udpPacketSizeUll);
@@ -150,12 +174,18 @@ main (int argc, char *argv[])
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
-  cmd.AddValue ("enableDl",
-                "Enable DL flow",
-                enableDl);
-  cmd.AddValue ("enableUl",
-                "Enable UL flow",
-                enableUl);
+  cmd.AddValue ("enableLowLat",
+                "If true, enables low latency traffic transmission (DL)",
+                enableLowLat);
+  cmd.AddValue ("enableVideo",
+                "If true, enables video traffic transmission (DL)",
+                enableVideo);
+  cmd.AddValue ("enableVoice",
+                "If true, enables voice traffic transmission (UL)",
+                enableVoice);
+  cmd.AddValue ("enableGaming",
+                "If true, enables gaming traffic transmission (UL)",
+                enableGaming);
   cmd.AddValue ("logging",
                 "Enable logging",
                 logging);
@@ -169,7 +199,8 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   NS_ABORT_IF (numBands < 1);
-  NS_ABORT_MSG_IF (enableDl==false && enableUl==false, "Enable one of the flows");
+  NS_ABORT_MSG_IF (enableLowLat==false && enableVideo==false && enableVoice==false
+                   && enableGaming==false, "Enable one of the flows");
 
   //ConfigStore inputConfig;
   //inputConfig.ConfigureDefaults ();
@@ -325,73 +356,89 @@ main (int argc, char *argv[])
    * matches the number of flows. Each carrier will multiplex flows from
    * different UEs but with the same CQI
    */
-  //uint8_t numCcs = numFlowsUe;
-
-  uint8_t numCcBand40 = 1;
-  uint8_t numCcBand38;
+  uint8_t numCcs = 3;
 
   BandwidthPartInfoPtrVector allBwps;
-  CcBwpCreator ccBwpCreator;
-
-  OperationBandInfo band38;
-
-  //FDD case
-  std::unique_ptr<ComponentCarrierInfo> cc1 (new ComponentCarrierInfo ());
-  std::unique_ptr<BandwidthPartInfo> bwp1 (new BandwidthPartInfo ());
-
-  std::unique_ptr<ComponentCarrierInfo> cc2 (new ComponentCarrierInfo ());
-  std::unique_ptr<BandwidthPartInfo> bwpdl (new BandwidthPartInfo ());
-  std::unique_ptr<BandwidthPartInfo> bwpul (new BandwidthPartInfo ());
-
 
   // Create the configuration for band40 (CC0 - BWP0)
-  CcBwpCreator::SimpleOperationBandConf bandConf40 (centralFrequencyBand40, bandwidthBand40,
-                                                    numCcBand40, BandwidthPartInfo::UMi_StreetCanyon_LoS);
-  OperationBandInfo band40 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf40);
+  OperationBandInfo band40;
+  band40.m_centralFrequency  = centralFrequencyBand40;
+  band40.m_channelBandwidth = bandwidthBand40;
+  band40.m_lowerFrequency = band40.m_centralFrequency - band40.m_channelBandwidth / 2;
+  band40.m_higherFrequency = band40.m_centralFrequency + band40.m_channelBandwidth / 2;
+
+  // Component Carrier 0
+  std::unique_ptr<ComponentCarrierInfo> cc0 (new ComponentCarrierInfo ());
+  cc0->m_ccId = 0;
+  cc0->m_centralFrequency = band40.m_lowerFrequency + bandwidth;
+  cc0->m_channelBandwidth = bandwidth;
+  cc0->m_lowerFrequency = cc0->m_centralFrequency - cc0->m_channelBandwidth / 2;
+  cc0->m_higherFrequency = cc0->m_centralFrequency + cc0->m_channelBandwidth / 2;
+
+  // BWP 0
+  std::unique_ptr<BandwidthPartInfo> bwp0 (new BandwidthPartInfo ());
+  bwp0->m_bwpId = 0;
+  bwp0->m_centralFrequency = cc0->m_centralFrequency;
+  bwp0->m_channelBandwidth = cc0->m_channelBandwidth;
+  bwp0->m_lowerFrequency = cc0->m_lowerFrequency;
+  bwp0->m_higherFrequency = cc0->m_higherFrequency;
+
+  cc0->AddBwp (std::move(bwp0));
+
+  band40.AddCc (std::move(cc0));
 
 
   // Create the configuration for band38
-  if (operationMode == "TDD") //(CC1  - BWP1 / CC2 - BWP2)
-  {
-      numCcBand38 = 2;
+  OperationBandInfo band38;
+  band38.m_centralFrequency  = centralFrequencyBand38;
+  band38.m_channelBandwidth = bandwidthBand38;
+  band38.m_lowerFrequency = band38.m_centralFrequency - band38.m_channelBandwidth / 2;
+  band38.m_higherFrequency = band38.m_centralFrequency + band38.m_channelBandwidth / 2;
 
-      CcBwpCreator::SimpleOperationBandConf bandConf38 (centralFrequencyBand38, bandwidthBand38,
-                                                        numCcBand38, BandwidthPartInfo::UMi_StreetCanyon_LoS);
-      band38 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf38);
-      mmWaveHelper->InitializeOperationBand (&band38);
+
+  //(CC1 - BWP1)
+  // Component Carrier 1
+  std::unique_ptr<ComponentCarrierInfo> cc1 (new ComponentCarrierInfo ());
+  cc1->m_ccId = 1;
+  cc1->m_centralFrequency = band38.m_lowerFrequency + bandwidth;
+  cc1->m_channelBandwidth = bandwidth;
+  cc1->m_lowerFrequency = cc1->m_centralFrequency - cc1->m_channelBandwidth / 2;
+  cc1->m_higherFrequency = cc1->m_centralFrequency + cc1->m_channelBandwidth / 2;
+
+  // BWP 1
+  std::unique_ptr<BandwidthPartInfo> bwp1 (new BandwidthPartInfo ());
+  bwp1->m_bwpId = 1;
+  bwp1->m_centralFrequency = cc1->m_centralFrequency;
+  bwp1->m_channelBandwidth = cc1->m_channelBandwidth;
+  bwp1->m_lowerFrequency = cc1->m_lowerFrequency;
+  bwp1->m_higherFrequency = cc1->m_higherFrequency;
+
+  cc1->AddBwp (std::move(bwp1));
+
+  std::unique_ptr<ComponentCarrierInfo> cc2 (new ComponentCarrierInfo ());
+  std::unique_ptr<BandwidthPartInfo> bwp2 (new BandwidthPartInfo ());
+  std::unique_ptr<BandwidthPartInfo> bwpdl (new BandwidthPartInfo ());
+  std::unique_ptr<BandwidthPartInfo> bwpul (new BandwidthPartInfo ());
+
+  // Component Carrier 2
+  cc2->m_ccId = 2;
+  cc2->m_centralFrequency = band38.m_higherFrequency - bandwidth;
+  cc2->m_channelBandwidth = bandwidth;
+  cc2->m_lowerFrequency = cc2->m_centralFrequency - cc2->m_channelBandwidth / 2;
+  cc2->m_higherFrequency = cc2->m_centralFrequency + cc2->m_channelBandwidth / 2;
+
+  if (operationMode == "TDD") //(CC2 - BWP2)
+  {
+      bwp2->m_bwpId = 1;
+      bwp2->m_centralFrequency = cc2->m_centralFrequency;
+      bwp2->m_channelBandwidth = cc2->m_channelBandwidth;
+      bwp2->m_lowerFrequency = cc2->m_lowerFrequency;
+      bwp2->m_higherFrequency = cc2->m_higherFrequency;
+
+      cc2->AddBwp (std::move(bwp2));
   }
-  else  //FDD case  (CC1  - BWP1 / CC2 - BWPdl & BWPul)
+  else  //FDD case  (CC2 - BWPdl & BWPul)
   {
-      numCcBand38 = 3;
-
-      band38.m_centralFrequency  = centralFrequencyBand38;
-      band38.m_channelBandwidth = bandwidthBand38;
-      band38.m_lowerFrequency = band38.m_centralFrequency - band38.m_channelBandwidth / 2;
-      band38.m_higherFrequency = band38.m_centralFrequency + band38.m_channelBandwidth / 2;
-
-      // Component Carrier 1
-      cc1->m_ccId = 1;
-      cc1->m_centralFrequency = band38.m_lowerFrequency + bandwidthFDD;
-      cc1->m_channelBandwidth = bandwidthFDD;
-      cc1->m_lowerFrequency = cc1->m_centralFrequency - cc1->m_channelBandwidth / 2;
-      cc1->m_higherFrequency = cc1->m_centralFrequency + cc1->m_channelBandwidth / 2;
-
-      // BWP 1
-      bwp1->m_bwpId = 1;
-      bwp1->m_centralFrequency = cc1->m_centralFrequency;
-      bwp1->m_channelBandwidth = cc1->m_channelBandwidth;
-      bwp1->m_lowerFrequency = cc1->m_lowerFrequency;
-      bwp1->m_higherFrequency = cc1->m_higherFrequency;
-
-      cc1->AddBwp (std::move(bwp1));
-
-      // Component Carrier 2
-      cc2->m_ccId = 2;
-      cc2->m_centralFrequency = band38.m_higherFrequency - bandwidthFDD;
-      cc2->m_channelBandwidth = bandwidthFDD;
-      cc2->m_lowerFrequency = cc2->m_centralFrequency - cc2->m_channelBandwidth / 2;
-      cc2->m_higherFrequency = cc2->m_centralFrequency + cc2->m_channelBandwidth / 2;
-
       // BWP DL
       bwpdl->m_bwpId = 2;
       bwpdl->m_channelBandwidth = cc2->m_channelBandwidth / 2;
@@ -410,9 +457,12 @@ main (int argc, char *argv[])
 
       cc2->AddBwp (std::move(bwpul));
 
-      band38.AddCc (std::move(cc1));
-      band38.AddCc (std::move(cc2));
+      //enable 4th flow
+      enableGaming = true;
   }
+
+  band38.AddCc (std::move(cc1));
+  band38.AddCc (std::move(cc2));
 
   mmWaveHelper->InitializeOperationBand (&band40);
   mmWaveHelper->InitializeOperationBand (&band38);
@@ -420,14 +470,15 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band38, band40});
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
   mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
 
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForVoice = 1;
@@ -452,8 +503,7 @@ main (int argc, char *argv[])
 
   // Share the total transmission power among CCs proportionally with the BW
   double x = pow(10, totalTxPower/10);
-  double totalBandwidth = bandwidthBand40 + bandwidthBand38;;
-
+  double totalBandwidth = numCcs * bandwidth;
 
   // Band40: CC0 - BWP0 & Band38: CC1 - BWP1
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp0));
@@ -493,6 +543,9 @@ main (int argc, char *argv[])
         {
           mmWaveHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (2, 3);
         }
+
+      //enable 4rth flow
+      enableGaming = true;
     }
 
 
@@ -532,8 +585,6 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
-  Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
-
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
     {
@@ -544,101 +595,147 @@ main (int argc, char *argv[])
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
+
   // install UDP applications
-  uint16_t dlPort = 1234;
-  uint16_t ulPort = dlPort + gNbNum * ueNumPergNb * numFlowsUe + 1;
-  ApplicationContainer clientApps, serverApps;
+  uint16_t dlPortLowLat = 1234;
+  uint16_t dlPortVideo = 1235;
+  uint16_t ulPortVoice = 1236;
+  uint16_t ulPortGaming = 1237;
 
-  for (uint32_t u = 0; u < ueNodes.GetN(); ++u)
+  ApplicationContainer serverApps;
+
+  // The sink will always listen to the specified ports
+  UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
+  UdpServerHelper dlPacketSinkVideo (dlPortVideo);
+  UdpServerHelper ulPacketSinkVoice (ulPortVoice);
+  UdpServerHelper ulPacketSinkGaming (ulPortGaming);
+
+  // The server, that is the application which is listening, is installed in the UE
+  // for the DL traffic, and in the remote host for the UL traffic
+  serverApps.Add (dlPacketSinkLowLat.Install (ueNodes));
+  serverApps.Add (dlPacketSinkVideo.Install (ueNodes));
+  serverApps.Add (ulPacketSinkVoice.Install (remoteHost));
+  serverApps.Add (ulPacketSinkGaming.Install (remoteHost));
+
+  /*
+   * Configure attributes for the different generators, using user-provided
+   * parameters for generating a CBR traffic
+   *
+   * Low-Latency configuration and object creation:
+   */
+  UdpClientHelper dlClientLowLat;
+  dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
+  dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaBe)));
+
+  // The bearer that will carry low latency traffic
+  EpsBearer lowLatBearer (EpsBearer::NGBR_LOW_LAT_EMBB);
+
+  // The filter for the low-latency traffic
+  Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfLowLat;
+  dlpfLowLat.localPortStart = dlPortLowLat;
+  dlpfLowLat.localPortEnd = dlPortLowLat;
+  lowLatTft->Add (dlpfLowLat);
+
+  //Video configuration and object creation:
+  UdpClientHelper dlClientVideo;
+  dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
+  dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
+  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaUll)));
+
+  // The bearer that will carry video traffic
+  EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
+
+  // The filter for the video traffic
+  Ptr<EpcTft> videoTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVideo;
+  dlpfVideo.localPortStart = dlPortVideo;
+  dlpfVideo.localPortEnd = dlPortVideo;
+  videoTft->Add (dlpfVideo);
+
+  // Voice configuration and object creation:
+  UdpClientHelper ulClientVoice;
+  ulClientVoice.SetAttribute ("RemotePort", UintegerValue (ulPortVoice));
+  ulClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  ulClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
+  ulClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+
+  // The bearer that will carry voice traffic
+  EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
+
+  // The filter for the voice traffic
+  Ptr<EpcTft> voiceTft = Create<EpcTft> ();
+  EpcTft::PacketFilter ulpfVoice;
+  ulpfVoice.localPortStart = ulPortVoice;
+  ulpfVoice.localPortEnd = ulPortVoice;
+  ulpfVoice.direction = EpcTft::UPLINK;
+  voiceTft->Add (ulpfVoice);
+
+  // Gaming configuration and object creation:
+  UdpClientHelper ulClientGaming;
+  ulClientGaming.SetAttribute ("RemotePort", UintegerValue (ulPortGaming));
+  ulClientGaming.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  ulClientGaming.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
+  ulClientGaming.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaUll)));
+
+  // The bearer that will carry gaming traffic
+  EpsBearer gamingBearer (EpsBearer::NGBR_VOICE_VIDEO_GAMING);
+
+  // The filter for the gaming traffic
+  Ptr<EpcTft> gamingTft = Create<EpcTft> ();
+  EpcTft::PacketFilter ulpfGaming;
+  ulpfGaming.remotePortStart = ulPortGaming;
+  ulpfGaming.remotePortEnd = ulPortGaming;
+  ulpfGaming.direction = EpcTft::UPLINK;
+  gamingTft->Add (ulpfGaming);
+
+
+  //  Install the applications
+  ApplicationContainer clientApps;
+
+  for (uint32_t i = 0; i < ueNodes.GetN (); ++i)
     {
-      for (uint16_t flow = 0; flow < numFlowsUe; ++flow)
+      Ptr<Node> ue = ueNodes.Get (i);
+      Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
+      Address ueAddress = ueIpIface.GetAddress (i);
+
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      if (enableLowLat)
         {
-          if (enableDl)
-            {
-              PacketSinkHelper dlPacketSinkHelper ("ns3::UdpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dlPort));
-              serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get (u)));
+          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientLowLat.Install (remoteHost));
 
-              UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-              dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
-              dlClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
-              dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-              clientApps.Add (dlClient.Install (remoteHost));
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+        }
+      if (enableVideo)
+        {
+          dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+          clientApps.Add (dlClientVideo.Install (remoteHost));
 
-              Ptr<EpcTft> tft = Create<EpcTft> ();
-              EpcTft::PacketFilter dlpf;
-              dlpf.localPortStart = dlPort;
-              dlpf.localPortEnd = dlPort;
-              ++dlPort;
-              tft->Add (dlpf);
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+        }
 
-              enum EpsBearer::Qci q;
-              if (flow == 0)
-                {
-                  q = EpsBearer::NGBR_LOW_LAT_EMBB;
-                }
-              else if (flow == 1)
-                {
-                  q = EpsBearer::GBR_CONV_VOICE;
-                }
-              else if (flow == 2)
-                {
-                  q = EpsBearer::NGBR_VIDEO_TCP_PREMIUM;
-                }
-              else if (flow == 3)
-                {
-                  q = EpsBearer::NGBR_VOICE_VIDEO_GAMING;
-                }
-              else
-                {
-                  q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
-                }
-              EpsBearer bearer (q);
-              mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
-            }
+      // For the uplink, the installation happens in the UE, and the remote address
+      // is the one of the remote host
 
-          if (enableUl)
-            {
-              PacketSinkHelper ulPacketSinkHelper ("ns3::UdpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), ulPort));
-              serverApps.Add (ulPacketSinkHelper.Install (remoteHost));
+      if (enableVoice)
+        {
+          ulClientVoice.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
+          clientApps.Add (ulClientVoice.Install (ue));
 
-              UdpClientHelper ulClient (remoteHostAddr, ulPort);
-              ulClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
-              ulClient.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaUll)));
-              ulClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-              clientApps.Add (ulClient.Install (ueNodes.Get(u)));
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+        }
 
-              Ptr<EpcTft> tft = Create<EpcTft> ();
-              EpcTft::PacketFilter ulpf;
-              ulpf.remotePortStart = ulPort;
-              ulpf.remotePortEnd = ulPort;
-              ++ulPort;
-              tft->Add (ulpf);
+      if (enableGaming)
+        {
+          ulClientGaming.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
+          clientApps.Add (ulClientGaming.Install (ue));
 
-              enum EpsBearer::Qci q;
-              if (flow == 0)
-                {
-                  q = EpsBearer::NGBR_LOW_LAT_EMBB;
-                }
-              else if (flow == 1)
-                {
-                  q = EpsBearer::GBR_CONV_VOICE;
-                }
-              else if (flow == 2)
-                {
-                  q = EpsBearer::NGBR_VIDEO_TCP_PREMIUM;
-                }
-              else if (flow == 3)
-                {
-                  q = EpsBearer::NGBR_VOICE_VIDEO_GAMING;
-                }
-              else
-                {
-                  q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
-                }
-              EpsBearer bearer (q);
-              mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
-            }
-
+          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
         }
     }
 
