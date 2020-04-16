@@ -42,7 +42,7 @@ class ThreeGppAntennaArrayModel;
  * From this class descends MmWaveEnbPhy and MmWaveUePhy, the physical layer
  * classes for the gNb and the UE. This class has four main duties:
  *
- * <b>Management of the control message list</b>
+ * \section phy_management_ctrl Management of the control message list
  *
  * The control message list is maintained as a list that has, always, a number
  * of element equals to the latency between PHY and MAC, plus one. The list
@@ -55,26 +55,26 @@ class ThreeGppAntennaArrayModel;
  * slot, use IsCtrlMsgListEmpty(). The list is stored in the variable
  * m_controlMessageQueue.
  *
- * <b>Management of the slot allocation list</b>
+ * \section phy_slot Management of the slot allocation list
  *
  * At the gNb, After the MAC does the slot allocation, it is saved in the PHY with the method
  * PushBackSlotAllocInfo(), and if an allocation for the same slot is already
  * present, the two will be merged together. The slot allocation is stored
  * inside the variable m_slotAllocInfo.
  *
- * <b>Management of the MAC PDU that waits to be transmitted</b>
+ * \section phy_mac_pdu Management of the MAC PDU that waits to be transmitted
  *
  * With each allocation, will come also one (or more) MAC PDU, that are stored
  * within the method SetMacPdu(). The storage is based on the SfnSf inside the
  * variable m_packetBurstMap.
  *
- * <b>Configuration of the numerology and the related settings</b>
+ * \section phy_numerology Configuration of the numerology and the related settings
  *
  * When the numerology is configured, quite a lot of parameters change as well.
  * The entire process of updating the relative parameters is done inside the
  * function SetNumerology().
  *
- * <b>Antenna and BeamManager object installation</b>
+ * \section phy_antenna Antenna and BeamManager object installation
  *
  * Through the method InstallAntenna() is possible to install the antenna model
  * for the PHY. At each invokation, a BeamManager object is also constructed.

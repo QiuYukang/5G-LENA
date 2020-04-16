@@ -60,10 +60,6 @@ NS_LOG_COMPONENT_DEFINE ("MmWaveHelper");
 NS_OBJECT_ENSURE_REGISTERED (MmWaveHelper);
 
 MmWaveHelper::MmWaveHelper (void)
-  : m_imsiCounter (0),
-  m_cellIdCounter {1},
-  m_harqEnabled (false),
-  m_snrTest (false)
 {
   NS_LOG_FUNCTION (this);
   m_channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());

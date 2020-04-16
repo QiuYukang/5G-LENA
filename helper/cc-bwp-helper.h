@@ -21,14 +21,9 @@
 #ifndef CC_BWP_HELPER_H
 #define CC_BWP_HELPER_H
 
-
-#include <ns3/mmwave-phy-mac-common.h>
-#include <ns3/mmwave-control-messages.h>
-#include <ns3/propagation-loss-model.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/three-gpp-propagation-loss-model.h>
-#include <ns3/spectrum-channel.h>
 #include <memory>
+#include <vector>
+#include <ns3/ptr.h>
 
 namespace ns3 {
 
@@ -37,9 +32,12 @@ namespace ns3 {
  * Aggregation (CA). In NR, this number depends on the CC contiguousness.
  * Eventually, the number of CCs may also depend on the operation frequency
  */
-static const uint8_t MAX_CC_INTRA_BAND = 8;  //!< In NR Rel. 16, up to 8 CCs can be aggregated in the same operation band
-static const uint8_t MAX_CC_INTER_BAND = 16; //!< The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
+static const uint8_t MAX_CC_INTRA_BAND = 8;  //!< \ingroup utils In NR Rel. 16, up to 8 CCs can be aggregated in the same operation band
+static const uint8_t MAX_CC_INTER_BAND = 16; //!< \ingroup utils The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
 
+class ThreeGppSpectrumPropagationLossModel;
+class ThreeGppPropagationLossModel;
+class SpectrumChannel;
 
 /**
  * \brief Bandwidth part configuration information

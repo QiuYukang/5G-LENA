@@ -50,7 +50,7 @@ namespace ns3 {
  * SetAttribute call. The list of attributes can be seen in the class
  * PointToPointEpcHelper in the ns-3 code base.
  *
- * <b> Obtaining the PGW node </b>
+ * \section p2p_epc_pgw Obtaining the PGW node
  *
  * You can obtain the pointer to the PGW node by doing:
 \verbatim
@@ -88,7 +88,7 @@ namespace ns3 {
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
 \endverbatim
  *
- * <b> Assigning IPV4 addresses </b>
+ * \section p2p_epc_ipv4 Assigning IPV4 addresses
  *
  * Another important thing that this helper can do is assigning automatically
  * the IPv4 addresses to the UE:

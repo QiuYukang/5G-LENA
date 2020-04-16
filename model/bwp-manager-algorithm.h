@@ -28,7 +28,23 @@ namespace ns3 {
  * \ingroup bwp
  * \brief Interface for a Bwp selection algorithm based on the bearer
  *
+ *
+ * At the moment, we provide only a static algorithm that has to be configured
+ * before the simulation starts (BwpManagerAlgorithmStatic).
+ *
+ *
+ * \section bwp_manager_conf Configuration
+ *
+ * The algorithm can be set, before the scenario creation, through the
+ * helper method MmWaveHelper::SetGnbBwpManagerAlgorithmTypeId(). It is
+ * also possible to set attributes, through MmWaveHelper::SetGnbBwpManagerAlgorithmAttribute().
+ *
+ * For the UE, the methods to use are, respectively, MmWaveHelper::SetUeBwpManagerAlgorithmTypeId()
+ * and MmWaveHelper::SetUeBwpManagerAlgorithmAttribute().
+ *
+ *
  * \see GetBwpForEpsBearer
+ * \see BwpManagerAlgorithmStatic
  */
 class BwpManagerAlgorithm : public Object
 {

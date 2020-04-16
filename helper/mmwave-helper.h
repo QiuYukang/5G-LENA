@@ -63,7 +63,7 @@ class BwpManagerUe;
  * this class, so make sure everthing that is written in the following is
  * clear enough to start creating your own scenario.
  *
- * <b> Pre-requisite: Node creation and placement </b>
+ * \section helper_pre Pre-requisite: Node creation and placement
  *
  * We assume that you read the ns-3 tutorials, and you're able to create
  * your own node placement, as well as the mobility model that you prefer
@@ -71,7 +71,7 @@ class BwpManagerUe;
  * in setting up a grid-like scenario. Please take a look at the
  * GridScenarioHelper documentation in that case.
  *
- * <b> Creating the helper </b>
+ * \section helper_creating Creating the helper
  *
  * Usually, the helper is created on the heap, and have to live till the end
  * of the simulation program:
@@ -89,7 +89,7 @@ class BwpManagerUe;
  * the IdealBeamformingHelper and the NrPointToPointEpcHelper. Please refer to
  * the documentation of such classes if you need more information about them.
  *
- * <b> Dividing the spectrum and creating the channels </b>
+ * \section helper_dividing Dividing the spectrum and creating the channels
  *
  * The spectrum management is delegated to the class CcBwpHelper. Please
  * refer to its documentation to have more information. After having divided
@@ -97,7 +97,7 @@ class BwpManagerUe;
  * InitializeOperationBand() to create the channels and other things that will
  * be used by the channel modeling part.
  *
- * <b> Configuring the cells </b>
+ * \section helper_configuring Configuring the cells
  *
  * After the spectrum part is ready, it is time to check how to configure the
  * cells. The configuration is done in the most typical ns-3 way, through the
@@ -163,13 +163,13 @@ class BwpManagerUe;
  * on it. The list of attributes is present in the class description, as well
  * as some reminder on how configure it through the helper.
  *
- * <b> Installing UEs and GNBs </b>
+ * \section helper_installing Installing UEs and GNBs
  *
  * The installation part is done through two methods: InstallGnbDevice()
  * and InstallUeDevice(). Pass to these methods the container of the nodes,
  * plus the spectrum configuration that comes from CcBwpHelper.
  *
- * <b> Finishing the configuration </b>
+ * \section helper_finishing Finishing the configuration
  *
  * After you finish the configuration, please remember to call UpdateConfig()
  * on all the NetDevices:
@@ -189,19 +189,19 @@ class BwpManagerUe;
  * The call to UpdateConfig() will finish the configuration, and update the
  * RRC layer.
  *
- * <b> Dedicated bearers </b>
+ * \section helper_bearers Dedicated bearers
  *
  * We have methods to open dedicated UE bearers: ActivateDedicatedEpsBearer()
  * and DeActivateDedicatedEpsBearer(). Please take a look at their documentation
  * for more information.
  *
- * <b> Attachment of UEs to GNBs </b>
+ * \section helper_attachment Attachment of UEs to GNBs
  *
  * We provide two methods to attach a set of UE to a GNB: AttachToClosestEnb()
  * and AttachToEnb(). Through these function, you will manually attach one or
  * more UEs to a specified GNB.
  *
- * <b> Traces </b>
+ * \section helper_Traces Traces
  *
  * Kat to fill :-)
  *
@@ -509,23 +509,43 @@ public:
   void SetGnbPhyAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the UE antenna, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see ThreeGppAntennaArrayModel (in ns-3 documentation)
    */
   void SetUeAntennaAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB antenna, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see ThreeGppAntennaArrayModel (in ns-3 documentation)
    */
   void SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * \brief Set the TypeId of the UE Channel Access Manager. Works only before it is created.
+   *
+   * \param typeId the type of the object
+   *
+   * \see NrChAccessManager
+   * \see NrAlwaysOnAccessManager
+   */
   void SetUeChannelAccessManagerTypeId (const TypeId &typeId);
 
+  /**
+   * \brief Set the TypeId of the GNB Channel Access Manager. Works only before it is created.
+   *
+   * \param typeId the type of the object
+   *
+   * \see NrChAccessManager
+   * \see NrAlwaysOnAccessManager
+   */
   void SetGnbChannelAccessManagerTypeId (const TypeId &typeId);
 
   /**
@@ -541,20 +561,32 @@ public:
    */
   void SetSchedulerTypeId (const TypeId &typeId);
 
+  /**
+   * \brief Set the TypeId of the GNB BWP Manager. Works only before it is created.
+   * \param typeId Type of the object
+   *
+   * \see BwpManagerAlgorithm
+   */
   void SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB BWP Manager, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
    */
   void SetGnbBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * \brief Set the TypeId of the UE BWP Manager. Works only before it is created.
+   * \param typeId Type of the object
+   *
+   * \see BwpManagerAlgorithm
+   */
   void SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId);
 
   /**
-   * Set an attribute for the <> to be created.
+   * \brief Set an attribute for the GNB BWP Manager, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
@@ -562,7 +594,7 @@ public:
   void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * Set an attribute for the Channel Condition model, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
@@ -570,7 +602,7 @@ public:
   void SetChannelConditionModelAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * Set an attribute for the pathloss model, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
@@ -578,18 +610,22 @@ public:
   void SetPathlossAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * Set an attribute for the GNB DL AMC, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see NrAmc
    */
   void SetGnbDlAmcAttribute (const std::string &n, const AttributeValue &v);
 
   /**
-   * Set an attribute for the <> to be created.
+   * Set an attribute for the GNB UL AMC, before it is created.
    *
    * \param n the name of the attribute
    * \param v the value of the attribute
+   *
+   * \see NrAmc
    */
   void SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v);
 
@@ -600,7 +636,14 @@ public:
    * Equivalent to the calls to
    *
    * * SetGnbUlAmcAttribute ("ErrorModelType", ....
-   * * SetUeSpectrumAttribute ("ErrorModelType", ...
+   * * SetGnbSpectrumAttribute ("ErrorModelType", ...
+   *
+   * \see NrErrorModel
+   * \see NrEesmIrT2
+   * \see NrEesmIrT1
+   * \see NrEesmCcT1
+   * \see NrEesmCcT2
+   * \see NrLteMiErrorModel
    *
    */
   void SetUlErrorModel (const std::string & errorModelTypeId);
@@ -612,8 +655,14 @@ public:
    * Equivalent to the calls to
    *
    * * SetGnbDlAmcAttribute ("ErrorModelType", ....
-   * * SetGnbSpectrumAttribute ("ErrorModelType", ...
+   * * SetUeSpectrumAttribute ("ErrorModelType", ...
    *
+   * \see NrErrorModel
+   * \see NrEesmIrT2
+   * \see NrEesmIrT1
+   * \see NrEesmCcT1
+   * \see NrEesmCcT2
+   * \see NrLteMiErrorModel
    */
   void SetDlErrorModel (const std::string & errorModelTypeId);
 
@@ -688,26 +737,22 @@ private:
   ObjectFactory m_gnbUlAmcFactory;       //!< UL AMC factory
 
 
-  uint64_t m_imsiCounter;
-  uint16_t m_cellIdCounter;
+  uint64_t m_imsiCounter {0};    //!< Imsi counter
+  uint16_t m_cellIdCounter {1};  //!< CellId Counter
 
-  Ptr<MmWavePhyRxTrace> m_phyStats;
-  Ptr<MmwaveMacRxTrace> m_macStats;
+  Ptr<MmWavePhyRxTrace> m_phyStats; //!< Pointer to the PhyRx stats
+  Ptr<MmwaveMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
 
-  Ptr<EpcHelper> m_epcHelper;
-  Ptr<IdealBeamformingHelper> m_idealBeamformingHelper {nullptr};
+  Ptr<EpcHelper> m_epcHelper {nullptr};                           //!< Ptr to the EPC helper (optional)
+  Ptr<IdealBeamformingHelper> m_idealBeamformingHelper {nullptr}; //!< Ptr to the beamforming helper (optional)
 
-  bool m_harqEnabled;
-  bool m_snrTest;
+  bool m_harqEnabled {false};
+  bool m_snrTest {false};
 
-  Ptr<MmWaveBearerStatsCalculator> m_rlcStats;
-  Ptr<MmWaveBearerStatsCalculator> m_pdcpStats;
-  MmWaveBearerStatsConnector m_radioBearerStatsConnector;
-
-  /**
-   * This contains all the information about each component carrier
-   */
-  std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams;
+  Ptr<MmWaveBearerStatsCalculator> m_rlcStats;  //!< ?
+  Ptr<MmWaveBearerStatsCalculator> m_pdcpStats; //!< ?
+  MmWaveBearerStatsConnector m_radioBearerStatsConnector; //!< ?
+  std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
 };
 
 }

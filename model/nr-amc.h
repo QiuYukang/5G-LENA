@@ -35,6 +35,16 @@ namespace ns3 {
  * Please note that it is necessary, even when using the ShannonModel, to correctly
  * configure the ErrorModel type, which must be the same as the one set in the
  * MmWaveSpectrumPhy class.
+ *
+ * \section nr_amc_conf Configuration
+ *
+ * The attributes of this class can be configured through the helper methods
+ * MmWaveHelper::SetGnbDlAmcAttribute() and MmWaveHelper::SetGnbUlAmcAttribute()
+ * for what regards the GNB side (DL or UL). It is important to note that the
+ * UE gets a pointer to the GNB AMC to which is connected to.
+ *
+ * \todo Pass NrAmc parameters through RRC, and don't pass pointers to AMC
+ * between GNB and UE
  */
 class NrAmc : public Object
 {
@@ -69,7 +79,7 @@ public:
   enum AmcModel
   {
     ShannonModel, //!< Shannon based model (very conservative)
-    ErrorModel  //!< Error Model version (can use different error models, see NrErrorModel)
+    ErrorModel    //!< Error Model version (can use different error models, see NrErrorModel)
   };
 
   /**
