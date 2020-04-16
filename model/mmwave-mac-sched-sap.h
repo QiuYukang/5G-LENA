@@ -169,6 +169,18 @@ public:
    */
   virtual void SchedDlRachInfoReq (const SchedDlRachInfoReqParameters& params) = 0;
 
+  /**
+   * \brief Retrieve the number of DL ctrl symbols configured in the scheduler
+   * \return the number of DL ctrl symbols
+   */
+  virtual uint8_t GetDlCtrlSyms () const = 0;
+
+  /**
+   * \brief Retrieve the number of UL ctrl symbols configured in the scheduler
+   * \return the number of UL ctrl symbols
+   */
+  virtual uint8_t GetUlCtrlSyms () const = 0;
+
 private:
 };
 

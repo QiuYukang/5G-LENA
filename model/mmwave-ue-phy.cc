@@ -201,7 +201,8 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 }
 
 void
-MmWaveUePhy::RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc)
+MmWaveUePhy::RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc,
+                            uint8_t dlCtrlSyms, uint8_t ulCtrlSyms)
 {
   NS_LOG_FUNCTION (this);
 
@@ -211,6 +212,9 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc)
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
 
   m_amc = amc;
+  m_dlCtrlSyms = dlCtrlSyms;
+  m_ulCtrlSyms = ulCtrlSyms;
+
   DoSetCellId (bwpId);
 }
 
@@ -514,7 +518,9 @@ MmWaveUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
   if (m_tddPattern.size () == 0)
     {
       NS_LOG_INFO ("TDD Pattern unknown, insert DL CTRL at the beginning of the slot");
-      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, m_dlCtrlSyms,
+                                                                        DciInfoElementTdma::DL,
+                                                                        DciInfoElementTdma::CTRL, rbgBitmask));
       m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
       return;
     }
@@ -526,7 +532,9 @@ MmWaveUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
       NS_LOG_INFO ("The current TDD pattern indicates that we are in a " <<
                    m_tddPattern[currentSlotN] <<
                    " slot, so insert DL CTRL at the beginning of the slot");
-      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask));
+      VarTtiAllocInfo dlCtrlSlot (std::make_shared<DciInfoElementTdma> (0, m_dlCtrlSyms,
+                                                                        DciInfoElementTdma::DL,
+                                                                        DciInfoElementTdma::CTRL, rbgBitmask));
       m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
     }
   if (m_tddPattern[currentSlotN] > LteNrTddSlotType::DL)
@@ -534,7 +542,10 @@ MmWaveUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
       NS_LOG_INFO ("The current TDD pattern indicates that we are in a " <<
                    m_tddPattern[currentSlotN] <<
                    " slot, so insert UL CTRL at the end of the slot");
-      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (GetSymbolsPerSlot () - 1, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask));
+      VarTtiAllocInfo ulCtrlSlot (std::make_shared<DciInfoElementTdma> (GetSymbolsPerSlot () - m_ulCtrlSyms,
+                                                                        m_ulCtrlSyms,
+                                                                        DciInfoElementTdma::UL,
+                                                                        DciInfoElementTdma::CTRL, rbgBitmask));
       m_currSlotAllocInfo.m_varTtiAllocInfo.push_back (ulCtrlSlot);
     }
 }

@@ -129,8 +129,11 @@ public:
    * \param bwpId the bwp id to which this PHY is attaching to
    * \param amc The DL AMC of the GNB. This will be used to create the DL CQI
    * that will be sent to the GNB.
+   * \param dlCtrlSyms
+   * \param ulCtrlSyms
    */
-  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc);
+  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc, uint8_t dlCtrlSyms,
+                      uint8_t ulCtrlSyms);
 
   /**
    * \brief Function that sets the number of RBs per RBG.
@@ -535,6 +538,8 @@ private:
   bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
   EventId m_lbtEvent;
   uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
+  uint8_t m_dlCtrlSyms {1}; //!< Number of CTRL symbols in DL
+  uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS

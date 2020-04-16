@@ -338,6 +338,8 @@ public:
   DoSchedSetMcs (uint32_t mcs) override;
   virtual void
   DoSchedDlRachInfoReq (const MmWaveMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
+  uint8_t GetDlCtrlSyms () const override;
+  uint8_t GetUlCtrlSyms () const override;
 
   // to save some typing
   using HarqVectorIterator = MmWaveMacHarqVector::iterator;
@@ -417,13 +419,17 @@ public:
    */
   uint8_t GetStartMcsUl () const;
 
-  void SetDlCtrlSymbols (uint8_t v);
+  /**
+   * \brief Set the number of DL ctrl symbols
+   * \param v number of DL ctrl symbols
+   */
+  void SetDlCtrlSyms (uint8_t v);
 
-  uint8_t GetDlCtrlSymbols () const;
-
-  void SetUlCtrlSymbols (uint8_t v);
-
-  uint8_t GetUlCtrlSymbols () const;
+  /**
+   * \brief Set the number of UL ctrl symbols
+   * \param v number of UL ctrl symbols
+   */
+  void SetUlCtrlSyms (uint8_t v);
 
 protected:
   /**

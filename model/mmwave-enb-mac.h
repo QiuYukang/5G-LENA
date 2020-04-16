@@ -105,6 +105,18 @@ public:
   uint8_t GetNumHarqProcess () const;
 
   /**
+   * \brief Retrieve the number of DL ctrl symbols configured in the scheduler
+   * \return the number of DL ctrl symbols
+   */
+  virtual uint8_t GetDlCtrlSyms () const;
+
+  /**
+   * \brief Retrieve the number of UL ctrl symbols configured in the scheduler
+   * \return the number of UL ctrl symbols
+   */
+  virtual uint8_t GetUlCtrlSyms () const;
+
+  /**
    * \brief Perform DL scheduling decision for the indicated slot
    * \param sfnSf the slot to fill with scheduling decisions
    * \param type TDD slot type
