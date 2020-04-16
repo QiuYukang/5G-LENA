@@ -364,7 +364,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           NS_ABORT_MSG ("The selected error model is not recommended for LTE");
         }
-      numScPerRb = 2;
+      numScPerRb = 1;
     }
   else if (radioNetwork == "NR")
     {
@@ -543,12 +543,23 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    *  Case (i): Attributes valid for all the nodes
    */
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-  //  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+  if (radioNetwork == "LTE")
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+    }
+  else
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    }
+
+  //
 
   // Scheduler type
-  //  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaRR"));
-
+  if (radioNetwork == "LTE")
+    {
+      mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
+//      mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaRR"));
+    }
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
