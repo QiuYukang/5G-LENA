@@ -214,7 +214,11 @@ MmWavePhy::DoDispose ()
   m_tddPattern.clear ();
   m_netDevice = nullptr;
   m_beamManager = nullptr;
-  m_spectrumPhy->Dispose ();
+  if (m_spectrumPhy)
+    {
+      m_spectrumPhy->Dispose ();
+    }
+  m_spectrumPhy = nullptr;
   delete m_phySapProvider;
 }
 

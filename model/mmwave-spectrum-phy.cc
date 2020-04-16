@@ -80,9 +80,18 @@ void
 MmWaveSpectrumPhy::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
-  m_channel->Dispose ();
+  if (m_channel)
+    {
+      m_channel->Dispose ();
+    }
+
   m_channel = nullptr;
-  m_interferenceData->Dispose ();
+
+  if (m_interferenceData)
+    {
+      m_interferenceData->Dispose ();
+    }
+
   m_interferenceData = nullptr;
   m_mobility = nullptr;
   m_phy = nullptr;
