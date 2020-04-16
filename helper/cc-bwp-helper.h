@@ -40,11 +40,25 @@ class ThreeGppPropagationLossModel;
 class SpectrumChannel;
 
 /**
- * \brief Bandwidth part configuration information
+ * \ingroup helper
+ * \brief Spectrum part
+ *
+ * This is the minimum unit of usable spectrum by a PHY class. For creating
+ * any GNB or UE, you will be asked to provide a list of BandwidthPartInfo
+ * to the methods MmWaveHelper::InstallGnbDevice() and MmWaveHelper::InstallUeDevice().
+ * The reason is that the helper will, for every GNB and UE in the scenario,
+ * create a PHY class that will be attached to the channels included in this struct.
+ *
+ * For every bandwidth part (in this context, referred to a spectrum part) you
+ * have to indicate the central frequency and the higher/lower frequency, as
+ * well as the entire bandwidth plus the modeling.
+ *
+ * The pointers to the channels, if left empty, will be initializated by
+ * MmWaveHelper::InitializeOperationBand().
  */
 struct BandwidthPartInfo
 {
-  uint8_t m_bwpId {0};             //!< BWP id
+  uint8_t m_bwpId {0};               //!< BWP id
   double m_centralFrequency {0.0};   //!< BWP central frequency
   double m_lowerFrequency {0.0};     //!< BWP lower frequency
   double m_higherFrequency {0.0};    //!< BWP higher frequency
@@ -55,17 +69,17 @@ struct BandwidthPartInfo
    */
   enum Scenario
   {
-    RMa,
-    RMa_LoS,
-    RMa_nLoS,
-    UMa_LoS,
-    UMa_nLoS,
-    UMa,
-    UMi_StreetCanyon,
-    UMi_StreetCanyon_LoS,
-    UMi_StreetCanyon_nLoS,
-    InH_OfficeOpen,
-    InH_OfficeMixed
+    RMa,         //!< RMa
+    RMa_LoS,     //!< RMa where all the nodes will be in Line-of-Sight
+    RMa_nLoS,    //!< RMA where all the nodes will not be in Line-of-Sigth
+    UMa_LoS,     //!< UMa where all the nodes will be in Line-of-Sigth
+    UMa_nLoS,    //!< UMa where all the nodes will not be in Line-of-Sigth
+    UMa,         //!< UMa
+    UMi_StreetCanyon,      //!< UMi_StreetCanyon
+    UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sigth
+    UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in Line-of-Sigth
+    InH_OfficeOpen,  //!< InH_OfficeOpen
+    InH_OfficeMixed  //!< InH_OfficeMixed
   } m_scenario {RMa};
 
   /**
@@ -79,13 +93,26 @@ struct BandwidthPartInfo
   Ptr<ThreeGppSpectrumPropagationLossModel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
 };
 
+/**
+ * \ingroup utils
+ * \brief unique_ptr of BandwidthPartInfo
+ */
 typedef std::unique_ptr<BandwidthPartInfo> BandwidthPartInfoPtr;
+/**
+ * \ingroup utils
+ * \brief unique_ptr of a const BandwidthPartInfo
+ */
 typedef std::unique_ptr<const BandwidthPartInfo> BandwidthPartInfoConstPtr;
+/**
+ * \ingroup utils
+ * \brief vector of unique_ptr of BandwidthPartInfo
+ */
 typedef std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> BandwidthPartInfoPtrVector;
 
 std::ostream & operator<< (std::ostream & os, BandwidthPartInfo const & item);
 
 /**
+ * \ingroup helper
  * \brief Component carrier configuration element
  */
 struct ComponentCarrierInfo
@@ -106,12 +133,17 @@ struct ComponentCarrierInfo
   bool AddBwp (BandwidthPartInfoPtr &&bwp);
 };
 
+/**
+ * \ingroup utils
+ * \brief unique_ptr of ComponentCarrierInfo
+ */
 typedef std::unique_ptr<ComponentCarrierInfo> ComponentCarrierInfoPtr;
 
 std::ostream & operator<< (std::ostream & os, ComponentCarrierInfo const & item);
 
 
 /**
+ * \ingroup utils
  * \brief Operation band information structure
  *
  * Defines the range of frequencies of an operation band and includes a list of
@@ -137,20 +169,27 @@ struct OperationBandInfo
   bool AddCc (ComponentCarrierInfoPtr &&cc);
 
   /**
-   * @brief GetBwpAt
-   * @param ccId
-   * @param bwpId
-   * @return
+   * \brief Get the BWP at the cc/bwp specified
+   * \param ccId Component carrier Index
+   * \param bwpId Bandwidth Part index
+   * \return
    */
   BandwidthPartInfoPtr & GetBwpAt (uint32_t ccId, uint32_t bwpId) const;
 
+  /**
+   * \brief Get the list of all the BWPs to pass to MmWaveHelper
+   * \return a list of BWP to pass to MmWaveHelper::InitializeOperationBand()
+   */
   BandwidthPartInfoPtrVector GetBwps() const;
 };
 
 std::ostream & operator<< (std::ostream & os, OperationBandInfo const & item);
 
 /**
+ * \ingroup utils
  * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
+ *
+ *
  */
 class CcBwpCreator
 {
