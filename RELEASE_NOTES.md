@@ -76,6 +76,10 @@ New user-visible features (old first)
 - Separated NrEesmErrorModel in four different classes: NrEesmIrT1, NrEesmIrT2,
   NrEesmCcT1, NrEesmCcT2. These classes encapsulate the properties (harq method, table) that
   were an attribute of NrEesmErrorModel.
+- Added an attribute to the MmWaveEnbPhy and MmWaveUePhy to set the bandwidth overhead
+  to keep in consideration when calculating the number of usable RB. By default,
+  it is now set ot 0.04, while before it was set to 0.0 (0.0 means that there are
+  no guard bands, and the entire bandwidth is usable).
 
 Bugs fixed
 ----------

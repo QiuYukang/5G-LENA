@@ -282,6 +282,16 @@ MmWavePhy::SetSymbolsPerSlot (uint16_t symbolsPerSlot)
   m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
 }
 
+void MmWavePhy::SetRbOverhead (double oh)
+{
+  m_rbOh = oh;
+}
+
+double MmWavePhy::GetRbOverhead() const
+{
+  return m_rbOh;
+}
+
 uint32_t
 MmWavePhy::GetSymbolsPerSlot () const
 {
@@ -463,8 +473,10 @@ MmWavePhy::UpdateRbNum ()
 {
   NS_LOG_FUNCTION (this);
 
-  m_rbNum = static_cast<uint32_t> (GetChannelBandwidth () / (m_subcarrierSpacing * MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB ));
+  double realBw = GetChannelBandwidth () * (1 - m_rbOh);
+  uint32_t rbWidth = m_subcarrierSpacing * MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB;
 
+  m_rbNum = static_cast<uint32_t> (realBw / rbWidth);
   NS_ASSERT (m_rbNum > 0);
 
   NS_LOG_INFO ("Updated RbNum to " << m_rbNum);
