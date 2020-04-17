@@ -38,6 +38,10 @@ MmWaveMacSchedulerOfdma::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MmWaveMacSchedulerOfdma")
     .SetParent<MmWaveMacSchedulerTdma> ()
+    .AddTraceSource ("SymPerBeam",
+                     "Number of assigned symbol per beam. Gets called every time an assignment is made",
+                     MakeTraceSourceAccessor (&MmWaveMacSchedulerOfdma::m_tracedValueSymPerBeam),
+                     "ns3::TracedValueCallback::Uint32")
   ;
   return tid;
 }
@@ -116,6 +120,13 @@ MmWaveMacSchedulerOfdma::GetSymPerBeam (uint32_t symAvail,
           NS_LOG_DEBUG ("Assigned to beam " << min->first <<
                         " an additional symbol, for a total of " << min->second);
         }
+    }
+
+  // Trigger the trace source firing, using const_cast as we don't change
+  // the internal state of the class
+  for (const auto & v : ret)
+    {
+      const_cast<MmWaveMacSchedulerOfdma*> (this)->m_tracedValueSymPerBeam = v.second;
     }
 
   return ret;
