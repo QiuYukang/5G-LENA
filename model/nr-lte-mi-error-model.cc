@@ -662,9 +662,10 @@ NrLteMiErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs) const
 }
 
 uint32_t
-NrLteMiErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum) const
+NrLteMiErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, Mode mode) const
 {
   NS_LOG_FUNCTION (this);
+  NS_UNUSED (mode);
   const uint32_t rscElement = usefulSC * rbNum;
   const double Rcode = McsEcrTable[mcs];
   const uint8_t Qm = ModulationSchemeForMcs[mcs];

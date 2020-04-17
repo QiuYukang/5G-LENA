@@ -234,7 +234,7 @@ public:
    */
   virtual void UpdateDlMetric (const Ptr<const NrAmc> &amc)
   {
-    m_dlTbSize = amc->CalculateTbSize (m_dlMcs, m_dlRBG * GetNumRbPerRbg ());
+    m_dlTbSize = amc->CalculateTbSizeDl (m_dlMcs, m_dlRBG * GetNumRbPerRbg ());
   }
 
   /**
@@ -256,7 +256,7 @@ public:
    */
   virtual void UpdateUlMetric (const Ptr<const NrAmc> &amc)
   {
-    m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * GetNumRbPerRbg ());
+    m_ulTbSize = amc->CalculateTbSizeUl (m_ulMcs, m_ulRBG * GetNumRbPerRbg ());
   }
 
   /**

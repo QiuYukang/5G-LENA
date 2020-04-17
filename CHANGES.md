@@ -162,6 +162,9 @@ In particular, have a look at SetGnbDlAmcAttribute and SetGnbUlAmcAttribute.
 
 * Removed attribute "Ber" in NrAmc, which is now set based on the error model in use.
 
+* The TBS calculation in NrAmc is now divided for UL and DL. With the NR error models,
+  will lead to the same result, but with LTE error model the result can be different.
+
 ### Changed behavior:
 
 * Starting with this release the simulator is using new ns-3-dev 3ggp 

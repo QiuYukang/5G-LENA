@@ -285,8 +285,8 @@ MmWaveMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (maxSym);
-  uint32_t tbs = m_dlAmc->CalculateTbSize (ueInfo->m_dlMcs,
-                                           ueInfo->m_dlRBG * GetNumRbPerRbg ());
+  uint32_t tbs = m_dlAmc->CalculateTbSizeDl (ueInfo->m_dlMcs,
+                                             ueInfo->m_dlRBG * GetNumRbPerRbg ());
   if (tbs < 4)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
@@ -322,8 +322,8 @@ MmWaveMacSchedulerTdma::CreateUlDci (MmWaveMacSchedulerNs3::PointInFTPlane *spoi
                                      const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo) const
 {
   NS_LOG_FUNCTION (this);
-  uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
-                                           ueInfo->m_ulRBG * GetNumRbPerRbg ());
+  uint32_t tbs = m_ulAmc->CalculateTbSizeUl (ueInfo->m_ulMcs,
+                                             ueInfo->m_ulRBG * GetNumRbPerRbg ());
   if (tbs < 4)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<

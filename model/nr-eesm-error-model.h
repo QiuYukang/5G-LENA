@@ -139,7 +139,7 @@ public:
   /**
    * \brief Get the payload size in Bytes, following the MCSs in NR
    */
-  virtual uint32_t GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum) const override;
+  virtual uint32_t GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum, Mode mode) const override;
   /**
    * \brief Get the maximum code block size in Bytes, as per NR. It depends on the LDPC
    * base graph type
