@@ -920,8 +920,9 @@ MmWaveHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
   for (uint32_t i = 0; i < enbNetDev->GetCcMapSize (); ++i)
     {
       enbNetDev->GetPhy(i)->RegisterUe (ueNetDev->GetImsi (), ueNetDev);
-      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i),
-                                           DynamicCast<MmWaveMacSchedulerNs3> (enbNetDev->GetScheduler (i))->GetDlAmc ());
+      ueNetDev->GetPhy (i)->RegisterToEnb (enbNetDev->GetBwpId (i));
+      ueNetDev->GetPhy (i)->SetDlAmc (
+            DynamicCast<MmWaveMacSchedulerNs3> (enbNetDev->GetScheduler (i))->GetDlAmc ());
       ueNetDev->GetPhy (i)->SetDlCtrlSyms (enbNetDev->GetMac(i)->GetDlCtrlSyms ());
       ueNetDev->GetPhy (i)->SetUlCtrlSyms (enbNetDev->GetMac(i)->GetUlCtrlSyms ());
       ueNetDev->GetPhy (i)->SetNumRbPerRbg (enbNetDev->GetMac(i)->GetNumRbPerRbg());

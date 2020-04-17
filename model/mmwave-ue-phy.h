@@ -127,11 +127,22 @@ public:
    * Install the configuration parameters in the UE.
    *
    * \param bwpId the bwp id to which this PHY is attaching to
+   *
+   *
+   */
+  void RegisterToEnb (uint16_t bwpId);
+
+  /**
+   * \brief Set the AMC pointer from the GNB
    * \param amc The DL AMC of the GNB. This will be used to create the DL CQI
    * that will be sent to the GNB.
    *
+   * This function will be soon deprecated, hopefully with some values that
+   * comes from RRC. For the moment, it is called by the helper at the
+   * registration time.
+   *
    */
-  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc);
+  void SetDlAmc (const Ptr<const NrAmc> &amc);
 
   /**
    * \brief Set the number of UL CTRL symbols

@@ -179,6 +179,12 @@ MmWaveUePhy::GetTxPower () const
 }
 
 void
+MmWaveUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
+{
+  m_amc = amc;
+}
+
+void
 MmWaveUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
@@ -201,7 +207,7 @@ MmWaveUePhy::DoSendControlMessageNow (Ptr<MmWaveControlMessage> msg)
 }
 
 void
-MmWaveUePhy::RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc)
+MmWaveUePhy::RegisterToEnb (uint16_t bwpId)
 {
   NS_LOG_FUNCTION (this);
 
@@ -209,8 +215,6 @@ MmWaveUePhy::RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc)
 
   Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
   m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-
-  m_amc = amc;
 
   DoSetCellId (bwpId);
 }
