@@ -129,11 +129,29 @@ public:
    * \param bwpId the bwp id to which this PHY is attaching to
    * \param amc The DL AMC of the GNB. This will be used to create the DL CQI
    * that will be sent to the GNB.
-   * \param dlCtrlSyms
-   * \param ulCtrlSyms
+   *
    */
-  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc, uint8_t dlCtrlSyms,
-                      uint8_t ulCtrlSyms);
+  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc);
+
+  /**
+   * \brief Set the number of UL CTRL symbols
+   * \param ulCtrlSyms value
+   *
+   * This function will be soon deprecated, hopefully with a value that
+   * comes from RRC. For the moment, it is called by the helper at the
+   * registration time.
+   */
+  void SetUlCtrlSyms (uint8_t ulCtrlSyms);
+
+  /**
+   * \brief Set the number of DL CTRL symbols
+   * \param dlCtrlSyms value
+   *
+   * This function will be soon deprecated, hopefully with a value that
+   * comes from RRC. For the moment, it is called by the helper at the
+   * registration time.
+   */
+  void SetDlCtrlSyms (uint8_t dlCtrlSyms);
 
   /**
    * \brief Function that sets the number of RBs per RBG.
