@@ -28,7 +28,7 @@ namespace ns3{
 typedef std::vector<std::complex<double>> complexVector_t; //!< type definition for complex vectors
 
 /**
- * \ingroup beam-management
+ * \ingroup utils
  * \brief Physical representation of a beam.
  *
  * Contains the vector of the antenna weight, as well as the beam id. These
@@ -43,6 +43,7 @@ typedef std::pair<complexVector_t, BeamId>  BeamformingVector;
 
 /**
  * \brief Create a quasi omni beamforming vector
+ * \ingroup utils
  * \param antennaRows Number of rows in antenna array
  * \param antennaColumns Number of columns in the antenna array
  * \return the beamforming vector
@@ -51,6 +52,7 @@ complexVector_t CreateQuasiOmniBfv (uint32_t antennaRows, uint32_t antennaColumn
 
 /**
  * \brief Creates a beamforming vector for a given sector and elevation
+ * \ingroup utils
  * \param antenna Antenna array for which will be created the beamforming vector
  * \param sector sector to be used
  * \param elevation elevation to be used

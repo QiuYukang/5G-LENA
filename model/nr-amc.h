@@ -80,14 +80,6 @@ public:
   uint8_t GetMcsFromCqi (uint8_t cqi) const;
 
   /**
-   * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB
-   * \param mcs MCS of the transmission
-   * \param nprb Number of Physical Resource Blocks (not RBG)
-   * \return the payload size in bytes
-   */
-  uint32_t GetPayloadSize (uint8_t mcs, uint32_t nprb) const;
-
-  /**
    * \return The number of reference subcarriers per resource block
    */
   uint8_t GetNumRefScPerRb () const;
@@ -101,18 +93,6 @@ public:
    *
    */
   void SetNumRefScPerRb (uint8_t nref);
-
-  /**
-   * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned
-   *
-   * It depends on the error model. Please note that this function expects in
-   * input the RB, not the RBG of the transmission.
-   *
-   * \param mcs the MCS of the transmission
-   * \param nprb The number of physical resource blocks used in the transmission
-   * \return the TBS in bytes
-   */
-  uint32_t CalculateTbSize (uint8_t mcs, uint32_t nprb) const;
 
   /**
    * \brief Create a CQI/MCS wideband feedback from a SINR values
@@ -166,13 +146,66 @@ public:
    */
   TypeId GetErrorModelType () const;
 
-private:
-  AmcModel m_amcModel;      //!< Type of the CQI feedback model
-  Ptr<NrErrorModel> m_errorModel;         //!< Pointer to an instance of ErrorModel
-  TypeId m_errorModelType;                //!< Type of the error model
+  /**
+   * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned for an UL tx
+   *
+   * It depends on the error model. Please note that this function expects in
+   * input the RB, not the RBG of the transmission.
+   *
+   * \param mcs the MCS of the transmission
+   * \param nprb The number of physical resource blocks used in the transmission
+   * \return the TBS in bytes
+   */
+  uint32_t CalculateTbSizeUl (uint8_t mcs, uint32_t nprb) const;
 
+  /**
+   * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned for a DL tx
+   *
+   * It depends on the error model. Please note that this function expects in
+   * input the RB, not the RBG of the transmission.
+   *
+   * \param mcs the MCS of the transmission
+   * \param nprb The number of physical resource blocks used in the transmission
+   * \return the TBS in bytes
+   */
+  uint32_t CalculateTbSizeDl (uint8_t mcs, uint32_t nprb) const;
+
+private:
+  /**
+   * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned
+   *
+   * It depends on the error model. Please note that this function expects in
+   * input the RB, not the RBG of the transmission.
+   *
+   * \param mcs the MCS of the transmission
+   * \param nprb The number of physical resource blocks used in the transmission
+   * \param payloadSize the payload size
+   * \return the TBS in bytes
+   */
+  uint32_t CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const;
+
+  /**
+   * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB for an UL tx
+   * \param mcs MCS of the transmission
+   * \param nprb Number of Physical Resource Blocks (not RBG)
+   * \return the payload size in bytes
+   */
+  uint32_t GetPayloadSizeUl (uint8_t mcs, uint32_t nprb) const;
+
+  /**
+   * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB for an UL tx
+   * \param mcs MCS of the transmission
+   * \param nprb Number of Physical Resource Blocks (not RBG)
+   * \return the payload size in bytes
+   */
+  uint32_t GetPayloadSizeDl (uint8_t mcs, uint32_t nprb) const;
+
+private:
+  AmcModel m_amcModel;             //!< Type of the CQI feedback model
+  Ptr<NrErrorModel> m_errorModel;  //!< Pointer to an instance of ErrorModel
+  TypeId m_errorModelType;         //!< Type of the error model
+  uint8_t m_numRefScPerRb {1};     //!< number of reference subcarriers per RB
   static const unsigned int m_crcLen = 24 / 8; //!< CRC length (in bytes)
-  uint8_t m_numRefScPerRb {1}; //!< number of reference subcarriers per RB
 
   /**
    * \brief Get the requested BER in assigning MCS (Shannon-bound model)

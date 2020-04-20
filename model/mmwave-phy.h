@@ -265,6 +265,18 @@ public:
   void SetSymbolsPerSlot (uint16_t symbolsPerSlot);
 
   /**
+   * \brief Set the bandwidth overhead for calculating the usable RB number
+   * \param oh the overhead
+   */
+  void SetRbOverhead (double oh);
+
+  /**
+   * \brief Get the bandwidth overhead used when calculating the usable RB number
+   * \return the bandwidth overhead
+   */
+  double GetRbOverhead () const;
+
+  /**
    * \brief Retrieve the SpectrumPhy pointer
    *
    * As this function is used mainly to get traced values out of Spectrum,
@@ -556,6 +568,7 @@ private:
   Time m_symbolPeriod {MilliSeconds (1) / 14};  //!< OFDM symbol length (changes with numerology)
   uint32_t m_subcarrierSpacing {15000};         //!< subcarrier spacing (it is determined by the numerology)
   uint32_t m_rbNum {0};                         //!< number of resource blocks within the channel bandwidth
+  double m_rbOh {0.04};                         //!< Overhead for the RB calculation
 };
 
 } // namespace ns3

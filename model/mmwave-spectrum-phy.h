@@ -39,7 +39,11 @@ namespace ns3 {
  * \ingroup gnb-phy
  * \ingroup spectrum
  *
- * \brief MmWaveSpectrumPhy models some of the basic
+ * \brief Interface between the physical layer and the channel
+ *
+ * \section spectrum_phy_general General information
+ *
+ * MmWaveSpectrumPhy models some of the basic
  * physical layer functionalities such as transmitting CTRL or DATA,
  * receiving the signals, decoding them, and distinguishing whether the
  * signal is useful (CTRL, DATA), i.e. sent to this NR device MmWavePhy
@@ -64,6 +68,13 @@ namespace ns3 {
  * Also it has interface with HARQ module, to which it passes necessary
  * information for the HARQ feedback generation, which is then forwarded
  * to MmWavePhy.
+ *
+ * \section spectrum_phy_configuration Configuration
+ *
+ * The user can configure the class using the method MmWaveHelper::SetGnbSpectrumAttribute(),
+ * or MmWaveHelper::SetUeSpectrumAttribute(), depending on the type of user
+ * you want to configure, or by directly calling `SetAttribute` on the pointer.
+ * The list of  attributes is reported below, in the Attributes section.
  */
 class MmWaveSpectrumPhy : public SpectrumPhy
 {

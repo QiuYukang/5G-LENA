@@ -41,7 +41,8 @@ class IdealBeamformingHelper;
  * array. Additionally, in the case of gNB it saves the map of beamforming
  * vectors per device.
  */
-class BeamManager: public Object {
+class BeamManager: public Object
+{
 
 friend IdealBeamformingHelper;
 

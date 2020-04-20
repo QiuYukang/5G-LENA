@@ -44,7 +44,13 @@ class BeamId;
  * The slot processing is the same as the gnb phy, working as a state machine
  * in which the processing is done at the beginning of the slot.
  *
- * <b>Configuration</b>
+ * \section ue_phy_conf Configuration
+ *
+ * The attributes of this class (described in the section Attributes) can be
+ * configured through a direct call to `SetAttribute` or, before the PHY creation,
+ * with the helper method MmWaveHelper::SetUePhyAttribute().
+ *
+ * \section ue_phy_attach Attachment to a GNB
  *
  * In theory, much of the configuration should pass through RRC, and through
  * messages that come from the gNb. However, we still are not at this level,
@@ -52,10 +58,11 @@ class BeamId;
  * the gnb and the ue. At this moment, the call that the helper has to perform
  * are in MmWaveHelper::AttachToEnb().
  *
- * To initialize the class, you must call also SetSpectrumPhy and StartEventLoop.
+ * To initialize the class, you must call also SetSpectrumPhy() and StartEventLoop().
+ * Usually, this is taken care inside the helper.
  *
- * \see SetSpectrumPhy
- * \see StartEventLoop
+ * \see MmWavePhy::SetSpectrumPhy()
+ * \see MmWavePhy::StartEventLoop()
  */
 class MmWaveUePhy : public MmWavePhy
 {
@@ -120,10 +127,42 @@ public:
    * Install the configuration parameters in the UE.
    *
    * \param bwpId the bwp id to which this PHY is attaching to
+   *
+   *
+   */
+  void RegisterToEnb (uint16_t bwpId);
+
+  /**
+   * \brief Set the AMC pointer from the GNB
    * \param amc The DL AMC of the GNB. This will be used to create the DL CQI
    * that will be sent to the GNB.
+   *
+   * This function will be soon deprecated, hopefully with some values that
+   * comes from RRC. For the moment, it is called by the helper at the
+   * registration time.
+   *
    */
-  void RegisterToEnb (uint16_t bwpId, const Ptr<const NrAmc> &amc);
+  void SetDlAmc (const Ptr<const NrAmc> &amc);
+
+  /**
+   * \brief Set the number of UL CTRL symbols
+   * \param ulCtrlSyms value
+   *
+   * This function will be soon deprecated, hopefully with a value that
+   * comes from RRC. For the moment, it is called by the helper at the
+   * registration time.
+   */
+  void SetUlCtrlSyms (uint8_t ulCtrlSyms);
+
+  /**
+   * \brief Set the number of DL CTRL symbols
+   * \param dlCtrlSyms value
+   *
+   * This function will be soon deprecated, hopefully with a value that
+   * comes from RRC. For the moment, it is called by the helper at the
+   * registration time.
+   */
+  void SetDlCtrlSyms (uint8_t dlCtrlSyms);
 
   /**
    * \brief Function that sets the number of RBs per RBG.
@@ -528,6 +567,8 @@ private:
   bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
   EventId m_lbtEvent;
   uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
+  uint8_t m_dlCtrlSyms {1}; //!< Number of CTRL symbols in DL
+  uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS

@@ -40,10 +40,20 @@ class MmWaveRarMessage;
 class BeamId;
 
 /**
- * \ingroup gnb
+ * \ingroup gnb-mac
  * \brief The MAC class for the gnb
  *
- * \section trace CTRL Traces for CTRL messages
+ * \section gnb_mac_general General information
+ *
+ * \todo fill gnb-mac general information doxygen part
+ *
+ * \section gnb_mac_configuration Configuration
+ *
+ * The user can configure the class using the method MmWaveHelper::SetGnbMacAttribute(),
+ * or by directly calling `SetAttribute` on the MAC pointer. The list of
+ * attributes is reported below, in the Attributes section.
+ *
+ * \section gnb_mac_trace CTRL Traces for CTRL messages
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is EnbMacRxedCtrlMsgsTrace,
@@ -93,6 +103,18 @@ public:
    * \return number of HARQ processes
    */
   uint8_t GetNumHarqProcess () const;
+
+  /**
+   * \brief Retrieve the number of DL ctrl symbols configured in the scheduler
+   * \return the number of DL ctrl symbols
+   */
+  virtual uint8_t GetDlCtrlSyms () const;
+
+  /**
+   * \brief Retrieve the number of UL ctrl symbols configured in the scheduler
+   * \return the number of UL ctrl symbols
+   */
+  virtual uint8_t GetUlCtrlSyms () const;
 
   /**
    * \brief Perform DL scheduling decision for the indicated slot

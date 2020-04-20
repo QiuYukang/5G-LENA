@@ -25,6 +25,7 @@
 #include <ns3/uinteger.h>
 #include "nr-error-model.h"
 #include "nr-lte-mi-error-model.h"
+#include "lena-error-model.h"
 #include "mmwave-spectrum-value-helper.h"
 
 namespace ns3 {
@@ -97,13 +98,6 @@ NrAmc::GetMcsFromCqi (uint8_t cqi) const
   return mcs;
 }
 
-uint32_t
-NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
-{
-  return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
-                                       mcs, nprb);
-}
-
 uint8_t
 NrAmc::GetNumRefScPerRb () const
 {
@@ -118,33 +112,48 @@ void NrAmc::SetNumRefScPerRb(uint8_t nref)
 }
 
 uint32_t
-NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
+NrAmc::CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const
 {
-  NS_LOG_FUNCTION (this << static_cast<uint32_t> (mcs) << nprb);
+  NS_LOG_FUNCTION (this << static_cast<uint32_t> (mcs));
 
   NS_ASSERT_MSG (mcs <= m_errorModel->GetMaxMcs (), "MCS=" << static_cast<uint32_t> (mcs) <<
                  " while maximum MCS is " << static_cast<uint32_t> (m_errorModel->GetMaxMcs ()));
 
-  uint32_t payloadSize = GetPayloadSize (mcs, nprb);
   uint32_t tbSize = payloadSize;
 
-  uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code-block (including m_crcLen)
-
-  if (payloadSize >= m_crcLen)
+  if (m_errorModelType != LenaErrorModel::GetTypeId ())
     {
-      tbSize = payloadSize - m_crcLen;
+      uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code-block (including m_crcLen)
+
+      if (payloadSize >= m_crcLen)
+        {
+          tbSize = payloadSize - m_crcLen;
+        }
+
+      if (tbSize > cbSize)
+        {
+          double C = ceil (tbSize / cbSize);
+          tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code-blocks.
+        }
     }
 
-  if (tbSize > cbSize)
-    {
-      double C = ceil (tbSize / cbSize);
-      tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code-blocks.
-    }
-
-  NS_LOG_INFO (" mcs:" << (unsigned) mcs <<
-               " TB size:" << tbSize);
+  NS_LOG_INFO (" mcs:" << (unsigned) mcs << " TB size:" << tbSize);
 
   return tbSize;
+}
+
+uint32_t
+NrAmc::GetPayloadSizeUl (uint8_t mcs, uint32_t nprb) const
+{
+  return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
+                                       mcs, nprb, NrErrorModel::UL);
+}
+
+uint32_t
+NrAmc::GetPayloadSizeDl (uint8_t mcs, uint32_t nprb) const
+{
+  return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
+                                       mcs, nprb, NrErrorModel::DL);
 }
 
 uint8_t
@@ -328,6 +337,18 @@ NrAmc::GetErrorModelType () const
 {
   NS_LOG_FUNCTION (this);
   return m_errorModelType;
+}
+
+uint32_t
+NrAmc::CalculateTbSizeUl (uint8_t mcs, uint32_t nprb) const
+{
+  return CalculateTbSize (mcs, GetPayloadSizeUl (mcs, nprb));
+}
+
+uint32_t
+NrAmc::CalculateTbSizeDl (uint8_t mcs, uint32_t nprb) const
+{
+  return CalculateTbSize (mcs, GetPayloadSizeDl (mcs, nprb));
 }
 
 double

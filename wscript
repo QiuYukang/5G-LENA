@@ -81,6 +81,7 @@ def build(bld):
         'model/beam-manager.cc',
         'model/ideal-beamforming-algorithm.cc',
         'model/sfnsf.cc',
+        'model/lena-error-model.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -179,6 +180,7 @@ def build(bld):
         'model/beam-manager.h',
         'model/ideal-beamforming-algorithm.h',
         'model/sfnsf.h',
+        'model/lena-error-model.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
@@ -191,6 +193,11 @@ def build(bld):
                 continue
             if os.path.exists(os.path.join(path, 'wscript')):
                 bld.recurse(dirname)
+
+    obj = bld.create_ns3_program('nr-print-introspected-doxygen', ['nr'])
+    obj.source = 'utils/print-introspected-doxygen.cc'
+    #obj.use = ['nr']
+
 
 
     # bld.ns3_python_bindings()

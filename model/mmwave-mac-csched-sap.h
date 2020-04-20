@@ -31,7 +31,7 @@ namespace ns3 {
 
 
 /**
- * \ingroup ff-api
+ * \ingroup scheduler
  * \brief Provides the CSCHED SAP
  *
  * This abstract class defines the MAC Scheduler interface specified in the
@@ -47,6 +47,9 @@ namespace ns3 {
 class MmWaveMacCschedSapProvider
 {
 public:
+  /**
+   * \brief ~MmWaveMacCschedSapProvider
+   */
   virtual ~MmWaveMacCschedSapProvider ()
   {
   }

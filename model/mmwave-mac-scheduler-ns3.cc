@@ -120,14 +120,14 @@ MmWaveMacSchedulerNs3::GetTypeId (void)
     .AddAttribute ("DlCtrlSymbols",
                    "Number of symbols allocated for DL CTRL",
                    UintegerValue (1),
-                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetDlCtrlSymbols,
-                                         &MmWaveMacSchedulerNs3::GetDlCtrlSymbols),
+                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetDlCtrlSyms,
+                                         &MmWaveMacSchedulerNs3::GetDlCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("UlCtrlSymbols",
                    "Number of symbols allocated for UL CTRL",
                    UintegerValue (1),
-                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetUlCtrlSymbols,
-                                         &MmWaveMacSchedulerNs3::GetUlCtrlSymbols),
+                   MakeUintegerAccessor (&MmWaveMacSchedulerNs3::SetUlCtrlSyms,
+                                         &MmWaveMacSchedulerNs3::GetUlCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("DlAmc",
                    "The DL AMC of this scheduler",
@@ -240,25 +240,25 @@ MmWaveMacSchedulerNs3::GetStartMcsUl () const
 }
 
 void
-MmWaveMacSchedulerNs3::SetDlCtrlSymbols (uint8_t v)
+MmWaveMacSchedulerNs3::SetDlCtrlSyms (uint8_t v)
 {
   m_dlCtrlSymbols = v;
 }
 
 uint8_t
-MmWaveMacSchedulerNs3::GetDlCtrlSymbols () const
+MmWaveMacSchedulerNs3::GetDlCtrlSyms () const
 {
   return m_dlCtrlSymbols;
 }
 
 void
-MmWaveMacSchedulerNs3::SetUlCtrlSymbols (uint8_t v)
+MmWaveMacSchedulerNs3::SetUlCtrlSyms (uint8_t v)
 {
   m_ulCtrlSymbols = v;
 }
 
 uint8_t
-MmWaveMacSchedulerNs3::GetUlCtrlSymbols () const
+MmWaveMacSchedulerNs3::GetUlCtrlSyms () const
 {
   return m_ulCtrlSymbols;
 }
@@ -1450,8 +1450,8 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
           ue->m_ulRBG += GetBandwidthInRbg ();
 
           assignedSym++;
-          tbs = m_ulAmc->CalculateTbSize (ue->m_ulMcs,
-                                          ue->m_ulRBG * GetNumRbPerRbg ());
+          tbs = m_ulAmc->CalculateTbSizeUl (ue->m_ulMcs,
+                                            ue->m_ulRBG * GetNumRbPerRbg ());
         }
       while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
 
@@ -1603,7 +1603,7 @@ MmWaveMacSchedulerNs3::ScheduleDl (const MmWaveMacSchedSapProvider::SchedDlTrigg
   // if the number of allocated symbols is greater than GetUlCtrlSymbols (), then don't delete
   // the allocation, as it will be removed when the CQI will be processed.
   // Otherwise, delete the allocation history for the slot.
-  if (ulAllocations.m_totUlSym <= GetUlCtrlSymbols ())
+  if (ulAllocations.m_totUlSym <= GetUlCtrlSyms ())
     {
       NS_LOG_INFO ("Removing UL allocation for slot " << params.m_snfSf <<
                    " size " << m_ulAllocationMap.size ());

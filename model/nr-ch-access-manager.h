@@ -37,13 +37,21 @@ namespace ns3 {
  * is responsible to listen to the channel, informing the PHY when it is free
  * for transmitting.
  *
- * <b> Requesting the channel </b>
+ * \section ch_access_manager_req Requesting the channel
  *
  * The PHY would call the method RequestAccess(). Then, when the channel is
  * available for transmission, the channel access manager would call the
  * callback set with the method SetAccessGrantedCallback(). If the channel
  * cannot be access, then the callback set with SetAccessDeniedCallback()
  * will be called, instead. The request can be cancelled by calling Cancel().
+ *
+ * \section ch_access_manager_conf Configuration
+ *
+ * Any channel access manager attribute can be set through the helper methods
+ * MmWaveHelper::SetUeChannelAccessManagerAttribute() or
+ * MmWaveHelper::SetGnbChannelAccessManagerAttribute(). Another option is
+ * directly calling `SetAttribute` on the pointer. The list of
+ * attributes is reported below, in the Attributes section.
  *
  * \see NrAlwaysOnAccessManager
  */
@@ -148,7 +156,7 @@ private:
  *
  * This channel access manager is installed by default in NR instances.
  *
- * <b> Usage </b>
+ * \section always_on_usage
  *
  * This is the CAM that is created by default. However, if you want to set it
  * manually, you can invoke the helper function before installing the gnb:
@@ -165,6 +173,9 @@ private:
   ...
   mmWaveHelper->InstallUe ...
 \endverbatim
+ *
+ * The type of the channel access manager cannot be changed after the helper
+ * has installed the UE or the GNB node.
  *
  */
 class NrAlwaysOnAccessManager : public NrChAccessManager

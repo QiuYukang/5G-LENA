@@ -195,4 +195,9 @@
  *
  */
 
+/**
+ * \defgroup utils Utils
+ * \brief Classes that are used in different points of the code
+ *
+ */
 #endif // GROUPS_H
