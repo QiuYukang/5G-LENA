@@ -344,7 +344,7 @@ public:
    * and MAC and the Scheduler, with a saturation traffic model for
    * the RLC.
    *
-   * \param h a pointer to the EpcHelper to be used
+   * \param epcHelper a pointer to the EpcHelper to be used
    */
   void SetEpcHelper (Ptr<EpcHelper> epcHelper);
 

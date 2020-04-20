@@ -82,7 +82,7 @@ protected:
    * inside ComputeSINR function. GetMcsEq gets the closest ECR to m_Reff from
    * the available ones that belong to the same modulation order.
    *
-   * \param mcs the MCS of the transmission
+   * \param mcsTx the MCS of the transmission
    * \return The equivalent MCS after retransmissions
    */
   double GetMcsEq (uint8_t mcsTx) const override;

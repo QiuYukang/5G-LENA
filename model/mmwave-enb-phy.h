@@ -248,7 +248,7 @@ public:
    *
    * Connected by the helper to a callback of the spectrum.
    *
-   * \param msgList message list
+   * \param msg the message
    */
   void PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg);
 
@@ -271,7 +271,7 @@ public:
    *
    * Connected by the helper to a spectrum phy callback
    *
-   * \param m the HARQ feedback
+   * \param mes the HARQ feedback
    */
   void ReportUlHarqFeedback (const UlHarqInfo &mes);
 
@@ -306,7 +306,9 @@ public:
   /**
    * \brief Start the ue Event Loop
    * \param nodeId the UE nodeId
-   * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
+   * \param frame Frame
+   * \param subframe SubF.
+   * \param slot Slot
    */
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 

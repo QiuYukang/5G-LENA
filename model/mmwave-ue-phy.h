@@ -188,7 +188,7 @@ public:
    *
    * Connected by the helper to a callback of the spectrum.
    *
-   * \param msgList message list
+   * \param msg Message
    */
   void PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg);
 
@@ -289,7 +289,7 @@ public:
 
   /**
    * \brief Set the channel access manager interface for this instance of the PHY
-   * \param s the pointer to the interface
+   * \param cam the pointer to the interface
    */
   void SetCam (const Ptr<NrChAccessManager> &cam);
 
@@ -298,8 +298,13 @@ public:
 
   /**
    * \brief Start the ue Event Loop
+   *
+   * As parameters, there are the initial values for some variables.
+   *
    * \param nodeId the UE nodeId
-   * \param startSlot the slot number from which the UE has to start (must be in sync with gnb)
+   * \param frame Frame
+   * \param subframe SubF.
+   * \param slot Slot
    */
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 

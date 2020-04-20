@@ -268,7 +268,7 @@ public:
 
   /**
    * \brief Install the AMC for the DL part
-   * \param dlAmc DL AMC
+   * \param ulAmc DL AMC
    *
    * Usually called by the helper
    */

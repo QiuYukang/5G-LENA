@@ -95,7 +95,7 @@ public:
 
   /**
    * \brief Sets the number of HARQ processes
-   * \param numHarqProcesses the maximum number of harq processes
+   * \param numHarqProcess the maximum number of harq processes
    */
   void SetNumHarqProcess (uint8_t numHarqProcess);
 
@@ -140,7 +140,7 @@ public:
 
   /**
    * \brief Set the current sfn
-   * \param current sfn
+   * \param sfn Current sfn
    */
   virtual void SetCurrentSfn (const SfnSf &sfn);
 

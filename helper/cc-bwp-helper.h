@@ -163,7 +163,6 @@ struct OperationBandInfo
    * \brief Adds the component carrier definition given as an input reference
    * to the current operation band configuration
    *
-   * \param id Where to put the cc
    * \param cc The information of the component carrier to be created
    */
   bool AddCc (ComponentCarrierInfoPtr &&cc);
