@@ -41,6 +41,7 @@ LenaErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, 
   NS_LOG_FUNCTION (this);
 
   NS_UNUSED (usefulSC);
+  NS_ASSERT (rbNum >= 13);
   static LteAmc lenaAmc;
 
   NS_LOG_DEBUG ("Asking LENA AMC to retrieve the TBS for MCS " << +mcs << " and RB " << rbNum / 13);
