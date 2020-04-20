@@ -223,9 +223,12 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
   NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
 
-  // selection of LDPC base graph type (1 or 2), as per TS 38.212
+  // selection of LDPC base graph type (1 or 2), as per TS 38.212: it uses the payload (A in TS 38.212)
   GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
   NS_LOG_INFO ("BG type selection: " << bg_type);
+
+  // code block segmentation, as per TS 38.212: it uses payload + CRC parity bits of the transport block (B in TS 38.212)
+  uint32_t B = sizeBit + 24; // input to code block segmentation, in bits
 
   uint16_t Kcb;
   uint8_t Kb;
@@ -239,15 +242,15 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
     {
       NS_ASSERT (bg_type == SECOND);
       Kcb = 3840;  // max size of a codeblock (including CRC) for BG2
-      if (sizeBit >= 640)
+      if (B >= 640)
         {
           Kb = 10;
         }
-      else if (sizeBit >= 560)
+      else if (B >= 560)
         {
           Kb = 9;
         }
-      else if (sizeBit >= 192)
+      else if (B >= 192)
         {
           Kb = 8;
         }
@@ -257,7 +260,6 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
         }
     }
 
-  uint32_t B = sizeBit; // TBS in bits
   uint32_t L = 0;
   uint32_t C = 0; // no. of codeblocks
   uint32_t B1 = 0;

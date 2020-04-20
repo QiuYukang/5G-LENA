@@ -123,17 +123,15 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const
 
   if (m_errorModelType != LenaErrorModel::GetTypeId ())
     {
-      uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code-block (including m_crcLen)
-
       if (payloadSize >= m_crcLen)
         {
-          tbSize = payloadSize - m_crcLen;
+          tbSize = payloadSize - m_crcLen;  //subtract parity bits of m_crcLen used in transport block
         }
-
-      if (tbSize > cbSize)
+      uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code block (including m_crcLen)
+      if (tbSize > cbSize)  // segmentation of the transport block occurs
         {
           double C = ceil (tbSize / cbSize);
-          tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code-blocks.
+          tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code blocks, in case of code block segmentation
         }
     }
 
