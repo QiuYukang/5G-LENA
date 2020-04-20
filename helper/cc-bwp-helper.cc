@@ -54,6 +54,15 @@ ComponentCarrierInfo::AddBwp (BandwidthPartInfoPtr &&bwp)
       ++i;
     }
 
+  for (auto & bwp : m_bwp)
+  {
+      NS_LOG_INFO ("Create BWP with bwpId: " << +bwp->m_bwpId << " lower: " <<
+                   bwp->m_lowerFrequency / 1e6 << " with central freq: " <<
+                   bwp->m_centralFrequency / 1e6 << " higher: " <<
+                   bwp->m_higherFrequency/ 1e6 << " BW: " <<
+                   bwp->m_channelBandwidth  / 1e6 << " MHz");
+  }
+
   return ret;
 }
 
@@ -76,12 +85,21 @@ OperationBandInfo::AddCc (ComponentCarrierInfoPtr &&cc)
       auto & nextCc = m_cc.at (i + 1);
       if (cc->m_higherFrequency > nextCc->m_lowerFrequency)
         {
-          NS_LOG_WARN ("Cc at " << i << " has higher freq " << cc->m_higherFrequency <<
-                       " while Cc at " << i + 1 << " has freq at " << m_lowerFrequency);
+          NS_LOG_WARN ("Cc at " << i << " has higher freq " << cc->m_higherFrequency / 1e6 <<
+                       " while Cc at " << i + 1 << " has freq at " << m_lowerFrequency / 1e6);
           ret = false;
         }
       ++i;
     }
+
+  for (auto & cc : m_cc)
+  {
+      NS_LOG_INFO ("Create CC with ccId: " << +cc->m_ccId << " lower: " <<
+                   cc->m_lowerFrequency / 1e6 << " with central freq: " <<
+                   cc->m_centralFrequency / 1e6 << " higher: " <<
+                   cc->m_higherFrequency/ 1e6 << " BW: " <<
+                   cc->m_channelBandwidth / 1e6 << " MHz");
+  }
 
   return ret;
 }
