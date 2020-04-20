@@ -357,7 +357,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 //        {
 //          numScPerRb = 1.2;  // This parameter was tuned for numRBs = 100 and maximum MCS
 //        }
-      else if (errorModel != "ns3::NrLteMiErrorModel" || "ns3::LenaErrorModel")
+      else if (errorModel != "ns3::NrLteMiErrorModel" && errorModel != "ns3::LenaErrorModel")
         {
           NS_ABORT_MSG ("The selected error model is not recommended for LTE");
         }
