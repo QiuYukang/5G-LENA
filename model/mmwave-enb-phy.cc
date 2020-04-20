@@ -79,6 +79,12 @@ MmWaveEnbPhy::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::MmWaveEnbPhy")
     .SetParent<MmWavePhy> ()
     .AddConstructor<MmWaveEnbPhy> ()
+    .AddAttribute ("RbOverhead",
+                   "Overhead when calculating the usable RB number",
+                   DoubleValue (0.04),
+                   MakeDoubleAccessor (&MmWaveEnbPhy::SetRbOverhead,
+                                       &MmWaveEnbPhy::GetRbOverhead),
+                   MakeDoubleChecker <double> (0, 0.5))
     .AddAttribute ("TxPower",
                    "Transmission power in dBm",
                    DoubleValue (4.0),
