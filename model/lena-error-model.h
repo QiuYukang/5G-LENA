@@ -77,7 +77,7 @@ public:
 
   /**
    * \brief Get the payload size, following the MCSs in LTE
-   * \param usefulSc Useful Subcarriers (ignored)
+   * \param usefulSC Useful Subcarriers (ignored)
    * \param mcs MCS
    * \param rbNum Resource Block number (please pay attention)
    * \param mode UL or DL

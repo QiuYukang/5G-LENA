@@ -264,14 +264,14 @@ public:
   static Ptr<MmWaveEnbMac> GetEnbMac (const Ptr<NetDevice> &gnbDevice, uint32_t bwpIndex);
   /**
    * \brief Get a pointer to the MAC of the UE at the specified BWP
-   * \param gnbDevice The UE NetDevice, obtained from InstallUeDevice()
+   * \param ueDevice The UE NetDevice, obtained from InstallUeDevice()
    * \param bwpIndex The index of the BWP required
    * \return A pointer to the MAC layer of the UE, or nullptr if there are errors
    */
   static Ptr<MmWaveUeMac> GetUeMac (const Ptr<NetDevice> &ueDevice, uint32_t bwpIndex);
   /**
    * \brief Get a pointer to the PHY of the UE at the specified BWP
-   * \param gnbDevice The UE NetDevice, obtained from InstallUeDevice()
+   * \param ueDevice The UE NetDevice, obtained from InstallUeDevice()
    * \param bwpIndex The index of the BWP required
    * \return A pointer to the PHY layer of the UE, or nullptr if there are errors
    */
@@ -284,7 +284,7 @@ public:
   static Ptr<BwpManagerGnb> GetBwpManagerGnb (const Ptr<NetDevice> &gnbDevice);
   /**
    * \brief Get the BwpManager of the UE
-   * \param gnbDevice the UE NetDevice, obtained from InstallGnbDevice()
+   * \param ueDevice the UE NetDevice, obtained from InstallGnbDevice()
    * \return A pointer to the BwpManager of the UE, or nullptr if there are errors
    */
   static Ptr<BwpManagerUe> GetBwpManagerUe (const Ptr<NetDevice> &ueDevice);

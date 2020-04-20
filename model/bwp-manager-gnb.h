@@ -72,7 +72,7 @@ public:
   /**
    * \brief Decide the BWP for the control message received.
    * \param msg Message
-   * \param bwpId BWP Id from which this message come from.
+   * \param sourceBwpId BWP Id from which this message come from.
    *
    * The routing is made following the bandwidth part reported in the message.
    *
@@ -82,8 +82,8 @@ public:
 
   /**
    * \brief Route the outgoing messages to the right BWP
-   * \param msgList the list of messages
-   * \param sourceBwpId the source bwp of the messages
+   * \param msg the message
+   * \param sourceBwpId the source bwp of the message
    *
    * The routing is made by following the mapping provided through the function
    * SetOutputLink. If no mapping has been installed, or if the sourceBwpId
@@ -132,13 +132,13 @@ protected:
    */
   virtual void DoUlReceiveSr (uint16_t rnti, uint8_t componentCarrierId) override;
 
-  /*
+  /**
    * \brief Overload DoSetupBadaRadioBearer to connect directly to Rlc retransmission buffer size.
    */
   virtual std::vector<LteCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint16_t rnti, uint8_t lcid, uint8_t lcGroup, LteMacSapUser* msu) override;
 
 private:
-  /*
+  /**
    * \brief Checks if the flow is is GBR.
    */
   bool IsGbr (LteMacSapProvider::ReportBufferStatusParameters params);

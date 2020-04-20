@@ -66,6 +66,8 @@ public:
   /**
    * \brief Configures quasi-omni beamforming vector and sets up the expire timer
    * for beamforming
+   *
+   * \param antennaArray the antenna array
    */
   void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray);
 
@@ -95,8 +97,7 @@ public:
   /**
    * \brief Function that saves the beamforming weights of the antenna
    * for transmission or reception to/from a specified connected device.
-   * \param antennaWeights the weights of the beamforming vector
-   * \param beamId the unique identifier of the beam
+   * \param bfv the unique identifier of the beam
    * \param device device to which it is being transmitted, or from which is
    * being received
    */

@@ -110,8 +110,6 @@ public:
 
   /**
    * \brief Normalize the SfnSf in slot number
-   * \param slotsPerSubframe Number of slot per subframe
-   * \param subframesPerFrame Number of subframes per frame
    * \return The number of total slots passed (can overlap)
    */
   uint64_t Normalize () const;

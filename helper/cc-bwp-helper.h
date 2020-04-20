@@ -198,13 +198,13 @@ class CcBwpCreator
 {
 public:
   /**
+   * \ingroup helper
    * \brief Minimum configuration requirements for a OperationBand
    *
    * For instance, here is the simple configuration for a single operation band
    * at 28 GHz and 100 MHz of width:
-\verbatim
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, 1, BandwidthPartInfo::UMi_StreetCanyon);
-\endverbatim
+   *
+   * `CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, 1, BandwidthPartInfo::UMi_StreetCanyon);`
    *
    * The possible values of the scenario are depicted in BandwidthPartInfo
    * documentation.
@@ -232,22 +232,19 @@ public:
 
   /**
    * \brief Create an operation band with the CC specified
+   * \param conf Minimum configuration
    *
    * Creates an operation band by splitting the available bandwidth into
    * equally-large contiguous carriers. Carriers will have common parameters like numerology.
    *
-   * Example:
-\verbatim
-  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
-\endverbatim
-   * \param conf Minimum configuration
+   *
    */
   OperationBandInfo CreateOperationBandContiguousCc (const SimpleOperationBandConf &conf);
 
   /**
    * \brief Creates an operation band with non-contiguous CC.
    *
-   * \param conf Minimum configuration for every CC.
+   * \param configuration Minimum configuration for every CC.
    */
   OperationBandInfo CreateOperationBandNonContiguousCc (const std::vector<SimpleOperationBandConf> &configuration);
 
@@ -255,12 +252,6 @@ public:
    * \brief Get all the BWP pointers from the specified vector of operation bands
    * \param operationBands the operation bands
    * \return the pointers to the BWP to be passed to MmWaveHelper
-   *
-   * Example of usage:
-\verbatim
-  auto allBwps = CcBwpCreator::GetAllBwps ({band1});
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gnbs, allBwps);
-\endverbatim
    *
    */
   static BandwidthPartInfoPtrVector
