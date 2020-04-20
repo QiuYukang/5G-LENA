@@ -19,6 +19,7 @@
 #pragma once
 
 #include "mmwave-mac-scheduler-tdma.h"
+#include <ns3/traced-value.h>
 
 namespace ns3 {
 
@@ -107,5 +108,7 @@ private:
   std::shared_ptr<DciInfoElementTdma> CreateDci (PointInFTPlane *spoint, const std::shared_ptr<MmWaveMacSchedulerUeInfo> &ueInfo,
                                                  uint32_t tbs, DciInfoElementTdma::DciFormat fmt,
                                                  uint32_t mcs, uint8_t numSym) const;
+
+  TracedValue<uint32_t> m_tracedValueSymPerBeam;
 };
 } // namespace ns3

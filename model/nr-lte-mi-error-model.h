@@ -120,7 +120,7 @@ public:
   /**
    * \brief Get the payload size, following the MCSs in LTE
    */
-  virtual uint32_t GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum) const override;
+  virtual uint32_t GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, Mode mode) const override;
   /**
    * \brief Get the maximum code block size, as per LTE
    */

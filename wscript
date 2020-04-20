@@ -81,6 +81,7 @@ def build(bld):
         'model/beam-manager.cc',
         'model/ideal-beamforming-algorithm.cc',
         'model/sfnsf.cc',
+        'model/lena-error-model.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -179,6 +180,7 @@ def build(bld):
         'model/beam-manager.h',
         'model/ideal-beamforming-algorithm.h',
         'model/sfnsf.h',
+        'model/lena-error-model.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

@@ -93,9 +93,9 @@ main (int argc, char *argv[])
   for (uint32_t mcs = 0; mcs <= amc->GetMaxMcs (); ++mcs)
     {
       std::stringstream ss;
-      ss << "\nMCS " << mcs <<
-            ". TBS in 1 RB: [" << amc->CalculateTbSize(mcs, 1) <<
-            "] bytes. TBS in 1 sym: [" << amc->CalculateTbSize(mcs, numRbsInBandwidth) <<
+      ss << "\nResults for DL (UL only in NR case): MCS " << mcs <<
+            ". TBS in 1 RB: [" << amc->CalculateTbSizeDl (mcs, 1) <<
+            "] bytes. TBS in 1 sym: [" << amc->CalculateTbSizeDl (mcs, numRbsInBandwidth) <<
             "] bytes.";
       tbs += ss.str ();
     }

@@ -89,6 +89,18 @@ public:
   virtual ~NrErrorModel () override;
 
   /**
+   * \brief Indicate the mode (UL or DL)
+   *
+   * In some methods, the error model has to know if the asked value
+   * is for UL or DL.
+   */
+  enum Mode
+  {
+    DL, //!< DL
+    UL  //!< UL
+  };
+
+  /**
    * \brief Vector of previous output
    *
    *
@@ -141,9 +153,10 @@ public:
    * \param usefulSc Useful subcarriers
    * \param mcs MCS
    * \param rbNum Number of resource blocks (even in more than 1 symbol)
+   * \param mode UL or DL mode
    * \return The payload size of the resource blocks, in bytes
    */
-  virtual uint32_t GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum) const = 0;
+  virtual uint32_t GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum, Mode mode) const = 0;
 
   /**
    * \brief Get the maximum codeblock size
