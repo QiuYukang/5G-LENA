@@ -21,6 +21,9 @@
 #include <ns3/log.h>
 #include <memory>
 #include <fstream>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/spectrum-channel.h>
 
 namespace ns3 {
 

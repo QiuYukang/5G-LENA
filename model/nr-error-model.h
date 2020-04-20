@@ -61,7 +61,20 @@ struct NrErrorModelOutput : public SimpleRefCount<NrErrorModelOutput>
  * this class as a base class. Please implement The GetInstanceTypeId method
  * in your subclasses.
  *
+ * \section nr_error_model_conf Configuration
+ *
+ * The type of the error model can be configured through the helper method
+ * MmWaveHelper::SetUlErrorModel() or MmWaveHelper::SetDlErrorModel().
+ *
+ * The types of error model that can be used are the following:
+ * NrEesmIrT2, NrEesmIrT1, NrEesmCcT1, NrEesmCcT2, NrLteMiErrorModel.
+ *
  * \see GetTbDecodificationStats
+ * \see NrEesmIrT2
+ * \see NrEesmIrT1
+ * \see NrEesmCcT1
+ * \see NrEesmCcT2
+ * \see NrLteMiErrorModel
  */
 class NrErrorModel : public Object
 {

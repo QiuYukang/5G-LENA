@@ -77,7 +77,7 @@ protected:
    * does not change with retransmissions with HARQ-CC, and MCS is kept fixed through
    * retransmissions, it returns current MCS.
    *
-   * \param mcs the MCS of the transmission
+   * \param mcsTx the MCS of the transmission
    * \return The equivalent MCS after retransmissions
    */
   double GetMcsEq (uint8_t mcsTx) const override;

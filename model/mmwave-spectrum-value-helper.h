@@ -53,8 +53,7 @@ public:
    * center frequency and subcarrier spacing.
    * \param numRbs bandwidth in number of RBs
    * \param centerFrequency the center frequency of this band
-   * \param scs the subcarrier spacing
-   * \param pointer to a spectrum model with defined characteristics
+   * \return pointer to a spectrum model with defined characteristics
    */
   static Ptr<const SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, double subcarrierSpacing);
 
@@ -63,7 +62,6 @@ public:
    * \param powerTx total power in dBm
    * \param activeRbs vector of RBs that are active for this transmission
    * \param spectrumModel spectrumModel to be used to create this SpectrumValue
-   * \return spectrum value representing power spectral density for given parameters
    */
   static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (double powerTx,
                                                           const std::vector <int>& activeRbs,
@@ -73,7 +71,7 @@ public:
     * \brief Create SpectrumValue that will represent transmit power spectral density,
     * and assuming that all RBs are active.
     * \param powerTx total power in dBm
-    * \param spectrumModel spectrumModel to be used to create this SpectrumValue
+    * \param txSm spectrumModel to be used to create this SpectrumValue
     * \return spectrum value representing power spectral density for given parameters
     */
   static Ptr<const SpectrumValue> CreateTxPowerSpectralDensity (double powerTx, const Ptr<const SpectrumModel>& txSm);

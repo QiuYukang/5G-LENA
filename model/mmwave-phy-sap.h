@@ -216,14 +216,14 @@ public:
   /**
    * \brief Notify the reception of a RACH preamble on the PRACH
    *
-   * \param prachId the ID of the preamble
+   * \param raId the ID of the preamble
    */
   virtual void ReceiveRachPreamble (uint32_t raId) = 0;
 
   /**
    * \brief Notify the HARQ on the UL tranmission status
    *
-   * \param params
+   * \param params Params
    */
   virtual void UlHarqFeedback (UlHarqInfo params) = 0;
 
@@ -289,10 +289,9 @@ public:
 
   /**
    * \brief Trigger the indication of a new slot for the MAC
-   * \param frameNo frame number
-   * \param subframeNo subframe number
+   * \param s SfnSf
    */
-  virtual void SlotIndication (SfnSf) = 0;
+  virtual void SlotIndication (SfnSf s) = 0;
 
   /**
    * \brief Retrieve the number of HARQ processes configured

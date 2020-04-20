@@ -21,14 +21,9 @@
 #ifndef CC_BWP_HELPER_H
 #define CC_BWP_HELPER_H
 
-
-#include <ns3/mmwave-phy-mac-common.h>
-#include <ns3/mmwave-control-messages.h>
-#include <ns3/propagation-loss-model.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/three-gpp-propagation-loss-model.h>
-#include <ns3/spectrum-channel.h>
 #include <memory>
+#include <vector>
+#include <ns3/ptr.h>
 
 namespace ns3 {
 
@@ -37,16 +32,33 @@ namespace ns3 {
  * Aggregation (CA). In NR, this number depends on the CC contiguousness.
  * Eventually, the number of CCs may also depend on the operation frequency
  */
-static const uint8_t MAX_CC_INTRA_BAND = 8;  //!< In NR Rel. 16, up to 8 CCs can be aggregated in the same operation band
-static const uint8_t MAX_CC_INTER_BAND = 16; //!< The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
+static const uint8_t MAX_CC_INTRA_BAND = 8;  //!< \ingroup utils In NR Rel. 16, up to 8 CCs can be aggregated in the same operation band
+static const uint8_t MAX_CC_INTER_BAND = 16; //!< \ingroup utils The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
 
+class ThreeGppSpectrumPropagationLossModel;
+class ThreeGppPropagationLossModel;
+class SpectrumChannel;
 
 /**
- * \brief Bandwidth part configuration information
+ * \ingroup helper
+ * \brief Spectrum part
+ *
+ * This is the minimum unit of usable spectrum by a PHY class. For creating
+ * any GNB or UE, you will be asked to provide a list of BandwidthPartInfo
+ * to the methods MmWaveHelper::InstallGnbDevice() and MmWaveHelper::InstallUeDevice().
+ * The reason is that the helper will, for every GNB and UE in the scenario,
+ * create a PHY class that will be attached to the channels included in this struct.
+ *
+ * For every bandwidth part (in this context, referred to a spectrum part) you
+ * have to indicate the central frequency and the higher/lower frequency, as
+ * well as the entire bandwidth plus the modeling.
+ *
+ * The pointers to the channels, if left empty, will be initializated by
+ * MmWaveHelper::InitializeOperationBand().
  */
 struct BandwidthPartInfo
 {
-  uint8_t m_bwpId {0};             //!< BWP id
+  uint8_t m_bwpId {0};               //!< BWP id
   double m_centralFrequency {0.0};   //!< BWP central frequency
   double m_lowerFrequency {0.0};     //!< BWP lower frequency
   double m_higherFrequency {0.0};    //!< BWP higher frequency
@@ -57,17 +69,17 @@ struct BandwidthPartInfo
    */
   enum Scenario
   {
-    RMa,
-    RMa_LoS,
-    RMa_nLoS,
-    UMa_LoS,
-    UMa_nLoS,
-    UMa,
-    UMi_StreetCanyon,
-    UMi_StreetCanyon_LoS,
-    UMi_StreetCanyon_nLoS,
-    InH_OfficeOpen,
-    InH_OfficeMixed
+    RMa,         //!< RMa
+    RMa_LoS,     //!< RMa where all the nodes will be in Line-of-Sight
+    RMa_nLoS,    //!< RMA where all the nodes will not be in Line-of-Sigth
+    UMa_LoS,     //!< UMa where all the nodes will be in Line-of-Sigth
+    UMa_nLoS,    //!< UMa where all the nodes will not be in Line-of-Sigth
+    UMa,         //!< UMa
+    UMi_StreetCanyon,      //!< UMi_StreetCanyon
+    UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sigth
+    UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in Line-of-Sigth
+    InH_OfficeOpen,  //!< InH_OfficeOpen
+    InH_OfficeMixed  //!< InH_OfficeMixed
   } m_scenario {RMa};
 
   /**
@@ -81,13 +93,26 @@ struct BandwidthPartInfo
   Ptr<ThreeGppSpectrumPropagationLossModel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
 };
 
+/**
+ * \ingroup utils
+ * \brief unique_ptr of BandwidthPartInfo
+ */
 typedef std::unique_ptr<BandwidthPartInfo> BandwidthPartInfoPtr;
+/**
+ * \ingroup utils
+ * \brief unique_ptr of a const BandwidthPartInfo
+ */
 typedef std::unique_ptr<const BandwidthPartInfo> BandwidthPartInfoConstPtr;
+/**
+ * \ingroup utils
+ * \brief vector of unique_ptr of BandwidthPartInfo
+ */
 typedef std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> BandwidthPartInfoPtrVector;
 
 std::ostream & operator<< (std::ostream & os, BandwidthPartInfo const & item);
 
 /**
+ * \ingroup helper
  * \brief Component carrier configuration element
  */
 struct ComponentCarrierInfo
@@ -108,12 +133,17 @@ struct ComponentCarrierInfo
   bool AddBwp (BandwidthPartInfoPtr &&bwp);
 };
 
+/**
+ * \ingroup utils
+ * \brief unique_ptr of ComponentCarrierInfo
+ */
 typedef std::unique_ptr<ComponentCarrierInfo> ComponentCarrierInfoPtr;
 
 std::ostream & operator<< (std::ostream & os, ComponentCarrierInfo const & item);
 
 
 /**
+ * \ingroup utils
  * \brief Operation band information structure
  *
  * Defines the range of frequencies of an operation band and includes a list of
@@ -127,38 +157,56 @@ struct OperationBandInfo
   double m_higherFrequency  {0.0};  //!< Operation band higher frequency
   double m_channelBandwidth {0};    //!< Operation band bandwidth
 
-  std::vector<ComponentCarrierInfoPtr> m_cc;
+  std::vector<ComponentCarrierInfoPtr> m_cc; //!< Operation band component carriers
 
   /**
    * \brief Adds the component carrier definition given as an input reference
    * to the current operation band configuration
    *
-   * \param id Where to put the cc
    * \param cc The information of the component carrier to be created
    */
   bool AddCc (ComponentCarrierInfoPtr &&cc);
 
   /**
-   * @brief GetBwpAt
-   * @param ccId
-   * @param bwpId
-   * @return
+   * \brief Get the BWP at the cc/bwp specified
+   * \param ccId Component carrier Index
+   * \param bwpId Bandwidth Part index
+   * \return a pointer to the BWP
    */
   BandwidthPartInfoPtr & GetBwpAt (uint32_t ccId, uint32_t bwpId) const;
 
+  /**
+   * \brief Get the list of all the BWPs to pass to MmWaveHelper
+   * \return a list of BWP to pass to MmWaveHelper::InitializeOperationBand()
+   */
   BandwidthPartInfoPtrVector GetBwps() const;
 };
 
 std::ostream & operator<< (std::ostream & os, OperationBandInfo const & item);
 
 /**
+ * \ingroup helper
  * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
+ *
+ * This class can be used to setup in an easy way the operational bands needed
+ * for a simple scenario. The first thing is to setup a simple configuration,
+ * specified by the struct SimpleOperationBandConf. Then, this configuration can
+ * be passed to CreateOperationBandContiguousCc.
  */
 class CcBwpCreator
 {
 public:
   /**
+   * \ingroup helper
    * \brief Minimum configuration requirements for a OperationBand
+   *
+   * For instance, here is the simple configuration for a single operation band
+   * at 28 GHz and 100 MHz of width:
+   *
+   * `CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, 1, BandwidthPartInfo::UMi_StreetCanyon);`
+   *
+   * The possible values of the scenario are depicted in BandwidthPartInfo
+   * documentation.
    */
   struct SimpleOperationBandConf
   {
@@ -167,7 +215,7 @@ public:
      * \param centralFreq Central Frequency
      * \param channelBw Bandwidth
      * \param num Numerology
-     * \param sched Scheduler
+     * \param scenario Channel scenario
      */
     SimpleOperationBandConf (double centralFreq = 28e9, double channelBw = 400e6, uint8_t numCc = 1,
                              BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa)
@@ -175,31 +223,35 @@ public:
     {
     }
     double m_centralFrequency {28e9};   //!< Central Freq
-    double m_channelBandwidth        {400e6};  //!< Total Bandwidth of the operation band
+    double m_channelBandwidth {400e6};  //!< Total Bandwidth of the operation band
     uint8_t m_numCc           {1};      //!< Number of CC in this OpBand
     uint8_t m_numBwp          {1};      //!< Number of BWP per CC
     BandwidthPartInfo::Scenario m_scenario {BandwidthPartInfo::RMa}; //!< Scenario
   };
 
   /**
-   * \brief Creates an operation band by splitting the available bandwidth into
+   * \brief Create an operation band with the CC specified
+   * \param conf Minimum configuration
+   *
+   * Creates an operation band by splitting the available bandwidth into
    * equally-large contiguous carriers. Carriers will have common parameters like numerology.
    *
-   * \param conf Minimum configuration
+   *
    */
   OperationBandInfo CreateOperationBandContiguousCc (const SimpleOperationBandConf &conf);
 
   /**
    * \brief Creates an operation band with non-contiguous CC.
    *
-   * \param conf Minimum configuration for every CC.
+   * \param configuration Minimum configuration for every CC.
    */
   OperationBandInfo CreateOperationBandNonContiguousCc (const std::vector<SimpleOperationBandConf> &configuration);
 
   /**
-   * @brief GetAllBwps
-   * @param operationBands
-   * @return
+   * \brief Get all the BWP pointers from the specified vector of operation bands
+   * \param operationBands the operation bands
+   * \return the pointers to the BWP to be passed to MmWaveHelper
+   *
    */
   static BandwidthPartInfoPtrVector
   GetAllBwps (const std::vector<std::reference_wrapper<OperationBandInfo> > &operationBands);

@@ -33,11 +33,10 @@ namespace ns3 {
  * there is an associated numerology, and that a particular value is not
  * normalized the same in two different numerologies.
  *
- * <b> Usage </b>
+ * \section sfnsf_usage Usage
  *
  * To create a SfnSf with numerology 2 (for example), please do:
  * \verbatim
-
  auto sfn = SfnSf (1, 0, 0, 2);
  \endverbatim
  *
@@ -111,8 +110,6 @@ public:
 
   /**
    * \brief Normalize the SfnSf in slot number
-   * \param slotsPerSubframe Number of slot per subframe
-   * \param subframesPerFrame Number of subframes per frame
    * \return The number of total slots passed (can overlap)
    */
   uint64_t Normalize () const;

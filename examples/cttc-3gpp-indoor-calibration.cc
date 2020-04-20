@@ -182,10 +182,7 @@ public:
    * topology and run the simulation by using the parameters that are being
    * configured for the specific run.
    *
-   * @param shadowing boolean value that determines whether the shadowing will
-   * be enabled in the 3gpp channel model
-   * @param antOrientation the parameter thar specifies the antenna orientation,
-   * e.g. can be horizontal when Z=0, or vertical when X=0
+   *
    * @param gNbAntennaModel antenna model to be used by gNB device, can be ISO
    * directional 3GPP
    * @param ueAntennaModel antenna model to be used by gNB device, can be ISO
@@ -195,10 +192,8 @@ public:
    * InH-OfficeOpen and InH-OfficeMixed
    * @param speed the speed of UEs in km/h
    * @param resultsDirPath results directory path
-   * @param isBeamSearchMethod whether to use the beamSearchMethod or long term
-   * covariance matrix
-   * @param beamSearchMethodAngle beam search method angle step
-   * @param
+   * @param tag Tag
+   * @param duration duration
    */
   void Run (bool gNbAntennaModel,
             bool ueAntennaModel, std::string scenario, double speed,

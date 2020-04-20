@@ -43,7 +43,7 @@ namespace ns3 {
 class MmWaveBearerStatsCalculator;
 
 /**
- * \ingroup lte
+ * \ingroup utils
  *
  * This class is very useful when user needs to collect
  * statistics from PDCD and RLC. It automatically connects
