@@ -25,6 +25,7 @@
 #include <ns3/uinteger.h>
 #include "nr-error-model.h"
 #include "nr-lte-mi-error-model.h"
+#include "lena-error-model.h"
 #include "mmwave-spectrum-value-helper.h"
 
 namespace ns3 {
@@ -120,21 +121,23 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const
 
   uint32_t tbSize = payloadSize;
 
-  uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code-block (including m_crcLen)
-
-  if (payloadSize >= m_crcLen)
+  if (m_errorModelType != LenaErrorModel::GetTypeId ())
     {
-      tbSize = payloadSize - m_crcLen;
+      uint32_t cbSize = m_errorModel->GetMaxCbSize (payloadSize, mcs); // max size of a code-block (including m_crcLen)
+
+      if (payloadSize >= m_crcLen)
+        {
+          tbSize = payloadSize - m_crcLen;
+        }
+
+      if (tbSize > cbSize)
+        {
+          double C = ceil (tbSize / cbSize);
+          tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code-blocks.
+        }
     }
 
-  if (tbSize > cbSize)
-    {
-      double C = ceil (tbSize / cbSize);
-      tbSize = payloadSize - static_cast<uint32_t> (C * m_crcLen);   //subtract bits of m_crcLen used in code-blocks.
-    }
-
-  NS_LOG_INFO (" mcs:" << (unsigned) mcs <<
-               " TB size:" << tbSize);
+  NS_LOG_INFO (" mcs:" << (unsigned) mcs << " TB size:" << tbSize);
 
   return tbSize;
 }
