@@ -54,7 +54,7 @@ typedef std::map<ImsiLcidPair_t, double> DoubleMap;
 typedef std::map<ImsiLcidPair_t, LteFlowId_t> FlowIdMap;
 
 /**
- * \ingroup lte
+ * \ingroup utils
  *
  * This class is an ns-3 trace sink that performs the calculation of
  * PDU statistics for uplink and downlink. Statistics are generated

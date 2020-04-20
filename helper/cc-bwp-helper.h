@@ -157,7 +157,7 @@ struct OperationBandInfo
   double m_higherFrequency  {0.0};  //!< Operation band higher frequency
   double m_channelBandwidth {0};    //!< Operation band bandwidth
 
-  std::vector<ComponentCarrierInfoPtr> m_cc;
+  std::vector<ComponentCarrierInfoPtr> m_cc; //!< Operation band component carriers
 
   /**
    * \brief Adds the component carrier definition given as an input reference
@@ -172,7 +172,7 @@ struct OperationBandInfo
    * \brief Get the BWP at the cc/bwp specified
    * \param ccId Component carrier Index
    * \param bwpId Bandwidth Part index
-   * \return
+   * \return a pointer to the BWP
    */
   BandwidthPartInfoPtr & GetBwpAt (uint32_t ccId, uint32_t bwpId) const;
 
@@ -186,16 +186,28 @@ struct OperationBandInfo
 std::ostream & operator<< (std::ostream & os, OperationBandInfo const & item);
 
 /**
- * \ingroup utils
+ * \ingroup helper
  * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
  *
- *
+ * This class can be used to setup in an easy way the operational bands needed
+ * for a simple scenario. The first thing is to setup a simple configuration,
+ * specified by the struct SimpleOperationBandConf. Then, this configuration can
+ * be passed to CreateOperationBandContiguousCc.
  */
 class CcBwpCreator
 {
 public:
   /**
    * \brief Minimum configuration requirements for a OperationBand
+   *
+   * For instance, here is the simple configuration for a single operation band
+   * at 28 GHz and 100 MHz of width:
+\verbatim
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, 1, BandwidthPartInfo::UMi_StreetCanyon);
+\endverbatim
+   *
+   * The possible values of the scenario are depicted in BandwidthPartInfo
+   * documentation.
    */
   struct SimpleOperationBandConf
   {
@@ -204,7 +216,7 @@ public:
      * \param centralFreq Central Frequency
      * \param channelBw Bandwidth
      * \param num Numerology
-     * \param sched Scheduler
+     * \param scenario Channel scenario
      */
     SimpleOperationBandConf (double centralFreq = 28e9, double channelBw = 400e6, uint8_t numCc = 1,
                              BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa)
@@ -212,16 +224,22 @@ public:
     {
     }
     double m_centralFrequency {28e9};   //!< Central Freq
-    double m_channelBandwidth        {400e6};  //!< Total Bandwidth of the operation band
+    double m_channelBandwidth {400e6};  //!< Total Bandwidth of the operation band
     uint8_t m_numCc           {1};      //!< Number of CC in this OpBand
     uint8_t m_numBwp          {1};      //!< Number of BWP per CC
     BandwidthPartInfo::Scenario m_scenario {BandwidthPartInfo::RMa}; //!< Scenario
   };
 
   /**
-   * \brief Creates an operation band by splitting the available bandwidth into
+   * \brief Create an operation band with the CC specified
+   *
+   * Creates an operation band by splitting the available bandwidth into
    * equally-large contiguous carriers. Carriers will have common parameters like numerology.
    *
+   * Example:
+\verbatim
+  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+\endverbatim
    * \param conf Minimum configuration
    */
   OperationBandInfo CreateOperationBandContiguousCc (const SimpleOperationBandConf &conf);
@@ -234,9 +252,16 @@ public:
   OperationBandInfo CreateOperationBandNonContiguousCc (const std::vector<SimpleOperationBandConf> &configuration);
 
   /**
-   * @brief GetAllBwps
-   * @param operationBands
-   * @return
+   * \brief Get all the BWP pointers from the specified vector of operation bands
+   * \param operationBands the operation bands
+   * \return the pointers to the BWP to be passed to MmWaveHelper
+   *
+   * Example of usage:
+\verbatim
+  auto allBwps = CcBwpCreator::GetAllBwps ({band1});
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gnbs, allBwps);
+\endverbatim
+   *
    */
   static BandwidthPartInfoPtrVector
   GetAllBwps (const std::vector<std::reference_wrapper<OperationBandInfo> > &operationBands);

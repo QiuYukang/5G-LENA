@@ -33,21 +33,51 @@ namespace ns3 {
 class MmWaveEnbNetDevice;
 class MmWaveUeNetDevice;
 
+/**
+ * \ingroup helper
+ * \brief The IdealBeamformingHelper class
+ */
 class IdealBeamformingHelper : public ns3::Object
 {
 public:
+  /**
+   * \brief IdealBeamformingHelper
+   */
   IdealBeamformingHelper ();
-  virtual
-  ~IdealBeamformingHelper ();
+  /**
+   * \brief ~IdealBeamformingHelper
+   */
+  virtual ~IdealBeamformingHelper ();
 
+  /**
+   * \brief Get the Type ID
+   * \return the TypeId of the instance
+   */
   static TypeId GetTypeId (void);
 
+  /**
+   * \brief AddBeamformingTask
+   * \param gNbDev
+   * \param ueDev
+   */
   void AddBeamformingTask (const Ptr<MmWaveEnbNetDevice>& gNbDev,
                            const Ptr<MmWaveUeNetDevice>& ueDev);
 
+  /**
+   * \brief SetIdealBeamformingMethod
+   * \param beamformingMethod
+   */
   void SetIdealBeamformingMethod (const TypeId &beamformingMethod);
 
+  /**
+   * \brief SetIdealBeamformingPeriodicity
+   * \param v
+   */
   void SetIdealBeamformingPeriodicity (const Time &v);
+  /**
+   * \brief GetIdealBeamformingPeriodicity
+   * \return
+   */
   Time GetIdealBeamformingPeriodicity () const;
 
   /**
@@ -58,6 +88,9 @@ public:
    */
   void SetIdealBeamFormingAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
+  /**
+   * \brief Run
+   */
   void Run () const;
 
 private:
@@ -72,8 +105,6 @@ private:
   Time m_beamformingPeriodicity;
   Ptr<IdealBeamformingAlgorithm> m_idealBeamformingAlgorithm;
   EventId m_beamformingTimer; //!< Beamforming timer
-
-
 };
 
 }; //ns3 namespace
