@@ -80,6 +80,8 @@ New user-visible features (old first)
   to keep in consideration when calculating the number of usable RB. By default,
   it is now set ot 0.04, while before it was set to 0.0 (0.0 means that there are
   no guard bands, and the entire bandwidth is usable).
+- Added the LENA error model. To be used only in conjunction with a OFDMA scheduler,
+  and without beams.
 
 Bugs fixed
 ----------
