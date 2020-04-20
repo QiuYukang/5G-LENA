@@ -147,7 +147,7 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario,
 
   m_numerology = 0;
   m_centralFrequency = 2e9;
-  m_bandwidth = 18e6 * numCcs;  // 100 RBs per CC (freqReuse)
+  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
   if (operationMode == "FDD")
     {
       m_bandwidth += m_bandwidth;
@@ -173,7 +173,7 @@ RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
 
   m_numerology = numerology;
   m_centralFrequency = 2e9;
-  m_bandwidth = 18e6 * numCcs;  // 100 RBs per CC (freqReuse)
+  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
   if (operationMode == "FDD")
     {
       m_bandwidth += m_bandwidth;
@@ -212,14 +212,6 @@ RadioNetworkParametersHelper::GetNumerology ()
   return m_numerology;
 }
 
-
-
-//static enum Ns3simulator
-//{
-//  LENA = 0,
-//  LENA5G = 1,
-//  NONE = 2
-//};
 
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  std::string scenario,
