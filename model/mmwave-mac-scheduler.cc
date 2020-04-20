@@ -118,6 +118,14 @@ public:
   {
     m_scheduler->DoSchedDlRachInfoReq (params);
   }
+  virtual uint8_t GetDlCtrlSyms () const override
+  {
+    return m_scheduler->GetDlCtrlSyms ();
+  }
+  virtual uint8_t GetUlCtrlSyms () const override
+  {
+    return m_scheduler->GetUlCtrlSyms ();
+  };
 private:
   MmWaveMacScheduler* m_scheduler {nullptr};
 };

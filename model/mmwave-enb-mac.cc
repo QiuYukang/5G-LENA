@@ -487,6 +487,18 @@ MmWaveEnbMac::GetNumHarqProcess () const
   return m_numHarqProcess;
 }
 
+uint8_t
+MmWaveEnbMac::GetDlCtrlSyms() const
+{
+  return m_macSchedSapProvider->GetDlCtrlSyms ();
+}
+
+uint8_t
+MmWaveEnbMac::GetUlCtrlSyms() const
+{
+  return m_macSchedSapProvider->GetUlCtrlSyms ();
+}
+
 void
 MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
@@ -1221,8 +1233,9 @@ MmWaveEnbMac::GetDlCtrlDci () const
   NS_ASSERT (m_bandwidthInRbg > 0);
   std::vector<uint8_t> rbgBitmask (m_bandwidthInRbg , 1);
 
-  // Fix: Insert number of dl ctrl symbols
-  return std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::DL, DciInfoElementTdma::CTRL, rbgBitmask);
+  return std::make_shared<DciInfoElementTdma> (0, m_macSchedSapProvider->GetDlCtrlSyms (),
+                                               DciInfoElementTdma::DL, DciInfoElementTdma::CTRL,
+                                               rbgBitmask);
 }
 
 std::shared_ptr<DciInfoElementTdma>
@@ -1233,8 +1246,9 @@ MmWaveEnbMac::GetUlCtrlDci () const
   NS_ASSERT (m_bandwidthInRbg > 0);
   std::vector<uint8_t> rbgBitmask (m_bandwidthInRbg , 1);
 
-  // Fix: Insert number of ul ctrl symbols
-  return std::make_shared<DciInfoElementTdma> (0, 1, DciInfoElementTdma::UL, DciInfoElementTdma::CTRL, rbgBitmask);
+  return std::make_shared<DciInfoElementTdma> (0, m_macSchedSapProvider->GetUlCtrlSyms (),
+                                               DciInfoElementTdma::UL, DciInfoElementTdma::CTRL,
+                                               rbgBitmask);
 }
 
 void
