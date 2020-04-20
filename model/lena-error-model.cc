@@ -48,11 +48,11 @@ LenaErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, 
 
   if (mode == NrErrorModel::DL)
     {
-      return lenaAmc.GetDlTbSizeFromMcs (mcs, rbNum / 13);
+      return (lenaAmc.GetDlTbSizeFromMcs (mcs, rbNum / 13) / 8);
     }
   else
     {
-      return lenaAmc.GetUlTbSizeFromMcs (mcs, rbNum / 13);
+      return (lenaAmc.GetUlTbSizeFromMcs (mcs, rbNum / 13) / 8);
     }
 }
 
