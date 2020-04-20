@@ -360,11 +360,15 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           errorModel = "ns3::LenaErrorModel";
         }
+      // FIXME: if numScPerRb is double then uncomment this
+//      else if (errorModel == "ns3::NrLteMiErrorModel")
+//        {
+//          numScPerRb = 1.2;  // This parameter was tuned for numRBs = 100 and maximum MCS
+//        }
       else if (errorModel != "ns3::NrLteMiErrorModel" || "ns3::LenaErrorModel")
         {
           NS_ABORT_MSG ("The selected error model is not recommended for LTE");
         }
-      numScPerRb = 1;
     }
   else if (radioNetwork == "NR")
     {
@@ -555,11 +559,12 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   //
 
   // Scheduler type
-  if (radioNetwork == "LTE")
-    {
-      mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
+    if (radioNetwork == "LTE")
+      {
+        mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
 //      mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaRR"));
-    }
+        mmWaveHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+      }
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
