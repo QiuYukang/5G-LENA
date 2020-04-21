@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -15,8 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
-
  */
 
 #include "ns3/mmwave-helper.h"
@@ -112,8 +110,8 @@ class Nr3gppIndoorCalibration
 public:
 
   /**
-   * \brief This function converts a linear SINR value that is encapsulated in params
-   * structure to dBs, and then it prints the dB value to an output file
+   * \brief This function converts a linear SINR value that is encapsulated in
+   * params structure to dBs, and then it prints the dB value to an output file
    * containing SINR values.
    * @param params RxPacketTraceParams structure that contains different
    * attributes that define the reception of the packet
@@ -152,8 +150,10 @@ public:
    * InH-OfficeOpen and InH-OfficeMixed
    * @param speed the speed of UEs in km/h
    * @param resultsDirPath results directory path
-   * @param tag Tag
-   * @param duration duration
+   * @param tag A tag that contains some simulation run specific values in order
+   * to be able to distinguish the results file for different runs for different
+   * parameters configuration
+   * @param duration The duration of the simulation
    */
   void Run (double centralFrequencyBand, double bandwidthBand, uint16_t numerology,
             double totalTxPower, bool gNbAntennaModel, bool ueAntennaModel,
@@ -171,7 +171,8 @@ public:
    * \param ueNodes - container of UE nodes
    * \param gnbNodes - container of gNB nodes
    * \param min3DDistance - the minimum that shall be between UE and gNB
-   * \param numberOfUesToBeSelected -the number of UE nodes to be selected from the original container
+   * \param numberOfUesToBeSelected - the number of UE nodes to be selected
+   * from the original container
    */
   NodeContainer SelectWellPlacedUes (const NodeContainer ueNodes, const NodeContainer gnbNodes,
                                      double min3DDistance, uint32_t numberOfUesToBeSelected);
@@ -200,7 +201,7 @@ std::string
 BuildFileNameString (std::string directoryName, std::string filePrefix, std::string tag)
 {
   std::ostringstream oss;
-  oss << directoryName << filePrefix<<tag;
+  oss << directoryName << filePrefix << tag;
   return oss.str ();
 }
 
@@ -218,7 +219,6 @@ std::string
 BuildTag(bool gNbAntennaModel, bool ueAntennaModel, std::string scenario,
          double speed)
 {
-
   std::ostringstream oss;
   std::string ao;
 
@@ -243,8 +243,8 @@ BuildTag(bool gNbAntennaModel, bool ueAntennaModel, std::string scenario,
     }
 
   std::string gm = "";
-  oss <<"-ao"<<ao<<"-amGnb"<<gnbAm<<"-amUE"<<ueAm<<
-      "-sc"<<scenario<<"-sp"<<speed<<"-gm"<<gm;
+  oss << "-ao" << ao << "-amGnb" << gnbAm << "-amUE" << ueAm <<
+      "-sc" << scenario << "-sp" << speed << "-gm" << gm;
 
   return oss.str ();
 }
@@ -256,7 +256,7 @@ BuildTag(bool gNbAntennaModel, bool ueAntennaModel, std::string scenario,
  */
 void UeReceptionTrace (Nr3gppIndoorCalibration* scenario, RxPacketTraceParams params)
 {
-  scenario->UeReception(params);
+  scenario->UeReception (params);
  }
 
 /**
@@ -283,44 +283,48 @@ void UeRssiPerProcessedChunkTrace (Nr3gppIndoorCalibration* scenario, double rss
 void
 Nr3gppIndoorCalibration::UeReception (RxPacketTraceParams params)
 {
-  m_outSinrFile<<params.m_cellId<<params.m_rnti<<"\t"<<10*log10(params.m_sinr)<<std::endl;
+  m_outSinrFile << params.m_cellId << params.m_rnti <<
+                   "\t" << 10*log10 (params.m_sinr) << std::endl;
 }
 
 void
 Nr3gppIndoorCalibration::UeSnrPerProcessedChunk (double snr)
 {
-  m_outSnrFile<<10*log10(snr)<<std::endl;
+  m_outSnrFile << 10 * log10 (snr) << std::endl;
 }
 
 
 void
 Nr3gppIndoorCalibration::UeRssiPerProcessedChunk (double rssidBm)
 {
-  m_outRssiFile<<rssidBm<<std::endl;
+  m_outRssiFile << rssidBm << std::endl;
 }
 
 Nr3gppIndoorCalibration::~Nr3gppIndoorCalibration ()
 {
-  m_outSinrFile.close();
-  m_outSnrFile.close();
-  m_outRssiFile.close();
+  m_outSinrFile.close ();
+  m_outSnrFile.close ();
+  m_outRssiFile.close ();
 }
 
 NodeContainer
-Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes, const NodeContainer gnbNodes, double minDistance, uint32_t numberOfUesToBeSelected)
+Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes,
+                                              const NodeContainer gnbNodes,
+                                              double minDistance,
+                                              uint32_t numberOfUesToBeSelected)
 {
   NodeContainer ueNodesFiltered;
   bool correctDistance = true;
 
-  for (NodeContainer::Iterator itUe = ueNodes.Begin(); itUe!=ueNodes.End(); itUe++)
+  for (NodeContainer::Iterator itUe = ueNodes.Begin (); itUe!= ueNodes.End (); itUe++)
     {
       correctDistance = true;
-      Ptr<MobilityModel> ueMm = (*itUe)->GetObject<MobilityModel>();
+      Ptr<MobilityModel> ueMm = (*itUe)->GetObject<MobilityModel> ();
       Vector uePos = ueMm->GetPosition ();
 
-      for (NodeContainer::Iterator itGnb = gnbNodes.Begin(); itGnb!=gnbNodes.End(); itGnb++)
+      for (NodeContainer::Iterator itGnb = gnbNodes.Begin (); itGnb!= gnbNodes.End (); itGnb++)
         {
-          Ptr<MobilityModel> gnbMm = (*itGnb)->GetObject<MobilityModel>();
+          Ptr<MobilityModel> gnbMm = (*itGnb)->GetObject<MobilityModel> ();
           Vector gnbPos = gnbMm->GetPosition ();
           double x = uePos.x - gnbPos.x;
           double y = uePos.y - gnbPos.y;
@@ -334,15 +338,15 @@ Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes, const
             }
           else
             {
-              m_outDistancesFile <<distance<<std::endl;
+              m_outDistancesFile << distance << std::endl;
             }
         }
 
       if (correctDistance)
         {
-          ueNodesFiltered.Add(*itUe);
+          ueNodesFiltered.Add (*itUe);
         }
-      if (ueNodesFiltered.GetN() >= numberOfUesToBeSelected)
+      if (ueNodesFiltered.GetN () >= numberOfUesToBeSelected)
         {
           // there are enough candidate UE nodes
           break;
@@ -403,7 +407,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     m_outSinrFile.open (filenameSinr.c_str ());
     m_outSinrFile.setf (std::ios_base::fixed);
 
-    if(!m_outSinrFile.is_open())
+    if(!m_outSinrFile.is_open ())
       {
         NS_ABORT_MSG("Can't open file " << filenameSinr);
       }
@@ -411,7 +415,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     m_outSnrFile.open (filenameSnr.c_str ());
     m_outSnrFile.setf (std::ios_base::fixed);
 
-    if(!m_outSnrFile.is_open())
+    if(!m_outSnrFile.is_open ())
       {
         NS_ABORT_MSG("Can't open file " << filenameSnr);
       }
@@ -427,7 +431,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     m_outUePositionsFile.open (filenameUePositions.c_str ());
     m_outUePositionsFile.setf (std::ios_base::fixed);
 
-    if(!m_outUePositionsFile.is_open())
+    if(!m_outUePositionsFile.is_open ())
       {
         NS_ABORT_MSG("Can't open file " << filenameUePositions);
       }
@@ -435,7 +439,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     m_outGnbPositionsFile.open (filenameGnbPositions.c_str ());
     m_outGnbPositionsFile.setf (std::ios_base::fixed);
 
-    if(!m_outGnbPositionsFile.is_open())
+    if(!m_outGnbPositionsFile.is_open ())
       {
         NS_ABORT_MSG("Can't open file " << filenameGnbPositions);
       }
@@ -443,7 +447,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     m_outDistancesFile.open (filenameDistances.c_str ());
     m_outDistancesFile.setf (std::ios_base::fixed);
 
-    if(!m_outDistancesFile.is_open())
+    if(!m_outDistancesFile.is_open ())
       {
          NS_ABORT_MSG("Can't open file " << filenameDistances);
        }
@@ -464,7 +468,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
       {
         for (uint8_t i = 0; i < 6; i++)
           {
-            gNbPositionAlloc->Add(Vector( i*20, j*20, gNbHeight));
+            gNbPositionAlloc->Add (Vector ( i*20, j*20, gNbHeight));
           }
       }
 
@@ -477,64 +481,67 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     double maxBigBoxX = 110.0;
     double maxBigBoxY =  35.0;
 
-    // Creating positions of the gNB according to the 3gpp TR 38.900 and
+    // Creating positions of the UEs according to the 3gpp TR 38.900 and
     // R11700144, uniformly randombly distributed in the rectangular area
 
     NodeContainer selectedUeNodes;
     for (uint8_t j = 0; j < 2; j++)
       {
-        double minSmallBoxY = minBigBoxY + j * (maxBigBoxY-minBigBoxY)/2;
+        double minSmallBoxY = minBigBoxY + j * (maxBigBoxY - minBigBoxY) / 2;
 
         for (uint8_t i = 0; i < 6; i++)
           {
-            double minSmallBoxX = minBigBoxX + i * (maxBigBoxX - minBigBoxX)/6;
-            Ptr<UniformRandomVariable> ueRandomVarX = CreateObject<UniformRandomVariable>();
+            double minSmallBoxX = minBigBoxX + i * (maxBigBoxX - minBigBoxX) / 6;
+            Ptr<UniformRandomVariable> ueRandomVarX = CreateObject<UniformRandomVariable> ();
 
             double minX = minSmallBoxX;
-            double maxX = minSmallBoxX + (maxBigBoxX - minBigBoxX)/6 - 0.0001;
+            double maxX = minSmallBoxX + (maxBigBoxX - minBigBoxX) / 6 - 0.0001;
             double minY = minSmallBoxY;
-            double maxY = minSmallBoxY + (maxBigBoxY-minBigBoxY)/2 - 0.0001;
+            double maxY = minSmallBoxY + (maxBigBoxY-minBigBoxY) / 2 - 0.0001;
 
             Ptr<RandomBoxPositionAllocator> ueRandomRectPosAlloc = CreateObject<RandomBoxPositionAllocator> ();
             ueRandomVarX->SetAttribute ("Min", DoubleValue (minX));
             ueRandomVarX->SetAttribute ("Max", DoubleValue (maxX));
-            ueRandomRectPosAlloc->SetX(ueRandomVarX);
-            Ptr<UniformRandomVariable> ueRandomVarY = CreateObject<UniformRandomVariable>();
+            ueRandomRectPosAlloc->SetX (ueRandomVarX);
+            Ptr<UniformRandomVariable> ueRandomVarY = CreateObject<UniformRandomVariable> ();
             ueRandomVarY->SetAttribute ("Min", DoubleValue (minY));
             ueRandomVarY->SetAttribute ("Max", DoubleValue (maxY));
-            ueRandomRectPosAlloc->SetY(ueRandomVarY);
-            Ptr<ConstantRandomVariable> ueRandomVarZ = CreateObject<ConstantRandomVariable>();
-            ueRandomVarZ->SetAttribute("Constant", DoubleValue(ueHeight));
-            ueRandomRectPosAlloc->SetZ(ueRandomVarZ);
+            ueRandomRectPosAlloc->SetY (ueRandomVarY);
+            Ptr<ConstantRandomVariable> ueRandomVarZ = CreateObject<ConstantRandomVariable> ();
+            ueRandomVarZ->SetAttribute ("Constant", DoubleValue (ueHeight));
+            ueRandomRectPosAlloc->SetZ (ueRandomVarZ);
 
-            uint8_t smallBoxIndex = j*6 + i;
+            uint8_t smallBoxIndex = j * 6 + i;
 
             NodeContainer smallBoxCandidateNodes;
             NodeContainer smallBoxGnbNode;
 
-            smallBoxGnbNode.Add(gNbNodes.Get(smallBoxIndex));
+            smallBoxGnbNode.Add (gNbNodes.Get (smallBoxIndex));
 
-            for (uint32_t n = smallBoxIndex * ueCount/12; n < smallBoxIndex * (uint32_t)(ueCount/12) + (uint32_t)(ueCount/12); n++ )
+            for (uint32_t n = smallBoxIndex * ueCount/12; n < smallBoxIndex *
+                 static_cast <uint32_t> (ueCount/12) +
+                 static_cast <uint32_t> (ueCount/12); n++ )
               {
-                smallBoxCandidateNodes.Add(ueNodes.Get(n));
+                smallBoxCandidateNodes.Add (ueNodes.Get (n));
               }
             mobility.SetPositionAllocator (ueRandomRectPosAlloc);
             mobility.Install (smallBoxCandidateNodes);
-            NodeContainer sn = SelectWellPlacedUes (smallBoxCandidateNodes, smallBoxGnbNode , minDistance, 10);
-            selectedUeNodes.Add(sn);
+            NodeContainer sn = SelectWellPlacedUes (smallBoxCandidateNodes,
+                                                    smallBoxGnbNode , minDistance, 10);
+            selectedUeNodes.Add (sn);
           }
       }
 
-    for (uint j = 0; j < selectedUeNodes.GetN(); j++)
+    for (uint j = 0; j < selectedUeNodes.GetN (); j++)
       {
-          Vector v = selectedUeNodes.Get(j)->GetObject<MobilityModel>()->GetPosition();
-          m_outUePositionsFile<<j<<"\t"<<v.x<<"\t"<<v.y<<"\t"<<v.z<<" "<<std::endl;
+          Vector v = selectedUeNodes.Get (j)->GetObject<MobilityModel> ()->GetPosition ();
+          m_outUePositionsFile << j << "\t" << v.x << "\t" << v.y << "\t" << v.z << " " << std::endl;
       }
 
-    for (uint j = 0; j < gNbNodes.GetN(); j++)
+    for (uint j = 0; j < gNbNodes.GetN (); j++)
       {
-          Vector v = gNbNodes.Get(j)->GetObject<MobilityModel>()->GetPosition();
-          m_outGnbPositionsFile<<j<<"\t"<<v.x<<"\t"<<v.y<<"\t"<<v.z<<" "<<std::endl;
+          Vector v = gNbNodes.Get (j)->GetObject<MobilityModel> ()->GetPosition ();
+          m_outGnbPositionsFile << j << "\t" << v.x << "\t" << v.y << "\t" << v.z << " " << std::endl;
       }
 
     m_outUePositionsFile.close ();
@@ -550,14 +557,14 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     mmWaveHelper->SetEpcHelper (epcHelper);
 
     /*
-     * Spectrum division. We create one operational bands, containing one
+     * Spectrum division. We create one operational band, containing one
      * component carrier, which in turn contains a single bandwidth part
      * centered at the frequency specified by the input parameters.
      *
      * The configured spectrum division is:
-     * |------------------------Band1-------------------------|
-     * |-------------------------CC1--------------------------|
-     * |------------------------BWP1--------------------------|
+     * |------------------------Band-------------------------|
+     * |-------------------------CC--------------------------|
+     * |-------------------------BWP-------------------------|
      *
      * Each spectrum part length is, as well, specified by the input parameters.
      * The band will use the indoor channel modeling specified by scenario.
@@ -604,14 +611,14 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     NetDeviceContainer gNbDevs = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
     NetDeviceContainer ueNetDevs = mmWaveHelper->InstallUeDevice (selectedUeNodes, allBwps);
 
-    for (uint32_t i = 0 ; i < gNbDevs.GetN(); i ++)
+    for (uint32_t i = 0 ; i < gNbDevs.GetN (); i ++)
     {
         mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
         mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (totalTxPower)));
         // gNB noise figure shall be set to 7 dB
         mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("NoiseFigure", DoubleValue (7));
     }
-    for (uint j = 0; j < ueNetDevs.GetN(); j++)
+    for (uint j = 0; j < ueNetDevs.GetN (); j++)
     {
         // UE noise figure shall be set to 10 dB
         mmWaveHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));
@@ -658,14 +665,14 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDevs));
 
     // Set the default gateway for the UEs
-    for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+    for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
       {
         Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
         ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
       }
 
     // attach UEs to the closest eNB
-    mmWaveHelper->AttachToClosestEnb (NetDeviceContainer(ueNetDevs), NetDeviceContainer(gNbDevs));
+    mmWaveHelper->AttachToClosestEnb (ueNetDevs, gNbDevs);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
@@ -678,31 +685,31 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     serverAppsDl.Add (dlPacketSinkHelper.Install (ueNodes));
 
     // configure UDP downlink traffic
-    for (uint32_t i = 0 ; i < ueNetDevs.GetN(); i ++)
+    for (uint32_t i = 0 ; i < ueNetDevs.GetN (); i ++)
       {
         UdpClientHelper dlClient (ueIpIface.GetAddress (i), dlPort);
-        dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-        dlClient.SetAttribute("PacketSize", UintegerValue(packetSize));
+        dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+        dlClient.SetAttribute("PacketSize", UintegerValue (packetSize));
         dlClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
         clientAppsDl.Add (dlClient.Install (remoteHost));
       }
 
     // start UDP server and client apps
-    serverAppsDl.Start(udpAppStartTimeDl);
-    clientAppsDl.Start(udpAppStartTimeDl);
+    serverAppsDl.Start (udpAppStartTimeDl);
+    clientAppsDl.Start (udpAppStartTimeDl);
 
-    serverAppsDl.Stop(udpAppStopTimeDl);
-    clientAppsDl.Stop(udpAppStopTimeDl);
+    serverAppsDl.Stop (udpAppStopTimeDl);
+    clientAppsDl.Stop (udpAppStopTimeDl);
 
-    for (uint32_t i = 0 ; i < ueNetDevs.GetN(); i ++)
+    for (uint32_t i = 0 ; i < ueNetDevs.GetN (); i ++)
       {
         Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
-        (ueNetDevs.Get(i))->GetPhy(0)->GetSpectrumPhy();
-        ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe", MakeBoundCallback(&UeReceptionTrace, this));
-        Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference();
-        NS_ABORT_IF(!ue1SpectrumPhyInterference);
-        ue1SpectrumPhyInterference->TraceConnectWithoutContext("SnrPerProcessedChunk", MakeBoundCallback (&UeSnrPerProcessedChunkTrace, this));
-        ue1SpectrumPhyInterference->TraceConnectWithoutContext("RssiPerProcessedChunk", MakeBoundCallback (&UeRssiPerProcessedChunkTrace, this));
+        (ueNetDevs.Get (i))->GetPhy (0)->GetSpectrumPhy ();
+        ue1SpectrumPhy->TraceConnectWithoutContext ("RxPacketTraceUe", MakeBoundCallback (&UeReceptionTrace, this));
+        Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference ();
+        NS_ABORT_IF (!ue1SpectrumPhyInterference);
+        ue1SpectrumPhyInterference->TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeBoundCallback (&UeSnrPerProcessedChunkTrace, this));
+        ue1SpectrumPhyInterference->TraceConnectWithoutContext ("RssiPerProcessedChunk", MakeBoundCallback (&UeRssiPerProcessedChunkTrace, this));
       }
 
     Simulator::Stop (simTime);
@@ -726,7 +733,7 @@ main (int argc, char *argv[])
   std::string indoorScenario = "InH-OfficeOpen";
   double speed = 3.00;
   std::string resultsDir = "./";
-  std::string simTag = "default";
+  std::string simTag = "";
 
   CommandLine cmd;
 
