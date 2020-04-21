@@ -25,6 +25,21 @@
  * \ingroup examples
  * \brief Frequency division multiplexing example, with TDD and FDD
  *
+ * The example is showing how to configure multiple bandwidth parts, in which
+ * some of them form a FDD configuration, while others uses TDD. The user
+ * can configure the bandwidth and the frequency of these BWPs. Three types
+ * of traffic are available: two are DL (video and voice) while one is
+ * UL (gaming). Each traffic will be routed to different BWP. Voice will go
+ * in the TDD BWP, while video will go in the FDD-DL one, and gaming in the
+ * FDD-UL one.
+ *
+ * The configured spectrum division is the following:
+\verbatim
+    |------------BandTdd--------------|--------------BandFdd---------------|
+    |------------CC0------------------|--------------CC1-------------------|
+    |------------BWP0-----------------|------BWP1-------|-------BWP2-------|
+\endverbatim
+ * We will configure BWP0 as TDD, BWP1 as FDD-DL, BWP2 as FDD-UL.
  */
 
 #include "ns3/core-module.h"
