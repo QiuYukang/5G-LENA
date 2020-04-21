@@ -43,6 +43,7 @@
 #include "ns3/mmwave-spectrum-phy.h"
 #include "ns3/mmwave-ue-net-device.h"
 #include <ns3/mmwave-ue-phy.h>
+#include "ns3/nr-module.h"
 
 using namespace ns3;
 
@@ -98,53 +99,9 @@ using namespace ns3;
  * set in the specific simulation execution.
  */
 
-enum AntennaModelEnum{
-  _ISO,
-  _3GPP,
-};
 
 NS_LOG_COMPONENT_DEFINE ("Nr3gppIndoorCalibration");
 
-// Global Values are used in place of command line arguments so that these
-// values may be managed in the ns-3 ConfigStore system.
-
-
-static ns3::GlobalValue g_duration ("duration",
-                                     "simulation duration in milliseconds, should be greater than 100 ms to allow the collection of traces",
-                                     ns3::UintegerValue (150),
-                                     ns3::MakeUintegerChecker<uint32_t>());
-
-static ns3::GlobalValue g_antennaModelgNb ("antennaModelGnb",
-                                           "the antenna model of gNb, can be ISO or 3GPP",
-                                           ns3::EnumValue (_3GPP),
-                                           ns3::MakeEnumChecker (_ISO, "ISO",
-                                                                 _3GPP, "3GPP"));
-
-static ns3::GlobalValue g_antennaModelUe ("antennaModelUe",
-                                           "the antenna model of Ue, can be ISO or 3GPP",
-                                           ns3::EnumValue (_3GPP),
-                                           ns3::MakeEnumChecker (_ISO, "ISO",
-                                                                 _3GPP, "3GPP"));
-
-static ns3::GlobalValue g_resultsDir ("resultsDir",
-                                      "directory where to store the simulation results",
-                                      ns3::StringValue ("./"),
-                                      ns3::MakeStringChecker ());
-
-static ns3::GlobalValue g_simTag ("simTag",
-                                  "tag to be appended to the output filenames to distinguish different simulation campaign output files",
-                                  ns3::StringValue (""),
-                                  ns3::MakeStringChecker ());
-
-static ns3::GlobalValue g_indoorScenario ("indoorScenario",
-                                          "the indoor scenario to be used can be: InH-OfficeMixed or InH-OfficeOpen",
-                                          ns3::StringValue ("InH-OfficeOpen"),
-                                          ns3::MakeStringChecker ());
-
-static ns3::GlobalValue g_speed ("speed",
-                                 "UE speed in km/h",
-                                 ns3::DoubleValue (3.00),
-                                 ns3::MakeDoubleChecker<double> (0.0, 10.0));
 
 /**
  * \brief Main class
@@ -182,12 +139,15 @@ public:
    * topology and run the simulation by using the parameters that are being
    * configured for the specific run.
    *
-   *
+   * @param centralFrequencyBand The band central frequency
+   * @param bandwidthBand The band bandwidth
+   * @param numerology The numerology
+   * @param totalTxPower The gNB power
    * @param gNbAntennaModel antenna model to be used by gNB device, can be ISO
    * directional 3GPP
    * @param ueAntennaModel antenna model to be used by gNB device, can be ISO
    * directional 3GPP
-   * @param scenario defines the indoor scenario to be used in the simulation
+   * @param indoorScenario defines the indoor scenario to be used in the simulation
    * campaign, currently the two different indoor scenarios are considered:
    * InH-OfficeOpen and InH-OfficeMixed
    * @param speed the speed of UEs in km/h
@@ -195,9 +155,10 @@ public:
    * @param tag Tag
    * @param duration duration
    */
-  void Run (bool gNbAntennaModel,
-            bool ueAntennaModel, std::string scenario, double speed,
-            std::string resultsDirPath, std::string tag, uint32_t duration);
+  void Run (double centralFrequencyBand, double bandwidthBand, uint16_t numerology,
+            double totalTxPower, bool gNbAntennaModel, bool ueAntennaModel,
+            std::string indoorScenario, double speed, std::string resultsDirPath,
+            std::string tag, uint32_t duration);
   /**
    * \brief Destructor that closes the output file stream and finished the
    * writing into the files.
@@ -391,8 +352,12 @@ Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes, const
 }
 
 void
-Nr3gppIndoorCalibration::Run (bool gNbAntennaModel, bool ueAntennaModel, std::string scenario, double speed,
-                              std::string resultsDirPath, std::string tag, uint32_t duration)
+Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
+                              uint16_t numerology, double totalTxPower,
+                              bool gNbAntennaModel, bool ueAntennaModel,
+                              std::string indoorScenario, double speed,
+                              std::string resultsDirPath, std::string tag,
+                              uint32_t duration)
 {
     Time simTime = MilliSeconds (duration);
     Time udpAppStartTimeDl = MilliSeconds (100);
@@ -409,10 +374,24 @@ Nr3gppIndoorCalibration::Run (bool gNbAntennaModel, bool ueAntennaModel, std::st
     // UE antenna height is 1.5 meters
     double ueHeight = 1.5;
 
+    BandwidthPartInfo::Scenario scenario;
+    if (indoorScenario == "InH-OfficeMixed")
+      {
+        scenario =  BandwidthPartInfo::InH_OfficeMixed;
+      }
+    else if (indoorScenario == "InH-OfficeOpen")
+      {
+        scenario = BandwidthPartInfo::InH_OfficeOpen;
+      }
+    else
+      {
+        NS_ABORT_MSG ("Unsupported scenario");
+      }
+
     // if simulation tag is not provided create one
     if (tag=="")
       {
-        tag = BuildTag (gNbAntennaModel, ueAntennaModel, scenario, speed);
+        tag = BuildTag (gNbAntennaModel, ueAntennaModel, indoorScenario, speed);
       }
     std::string filenameSinr = BuildFileNameString ( resultsDirPath , "sinrs", tag);
     std::string filenameSnr = BuildFileNameString ( resultsDirPath , "snrs", tag);
@@ -469,44 +448,6 @@ Nr3gppIndoorCalibration::Run (bool gNbAntennaModel, bool ueAntennaModel, std::st
          NS_ABORT_MSG("Can't open file " << filenameDistances);
        }
 
-    // configure antenna gain for the ISO antenna
-    Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue(scenario));
-
-    // Disable channel matrix update to speed up the simulation execution
-    //Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
-    Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaPF")));
-    // Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    // Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
-
-    Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
-    // Parameters according to R1-1703534 3GPP TSG RAN WG1 Meetging #88, 2017
-    // Evaluation assumptions for Phase 1 NR MIMO system level calibration,
-    Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(23));
-    Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(30e9));
-    Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(2));
-    Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(40e6));
-
-    // Should be 4x8 = 32 antenna elements
-    Config::SetDefault ("ns3::MmWaveEnbPhy::IsotropicAntennaElements", BooleanValue (gNbAntennaModel));
-    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue(4));
-    Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue(8));
-
-    // Should be 2x4 = 8 antenna elements
-    Config::SetDefault ("ns3::MmWaveUePhy::IsotropicAntennaElements", BooleanValue (ueAntennaModel));
-    Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue(2));
-    Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue(4));
-
-    // UE antenna gain shall be set to 5 dBi
-    // gNB noise figure shall be set to 7 dB
-    Config::SetDefault("ns3::MmWaveEnbPhy::NoiseFigure", DoubleValue (7));
-    // UE noise figure shall be set to 10 dB
-    Config::SetDefault("ns3::MmWaveUePhy::NoiseFigure", DoubleValue (10));
-    // setup the mmWave simulation
-    Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-    mmWaveHelper->SetEpcHelper (epcHelper);
-    mmWaveHelper->Initialize();
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -596,14 +537,98 @@ Nr3gppIndoorCalibration::Run (bool gNbAntennaModel, bool ueAntennaModel, std::st
           m_outGnbPositionsFile<<j<<"\t"<<v.x<<"\t"<<v.y<<"\t"<<v.z<<" "<<std::endl;
       }
 
-    m_outUePositionsFile.close();
-    m_outGnbPositionsFile.close();
-    m_outDistancesFile.close();
+    m_outUePositionsFile.close ();
+    m_outGnbPositionsFile.close ();
+    m_outDistancesFile.close ();
+
+    // setup the mmWave simulation
+    Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+    Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
+
+    mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    mmWaveHelper->SetEpcHelper (epcHelper);
+
+    /*
+     * Spectrum division. We create one operational bands, containing one
+     * component carrier, which in turn contains a single bandwidth part
+     * centered at the frequency specified by the input parameters.
+     *
+     * The configured spectrum division is:
+     * |------------------------Band1-------------------------|
+     * |-------------------------CC1--------------------------|
+     * |------------------------BWP1--------------------------|
+     *
+     * Each spectrum part length is, as well, specified by the input parameters.
+     * The band will use the indoor channel modeling specified by scenario.
+     */
+    BandwidthPartInfoPtrVector allBwps;
+    CcBwpCreator ccBwpCreator;
+    const uint8_t numCcPerBand = 1;
+
+    // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
+    // a single BWP per CC
+    CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand,
+                                                     bandwidthBand,
+                                                     numCcPerBand,
+                                                     scenario);
+
+    // By using the configuration created, make the operation band
+    OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
+
+    mmWaveHelper->InitializeOperationBand (&band);
+    allBwps = CcBwpCreator::GetAllBwps ({band});
+
+
+    // Disable channel matrix update to speed up the simulation execution
+    //Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
+    //Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    //Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
+
+    mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerTdmaPF"));
+
+    // Antennas for all the UEs - Should be 2x4 = 8 antenna elements
+    mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+    mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+    mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (ueAntennaModel));
+
+    // Antennas for all the gNbs - Should be 4x8 = 32 antenna elements
+    mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+    mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+    mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (gNbAntennaModel));
+
 
     //mobility.SetPositionAllocator (ueRandomRectPosAlloc);
     //install mmWave net devices
-    NetDeviceContainer gNbDevs = mmWaveHelper->InstallEnbDevice (gNbNodes);
-    NetDeviceContainer ueNetDevs = mmWaveHelper->InstallUeDevice (selectedUeNodes);
+    NetDeviceContainer gNbDevs = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
+    NetDeviceContainer ueNetDevs = mmWaveHelper->InstallUeDevice (selectedUeNodes, allBwps);
+
+    for (uint32_t i = 0 ; i < gNbDevs.GetN(); i ++)
+    {
+        mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+        mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (totalTxPower)));
+        // gNB noise figure shall be set to 7 dB
+        mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("NoiseFigure", DoubleValue (7));
+    }
+    for (uint j = 0; j < ueNetDevs.GetN(); j++)
+    {
+        // UE noise figure shall be set to 10 dB
+        mmWaveHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));
+    }
+
+
+    for (auto it = gNbDevs.Begin (); it != gNbDevs.End (); ++it)
+      {
+        DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      }
+
+    for (auto it = ueNetDevs.Begin (); it != ueNetDevs.End (); ++it)
+      {
+        DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      }
+
+
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
@@ -688,63 +713,54 @@ Nr3gppIndoorCalibration::Run (bool gNbAntennaModel, bool ueAntennaModel, std::st
 int
 main (int argc, char *argv[])
 {
+  // Parameters according to R1-1703534 3GPP TSG RAN WG1 Meetging #88, 2017
+  // Evaluation assumptions for Phase 1 NR MIMO system level calibration,
+  double centralFrequencyBand = 30e9;
+  double bandwidthBand = 40e6;
+  uint16_t numerology = 2;
+  double totalTxPower = 23;
+
+  uint32_t duration = 150;
+  bool enableGnbIso = true;
+  bool enableUeIso = true;
+  std::string indoorScenario = "InH-OfficeOpen";
+  double speed = 3.00;
+  std::string resultsDir = "./";
+  std::string simTag = "default";
 
   CommandLine cmd;
+
+  cmd.AddValue ("duration",
+                "Simulation duration in ms, should be greater than 100 ms to allow the collection of traces",
+                duration);
+  cmd.AddValue ("enableGnbIso",
+                "Enable Isotropic antenna for the gNB",
+                enableGnbIso);
+  cmd.AddValue ("enableGnbIso",
+                "Enable Isotropic antenna for the UE",
+                enableUeIso);
+  cmd.AddValue ("indoorScenario",
+                "The indoor scenario to be used can be: InH-OfficeMixed or InH-OfficeOpen",
+                indoorScenario);
+  cmd.AddValue ("speed",
+                "UE speed in km/h",
+                speed);
+  cmd.AddValue ("resultsDir",
+                "directory where to store the simulation results",
+                resultsDir);
+  cmd.AddValue ("simTag",
+                "tag to be appended to output filenames to distinguish simulation campaigns",
+                simTag);
+
   cmd.Parse (argc, argv);
+
   ConfigStore inputConfig;
   inputConfig.ConfigureDefaults ();
-  // parse again so you can override input file default values via command line
-  cmd.Parse (argc, argv);
-
-  EnumValue enumValue;
-  DoubleValue doubleValue;
-  BooleanValue booleanValue;
-  StringValue stringValue;
-  TypeIdValue typeIdValue;
-  UintegerValue uintValue;
-
-  GlobalValue::GetValueByName ("duration", uintValue);
-  uint32_t duration = uintValue.Get ();
-
-  GlobalValue::GetValueByName ("antennaModelGnb", enumValue);
-  enum AntennaModelEnum antennaGnb = (AntennaModelEnum) enumValue.Get ();
-  bool antennaModelGnb;
-  if (antennaGnb == _3GPP)
-    {
-      antennaModelGnb = false; //not isotropic antenna elements
-    }
-  else
-    {
-      antennaModelGnb = true;  // isotropic antenna elements
-    }
-
-  GlobalValue::GetValueByName ("antennaModelUe", enumValue);
-  enum AntennaModelEnum antennaUe = (AntennaModelEnum) enumValue.Get ();
-  bool antennaModelUe;
-  if (antennaUe == _3GPP)
-    {
-      antennaModelUe = false; //not isotropic antenna elements
-    }
-  else
-    {
-      antennaModelUe = true; //isotropic antenna elements
-    }
-
-  GlobalValue::GetValueByName ("indoorScenario", stringValue);
-  std::string indoorScenario = stringValue.Get ();
-
-  GlobalValue::GetValueByName ("speed", doubleValue);
-  double speed = doubleValue.Get ();
-
-  GlobalValue::GetValueByName ("resultsDir", stringValue);
-  std::string resultsDir = stringValue.Get ();
-
-  GlobalValue::GetValueByName ("simTag", stringValue);
-  std::string tag = stringValue.Get ();
 
   Nr3gppIndoorCalibration phase1CalibrationScenario;
-  phase1CalibrationScenario.Run(antennaModelGnb, antennaModelUe,
-             indoorScenario, speed, resultsDir, tag, duration);
+  phase1CalibrationScenario.Run (centralFrequencyBand, bandwidthBand, numerology,
+                                totalTxPower, enableGnbIso, enableUeIso,
+                                indoorScenario, speed, resultsDir, simTag, duration);
 
   return 0;
 }
