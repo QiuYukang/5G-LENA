@@ -72,7 +72,7 @@ main (int argc, char *argv[])
   double centralFrequencyBand38 = 2595e6;
   double bandwidthBand38 = 100e6;
 
-  double bandwidth = 18e6;
+  double bandwidth = 20e6;
 
   uint16_t numerologyBwp0 = 0;
   uint16_t numerologyBwp1 = 0;
@@ -89,8 +89,8 @@ main (int argc, char *argv[])
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
 
-  uint32_t udpPacketSizeUll = 600;
-  uint32_t udpPacketSizeBe = 600;
+  uint32_t udpPacketSizeUll = 915;
+  uint32_t udpPacketSizeBe = 915;
   uint32_t lambdaUll = 10000;
   uint32_t lambdaBe = 10000;
 
@@ -300,7 +300,7 @@ main (int argc, char *argv[])
   }
   else
   {
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
   }
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
@@ -325,6 +325,8 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));  //FIXME: Might change in LTE
 
   mmWaveHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+
+  mmWaveHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
 
   mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
 
@@ -510,11 +512,14 @@ main (int argc, char *argv[])
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower",
                              DoubleValue (10 * log10 ((band40.GetBwpAt (0, 0)->m_channelBandwidth/totalBandwidth) * x)));
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("RbOverhead", DoubleValue (0.1));
+
 
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower",
                              DoubleValue (10 * log10 ((band38.GetBwpAt (0, 0)->m_channelBandwidth/totalBandwidth) * x)));
   mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
 
   //Band38: CC2 - BWP2
@@ -524,6 +529,7 @@ main (int argc, char *argv[])
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
                                  DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth/totalBandwidth) * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
     }
   else  //FDD case
     {
@@ -531,9 +537,11 @@ main (int argc, char *argv[])
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
                                  DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth/totalBandwidth) * x)));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (patternDL));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Numerology", UintegerValue (numerologyBwpUl));
       mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Pattern", StringValue (patternUL));
+      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
       // Link the two FDD BWP:
       mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (3, 2);
@@ -598,23 +606,23 @@ main (int argc, char *argv[])
 
   // install UDP applications
   uint16_t dlPortLowLat = 1234;
-  uint16_t dlPortVideo = 1235;
-  uint16_t ulPortVoice = 1236;
+  uint16_t ulPortVoice = 1235;
+  uint16_t dlPortVideo = 1236;
   uint16_t ulPortGaming = 1237;
 
   ApplicationContainer serverApps;
 
   // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
-  UdpServerHelper dlPacketSinkVideo (dlPortVideo);
   UdpServerHelper ulPacketSinkVoice (ulPortVoice);
+  UdpServerHelper dlPacketSinkVideo (dlPortVideo);
   UdpServerHelper ulPacketSinkGaming (ulPortGaming);
 
   // The server, that is the application which is listening, is installed in the UE
   // for the DL traffic, and in the remote host for the UL traffic
   serverApps.Add (dlPacketSinkLowLat.Install (ueNodes));
-  serverApps.Add (dlPacketSinkVideo.Install (ueNodes));
   serverApps.Add (ulPacketSinkVoice.Install (remoteHost));
+  serverApps.Add (dlPacketSinkVideo.Install (ueNodes));
   serverApps.Add (ulPacketSinkGaming.Install (remoteHost));
 
   /*
@@ -639,23 +647,6 @@ main (int argc, char *argv[])
   dlpfLowLat.localPortEnd = dlPortLowLat;
   lowLatTft->Add (dlpfLowLat);
 
-  //Video configuration and object creation:
-  UdpClientHelper dlClientVideo;
-  dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
-  dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-  dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
-  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaUll)));
-
-  // The bearer that will carry video traffic
-  EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
-
-  // The filter for the video traffic
-  Ptr<EpcTft> videoTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfVideo;
-  dlpfVideo.localPortStart = dlPortVideo;
-  dlpfVideo.localPortEnd = dlPortVideo;
-  videoTft->Add (dlpfVideo);
-
   // Voice configuration and object creation:
   UdpClientHelper ulClientVoice;
   ulClientVoice.SetAttribute ("RemotePort", UintegerValue (ulPortVoice));
@@ -673,6 +664,23 @@ main (int argc, char *argv[])
   ulpfVoice.localPortEnd = ulPortVoice;
   ulpfVoice.direction = EpcTft::UPLINK;
   voiceTft->Add (ulpfVoice);
+
+  //Video configuration and object creation:
+  UdpClientHelper dlClientVideo;
+  dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
+  dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
+  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaUll)));
+
+  // The bearer that will carry video traffic
+  EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
+
+  // The filter for the video traffic
+  Ptr<EpcTft> videoTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfVideo;
+  dlpfVideo.localPortStart = dlPortVideo;
+  dlpfVideo.localPortEnd = dlPortVideo;
+  videoTft->Add (dlpfVideo);
 
   // Gaming configuration and object creation:
   UdpClientHelper ulClientGaming;
