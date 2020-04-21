@@ -176,63 +176,11 @@ NrEesmErrorModel::GetBaseGraphType (uint32_t tbSizeBit, uint8_t mcs) const
   return bg_type;
 }
 
-// codeblock segmentation and CRC attachment as per TS 38.212 (EESM method and LDPC coding)
-Ptr<NrErrorModelOutput>
-NrEesmErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr, const std::vector<int>& map,
-                                            uint32_t size, uint8_t mcs,
-                                            const NrErrorModelHistory &sinrHistory)
+std::pair<uint32_t, uint32_t>
+NrEesmErrorModel::CodeBlockSegmentation (uint32_t B, GraphType bg_type) const
 {
-  return GetTbBitDecodificationStats (sinr, map, size * 8, mcs, sinrHistory);
-}
-
-std::string
-NrEesmErrorModel::PrintMap (const std::vector<int> &map) const
-{
-  std::stringstream ss;
-
-  for (const auto &v : map)
-    {
-      ss << v << ", ";
-    }
-
-  return ss.str ();
-
-}
-Ptr<NrErrorModelOutput>
-NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
-                                               const std::vector<int>& map,
-                                               uint32_t sizeBit, uint8_t mcs,
-                                               const NrErrorModelHistory &sinrHistory)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ABORT_IF (mcs > GetMaxMcs ());
-
-  double tbSinr = SinrEff (sinr, map, mcs);
-  double SINR = tbSinr;
-
-  NS_LOG_DEBUG (" mcs " << +mcs << " TBSize in bit " << sizeBit <<
-                " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
-                tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
-                "SINR: " << sinr);
-
-
-  if (sinrHistory.size () > 0)
-    {
-      SINR = ComputeSINR (sinr, map, mcs, sizeBit, sinrHistory);
-    }
-
-  NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
-
-  // selection of LDPC base graph type (1 or 2), as per TS 38.212: it uses the payload (A in TS 38.212)
-  GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
-  NS_LOG_INFO ("BG type selection: " << bg_type);
-
-  // code block segmentation, as per TS 38.212: it uses payload + CRC parity bits of the transport block (B in TS 38.212)
-  uint32_t B = sizeBit + 24; // input to code block segmentation, in bits
-
   uint16_t Kcb;
   uint8_t Kb;
-  // estimate CB size (according to Section 5.2.2 of TS 38.212)
   if (bg_type == FIRST)
     {
       Kcb = 8448;  // max size of a codeblock (including CRC) for BG1
@@ -301,6 +249,66 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
   NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " needs of " << B1 <<
                " bits distributed in " << C << " CBs of " << K << " bits");
+  return std::make_pair(K,C);
+}
+
+Ptr<NrErrorModelOutput>
+NrEesmErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr, const std::vector<int>& map,
+                                            uint32_t size, uint8_t mcs,
+                                            const NrErrorModelHistory &sinrHistory)
+{
+  return GetTbBitDecodificationStats (sinr, map, size * 8, mcs, sinrHistory);
+}
+
+std::string
+NrEesmErrorModel::PrintMap (const std::vector<int> &map) const
+{
+  std::stringstream ss;
+
+  for (const auto &v : map)
+    {
+      ss << v << ", ";
+    }
+
+  return ss.str ();
+
+}
+Ptr<NrErrorModelOutput>
+NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
+                                               const std::vector<int>& map,
+                                               uint32_t sizeBit, uint8_t mcs,
+                                               const NrErrorModelHistory &sinrHistory)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_IF (mcs > GetMaxMcs ());
+
+  double tbSinr = SinrEff (sinr, map, mcs);
+  double SINR = tbSinr;
+
+  NS_LOG_DEBUG (" mcs " << +mcs << " TBSize in bit " << sizeBit <<
+                " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
+                tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
+                "SINR: " << sinr);
+
+
+  if (sinrHistory.size () > 0)
+    {
+      SINR = ComputeSINR (sinr, map, mcs, sizeBit, sinrHistory);
+    }
+
+  NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
+
+  // LDPC base graph type selection (1 or 2), as per TS 38.212, using the payload (A)
+  GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
+  NS_LOG_INFO ("BG type selection: " << bg_type);
+
+  // code block segmentation, as per TS 38.212, using payload + TB CRC attachment (B)
+  uint32_t B = sizeBit + 24; // input to code block segmentation, in bits
+  std::pair<uint32_t, uint32_t> cbSeg = CodeBlockSegmentation(B, bg_type);
+  uint32_t K = cbSeg.first;
+  uint32_t C = cbSeg.second;
+  NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " bits distributed in " << C <<
+               " CBs of " << K << " bits");
 
   uint8_t mcs_eq = mcs;
   if ((sinrHistory.size () > 0) && (mcs > 0))
