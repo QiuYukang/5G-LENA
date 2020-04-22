@@ -156,8 +156,9 @@ public:
    * @param duration The duration of the simulation
    */
   void Run (double centralFrequencyBand, double bandwidthBand, uint16_t numerology,
-            double totalTxPower, bool gNbAntennaModel, bool ueAntennaModel,
-            std::string indoorScenario, double speed, std::string resultsDirPath,
+            double totalTxPower, bool cellScan, double beamSearchAngleStep,
+            bool gNbAntennaModel, bool ueAntennaModel, std::string indoorScenario,
+            double speed, std::string resultsDirPath,
             std::string tag, uint32_t duration);
   /**
    * \brief Destructor that closes the output file stream and finished the
@@ -358,6 +359,7 @@ Nr3gppIndoorCalibration::SelectWellPlacedUes (const NodeContainer ueNodes,
 void
 Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
                               uint16_t numerology, double totalTxPower,
+                              bool cellScan, double beamSearchAngleStep,
                               bool gNbAntennaModel, bool ueAntennaModel,
                               std::string indoorScenario, double speed,
                               std::string resultsDirPath, std::string tag,
@@ -593,6 +595,16 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     //Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
 
+    if (cellScan)
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+    }
+    else
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    }
+
     mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerTdmaPF"));
 
     // Antennas for all the UEs - Should be 2x4 = 8 antenna elements
@@ -728,6 +740,8 @@ main (int argc, char *argv[])
   double totalTxPower = 23;
 
   uint32_t duration = 150;
+  bool cellScan = false;
+  double beamSearchAngleStep = 10.0;
   bool enableGnbIso = true;
   bool enableUeIso = true;
   std::string indoorScenario = "InH-OfficeOpen";
@@ -740,6 +754,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("duration",
                 "Simulation duration in ms, should be greater than 100 ms to allow the collection of traces",
                 duration);
+  cmd.AddValue ("cellScan",
+                "Use beam search method to determine beamforming vector,"
+                "true to use cell scanning method",
+                cellScan);
+  cmd.AddValue ("beamSearchAngleStep",
+                "Beam search angle step for beam search method",
+                beamSearchAngleStep);
   cmd.AddValue ("enableGnbIso",
                 "Enable Isotropic antenna for the gNB",
                 enableGnbIso);
@@ -766,8 +787,9 @@ main (int argc, char *argv[])
 
   Nr3gppIndoorCalibration phase1CalibrationScenario;
   phase1CalibrationScenario.Run (centralFrequencyBand, bandwidthBand, numerology,
-                                totalTxPower, enableGnbIso, enableUeIso,
-                                indoorScenario, speed, resultsDir, simTag, duration);
+                                totalTxPower, cellScan, beamSearchAngleStep,
+                                 enableGnbIso, enableUeIso, indoorScenario,
+                                 speed, resultsDir, simTag, duration);
 
   return 0;
 }
