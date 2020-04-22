@@ -291,22 +291,22 @@ MCS index (0 to 28 for MCS Table1, and 0 to 27 for MCS Table2) are
 inputs for the NR PHY abstraction.
 
 **LDPC BG selection**: BG selection in the 'NR' module is based on the following
-conditions [TS38212]_. Assuming :math:`R` as the ECR of the selected MCS
+conditions  (as per Sections 6.2.2 and 7.2.2 in TS 38.212) [TS38212]_. Assuming :math:`R` as the ECR of the selected MCS
 and :math:`A` as the TBS (in bits), then,
 
-* LDPC base graph 2 (BG2) is selected if :math:`A \le 292` with any value of :math:`R`, or if :math:`R\le 0.25` with any value of :math:`A`, or if :math:`A \le 3824` with :math:`R \le 0.67`,
+* LDPC base graph 2 (BG2) is selected if :math:`A \le 292` with any value of :math:`R`, or if :math:`R \le 0.25` with any value of :math:`A`, or if :math:`A \le 3824` with :math:`R \le 0.67`,
 * otherwise, the LDPC base graph 1 (BG1) is selected.
 
 **Code block segmentation**: Code block segmentation for LDPC coding in
 NR occurs when the number of total bits in a transport block including
-cyclic redundancy check (CRC) is larger than the maximum CBS, which is 8448
+cyclic redundancy check (CRC) (i.e., :math:`B = A + 24` bits) is larger than the maximum CBS, which is 8448
 bits for LDPC BG1 and 3840 bits for LDPC BG2.
 If code block segmentation occurs, each transport block is split into :math:`C` code blocks of
 :math:`K` bits each, and for each code block, an additional CRC sequence of :math:`L=24`
 bits is appended to recover the segmentation during the decoding process.
 The segmentation process takes LDPC BG selection and LDPC lifting size
 into account, the complete details of which can be found in [TS38212]_, and the
-same procedure has been included in the 'NR' module.
+same procedure has been included in the 'NR' module (as per Section 5.2.2 in TS 38.212).
 
 **SINR compression**: In case of EESM, the mapping
 function is exponential and the effective SINR for single transmission depends
@@ -707,6 +707,8 @@ and such index is then communicated to the gNB through a CQI index (quantized by
 Transport block model
 =====================
 The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
+
+**Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the procedure implemented in the simulator is as follows. Assuming :math:`R` as the ECR of the selected MCS, :math:`Q` as the modulation order of the selected MCS, :math:`n_s` as the number of allocated OFDM symbols, :math:`n_{rb}` as the number of allocated RBs, and :math:`n_{refSc}` as the number of reference subcarriers carrying DMRS per RB, the TB size is computed as follows: :math:`N_{info}= R \times Q \times n_s \times n_{rb} \times (12- n_{refSc})`. After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
 
 
 RLC layer
