@@ -19,13 +19,13 @@
  *
  * The example allows 2 configurations:
  *
- * An exclusivley TDD scenario, with 2 bands including 1 and 2 CCs respectively.
+ * An exclusivley TDD scenario, with 2 bands including 1 and 2 CCs, respectively.
  * Each CC includes 1 BWP. In this case 3 flows are created, 2 DL and 1 UL.
  *
  * A mixed TDD/FDD scenario with 2 bands including 1 and 2 CCs respectively. The
- * 1st and the 2nd CC include 1 BWP each of TDD operation, while the 3rd CC is
- * set to FDD operation mode, thus it includes 2 BWPs (one DL and 1 UL). In this
- * case 4 flows are created, 2 DL and 1 UL.
+ * 1st and the 2nd CC include 1 TDD BWP each, while the 3rd CC is set to FDD
+ * operation mode, thus it includes 2 BWPs (one for DL and 1 for UL). In this
+ * case 4 flows are created, 2 DL and 2 UL.
  *
  * The example will print on-screen the end-to-end result of one (or two) flows,
  * as well as writing them on a file.
@@ -84,7 +84,7 @@ main (int argc, char *argv[])
   std::string pattern = "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
   std::string patternDL = "DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|";
   std::string patternUL = "UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|";
-  std::string operationMode = "TDD";  // TDD or FDD
+  std::string operationMode = "TDD";  // TDD or FDD (mixed TDD and FDD mode)
 
   bool cellScan = false;
   double beamSearchAngleStep = 10.0;
@@ -153,7 +153,8 @@ main (int argc, char *argv[])
                 "LTE TDD pattern to use (e.g. --tddPattern=DL|S|UL|UL|UL|DL|S|UL|UL|UL|)",
                 pattern);
   cmd.AddValue ("operationMode",
-                "The network operation mode can be TDD or FDD",
+                "The network operation mode can be TDD or FDD (In this case it"
+                "will be mixed TDD and FDD)",
                 operationMode);
   cmd.AddValue ("cellScan",
                 "Use beam search method to determine beamforming vector,"
@@ -321,22 +322,22 @@ main (int argc, char *argv[])
    * Adjust the average number of Reference symbols per RB only for LTE case,
    * which is larger than in NR. We assume a value of 4 (could be 3 too).
    */
-  mmWaveHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (2));     //4 for lte
-  mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));  //FIXME: Might change in LTE
-
+  mmWaveHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
+  mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
   mmWaveHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
-
   mmWaveHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
-
   mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
 
   /*
    * Setup the operation bands.
    * In this example, two standard operation bands are deployed:
+   *
    * Band 38 that has a component carrier (CC) of 20 MHz
    * Band 40 that has two non-contiguous CCs of 20 MHz each.
-   * If TDD mode is defined, 1 BWP per CC is created.
-   * If FDD mode is defined, Band 40 CC0 containes 2 BWPs (1 DL - 1 UL)
+   *
+   * If TDD mode is defined, 1 BWP per CC is created. All BWPs are TDD.
+   * If FDD mode is defined, Band 40 CC2 containes 2 BWPs (1 DL - 1 UL), while
+   * Band 40 CC1 has one TDD BWP and Band 38 CC0 also has one TDD BWP.
    *
    * This example manually creates a non-contiguous CC configuration with 2 CCs.
    * First CC has two BWPs and the second only one.
@@ -352,11 +353,13 @@ main (int argc, char *argv[])
    * |---------- BWP0 ----------|   |------ BWP1 ------|  |- BWP2DL -|- BWP2UL-|
    *
    *
-   * In this example, each UE generates numFlows flows with non-repeating QCI.
-   * Since Static CA Algorithm is used, each flow will be transmitted on a
-   * dedicated component carrier. Therefore, the number of component carriers
-   * matches the number of flows. Each carrier will multiplex flows from
-   * different UEs but with the same CQI
+   * In this example, each UE generates as many flows as the number of bwps
+   * (i.e. 3 flows in case of TDD mode and 4 in case mixed TDD with FDD).
+   * Each flow will be transmitted on a dedicated BWP. In particular, low
+   * latency flow is set as DL and goes through BWP0, voice is set as UL and
+   * goes through BWP1, video is set as DL and goes through BWP2DL, and gaming
+   * is enabled only in the mixed TDD/FDD mode, it is set as UL and goes
+   * through BWP2UL.
    */
   uint8_t numCcs = 3;
 
@@ -482,6 +485,7 @@ main (int argc, char *argv[])
   mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
 
+  //Assign each flow type to a BWP
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForVoice = 1;
   uint32_t bwpIdForVideo = 2;
