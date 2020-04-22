@@ -98,7 +98,7 @@ def build(bld):
         'test/nr-phy-patterns.cc',
         'test/test-sfnsf.cc',
 #        'test/test-timings.cc',
-        'test/test-mmwave-spectrum-phy.cc'
+        'test/test-mmwave-spectrum-phy.cc',
         'test/nr-lte-cc-bwp-configuration.cc',
         ]
 

@@ -208,19 +208,6 @@ CcBwpTestCase::DoRun ()
   std::vector<std::reference_wrapper<CcBwpCreator::SimpleOperationBandConf>> operationBandConfigs = {bandConf1,bandConf2};
   TestCcBwpNumbers (operationBandConfigs); //!< Fourth test
 
-//  TestUeBwps(centralFrequency,
-//             bandwidth,
-//             numerology,
-//             numCcs,
-//             OperationMode::TDD,
-//             {0,2,4,5,6,8,12,15}); //!< Fifth test
-
-//  TestUeBwps(centralFrequency,
-//             bandwidth,
-//             numerology,
-//             numCcs,
-//             OperationMode::FDD,
-//             {0,1,4,5,8,12,15,18,22,26,30}); //!< Sixth test
 }
 
 
@@ -278,25 +265,6 @@ CcBwpTestCase::TestCcBwpNumbers (std::vector<std::reference_wrapper<CcBwpCreator
       NS_TEST_ASSERT_MSG_EQ (numBwp, bandConfig.m_numCc, "Unexpected number of BWPs");
     }
 }
-//
-//void
-//CcBwpTestCase::TestUeBwps (double centralFrequency,
-//                           uint32_t bandwidth,
-//                           uint8_t numerology,
-//                           uint8_t numCcs,
-//                           OperationMode mode,
-//                           std::vector<uint8_t> ueBwp)
-//{
-//  ComponentCarrierBandwidthPartCreator CcBwpCreator;
-//  CcBwpCreator.CreateOperationBandContiguousCc (centralFrequency,
-//                                                bandwidth,
-//                                                numCcs,
-//                                                numerology,
-//                                                mode);
-//
-//  bool res = CcBwpCreator.SetUeBwps(0, ueBwp);
-//  NS_TEST_ASSERT_MSG_EQ (res, true, "UE frequency configuration is not valid");
-//}
 
 
 bool
