@@ -65,11 +65,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] component carrier Id
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   static void RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                                          uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Enb Phy Transmitted Control Messages.
@@ -79,11 +79,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] component carrier Id
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   static void TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                                          uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Received Control Messages.
@@ -93,11 +93,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] component carrier Id
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   static void RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                                         uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Transmitted Control Messages.
@@ -107,11 +107,11 @@ public:
    * \param [in] slot number.
    * \param [in] VarTti
    * \param [in] rnti
-   * \param [in] component carrier Id
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   static void TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                                         uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Received Control Messages.
@@ -120,13 +120,15 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
-   * \param [in] component carrier Id
+   * \param [in] bwpId
    * \param [in] harq Id
    * \param [in] k1 delay
    */
-  static void RxedUePhyDlDciCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, uint8_t harqId, uint32_t k1Delayg);
+  static void RxedUePhyDlDciCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                      SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                      uint8_t bwpId, uint8_t harqId, uint32_t k1Delay);
   /**
    *  Trace sink for Ue Phy Received Control Messages.
    *
@@ -134,13 +136,15 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
-   * \param [in] component carrier Id
+   * \param [in] bwpId
    * \param [in] harq Id
    * \param [in] k1 delay
    */
-  static void TxedUePhyHarqFeedbackCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, uint8_t harqId, uint32_t k1Delayg);
+  static void TxedUePhyHarqFeedbackCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                             SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                             uint8_t bwpId, uint8_t harqId, uint32_t k1Delay);
 
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);
