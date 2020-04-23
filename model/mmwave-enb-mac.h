@@ -312,7 +312,7 @@ private:
   LteMacSapProvider* m_macSapProvider;
   LteEnbCmacSapProvider* m_cmacSapProvider;
   LteEnbCmacSapUser* m_cmacSapUser;
-  MmWavePhySapProvider* m_phySapProvider;
+  MmWavePhySapProvider* m_phySapProvider {nullptr};
   MmWaveEnbPhySapUser* m_phySapUser;
 
   MmWaveMacSchedSapProvider* m_macSchedSapProvider;
