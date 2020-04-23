@@ -176,7 +176,82 @@ NrEesmErrorModel::GetBaseGraphType (uint32_t tbSizeBit, uint8_t mcs) const
   return bg_type;
 }
 
-// codeblock segmentation and CRC attachment as per TS 38.212 (EESM method and LDPC coding)
+std::pair<uint32_t, uint32_t>
+NrEesmErrorModel::CodeBlockSegmentation (uint32_t B, GraphType bg_type) const
+{
+  uint16_t Kcb;
+  uint8_t Kb;
+  if (bg_type == FIRST)
+    {
+      Kcb = 8448;  // max size of a codeblock (including CRC) for BG1
+      Kb = 22;
+    }
+  else
+    {
+      NS_ASSERT (bg_type == SECOND);
+      Kcb = 3840;  // max size of a codeblock (including CRC) for BG2
+      if (B >= 640)
+        {
+          Kb = 10;
+        }
+      else if (B >= 560)
+        {
+          Kb = 9;
+        }
+      else if (B >= 192)
+        {
+          Kb = 8;
+        }
+      else
+        {
+          Kb = 6;
+        }
+    }
+
+  uint32_t L = 0;
+  uint32_t C = 0; // no. of codeblocks
+  uint32_t B1 = 0;
+
+  if (B <= Kcb)
+    {
+      // only one codeblock
+      L = 0;
+      C = 1;
+      B1 = B;
+    }
+  else
+    {
+      L = 24;
+      C = ceil ((double)B / ((double)(Kcb - L)));
+      B1 = B + C * L;
+    }
+
+  // Zc = minimum Z in all sets of lifting sizes table such that Kb * Z >= K1
+  uint32_t K1 = B1 / C;
+
+  // returns an iterator pointing to the first element in the range [first,last)
+  // which compares greater than the third parameter.
+  std::vector<uint16_t>::const_iterator ZcIt = std::upper_bound (LiftingSizeTableBG.begin (),
+                                                                 LiftingSizeTableBG.end (),
+                                                                 (static_cast<double> (K1) / Kb) + 0.001);
+  uint16_t Zc = *ZcIt;
+  uint32_t K;
+
+  if (bg_type == FIRST)
+    {
+      K = Zc * 22;  // no. of bits in each code block
+    }
+  else  // bg_type==2
+    {
+      NS_ASSERT (bg_type == SECOND);
+      K = Zc * 10;  // no. of bits in each code block
+    }
+
+  NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " needs of " << B1 <<
+               " bits distributed in " << C << " CBs of " << K << " bits");
+  return std::make_pair(K,C);
+}
+
 Ptr<NrErrorModelOutput>
 NrEesmErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr, const std::vector<int>& map,
                                             uint32_t size, uint8_t mcs,
@@ -223,82 +298,17 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
   NS_LOG_DEBUG (" SINR after processing all retx (if any): " << SINR << " SINR last tx" << tbSinr);
 
-  // selection of LDPC base graph type (1 or 2), as per TS 38.212
+  // LDPC base graph type selection (1 or 2), as per TS 38.212, using the payload (A)
   GraphType bg_type = GetBaseGraphType (sizeBit, mcs);
   NS_LOG_INFO ("BG type selection: " << bg_type);
 
-  uint16_t Kcb;
-  uint8_t Kb;
-  // estimate CB size (according to Section 5.2.2 of TS 38.212)
-  if (bg_type == FIRST)
-    {
-      Kcb = 8448;  // max size of a codeblock (including CRC) for BG1
-      Kb = 22;
-    }
-  else
-    {
-      NS_ASSERT (bg_type == SECOND);
-      Kcb = 3840;  // max size of a codeblock (including CRC) for BG2
-      if (sizeBit >= 640)
-        {
-          Kb = 10;
-        }
-      else if (sizeBit >= 560)
-        {
-          Kb = 9;
-        }
-      else if (sizeBit >= 192)
-        {
-          Kb = 8;
-        }
-      else
-        {
-          Kb = 6;
-        }
-    }
-
-  uint32_t B = sizeBit; // TBS in bits
-  uint32_t L = 0;
-  uint32_t C = 0; // no. of codeblocks
-  uint32_t B1 = 0;
-
-  if (B <= Kcb)
-    {
-      // only one codeblock
-      L = 0;
-      C = 1;
-      B1 = B;
-    }
-  else
-    {
-      L = 24;
-      C = ceil ((double)B / ((double)(Kcb - L)));
-      B1 = B + C * L;
-    }
-
-  // Zc = minimum Z in all sets of lifting sizes table such that Kb * Z >= K1
-  uint32_t K1 = B1 / C;
-
-  // returns an iterator pointing to the first element in the range [first,last)
-  // which compares greater than the third parameter.
-  std::vector<uint16_t>::const_iterator ZcIt = std::upper_bound (LiftingSizeTableBG.begin (),
-                                                                 LiftingSizeTableBG.end (),
-                                                                 (static_cast<double> (K1) / Kb) + 0.001);
-  uint16_t Zc = *ZcIt;
-  uint32_t K;
-
-  if (bg_type == FIRST)
-    {
-      K = Zc * 22;  // no. of bits in each code block
-    }
-  else  // bg_type==2
-    {
-      NS_ASSERT (bg_type == SECOND);
-      K = Zc * 10;  // no. of bits in each code block
-    }
-
-  NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " needs of " << B1 <<
-               " bits distributed in " << C << " CBs of " << K << " bits");
+  // code block segmentation, as per TS 38.212, using payload + TB CRC attachment (B)
+  uint32_t B = sizeBit + 24; // input to code block segmentation, in bits
+  std::pair<uint32_t, uint32_t> cbSeg = CodeBlockSegmentation(B, bg_type);
+  uint32_t K = cbSeg.first;
+  uint32_t C = cbSeg.second;
+  NS_LOG_INFO ("EESMErrorModel: TBS of " << B << " bits distributed in " << C <<
+               " CBs of " << K << " bits");
 
   uint8_t mcs_eq = mcs;
   if ((sinrHistory.size () > 0) && (mcs > 0))

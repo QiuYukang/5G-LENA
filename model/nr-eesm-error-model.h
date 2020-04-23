@@ -137,7 +137,14 @@ public:
    */
   virtual double GetSpectralEfficiencyForMcs (uint8_t mcs) const override;
   /**
-   * \brief Get the payload size in Bytes, following the MCSs in NR
+   * \brief Get the payload size in Bytes, following the MCSs in NR. It follows
+   * TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including
+   * quantizations and and limits (i.e., only up to Step 2)
+   * \param usefulSc the number of useful subcarrier per RB, substracting DMRS overhead
+   * \param mcs MCS
+   * \param rbNum the number of RBs (time x frequency)
+   * \param mode Mode
+   *
    */
   virtual uint32_t GetPayloadSize (uint32_t usefulSc, uint8_t mcs, uint32_t rbNum, Mode mode) const override;
   /**
@@ -272,13 +279,26 @@ private:
   };
   /**
    * \brief Get Base Graph type of LDPC coding (1 or 2) for the given TBS and MCS
-   * of a specific NR table
+   * of a specific NR table, as per TS 38.212 Section 6.2.2 (UL) and 7.2.2 (DL)
    *
-   * \param tbSize the size of the TB (in bits)
+   * \param tbSize the size of the TB (in bits) (A, payload, in TS 38.212)
    * \param mcs the MCS of the TB
    * \return the GraphType used for the TB
    */
   GraphType GetBaseGraphType (uint32_t tbSize, uint8_t mcs) const;
+
+  /**
+   * \brief Code Block Segmentation for the given TBS and BG type, as per TS
+   * 38.212 Section 5.2.2 (LDPC coding)
+   *
+   * \param B the size of the TB including transport block CRC attachment
+   * (in bits) (B, in TS 38.212)
+   * \param the GraphType used for the TB
+   * \return std::pair (K,C) being K the number of bits in each code block, C
+   * the number of code blocks
+   */
+  std::pair<uint32_t, uint32_t>
+  CodeBlockSegmentation (uint32_t B, GraphType bg_type) const;
 
   /**
    * \brief Get SinrDb Vector From Simulated Values
