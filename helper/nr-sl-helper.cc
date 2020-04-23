@@ -115,11 +115,14 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
 
       Ptr<NrSlUeRrc> nrSlUeRrc = CreateObject<NrSlUeRrc> ();
       nrSlUeRrc->SetNrSlEnabled (true);
-      lteUeRrc->AggregateObject (nrSlUeRrc);
       nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider ());
       lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser ());
-
+      uint64_t imsi = lteUeRrc->GetImsi ();
+      NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
+      nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
+      //Aggregate
+      lteUeRrc->AggregateObject (nrSlUeRrc);
       bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
       NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
     }
