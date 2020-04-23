@@ -234,12 +234,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
+       const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy Transmitted Control Messages.
@@ -248,12 +250,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUePhyCtrlMsgsTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
+      (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
+       const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Phy DL DCI reception.
@@ -583,17 +587,17 @@ private:
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
+   * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
+   * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_phyTxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Rxed DL DCI Messages

@@ -322,7 +322,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       auto dciMsg = DynamicCast<MmWaveDlDciMessage> (msg);
       auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), msg);
 
       if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
         {
@@ -361,7 +361,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       auto dciMsg = DynamicCast<MmWaveUlDciMessage> (msg);
       auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), m_rnti, GetBwpId (), msg);
 
       if (dciInfoElem->m_rnti != 0 && dciInfoElem->m_rnti != m_rnti)
         {
@@ -394,13 +394,13 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       NS_LOG_INFO ("received MIB");
       Ptr<MmWaveMibMessage> msg2 = DynamicCast<MmWaveMibMessage> (msg);
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), m_rnti, GetBwpId (), msg);
       m_ueCphySapUser->RecvMasterInformationBlock (GetCellId (), msg2->GetMib ());
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::SIB1)
     {
       Ptr<MmWaveSib1Message> msg2 = DynamicCast<MmWaveSib1Message> (msg);
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), m_rnti, GetBwpId (), msg);
       m_ueCphySapUser->RecvSystemInformationBlockType1 (GetCellId (), msg2->GetSib1 ());
     }
   else if (msg->GetMessageType () == MmWaveControlMessage::RAR)
@@ -412,7 +412,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
   else
     {
       NS_LOG_INFO ("Message type not recognized " << msg->GetMessageType ());
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), m_rnti, GetBwpId (), msg);
       m_phySapUser->ReceiveControlMessage (msg);
     }
 }
@@ -507,7 +507,7 @@ MmWaveUePhy::DoReceiveRar (Ptr<MmWaveRarMessage> rarMsg)
   NS_LOG_FUNCTION (this);
 
   NS_LOG_INFO ("Received RAR in slot " << m_currentSlot);
-  m_phyRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rarMsg);
+  m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), m_rnti, GetBwpId (), rarMsg);
 
   for (auto it = rarMsg->RarListBegin (); it != rarMsg->RarListEnd (); ++it)
     {
@@ -692,7 +692,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   for (const auto & msg : m_ctrlMsgs)
     {
-      m_phyTxedCtrlMsgsTrace (m_currentSlot, dci->m_rnti, GetBwpId (), msg);
+      m_phyTxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), dci->m_rnti, GetBwpId (), msg);
 
       if (msg->GetMessageType () == MmWaveControlMessage::DL_HARQ)
         {

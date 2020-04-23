@@ -92,12 +92,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
-  static void RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
+  static void RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                         SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                         uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Transmitted Control Messages.
@@ -106,12 +108,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
-  static void TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
+  static void TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                         SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                         uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Phy Received Control Messages.
