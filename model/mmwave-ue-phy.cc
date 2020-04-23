@@ -350,7 +350,7 @@ MmWaveUePhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
 
       m_harqIdToK1Map.insert (std::make_pair (dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ()));
 
-      m_phyUeRxedDlDciTrace (m_currentSlot, m_rnti, GetBwpId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
+      m_phyUeRxedDlDciTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), dciInfoElem->m_harqProcess, dciMsg->GetK1Delay ());
 
       InsertAllocation (dciInfoElem);
 
@@ -702,7 +702,7 @@ MmWaveUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
           auto it = m_harqIdToK1Map.find (harqId);
           if (it!=m_harqIdToK1Map.end ())
             {
-              m_phyUeTxedHarqFeedbackTrace (m_currentSlot, m_rnti, GetBwpId (),
+              m_phyUeTxedHarqFeedbackTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (),
                                             static_cast<uint32_t> (harqId), it->second);
             }
         }

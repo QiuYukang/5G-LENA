@@ -262,14 +262,15 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
    * \param [in] harq ID
    * \param [in] K1 Delay
    */
   typedef void (* RxedUePhyDlDciTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId,
-       uint8_t harqId, uint32_t K1Delay);
+      (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
+       const uint8_t bwpId, uint8_t harqId, uint32_t K1Delay);
 
   /**
    *  TracedCallback signature for Ue Phy DL HARQ Feedback transmission.
@@ -278,14 +279,15 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
    * \param [in] harq ID
    * \param [in] K1 Delay
    */
   typedef void (* TxedUePhyHarqFeedbackTracedCallback)
-      (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId,
-       uint8_t harqId, uint32_t K1Delay);
+      (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
+       const uint8_t bwpId, uint8_t harqId, uint32_t K1Delay);
 
   /**
    * \brief Set the channel access manager interface for this instance of the PHY
@@ -595,17 +597,17 @@ private:
 
   /**
    * Trace information regarding Ue PHY Rxed DL DCI Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
-   * Harq ID, K1 delay
+   * Frame number, Subframe number, slot, VarTtti, nodeId,
+   * rnti, bwpId, Harq ID, K1 delay
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeRxedDlDciTrace;
+  TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeRxedDlDciTrace;
 
   /**
    * Trace information regarding Ue PHY Txed Harq Feedback
-   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
-   * Harq ID, K1 delay
+   * Frame number, Subframe number, slot, VarTtti, nodeId,
+   * rnti, bwpId, Harq ID, K1 delay
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeTxedHarqFeedbackTrace;
+  TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeTxedHarqFeedbackTrace;
 };
 
 }
