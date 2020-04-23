@@ -142,9 +142,11 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
       {
         m_rxedEnbPhyCtrlMsgsFileName = "RxedEnbPhyCtrlMsgsTrace.txt";
         m_rxedEnbPhyCtrlMsgsFile.open (m_rxedEnbPhyCtrlMsgsFileName.c_str ());
-        m_rxedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "bwpId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_rxedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" <<
+                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                    "\t" << "VarTTI" << "\t" << "RNTI" <<
+                                    "\t" << "bwpId" <<
+                                    "\t" << "MsgType" << std::endl;
 
         if (!m_rxedEnbPhyCtrlMsgsFile.is_open ())
           {
@@ -152,9 +154,12 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
           }
       }
 
-  m_rxedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Rxed" << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (bwpId) << "\t";
+  m_rxedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                              "\t" << "ENB PHY Rxed" << "\t" << sfn.GetFrame () <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                              "\t" << rnti <<
+                              "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
 
   if (msg->GetMessageType () == MmWaveControlMessage::DL_CQI)
@@ -192,9 +197,11 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
       {
         m_txedEnbPhyCtrlMsgsFileName = "TxedEnbPhyCtrlMsgsTrace.txt";
         m_txedEnbPhyCtrlMsgsFile.open (m_txedEnbPhyCtrlMsgsFileName.c_str ());
-        m_txedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "bwpId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_txedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                    "\t" << "VarTTI" << "\t" << "RNTI" <<
+                                    "\t" << "bwpId" <<
+                                    "\t" << "MsgType" << std::endl;
 
         if (!m_txedEnbPhyCtrlMsgsFile.is_open ())
           {
@@ -202,9 +209,12 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
           }
       }
 
-  m_txedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB PHY Txed" << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (bwpId) << "\t";
+  m_txedEnbPhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                              "\t" << "ENB PHY Txed" << "\t" << sfn.GetFrame () <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                              "\t" << rnti <<
+                              "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::MIB)
     {
@@ -234,16 +244,19 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
 }
 
 void
-MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
+MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                             SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                             uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedUePhyCtrlMsgsFile.is_open ())
       {
         m_rxedUePhyCtrlMsgsFileName = "RxedUePhyCtrlMsgsTrace.txt";
         m_rxedUePhyCtrlMsgsFile.open (m_rxedUePhyCtrlMsgsFileName.c_str ());
-        m_rxedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "bwpId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_rxedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                   "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                   "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                   "\t" << "RNTI" << "\t" << "bwpId" << "\t" <<
+                                   "MsgType" << std::endl;
 
         if (!m_rxedUePhyCtrlMsgsFile.is_open ())
           {
@@ -251,9 +264,12 @@ MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
           }
       }
 
-  m_rxedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Rxed" << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (bwpId) << "\t";
+  m_rxedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                             "\t" << "UE  PHY Rxed" << "\t" << sfn.GetFrame ()<<
+                             "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                             "\t" << nodeId << "\t" << rnti <<
+                             "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::UL_DCI)
     {
@@ -283,16 +299,19 @@ MmWavePhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
 }
 
 void
-MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
+MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                             SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                             uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedUePhyCtrlMsgsFile.is_open ())
       {
         m_txedUePhyCtrlMsgsFileName = "TxedUePhyCtrlMsgsTrace.txt";
         m_txedUePhyCtrlMsgsFile.open (m_txedUePhyCtrlMsgsFileName.c_str ());
-        m_txedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "bwpId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_txedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                   "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                   "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                   "\t" << "RNTI" << "\t" << "bwpId" <<
+                                   "\t" << "MsgType" << std::endl;
 
         if (!m_txedUePhyCtrlMsgsFile.is_open ())
           {
@@ -300,9 +319,12 @@ MmWavePhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std
           }
       }
 
-  m_txedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  PHY Txed" << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (bwpId) << "\t";
+  m_txedUePhyCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                             "\t" << "UE  PHY Txed" << "\t" << sfn.GetFrame () <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                             "\t" << nodeId << "\t" << rnti <<
+                             "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::RACH_PREAMBLE)
     {
