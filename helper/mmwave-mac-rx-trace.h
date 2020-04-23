@@ -43,12 +43,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
-  static void RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  static void RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                          SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                          uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Enb Mac Transmitted Control Messages.
@@ -57,12 +59,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
-  static void TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                          uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  static void TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                          SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                          uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Mac Received Control Messages.
@@ -71,12 +75,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
-  static void RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  static void RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                         SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                         uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
   /**
    *  Trace sink for Ue Mac Transmitted Control Messages.
@@ -85,12 +91,14 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] rnti
-   * \param [in] ccId
+   * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
-  static void TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                         uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  static void TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                         SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                         uint8_t bwpId, Ptr<const MmWaveControlMessage> msg);
 
 private:
 

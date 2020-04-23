@@ -77,16 +77,19 @@ MmwaveMacRxTrace::GetTypeId (void)
 }
 
 void
-MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                              SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                              uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedEnbMacCtrlMsgsFile.is_open ())
       {
         m_rxedEnbMacCtrlMsgsFileName = "RxedEnbMacCtrlMsgsTrace.txt";
         m_rxedEnbMacCtrlMsgsFile.open (m_rxedEnbMacCtrlMsgsFileName.c_str ());
-        m_rxedEnbMacCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_rxedEnbMacCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                    "\t" << "RNTI" << "\t" << "bwpId"<<
+                                    "\t" << "MsgType" << std::endl;
 
         if (!m_rxedEnbMacCtrlMsgsFile.is_open ())
           {
@@ -94,9 +97,12 @@ MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
           }
       }
 
-  m_rxedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB MAC Rxed"  << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_rxedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                              "\t" << "ENB MAC Rxed"  << "\t" << sfn.GetFrame () <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                              "\t" << nodeId << "\t" << rnti <<
+                              "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::SR)
     {
@@ -126,16 +132,19 @@ MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
 }
 
 void
-MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                              SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                              uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedEnbMacCtrlMsgsFile.is_open ())
       {
         m_txedEnbMacCtrlMsgsFileName = "TxedEnbMacCtrlMsgsTrace.txt";
         m_txedEnbMacCtrlMsgsFile.open (m_txedEnbMacCtrlMsgsFileName.c_str ());
-        m_txedEnbMacCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_txedEnbMacCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                    "\t" << "VarTTI" "\t" << "nodeId" <<
+                                    "\t" << "RNTI" << "\t" << "bwpId" <<
+                                    "\t" << "MsgType" << std::endl;
 
         if (!m_txedEnbMacCtrlMsgsFile.is_open ())
           {
@@ -143,9 +152,12 @@ MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
           }
       }
 
-  m_txedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "ENB MAC Txed"  << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_txedEnbMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                              "\t" << "ENB MAC Txed"  << "\t" << sfn.GetFrame () <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                              "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                              "\t" << nodeId << "\t" << rnti <<
+                              "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::RAR)
     {
@@ -164,16 +176,19 @@ MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, st
 }
 
 void
-MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                             SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                             uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedUeMacCtrlMsgsFile.is_open ())
       {
         m_rxedUeMacCtrlMsgsFileName = "RxedUeMacCtrlMsgsTrace.txt";
         m_rxedUeMacCtrlMsgsFile.open (m_rxedUeMacCtrlMsgsFileName.c_str ());
-        m_rxedUeMacCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_rxedUeMacCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                   "Frame" << "\t" << "SF" << "\t" << "Slot" <<
+                                   "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                   "\t" << "RNTI" << "\t" << "bwpId" <<
+                                   "\t" << "MsgType" << std::endl;
 
         if (!m_rxedUeMacCtrlMsgsFile.is_open ())
           {
@@ -181,9 +196,12 @@ MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
           }
       }
 
-  m_rxedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  MAC Rxed" << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_rxedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                             "\t" << "UE  MAC Rxed" << "\t" << sfn.GetFrame () <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                             "\t" << nodeId << "\t" << rnti <<
+                             "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::UL_DCI)
     {
@@ -205,16 +223,20 @@ MmwaveMacRxTrace::RxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
 }
 
 void
-MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path, SfnSf sfn,
-                                             uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std::string path,
+                                             SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                             uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedUeMacCtrlMsgsFile.is_open ())
       {
         m_txedUeMacCtrlMsgsFileName = "TxedUeMacCtrlMsgsTrace.txt";
         m_txedUeMacCtrlMsgsFile.open (m_txedUeMacCtrlMsgsFileName.c_str ());
-        m_txedUeMacCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" << "\t" << "Frame" << "\t" << "SF"
-                                 << "\t" << "Slot" << "\t" << "VarTTI" << "\t" << "RNTI" << "\t" << "ccId"
-                                 << "\t" << "MsgType" << std::endl;
+        m_txedUeMacCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
+                                   "Frame" << "\t" << "SF" <<
+                                   "\t" << "Slot" << "\t" << "VarTTI" <<
+                                   "\t" << "nodeId" << "\t" << "RNTI" <<
+                                   "\t" << "bwpId" <<
+                                   "\t" << "MsgType" << std::endl;
 
         if (!m_txedUeMacCtrlMsgsFile.is_open ())
           {
@@ -222,9 +244,12 @@ MmwaveMacRxTrace::TxedUeMacCtrlMsgsCallback (Ptr<MmwaveMacRxTrace> macStats, std
           }
       }
 
-  m_txedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 << "\t" << "UE  MAC Txed" << "\t" << sfn.GetFrame ()
-          << "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) << "\t" << static_cast<uint32_t> (sfn.GetSlot ())
-          << "\t" << rnti << "\t" << static_cast<uint32_t> (ccId) << "\t";
+  m_txedUeMacCtrlMsgsFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                             "\t" << "UE  MAC Txed" << "\t" << sfn.GetFrame () <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
+                             "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
+                             "\t" << nodeId << "\t" << rnti <<
+                             "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::BSR)
     {

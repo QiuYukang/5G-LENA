@@ -118,11 +118,13 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* RxedUeMacCtrlMsgsTracedCallback)
-    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
+    (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
+     const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    *  TracedCallback signature for Ue Mac Transmitted Control Messages.
@@ -131,11 +133,13 @@ public:
    * \param [in] subframe Subframe number.
    * \param [in] slot number.
    * \param [in] VarTti
+   * \param [in] nodeId
    * \param [in] bwpId
    * \param [in] pointer to msg to get the msg type
    */
   typedef void (* TxedUeMacCtrlMsgsTracedCallback)
-    (const SfnSf sfnSf, const uint16_t rnti, const uint8_t bwpId, Ptr<MmWaveControlMessage>);
+    (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
+     const uint8_t bwpId, Ptr<MmWaveControlMessage>);
 
   /**
    * \brief Sets the number of HARQ processes
@@ -300,17 +304,17 @@ private:
 
   /**
    * Trace information regarding Ue MAC Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
+   * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue MAC Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, rnti, bwpId,
+   * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
-  TracedCallback<SfnSf, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
+  TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const MmWaveControlMessage>> m_macTxedCtrlMsgsTrace;
 };
 
 }
