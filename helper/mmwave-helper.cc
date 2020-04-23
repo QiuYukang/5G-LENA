@@ -1301,19 +1301,19 @@ MmWaveHelper::EnableDlPhyTrace (void)
 void
 MmWaveHelper::EnableEnbPhyCtrlMsgsTraces (void)
 {
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/EnbPhyRxedCtrlMsgsTrace",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbPhy/EnbPhyRxedCtrlMsgsTrace",
                    MakeBoundCallback (&MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback, m_phyStats));
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/EnbPhyTxedCtrlMsgsTrace",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbPhy/EnbPhyTxedCtrlMsgsTrace",
                    MakeBoundCallback (&MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback, m_phyStats));
 }
 
 void
 MmWaveHelper::EnableEnbMacCtrlMsgsTraces (void)
 {
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/EnbMacRxedCtrlMsgsTrace",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbMac/EnbMacRxedCtrlMsgsTrace",
                    MakeBoundCallback (&MmwaveMacRxTrace::RxedEnbMacCtrlMsgsCallback, m_macStats));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/EnbMacTxedCtrlMsgsTrace",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbMac/EnbMacTxedCtrlMsgsTrace",
                    MakeBoundCallback (&MmwaveMacRxTrace::TxedEnbMacCtrlMsgsCallback, m_macStats));
 }
 
@@ -1343,7 +1343,7 @@ void
 MmWaveHelper::EnableUlPhyTrace (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/SpectrumPhy/RxPacketTraceEnb",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbPhy/SpectrumPhy/RxPacketTraceEnb",
                    MakeBoundCallback (&MmWavePhyRxTrace::RxPacketTraceEnbCallback, m_phyStats));
 }
 
@@ -1351,7 +1351,7 @@ void
 MmWaveHelper::EnableEnbPacketCountTrace ()
 {
   NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/SpectrumPhy/ReportEnbTxRxPacketCount",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbPhy/SpectrumPhy/ReportEnbTxRxPacketCount",
                    MakeBoundCallback (&MmWavePhyRxTrace::ReportPacketCountEnbCallback, m_phyStats));
 
 }
