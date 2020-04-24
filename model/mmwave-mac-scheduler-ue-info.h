@@ -234,7 +234,14 @@ public:
    */
   virtual void UpdateDlMetric (const Ptr<const NrAmc> &amc)
   {
-    m_dlTbSize = amc->CalculateTbSizeDl (m_dlMcs, m_dlRBG * GetNumRbPerRbg ());
+    if (m_dlRBG == 0)
+      {
+        m_dlTbSize = 0;
+      }
+    else
+      {
+        m_dlTbSize = amc->CalculateTbSizeDl (m_dlMcs, m_dlRBG * GetNumRbPerRbg ());
+      }
   }
 
   /**

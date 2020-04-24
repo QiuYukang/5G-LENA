@@ -236,7 +236,7 @@ MmWaveMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &acti
             {
               if (GetUe (ue)->m_rnti != GetUe (*schedInfoIt)->m_rnti)
                 {
-                  NotAssignedDlResources (ue, FTResources (GetBandwidthInRbg (), 1),
+                  NotAssignedDlResources (ue, FTResources (rbgAssignable, beamSym),
                                           assigned);
                 }
             }

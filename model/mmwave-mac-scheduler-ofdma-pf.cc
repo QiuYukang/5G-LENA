@@ -117,11 +117,11 @@ MmWaveMacSchedulerOfdmaPF::AssignedDlResources (const UePtrAndBufferReq &ue,
 
 void
 MmWaveMacSchedulerOfdmaPF::NotAssignedDlResources (const MmWaveMacSchedulerNs3::UePtrAndBufferReq &ue,
-                                                   const MmWaveMacSchedulerNs3::FTResources &notAssigned,
+                                                   const MmWaveMacSchedulerNs3::FTResources &assigned,
                                                    const MmWaveMacSchedulerNs3::FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (notAssigned);
+  NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<MmWaveMacSchedulerUeInfoPF> (ue.first);
   uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_dlAmc);
 }
