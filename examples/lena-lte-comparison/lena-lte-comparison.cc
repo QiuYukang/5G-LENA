@@ -40,7 +40,7 @@
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "s3-scenario --Help"
+$ ./waf --run "lena-lte-comparison --Help"
     \endcode
  *
  */
@@ -63,6 +63,7 @@ $ ./waf --run "s3-scenario --Help"
 #include "ns3/lte-module.h"
 #include <ns3/radio-environment-map-helper.h>
 #include "ns3/config-store-module.h"
+#include "radio-network-parameters-helper.h"
 
 /*
  * To be able to use LOG_* functions.
@@ -81,137 +82,6 @@ using namespace ns3;
  * $ export NS_LOG="CttcNrDemo=level_info|prefix_func|prefix_time"
  */
 NS_LOG_COMPONENT_DEFINE ("S3Scenario");
-
-
-class RadioNetworkParametersHelper
-{
-public:
-
-  /**
-   * \brief Set the radio network parameters to LTE.
-   * \param freqReuse The cell frequency reuse.
-   */
-  void SetNetworkToLte (const std::string scenario,
-                        const std::string operationMode,
-                        uint16_t numCcs);
-
-  /**
-   * \brief Set the radio network parameters to NR.
-   * \param scenario Urban scenario (UMa or UMi).
-   * \param numerology Numerology to use.
-   * \param freqReuse The cell frequency reuse.
-   */
-  void SetNetworkToNr (const std::string scenario,
-                       const std::string operationMode,
-                       uint16_t numerology,
-                       uint16_t numCcs);
-
-  /**
-   * \brief Gets the BS transmit power
-   * \return Transmit power in dBW
-   */
-  double GetTxPower ();
-
-  /**
-   * \brief Gets the operation bandwidth
-   * \return Bandwidth in Hz
-   */
-  double GetBandwidth ();
-
-  /**
-   * \brief Gets the central frequency
-   * \return Central frequency in Hz
-   */
-  double GetCentralFrequency ();
-
-  /**
-   * \brief Gets the band numerology
-   * \return Numerology
-   */
-  uint16_t GetNumerology ();
-
-private:
-  double m_txPower {-1.0};            //!< Transmit power in dBm
-  double m_bandwidth {0.0};           //!< System bandwidth in Hz
-  double m_centralFrequency {-1.0};   //!< Band central frequency in Hz
-  uint16_t m_numerology {0};          //!< Operation band numerology
-};
-
-void
-RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario,
-                                               const std::string operationMode,
-                                               uint16_t numCcs)
-{
-  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
-                   "Unsupported scenario");
-
-  m_numerology = 0;
-  m_centralFrequency = 2e9;
-  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
-  if (operationMode == "FDD")
-    {
-      m_bandwidth += m_bandwidth;
-    }
-  if (scenario == "UMa")
-    {
-      m_txPower = 49;
-    }
-  else
-    {
-      m_txPower = 44;
-    }
-}
-
-void
-RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
-                                              const std::string operationMode,
-                                              uint16_t numerology,
-                                              uint16_t numCcs)
-{
-  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
-                   "Unsupported scenario");
-
-  m_numerology = numerology;
-  m_centralFrequency = 2e9;
-  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
-  if (operationMode == "FDD")
-    {
-      m_bandwidth += m_bandwidth;
-    }
-  if (scenario == "UMa")
-    {
-      m_txPower = 49;
-    }
-  else
-    {
-      m_txPower = 44;
-    }
-}
-
-double
-RadioNetworkParametersHelper::GetTxPower ()
-{
-  return m_txPower;
-}
-
-double
-RadioNetworkParametersHelper::GetBandwidth ()
-{
-  return m_bandwidth;
-}
-
-double
-RadioNetworkParametersHelper::GetCentralFrequency ()
-{
-  return m_centralFrequency;
-}
-
-uint16_t
-RadioNetworkParametersHelper::GetNumerology ()
-{
-  return m_numerology;
-}
-
 
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  std::string scenario,
@@ -234,12 +104,12 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   /*
    *  An example of how the spectrum is being used.
    *
-   *                              centralEarfcnFrequencyBand = 300
+   *                              centralEarfcnFrequencyBand = 350
    *                                     |
-   *         100 RB                    100 RB                 100RB
+   *         200 RB                    200 RB                 200RB
    * |-----------------------|-----------------------|-----------------------|
    *
-   *      50RB      50RB         50RB        50RB        50RB       50RB
+   *     100RB      100RB        100RB       100RB       100RB       100RB
    * |-----------|-----------|-----------|-----------|-----------|-----------|
    *       DL          UL          DL         UL           DL         UL
    *
@@ -247,8 +117,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    *     fc_dl       fc_ul       fc_dl       fc_ul        fc_dl      fc_ul
    */
 
-  uint32_t bandwidthBandDl = 100; // 18MHz
-  uint32_t bandwidthBandUl = 100; //
+  uint32_t bandwidthBandDl = 100;
+  uint32_t bandwidthBandUl = 100;
 
   uint32_t centralFrequencyBand1Dl = 100;
   uint32_t centralFrequencyBand1Ul = 200;
@@ -345,9 +215,10 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    */
   RadioNetworkParametersHelper ranHelper;
   uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
+  ranHelper.SetScenario (scenario);
   if (radioNetwork == "LTE")
     {
-      ranHelper.SetNetworkToLte (scenario, operationMode, 1);
+      ranHelper.SetNetworkToLte (operationMode, 1);
       if (errorModel == "")
         {
           errorModel = "ns3::LenaErrorModel";
@@ -364,7 +235,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     }
   else if (radioNetwork == "NR")
     {
-      ranHelper.SetNetworkToNr (scenario, operationMode, numerology, 1);
+      ranHelper.SetNetworkToNr (operationMode, numerology, 1);
       if (errorModel == "")
         {
           errorModel = "ns3::NrEesmCcT2";
@@ -881,8 +752,6 @@ main (int argc, char *argv[])
   // Spectrum parameters. We will take the input from the command line, and then
   //  we will pass them inside the NR module.
   uint16_t numerologyBwp = 0;
-//  double centralFrequencyBand = 0.0;  // RadioNetworkParametersHelper provides this hard-coded value
-//  double bandwidthBand = 0.0;  // RadioNetworkParametersHelper provides this hard-coded values
   std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
 
   // Where we will store the output files.
@@ -932,12 +801,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("direction",
                 "The flow direction (DL or UL)",
                 direction);
-//  cmd.AddValue ("centralFrequencyBand",
-//                "The system frequency to be used in band 1",
-//                centralFrequencyBand);
-//  cmd.AddValue ("bandwidthBand",
-//                "The system bandwidth to be used in band 1",
-//                bandwidthBand);
   cmd.AddValue ("simulator",
                 "The cellular network simulator to use: LENA or 5GLENA",
                 simulator);
@@ -997,12 +860,11 @@ main (int argc, char *argv[])
   /*
    * Create the scenario. In our examples, we heavily use helpers that setup
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
-   * GridScenarioHelper documentation to see how the nodes will be distributed.
+   * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (numOuterRings);
   gridScenario.SetScenarioParamenters (scenario);
-  gridScenario.SetNumCells ();  // Note that the call takes no arguments since the number is obtained from the parameters in SetUMaParameters or SetUMiParameters
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
