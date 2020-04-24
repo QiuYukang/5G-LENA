@@ -63,6 +63,7 @@ $ ./waf --run "lena-lte-comparison --Help"
 #include "ns3/lte-module.h"
 #include <ns3/radio-environment-map-helper.h>
 #include "ns3/config-store-module.h"
+#include <ns3/sqlite-output.h>
 #include "radio-network-parameters-helper.h"
 
 /*
@@ -721,7 +722,20 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 }
 
 
+static void
+DeleteWhere (SQLiteOutput *p, uint32_t seed, uint32_t run, const std::string &table)
+{
+  bool ret;
+  sqlite3_stmt *stmt;
+  ret = p->SpinPrepare (&stmt, "DELETE FROM \"" + table + "\" WHERE SEED = ? AND RUN = ?;");
+  NS_ABORT_IF (ret == false);
+  ret = p->Bind (stmt, 1, seed);
+  NS_ABORT_IF (ret == false);
+  ret = p->Bind (stmt, 2, run);
 
+  ret = p->SpinExec (stmt);
+  NS_ABORT_IF (ret == false);
+}
 
 int 
 main (int argc, char *argv[])
@@ -741,7 +755,7 @@ main (int argc, char *argv[])
   std::string operationMode = "TDD";  // TDD or FDD
 
   // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSize = 600;
+  uint32_t udpPacketSize = 1200;
   uint32_t lambda = 10000;
 
   // Simulation parameters. Please don't use double to indicate seconds, use
@@ -1323,6 +1337,26 @@ main (int argc, char *argv[])
 
   outFile.setf (std::ios_base::fixed);
 
+  SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
+  bool ret;
+  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS results ("
+               "FlowId INTEGER NOT NULL, "
+               "TxPackets INTEGER NOT NULL,"
+               "TxBytes INTEGER NOT NULL,"
+               "TxOfferedMbps DOUBLE NOT NULL,"
+               "RxBytes INTEGER NOT NULL,"
+               "ThroughputMbps DOUBLE NOT NULL, "
+               "MeanDelayMs DOUBLE NOT NULL, "
+               "MeanJitterMs DOUBLE NOT NULL, "
+               "RxPackets INTEGER NOT NULL, "
+               "SEED INTEGER NOT NULL,"
+               "RUN INTEGER NOT NULL,"
+               "PRIMARY KEY(FlowId,SEED,RUN)"
+               ");");
+  NS_ABORT_UNLESS (ret);
+
+  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "results");
+
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
@@ -1336,11 +1370,30 @@ main (int argc, char *argv[])
         {
           protoStream.str ("UDP");
         }
+
+      sqlite3_stmt *stmt;
+
+      db.SpinPrepare (&stmt, "INSERT INTO results VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+
+      double txOffered = i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0 ;
+
       outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
       outFile << "  Tx Packets: " << i->second.txPackets << "\n";
       outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
-      outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0  << " Mbps\n";
+      outFile << "  TxOffered:  " << txOffered << " Mbps\n";
       outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+
+      ret = db.Bind (stmt, 1, i->first);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 2, i->second.txPackets);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 3, static_cast<uint32_t> (i->second.txBytes));
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 4, txOffered);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 5, static_cast<uint32_t> (i->second.rxBytes));
+      NS_ABORT_UNLESS (ret);
+
       if (i->second.rxPackets > 0)
         {
           // Measure the duration of the flow from receiver's perspective
@@ -1350,18 +1403,44 @@ main (int argc, char *argv[])
           averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
           averageFlowDelay += 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
 
-          outFile << "  Throughput: " << i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000  << " Mbps\n";
-          outFile << "  Mean delay:  " << 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets << " ms\n";
-          //outFile << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 << " Mbps \n";
-          outFile << "  Mean jitter:  " << 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets  << " ms\n";
+          double th = i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
+          double delay = 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
+          double jitter = 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets;
+
+          ret = db.Bind (stmt, 6, th);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 7, delay);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 8, jitter);
+          NS_ABORT_UNLESS (ret);
+
+          outFile << "  Throughput: " << th << " Mbps\n";
+          outFile << "  Mean delay:  " <<  delay << " ms\n";
+          outFile << "  Mean jitter:  " << jitter  << " ms\n";
         }
       else
         {
           outFile << "  Throughput:  0 Mbps\n";
           outFile << "  Mean delay:  0 ms\n";
           outFile << "  Mean jitter: 0 ms\n";
+          ret = db.Bind (stmt, 6, 0.0);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 7, 0.0);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 8, 0.0);
+          NS_ABORT_UNLESS (ret);
         }
       outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
+      ret = db.Bind (stmt, 9, i->second.rxPackets);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 10, RngSeedManager::GetSeed ());
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 11, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      NS_ABORT_UNLESS (ret);
+
+      ret = db.SpinExec (stmt);
+
+      NS_ABORT_UNLESS (ret);
     }
 
   outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
