@@ -216,19 +216,16 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    */
   RadioNetworkParametersHelper ranHelper;
   uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
+  double rbOverhead = 0.1;
   ranHelper.SetScenario (scenario);
   if (radioNetwork == "LTE")
     {
       ranHelper.SetNetworkToLte (operationMode, 1);
+      rbOverhead = 0.1;
       if (errorModel == "")
         {
           errorModel = "ns3::LenaErrorModel";
         }
-      // FIXME: if numScPerRb is double then uncomment this
-//      else if (errorModel == "ns3::NrLteMiErrorModel")
-//        {
-//          numScPerRb = 1.2;  // This parameter was tuned for numRBs = 100 and maximum MCS
-//        }
       else if (errorModel != "ns3::NrLteMiErrorModel" && errorModel != "ns3::LenaErrorModel")
         {
           NS_ABORT_MSG ("The selected error model is not recommended for LTE");
@@ -237,6 +234,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   else if (radioNetwork == "NR")
     {
       ranHelper.SetNetworkToNr (operationMode, numerology, 1);
+      rbOverhead = 0.04;
       if (errorModel == "")
         {
           errorModel = "ns3::NrEesmCcT2";
@@ -318,6 +316,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    */
   nrHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (numScPerRb));
   nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
+
+  nrHelper->SetGnbPhyAttribute ("RbOverhead", DoubleValue (rbOverhead));
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
