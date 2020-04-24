@@ -149,6 +149,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   Config::SetDefault ("ns3::LteGnbPhy::TxPower", DoubleValue (txPower));
   Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (ueTxPower));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
+  lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
   lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
   lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
   lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
