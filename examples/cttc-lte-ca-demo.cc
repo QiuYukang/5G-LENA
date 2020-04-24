@@ -201,7 +201,7 @@ main (int argc, char *argv[])
 
   NS_ABORT_IF (numBands < 1);
   NS_ABORT_MSG_IF (enableLowLat==false && enableVideo==false && enableVoice==false
-                   && enableGaming==false, "Enable one of the flows");
+                   && enableGaming==false && operationMode=="TDD", "For TDD enable one of the flows");
 
   //ConfigStore inputConfig;
   //inputConfig.ConfigureDefaults ();
@@ -461,9 +461,6 @@ main (int argc, char *argv[])
       bwpul->m_centralFrequency = bwpul->m_lowerFrequency + bwpul->m_channelBandwidth / 2;
 
       cc2->AddBwp (std::move(bwpul));
-
-      //enable 4th flow
-      enableGaming = true;
   }
 
   band38.AddCc (std::move(cc1));
