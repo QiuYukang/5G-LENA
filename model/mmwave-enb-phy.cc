@@ -130,7 +130,7 @@ MmWaveEnbPhy::GetTypeId (void)
     .AddAttribute ("N1Delay",
                    "Minimum processing delay (UE side) from the end of DL Data reception to "
                    "the earliest possible start of the corresponding ACK/NACK transmission",
-                    UintegerValue (4),
+                    UintegerValue (2),
                     MakeUintegerAccessor (&MmWaveEnbPhy::SetN1Delay,
                                           &MmWaveEnbPhy::GetN1Delay),
                     MakeUintegerChecker<uint32_t> ())
