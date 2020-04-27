@@ -205,6 +205,8 @@ In the 'NR' module, the TDD pattern is represented by a vector of slot types, wh
 
 The model also supports the special slot type ("S" slots) to emulate LTE. In those slots, the first symbol is reserved for DL CTRL, the last slot is reserved for UL CTRL, and the rest of the symbols are available for DL data.
 
+Note there are not limitations in the implementation of the TDD pattern size and structure. However, one must ensure there is no a large gap in between two DL slots, or two UL slots, so that different timers (e.g., RRC, HARQ, CQI) do not expire simply by the TDD pattern.
+
 
 FDD model
 #########
@@ -668,26 +670,27 @@ from the processing timings that are defined in the 'NR' module as:
 * N1 → minimum processing delay (in slots) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission (UE side)
 * N2 → minimum processing delay (in slots) needed to decode UL DCI and prepare UL data (UE side)
 
-The values of the processing delays depend on the UE processing time capabilities
-and can be configured by the user through the attributes ``N0Delay``, ``N1Delay``,
-``N2Delay``. Typical values for N1 are 1 and 2 slots, while N2 can range from 1 to 3 slots based on the numerology and UE capability. The processing times are defined in Table 5.3-1/2 for N1 and Table 6.4-1/2 for N2 of [TS38214]_. Although in the standard they are measured in multiples of the OFDM symbol, in the simulator we define them in multiples of slots, because then they are used to compute dynamic K values, which are measured in slots. Also note that N0 is not defined in the specs, but so is K0, and so we have included both.
+The values of the processing delays depend on the UE capability (1 or 2) and the configured numerology.
+Typical values for N1 are 1 and 2 slots, while N2 can range from 1 to 3 slots based on the numerology and the UE capability. The processing times are defined in Table 5.3-1/2 for N1 and Table 6.4-1/2 for N2 of [TS38214]_. Although in the standard they are defined in multiples of the OFDM symbol, in the simulator we define them in multiples of slots, because then they are used to compute dynamic K values that are measured in slots. Also note that N0 is not defined in the specs, but so is K0, and so we have included both in the 'NR' module.
+The values of the processing delays in the 'NR' simulator can be configured by the user through the attributes ``N0Delay``, ``N1Delay``, and ``N2Delay``, and default to 0 slots, 2 slots, and 2 slots, respectively.
+Note there are not limitations in the implementation and every N value can be equal or larger than 0 (N0, N1, N2 >= 0).
+
 For the scheduling timings let us note that each K cannot take a value smaller than
 the corresponding N value (e.g., K2 cannot be less than N2).
-
 The proceedure followed for the calculation of the scheduling and DL HARQ Feedback
-timings at the gNB side is briefly described below:
+timings at the gNB side is briefly described below.
 
-For K0 the gNB calculates (based on the TDD pattern) which is the next DL (or F)
+For K0, the gNB calculates (based on the TDD pattern) which is the next DL (or F)
 slot that follows after (minimum) N0 slots. In the current implementation we use
 N0=0, as such in this case DL Data are scheduled in the same slot with the DL DCI.
 
-For K1/K2, the eNB calculates (based on the TDD pattern) which is the next UL (or F)
+For K1/K2, the gNB calculates (based on the TDD pattern) which is the next UL (or F)
 slot that follows after (minimum) N1/N2 slots and calculates K1/K2 based on the
 resulted slot and the current slot.
 
 Then, the gNB communicates the scheduling timings to the UE through the DCI. In
 particular, K0 and K1 are passed to the UE through the DL DCI in the time domain
-resource assignment field and pdsch-to-harq_feedback timing indicator, respectively,
+resource assignment field and pdsch-to-harq-feedback timing indicator, respectively,
 while K2 is passed through the UL DCI in the time domain resource assignment field.
 Upon reception of the DL/UL DCI, the UE extracts the values of K0/K1/K2:
 

@@ -150,8 +150,8 @@ public:
     * it can take 1 or 2 slots. For UE Capability 2, it is not
     * larger than 1 slot.
     *
-    * Please note that in the current implementation N1
-    * must be equal or larger than 1 (N1 >= 1)
+    * There are no limitations in the implementation: N1
+    * can be equal or larger than 0 (N1 >= 0)
     */
    void SetN1Delay (uint32_t delay);
 
@@ -167,8 +167,8 @@ public:
     * it can take 1, 2 or 3 slots. For UE Capability 2, it is not
     * larger than 1 slot.
     *
-    * Please note that in the current implementation N2
-    * must be equal or larger than 1 (N2 >= 1)
+    * There are no limitations in the implementation: N2
+    * can be equal or larger than 0 (N2 >= 0)
     */
    void SetN2Delay (uint32_t delay);
 
