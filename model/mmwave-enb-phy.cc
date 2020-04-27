@@ -126,20 +126,20 @@ MmWaveEnbPhy::GetTypeId (void)
                     UintegerValue (0),
                     MakeUintegerAccessor (&MmWaveEnbPhy::SetN0Delay,
                                           &MmWaveEnbPhy::GetN0Delay),
-                    MakeUintegerChecker<uint32_t> ())
+                    MakeUintegerChecker<uint32_t> (0, 1))
     .AddAttribute ("N1Delay",
                    "Minimum processing delay (UE side) from the end of DL Data reception to "
                    "the earliest possible start of the corresponding ACK/NACK transmission",
                     UintegerValue (2),
                     MakeUintegerAccessor (&MmWaveEnbPhy::SetN1Delay,
                                           &MmWaveEnbPhy::GetN1Delay),
-                    MakeUintegerChecker<uint32_t> ())
+                    MakeUintegerChecker<uint32_t> (0, 4))
     .AddAttribute ("N2Delay",
                    "Minimum processing delay needed to decode UL DCI and prepare UL data",
                    UintegerValue (2),
                    MakeUintegerAccessor (&MmWaveEnbPhy::SetN2Delay,
                                          &MmWaveEnbPhy::GetN2Delay),
-                   MakeUintegerChecker<uint32_t> ())
+                   MakeUintegerChecker<uint32_t> (0, 4))
     .AddAttribute ("TbDecodeLatency",
                    "Transport block decode latency",
                     TimeValue (MicroSeconds (100)),
