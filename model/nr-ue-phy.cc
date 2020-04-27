@@ -1171,7 +1171,7 @@ NrUePhy::RegisterSlBwpId (uint16_t bwpId)
 
   // we might need to do the same for SL InitializeMessageList ();
 
-  DoSetCellId (bwpId);
+  SetBwpId (bwpId);
 }
 
 
