@@ -133,19 +133,21 @@ public:
 
   /**
     * \brief: Set the minimum processing delay (in slots)
-    * to decode DL DCI and decode DL data. It is not defined in NR specs, and
-    * so it defaults to 0 slots.
+    * to decode DL DCI and decode DL data. It is not defined in NR specs.
+    * It defaults to 0 slots.
     */
    void SetN0Delay (uint32_t delay);
 
    /**
     * \brief: Set the minimum processing delay (in slots)
-    * to decode DL Data and send Harq feedback. It is defined in TS 38.214
-    * Table 5.3-1 and 5.3-2 for UE capabilities 1 and 2, and depends on the
-    * numerology. Note that it is defined in multiples of OFDM symbols, but
-    * in the simulator we define it in multiples of slots, since then it is
-    * mapped to flexbile K1 timing that is measured in slots. For UE
-    * Capability 1, it can take 1 or 2 slots. For UE Capability 2, it is not
+    * to decode DL Data and send Harq feedback.
+    *
+    * It is defined in TS 38.214 Table 5.3-1 and Table 5.3-2 for UE
+    * capabilities 1 and UE capability 2, respectively, and depends on the
+    * numerology. In the specs it is defined in multiples of OFDM symbols, but
+    * we define it in multiples of slots, since then it is used to compute
+    * flexible K1 timing that is measured in slots. For UE Capability 1,
+    * it can take 1 or 2 slots. For UE Capability 2, it is not
     * larger than 1 slot.
     *
     * Please note that in the current implementation N1
@@ -155,13 +157,15 @@ public:
 
    /**
     * \brief: Set the minimum processing delay (in slots)
-    * to decode UL DCI and prepare UL data. It is defined in TS 38.214
-    * Table 6.4-1 and 6.4-2 for UE capabilities 1 and 2, and depends on the
-    * numerology. Note that it is defined in multiples of OFDM symbols, but
-    * in the simulator we define it in multiples of slots, since then it is
-    * mapped to flexbile K2 timing that is measured in slots. For UE
-    * Capability 1, it can take 1 or 2 or 3 slots. For UE Capability 2, it is
-    * not larger than 1 slot.
+    * to decode UL DCI and prepare UL data.
+    *
+    * It is defined in TS 38.214 Table 6.4-1 and Table 6.4-2 for UE
+    * capabilities 1 and UE capability 2, respectively, and depends on the
+    * numerology. In the specs it is defined in multiples of OFDM symbols, but
+    * we define it in multiples of slots, since then it is used to compute
+    * flexible K2 timing that is measured in slots. For UE Capability 1,
+    * it can take 1, 2 or 3 slots. For UE Capability 2, it is not
+    * larger than 1 slot.
     *
     * Please note that in the current implementation N2
     * must be equal or larger than 1 (N2 >= 1)

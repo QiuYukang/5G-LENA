@@ -670,10 +670,9 @@ from the processing timings that are defined in the 'NR' module as:
 
 The values of the processing delays depend on the UE processing time capabilities
 and can be configured by the user through the attributes ``N0Delay``, ``N1Delay``,
-``N2Delay``. Typical values for N0 are 0 and 1, while N1, N2, can vary form 0 to 15,
-and 0 to 32, respectively, with most common values form 0 to 4.
+``N2Delay``. Typical values for N1 are 1 and 2 slots, while N2 can range from 1 to 3 slots based on the numerology and UE capability. The processing times are defined in Table 5.3-1/2 for N1 and Table 6.4-1/2 for N2 of [TS38214]_. Although in the standard they are measured in multiples of the OFDM symbol, in the simulator we define them in multiples of slots, because then they are used to compute dynamic K values, which are measured in slots. Also note that N0 is not defined in the specs, but so is K0, and so we have included both.
 For the scheduling timings let us note that each K cannot take a value smaller than
-the corresponding N value (e.g. K2 cannot be less than N2).
+the corresponding N value (e.g., K2 cannot be less than N2).
 
 The proceedure followed for the calculation of the scheduling and DL HARQ Feedback
 timings at the gNB side is briefly described below:
