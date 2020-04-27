@@ -368,15 +368,13 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * sophisticated examples. For the moment, this method will take care
    * of all the spectrum initialization needs.
    */
-  nrHelper->InitializeOperationBand (&band1);
-  nrHelper->InitializeOperationBand (&band2);
-  nrHelper->InitializeOperationBand (&band3);
+  nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+  nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+  nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
   allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
   bwps1 = CcBwpCreator::GetAllBwps ({band1});
   bwps2 = CcBwpCreator::GetAllBwps ({band2});
   bwps3 = CcBwpCreator::GetAllBwps ({band3});
-
-
 
   /*
    * Start to account for the bandwidth used by the example, as well as
