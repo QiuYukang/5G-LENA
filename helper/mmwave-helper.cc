@@ -196,7 +196,7 @@ InitIndoorMixed (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCond
 }
 
 void
-MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
+MmWaveHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
 {
   NS_LOG_FUNCTION (this);
 
@@ -220,29 +220,34 @@ MmWaveHelper::InitializeOperationBand (OperationBandInfo *band)
     {
       for (const auto & bwp : cc->m_bwp)
         {
-          if (! (bwp->m_channel == nullptr && bwp->m_propagation == nullptr && bwp->m_3gppChannel == nullptr))
-            {
-              continue;
-            }
-
           // Initialize the type ID of the factories by calling the relevant
           // static function defined above and stored inside the lookup table
           initLookupTable.at (bwp->m_scenario) (&m_pathlossModelFactory, &m_channelConditionModelFactory);
 
-          Ptr<ChannelConditionModel> channelConditionModel  = m_channelConditionModelFactory.Create<ChannelConditionModel>();
+          auto channelConditionModel  = m_channelConditionModelFactory.Create<ChannelConditionModel>();
 
-          bwp->m_propagation = m_pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
-          bwp->m_propagation->SetAttributeFailSafe ("Frequency", DoubleValue (bwp->m_centralFrequency));
-          bwp->m_propagation->SetChannelConditionModel (channelConditionModel);
+          if (bwp->m_propagation == nullptr && flags & INIT_PROPAGATION)
+            {
 
-          bwp->m_3gppChannel = m_spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
-          bwp->m_3gppChannel->SetChannelModelAttribute ("Frequency", DoubleValue (bwp->m_centralFrequency));
-          bwp->m_3gppChannel->SetChannelModelAttribute ("Scenario", StringValue (bwp->GetScenario ()));
-          bwp->m_3gppChannel->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (channelConditionModel));
+              bwp->m_propagation = m_pathlossModelFactory.Create <ThreeGppPropagationLossModel> ();
+              bwp->m_propagation->SetAttributeFailSafe ("Frequency", DoubleValue (bwp->m_centralFrequency));
+              DynamicCast<ThreeGppPropagationLossModel> (bwp->m_propagation)->SetChannelConditionModel (channelConditionModel);
+            }
 
-          bwp->m_channel = m_channelFactory.Create<SpectrumChannel> ();
-          bwp->m_channel->AddPropagationLossModel (bwp->m_propagation);
-          bwp->m_channel->AddSpectrumPropagationLossModel (bwp->m_3gppChannel);
+          if (bwp->m_3gppChannel == nullptr && flags & INIT_FADING)
+            {
+              bwp->m_3gppChannel = m_spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
+              DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel)->SetChannelModelAttribute ("Frequency", DoubleValue (bwp->m_centralFrequency));
+              DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel)->SetChannelModelAttribute ("Scenario", StringValue (bwp->GetScenario ()));
+              DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel)->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (channelConditionModel));
+            }
+
+          if (bwp->m_channel == nullptr && flags & INIT_CHANNEL)
+            {
+              bwp->m_channel = m_channelFactory.Create<SpectrumChannel> ();
+              bwp->m_channel->AddPropagationLossModel (bwp->m_propagation);
+              bwp->m_channel->AddSpectrumPropagationLossModel (bwp->m_3gppChannel);
+            }
         }
     }
 }
@@ -421,8 +426,7 @@ MmWaveHelper::CreateUeMac () const
 }
 
 Ptr<MmWaveUePhy>
-MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
-                           const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
+MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                            const Ptr<MmWaveUeNetDevice> &dev,
                            const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback,
                            const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyRxCtrlCallback)
@@ -436,8 +440,10 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
   DoubleValue frequency;
-  gppChannel->GetChannelModelAttribute("Frequency", frequency);
+  bool res = bwp->m_propagation->GetAttributeFailSafe ("Frequency", frequency);
+  NS_ASSERT_MSG (res, "Propagation model without Frequency attribute");
   phy->InstallCentralFrequency (frequency.Get ());
+
   phy->ScheduleStartEventLoop (n->GetId (), 0, 0, 0);
 
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
@@ -456,7 +462,8 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
       channelPhy->SetPhyDlHarqFeedbackCallback (dlHarqCallback);
     }
 
-  channelPhy->SetChannel (c);
+  NS_ASSERT (bwp->m_channel != nullptr);
+  channelPhy->SetChannel (bwp->m_channel);
   channelPhy->InstallPhy (phy);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
@@ -469,9 +476,13 @@ MmWaveHelper::CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
   phy->InstallSpectrumPhy (channelPhy);
   phy->InstallAntenna (antenna);
 
-  // TODO: If antenna changes, we are fucked!
-  // TODO: Remove const_cast once final Tommaso version is merged
-  gppChannel->AddDevice (dev,  ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy()->GetAntennaArray()));
+  // TODO: If antenna changes, this will be broken
+  auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
+  if (channel)
+    {
+      channel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
+    }
+
 
   return phy;
 }
@@ -501,7 +512,7 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       auto mac = CreateUeMac ();
       cc->SetMac (mac);
 
-      auto phy = CreateUePhy (n, allBwps[bwpId].get()->m_channel, allBwps[bwpId].get ()->m_3gppChannel,
+      auto phy = CreateUePhy (n, allBwps[bwpId].get(),
                               dev, MakeCallback (&MmWaveUeNetDevice::EnqueueDlHarqFeedback, dev),
                               std::bind (&MmWaveUeNetDevice::RouteIngoingCtrlMsgs, dev,
                                          std::placeholders::_1, bwpId));
@@ -612,8 +623,7 @@ MmWaveHelper::InstallSingleUeDevice (const Ptr<Node> &n,
 }
 
 Ptr<MmWaveEnbPhy>
-MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
-                            const Ptr<SpectrumChannel> &c, const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
+MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                             const Ptr<MmWaveEnbNetDevice> &dev,
                             const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback)
 {
@@ -624,8 +634,8 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
 
   DoubleValue frequency;
-  gppChannel->GetChannelModelAttribute("Frequency", frequency);
-
+  bool res = bwp->m_propagation->GetAttributeFailSafe ("Frequency", frequency);
+  NS_ASSERT_MSG (res, "Propagation model without Frequency attribute");
   phy->InstallCentralFrequency (frequency.Get ());
 
   phy->ScheduleStartEventLoop (n->GetId (), 0, 0, 0);
@@ -648,7 +658,7 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
 
   phy->SetDevice (dev);
 
-  channelPhy->SetChannel (c);
+  channelPhy->SetChannel (bwp->m_channel);
   channelPhy->InstallPhy (phy);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
@@ -663,10 +673,13 @@ MmWaveHelper::CreateGnbPhy (const Ptr<Node> &n,
   phy->InstallSpectrumPhy (channelPhy);
   phy->InstallAntenna (antenna);
 
-  c->AddRx (channelPhy);
+  bwp->m_channel->AddRx (channelPhy);
+  auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
   // TODO: NOTE: if changing the Antenna Array, this will broke
-  // TODO: Remove const_cast after final Tommaso merge is done
-  gppChannel->AddDevice (dev, ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy()->GetAntennaArray()));
+  if (channel)
+    {
+      channel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
+    }
 
   return phy;
 }
@@ -725,8 +738,7 @@ MmWaveHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
       cc->SetUlEarfcn (0); // Argh... handover not working
       cc->SetCellId (m_cellIdCounter++);
 
-      auto phy = CreateGnbPhy (n, allBwps[bwpId].get()->m_channel,
-                               allBwps[bwpId].get()->m_3gppChannel, dev,
+      auto phy = CreateGnbPhy (n, allBwps[bwpId].get(), dev,
                                std::bind (&MmWaveEnbNetDevice::RouteIngoingCtrlMsgs,
                                           dev, std::placeholders::_1, bwpId));
       phy->SetBwpId (bwpId);

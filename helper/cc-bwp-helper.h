@@ -35,8 +35,8 @@ namespace ns3 {
 static const uint8_t MAX_CC_INTRA_BAND = 8;  //!< \ingroup utils In NR Rel. 16, up to 8 CCs can be aggregated in the same operation band
 static const uint8_t MAX_CC_INTER_BAND = 16; //!< \ingroup utils The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
 
-class ThreeGppSpectrumPropagationLossModel;
-class ThreeGppPropagationLossModel;
+class SpectrumPropagationLossModel;
+class PropagationLossModel;
 class SpectrumChannel;
 
 /**
@@ -89,8 +89,8 @@ struct BandwidthPartInfo
   std::string GetScenario () const;
 
   Ptr<SpectrumChannel> m_channel;            //!< Channel for the Bwp. Leave it nullptr to let the helper fill it
-  Ptr<ThreeGppPropagationLossModel> m_propagation;   //!< Propagation model. Leave it nullptr to let the helper fill it
-  Ptr<ThreeGppSpectrumPropagationLossModel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
+  Ptr<PropagationLossModel> m_propagation;   //!< Propagation model. Leave it nullptr to let the helper fill it
+  Ptr<SpectrumPropagationLossModel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
 };
 
 /**
