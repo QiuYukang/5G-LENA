@@ -690,7 +690,7 @@ resulted slot and the current slot.
 
 Then, the gNB communicates the scheduling timings to the UE through the DCI. In
 particular, K0 and K1 are passed to the UE through the DL DCI in the time domain
-resource assignment field and pdsch-to-harq-feedback timing indicator, respectively,
+resource assignment field and PDSCH-to-HARQ_feedback timing indicator, respectively,
 while K2 is passed through the UL DCI in the time domain resource assignment field.
 Upon reception of the DL/UL DCI, the UE extracts the values of K0/K1/K2:
 
