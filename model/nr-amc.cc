@@ -350,7 +350,8 @@ double
 NrAmc::GetBer () const
 {
   NS_LOG_FUNCTION (this);
-  if (GetErrorModelType() == NrLteMiErrorModel::GetTypeId ())
+  if (GetErrorModelType() == NrLteMiErrorModel::GetTypeId () ||
+      GetErrorModelType() == LenaErrorModel::GetTypeId ())
     {
       return 0.00005;  // Value for LTE error model
     }
