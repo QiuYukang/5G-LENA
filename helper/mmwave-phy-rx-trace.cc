@@ -38,6 +38,9 @@ NS_LOG_COMPONENT_DEFINE ("MmWavePhyRxTrace");
 
 NS_OBJECT_ENSURE_REGISTERED (MmWavePhyRxTrace);
 
+std::ofstream MmWavePhyRxTrace::m_rsrpSinrFile;
+std::string MmWavePhyRxTrace::m_rsrpSinrFileName;
+
 std::ofstream MmWavePhyRxTrace::m_rxPacketTraceFile;
 std::string MmWavePhyRxTrace::m_rxPacketTraceFilename;
 
@@ -53,12 +56,18 @@ std::string MmWavePhyRxTrace::m_txedUePhyCtrlMsgsFileName;
 std::ofstream MmWavePhyRxTrace::m_rxedUePhyDlDciFile;
 std::string MmWavePhyRxTrace::m_rxedUePhyDlDciFileName;
 
+
 MmWavePhyRxTrace::MmWavePhyRxTrace ()
 {
 }
 
 MmWavePhyRxTrace::~MmWavePhyRxTrace ()
 {
+  if (m_rsrpSinrFile.is_open ())
+    {
+      m_rsrpSinrFile.close ();
+    }
+
   if (m_rxPacketTraceFile.is_open ())
     {
       m_rxPacketTraceFile.close ();
@@ -105,8 +114,40 @@ MmWavePhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phySt
                                                      uint64_t imsi, SpectrumValue& sinr, SpectrumValue& power)
 {
   NS_LOG_INFO ("UE" << imsi << "->Generate RsrpSinrTrace");
-  phyStats->ReportInterferenceTrace (imsi, sinr);
+  //phyStats->ReportInterferenceTrace (imsi, sinr);
   //phyStats->ReportPowerTrace (imsi, power);
+
+  if (!m_rsrpSinrFile.is_open ())
+      {
+        m_rsrpSinrFileName = "SinrTrace.txt";
+        m_rsrpSinrFile.open (m_rsrpSinrFileName.c_str ());
+        m_rsrpSinrFile << "Time" << "\t" << "IMSI" <<
+                                    "\t" << "SINR" <<
+                                    "\t" << "PSRP" << std::endl;
+
+        if (!m_rsrpSinrFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  uint32_t rbNum = 0;
+  double sinrAvg = 0;
+  Values::const_iterator it;
+
+  for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
+    {
+      if (*it != 0.0)
+        {
+          sinrAvg += *it;
+        }
+      rbNum += 1;
+    }
+  sinrAvg /= static_cast <double> (rbNum);
+
+  m_rsrpSinrFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                              "\t" << imsi <<
+                              "\t" << sinrAvg << std::endl;
 }
 
 void

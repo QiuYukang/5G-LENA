@@ -161,6 +161,9 @@ private:
   void ReportPacketCountEnb (EnbPhyPacketCountParameter param);
   void ReportDLTbSize (uint64_t imsi, uint64_t tbSize);
 
+  static std::ofstream m_rsrpSinrFile;
+  static std::string m_rsrpSinrFileName;
+
   static std::ofstream m_rxPacketTraceFile;
   static std::string m_rxPacketTraceFilename;
 
