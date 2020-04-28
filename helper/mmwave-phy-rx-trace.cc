@@ -122,8 +122,7 @@ MmWavePhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phySt
         m_rsrpSinrFileName = "SinrTrace.txt";
         m_rsrpSinrFile.open (m_rsrpSinrFileName.c_str ());
         m_rsrpSinrFile << "Time" << "\t" << "IMSI" <<
-                                    "\t" << "SINR" <<
-                                    "\t" << "PSRP" << std::endl;
+                                    "\t" << "SINR (dB)" << std::endl;
 
         if (!m_rsrpSinrFile.is_open ())
           {
@@ -147,7 +146,7 @@ MmWavePhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phySt
 
   m_rsrpSinrFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
                               "\t" << imsi <<
-                              "\t" << sinrAvg << std::endl;
+                              "\t" << (10 * log10 (sinrAvg)) << std::endl;
 }
 
 void

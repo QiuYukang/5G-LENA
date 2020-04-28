@@ -44,6 +44,10 @@ public:
   MmWavePhyRxTrace ();
   virtual ~MmWavePhyRxTrace ();
   static TypeId GetTypeId (void);
+  /**
+   *  Trace sink for DL Average SINR (in dB).
+   *
+   */
   static void ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
                                                  uint64_t imsi, SpectrumValue& sinr, SpectrumValue& power);
   static void UlSinrTraceCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
