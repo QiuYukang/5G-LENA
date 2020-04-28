@@ -125,8 +125,11 @@ public:
   /**
    * \brief Create a CQI/MCS wideband feedback from a SINR values
    *
+   * For CQI creation, a CSI reference resource equal to all RBs in
+   * which the gNB/UE has transmitted power, and from which the SINR can be
+   * measured, during 1 OFDM symbol, is assumed.
+   *
    * \param sinr the sinr values
-   * \param tbs the TBS (in byte)
    * \param mcsWb The calculated MCS
    * \return The calculated CQI
    */
