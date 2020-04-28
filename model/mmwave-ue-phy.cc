@@ -920,7 +920,7 @@ MmWaveUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
   std::vector<int> cqi;
 
   uint8_t mcs;
-  dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, m_currTbs, mcs);
+  dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, mcs);
 
   msg->SetDlCqi (dlcqi);
   return msg;

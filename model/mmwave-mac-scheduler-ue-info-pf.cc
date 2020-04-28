@@ -58,7 +58,7 @@ MmWaveMacSchedulerUeInfoPF::CalculatePotentialTPut (const MmWaveMacSchedulerNs3:
 {
   NS_LOG_FUNCTION (this);
   uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg ();
-  m_potentialTput =  amc->CalculateTbSizeDl (m_dlMcs, rbsAssignable);
+  m_potentialTput =  amc->CalculateTbSize (m_dlMcs, rbsAssignable);
   m_potentialTput /= assignableInIteration.m_sym;
   NS_LOG_INFO ("UE " << m_rnti << " potentialTput " << m_potentialTput <<
                " lastAvgTh " << m_lastAvgTputDl << " metric: " << m_potentialTput / std::max (1E-9, m_avgTputDl));

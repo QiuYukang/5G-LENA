@@ -53,6 +53,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
                                                   const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
+  NS_UNUSED (tbs);
 
   ueInfo->m_ulCqi.m_sinr = params.m_ulCqi.m_sinr;
   ueInfo->m_ulCqi.m_cqiType = MmWaveMacSchedulerUeInfo::CqiInfo::SB;
@@ -78,7 +79,7 @@ MmWaveMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
     }
 
   // MCS updated inside the function; crappy API... but we can't fix everything
-  ueInfo->m_ulCqi.m_cqi = GetAmcUl ()->CreateCqiFeedbackWbTdma (specVals, tbs, ueInfo->m_ulMcs);
+  ueInfo->m_ulCqi.m_cqi = GetAmcUl ()->CreateCqiFeedbackWbTdma (specVals, ueInfo->m_ulMcs);
 }
 
 void

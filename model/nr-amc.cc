@@ -42,6 +42,20 @@ NrAmc::~NrAmc ()
 {
 }
 
+void
+NrAmc::SetDlMode ()
+{
+  NS_LOG_FUNCTION (this);
+  m_emMode = NrErrorModel::DL;
+}
+
+void
+NrAmc::SetUlMode ()
+{
+  NS_LOG_FUNCTION (this);
+  m_emMode = NrErrorModel::UL;
+}
+
 TypeId
 NrAmc::GetTypeId (void)
 {
@@ -112,13 +126,14 @@ void NrAmc::SetNumRefScPerRb(uint8_t nref)
 }
 
 uint32_t
-NrAmc::CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const
+NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
 {
   NS_LOG_FUNCTION (this << static_cast<uint32_t> (mcs));
 
   NS_ASSERT_MSG (mcs <= m_errorModel->GetMaxMcs (), "MCS=" << static_cast<uint32_t> (mcs) <<
                  " while maximum MCS is " << static_cast<uint32_t> (m_errorModel->GetMaxMcs ()));
 
+  uint32_t payloadSize = GetPayloadSize (mcs, nprb);
   uint32_t tbSize = payloadSize;
 
   if (m_errorModelType != LenaErrorModel::GetTypeId ())
@@ -141,22 +156,14 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const
 }
 
 uint32_t
-NrAmc::GetPayloadSizeUl (uint8_t mcs, uint32_t nprb) const
+NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
 {
   return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
-                                       mcs, nprb, NrErrorModel::UL);
-}
-
-uint32_t
-NrAmc::GetPayloadSizeDl (uint8_t mcs, uint32_t nprb) const
-{
-  return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
-                                       mcs, nprb, NrErrorModel::DL);
+                                       mcs, nprb, m_emMode);
 }
 
 uint8_t
-NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
-                                    uint8_t &mcs) const
+NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -233,7 +240,9 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
       Ptr<NrErrorModelOutput> output;
       while (mcs <= m_errorModel->GetMaxMcs ())
         {
-          output = m_errorModel->GetTbDecodificationStats (sinr, rbMap, tbSize, mcs,
+          output = m_errorModel->GetTbDecodificationStats (sinr, rbMap,
+                                                           CalculateTbSize (mcs, rbMap.size ()),
+                                                           mcs,
                                                            NrErrorModel::NrErrorModelHistory ());
           if (output->m_tbler > 0.1)
             {
@@ -335,18 +344,6 @@ NrAmc::GetErrorModelType () const
 {
   NS_LOG_FUNCTION (this);
   return m_errorModelType;
-}
-
-uint32_t
-NrAmc::CalculateTbSizeUl (uint8_t mcs, uint32_t nprb) const
-{
-  return CalculateTbSize (mcs, GetPayloadSizeUl (mcs, nprb));
-}
-
-uint32_t
-NrAmc::CalculateTbSizeDl (uint8_t mcs, uint32_t nprb) const
-{
-  return CalculateTbSize (mcs, GetPayloadSizeDl (mcs, nprb));
 }
 
 double
