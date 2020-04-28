@@ -99,7 +99,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  NetDeviceContainer &enbSector3NetDev,
                                  NetDeviceContainer &ueSector1NetDev,
                                  NetDeviceContainer &ueSector2NetDev,
-                                 NetDeviceContainer &ueSector3NetDev)
+                                 NetDeviceContainer &ueSector3NetDev,
+                                 bool calibration)
 {
 
   /*
@@ -149,32 +150,51 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
   Config::SetDefault ("ns3::LteGnbPhy::TxPower", DoubleValue (txPower));
   Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (ueTxPower));
+  Config::SetDefault ("ns3::LteAmc::AmcModel", EnumValue(LteAmc::PiroEW2010));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
   lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
   lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
-  lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-  lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
-  lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
+
+  if (calibration)
+    {
+      lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
+    }
+  else
+    {
+      lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
+      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
+      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
+    }
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDl));
   lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUl));
 
   //SECTOR 1 eNB configuration
-  double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
-  lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+  if (!calibration)
+    {
+      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
+      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+    }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand1Dl));
   lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand1Ul));
   enbSector1NetDev = lteHelper->InstallEnbDevice (enbSector1Container);
 
   //SECTOR 2 eNB configuration
-  orientationDegrees = gridScenario.GetAntennaOrientationDegrees (1, gridScenario.GetNumSectorsPerSite ());
-  lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+  if (!calibration)
+    {
+      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (1, gridScenario.GetNumSectorsPerSite ());
+      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+    }
+
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand2Dl));
   lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand2Ul));
   enbSector2NetDev = lteHelper->InstallEnbDevice (enbSector2Container);
 
   //SECTOR 3 eNB configuration
-  orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
-  lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+  if (!calibration)
+    {
+      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
+      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+    }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand3Dl));
   lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand3Ul));
   enbSector3NetDev = lteHelper->InstallEnbDevice (enbSector3Container);
@@ -183,6 +203,21 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   ueSector2NetDev = lteHelper->InstallUeDevice(ueSector2Container);
   ueSector3NetDev = lteHelper->InstallUeDevice(ueSector3Container);
 
+  lteHelper->Initialize ();
+  auto dlSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetDownlinkSpectrumChannel ()->GetPropagationLossModel());
+  auto ulSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetUplinkSpectrumChannel ()->GetPropagationLossModel());
+
+
+  NS_ASSERT (dlSp != nullptr);
+  NS_ASSERT (ulSp != nullptr);
+
+  NS_ASSERT (dlSp->GetNext() == nullptr);
+  NS_ASSERT (ulSp->GetNext() == nullptr);
+
+  ObjectFactory f;
+  f.SetTypeId (TypeId::LookupByName("ns3::AlwaysLosChannelConditionModel"));
+  dlSp->SetChannelConditionModel (f.Create<ChannelConditionModel> ());
+  ulSp->SetChannelConditionModel (f.Create<ChannelConditionModel> ());
 }
 
 
@@ -207,7 +242,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NetDeviceContainer &gnbSector3NetDev,
                                    NetDeviceContainer &ueSector1NetDev,
                                    NetDeviceContainer &ueSector2NetDev,
-                                   NetDeviceContainer &ueSector3NetDev)
+                                   NetDeviceContainer &ueSector3NetDev,
+                                   bool calibration)
 {
 
 
@@ -284,11 +320,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
-      scene =  BandwidthPartInfo::UMi_StreetCanyon;
+      scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
     }
   else if (scenario == "UMa")
     {
-      scene = BandwidthPartInfo::UMa;
+      scene = BandwidthPartInfo::UMa_LoS;
     }
   else
     {
@@ -308,8 +344,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetDlErrorModel (errorModel);
 
   // Both DL and UL AMC will have the same model behind.
-  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
-  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
+  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
 
   /*
    * Adjust the average number of Reference symbols per RB only for LTE case,
@@ -362,15 +398,22 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
   OperationBandInfo band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3);
 
-  /*
-   * Initialize channel and pathloss, plus other things inside band1. If needed,
-   * the band configuration can be done manually, but we leave it for more
-   * sophisticated examples. For the moment, this method will take care
-   * of all the spectrum initialization needs.
-   */
-  nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-  nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-  nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+  if (calibration)
+    {
+      // Do not initialize fading (beamforming gain)
+      nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+      nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+      nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+    }
+  else
+    {
+      // Init everything
+      nrHelper->InitializeOperationBand (&band1);
+      nrHelper->InitializeOperationBand (&band2);
+      nrHelper->InitializeOperationBand (&band3);
+    }
+
+
   allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
   bwps1 = CcBwpCreator::GetAllBwps ({band1});
   bwps2 = CcBwpCreator::GetAllBwps ({band2});
@@ -403,9 +446,6 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    *
    */
 
-  Packet::EnableChecking ();
-  Packet::EnablePrinting ();
-
   /*
    *  Case (i): Attributes valid for all the nodes
    */
@@ -425,7 +465,6 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     if (radioNetwork == "LTE")
       {
         nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
-//      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
         nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
       }
   // Core latency
@@ -774,6 +813,8 @@ main (int argc, char *argv[])
   // Error models
   std::string errorModel = "";
 
+  bool calibration = true;
+
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
    * that we may accept as input, as well as their description, and the storage
@@ -964,7 +1005,8 @@ main (int argc, char *argv[])
                                   gnbSector3NetDev,
                                   ueSector1NetDev,
                                   ueSector2NetDev,
-                                  ueSector3NetDev);
+                                  ueSector3NetDev,
+                                  calibration);
     }
   else if (simulator == "5GLENA")
     {
@@ -990,7 +1032,8 @@ main (int argc, char *argv[])
                                     gnbSector3NetDev,
                                     ueSector1NetDev,
                                     ueSector2NetDev,
-                                    ueSector3NetDev);
+                                    ueSector3NetDev,
+                                    calibration);
     }
   else
     {
