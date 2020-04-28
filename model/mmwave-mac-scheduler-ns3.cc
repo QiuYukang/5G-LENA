@@ -60,12 +60,14 @@ void
 MmWaveMacSchedulerNs3::InstallDlAmc (const Ptr<NrAmc> &dlAmc)
 {
   m_dlAmc = dlAmc;
+  m_dlAmc->SetDlMode ();
 }
 
 void
 MmWaveMacSchedulerNs3::InstallUlAmc (const Ptr<NrAmc> &ulAmc)
 {
   m_ulAmc = ulAmc;
+  m_ulAmc->SetUlMode ();
 }
 
 Ptr<const NrAmc>
@@ -1450,8 +1452,8 @@ MmWaveMacSchedulerNs3::DoScheduleUlSr (MmWaveMacSchedulerNs3::PointInFTPlane *sp
           ue->m_ulRBG += GetBandwidthInRbg ();
 
           assignedSym++;
-          tbs = m_ulAmc->CalculateTbSizeUl (ue->m_ulMcs,
-                                            ue->m_ulRBG * GetNumRbPerRbg ());
+          tbs = m_ulAmc->CalculateTbSize (ue->m_ulMcs,
+                                          ue->m_ulRBG * GetNumRbPerRbg ());
         }
       while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
 

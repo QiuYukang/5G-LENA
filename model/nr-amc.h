@@ -72,6 +72,24 @@ public:
   virtual ~NrAmc () override;
 
   /**
+   * \brief Set the object to be in "DL" mode.
+   *
+   * In this mode, all the requests made to the underlying error model
+   * will be done keeping in consideration that the requests refers to
+   * DL transmissions.
+   */
+  void SetDlMode ();
+
+  /**
+   * \brief Set the object to be in "UL" mode.
+   *
+   * In this mode, all the requests made to the underlying error model
+   * will be done keeping in consideration that the requests refers to
+   * UL transmissions.
+   */
+  void SetUlMode ();
+
+  /**
    * \brief Valid types of the model used to create a cqi feedback
    *
    * \see CreateCqiFeedbackWbTdma
@@ -157,72 +175,38 @@ public:
   TypeId GetErrorModelType () const;
 
   /**
-   * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned for an UL tx
-   *
-   * It depends on the error model. Please note that this function expects in
-   * input the RB, not the RBG of the transmission.
-   *
-   * \param mcs the MCS of the transmission
-   * \param nprb The number of physical resource blocks used in the transmission
-   * \return the TBS in bytes
-   */
-  uint32_t CalculateTbSizeUl (uint8_t mcs, uint32_t nprb) const;
-
-  /**
-   * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned for a DL tx
-   *
-   * It depends on the error model. Please note that this function expects in
-   * input the RB, not the RBG of the transmission.
-   *
-   * \param mcs the MCS of the transmission
-   * \param nprb The number of physical resource blocks used in the transmission
-   * \return the TBS in bytes
-   */
-  uint32_t CalculateTbSizeDl (uint8_t mcs, uint32_t nprb) const;
-
-private:
-  /**
    * \brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB assigned
    *
-   * It depends on the error model. Please note that this function expects in
-   * input the RB, not the RBG of the transmission.
+   * It depends on the error model and the "mode" configured with SetMode().
+   * Please note that this function expects in input the RB, not the RBG of the transmission.
    *
    * \param mcs the MCS of the transmission
    * \param nprb The number of physical resource blocks used in the transmission
-   * \param payloadSize the payload size
    * \return the TBS in bytes
    */
-  uint32_t CalculateTbSize (uint8_t mcs, uint32_t payloadSize) const;
+  uint32_t CalculateTbSize (uint8_t mcs, uint32_t nprb) const;
 
   /**
-   * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB for an UL tx
+   * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB
    * \param mcs MCS of the transmission
    * \param nprb Number of Physical Resource Blocks (not RBG)
    * \return the payload size in bytes
    */
-  uint32_t GetPayloadSizeUl (uint8_t mcs, uint32_t nprb) const;
-
-  /**
-   * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB for an UL tx
-   * \param mcs MCS of the transmission
-   * \param nprb Number of Physical Resource Blocks (not RBG)
-   * \return the payload size in bytes
-   */
-  uint32_t GetPayloadSizeDl (uint8_t mcs, uint32_t nprb) const;
-
+  uint32_t GetPayloadSize (uint8_t mcs, uint32_t nprb) const;
 private:
-  AmcModel m_amcModel;             //!< Type of the CQI feedback model
-  Ptr<NrErrorModel> m_errorModel;  //!< Pointer to an instance of ErrorModel
-  TypeId m_errorModelType;         //!< Type of the error model
-  uint8_t m_numRefScPerRb {1};     //!< number of reference subcarriers per RB
-  static const unsigned int m_crcLen = 24 / 8; //!< CRC length (in bytes)
-
   /**
    * \brief Get the requested BER in assigning MCS (Shannon-bound model)
    * \return BER
    */
   double GetBer () const;
 
+private:
+  AmcModel m_amcModel;             //!< Type of the CQI feedback model
+  Ptr<NrErrorModel> m_errorModel;  //!< Pointer to an instance of ErrorModel
+  TypeId m_errorModelType;         //!< Type of the error model
+  uint8_t m_numRefScPerRb {1};     //!< number of reference subcarriers per RB
+  NrErrorModel::Mode m_emMode {NrErrorModel::DL}; //!< Error model mode
+  static const unsigned int m_crcLen = 24 / 8; //!< CRC length (in bytes)
 };
 
 } // end namespace ns3

@@ -88,14 +88,15 @@ main (int argc, char *argv[])
   const uint32_t numRbsInBandwidth = bandwidth / (15e3 * std::pow(2,numerology) * 12) ;
 
   Ptr<NrAmc> amc = CreateObject<NrAmc> ();
+  amc->SetDlMode ();
 
   std::string tbs;
   for (uint32_t mcs = 0; mcs <= amc->GetMaxMcs (); ++mcs)
     {
       std::stringstream ss;
       ss << "\nResults for DL (UL only in NR case): MCS " << mcs <<
-            ". TBS in 1 RB: [" << amc->CalculateTbSizeDl (mcs, 1) <<
-            "] bytes. TBS in 1 sym: [" << amc->CalculateTbSizeDl (mcs, numRbsInBandwidth) <<
+            ". TBS in 1 RB: [" << amc->CalculateTbSize (mcs, 1) <<
+            "] bytes. TBS in 1 sym: [" << amc->CalculateTbSize (mcs, numRbsInBandwidth) <<
             "] bytes.";
       tbs += ss.str ();
     }
