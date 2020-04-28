@@ -44,6 +44,10 @@ public:
   MmWavePhyRxTrace ();
   virtual ~MmWavePhyRxTrace ();
   static TypeId GetTypeId (void);
+  /**
+   *  Trace sink for DL Average SINR (in dB).
+   *
+   */
   static void ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
                                                  uint64_t imsi, SpectrumValue& sinr, SpectrumValue& power);
   static void UlSinrTraceCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
@@ -160,6 +164,9 @@ private:
   void ReportPacketCountUe (UePhyPacketCountParameter param);
   void ReportPacketCountEnb (EnbPhyPacketCountParameter param);
   void ReportDLTbSize (uint64_t imsi, uint64_t tbSize);
+
+  static std::ofstream m_rsrpSinrFile;
+  static std::string m_rsrpSinrFileName;
 
   static std::ofstream m_rxPacketTraceFile;
   static std::string m_rxPacketTraceFilename;
