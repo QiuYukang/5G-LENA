@@ -246,8 +246,8 @@ GridScenarioHelper::CreateScenario ()
         {
           Vector pos = bsPos->GetNext ();
 
-          pos.x = x->GetValue ();
-          pos.y = y->GetValue ();
+          pos.x += x->GetValue ();
+          pos.y += y->GetValue ();
           pos.z = m_utHeight;
 
           NS_LOG_DEBUG ("UE Position: " << pos);
