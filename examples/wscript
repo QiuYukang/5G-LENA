@@ -17,8 +17,8 @@ def build(bld):
     obj.source = 'cttc-nr-cc-bwp-demo.cc'
 #    obj = bld.create_ns3_program('cttc-nr-tdd-cc-bwp-demo', ['nr','flow-monitor'])
 #    obj.source = 'cttc-nr-tdd-cc-bwp-demo.cc'
-#    obj = bld.create_ns3_program('cttc-lte-ca-demo', ['nr','flow-monitor'])
-#    obj.source = 'cttc-lte-ca-demo.cc'
+    obj = bld.create_ns3_program('cttc-lte-ca-demo', ['nr','flow-monitor'])
+    obj.source = 'cttc-lte-ca-demo.cc'
     obj = bld.create_ns3_program('cttc-nr-demo', ['nr','flow-monitor'])
     obj.source = 'cttc-nr-demo.cc'
     obj = bld.create_ns3_program('cttc-error-model', ['nr', 'internet-apps'])
