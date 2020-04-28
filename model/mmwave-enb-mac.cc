@@ -504,7 +504,7 @@ MmWaveEnbMac::ReceiveRachPreamble (uint32_t raId)
 {
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetSourceBwp (GetBwpId ());
-  m_macRxedCtrlMsgsTrace (m_currentSlot, raId, GetBwpId (), rachMsg);
+  m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), raId, GetBwpId (), rachMsg);
 
   ++m_receivedRachPreambleCount[raId];
 }
@@ -568,7 +568,7 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       {
         Ptr<MmWaveDlCqiMessage> msg = Create<MmWaveDlCqiMessage> ();
         msg->SetDlCqi (v);
-        m_macRxedCtrlMsgsTrace (m_currentSlot, v.m_rnti, GetBwpId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), v.m_rnti, GetBwpId (), msg);
       }
   }
 
@@ -612,7 +612,7 @@ MmWaveEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
         {
           Ptr<MmWaveDlHarqFeedbackMessage> msg = Create <MmWaveDlHarqFeedbackMessage> ();
           msg->SetDlHarqFeedback (v);
-          m_macRxedCtrlMsgsTrace (m_currentSlot, v.m_rnti, GetBwpId (), msg);
+          m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), v.m_rnti, GetBwpId (), msg);
         }
     }
 
@@ -658,7 +658,7 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       {
         Ptr<MmWaveSRMessage> msg =  Create<MmWaveSRMessage> ();
         msg->SetRNTI (v);
-        m_macRxedCtrlMsgsTrace (m_currentSlot, v, GetBwpId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), v, GetBwpId (), msg);
       }
   }
 
@@ -675,7 +675,7 @@ MmWaveEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
         {
           Ptr<MmWaveBsrMessage> msg = Create<MmWaveBsrMessage> ();
           msg->SetBsr (v);
-          m_macRxedCtrlMsgsTrace (m_currentSlot, v.m_rnti, GetBwpId (), msg);
+          m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), v.m_rnti, GetBwpId (), msg);
         }
     }
 
@@ -1030,7 +1030,7 @@ MmWaveEnbMac::DoSchedConfigIndication (MmWaveMacSchedSapUser::SchedConfigIndPara
       NS_LOG_INFO ("In slot " << m_currentSlot <<
                    " send to PHY the RAR message for RNTI " <<
                    rarAllocation.m_rnti << " rapId " << itRapId->second);
-      m_macTxedCtrlMsgsTrace (m_currentSlot, rarAllocation.m_rnti, GetBwpId (), rarMsg);
+      m_macTxedCtrlMsgsTrace (m_currentSlot, GetCellId (), rarAllocation.m_rnti, GetBwpId (), rarMsg);
     }
 
   if (ind.m_buildRarList.size () > 0)

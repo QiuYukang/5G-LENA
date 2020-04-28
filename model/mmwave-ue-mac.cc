@@ -493,7 +493,7 @@ MmWaveUeMac::SendReportBufferStatus (void)
   msg->SetSourceBwp (GetBwpId ());
   msg->SetBsr (bsr);
 
-  m_macTxedCtrlMsgsTrace (m_currentSlot, bsr.m_rnti, GetBwpId (), msg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, GetCellId (), bsr.m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -569,7 +569,7 @@ MmWaveUeMac::SendSR () const
   msg->SetSourceBwp (GetBwpId ());
   msg->SetRNTI (m_rnti);
 
-  m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), msg);
   m_phySapProvider->SendControlMessage (msg);
 }
 
@@ -655,7 +655,7 @@ MmWaveUeMac::ProcessUlDci (const Ptr<MmWaveUlDciMessage> &dciMsg)
 
   auto dciInfoElem = dciMsg->GetDciInfoElement ();
 
-  m_macRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), dciMsg);
+  m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), dciMsg);
 
   NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
                " TBS " << dciInfoElem->m_tbSize << " total queue " << GetTotalBufSize ());
@@ -875,7 +875,7 @@ MmWaveUeMac::DoReceiveControlMessage  (Ptr<MmWaveControlMessage> msg)
       {
         NS_LOG_INFO ("Received RAR in slot " << m_currentSlot);
 
-        m_macRxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), msg);
+        m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), msg);
 
         if (m_waitingForRaResponse == true)
           {
@@ -944,7 +944,7 @@ MmWaveUeMac::SendRaPreamble (bool contention)
 
   Ptr<MmWaveRachPreambleMessage> rachMsg = Create<MmWaveRachPreambleMessage> ();
   rachMsg->SetSourceBwp (GetBwpId ());
-  m_macTxedCtrlMsgsTrace (m_currentSlot, m_rnti, GetBwpId (), rachMsg);
+  m_macTxedCtrlMsgsTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), rachMsg);
 
   m_phySapProvider->SendRachPreamble (m_raPreambleId, m_raRnti);
 }

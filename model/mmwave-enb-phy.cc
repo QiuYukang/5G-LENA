@@ -1007,7 +1007,7 @@ MmWaveEnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       for (auto ctrlIt = m_ctrlMsgs.begin (); ctrlIt != m_ctrlMsgs.end (); ++ctrlIt)
         {
           Ptr<MmWaveControlMessage> msg = (*ctrlIt);
-          m_phyTxedCtrlMsgsTrace (m_currentSlot, dci->m_rnti, GetBwpId (), msg);
+          m_phyTxedCtrlMsgsTrace (m_currentSlot, GetCellId (), dci->m_rnti, GetBwpId (), msg);
         }
 
       SendCtrlChannels (varTtiPeriod - NanoSeconds (1.0)); // -1 ns ensures control ends before data period
@@ -1345,7 +1345,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       Ptr<MmWaveDlCqiMessage> dlcqi = DynamicCast<MmWaveDlCqiMessage> (msg);
       DlCqiInfo dlcqiLE = dlcqi->GetDlCqi ();
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, dlcqiLE.m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), dlcqiLE.m_rnti, GetBwpId (), msg);
 
       NS_LOG_INFO ("Received DL_CQI for RNTI: " << dlcqiLE.m_rnti << " in slot " <<
                    m_currentSlot);
@@ -1356,7 +1356,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     {
       Ptr<MmWaveBsrMessage> bsrmsg = DynamicCast<MmWaveBsrMessage> (msg);
       MacCeElement macCeEl = bsrmsg->GetBsr();
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, macCeEl.m_rnti, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), macCeEl.m_rnti, GetBwpId (), msg);
 
       NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
                    m_currentSlot);
@@ -1367,7 +1367,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       NS_LOG_INFO ("received RACH_PREAMBLE");
 
       Ptr<MmWaveRachPreambleMessage> rachPreamble = DynamicCast<MmWaveRachPreambleMessage> (msg);
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, 0, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), 0, GetBwpId (), msg);
       NS_LOG_INFO ("Received RACH Preamble in slot " << m_currentSlot);
       m_phySapUser->ReceiveRachPreamble (rachPreamble->GetRapId ());
 
@@ -1378,7 +1378,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
       DlHarqInfo dlharq = dlharqMsg->GetDlHarqFeedback ();
       if (m_ueAttachedRnti.find (dlharq.m_rnti) != m_ueAttachedRnti.end ())
         {
-          m_phyRxedCtrlMsgsTrace (m_currentSlot, dlharq.m_rnti, GetBwpId (), msg);
+          m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), dlharq.m_rnti, GetBwpId (), msg);
 
           NS_LOG_INFO ("Received DL_HARQ for RNTI: " << dlharq.m_rnti << " in slot " <<
                        m_currentSlot);
@@ -1387,7 +1387,7 @@ MmWaveEnbPhy::PhyCtrlMessagesReceived (const Ptr<MmWaveControlMessage> &msg)
     }
   else
     {
-      m_phyRxedCtrlMsgsTrace (m_currentSlot, 0, GetBwpId (), msg);
+      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), 0, GetBwpId (), msg);
       m_phySapUser->ReceiveControlMessage (msg);
     }
 }

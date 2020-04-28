@@ -135,8 +135,9 @@ MmWavePhyRxTrace::UlSinrTraceCallback (Ptr<MmWavePhyRxTrace> phyStats, std::stri
 }
 
 void
-MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
+MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                              SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                              uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_rxedEnbPhyCtrlMsgsFile.is_open ())
       {
@@ -144,8 +145,8 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
         m_rxedEnbPhyCtrlMsgsFile.open (m_rxedEnbPhyCtrlMsgsFileName.c_str ());
         m_rxedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" <<
                                     "Frame" << "\t" << "SF" << "\t" << "Slot" <<
-                                    "\t" << "VarTTI" << "\t" << "RNTI" <<
-                                    "\t" << "bwpId" <<
+                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                    "\t" << "RNTI" << "\t" << "bwpId" <<
                                     "\t" << "MsgType" << std::endl;
 
         if (!m_rxedEnbPhyCtrlMsgsFile.is_open ())
@@ -158,7 +159,7 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
                               "\t" << "ENB PHY Rxed" << "\t" << sfn.GetFrame () <<
                               "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
                               "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
-                              "\t" << rnti <<
+                              "\t" << nodeId << "\t" << rnti <<
                               "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
 
@@ -190,8 +191,9 @@ MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
 }
 
 void
-MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path, SfnSf sfn,
-                                              uint16_t rnti, uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
+MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
+                                              SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                              uint8_t bwpId, Ptr<const MmWaveControlMessage> msg)
 {
   if (!m_txedEnbPhyCtrlMsgsFile.is_open ())
       {
@@ -199,8 +201,8 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
         m_txedEnbPhyCtrlMsgsFile.open (m_txedEnbPhyCtrlMsgsFileName.c_str ());
         m_txedEnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                     "Frame" << "\t" << "SF" << "\t" << "Slot" <<
-                                    "\t" << "VarTTI" << "\t" << "RNTI" <<
-                                    "\t" << "bwpId" <<
+                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                    "\t" << "RNTI" << "\t" << "bwpId" <<
                                     "\t" << "MsgType" << std::endl;
 
         if (!m_txedEnbPhyCtrlMsgsFile.is_open ())
@@ -213,7 +215,7 @@ MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsCallback (Ptr<MmWavePhyRxTrace> phyStats, st
                               "\t" << "ENB PHY Txed" << "\t" << sfn.GetFrame () <<
                               "\t" << static_cast<uint32_t> (sfn.GetSubframe ()) <<
                               "\t" << static_cast<uint32_t> (sfn.GetSlot ()) <<
-                              "\t" << rnti <<
+                              "\t" << nodeId << "\t" << rnti <<
                               "\t" << static_cast<uint32_t> (bwpId) << "\t";
 
   if (msg->GetMessageType () == MmWaveControlMessage::MIB)
