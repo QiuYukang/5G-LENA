@@ -163,8 +163,7 @@ NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
 }
 
 uint8_t
-NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
-                                    uint8_t &mcs) const
+NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -241,7 +240,9 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbSize,
       Ptr<NrErrorModelOutput> output;
       while (mcs <= m_errorModel->GetMaxMcs ())
         {
-          output = m_errorModel->GetTbDecodificationStats (sinr, rbMap, tbSize, mcs,
+          output = m_errorModel->GetTbDecodificationStats (sinr, rbMap,
+                                                           CalculateTbSize (mcs, rbMap.size ()),
+                                                           mcs,
                                                            NrErrorModel::NrErrorModelHistory ());
           if (output->m_tbler > 0.1)
             {

@@ -130,7 +130,7 @@ public:
    * \param mcsWb The calculated MCS
    * \return The calculated CQI
    */
-  uint8_t CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint32_t tbs, uint8_t &mcsWb) const;
+  uint8_t CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcsWb) const;
 
   /**
    * \brief Get CQI from a SpectralEfficiency value
