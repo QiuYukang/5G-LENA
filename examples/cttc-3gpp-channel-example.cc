@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2017 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -25,6 +25,9 @@
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.900. Topology consists by default of 2 UEs and 2 gNbs, and can be
  * configured to be either mobile or static scenario.
+ *
+ * The output of this example are default NR trace files that can be found in
+ * the root ns-3 project folder.
  */
 
 #include "ns3/core-module.h"
@@ -34,158 +37,98 @@
 #include "ns3/mmwave-helper.h"
 #include <ns3/buildings-helper.h>
 #include "ns3/log.h"
-#include <ns3/buildings-module.h>
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
+#include "ns3/mmwave-mac-scheduler-tdma-rr.h"
+#include "ns3/nr-module.h"
 
 using namespace ns3;
-
-/**
- * Prints out to file buildings.txt the locations of the buildings.
- */
-void
-TraceBuildingLoc()
-{
-  //Write the location of buildings.
-  static bool firstTitme = true;
-  if(firstTitme)
-    {
-      firstTitme = false;
-      std::ofstream outFile;
-      outFile.open ("building.txt");
-      if (!outFile.is_open ())
-        {
-          NS_FATAL_ERROR ("Can't open file building.txt");
-        }
-      for (BuildingList::Iterator bit = BuildingList::Begin (); bit != BuildingList::End (); ++bit)
-        {
-          Box boundaries = (*bit)->GetBoundaries ();
-          outFile << boundaries.xMin<< "\t";
-          outFile << boundaries.xMax<< "\t";
-          outFile << boundaries.yMin<< "\t";
-          outFile << boundaries.yMax<< "\t";
-          outFile << boundaries.zMin<< "\t";
-          outFile << boundaries.zMax << std::endl;
-        }
-      outFile.close ();
-    }
-}
-
-// parameters that can be set from the command line
-
-/**
- * \brief Global variable used to configure the type of 3gpp scenario. It is accessible as "--scenario" from CommandLine.
- */
-static ns3::GlobalValue g_scenario("scenario",
-                                   "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen', 'InH-ShoppingMall'",
-                                   ns3::StringValue("UMa"), ns3::MakeStringChecker());
-
-/**
- * \brief Global variable used to configure optional NLOS equation from 3GPP TR 38.900. It is accessible as "--optionNlos" from CommandLine.
- */
-static ns3::GlobalValue g_optionNlos("optionNlos", "If true, use the optional NLOS pathloss equation from 3GPP TR 38.900",
-                                     ns3::BooleanValue(false), ns3::MakeBooleanChecker());
-
-/**
- * \brief Global variable used to configure central carrier frequency. It is accessible as "--frequency" from CommandLine.
- */
-static ns3::GlobalValue g_frequency("frequency",
-                                    "The frequency in GHz",
-                                     ns3::DoubleValue(28e9),
-                                     ns3::MakeDoubleChecker<double>());
 
 int 
 main (int argc, char *argv[])
 {
+  std::string scenario = "UMa"; //scenario
+  double frequency = 28e9; // central frequency
+  double bandwidth = 100e6; //bandwidth
+  double mobility = false; //whether to enable mobility
+  double simTime = 1; // in second
+  double speed = 1; // in m/s for walking UT.
+  bool logging = true; //whether to enable logging from the simulation, another option is by exporting the NS_LOG environment variable
+  double hBS; //base station antenna height in meters
+  double hUT; //user antenna height in meters
+  double txPower = 40; // txPower
+  enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
 
   CommandLine cmd;
-  cmd.Parse (argc, argv);
-  ConfigStore inputConfig;
-  inputConfig.ConfigureDefaults ();
-  // parse again so you can override input file default values via command line
+  cmd.AddValue ("scenario",
+                "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'.",
+                scenario);
+  cmd.AddValue ("frequency",
+                "The central carrier frequency in Hz.",
+                frequency);
+  cmd.AddValue ("mobility",
+                "If set to 1 UEs will be mobile, when set to 0 UE will be static. By default, they are mobile.",
+                mobility);
   cmd.Parse (argc, argv);
 
-  // enable logging or not
-  bool logging = true;
+  // enable logging
   if(logging)
     {
       //LogComponentEnable ("ThreeGppSpectrumPropagationLossModel", LOG_LEVEL_ALL);
-      //LogComponentEnable ("ThreeGppPropagationLossModel", LOG_LEVEL_ALL);
-      //LogComponentEnable ("ThreeGppChannel", LOG_LEVEL_ALL);
+      LogComponentEnable ("ThreeGppPropagationLossModel", LOG_LEVEL_ALL);
+      //LogComponentEnable ("ThreeGppChannelModel", LOG_LEVEL_ALL);
+      //LogComponentEnable ("ChannelConditionModel", LOG_LEVEL_ALL);
       //LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       //LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-      //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
       //LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
       //LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
     }
 
-  // set simulation time and mobility
-  double simTime = 1; // s
-  double speed = 1; // 1 m/s for walking UT.
+  /*
+   * Default values for the simulation. We are progressively removing all
+   * the instances of SetDefault, but we need it for legacy code (LTE)
+   */
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
-  // parse the command line options
-  StringValue stringValue;
-  GlobalValue::GetValueByName("scenario", stringValue); // set the scenario
-  std::string scenario = stringValue.Get();
-
-  DoubleValue doubleValue;
-  GlobalValue::GetValueByName("frequency", doubleValue); //
-  double frequencyInGHz = doubleValue.Get();
-
-  Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue(scenario)); // define propagation loss and channel condition model scenario
-
-  Config::SetDefault ("ns3::ThreeGppChannel::UpdatePeriod", TimeValue(MilliSeconds (100))); // update the channel at each iteration
-  Config::SetDefault ("ns3::ThreeGppChannelConditionModel::UpdatePeriod", TimeValue(MilliSeconds (0.0))); // do not update the channel condition
-  // default 28e9
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequencyInGHz)); // check MmWavePhyMacCommon for other PHY layer parameters
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::MacSchedulerType", TypeIdValue (TypeId::LookupByName("ns3::MmWaveMacSchedulerTdmaRR")));
-  Config::SetDefault ("ns3::UdpClient::PacketSize", UintegerValue(1500));
-  //Config::SetDefault ("ns3::UdpClient::MaxPackets", UintegerValue(10));
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (9000000));
-  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(1.0)));
-  //Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(1)); // by default is disabled
-//  Config::SetDefault ("ns3::LteRlcAm::PollRetransmitTimer", TimeValue(MilliSeconds(1.0)));
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
-  double hBS; //base station antenna height in meters;
-  double hUT; //user antenna height in meters;
-  if(scenario.compare("RMa")==0)
+  if(scenario.compare("RMa") == 0)
     {
       hBS = 35;
       hUT = 1.5;
+      scenarioEnum = BandwidthPartInfo::RMa;
     }
-  else if(scenario.compare("UMa")==0)
+  else if(scenario.compare("UMa") == 0)
     {
       hBS = 25;
       hUT = 1.5;
+      scenarioEnum = BandwidthPartInfo::UMa;
     }
-  else if (scenario.compare("UMi-StreetCanyon")==0)
+  else if (scenario.compare("UMi-StreetCanyon") == 0)
     {
       hBS = 10;
       hUT = 1.5;
+      scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-  else if (scenario.compare("InH-OfficeMixed")==0 || scenario.compare("InH-OfficeOpen")==0 || scenario.compare("InH-ShoppingMall")==0)
+  else if (scenario.compare("InH-OfficeMixed") == 0)
     {
-      //The fast fading model does not support 'InH-ShoppingMall' since it is listed in table 7.5-6
       hBS = 3;
       hUT = 1;
+      scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
+    }
+  else if (scenario.compare("InH-OfficeOpen") == 0)
+    {
+      hBS = 3;
+      hUT = 1;
+      scenarioEnum = BandwidthPartInfo::InH_OfficeOpen;
     }
   else
     {
-      return 1;
+      NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', and 'InH-OfficeOpen'.");
     }
-
-  // setup the mmWave simulation
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
-  Ptr<IdealBeamformingHelper> beamformingHelper = CreateObject <IdealBeamformingHelper> ();
-  mmWaveHelper->SetIdealBeamformingHelper (beamformingHelper);
-  mmWaveHelper->Initialize();
 
   // create base stations and mobile terminals
   NodeContainer enbNodes;
@@ -207,7 +150,6 @@ main (int argc, char *argv[])
   uemobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   uemobility.Install (ueNodes);
 
-  bool mobility = true;
   if(mobility)
     {
       ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (90, 15, hUT)); // (x, y, z) in m
@@ -225,9 +167,70 @@ main (int argc, char *argv[])
       ueNodes.Get (1)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, 0, 0));
     }
 
+  /*
+   * Create NR simulation helpers
+   */
+  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
+  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  mmWaveHelper->SetEpcHelper (epcHelper);
+
+  /*
+   * Spectrum configuration. We create a single operational band and configure the scenario.
+   */
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;  // in this example we have a single band, and that band is composed of a single component carrier
+
+  /* Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
+   * a single BWP per CC and a single BWP in CC.
+   *
+   * Hence, the configured spectrum is:
+   *
+   * |---------------Band---------------|
+   * |---------------CC-----------------|
+   * |---------------BWP----------------|
+   */
+  CcBwpCreator::SimpleOperationBandConf bandConf (frequency, bandwidth, numCcPerBand, scenarioEnum);
+  OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
+  //Initialize channel and pathloss, plus other things inside band.
+  mmWaveHelper->InitializeOperationBand (&band);
+  allBwps = CcBwpCreator::GetAllBwps ({band});
+
+  // Configure ideal beamforming method
+  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+
+  // Configure scheduler
+  mmWaveHelper->SetSchedulerTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
+
+  // Antennas for the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Antennas for the gNbs
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
   // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (enbNodes);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
+  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice(enbNodes, allBwps);
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPower);
+  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetTxPower (txPower);
+
+  // When all the configuration is done, explicitly call UpdateConfig ()
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost 
@@ -244,15 +247,19 @@ main (int argc, char *argv[])
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (2500));
   p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.010)));
   NetDeviceContainer internetDevices = p2ph.Install (pgw, remoteHost);
+
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
   Ipv4StaticRoutingHelper ipv4RoutingHelper;
+
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
   internet.Install (ueNodes);
+
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+
   // assign IP address to UEs, and install UDP downlink applications
   uint16_t dlPort = 1234;
   ApplicationContainer clientApps;
@@ -269,17 +276,20 @@ main (int argc, char *argv[])
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
       dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds(1)));
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+      //dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
+      dlClient.SetAttribute ("PacketSize", UintegerValue (1500));
       clientApps.Add (dlClient.Install (remoteHost));
     }
-  // start server and client apps
-  serverApps.Start(Seconds(0.4));
-  clientApps.Start(Seconds(0.5));
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime-0.2));
 
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+
+  // start server and client apps
+  serverApps.Start(Seconds(0.4));
+  clientApps.Start(Seconds(0.4));
+  serverApps.Stop(Seconds(simTime));
+  clientApps.Stop(Seconds(simTime-0.2));
 
   // enable the traces provided by the mmWave module
   mmWaveHelper->EnableTraces();
