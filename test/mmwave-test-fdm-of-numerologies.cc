@@ -137,6 +137,17 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
 
     // Put the pointers inside mmWaveHelper
     mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    
+    // Antennas for all the UEs
+    mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+    mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+    mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+    // Antennas for all the gNbs
+    mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+    mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+    mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+    
     mmWaveHelper->SetEpcHelper (epcHelper);
 
 
@@ -356,16 +367,16 @@ MmWaveTestFdmOfNumerologiesCase1::DoRun (void)
         Ptr<UdpServer> serverApp2 = serverAppsUl.Get (1)->GetObject<UdpServer> ();
         double throughput1 = (serverApp1->GetReceived () * (packetSize + 28) * 8) / (simTime - udpAppStartTime);
         double throughput2 = (serverApp2->GetReceived () * (packetSize + 28) * 8) / (simTime - udpAppStartTime);
-
         NS_TEST_ASSERT_MSG_EQ_TOL (throughput2, throughput1 * m_bw2 / m_bw1,
                                    std::max (throughput1, throughput2) * 0.5,
                                    "Throughputs are not equal within tolerance");
 
         NS_TEST_ASSERT_MSG_NE (throughput1, 0, "Throughput should be a non-zero value");
-        std::cout << "Total UL UDP throughput 1 (bps):" << throughput1 / 10e6 << "Mbps" << std::endl;
-        std::cout << "Total UL UDP throughput 2 (bps):" << throughput2 / 10e6 << "Mbps" << std::endl;
-        std::cout << "\n Test value throughput 1: "<< (throughput2 * m_bw1 / m_bw2) / 10e6 << "Mbps" << std::endl;
-        std::cout << "\n Test value throughput 2: "<< (throughput1 * m_bw2 / m_bw1) / 10e6 << "Mbps" << std::endl;
+        //std::cout << "\nBw1:"<<m_bw1<<", bwp2:"<<m_bw2<<std::endl;
+        //std::cout << "Total UL UDP throughput 1 (bps):" << throughput1 / 10e6 << "Mbps" << std::endl;
+        //std::cout << "Total UL UDP throughput 2 (bps):" << throughput2 / 10e6 << "Mbps" << std::endl;
+        //std::cout << "Test expected throughput 1: "<< (throughput2 * m_bw1 / m_bw2) / 10e6 << "Mbps" << std::endl;
+        //std::cout << "Test expected throughput 2: "<< (throughput1 * m_bw2 / m_bw1) / 10e6 << "Mbps" << std::endl;
       }
 
     Simulator::Destroy ();
@@ -397,12 +408,12 @@ MmWaveTestFdmOfNumerologiesTestSuite::MmWaveTestFdmOfNumerologiesTestSuite ()
 
 
    // uplink test cases
-//     AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 4, 50e6, 150e6", 4, 50e6, 150e6, false, true), TestCase::QUICK);
+   AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 4, 50e6, 150e6", 4, 50e6, 150e6, false, true), TestCase::QUICK);
    AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 4, 100e6, 100e6", 4, 100e6, 100e6, false, true), TestCase::EXTENSIVE);
    AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 4, 80e6, 120e6", 4, 80e6, 120e6, false, true), TestCase::EXTENSIVE);
    AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 4 60e6, 140e6", 4, 60e6, 140e6, false, true), TestCase::EXTENSIVE);
 
-//     AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 2 50e6 150e6", 2, 50e6, 150e6, false, true), TestCase::QUICK);
+   AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 2 50e6 150e6", 2, 50e6, 150e6, false, true), TestCase::QUICK);
    AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 2 100e6 100e6", 2, 100e6, 100e6, false, true), TestCase::EXTENSIVE);
    AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 2 80e6 120e6" , 2, 80e6, 120e6, false, true), TestCase::EXTENSIVE);
    AddTestCase (new MmWaveTestFdmOfNumerologiesCase1 ("fdm ul 2 60e6 140e6", 2, 60e6, 140e6, false, true), TestCase::EXTENSIVE);
