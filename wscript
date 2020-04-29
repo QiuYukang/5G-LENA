@@ -88,7 +88,7 @@ def build(bld):
     module_test.source = [
         'test/mmwave-system-test-configurations.cc',
         'test/mmwave-test-numerology-delay.cc',
-#        'test/mmwave-test-fdm-of-numerologies.cc',
+        'test/mmwave-test-fdm-of-numerologies.cc',
         'test/mmwave-test-sched.cc',
 #        'test/mmwave-system-test-schedulers.cc',
 #        'test/test-antenna-3gpp-model-conf.cc',
