@@ -78,13 +78,15 @@ New user-visible features (old first)
   were an attribute of NrEesmErrorModel.
 - Added an attribute to the MmWaveEnbPhy and MmWaveUePhy to set the bandwidth overhead
   to keep in consideration when calculating the number of usable RB. By default,
-  it is now set ot 0.04, while before it was set to 0.0 (0.0 means that there are
+  it is now set to 0.04, while before it was set to 0.0 (0.0 means that there are
   no guard bands, and the entire bandwidth is usable).
 - Added the LENA error model. To be used only in conjunction with a OFDMA scheduler,
   and without beams.
 
 Bugs fixed
 ----------
+- Removed cttc-nr-tdd-cc-bwp-demo.cc since it was redundant. The simillar configuration is 
+present in cttc-nr-cc-bwp-demo.cc example.
 - Removed legacy and invalid mmwave-* examples, that were inherited from mmWave codebase.
 - The code performing LBT at UE side always assumed a DL CTRL symbol inside a slot.
   With TDD, that may not happen, and the code has been updated to not
