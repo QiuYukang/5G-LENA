@@ -16,8 +16,6 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- *   Author:  Biljana Bojovic <bbojovic@cttc.es>
-
 */
 
 #include "ns3/core-module.h"
@@ -70,89 +68,9 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelNumerologiesExample");
 
-static ns3::GlobalValue g_frequency("frequency",
-                                    "The system frequency",
-                                     ns3::DoubleValue(7e9),
-                                     ns3::MakeDoubleChecker<double>(6e9,100e9));//!< Global variable used to configure the frequency. It is accessible as "--frequency" from CommandLine.
-
-static ns3::GlobalValue g_bandwidth("bandwidth",
-                                    "The system bandwidth",
-                                     ns3::DoubleValue(200e6),
-                                     ns3::MakeDoubleChecker<double>()); //!< Global variable used to configure the bandwidth. It is accessible as "--bandwidth" from CommandLine.
-
-static ns3::GlobalValue g_numerology ("numerology",
-                                      "The default 3GPP NR numerology to be used",
-                                      ns3::UintegerValue (0),
-                                      ns3::MakeUintegerChecker<uint32_t>());//!< Global variable used to configure the numerology. It is accessible as "--numerology" from CommandLine.
-
-static ns3::GlobalValue g_udpInterval ("udpInterval",
-                                      "Udp interval for UDP application packet arrival, in seconds",
-                                      ns3::DoubleValue (0.001),
-                                      ns3::MakeDoubleChecker<double>());//!< Global variable used to configure the UDP packet interval. It is accessible as "--udpInterval" from CommandLine.
-
-static ns3::GlobalValue g_udpPacketSize ("udpPacketSize",
-                                         "Udp packet size in bytes",
-                                         ns3::UintegerValue (1000),
-                                         ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure the UDP packet size. It is accessible as "--udpPacketSize" from CommandLine.
-
-static ns3::GlobalValue g_udpRate ("udpFullBuffer",
-                                   "Whether to set the full buffer traffic; if this parameter is set then the udpInterval parameter"
-                                   "will be neglected.",
-                                   ns3::BooleanValue (true),
-                                   ns3::MakeBooleanChecker()); //!< Global variable used to configure whether the traffic is the full buffer traffic. It is accessible as "--udpFullBuffer" from CommandLine.
-
-static ns3::GlobalValue g_singleUeTopology ("singleUeTopology",
-                                            "When true the example uses a single UE topology, when false use topology with variable number of UEs"
-                                            "will be neglected.",
-                                            ns3::BooleanValue (true),
-                                            ns3::MakeBooleanChecker()); //!< Global variable used to configure whether topology is with single of various number of UEs. It is accessible as "--singleUeTopology" from CommandLine.
-
-static ns3::GlobalValue g_useFixedMcs ("useFixedMcs",
-                                       "Whether to use fixed mcs, normally used for testing purposes",
-                                        ns3::BooleanValue (true),
-                                        ns3::MakeBooleanChecker()); //!< Global variable used to configure whether to use fixed MCS. It is accessible as "--useFixedMcs" from CommandLine.
-
-static ns3::GlobalValue g_fixedMcs ("fixedMcs",
-                                    "The MCS that will be used in this example",
-                                    ns3::UintegerValue (28),
-                                    ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure fixed MCS. It is accessible as "--fixedMcs" from CommandLine.
-
-static ns3::GlobalValue g_gNbNum ("gNbNum",
-                                  "The number of gNbs in multiple-ue topology",
-                                   ns3::UintegerValue (1),
-                                   ns3::MakeUintegerChecker<uint32_t>());//!< Global variable used to configure the number of gNbs in multi-UE topology. It is accessible as "--gNbNum" from CommandLine.
-
-static ns3::GlobalValue g_ueNum ("ueNumPergNb",
-                                  "The number of UE per gNb in multiple-ue topology",
-                                  ns3::UintegerValue (1),
-                                  ns3::MakeUintegerChecker<uint32_t>()); //!< Global variable used to configure the number of UEs in multi-UE topology. It is accessible as "--ueNumPergNb" from CommandLine.
-
-static ns3::GlobalValue g_txPower ("txPower",
-                                   "Tx power",
-                                    ns3::DoubleValue (1),
-                                    ns3::MakeDoubleChecker<double>()); //!< Global variable used to configure gNb TX power. It is accessible as "--txPower" from CommandLine.
-
-static ns3::GlobalValue g_simTag ("simTag",
-                                  "tag to be appended to output filenames to distinguish simulation campaigns",
-                                  ns3::StringValue ("default"),
-                                  ns3::MakeStringChecker ()); //!< Global variable used to configure simulation output tag that helps distinguishing different simulation campaigns. It is accessible as "--simTag" from CommandLine.
-
-static ns3::GlobalValue g_outputDir ("outputDir",
-                                     "directory where to store simulation results",
-                                     ns3::StringValue ("./"),
-                                     ns3::MakeStringChecker ());  //!< Global variable used to configure simulation output folder. It is accessible as "--outputDir" from CommandLine.
-
 int 
 main (int argc, char *argv[])
 {
-
-    CommandLine cmd;
-    cmd.Parse (argc, argv);
-    ConfigStore inputConfig;
-    inputConfig.ConfigureDefaults ();
-    // parse again so you can override input file default values via command line
-    cmd.Parse (argc, argv);
-
   // enable logging or not
   bool logging = false;
   if(logging)
@@ -160,7 +78,6 @@ main (int argc, char *argv[])
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
-
     }
 
   // set simulation time and mobility
@@ -168,40 +85,74 @@ main (int argc, char *argv[])
   double udpAppStartTime = 0.4; //seconds
   //double speed = 1; // 1 m/s for walking UT.
 
-  // parse the command line options
-  BooleanValue booleanValue;
-  StringValue stringValue;
-  IntegerValue integerValue;
-  UintegerValue uintegerValue;
-  DoubleValue doubleValue;
-  GlobalValue::GetValueByName("numerology", uintegerValue); // use optional NLOS equation
-  uint16_t numerology = uintegerValue.Get();
-  GlobalValue::GetValueByName("fixedMcs", uintegerValue); // use optional NLOS equation
-  uint16_t fixedMcs = uintegerValue.Get();
-  GlobalValue::GetValueByName("gNbNum", uintegerValue); // use optional NLOS equation
-  uint16_t gNbNum = uintegerValue.Get();
-  GlobalValue::GetValueByName("ueNumPergNb", uintegerValue); // use optional NLOS equation
-  uint16_t ueNumPergNb = uintegerValue.Get();
-  GlobalValue::GetValueByName("udpInterval", doubleValue); // use optional NLOS equation
-  double udpInterval = doubleValue.Get();
-  GlobalValue::GetValueByName("udpPacketSize", uintegerValue); // use optional NLOS equation
-  uint32_t udpPacketSize = uintegerValue.Get();
-  GlobalValue::GetValueByName("frequency", doubleValue); //
-  double frequency = doubleValue.Get();
-  GlobalValue::GetValueByName("udpFullBuffer", booleanValue); //
-  bool udpFullBuffer = booleanValue.Get();
-  GlobalValue::GetValueByName("singleUeTopology", booleanValue); //
-  bool singleUeTopology = booleanValue.Get();
-  GlobalValue::GetValueByName("bandwidth", doubleValue); //
-  double bandwidth = doubleValue.Get();
-  GlobalValue::GetValueByName("useFixedMcs", booleanValue); //
-  bool useFixedMcs = booleanValue.Get();
-  GlobalValue::GetValueByName("txPower", doubleValue); // use optional NLOS equation
-  double txPower = doubleValue.Get();
-  GlobalValue::GetValueByName ("simTag", stringValue);
-  std::string simTag = stringValue.Get ();
-  GlobalValue::GetValueByName ("outputDir", stringValue);
-  std::string outputDir = stringValue.Get ();
+  //other simulation parameters default values
+  uint16_t numerology = 0 ;
+
+  uint16_t gNbNum = 1;
+  uint16_t ueNumPergNb = 1;
+
+  double frequency = 7e9;
+  double bandwidth = 200e6;
+  double txPower = 1;
+  double udpInterval = 0.001;
+  uint32_t udpPacketSize = 1000;
+  bool udpFullBuffer = true;
+  uint16_t fixedMcs = 28;
+  bool useFixedMcs = 1;
+  bool singleUeTopology = true;
+  // Where we will store the output files.
+  std::string simTag = "default";
+  std::string outputDir = "./";
+
+
+  CommandLine cmd;
+  cmd.AddValue ("gNbNum",
+                "The number of gNbs in multiple-ue topology",
+                gNbNum);
+  cmd.AddValue ("ueNumPergNb",
+                "The number of UE per gNb in multiple-ue topology",
+                ueNumPergNb);
+  cmd.AddValue ("numerology",
+                "The numerology to be used.",
+                numerology);
+  cmd.AddValue ("txPower",
+                "Tx power to be configured to gNB",
+                txPower);
+  cmd.AddValue ("simTag",
+                "tag to be appended to output filenames to distinguish simulation campaigns",
+                simTag);
+  cmd.AddValue ("outputDir",
+                "directory where to store simulation results",
+                outputDir);
+  cmd.AddValue ("frequency",
+                "The system frequency",
+                frequency);
+  cmd.AddValue ("bandwidth",
+                "The system bandwidth",
+                bandwidth);
+  cmd.AddValue ("udpPacketSize",
+                "UDP packet size in bytes",
+                udpPacketSize);
+  cmd.AddValue ("udpInterval",
+                "Udp interval for UDP application packet arrival, in seconds",
+                udpInterval);
+  cmd.AddValue ("udpFullBuffer",
+                "Whether to set the full buffer traffic; if this parameter is set then the udpInterval parameter"
+                "will be neglected",
+                udpFullBuffer);
+  cmd.AddValue ("fixedMcs",
+                "The fixed MCS that will be used in this example if useFixedMcs is configured to true (1).",
+                fixedMcs);
+  cmd.AddValue ("useFixedMcs",
+                "Whether to use fixed mcs, normally used for testing purposes",
+                useFixedMcs);
+  cmd.AddValue ("singleUeTopology",
+                "When true the example uses a single UE topology, "
+                "when false use topology with variable number of UEs will be neglected.",
+                singleUeTopology);
+
+  cmd.Parse (argc, argv);
+
 
   if (singleUeTopology)
     {
