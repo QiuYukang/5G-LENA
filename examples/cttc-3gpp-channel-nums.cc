@@ -55,11 +55,11 @@
  * performance for different numerologies. In the following figure we illustrate
  * the simulation setup.
  *
- * For example, UDP interval can be configured by setting
- * "--udpInterval=0.001". The numerology can be toggled by the argument,
+ * For example, UDP packet generation rate can be configured by setting
+ * "--lambda=1000". The numerology can be toggled by the argument,
  * e.g. "--numerology=1". Additionally, in this example two arguments
- * are added "bandwidth" and "frequency". The modulation scheme of
- * this example is in test mode, and it is fixed to 28.
+ * are added "bandwidth" and "frequency", both in Hz units. The modulation
+ * scheme of this example is in test mode, and it is fixed to 28.
  *
  * By default, the program uses the 3GPP channel model, without shadowing and with
  * line of sight ('l') option. The program runs for 0.4 seconds and one single
@@ -96,7 +96,6 @@ main (int argc, char *argv[])
   // set simulation time and mobility
   double simTime = 1; // seconds
   double udpAppStartTime = 0.4; //seconds
-  //double speed = 1; // 1 m/s for walking UT.
 
   //other simulation parameters default values
   uint16_t numerology = 0 ;
@@ -110,7 +109,7 @@ main (int argc, char *argv[])
   double lambda = 1000;
   uint32_t udpPacketSize = 1000;
   bool udpFullBuffer = true;
-  uint8_t fixedMcs = 27;
+  uint8_t fixedMcs = 28;
   bool useFixedMcs = true;
   bool singleUeTopology = true;
   // Where we will store the output files.
@@ -180,7 +179,7 @@ main (int argc, char *argv[])
    */
   CcBwpCreator ccBwpCreator;
   const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
-  BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa;
+  BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa_LoS;
   if (ueNumPergNb  > 1)
     {
       scenario = BandwidthPartInfo::InH_OfficeOpen;
@@ -243,7 +242,7 @@ main (int argc, char *argv[])
   mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
 
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
-  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+//  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   // Error Model: UE and GNB with same spectrum error model.
@@ -351,15 +350,6 @@ main (int argc, char *argv[])
 
   NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes,
                                                                allBwps);
-
-//  /*
-//   * Numerologies and TxPower need to be configured independently
-//   */
-//  for (uint16_t i = 0; i < gNbNodes.GetN (); ++i)
-//    {
-//      mmWaveHelper->GetEnbPhy (gNbNetDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-//      mmWaveHelper->GetEnbPhy (gNbNetDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (txPower));
-//    }
 
 
   // When all the configuration is done, explicitly call UpdateConfig ()
