@@ -400,6 +400,13 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
   if (calibration)
     {
+      band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+      band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+      band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+      band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+      band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+      band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+
       // Do not initialize fading (beamforming gain)
       nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
       nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
