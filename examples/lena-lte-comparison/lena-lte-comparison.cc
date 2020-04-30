@@ -798,10 +798,6 @@ main (int argc, char *argv[])
   std::string radioNetwork = "NR";  // LTE or NR
   std::string operationMode = "TDD";  // TDD or FDD
 
-  // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSize = 1200;
-  uint32_t lambda = 10000;
-
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
   uint32_t simTimeMs = 1400;
@@ -821,6 +817,8 @@ main (int argc, char *argv[])
   std::string errorModel = "";
 
   bool calibration = true;
+
+  uint32_t trafficScenario = 0;
 
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -844,12 +842,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("traces",
                 "Enable output traces",
                 traces);
-  cmd.AddValue ("packetSize",
-                "packet size in bytes to be used by UE traffic",
-                udpPacketSize);
-  cmd.AddValue ("lambda",
-                "Number of UDP packets generated in one second per UE",
-                lambda);
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
@@ -880,9 +872,41 @@ main (int argc, char *argv[])
   cmd.AddValue("errorModelType",
                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
+  cmd.AddValue ("calibration",
+                "disable a bunch of things to make LENA and NR_LTE comparable",
+                calibration);
+  cmd.AddValue ("trafficScenario",
+                "0: saturation (110 Mbps/enb), 1: latency (500 Kbps), 2: low-load (20 Mbps)",
+                trafficScenario);
 
   // Parse the command line
   cmd.Parse (argc, argv);
+
+  // Traffic parameters (that we will use inside this script:)
+  uint32_t udpPacketSize = 1000;
+  uint32_t lambda;
+  uint32_t packetCount;
+
+  switch (trafficScenario)
+    {
+    case 0: // 110 Mbps == 13.75 MBps
+      packetCount = 0xFFFFFFFF;
+      udpPacketSize = 1375;
+      lambda = 10000;
+      break;
+    case 1: // 500 Kbps = 62.5 KBps
+      packetCount = 1;
+      udpPacketSize = 625;
+      lambda = 100;
+      break;
+    case 2: // 20 Mbps == 2.5 MB/s
+      packetCount = 0xFFFFFFFF;
+      udpPacketSize = 250;
+      lambda = 10000;
+      break;
+    default:
+      NS_FATAL_ERROR ("Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+    }
 
   /*
    * Check if the frequency and numerology are in the allowed range.
@@ -1198,7 +1222,7 @@ main (int argc, char *argv[])
    */
   UdpClientHelper dlClientLowLat;
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
-  dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (packetCount));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
   dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
 
@@ -1387,7 +1411,23 @@ main (int argc, char *argv[])
 
   SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
   bool ret;
-  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS results ("
+  std::string tableName;
+  switch (trafficScenario)
+    {
+    case 0:
+      tableName = "throughput";
+      break;
+    case 1:
+      tableName = "latency";
+      break;
+    case 2:
+      tableName = "s3";
+      break;
+    default:
+      NS_FATAL_ERROR ("NAH");
+    }
+
+  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
                "FlowId INTEGER NOT NULL, "
                "TxPackets INTEGER NOT NULL,"
                "TxBytes INTEGER NOT NULL,"
@@ -1403,7 +1443,7 @@ main (int argc, char *argv[])
                ");");
   NS_ABORT_UNLESS (ret);
 
-  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "results");
+  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), tableName);
 
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
@@ -1421,7 +1461,7 @@ main (int argc, char *argv[])
 
       sqlite3_stmt *stmt;
 
-      db.SpinPrepare (&stmt, "INSERT INTO results VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+      db.SpinPrepare (&stmt, "INSERT INTO " + tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
 
       double txOffered = i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0 ;
 
