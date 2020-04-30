@@ -18,6 +18,22 @@
  *
 */
 
+//#include "ns3/core-module.h"
+//#include "ns3/config-store.h"
+//#include "ns3/network-module.h"
+//#include "ns3/internet-module.h"
+//#include "ns3/internet-apps-module.h"
+//#include "ns3/applications-module.h"
+//#include "ns3/mobility-module.h"
+//#include "ns3/log.h"
+//#include "ns3/point-to-point-helper.h"
+//#include "ns3/flow-monitor-module.h"
+//#include "ns3/mmwave-helper.h"
+//#include "ns3/cc-bwp-helper.h"
+//#include "ns3/nr-point-to-point-epc-helper.h"
+//#include "ns3/ipv4-global-routing-helper.h"
+//#include "ns3/log.h"
+
 #include "ns3/core-module.h"
 #include "ns3/config-store.h"
 #include "ns3/network-module.h"
@@ -25,14 +41,10 @@
 #include "ns3/internet-apps-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/log.h"
-#include "ns3/point-to-point-helper.h"
+#include "ns3/point-to-point-module.h"
 #include "ns3/flow-monitor-module.h"
-#include "ns3/mmwave-helper.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
-#include "ns3/ipv4-global-routing-helper.h"
-#include "ns3/log.h"
-
+#include "ns3/nr-module.h"
+#include "ns3/config-store-module.h"
 
 /**
  * \file cttc-3gpp-channel-nums.cc
@@ -40,7 +52,8 @@
  * \brief Simple topology numerologies example.
  *
  * This example allows users to configure the numerology and test the end-to-end
- * performance for different numerologies. In the following figure we illustrate the simulation setup.
+ * performance for different numerologies. In the following figure we illustrate
+ * the simulation setup.
  *
  * For example, UDP interval can be configured by setting
  * "--udpInterval=0.001". The numerology can be toggled by the argument,
@@ -49,8 +62,8 @@
  * this example is in test mode, and it is fixed to 28.
  *
  * By default, the program uses the 3GPP channel model, without shadowing and with
- * line of sight ('l') option. The program runs for 0.4 seconds and one single packet
- * is to be transmitted. The packet size can be configured by using  the
+ * line of sight ('l') option. The program runs for 0.4 seconds and one single
+ * packet is to be transmitted. The packet size can be configured by using the
  * following parameter: "--packetSize=1000".
  *
  * This simulation prints the output to the terminal and also to the file which
@@ -91,14 +104,14 @@ main (int argc, char *argv[])
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
 
-  double frequency = 7e9;
-  double bandwidth = 200e6;
-  double txPower = 1;
-  double udpInterval = 0.001;
+  double centralFrequency = 7e9;
+  double bandwidth = 100e6;
+  double txPower = 14;
+  double lambda = 1000;
   uint32_t udpPacketSize = 1000;
   bool udpFullBuffer = true;
-  uint16_t fixedMcs = 28;
-  bool useFixedMcs = 1;
+  uint8_t fixedMcs = 27;
+  bool useFixedMcs = true;
   bool singleUeTopology = true;
   // Where we will store the output files.
   std::string simTag = "default";
@@ -126,16 +139,16 @@ main (int argc, char *argv[])
                 outputDir);
   cmd.AddValue ("frequency",
                 "The system frequency",
-                frequency);
+                centralFrequency);
   cmd.AddValue ("bandwidth",
                 "The system bandwidth",
                 bandwidth);
   cmd.AddValue ("udpPacketSize",
                 "UDP packet size in bytes",
                 udpPacketSize);
-  cmd.AddValue ("udpInterval",
-                "Udp interval for UDP application packet arrival, in seconds",
-                udpInterval);
+  cmd.AddValue ("lambda",
+                "Number of UDP packets per second",
+                lambda);
   cmd.AddValue ("udpFullBuffer",
                 "Whether to set the full buffer traffic; if this parameter is set then the udpInterval parameter"
                 "will be neglected",
@@ -147,71 +160,146 @@ main (int argc, char *argv[])
                 "Whether to use fixed mcs, normally used for testing purposes",
                 useFixedMcs);
   cmd.AddValue ("singleUeTopology",
-                "When true the example uses a single UE topology, "
-                "when false use topology with variable number of UEs will be neglected.",
+                "If true, the example uses a predefined topology with one UE and one gNB; "
+                "if false, the example creates a grid of gNBs with a number of UEs attached",
                 singleUeTopology);
 
   cmd.Parse (argc, argv);
 
 
-  if (singleUeTopology)
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("RMa")); //RMa scenario is valid for frequencies between 0.5 and 7 GHz
-    }
-  else
-    {
-      Config::SetDefault ("ns3::MmWaveHelper::Scenario", StringValue("InH-OfficeOpen"));
-    }
-
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue(frequency));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Bandwidth", DoubleValue(bandwidth));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::Numerology", UintegerValue(numerology));
-
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue (useFixedMcs));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (fixedMcs));
-
-  //Config::SetDefault("ns3::MmWaveUeNetDevice::AntennaNum", UintegerValue (4));
-  //Config::SetDefault("ns3::MmWaveEnbNetDevice::AntennaNum", UintegerValue (16));
-
-  Config::SetDefault("ns3::MmWaveEnbPhy::TxPower", DoubleValue (txPower));
+  NS_ASSERT (ueNumPergNb > 0);
 
   // setup the mmWave simulation
   Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
 
+  /*
+   * Spectrum division. We create one operation band with one component carrier
+   * (CC) which occupies the whole operation band bandwidth. The CC contains a
+   * single Bandwidth Part (BWP). This BWP occupies the whole CC band.
+   * Both operational bands will use the StreetCanyon channel modeling.
+   */
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;  // in this example, both bands have a single CC
+  BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa;
+  if (ueNumPergNb  > 1)
+    {
+      scenario = BandwidthPartInfo::InH_OfficeOpen;
+    }
+
+
+  // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
+  // a single BWP per CC
+  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequency,
+                                                  bandwidth,
+                                                  numCcPerBand,
+                                                  scenario);
+
+  // By using the configuration created, it is time to make the operation bands
+  OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
+
+  /*
+   * Initialize channel and pathloss, plus other things inside band1. If needed,
+   * the band configuration can be done manually, but we leave it for more
+   * sophisticated examples. For the moment, this method will take care
+   * of all the spectrum initialization needs.
+   */
+  mmWaveHelper->InitializeOperationBand (&band);
+
+  BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps ({band});
+
+  /*
+   * Continue setting the parameters which are common to all the nodes, like the
+   * gNB transmit power or numerology.
+   */
+  mmWaveHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (txPower));
+  mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (numerology));
+
+  // Scheduler
+  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerTdmaRR"));
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(useFixedMcs));
+  mmWaveHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(useFixedMcs));
+
+  if (useFixedMcs == true)
+    {
+      mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue(fixedMcs));
+      mmWaveHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue(fixedMcs));
+    }
+
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+
+  // Antennas for all the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Antennas for all the gNbs
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+
+  // Beamforming method
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
+  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  // Error Model: UE and GNB with same spectrum error model.
+  mmWaveHelper->SetUlErrorModel ("ns3::NrEesmIrT1");
+  mmWaveHelper->SetDlErrorModel ("ns3::NrEesmIrT1");
+
+  // Both DL and UL AMC will have the same model behind.
+  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+
+
+  // Create EPC helper
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   mmWaveHelper->SetEpcHelper (epcHelper);
+  // Core latency
+  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
+
+  // gNb routing between Bearer and bandwidh part
+  uint32_t bwpIdForBearer = 0;
+  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForBearer));
+
+  // Initialize mmWaveHelper
   mmWaveHelper->Initialize();
 
-  // create base stations and mobile terminals
+
+  /*
+   *  Create the gNB and UE nodes according to the network topology
+   */
   NodeContainer gNbNodes;
   NodeContainer ueNodes;
   MobilityHelper mobility;
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  Ptr<ListPositionAllocator> bsPositionAlloc = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> utPositionAlloc = CreateObject<ListPositionAllocator> ();
 
-  double gNbHeight = 10;
-  double ueHeight = 1.5;
+  const double gNbHeight = 10;
+  const double ueHeight = 1.5;
 
   if (singleUeTopology)
     {
       gNbNodes.Create (1);
       ueNodes.Create (1);
-      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+      gNbNum = 1;
+      ueNumPergNb = 1;
+
       mobility.Install (gNbNodes);
       mobility.Install (ueNodes);
-      gNbNodes.Get(0)->GetObject<MobilityModel>()->SetPosition (Vector (0.0, 0.0, gNbHeight));
-      ueNodes.Get(0)->GetObject<MobilityModel> ()->SetPosition (Vector (0.0, 30.0 , ueHeight));
+      bsPositionAlloc->Add (Vector (0.0, 0.0, gNbHeight));
+      utPositionAlloc->Add (Vector (0.0, 30.0, ueHeight));
     }
   else
     {
       gNbNodes.Create (gNbNum);
       ueNodes.Create (ueNumPergNb * gNbNum);
 
-      MobilityHelper mobility;
-      Ptr<ListPositionAllocator> apPositionAlloc = CreateObject<ListPositionAllocator> ();
-      Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
       int32_t yValue = 0.0;
-
       for (uint32_t i = 1; i <= gNbNodes.GetN(); ++i)
         {
           // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
@@ -224,12 +312,11 @@ main (int argc, char *argv[])
               yValue = -yValue;
             }
 
-          apPositionAlloc->Add (Vector (0.0, yValue, gNbHeight));
-
+          bsPositionAlloc->Add (Vector (0.0, yValue, gNbHeight));
 
           // 1.0, -1.0, 3.0, -3.0, 5.0, -5.0, ...
           double xValue = 0.0;
-          for (uint32_t j = 1; j <= ueNumPergNb; ++j)
+          for (uint16_t j = 1; j <= ueNumPergNb; ++j)
             {
               if (j % 2 != 0)
                 {
@@ -242,26 +329,51 @@ main (int argc, char *argv[])
 
               if (yValue > 0)
                 {
-                  staPositionAlloc->Add (Vector (xValue, 1, ueHeight));
+                  utPositionAlloc->Add (Vector (xValue, 1, ueHeight));
                 }
               else
                 {
-                  staPositionAlloc->Add (Vector (xValue, -1, ueHeight));
+                  utPositionAlloc->Add (Vector (xValue, -1, ueHeight));
                 }
             }
         }
+    }
+  mobility.SetPositionAllocator (bsPositionAlloc);
+  mobility.Install (gNbNodes);
 
-      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-      mobility.SetPositionAllocator (apPositionAlloc);
-      mobility.Install (gNbNodes);
+  mobility.SetPositionAllocator (utPositionAlloc);
+  mobility.Install (ueNodes);
 
-      mobility.SetPositionAllocator (staPositionAlloc);
-      mobility.Install (ueNodes);
+
+  // Install mmWave net devices
+  NetDeviceContainer gNbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes,
+                                                                 allBwps);
+
+  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes,
+                                                               allBwps);
+
+//  /*
+//   * Numerologies and TxPower need to be configured independently
+//   */
+//  for (uint16_t i = 0; i < gNbNodes.GetN (); ++i)
+//    {
+//      mmWaveHelper->GetEnbPhy (gNbNetDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+//      mmWaveHelper->GetEnbPhy (gNbNetDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (txPower));
+//    }
+
+
+  // When all the configuration is done, explicitly call UpdateConfig ()
+
+  for (auto it = gNbNetDev.Begin (); it != gNbNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
     }
 
-  // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+    }
+
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost 
@@ -285,54 +397,72 @@ main (int argc, char *argv[])
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
   internet.Install (ueNodes);
-  Ipv4InterfaceContainer ueIpIface;
-  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
-  // assign IP address to UEs, and install UDP downlink applications
-  uint16_t dlPort = 1234;
-  ApplicationContainer clientApps;
-  ApplicationContainer serverApps;
+
+
+  Ipv4InterfaceContainer ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
     {
       Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
+  // attach UEs to the closest eNB
+  mmWaveHelper->AttachToClosestEnb (ueNetDev, gNbNetDev);
+
+  // assign IP address to UEs, and install UDP downlink applications
+  uint16_t dlPort = 1234;
+
+  ApplicationContainer serverApps;
+
+  // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkHelper (dlPort);
   serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get(0)));
 
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  UdpClientHelper dlClient;
+  dlClient.SetAttribute ("RemotePort", UintegerValue (dlPort));
+  dlClient.SetAttribute ("PacketSize", UintegerValue(udpPacketSize));
+  dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+  if (udpFullBuffer)
     {
-      UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      //dlClient.SetAttribute ("MaxPackets", UintegerValue(1000));
-
-      if (udpFullBuffer)
+      double bitRate = 75000000; // 75 Mbps will saturate the NR system of 20 MHz with the NrEesmIrT1 error model
+      bitRate /= ueNumPergNb;    // Divide the cell capacity among UEs
+      if (bandwidth > 20e6)
         {
-          double bitRate = 75000000; // 75 Mb/s will saturate the system of 20 MHz
-
-          if (bandwidth > 20e6)
-            {
-              bitRate *=  bandwidth / 20e6;
-            }
-          udpInterval = static_cast<double> (udpPacketSize * 8) / bitRate ;
+          bitRate *=  bandwidth / 20e6;
         }
-      dlClient.SetAttribute ("Interval", TimeValue (Seconds(udpInterval)));
-      clientApps.Add (dlClient.Install (remoteHost));
-      
-      Ptr<EpcTft> tft = Create<EpcTft> ();
-      EpcTft::PacketFilter dlpf;
-      dlpf.localPortStart = dlPort;
-      dlpf.localPortEnd = dlPort;
-      dlPort++;
-      tft->Add (dlpf);
+      lambda = bitRate / static_cast<double> (udpPacketSize * 8);
+    }
+  dlClient.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambda)));
 
-      enum EpsBearer::Qci q;
-      q = EpsBearer::GBR_CONV_VOICE;
-      EpsBearer bearer (q);
-      mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
+  // The bearer that will carry low latency traffic
+  EpsBearer bearer (EpsBearer::GBR_CONV_VOICE);
+
+  Ptr<EpcTft> tft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpf;
+  dlpf.localPortStart = dlPort;
+  dlpf.localPortEnd = dlPort;
+  tft->Add (dlpf);
+
+  /*
+   * Let's install the applications!
+   */
+  ApplicationContainer clientApps;
+
+  for (uint32_t i = 0; i < ueNodes.GetN (); ++i)
+    {
+      Ptr<Node> ue = ueNodes.Get (i);
+      Ptr<NetDevice> ueDevice = ueNetDev.Get (i);
+      Address ueAddress = ueIpIface.GetAddress (i);
+
+      // The client, who is transmitting, is installed in the remote host,
+      // with destination address set to the address of the UE
+      dlClient.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      clientApps.Add (dlClient.Install (remoteHost));
+
+      // Activate a dedicated bearer for the traffic type
+      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, bearer, tft);
     }
 
   // start server and client apps
@@ -341,8 +471,6 @@ main (int argc, char *argv[])
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime));
 
-  // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // enable the traces provided by the mmWave module
   //mmWaveHelper->EnableTraces();
@@ -427,9 +555,10 @@ main (int argc, char *argv[])
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
   outFile.close ();
 
-  Ptr<UdpClient> clientApp = clientApps.Get(0)->GetObject<UdpClient>();
-  Ptr<UdpServer> serverApp = serverApps.Get(0)->GetObject<UdpServer>();
-  std::cout<<"\n Total UDP throughput (bps):"<<(serverApp->GetReceived()*udpPacketSize*8)/(simTime-udpAppStartTime)<<std::endl;
+  Ptr<UdpClient> clientApp = clientApps.Get (0)->GetObject<UdpClient> ();
+  Ptr<UdpServer> serverApp = serverApps.Get (0)->GetObject<UdpServer> ();
+  std::cout << "\n Total UDP throughput (bps):" <<
+      (serverApp->GetReceived ()*udpPacketSize*8) / (simTime-udpAppStartTime) << std::endl;
 
   Simulator::Destroy ();
   return 0;
