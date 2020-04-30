@@ -163,7 +163,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     {
       lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
       lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
-      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
+      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (4.97));
     }
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDl));
   lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUl));
@@ -483,8 +483,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
-  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
   // UE transmit power
