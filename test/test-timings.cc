@@ -73,17 +73,25 @@ public:
 
 private:
   virtual void DoRun (void);
-  void EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
-  void EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void EnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void EnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
-  void EnbMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
-  void EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void EnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void EnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
-  void UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
-  void UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
-  void UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
-  void UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
 
   uint32_t m_numerology;
   bool verbose {false};
@@ -128,10 +136,12 @@ static const std::unordered_map <MmWaveControlMessage::messageType, std::string>
 };
 
 void
-NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
+
   static NumerologyToType res =
   {
     {
@@ -202,10 +212,11 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
 }
 
 void
-NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -286,10 +297,11 @@ NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
 }
 
 void
-NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -340,10 +352,11 @@ NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
 }
 
 void
-NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -421,10 +434,11 @@ NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWav
 // UE
 
 void
-NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -505,10 +519,11 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
 }
 
 void
-NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -579,10 +594,11 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
 }
 
 void
-NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -653,10 +669,11 @@ NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWave
 }
 
 void
-NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
+  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
