@@ -19,8 +19,7 @@
 
 /**
  * \ingroup examples
- * \file cttc-nr-demo.cc
- * \brief A cozy, simple, NR demo (in a tutorial style)
+ * \file cttc-channel-randomness.cc
  *
  * This example is intended to test the randmness of the channel in order to see
  * if we can reproduce the same channel realization within the same simulation run.
@@ -184,6 +183,8 @@ main (int argc, char *argv[])
   RngSeedManager::SetSeed(1);
   RngSeedManager::SetRun(1);
 
+  int64_t stream = 1;
+
 
   Ptr<ThreeGppPropagationLossModel> m_propagationLossModel; //!< the PropagationLossModel object
   Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel; //!< the SpectrumPropagationLossModel object
@@ -223,6 +224,14 @@ main (int argc, char *argv[])
   m_spectrumLossModel->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (condModel));
   m_propagationLossModel->SetChannelConditionModel (condModel);
 
+
+  //create the chennel model
+  Ptr<ThreeGppChannelModel> channelModel = CreateObject<ThreeGppChannelModel> ();
+  channelModel->SetAttribute ("Frequency", DoubleValue (frequency));
+  channelModel->SetAttribute ("Scenario", StringValue (scenario));
+  channelModel->SetAttribute ("ChannelConditionModel", PointerValue (condModel));
+
+
   // create the antenna objects and set their dimensions
   Ptr<ThreeGppAntennaArrayModel> txAntenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
   Ptr<ThreeGppAntennaArrayModel> rxAntenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
@@ -237,11 +246,61 @@ main (int argc, char *argv[])
   DoBeamforming (rxDev, rxAntenna, txDev);
 
 
-  Ptr<const SpectrumModel> sm =  MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
-  Ptr<const SpectrumValue> txPsd = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm);
-  NS_LOG_UNCOND ("Average tx power " << 10*log10(Sum (*txPsd) * 180e3) << " dB");
-  Ptr<SpectrumValue> rxPsd = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd, txMob, rxMob);
-  NS_LOG_UNCOND ("Average rx power " << 10*log10 (Sum (*rxPsd) * 180e3) << " dB");
+  stream = channelModel->AssignStreams (stream);
+
+  Ptr<const ThreeGppChannelModel::ThreeGppChannelMatrix> channelMatrix1 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
+
+/*  for (uint32_t i = 0; i < channelMatrix1->m_channel.size (); i++)
+  {
+      for (uint32_t j = 0; j < channelMatrix1->m_channel.at (0).size (); j++)
+      {
+          std::cout << channelMatrix1->m_channel[i][j][0] << std::endl;
+      }
+  }*/
+
+  Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm1);
+  NS_LOG_UNCOND ("Average tx power 1" << 10*log10(Sum (*txPsd1) * 180e3) << " dB");
+  Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob);
+  NS_LOG_UNCOND ("Average rx power 1" << 10*log10 (Sum (*rxPsd1) * 180e3) << " dB");
+
+
+  channelModel = {nullptr};
+
+  channelModel = CreateObject<ThreeGppChannelModel> ();
+  channelModel->SetAttribute ("Frequency", DoubleValue (frequency));
+  channelModel->SetAttribute ("Scenario", StringValue (scenario));
+  channelModel->SetAttribute ("ChannelConditionModel", PointerValue (condModel));
+
+  stream = 1;
+  stream = channelModel->AssignStreams (stream);
+
+  Ptr<const ThreeGppChannelModel::ThreeGppChannelMatrix> channelMatrix2 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
+
+/*  for (uint32_t i = 0; i < channelMatrix2->m_channel.size (); i++)
+  {
+      for (uint32_t j = 0; j < channelMatrix2->m_channel.at (0).size (); j++)
+      {
+          std::cout << channelMatrix2->m_channel[i][j][0] << std::endl;
+      }
+  }*/
+
+  if (channelMatrix1 != channelMatrix2)
+  {
+      std::cout << "matrices are different" << std::endl;
+  }
+  else
+  {
+      std::cout << "matrices are the same" << std::endl;
+  }
+
+
+  Ptr<const SpectrumModel> sm2 =  MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  Ptr<const SpectrumValue> txPsd2 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm2);
+  NS_LOG_UNCOND ("Average tx power 2" << 10*log10(Sum (*txPsd2) * 180e3) << " dB");
+  Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob);
+  NS_LOG_UNCOND ("Average rx power 2" << 10*log10 (Sum (*rxPsd2) * 180e3) << " dB");
+
 
 
   Simulator::Stop (MilliSeconds (simTimeMs));
