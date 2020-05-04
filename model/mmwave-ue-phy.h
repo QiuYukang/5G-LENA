@@ -547,7 +547,6 @@ private:
 
   Ptr<const NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
 
-  Time m_wbCqiPeriod;       /**< Wideband Periodic CQI: 2, 5, 10, 16, 20, 32, 40, 64, 80 or 160 ms */
   Time m_wbCqiLast;
   Time m_lastSlotStart; //!< Time of the last slot start
 
