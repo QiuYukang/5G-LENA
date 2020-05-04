@@ -933,7 +933,7 @@ MmWaveUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
   // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
-      if (Simulator::Now () > m_wbCqiLast + m_wbCqiPeriod)
+      if (Simulator::Now () > m_wbCqiLast)
         {
           SpectrumValue newSinr = sinr;
           Ptr<MmWaveDlCqiMessage> msg = CreateDlCqiFeedbackMessage (newSinr);
