@@ -445,9 +445,9 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetGnbPhyAttribute ("RbOverhead", DoubleValue (rbOverhead));
   nrHelper->SetGnbPhyAttribute ("N2Delay", UintegerValue (4));
   nrHelper->SetGnbPhyAttribute ("N1Delay", UintegerValue (4));
-  nrHelper->SetGnbPhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
+  //nrHelper->SetGnbPhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
 
-  nrHelper->SetUePhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
+  //nrHelper->SetUePhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
@@ -562,11 +562,12 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   //
 
   // Scheduler type
-    if (radioNetwork == "LTE")
-      {
-        nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
-        nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
-      }
+  if (radioNetwork == "LTE")
+    {
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
+      nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+    }
+
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
