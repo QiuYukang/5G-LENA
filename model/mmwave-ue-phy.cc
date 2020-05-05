@@ -962,8 +962,7 @@ MmWaveUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
             {
               DoSendControlMessage (msg);
             }
-          Ptr<MmWaveUeNetDevice> UeRx = DynamicCast<MmWaveUeNetDevice> (m_netDevice);
-          m_reportCurrentCellRsrpSinrTrace (UeRx->GetImsi (), newSinr, newSinr);
+          m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId ());
         }
     }
 }

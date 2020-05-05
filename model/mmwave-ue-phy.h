@@ -587,7 +587,12 @@ private:
   uint8_t m_dlCtrlSyms {1}; //!< Number of CTRL symbols in DL
   uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
 
-  TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_reportCurrentCellRsrpSinrTrace; //!< Report the rsrp
+  /**
+   * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding
+   * RSRP and average SINR (see TS 36.214). Exporting cell ID, RNTI, RSRP, and
+   * SINR. Moreover it reports the m_componentCarrierId.
+   */
+  TracedCallback<uint16_t, uint16_t, double, double, uint16_t> m_reportCurrentCellRsrpSinrTrace;
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
 

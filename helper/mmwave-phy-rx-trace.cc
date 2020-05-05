@@ -111,9 +111,11 @@ MmWavePhyRxTrace::GetTypeId (void)
 
 void
 MmWavePhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phyStats, std::string path,
-                                                     uint64_t imsi, SpectrumValue& sinr, SpectrumValue& power)
+                                                     uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
 {
-  NS_LOG_INFO ("UE" << imsi << "->Generate RsrpSinrTrace");
+  NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
+  NS_UNUSED (phyStats);
+  NS_UNUSED (path);
   //phyStats->ReportInterferenceTrace (imsi, sinr);
   //phyStats->ReportPowerTrace (imsi, power);
 
@@ -130,23 +132,9 @@ MmWavePhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<MmWavePhyRxTrace> phySt
           }
       }
 
-  uint32_t rbNum = 0;
-  double sinrAvg = 0;
-  Values::const_iterator it;
-
-  for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
-    {
-      if (*it != 0.0)
-        {
-          sinrAvg += *it;
-        }
-      rbNum += 1;
-    }
-  sinrAvg /= static_cast <double> (rbNum);
-
-  m_rsrpSinrFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
-                              "\t" << imsi <<
-                              "\t" << (10 * log10 (sinrAvg)) << std::endl;
+  m_rsrpSinrFile << Simulator::Now ().GetSeconds ()
+                 << "\t" << cellId << "\t" << rnti << "\t" << bwpId
+                 << "\t" << avgSinr << "\t" << power << std::endl;
 }
 
 void
