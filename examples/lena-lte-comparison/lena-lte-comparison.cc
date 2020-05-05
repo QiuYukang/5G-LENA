@@ -988,7 +988,7 @@ main (int argc, char *argv[])
                 "disable a bunch of things to make LENA and NR_LTE comparable",
                 calibration);
   cmd.AddValue ("trafficScenario",
-                "0: saturation (110 Mbps/enb), 1: latency (500 Kbps), 2: low-load (20 Mbps)",
+                "0: saturation (110 Mbps/enb), 1: latency (1 pkt of 10 bytes), 2: low-load (20 Mbps)",
                 trafficScenario);
 
   // Parse the command line
@@ -1006,10 +1006,10 @@ main (int argc, char *argv[])
       udpPacketSize = 1375;
       lambda = 10000;
       break;
-    case 1: // 500 Kbps = 62.5 KBps
+    case 1:
       packetCount = 1;
-      udpPacketSize = 625;
-      lambda = 100;
+      udpPacketSize = 10;
+      lambda = 1;
       break;
     case 2: // 20 Mbps == 2.5 MB/s
       packetCount = 0xFFFFFFFF;
