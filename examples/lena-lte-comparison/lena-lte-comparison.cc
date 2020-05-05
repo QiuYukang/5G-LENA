@@ -84,6 +84,14 @@ using namespace ns3;
  */
 NS_LOG_COMPONENT_DEFINE ("S3Scenario");
 
+static void
+ReportSinrNr (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
+{
+  NS_UNUSED (cellId);
+  NS_UNUSED (rnti);
+  NS_UNUSED (power);
+}
+
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  std::string scenario,
                                  NodeContainer enbSector1Container,
@@ -154,6 +162,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
   lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
   lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
+  lteHelper->SetSchedulerAttribute ("UseWideBandCqi", BooleanValue (true));
 
   if (calibration)
     {
@@ -243,7 +252,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NetDeviceContainer &ueSector1NetDev,
                                    NetDeviceContainer &ueSector2NetDev,
                                    NetDeviceContainer &ueSector3NetDev,
-                                   bool calibration)
+                                   bool calibration,
+                                   SQLiteOutput *db)
 {
 
 
@@ -736,6 +746,24 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         }
     }
 
+  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
+    {
+      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
+    {
+      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
+    {
+      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
   // When all the configuration is done, explicitly call UpdateConfig ()
 
   for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
@@ -913,6 +941,8 @@ main (int argc, char *argv[])
       NS_FATAL_ERROR ("Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
     }
 
+  SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
+
   /*
    * Check if the frequency and numerology are in the allowed range.
    * If you need to add other checks, here is the best position to put them.
@@ -1069,7 +1099,8 @@ main (int argc, char *argv[])
                                     ueSector1NetDev,
                                     ueSector2NetDev,
                                     ueSector3NetDev,
-                                    calibration);
+                                    calibration,
+                                    &db);
     }
   else
     {
@@ -1385,36 +1416,6 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  Simulator::Stop (MilliSeconds (simTimeMs));
-  Simulator::Run ();
-
-  /*
-   * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
-  GtkConfigStore config;
-  config.ConfigureAttributes ();
-  */
-
-  // Print per-flow statistics
-  monitor->CheckForLostPackets ();
-  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmonHelper.GetClassifier ());
-  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
-
-  double averageFlowThroughput = 0.0;
-  double averageFlowDelay = 0.0;
-
-  std::ofstream outFile;
-  std::string filename = outputDir + "/" + simTag;
-  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
-  if (!outFile.is_open ())
-    {
-      std::cerr << "Can't open file " << filename << std::endl;
-      return 1;
-    }
-
-  outFile.setf (std::ios_base::fixed);
-
-  SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
   bool ret;
   std::string tableName;
   switch (trafficScenario)
@@ -1448,7 +1449,45 @@ main (int argc, char *argv[])
                ");");
   NS_ABORT_UNLESS (ret);
 
+  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS sinr ("
+                     "CellId INTEGER NOT NULL, "
+                     "BwpId INTEGER NOT NULL,"
+                     "Rnti INTEGER NOT NULL,"
+                     "AvgSinr DOUBLE NOT NULL,"
+                     "Seed INTEGER NOT NULL,"
+                     "Run INTEGER NOT NULL");
+
   DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), tableName);
+  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "sinr");
+
+  Simulator::Stop (MilliSeconds (simTimeMs));
+  Simulator::Run ();
+
+  /*
+   * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
+  GtkConfigStore config;
+  config.ConfigureAttributes ();
+  */
+
+  // Print per-flow statistics
+  monitor->CheckForLostPackets ();
+  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmonHelper.GetClassifier ());
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+
+  double averageFlowThroughput = 0.0;
+  double averageFlowDelay = 0.0;
+
+  std::ofstream outFile;
+  std::string filename = outputDir + "/" + simTag;
+  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
+  if (!outFile.is_open ())
+    {
+      std::cerr << "Can't open file " << filename << std::endl;
+      return 1;
+    }
+
+  outFile.setf (std::ios_base::fixed);
 
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
