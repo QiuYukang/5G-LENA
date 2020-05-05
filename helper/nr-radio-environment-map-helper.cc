@@ -29,6 +29,8 @@
 #include <ns3/config.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
+#include <ns3/constant-position-mobility-model.h>
+
 
 #include <fstream>
 #include <limits>
@@ -222,6 +224,126 @@ NrRadioEnvironmentMapHelper::GetMaxPointsPerIt () const
   return m_maxPointsPerIteration;
 }
 
+void
+NrRadioEnvironmentMapHelper::DelayedInstall ()
+{
+  NS_LOG_FUNCTION (this);
+
+  m_outFile.open (m_outputFile.c_str ());
+  if (!m_outFile.is_open ())
+    {
+      NS_FATAL_ERROR ("Can't open file " << (m_outputFile));
+      return;
+    }
+
+  m_xStep = (m_xMax - m_xMin)/(m_xRes-1);
+  m_yStep = (m_yMax - m_yMin)/(m_yRes-1);
+
+  if ((double)m_xRes * (double) m_yRes < (double) m_maxPointsPerIteration)
+    {
+      m_maxPointsPerIteration = m_xRes * m_yRes;
+    }
+
+  for (uint32_t i = 0; i < m_maxPointsPerIteration; ++i)
+    {
+      RemPoint p;
+      p.bmm = CreateObject<ConstantPositionMobilityModel> ();
+      m_rem.push_back (p);
+    }
+
+  double remIterationStartTime = 0.0001;
+  double xMinNext = m_xMin;
+  double yMinNext = m_yMin;
+  uint32_t numPointsCurrentIteration = 0;
+  bool justScheduled = false;
+  for (double x = m_xMin; x < m_xMax + 0.5*m_xStep; x += m_xStep)
+    {
+      for (double y = m_yMin; y < m_yMax + 0.5*m_yStep ; y += m_yStep)
+        {
+          if (justScheduled)
+            {
+              xMinNext = x;
+              yMinNext = y;
+              justScheduled = false;
+            }
+
+          ++numPointsCurrentIteration;
+          if ((numPointsCurrentIteration == m_maxPointsPerIteration)
+              || ((x > m_xMax - 0.5*m_xStep) && (y > m_yMax - 0.5*m_yStep)) )
+            {
+              Simulator::Schedule (Seconds (remIterationStartTime),
+                                   &NrRadioEnvironmentMapHelper::RunOneIteration,
+                                   this, xMinNext, x, yMinNext, y);
+              remIterationStartTime += 0.001;
+              justScheduled = true;
+              numPointsCurrentIteration = 0;
+            }
+        }
+    }
+
+  Simulator::Schedule (Seconds (remIterationStartTime),
+                       &NrRadioEnvironmentMapHelper::Finalize,
+                       this);
+}
+
+void
+NrRadioEnvironmentMapHelper::RunOneIteration (double xMin, double xMax, double yMin, double yMax)
+{
+  NS_LOG_FUNCTION (this << xMin << xMax << yMin << yMax);
+
+  std::list<RemPoint>::iterator remIt = m_rem.begin ();
+
+  double x = 0.0;
+  double y = 0.0;
+
+  for (x = xMin; x < xMax + 0.5*m_xStep; x += m_xStep)
+    {
+      for (y = (x == xMin) ? yMin : m_yMin;
+           y < ((x == xMax) ? yMax : m_yMax) + 0.5*m_yStep;
+           y += m_yStep)
+        {
+          NS_ASSERT (remIt != m_rem.end ());
+          remIt->bmm->SetPosition (Vector (x, y, m_z));
+          ++remIt;
+        }
+    }
+
+  if (remIt != m_rem.end ())
+    {
+      NS_ASSERT ((x > m_xMax - 0.5*m_xStep) && (y > m_yMax - 0.5*m_yStep));
+      NS_LOG_LOGIC ("deactivating RemSpectrumPhys that are unneeded in the last iteration");
+    }
+
+  Simulator::Schedule (Seconds (0.0005), &NrRadioEnvironmentMapHelper::PrintAndReset, this);
+}
+
+void
+NrRadioEnvironmentMapHelper::PrintAndReset ()
+{
+  NS_LOG_FUNCTION (this);
+
+  for (std::list<RemPoint>::iterator it = m_rem.begin ();
+       it != m_rem.end ();
+       ++it)
+    {
+
+      Vector pos = it->bmm->GetPosition ();
+      NS_LOG_LOGIC ("output: " << pos.x << "\t" << pos.y << "\t" << pos.z << "\t");
+      m_outFile << pos.x << "\t"
+                << pos.y << "\t"
+                << pos.z << "\t"
+                << std::endl;
+    }
+}
+
+void
+NrRadioEnvironmentMapHelper::Finalize ()
+{
+  NS_LOG_FUNCTION (this);
+  m_outFile.close ();
+
+  //Simulator::Stop ();
+}
 
 
 } // namespace ns3
