@@ -84,12 +84,63 @@ using namespace ns3;
  */
 NS_LOG_COMPONENT_DEFINE ("S3Scenario");
 
+struct ResultCache
+{
+  ResultCache (uint16_t c, uint16_t b, uint16_t r, double s)
+    : cellId (c), bwpId (b), rnti (r), avgSinr (s) {}
+
+  uint16_t cellId {0};
+  uint16_t bwpId {0};
+  uint16_t rnti {0};
+  double avgSinr {0.0};
+};
+
+static std::vector<ResultCache> cache;
+
+static void
+EmptyCache (SQLiteOutput *db)
+{
+  for (const auto & v : cache)
+    {
+      sqlite3_stmt *stmt;
+      db->SpinPrepare (&stmt, "INSERT INTO sinr VALUES (?,?,?,?,?,?);");
+
+      bool ret = db->Bind (stmt, 1, v.cellId);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 2, v.bwpId);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 3, v.rnti);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 4, v.avgSinr);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 5, RngSeedManager::GetSeed ());
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 6, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      NS_ASSERT (ret);
+
+      ret = db->SpinExec (stmt);
+      NS_ASSERT (ret);
+    }
+  cache.clear ();
+}
+
 static void
 ReportSinrNr (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
 {
-  NS_UNUSED (cellId);
-  NS_UNUSED (rnti);
   NS_UNUSED (power);
+
+  cache.emplace_back (ResultCache (cellId, bwpId, rnti, avgSinr));
+
+  if (cache.size () > 100)
+    {
+      EmptyCache (db);
+    }
+}
+
+static void
+ReportSinrLena (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
+{
+  ReportSinrNr (db, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
 }
 
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
@@ -163,7 +214,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
   lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
   lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
-  lteHelper->SetSchedulerAttribute ("UseWideBandCqi", BooleanValue (true));
+  //lteHelper->SetSchedulerAttribute ("UseWideBandCqi", BooleanValue (true));
 
   if (calibration)
     {
@@ -219,7 +270,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
     }
 
   for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
@@ -228,7 +279,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
     }
 
   for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
@@ -237,7 +288,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
     }
 
   lteHelper->Initialize ();
@@ -1483,13 +1534,16 @@ main (int argc, char *argv[])
                      "Rnti INTEGER NOT NULL,"
                      "AvgSinr DOUBLE NOT NULL,"
                      "Seed INTEGER NOT NULL,"
-                     "Run INTEGER NOT NULL");
+                     "Run INTEGER NOT NULL);");
+  NS_ASSERT (ret);
 
   DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), tableName);
   DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "sinr");
 
   Simulator::Stop (MilliSeconds (simTimeMs));
   Simulator::Run ();
+
+  EmptyCache (&db);
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
