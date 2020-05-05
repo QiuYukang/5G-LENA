@@ -324,6 +324,13 @@ protected:
 
 private:
 
+  /**
+   * \brief Compute the AvgSinr (copied from LteUePhy)
+   * \param sinr the SINR
+   * \return the average on all the RB
+   */
+  static double ComputeAvgSinr (const SpectrumValue& sinr);
+
   void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
 
   /**

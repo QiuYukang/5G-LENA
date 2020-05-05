@@ -37,6 +37,7 @@
 #include <ns3/double.h>
 #include <ns3/lte-radio-bearer-tag.h>
 #include <algorithm>
+#include <cfloat>
 #include <ns3/boolean.h>
 #include <ns3/pointer.h>
 #include "beam-manager.h"
@@ -279,6 +280,25 @@ MmWaveUePhy::GetChannelBandwidth() const
 {
   // m_channelBandwidth is in kHz * 100
   return m_channelBandwidth * 1000 * 100;
+}
+
+double
+MmWaveUePhy::ComputeAvgSinr (const SpectrumValue &sinr)
+{
+  // averaged SINR among RBs
+  double sum = 0.0;
+  uint8_t rbNum = 0;
+  Values::const_iterator it;
+
+  for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
+    {
+      sum += (*it);
+      rbNum++;
+    }
+
+  double avrgSinr = (rbNum > 0) ? (sum / rbNum) : DBL_MAX;
+
+  return avrgSinr;
 }
 
 void
