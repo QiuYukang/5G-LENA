@@ -355,6 +355,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
 
   nrHelper->SetGnbPhyAttribute ("RbOverhead", DoubleValue (rbOverhead));
+  nrHelper->SetGnbPhyAttribute ("N2Delay", UintegerValue (4));
+  nrHelper->SetGnbPhyAttribute ("N1Delay", UintegerValue (4));
+  nrHelper->SetGnbPhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
+
+  nrHelper->SetUePhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
