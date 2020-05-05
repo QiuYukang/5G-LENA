@@ -10,8 +10,7 @@
 # See test.py for more information.
 cpp_examples = [
     ("cttc-3gpp-channel-example", "True", "True"),
-    ("cttc-3gpp-channel-nums --cellScan=1", "True", "True"),
-    ("cttc-3gpp-channel-nums --cellScan=0", "True", "True"),    
+    ("cttc-3gpp-channel-nums", "True", "True"),
     ("cttc-3gpp-channel-nums-fdm", "True", "True"),
     ("cttc-3gpp-channel-simple-fdm", "True", "True"),
     ("cttc-3gpp-channel-simple-ran", "True", "True"),
