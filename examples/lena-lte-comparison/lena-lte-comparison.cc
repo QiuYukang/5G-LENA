@@ -108,7 +108,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  NetDeviceContainer &ueSector1NetDev,
                                  NetDeviceContainer &ueSector2NetDev,
                                  NetDeviceContainer &ueSector3NetDev,
-                                 bool calibration)
+                                 bool calibration,
+                                 SQLiteOutput *db)
 {
 
   /*
@@ -212,10 +213,36 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   ueSector2NetDev = lteHelper->InstallUeDevice(ueSector2Container);
   ueSector3NetDev = lteHelper->InstallUeDevice(ueSector3Container);
 
+  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
+    {
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector1NetDev.Get (i));
+      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
+      auto uePhy = ueNetDevice->GetPhy ();
+
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
+    {
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector2NetDev.Get (i));
+      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
+      auto uePhy = ueNetDevice->GetPhy ();
+
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
+    {
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector3NetDev.Get (i));
+      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
+      auto uePhy = ueNetDevice->GetPhy ();
+
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
   lteHelper->Initialize ();
   auto dlSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetDownlinkSpectrumChannel ()->GetPropagationLossModel());
   auto ulSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetUplinkSpectrumChannel ()->GetPropagationLossModel());
-
 
   NS_ASSERT (dlSp != nullptr);
   NS_ASSERT (ulSp != nullptr);
@@ -1072,7 +1099,8 @@ main (int argc, char *argv[])
                                   ueSector1NetDev,
                                   ueSector2NetDev,
                                   ueSector3NetDev,
-                                  calibration);
+                                  calibration,
+                                  &db);
     }
   else if (simulator == "5GLENA")
     {
