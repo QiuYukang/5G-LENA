@@ -91,7 +91,7 @@ def build(bld):
         'test/mmwave-test-fdm-of-numerologies.cc',
         'test/mmwave-test-sched.cc',
 #        'test/mmwave-system-test-schedulers.cc',
-#        'test/test-antenna-3gpp-model-conf.cc',
+        'test/test-antenna-3gpp-model-conf.cc',
 #        'test/nr-test-l2sm-eesm.cc',
 #        'test/nr-test-3gpp-channel.cc',
         'test/nr-lte-pattern-generation.cc',
