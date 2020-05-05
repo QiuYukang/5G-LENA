@@ -133,25 +133,36 @@ public:
 
   /**
     * \brief: Set the minimum processing delay (in slots)
-    * to decode DL DCI and decode DL data
+    * to decode DL DCI and decode DL data. It is not defined in NR specs.
+    * It defaults to 0 slots.
     */
    void SetN0Delay (uint32_t delay);
 
    /**
     * \brief: Set the minimum processing delay (in slots)
-    * to decode DL Data and send Harq feedback
+    * to decode DL Data and send Harq feedback.
     *
-    * Please note that in the current implementation N1
-    * must be equal or larger than 1 (N1 >= 1)
+    * It is defined in TS 38.214 Table 5.3-1 and Table 5.3-2 for UE
+    * capabilities 1 and UE capability 2, respectively, and depends on the
+    * numerology. In the specs it is defined in multiples of OFDM symbols, but
+    * we define it in multiples of slots, since then it is used to compute
+    * flexible K1 timing that is measured in slots. For UE Capability 1,
+    * it can take 1 or 2 slots. For UE Capability 2, it is not
+    * larger than 1 slot.
     */
    void SetN1Delay (uint32_t delay);
 
    /**
     * \brief: Set the minimum processing delay (in slots)
-    * to decode UL DCI and prepare UL data
+    * to decode UL DCI and prepare UL data.
     *
-    * Please note that in the current implementation N2
-    * must be equal or larger than 1 (N2 >= 1)
+    * It is defined in TS 38.214 Table 6.4-1 and Table 6.4-2 for UE
+    * capabilities 1 and UE capability 2, respectively, and depends on the
+    * numerology. In the specs it is defined in multiples of OFDM symbols, but
+    * we define it in multiples of slots, since then it is used to compute
+    * flexible K2 timing that is measured in slots. For UE Capability 1,
+    * it can take 1, 2 or 3 slots. For UE Capability 2, it is not
+    * larger than 1 slot.
     */
    void SetN2Delay (uint32_t delay);
 

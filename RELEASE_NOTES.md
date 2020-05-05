@@ -82,6 +82,7 @@ New user-visible features (old first)
   no guard bands, and the entire bandwidth is usable).
 - Added the LENA error model. To be used only in conjunction with a OFDMA scheduler,
   and without beams.
+- N1 default value is now 2 slots. Before it was 4 slots.
 
 Bugs fixed
 ----------
