@@ -1011,7 +1011,7 @@ main (int argc, char *argv[])
       break;
     case 1:
       packetCount = 1;
-      udpPacketSize = 10;
+      udpPacketSize = 12;
       lambda = 1;
       break;
     case 2: // 20 Mbps == 2.5 MB/s
