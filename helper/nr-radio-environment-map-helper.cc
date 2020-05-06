@@ -239,7 +239,7 @@ NrRadioEnvironmentMapHelper::DelayedInstall ()
   m_xStep = (m_xMax - m_xMin)/(m_xRes-1);
   m_yStep = (m_yMax - m_yMin)/(m_yRes-1);
 
-  if ((double)m_xRes * (double) m_yRes < (double) m_maxPointsPerIteration)
+  if (static_cast<double> (m_xRes) * static_cast<double> (m_yRes) < static_cast<double> (m_maxPointsPerIteration))
     {
       m_maxPointsPerIteration = m_xRes * m_yRes;
     }
@@ -256,6 +256,7 @@ NrRadioEnvironmentMapHelper::DelayedInstall ()
   double yMinNext = m_yMin;
   uint32_t numPointsCurrentIteration = 0;
   bool justScheduled = false;
+
   for (double x = m_xMin; x < m_xMax + 0.5*m_xStep; x += m_xStep)
     {
       for (double y = m_yMin; y < m_yMax + 0.5*m_yStep ; y += m_yStep)

@@ -30,6 +30,13 @@ class NetDevice;
 class SpectrumChannel;
 class MobilityModel;
 
+/**
+ * \brief Generate a radio environment map
+ *
+ * The purpose of the radio environment map helper is to generate a
+ * map where for each point on the map a rem value is calculated.
+ * The rem value corresponds to the calculated SINR at this point.
+ */
 class NrRadioEnvironmentMapHelper : public Object
 {
 public:
@@ -139,6 +146,7 @@ public:
      */
     uint32_t GetMaxPointsPerIt () const;
 
+
     /**
      * The method will divide the whole map into parts (each contains at most a
      * certain number of listening points), and then call RunOneIteration()
@@ -157,16 +165,23 @@ public:
      */
     void RunOneIteration (double xMin, double xMax, double yMin, double yMax);
 
-    /// Go through every listener, write the computed SINR, and then reset it.
+    /**
+     * Go through every listener, write the computed SINR, and then reset it.
+     * void PrintAndReset ();
+     */
     void PrintAndReset ();
 
-    /// Called when the map generation procedure has been completed.
+     /**
+      * Called when the map generation procedure has been completed.
+      * void Finalize ();
+      */
     void Finalize ();
-
 
 private:
 
-    /// A complete Radio Environment Map is composed of many of this structure.
+    /**
+     * A complete Radio Environment Map is composed of many of this structure.
+     */
     struct RemPoint
     {
       /// Simplified listener which compute SINR over the DL channel.
