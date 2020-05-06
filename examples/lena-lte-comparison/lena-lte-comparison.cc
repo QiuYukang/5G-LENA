@@ -163,7 +163,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  NetDeviceContainer &ueSector2NetDev,
                                  NetDeviceContainer &ueSector3NetDev,
                                  bool calibration,
-                                 SQLiteOutput *db)
+                                 SQLiteOutput *db,
+                                 const std::string &scheduler)
 {
 
   /*
@@ -216,8 +217,14 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   Config::SetDefault ("ns3::LteAmc::AmcModel", EnumValue(LteAmc::PiroEW2010));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
   lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
-  lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
-  //lteHelper->SetSchedulerAttribute ("UseWideBandCqi", BooleanValue (true));
+  if (scheduler == "PF")
+    {
+      lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
+    }
+  else if (scheduler == "RR")
+    {
+      lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
+    }
 
   if (calibration)
     {
@@ -334,7 +341,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NetDeviceContainer &ueSector2NetDev,
                                    NetDeviceContainer &ueSector3NetDev,
                                    bool calibration,
-                                   SQLiteOutput *db)
+                                   SQLiteOutput *db,
+                                   const std::string &scheduler)
 {
 
 
@@ -562,14 +570,18 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
 
-  //
-
   // Scheduler type
-  if (radioNetwork == "LTE")
+
+  if (scheduler == "PF")
     {
       nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
-      nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
     }
+  else if (scheduler == "RR")
+    {
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
+    }
+
+  nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
 
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
@@ -935,6 +947,8 @@ main (int argc, char *argv[])
 
   uint32_t trafficScenario = 0;
 
+  std::string scheduler = "PF";
+
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
    * that we may accept as input, as well as their description, and the storage
@@ -993,6 +1007,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("trafficScenario",
                 "0: saturation (110 Mbps/enb), 1: latency (1 pkt of 10 bytes), 2: low-load (20 Mbps)",
                 trafficScenario);
+  cmd.AddValue ("scheduler",
+                "PF: Proportional Fair, RR: Round-Robin",
+                scheduler);
 
   // Parse the command line
   cmd.Parse (argc, argv);
@@ -1035,6 +1052,7 @@ main (int argc, char *argv[])
   NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD", "Operation mode can only be TDD or FDD");
   NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR", "Unrecognized radio network technology");
   NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA", "Unrecognized simulator");
+  NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR", "Unrecognized scheduler");
   /*
    * If the logging variable is set to true, enable the log of some components
    * through the code. The same effect can be obtained through the use
@@ -1155,7 +1173,8 @@ main (int argc, char *argv[])
                                   ueSector2NetDev,
                                   ueSector3NetDev,
                                   calibration,
-                                  &db);
+                                  &db,
+                                  scheduler);
     }
   else if (simulator == "5GLENA")
     {
@@ -1183,7 +1202,8 @@ main (int argc, char *argv[])
                                     ueSector2NetDev,
                                     ueSector3NetDev,
                                     calibration,
-                                    &db);
+                                    &db,
+                                    scheduler);
     }
   else
     {
