@@ -1007,7 +1007,7 @@ main (int argc, char *argv[])
     case 0: // 110 Mbps == 13.75 MBps
       packetCount = 0xFFFFFFFF;
       udpPacketSize = 1375;
-      lambda = 10000;
+      lambda = 10000 / ueNumPergNb;
       break;
     case 1:
       packetCount = 1;
@@ -1017,7 +1017,7 @@ main (int argc, char *argv[])
     case 2: // 20 Mbps == 2.5 MB/s
       packetCount = 0xFFFFFFFF;
       udpPacketSize = 250;
-      lambda = 10000;
+      lambda = 10000 / ueNumPergNb;
       break;
     default:
       NS_FATAL_ERROR ("Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
