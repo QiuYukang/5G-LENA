@@ -100,12 +100,13 @@ static std::vector<ResultCache> cache;
 static void
 EmptyCache (SQLiteOutput *db)
 {
+  bool ret = db->SpinExec ("BEGIN TRANSACTION;");
   for (const auto & v : cache)
     {
       sqlite3_stmt *stmt;
-      db->SpinPrepare (&stmt, "INSERT INTO sinr VALUES (?,?,?,?,?,?);");
-
-      bool ret = db->Bind (stmt, 1, v.cellId);
+      ret = db->SpinPrepare (&stmt, "INSERT INTO sinr VALUES (?,?,?,?,?,?);");
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 1, v.cellId);
       NS_ASSERT (ret);
       ret = db->Bind (stmt, 2, v.bwpId);
       NS_ASSERT (ret);
@@ -122,6 +123,8 @@ EmptyCache (SQLiteOutput *db)
       NS_ASSERT (ret);
     }
   cache.clear ();
+  ret = db->SpinExec ("END TRANSACTION;");
+  NS_ASSERT (ret);
 }
 
 static void
