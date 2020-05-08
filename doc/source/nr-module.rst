@@ -718,10 +718,8 @@ The 'NR' module supports 1) fixing the MCS to a predefined value, both for
 downlink and uplink
 transmissions, separately, and 2) two different AMC models for link adaptation:
 
-* Error model-based: in which the MCS index is selected to meet a target transport
-BLER (e.g., of at most 0.1)
-* Shannon-based: which chooses the highest MCS that gives a spectral efficiency
-lower than the one provided by the Shannon rate
+* Error model-based: the MCS index is selected to meet a target transport BLER (e.g., of at most 0.1)
+* Shannon-based: chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate
 
 In the Error model-based AMC, the PHY abstraction model described in PHY layer
 section is used for link adaptation, i.e.,
@@ -744,15 +742,20 @@ Shannon-based AMC is selected, the value :math:`Ber` sets the requested bit erro
 in assigning the MCS.
 
 In the 'NR' module, link adaptation is done at the UE side, which selects the MCS index (quantized
-by 5 bits),
-and such index is then communicated to the gNB through a CQI index (quantized by 4 bits).
+by 5 bits), and such index is then communicated to the gNB through a CQI index (quantized by 4 bits).
 
 
 Transport block model
 =====================
 The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
 
-**Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the procedure implemented in the simulator is as follows. Assuming :math:`R` as the ECR of the selected MCS, :math:`Q` as the modulation order of the selected MCS, :math:`n_s` as the number of allocated OFDM symbols, :math:`n_{rb}` as the number of allocated RBs, and :math:`n_{refSc}` as the number of reference subcarriers carrying DMRS per RB, the TB size is computed as follows: :math:`N_{info}= R \times Q \times n_s \times n_{rb} \times (12- n_{refSc})`. After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
+**Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the TB size is computed in the simulator as follows:
+
+:math:`N_{info}= R \times Q \times n_s \times n_{rb} \times (12- n_{refSc})`,
+
+where :math:`R` is the ECR of the selected MCS, :math:`Q` is the modulation order of the selected MCS, :math:`n_s` is the number of allocated OFDM symbols, :math:`n_{rb}` is the number of allocated RBs, and :math:`n_{refSc}` is the number of reference subcarriers carrying DMRS per RB.
+
+After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
 
 
 RLC layer
