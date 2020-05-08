@@ -13,6 +13,8 @@ Example Module Documentation
 ..
    The document is written following RST formatting. Please, check your writing on grammarly; to ease it, use the auto-wrapping feature of your text editor, without entering new lines unless you would like to start a new paragraph.
 
+.. toctree::
+   :maxdepth: 3
 
 Introduction
 ------------
