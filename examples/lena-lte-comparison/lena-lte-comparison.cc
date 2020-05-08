@@ -1613,7 +1613,9 @@ main (int argc, char *argv[])
 
       db.SpinPrepare (&stmt, "INSERT INTO " + tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
 
-      double txOffered = i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0 ;
+      // Measure the duration of the flow from sender's perspective
+      double rxDuration = i->second.timeLastTxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
+      double txOffered = i->second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0 ;
 
       outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
       outFile << "  Tx Packets: " << i->second.txPackets << "\n";
@@ -1634,16 +1636,12 @@ main (int argc, char *argv[])
 
       if (i->second.rxPackets > 0)
         {
-          // Measure the duration of the flow from receiver's perspective
-          //double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-          double rxDuration = (simTimeMs - udpAppStartTimeMs) / 1000.0;
-
-          averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
-          averageFlowDelay += 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
-
           double th = i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
           double delay = 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
           double jitter = 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets;
+
+          averageFlowThroughput += th;
+          averageFlowDelay += delay;
 
           ret = db.Bind (stmt, 6, th);
           NS_ABORT_UNLESS (ret);
