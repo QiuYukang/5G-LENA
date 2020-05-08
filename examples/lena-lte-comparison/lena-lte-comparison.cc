@@ -892,6 +892,73 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
 }
 
+static std::pair<ApplicationContainer, double>
+InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
+             const Address &ueAddress, const std::string &direction,
+             UdpClientHelper *dlClientLowLat, const Ptr<Node> &remoteHost,
+             const Ipv4Address &remoteHostAddr, uint32_t udpAppStartTimeMs,
+             uint16_t dlPortLowLat, const Ptr<UniformRandomVariable> &x,
+             uint32_t appGenerationTimeMs,
+             const Ptr<LteHelper> &lteHelper, const Ptr<NrHelper> &nrHelper)
+{
+  ApplicationContainer app;
+
+  // The bearer that will carry low latency traffic
+  EpsBearer lowLatBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+
+  // The filter for the low-latency traffic
+  Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfLowLat;
+  if (direction == "DL")
+    {
+      dlpfLowLat.localPortStart = dlPortLowLat;
+      dlpfLowLat.localPortEnd = dlPortLowLat;
+      dlpfLowLat.direction = EpcTft::DOWNLINK;
+    }
+  else
+    {
+      dlpfLowLat.remotePortStart = dlPortLowLat;
+      dlpfLowLat.remotePortEnd = dlPortLowLat;
+      dlpfLowLat.direction = EpcTft::UPLINK;
+    }
+  lowLatTft->Add (dlpfLowLat);
+
+  // The client, who is transmitting, is installed in the remote host,
+  // with destination address set to the address of the UE
+  if (direction == "DL")
+    {
+      dlClientLowLat->SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      app = dlClientLowLat->Install (remoteHost);
+    }
+  else
+    {
+      dlClientLowLat->SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+      app = dlClientLowLat->Install (ue);
+    }
+
+  double startTime = x->GetValue (udpAppStartTimeMs, udpAppStartTimeMs + 10);
+  app.Start (MilliSeconds (startTime));
+  app.Stop (MilliSeconds (startTime + appGenerationTimeMs));
+
+  std::cout << "\tStarts at time " << MilliSeconds (startTime).GetMilliSeconds () << " ms and ends at "
+            << (MilliSeconds (startTime + appGenerationTimeMs)).GetMilliSeconds () << " ms" << std::endl;
+
+  // Activate a dedicated bearer for the traffic type
+  if (lteHelper != nullptr)
+    {
+      lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+    }
+  else if (nrHelper != nullptr)
+    {
+      nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+    }
+  else
+    {
+      NS_ABORT_MSG ("Programming error");
+    }
+
+  return std::make_pair(app, startTime);
+}
 
 static void
 DeleteWhere (SQLiteOutput *p, uint32_t seed, uint32_t run, const std::string &table)
@@ -927,7 +994,7 @@ main (int argc, char *argv[])
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
-  uint32_t simTimeMs = 1400;
+  uint32_t appGenerationTimeMs = 1000;
   uint32_t udpAppStartTimeMs = 400;
   std::string direction = "DL";
 
@@ -971,9 +1038,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("traces",
                 "Enable output traces",
                 traces);
-  cmd.AddValue ("simTimeMs",
+  cmd.AddValue ("appGenerationTimeMs",
                 "Simulation time",
-                simTimeMs);
+                appGenerationTimeMs);
   cmd.AddValue ("numerologyBwp",
                 "The numerology to be used (NR only)",
                 numerologyBwp);
@@ -1353,6 +1420,9 @@ main (int argc, char *argv[])
       serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
     }
 
+  // start UDP server
+  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+
   /*
    * Configure attributes for the different generators, using user-provided
    * parameters for generating a CBR traffic
@@ -1365,135 +1435,41 @@ main (int argc, char *argv[])
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
   dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
 
-  // The bearer that will carry low latency traffic
-  EpsBearer lowLatBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
-
-  // The filter for the low-latency traffic
-  Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfLowLat;
-  if (direction == "DL")
-    {
-      dlpfLowLat.localPortStart = dlPortLowLat;
-      dlpfLowLat.localPortEnd = dlPortLowLat;
-      dlpfLowLat.direction = EpcTft::DOWNLINK;
-    }
-  else
-    {
-      dlpfLowLat.remotePortStart = dlPortLowLat;
-      dlpfLowLat.remotePortEnd = dlPortLowLat;
-      dlpfLowLat.direction = EpcTft::UPLINK;
-      }
-  lowLatTft->Add (dlpfLowLat);
-
   /*
    * Let's install the applications!
    */
   ApplicationContainer clientApps;
+  std::vector<NodeContainer*> nodes = { &ueSector1Container, &ueSector2Container, &ueSector3Container };
+  std::vector<NetDeviceContainer*> devices = { &ueSector1NetDev, &ueSector2NetDev, &ueSector3NetDev };
+  std::vector<Ipv4InterfaceContainer*> ips = { &ueSector1IpIface, &ueSector2IpIface, &ueSector3IpIface };
 
-  for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  x->SetStream (RngSeedManager::GetRun());
+  double maxStartTime = 0.0;
+
+  for (uint32_t userId = 0; userId < gridScenario.GetUserTerminals().GetN (); ++userId)
     {
-      Ptr<Node> ue = ueSector1Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector1NetDev.Get(i);
-      Address ueAddress = ueSector1IpIface.GetAddress (i);
+      for (uint32_t j = 0; j < 3; ++j)
+        {
+          if (nodes.at (j)->GetN () <= userId)
+            {
+              continue;
+            }
+          Ptr<Node> n = nodes.at(j)->Get (userId);
+          Ptr<NetDevice> d = devices.at(j)->Get(userId);
+          Address a = ips.at(j)->GetAddress(userId);
 
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
+          std::cout << "app for ue " << userId << " in sector " << j+1
+                    << " position " << n->GetObject<MobilityModel>()->GetPosition ()
+                    << ":" << std::endl;
+
+          auto app = InstallApps (n, d, a, direction, &dlClientLowLat, remoteHost,
+                                  remoteHostAddr, udpAppStartTimeMs, dlPortLowLat,
+                                  x, appGenerationTimeMs, lteHelper, nrHelper);
+          maxStartTime = std::max (app.second, maxStartTime);
+          clientApps.Add (app.first);
         }
     }
-
-  for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
-    {
-      Ptr<Node> ue = ueSector2Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector2NetDev.Get(i);
-      Address ueAddress = ueSector2IpIface.GetAddress (i);
-
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector3Container.GetN (); ++i)
-    {
-      Ptr<Node> ue = ueSector3Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector3NetDev.Get(i);
-      Address ueAddress = ueSector3IpIface.GetAddress (i);
-
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
-    }
-
-  // start UDP server and client apps
-  serverApps.Start(MilliSeconds(udpAppStartTimeMs));
-  clientApps.Start(MilliSeconds(udpAppStartTimeMs));
-  serverApps.Stop(MilliSeconds(simTimeMs));
-  clientApps.Stop(MilliSeconds(simTimeMs));
 
   // enable the traces provided by the nr module
   if (traces == true)
@@ -1564,7 +1540,7 @@ main (int argc, char *argv[])
   DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), tableName);
   DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "sinr");
 
-  Simulator::Stop (MilliSeconds (simTimeMs));
+  Simulator::Stop (MilliSeconds (appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
 
   EmptyCache (&db);
