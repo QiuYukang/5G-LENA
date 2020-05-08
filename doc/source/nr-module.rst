@@ -221,15 +221,18 @@ In both schemes, the time starts at the beginning of the slot. The GNB PHY retri
 When the slot finishes, another one will be scheduled, which will be like what we described before.
 
 
-
-
 CQI feedback
 ============
-NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table.
+NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table. In the simulator, we support CQI Table1 and CQI Table2 (i.e., Table 5.2.2.1-1 and Table 5.2.2.1-2), which are defined based on the configured error model and corresponding MCS Table.
 
-At the moment, we support the generation of a periodic *wideband* CQI. Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the transmission.
+At the moment, we support the generation of a periodic *wideband* CQI that is computed based on the data channel (PDSCH). Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the gNB transmission (neglecting RBs with 0 transmitted power).
 
-The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index.
+The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index. Such value is measured for each PDSCH transmission and reported after it.
+
+
+Power allocation
+================
+In the simulator, we assume a uniform power allocation over the whole set of RBs that conform the bandwidth of the BWP. That is, power per RB is fixed. However, if a RB is not allocated to any data transmission, the transmitted power there is 0, and no interference is generated in that RB.
 
 
 Interference model
@@ -237,6 +240,7 @@ Interference model
 The PHY model is based on the well-known Gaussian interference models, according to which the powers of interfering signals (in linear units) are summed up together to determine the overall interference power. The useful and interfering signals, as well as the noise power spectral density, are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
 
 Also, such powers are used to determine if the channel is busy or empty. For that, we are creating two events, one that adds, for any signal, the received power and another that subtracts the received power at the end time. These events determine if the channel is busy (by comparing it to a threshold) and for how long.
+
 
 Spectrum model
 ==============
@@ -652,9 +656,8 @@ In an NR system, the UL decisions for a slot are taken in a different moment tha
 At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
 
 
-Timing Relations
+Timing relations
 ================
-
 The 'NR' module supports flexible scheduling and DL HARQ Feedback timings in the
 communication between the gNB and the UE as specified in [TS38213]_, [TS38214]_.
 In particular, the following scheduling timings are defined:
