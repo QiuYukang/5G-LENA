@@ -20,6 +20,7 @@
 #include <math.h>
 #include <ns3/double.h>
 #include <ns3/mobility-helper.h>
+#include <ns3/rng-seed-manager.h>
 
 namespace ns3 {
 
@@ -395,6 +396,9 @@ HexagonalGridScenarioHelper::CreateScenario ()
   // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
   Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
   Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
+  r->SetStream (RngSeedManager::GetRun ());
+  theta->SetStream (RngSeedManager::GetRun () + 1);
+
   r->SetAttribute ("Min", DoubleValue (0));
   r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
   theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
