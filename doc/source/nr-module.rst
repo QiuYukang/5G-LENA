@@ -15,6 +15,7 @@ Example Module Documentation
 
 .. toctree::
    :maxdepth: 3
+   :caption: Table of Contents
 
 Introduction
 ------------
