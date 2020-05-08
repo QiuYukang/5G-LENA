@@ -1659,8 +1659,8 @@ main (int argc, char *argv[])
       else
         {
           outFile << "  Throughput:  0 Mbps\n";
-          outFile << "  Mean delay:  0 ms\n";
-          outFile << "  Mean jitter: 0 ms\n";
+          outFile << "  Mean delay:  0 ms (NOT VALID)\n";
+          outFile << "  Mean jitter: 0 ms (NOT VALID)\n";
           ret = db.Bind (stmt, 6, 0.0);
           NS_ABORT_UNLESS (ret);
           ret = db.Bind (stmt, 7, 0.0);
@@ -1676,9 +1676,11 @@ main (int argc, char *argv[])
       ret = db.Bind (stmt, 11, static_cast<uint32_t> (RngSeedManager::GetRun ()));
       NS_ABORT_UNLESS (ret);
 
-      ret = db.SpinExec (stmt);
-
-      NS_ABORT_UNLESS (ret);
+      if (i->second.rxPackets > 0)
+        {
+          ret = db.SpinExec (stmt);
+          NS_ABORT_UNLESS (ret);
+        }
     }
 
   outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
