@@ -1686,13 +1686,6 @@ main (int argc, char *argv[])
 
   outFile.close ();
 
-  std::ifstream f (filename.c_str ());
-
-  if (f.is_open())
-    {
-      std::cout << f.rdbuf();
-    }
-
   Simulator::Destroy ();
   return 0;
 }
