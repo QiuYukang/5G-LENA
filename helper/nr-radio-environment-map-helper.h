@@ -21,6 +21,9 @@
 #define NR_RADIO_ENVIRONMENT_MAP_HELPER_H
 
 #include <ns3/object.h>
+#include "ns3/simple-net-device.h"
+#include <ns3/three-gpp-propagation-loss-model.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <fstream>
 
 namespace ns3 {
@@ -29,6 +32,8 @@ class Node;
 class NetDevice;
 class SpectrumChannel;
 class MobilityModel;
+class ChannelConditionModel;
+class ThreeGppAntennaArrayModel;
 
 /**
  * \brief Generate a radio environment map
@@ -100,7 +105,7 @@ public:
     /**
      * \brief Sets max number of REM points to be calculated per iteration
      */
-    void SetMaxPointsPerIt (uint32_t maxPointsPerIt);
+    //void SetMaxPointsPerIt (uint32_t maxPointsPerIt);
 
 
     /**
@@ -144,32 +149,29 @@ public:
      * \return Gets the value of the max number of REM points to be
      * calculated per iteration
      */
-    uint32_t GetMaxPointsPerIt () const;
-
-
-    /**
-     * The method will divide the whole map into parts (each contains at most a
-     * certain number of listening points), and then call RunOneIteration()
-     * on each part, one by one.
-     */
-    void DelayedInstall ();
+    //uint32_t GetMaxPointsPerIt () const;
 
     /**
-     * Mobilize all the listeners to a specified area. Afterwards, schedule a
-     * call to PrintAndReset() in 0.5 milliseconds.
-     *
-     * \param xMin X coordinate of the first SINR listening point to deploy.
-     * \param xMax X coordinate of the last SINR listening point to deploy.
-     * \param yMin Y coordinate of the first SINR listening point to deploy.
-     * \param yMax Y coordinate of the last SINR listening point to deploy.
+     * This method
      */
-    void RunOneIteration (double xMin, double xMax, double yMin, double yMax);
+    void CreateRem (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
+                             Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
+
+    /**
+     * This method creates the list of Rem Points
+     */
+    void CreateListOfRemPoints ();
+
+private:
+    /**
+     * This method
+     */
+    void CalcRemValue ();
 
     /**
      * Go through every listener, write the computed SINR, and then reset it.
-     * void PrintAndReset ();
      */
-    void PrintAndReset ();
+    void PrintRemToFile ();
 
      /**
       * Called when the map generation procedure has been completed.
@@ -177,17 +179,18 @@ public:
       */
     void Finalize ();
 
-private:
+    struct RemDevice
+    {
+      Ptr<Node> node;
+      Ptr<SimpleNetDevice> dev;
+      Ptr<MobilityModel> mob;
+      Ptr<ThreeGppAntennaArrayModel> antenna;
+    };
 
-    /**
-     * A complete Radio Environment Map is composed of many of this structure.
-     */
     struct RemPoint
     {
-      /// Simplified listener which compute SINR over the DL channel.
-      //Ptr<RemSpectrumPhy> phy;
-      /// Position of the listener in the environment.
-      Ptr<MobilityModel> bmm;
+      Vector pos;
+      double sinr;
     };
 
     /// List of listeners in the environment.
@@ -196,34 +199,26 @@ private:
     double m_xMin;   ///< The `XMin` attribute.
     double m_xMax;   ///< The `XMax` attribute.
     uint16_t m_xRes; ///< The `XRes` attribute.
-    double m_xStep;  ///< Distance along X axis between adjacent listening points.
+    //double m_xStep;  ///< Distance along X axis between adjacent listening points.
 
     double m_yMin;   ///< The `YMin` attribute.
     double m_yMax;   ///< The `YMax` attribute.
     uint16_t m_yRes; ///< The `YRes` attribute.
-    double m_yStep;  ///< Distance along Y axis between adjacent listening points.
+    //double m_yStep;  ///< Distance along Y axis between adjacent listening points.
 
-    uint32_t m_maxPointsPerIteration;  ///< The `MaxPointsPerIteration` attribute.
-
-    //uint16_t m_earfcn;     ///< The `Earfcn` attribute.
-    //uint16_t m_bandwidth;  ///< The `Bandwidth` attribute.
+    //uint32_t m_maxPointsPerIteration;  ///< The `MaxPointsPerIteration` attribute.
 
     double m_z;  ///< The `Z` attribute.
 
-    std::string m_channelPath;  ///< The `ChannelPath` attribute.
+    Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
+    Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
+    Ptr<ChannelConditionModel> m_condModel;
+
     std::string m_outputFile;   ///< The `OutputFile` attribute.
 
-    //bool m_stopWhenDone;   ///< The `StopWhenDone` attribute.
-
     /// The channel object taken from the `ChannelPath` attribute.
-    //Ptr<SpectrumChannel> m_channel;
-
-    //double m_noisePower;  ///< The `NoisePower` attribute.
 
     std::ofstream m_outFile;  ///< Stream the output to a file.
-
-    //bool m_useDataChannel;  ///< The `UseDataChannel` attribute.
-    //int32_t m_rbId;         ///< The `RbId` attribute.
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 

@@ -29,7 +29,11 @@
 #include <ns3/config.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
+#include "ns3/mobility-module.h"
 #include <ns3/constant-position-mobility-model.h>
+#include <ns3/spectrum-model.h>
+#include "ns3/mmwave-spectrum-value-helper.h"
+
 
 
 #include <fstream>
@@ -116,13 +120,13 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                      MakeDoubleAccessor (&NrRadioEnvironmentMapHelper::SetZ,
                                                          &NrRadioEnvironmentMapHelper::GetZ),
                                      MakeDoubleChecker<double> ())
-                      .AddAttribute ("MaxPointsPerIteration",
+                      /*.AddAttribute ("MaxPointsPerIteration",
                                      "Maximum number of REM points to be "
                                      "calculated per iteration.",
                                      UintegerValue (20000),
                                      MakeUintegerAccessor (&NrRadioEnvironmentMapHelper::SetMaxPointsPerIt,
                                                            &NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
-                                     MakeUintegerChecker<uint32_t> (1,std::numeric_limits<uint32_t>::max ()))
+                                     MakeUintegerChecker<uint32_t> (1,std::numeric_limits<uint32_t>::max ()))*/
     ;
   return tid;
 }
@@ -170,11 +174,11 @@ NrRadioEnvironmentMapHelper::SetZ (double z)
   m_z = z;
 }
 
-void
+/*void
 NrRadioEnvironmentMapHelper::SetMaxPointsPerIt (uint32_t maxPointsPerIt)
 {
   m_maxPointsPerIteration = maxPointsPerIt;
-}
+}*/
 
 double
 NrRadioEnvironmentMapHelper::GetMinX () const
@@ -218,14 +222,15 @@ NrRadioEnvironmentMapHelper::GetZ () const
   return m_z;
 }
 
-uint32_t
+/*uint32_t
 NrRadioEnvironmentMapHelper::GetMaxPointsPerIt () const
 {
   return m_maxPointsPerIteration;
-}
+}*/
 
 void
-NrRadioEnvironmentMapHelper::DelayedInstall ()
+NrRadioEnvironmentMapHelper::CreateRem (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
+                                            Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel)
 {
   NS_LOG_FUNCTION (this);
 
@@ -236,90 +241,128 @@ NrRadioEnvironmentMapHelper::DelayedInstall ()
       return;
     }
 
-  m_xStep = (m_xMax - m_xMin)/(m_xRes-1);
-  m_yStep = (m_yMax - m_yMin)/(m_yRes-1);
+  //Get all the necessaty pointers (things may be missing at this point)
+  m_propagationLossModel = propagationLossModel;
+  m_spectrumLossModel = spectrumLossModel;
+  m_condModel = m_propagationLossModel->GetChannelConditionModel ();
 
-  if (static_cast<double> (m_xRes) * static_cast<double> (m_yRes) < static_cast<double> (m_maxPointsPerIteration))
-    {
-      m_maxPointsPerIteration = m_xRes * m_yRes;
-    }
+  CreateListOfRemPoints ();
+  CalcRemValue ();
+  PrintRemToFile ();
 
-  for (uint32_t i = 0; i < m_maxPointsPerIteration; ++i)
-    {
-      RemPoint p;
-      p.bmm = CreateObject<ConstantPositionMobilityModel> ();
-      m_rem.push_back (p);
-    }
-
-  double remIterationStartTime = 0.0001;
-  double xMinNext = m_xMin;
-  double yMinNext = m_yMin;
-  uint32_t numPointsCurrentIteration = 0;
-  bool justScheduled = false;
-
-  for (double x = m_xMin; x < m_xMax + 0.5*m_xStep; x += m_xStep)
-    {
-      for (double y = m_yMin; y < m_yMax + 0.5*m_yStep ; y += m_yStep)
-        {
-          if (justScheduled)
-            {
-              xMinNext = x;
-              yMinNext = y;
-              justScheduled = false;
-            }
-
-          ++numPointsCurrentIteration;
-          if ((numPointsCurrentIteration == m_maxPointsPerIteration)
-              || ((x > m_xMax - 0.5*m_xStep) && (y > m_yMax - 0.5*m_yStep)) )
-            {
-              Simulator::Schedule (Seconds (remIterationStartTime),
-                                   &NrRadioEnvironmentMapHelper::RunOneIteration,
-                                   this, xMinNext, x, yMinNext, y);
-              remIterationStartTime += 0.001;
-              justScheduled = true;
-              numPointsCurrentIteration = 0;
-            }
-        }
-    }
-
-  Simulator::Schedule (Seconds (remIterationStartTime),
-                       &NrRadioEnvironmentMapHelper::Finalize,
-                       this);
 }
 
 void
-NrRadioEnvironmentMapHelper::RunOneIteration (double xMin, double xMax, double yMin, double yMax)
+NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
 {
-  NS_LOG_FUNCTION (this << xMin << xMax << yMin << yMax);
+  NS_LOG_FUNCTION (this);
 
-  std::list<RemPoint>::iterator remIt = m_rem.begin ();
+  //Create the list of the REM Points
 
-  double x = 0.0;
-  double y = 0.0;
-
-  for (x = xMin; x < xMax + 0.5*m_xStep; x += m_xStep)
+  for (double x = m_xMin; x < m_xMax + 0.5*m_xRes; x += m_xRes)
     {
-      for (y = (x == xMin) ? yMin : m_yMin;
-           y < ((x == xMax) ? yMax : m_yMax) + 0.5*m_yStep;
-           y += m_yStep)
+      for (double y = m_yMin; y < m_yMax + 0.5*m_yRes ; y += m_yRes)
         {
-          NS_ASSERT (remIt != m_rem.end ());
-          remIt->bmm->SetPosition (Vector (x, y, m_z));
-          ++remIt;
+          RemPoint remPoint;
+
+          remPoint.pos.x = x;
+          remPoint.pos.y = y;
+          remPoint.pos.z = m_z;
+
+          m_rem.push_back (remPoint);
         }
     }
 
-  if (remIt != m_rem.end ())
+}
+void
+NrRadioEnvironmentMapHelper::CalcRemValue ()
+{
+  //Create objects of rtd and rrm
+          //configure nodes, devices, antennas etc
+          //Call changToOmniTx
+  //Iterate through the list of RemPoints
+          //Set position of rtd
+          //Set position of rrd
+          //doCalcRxPsd
+
+
+  /****************** Create Rem Transmitting Device ***********************/
+  RemDevice rtd;
+
+  rtd.node = CreateObject<Node>();            //Create Node
+
+  Ptr<ListPositionAllocator> rtdPositionAlloc = CreateObject<ListPositionAllocator> ();
+  rtdPositionAlloc->Add (Vector(-10, 0, m_z));  //Assign an initial position
+
+  MobilityHelper rtdMobility;                 //Set Mobility
+  rtdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  rtdMobility.SetPositionAllocator (rtdPositionAlloc);
+  rtdMobility.Install (rtd.node);
+
+  rtd.dev =  CreateObject<SimpleNetDevice> ();  //Create device
+  rtd.node->AddDevice(rtd.dev);
+
+  rtd.mob = rtd.node->GetObject<MobilityModel> ();
+  //Set Antenna
+  rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
+  //Configure Antenna
+  rtd.antenna->ChangeToOmniTx ();
+
+  /******************* Create Rem Receiving Device ************************/
+  RemDevice rrd;
+
+  rrd.node = CreateObject<Node>();                      //Create Node
+
+  Ptr<ListPositionAllocator> rrdPositionAlloc = CreateObject<ListPositionAllocator> ();
+  rrdPositionAlloc->Add (Vector(m_xMin, m_yMin, m_z));  //Assign an initial position ----HERE I THINK I DO STH WRONG
+
+  //In general I think I am messing up with the mobility model
+
+  //Also we have to exclude the position of the rtd form the one
+  //of rrd otherwise it gives error. This is why I have set the
+  //initial position of rtd to -10, 0
+
+  MobilityHelper rrdMobility;                           //Set Mobility
+  rrdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  rrdMobility.SetPositionAllocator (rrdPositionAlloc);
+  rrdMobility.Install (rrd.node);
+
+  rrd.dev =  CreateObject<SimpleNetDevice> ();          //Create device
+  rrd.node->AddDevice(rrd.dev);
+
+  rrd.mob = rrd.node->GetObject<MobilityModel> ();  //this is where I think I am messing up
+  //Set Antenna
+  rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
+  //Configure Antenna
+  rrd.antenna->ChangeToOmniTx ();
+
+
+  // initialize the devices in the ThreeGppSpectrumPropagationLossModel
+  m_spectrumLossModel->AddDevice (rtd.dev, rtd.antenna);
+  m_spectrumLossModel->AddDevice (rrd.dev, rrd.antenna);
+
+  //Bw, Freq and numerology should be passed for the simulation scenario?
+  Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 2125.0e6, 0);
+  Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (40, sm1); //txPower?
+
+
+  for (std::list<RemPoint>::iterator it = m_rem.begin ();
+       it != m_rem.end ();
+       ++it)
     {
-      NS_ASSERT ((x > m_xMax - 0.5*m_xStep) && (y > m_yMax - 0.5*m_yStep));
-      NS_LOG_LOGIC ("deactivating RemSpectrumPhys that are unneeded in the last iteration");
+      rrd.mob->SetPosition (it->pos);    //Assign to the rrd mobility all the positions of remPoint
+
+      Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, rtd.mob, rrd.mob);
+      //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+      it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
+
+      //It calculates (and doesn't crash, but I get always the same value :( )
     }
 
-  Simulator::Schedule (Seconds (0.0005), &NrRadioEnvironmentMapHelper::PrintAndReset, this);
 }
 
 void
-NrRadioEnvironmentMapHelper::PrintAndReset ()
+NrRadioEnvironmentMapHelper::PrintRemToFile ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -327,14 +370,15 @@ NrRadioEnvironmentMapHelper::PrintAndReset ()
        it != m_rem.end ();
        ++it)
     {
-
-      Vector pos = it->bmm->GetPosition ();
-      NS_LOG_LOGIC ("output: " << pos.x << "\t" << pos.y << "\t" << pos.z << "\t");
-      m_outFile << pos.x << "\t"
-                << pos.y << "\t"
-                << pos.z << "\t"
+      m_outFile << it->pos.x << "\t"
+                << it->pos.y << "\t"
+                << it->pos.z << "\t"
+                << it->pos.z << "\t"
+                << it->sinr << "\t"
                 << std::endl;
     }
+
+  Finalize ();
 }
 
 void
