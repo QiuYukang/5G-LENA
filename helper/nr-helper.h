@@ -762,6 +762,20 @@ private:
   Ptr<NrBearerStatsCalculator> m_pdcpStats; //!< ?
   NrBearerStatsConnector m_radioBearerStatsConnector; //!< ?
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
+
+  //NR Sidelink code and additions
+public:
+  /**
+   * \brief Set the bandwidth part manager TypeId. Works only before it is created.
+   * \param typeId Bandwidth part manager type id
+   *
+   * \see ns3::BwpManagerUe
+   * \see ns3::NrSlBwpManagerUe
+   */
+  void SetBwpManagerTypeId (const TypeId &typeId);
+
+private:
+  ObjectFactory m_bwpManagerFactory;       //!< Bandwidth part manager factory
 };
 
 }

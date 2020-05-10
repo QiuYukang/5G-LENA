@@ -80,6 +80,7 @@ NrHelper::NrHelper (void)
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_gnbUlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
   m_gnbDlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
+  m_bwpManagerFactory.SetTypeId (BwpManagerUe::GetTypeId ());
 
   m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
 
@@ -533,7 +534,7 @@ NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       ueCcMap.insert (std::make_pair (bwpId, cc));
     }
 
-  Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (CreateObject <BwpManagerUe> ());
+  Ptr<LteUeComponentCarrierManager> ccmUe = DynamicCast<LteUeComponentCarrierManager> (m_bwpManagerFactory.Create ());
   DynamicCast<BwpManagerUe> (ccmUe)->SetBwpManagerAlgorithm (m_ueBwpManagerAlgoFactory.Create <BwpManagerAlgorithm> ());
 
   Ptr<LteUeRrc> rrc = CreateObject<LteUeRrc> ();
@@ -1412,6 +1413,13 @@ Ptr<NrBearerStatsCalculator>
 NrHelper::GetPdcpStats (void)
 {
   return m_pdcpStats;
+}
+
+void
+NrHelper::SetBwpManagerTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_bwpManagerFactory.SetTypeId (typeId);
 }
 
 } // namespace ns3
