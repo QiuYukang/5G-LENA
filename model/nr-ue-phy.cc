@@ -52,6 +52,8 @@ NrUePhy::NrUePhy ()
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
+  m_nrSlUeCphySapProvider = new MemberNrSlUeCphySapProvider<NrUePhy> (this);
+  m_nrSlUePhySapProvider = new MemberNrSlUePhySapProvider<NrUePhy> (this);
 }
 
 NrUePhy::~NrUePhy ()
@@ -65,6 +67,8 @@ NrUePhy::DoDispose ()
   NS_LOG_FUNCTION (this);
   delete m_ueCphySapProvider;
   NrPhy::DoDispose ();
+  delete m_nrSlUeCphySapProvider;
+  delete m_nrSlUePhySapProvider;
 }
 
 TypeId
@@ -1172,6 +1176,34 @@ NrUePhy::RegisterSlBwpId (uint16_t bwpId)
   // we might need to do the same for SL InitializeMessageList ();
 
   SetBwpId (bwpId);
+}
+
+NrSlUeCphySapProvider*
+NrUePhy::GetNrSlUeCphySapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_nrSlUeCphySapProvider;
+}
+
+void
+NrUePhy::SetNrSlUeCphySapUser (NrSlUeCphySapUser* s)
+{
+  NS_LOG_FUNCTION (this);
+  m_nrSlUeCphySapUser = s;
+}
+
+NrSlUePhySapProvider*
+NrUePhy::GetNrSlUePhySapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_nrSlUePhySapProvider;
+}
+
+void
+NrUePhy::SetNrSlUePhySapUser(NrSlUePhySapUser* s)
+{
+  NS_LOG_FUNCTION (this);
+  m_nrSlUePhySapUser = s;
 }
 
 
