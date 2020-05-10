@@ -243,6 +243,10 @@ NrUeMac::NrUeMac (void) : Object ()
   m_macSapProvider = new UeMemberNrMacSapProvider (this);
   m_phySapUser = new MacUeMemberPhySapUser (this);
   m_raPreambleUniformVariable = CreateObject<UniformRandomVariable> ();
+  //NR SL
+  m_nrSlMacSapProvider = new MemberNrSlMacSapProvider <NrUeMac> (this);
+  m_nrSlUeCmacSapProvider = new MemberNrSlUeCmacSapProvider<NrUeMac> (this);
+  m_nrSlUePhySapUser = new MemberNrSlUePhySapUser<NrUeMac> (this);
 }
 
 NrUeMac::~NrUeMac (void)
@@ -263,6 +267,9 @@ NrUeMac::DoDispose ()
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
+  delete m_nrSlMacSapProvider;
+  delete m_nrSlUeCmacSapProvider;
+  delete m_nrSlUePhySapUser;
   m_slAmc = nullptr;
 }
 
@@ -990,13 +997,120 @@ NrUeMac::DoReset ()
   NS_LOG_FUNCTION (this);
 }
 
-//SL
+//NR SL
+
+NrSlMacSapProvider*
+NrUeMac::GetNrSlMacSapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_nrSlMacSapProvider;
+}
+
+void
+NrUeMac::SetNrSlMacSapUser (NrSlMacSapUser* s)
+{
+  NS_LOG_FUNCTION (this);
+  m_nrSlMacSapUser = s;
+}
+
+NrSlUeCmacSapProvider*
+NrUeMac::GetNrSlUeCmacSapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_nrSlUeCmacSapProvider;
+}
+
+ void
+ NrUeMac::SetNrSlUeCmacSapUser (NrSlUeCmacSapUser* s)
+ {
+   NS_LOG_FUNCTION (this);
+   m_nrSlUeCmacSapUser = s;
+ }
+
+ NrSlUePhySapUser*
+ NrUeMac::GetNrSlUePhySapUser ()
+ {
+   NS_LOG_FUNCTION (this);
+   return m_nrSlUePhySapUser;
+ }
+
+ void
+ NrUeMac::SetNrSlUePhySapProvider (NrSlUePhySapProvider* s)
+ {
+   NS_LOG_FUNCTION (this);
+   m_nrSlUePhySapProvider = s;
+ }
 
 void
 NrUeMac::SetSlAmcModel (const Ptr<NrAmc> &slAmc)
 {
   NS_LOG_FUNCTION (this);
   m_slAmc = slAmc;
+}
+
+void
+NrUeMac::DoTransmitNrSlRlcPdu (const NrSlMacSapProvider::NrSlRlcPduParameters &params)
+{
+  NS_LOG_FUNCTION (this);
+  NS_FATAL_ERROR ("Yet to be implemented");
+}
+
+void
+NrUeMac::DoReportNrSlBufferStatus (const NrSlMacSapProvider::NrSlReportBufferStatusParameters &params)
+{
+  NS_LOG_FUNCTION (this);
+  NS_FATAL_ERROR ("Yet to be implemented");
+}
+
+void
+NrUeMac::DoAddNrSlLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &slLcInfo, NrSlMacSapUser* msu)
+{
+  NS_LOG_FUNCTION (this << +slLcInfo.lcId << slLcInfo.srcL2Id << slLcInfo.dstL2Id);
+  SidelinkLcIdentifier slLcIdentifier;
+  slLcIdentifier.lcId = slLcInfo.lcId;
+  slLcIdentifier.srcL2Id = slLcInfo.srcL2Id;
+  slLcIdentifier.dstL2Id = slLcInfo.dstL2Id;
+
+  NS_ASSERT_MSG (m_nrSlLcInfoMap.find (slLcIdentifier) == m_nrSlLcInfoMap.end (), "cannot add LCID " << +slLcInfo.lcId
+                                                                    << ", srcL2Id " << slLcInfo.srcL2Id << ", dstL2Id " << slLcInfo.dstL2Id << " is already present");
+
+  SlLcInfoUeMac slLcInfoUeMac;
+  slLcInfoUeMac.lcInfo = slLcInfo;
+  slLcInfoUeMac.macSapUser = msu;
+  m_nrSlLcInfoMap.insert (std::make_pair (slLcIdentifier, slLcInfoUeMac));
+}
+
+void
+NrUeMac::DoRemoveNrSlLc (uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id)
+{
+  NS_LOG_FUNCTION (this << +slLcId << srcL2Id << dstL2Id);
+  NS_ASSERT_MSG (slLcId > 3, "Hey! I can delete only the LC for data radio bearers.");
+  SidelinkLcIdentifier slLcIdentifier;
+  slLcIdentifier.lcId = slLcId;
+  slLcIdentifier.srcL2Id = srcL2Id;
+  slLcIdentifier.dstL2Id = dstL2Id;
+  NS_ASSERT_MSG (m_nrSlLcInfoMap.find (slLcIdentifier) != m_nrSlLcInfoMap.end (), "could not find Sidelink LCID " << slLcId);
+  m_nrSlLcInfoMap.erase (slLcIdentifier);
+}
+
+void
+NrUeMac::DoResetNrSlLcMap ()
+{
+  NS_LOG_FUNCTION (this);
+
+  auto it = m_nrSlLcInfoMap.begin ();
+
+  while (it != m_nrSlLcInfoMap.end ())
+    {
+      if (it->first.lcId > 3) //SL DRB LC starts from 4
+        {
+          m_nrSlLcInfoMap.erase (it);
+        }
+      else
+        {
+          it++;
+        }
+    }
 }
 //////////////////////////////////////////////
 

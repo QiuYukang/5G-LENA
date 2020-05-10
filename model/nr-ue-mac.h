@@ -28,6 +28,12 @@
 #include <ns3/lte-ccm-mac-sap.h>
 #include <ns3/traced-callback.h>
 
+#include <ns3/nr-sl-mac-sap.h>
+#include <ns3/nr-sl-ue-phy-sap.h>
+#include <ns3/nr-sl-ue-cmac-sap.h>
+#include <map>
+#include <unordered_map>
+
 namespace ns3 {
 
 class NrUePhySapUser;
@@ -64,6 +70,11 @@ class NrUeMac : public Object
   friend class UeMemberNrUeCmacSapProvider;
   friend class UeMemberNrMacSapProvider;
   friend class MacUeMemberPhySapUser;
+  //NR Sidelink
+  /// let the forwarder class access the protected and private members
+  friend class MemberNrSlMacSapProvider<NrUeMac>;
+  friend class MemberNrSlUeCmacSapProvider<NrUeMac>;
+  friend class MemberNrSlUePhySapUser<NrUeMac>;
 
 public:
   /**
@@ -317,8 +328,55 @@ private:
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_macTxedCtrlMsgsTrace;
 
-  //SL
+  //NR SL
 public:
+  /**
+   * \brief Get the NR Sidelik MAC SAP offered by MAC to RLC
+   *
+   * \return the NR Sidelik MAC SAP provider interface offered by
+   *          MAC to RLC
+   */
+  NrSlMacSapProvider* GetNrSlMacSapProvider ();
+
+  /**
+   * \brief Set the NR Sidelik MAC SAP offered by this RLC
+   *
+   * \param s the NR Sidelik MAC SAP user interface offered to the
+   *          MAC by RLC
+   */
+   void SetNrSlMacSapUser (NrSlMacSapUser* s);
+
+   /**
+    * \brief Get the NR Sidelik UE Control MAC SAP offered by MAC to RRC
+    *
+    * \return the NR Sidelik UE Control MAC SAP provider interface offered by
+    *         MAC to RRC
+    */
+   NrSlUeCmacSapProvider* GetNrSlUeCmacSapProvider ();
+
+   /**
+    * \brief Set the NR Sidelik UE Control MAC SAP offered by RRC to MAC
+    *
+    * \param s the NR Sidelik UE Control MAC SAP user interface offered to the
+    *          MAC by RRC
+    */
+    void SetNrSlUeCmacSapUser (NrSlUeCmacSapUser* s);
+
+    /**
+     * \brief Get the NR Sidelik UE PHY SAP offered by UE MAC to UE PHY
+     *
+     * \return the NR Sidelik UE PHY SAP user interface offered by
+     *         UE MAC to UE PHY
+     */
+    NrSlUePhySapUser* GetNrSlUePhySapUser ();
+
+    /**
+     * \brief Set the NR Sidelik UE PHY SAP offered by UE PHY to UE MAC
+     *
+     * \param s the NR Sidelik UE PHY SAP provider interface offered to the
+     *          UE MAC by UE PHY
+     */
+     void SetNrSlUePhySapProvider (NrSlUePhySapProvider* s);
 
   /**
    * \brief Set the sidelink AMC model
@@ -329,9 +387,78 @@ public:
    */
   void SetSlAmcModel (const Ptr<NrAmc> &slAmc);
 
-private:
+protected:
+  // forwarded from NR SL UE MAC SAP Provider
+  /**
+   * \brief send an NR SL RLC PDU to the MAC for transmission. This method is
+   * to be called as a response to NrSlMacSapUser::NotifyNrSlTxOpportunity
+   *
+   * \param params NrSlRlcPduParameters
+   */
+  void DoTransmitNrSlRlcPdu (const NrSlMacSapProvider::NrSlRlcPduParameters &params);
+  /**
+   * \brief Report the RLC buffer status to the MAC
+   *
+   * \param params NrSlReportBufferStatusParameters
+   */
+  void DoReportNrSlBufferStatus (const NrSlMacSapProvider::NrSlReportBufferStatusParameters &params);
 
+  // forwarded from UE CMAC SAP
+  /**
+   * \brief Adds a new Logical Channel (LC) used for Sidelink
+   *
+   * \param slLcInfo The sidelink LC info
+   * \param msu The corresponding LteMacSapUser
+   */
+  void DoAddNrSlLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &slLcInfo, NrSlMacSapUser* msu);
+  /**
+   * \brief Remove an existing NR Sidelink Logical Channel for a UE in the LteUeComponentCarrierManager
+   *
+   * \param slLcId is the Sidelink Logical Channel Id
+   * \param srcL2Id is the Source L2 ID
+   * \param dstL2Id is the Destination L2 ID
+   */
+  void DoRemoveNrSlLc (uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id);
+  /**
+   * \brief Reset Nr Sidelink LC map
+   *
+   */
+  void DoResetNrSlLcMap ();
+
+private:
+  /// Sidelink Communication related variables
+  struct SidelinkLcIdentifier
+  {
+    uint8_t lcId; ///< Sidelink LCID
+    uint32_t srcL2Id; ///< Source L2 ID
+    uint32_t dstL2Id; ///< Destination L2 ID
+  };
+
+  /**
+   * \brief Less than operator
+   *
+   * \param l first SidelinkLcIdentifier
+   * \param r second SidelinkLcIdentifier
+   * \returns true if first SidelinkLcIdentifier parameter values are less than the second SidelinkLcIdentifier parameters"
+   */
+  friend bool operator < (const SidelinkLcIdentifier &l, const SidelinkLcIdentifier &r)
+  {
+    return l.lcId < r.lcId || (l.lcId == r.lcId && l.srcL2Id < r.srcL2Id) || (l.lcId == r.lcId && l.srcL2Id == r.srcL2Id && l.dstL2Id < r.dstL2Id);
+  }
+
+  struct SlLcInfoUeMac
+  {
+    NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
+    NrSlMacSapUser* macSapUser;
+  };
   Ptr<const NrAmc> m_slAmc {nullptr};  //!< AMC model used to compute SL Transport block size
+  std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; ///< Sidelink logical channel info map
+  NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
+  NrSlMacSapUser* m_nrSlMacSapUser {nullptr}; //!< SAP interface to call the methods of UE RLC instance
+  NrSlUeCmacSapProvider* m_nrSlUeCmacSapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
+  NrSlUeCmacSapUser* m_nrSlUeCmacSapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
+  NrSlUePhySapProvider* m_nrSlUePhySapProvider {nullptr}; //!< SAP interface to call the methods of UE PHY instance
+  NrSlUePhySapUser* m_nrSlUePhySapUser; //!< SAP interface to receive calls from the UE PHY instance
 };
 
 }
