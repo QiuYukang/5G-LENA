@@ -27,6 +27,7 @@
 #include <ns3/nr-ue-net-device.h>
 #include <ns3/lte-enb-rrc.h>
 #include <ns3/epc-ue-nas.h>
+#include <ns3/lte-sl-tft.h>
 
 namespace ns3 {
 
@@ -90,6 +91,20 @@ NrPointToPointEpcHelper::DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevic
   if (ueLteDevice)
     {
       Simulator::ScheduleNow (&EpcUeNas::ActivateEpsBearer, ueLteDevice->GetNas (), bearer, tft);
+    }
+  else
+    {
+      NS_FATAL_ERROR ("What kind of device are you trying to pass to the NR helper?");
+    }
+}
+
+void
+NrPointToPointEpcHelper::ActivateNrSlBearerForUe (const Ptr<NetDevice> &ueDevice, const Ptr<LteSlTft> &slTft) const
+{
+  Ptr<NrUeNetDevice> nrUeNetDevice = ueDevice->GetObject<NrUeNetDevice> ();
+  if (nrUeNetDevice)
+    {
+      Simulator::ScheduleNow (&EpcUeNas::ActivateNrSlBearer, nrUeNetDevice->GetNas (), slTft);
     }
   else
     {

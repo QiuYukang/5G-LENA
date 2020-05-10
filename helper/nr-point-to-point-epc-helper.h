@@ -23,6 +23,8 @@
 
 namespace ns3 {
 
+  class LteSlTft;
+
 /**
  * \ingroup helper
  *
@@ -142,6 +144,17 @@ protected:
   virtual void DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevice,
                                          const Ptr<EpcTft> &tft,
                                          const EpsBearer &bearer) const override;
+
+//NR SL
+public:
+  /**
+   * \brief Activate NR sidelink bearer
+   *
+   * \param ueDevice The device of the UE
+   * \param slTft The sidelink traffic flow template for the new bearer
+   */
+  void ActivateNrSlBearerForUe (const Ptr<NetDevice> &ueDevice, const Ptr<LteSlTft> &slTft) const;
+
 };
 
 } // namespace ns3
