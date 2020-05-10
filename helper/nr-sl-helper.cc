@@ -28,6 +28,9 @@
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-amc.h>
 #include <ns3/nr-spectrum-phy.h>
+#include <ns3/lte-sl-tft.h>
+#include <ns3/nr-point-to-point-epc-helper.h>
+#include <ns3/nr-sl-bwp-manager-ue.h>
 
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
@@ -100,6 +103,102 @@ NrSlHelper::CreateUeSlAmc () const
 }
 
 void
+NrSlHelper::SetEpcHelper (const Ptr<NrPointToPointEpcHelper> &epcHelper)
+{
+  NS_LOG_FUNCTION (this);
+  m_epcHelper = epcHelper;
+
+}
+
+void
+NrSlHelper::ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_epcHelper, "NR Sidelink activation requires EpcHelper to be registered with the NrSlHelper");
+  Simulator::Schedule (activationTime, &NrSlHelper::DoActivateNrSlBearer, this, ues, tft);
+}
+
+void
+NrSlHelper::DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft)
+{
+  NS_LOG_FUNCTION (this);
+  for (NetDeviceContainer::Iterator i = ues.Begin (); i != ues.End (); ++i)
+    {
+      m_epcHelper->ActivateNrSlBearerForUe (*i, Create<LteSlTft> (tft)) ;
+    }
+}
+
+void
+NrSlHelper::PrepareUeForSidelink (NetDeviceContainer c, const std::set <uint8_t> &slBwpIds)
+{
+  NS_LOG_FUNCTION (this);
+  for (NetDeviceContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+      Ptr<NetDevice> netDev = *i;
+      Ptr<NrUeNetDevice> nrUeDev = netDev->GetObject <NrUeNetDevice>();
+      PrepareSingleUeForSidelink (nrUeDev, slBwpIds);
+    }
+
+}
+
+void
+NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::set <uint8_t> &slBwpIds)
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<LteUeRrc> lteUeRrc = nrUeDev->GetRrc ();
+
+  Ptr<NrSlUeRrc> nrSlUeRrc = CreateObject<NrSlUeRrc> ();
+  nrSlUeRrc->SetNrSlEnabled (true);
+  nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider ());
+  lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser ());
+  uint64_t imsi = lteUeRrc->GetImsi ();
+  NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
+  nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
+
+  //Aggregate
+  lteUeRrc->AggregateObject (nrSlUeRrc);
+  //SL BWP manager configuration
+  Ptr<NrSlBwpManagerUe> slBwpManager = DynamicCast<NrSlBwpManagerUe> (nrUeDev->GetBwpManager ());
+  slBwpManager->SetNrSlUeBwpmRrcSapUser (lteUeRrc->GetNrSlUeBwpmRrcSapUser ());
+  lteUeRrc->SetNrSlUeBwpmRrcSapProvider (slBwpManager->GetNrSlUeBwpmRrcSapProvider ());
+
+  lteUeRrc->SetNrSlMacSapProvider (slBwpManager->GetNrSlMacSapProviderFromBwpm ());
+
+  //Error model and UE MAC AMC
+  Ptr<NrAmc> slAmc = CreateUeSlAmc ();
+  TypeIdValue typeIdValue;
+  slAmc->GetAttribute ("ErrorModelType", typeIdValue);
+
+  for (const auto &itBwps:slBwpIds)
+    {
+      //Store BWP id in NrSlUeRrc
+      nrUeDev->GetRrc()->GetObject <NrSlUeRrc> ()->StoreSlBwpId (itBwps);
+
+      lteUeRrc->SetNrSlUeCmacSapProvider (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlUeCmacSapProvider ());
+      nrUeDev->GetMac (itBwps)->SetNrSlUeCmacSapUser (lteUeRrc->GetNrSlUeCmacSapUser ());
+
+      nrUeDev->GetPhy (itBwps)->SetNrSlUeCphySapUser (lteUeRrc->GetNrSlUeCphySapUser ());
+      lteUeRrc->SetNrSlUeCphySapProvider (itBwps, nrUeDev->GetPhy (itBwps)->GetNrSlUeCphySapProvider ());
+
+      nrUeDev->GetPhy (itBwps)->SetNrSlUePhySapUser (nrUeDev->GetMac (itBwps)->GetNrSlUePhySapUser ());
+      nrUeDev->GetMac (itBwps)->SetNrSlUePhySapProvider (nrUeDev->GetPhy (itBwps)->GetNrSlUePhySapProvider ());
+
+      nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ()->SetAttribute ("SlErrorModelType", typeIdValue);
+      nrUeDev->GetMac (itBwps)->SetSlAmcModel (slAmc);
+
+      bool bwpmTest = slBwpManager->SetNrSlMacSapProviders (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlMacSapProvider ());
+
+      if (bwpmTest == false)
+        {
+          NS_FATAL_ERROR ("Error in SetNrSlMacSapProviders");
+        }
+    }
+
+  lteUeRrc->SetNrSlBwpIdContainerInBwpm ();
+}
+
+void
 NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::SidelinkPreconfigNr preConfig)
 {
   NS_LOG_FUNCTION (this);
@@ -112,17 +211,8 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
       Ptr<NetDevice> netDev = *i;
       Ptr<NrUeNetDevice> nrUeDev = netDev->GetObject <NrUeNetDevice>();
       Ptr<LteUeRrc> lteUeRrc = nrUeDev->GetRrc ();
-
-      Ptr<NrSlUeRrc> nrSlUeRrc = CreateObject<NrSlUeRrc> ();
-      nrSlUeRrc->SetNrSlEnabled (true);
-      nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider ());
-      lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser ());
-      uint64_t imsi = lteUeRrc->GetImsi ();
-      NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
-      nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
+      Ptr<NrSlUeRrc> nrSlUeRrc = lteUeRrc->GetObject <NrSlUeRrc> ();
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
-      //Aggregate
-      lteUeRrc->AggregateObject (nrSlUeRrc);
       bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
       NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
     }
@@ -136,6 +226,14 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
   NS_LOG_FUNCTION (this);
   bool found = false;
   std::string tddPattern = general.slTddConfig.tddPattern;
+  //Sanity check: Here we are retrieving the BWP id container
+  //from UE RRC to make sure:
+  //1. PrepareUeForSidelink has been called already
+  //2. In the for loop below the index (slBwpList [index]) at which we find the
+  //configuration is basically the index of the BWP, which user want use for SL.
+  //So, this index should be present in the BWP id container.
+  Ptr<LteUeRrc> lteUeRrc = dev->GetRrc ();
+  std::set <uint8_t> bwpIds = lteUeRrc->GetNrSlBwpIdContainer ();
 
   for (uint8_t index = 0; index < freqCommon.slBwpList.size (); ++index)
     {
@@ -143,18 +241,14 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
       if (freqCommon.slBwpList [index].haveSlBwpGeneric && freqCommon.slBwpList [index].haveSlBwpPoolConfigCommonNr)
         {
           NS_LOG_INFO ("Configuring BWP id " << +index << " for SL");
+          auto it = bwpIds.find (index);
+          NS_ABORT_MSG_IF (it == bwpIds.end (), "UE is not prepared to use BWP id " << +index << " for SL");
           dev->GetPhy (index)->RegisterSlBwpId (static_cast <uint16_t> (index));
           dev->GetPhy (index)->SetNumerology (freqCommon.slBwpList [index].slBwpGeneric.bwp.numerology);
           dev->GetPhy (index)->SetSymbolsPerSlot (freqCommon.slBwpList [index].slBwpGeneric.bwp.symbolsPerSlots);
           dev->GetPhy (index)->PreConfigSlBandwidth (freqCommon.slBwpList [index].slBwpGeneric.bwp.bandwidth);
           dev->GetPhy (index)->SetNumRbPerRbg (freqCommon.slBwpList [index].slBwpGeneric.bwp.rbPerRbg);
           dev->GetPhy (index)->SetPattern (tddPattern);
-          //Error model and UE MAC AMC
-          Ptr<NrAmc> slAmc = CreateUeSlAmc ();
-          TypeIdValue typeIdValue;
-          slAmc->GetAttribute ("ErrorModelType", typeIdValue);
-          dev->GetPhy (index)->GetSpectrumPhy ()->SetAttribute ("SlErrorModelType", typeIdValue);
-          dev->GetMac (index)->SetSlAmcModel (slAmc);
           found = true;
         }
     }

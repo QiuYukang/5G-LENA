@@ -27,11 +27,12 @@
 
 namespace ns3 {
 
-class NetDeviceContainer;
 class NrSlCommResourcePoolFactory;
 class NrSlCommPreconfigResourcePoolFactory;
 class NrUeNetDevice;
 class NrAmc;
+class NrPointToPointEpcHelper;
+class LteSlTft;
 
 
 class NrSlHelper : public Object
@@ -53,6 +54,14 @@ public:
    */
   static TypeId GetTypeId (void);
   /**
+   * \brief Prepare UE for Sidelink
+   *
+   * \param c The \c NetDeviceContainer
+   * \param slBwpIds The container of Sidelink BWP ids
+   */
+  void PrepareUeForSidelink (NetDeviceContainer c, const std::set <uint8_t> &slBwpIds);
+
+  /**
    * \brief Install NR sidelink pre-configuration in the UEs expected to use
    *        sidelink.
    *
@@ -62,6 +71,12 @@ public:
   void InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::SidelinkPreconfigNr preConfig);
   /**
    * \brief Set UE sidelink AMC attribute
+   *
+   * \todo: We might need to break this method
+   * for in-coverage simulation. That is,
+   * take out all the UE configurations,
+   * which are independent of UE being
+   * in-coverage or out of coverage.
    *
    * \param n The attribute name
    * \param v The attribute value
@@ -79,6 +94,27 @@ public:
    *
    */
   void SetSlErrorModel (const std::string &errorModelTypeId);
+  /**
+   * \brief Set EPC helper
+   *
+   * \param epcHelper Ptr of type NrPointToPointEpcHelper
+   */
+  void SetEpcHelper (const Ptr<NrPointToPointEpcHelper> &epcHelper);
+  /**
+   * \brief Schedule the activation of a NR sidelink bearer
+   *
+   * \param activationTime The time to setup the sidelink bearer
+   * \param ues The list of UEs where the bearer must be activated
+   * \param tft The traffic flow template for the bearer (i.e. multicast address and group)
+   */
+  void ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft);
+  /**
+   * \brief Activation of a sidelink bearer
+   *
+   * \param ues The list of UEs where the bearer must be activated
+   * \param tft The traffic flow template for the bearer (i.e. multicast address and group)
+   */
+  void DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft);
 
 protected:
   /**
@@ -102,6 +138,15 @@ private:
   bool ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
                        const LteRrcSap::SlFreqConfigCommonNr &freqCommon,
                        const LteRrcSap::SlPreconfigGeneralNr &general);
+
+  /**
+   * \brief Prepare Single UE for Sidelink
+   *
+   * \param NrUeDev The Ptr to NR Ue netdevice
+   * \param slBwpIds The container of Sidelink BWP ids
+   */
+  void PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::set <uint8_t> &slBwpIds);
+
   /*
    * brief Create UE SL AMC object from UE SL AMC factory
    *
@@ -110,6 +155,7 @@ private:
   Ptr<NrAmc> CreateUeSlAmc () const;
 
   ObjectFactory m_ueSlAmcFactory;        //!< UE SL AMC Object factory
+  Ptr<NrPointToPointEpcHelper> m_epcHelper; //!< the EPC helper
 
 };
 
