@@ -824,7 +824,7 @@ TBC
 
 NR V2X extension
 ****************
-TBC
+.. include:: nr-sidelink-design.inc
 
 
 Scope and Limitations
