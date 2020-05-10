@@ -104,9 +104,9 @@ protected:
   virtual void DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters params) override;
   virtual std::vector<LteUeCcmRrcSapProvider::LcsConfig> DoAddLc (uint8_t lcId,  LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu) override;
   virtual LteMacSapUser* DoConfigureSignalBearer (uint8_t lcId,  LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu) override;
+  Ptr<BwpManagerAlgorithm> m_algorithm;
 
 private:
-  Ptr<BwpManagerAlgorithm> m_algorithm;
   std::unordered_map<uint8_t, EpsBearer::Qci> m_lcToBearerMap; //!< Map from LCID to bearer ID
 
   std::unordered_map <uint32_t, uint32_t> m_outputLinks; //!< Mapping between BWP.
