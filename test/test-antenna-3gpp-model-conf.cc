@@ -46,9 +46,7 @@ using namespace ns3;
  * which a single UE is attached to a gNB.
  * UE performs a UDP full buffer downlink traffic.
  * gNB is configured to have 1 bandwidth part.
- * Currently there are 2 types of antenna elements: omni and 3gpp directional,
- * and they are implemented in different antenna array models:
- * AntennaArrayModel and AntennaArray3gppModel.
+ * Currently there are 2 types of antenna elements: omni and 3gpp directional.
  *
  */
 
