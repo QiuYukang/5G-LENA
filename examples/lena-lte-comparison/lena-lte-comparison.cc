@@ -353,11 +353,17 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   RadioNetworkParametersHelper ranHelper;
   uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
   double rbOverhead = 0.1;
+  uint32_t harqProcesses = 20;
+  uint32_t n1Delay = 2;
+  uint32_t n2Delay = 2;
   ranHelper.SetScenario (scenario);
   if (radioNetwork == "LTE")
     {
       ranHelper.SetNetworkToLte (operationMode, 1);
       rbOverhead = 0.1;
+      harqProcesses = 8;
+      n1Delay = 4;
+      n2Delay = 4;
       if (errorModel == "")
         {
           errorModel = "ns3::LenaErrorModel";
@@ -371,6 +377,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     {
       ranHelper.SetNetworkToNr (operationMode, numerology, 1);
       rbOverhead = 0.04;
+      harqProcesses = 20;
       if (errorModel == "")
         {
           errorModel = "ns3::NrEesmCcT2";
@@ -454,11 +461,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
 
   nrHelper->SetGnbPhyAttribute ("RbOverhead", DoubleValue (rbOverhead));
-  nrHelper->SetGnbPhyAttribute ("N2Delay", UintegerValue (4));
-  nrHelper->SetGnbPhyAttribute ("N1Delay", UintegerValue (4));
-  //nrHelper->SetGnbPhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
+  nrHelper->SetGnbPhyAttribute ("N2Delay", UintegerValue (n2Delay));
+  nrHelper->SetGnbPhyAttribute ("N1Delay", UintegerValue (n1Delay));
 
-  //nrHelper->SetUePhyAttribute ("TbDecodeLatency", TimeValue (MilliSeconds (2)));
+  nrHelper->SetUeMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
+  nrHelper->SetGnbMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
