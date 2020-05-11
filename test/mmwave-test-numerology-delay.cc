@@ -163,16 +163,16 @@ void
 ConnectRlcPdcpTraces (MmwaveTestNumerologyDelayCase1 *testcase)
 {
 
-  Config::Connect ("/NodeList/0/DeviceList/0/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LteRlc/TxPDU",
+  Config::Connect ("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LteRlc/TxPDU",
                        MakeBoundCallback (&LteTestTxRlcPDUCallback, testcase));
 
-  Config::Connect ("/NodeList/0/DeviceList/0/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LtePdcp/TxPDU",
+  Config::Connect ("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LtePdcp/TxPDU",
                        MakeBoundCallback (&LteTestTxPdcpPDUCallback, testcase));
 
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
                          MakeBoundCallback (&LteTestRxRlcPDUCallback, testcase));
 
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
                        MakeBoundCallback (&LteTestRxPdcpPDUCallback, testcase));
 }
 
@@ -256,13 +256,13 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/DlScheduling",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbMac/DlScheduling",
                       MakeBoundCallback (&LteTestDlSchedCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/DlSpectrumPhy/RxPacketTraceUe",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/SpectrumPhy/RxPacketTraceUe",
                        MakeBoundCallback (&LteTestRxPacketUeCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/DlSpectrumPhy/TxPacketTraceEnb",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbPhy/SpectrumPhy/TxPacketTraceEnb",
                        MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
 
   Simulator::Schedule(MilliSeconds(200), &ConnectRlcPdcpTraces, this);
