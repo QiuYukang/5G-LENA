@@ -32,7 +32,7 @@ NrSlBwpManagerUe::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::NrSlBwpManagerUe")
     .SetParent<BwpManagerUe> ()
-    .SetGroupName("Lte")
+    .SetGroupName("nr")
     .AddConstructor<NrSlBwpManagerUe> ()
     ;
   return tid;

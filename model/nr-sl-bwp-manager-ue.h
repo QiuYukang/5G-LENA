@@ -32,7 +32,7 @@ namespace ns3 {
 
 
 /**
- * \ingroup lte
+ * \ingroup nr
  * \brief The NrSlBwpManagerUe class
  */
 class NrSlBwpManagerUe : public BwpManagerUe
