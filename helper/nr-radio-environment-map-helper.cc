@@ -116,7 +116,7 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                       .AddAttribute ("Z",
                                      "The value of the z coordinate for which"
                                      "the map is to be generated.",
-                                     DoubleValue (0.0),
+                                     DoubleValue (1.5),
                                      MakeDoubleAccessor (&NrRadioEnvironmentMapHelper::SetZ,
                                                          &NrRadioEnvironmentMapHelper::GetZ),
                                      MakeDoubleChecker<double> ())
@@ -292,7 +292,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   rtd.node = CreateObject<Node>();            //Create Node
 
   Ptr<ListPositionAllocator> rtdPositionAlloc = CreateObject<ListPositionAllocator> ();
-  rtdPositionAlloc->Add (Vector(-10, 0, m_z));  //Assign an initial position
+  rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
 
   MobilityHelper rtdMobility;                 //Set Mobility
   rtdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -342,7 +342,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   m_spectrumLossModel->AddDevice (rrd.dev, rrd.antenna);
 
   //Bw, Freq and numerology should be passed for the simulation scenario?
-  Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 2125.0e6, 0);
+  Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28.0e9, 0);
   Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (40, sm1); //txPower?
 
 
@@ -352,9 +352,11 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
     {
       rrd.mob->SetPosition (it->pos);    //Assign to the rrd mobility all the positions of remPoint
 
-      Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, rtd.mob, rrd.mob);
+      //Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, rtd.mob, rrd.mob);
       //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
-      it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
+      //it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
+
+      it->rssi = m_propagationLossModel->CalcRxPower(5, rtd.mob, rrd.mob);
 
       //It calculates (and doesn't crash, but I get always the same value :( )
     }
@@ -373,8 +375,8 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
       m_outFile << it->pos.x << "\t"
                 << it->pos.y << "\t"
                 << it->pos.z << "\t"
-                << it->pos.z << "\t"
                 << it->sinr << "\t"
+                << it->rssi << "\t"
                 << std::endl;
     }
 

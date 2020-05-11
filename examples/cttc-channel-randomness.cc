@@ -112,7 +112,7 @@ DoBeamforming (Ptr<NetDevice> thisDevice, Ptr<ThreeGppAntennaArrayModel> thisAnt
 int 
 main (int argc, char *argv[])
 {
-  double frequency = 2125.0e6;
+  double frequency = 28.0e9;
   double bandwidth = 100e6;
   uint8_t numerology = 0;
   double txPower = 40;
@@ -304,13 +304,13 @@ main (int argc, char *argv[])
 
   //Radio Environment Map Generation
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (0.0);
-  remHelper->SetMaxX (10.0);
+  remHelper->SetMinX (-30.0);
+  remHelper->SetMaxX (30.0);
   remHelper->SetResX (1);
-  remHelper->SetMinY (0.0);
-  remHelper->SetMaxY (10);
+  remHelper->SetMinY (-30.0);
+  remHelper->SetMaxY (30.0);
   remHelper->SetResY (1);
-  remHelper->SetZ (0.0);
+  remHelper->SetZ (1.5);
   remHelper->CreateRem (m_propagationLossModel, m_spectrumLossModel);
 
 

@@ -189,8 +189,9 @@ private:
 
     struct RemPoint
     {
-      Vector pos;
-      double sinr;
+      Vector pos {0,0,0};
+      double sinr {0};
+      double rssi {0};
     };
 
     /// List of listeners in the environment.
