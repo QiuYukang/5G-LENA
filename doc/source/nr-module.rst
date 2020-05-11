@@ -502,7 +502,7 @@ the specification of the rate matcher in the 3GPP standard [TS38212]_, where
 the algorithm fixes the modulation order for generating the different blocks
 of the redundancy versions.
 
-The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model both DL and UL transmissions is asynchronous. The transmissions, feedbacks, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process, after which, if combined decoding is not successful, the transport block is dropped.
+The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedbacks, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
 
 
 MAC layer
