@@ -58,10 +58,9 @@ NrSlBwpManagerUe::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   delete m_nrSlUeBwpmRrcSapProvider;
-  delete m_ccmMacSapUser;
-  delete m_ccmMacSapProvider;
   delete m_nrSlBwpmUeMacSapProvider;
   delete m_nrSlBwpmUeMacSapUser;
+  BwpManagerUe::DoDispose ();
 }
 
 
