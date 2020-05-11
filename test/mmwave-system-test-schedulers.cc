@@ -16,26 +16,20 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *  
  *   Author: Biljana Bojovic <bbojovic@cttc.es>
-
  */
 
-#include "ns3/mmwave-helper.h"
 #include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
-#include "ns3/mmwave-helper.h"
-#include "ns3/log.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
+#include "ns3/internet-apps-module.h"
 #include "ns3/applications-module.h"
-#include "ns3/point-to-point-helper.h"
-#include "ns3/eps-bearer-tag.h"
+#include "ns3/mobility-module.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/flow-monitor-module.h"
+#include "ns3/nr-module.h"
+#include "ns3/config-store-module.h"
 #include "ns3/test.h"
-#include "ns3/abort.h"
-#include "ns3/object.h"
 
 using namespace ns3;
 
@@ -110,7 +104,7 @@ MmWaveSystemTestScheduling::MmWaveSystemTestScheduling (const std::string & name
   NS_ABORT_MSG_UNLESS (beamsNum <=4, "Test program is designed to support up to 4 beams per gNB" );
   m_beamsNum = beamsNum;
   m_schedulerType = schedulerType;
-  m_name=name;
+  m_name = name;
 }
 
 // This destructor does nothing but we include it as a reminder that
@@ -135,35 +129,9 @@ MmWaveSystemTestScheduling::DoRun (void)
     uint32_t packetSize = 1000;
     DataRate udpRate = DataRate ("400kbps");
 
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("l"));
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon")); // with antenna height of 10 m
-    Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing", BooleanValue(false));
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue (true));
-    Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep", DoubleValue (10.0));
-    Config::SetDefault ("ns3::MmWaveEnbPhy::TxPower", DoubleValue(4));
-    Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (28));
-    Config::SetDefault ("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (28));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
-    // setup the mmWave simulation
-    Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-    mmWaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-    mmWaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
-
-
-    Ptr<MmWavePhyMacCommon> phyMacCommonBwp = CreateObject<MmWavePhyMacCommon>();
-    phyMacCommonBwp->SetBandwidth (m_bw1);
-    phyMacCommonBwp->SetNumerology(m_numerology);
-    phyMacCommonBwp->SetAttribute ("MacSchedulerType", TypeIdValue (TypeId::LookupByName(m_schedulerType)));
-
-    BandwidthPartRepresentation bwpRepr (0, phyMacCommonBwp, nullptr, nullptr, nullptr);
-    mmWaveHelper->AddBandwidthPart (0, bwpRepr);
-
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-    mmWaveHelper->SetEpcHelper (epcHelper);
-    mmWaveHelper->Initialize();
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -209,7 +177,7 @@ MmWaveSystemTestScheduling::DoRun (void)
 
           }
 
-        // position of next gNB and its UE is shiften for 20, 20
+        // position of next gNB and its UE is shiftened for 20, 20
         gNbx += 1;
         gNby += 1;
       }
@@ -218,9 +186,104 @@ MmWaveSystemTestScheduling::DoRun (void)
     mobility.Install (gNbNodes);
     mobility.SetPositionAllocator (staPositionAlloc);
     mobility.Install (ueNodes);
+
+
+    // setup the mmWave simulation
+    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+
+    Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (10.0));
+
+    Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+    mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+
+    // set the number of antenna elements of UE
+    mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+    mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+    mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+    // UE transmit power
+    mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
+
+    // set the number of antenna elements of gNbs
+    mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+    mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+    mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+
+    // gNB transmit power
+    mmWaveHelper->SetGnbPhyAttribute("TxPower", DoubleValue (44.0));
+
+    // gNB numerology
+    mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (m_numerology));
+
+    // Set the scheduler type
+    mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName (m_schedulerType));
+    Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName ("ns3::NrEesmCcT1")));
+    mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(true));
+    mmWaveHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(true));
+    mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (28));
+    mmWaveHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (28));
+
+
+    mmWaveHelper->SetEpcHelper (epcHelper);
+
+    /*
+    * Spectrum division. We create two operational bands, each of them containing
+    * one component carrier, and each CC containing a single bandwidth part
+    * centered at the frequency specified by the input parameters.
+    * Each spectrum part length is, as well, specified by the input parameters.
+    * Both operational bands will use the StreetCanyon channel modeling.
+    */
+    BandwidthPartInfoPtrVector allBwps;
+    CcBwpCreator ccBwpCreator;
+    double centralFrequency = 28e9;
+    double bandwidth = m_bw1;
+    const uint8_t numCcPerBand = 1;
+    BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::UMi_StreetCanyon_LoS;
+    CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequency, bandwidth, numCcPerBand, scenario);
+
+    // By using the configuration created, it is time to make the operation bands
+    OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
+
+    Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue (MilliSeconds (0)));
+
+    // Shadowing
+    mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+    /*
+     * Initialize channel and pathloss, plus other things inside band1. If needed,
+     * the band configuration can be done manually, but we leave it for more
+     * sophisticated examples. For the moment, this method will take care
+     * of all the spectrum initialization needs.
+     */
+    mmWaveHelper->InitializeOperationBand (&band);
+    allBwps = CcBwpCreator::GetAllBwps ({band});
+
+
+    uint32_t bwpIdForLowLat = 0;
+    // gNb routing between Bearer and bandwidh part
+    mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+    // UE routing between Bearer and bandwidh part
+    mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+
+
     // install mmWave net devices
-    NetDeviceContainer enbNetDev = mmWaveHelper->InstallEnbDevice (gNbNodes);
-    NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes);
+    NetDeviceContainer gNbNetDevs = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
+    NetDeviceContainer ueNetDevs = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+
+
+    for (auto it = gNbNetDevs.Begin (); it != gNbNetDevs.End (); ++it)
+      {
+        DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      }
+
+    for (auto it = ueNetDevs.Begin (); it != ueNetDevs.End (); ++it)
+      {
+        DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      }
+
+
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     Ptr<Node> pgw = epcHelper->GetPgwNode ();
@@ -246,18 +309,19 @@ MmWaveSystemTestScheduling::DoRun (void)
     remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
     internet.Install (ueNodes);
     Ipv4InterfaceContainer ueIpIface;
-    ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+    ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDevs));
 
 
     // Set the default gateway for the UEs
-    for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+    for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
       {
         Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
         ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
       }
 
     // attach UEs to the closest eNB
-    mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+    mmWaveHelper->AttachToClosestEnb (ueNetDevs, gNbNetDevs);
+
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
@@ -266,24 +330,34 @@ MmWaveSystemTestScheduling::DoRun (void)
     ApplicationContainer serverAppsDl;
     ApplicationContainer clientAppsUl;
     ApplicationContainer serverAppsUl;
-    ObjectMapValue objectMapValue;
+//    ObjectMapValue objectMapValue;
 
     Time udpInterval = Time::FromDouble((packetSize*8) / static_cast<double> (udpRate.GetBitRate ()), Time::S);
 
     if (m_isUplink)
       {
-        // configure here UDP traffic
-        for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+        UdpServerHelper ulPacketSinkHelper (ulPort);
+        serverAppsUl.Add (ulPacketSinkHelper.Install (remoteHost));
+
+        // configure here UDP traffic flows
+        for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
           {
-            UdpServerHelper ulPacketSinkHelper (ulPort);
-            serverAppsUl.Add (ulPacketSinkHelper.Install (remoteHost));
 
             UdpClientHelper ulClient (remoteHostAddr, ulPort);
             ulClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
             ulClient.SetAttribute("PacketSize", UintegerValue(packetSize));
             ulClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
             clientAppsUl.Add (ulClient.Install (ueNodes.Get(j)));
-            ulPort++;
+
+            Ptr<EpcTft> tft = Create<EpcTft> ();
+            EpcTft::PacketFilter ulpf;
+            ulpf.remotePortStart = ulPort;
+            ulpf.remotePortEnd = ulPort;
+            ulpf.direction = EpcTft::UPLINK;
+            tft->Add (ulpf);
+
+            EpsBearer bearer (EpsBearer::NGBR_LOW_LAT_EMBB);
+            mmWaveHelper->ActivateDedicatedEpsBearer (ueNetDevs.Get(j), bearer, tft);
           }
 
         serverAppsUl.Start(udpAppStartTimeUl);
@@ -298,14 +372,24 @@ MmWaveSystemTestScheduling::DoRun (void)
         UdpServerHelper dlPacketSinkHelper (dlPort);
         serverAppsDl.Add (dlPacketSinkHelper.Install (ueNodes));
 
-        // configure here UDP traffic
-        for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+        // configure here UDP traffic flows
+        for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
           {
             UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
             dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
             dlClient.SetAttribute("PacketSize", UintegerValue(packetSize));
             dlClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
             clientAppsDl.Add (dlClient.Install (remoteHost));
+
+            Ptr<EpcTft> tft = Create<EpcTft> ();
+            EpcTft::PacketFilter dlpf;
+            dlpf.localPortStart = dlPort;
+            dlpf.localPortEnd = dlPort;
+            dlpf.direction = EpcTft::DOWNLINK;
+            tft->Add (dlpf);
+
+            EpsBearer bearer (EpsBearer::NGBR_LOW_LAT_EMBB);
+            mmWaveHelper->ActivateDedicatedEpsBearer (ueNetDevs.Get(j), bearer, tft);
           }
         // start UDP server and client apps
        serverAppsDl.Start(udpAppStartTimeDl);
@@ -324,33 +408,28 @@ MmWaveSystemTestScheduling::DoRun (void)
 
     if (m_isDownlink)
       {
-        Ptr<UdpServer> serverApp1 = serverAppsDl.Get(0)->GetObject<UdpServer>();
-        double throuhgput1 = (serverApp1->GetReceived() * packetSize * 8)/(udpAppStopTimeDl-udpAppStartTimeDl).GetSeconds();
-        throughputDl = throuhgput1;
-        for ( uint32_t i = 1; i < serverAppsDl.GetN(); i++)
+        for ( uint32_t i = 0; i < serverAppsDl.GetN (); i++)
           {
-            Ptr<UdpServer> serverApp2 = serverAppsDl.Get(i)->GetObject<UdpServer>();
-            double throuhgput2 = (serverApp2->GetReceived() * packetSize * 8)/(udpAppStopTimeDl-udpAppStartTimeDl).GetSeconds();
-            throughputDl += throuhgput2;
+            Ptr<UdpServer> serverApp = serverAppsDl.Get (i)->GetObject<UdpServer> ();
+            double throughput = (serverApp->GetReceived () * packetSize * 8)/(udpAppStopTimeDl-udpAppStartTimeDl).GetSeconds ();
+            throughputDl += throughput;
           }
         //std::cout<<"\n Total DL UDP throughput "<<throughputDl/1e6<<" Mbps"<<std::endl;
       }
     if (m_isUplink)
       {
-        Ptr<UdpServer> serverApp1 = serverAppsUl.Get(0)->GetObject<UdpServer>();
-        double throuhgput1 = (serverApp1->GetReceived() * packetSize * 8)/(udpAppStopTimeUl-udpAppStartTimeUl).GetSeconds();
-        throughputUl=throuhgput1;
-
-        for ( uint32_t i = 1; i < serverAppsUl.GetN(); i++)
+        for ( uint32_t i = 0; i < serverAppsUl.GetN (); i++)
           {
-             Ptr<UdpServer> serverApp2 = serverAppsUl.Get(i)->GetObject<UdpServer>();
-             double throuhgput2 = (serverApp2->GetReceived() * packetSize * 8)/(udpAppStopTimeUl-udpAppStartTimeUl).GetSeconds();
-             throughputUl += throuhgput2;
+             Ptr<UdpServer> serverApp = serverAppsUl.Get (i)->GetObject<UdpServer>();
+             double throughput = (serverApp->GetReceived () * packetSize * 8)/(udpAppStopTimeUl-udpAppStartTimeUl).GetSeconds ();
+             throughputUl += throughput;
           }
         //std::cout<<"\n Total UL UDP throughput "<<throughputUl/1e6<<" Mbps"<<std::endl;
       }
 
-    NS_TEST_ASSERT_MSG_EQ_TOL (throughputDl + throughputUl, udpRate.GetBitRate() * ueNodes.GetN() * ((m_isUplink && m_isDownlink)? 2 : 1), 0.01, "Wrong total DL + UL throughput");
+
+    NS_TEST_ASSERT_MSG_EQ_TOL (throughputDl + throughputUl, udpRate.GetBitRate () * ueNodes.GetN () * ((m_isUplink && m_isDownlink)? 2 : 1), 0.01, "Wrong total DL + UL throughput");
+
     Simulator::Destroy ();
 }
 
@@ -376,7 +455,7 @@ MmWaveSystemTestSchedulingTestSuite::MmWaveSystemTestSchedulingTestSuite ()
 
   std::list<std::string> subdivision     = {"Ofdma", "Tdma"};
   std::list<std::string> scheds          = {"RR", "PF", "MR"};
-  std::list<TxMode> mode                 = {DL, UL, DL_UL};
+  std::list<TxMode>      mode            = {DL, UL, DL_UL};
   std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 8};
   std::list<uint32_t>    beams           = {1, 2};
   std::list<uint32_t>    numerologies    = {0, 1, 2, 3, 4};

@@ -19,6 +19,10 @@
 #include <ns3/test.h>
 #include <ns3/nr-eesm-error-model.h>
 #include <ns3/enum.h>
+#include <ns3/nr-eesm-cc-t1.h>
+#include <ns3/nr-eesm-cc-t2.h>
+#include <ns3/nr-eesm-ir-t1.h>
+#include <ns3/nr-eesm-ir-t2.h>
 /**
  * \file nr-test-l2sm-eesm.cc
  * \ingroup test
@@ -48,8 +52,10 @@ private:
   void TestBgType1 (const Ptr<NrEesmErrorModel> &em);
   void TestBgType2 (const Ptr<NrEesmErrorModel> &em);
 
-  void TestTable1();
-  void TestTable2();
+  void TestEesmCcTable1 ();
+  void TestEesmCcTable2 ();
+  void TestEesmIrTable1 ();
+  void TestEesmIrTable2 ();
 };
 
 void
@@ -178,12 +184,14 @@ NrL2smEesmTestCase::TestMappingSinrBler2 (const Ptr<NrEesmErrorModel> &em)
 
 }
 void
-NrL2smEesmTestCase::TestTable1()
+NrL2smEesmTestCase::TestEesmCcTable1 ()
 {
-  // Create an object of type NrEesmErrorModel
-  Ptr<NrEesmErrorModel> em = CreateObject <NrEesmErrorModel> ();
-  // Set attribute of MCS table to be used
-  em->SetAttribute("McsTable", EnumValue (NrEesmErrorModel::McsTable1));
+  // Create an object of type NrEesmCcT1 and cast it to NrEesmErrorModel
+  Ptr<NrEesmErrorModel> em = CreateObject <NrEesmCcT1> ();
+
+  // Check that the object was created
+  bool ret = em == nullptr;
+  NS_TEST_ASSERT_MSG_EQ (ret, false, "Could not create NrEesmCcT1 object");
 
   // Test here the functions:
   TestBgType1 (em);
@@ -191,12 +199,14 @@ NrL2smEesmTestCase::TestTable1()
 }
 
 void
-NrL2smEesmTestCase::TestTable2()
+NrL2smEesmTestCase::TestEesmCcTable2 ()
 {
-  // Create an object of type NrEesmErrorModel
-  Ptr<NrEesmErrorModel> em = CreateObject <NrEesmErrorModel> ();
-  // Set attribute of MCS table to be used
-  em->SetAttribute("McsTable", EnumValue (NrEesmErrorModel::McsTable2));
+  // Create an object of type NrEesmCcT2 and cast it to NrEesmErrorModel
+  Ptr<NrEesmErrorModel> em = CreateObject <NrEesmCcT2> ();
+
+  // Check that the object was created
+  bool ret = em == nullptr;
+  NS_TEST_ASSERT_MSG_EQ (ret, false, "Could not create NrEesmCcT2 object");
 
   // Test here the functions:
   TestBgType2 (em);
@@ -204,10 +214,42 @@ NrL2smEesmTestCase::TestTable2()
 }
 
 void
-NrL2smEesmTestCase::DoRun()
+NrL2smEesmTestCase::TestEesmIrTable1 ()
 {
-  TestTable1 ();
-  TestTable2 ();
+  // Create an object of type NrEesmIrT1 and cast it to NrEesmErrorModel
+  Ptr<NrEesmErrorModel> em = CreateObject <NrEesmIrT1> ();
+
+  // Check that the object was created
+  bool ret = em == nullptr;
+  NS_TEST_ASSERT_MSG_EQ (ret, false, "Could not create NrEesmIrT1 object");
+
+  // Test here the functions:
+  TestBgType1 (em);
+  TestMappingSinrBler1 (em);
+}
+
+void
+NrL2smEesmTestCase::TestEesmIrTable2 ()
+{
+  // Create an object of type NrEesmIrT2 and cast it to NrEesmErrorModel
+  Ptr<NrEesmErrorModel> em = CreateObject <NrEesmIrT2> ();
+
+  // Check that the object was created
+  bool ret = em == nullptr;
+  NS_TEST_ASSERT_MSG_EQ (ret, false, "Could not create NrEesmIrT2 object");
+
+  // Test here the functions:
+  TestBgType2 (em);
+  TestMappingSinrBler2 (em);
+}
+
+void
+NrL2smEesmTestCase::DoRun ()
+{
+  TestEesmCcTable1 ();
+  TestEesmCcTable2 ();
+  TestEesmIrTable1 ();
+  TestEesmIrTable2 ();
 }
 
 class NrTestL2smEesm : public TestSuite

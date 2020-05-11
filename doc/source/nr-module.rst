@@ -1079,11 +1079,6 @@ BLER values are properly obtained from the BLER-SINR look up tables for differen
 block sizes, MCS Tables, BG types, and SINR values.
 
 
-Test for channel model
-======================
-Test case called ``NrTest3gppChannelTestCase`` validates the channel model.  TBC [B]
-
-
 Test for antenna model
 ======================
 Test case called ... TBC [B]
