@@ -1069,6 +1069,9 @@ the gNB and UE clocks perform synchronously according the selected numerology,
 and that serialization and deserialization of the frame, subframe, slot and TTI number
 performs correctly for the new NR frame structure.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-system-test-configurations_8cc.html
+
 
 Test of packet delay in NR protocol stack
 =========================================
@@ -1092,6 +1095,9 @@ The test passes if all of the previous steps are according to the
 timings related to a specific numerology. The test is run for different
 numerologies.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-test-numerology-delay_8cc.html
+
 
 Test of numerology FDM
 ======================
@@ -1101,6 +1107,9 @@ operate with
 2 BWPs. The test checks if the achieved throughput of a flow over a specific
 BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-test-fdm-of-numerologies_8cc.html
 
 
 Test for NR schedulers
@@ -1119,6 +1128,9 @@ different number of UEs, number of beams, numerology, traffic direction (DL, UL,
 DL and UL), modes of scheduling (OFDMA and TDMA) and
 different scheduling algorithms (RR, PR, MR).
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-test-sched_8cc.html
+
 
 Test for OFDMA
 ==============
@@ -1133,6 +1145,8 @@ expected to affect the MCS and performance, while in the case when RBGs assigned
 to gNBs are not overlapping shall be the same as in the case when only a
 single gNB is transmitting.
 
+The complete details of the simulation script are provided in TBC [N]
+
 
 Test for error model
 ====================
@@ -1142,10 +1156,19 @@ The test checks two issues: 1) LDPC base graph (BG) selection works properly, an
 BLER values are properly obtained from the BLER-SINR look up tables for different
 block sizes, MCS Tables, BG types, and SINR values.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
+
 
 Test for antenna model
 ======================
-Test case called ... TBC [B]
+Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations 
+of the antenna array model by checking if the throughput/SINR/MCS obtained is as 
+expected. The test scenario consists of one gNB and a single UE attached to the
+gNB. Different positions of the UE are evaluated.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
 
 
 Test for TDD patterns
@@ -1158,10 +1181,17 @@ of DL Data, scheduling of DL HARQ Feedback and scheduling of UL Data, respective
 The test calls ``MmWaveEnbPhy::GenerateStructuresFromPattern`` for a number of possible
 TDD patterns and compares the output with a predefined set of the expected results.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-lte-pattern-generation_8cc.html
+
 Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
 when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
 In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
 the test will fail.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
+
 
 
 Open issues and future work
