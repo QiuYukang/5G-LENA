@@ -43,6 +43,7 @@ class UniformRandomVariable;
 class PacketBurst;
 class NrUlDciMessage;
 class NrAmc;
+class NrSlCommResourcePool;
 
 /**
  * \ingroup ue-mac
@@ -424,6 +425,32 @@ protected:
    *
    */
   void DoResetNrSlLcMap ();
+  /**
+   * \brief Add NR Sidelink communication transmission pool
+   *
+   * Adds transmission pool for NR Sidelink communication
+   *
+   * \param remoteL2Id The destination Layer 2 ID
+   * \param pool The pointer to the NrSlCommResourcePool
+   */
+  void DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool);
+  /**
+   * \brief Add NR Sidelink communication reception pool
+   *
+   * Adds reception pool for NR Sidelink communication
+   *
+   * \param remoteL2Id The destination Layer 2 ID
+   * \param pool The pointer to the NrSlCommResourcePool
+   */
+  void DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool);
+  /**
+   * \brief Add NR Sidelink remote Layer 2 Id
+   *
+   * Adds remote layer 2 id to list to destinations
+   *
+   * \param remoteL2Id The destination Layer 2 ID
+   */
+  void DoAddNrSlRemoteL2Id (uint32_t remoteL2Id);
 
 private:
   /// Sidelink Communication related variables
@@ -459,6 +486,7 @@ private:
   NrSlUeCmacSapUser* m_nrSlUeCmacSapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
   NrSlUePhySapProvider* m_nrSlUePhySapProvider {nullptr}; //!< SAP interface to call the methods of UE PHY instance
   NrSlUePhySapUser* m_nrSlUePhySapUser; //!< SAP interface to receive calls from the UE PHY instance
+  Ptr<const NrSlCommResourcePool> m_slPool;
 };
 
 }

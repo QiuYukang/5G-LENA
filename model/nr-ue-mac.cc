@@ -33,6 +33,7 @@
 #include "nr-phy-sap.h"
 #include "nr-control-messages.h"
 #include "nr-amc.h"
+#include <ns3/nr-sl-comm-resource-pool.h>
 
 namespace ns3 {
 
@@ -1112,6 +1113,26 @@ NrUeMac::DoResetNrSlLcMap ()
         }
     }
 }
+
+void
+NrUeMac::DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+{
+  NS_LOG_FUNCTION (this);
+  m_slPool = txPool;
+}
+
+void
+NrUeMac::DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+{
+  NS_LOG_FUNCTION (this);
+}
+
+void
+NrUeMac::DoAddNrSlRemoteL2Id (uint32_t remoteL2Id)
+{
+  NS_LOG_FUNCTION (this);
+}
+
 //////////////////////////////////////////////
 
 
