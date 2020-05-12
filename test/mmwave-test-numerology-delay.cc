@@ -23,18 +23,14 @@
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
-#include "ns3/mmwave-helper.h"
 #include "ns3/log.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
-#include "ns3/mmwave-enb-net-device.h"
-#include "ns3/mmwave-ue-net-device.h"
-#include "ns3/mmwave-enb-phy.h"
+#include "ns3/nr-module.h"
 
 // An essential include is test.h
 #include "ns3/test.h"
@@ -78,6 +74,7 @@ private:
   Time m_sendPacketTime {Seconds (0)};
   uint32_t m_numSym {0};
   bool m_firstMacPdu {true};
+  bool m_firstRlcPdu {true};
   bool m_firstDlTransmission {true};
   bool m_firstDlReception {true};
   bool m_firstRxPlcPDU {true};
@@ -163,16 +160,16 @@ void
 ConnectRlcPdcpTraces (MmwaveTestNumerologyDelayCase1 *testcase)
 {
 
-  Config::Connect ("/NodeList/0/DeviceList/0/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LteRlc/TxPDU",
+  Config::Connect ("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LteRlc/TxPDU",
                        MakeBoundCallback (&LteTestTxRlcPDUCallback, testcase));
 
-  Config::Connect ("/NodeList/0/DeviceList/0/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LtePdcp/TxPDU",
+  Config::Connect ("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LtePdcp/TxPDU",
                        MakeBoundCallback (&LteTestTxPdcpPDUCallback, testcase));
 
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+  Config::Connect ("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
                          MakeBoundCallback (&LteTestRxRlcPDUCallback, testcase));
 
-  Config::Connect ("/NodeList/1/DeviceList/0/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+  Config::Connect ("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
                        MakeBoundCallback (&LteTestRxPdcpPDUCallback, testcase));
 }
 
@@ -205,6 +202,9 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
 
+  // Beamforming method
+  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+
   mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
   mmWaveHelper->SetEpcHelper (epcHelper);
 
@@ -216,15 +216,33 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
-
   mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-
   mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue (true));
   mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (1));
 
   mmWaveHelper->SetGnbPhyAttribute ("SymbolsPerSlot", UintegerValue (14));
+  mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue(m_numerology));
+  mmWaveHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (10));
+
+  // Antennas for all the UEs
+  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Antennas for all the gNbs
+  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+
+  // Error Model: UE and GNB with same spectrum error model.
+  mmWaveHelper->SetUlErrorModel ("ns3::NrEesmIrT1");
+  mmWaveHelper->SetDlErrorModel ("ns3::NrEesmIrT1");
+
+  // Both DL and UL AMC will have the same model behind.
+  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
 
   mmWaveHelper->InitializeOperationBand (&band1);
   allBwps = CcBwpCreator::GetAllBwps ({band1});
@@ -256,13 +274,13 @@ MmwaveTestNumerologyDelayCase1::DoRun (void)
   // attach UEs to the closest eNB
   mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbMac/DlScheduling",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbMac/DlScheduling",
                       MakeBoundCallback (&LteTestDlSchedCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/DlSpectrumPhy/RxPacketTraceUe",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/MmWaveUePhy/SpectrumPhy/RxPacketTraceUe",
                        MakeBoundCallback (&LteTestRxPacketUeCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMap/*/MmWaveEnbPhy/DlSpectrumPhy/TxPacketTraceEnb",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/MmWaveEnbPhy/SpectrumPhy/TxPacketTraceEnb",
                        MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
 
   Simulator::Schedule(MilliSeconds(200), &ConnectRlcPdcpTraces, this);
@@ -306,7 +324,11 @@ MmwaveTestNumerologyDelayCase1::TxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t 
   std::cout<<"\n lcid:"<<rnti<<(unsigned)lcid;
   std::cout<<"\n no of bytes :"<<bytes<<std::endl;*/
 
-  NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime, "There should not be delay between packet being sent and being transmited by the gNb RLC.");
+  if (m_firstRlcPdu)
+    {
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime, "There should not be delay between packet being sent and being transmitted by the gNb RLC.");
+      m_firstRlcPdu = false;
+    }
 }
 
 void
@@ -391,11 +413,10 @@ MmwaveTestNumerologyDelayCase1::RxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t 
   Time delay = m_l1l2 * GetSlotTime (m_numerology);
   Time ctrlDuration = GetSymbolPeriod (m_numerology);
   Time dataDuration = (GetSymbolPeriod(m_numerology) * m_numSym) - NanoSeconds(1);
-  Time tbDecodeDelay = MicroSeconds(m_tbDecodeLatency);
 
   if (m_firstRxPlcPDU)
     {
-      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime + delay + ctrlDuration + dataDuration + tbDecodeDelay,
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime + delay + ctrlDuration + dataDuration + m_tbDecodeLatency,
                            "The duration of the reception by RLC is not correct.");
       m_firstRxPlcPDU = false;
     }
@@ -413,14 +434,13 @@ MmwaveTestNumerologyDelayCase1::RxPdcpPDU (uint16_t rnti, uint8_t lcid, uint32_t
   Time delay = m_l1l2 * GetSlotTime (m_numerology);
   Time ctrlDuration = GetSymbolPeriod (m_numerology);
   Time dataDuration = (GetSymbolPeriod (m_numerology) * m_numSym) - NanoSeconds(1);
-  Time tbDecodeDelay = MicroSeconds(m_tbDecodeLatency);
 
-  NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_lastDlReceptionFinished + tbDecodeDelay,
+  NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_lastDlReceptionFinished + m_tbDecodeLatency,
                            "The duration of the reception by PDCP is not correct.");
 
   std::cout<<"\n Numerology:"<<m_numerology<<"\t Packet of :" <<packetSize<<" bytes\t#Slots:"
       <<m_slotsCounter <<"\t#Symbols:"<<m_totalNumberOfSymbols<<"\tPacket PDCP delay:"<<pdcpDelay
-      <<"\tRLC delay of first PDU:"<<delay + ctrlDuration + dataDuration + tbDecodeDelay
+      <<"\tRLC delay of first PDU:"<<delay + ctrlDuration + dataDuration + m_tbDecodeLatency
       <<"\tMCS of the first PDU:"<<m_firstMacPduMcs;
 }
 
