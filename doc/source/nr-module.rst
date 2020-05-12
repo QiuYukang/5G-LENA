@@ -13,6 +13,9 @@ Example Module Documentation
 ..
    The document is written following RST formatting. Please, check your writing on grammarly; to ease it, use the auto-wrapping feature of your text editor, without entering new lines unless you would like to start a new paragraph.
 
+.. toctree::
+   :maxdepth: 3
+   :caption: Table of Contents
 
 Introduction
 ------------
@@ -221,15 +224,20 @@ In both schemes, the time starts at the beginning of the slot. The GNB PHY retri
 When the slot finishes, another one will be scheduled, which will be like what we described before.
 
 
-
-
 CQI feedback
 ============
-NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table.
+NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB for DL data transmissions. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table. In the simulator, we support CQI Table1 and CQI Table2 (i.e., Table 5.2.2.1-1 and Table 5.2.2.1-2), which are defined based on the configured error model and corresponding MCS Table.
 
-At the moment, we support the generation of a periodic *wideband* CQI. Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the transmission.
+At the moment, we support the generation of a *wideband* CQI that is computed based on the data channel (PDSCH). Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the gNB transmission (neglecting RBs with 0 transmitted power).
 
-The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index.
+The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index. Such value is computed for each PDSCH reception and reported after it.
+
+In case of UL transmissions, there is not explicit CQI feedback, since the gNB directly indicates to the UE the MCS to be used in UL data transmissions. In that case, the gNB measures the SINR received in the PUSCH, and computes based on it the equivalent CQI index, and from it the MCS index for UL is determined.
+
+
+Power allocation
+================
+In the simulator, we assume a uniform power allocation over the whole set of RBs that conform the bandwidth of the BWP. That is, power per RB is fixed. However, if a RB is not allocated to any data transmission, the transmitted power there is 0, and no interference is generated in that RB.
 
 
 Interference model
@@ -237,6 +245,7 @@ Interference model
 The PHY model is based on the well-known Gaussian interference models, according to which the powers of interfering signals (in linear units) are summed up together to determine the overall interference power. The useful and interfering signals, as well as the noise power spectral density, are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
 
 Also, such powers are used to determine if the channel is busy or empty. For that, we are creating two events, one that adds, for any signal, the received power and another that subtracts the received power at the end time. These events determine if the channel is busy (by comparing it to a threshold) and for how long.
+
 
 Spectrum model
 ==============
@@ -263,7 +272,7 @@ abstraction model supports HARQ
 based on Incremental Redundancy (IR) and on Chase Combining (CC), as we will present in
 the corresponding section.
 
-Let us note that the attribute ``ErrorModelType`` configures the type of error modelling, which can be set to NR (ns3::NrEesmCcT1, ns3::NrEesmIrT1, ns3::NrEesmCcT2, ns3::NrEesmIrT2) or to LTE (ns3::NrLteMiErrorModel) in case one wants to reproduce LTE PHY layer. In the NR case, the HARQ method and MCS table are configured according to the selected error model, e.g., ns3::NrEesmCcT1 uses HARQ-CC and MCS Table1.
+Let us note that the attribute ``ErrorModelType`` configures the type of error modelling, which can be set to NR (ns3::NrEesmCcT1, ns3::NrEesmIrT1, ns3::NrEesmCcT2, ns3::NrEesmIrT2) or to LTE (ns3::NrLteMiErrorModel, default one) in case one wants to reproduce LTE PHY layer. In the NR case, the HARQ method and MCS table are configured according to the selected error model, e.g., ns3::NrEesmCcT1 uses HARQ-CC and MCS Table1.
 
 The error model of the NR data plane in the 'NR' module is developed according to standard
 link-to-system mapping (L2SM) techniques. The L2SM choice is aligned with the
@@ -493,6 +502,8 @@ the specification of the rate matcher in the 3GPP standard [TS38212]_, where
 the algorithm fixes the modulation order for generating the different blocks
 of the redundancy versions.
 
+The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedbacks, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
+
 
 MAC layer
 *********
@@ -652,9 +663,8 @@ In an NR system, the UL decisions for a slot are taken in a different moment tha
 At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
 
 
-Timing Relations
+Timing relations
 ================
-
 The 'NR' module supports flexible scheduling and DL HARQ Feedback timings in the
 communication between the gNB and the UE as specified in [TS38213]_, [TS38214]_.
 In particular, the following scheduling timings are defined:
@@ -718,10 +728,8 @@ The 'NR' module supports 1) fixing the MCS to a predefined value, both for
 downlink and uplink
 transmissions, separately, and 2) two different AMC models for link adaptation:
 
-* Error model-based: in which the MCS index is selected to meet a target transport
-BLER (e.g., of at most 0.1)
-* Shannon-based: which chooses the highest MCS that gives a spectral efficiency
-lower than the one provided by the Shannon rate
+* Error model-based: the MCS index is selected to meet a target transport BLER (e.g., of at most 0.1)
+* Shannon-based: chooses the highest MCS that gives a spectral efficiency lower than the one provided by the Shannon rate
 
 In the Error model-based AMC, the PHY abstraction model described in PHY layer
 section is used for link adaptation, i.e.,
@@ -744,15 +752,22 @@ Shannon-based AMC is selected, the value :math:`Ber` sets the requested bit erro
 in assigning the MCS.
 
 In the 'NR' module, link adaptation is done at the UE side, which selects the MCS index (quantized
-by 5 bits),
-and such index is then communicated to the gNB through a CQI index (quantized by 4 bits).
+by 5 bits), and such index is then communicated to the gNB through a CQI index (quantized by 4 bits).
+
+Note also that, in case of adaptive MCS, in the simulator, the gNBs DL data transmissions start with MCS0. Such MCS is used at the start and until there is a UE CQI feedback.
 
 
 Transport block model
 =====================
 The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
 
-**Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the procedure implemented in the simulator is as follows. Assuming :math:`R` as the ECR of the selected MCS, :math:`Q` as the modulation order of the selected MCS, :math:`n_s` as the number of allocated OFDM symbols, :math:`n_{rb}` as the number of allocated RBs, and :math:`n_{refSc}` as the number of reference subcarriers carrying DMRS per RB, the TB size is computed as follows: :math:`N_{info}= R \times Q \times n_s \times n_{rb} \times (12- n_{refSc})`. After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
+**Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the TB size is computed in the simulator as follows:
+
+:math:`N_{info}= R \times Q \times n_s \times n_{rb} \times (12- n_{refSc})`,
+
+where :math:`R` is the ECR of the selected MCS, :math:`Q` is the modulation order of the selected MCS, :math:`n_s` is the number of allocated OFDM symbols, :math:`n_{rb}` is the number of allocated RBs, and :math:`n_{refSc}` is the number of reference subcarriers carrying DMRS per RB.
+
+After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
 
 
 RLC layer
