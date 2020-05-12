@@ -306,10 +306,10 @@ main (int argc, char *argv[])
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
   remHelper->SetMinX (-30.0);
   remHelper->SetMaxX (30.0);
-  remHelper->SetResX (1);
+  remHelper->SetResX (100);
   remHelper->SetMinY (-30.0);
   remHelper->SetMaxY (30.0);
-  remHelper->SetResY (1);
+  remHelper->SetResY (50);
   remHelper->SetZ (1.5);
   remHelper->CreateRem (m_propagationLossModel, m_spectrumLossModel);
 

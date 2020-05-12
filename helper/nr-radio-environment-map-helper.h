@@ -103,9 +103,10 @@ public:
     void SetZ (double z);
 
     /**
-     * \brief Sets max number of REM points to be calculated per iteration
+     * \brief Sets the number of iterations to
+     * calculated the average of rem value
      */
-    //void SetMaxPointsPerIt (uint32_t maxPointsPerIt);
+    void SetNumOfItToAverage (uint16_t numOfIterationsToAverage);
 
 
     /**
@@ -192,6 +193,7 @@ private:
       Vector pos {0,0,0};
       double sinr {0};
       double rssi {0};
+      double avRssi {0};
     };
 
     /// List of listeners in the environment.
@@ -200,16 +202,18 @@ private:
     double m_xMin;   ///< The `XMin` attribute.
     double m_xMax;   ///< The `XMax` attribute.
     uint16_t m_xRes; ///< The `XRes` attribute.
-    //double m_xStep;  ///< Distance along X axis between adjacent listening points.
+    double m_xStep;  ///< Distance along X axis between adjacent listening points.
 
     double m_yMin;   ///< The `YMin` attribute.
     double m_yMax;   ///< The `YMax` attribute.
     uint16_t m_yRes; ///< The `YRes` attribute.
-    //double m_yStep;  ///< Distance along Y axis between adjacent listening points.
+    double m_yStep;  ///< Distance along Y axis between adjacent listening points.
 
     //uint32_t m_maxPointsPerIteration;  ///< The `MaxPointsPerIteration` attribute.
 
     double m_z;  ///< The `Z` attribute.
+
+    uint16_t m_numOfIterationsToAverage;
 
     Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
     Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;

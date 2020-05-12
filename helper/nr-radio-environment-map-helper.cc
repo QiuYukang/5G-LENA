@@ -120,13 +120,13 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                      MakeDoubleAccessor (&NrRadioEnvironmentMapHelper::SetZ,
                                                          &NrRadioEnvironmentMapHelper::GetZ),
                                      MakeDoubleChecker<double> ())
-                      /*.AddAttribute ("MaxPointsPerIteration",
-                                     "Maximum number of REM points to be "
-                                     "calculated per iteration.",
-                                     UintegerValue (20000),
-                                     MakeUintegerAccessor (&NrRadioEnvironmentMapHelper::SetMaxPointsPerIt,
-                                                           &NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
-                                     MakeUintegerChecker<uint32_t> (1,std::numeric_limits<uint32_t>::max ()))*/
+                      .AddAttribute ("IterForAverage",
+                                     "Number of iterations for the calculation"
+                                     "of the average rem value.",
+                                     UintegerValue (10),
+                                     MakeUintegerAccessor (&NrRadioEnvironmentMapHelper::SetNumOfItToAverage),
+                                                           //&NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
+                                     MakeUintegerChecker<uint16_t> ())
     ;
   return tid;
 }
@@ -174,11 +174,11 @@ NrRadioEnvironmentMapHelper::SetZ (double z)
   m_z = z;
 }
 
-/*void
-NrRadioEnvironmentMapHelper::SetMaxPointsPerIt (uint32_t maxPointsPerIt)
+void
+NrRadioEnvironmentMapHelper::SetNumOfItToAverage (uint16_t numOfIterationsToAverage)
 {
-  m_maxPointsPerIteration = maxPointsPerIt;
-}*/
+  m_numOfIterationsToAverage = numOfIterationsToAverage;
+}
 
 double
 NrRadioEnvironmentMapHelper::GetMinX () const
@@ -259,9 +259,19 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
 
   //Create the list of the REM Points
 
-  for (double x = m_xMin; x < m_xMax + 0.5*m_xRes; x += m_xRes)
+  m_xStep = (m_xMax - m_xMin)/(m_xRes);
+  m_yStep = (m_yMax - m_yMin)/(m_yRes);
+
+  NS_ASSERT_MSG (m_xMax > m_xMin, "xMax must be higher than xMin");
+  NS_ASSERT_MSG (m_yMax > m_yMin, "yMax must be higher than yMin");
+  NS_ASSERT_MSG (m_xRes != 0 || m_yRes != 0, "Resolution must be higher than 0");
+
+  //I leave this for the moment to perform tests with various resolutions
+  std::cout << "m_xStep: " << m_xStep << " m_yStep: " << m_yStep << std::endl;
+
+  for (double x = m_xMin; x < m_xMax + 0.5*m_xStep; x += m_xStep)
     {
-      for (double y = m_yMin; y < m_yMax + 0.5*m_yRes ; y += m_yRes)
+      for (double y = m_yMin; y < m_yMax + 0.5*m_yStep ; y += m_yStep)
         {
           RemPoint remPoint;
 
@@ -272,8 +282,8 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
           m_rem.push_back (remPoint);
         }
     }
-
 }
+
 void
 NrRadioEnvironmentMapHelper::CalcRemValue ()
 {
@@ -283,7 +293,9 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   //Iterate through the list of RemPoints
           //Set position of rtd
           //Set position of rrd
-          //doCalcRxPsd
+          //for loop m_numOfIterationsToAverage times
+                //doCalcRxPsd
+                //get average
 
 
   /****************** Create Rem Transmitting Device ***********************/
@@ -341,9 +353,10 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   m_spectrumLossModel->AddDevice (rtd.dev, rtd.antenna);
   m_spectrumLossModel->AddDevice (rrd.dev, rrd.antenna);
 
-  //Bw, Freq and numerology should be passed for the simulation scenario?
+  //Bw, Freq and numerology should be passed from the simulation scenario?
   Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28.0e9, 0);
   Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (40, sm1); //txPower?
+
 
 
   for (std::list<RemPoint>::iterator it = m_rem.begin ();
@@ -356,11 +369,16 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
       //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
       //it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
 
-      it->rssi = m_propagationLossModel->CalcRxPower(5, rtd.mob, rrd.mob);
+      //perform calculation m_numOfIterationsToAverage times and get the average value
+      double sumRssi = 0;
 
-      //It calculates (and doesn't crash, but I get always the same value :( )
+      for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
+        {
+          it->rssi = m_propagationLossModel->CalcRxPower(5, rtd.mob, rrd.mob);
+          sumRssi += it->rssi;
+      }
+      it->avRssi = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
     }
-
 }
 
 void
@@ -377,6 +395,7 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
                 << it->pos.z << "\t"
                 << it->sinr << "\t"
                 << it->rssi << "\t"
+                << it->avRssi << "\t"
                 << std::endl;
     }
 
