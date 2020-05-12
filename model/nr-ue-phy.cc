@@ -36,6 +36,7 @@
 #include <ns3/node.h>
 #include <ns3/double.h>
 #include <ns3/lte-radio-bearer-tag.h>
+#include <ns3/nr-sl-comm-resource-pool.h>
 #include <algorithm>
 #include <cfloat>
 #include <ns3/boolean.h>
@@ -1204,6 +1205,26 @@ NrUePhy::SetNrSlUePhySapUser(NrSlUePhySapUser* s)
 {
   NS_LOG_FUNCTION (this);
   m_nrSlUePhySapUser = s;
+}
+
+
+void
+NrUePhy::DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+{
+  NS_LOG_FUNCTION (this);
+  m_slPool = txPool;
+}
+
+void
+NrUePhy::DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool)
+{
+  NS_LOG_FUNCTION (this);
+}
+
+void
+NrUePhy::DoAddNrSlRemoteL2Id (uint32_t remoteL2Id)
+{
+  NS_LOG_FUNCTION (this);
 }
 
 

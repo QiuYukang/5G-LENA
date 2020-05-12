@@ -34,6 +34,7 @@ namespace ns3 {
 class NrChAccessManager;
 class BeamManager;
 class BeamId;
+class NrSlCommResourcePool;
 
 /**
  * \ingroup ue-phy
@@ -683,11 +684,39 @@ public:
    */
   void SetNrSlUePhySapUser (NrSlUePhySapUser* s);
 
+protected:
+  /**
+   * \brief Add NR Sidelink communication transmission pool
+   *
+   * Adds transmission pool for NR Sidelink communication
+   *
+   * \param remoteL2Id The destination Layer 2 ID
+   * \param txPool The pointer to the NrSlCommResourcePool
+   */
+  void DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool);
+  /**
+   * \brief Add NR Sidelink communication reception pool
+   *
+   * Adds reception pool for NR Sidelink communication
+   *
+   * \param remoteL2Id The destination Layer 2 ID
+   * \param rxPool The pointer to the NrSlCommResourcePool
+   */
+  void DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool);
+  /**
+   * \brief Add NR Sidelink remote Layer 2 Id
+   *
+   * Adds remote layer 2 id to list to destinations
+   *
+   * \param remoteL2Id The destination Layer 2 ID
+   */
+  void DoAddNrSlRemoteL2Id (uint32_t remoteL2Id);
 private:
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCphySapUser* m_nrSlUeCphySapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
   NrSlUePhySapProvider* m_nrSlUePhySapProvider; //!< SAP interface to receive calls from UE MAC instance
   NrSlUePhySapUser* m_nrSlUePhySapUser {nullptr}; //!< SAP interface to call the methods of UE MAC instance
+  Ptr<const NrSlCommResourcePool> m_slPool;
 };
 
 }
