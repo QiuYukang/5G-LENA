@@ -85,7 +85,6 @@ def build(bld):
         'model/lena-error-model.cc',
         'model/nr-sl-comm-resource-pool-factory.cc',
         'model/nr-sl-comm-preconfig-resource-pool-factory.cc',
-        'model/nr-sl-comm-resource-pool.cc',
         'model/nr-sl-bwp-manager-ue.cc',
         'model/nr-sl-ue-phy-sap.cc',
         ]
@@ -190,7 +189,6 @@ def build(bld):
         'model/lena-error-model.h',
         'model/nr-sl-comm-resource-pool-factory.h',
         'model/nr-sl-comm-preconfig-resource-pool-factory.h',
-        'model/nr-sl-comm-resource-pool.h',
         'model/nr-sl-bwp-manager-ue.h',
         'model/nr-sl-ue-phy-sap.h',
         ]
