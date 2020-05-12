@@ -173,19 +173,6 @@ protected:
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
-
-  /**
-   * \brief Get directs path beamforming vector bfv for a device with the mobility model
-   * a for transmission toward device with a mobility model b, by using antenna aAntenna.
-   * \param [in] a mobility model of the first device
-   * \param [in] b mobility model of the second device
-   * \param [in] aAntenna antenaArray of the first device
-   * \param [out] bfv resulting beamforming vector for antenna array for the first device
-   */
-  virtual void DoGetDirectPathBeamformingVector (const Ptr<MobilityModel>& a,
-                                                 const Ptr<MobilityModel>& b,
-                                                 const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
-                                                 BeamformingVector* bfv, uint16_t ccId) const;
 };
 
 /**

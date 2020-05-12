@@ -212,60 +212,16 @@ DirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice> 
   Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(ccId)->GetAntennaArray();
   Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(ccId)->GetAntennaArray();
 
-  DoGetDirectPathBeamformingVector (gnbMob, ueMob, gnbAntenna, gnbBfv, ccId);
-  DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv, ccId);
-
-}
-
-void
-DirectPathBeamforming::DoGetDirectPathBeamformingVector(const Ptr<MobilityModel>& a,
-                                                        const Ptr<MobilityModel>& b,
-                                                        const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
-                                                        BeamformingVector* bfv, uint16_t ccId) const
-{
-  complexVector_t antennaWeights;
-
-  // retrieve the position of the two devices
-  Vector aPos = a->GetPosition ();
-  Vector bPos = b->GetPosition ();
-
-  // compute the azimuth and the elevation angles
-  Angles completeAngle (bPos,aPos);
-
-  double posX = bPos.x - aPos.x;
-  double phiAngle = atan ((bPos.y - aPos.y) / posX);
-
-  if (posX < 0)
-    {
-      phiAngle = phiAngle + M_PI;
-    }
-  if (phiAngle < 0)
-    {
-      phiAngle = phiAngle + 2 * M_PI;
-    }
-
-  double hAngleRadian = fmod ((phiAngle + M_PI),2 * M_PI - M_PI); // the azimuth angle
-  double vAngleRadian = completeAngle.theta; // the elevation angle
-
-  // retrieve the number of antenna elements
-  int totNoArrayElements = aAntenna->GetNumberOfElements ();
-
-  // the total power is divided equally among the antenna elements
-  double power = 1 / sqrt (totNoArrayElements);
-
-  // compute the antenna weights
-  for (int ind = 0; ind < totNoArrayElements; ind++)
-    {
-      Vector loc = aAntenna->GetElementLocation (ind);
-      double phase = -2 * M_PI * (sin (vAngleRadian) * cos (hAngleRadian) * loc.x
-                                  + sin (vAngleRadian) * sin (hAngleRadian) * loc.y
-                                  + cos (vAngleRadian) * loc.z);
-      antennaWeights.push_back (exp (std::complex<double> (0, phase)) * power);
-    }
+  complexVector_t gNbAntennaWeights = CreateDirectPathBfv (gnbMob, ueMob, gnbAntenna);
   // store the antenna weights
-  *bfv = BeamformingVector (std::make_pair(antennaWeights, BeamId (0, 0)));
-}
+  *gnbBfv = BeamformingVector (std::make_pair(gNbAntennaWeights, BeamId::GetEmptyBeamId()));
 
+
+  complexVector_t ueAntennaWeights = CreateDirectPathBfv (ueMob, gnbMob, ueAntenna);
+  // store the antenna weights
+  *ueBfv = BeamformingVector (std::make_pair(ueAntennaWeights, BeamId::GetEmptyBeamId()));
+
+}
 
 TypeId
 QuasiOmniDirectPathBeamforming::GetTypeId (void)
@@ -296,8 +252,9 @@ QuasiOmniDirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNe
   *gnbBfv = std::make_pair (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
 
   //configure UE beamforming vector to be directed towards gNB
-  DirectPathBeamforming::DoGetDirectPathBeamformingVector (ueMob, gnbMob, ueAntenna, ueBfv, ccId);
-
+  complexVector_t ueAntennaWeights = CreateDirectPathBfv (ueMob, gnbMob, ueAntenna);
+  // store the antenna weights
+  *ueBfv = BeamformingVector (std::make_pair(ueAntennaWeights, BeamId::GetEmptyBeamId()));
 }
 
 
