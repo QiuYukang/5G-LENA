@@ -1092,17 +1092,12 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_DEBUG ("Starting UL DATA TTI at symbol " << +m_currSymStart <<
                 " to " << +m_currSymStart + dci->m_numSym);
 
-  // Assert: we expect TDMA in UL
-  NS_ASSERT (static_cast<uint32_t> (std::count (dci->m_rbgBitmask.begin (),
-                                                dci->m_rbgBitmask.end (), 1U)) == dci->m_rbgBitmask.size ());
-
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
-                                        dci->m_tbSize, dci->m_mcs,
-                                        FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                        dci->m_harqProcess, dci->m_rv, false,
-                                        dci->m_symStart, dci->m_numSym);
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+                                FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                dci->m_harqProcess, dci->m_rv, false,
+                                dci->m_symStart, dci->m_numSym);
 
   bool found = false;
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
@@ -1112,6 +1107,9 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       if (dci->m_rnti == ueRnti)
         {
           NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+          // Even if we change the beamforming vector, we hope that the scheduler
+          // has scheduled UEs within the same beam (and, therefore, have the same
+          // beamforming vector)
           m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
           found = true;
           break;
