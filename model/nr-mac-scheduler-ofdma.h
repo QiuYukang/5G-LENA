@@ -83,9 +83,14 @@ public:
 protected:
   virtual BeamSymbolMap
   AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl) const override;
+  virtual BeamSymbolMap
+  AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl) const override;
 
   virtual std::shared_ptr<DciInfoElementTdma>
   CreateDlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+               uint32_t maxSym) const override;
+  virtual std::shared_ptr<DciInfoElementTdma>
+  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
                uint32_t maxSym) const override;
 
   /**
@@ -95,19 +100,15 @@ protected:
    * \param symOfBeam Number of symbols for the beam
    */
   virtual void
-  ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override
-  {
-    spoint->m_rbg = 0;
-    spoint->m_sym += symOfBeam;
-  }
+  ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override;
+
+  virtual void
+  ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override;
 
   NrMacSchedulerOfdma::BeamSymbolMap
   GetSymPerBeam (uint32_t symAvail, const ActiveUeMap &activeDl) const;
 
 private:
-  std::shared_ptr<DciInfoElementTdma> CreateDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                                 uint32_t tbs, DciInfoElementTdma::DciFormat fmt,
-                                                 uint32_t mcs, uint8_t numSym) const;
 
   TracedValue<uint32_t> m_tracedValueSymPerBeam;
 };

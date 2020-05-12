@@ -246,6 +246,95 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
   return symPerBeam;
 }
 
+NrMacSchedulerNs3::BeamSymbolMap
+NrMacSchedulerOfdma::AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl) const
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_LOG_DEBUG ("# beams active flows: " << activeUl.size () << ", # sym: " << symAvail);
+
+  GetFirst GetBeamId;
+  GetSecond GetUeVector;
+  BeamSymbolMap symPerBeam = GetSymPerBeam (symAvail, activeUl);
+
+  // Iterate through the different beams
+  for (const auto &el : activeUl)
+    {
+      // Distribute the RBG evenly among UEs of the same beam
+      uint32_t resources = GetBandwidthInRbg ();
+      uint32_t beamSym = symPerBeam.at (GetBeamId (el));
+      uint32_t rbgAssignable = beamSym;
+      std::vector<UePtrAndBufferReq> ueVector;
+      FTResources assigned (0,0);
+      for (const auto &ue : GetUeVector (el))
+        {
+          ueVector.emplace_back (ue);
+        }
+
+      for (auto & ue : ueVector)
+        {
+          BeforeUlSched (ue, FTResources (rbgAssignable * beamSym, beamSym));
+        }
+
+      while (resources > 0)
+        {
+          GetFirst GetUe;
+          std::sort (ueVector.begin (), ueVector.end (), GetUeCompareUlFn ());
+          auto schedInfoIt = ueVector.begin ();
+          uint32_t bufQueueSize = schedInfoIt->second;
+
+          // Ensure fairness: pass over UEs which already has enough resources to transmit
+          while (schedInfoIt != ueVector.end ())
+            {
+              if (GetUe (*schedInfoIt)->m_ulTbSize >= bufQueueSize)
+                {
+                  schedInfoIt++;
+                }
+              else
+                {
+                  break;
+                }
+            }
+
+          // In the case that all the UE already have their requirements fullfilled,
+          // then stop the beam processing and pass to the next
+          if (schedInfoIt == ueVector.end ())
+            {
+              break;
+            }
+
+          // Assign 1 RBG for each available symbols for the beam,
+          // and then update the count of available resources
+          GetUe (*schedInfoIt)->m_ulRBG += rbgAssignable;
+          assigned.m_rbg += rbgAssignable;
+
+          GetUe (*schedInfoIt)->m_ulSym = beamSym;
+          assigned.m_sym = beamSym;
+
+          resources -= 1; // Resources are RBG, so they do not consider the beamSym
+
+          // Update metrics
+          NS_LOG_DEBUG ("Assigned " << rbgAssignable <<
+                        " UL RBG, spanned over " << beamSym << " SYM, to UE " <<
+                        GetUe (*schedInfoIt)->m_rnti);
+          AssignedUlResources (*schedInfoIt, FTResources (rbgAssignable, beamSym),
+                               assigned);
+
+          // Update metrics for the unsuccessfull UEs (who did not get any resource in this iteration)
+          for (auto & ue : ueVector)
+            {
+              if (GetUe (ue)->m_rnti != GetUe (*schedInfoIt)->m_rnti)
+                {
+                  NotAssignedUlResources (ue, FTResources (rbgAssignable, beamSym),
+                                          assigned);
+                }
+            }
+        }
+    }
+
+  return symPerBeam;
+}
+
 /**
  * \brief Create the DL DCI in OFDMA mode
  * \param spoint Starting point
@@ -269,48 +358,14 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   NS_ABORT_IF (maxSym > UINT8_MAX);
 
   // If is less than 4, then we can't transmit any new data, so don't create dci.
-  if (tbs <= 4)
+  if (tbs < 4)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
                     " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 4");
       return nullptr;
     }
 
-  return CreateDci (spoint, ueInfo, tbs, DciInfoElementTdma::DL, ueInfo->m_dlMcs,
-                    static_cast<uint8_t> (maxSym));
-}
-
-/**
- * \brief Create an OFDMA DCI
- * \param spoint Starting point
- * \param ueInfo UE representation
- * \param tbs TBS
- * \param fmt Format (DL or UL)
- * \param mcs MCS
- * \param numSym maximum number of symbol to use
- * \return a pointer to the newly created instance of the DCI
- *
- * Create a DCI suitable for OFDMA. The DCI is created on top of the available
- * Resource Blocks, starting from spoint, for an amount that is given by the
- * formula
- *
- * \f$ RB = RbPerRbg * (ueInfo->m_dlRBG / numSym) \f$
- *
- * So, the available RB will be from spoint->m_rb to spoint->m_rb + RB calculated
- * by the above formula.
- */
-std::shared_ptr<DciInfoElementTdma>
-NrMacSchedulerOfdma::CreateDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                    const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                    uint32_t tbs, DciInfoElementTdma::DciFormat fmt,
-                                    uint32_t mcs, uint8_t numSym) const
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT (tbs > 0);
-  NS_ASSERT (numSym > 0);
-  NS_ASSERT (ueInfo->m_dlRBG % numSym == 0);
-
-  uint32_t RBGNum = ueInfo->m_dlRBG / numSym;
+  uint32_t RBGNum = ueInfo->m_dlRBG / maxSym;
   std::vector<uint8_t> rbgBitmask;
 
   for (uint32_t i = 0; i < GetBandwidthInRbg (); ++i)
@@ -328,16 +383,81 @@ NrMacSchedulerOfdma::CreateDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
                static_cast<uint32_t> (spoint->m_rbg) << " to " <<
                static_cast<uint32_t> (spoint->m_rbg + RBGNum) << " for " <<
-               static_cast<uint32_t> (numSym) << " SYM.");
+               static_cast<uint32_t> (maxSym) << " SYM.");
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
-      (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId ());
+      (ueInfo->m_rnti, DciInfoElementTdma::DL, spoint->m_sym, maxSym, ueInfo->m_dlMcs,
+       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId ());
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 
   spoint->m_rbg += RBGNum;
 
   return dci;
+}
+
+std::shared_ptr<DciInfoElementTdma>
+NrMacSchedulerOfdma::CreateUlDci (PointInFTPlane *spoint,
+                                      const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                                      uint32_t maxSym) const
+{
+  NS_LOG_FUNCTION (this);
+
+  uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
+                                           ueInfo->m_ulRBG * GetNumRbPerRbg ());
+
+  // If is less than 4, then we can't transmit any new data, so don't create dci.
+  if (tbs < 4)
+    {
+      NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
+                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 4");
+      return nullptr;
+    }
+
+  uint32_t RBGNum = ueInfo->m_ulRBG / maxSym;
+  std::vector<uint8_t> rbgBitmask;
+
+  for (uint32_t i = 0; i < GetBandwidthInRbg (); ++i)
+    {
+      if (i >= spoint->m_rbg && i < spoint->m_rbg + RBGNum)
+        {
+          rbgBitmask.push_back (1);
+        }
+      else
+        {
+          rbgBitmask.push_back (0);
+        }
+    }
+
+  NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
+               static_cast<uint32_t> (spoint->m_rbg) << " to " <<
+               static_cast<uint32_t> (spoint->m_rbg + RBGNum) << " for " <<
+               static_cast<uint32_t> (maxSym) << " SYM.");
+
+  NS_ASSERT (spoint->m_sym >= maxSym);
+  std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
+      (ueInfo->m_rnti, DciInfoElementTdma::UL, spoint->m_sym - maxSym, maxSym, ueInfo->m_ulMcs,
+       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId ());
+
+  dci->m_rbgBitmask = std::move (rbgBitmask);
+
+  spoint->m_rbg += RBGNum;
+
+  return dci;
+}
+
+void
+NrMacSchedulerOfdma::ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const
+{
+  spoint->m_rbg = 0;
+  spoint->m_sym += symOfBeam;
+}
+
+void
+NrMacSchedulerOfdma::ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const
+{
+  spoint->m_rbg = 0;
+  spoint->m_sym -= symOfBeam;
 }
 
 } // namespace ns3
