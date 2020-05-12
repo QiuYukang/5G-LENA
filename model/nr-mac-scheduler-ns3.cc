@@ -1777,27 +1777,39 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
       ulSymAvail -= usedUl;
     }
 
+  std::vector<uint32_t> symToAl;
+  symToAl.resize (15, 0);
+
   auto & totUlSym = m_ulAllocationMap.at (ulSfn.GetEncoding ()).m_totUlSym;
   auto & allocations = m_ulAllocationMap.at (ulSfn.GetEncoding ()).m_ulAllocations;
   for (const auto &alloc : allocInfo->m_varTtiAllocInfo)
     {
       if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
+          // Here we are assuming (with the assignment) that all the
+          // allocations starting at a particular symbol will have the same
+          // length.
+          symToAl[alloc.m_dci->m_symStart] = alloc.m_dci->m_numSym;
+          NS_LOG_INFO ("UL Allocation. RNTI " <<
+                       alloc.m_dci->m_rnti << ", symStart " <<
+                       static_cast<uint32_t>(alloc.m_dci->m_symStart) <<
+                       " numSym " << +alloc.m_dci->m_numSym);
+
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              // THIS DOESN'T WORK FOR UL OFDMA (IF EXISTS)
-              NS_LOG_INFO ("Placed an allocation in the map for the CQI, RNTI " <<
-                           alloc.m_dci->m_rnti << ", symStart " <<
-                           static_cast<uint32_t>(alloc.m_dci->m_symStart) <<
-                           " numSym " << +alloc.m_dci->m_numSym);
+              NS_LOG_INFO ("Placed the above allocation in the CQI map");
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
                                                    alloc.m_dci->m_tbSize,
                                                    alloc.m_dci->m_symStart,
                                                    alloc.m_dci->m_numSym,
                                                    alloc.m_dci->m_mcs));
             }
-          totUlSym += alloc.m_dci->m_numSym;
         }
+    }
+
+  for (const auto & v : symToAl)
+    {
+      totUlSym += v;
     }
 
   NS_ASSERT_MSG ((dataSymPerSlot + m_ulCtrlSymbols) - ulSymAvail == totUlSym,
