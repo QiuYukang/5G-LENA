@@ -382,6 +382,16 @@ public:
   bool GetSnrTest ();
 
   /**
+   * \brief Flags for OperationBand initialization.
+   */
+  enum OperationBandFlags : uint8_t
+  {
+    INIT_PROPAGATION = 0x01, //!< Initialize the propagation loss model
+    INIT_FADING = 0x02,      //!< Initialize the fading model
+    INIT_CHANNEL = 0x04      //!< Initialize the channel model
+  };
+
+  /**
    * \brief Initialize the bandwidth parts by creating and configuring the channel
    * models, if they are not already initialized.
    *
@@ -389,8 +399,10 @@ public:
    * will not touch anything.
    *
    * \param band the band representation
+   * \param flags the flags for the initialization. Default to initialize everything
    */
-  void InitializeOperationBand (OperationBandInfo *band);
+  void InitializeOperationBand (OperationBandInfo *band,
+                                uint8_t flags = INIT_PROPAGATION | INIT_FADING | INIT_CHANNEL);
 
   /**
    * Activate a dedicated EPS bearer on a given set of UE devices.
@@ -678,17 +690,14 @@ private:
    */
   void DoDeActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, uint8_t bearerId);
 
-  Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n,
-                                  const Ptr<SpectrumChannel> &c,
-                                  const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
+  Ptr<MmWaveEnbPhy> CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                   const Ptr<MmWaveEnbNetDevice> &dev,
                                   const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyEndCtrlCallback);
   Ptr<MmWaveMacScheduler> CreateGnbSched ();
   Ptr<MmWaveEnbMac> CreateGnbMac ();
 
   Ptr<MmWaveUeMac> CreateUeMac () const;
-  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const Ptr<SpectrumChannel> &c,
-                                const Ptr<ThreeGppSpectrumPropagationLossModel> &gppChannel,
+  Ptr<MmWaveUePhy> CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                 const Ptr<MmWaveUeNetDevice> &dev,
                                 const MmWaveSpectrumPhy::MmWavePhyDlHarqFeedbackCallback &dlHarqCallback,
                                 const MmWaveSpectrumPhy::MmWavePhyRxCtrlEndOkCallback &phyRxCtrlCallback);
