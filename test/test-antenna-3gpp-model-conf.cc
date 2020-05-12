@@ -19,30 +19,6 @@
 
  */
 
-//#include "ns3/mmwave-helper.h"
-//#include "ns3/core-module.h"
-//#include "ns3/network-module.h"
-//#include "ns3/mobility-module.h"
-//#include "ns3/config-store.h"
-//#include "ns3/log.h"
-//#include "ns3/nr-point-to-point-epc-helper.h"
-//#include "ns3/network-module.h"
-//#include "ns3/ipv4-global-routing-helper.h"
-//#include "ns3/internet-module.h"
-//#include "ns3/applications-module.h"
-//#include "ns3/point-to-point-helper.h"
-//#include "ns3/eps-bearer-tag.h"
-//#include "ns3/test.h"
-//#include "ns3/abort.h"
-//#include "ns3/object.h"
-//#include "ns3/mmwave-mac-scheduler-ns3.h"
-//#include "ns3/mmwave-mac-scheduler-ofdma.h"
-//#include "ns3/mmwave-mac-scheduler-ofdma-rr.h"
-//#include "ns3/mmwave-phy-mac-common.h"
-//#include "ns3/mmwave-spectrum-phy.h"
-//#include "ns3/basic-data-calculators.h"
-//#include "ns3/antenna-array-3gpp-model.h"
-//#include "ns3/mmwave-ue-net-device.h"
 #include "ns3/core-module.h"
 #include "ns3/config-store.h"
 #include "ns3/network-module.h"
@@ -70,9 +46,7 @@ using namespace ns3;
  * which a single UE is attached to a gNB.
  * UE performs a UDP full buffer downlink traffic.
  * gNB is configured to have 1 bandwidth part.
- * Currently there are 2 types of antenna elements: omni and 3gpp directional,
- * and they are implemented in different antenna array models:
- * AntennaArrayModel and AntennaArray3gppModel.
+ * Currently there are 2 types of antenna elements: omni and 3gpp directional.
  *
  */
 

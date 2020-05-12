@@ -970,34 +970,83 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
 
 cttc-3gpp-channel-example.cc
 ============================
-The program ``examples/cttc-3gpp-channel-example`` ... TBC [B]
+The program ``examples/cttc-3gpp-channel-example`` allows the user to setup a 
+simulation using the implementation of the 3GPP channel model decribed in TR 38.900. 
+The network topology consists, by default, of 2 UEs and 2 gNbs. The user can 
+select any of the typical scenarios in TR 38.900 such as Urban Macro (UMa), 
+Urban Micro Street-Canyon (UMi-Street-Canyon), Rural Macro (RMa) or Indoor 
+Hotspot (InH) in two variants: 'InH-OfficeMixed' and 'InH-OfficeOpen'. The 
+example also supports either mobile or static UEs.
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
 
-cttc-simple-interference-example.cc
-===================================
-The program ``examples/cttc-simple-interference-example`` ... TBC [B]
-
-
 cttc-lte-ca-demo.cc
 ===================
-The program ``examples/cttc-lte-ca-demo`` ... TBC [C]
+The program ``examples/cttc-lte-ca-demo`` allows the user to setup a simulation
+to test the configuration of inter-band Carrier Aggregation in an LTE deployment. 
+One Component Carrier (CC) is created in LTE Band 40 and two CCs are created in 
+LTE Band 38. The second CC in Band 38 can be configured to operate in TDD or FDD
+mode; the other two CCs are fixed to TDD.  The user can provide the TDD pattern
+to use in every TDD CC as input.
 
+In this example, the deployment consists of one gNB and one UE. The UE can be 
+configure to transmit different traffic flows simultaneously. Each flow is mapped 
+to a unique CC, so the total UE traffic can be aggregated.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-lte-ca-demo_8cc.html
 
 cttc-nr-cc-bwp-demo.cc
 ======================
-The program ``examples/cttc-nr-cc-bwp-demo`` ... TBC [C]
+The program ``examples/cttc-nr-cc-bwp-demo`` allows the user to setup a simulation
+to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment. 
+The example shows how to configure the operation spectrum by definining all the
+operation bands, Component Carriers (CCs) and Bandwidth Parts (BWPs) that will 
+be used in the simulation. The user can select whether the creation of the spectrum 
+structures is automated with the CcBwpCreator helper; or if the user wants to 
+manually provide a more complex spectrum configuration.
 
+In this example, the NR deployment consists of one gNB and one UE. The operation 
+mode is set to TDD. The user can provide a TDD pattern as input to the simulation;
+otherwise the simulation will assume by default that dowlink and uplink 
+transmissions can occur in the same slot.
+
+The UE can be configured to transmit three different traffic flows simultaneously. 
+Each flow is mapped to a unique CC, so the total UE traffic can be aggregated. 
+The generated traffic can be only downlink (DL), only Uplink (UL), or both at the 
+same time. UE data transmissions will occur in the right DL or UL slot according 
+to the configured TDD pattern.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-nr-cc-bwp-demo_8cc.html
 
 cttc-nr-demo.cc
 ===============
-The program ``examples/cttc-nr-demo`` ...  TBC [N]
+The program ``examples/cttc-nr-demo`` is recommended as a tutorial to the use of
+the ns-3 NR module. In this example, the user can understand the basics to 
+successfully configure a full NR simulation with end-to-end data transmission.
 
+Firtly, the example creates the network deployment using the GridScenario helper. 
+By default, the deployment consists of a single gNB and two UEs, but the user 
+can provide a different number of gNBs and UEs per gNB.
 
-cttc-nr-tdd-cc-bwp-demo.cc
-==========================
-The program ``examples/cttc-nr-tdd-cc-bwp-demo`` ... TBC [K]
+The operation mode is set to TDD. The user can provide a TDD pattern as input to 
+the simulation; otherwise the simulation will assume by default that dowlink and 
+uplink transmissions can occur in the same slot.
+
+The example performs inter-band Carrier Aggregation of two Component Carriers 
+(CC), and each CC has one Bandwidth Part (BWP) occupying the whole CC bandwidth. 
+
+It is possible to set different configurations for each CC such as the numerology, 
+the transmission power or the TDD pattern. In addition, each gNB can also have a 
+different configuration of its CCs.
+
+The UE can be configure to transmit two traffic flows simultaneously. Each flow 
+is mapped to a single CC, so the total UE traffic can be aggregated.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-nr-demo_8cc.html
 
 
 
@@ -1019,6 +1068,9 @@ The test provides the traces according to which can be checked whether
 the gNB and UE clocks perform synchronously according the selected numerology,
 and that serialization and deserialization of the frame, subframe, slot and TTI number
 performs correctly for the new NR frame structure.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-system-test-configurations_8cc.html
 
 
 Test of packet delay in NR protocol stack
@@ -1043,6 +1095,9 @@ The test passes if all of the previous steps are according to the
 timings related to a specific numerology. The test is run for different
 numerologies.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-test-numerology-delay_8cc.html
+
 
 Test of numerology FDM
 ======================
@@ -1052,6 +1107,9 @@ operate with
 2 BWPs. The test checks if the achieved throughput of a flow over a specific
 BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-test-fdm-of-numerologies_8cc.html
 
 
 Test for NR schedulers
@@ -1070,6 +1128,9 @@ different number of UEs, number of beams, numerology, traffic direction (DL, UL,
 DL and UL), modes of scheduling (OFDMA and TDMA) and
 different scheduling algorithms (RR, PR, MR).
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/mmwave-test-sched_8cc.html
+
 
 Test for OFDMA
 ==============
@@ -1084,6 +1145,8 @@ expected to affect the MCS and performance, while in the case when RBGs assigned
 to gNBs are not overlapping shall be the same as in the case when only a
 single gNB is transmitting.
 
+The complete details of the simulation script are provided in TBC [N]
+
 
 Test for error model
 ====================
@@ -1093,10 +1156,19 @@ The test checks two issues: 1) LDPC base graph (BG) selection works properly, an
 BLER values are properly obtained from the BLER-SINR look up tables for different
 block sizes, MCS Tables, BG types, and SINR values.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
+
 
 Test for antenna model
 ======================
-Test case called ... TBC [B]
+Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations 
+of the antenna array model by checking if the throughput/SINR/MCS obtained is as 
+expected. The test scenario consists of one gNB and a single UE attached to the
+gNB. Different positions of the UE are evaluated.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
 
 
 Test for TDD patterns
@@ -1109,10 +1181,17 @@ of DL Data, scheduling of DL HARQ Feedback and scheduling of UL Data, respective
 The test calls ``MmWaveEnbPhy::GenerateStructuresFromPattern`` for a number of possible
 TDD patterns and compares the output with a predefined set of the expected results.
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-lte-pattern-generation_8cc.html
+
 Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
 when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
 In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
 the test will fail.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
+
 
 
 Open issues and future work
