@@ -21,6 +21,7 @@
 #define NR_RADIO_ENVIRONMENT_MAP_HELPER_H
 
 #include <ns3/object.h>
+#include <ns3/object-factory.h>
 #include "ns3/simple-net-device.h"
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
@@ -153,10 +154,15 @@ public:
     //uint32_t GetMaxPointsPerIt () const;
 
     /**
+     * \brief Configure propagation loss models
+     */
+    void ConfigurePropagationModelsFactories (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
+                                              Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
+
+    /**
      * This method
      */
-    void CreateRem (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
-                             Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
+    void CreateRem ();
 
     /**
      * This method creates the list of Rem Points
@@ -168,6 +174,11 @@ private:
      * This method
      */
     void CalcRemValue ();
+
+    /**
+     * This method
+     */
+    void CreateTemporalPropagationModels ();
 
     /**
      * Go through every listener, write the computed SINR, and then reset it.
@@ -215,9 +226,17 @@ private:
 
     uint16_t m_numOfIterationsToAverage;
 
+    ObjectFactory m_propagationLossModelFactory;
+    ObjectFactory m_spectrumLossModelFactory;
+    ObjectFactory m_channelConditionModelFactory;
+
+    Ptr<ThreeGppPropagationLossModel> m_remPropagationLossModelCopy;
+    Ptr<ThreeGppSpectrumPropagationLossModel> m_remSpectrumLossModelCopy;
+    Ptr<ChannelConditionModel> m_remCondModelCopy;
+
     Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
-    Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
-    Ptr<ChannelConditionModel> m_condModel;
+    //Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
+    //Ptr<ChannelConditionModel> m_condModel;
 
     std::string m_outputFile;   ///< The `OutputFile` attribute.
 

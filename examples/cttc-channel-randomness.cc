@@ -311,7 +311,8 @@ main (int argc, char *argv[])
   remHelper->SetMaxY (30.0);
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
-  remHelper->CreateRem (m_propagationLossModel, m_spectrumLossModel);
+  remHelper->ConfigurePropagationModelsFactories (m_propagationLossModel, m_spectrumLossModel);
+  remHelper->CreateRem ();
 
 
   Simulator::Stop (MilliSeconds (simTimeMs));

@@ -26,6 +26,7 @@
 #include <ns3/uinteger.h>
 #include <ns3/string.h>
 #include <ns3/boolean.h>
+#include "ns3/pointer.h"
 #include <ns3/config.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -229,8 +230,23 @@ NrRadioEnvironmentMapHelper::GetMaxPointsPerIt () const
 }*/
 
 void
-NrRadioEnvironmentMapHelper::CreateRem (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
-                                            Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel)
+NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
+                                                                  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel)
+{
+  //Get all the necessary pointers (things may be missing at this point)
+  m_propagationLossModel = propagationLossModel;
+  NS_ASSERT_MSG (m_propagationLossModel = propagationLossModel, "m_propagationLossModel is null");
+
+  /***** configure channel condition model factory *****/
+  m_channelConditionModelFactory.SetTypeId (m_propagationLossModel->GetChannelConditionModel ()->GetInstanceTypeId ());
+  /***** configure pathloss model factory *****/
+  m_propagationLossModelFactory.SetTypeId (propagationLossModel->GetInstanceTypeId ());
+  /***** configure spectrum model factory *****/
+  m_spectrumLossModelFactory.SetTypeId (spectrumLossModel->GetInstanceTypeId ());
+}
+
+void
+NrRadioEnvironmentMapHelper::CreateRem ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -241,15 +257,9 @@ NrRadioEnvironmentMapHelper::CreateRem (Ptr<ThreeGppPropagationLossModel> propag
       return;
     }
 
-  //Get all the necessaty pointers (things may be missing at this point)
-  m_propagationLossModel = propagationLossModel;
-  m_spectrumLossModel = spectrumLossModel;
-  m_condModel = m_propagationLossModel->GetChannelConditionModel ();
-
   CreateListOfRemPoints ();
   CalcRemValue ();
   PrintRemToFile ();
-
 }
 
 void
@@ -349,36 +359,62 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   rrd.antenna->ChangeToOmniTx ();
 
 
-  // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-  m_spectrumLossModel->AddDevice (rtd.dev, rtd.antenna);
-  m_spectrumLossModel->AddDevice (rrd.dev, rrd.antenna);
-
-  //Bw, Freq and numerology should be passed from the simulation scenario?
-  Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28.0e9, 0);
-  Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (40, sm1); //txPower?
-
-
-
   for (std::list<RemPoint>::iterator it = m_rem.begin ();
        it != m_rem.end ();
        ++it)
     {
       rrd.mob->SetPosition (it->pos);    //Assign to the rrd mobility all the positions of remPoint
 
-      //Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, rtd.mob, rrd.mob);
-      //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
-      //it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
-
       //perform calculation m_numOfIterationsToAverage times and get the average value
       double sumRssi = 0;
 
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
-          it->rssi = m_propagationLossModel->CalcRxPower(5, rtd.mob, rrd.mob);
+          CreateTemporalPropagationModels ();
+
+          NS_ASSERT_MSG (m_remSpectrumLossModelCopy, "m_remSpectrumLossModelCopy is null");
+          // initialize the devices in the ThreeGppSpectrumPropagationLossModel
+          m_remSpectrumLossModelCopy->AddDevice (rtd.dev, rtd.antenna);
+          m_remSpectrumLossModelCopy->AddDevice (rrd.dev, rrd.antenna);
+
+          //Bw, Freq and numerology should be passed from the simulation scenario?
+          Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28.0e9, 0);
+          Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (40, sm1); //txPower?
+
+          //Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, rtd.mob, rrd.mob);
+          //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+          //it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
+
+          it->rssi = m_remPropagationLossModelCopy->CalcRxPower(5, rtd.mob, rrd.mob);
           sumRssi += it->rssi;
       }
       it->avRssi = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
     }
+}
+
+void
+NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
+{
+  //create rem copy of channel condition
+  m_remCondModelCopy = m_channelConditionModelFactory.Create<ThreeGppChannelConditionModel> ();
+  NS_ASSERT_MSG (m_remCondModelCopy, "m_remCondModelCopy is null");
+
+  //create rem copy of propagation model
+  m_remPropagationLossModelCopy = m_propagationLossModelFactory.Create <ThreeGppPropagationLossModel> ();
+  NS_ASSERT_MSG (m_remPropagationLossModelCopy, "m_remPropagationLossModelCopy is null");
+  m_remPropagationLossModelCopy->SetAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
+  //TODO: Check how to get if shadowing is true or false
+  m_remPropagationLossModelCopy->SetAttribute ("ShadowingEnabled", BooleanValue (false));
+  m_remPropagationLossModelCopy->SetChannelConditionModel (m_remCondModelCopy);
+
+  // create rem copy of spectrum model
+  m_remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
+  NS_ASSERT_MSG (m_remSpectrumLossModelCopy, "m_remSpectrumLossModelCopy is null");
+  m_remSpectrumLossModelCopy->SetChannelModelAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
+  //TODO: Check how to get the scenario
+  std::string scenario = "UMa";
+  m_remSpectrumLossModelCopy->SetChannelModelAttribute ("Scenario", StringValue (scenario));
+  m_remSpectrumLossModelCopy->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (m_remCondModelCopy));
 }
 
 void
