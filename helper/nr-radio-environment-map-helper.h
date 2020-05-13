@@ -197,14 +197,19 @@ private:
       Ptr<SimpleNetDevice> dev;
       Ptr<MobilityModel> mob;
       Ptr<ThreeGppAntennaArrayModel> antenna;
+      double txPower {0}; // TODO just check if this is the good place, attribute is per RTD device
+      double bandwidth {0}; // TODO Check if these three b,f,n maybe should be the parameters/attributes of RemHelper, because 1 REM map makes sense fore 1 configuration of channel,
+      double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
+      uint16_t numerology {0}; // TODO -||-
     };
 
     struct RemPoint
     {
       Vector pos {0,0,0};
-      double sinr {0};
-      double rssi {0};
-      double avRssi {0};
+      double sinrdB {0};
+      double rssidBm {0};
+      double avRssidBm {0};
+      double snrdB {0};
     };
 
     /// List of listeners in the environment.

@@ -34,9 +34,10 @@
 #include <ns3/constant-position-mobility-model.h>
 #include <ns3/spectrum-model.h>
 #include "ns3/mmwave-spectrum-value-helper.h"
+#include "ns3/beamforming-vector.h"
 
-
-
+#include <chrono>
+#include <ctime>
 #include <fstream>
 #include <limits>
 
@@ -124,7 +125,7 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                       .AddAttribute ("IterForAverage",
                                      "Number of iterations for the calculation"
                                      "of the average rem value.",
-                                     UintegerValue (10),
+                                     UintegerValue (1),
                                      MakeUintegerAccessor (&NrRadioEnvironmentMapHelper::SetNumOfItToAverage),
                                                            //&NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
                                      MakeUintegerChecker<uint16_t> ())
@@ -329,6 +330,14 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
   //Configure Antenna
   rtd.antenna->ChangeToOmniTx ();
+  //Configure power
+  rtd.txPower = 5;
+  //Configure bandwidth
+  rtd.bandwidth = 100e6;
+  //Configure central frequency
+  rtd.frequency = 28e9;
+  //Configure numerology
+  rtd.numerology = 0;
 
   /******************* Create Rem Receiving Device ************************/
   RemDevice rrd;
@@ -354,16 +363,36 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
 
   rrd.mob = rrd.node->GetObject<MobilityModel> ();  //this is where I think I am messing up
   //Set Antenna
-  rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
+  rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1));
   //Configure Antenna
   rrd.antenna->ChangeToOmniTx ();
+
+
+  std::cout << "Started to generate REM points. There are in total:"<<m_rem.size()<<std::endl;
+  uint16_t pointsCounter = 0;
 
 
   for (std::list<RemPoint>::iterator it = m_rem.begin ();
        it != m_rem.end ();
        ++it)
     {
+      pointsCounter++;
+
+      auto startPsdTime = std::chrono::system_clock::now();
+      std::time_t start_time = std::chrono::system_clock::to_time_t(startPsdTime);
+      std::cout<<"\n REM point: "<<pointsCounter<<"started at:"<<std::ctime(&start_time)<<std::endl;
+
+
       rrd.mob->SetPosition (it->pos);    //Assign to the rrd mobility all the positions of remPoint
+
+      // configure beam on rtd antenna to point toward rrd
+      rtd.antenna->SetBeamformingVector (CreateDirectPathBfv (rtd.mob, rrd.mob, rtd.antenna));
+      // configure beam on rrd antenna to be quasi-omn
+
+      UintegerValue numRows, numColumns;
+      rtd.antenna->GetAttribute ("NumRows", numRows);
+      rtd.antenna->GetAttribute ("NumColumns", numColumns);
+      rrd.antenna->SetBeamformingVector (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()));
 
       //perform calculation m_numOfIterationsToAverage times and get the average value
       double sumRssi = 0;
@@ -378,17 +407,44 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
           m_remSpectrumLossModelCopy->AddDevice (rrd.dev, rrd.antenna);
 
           //Bw, Freq and numerology should be passed from the simulation scenario?
-          Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28.0e9, 0);
-          Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (40, sm1); //txPower?
+          Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (rtd.bandwidth, rtd.frequency, rtd.numerology);
+          Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (rtd.txPower, sm1); //txPower?
 
-          //Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, rtd.mob, rrd.mob);
+          // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
+          Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
+          double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (0, rtd.mob, rrd.mob);
+          double pathGainLinear = std::pow (10.0, (-pathLossDb) / 10.0);
+
+          // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
+          *(rxPsd) *= pathGainLinear;
+
+          // Now we call spectrum model, which in this keys add a beamforming gain
+          //rxPsd = m_remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, rtd.mob, rrd.mob);
+
+          // Now we need to apply noise to obtain SNR
+          Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, sm1);
+          SpectrumValue snr = (*rxPsd) / (*noisePsd);
+          it->snrdB = 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
           //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
-          //it->sinr = 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ());
 
-          it->rssi = m_remPropagationLossModelCopy->CalcRxPower(5, rtd.mob, rrd.mob);
-          sumRssi += it->rssi;
+          double rbWidth = snr.GetSpectrumModel ()->Begin()->fh - snr.GetSpectrumModel ()->Begin()->fl;
+          double rssidBm = 10 * log10 (Sum((*noisePsd + *rxPsd)* rbWidth)*1000);
+          it->rssidBm = rssidBm;
+
+          sumRssi += it->rssidBm;
+
+
       }
-      it->avRssi = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
+      it->avRssidBm = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
+
+      auto endPsdTime = std::chrono::system_clock::now();
+      //std::time_t end_time = std::chrono::system_clock::to_time_t(endPsdTime);
+      //std::cout<<"\n PSD end time: "<<std::ctime(&end_time)<<std::endl;
+      std::chrono::duration<double> elapsed_seconds = endPsdTime - startPsdTime;
+      std::cout<< "REM point finished. Execution time:"<<elapsed_seconds.count() << " seconds"<<std::endl;
+      std::cout<< "\n Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.";
+      std::cout<<"\n Estimated time to finish:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<< "minutes"<<std::endl;
+
     }
 }
 
@@ -429,9 +485,9 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
       m_outFile << it->pos.x << "\t"
                 << it->pos.y << "\t"
                 << it->pos.z << "\t"
-                << it->sinr << "\t"
-                << it->rssi << "\t"
-                << it->avRssi << "\t"
+                << it->sinrdB << "\t"
+                << it->rssidBm << "\t"
+                << it->avRssidBm << "\t"
                 << std::endl;
     }
 
