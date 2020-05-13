@@ -641,7 +641,16 @@ NrSpectrumPhy::StartRxData (const Ptr<NrSpectrumSignalParametersDataFrame>& para
   switch (m_state)
     {
     case TX:
-      NS_FATAL_ERROR ("Cannot RX while TX.");
+      if (IsEnb()) // I am gNB. We are here because some of my rebellious UEs is transmitting at the same time as me. -> invalid state.
+        {
+          NS_FATAL_ERROR ("eNB transmission overlaps in time with UE transmission. CellId:" << params->cellId);
+        }
+      else // I am UE, and while I am transmitting, someone else also transmits. If we are transmitting on orthogonal TX PSDs then this is most probably valid situation (UEs transmitting to gNB).
+        {
+          //Sanity check, that we do not transmit on the same RBs; this sanity check will not be the same for sidelink/V2X
+          NS_ASSERT_MSG((Sum ((*m_txPsd) * (*params->psd)) == 0), "Transmissions overlap in frequency. Their cellId is:" << params->cellId);
+          return;
+        }
       break;
     case RX_DL_CTRL:
       /* no break */
