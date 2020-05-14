@@ -53,11 +53,11 @@ $ ./waf --run "cttc-nr-bwp-demo --Help"
 #include "ns3/log.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/flow-monitor-module.h"
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
-#include "ns3/mmwave-mac-scheduler-tdma-rr.h"
+#include "ns3/nr-mac-scheduler-tdma-rr.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/ideal-beamforming-algorithm.h"
@@ -215,9 +215,9 @@ main (int argc, char *argv[])
   // enable logging or not
   if (logging)
     {
-      LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
-      LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
+      LogComponentEnable ("Nr3gppPropagationLossModel", LOG_LEVEL_ALL);
+      LogComponentEnable ("Nr3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
+      LogComponentEnable ("Nr3gppChannel", LOG_LEVEL_ALL);
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
@@ -287,13 +287,13 @@ main (int argc, char *argv[])
   mobility.Install (ueNodes);
 
 
-  // setup the mmWave simulation
+  // setup the nr simulation
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
 
   /*
@@ -405,14 +405,14 @@ main (int argc, char *argv[])
     }
   /*else
     {
-      mmWaveHelper->SetAttribute ("UseCa", BooleanValue (false));
+      nrHelper->SetAttribute ("UseCa", BooleanValue (false));
     }*/
 
   //NS_ABORT_MSG_IF (ccId < 1,"No CC created");
 
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
-  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerTdmaRR"));
+  nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaRR"));
   // Beamforming method
   if (cellScan)
   {
@@ -424,20 +424,20 @@ main (int argc, char *argv[])
     idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
   }
 
-  mmWaveHelper->InitializeOperationBand (&band);
+  nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   double x = pow (10, totalTxPower/10);
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
 
   uint32_t bwpIdForLowLat = 0;
@@ -445,61 +445,61 @@ main (int argc, char *argv[])
   uint32_t bwpIdForVideo = 2;
   uint32_t bwpIdForVideoGaming = 3;
 
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
 
   //Install and get the pointers to the NetDevices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
+  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
 
   if (contiguousCc == true)
     {
       // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0), (1), ...
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
 
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerology));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
 
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerology));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
 
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Numerology", UintegerValue (numerology));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Numerology", UintegerValue (numerology));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("TxPower", DoubleValue (10*log10 (0.25 * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Pattern", StringValue (pattern));
 
   }
   else
   {
       // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0), (1), ...
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp0));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(0,0)->m_channelBandwidth/bandwidthBand) * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp0));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(0,0)->m_channelBandwidth/bandwidthBand) * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
 
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp1));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(1,0)->m_channelBandwidth/bandwidthBand) * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyCc0Bwp1));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(1,0)->m_channelBandwidth/bandwidthBand) * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
 
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyCc1Bwp0));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(1,1)->m_channelBandwidth/bandwidthBand) * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyCc1Bwp0));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (10*log10 ((band.GetBwpAt(1,1)->m_channelBandwidth/bandwidthBand) * x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
   }
 
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
 
@@ -539,7 +539,7 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to the closest eNB before creating the dedicated flows
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // install UDP applications
   uint16_t dlPort = 1234;
@@ -590,7 +590,7 @@ main (int argc, char *argv[])
                   q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
                 }
               EpsBearer bearer (q);
-              mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
+              nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
             }
 
           if (!disableUl)
@@ -633,7 +633,7 @@ main (int argc, char *argv[])
                   q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
                 }
               EpsBearer bearer (q);
-              mmWaveHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
+              nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
             }
 
         }
@@ -645,8 +645,8 @@ main (int argc, char *argv[])
   serverApps.Stop (Seconds (simTime));
   clientApps.Stop (Seconds (simTime));
 
-  // enable the traces provided by the mmWave module
-  //mmWaveHelper->EnableTraces();
+  // enable the traces provided by the nr module
+  //nrHelper->EnableTraces();
 
 
   FlowMonitorHelper flowmonHelper;
@@ -664,7 +664,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> NrPhyMacCommong-> Numerology, Bandwidth, ...
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

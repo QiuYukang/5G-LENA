@@ -19,7 +19,7 @@
 #ifndef NR_AMC_H
 #define NR_AMC_H
 
-#include <ns3/mmwave-phy-mac-common.h>
+#include <ns3/nr-phy-mac-common.h>
 #include <ns3/nr-error-model.h>
 
 namespace ns3 {
@@ -34,12 +34,12 @@ namespace ns3 {
  *
  * Please note that it is necessary, even when using the ShannonModel, to correctly
  * configure the ErrorModel type, which must be the same as the one set in the
- * MmWaveSpectrumPhy class.
+ * NrSpectrumPhy class.
  *
  * \section nr_amc_conf Configuration
  *
  * The attributes of this class can be configured through the helper methods
- * MmWaveHelper::SetGnbDlAmcAttribute() and MmWaveHelper::SetGnbUlAmcAttribute()
+ * NrHelper::SetGnbDlAmcAttribute() and NrHelper::SetGnbUlAmcAttribute()
  * for what regards the GNB side (DL or UL). It is important to note that the
  * UE gets a pointer to the GNB AMC to which is connected to.
  *

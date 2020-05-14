@@ -16,10 +16,10 @@
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef MMWAVE_MI_ERROR_MODEL_H
-#define MMWAVE_MI_ERROR_MODEL_H
+#ifndef NR_MI_ERROR_MODEL_H
+#define NR_MI_ERROR_MODEL_H
 
-#include "mmwave-harq-phy.h"
+#include "nr-harq-phy.h"
 #include "nr-error-model.h"
 
 namespace ns3 {
@@ -172,4 +172,4 @@ private:
 
 } // namespace ns3
 
-#endif /* MMWAVE_MI_ERROR_MODEL_H */
+#endif /* NR_MI_ERROR_MODEL_H */

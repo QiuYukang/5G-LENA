@@ -276,7 +276,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
   // ALL SECTORS AND BANDS configuration
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-  Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (txPower));
+  Config::SetDefault ("ns3::LteGnbPhy::TxPower", DoubleValue (txPower));
   Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (ueTxPower));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
   lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
@@ -329,7 +329,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NodeContainer ueSector2Container,
                                    NodeContainer ueSector3Container,
                                    Ptr<PointToPointEpcHelper> &baseEpcHelper,
-                                   Ptr<MmWaveHelper> &mmWaveHelper,
+                                   Ptr<NrHelper> &nrHelper,
                                    NetDeviceContainer &gnbSector1NetDev,
                                    NetDeviceContainer &gnbSector2NetDev,
                                    NetDeviceContainer &gnbSector3NetDev,
@@ -383,18 +383,18 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * Setup the NR module. We create the various helpers needed for the
    * NR simulation:
    * - IdealBeamformingHelper, which takes care of the beamforming part
-   * - MmWaveHelper, which takes care of creating and connecting the various
+   * - NrHelper, which takes care of creating and connecting the various
    * part of the NR stack
    */
 
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  mmWaveHelper = CreateObject<MmWaveHelper> ();
+  nrHelper = CreateObject<NrHelper> ();
 
-  // Put the pointers inside mmWaveHelper
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  // Put the pointers inside nrHelper
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   /*
    * Spectrum division. We create one operational band containing three
@@ -429,23 +429,23 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * TODO: Coordinate with Tommaso
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
-  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   // Error Model: UE and GNB with same spectrum error model.
-  mmWaveHelper->SetUlErrorModel (errorModel);
-  mmWaveHelper->SetDlErrorModel (errorModel);
+  nrHelper->SetUlErrorModel (errorModel);
+  nrHelper->SetDlErrorModel (errorModel);
 
   // Both DL and UL AMC will have the same model behind.
-  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
-  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
 
   /*
    * Adjust the average number of Reference symbols per RB only for LTE case,
    * which is larger than in NR. We assume a value of 4 (could be 3 too).
    */
-  mmWaveHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (numScPerRb));
-  mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
+  nrHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (numScPerRb));
+  nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
@@ -495,9 +495,9 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * sophisticated examples. For the moment, this method will take care
    * of all the spectrum initialization needs.
    */
-  mmWaveHelper->InitializeOperationBand (&band1);
-  mmWaveHelper->InitializeOperationBand (&band2);
-  mmWaveHelper->InitializeOperationBand (&band3);
+  nrHelper->InitializeOperationBand (&band1);
+  nrHelper->InitializeOperationBand (&band2);
+  nrHelper->InitializeOperationBand (&band3);
   allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
   bwps1 = CcBwpCreator::GetAllBwps ({band1});
   bwps2 = CcBwpCreator::GetAllBwps ({band2});
@@ -515,7 +515,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   double x = pow (10, totalTxPower/10);
 
   /*
-   * allBwps contains all the spectrum configuration needed for the mmWaveHelper.
+   * allBwps contains all the spectrum configuration needed for the nrHelper.
    *
    * Now, we can setup the attributes. We can have three kind of attributes:
    * (i) parameters that are valid for all the bandwidth parts and applies to
@@ -553,30 +553,30 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   // Scheduler type
     if (radioNetwork == "LTE")
       {
-        mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
-//      mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaRR"));
-        mmWaveHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+        nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
+//      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
+        nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
       }
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
   // UE transmit power
-  mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
+  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
 
   // Set LTE RBG size
   if (radioNetwork == "LTE")
     {
-      mmWaveHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+      nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
     }
 
   // We assume a common traffic pattern for all UEs
@@ -587,10 +587,10 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     }
 
   // gNb routing between Bearer and bandwidth part
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
 
   // Ue routing between Bearer and bandwidth part
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
 
   /*
    * We miss many other parameters. By default, not configuring them is equivalent
@@ -609,13 +609,13 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * to the NetDevices, which contains all the NR stack:
    */
 
-  //  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  gnbSector1NetDev = mmWaveHelper->InstallGnbDevice (gnbSector1Container, bwps1);
-  gnbSector2NetDev = mmWaveHelper->InstallGnbDevice (gnbSector2Container, bwps2);
-  gnbSector3NetDev = mmWaveHelper->InstallGnbDevice (gnbSector3Container, bwps3);
-  ueSector1NetDev = mmWaveHelper->InstallUeDevice (ueSector1Container, bwps1);
-  ueSector2NetDev = mmWaveHelper->InstallUeDevice (ueSector2Container, bwps2);
-  ueSector3NetDev = mmWaveHelper->InstallUeDevice (ueSector3Container, bwps3);
+  //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  gnbSector1NetDev = nrHelper->InstallGnbDevice (gnbSector1Container, bwps1);
+  gnbSector2NetDev = nrHelper->InstallGnbDevice (gnbSector2Container, bwps2);
+  gnbSector3NetDev = nrHelper->InstallGnbDevice (gnbSector3Container, bwps3);
+  ueSector1NetDev = nrHelper->InstallUeDevice (ueSector1Container, bwps1);
+  ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, bwps2);
+  ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, bwps3);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -627,50 +627,50 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector1NetDev.Get (numCell);
-      uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
+      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
       if (numBwps == 1)  // TDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
 
           // Set TDD pattern
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
         }
 
       else if (numBwps == 2)  //FDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy0 = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna0 =
               ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<MmWaveEnbPhy> phy1 = mmWaveHelper->GetEnbPhy (gnb, 1);
+          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<ThreeGppAntennaArrayModel> antenna1 =
               ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
           // Set TDD pattern
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
           // Link the two FDD BWP
-          mmWaveHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
+          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
         }
 
       else
@@ -683,51 +683,51 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector2NetDev.Get (numCell);
-      uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
+      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
       if (numBwps == 1)  // TDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
 
           // Set TDD pattern
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
         }
 
       else if (numBwps == 2)  //FDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy0 = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna0 =
               ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<MmWaveEnbPhy> phy1 = mmWaveHelper->GetEnbPhy (gnb, 1);
+          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<ThreeGppAntennaArrayModel> antenna1 =
               ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
 
           // Set TDD pattern
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
           // Link the two FDD BWP
-          mmWaveHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
+          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
         }
 
       else
@@ -740,51 +740,51 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector3NetDev.Get (numCell);
-      uint32_t numBwps = mmWaveHelper->GetNumberBwp (gnb);
+      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
       if (numBwps == 1)  // TDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna =
               ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
 
           // Set TDD pattern
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
         }
 
       else if (numBwps == 2)  //FDD
         {
           // Change the antenna orientation
-          Ptr<MmWaveEnbPhy> phy0 = mmWaveHelper->GetEnbPhy (gnb, 0);
+          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna0 =
               ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<MmWaveEnbPhy> phy1 = mmWaveHelper->GetEnbPhy (gnb, 1);
+          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<ThreeGppAntennaArrayModel> antenna1 =
               ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
 
           // Set TDD pattern
-          mmWaveHelper->GetEnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          mmWaveHelper->GetEnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
           // Link the two FDD BWP
-          mmWaveHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
+          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
         }
 
       else
@@ -800,17 +800,17 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     {
       for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueSector1NetDev.Get (i))->SetOutputLink (0, 1);
+          nrHelper->GetBwpManagerUe (ueSector1NetDev.Get (i))->SetOutputLink (0, 1);
         }
 
       for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueSector2NetDev.Get (i))->SetOutputLink (0, 1);
+          nrHelper->GetBwpManagerUe (ueSector2NetDev.Get (i))->SetOutputLink (0, 1);
         }
 
       for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueSector3NetDev.Get (i))->SetOutputLink (0, 1);
+          nrHelper->GetBwpManagerUe (ueSector3NetDev.Get (i))->SetOutputLink (0, 1);
         }
     }
 
@@ -818,32 +818,32 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
   for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = gnbSector2NetDev.Begin (); it != gnbSector2NetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = gnbSector3NetDev.Begin (); it != gnbSector3NetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueSector1NetDev.Begin (); it != ueSector1NetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueSector2NetDev.Begin (); it != ueSector2NetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueSector3NetDev.Begin (); it != ueSector3NetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
 }
@@ -985,7 +985,7 @@ main (int argc, char *argv[])
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
-//      LogComponentEnable ("MmWaveMacSchedulerOfdma", LOG_LEVEL_ALL);
+//      LogComponentEnable ("NrMacSchedulerOfdma", LOG_LEVEL_ALL);
     }
 
   /*
@@ -1068,7 +1068,7 @@ main (int argc, char *argv[])
   NetDeviceContainer ueSector1NetDev, ueSector2NetDev,ueSector3NetDev;
 
   Ptr <LteHelper> lteHelper = nullptr;
-  Ptr <MmWaveHelper> mmWaveHelper = nullptr;
+  Ptr <NrHelper> nrHelper = nullptr;
 
   if (simulator == "LENA")
     {
@@ -1108,7 +1108,7 @@ main (int argc, char *argv[])
                                     ueSector2Container,
                                     ueSector3Container,
                                     epcHelper,
-                                    mmWaveHelper,
+                                    nrHelper,
                                     gnbSector1NetDev,
                                     gnbSector2NetDev,
                                     gnbSector3NetDev,
@@ -1173,9 +1173,9 @@ main (int argc, char *argv[])
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
             }
-          else if (mmWaveHelper != nullptr)
+          else if (nrHelper != nullptr)
             {
-              mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+              nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
             }
           else
             {
@@ -1197,9 +1197,9 @@ main (int argc, char *argv[])
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
             }
-          else if (mmWaveHelper != nullptr)
+          else if (nrHelper != nullptr)
             {
-              mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+              nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
             }
           else
             {
@@ -1221,9 +1221,9 @@ main (int argc, char *argv[])
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
             }
-          else if (mmWaveHelper != nullptr)
+          else if (nrHelper != nullptr)
             {
-              mmWaveHelper->AttachToEnb (ueNetDev, gnbNetDev);
+              nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
             }
           else
             {
@@ -1324,9 +1324,9 @@ main (int argc, char *argv[])
         {
           lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
-      else if (mmWaveHelper != nullptr)
+      else if (nrHelper != nullptr)
         {
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
       else
         {
@@ -1357,9 +1357,9 @@ main (int argc, char *argv[])
         {
           lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
-      else if (mmWaveHelper != nullptr)
+      else if (nrHelper != nullptr)
         {
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
       else
         {
@@ -1390,9 +1390,9 @@ main (int argc, char *argv[])
         {
           lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
-      else if (mmWaveHelper != nullptr)
+      else if (nrHelper != nullptr)
         {
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
       else
         {
@@ -1406,16 +1406,16 @@ main (int argc, char *argv[])
   serverApps.Stop(MilliSeconds(simTimeMs));
   clientApps.Stop(MilliSeconds(simTimeMs));
 
-  // enable the traces provided by the mmWave module
+  // enable the traces provided by the nr module
   if (traces == true)
     {
       if (lteHelper != nullptr)
         {
           lteHelper->EnableTraces ();
         }
-      else if (mmWaveHelper != nullptr)
+      else if (nrHelper != nullptr)
         {
-          mmWaveHelper->EnableTraces ();
+          nrHelper->EnableTraces ();
         }
     }
 
@@ -1435,7 +1435,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> Numerology,
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

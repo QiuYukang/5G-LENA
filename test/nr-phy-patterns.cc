@@ -18,10 +18,10 @@
  */
 #include <ns3/test.h>
 #include <ns3/object-factory.h>
-#include <ns3/mmwave-enb-phy.h>
+#include <ns3/nr-gnb-phy.h>
 #include <ns3/node.h>
 #include <ns3/nr-ch-access-manager.h>
-#include <ns3/mmwave-mac-scheduler-tdma-rr.h>
+#include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/multi-model-spectrum-channel.h>
 
 /**
@@ -37,12 +37,12 @@
  */
 namespace ns3 {
 
-class TestEnbMac : public MmWaveEnbMac
+class TestGnbMac : public NrGnbMac
 {
 public:
   static TypeId GetTypeId (void);
-  TestEnbMac (const std::string &pattern);
-  virtual ~TestEnbMac (void) override;
+  TestGnbMac (const std::string &pattern);
+  virtual ~TestGnbMac (void) override;
   virtual void DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) override;
   virtual void DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type) override;
   virtual void SetCurrentSfn (const SfnSf &sfn) override;
@@ -53,19 +53,19 @@ private:
   uint32_t m_totalSlotToCreate {0};
 };
 
-NS_OBJECT_ENSURE_REGISTERED (TestEnbMac);
+NS_OBJECT_ENSURE_REGISTERED (TestGnbMac);
 
 TypeId
-TestEnbMac::GetTypeId()
+TestGnbMac::GetTypeId()
 {
-  static TypeId tid = TypeId ("ns3::TestEnbMac")
-    .SetParent<MmWaveEnbMac> ()
-    //.AddConstructor<TestEnbMac> ()
+  static TypeId tid = TypeId ("ns3::TestGnbMac")
+    .SetParent<NrGnbMac> ()
+    //.AddConstructor<TestGnbMac> ()
   ;
   return tid;
 }
 
-TestEnbMac::TestEnbMac (const std::string &pattern)
+TestGnbMac::TestGnbMac (const std::string &pattern)
 {
   static std::unordered_map<std::string, LteNrTddSlotType> lookupTable =
   {
@@ -113,7 +113,7 @@ TestEnbMac::TestEnbMac (const std::string &pattern)
     }
 }
 
-TestEnbMac::~TestEnbMac ()
+TestGnbMac::~TestGnbMac ()
 {
   NS_ASSERT_MSG (m_slotCreated.size () == m_pattern.size (),
                  "The number of created slot (" << m_slotCreated.size () <<
@@ -122,7 +122,7 @@ TestEnbMac::~TestEnbMac ()
 }
 
 void
-TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
+TestGnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
   uint32_t pos = sfnSf.Normalize ();
   pos = pos % m_pattern.size ();
@@ -135,11 +135,11 @@ TestEnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 
   m_slotCreated.insert (pos);
 
-  MmWaveEnbMac::DoSlotDlIndication (sfnSf, type);
+  NrGnbMac::DoSlotDlIndication (sfnSf, type);
 }
 
 void
-TestEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
+TestGnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 {
   uint32_t pos = sfnSf.Normalize ();
   pos = pos % m_pattern.size ();
@@ -151,13 +151,13 @@ TestEnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
 
   m_slotCreated.insert (pos);
 
-  MmWaveEnbMac::DoSlotUlIndication (sfnSf, type);
+  NrGnbMac::DoSlotUlIndication (sfnSf, type);
 }
 
 void
-TestEnbMac::SetCurrentSfn (const SfnSf &sfnSf)
+TestGnbMac::SetCurrentSfn (const SfnSf &sfnSf)
 {
-  MmWaveEnbMac::SetCurrentSfn (sfnSf);
+  NrGnbMac::SetCurrentSfn (sfnSf);
 }
 
 /**
@@ -179,11 +179,11 @@ private:
   void Print (const std::string &msg1, const std::string& msg2,
               const std::map<uint32_t, std::vector<uint32_t> > &str);
   void StartSimu ();
-  Ptr<MmWaveEnbMac> CreateMac (const Ptr<MmWaveMacScheduler> &sched) const;
-  Ptr<MmWaveEnbPhy> CreatePhy (const Ptr<MmWaveEnbMac> &mac) const;
+  Ptr<NrGnbMac> CreateMac (const Ptr<NrMacScheduler> &sched) const;
+  Ptr<NrGnbPhy> CreatePhy (const Ptr<NrGnbMac> &mac) const;
 
   bool m_verbose = true;
-  Ptr<MmWaveEnbPhy> m_phy;
+  Ptr<NrGnbPhy> m_phy;
   std::string m_pattern;
 };
 
@@ -191,8 +191,8 @@ void
 LtePhyPatternTestCase::DoRun ()
 {
   ObjectFactory schedFactory;
-  schedFactory.SetTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
-  Ptr<MmWaveMacScheduler> sched = DynamicCast<MmWaveMacScheduler> (schedFactory.Create ());
+  schedFactory.SetTypeId (NrMacSchedulerTdmaRR::GetTypeId ());
+  Ptr<NrMacScheduler> sched = DynamicCast<NrMacScheduler> (schedFactory.Create ());
 
   auto mac = CreateMac (sched);
   m_phy = CreatePhy (mac);
@@ -216,11 +216,11 @@ LtePhyPatternTestCase::StartSimu()
   Simulator::Destroy ();
 }
 
-Ptr<MmWaveEnbPhy>
-LtePhyPatternTestCase::CreatePhy (const Ptr<MmWaveEnbMac> &mac) const
+Ptr<NrGnbPhy>
+LtePhyPatternTestCase::CreatePhy (const Ptr<NrGnbMac> &mac) const
 {
-  Ptr<MmWaveSpectrumPhy> channelPhy = CreateObject<MmWaveSpectrumPhy> ();
-  Ptr<MmWaveEnbPhy> phy = CreateObject <MmWaveEnbPhy> ();
+  Ptr<NrSpectrumPhy> channelPhy = CreateObject<NrSpectrumPhy> ();
+  Ptr<NrGnbPhy> phy = CreateObject <NrGnbPhy> ();
   Ptr<ThreeGppAntennaArrayModel> antenna = CreateObject <ThreeGppAntennaArrayModel> ();
 
   phy->InstallCentralFrequency (28e9);
@@ -230,10 +230,10 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<MmWaveEnbMac> &mac) const
   // PHY <--> CAM
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (CreateObject<NrAlwaysOnAccessManager> ());
   cam->SetNrSpectrumPhy (channelPhy);
-  cam->SetNrEnbMac (mac);
+  cam->SetNrGnbMac (mac);
   phy->SetCam (cam);
 
-  Ptr<MmWaveHarqPhy> harq = Create<MmWaveHarqPhy> ();
+  Ptr<NrHarqPhy> harq = Create<NrHarqPhy> ();
   channelPhy->InstallHarqPhyModule (harq);
 
   Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> ();
@@ -247,16 +247,16 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<MmWaveEnbMac> &mac) const
   return phy;
 }
 
-Ptr<MmWaveEnbMac>
-LtePhyPatternTestCase::CreateMac (const Ptr<MmWaveMacScheduler> &sched) const
+Ptr<NrGnbMac>
+LtePhyPatternTestCase::CreateMac (const Ptr<NrMacScheduler> &sched) const
 {
-  Ptr<MmWaveEnbMac> mac = CreateObject<TestEnbMac> (m_pattern);
+  Ptr<NrGnbMac> mac = CreateObject<TestGnbMac> (m_pattern);
 
-  sched->SetMacSchedSapUser (mac->GetMmWaveMacSchedSapUser ());
-  sched->SetMacCschedSapUser (mac->GetMmWaveMacCschedSapUser ());
+  sched->SetMacSchedSapUser (mac->GetNrMacSchedSapUser ());
+  sched->SetMacCschedSapUser (mac->GetNrMacCschedSapUser ());
 
-  mac->SetMmWaveMacSchedSapProvider(sched->GetMacSchedSapProvider ());
-  mac->SetMmWaveMacCschedSapProvider(sched->GetMacCschedSapProvider ());
+  mac->SetNrMacSchedSapProvider(sched->GetMacSchedSapProvider ());
+  mac->SetNrMacCschedSapProvider(sched->GetMacCschedSapProvider ());
 
   return mac;
 }

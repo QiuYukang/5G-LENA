@@ -26,15 +26,15 @@
 #include <ns3/object.h>
 #include <ns3/packet.h>
 #include <ns3/nstime.h>
-#include "ns3/mmwave-phy.h"
-#include <ns3/mmwave-enb-phy.h>
+#include "ns3/nr-phy.h"
+#include <ns3/nr-gnb-phy.h>
 #include <ns3/pointer.h>
 
 
 namespace ns3 {
 
-class MmWaveEnbMac;
-class MmWaveMacScheduler;
+class NrGnbMac;
+class NrMacScheduler;
 
 /**
  * \ingroup gnb-bwp
@@ -58,34 +58,34 @@ public:
   /**
    * \return a pointer to the physical layer.
    */
-  Ptr<MmWaveEnbPhy> GetPhy (void);
+  Ptr<NrGnbPhy> GetPhy (void);
 
   /**
    * \return a pointer to the MAC layer.
    */
-  Ptr<MmWaveEnbMac> GetMac (void);
+  Ptr<NrGnbMac> GetMac (void);
 
   /**
    * \return a pointer to the Mac Scheduler.
    */
-  Ptr<MmWaveMacScheduler> GetScheduler ();
+  Ptr<NrMacScheduler> GetScheduler ();
 
   /**
-   * Set the LteEnbPhy
-   * \param s a pointer to the LteEnbPhy
+   * Set the LteGnbPhy
+   * \param s a pointer to the LteGnbPhy
    */
-  void SetPhy (Ptr<MmWaveEnbPhy> s);
+  void SetPhy (Ptr<NrGnbPhy> s);
   /**
-   * Set the LteEnbMac
-   * \param s a pointer to the LteEnbMac
+   * Set the LteGnbMac
+   * \param s a pointer to the LteGnbMac
    */
-  void SetMac (Ptr<MmWaveEnbMac> s);
+  void SetMac (Ptr<NrGnbMac> s);
 
   /**
    * Set the FfMacScheduler Algorithm
    * \param s a pointer to the FfMacScheduler
    */
-  void SetMmWaveMacScheduler (Ptr<MmWaveMacScheduler> s);
+  void SetNrMacScheduler (Ptr<NrMacScheduler> s);
 
   virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
   virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
@@ -107,9 +107,9 @@ protected:
   void virtual DoDispose () override;
 
 private:
-  Ptr<MmWaveEnbPhy> m_phy; ///< the Phy instance of this eNodeB component carrier
-  Ptr<MmWaveEnbMac> m_mac; ///< the MAC instance of this eNodeB component carrier
-  Ptr<MmWaveMacScheduler> m_scheduler; ///< the scheduler instance of this eNodeB component carrier
+  Ptr<NrGnbPhy> m_phy; ///< the Phy instance of this eNodeB component carrier
+  Ptr<NrGnbMac> m_mac; ///< the MAC instance of this eNodeB component carrier
+  Ptr<NrMacScheduler> m_scheduler; ///< the scheduler instance of this eNodeB component carrier
 };
 
 } // namespace ns3

@@ -165,11 +165,11 @@ main (int argc, char *argv[])
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  // Put the pointers inside mmWaveHelper
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  // Put the pointers inside nrHelper
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   BandwidthPartInfoPtrVector allBwps;
   CcBwpCreator ccBwpCreator;
@@ -198,11 +198,11 @@ main (int argc, char *argv[])
    * TODO: Coordinate with Tommaso
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
-  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
-  mmWaveHelper->InitializeOperationBand (&bandTdd);
-  mmWaveHelper->InitializeOperationBand (&bandFdd);
+  nrHelper->InitializeOperationBand (&bandTdd);
+  nrHelper->InitializeOperationBand (&bandFdd);
   allBwps = CcBwpCreator::GetAllBwps ({bandTdd, bandFdd});
 
   // Beamforming method
@@ -212,131 +212,131 @@ main (int argc, char *argv[])
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
-  mmWaveHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (4.0));
 
   uint32_t bwpIdForVoice = 0;
   uint32_t bwpIdForVideo = 1;
   uint32_t bwpIdForGaming = 2;
 
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VIDEO", UintegerValue (bwpIdForVideo));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_GAMING", UintegerValue (bwpIdForGaming));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VIDEO", UintegerValue (bwpIdForVideo));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_GAMING", UintegerValue (bwpIdForGaming));
 
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VIDEO", UintegerValue (bwpIdForVideo));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_GAMING", UintegerValue (bwpIdForGaming));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VIDEO", UintegerValue (bwpIdForVideo));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_GAMING", UintegerValue (bwpIdForGaming));
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
 
   NS_ASSERT (enbNetDev.GetN () == 4);
 
   // -------------- First GNB:
 
   // BWP0, the TDD one
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (0));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP1, FDD-DL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (0));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP2, FDD-UL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (0));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (2, 1);
+  nrHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (2, 1);
 
   // -------------- Second GNB:
 
   // BWP0, the TDD one
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP1, FDD-DL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("Numerology", UintegerValue (1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("Numerology", UintegerValue (1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP2, FDD-UL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("Numerology", UintegerValue (1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("Numerology", UintegerValue (1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (1))->SetOutputLink (2, 1);
+  nrHelper->GetBwpManagerGnb (enbNetDev.Get (1))->SetOutputLink (2, 1);
 
   // -------------- Third GNB:
 
   // BWP0, the TDD one
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("Numerology", UintegerValue (2));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("Numerology", UintegerValue (2));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP1, FDD-DL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("Numerology", UintegerValue (2));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("Numerology", UintegerValue (2));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP2, FDD-UL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("Numerology", UintegerValue (2));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("Numerology", UintegerValue (2));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (2), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (2))->SetOutputLink (2, 1);
+  nrHelper->GetBwpManagerGnb (enbNetDev.Get (2))->SetOutputLink (2, 1);
 
   // -------------- Fourth GNB:
 
   // BWP0, the TDD one
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("Numerology", UintegerValue (3));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("Numerology", UintegerValue (3));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("Pattern", StringValue ("F|F|F|F|F|F|F|F|F|F|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 0)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP1, FDD-DL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("Numerology", UintegerValue (3));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("Numerology", UintegerValue (3));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 1)->SetAttribute ("TxPower", DoubleValue (4.0));
 
   // BWP2, FDD-UL
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("Numerology", UintegerValue (3));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("Numerology", UintegerValue (3));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+  nrHelper->GetGnbPhy (enbNetDev.Get (3), 2)->SetAttribute ("TxPower", DoubleValue (0.0));
 
   // Link the two FDD BWP:
-  mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (3))->SetOutputLink (2, 1);
+  nrHelper->GetBwpManagerGnb (enbNetDev.Get (3))->SetOutputLink (2, 1);
 
   // Set the UE routing:
 
   for (uint32_t i = 0; i < ueNetDev.GetN (); i++)
     {
-      mmWaveHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (1, 2);
+      nrHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (1, 2);
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
 
@@ -378,11 +378,11 @@ main (int argc, char *argv[])
   // Fix the attachment of the UEs: UE_i attached to GNB_i
   for (uint32_t i = 0; i < ueNetDev.GetN(); ++i)
     {
-      auto enbDev = DynamicCast<MmWaveEnbNetDevice> (enbNetDev.Get (i));
-      auto ueDev = DynamicCast<MmWaveUeNetDevice> (ueNetDev.Get (i));
+      auto enbDev = DynamicCast<NrGnbNetDevice> (enbNetDev.Get (i));
+      auto ueDev = DynamicCast<NrUeNetDevice> (ueNetDev.Get (i));
       NS_ASSERT (enbDev != nullptr);
       NS_ASSERT (ueDev != nullptr);
-      mmWaveHelper->AttachToEnb (ueDev, enbDev);
+      nrHelper->AttachToEnb (ueDev, enbDev);
     }
 
   /*
@@ -482,7 +482,7 @@ main (int argc, char *argv[])
           dlClientVoice.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
           clientApps.Add (dlClientVoice.Install (remoteHost));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
         }
 
       if (enableVideo)
@@ -490,7 +490,7 @@ main (int argc, char *argv[])
           dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
           clientApps.Add (dlClientVideo.Install (remoteHost));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
         }
 
       // For the uplink, the installation happens in the UE, and the remote address
@@ -501,7 +501,7 @@ main (int argc, char *argv[])
           ulClientGaming.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
           clientApps.Add (ulClientGaming.Install (ue));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
         }
     }
 
@@ -511,8 +511,8 @@ main (int argc, char *argv[])
   serverApps.Stop (MilliSeconds (simTimeMs));
   clientApps.Stop (MilliSeconds (simTimeMs));
 
-  // enable the traces provided by the mmWave module
-  //mmWaveHelper->EnableTraces();
+  // enable the traces provided by the nr module
+  //nrHelper->EnableTraces();
 
 
   FlowMonitorHelper flowmonHelper;
@@ -530,7 +530,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> Numerology,
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

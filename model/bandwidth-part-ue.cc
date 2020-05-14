@@ -25,8 +25,8 @@
 #include <ns3/simulator.h>
 #include <ns3/log.h>
 #include <ns3/abort.h>
-#include <ns3/mmwave-ue-phy.h>
-#include <ns3/mmwave-ue-mac.h>
+#include <ns3/nr-ue-phy.h>
+#include <ns3/nr-ue-mac.h>
 #include <ns3/pointer.h>
 
 namespace ns3 {
@@ -42,16 +42,16 @@ TypeId BandwidthPartUe::GetTypeId (void)
     TypeId ("ns3::BandwidthPartUe")
     .SetParent<ComponentCarrier> ()
     .AddConstructor<BandwidthPartUe> ()
-    .AddAttribute ("MmWaveUePhy",
+    .AddAttribute ("NrUePhy",
                    "The PHY associated to this BandwidthPartUe",
                    PointerValue (),
                    MakePointerAccessor (&BandwidthPartUe::m_phy),
-                   MakePointerChecker <MmWaveUePhy> ())
-    .AddAttribute ("MmWaveUeMac",
+                   MakePointerChecker <NrUePhy> ())
+    .AddAttribute ("NrUeMac",
                    "The MAC associated to this BandwidthPartUe",
                    PointerValue (),
                    MakePointerAccessor (&BandwidthPartUe::m_mac),
-                   MakePointerChecker <MmWaveUeMac> ())
+                   MakePointerChecker <NrUeMac> ())
   ;
   return tid;
 }
@@ -79,7 +79,7 @@ BandwidthPartUe::DoDispose ()
 }
 
 void
-BandwidthPartUe::SetPhy (Ptr<MmWaveUePhy> s)
+BandwidthPartUe::SetPhy (Ptr<NrUePhy> s)
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_phy != nullptr);
@@ -87,7 +87,7 @@ BandwidthPartUe::SetPhy (Ptr<MmWaveUePhy> s)
 }
 
 
-Ptr<MmWaveUePhy>
+Ptr<NrUePhy>
 BandwidthPartUe::GetPhy () const
 {
   NS_LOG_FUNCTION (this);
@@ -95,13 +95,13 @@ BandwidthPartUe::GetPhy () const
 }
 
 void
-BandwidthPartUe::SetMac (Ptr<MmWaveUeMac> s)
+BandwidthPartUe::SetMac (Ptr<NrUeMac> s)
 {
   NS_LOG_FUNCTION (this);
   m_mac = s;
 }
 
-Ptr<MmWaveUeMac>
+Ptr<NrUeMac>
 BandwidthPartUe::GetMac () const
 {
   NS_LOG_FUNCTION (this);

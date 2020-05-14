@@ -36,11 +36,11 @@ namespace ns3 {
  * \section bwp_manager_conf Configuration
  *
  * The algorithm can be set, before the scenario creation, through the
- * helper method MmWaveHelper::SetGnbBwpManagerAlgorithmTypeId(). It is
- * also possible to set attributes, through MmWaveHelper::SetGnbBwpManagerAlgorithmAttribute().
+ * helper method NrHelper::SetGnbBwpManagerAlgorithmTypeId(). It is
+ * also possible to set attributes, through NrHelper::SetGnbBwpManagerAlgorithmAttribute().
  *
- * For the UE, the methods to use are, respectively, MmWaveHelper::SetUeBwpManagerAlgorithmTypeId()
- * and MmWaveHelper::SetUeBwpManagerAlgorithmAttribute().
+ * For the UE, the methods to use are, respectively, NrHelper::SetUeBwpManagerAlgorithmTypeId()
+ * and NrHelper::SetUeBwpManagerAlgorithmAttribute().
  *
  *
  * \see GetBwpForEpsBearer

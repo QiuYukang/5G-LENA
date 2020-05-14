@@ -20,7 +20,7 @@
 #include "bwp-manager-algorithm.h"
 #include <ns3/log.h>
 #include <ns3/pointer.h>
-#include "mmwave-control-messages.h"
+#include "nr-control-messages.h"
 
 namespace ns3 {
 
@@ -119,7 +119,7 @@ BwpManagerUe::SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp)
 }
 
 uint8_t
-BwpManagerUe::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+BwpManagerUe::RouteOutgoingCtrlMsg (const Ptr<NrControlMessage> &msg, uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -143,7 +143,7 @@ BwpManagerUe::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_
 }
 
 uint8_t
-BwpManagerUe::RouteIngoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const
+BwpManagerUe::RouteIngoingCtrlMsg (const Ptr<NrControlMessage> &msg, uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);
 

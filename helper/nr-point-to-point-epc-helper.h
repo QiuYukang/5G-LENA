@@ -29,13 +29,13 @@ namespace ns3 {
  * \brief Create an EPC network with PointToPoint links
  *
  * The class is based on the LTE version. The usage is, in most of the cases,
- * automatic inside the MmWaveHelper. All the user has to do, is:
+ * automatic inside the NrHelper. All the user has to do, is:
  *
 \verbatim
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   ...
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
+  nrHelper->SetEpcHelper (epcHelper);
 \endverbatim
  *
  * This helper will then used to create the links between the GNBs and the EPC.
@@ -110,7 +110,7 @@ namespace ns3 {
     }
 \endverbatim
  *
- * For everthing else, please see also the MmWaveHelper documentation.
+ * For everthing else, please see also the NrHelper documentation.
  *
  * \see PointToPointEpcHelper
  */

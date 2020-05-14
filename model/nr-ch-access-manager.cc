@@ -68,13 +68,13 @@ NrChAccessManager::GetGrantDuration () const
 }
 
 void
-NrChAccessManager::SetNrSpectrumPhy (Ptr<MmWaveSpectrumPhy> spectrumPhy)
+NrChAccessManager::SetNrSpectrumPhy (Ptr<NrSpectrumPhy> spectrumPhy)
 {
   NS_LOG_FUNCTION (this);
   m_spectrumPhy = spectrumPhy;
 }
 
-Ptr<MmWaveSpectrumPhy>
+Ptr<NrSpectrumPhy>
 NrChAccessManager::GetNrSpectrumPhy ()
 {
   NS_LOG_FUNCTION (this);
@@ -82,14 +82,14 @@ NrChAccessManager::GetNrSpectrumPhy ()
 }
 
 void
-NrChAccessManager::SetNrEnbMac (Ptr<MmWaveEnbMac> mac)
+NrChAccessManager::SetNrGnbMac (Ptr<NrGnbMac> mac)
 {
   NS_LOG_FUNCTION (this);
   m_mac = mac;
 }
 
-Ptr<MmWaveEnbMac>
-NrChAccessManager::GetNrEnbMac ()
+Ptr<NrGnbMac>
+NrChAccessManager::GetNrGnbMac ()
 {
   NS_LOG_FUNCTION (this);
   return m_mac;
