@@ -304,12 +304,12 @@ main (int argc, char *argv[])
 
   //Radio Environment Map Generation
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (-15.0);
-  remHelper->SetMaxX (20.0);
-  remHelper->SetResX (100);
-  remHelper->SetMinY (-15.0);
-  remHelper->SetMaxY (15.0);
-  remHelper->SetResY (100);
+  remHelper->SetMinX (-10.0);
+  remHelper->SetMaxX (10.0);
+  remHelper->SetResX (50);
+  remHelper->SetMinY (-10.0);
+  remHelper->SetMaxY (10.0);
+  remHelper->SetResY (50);
   remHelper->SetZ (1.5);
   remHelper->ConfigurePropagationModelsFactories (m_propagationLossModel, m_spectrumLossModel);
   remHelper->CreateRem ();

@@ -327,11 +327,11 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
 
   rtd.mob = rtd.node->GetObject<MobilityModel> ();
   //Set Antenna
-  rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
+  rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (4), "NumRows", UintegerValue (4));
   //Configure Antenna
-  rtd.antenna->ChangeToOmniTx ();
+  //rtd.antenna->ChangeToOmniTx ();
   //Configure power
-  rtd.txPower = 5;
+  rtd.txPower = 1;
   //Configure bandwidth
   rtd.bandwidth = 100e6;
   //Configure central frequency
@@ -365,11 +365,16 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   //Set Antenna
   rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1));
   //Configure Antenna
-  rrd.antenna->ChangeToOmniTx ();
+  //rrd.antenna->ChangeToOmniTx ();
 
 
   std::cout << "Started to generate REM points. There are in total:"<<m_rem.size()<<std::endl;
   uint16_t pointsCounter = 0;
+
+  // configure beam on rtd antenna to point toward rrd
+  // We configure RRD with some point, we want to see only the beam toward a single point
+  rrd.mob->SetPosition (Vector (10, 0, 1.5));
+  rtd.antenna->SetBeamformingVector (CreateDirectPathBfv (rtd.mob, rrd.mob, rtd.antenna));
 
   //Save REM creation start time
   auto remStartTime = std::chrono::system_clock::now();
@@ -383,7 +388,6 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
       auto startPsdTime = std::chrono::system_clock::now();
       std::time_t start_time = std::chrono::system_clock::to_time_t(startPsdTime);
       std::cout<<"\n REM point: "<<pointsCounter<<"/"<<m_rem.size()<<" started at:"<<std::ctime(&start_time)<<std::endl;
-
 
       rrd.mob->SetPosition (it->pos);    //Assign to the rrd mobility all the positions of remPoint
 
