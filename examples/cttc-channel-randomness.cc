@@ -196,12 +196,12 @@ main (int argc, char *argv[])
   if (scenario == "UMa")
   {
     propagationLossModelFactory.SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
-    channelConditionModelFactory.SetTypeId (ThreeGppUmaChannelConditionModel::GetTypeId ());
+    channelConditionModelFactory.SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
   }
   else if (scenario == "UMi-StreetCanyon")
   {
     propagationLossModelFactory.SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
-    channelConditionModelFactory.SetTypeId (ThreeGppUmiStreetCanyonChannelConditionModel::GetTypeId ());
+    channelConditionModelFactory.SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
   }
   else
   {
@@ -220,7 +220,7 @@ main (int argc, char *argv[])
 
   // create the channel condition model and associate it with the spectrum and
   // propagation loss model
-  Ptr<ChannelConditionModel> condModel = channelConditionModelFactory.Create<ThreeGppChannelConditionModel> ();
+  Ptr<ChannelConditionModel> condModel = channelConditionModelFactory.Create<ChannelConditionModel> ();
   m_spectrumLossModel->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (condModel));
   m_propagationLossModel->SetChannelConditionModel (condModel);
 
@@ -304,12 +304,12 @@ main (int argc, char *argv[])
 
   //Radio Environment Map Generation
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (-30.0);
-  remHelper->SetMaxX (30.0);
+  remHelper->SetMinX (-15.0);
+  remHelper->SetMaxX (20.0);
   remHelper->SetResX (100);
-  remHelper->SetMinY (-30.0);
-  remHelper->SetMaxY (30.0);
-  remHelper->SetResY (50);
+  remHelper->SetMinY (-15.0);
+  remHelper->SetMaxY (15.0);
+  remHelper->SetResY (100);
   remHelper->SetZ (1.5);
   remHelper->ConfigurePropagationModelsFactories (m_propagationLossModel, m_spectrumLossModel);
   remHelper->CreateRem ();

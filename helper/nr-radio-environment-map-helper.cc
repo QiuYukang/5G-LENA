@@ -463,7 +463,7 @@ void
 NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
 {
   //create rem copy of channel condition
-  m_remCondModelCopy = m_channelConditionModelFactory.Create<ThreeGppChannelConditionModel> ();
+  m_remCondModelCopy = m_channelConditionModelFactory.Create<ChannelConditionModel> ();
   NS_ASSERT_MSG (m_remCondModelCopy, "m_remCondModelCopy is null");
 
   //create rem copy of propagation model
