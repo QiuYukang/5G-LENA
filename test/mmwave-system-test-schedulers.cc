@@ -120,14 +120,15 @@ MmWaveSystemTestScheduling::DoRun (void)
     NS_ABORT_IF(!m_isUplink && !m_isDownlink);
 
    // set simulation time and mobility
-    Time simTime = MilliSeconds (600);
+    Time simTime = MilliSeconds (1500);
     Time udpAppStartTimeDl = MilliSeconds (500);
     Time udpAppStartTimeUl = MilliSeconds (500);
-    Time udpAppStopTimeDl = MilliSeconds (600);
-    Time udpAppStopTimeUl = MilliSeconds (600);
+    Time udpAppStopTimeDl = MilliSeconds (1500); // Let's give 1s to end the tx
+    Time udpAppStopTimeUl = MilliSeconds (1500); // Let's give 1 to end the tx
     uint16_t gNbNum = 1;
-    uint32_t packetSize = 1000;
-    DataRate udpRate = DataRate ("400kbps");
+    uint32_t packetSize = 100;
+    uint32_t maxPackets = 400;
+    DataRate udpRate = DataRate ("320kbps"); // 400 packets of 800 bits
 
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
@@ -332,7 +333,7 @@ MmWaveSystemTestScheduling::DoRun (void)
     ApplicationContainer serverAppsUl;
 //    ObjectMapValue objectMapValue;
 
-    Time udpInterval = Time::FromDouble((packetSize*8) / static_cast<double> (udpRate.GetBitRate ()), Time::S);
+    Time udpInterval = NanoSeconds (1);
 
     if (m_isUplink)
       {
@@ -344,7 +345,7 @@ MmWaveSystemTestScheduling::DoRun (void)
           {
 
             UdpClientHelper ulClient (remoteHostAddr, ulPort);
-            ulClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+            ulClient.SetAttribute ("MaxPackets", UintegerValue(maxPackets));
             ulClient.SetAttribute("PacketSize", UintegerValue(packetSize));
             ulClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
             clientAppsUl.Add (ulClient.Install (ueNodes.Get(j)));
@@ -376,7 +377,7 @@ MmWaveSystemTestScheduling::DoRun (void)
         for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
           {
             UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-            dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+            dlClient.SetAttribute ("MaxPackets", UintegerValue(maxPackets));
             dlClient.SetAttribute("PacketSize", UintegerValue(packetSize));
             dlClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
             clientAppsDl.Add (dlClient.Install (remoteHost));
@@ -403,32 +404,30 @@ MmWaveSystemTestScheduling::DoRun (void)
     Simulator::Run ();
 
 
-    double throughputDl = 0;
-    double throughputUl = 0;
+    double dataRecvDl = 0;
+    double dataRecvUl = 0;
 
     if (m_isDownlink)
       {
         for ( uint32_t i = 0; i < serverAppsDl.GetN (); i++)
           {
             Ptr<UdpServer> serverApp = serverAppsDl.Get (i)->GetObject<UdpServer> ();
-            double throughput = (serverApp->GetReceived () * packetSize * 8)/(udpAppStopTimeDl-udpAppStartTimeDl).GetSeconds ();
-            throughputDl += throughput;
+            double data = (serverApp->GetReceived () * packetSize * 8);
+            dataRecvDl += data;
           }
-        //std::cout<<"\n Total DL UDP throughput "<<throughputDl/1e6<<" Mbps"<<std::endl;
       }
     if (m_isUplink)
       {
         for ( uint32_t i = 0; i < serverAppsUl.GetN (); i++)
           {
              Ptr<UdpServer> serverApp = serverAppsUl.Get (i)->GetObject<UdpServer>();
-             double throughput = (serverApp->GetReceived () * packetSize * 8)/(udpAppStopTimeUl-udpAppStartTimeUl).GetSeconds ();
-             throughputUl += throughput;
+             double data = (serverApp->GetReceived () * packetSize * 8);
+             dataRecvUl += data;
           }
-        //std::cout<<"\n Total UL UDP throughput "<<throughputUl/1e6<<" Mbps"<<std::endl;
       }
 
 
-    NS_TEST_ASSERT_MSG_EQ_TOL (throughputDl + throughputUl, udpRate.GetBitRate () * ueNodes.GetN () * ((m_isUplink && m_isDownlink)? 2 : 1), 0.01, "Wrong total DL + UL throughput");
+    NS_TEST_ASSERT_MSG_EQ_TOL (dataRecvDl + dataRecvUl, udpRate.GetBitRate () * ueNodes.GetN () * ((m_isUplink && m_isDownlink)? 2 : 1), 0.01, "Wrong total DL + UL throughput");
 
     Simulator::Destroy ();
 }
@@ -459,6 +458,7 @@ MmWaveSystemTestSchedulingTestSuite::MmWaveSystemTestSchedulingTestSuite ()
   std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 8};
   std::list<uint32_t>    beams           = {1, 2};
   std::list<uint32_t>    numerologies    = {0, 1, 2, 3, 4};
+
 
   // Three QUICK test cases
   AddTestCase (new MmWaveSystemTestScheduling ("DL, num 0 Tdma RR 1 2", 1, 2, 0, 20e6, true, false,
