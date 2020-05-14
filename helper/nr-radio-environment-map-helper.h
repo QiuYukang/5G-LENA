@@ -210,6 +210,7 @@ private:
       double rssidBm {0};
       double avRssidBm {0};
       double snrdB {0};
+      double avSnrdB {0};
     };
 
     /// List of listeners in the environment.

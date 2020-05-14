@@ -371,6 +371,8 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
   std::cout << "Started to generate REM points. There are in total:"<<m_rem.size()<<std::endl;
   uint16_t pointsCounter = 0;
 
+  //Save REM creation start time
+  auto remStartTime = std::chrono::system_clock::now();
 
   for (std::list<RemPoint>::iterator it = m_rem.begin ();
        it != m_rem.end ();
@@ -395,7 +397,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
       rrd.antenna->SetBeamformingVector (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()));
 
       //perform calculation m_numOfIterationsToAverage times and get the average value
-      double sumRssi = 0;
+      double sumRssi = 0, sumSnr = 0;
 
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
@@ -425,6 +427,8 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
           Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, sm1);
           SpectrumValue snr = (*rxPsd) / (*noisePsd);
           it->snrdB = 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+          sumSnr += it->snrdB;
+
           //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
           it->sinrdB = it->snrdB; // we save SNR,  until we have some interferers, then we will calculate SINR
 
@@ -437,16 +441,22 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
 
       }
       it->avRssidBm = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
+      it->avSnrdB = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
 
       auto endPsdTime = std::chrono::system_clock::now();
       //std::time_t end_time = std::chrono::system_clock::to_time_t(endPsdTime);
       //std::cout<<"\n PSD end time: "<<std::ctime(&end_time)<<std::endl;
       std::chrono::duration<double> elapsed_seconds = endPsdTime - startPsdTime;
-      std::cout<< "REM point finished. Execution time:"<<elapsed_seconds.count() << " seconds."<<std::endl;
-      std::cout<< "\n Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.";
-      std::cout<<"\n Estimated time to finish:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<<" minutes."<<std::endl;
+      //std::cout<< "REM point finished. Execution time:"<<elapsed_seconds.count() << " seconds."<<std::endl;
+      std::cout<<"\n Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.";
+      std::cout<<"\n Estimated time to finish REM:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<<" minutes."<<std::endl;
 
     }
+
+  auto remEndTime = std::chrono::system_clock::now();
+  std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+  std::cout<<"\n Total time was needed to create the REM map:"<<remElapsedSeconds.count()/60<<" minutes."<<std::endl;
+
 }
 
 void
@@ -490,6 +500,7 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
                 << it->rssidBm << "\t"
                 << it->avRssidBm << "\t"
                 << it->snrdB <<"\t"
+                << it->avSnrdB<<"\t"
                 << std::endl;
     }
 
