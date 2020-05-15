@@ -17,12 +17,12 @@
  *
  */
 
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include "ns3/log.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
@@ -33,14 +33,14 @@
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/abort.h"
 #include "ns3/object.h"
-#include "ns3/mmwave-mac-scheduler-ns3.h"
-#include "ns3/mmwave-mac-scheduler-ofdma.h"
-#include "ns3/mmwave-mac-scheduler-ofdma-rr.h"
-#include "ns3/mmwave-phy-mac-common.h"
+#include "ns3/nr-mac-scheduler-ns3.h"
+#include "ns3/nr-mac-scheduler-ofdma.h"
+#include "ns3/nr-mac-scheduler-ofdma-rr.h"
+#include "ns3/nr-phy-mac-common.h"
 #include "ns3/basic-data-calculators.h"
-#include "ns3/mmwave-spectrum-phy.h"
-#include "ns3/mmwave-ue-net-device.h"
-#include <ns3/mmwave-ue-phy.h>
+#include "ns3/nr-spectrum-phy.h"
+#include "ns3/nr-ue-net-device.h"
+#include <ns3/nr-ue-phy.h>
 #include "ns3/nr-module.h"
 
 using namespace ns3;
@@ -550,13 +550,13 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     m_outGnbPositionsFile.close ();
     m_outDistancesFile.close ();
 
-    // setup the mmWave simulation
-    Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+    // setup the nr simulation
+    Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
 
-    mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-    mmWaveHelper->SetEpcHelper (epcHelper);
+    nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    nrHelper->SetEpcHelper (epcHelper);
 
     /*
      * Spectrum division. We create one operational band, containing one
@@ -585,12 +585,12 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     // By using the configuration created, make the operation band
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
-    mmWaveHelper->InitializeOperationBand (&band);
+    nrHelper->InitializeOperationBand (&band);
     allBwps = CcBwpCreator::GetAllBwps ({band});
 
 
     // Disable channel matrix update to speed up the simulation execution
-    //Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
+    //Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
     //Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     //Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
@@ -605,46 +605,46 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
       idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
 
-    mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerTdmaPF"));
+    nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaPF"));
 
     // Antennas for all the UEs - Should be 2x4 = 8 antenna elements
-    mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-    mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-    mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (ueAntennaModel));
+    nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+    nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+    nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (ueAntennaModel));
 
     // Antennas for all the gNbs - Should be 4x8 = 32 antenna elements
-    mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-    mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-    mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (gNbAntennaModel));
+    nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+    nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+    nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (gNbAntennaModel));
 
 
     //mobility.SetPositionAllocator (ueRandomRectPosAlloc);
-    //install mmWave net devices
-    NetDeviceContainer gNbDevs = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
-    NetDeviceContainer ueNetDevs = mmWaveHelper->InstallUeDevice (selectedUeNodes, allBwps);
+    //install nr net devices
+    NetDeviceContainer gNbDevs = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
+    NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice (selectedUeNodes, allBwps);
 
     for (uint32_t i = 0 ; i < gNbDevs.GetN (); i ++)
     {
-        mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-        mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (totalTxPower)));
+        nrHelper->GetGnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+        nrHelper->GetGnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (totalTxPower)));
         // gNB noise figure shall be set to 7 dB
-        mmWaveHelper->GetEnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("NoiseFigure", DoubleValue (7));
+        nrHelper->GetGnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("NoiseFigure", DoubleValue (7));
     }
     for (uint j = 0; j < ueNetDevs.GetN (); j++)
     {
         // UE noise figure shall be set to 10 dB
-        mmWaveHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));
+        nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));
     }
 
 
     for (auto it = gNbDevs.Begin (); it != gNbDevs.End (); ++it)
       {
-        DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+        DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
       }
 
     for (auto it = ueNetDevs.Begin (); it != ueNetDevs.End (); ++it)
       {
-        DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+        DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
       }
 
 
@@ -684,7 +684,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
       }
 
     // attach UEs to the closest eNB
-    mmWaveHelper->AttachToClosestEnb (ueNetDevs, gNbDevs);
+    nrHelper->AttachToClosestEnb (ueNetDevs, gNbDevs);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
@@ -715,10 +715,10 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
 
     for (uint32_t i = 0 ; i < ueNetDevs.GetN (); i ++)
       {
-        Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
+        Ptr<NrSpectrumPhy > ue1SpectrumPhy = DynamicCast<NrUeNetDevice>
         (ueNetDevs.Get (i))->GetPhy (0)->GetSpectrumPhy ();
         ue1SpectrumPhy->TraceConnectWithoutContext ("RxPacketTraceUe", MakeBoundCallback (&UeReceptionTrace, this));
-        Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference ();
+        Ptr<nrInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetNrInterference ();
         NS_ABORT_IF (!ue1SpectrumPhyInterference);
         ue1SpectrumPhyInterference->TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeBoundCallback (&UeSnrPerProcessedChunkTrace, this));
         ue1SpectrumPhyInterference->TraceConnectWithoutContext ("RssiPerProcessedChunk", MakeBoundCallback (&UeRssiPerProcessedChunkTrace, this));

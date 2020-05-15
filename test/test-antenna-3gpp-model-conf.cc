@@ -15,8 +15,6 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *   Author: Biljana Bojovic <bbojovic@cttc.es>
-
  */
 
 #include "ns3/core-module.h"
@@ -223,35 +221,35 @@ TestAntenna3gppModelConf::DoRun (void)
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  // Put the pointers inside mmWaveHelper
+  // Put the pointers inside nrHelper
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
   double beamSearchAngleStep = 30.0;
   idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
 
 
   // set the number of antenna elements of UE
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (sqrt(m_ueNoOfAntennas)));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (sqrt(m_ueNoOfAntennas)));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (m_ueOmniAntennaElem));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (sqrt(m_ueNoOfAntennas)));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (sqrt(m_ueNoOfAntennas)));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (m_ueOmniAntennaElem));
 
   // set the number of antenna elements of gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (m_gNbOmniAntennaElem));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (m_gNbOmniAntennaElem));
 
   // UE transmit power
-  mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
+  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
 
   // gNB transmit power
-  mmWaveHelper->SetGnbPhyAttribute("TxPower", DoubleValue (44.0));
+  nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue (44.0));
 
-  mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (3.0));
+  nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (3.0));
 
 
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   /*
    * Spectrum division. We create two operational bands, each of them containing
@@ -285,7 +283,7 @@ TestAntenna3gppModelConf::DoRun (void)
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
   // Shadowing
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   /*
    * Initialize channel and pathloss, plus other things inside band1. If needed,
@@ -293,30 +291,30 @@ TestAntenna3gppModelConf::DoRun (void)
    * sophisticated examples. For the moment, this method will take care
    * of all the spectrum initialization needs.
    */
-  mmWaveHelper->InitializeOperationBand (&band);
+  nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
-//  mmWaveHelper->Initialize();
+//  nrHelper->Initialize();
 
   uint32_t bwpIdForLowLat = 0;
   // gNb routing between Bearer and bandwidh part
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
   // UE routing between Bearer and bandwidh part
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
 
-  // install mmWave net devices
-  NetDeviceContainer gNbDevs = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
-  NetDeviceContainer ueNetDevs = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+  // install nr net devices
+  NetDeviceContainer gNbDevs = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
+  NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
 
   for (auto it = gNbDevs.Begin (); it != gNbDevs.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDevs.Begin (); it != ueNetDevs.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
 
@@ -356,7 +354,7 @@ TestAntenna3gppModelConf::DoRun (void)
     }
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDevs, gNbDevs);
+  nrHelper->AttachToClosestEnb (ueNetDevs, gNbDevs);
 
   // assign IP address to UEs, and install UDP downlink applications
   uint16_t dlPort = 1234;
@@ -383,7 +381,7 @@ TestAntenna3gppModelConf::DoRun (void)
   tft->Add (dlpf);
 
   EpsBearer bearer (EpsBearer::NGBR_LOW_LAT_EMBB);
-  mmWaveHelper->ActivateDedicatedEpsBearer (ueNetDevs.Get(0), bearer, tft);
+  nrHelper->ActivateDedicatedEpsBearer (ueNetDevs.Get(0), bearer, tft);
 
 
   // start UDP server and client apps
@@ -393,10 +391,10 @@ TestAntenna3gppModelConf::DoRun (void)
   serverAppsDl.Stop (udpAppStopTimeDl);
   clientAppsDl.Stop (udpAppStopTimeDl);
 
-  Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = mmWaveHelper->GetUePhy (ueNetDevs.Get (0), 0)->GetSpectrumPhy ();
+  Ptr<NrSpectrumPhy > ue1SpectrumPhy = nrHelper->GetUePhy (ueNetDevs.Get (0), 0)->GetSpectrumPhy ();
   ue1SpectrumPhy->TraceConnectWithoutContext ("RxPacketTraceUe", MakeBoundCallback (&UETraceReception, this));
 
-  //mmWaveHelper->EnableTraces();
+  //nrHelper->EnableTraces();
   Simulator::Stop (simTime);
   Simulator::Run ();
 
@@ -415,7 +413,7 @@ TestAntenna3gppModelConf::DoRun (void)
 }
 
 
-// The TestSuite class names the TestMmWaveSystemTestOfdmaTestSuite, identifies what type of TestSuite,
+// The TestSuite class names the TestNrSystemTestOfdmaTestSuite, identifies what type of TestSuite,
 // and enables the TestCases to be run. Typically, only the constructor for
 // this class must be defined
 //

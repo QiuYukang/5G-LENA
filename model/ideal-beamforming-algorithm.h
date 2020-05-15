@@ -30,8 +30,8 @@ namespace ns3 {
 
 class SpectrumModel;
 class SpectrumValue;
-class MmWaveEnbNetDevice;
-class MmWaveUeNetDevice;
+class NrGnbNetDevice;
+class NrUeNetDevice;
 
 /**
  * \ingroup gnb-phy
@@ -62,8 +62,8 @@ public:
    */
   virtual ~IdealBeamformingAlgorithm ();
 
-  virtual void GetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
-                                      const Ptr<const MmWaveUeNetDevice>& ueDev,
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const;
 
   /**
@@ -86,8 +86,8 @@ private:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
-                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const = 0;
 
 
@@ -137,8 +137,8 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
-                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 
   double m_beamSearchAngleStep {30};
@@ -170,8 +170,8 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
-                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 
   /**
@@ -214,8 +214,8 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
-                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 
 };
@@ -238,8 +238,8 @@ public:
 
 protected:
 
-  virtual void DoGetBeamformingVectors (const Ptr<const MmWaveEnbNetDevice>& gnbDev,
-                                        const Ptr<const MmWaveUeNetDevice>& ueDev,
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
 };
 

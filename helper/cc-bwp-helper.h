@@ -45,7 +45,7 @@ class SpectrumChannel;
  *
  * This is the minimum unit of usable spectrum by a PHY class. For creating
  * any GNB or UE, you will be asked to provide a list of BandwidthPartInfo
- * to the methods MmWaveHelper::InstallGnbDevice() and MmWaveHelper::InstallUeDevice().
+ * to the methods NrHelper::InstallGnbDevice() and NrHelper::InstallUeDevice().
  * The reason is that the helper will, for every GNB and UE in the scenario,
  * create a PHY class that will be attached to the channels included in this struct.
  *
@@ -54,7 +54,7 @@ class SpectrumChannel;
  * well as the entire bandwidth plus the modeling.
  *
  * The pointers to the channels, if left empty, will be initializated by
- * MmWaveHelper::InitializeOperationBand().
+ * NrHelper::InitializeOperationBand().
  */
 struct BandwidthPartInfo
 {
@@ -90,7 +90,7 @@ struct BandwidthPartInfo
 
   Ptr<SpectrumChannel> m_channel;            //!< Channel for the Bwp. Leave it nullptr to let the helper fill it
   Ptr<PropagationLossModel> m_propagation;   //!< Propagation model. Leave it nullptr to let the helper fill it
-  Ptr<SpectrumPropagationLossModel> m_3gppChannel;   //!< MmWave Channel. Leave it nullptr to let the helper fill it
+  Ptr<SpectrumPropagationLossModel> m_3gppChannel;   //!< Nr Channel. Leave it nullptr to let the helper fill it
 };
 
 /**
@@ -176,8 +176,8 @@ struct OperationBandInfo
   BandwidthPartInfoPtr & GetBwpAt (uint32_t ccId, uint32_t bwpId) const;
 
   /**
-   * \brief Get the list of all the BWPs to pass to MmWaveHelper
-   * \return a list of BWP to pass to MmWaveHelper::InitializeOperationBand()
+   * \brief Get the list of all the BWPs to pass to NrHelper
+   * \return a list of BWP to pass to NrHelper::InitializeOperationBand()
    */
   BandwidthPartInfoPtrVector GetBwps() const;
 };
@@ -250,7 +250,7 @@ public:
   /**
    * \brief Get all the BWP pointers from the specified vector of operation bands
    * \param operationBands the operation bands
-   * \return the pointers to the BWP to be passed to MmWaveHelper
+   * \return the pointers to the BWP to be passed to NrHelper
    *
    */
   static BandwidthPartInfoPtrVector

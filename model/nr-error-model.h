@@ -64,7 +64,7 @@ struct NrErrorModelOutput : public SimpleRefCount<NrErrorModelOutput>
  * \section nr_error_model_conf Configuration
  *
  * The type of the error model can be configured through the helper method
- * MmWaveHelper::SetUlErrorModel() or MmWaveHelper::SetDlErrorModel().
+ * NrHelper::SetUlErrorModel() or NrHelper::SetDlErrorModel().
  *
  * The types of error model that can be used are the following:
  * NrEesmIrT2, NrEesmIrT1, NrEesmCcT1, NrEesmCcT2, NrLteMiErrorModel.

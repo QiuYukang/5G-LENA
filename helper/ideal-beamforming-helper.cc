@@ -19,10 +19,10 @@
 
 #include "ideal-beamforming-helper.h"
 #include <ns3/log.h>
-#include <ns3/mmwave-enb-net-device.h>
-#include <ns3/mmwave-ue-net-device.h>
-#include <ns3/mmwave-enb-phy.h>
-#include <ns3/mmwave-ue-phy.h>
+#include <ns3/nr-gnb-net-device.h>
+#include <ns3/nr-ue-net-device.h>
+#include <ns3/nr-gnb-phy.h>
+#include <ns3/nr-ue-phy.h>
 #include <ns3/beam-manager.h>
 #include <ns3/vector.h>
 
@@ -67,8 +67,8 @@ IdealBeamformingHelper::GetTypeId (void)
 }
 
 void
-IdealBeamformingHelper::AddBeamformingTask (const Ptr<MmWaveEnbNetDevice>& gNbDev,
-                                            const Ptr<MmWaveUeNetDevice>& ueDev)
+IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
+                                            const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
   m_beamformingTasks.push_back(std::make_pair(gNbDev, ueDev));
@@ -86,13 +86,13 @@ IdealBeamformingHelper::Run () const
 
       for (uint8_t ccId = 0; ccId < task.first->GetCcMapSize() ; ccId++)
         {
-           Ptr<MmWaveEnbNetDevice> gNbDev = task.first;
-           Ptr<MmWaveUeNetDevice> ueDev = task.second;
+           Ptr<NrGnbNetDevice> gNbDev = task.first;
+           Ptr<NrUeNetDevice> ueDev = task.second;
 
            BeamformingVector gnbBfv, ueBfv;
            m_idealBeamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
-           Ptr<MmWaveEnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
-           Ptr<MmWaveUePhy> uePhy = ueDev->GetPhy (ccId);
+           Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
+           Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
 
            NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
 

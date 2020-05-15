@@ -258,16 +258,16 @@ main (int argc, char *argv[])
    * NR simulation:
    * - EpcHelper, which will setup the core network
    * - IdealBeamformingHelper, which takes care of the beamforming part
-   * - MmWaveHelper, which takes care of creating and connecting the various
+   * - NrHelper, which takes care of creating and connecting the various
    * part of the NR stack
    */
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  // Put the pointers inside mmWaveHelper
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  // Put the pointers inside nrHelper
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   /*
    * Spectrum division. We create two operational bands, each of them containing
@@ -301,8 +301,8 @@ main (int argc, char *argv[])
    * TODO: Coordinate with Tommaso
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
-  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   /*
    * Initialize channel and pathloss, plus other things inside band1. If needed,
@@ -310,7 +310,7 @@ main (int argc, char *argv[])
    * sophisticated examples. For the moment, this method will take care
    * of all the spectrum initialization needs.
    */
-  mmWaveHelper->InitializeOperationBand (&band1);
+  nrHelper->InitializeOperationBand (&band1);
 
   /*
    * Start to account for the bandwidth used by the example, as well as
@@ -325,7 +325,7 @@ main (int argc, char *argv[])
   if (doubleOperationalBand)
     {
       // Initialize channel and pathloss, plus other things inside band2
-      mmWaveHelper->InitializeOperationBand (&band2);
+      nrHelper->InitializeOperationBand (&band2);
       totalBandwidth += bandwidthBand2;
       allBwps = CcBwpCreator::GetAllBwps ({band1, band2});
     }
@@ -335,7 +335,7 @@ main (int argc, char *argv[])
     }
 
   /*
-   * allBwps contains all the spectrum configuration needed for the mmWaveHelper.
+   * allBwps contains all the spectrum configuration needed for the nrHelper.
    *
    * Now, we can setup the attributes. We can have three kind of attributes:
    * (i) parameters that are valid for all the bandwidth parts and applies to
@@ -365,14 +365,14 @@ main (int argc, char *argv[])
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForVoice = 0;
@@ -383,12 +383,12 @@ main (int argc, char *argv[])
     }
 
   // gNb routing between Bearer and bandwidh part
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
   // Ue routing between Bearer and bandwidth part
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
 
   /*
@@ -408,9 +408,9 @@ main (int argc, char *argv[])
    * to the NetDevices, which contains all the NR stack:
    */
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueLowLatNetDev = mmWaveHelper->InstallUeDevice (ueLowLatContainer, allBwps);
-  NetDeviceContainer ueVoiceNetDev = mmWaveHelper->InstallUeDevice (ueVoiceContainer, allBwps);
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer ueLowLatNetDev = nrHelper->InstallUeDevice (ueLowLatContainer, allBwps);
+  NetDeviceContainer ueVoiceNetDev = nrHelper->InstallUeDevice (ueVoiceContainer, allBwps);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -419,32 +419,32 @@ main (int argc, char *argv[])
 
   // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
   // and set the attribute.
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand1/totalBandwidth) * x)));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand1/totalBandwidth) * x)));
 
   if (doubleOperationalBand)
     {
       // Get the first netdevice (enbNetDev.Get (0)) and the second bandwidth part (1)
       // and set the attribute.
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBand2/totalBandwidth) * x));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBand2/totalBandwidth) * x));
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueLowLatNetDev.Begin (); it != ueLowLatNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueVoiceNetDev.Begin (); it != ueVoiceNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   // From here, it is standard NS3. In the future, we will create helpers
@@ -485,8 +485,8 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
-  mmWaveHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueLowLatNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueVoiceNetDev, enbNetDev);
 
   /*
    * Traffic part. Install two kind of traffic: low-latency and voice, each
@@ -563,7 +563,7 @@ main (int argc, char *argv[])
       clientApps.Add (dlClientLowLat.Install (remoteHost));
 
       // Activate a dedicated bearer for the traffic type
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+      nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
   for (uint32_t i = 0; i < ueVoiceContainer.GetN (); ++i)
@@ -578,7 +578,7 @@ main (int argc, char *argv[])
       clientApps.Add (dlClientVoice.Install (remoteHost));
 
       // Activate a dedicated bearer for the traffic type
-      mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+      nrHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
     }
 
   // start UDP server and client apps
@@ -587,8 +587,8 @@ main (int argc, char *argv[])
   serverApps.Stop(MilliSeconds(simTimeMs));
   clientApps.Stop(MilliSeconds(simTimeMs));
 
-  // enable the traces provided by the mmWave module
-  //mmWaveHelper->EnableTraces();
+  // enable the traces provided by the nr module
+  //nrHelper->EnableTraces();
 
 
   FlowMonitorHelper flowmonHelper;
@@ -606,7 +606,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> Numerology,
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

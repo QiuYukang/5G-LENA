@@ -22,9 +22,9 @@
 #include <ns3/node-container.h>
 #include <ns3/net-device-container.h>
 #include <ns3/point-to-point-helper.h>
-#include <ns3/mmwave-enb-net-device.h>
+#include <ns3/nr-gnb-net-device.h>
 #include <ns3/epc-x2.h>
-#include <ns3/mmwave-ue-net-device.h>
+#include <ns3/nr-ue-net-device.h>
 #include <ns3/lte-enb-rrc.h>
 #include <ns3/epc-ue-nas.h>
 
@@ -63,8 +63,8 @@ NrPointToPointEpcHelper::DoAddX2Interface (const Ptr<EpcX2> &enb1X2, const Ptr<N
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<MmWaveEnbNetDevice> enb1LteDevice = enb1LteDev->GetObject<MmWaveEnbNetDevice> ();
-  Ptr<MmWaveEnbNetDevice> enb2LteDevice = enb2LteDev->GetObject<MmWaveEnbNetDevice> ();
+  Ptr<NrGnbNetDevice> enb1LteDevice = enb1LteDev->GetObject<NrGnbNetDevice> ();
+  Ptr<NrGnbNetDevice> enb2LteDevice = enb2LteDev->GetObject<NrGnbNetDevice> ();
   uint16_t enb1CellId = enb1LteDevice->GetCellId ();
   uint16_t enb2CellId = enb2LteDevice->GetCellId ();
 
@@ -86,7 +86,7 @@ NrPointToPointEpcHelper::DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevic
                                                    const Ptr<EpcTft> &tft,
                                                    const EpsBearer &bearer) const
 {
-  Ptr<MmWaveUeNetDevice> ueLteDevice = ueDevice->GetObject<MmWaveUeNetDevice> ();
+  Ptr<NrUeNetDevice> ueLteDevice = ueDevice->GetObject<NrUeNetDevice> ();
   if (ueLteDevice)
     {
       Simulator::ScheduleNow (&EpcUeNas::ActivateEpsBearer, ueLteDevice->GetNas (), bearer, tft);

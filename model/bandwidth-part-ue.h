@@ -15,23 +15,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Biljana Bojovic <bbojovic@cttc.es>
- *
  */
 
-#ifndef COMPONENT_CARRIER_MMWAVE_UE_H
-#define COMPONENT_CARRIER_MMWAVE_UE_H
+#ifndef COMPONENT_CARRIER_NR_UE_H
+#define COMPONENT_CARRIER_NR_UE_H
 
 #include <ns3/object.h>
 #include <ns3/packet.h>
 #include <ns3/nstime.h>
-#include "ns3/mmwave-phy.h"
-#include <ns3/mmwave-ue-phy.h>
+#include "ns3/nr-phy.h"
+#include <ns3/nr-ue-phy.h>
 #include <ns3/component-carrier.h>
 
 namespace ns3 {
 
-class MmWaveUeMac;
+class NrUeMac;
 
 /**
  * \ingroup ue-bwp
@@ -60,24 +58,24 @@ public:
   /**
    * \return a pointer to the physical layer.
    */
-  Ptr<MmWaveUePhy> GetPhy (void) const;
+  Ptr<NrUePhy> GetPhy (void) const;
 
   /**
    * \return a pointer to the MAC layer.
    */
-  Ptr<MmWaveUeMac> GetMac (void) const;
+  Ptr<NrUeMac> GetMac (void) const;
 
   /**
    * Set LteUePhy
    * \param s a pointer to the LteUePhy
    */
-  void SetPhy (Ptr<MmWaveUePhy> s);
+  void SetPhy (Ptr<NrUePhy> s);
 
   /**
-   * Set the LteEnbMac
-   * \param s a pointer to the LteEnbMac
+   * Set the LteGnbMac
+   * \param s a pointer to the LteGnbMac
    */
-  void SetMac (Ptr<MmWaveUeMac> s);
+  void SetMac (Ptr<NrUeMac> s);
 
   virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
   virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
@@ -89,8 +87,8 @@ protected:
   void virtual DoDispose () override;
 
 private:
-  Ptr<MmWaveUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier
-  Ptr<MmWaveUeMac> m_mac; ///< the MAC instance of this eNodeB component carrier
+  Ptr<NrUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier
+  Ptr<NrUeMac> m_mac; ///< the MAC instance of this eNodeB component carrier
 
 };
 

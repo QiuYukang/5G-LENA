@@ -58,7 +58,7 @@
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
@@ -207,10 +207,10 @@ main (int argc, char *argv[])
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  mmWaveHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   // Create one operational band containing one CC with 2 bandwidth parts
   BandwidthPartInfoPtrVector allBwps;
@@ -225,53 +225,53 @@ main (int argc, char *argv[])
   // By using the configuration created, it is time to make the operation band
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
-  mmWaveHelper->InitializeOperationBand (&band);
+  nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Beamforming method
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   uint32_t bwpIdForLowLat = 0;
   uint32_t bwpIdForVoice = 1;
 
   // gNb routing between Bearer and bandwidh part
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
   // Ue routing between Bearer and bandwidth part
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
 
   //Install and get the pointers to the NetDevices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
+  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
 
   // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPowerPerBwp);
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetTxPower (txPowerPerBwp);
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPowerPerBwp);
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetTxPower (txPowerPerBwp);
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   InternetStackHelper internet;
@@ -282,7 +282,7 @@ main (int argc, char *argv[])
   Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress(), packetSize);
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   Ptr<EpcTft> tft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpf;
@@ -301,11 +301,11 @@ main (int argc, char *argv[])
     }
 
   EpsBearer bearer (q);
-  mmWaveHelper->ActivateDedicatedEpsBearer (ueNetDev, bearer, tft);
+  nrHelper->ActivateDedicatedEpsBearer (ueNetDev, bearer, tft);
 
   Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
 
-  mmWaveHelper->EnableTraces();
+  nrHelper->EnableTraces();
 
   Simulator::Stop (Seconds (1));
   Simulator::Run ();

@@ -28,8 +28,8 @@
 
 namespace ns3 {
 
-class MmWaveUeNetDevice;
-class MmWaveEnbNetDevice;
+class NrUeNetDevice;
+class NrGnbNetDevice;
 class IdealBeamformingHelper;
 
 /**

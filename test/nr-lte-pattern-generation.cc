@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2019 CTTC
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -18,14 +18,14 @@
  */
 #include <ns3/test.h>
 #include <ns3/object-factory.h>
-#include <ns3/mmwave-enb-phy.h>
+#include <ns3/nr-gnb-phy.h>
 
 /**
  * \file nr-lte-pattern-generation
  * \ingroup test
  * \brief Unit-testing for the LTE/NR TDD pattern
  *
- * The test considers the function MmWaveEnbPhy::GenerateStructuresFromPattern
+ * The test considers the function NrGnbPhy::GenerateStructuresFromPattern
  * and checks that the output of that function is equal to the one pre-defined.
  * Test includes also the Harq feedback indication
  */
@@ -783,7 +783,7 @@ LtePatternTestCase::TestPattern (const std::vector<LteNrTddSlotType> &pattern,
   std::map<uint32_t, std::vector<uint32_t> > generateUl;
   std::map<uint32_t, uint32_t> dlHarqFb;
 
-  MmWaveEnbPhy::GenerateStructuresFromPattern (pattern, &toSendDl, &toSendUl, &generateDl, &generateUl, &dlHarqFb, 0, 2, 4, 2);
+  NrGnbPhy::GenerateStructuresFromPattern (pattern, &toSendDl, &toSendUl, &generateDl, &generateUl, &dlHarqFb, 0, 2, 4, 2);
 
   if (m_verbose)
     {

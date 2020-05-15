@@ -21,8 +21,8 @@
 #include <ns3/nstime.h>
 #include <ns3/event-id.h>
 #include <functional>
-#include "mmwave-enb-mac.h"
-#include "mmwave-spectrum-phy.h"
+#include "nr-gnb-mac.h"
+#include "nr-spectrum-phy.h"
 
 #ifndef NR_CH_ACCESS_MANAGER_H_
 #define NR_CH_ACCESS_MANAGER_H_
@@ -48,8 +48,8 @@ namespace ns3 {
  * \section ch_access_manager_conf Configuration
  *
  * Any channel access manager attribute can be set through the helper methods
- * MmWaveHelper::SetUeChannelAccessManagerAttribute() or
- * MmWaveHelper::SetGnbChannelAccessManagerAttribute(). Another option is
+ * NrHelper::SetUeChannelAccessManagerAttribute() or
+ * NrHelper::SetGnbChannelAccessManagerAttribute(). Another option is
  * directly calling `SetAttribute` on the pointer. The list of
  * attributes is reported below, in the Attributes section.
  *
@@ -123,31 +123,31 @@ public:
    * \brief Set spectrum phy instance for this channel access manager
    * \param spectrumPhy specturm phy instance
    */
-  virtual void SetNrSpectrumPhy (Ptr<MmWaveSpectrumPhy> spectrumPhy);
+  virtual void SetNrSpectrumPhy (Ptr<NrSpectrumPhy> spectrumPhy);
 
   /**
    * \brief Getter for spectrum phy instance to which is connected this channel access manager
    * \return pointer to spectrum phy instance
    */
-  Ptr<MmWaveSpectrumPhy> GetNrSpectrumPhy ();
+  Ptr<NrSpectrumPhy> GetNrSpectrumPhy ();
 
   /**
    * \brief Set MAC instance for this channel access manager
-   * \param mac eNB mac instance
+   * \param mac gNB mac instance
    */
-  virtual void SetNrEnbMac (Ptr<MmWaveEnbMac> mac);
+  virtual void SetNrGnbMac (Ptr<NrGnbMac> mac);
 
   /**
    * \brief Getter for MAC instance to which is connected this channel access manager
    * \return pointer to MAC instance
    */
-  Ptr<MmWaveEnbMac> GetNrEnbMac ();
+  Ptr<NrGnbMac> GetNrGnbMac ();
 
 private:
 
   Time m_grantDuration; //!< Duration of the channel access grant
-  Ptr<MmWaveEnbMac> m_mac; //!< MAC instance to which is connected this channel access manager
-  Ptr<MmWaveSpectrumPhy> m_spectrumPhy; //!< SpectrumPhy instance to which is connected this channel access manager
+  Ptr<NrGnbMac> m_mac; //!< MAC instance to which is connected this channel access manager
+  Ptr<NrSpectrumPhy> m_spectrumPhy; //!< SpectrumPhy instance to which is connected this channel access manager
 };
 
 /**
@@ -162,16 +162,16 @@ private:
  * manually, you can invoke the helper function before installing the gnb:
  *
 \verbatim
-  mmWaveHelper->SetGnbChannelAccessManagerTypeId (NrAlwaysOnAccessManager::GetTypeId());
+  nrHelper->SetGnbChannelAccessManagerTypeId (NrAlwaysOnAccessManager::GetTypeId());
   ...
-  mmWaveHelper->InstallGnb ...
+  nrHelper->InstallGnb ...
 \endverbatim
  *
  * or the UE-side:
 \verbatim
-  mmWaveHelper->SetUeChannelAccessManagerTypeId (NrAlwaysOnAccessManager::GetTypeId());
+  nrHelper->SetUeChannelAccessManagerTypeId (NrAlwaysOnAccessManager::GetTypeId());
   ...
-  mmWaveHelper->InstallUe ...
+  nrHelper->InstallUe ...
 \endverbatim
  *
  * The type of the channel access manager cannot be changed after the helper

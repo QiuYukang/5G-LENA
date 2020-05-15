@@ -23,9 +23,9 @@
 #include <ns3/simulator.h>
 #include <ns3/node.h>
 #include <ns3/boolean.h>
-#include "mmwave-enb-net-device.h"
-#include "mmwave-ue-net-device.h"
-#include "mmwave-ue-phy.h"
+#include "nr-gnb-net-device.h"
+#include "nr-ue-net-device.h"
+#include "nr-ue-phy.h"
 
 namespace ns3 {
 

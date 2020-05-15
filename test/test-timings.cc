@@ -48,21 +48,21 @@ using namespace ns3;
 
 static uint32_t packetSize = 21;
 
-static const std::unordered_map<MmWaveControlMessage::messageType, bool> messageLog =
+static const std::unordered_map<NrControlMessage::messageType, bool> messageLog =
 {
-  { MmWaveControlMessage::messageType::UL_DCI,      false },
-  { MmWaveControlMessage::messageType::DL_DCI, false },
-  { MmWaveControlMessage::messageType::DL_CQI,   false },
-  { MmWaveControlMessage::messageType::MIB,      false },
-  { MmWaveControlMessage::messageType::SIB1,     false },
-  { MmWaveControlMessage::messageType::RACH_PREAMBLE, false },
-  { MmWaveControlMessage::messageType::RAR,      false },
-  { MmWaveControlMessage::messageType::BSR,      false },
-  { MmWaveControlMessage::messageType::DL_HARQ,  false },
-  { MmWaveControlMessage::messageType::SR,       false },
+  { NrControlMessage::messageType::UL_DCI,      false },
+  { NrControlMessage::messageType::DL_DCI, false },
+  { NrControlMessage::messageType::DL_CQI,   false },
+  { NrControlMessage::messageType::MIB,      false },
+  { NrControlMessage::messageType::SIB1,     false },
+  { NrControlMessage::messageType::RACH_PREAMBLE, false },
+  { NrControlMessage::messageType::RAR,      false },
+  { NrControlMessage::messageType::BSR,      false },
+  { NrControlMessage::messageType::DL_HARQ,  false },
+  { NrControlMessage::messageType::SR,       false },
 };
 
-typedef std::unordered_map<MmWaveControlMessage::messageType, uint64_t> TypeToResult;
+typedef std::unordered_map<NrControlMessage::messageType, uint64_t> TypeToResult;
 typedef std::unordered_map<uint32_t, TypeToResult> NumerologyToType;
 
 class NrTimingsTest : public TestCase
@@ -73,25 +73,25 @@ public:
 
 private:
   virtual void DoRun (void);
-  void EnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
-  void EnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void GnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const NrControlMessage> msg);
+  void GnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const NrControlMessage> msg);
 
-  void EnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
-  void EnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                 uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+  void GnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const NrControlMessage> msg);
+  void GnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                 uint8_t ccId, Ptr<const NrControlMessage> msg);
 
   void UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                uint8_t ccId, Ptr<const NrControlMessage> msg);
   void UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                uint8_t ccId, Ptr<const NrControlMessage> msg);
 
   void UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                uint8_t ccId, Ptr<const NrControlMessage> msg);
   void UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                uint8_t ccId, Ptr<const MmWaveControlMessage> msg);
+                uint8_t ccId, Ptr<const NrControlMessage> msg);
 
   uint32_t m_numerology;
   bool verbose {false};
@@ -121,22 +121,22 @@ SendPacket (const Ptr<NetDevice> &device, const Address& addr)
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
 
-static const std::unordered_map <MmWaveControlMessage::messageType, std::string> TYPE_TO_STRING =
+static const std::unordered_map <NrControlMessage::messageType, std::string> TYPE_TO_STRING =
 {
-  { MmWaveControlMessage::messageType::UL_DCI,   "UL_DCI" },
-  { MmWaveControlMessage::messageType::DL_DCI,   "DL_DCI" },
-  { MmWaveControlMessage::messageType::DL_CQI,   "DL_CQI" },
-  { MmWaveControlMessage::messageType::MIB,      "MIB" },
-  { MmWaveControlMessage::messageType::SIB1,     "SIB1" },
-  { MmWaveControlMessage::messageType::RACH_PREAMBLE, "RACH_PREAMBLE" },
-  { MmWaveControlMessage::messageType::RAR,      "RAR" },
-  { MmWaveControlMessage::messageType::BSR,      "BSR" },
-  { MmWaveControlMessage::messageType::DL_HARQ,  "DL_HARQ" },
-  { MmWaveControlMessage::messageType::SR,       "SR" },
+  { NrControlMessage::messageType::UL_DCI,   "UL_DCI" },
+  { NrControlMessage::messageType::DL_DCI,   "DL_DCI" },
+  { NrControlMessage::messageType::DL_CQI,   "DL_CQI" },
+  { NrControlMessage::messageType::MIB,      "MIB" },
+  { NrControlMessage::messageType::SIB1,     "SIB1" },
+  { NrControlMessage::messageType::RACH_PREAMBLE, "RACH_PREAMBLE" },
+  { NrControlMessage::messageType::RAR,      "RAR" },
+  { NrControlMessage::messageType::BSR,      "BSR" },
+  { NrControlMessage::messageType::DL_HARQ,  "DL_HARQ" },
+  { NrControlMessage::messageType::SR,       "SR" },
 };
 
 void
-NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::GnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -146,38 +146,38 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   {
     {
       4, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
 
     },
     {
       2, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+           { NrControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          },
     },
   };
@@ -212,7 +212,7 @@ NrTimingsTest::EnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 }
 
 void
-NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::GnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -222,47 +222,47 @@ NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   {
     {
       4, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
          },
     },
     {
       2, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
          },
     },
   };
@@ -297,7 +297,7 @@ NrTimingsTest::EnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 }
 
 void
-NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::GnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -306,19 +306,19 @@ NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   static NumerologyToType res =
   {
     {
-      4, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 2, 4).Normalize () } },
+      4, { { NrControlMessage::RAR, SfnSf (1, 6, 2, 4).Normalize () } },
     },
     {
-      3, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 2, 3).Normalize () } },
+      3, { { NrControlMessage::RAR, SfnSf (1, 6, 2, 3).Normalize () } },
     },
     {
-      2, { { MmWaveControlMessage::RAR, SfnSf (1, 6, 2, 2).Normalize () } },
+      2, { { NrControlMessage::RAR, SfnSf (1, 6, 2, 2).Normalize () } },
     },
     {
-      1, { { MmWaveControlMessage::RAR, SfnSf (1, 7, 0, 1).Normalize () } },
+      1, { { NrControlMessage::RAR, SfnSf (1, 7, 0, 1).Normalize () } },
     },
     {
-      0, { { MmWaveControlMessage::RAR, SfnSf (1, 8, 0, 0).Normalize () } },
+      0, { { NrControlMessage::RAR, SfnSf (1, 8, 0, 0).Normalize () } },
     },
   };
 
@@ -352,7 +352,7 @@ NrTimingsTest::EnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 }
 
 void
-NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::GnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -362,42 +362,42 @@ NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   {
     {
       4, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 5, 4).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 6, 4).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 5, 4).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 0, 6, 4).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 5, 3).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 6, 3).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 5, 3).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 0, 6, 3).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
          },
     },
     {
       2, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 1, 1, 2).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 1, 2, 2).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 1, 1, 2).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 1, 2, 2).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 2, 1, 1).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 3, 0, 1).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 2, 1, 1).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 3, 0, 1).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 5, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 6, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 5, 0, 0).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 6, 0, 0).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
          },
     },
   };
@@ -434,7 +434,7 @@ NrTimingsTest::EnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 // UE
 
 void
-NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -444,47 +444,47 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
          },
     },
     {
       2, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+           { NrControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
+           { NrControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
          },
     },
   };
@@ -519,7 +519,7 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 }
 
 void
-NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -529,37 +529,37 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
     },
     {
       2, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } ,
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } ,
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+           { NrControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          },
     },
   };
@@ -594,7 +594,7 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 }
 
 void
-NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -604,37 +604,37 @@ NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
          },
     },
     {
       2, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () },
-          //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
-          //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () },
+          //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+          //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () },
+           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
          },
     },
   };
@@ -669,7 +669,7 @@ NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 }
 
 void
-NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const MmWaveControlMessage> msg)
+NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
   NS_UNUSED (rnti);
   NS_UNUSED (ccId);
@@ -679,37 +679,37 @@ NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
          },
     },
     {
       3, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
          },
     },
     {
       2, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
          },
     },
     {
       1, {
-           { MmWaveControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+           { NrControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
+           { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
          },
     },
     {
       0, {
-           { MmWaveControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize ()  },
-           { MmWaveControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
-           //{ MmWaveControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+           { NrControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize ()  },
+           { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
+           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          }
     },
   };
@@ -746,11 +746,11 @@ NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 // Ugly pre-processor macro, to speed up writing. The best way would be to use
 // static functions... so please forget them, and remember that they work
 // only here in the DoRun function, as it is all hard-coded
-#define GET_ENB_PHY(X, Y) mmWaveHelper->GetEnbPhy (enbNetDev.Get (X), Y)
-#define GET_ENB_MAC(X, Y) mmWaveHelper->GetEnbMac (enbNetDev.Get (X), Y)
+#define GET_ENB_PHY(X, Y) nrHelper->GetGnbPhy (enbNetDev.Get (X), Y)
+#define GET_ENB_MAC(X, Y) nrHelper->GetGnbMac (enbNetDev.Get (X), Y)
 
-#define GET_UE_PHY(X, Y) mmWaveHelper->GetUePhy (ueNetDev.Get (X), Y)
-#define GET_UE_MAC(X, Y) mmWaveHelper->GetUeMac (ueNetDev.Get (X), Y)
+#define GET_UE_PHY(X, Y) nrHelper->GetUePhy (ueNetDev.Get (X), Y)
+#define GET_UE_MAC(X, Y) nrHelper->GetUeMac (ueNetDev.Get (X), Y)
 
 void
 NrTimingsTest::DoRun (void)
@@ -770,11 +770,11 @@ NrTimingsTest::DoRun (void)
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  // Put the pointers inside mmWaveHelper
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  // Put the pointers inside nrHelper
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   BandwidthPartInfoPtrVector allBwps;
   CcBwpCreator ccBwpCreator;
@@ -786,10 +786,10 @@ NrTimingsTest::DoRun (void)
 
 
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
-  mmWaveHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
-  mmWaveHelper->InitializeOperationBand (&band1);
+  nrHelper->InitializeOperationBand (&band1);
 
   allBwps = CcBwpCreator::GetAllBwps ({band1});
   // Beamforming method
@@ -799,31 +799,31 @@ NrTimingsTest::DoRun (void)
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
-  mmWaveHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (28));
-  mmWaveHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (28));
+  nrHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (28));
+  nrHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (28));
 
-  mmWaveHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (m_numerology));
-  mmWaveHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (50.0));
+  nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (m_numerology));
+  nrHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (50.0));
 
-  mmWaveHelper->SetUePhyAttribute ("TxPower", DoubleValue (50.0));
+  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (50.0));
 
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNode, allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNode, allBwps);
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
+  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
 
-  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbPhyTx, this));
-  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("EnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbPhyRx, this));
+  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("GnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyTx, this));
+  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("GnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyRx, this));
 
-  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("EnbMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbMacTx, this));
-  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("EnbMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::EnbMacRx, this));
+  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("GnbMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbMacTx, this));
+  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("GnbMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbMacRx, this));
 
   GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyTx, this));
   GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyRx, this));
@@ -835,12 +835,12 @@ NrTimingsTest::DoRun (void)
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   InternetStackHelper internet;
@@ -848,7 +848,7 @@ NrTimingsTest::DoRun (void)
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // DL at 0.4
   Simulator::Schedule (MilliSeconds (400), &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress ());

@@ -140,7 +140,7 @@
   * forwards control information to the MAC scheduler as necessary.
   *
   * \note CTTC implementation
-  * The documentation of the implementation starts with class MmWaveMacScheduler.
+  * The documentation of the implementation starts with class NrMacScheduler.
   * Please start your journey into the scheduler documentation from there.
   */
 
@@ -164,7 +164,7 @@
  * \brief Error models for the NR module
  *
  * The error models are used for calculating the error probability after a packet
- * is received (in the class MmWaveSpectrumPhy) but also can be used for calculating the
+ * is received (in the class NrSpectrumPhy) but also can be used for calculating the
  * best MCS to use before a transmission (in the class NrAmc). Please
  * take a look to the documentation of these classes if you wish to get more
  * information about their operations.

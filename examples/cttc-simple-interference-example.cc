@@ -25,7 +25,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/log.h"
 #include "ns3/point-to-point-helper.h"
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/nr-module.h"
@@ -652,7 +652,7 @@ public:
   virtual ~NrSingleBwpSetup () override;
 
   virtual Ptr<NrPointToPointEpcHelper> GetEpcHelper () const { return m_epcHelper; }
-  virtual Ptr<MmWaveHelper> GetHelper () const { return m_helper; }
+  virtual Ptr<NrHelper> GetHelper () const { return m_helper; }
 
   virtual void Init () override;
 
@@ -660,7 +660,7 @@ private:
   void UeReception (RxPacketTraceParams params);
 
 private:
-  Ptr<MmWaveHelper> m_helper;
+  Ptr<NrHelper> m_helper;
   Ptr<NrPointToPointEpcHelper> m_epcHelper;
   std::unordered_map<uint32_t, uint32_t> m_ueGnbMap;
   uint32_t m_ueNum {0};
@@ -673,14 +673,14 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
     m_ueGnbMap (ueGnbMap)
 {
   // setup the NR simulation
-  m_helper = CreateObject<MmWaveHelper> ();
-  m_helper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
-  m_helper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
+  m_helper = CreateObject<NrHelper> ();
+  m_helper->SetAttribute ("PathlossModel", StringValue ("ns3::Nr3gppPropagationLossModel"));
+  m_helper->SetAttribute ("ChannelModel", StringValue ("ns3::Nr3gppChannel"));
 
-  Ptr<MmWavePhyMacCommon> phyMacCommonBwp1 = CreateObject<MmWavePhyMacCommon>();
+  Ptr<NrPhyMacCommon> phyMacCommonBwp1 = CreateObject<NrPhyMacCommon>();
   phyMacCommonBwp1->SetBandwidth (bw);
   phyMacCommonBwp1->SetNumerology(num);
-  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (MmWaveMacSchedulerTdmaRR::GetTypeId ()));
+  phyMacCommonBwp1->SetAttribute ("MacSchedulerType", TypeIdValue (NrMacSchedulerTdmaRR::GetTypeId ()));
   phyMacCommonBwp1->SetCcId(0);
 
   BandwidthPartRepresentation repr1 (0, phyMacCommonBwp1, nullptr, nullptr, nullptr);
@@ -690,7 +690,7 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   m_helper->SetEpcHelper (m_epcHelper);
   m_helper->Initialize();
 
-  // install mmWave net devices
+  // install nr net devices
   m_gnbDev = m_helper->InstallEnbDevice (GetGnbNodes());
   m_ueDev = m_helper->InstallUeDevice (GetUeNodes());
 
@@ -701,7 +701,7 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   for (uint32_t j = 0; j < m_gnbDev.GetN(); ++j)
     {
       ObjectMapValue objectMapValue;
-      Ptr<MmWaveEnbNetDevice> netDevice = DynamicCast<MmWaveEnbNetDevice>(m_gnbDev.Get(j));
+      Ptr<NrGnbNetDevice> netDevice = DynamicCast<NrGnbNetDevice>(m_gnbDev.Get(j));
       netDevice->GetAttribute("BandwidthPartMap", objectMapValue);
       for (uint32_t i = 0; i < objectMapValue.GetN(); i++)
         {
@@ -720,17 +720,17 @@ NrSingleBwpSetup::NrSingleBwpSetup (Scenario *scenario, OutputManager *manager,
   m_ueNum = m_ueDev.GetN ();
   for (uint32_t i = 0 ; i < m_ueDev.GetN(); ++i)
     {
-      Ptr<MmWaveSpectrumPhy > ue1SpectrumPhy = DynamicCast<MmWaveUeNetDevice>
+      Ptr<NrSpectrumPhy > ue1SpectrumPhy = DynamicCast<NrUeNetDevice>
       (m_ueDev.Get(i))->GetPhy(0)->GetSpectrumPhy();
       ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe",
                                                  MakeCallback (&NrSingleBwpSetup::UeReception, this));
-      Ptr<mmWaveInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetMmWaveInterference();
+      Ptr<nrInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetNrInterference();
       NS_ABORT_IF(!ue1SpectrumPhyInterference);
       //ue1SpectrumPhyInterference->TraceConnectWithoutContext("SnrPerProcessedChunk", MakeBoundCallback (&UeSnrPerProcessedChunkTrace, this));
       //ue1SpectrumPhyInterference->TraceConnectWithoutContext("RssiPerProcessedChunk", MakeBoundCallback (&UeRssiPerProcessedChunkTrace, this));
     }
 
-  // enable the traces provided by the mmWave module
+  // enable the traces provided by the nr module
   // m_helper->EnableTraces();
 }
 
@@ -780,25 +780,25 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
                         uint32_t eesmTable = 1,
                         const std::string &errorModel = "ns3::NrEesmErrorModel")
 {
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition",
+  Config::SetDefault ("ns3::Nr3gppPropagationLossModel::ChannelCondition",
                       StringValue("l"));
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario",
+  Config::SetDefault ("ns3::Nr3gppPropagationLossModel::Scenario",
                       StringValue("InH-OfficeMixed")); // with antenna height of 10 m
-  Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Shadowing",
+  Config::SetDefault ("ns3::Nr3gppPropagationLossModel::Shadowing",
                       BooleanValue(false));
 
-  Config::SetDefault ("ns3::MmWave3gppChannel::CellScan",
+  Config::SetDefault ("ns3::Nr3gppChannel::CellScan",
                       BooleanValue(cellScan));
-  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod",
+  Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod",
                       TimeValue(MilliSeconds(0)));
-  Config::SetDefault ("ns3::MmWave3gppChannel::BeamSearchAngleStep",
+  Config::SetDefault ("ns3::Nr3gppChannel::BeamSearchAngleStep",
                       DoubleValue(beamSearchAngleStep));
 
-  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim1", UintegerValue (4));
-  Config::SetDefault ("ns3::MmWaveEnbPhy::AntennaNumDim2", UintegerValue (8));
+  Config::SetDefault ("ns3::NrGnbPhy::AntennaNumDim1", UintegerValue (4));
+  Config::SetDefault ("ns3::NrGnbPhy::AntennaNumDim2", UintegerValue (8));
 
-  Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim1", UintegerValue (2));
-  Config::SetDefault ("ns3::MmWaveUePhy::AntennaNumDim2", UintegerValue (4));
+  Config::SetDefault ("ns3::NrUePhy::AntennaNumDim1", UintegerValue (2));
+  Config::SetDefault ("ns3::NrUePhy::AntennaNumDim2", UintegerValue (4));
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
                       UintegerValue(999999999));
@@ -806,10 +806,10 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
   Config::SetDefault("ns3::PointToPointEpcHelper::S1uLinkDelay", TimeValue (MilliSeconds(0)));
   Config::SetDefault("ns3::PointToPointEpcHelper::X2LinkDelay", TimeValue (MilliSeconds(0)));
 
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsDl", BooleanValue(false));
-  Config::SetDefault("ns3::MmWaveMacSchedulerNs3::FixedMcsUl", BooleanValue(false));
-  //Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsDl", UintegerValue (mcs));
-  //Config::SetDefault("ns3::MmWaveMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
+  Config::SetDefault("ns3::NrMacSchedulerNs3::FixedMcsDl", BooleanValue(false));
+  Config::SetDefault("ns3::NrMacSchedulerNs3::FixedMcsUl", BooleanValue(false));
+  //Config::SetDefault("ns3::NrMacSchedulerNs3::StartingMcsDl", UintegerValue (mcs));
+  //Config::SetDefault("ns3::NrMacSchedulerNs3::StartingMcsUl", UintegerValue (mcs));
 
   if (eesmTable == 1)
     {
@@ -826,7 +826,7 @@ ConfigureDefaultValues (bool cellScan = true, double beamSearchAngleStep = 10.0,
 
   Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
   Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
-  Config::SetDefault("ns3::MmWaveSpectrumPhy::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
+  Config::SetDefault("ns3::NrSpectrumPhy::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
 }
 
 int

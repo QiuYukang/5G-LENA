@@ -26,7 +26,7 @@
 #include "nr-error-model.h"
 #include "nr-lte-mi-error-model.h"
 #include "lena-error-model.h"
-#include "mmwave-spectrum-value-helper.h"
+#include "nr-spectrum-value-helper.h"
 
 namespace ns3 {
 
@@ -76,7 +76,7 @@ NrAmc::GetTypeId (void)
                                     NrAmc::ShannonModel, "ShannonModel"))
     .AddAttribute ("ErrorModelType",
                    "Type of the Error Model to use when AmcModel is set to ErrorModel. "
-                   "This parameter has to match the ErrorModelType in mmwave-spectrum-model,"
+                   "This parameter has to match the ErrorModelType in nr-spectrum-model,"
                    "because they need to refer to same MCS tables and indexes",
                    TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
                    MakeTypeIdAccessor (&NrAmc::SetErrorModelType,
@@ -158,7 +158,7 @@ NrAmc::CalculateTbSize (uint8_t mcs, uint32_t nprb) const
 uint32_t
 NrAmc::GetPayloadSize (uint8_t mcs, uint32_t nprb) const
 {
-  return m_errorModel->GetPayloadSize (MmWaveSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
+  return m_errorModel->GetPayloadSize (NrSpectrumValueHelper::SUBCARRIERS_PER_RB - GetNumRefScPerRb (),
                                        mcs, nprb, m_emMode);
 }
 

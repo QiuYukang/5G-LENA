@@ -30,8 +30,8 @@
 
 namespace ns3 {
 
-class MmWaveEnbNetDevice;
-class MmWaveUeNetDevice;
+class NrGnbNetDevice;
+class NrUeNetDevice;
 
 /**
  * \ingroup helper
@@ -60,8 +60,8 @@ public:
    * \param gNbDev
    * \param ueDev
    */
-  void AddBeamformingTask (const Ptr<MmWaveEnbNetDevice>& gNbDev,
-                           const Ptr<MmWaveUeNetDevice>& ueDev);
+  void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
+                           const Ptr<NrUeNetDevice>& ueDev);
 
   /**
    * \brief SetIdealBeamformingMethod
@@ -101,7 +101,7 @@ private:
    */
   void ExpireBeamformingTimer ();
 
-  std::vector<std::pair<Ptr<MmWaveEnbNetDevice>, Ptr<MmWaveUeNetDevice> > > m_beamformingTasks;
+  std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks;
   Time m_beamformingPeriodicity;
   Ptr<IdealBeamformingAlgorithm> m_idealBeamformingAlgorithm;
   EventId m_beamformingTimer; //!< Beamforming timer

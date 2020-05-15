@@ -47,7 +47,7 @@ $ ./waf --run "cttc-lte-ca-demo --Help"
 #include "ns3/log.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/flow-monitor-module.h"
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/config-store-module.h"
@@ -209,18 +209,18 @@ main (int argc, char *argv[])
   // enable logging or not
   if(logging)
     {
-//      LogComponentEnable ("MmWave3gppPropagationLossModel", LOG_LEVEL_ALL);
-//      LogComponentEnable ("MmWave3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
-//      LogComponentEnable ("MmWave3gppChannel", LOG_LEVEL_ALL);
+//      LogComponentEnable ("Nr3gppPropagationLossModel", LOG_LEVEL_ALL);
+//      LogComponentEnable ("Nr3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
+//      LogComponentEnable ("Nr3gppChannel", LOG_LEVEL_ALL);
 //      LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
 //      LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
 //      LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
 //      LogComponentEnable ("BwpManagerGnb", LOG_LEVEL_INFO);
 //      LogComponentEnable ("BwpManagerAlgorithm", LOG_LEVEL_INFO);
-      LogComponentEnable ("MmWaveEnbPhy", LOG_LEVEL_INFO);
-      LogComponentEnable ("MmWaveUePhy", LOG_LEVEL_INFO);
-//      LogComponentEnable ("MmWaveEnbMac", LOG_LEVEL_INFO);
-//      LogComponentEnable ("MmWaveUeMac", LOG_LEVEL_INFO);
+      LogComponentEnable ("NrGnbPhy", LOG_LEVEL_INFO);
+      LogComponentEnable ("NrUePhy", LOG_LEVEL_INFO);
+//      LogComponentEnable ("NrGnbMac", LOG_LEVEL_INFO);
+//      LogComponentEnable ("NrUeMac", LOG_LEVEL_INFO);
     }
 
   // create base stations and mobile terminals
@@ -287,12 +287,12 @@ main (int argc, char *argv[])
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
-  mmWaveHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
   if (cellScan)
   {
@@ -307,26 +307,26 @@ main (int argc, char *argv[])
 
   std::string errorModel = "ns3::NrLteMiErrorModel";
   // Scheduler
-  mmWaveHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(false));
-  mmWaveHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(false));
+  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(false));
+  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(false));
 
   // Error Model: UE and GNB with same spectrum error model.
-  mmWaveHelper->SetUlErrorModel (errorModel);
-  mmWaveHelper->SetDlErrorModel (errorModel);
+  nrHelper->SetUlErrorModel (errorModel);
+  nrHelper->SetDlErrorModel (errorModel);
 
   // Both DL and UL AMC will have the same model behind.
-  mmWaveHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
-  mmWaveHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
 
   /*
    * Adjust the average number of Reference symbols per RB only for LTE case,
    * which is larger than in NR. We assume a value of 4 (could be 3 too).
    */
-  mmWaveHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
-  mmWaveHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
-  mmWaveHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
-  mmWaveHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
-  mmWaveHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::MmWaveMacSchedulerOfdmaPF"));
+  nrHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
+  nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
+  nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+  nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+  nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
 
   /*
    * Setup the operation bands.
@@ -466,20 +466,20 @@ main (int argc, char *argv[])
   band38.AddCc (std::move(cc1));
   band38.AddCc (std::move(cc2));
 
-  mmWaveHelper->InitializeOperationBand (&band40);
-  mmWaveHelper->InitializeOperationBand (&band38);
+  nrHelper->InitializeOperationBand (&band40);
+  nrHelper->InitializeOperationBand (&band38);
 
   allBwps = CcBwpCreator::GetAllBwps ({band38, band40});
 
   // Antennas for all the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
 
   //Assign each flow type to a BWP
@@ -488,20 +488,20 @@ main (int argc, char *argv[])
   uint32_t bwpIdForVideo = 2;
   uint32_t bwpIdForVideoGaming = 3;
 
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
-  mmWaveHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
 
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
-  mmWaveHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_PREMIUM", UintegerValue (bwpIdForVideo));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VOICE_VIDEO_GAMING", UintegerValue (bwpIdForVideoGaming));
 
 
-  // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice (gNbNodes, allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+  // install nr net devices
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
+  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
 
   // Share the total transmission power among CCs proportionally with the BW
@@ -509,48 +509,48 @@ main (int argc, char *argv[])
   double totalBandwidth = numCcs * bandwidth;
 
   // Band40: CC0 - BWP0 & Band38: CC1 - BWP1
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp0));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower",
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp0));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower",
                              DoubleValue (10 * log10 ((band40.GetBwpAt (0, 0)->m_channelBandwidth/totalBandwidth) * x)));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("RbOverhead", DoubleValue (0.1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
 
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower",
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower",
                              DoubleValue (10 * log10 ((band38.GetBwpAt (0, 0)->m_channelBandwidth/totalBandwidth) * x)));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("RbOverhead", DoubleValue (0.1));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
 
   //Band38: CC2 - BWP2
   if (operationMode == "TDD")
     {
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
                                  DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth/totalBandwidth) * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
     }
   else  //FDD case
     {
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyBwpDl));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyBwpDl));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
                                  DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth/totalBandwidth) * x)));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (patternDL));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (patternDL));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Numerology", UintegerValue (numerologyBwpUl));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Pattern", StringValue (patternUL));
-      mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("RbOverhead", DoubleValue (0.1));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Numerology", UintegerValue (numerologyBwpUl));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("Pattern", StringValue (patternUL));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 3)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
       // Link the two FDD BWP:
-      mmWaveHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (3, 2);
+      nrHelper->GetBwpManagerGnb (enbNetDev.Get (0))->SetOutputLink (3, 2);
 
       // Set the UE routing:
       for (uint32_t i = 0; i < ueNetDev.GetN (); i++)
         {
-          mmWaveHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (2, 3);
+          nrHelper->GetBwpManagerUe (ueNetDev.Get (i))->SetOutputLink (2, 3);
         }
 
       //enable 4rth flow
@@ -561,12 +561,12 @@ main (int argc, char *argv[])
   // When all the configuration is done, explicitly call UpdateConfig ()
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   // create the internet and install the IP stack on the UEs
@@ -602,7 +602,7 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
 
   // install UDP applications
@@ -718,14 +718,14 @@ main (int argc, char *argv[])
           dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
           clientApps.Add (dlClientLowLat.Install (remoteHost));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
         }
       if (enableVideo)
         {
           dlClientVideo.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
           clientApps.Add (dlClientVideo.Install (remoteHost));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, videoBearer, videoTft);
         }
 
       // For the uplink, the installation happens in the UE, and the remote address
@@ -736,7 +736,7 @@ main (int argc, char *argv[])
           ulClientVoice.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
           clientApps.Add (ulClientVoice.Install (ue));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, voiceBearer, voiceTft);
         }
 
       if (enableGaming)
@@ -744,7 +744,7 @@ main (int argc, char *argv[])
           ulClientGaming.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
           clientApps.Add (ulClientGaming.Install (ue));
 
-          mmWaveHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
+          nrHelper->ActivateDedicatedEpsBearer (ueDevice, gamingBearer, gamingTft);
         }
     }
 
@@ -754,8 +754,8 @@ main (int argc, char *argv[])
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime));
 
-  // enable the traces provided by the mmWave module
-  mmWaveHelper->EnableTraces();
+  // enable the traces provided by the nr module
+  nrHelper->EnableTraces();
 
 
   FlowMonitorHelper flowmonHelper;
@@ -773,7 +773,7 @@ main (int argc, char *argv[])
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> MmWaveEnbPhy -> MmWavePhyMacCommong-> Numerology, Bandwidth, ...
+   * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> NrPhyMacCommong-> Numerology, Bandwidth, ...
   GtkConfigStore config;
   config.ConfigureAttributes ();
   */

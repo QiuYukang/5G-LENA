@@ -56,7 +56,7 @@ The 'NR' module has been designed to perform end-to-end simulations of 3GPP-orie
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NRPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NRPhy`` class writes into an instance of the ``MmWaveSpectrumPhy`` class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -534,7 +534,7 @@ The current implementation of schedulers API follows the FemtoForum specificatio
 for LTE MAC Scheduler Interface [ff-api]_ , but
 can be easily extended to be compliant with different industrial interfaces.
 
-The core class of the NR module schedulers design is ``MmWaveMacSchedulerNs3``.
+The core class of the NR module schedulers design is ``NrMacSchedulerNs3``.
 This class defines the core scheduling process and
 splits the scheduling logic into the logical blocks. Additionally, it implements
 the MAC schedulers API, and thus it decouples a
@@ -564,8 +564,8 @@ variable TTI, it is then necessary to group allocations for the same UE in
 one single DCI/UCI which is the last step.
 
 Another important
-class to be mentioned is ``MmWaveMacSchedulerNs3Base`` which is a child class
-of ``MmWaveMacSchedulerNs3``, and represents a base
+class to be mentioned is ``NrMacSchedulerNs3Base`` which is a child class
+of ``NrMacSchedulerNs3``, and represents a base
 class of all schedulers in the NR module (OFDMA and TDMA). This class handles
 the HARQ retransmissions for the DL and the UL.
 Currently, the NR module offers the scheduling of the HARQ retransmissions
@@ -613,10 +613,10 @@ can continue only if there are available symbols not used by the UL phase. If it
 is the case, then, the symbols can be distributed by giving priority to the HARQ
 retransmissions, and then to the new data, according to different metrics.
 
-The base class for OFDMA schedulers is ``MmWaveMacSchedulerOfdma``.
+The base class for OFDMA schedulers is ``NrMacSchedulerOfdma``.
 In the downlink, such class and its subclasses perform
 OFDMA scheduling, while in the uplink they leverage some of the subclasses of
-``MmWaveMacSchedulerTdma`` class that implements TDMA scheduling.
+``NrMacSchedulerTdma`` class that implements TDMA scheduling.
 
 The OFDMA scheduling in the downlink is composed of the two scheduling levels:
 1) the scheduling of the symbols per beam (time-domain level), where scheduler
@@ -646,7 +646,7 @@ Each of these OFDMA schedulers is performing a load-based scheduling of
 symbols per beam in time-domain for the downlink. In the uplink,
 the scheduling is done by the TDMA schedulers.
 
-The base class for TDMA schedulers is ``MmWaveMacSchedulerTdma``.
+The base class for TDMA schedulers is ``NrMacSchedulerTdma``.
 This scheduler performs TDMA scheduling for both, the UL and the DL traffic.
 The TDMA schedulers perform the scheduling only in the time-domain, i.e.,
 by distributing OFDM symbols among the active UEs. 'NR' module offers three
@@ -853,7 +853,7 @@ Several example programs are provided to highlight the operation.
 
 cttc-3gpp-channel-simple-ran.cc
 ===============================
-The program ``mmwave/examples/cttc-3gpp-channel-simple-ran.cc``
+The program ``nr/examples/cttc-3gpp-channel-simple-ran.cc``
 allows users to select the numerology and test the performance considering
 only the RAN. The scenario topology is simple, and it
 consists of a single gNB and single UE. The scenario is illustrated in
@@ -1060,7 +1060,7 @@ To validate the implemented features, we have designed different tests.
 
 NR test for new NR frame structure and numerologies configuration
 =================================================================
-Test case ``mmwave-system-test-configurations`` validates that the NR frame structure is correctly
+Test case ``nr-system-test-configurations`` validates that the NR frame structure is correctly
 configured by using new configuration parameters.
 This is the system test that is validating the configuration of
 different numerologies in combination with different schedulers.
@@ -1070,12 +1070,12 @@ and that serialization and deserialization of the frame, subframe, slot and TTI 
 performs correctly for the new NR frame structure.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/mmwave-system-test-configurations_8cc.html
+https://cttc-lena.gitlab.io/nr/nr-system-test-configurations_8cc.html
 
 
 Test of packet delay in NR protocol stack
 =========================================
-Test case ``mmwave-test-numerology-delay`` validates that the delays of a single
+Test case ``nr-test-numerology-delay`` validates that the delays of a single
 UDP packet are correct.
 UDP packet is monitored at different points of NR protocol stack,
 at gNB and UE. The test checks whether the delay corresponds to
@@ -1096,26 +1096,26 @@ timings related to a specific numerology. The test is run for different
 numerologies.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/mmwave-test-numerology-delay_8cc.html
+https://cttc-lena.gitlab.io/nr/nr-test-numerology-delay_8cc.html
 
 
 Test of numerology FDM
 ======================
 To test the FDM of numerologies, we have implemented
-the ``MmWaveTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
+the ``NrTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
 operate with
 2 BWPs. The test checks if the achieved throughput of a flow over a specific
 BWP is proportional to the
 bandwidth of the BWP through which it is multiplexed.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/mmwave-test-fdm-of-numerologies_8cc.html
+https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
 
 
 Test for NR schedulers
 ======================
 To test the NR schedulers, we have implemented a system test called
-``MmWaveSystemTestSchedulers`` whose purpose is to test that the
+``NrSystemTestSchedulers`` whose purpose is to test that the
 NR schedulers provide a required amount of resources to all UEs, for both cases,
 the downlink and the uplink. The topology consists of a single gNB and
 variable number of UEs, which are distributed among variable number of beams.
@@ -1129,23 +1129,7 @@ DL and UL), modes of scheduling (OFDMA and TDMA) and
 different scheduling algorithms (RR, PR, MR).
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/mmwave-test-sched_8cc.html
-
-
-Test for OFDMA
-==============
-Test case called ``MmWaveSystemTestOfdma`` validates that the NR scheduling
-in OFDMA mode provides expected interference situations in the scenario.
-The test consists of a simple topology where 2 gNBs transmit to 2 UEs, and
-these two simultaneous transmissions are on the same transmission directions,
-the opposite transmission directions or the perpendicular transmission directions.
-Test configures a new simple test scheduler to use only a limited portion of RBGs
-for scheduling. Test case where assigned RBGs for gNBs overlap is
-expected to affect the MCS and performance, while in the case when RBGs assigned
-to gNBs are not overlapping shall be the same as in the case when only a
-single gNB is transmitting.
-
-The complete details of the simulation script are provided in TBC [N]
+https://cttc-lena.gitlab.io/nr/nr-test-sched_8cc.html
 
 
 Test for error model
@@ -1174,11 +1158,11 @@ https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
 Test for TDD patterns
 =====================
 Test case called ``LtePatternTestCase`` validates the maps generated from the function
-``MmWaveEnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
+``NrGnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
 DCI and DL HARQ Feedback have to be sent/generated, as well as the scheduling timings
 (K0, K1, k2) that indicate the slot offset to be applied at the UE side for the reception
 of DL Data, scheduling of DL HARQ Feedback and scheduling of UL Data, respectively.
-The test calls ``MmWaveEnbPhy::GenerateStructuresFromPattern`` for a number of possible
+The test calls ``NrGnbPhy::GenerateStructuresFromPattern`` for a number of possible
 TDD patterns and compares the output with a predefined set of the expected results.
 
 The complete details of the validation script are provided in

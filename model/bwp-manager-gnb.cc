@@ -18,7 +18,7 @@
  */
 #include "bwp-manager-gnb.h"
 #include "bwp-manager-algorithm.h"
-#include "mmwave-control-messages.h"
+#include "nr-control-messages.h"
 
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
@@ -113,7 +113,7 @@ BwpManagerGnb::PeekBwpIndex (uint16_t rnti, uint8_t lcid) const
 }
 
 uint8_t
-BwpManagerGnb::RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> &msg,
+BwpManagerGnb::RouteIngoingCtrlMsgs (const Ptr<NrControlMessage> &msg,
                                      uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);
@@ -126,7 +126,7 @@ BwpManagerGnb::RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> &msg,
 }
 
 uint8_t
-BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg,
+BwpManagerGnb::RouteOutgoingCtrlMsg (const Ptr<NrControlMessage> &msg,
                                      uint8_t sourceBwpId) const
 {
   NS_LOG_FUNCTION (this);

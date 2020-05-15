@@ -83,6 +83,7 @@ New user-visible features (old first)
 - Added the LENA error model. To be used only in conjunction with a OFDMA scheduler,
   and without beams.
 - N1 default value is now 2 slots. Before it was 4 slots.
+- Renamed all mmwave- classes, tests, examples, helpers, to nr-.
 
 Bugs fixed
 ----------

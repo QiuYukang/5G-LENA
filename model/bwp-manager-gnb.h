@@ -31,7 +31,7 @@ namespace ns3 {
 class UeManager;
 class LteCcmRrcSapProvider;
 class BwpManagerAlgorithm;
-class MmWaveControlMessage;
+class NrControlMessage;
 
 /**
  * \ingroup gnb-bwp
@@ -78,7 +78,7 @@ public:
    *
    * \return the BWP Id to which this message should be routed to.
    */
-  uint8_t RouteIngoingCtrlMsgs (const Ptr<MmWaveControlMessage> & msg, uint8_t sourceBwpId) const;
+  uint8_t RouteIngoingCtrlMsgs (const Ptr<NrControlMessage> & msg, uint8_t sourceBwpId) const;
 
   /**
    * \brief Route the outgoing messages to the right BWP
@@ -94,7 +94,7 @@ public:
    *
    * \return the bwp to which the ctrl messages should be redirected
    */
-  uint8_t RouteOutgoingCtrlMsg (const Ptr<MmWaveControlMessage> &msg, uint8_t sourceBwpId) const;
+  uint8_t RouteOutgoingCtrlMsg (const Ptr<NrControlMessage> &msg, uint8_t sourceBwpId) const;
 
   /**
    * \brief Set a mapping between two BWP.

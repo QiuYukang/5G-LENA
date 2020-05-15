@@ -34,7 +34,7 @@
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
-#include "ns3/mmwave-helper.h"
+#include "ns3/nr-helper.h"
 #include <ns3/buildings-helper.h>
 #include "ns3/log.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
@@ -43,7 +43,7 @@
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
-#include "ns3/mmwave-mac-scheduler-tdma-rr.h"
+#include "ns3/nr-mac-scheduler-tdma-rr.h"
 #include "ns3/nr-module.h"
 
 using namespace ns3;
@@ -172,9 +172,9 @@ main (int argc, char *argv[])
    */
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
-  Ptr<MmWaveHelper> mmWaveHelper = CreateObject<MmWaveHelper> ();
-  mmWaveHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-  mmWaveHelper->SetEpcHelper (epcHelper);
+  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
+  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetEpcHelper (epcHelper);
 
   /*
    * Spectrum configuration. We create a single operational band and configure the scenario.
@@ -195,41 +195,41 @@ main (int argc, char *argv[])
   CcBwpCreator::SimpleOperationBandConf bandConf (frequency, bandwidth, numCcPerBand, scenarioEnum);
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
   //Initialize channel and pathloss, plus other things inside band.
-  mmWaveHelper->InitializeOperationBand (&band);
+  nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure ideal beamforming method
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Configure scheduler
-  mmWaveHelper->SetSchedulerTypeId (MmWaveMacSchedulerTdmaRR::GetTypeId ());
+  nrHelper->SetSchedulerTypeId (NrMacSchedulerTdmaRR::GetTypeId ());
 
   // Antennas for the UEs
-  mmWaveHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  mmWaveHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  mmWaveHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for the gNbs
-  mmWaveHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  mmWaveHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
-  // install mmWave net devices
-  NetDeviceContainer enbNetDev = mmWaveHelper->InstallGnbDevice(enbNodes, allBwps);
-  NetDeviceContainer ueNetDev = mmWaveHelper->InstallUeDevice (ueNodes, allBwps);
+  // install nr net devices
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNodes, allBwps);
+  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPower);
-  mmWaveHelper->GetEnbPhy (enbNetDev.Get (1), 0)->SetTxPower (txPower);
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPower);
+  nrHelper->GetGnbPhy (enbNetDev.Get (1), 0)->SetTxPower (txPower);
 
   // When all the configuration is done, explicitly call UpdateConfig ()
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveEnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
     {
-      DynamicCast<MmWaveUeNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
 
   // create the internet and install the IP stack on the UEs
@@ -283,7 +283,7 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to the closest eNB
-  mmWaveHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+  nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // start server and client apps
   serverApps.Start(Seconds(0.4));
@@ -291,8 +291,8 @@ main (int argc, char *argv[])
   serverApps.Stop(Seconds(simTime));
   clientApps.Stop(Seconds(simTime-0.2));
 
-  // enable the traces provided by the mmWave module
-  mmWaveHelper->EnableTraces();
+  // enable the traces provided by the nr module
+  nrHelper->EnableTraces();
 
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();
