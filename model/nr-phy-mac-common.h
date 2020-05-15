@@ -538,6 +538,7 @@ struct UlHarqInfo : public HarqInfo
   }
 };
 
+std::ostream & operator<< (std::ostream & os, DciInfoElementTdma const & item);
 std::ostream & operator<< (std::ostream & os, DciInfoElementTdma::DciFormat const & item);
 std::ostream & operator<< (std::ostream & os, DlHarqInfo const & item);
 std::ostream & operator<< (std::ostream & os, UlHarqInfo const & item);
