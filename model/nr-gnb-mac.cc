@@ -49,10 +49,10 @@ NS_OBJECT_ENSURE_REGISTERED (NrGnbMac);
 // //////////////////////////////////////
 
 
-class NrEnbMacMemberEnbCmacSapProvider : public LteEnbCmacSapProvider
+class NrGnbMacMemberEnbCmacSapProvider : public LteEnbCmacSapProvider
 {
 public:
-  NrEnbMacMemberEnbCmacSapProvider (NrGnbMac* mac);
+  NrGnbMacMemberEnbCmacSapProvider (NrGnbMac* mac);
 
   // inherited from LteEnbCmacSapProvider
   virtual void ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth);
@@ -69,61 +69,61 @@ private:
 };
 
 
-NrEnbMacMemberEnbCmacSapProvider::NrEnbMacMemberEnbCmacSapProvider (NrGnbMac* mac)
+NrGnbMacMemberEnbCmacSapProvider::NrGnbMacMemberEnbCmacSapProvider (NrGnbMac* mac)
   : m_mac (mac)
 {
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
+NrGnbMacMemberEnbCmacSapProvider::ConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   m_mac->DoConfigureMac (ulBandwidth, dlBandwidth);
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::AddUe (uint16_t rnti)
+NrGnbMacMemberEnbCmacSapProvider::AddUe (uint16_t rnti)
 {
   m_mac->DoAddUe (rnti);
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::RemoveUe (uint16_t rnti)
+NrGnbMacMemberEnbCmacSapProvider::RemoveUe (uint16_t rnti)
 {
   m_mac->DoRemoveUe (rnti);
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::AddLc (LcInfo lcinfo, LteMacSapUser* msu)
+NrGnbMacMemberEnbCmacSapProvider::AddLc (LcInfo lcinfo, LteMacSapUser* msu)
 {
   m_mac->DoAddLc (lcinfo, msu);
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::ReconfigureLc (LcInfo lcinfo)
+NrGnbMacMemberEnbCmacSapProvider::ReconfigureLc (LcInfo lcinfo)
 {
   m_mac->DoReconfigureLc (lcinfo);
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::ReleaseLc (uint16_t rnti, uint8_t lcid)
+NrGnbMacMemberEnbCmacSapProvider::ReleaseLc (uint16_t rnti, uint8_t lcid)
 {
   m_mac->DoReleaseLc (rnti, lcid);
 }
 
 void
-NrEnbMacMemberEnbCmacSapProvider::UeUpdateConfigurationReq (UeConfig params)
+NrGnbMacMemberEnbCmacSapProvider::UeUpdateConfigurationReq (UeConfig params)
 {
   m_mac->UeUpdateConfigurationReq (params);
 }
 
 LteEnbCmacSapProvider::RachConfig
-NrEnbMacMemberEnbCmacSapProvider::GetRachConfig ()
+NrGnbMacMemberEnbCmacSapProvider::GetRachConfig ()
 {
   return m_mac->DoGetRachConfig ();
 }
 
 LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue
-NrEnbMacMemberEnbCmacSapProvider::AllocateNcRaPreamble (uint16_t rnti)
+NrGnbMacMemberEnbCmacSapProvider::AllocateNcRaPreamble (uint16_t rnti)
 {
   return m_mac->DoAllocateNcRaPreamble (rnti);
 }
@@ -426,7 +426,7 @@ NrGnbMac::GetTypeId (void)
 NrGnbMac::NrGnbMac (void) : Object ()
 {
   NS_LOG_FUNCTION (this);
-  m_cmacSapProvider = new NrEnbMacMemberEnbCmacSapProvider (this);
+  m_cmacSapProvider = new NrGnbMacMemberEnbCmacSapProvider (this);
   m_macSapProvider = new EnbMacMemberLteMacSapProvider<NrGnbMac> (this);
   m_phySapUser = new NrMacEnbMemberPhySapUser (this);
   m_macSchedSapUser = new NrMacMemberMacSchedSapUser (this);
@@ -866,11 +866,11 @@ NrGnbMac::DoUlCqiReport (NrMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcq
 {
   if (ulcqi.m_ulCqi.m_type == UlCqiInfo::PUSCH)
     {
-      NS_LOG_DEBUG (this << " eNB rxed an PUSCH UL-CQI");
+      NS_LOG_DEBUG (this << " gNB rxed an PUSCH UL-CQI");
     }
   else if (ulcqi.m_ulCqi.m_type == UlCqiInfo::SRS)
     {
-      NS_LOG_DEBUG (this << " eNB rxed an SRS UL-CQI");
+      NS_LOG_DEBUG (this << " gNB rxed an SRS UL-CQI");
     }
   NS_LOG_INFO ("*** UL CQI report SINR " << LteFfConverter::fpS11dot3toDouble (ulcqi.m_ulCqi.m_sinr[0]) <<
                " slot: " << m_currentSlot);
@@ -1113,7 +1113,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   NS_ASSERT (pduMapIt->second.m_pdu->GetSize () > 0);
                   LteRadioBearerTag bearerTag (rnti, pduMapIt->second.m_size, 0);
                   pduMapIt->second.m_pdu->AddPacketTag (bearerTag);
-                  NS_LOG_DEBUG ("eNB sending MAC pdu size " << pduMapIt->second.m_pdu->GetSize ());
+                  NS_LOG_DEBUG ("gNB sending MAC pdu size " << pduMapIt->second.m_pdu->GetSize ());
                   for (unsigned i = 0; i < pduMapIt->second.m_macHeader.GetSubheaders ().size (); i++)
                     {
                       NS_LOG_DEBUG ("Subheader " << i << " size " << pduMapIt->second.m_macHeader.GetSubheaders ().at (i).m_size);

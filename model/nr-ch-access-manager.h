@@ -133,7 +133,7 @@ public:
 
   /**
    * \brief Set MAC instance for this channel access manager
-   * \param mac eNB mac instance
+   * \param mac gNB mac instance
    */
   virtual void SetNrGnbMac (Ptr<NrGnbMac> mac);
 

@@ -62,7 +62,7 @@ class BeamId;
  */
 class NrGnbMac : public Object
 {
-  friend class NrEnbMacMemberEnbCmacSapProvider;
+  friend class NrGnbMacMemberEnbCmacSapProvider;
   friend class NrMacEnbMemberPhySapUser;
   friend class NrMacMemberMacCschedSapUser;
   friend class NrMacMemberMacSchedSapUser;
@@ -163,7 +163,7 @@ public:
 
 
   /**
-  * \brief Get the eNB-ComponentCarrierManager SAP User
+  * \brief Get the gNB-ComponentCarrierManager SAP User
   * \return a pointer to the SAP User of the ComponentCarrierManager
   */
   LteCcmMacSapProvider* GetLteCcmMacSapProvider ();

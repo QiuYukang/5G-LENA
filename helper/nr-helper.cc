@@ -63,7 +63,7 @@ NrHelper::NrHelper (void)
 {
   NS_LOG_FUNCTION (this);
   m_channelFactory.SetTypeId (MultiModelSpectrumChannel::GetTypeId ());
-  m_enbNetDeviceFactory.SetTypeId (NrGnbNetDevice::GetTypeId ());
+  m_gnbNetDeviceFactory.SetTypeId (NrGnbNetDevice::GetTypeId ());
   m_ueNetDeviceFactory.SetTypeId (NrUeNetDevice::GetTypeId ());
   m_ueMacFactory.SetTypeId (NrUeMac::GetTypeId ());
   m_gnbMacFactory.SetTypeId (NrGnbMac::GetTypeId ());
@@ -712,17 +712,17 @@ Ptr<NetDevice>
 NrHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr> > allBwps)
 {
-  NS_ABORT_MSG_IF (m_cellIdCounter == 65535, "max num eNBs exceeded");
+  NS_ABORT_MSG_IF (m_cellIdCounter == 65535, "max num gNBs exceeded");
 
-  Ptr<NrGnbNetDevice> dev = m_enbNetDeviceFactory.Create<NrGnbNetDevice> ();
+  Ptr<NrGnbNetDevice> dev = m_gnbNetDeviceFactory.Create<NrGnbNetDevice> ();
 
-  NS_LOG_DEBUG ("Creating gnb, cellId = " << m_cellIdCounter);
+  NS_LOG_DEBUG ("Creating gNB, cellId = " << m_cellIdCounter);
   uint16_t cellId = m_cellIdCounter++;
 
   dev->SetCellId (cellId);
   dev->SetNode (n);
 
-  // create component carrier map for this eNb device
+  // create component carrier map for this gNB device
   std::map<uint8_t,Ptr<BandwidthPartGnb> > ccMap;
 
   for (uint32_t bwpId = 0; bwpId < allBwps.size (); ++bwpId)

@@ -43,7 +43,7 @@ class LteUeRrc;
  *
  * \brief RRC message passing from the UE to the GNB
  *
- * Models the transmission of RRC messages from the UE to the eNB in
+ * Models the transmission of RRC messages from the UE to the gNB in
  * an ideal fashion, without errors and without consuming any radio
  * resources.
  *
@@ -118,7 +118,7 @@ private:
 
 
 /**
- * Models the transmission of RRC messages from the UE to the eNB in
+ * Models the transmission of RRC messages from the UE to the gNB in
  * an ideal fashion, without errors and without consuming any radio
  * resources.
  *

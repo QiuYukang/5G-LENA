@@ -219,7 +219,7 @@ public:
 
   /**
    * \brief Get the HARQ feedback (on the transmission) from
-   * NrSpectrumPhy and send it through ideal PUCCH to eNB
+   * NrSpectrumPhy and send it through ideal PUCCH to gNB
    *
    * Connected by the helper to a spectrum phy callback
    *

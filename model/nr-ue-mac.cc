@@ -488,7 +488,7 @@ NrUeMac::SendReportBufferStatus (void)
   bsr.m_macCeValue.m_bufferStatus.push_back (BufferSizeLevelBsr::BufferSize2BsrId (queue.at (2)));
   bsr.m_macCeValue.m_bufferStatus.push_back (BufferSizeLevelBsr::BufferSize2BsrId (queue.at (3)));
 
-  // create the feedback to eNB
+  // create the feedback to gNB
   Ptr<NrBsrMessage> msg = Create<NrBsrMessage> ();
   msg->SetSourceBwp (GetBwpId ());
   msg->SetBsr (bsr);

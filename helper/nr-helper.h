@@ -723,7 +723,7 @@ private:
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
 
-  ObjectFactory m_enbNetDeviceFactory;  //!< NetDevice factory for gnb
+  ObjectFactory m_gnbNetDeviceFactory;  //!< NetDevice factory for gnb
   ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue
   ObjectFactory m_channelFactory;       //!< Channel factory
   ObjectFactory m_ueMacFactory;         //!< UE MAC factory

@@ -971,7 +971,7 @@ void
 NrUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
 {
   NS_LOG_FUNCTION (this);
-  // get the feedback from NrSpectrumPhy and send it through ideal PUCCH to eNB
+  // get the feedback from NrSpectrumPhy and send it through ideal PUCCH to gNB
   Ptr<NrDlHarqFeedbackMessage> msg = Create<NrDlHarqFeedbackMessage> ();
   msg->SetSourceBwp (GetBwpId ());
   msg->SetDlHarqFeedback (m);

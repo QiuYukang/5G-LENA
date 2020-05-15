@@ -100,7 +100,7 @@ void
 nrUeRrcProtocolIdeal::DoSendRrcConnectionRequest (LteRrcSap::RrcConnectionRequest msg)
 {
   // initialize the RNTI and get the EnbLteRrcSapProvider for the
-  // eNB we are currently attached to
+  // gNB we are currently attached to
   m_rnti = m_rrc->GetRnti ();
   SetEnbRrcSapProvider ();
 
@@ -125,7 +125,7 @@ void
 nrUeRrcProtocolIdeal::DoSendRrcConnectionReconfigurationCompleted (LteRrcSap::RrcConnectionReconfigurationCompleted msg)
 {
   // re-initialize the RNTI and get the EnbLteRrcSapProvider for the
-  // eNB we are currently attached to
+  // gNB we are currently attached to
   m_rnti = m_rrc->GetRnti ();
   SetEnbRrcSapProvider ();
 
@@ -177,8 +177,8 @@ nrUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
 {
   uint16_t bwpId = m_rrc->GetCellId ();
 
-  // walk list of all nodes to get the peer eNB
-  Ptr<NrGnbNetDevice> enbDev;
+  // walk list of all nodes to get the peer gNB
+  Ptr<NrGnbNetDevice> gnbDev;
   NodeList::Iterator listEnd = NodeList::End ();
   bool found = false;
   for (NodeList::Iterator i = NodeList::Begin ();
@@ -189,12 +189,12 @@ nrUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
       int nDevs = node->GetNDevices ();
       for (int j = 0; (j < nDevs) && (!found); j++)
         {
-          enbDev = node->GetDevice (j)->GetObject <NrGnbNetDevice> ();
-          if (enbDev != nullptr)
+          gnbDev = node->GetDevice (j)->GetObject <NrGnbNetDevice> ();
+          if (gnbDev != nullptr)
             {
-              for (uint32_t h = 0; h < enbDev->GetCcMapSize (); ++h)
+              for (uint32_t h = 0; h < gnbDev->GetCcMapSize (); ++h)
                 {
-                  if (enbDev->GetBwpId (h) == bwpId)
+                  if (gnbDev->GetBwpId (h) == bwpId)
                     {
                       found = true;
                       break;
@@ -203,9 +203,9 @@ nrUeRrcProtocolIdeal::SetEnbRrcSapProvider ()
             }
         }
     }
-  NS_ASSERT_MSG (found, " Unable to find eNB with BwpID =" << bwpId);
-  m_enbRrcSapProvider = enbDev->GetRrc ()->GetLteEnbRrcSapProvider ();
-  Ptr<NrGnbRrcProtocolIdeal> enbRrcProtocolIdeal = enbDev->GetRrc ()->GetObject<NrGnbRrcProtocolIdeal> ();
+  NS_ASSERT_MSG (found, " Unable to find gNB with BwpID =" << bwpId);
+  m_enbRrcSapProvider = gnbDev->GetRrc ()->GetLteEnbRrcSapProvider ();
+  Ptr<NrGnbRrcProtocolIdeal> enbRrcProtocolIdeal = gnbDev->GetRrc ()->GetObject<NrGnbRrcProtocolIdeal> ();
   enbRrcProtocolIdeal->SetUeRrcSapProvider (m_rnti, m_ueRrcSapProvider);
 }
 
@@ -379,7 +379,7 @@ NrGnbRrcProtocolIdeal::DoSendRrcConnectionReject (uint16_t rnti, LteRrcSap::RrcC
  * information elements, so encoding all of them would defeat the
  * purpose of NrGnbRrcProtocolIdeal. The workaround is to store the
  * actual message in a global map, so that then we can just encode the
- * key in a header and send that between eNBs over X2.
+ * key in a header and send that between gNBs over X2.
  *
  */
 
