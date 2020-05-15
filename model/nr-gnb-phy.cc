@@ -764,20 +764,11 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
     }
 }
 
-void NrGnbPhy::DoStartSlot ()
+
+void
+NrGnbPhy::DoCheckOrReleaseChannel ()
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_ctrlMsgs.size () == 0);
-
-  uint64_t currentSlotN = m_currentSlot.Normalize () % m_tddPattern.size ();;
-
-  NS_LOG_DEBUG ("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
-  NS_LOG_INFO ("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
-    {
-      return;
-    }
 
   NS_ASSERT (m_channelStatus == GRANTED);
   // The channel is granted, we have to check if we maintain it for the next
@@ -809,12 +800,12 @@ void NrGnbPhy::DoStartSlot ()
                    (GetSlotPeriod () - lastDataTime).GetMicroSeconds() <<
                    " us, so we're NOT going to lose the channel");
     }
+}
 
-  VarTtiAllocInfo allocation = m_currSlotAllocInfo.m_varTtiAllocInfo.front ();
-  m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front ();
-
-  auto nextVarTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
-
+void
+NrGnbPhy::RetrievePrepareEncodeCtrlMsgs ()
+{
+  NS_LOG_FUNCTION (this);
   auto ctrlMsgs = PopCurrentSlotCtrlMsgs ();
   ctrlMsgs.merge (RetrieveMsgsFromDCIs (m_currentSlot));
 
@@ -830,8 +821,90 @@ void NrGnbPhy::DoStartSlot ()
           EncodeCtrlMsg (msg);
         }
     }
+}
 
-  Simulator::Schedule (nextVarTtiStart, &NrGnbPhy::StartVarTti, this, allocation.m_dci);
+void
+NrGnbPhy::DoStartSlot ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_ctrlMsgs.size () == 0); // This assert has to be re-evaluated for NR-U.
+                                       // We can have messages before we weren't able to tx them before.
+
+  uint64_t currentSlotN = m_currentSlot.Normalize () % m_tddPattern.size ();;
+
+  NS_LOG_DEBUG ("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
+
+  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
+    {
+      return;
+    }
+
+  NS_LOG_INFO ("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
+
+  DoCheckOrReleaseChannel ();
+
+  RetrievePrepareEncodeCtrlMsgs ();
+
+  PrepareRbgAllocationMap (m_currSlotAllocInfo.m_varTtiAllocInfo);
+
+  FillTheEvent ();
+}
+
+void
+NrGnbPhy::PrepareRbgAllocationMap (const std::deque<VarTtiAllocInfo> &allocations)
+{
+  NS_LOG_FUNCTION (this);
+
+  // Start with a clean RBG allocation bitmask
+  m_rbgAllocationPerSym.clear ();
+
+  // Create RBG map to know where to put power in DL
+  for (const auto & dlAlloc : allocations)
+    {
+      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
+          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          StoreRBGAllocation (dlAlloc.m_dci);
+        }
+    }
+}
+
+void
+NrGnbPhy::FillTheEvent ()
+{
+  NS_LOG_FUNCTION (this);
+
+  uint8_t lastSymStart = 0;
+  bool useNextAllocationSameSymbol = true;
+  for (const auto & allocation : m_currSlotAllocInfo.m_varTtiAllocInfo)
+    {
+      NS_ASSERT (lastSymStart <= allocation.m_dci->m_symStart);
+
+      if (lastSymStart == allocation.m_dci->m_symStart && !useNextAllocationSameSymbol)
+        {
+          NS_LOG_INFO ("Ignored allocation " << *(allocation.m_dci) << " for OFDMA DL trick");
+          continue;
+        }
+      else
+        {
+          useNextAllocationSameSymbol = true;
+        }
+
+      auto varTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
+      Simulator::Schedule (varTtiStart, &NrGnbPhy::StartVarTti, this, allocation.m_dci);
+      lastSymStart = allocation.m_dci->m_symStart;
+
+      // If the allocation is DL, then don't schedule anything that is in the
+      // same symbol (see OFDMA DL trick documentation)
+      if (allocation.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          useNextAllocationSameSymbol = false;
+        }
+
+      NS_LOG_INFO ("Scheduled allocation " << *(allocation.m_dci) << " at " << varTtiStart);
+    }
+
+  m_currSlotAllocInfo.m_varTtiAllocInfo.clear ();
 }
 
 void
@@ -979,19 +1052,6 @@ NrGnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_DEBUG ("Starting DL CTRL TTI at symbol " << +m_currSymStart <<
                 " to " << +m_currSymStart + dci->m_numSym);
 
-  // Start with a clean RBG allocation bitmask
-  m_rbgAllocationPerSym.clear ();
-
-  // Create RBG map to know where to put power in DL
-  for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
-    {
-      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
-          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
-        {
-          StoreRBGAllocation (dlAlloc.m_dci);
-        }
-    }
-
   // TX control period
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
@@ -1131,7 +1191,7 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
+  m_beamManager->ChangeToOmniTx (); //assume the control signal is omni
   m_currSymStart = dci->m_symStart;
 
   Time varTtiPeriod;
@@ -1172,36 +1232,6 @@ NrGnbPhy::EndVarTti (const std::shared_ptr<DciInfoElementTdma> &lastDci)
   NS_LOG_DEBUG ("DCI started at symbol " << static_cast<uint32_t> (lastDci->m_symStart) <<
                 " which lasted for " << static_cast<uint32_t> (lastDci->m_numSym) <<
                 " symbols finished");
-
-  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () > 0)
-    {
-      VarTtiAllocInfo allocation = m_currSlotAllocInfo.m_varTtiAllocInfo.front ();
-      m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front ();
-
-      if (lastDci->m_symStart == allocation.m_dci->m_symStart)
-        {
-          NS_LOG_INFO ("DCI for UE " << allocation.m_dci->m_rnti << " starts from symbol " <<
-                       static_cast<uint32_t> (allocation.m_dci->m_symStart) << " ignoring at PHY");
-          EndVarTti (allocation.m_dci);
-        }
-      else
-        {
-          auto nextVarTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
-
-          NS_LOG_INFO ("DCI for UE " << allocation.m_dci->m_rnti << " starts from symbol " <<
-                       static_cast<uint32_t> (allocation.m_dci->m_symStart) << " scheduling at PHY, at " <<
-                       nextVarTtiStart + m_lastSlotStart << " where last slot start = " <<
-                       m_lastSlotStart << " nextVarTti " << nextVarTtiStart);
-
-          Simulator::Schedule (nextVarTtiStart + m_lastSlotStart - Simulator::Now (),
-                               &NrGnbPhy::StartVarTti, this, allocation.m_dci);
-        }
-      // Do not put any code here (tail recursion)
-    }
-  // Do not put any code here (tail recursion)
 }
 
 void

@@ -626,6 +626,34 @@ private:
    */
   void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
 
+  /**
+   * \brief See if the channel should be released at the end of the slot
+   *
+   * If the channel has to be released, then m_channelStatus will be
+   * TO_LOSE.
+   */
+  void DoCheckOrReleaseChannel ();
+
+  /**
+   * \brief Check the control messages, and route them to the NetDevice
+   *
+   * For FDD, we route the CTRL messages to the netdevice (maybe we are in a
+   * UL bwp, and our ctrl messages have to be sent from the DL bwp).
+   */
+  void RetrievePrepareEncodeCtrlMsgs ();
+
+  /**
+   * \brief Prepare the RBG power distribution map for the allocations.
+   *
+   * \param allocations scheduler allocation for this slot.
+   */
+  void PrepareRbgAllocationMap (const std::deque<VarTtiAllocInfo> &allocations);
+
+  /**
+   * \brief Prepare and schedule all the events needed for the current slot.
+   */
+  void FillTheEvent ();
+
 private:
   NrGnbPhySapUser* m_phySapUser {nullptr};           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
   LteEnbCphySapProvider* m_enbCphySapProvider {nullptr}; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call e.g SetBandwidth
