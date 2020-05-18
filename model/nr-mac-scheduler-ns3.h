@@ -737,8 +737,7 @@ private:
                             const ActiveUeMap &activeDl, SlotAllocInfo *slotAlloc) const;
   uint8_t DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
                             const ActiveUeMap &activeUl, SlotAllocInfo *slotAlloc) const;
-  uint8_t DoScheduleUlSr (PointInFTPlane *spoint, uint32_t symAvail,
-                          std::list<uint16_t> *rnti, SlotAllocInfo *slotAlloc) const;
+  void DoScheduleUlSr (PointInFTPlane *spoint, const std::list<uint16_t> &rntiList) const;
   uint8_t DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback, const ActiveHarqMap &activeDlHarq,
                         ActiveUeMap *activeDlUe, const SfnSf &dlSfnSf,
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);

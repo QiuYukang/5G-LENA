@@ -1456,104 +1456,28 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
 /**
  * \brief Schedule received SR
  * \param spoint Starting point for allocation
- * \param symAvail Available symbols
  * \param rntiList list of RNTI which asked for a SR
- * \param slotAlloc Slot allocation list
- * \return Number of symbols allocated for SR
  *
- * It schedules the SR. Each time an UE asks for SR, the scheduler will try
- * to allocate a default amount of 1 symbol for that UE. In such symbol,
- * it can transmit data and, eventually, a BSR.
+ * Each time an UE asks for SR, the scheduler will assign a fixed amount of
+ * data (12 bytes) to the UE's UL LCG. Then, the routine for scheduling the data
+ * will take care to create an assignation for the UE, to be able to send
+ * some data and, eventually, a BSR.
  *
- * This function does not update any byte in LCGs, since the UE did not report
- * a BSR yet.
  */
-uint8_t
-NrMacSchedulerNs3::DoScheduleUlSr (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                       uint32_t symAvail, std::list<uint16_t> *rntiList,
-                                       SlotAllocInfo *slotAlloc) const
+void
+NrMacSchedulerNs3::DoScheduleUlSr (PointInFTPlane *spoint, const std::list<uint16_t> &rntiList) const
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (symAvail > 0);
   NS_ASSERT (spoint->m_rbg == 0);
-  uint8_t usedSym = 0;
-  std::list<uint16_t> notScheduled;
-  std::set<uint16_t> scheduled;
 
-  while (symAvail > 0 && rntiList->size () > 0)
+  for (const auto & v : rntiList)
     {
-      uint16_t rnti = rntiList->front ();
-      rntiList->pop_front ();
-      NS_ASSERT (m_ueMap.find (rnti) != m_ueMap.end ());
-      NS_ABORT_MSG_UNLESS (scheduled.find(rnti) == scheduled.end(),
-                           "RNTI " << rnti << " already scheduled for a SR..");
-      scheduled.insert (rnti);
-
-      // Assign an entire symbol
-      auto & ue = m_ueMap.find (rnti)->second;
-      NS_ASSERT (ue->m_ulRBG == 0);
-      uint32_t tbs = 0;
-      uint32_t assignedSym = 0;
-      do
+      for (auto & ulLcg : NrMacSchedulerUeInfo::GetUlLCG (m_ueMap.at (v)))
         {
-          ue->m_ulRBG += GetBandwidthInRbg ();
-
-          assignedSym++;
-          tbs = m_ulAmc->CalculateTbSize (ue->m_ulMcs,
-                                          ue->m_ulRBG * GetNumRbPerRbg ());
+          NS_LOG_DEBUG ("Assigning 12 bytes to UE " << v << " because of a SR");
+          ulLcg.second->UpdateInfo (12);
         }
-      while (tbs < 4 && (symAvail - assignedSym) > 0);    // Why 4? Because I suppose that's good, giving the MacHeader is 2.
-
-      if (tbs < 4)
-        {
-          // Our try is a fail: we can't schedule this SR
-          scheduled.erase(scheduled.find (rnti));
-          notScheduled.push_back (rnti);
-          ue->ResetUlSchedInfo ();
-          continue;
-        }
-
-      NS_ASSERT (symAvail >= assignedSym);
-
-      usedSym += assignedSym;
-      symAvail -= assignedSym;
-
-      // Create DCI
-      std::shared_ptr<DciInfoElementTdma> dci = CreateUlDci (spoint, ue);
-      NS_ASSERT (dci != nullptr);
-
-      NS_ABORT_MSG_UNLESS (ue->m_ulHarq.CanInsert (), " UE " << ue->m_rnti <<
-                           " can't insert an HARQ for SR");
-      HarqProcess harqProcess (true, HarqProcess::WAITING_FEEDBACK, 0, dci);
-      uint8_t id;
-      bool ret = ue->m_ulHarq.Insert (&id, harqProcess);
-      NS_ASSERT (ret);
-
-      ue->m_ulHarq.Get (id).m_dciElement->m_harqProcess = id;
-
-      VarTtiAllocInfo slotInfo (dci);
-
-      NS_LOG_DEBUG (" UE" << dci->m_rnti <<
-                    " gets UL symbols " << static_cast<uint32_t> (dci->m_symStart) <<
-                    "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym) <<
-                    " tbs " << dci->m_tbSize <<
-                    " mcs " << static_cast<uint32_t> (dci->m_mcs) <<
-                    " harqId " << static_cast<uint32_t> (id) <<
-                    " rv " << static_cast<uint32_t> (dci->m_rv) <<
-                    " process ID " << static_cast<uint32_t> (dci->m_harqProcess) <<
-                    " thanks to a SR");
-
-      ue->ResetUlSchedInfo ();
-      slotAlloc->m_varTtiAllocInfo.emplace_front (slotInfo);
-      slotAlloc->m_numSymAlloc += usedSym;
     }
-
-  for (const auto & rnti : notScheduled)
-    {
-      rntiList->push_back (rnti);
-    }
-
-  return usedSym;
 }
 
 /**
@@ -1808,14 +1732,10 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
 
   NS_ASSERT (ulAssignationStartPoint.m_rbg == 0);
 
-  // Now schedule SR if we have empty symbols
-  uint8_t usedSr = 0;
-
   if (ulSymAvail > 0 && m_srList.size () > 0)
     {
-      usedSr = DoScheduleUlSr (&ulAssignationStartPoint, ulSymAvail,
-                               &m_srList, allocInfo);
-      ulSymAvail -= usedSr;
+      DoScheduleUlSr (&ulAssignationStartPoint, m_srList);
+      m_srList.clear ();
     }
 
   ActiveUeMap activeUlUe;
