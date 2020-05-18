@@ -23,6 +23,7 @@
 #include <ns3/object.h>
 #include <ns3/object-factory.h>
 #include "ns3/simple-net-device.h"
+#include "ns3/net-device-container.h"
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <fstream>
@@ -148,10 +149,9 @@ public:
     double GetZ () const;
 
     /**
-     * \return Gets the value of the max number of REM points to be
-     * calculated per iteration
+     * \brief Configure REM Transmission Devices List
      */
-    //uint32_t GetMaxPointsPerIt () const;
+    void ConfigureRtdList (NetDeviceContainer enbNetDev);
 
     /**
      * \brief Configure propagation loss models
@@ -202,6 +202,8 @@ private:
       double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
       uint16_t numerology {0}; // TODO -||-
     };
+
+    std::list<RemDevice> m_remDev;
 
     struct RemPoint
     {
