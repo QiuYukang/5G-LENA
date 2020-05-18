@@ -43,6 +43,13 @@ NS_OBJECT_ENSURE_REGISTERED (NrMacSchedulerNs3);
 NrMacSchedulerNs3::NrMacSchedulerNs3 () : NrMacScheduler ()
 {
   NS_LOG_FUNCTION_NOARGS ();
+
+  // Hardcoded, but the type can be a parameter if needed
+  m_schedHarq = std::unique_ptr<NrMacSchedulerHarqRr> (new NrMacSchedulerHarqRr ());
+  m_schedHarq->InstallGetBwInRBG (std::bind (&NrMacSchedulerNs3::GetBandwidthInRbg, this));
+  m_schedHarq->InstallGetBwpIdFn (std::bind (&NrMacSchedulerNs3::GetBwpId, this));
+  m_schedHarq->InstallGetCellIdFn (std::bind (&NrMacSchedulerNs3::GetCellId, this));
+
   m_cqiManagement.InstallGetBwpIdFn (std::bind (&NrMacSchedulerNs3::GetBwpId, this));
   m_cqiManagement.InstallGetCellIdFn (std::bind (&NrMacSchedulerNs3::GetCellId, this));
   m_cqiManagement.InstallGetNrAmcDlFn (std::bind ([this] () { return m_dlAmc; }));
@@ -257,6 +264,46 @@ void
 NrMacSchedulerNs3::SetUlCtrlSyms (uint8_t v)
 {
   m_ulCtrlSymbols = v;
+}
+
+uint8_t
+NrMacSchedulerNs3::ScheduleDlHarq (PointInFTPlane *startingPoint,
+                                       uint8_t symAvail,
+                                       const NrMacSchedulerNs3::ActiveHarqMap &activeDlHarq,
+                                       const std::unordered_map<uint16_t, UePtr> &ueMap,
+                                       std::vector<DlHarqInfo> *dlHarqToRetransmit,
+                                       const std::vector<DlHarqInfo> &dlHarqFeedback,
+                                       SlotAllocInfo *slotAlloc) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_schedHarq->ScheduleDlHarq (startingPoint, symAvail, activeDlHarq,
+                                      ueMap, dlHarqToRetransmit, dlHarqFeedback, slotAlloc);
+}
+
+uint8_t
+NrMacSchedulerNs3::ScheduleUlHarq (PointInFTPlane *startingPoint,
+                                       uint8_t symAvail,
+                                       const std::unordered_map<uint16_t, UePtr> &ueMap,
+                                       std::vector<UlHarqInfo> *ulHarqToRetransmit,
+                                       const std::vector<UlHarqInfo> &ulHarqFeedback,
+                                       SlotAllocInfo *slotAlloc) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_schedHarq->ScheduleUlHarq (startingPoint, symAvail,
+                                      ueMap, ulHarqToRetransmit, ulHarqFeedback, slotAlloc);
+}
+
+void
+NrMacSchedulerNs3::SortDlHarq (NrMacSchedulerNs3::ActiveHarqMap *activeDlHarq) const
+{
+  NS_LOG_FUNCTION (this);
+  m_schedHarq->SortDlHarq (activeDlHarq);
+}
+
+void NrMacSchedulerNs3::SortUlHarq (NrMacSchedulerNs3::ActiveHarqMap *activeUlHarq) const
+{
+  NS_LOG_FUNCTION (this);
+  m_schedHarq->SortDlHarq (activeUlHarq);
 }
 
 uint8_t

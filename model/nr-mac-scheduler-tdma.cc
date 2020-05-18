@@ -40,19 +40,36 @@ TypeId
 NrMacSchedulerTdma::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrMacSchedulerTdma")
-    .SetParent<NrMacSchedulerNs3Base> ()
+    .SetParent<NrMacSchedulerNs3> ()
   ;
   return tid;
 }
 
 NrMacSchedulerTdma::NrMacSchedulerTdma ()
-  : NrMacSchedulerNs3Base ()
 {
 }
 
 NrMacSchedulerTdma::~NrMacSchedulerTdma ()
 {
 }
+
+std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>
+NrMacSchedulerTdma::GetUeVectorFromActiveUeMap (const NrMacSchedulerNs3::ActiveUeMap &activeUes)
+{
+  std::vector<UePtrAndBufferReq> ueVector;
+  for (const auto &el : activeUes)
+    {
+      uint64_t size = ueVector.size ();
+      GetSecond GetUeVector;
+      for (const auto &ue : GetUeVector (el))
+        {
+          ueVector.emplace_back (ue);
+        }
+      NS_ASSERT (size + GetUeVector (el).size () == ueVector.size ());
+    }
+  return ueVector;
+}
+
 
 /**
  * \brief Assign the available RBG in a TDMA fashion
