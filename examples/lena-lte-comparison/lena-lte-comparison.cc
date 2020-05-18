@@ -134,7 +134,9 @@ ReportSinrNr (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, do
 
   cache.emplace_back (ResultCache (cellId, bwpId, rnti, avgSinr));
 
-  if (cache.size () > 100)
+  // An entry is 14 byte. Let's wait until ~1MB of entries before
+  // storing it in the database
+  if (cache.size () > 100000)
     {
       EmptyCache (db);
     }
