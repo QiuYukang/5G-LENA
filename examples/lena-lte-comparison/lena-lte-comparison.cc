@@ -213,6 +213,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   lteHelper->SetEpcHelper (epcHelper);
 
   // ALL SECTORS AND BANDS configuration
+  Config::SetDefault ("ns3::FfMacScheduler::UlCqiFilter", EnumValue (FfMacScheduler::PUSCH_UL_CQI));
   Config::SetDefault ("ns3::LteSpectrumPhy::CtrlErrorModelEnabled", BooleanValue (false));
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
   Config::SetDefault ("ns3::LteGnbPhy::TxPower", DoubleValue (txPower));
