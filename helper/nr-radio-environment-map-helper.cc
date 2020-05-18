@@ -263,8 +263,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         rtd.node = CreateObject<Node> ();            //Create Node
 
         Ptr<ListPositionAllocator> rtdPositionAlloc = CreateObject<ListPositionAllocator> ();
-        rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
-        //rtdPositionAlloc->Add ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
+        //rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
+        rtdPositionAlloc->Add ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
 
         MobilityHelper rtdMobility;                 //Set Mobility
         rtdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -275,16 +275,23 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         rtd.node->AddDevice(rtd.dev);
 
         rtd.mob = rtd.node->GetObject<MobilityModel> ();
-        //rtd.mob = (*netDevIt)->GetNode ()->GetObject<MobilityModel> ();
-        //Set Antenna
-        rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (4), "NumRows", UintegerValue (4));
-        //Configure Antenna
 
         Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
         NS_ASSERT_MSG (mmwNetDev, "mmwNetDev is null");
         Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy(ccId);
 
+        UintegerValue uintValue;
+        rtdPhy->GetAntennaArray()->GetAttribute("NumRows", uintValue);
+        uint32_t rtdNumRows = static_cast<uint32_t> (uintValue.Get());
+        rtdPhy->GetAntennaArray()->GetAttribute("NumColumns", uintValue);
+        uint32_t rtdNumColumns = static_cast<uint32_t> (uintValue.Get());
+
+        //Set Antenna
+        rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (rtdNumRows), "NumRows", UintegerValue (rtdNumColumns));
+        //rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (4), "NumRows", UintegerValue (4));
+        //Configure Antenna
         //rtd.antenna->ChangeToOmniTx ();
+
         //Configure power
         rtd.txPower = 1;
         //Configure bandwidth
@@ -382,8 +389,9 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
        itRtd != m_remDev.end ();
        ++itRtd)
    {
-      std::cout << "Started to generate REM points for: " <<  itRtd->dev->GetNode () <<
-                   "There are in total:" << m_rem.size() << std::endl;
+      std::cout << "Started to generate REM points for: " <<
+                   itRtd->dev->GetNode ()->GetId () <<
+                   " There are in total:" << m_rem.size() << std::endl;
       uint16_t pointsCounter = 0;
 
       // configure beam on rtd antenna to point toward rrd
@@ -431,7 +439,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
 
               // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
               Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
-              double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (0, itRtd->mob, m_rrd.mob);
+              double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (itRtd->txPower, itRtd->mob, m_rrd.mob);
               double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
               // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
