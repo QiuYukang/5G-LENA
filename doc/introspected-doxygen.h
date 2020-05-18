@@ -14,26 +14,26 @@ Doxygen docs generated from the TypeId database.
 
 \class ns3::BandwidthPartGnb
 
-\section config_488 Config Paths
+\section config_485 Config Paths
 
 ns3::BandwidthPartGnb is accessible through the following paths with Config::Set and Config::Connect:
 <ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]`</li>
 </ul>
-\section attr_488 Attributes
+\section attr_485 Attributes
 <ul>
-<li><b>MmWaveEnbPhy</b>: The PHY associated to this EnbNetDevice
+<li><b>NrGnbPhy</b>: The PHY associated to this EnbNetDevice
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::MmWaveEnbPhy></li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrGnbPhy></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
   </ul> 
-<li><b>MmWaveEnbMac</b>: The MAC associated to this EnbNetDevice
+<li><b>NrGnbMac</b>: The MAC associated to this EnbNetDevice
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::MmWaveEnbMac></li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrGnbMac></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
   </ul> 
@@ -45,7 +45,7 @@ ns3::BandwidthPartGnb is accessible through the following paths with Config::Set
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
   </ul> 
 </ul>
-\section attr_parent_488 Attributes defined in parent class ns3::ComponentCarrier
+\section attr_parent_485 Attributes defined in parent class ns3::ComponentCarrier
 <ul>
 <li><b>UlBandwidth</b>: Uplink Transmission Bandwidth Configuration in number of Resource Blocks
   <ul>
@@ -105,31 +105,31 @@ No TraceSources are defined for this type.<br>
 
 \class ns3::BandwidthPartUe
 
-\section config_489 Config Paths
+\section config_486 Config Paths
 
 ns3::BandwidthPartUe is accessible through the following paths with Config::Set and Config::Connect:
 <ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]`</li>
 </ul>
-\section attr_489 Attributes
+\section attr_486 Attributes
 <ul>
-<li><b>MmWaveUePhy</b>: The PHY associated to this BandwidthPartUe
+<li><b>NrUePhy</b>: The PHY associated to this BandwidthPartUe
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::MmWaveUePhy></li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrUePhy></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
   </ul> 
-<li><b>MmWaveUeMac</b>: The MAC associated to this BandwidthPartUe
+<li><b>NrUeMac</b>: The MAC associated to this BandwidthPartUe
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::MmWaveUeMac></li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrUeMac></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
   </ul> 
 </ul>
-\section attr_parent_489 Attributes defined in parent class ns3::ComponentCarrier
+\section attr_parent_486 Attributes defined in parent class ns3::ComponentCarrier
 <ul>
 <li><b>UlBandwidth</b>: Uplink Transmission Bandwidth Configuration in number of Resource Blocks
   <ul>
@@ -199,7 +199,7 @@ No TraceSources are defined for this type.<br>
 
 \class ns3::BwpManagerAlgorithm
 
-\section config_492 Config Paths
+\section config_489 Config Paths
 
 ns3::BwpManagerAlgorithm is accessible through the following paths with Config::Set and Config::Connect:
 <ul>
@@ -211,14 +211,14 @@ ns3::BwpManagerAlgorithm is accessible through the following paths with Config::
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm`</li>
 </ul>
 No Attributes are defined for this type.<br>
 No TraceSources are defined for this type.<br>
@@ -229,7 +229,7 @@ No TraceSources are defined for this type.<br>
 
 \class ns3::BwpManagerAlgorithmStatic
 
-\section config_493 Config Paths
+\section config_490 Config Paths
 
 ns3::BwpManagerAlgorithmStatic is accessible through the following paths with Config::Set and Config::Connect:
 <ul>
@@ -241,16 +241,16 @@ ns3::BwpManagerAlgorithmStatic is accessible through the following paths with Co
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe/BwpManagerAlgorithm/$ns3::BwpManagerAlgorithmStatic`</li>
 </ul>
-\section attr_493 Attributes
+\section attr_490 Attributes
 <ul>
 <li><b>GBR_CONV_VOICE</b>: BWP index to which flows of this Qci type should be forwarded.
   <ul>
@@ -408,7 +408,7 @@ No TraceSources are defined for this type.<br>
 
 \class ns3::BwpManagerGnb
 
-\section config_490 Config Paths
+\section config_487 Config Paths
 
 ns3::BwpManagerGnb is accessible through the following paths with Config::Set and Config::Connect:
 <ul>
@@ -416,12 +416,12 @@ ns3::BwpManagerGnb is accessible through the following paths with Config::Set an
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteNetDevice/$ns3::LteEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::NoOpComponentCarrierManager/$ns3::BwpManagerGnb`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/LteEnbComponentCarrierManager/$ns3::BwpManagerGnb`</li>
 </ul>
-\section attr_490 Attributes
+\section attr_487 Attributes
 <ul>
 <li><b>BwpManagerAlgorithm</b>: The algorithm pointer
   <ul>
@@ -439,7 +439,7 @@ No TraceSources are defined for this type.<br>
 
 \class ns3::BwpManagerUe
 
-\section config_491 Config Paths
+\section config_488 Config Paths
 
 ns3::BwpManagerUe is accessible through the following paths with Config::Set and Config::Connect:
 <ul>
@@ -447,12 +447,12 @@ ns3::BwpManagerUe is accessible through the following paths with Config::Set and
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteNetDevice/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
 <li>`/NodeList/[i]/DeviceList/[i]/$ns3::LteUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::SimpleUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/LteUeComponentCarrierManager/$ns3::BwpManagerUe`</li>
 </ul>
-\section attr_491 Attributes
+\section attr_488 Attributes
 <ul>
 <li><b>BwpManagerAlgorithm</b>: The algorithm pointer
   <ul>
@@ -478,1358 +478,11 @@ No TraceSources are defined for this type.<br>
 
 /*!
 
-\class ns3::MmWaveEnbMac
-
-\section config_482 Config Paths
-
-ns3::MmWaveEnbMac is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]/MmWaveEnbMac`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]/MmWaveEnbMac`</li>
-</ul>
-\section attr_482 Attributes
-<ul>
-<li><b>NumRbPerRbg</b>: Number of resource blocks per resource block group.
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint32_t 0:4294967295</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 20</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section tracesources_482 TraceSources
-<ul>
-<li><b>DlScheduling</b>: Information regarding DL scheduling.<br>%Callback signature: ns3::LteEnbMac::DlSchedulingTracedCallback
-</li>
-<li><b>SrReq</b>: Information regarding received scheduling request.<br>%Callback signature: ns3::MmWaveEnbMac::SrTracedCallback
-</li>
-<li><b>EnbMacRxedCtrlMsgsTrace</b>: Enb MAC Rxed Control Messages Traces.<br>%Callback signature: ns3::MmWaveMacRxTrace::RxedEnbMacCtrlMsgsTracedCallback
-</li>
-<li><b>EnbMacTxedCtrlMsgsTrace</b>: Enb MAC Txed Control Messages Traces.<br>%Callback signature: ns3::MmWaveMacRxTrace::TxedEnbMacCtrlMsgsTracedCallback
-</li>
-<li><b>DlHarqFeedback</b>: Harq feedback.<br>%Callback signature: ns3::MmWaveEnbMac::DlHarqFeedbackTracedCallback
-</li>
-</ul>
-<b>Size</b> of this type is 656 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveEnbNetDevice
-
-\section config_463 Config Paths
-
-ns3::MmWaveEnbNetDevice is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice`</li>
-</ul>
-\section attr_463 Attributes
-<ul>
-<li><b>LteEnbComponentCarrierManager</b>: The component carrier manager associated to this EnbNetDevice
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteEnbComponentCarrierManager></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>BandwidthPartMap</b>: List of Bandwidth Part container.
-  <ul>
-    <li>Set with class:  \ref ns3::ObjectPtrContainerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BandwidthPartGnb></li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-<li><b>LteEnbRrc</b>: The RRC layer associated with the ENB
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteEnbRrc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section attr_parent_463 Attributes defined in parent class ns3::MmWaveNetDevice
-<ul>
-<li><b>Mtu</b>: The MAC-level Maximum Transmission Unit
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint16_t 0:65535</li>
-    <li>Initial value: 30000</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 136 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveEnbPhy
-
-\section config_466 Config Paths
-
-ns3::MmWaveEnbPhy is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]/MmWaveEnbPhy`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]/MmWaveEnbPhy`</li>
-</ul>
-\section attr_466 Attributes
-<ul>
-<li><b>TxPower</b>: Transmission power in dBm
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
-    <li>Initial value: 4</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
-    <li>Initial value: 5</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>SpectrumPhy</b>: The downlink MmWaveSpectrumPhy associated to this MmWavePhy
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::MmWaveSpectrumPhy></li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-<li><b>N0Delay</b>: Minimum processing delay needed to decode DL DCI and decode DL data
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint32_t 0:4294967295</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>N1Delay</b>: Minimum processing delay (UE side) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint32_t 0:4294967295</li>
-    <li>Initial value: 4</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>N2Delay</b>: Minimum processing delay needed to decode UL DCI and prepare UL data
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint32_t 0:4294967295</li>
-    <li>Initial value: 2</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>TbDecodeLatency</b>: Transport block decode latency
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +100000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>Numerology</b>: The 3GPP numerology to be used
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint16_t 0:65535</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>SymbolsPerSlot</b>: Number of symbols in one slot
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint16_t 0:65535</li>
-    <li>Initial value: 14</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>Pattern</b>: The slot pattern
-  <ul>
-    <li>Set with class:  \ref StringValue</li>
-    <li>Underlying type: </li>
-    <li>Initial value: F|F|F|F|F|F|F|F|F|F|</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section tracesources_466 TraceSources
-<ul>
-<li><b>UlSinrTrace</b>: UL SINR statistics.<br>%Callback signature: ns3::UlSinr::TracedCallback
-</li>
-<li><b>EnbPhyRxedCtrlMsgsTrace</b>: Enb PHY Rxed Control Messages Traces.<br>%Callback signature: ns3::MmWavePhyRxTrace::RxedEnbPhyCtrlMsgsTracedCallback
-</li>
-<li><b>EnbPhyTxedCtrlMsgsTrace</b>: Enb PHY Txed Control Messages Traces.<br>%Callback signature: ns3::MmWavePhyRxTrace::TxedEnbPhyCtrlMsgsTracedCallback
-</li>
-</ul>
-<b>Size</b> of this type is 1024 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveHelper
-
-Introspection did not find any typical Config paths.<br>
-\section attr_454 Attributes
-<ul>
-<li><b>HarqEnabled</b>: Enable Hybrid ARQ
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: true</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 992 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::mmWaveInterference
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section tracesources_509 TraceSources
-<ul>
-<li><b>SnrPerProcessedChunk</b>: Snr per processed chunk.<br>%Callback signature: ns3::SnrPerProcessedChunk::TracedCallback
-</li>
-<li><b>RssiPerProcessedChunk</b>: Rssi per processed chunk.<br>%Callback signature: ns3::RssiPerProcessedChunk::TracedCallback
-</li>
-</ul>
-<b>Size</b> of this type is 18446744073709551615 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacPduHeader
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 40 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacPduTag
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 24 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacScheduler
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 64 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerNs3
-
-Introspection did not find any typical Config paths.<br>
-\section attr_475 Attributes
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 496 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerNs3Base
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_474 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerOfdma
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_478 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerOfdmaMR
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_494 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerOfdmaPF
-
-Introspection did not find any typical Config paths.<br>
-\section attr_479 Attributes
-<ul>
-<li><b>FairnessIndex</b>: Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type:  \ref float 0:1</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type:  \ref float 0:3.40282e+38</li>
-    <li>Initial value: 99</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section attr_parent_479 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 520 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerOfdmaRR
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_477 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerTdma
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_473 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerTdmaMR
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_495 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerTdmaPF
-
-Introspection did not find any typical Config paths.<br>
-\section attr_476 Attributes
-<ul>
-<li><b>FairnessIndex</b>: Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double 0:1</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double 0:1.79769e+308</li>
-    <li>Initial value: 99</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section attr_parent_476 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 520 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveMacSchedulerTdmaRR
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-\section attr_parent_472 Attributes defined in parent class ns3::MmWaveMacSchedulerNs3
-<ul>
-<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +1000000000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsDl</b>: Starting MCS for DL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>StartingMcsUl</b>: Starting MCS for UL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 1</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlAmc</b>: The DL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlAmc</b>: The UL AMC of this scheduler
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveNetDevice
-
-\section config_462 Config Paths
-
-ns3::MmWaveNetDevice is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice`</li>
-</ul>
-\section attr_462 Attributes
-<ul>
-<li><b>Mtu</b>: The MAC-level Maximum Transmission Unit
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint16_t 0:65535</li>
-    <li>Initial value: 30000</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 64 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWavePhy
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 400 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveRadioBearerTag
-
-Introspection did not find any typical Config paths.<br>
-\section attr_480 Attributes
-<ul>
-<li><b>rnti</b>: The rnti that indicates the UE to which packet belongs
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint16_t 0:65535</li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-<li><b>lcid</b>: The id whithin the UE identifying the logical channel to which the packet belongs
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-<li><b>size</b>: Size in bytes of the RLC PDU
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint32_t 0:4294967295</li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 16 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveSpectrumPhy
-
-\section config_468 Config Paths
-
-ns3::MmWaveSpectrumPhy is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]/MmWaveEnbPhy/SpectrumPhy`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]/MmWaveUePhy/SpectrumPhy`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveEnbNetDevice/BandwidthPartMap/[i]/MmWaveEnbPhy/SpectrumPhy`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]/MmWaveUePhy/SpectrumPhy`</li>
-</ul>
-\section attr_468 Attributes
-<ul>
-<li><b>DataErrorModelEnabled</b>: Activate/Deactivate the error model of data (TBs of PDSCH and PUSCH) [by default is active].
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: true</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
-  </ul> 
-<li><b>ErrorModelType</b>: Type of the Error Model to apply to TBs of PDSCH and PUSCH
-  <ul>
-    <li>Set with class:  \ref TypeIdValue</li>
-    <li>Underlying type:  \ref TypeId</li>
-    <li>Initial value: ns3::NrLteMiErrorModel</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
-  </ul> 
-<li><b>UnlicensedMode</b>: Activate/Deactivate unlicensed mode in which energy detection is performed and PHY state machine has an additional state CCA_BUSY.
-  <ul>
-    <li>Set with class:  \ref BooleanValue</li>
-    <li>Underlying type: bool</li>
-    <li>Initial value: false</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
-  </ul> 
-<li><b>CcaMode1Threshold</b>: The energy of a received signal should be higher than this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
-    <li>Initial value: -62</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section tracesources_468 TraceSources
-<ul>
-<li><b>RxPacketTraceEnb</b>: The no. of packets received and transmitted by the Base Station<br>%Callback signature: ns3::RxPacketTraceParams::TracedCallback
-</li>
-<li><b>TxPacketTraceEnb</b>: Traces when the packet is being transmitted by the Base Station<br>%Callback signature: ns3::EnbPhyPacketCountParameter::TracedCallback
-</li>
-<li><b>RxPacketTraceUe</b>: The no. of packets received and transmitted by the User Device<br>%Callback signature: ns3::RxPacketTraceParams::TracedCallback
-</li>
-<li><b>ChannelOccupied</b>: This traced callback is triggered every time that the channel is occupied<br>%Callback signature: ns3::Time::TracedCallback
-</li>
-<li><b>TxDataTrace</b>: Indicates when the channel is being occupied by a data transmission<br>%Callback signature: ns3::Time::TracedCallback
-</li>
-<li><b>TxCtrlTrace</b>: Indicates when the channel is being occupied by a ctrl transmission<br>%Callback signature: ns3::Time::TracedCallback
-</li>
-</ul>
-<b>Size</b> of this type is 520 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveUeMac
-
-\section config_483 Config Paths
-
-ns3::MmWaveUeMac is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]/MmWaveUeMac`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]/MmWaveUeMac`</li>
-</ul>
-\section attr_483 Attributes
-<ul>
-<li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint8_t 0:255</li>
-    <li>Initial value: 20</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section tracesources_483 TraceSources
-<ul>
-<li><b>UeMacRxedCtrlMsgsTrace</b>: Ue MAC Control Messages Traces.<br>%Callback signature: ns3::MmWaveMacRxTrace::RxedUeMacCtrlMsgsTracedCallback
-</li>
-<li><b>UeMacTxedCtrlMsgsTrace</b>: Ue MAC Control Messages Traces.<br>%Callback signature: ns3::MmWaveMacRxTrace::TxedUeMacCtrlMsgsTracedCallback
-</li>
-</ul>
-<b>Size</b> of this type is 368 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveUeNetDevice
-
-\section config_464 Config Paths
-
-ns3::MmWaveUeNetDevice is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice`</li>
-</ul>
-\section attr_464 Attributes
-<ul>
-<li><b>EpcUeNas</b>: The NAS associated to this UeNetDevice
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::EpcUeNas></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>mmWaveUeRrc</b>: The RRC associated to this UeNetDevice
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeRrc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>Imsi</b>: International Mobile Subscriber Identity assigned to this UE
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint64_t 0:18446744073709551615</li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>LteUeRrc</b>: The RRC layer associated with the ENB
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeRrc></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>LteUeComponentCarrierManager</b>: The ComponentCarrierManager associated to this UeNetDevice
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeComponentCarrierManager></li>
-    <li>Initial value: 0</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>ComponentCarrierMapUe</b>: List of all component Carrier.
-  <ul>
-    <li>Set with class:  \ref ns3::ObjectPtrContainerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BandwidthPartUe></li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section attr_parent_464 Attributes defined in parent class ns3::MmWaveNetDevice
-<ul>
-<li><b>Mtu</b>: The MAC-level Maximum Transmission Unit
-  <ul>
-    <li>Set with class:  \ref ns3::UintegerValue</li>
-    <li>Underlying type: uint16_t 0:65535</li>
-    <li>Initial value: 30000</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 160 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::MmWaveUePhy
-
-\section config_467 Config Paths
-
-ns3::MmWaveUePhy is accessible through the following paths with Config::Set and Config::Connect:
-<ul>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveNetDevice/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]/MmWaveUePhy`</li>
-<li>`/NodeList/[i]/DeviceList/[i]/$ns3::MmWaveUeNetDevice/ComponentCarrierMapUe/[i]/MmWaveUePhy`</li>
-</ul>
-\section attr_467 Attributes
-<ul>
-<li><b>TxPower</b>: Transmission power in dBm
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
-    <li>Initial value: 2</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.
-  <ul>
-    <li>Set with class:  \ref ns3::DoubleValue</li>
-    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
-    <li>Initial value: 5</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>SpectrumPhy</b>: The SpectrumPhy associated to this MmWavePhy
-  <ul>
-    <li>Set with class:  \ref ns3::PointerValue</li>
-    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::MmWaveSpectrumPhy></li>
-    <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
-<li><b>LBTThresholdForCtrl</b>: After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +25000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>TbDecodeLatency</b>: Transport block decode latency
-  <ul>
-    <li>Set with class:  \ref ns3::TimeValue</li>
-    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
-    <li>Initial value: +100000.0ns</li>
-    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-</ul>
-\section tracesources_467 TraceSources
-<ul>
-<li><b>ReportCurrentCellRsrpSinr</b>: RSRP and SINR statistics.<br>%Callback signature: ns3::CurrentCellRsrpSinr::TracedCallback
-</li>
-<li><b>ReportUplinkTbSize</b>: Report allocated uplink TB size for trace.<br>%Callback signature: ns3::UlTbSize::TracedCallback
-</li>
-<li><b>ReportDownlinkTbSize</b>: Report allocated downlink TB size for trace.<br>%Callback signature: ns3::DlTbSize::TracedCallback
-</li>
-<li><b>UePhyRxedCtrlMsgsTrace</b>: Ue PHY Control Messages Traces.<br>%Callback signature: ns3::MmWavePhyRxTrace::RxedUePhyCtrlMsgsTracedCallback
-</li>
-<li><b>UePhyTxedCtrlMsgsTrace</b>: Ue PHY Control Messages Traces.<br>%Callback signature: ns3::MmWavePhyRxTrace::TxedUePhyCtrlMsgsTracedCallback
-</li>
-<li><b>UePhyRxedDlDciTrace</b>: Ue PHY DL DCI Traces.<br>%Callback signature: ns3::MmWavePhyRxTrace::RxedUePhyDlDciTracedCallback
-</li>
-<li><b>UePhyTxedHarqFeedbackTrace</b>: Ue PHY DL HARQ Feedback Traces.<br>%Callback signature: ns3::MmWavePhyRxTrace::TxedUePhyHarqFeedbackTracedCallback
-</li>
-</ul>
-<b>Size</b> of this type is 776 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
-\class ns3::mmWaveUeRrcProtocolIdeal
-
-Introspection did not find any typical Config paths.<br>
-No Attributes are defined for this type.<br>
-No TraceSources are defined for this type.<br>
-<b>Size</b> of this type is 72 bytes (on a 64-bit architecture).
-*/
-
-/*!
-
 \class ns3::NrAlwaysOnAccessManager
 
 Introspection did not find any typical Config paths.<br>
 No Attributes are defined for this type.<br>
-\section attr_parent_504 Attributes defined in parent class ns3::NrChAccessManager
+\section attr_parent_501 Attributes defined in parent class ns3::NrChAccessManager
 <ul>
 <li><b>GrantDuration</b>: Duration of grant for transmitting.
   <ul>
@@ -1848,7 +501,7 @@ No TraceSources are defined for this type.<br>
 \class ns3::NrAmc
 
 Introspection did not find any typical Config paths.<br>
-\section attr_481 Attributes
+\section attr_478 Attributes
 <ul>
 <li><b>NumRefScPerRb</b>: Number of Subcarriers carrying Reference Signals per RB
   <ul>
@@ -1864,7 +517,7 @@ Introspection did not find any typical Config paths.<br>
     <li>Initial value: ErrorModel</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
   </ul> 
-<li><b>ErrorModelType</b>: Type of the Error Model to use when AmcModel is set to ErrorModel. This parameter has to match the ErrorModelType in mmwave-spectrum-model,because they need to refer to same MCS tables and indexes
+<li><b>ErrorModelType</b>: Type of the Error Model to use when AmcModel is set to ErrorModel. This parameter has to match the ErrorModelType in nr-spectrum-model,because they need to refer to same MCS tables and indexes
   <ul>
     <li>Set with class:  \ref TypeIdValue</li>
     <li>Underlying type:  \ref TypeId</li>
@@ -1881,7 +534,7 @@ No TraceSources are defined for this type.<br>
 \class ns3::NrChAccessManager
 
 Introspection did not find any typical Config paths.<br>
-\section attr_503 Attributes
+\section attr_500 Attributes
 <ul>
 <li><b>GrantDuration</b>: Duration of grant for transmitting.
   <ul>
@@ -1967,12 +620,1309 @@ No TraceSources are defined for this type.<br>
 
 /*!
 
+\class ns3::NrGnbMac
+
+\section config_479 Config Paths
+
+ns3::NrGnbMac is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]/NrGnbMac`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]/NrGnbMac`</li>
+</ul>
+\section attr_479 Attributes
+<ul>
+<li><b>NumRbPerRbg</b>: Number of resource blocks per resource block group.
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint32_t 0:4294967295</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 20</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section tracesources_479 TraceSources
+<ul>
+<li><b>DlScheduling</b>: Information regarding DL scheduling.<br>%Callback signature: ns3::LteGnbMac::DlSchedulingTracedCallback
+</li>
+<li><b>SrReq</b>: Information regarding received scheduling request.<br>%Callback signature: ns3::NrGnbMac::SrTracedCallback
+</li>
+<li><b>GnbMacRxedCtrlMsgsTrace</b>: Enb MAC Rxed Control Messages Traces.<br>%Callback signature: ns3::NrMacRxTrace::RxedGnbMacCtrlMsgsTracedCallback
+</li>
+<li><b>GnbMacTxedCtrlMsgsTrace</b>: Enb MAC Txed Control Messages Traces.<br>%Callback signature: ns3::NrMacRxTrace::TxedGnbMacCtrlMsgsTracedCallback
+</li>
+<li><b>DlHarqFeedback</b>: Harq feedback.<br>%Callback signature: ns3::NrGnbMac::DlHarqFeedbackTracedCallback
+</li>
+</ul>
+<b>Size</b> of this type is 656 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrGnbNetDevice
+
+\section config_461 Config Paths
+
+ns3::NrGnbNetDevice is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice`</li>
+</ul>
+\section attr_461 Attributes
+<ul>
+<li><b>LteEnbComponentCarrierManager</b>: The component carrier manager associated to this EnbNetDevice
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteEnbComponentCarrierManager></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>BandwidthPartMap</b>: List of Bandwidth Part container.
+  <ul>
+    <li>Set with class:  \ref ns3::ObjectPtrContainerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BandwidthPartGnb></li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+<li><b>LteEnbRrc</b>: The RRC layer associated with the ENB
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteEnbRrc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section attr_parent_461 Attributes defined in parent class ns3::NrNetDevice
+<ul>
+<li><b>Mtu</b>: The MAC-level Maximum Transmission Unit
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint16_t 0:65535</li>
+    <li>Initial value: 30000</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 136 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrGnbPhy
+
+\section config_464 Config Paths
+
+ns3::NrGnbPhy is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]/NrGnbPhy`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]/NrGnbPhy`</li>
+</ul>
+\section attr_464 Attributes
+<ul>
+<li><b>RbOverhead</b>: Overhead when calculating the usable RB number
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double 0:0.5</li>
+    <li>Initial value: 0.04</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>TxPower</b>: Transmission power in dBm
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
+    <li>Initial value: 4</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
+    <li>Initial value: 5</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>SpectrumPhy</b>: The downlink NrSpectrumPhy associated to this NrPhy
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrSpectrumPhy></li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+<li><b>N0Delay</b>: Minimum processing delay needed to decode DL DCI and decode DL data
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint32_t 0:1</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>N1Delay</b>: Minimum processing delay (UE side) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint32_t 0:4</li>
+    <li>Initial value: 2</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>N2Delay</b>: Minimum processing delay needed to decode UL DCI and prepare UL data
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint32_t 0:4</li>
+    <li>Initial value: 2</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>TbDecodeLatency</b>: Transport block decode latency
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +100000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>Numerology</b>: The 3GPP numerology to be used
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint16_t 0:65535</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>SymbolsPerSlot</b>: Number of symbols in one slot
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint16_t 0:65535</li>
+    <li>Initial value: 14</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>Pattern</b>: The slot pattern
+  <ul>
+    <li>Set with class:  \ref StringValue</li>
+    <li>Underlying type: </li>
+    <li>Initial value: F|F|F|F|F|F|F|F|F|F|</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section tracesources_464 TraceSources
+<ul>
+<li><b>UlSinrTrace</b>: UL SINR statistics.<br>%Callback signature: ns3::UlSinr::TracedCallback
+</li>
+<li><b>GnbPhyRxedCtrlMsgsTrace</b>: Enb PHY Rxed Control Messages Traces.<br>%Callback signature: ns3::NrPhyRxTrace::RxedGnbPhyCtrlMsgsTracedCallback
+</li>
+<li><b>GnbPhyTxedCtrlMsgsTrace</b>: Enb PHY Txed Control Messages Traces.<br>%Callback signature: ns3::NrPhyRxTrace::TxedGnbPhyCtrlMsgsTracedCallback
+</li>
+</ul>
+<b>Size</b> of this type is 1032 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrHelper
+
+Introspection did not find any typical Config paths.<br>
+\section attr_452 Attributes
+<ul>
+<li><b>HarqEnabled</b>: Enable Hybrid ARQ
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: true</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 992 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::nrInterference
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section tracesources_507 TraceSources
+<ul>
+<li><b>SnrPerProcessedChunk</b>: Snr per processed chunk.<br>%Callback signature: ns3::SnrPerProcessedChunk::TracedCallback
+</li>
+<li><b>RssiPerProcessedChunk</b>: Rssi per processed chunk.<br>%Callback signature: ns3::RssiPerProcessedChunk::TracedCallback
+</li>
+</ul>
+<b>Size</b> of this type is 18446744073709551615 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
 \class ns3::NrLteMiErrorModel
 
 Introspection did not find any typical Config paths.<br>
 No Attributes are defined for this type.<br>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 32 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacPduHeader
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 40 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacPduTag
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 24 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacScheduler
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 64 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerNs3
+
+Introspection did not find any typical Config paths.<br>
+\section attr_472 Attributes
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerOfdma
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section attr_parent_475 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section tracesources_475 TraceSources
+<ul>
+<li><b>SymPerBeam</b>: Number of assigned symbol per beam. Gets called every time an assignment is made<br>%Callback signature: ns3::TracedValueCallback::Uint32
+</li>
+</ul>
+<b>Size</b> of this type is 536 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerOfdmaMR
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section attr_parent_491 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+\section tracesources_parent_491 TraceSources defined in parent class ns3::NrMacSchedulerOfdma
+<ul>
+<li><b>SymPerBeam</b>: Number of assigned symbol per beam. Gets called every time an assignment is made<br>%Callback signature: ns3::TracedValueCallback::Uint32
+</li>
+</ul>
+<b>Size</b> of this type is 536 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerOfdmaPF
+
+Introspection did not find any typical Config paths.<br>
+\section attr_476 Attributes
+<ul>
+<li><b>FairnessIndex</b>: Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type:  \ref float 0:1</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type:  \ref float 0:3.40282e+38</li>
+    <li>Initial value: 99</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section attr_parent_476 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+\section tracesources_parent_476 TraceSources defined in parent class ns3::NrMacSchedulerOfdma
+<ul>
+<li><b>SymPerBeam</b>: Number of assigned symbol per beam. Gets called every time an assignment is made<br>%Callback signature: ns3::TracedValueCallback::Uint32
+</li>
+</ul>
+<b>Size</b> of this type is 552 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerOfdmaRR
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section attr_parent_474 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+\section tracesources_parent_474 TraceSources defined in parent class ns3::NrMacSchedulerOfdma
+<ul>
+<li><b>SymPerBeam</b>: Number of assigned symbol per beam. Gets called every time an assignment is made<br>%Callback signature: ns3::TracedValueCallback::Uint32
+</li>
+</ul>
+<b>Size</b> of this type is 536 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerTdma
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section attr_parent_471 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerTdmaMR
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section attr_parent_492 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerTdmaPF
+
+Introspection did not find any typical Config paths.<br>
+\section attr_473 Attributes
+<ul>
+<li><b>FairnessIndex</b>: Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double 0:1</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double 0:1.79769e+308</li>
+    <li>Initial value: 99</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section attr_parent_473 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 520 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrMacSchedulerTdmaRR
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+\section attr_parent_470 Attributes defined in parent class ns3::NrMacSchedulerNs3
+<ul>
+<li><b>CqiTimerThreshold</b>: The time while a CQI is valid
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +1000000000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsDl</b>: Starting MCS for DL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>StartingMcsUl</b>: Starting MCS for UL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 1</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>DlAmc</b>: The DL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>UlAmc</b>: The UL AMC of this scheduler
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrNetDevice
+
+\section config_460 Config Paths
+
+ns3::NrNetDevice is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice`</li>
+</ul>
+\section attr_460 Attributes
+<ul>
+<li><b>Mtu</b>: The MAC-level Maximum Transmission Unit
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint16_t 0:65535</li>
+    <li>Initial value: 30000</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 64 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrPhy
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 408 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrRadioBearerTag
+
+Introspection did not find any typical Config paths.<br>
+\section attr_477 Attributes
+<ul>
+<li><b>rnti</b>: The rnti that indicates the UE to which packet belongs
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint16_t 0:65535</li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+<li><b>lcid</b>: The id whithin the UE identifying the logical channel to which the packet belongs
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+<li><b>size</b>: Size in bytes of the RLC PDU
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint32_t 0:4294967295</li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 16 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrSpectrumPhy
+
+\section config_466 Config Paths
+
+ns3::NrSpectrumPhy is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]/NrGnbPhy/SpectrumPhy`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]/NrUePhy/SpectrumPhy`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrGnbNetDevice/BandwidthPartMap/[i]/NrGnbPhy/SpectrumPhy`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]/NrUePhy/SpectrumPhy`</li>
+</ul>
+\section attr_466 Attributes
+<ul>
+<li><b>DataErrorModelEnabled</b>: Activate/Deactivate the error model of data (TBs of PDSCH and PUSCH) [by default is active].
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: true</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
+  </ul> 
+<li><b>ErrorModelType</b>: Type of the Error Model to apply to TBs of PDSCH and PUSCH
+  <ul>
+    <li>Set with class:  \ref TypeIdValue</li>
+    <li>Underlying type:  \ref TypeId</li>
+    <li>Initial value: ns3::NrLteMiErrorModel</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
+  </ul> 
+<li><b>UnlicensedMode</b>: Activate/Deactivate unlicensed mode in which energy detection is performed and PHY state machine has an additional state CCA_BUSY.
+  <ul>
+    <li>Set with class:  \ref BooleanValue</li>
+    <li>Underlying type: bool</li>
+    <li>Initial value: false</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
+  </ul> 
+<li><b>CcaMode1Threshold</b>: The energy of a received signal should be higher than this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
+    <li>Initial value: -62</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section tracesources_466 TraceSources
+<ul>
+<li><b>RxPacketTraceEnb</b>: The no. of packets received and transmitted by the Base Station<br>%Callback signature: ns3::RxPacketTraceParams::TracedCallback
+</li>
+<li><b>TxPacketTraceEnb</b>: Traces when the packet is being transmitted by the Base Station<br>%Callback signature: ns3::GnbPhyPacketCountParameter::TracedCallback
+</li>
+<li><b>RxPacketTraceUe</b>: The no. of packets received and transmitted by the User Device<br>%Callback signature: ns3::RxPacketTraceParams::TracedCallback
+</li>
+<li><b>ChannelOccupied</b>: This traced callback is triggered every time that the channel is occupied<br>%Callback signature: ns3::Time::TracedCallback
+</li>
+<li><b>TxDataTrace</b>: Indicates when the channel is being occupied by a data transmission<br>%Callback signature: ns3::Time::TracedCallback
+</li>
+<li><b>TxCtrlTrace</b>: Indicates when the channel is being occupied by a ctrl transmission<br>%Callback signature: ns3::Time::TracedCallback
+</li>
+</ul>
+<b>Size</b> of this type is 520 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrUeMac
+
+\section config_480 Config Paths
+
+ns3::NrUeMac is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]/NrUeMac`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]/NrUeMac`</li>
+</ul>
+\section attr_480 Attributes
+<ul>
+<li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint8_t 0:255</li>
+    <li>Initial value: 20</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section tracesources_480 TraceSources
+<ul>
+<li><b>UeMacRxedCtrlMsgsTrace</b>: Ue MAC Control Messages Traces.<br>%Callback signature: ns3::NrMacRxTrace::RxedUeMacCtrlMsgsTracedCallback
+</li>
+<li><b>UeMacTxedCtrlMsgsTrace</b>: Ue MAC Control Messages Traces.<br>%Callback signature: ns3::NrMacRxTrace::TxedUeMacCtrlMsgsTracedCallback
+</li>
+</ul>
+<b>Size</b> of this type is 368 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrUeNetDevice
+
+\section config_462 Config Paths
+
+ns3::NrUeNetDevice is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice`</li>
+</ul>
+\section attr_462 Attributes
+<ul>
+<li><b>EpcUeNas</b>: The NAS associated to this UeNetDevice
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::EpcUeNas></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>nrUeRrc</b>: The RRC associated to this UeNetDevice
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeRrc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>Imsi</b>: International Mobile Subscriber Identity assigned to this UE
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint64_t 0:18446744073709551615</li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>LteUeRrc</b>: The RRC layer associated with the ENB
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeRrc></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>LteUeComponentCarrierManager</b>: The ComponentCarrierManager associated to this UeNetDevice
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeComponentCarrierManager></li>
+    <li>Initial value: 0</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>ComponentCarrierMapUe</b>: List of all component Carrier.
+  <ul>
+    <li>Set with class:  \ref ns3::ObjectPtrContainerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BandwidthPartUe></li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section attr_parent_462 Attributes defined in parent class ns3::NrNetDevice
+<ul>
+<li><b>Mtu</b>: The MAC-level Maximum Transmission Unit
+  <ul>
+    <li>Set with class:  \ref ns3::UintegerValue</li>
+    <li>Underlying type: uint16_t 0:65535</li>
+    <li>Initial value: 30000</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 160 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::NrUePhy
+
+\section config_465 Config Paths
+
+ns3::NrUePhy is accessible through the following paths with Config::Set and Config::Connect:
+<ul>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrNetDevice/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]/NrUePhy`</li>
+<li>`/NodeList/[i]/DeviceList/[i]/$ns3::NrUeNetDevice/ComponentCarrierMapUe/[i]/NrUePhy`</li>
+</ul>
+\section attr_465 Attributes
+<ul>
+<li><b>TxPower</b>: Transmission power in dBm
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
+    <li>Initial value: 2</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.
+  <ul>
+    <li>Set with class:  \ref ns3::DoubleValue</li>
+    <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
+    <li>Initial value: 5</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>SpectrumPhy</b>: The SpectrumPhy associated to this NrPhy
+  <ul>
+    <li>Set with class:  \ref ns3::PointerValue</li>
+    <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrSpectrumPhy></li>
+    <li>Flags: <span class="mlabel">read </span></li>
+  </ul> 
+<li><b>LBTThresholdForCtrl</b>: After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +25000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+<li><b>TbDecodeLatency</b>: Transport block decode latency
+  <ul>
+    <li>Set with class:  \ref ns3::TimeValue</li>
+    <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
+    <li>Initial value: +100000.0ns</li>
+    <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
+  </ul> 
+</ul>
+\section tracesources_465 TraceSources
+<ul>
+<li><b>ReportCurrentCellRsrpSinr</b>: RSRP and SINR statistics.<br>%Callback signature: ns3::CurrentCellRsrpSinr::TracedCallback
+</li>
+<li><b>ReportUplinkTbSize</b>: Report allocated uplink TB size for trace.<br>%Callback signature: ns3::UlTbSize::TracedCallback
+</li>
+<li><b>ReportDownlinkTbSize</b>: Report allocated downlink TB size for trace.<br>%Callback signature: ns3::DlTbSize::TracedCallback
+</li>
+<li><b>UePhyRxedCtrlMsgsTrace</b>: Ue PHY Control Messages Traces.<br>%Callback signature: ns3::NrPhyRxTrace::RxedUePhyCtrlMsgsTracedCallback
+</li>
+<li><b>UePhyTxedCtrlMsgsTrace</b>: Ue PHY Control Messages Traces.<br>%Callback signature: ns3::NrPhyRxTrace::TxedUePhyCtrlMsgsTracedCallback
+</li>
+<li><b>UePhyRxedDlDciTrace</b>: Ue PHY DL DCI Traces.<br>%Callback signature: ns3::NrPhyRxTrace::RxedUePhyDlDciTracedCallback
+</li>
+<li><b>UePhyTxedHarqFeedbackTrace</b>: Ue PHY DL HARQ Feedback Traces.<br>%Callback signature: ns3::NrPhyRxTrace::TxedUePhyHarqFeedbackTracedCallback
+</li>
+</ul>
+<b>Size</b> of this type is 776 bytes (on a 64-bit architecture).
+*/
+
+/*!
+
+\class ns3::nrUeRrcProtocolIdeal
+
+Introspection did not find any typical Config paths.<br>
+No Attributes are defined for this type.<br>
+No TraceSources are defined for this type.<br>
+<b>Size</b> of this type is 72 bytes (on a 64-bit architecture).
 */
 
 /*!
@@ -1990,32 +1940,6 @@ For more information see the \ref TypeId section of this API documentation and t
   <li><b>ns3::BwpManagerGnb</b></li>
   <li><b>ns3::BwpManagerUe</b></li>
   <li><b>ns3::IdealBeamformingAlgorithm</b></li>
-  <li><b>ns3::MmWaveEnbMac</b></li>
-  <li><b>ns3::MmWaveEnbNetDevice</b></li>
-  <li><b>ns3::MmWaveEnbPhy</b></li>
-  <li><b>ns3::MmWaveHelper</b></li>
-  <li><b>ns3::mmWaveInterference</b></li>
-  <li><b>ns3::MmWaveMacPduHeader</b></li>
-  <li><b>ns3::MmWaveMacPduTag</b></li>
-  <li><b>ns3::MmWaveMacScheduler</b></li>
-  <li><b>ns3::MmWaveMacSchedulerNs3</b></li>
-  <li><b>ns3::MmWaveMacSchedulerNs3Base</b></li>
-  <li><b>ns3::MmWaveMacSchedulerOfdma</b></li>
-  <li><b>ns3::MmWaveMacSchedulerOfdmaMR</b></li>
-  <li><b>ns3::MmWaveMacSchedulerOfdmaPF</b></li>
-  <li><b>ns3::MmWaveMacSchedulerOfdmaRR</b></li>
-  <li><b>ns3::MmWaveMacSchedulerTdma</b></li>
-  <li><b>ns3::MmWaveMacSchedulerTdmaMR</b></li>
-  <li><b>ns3::MmWaveMacSchedulerTdmaPF</b></li>
-  <li><b>ns3::MmWaveMacSchedulerTdmaRR</b></li>
-  <li><b>ns3::MmWaveNetDevice</b></li>
-  <li><b>ns3::MmWavePhy</b></li>
-  <li><b>ns3::MmWaveRadioBearerTag</b></li>
-  <li><b>ns3::MmWaveSpectrumPhy</b></li>
-  <li><b>ns3::MmWaveUeMac</b></li>
-  <li><b>ns3::MmWaveUeNetDevice</b></li>
-  <li><b>ns3::MmWaveUePhy</b></li>
-  <li><b>ns3::mmWaveUeRrcProtocolIdeal</b></li>
   <li><b>ns3::NrAlwaysOnAccessManager</b></li>
   <li><b>ns3::NrAmc</b></li>
   <li><b>ns3::NrChAccessManager</b></li>
@@ -2026,7 +1950,32 @@ For more information see the \ref TypeId section of this API documentation and t
   <li><b>ns3::NrEesmIrT1</b></li>
   <li><b>ns3::NrEesmIrT2</b></li>
   <li><b>ns3::NrErrorModel</b></li>
+  <li><b>ns3::NrGnbMac</b></li>
+  <li><b>ns3::NrGnbNetDevice</b></li>
+  <li><b>ns3::NrGnbPhy</b></li>
+  <li><b>ns3::NrHelper</b></li>
+  <li><b>ns3::nrInterference</b></li>
   <li><b>ns3::NrLteMiErrorModel</b></li>
+  <li><b>ns3::NrMacPduHeader</b></li>
+  <li><b>ns3::NrMacPduTag</b></li>
+  <li><b>ns3::NrMacScheduler</b></li>
+  <li><b>ns3::NrMacSchedulerNs3</b></li>
+  <li><b>ns3::NrMacSchedulerOfdma</b></li>
+  <li><b>ns3::NrMacSchedulerOfdmaMR</b></li>
+  <li><b>ns3::NrMacSchedulerOfdmaPF</b></li>
+  <li><b>ns3::NrMacSchedulerOfdmaRR</b></li>
+  <li><b>ns3::NrMacSchedulerTdma</b></li>
+  <li><b>ns3::NrMacSchedulerTdmaMR</b></li>
+  <li><b>ns3::NrMacSchedulerTdmaPF</b></li>
+  <li><b>ns3::NrMacSchedulerTdmaRR</b></li>
+  <li><b>ns3::NrNetDevice</b></li>
+  <li><b>ns3::NrPhy</b></li>
+  <li><b>ns3::NrRadioBearerTag</b></li>
+  <li><b>ns3::NrSpectrumPhy</b></li>
+  <li><b>ns3::NrUeMac</b></li>
+  <li><b>ns3::NrUeNetDevice</b></li>
+  <li><b>ns3::NrUePhy</b></li>
+  <li><b>ns3::nrUeRrcProtocolIdeal</b></li>
 */
 
 /*!
@@ -2036,14 +1985,14 @@ This is a list of all \ref attribute by class.  For more information see the \re
 
 <b>ns3::BandwidthPartGnb</b><br>
 <ul>
-<li><b>MmWaveEnbPhy</b>: The PHY associated to this EnbNetDevice</li>
-<li><b>MmWaveEnbMac</b>: The MAC associated to this EnbNetDevice</li>
+<li><b>NrGnbPhy</b>: The PHY associated to this EnbNetDevice</li>
+<li><b>NrGnbMac</b>: The MAC associated to this EnbNetDevice</li>
 <li><b>FfMacScheduler</b>: The scheduler associated to this EnbNetDevice</li>
 </ul>
 <b>ns3::BandwidthPartUe</b><br>
 <ul>
-<li><b>MmWaveUePhy</b>: The PHY associated to this BandwidthPartUe</li>
-<li><b>MmWaveUeMac</b>: The MAC associated to this BandwidthPartUe</li>
+<li><b>NrUePhy</b>: The PHY associated to this BandwidthPartUe</li>
+<li><b>NrUeMac</b>: The MAC associated to this BandwidthPartUe</li>
 </ul>
 <b>ns3::BwpManagerAlgorithmStatic</b><br>
 <ul>
@@ -2077,22 +2026,33 @@ This is a list of all \ref attribute by class.  For more information see the \re
 <ul>
 <li><b>BwpManagerAlgorithm</b>: The algorithm pointer</li>
 </ul>
-<b>ns3::MmWaveEnbMac</b><br>
+<b>ns3::NrAmc</b><br>
+<ul>
+<li><b>NumRefScPerRb</b>: Number of Subcarriers carrying Reference Signals per RB</li>
+<li><b>AmcModel</b>: AMC model used to assign CQI</li>
+<li><b>ErrorModelType</b>: Type of the Error Model to use when AmcModel is set to ErrorModel. This parameter has to match the ErrorModelType in nr-spectrum-model,because they need to refer to same MCS tables and indexes</li>
+</ul>
+<b>ns3::NrChAccessManager</b><br>
+<ul>
+<li><b>GrantDuration</b>: Duration of grant for transmitting.</li>
+</ul>
+<b>ns3::NrGnbMac</b><br>
 <ul>
 <li><b>NumRbPerRbg</b>: Number of resource blocks per resource block group.</li>
 <li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user</li>
 </ul>
-<b>ns3::MmWaveEnbNetDevice</b><br>
+<b>ns3::NrGnbNetDevice</b><br>
 <ul>
 <li><b>LteEnbComponentCarrierManager</b>: The component carrier manager associated to this EnbNetDevice</li>
 <li><b>BandwidthPartMap</b>: List of Bandwidth Part container.</li>
 <li><b>LteEnbRrc</b>: The RRC layer associated with the ENB</li>
 </ul>
-<b>ns3::MmWaveEnbPhy</b><br>
+<b>ns3::NrGnbPhy</b><br>
 <ul>
+<li><b>RbOverhead</b>: Overhead when calculating the usable RB number</li>
 <li><b>TxPower</b>: Transmission power in dBm</li>
 <li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.</li>
-<li><b>SpectrumPhy</b>: The downlink MmWaveSpectrumPhy associated to this MmWavePhy</li>
+<li><b>SpectrumPhy</b>: The downlink NrSpectrumPhy associated to this NrPhy</li>
 <li><b>N0Delay</b>: Minimum processing delay needed to decode DL DCI and decode DL data</li>
 <li><b>N1Delay</b>: Minimum processing delay (UE side) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission</li>
 <li><b>N2Delay</b>: Minimum processing delay needed to decode UL DCI and prepare UL data</li>
@@ -2101,11 +2061,11 @@ This is a list of all \ref attribute by class.  For more information see the \re
 <li><b>SymbolsPerSlot</b>: Number of symbols in one slot</li>
 <li><b>Pattern</b>: The slot pattern</li>
 </ul>
-<b>ns3::MmWaveHelper</b><br>
+<b>ns3::NrHelper</b><br>
 <ul>
 <li><b>HarqEnabled</b>: Enable Hybrid ARQ</li>
 </ul>
-<b>ns3::MmWaveMacSchedulerNs3</b><br>
+<b>ns3::NrMacSchedulerNs3</b><br>
 <ul>
 <li><b>CqiTimerThreshold</b>: The time while a CQI is valid</li>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl</li>
@@ -2117,63 +2077,53 @@ This is a list of all \ref attribute by class.  For more information see the \re
 <li><b>DlAmc</b>: The DL AMC of this scheduler</li>
 <li><b>UlAmc</b>: The UL AMC of this scheduler</li>
 </ul>
-<b>ns3::MmWaveMacSchedulerOfdmaPF</b><br>
+<b>ns3::NrMacSchedulerOfdmaPF</b><br>
 <ul>
 <li><b>FairnessIndex</b>: Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput</li>
 <li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation</li>
 </ul>
-<b>ns3::MmWaveMacSchedulerTdmaPF</b><br>
+<b>ns3::NrMacSchedulerTdmaPF</b><br>
 <ul>
 <li><b>FairnessIndex</b>: Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput</li>
 <li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation</li>
 </ul>
-<b>ns3::MmWaveNetDevice</b><br>
+<b>ns3::NrNetDevice</b><br>
 <ul>
 <li><b>Mtu</b>: The MAC-level Maximum Transmission Unit</li>
 </ul>
-<b>ns3::MmWaveRadioBearerTag</b><br>
+<b>ns3::NrRadioBearerTag</b><br>
 <ul>
 <li><b>rnti</b>: The rnti that indicates the UE to which packet belongs</li>
 <li><b>lcid</b>: The id whithin the UE identifying the logical channel to which the packet belongs</li>
 <li><b>size</b>: Size in bytes of the RLC PDU</li>
 </ul>
-<b>ns3::MmWaveSpectrumPhy</b><br>
+<b>ns3::NrSpectrumPhy</b><br>
 <ul>
 <li><b>DataErrorModelEnabled</b>: Activate/Deactivate the error model of data (TBs of PDSCH and PUSCH) [by default is active].</li>
 <li><b>ErrorModelType</b>: Type of the Error Model to apply to TBs of PDSCH and PUSCH</li>
 <li><b>UnlicensedMode</b>: Activate/Deactivate unlicensed mode in which energy detection is performed and PHY state machine has an additional state CCA_BUSY.</li>
 <li><b>CcaMode1Threshold</b>: The energy of a received signal should be higher than this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.</li>
 </ul>
-<b>ns3::MmWaveUeMac</b><br>
+<b>ns3::NrUeMac</b><br>
 <ul>
 <li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user</li>
 </ul>
-<b>ns3::MmWaveUeNetDevice</b><br>
+<b>ns3::NrUeNetDevice</b><br>
 <ul>
 <li><b>EpcUeNas</b>: The NAS associated to this UeNetDevice</li>
-<li><b>mmWaveUeRrc</b>: The RRC associated to this UeNetDevice</li>
+<li><b>nrUeRrc</b>: The RRC associated to this UeNetDevice</li>
 <li><b>Imsi</b>: International Mobile Subscriber Identity assigned to this UE</li>
 <li><b>LteUeRrc</b>: The RRC layer associated with the ENB</li>
 <li><b>LteUeComponentCarrierManager</b>: The ComponentCarrierManager associated to this UeNetDevice</li>
 <li><b>ComponentCarrierMapUe</b>: List of all component Carrier.</li>
 </ul>
-<b>ns3::MmWaveUePhy</b><br>
+<b>ns3::NrUePhy</b><br>
 <ul>
 <li><b>TxPower</b>: Transmission power in dBm</li>
 <li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.</li>
-<li><b>SpectrumPhy</b>: The SpectrumPhy associated to this MmWavePhy</li>
+<li><b>SpectrumPhy</b>: The SpectrumPhy associated to this NrPhy</li>
 <li><b>LBTThresholdForCtrl</b>: After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted</li>
 <li><b>TbDecodeLatency</b>: Transport block decode latency</li>
-</ul>
-<b>ns3::NrAmc</b><br>
-<ul>
-<li><b>NumRefScPerRb</b>: Number of Subcarriers carrying Reference Signals per RB</li>
-<li><b>AmcModel</b>: AMC model used to assign CQI</li>
-<li><b>ErrorModelType</b>: Type of the Error Model to use when AmcModel is set to ErrorModel. This parameter has to match the ErrorModelType in mmwave-spectrum-model,because they need to refer to same MCS tables and indexes</li>
-</ul>
-<b>ns3::NrChAccessManager</b><br>
-<ul>
-<li><b>GrantDuration</b>: Duration of grant for transmitting.</li>
 </ul>
 */
 
@@ -2271,7 +2221,6 @@ DataCollector                               | src/stats/model/data-collector.cc
 DataOutputInterface                         | src/stats/model/data-output-interface.cc
 DataRate                                    | src/network/utils/data-rate.cc
 DefaultSimulatorImpl                        | src/core/model/default-simulator-impl.cc
-DistributedSimulatorImpl                    | src/mpi/model/distributed-simulator-impl.cc
 Double                                      | src/core/model/double.cc
 DoubleProbe                                 | src/stats/model/double-probe.cc
 DropTailQueue                               | src/network/utils/drop-tail-queue.cc
@@ -2316,7 +2265,6 @@ GlobalRoutingHelper                         | src/internet/helper/ipv4-global-ro
 GlobalValue                                 | src/core/model/global-value.cc
 GnuplotAggregator                           | src/stats/model/gnuplot-aggregator.cc
 GnuplotHelper                               | src/stats/helper/gnuplot-helper.cc
-GrantedTimeWindowMpiInterface               | src/mpi/model/granted-time-window-mpi-interface.cc
 GridScenarioHelper                          | src/nr/helper/grid-scenario-helper.cc
 GtpcHeader                                  | src/lte/model/epc-gtpc-header.cc
 GtpuHeader                                  | src/lte/model/epc-gtpu-header.cc
@@ -2394,6 +2342,7 @@ ItuR1411NlosOverRooftopPropagationLossModel | src/propagation/model/itu-r-1411-n
 Jakes                                       | src/propagation/model/jakes-propagation-loss-model.cc
 JakesProcess                                | src/propagation/model/jakes-process.cc
 Kun2600MhzPropagationLossModel              | src/propagation/model/kun-2600-mhz-propagation-loss-model.cc
+LenaErrorModel                              | src/nr/model/lena-error-model.cc
 ListScheduler                               | src/core/model/list-scheduler.cc
 LlcSnalHeader                               | src/network/utils/llc-snap-header.cc
 LoopbackNetDevice                           | src/internet/model/loopback-net-device.cc
@@ -2452,42 +2401,8 @@ MacStatsCalculator                          | src/lte/helper/mac-stats-calculato
 MakeEvent                                   | src/core/model/make-event.cc
 MapScheduler                                | src/core/model/map-scheduler.cc
 MicrowaveOvenSpectrumValue                  | src/spectrum/model/microwave-oven-spectrum-value-helper.cc
-MmWaveBearerStatsCalculator                 | src/nr/helper/mmwave-bearer-stats-calculator.cc
-MmWaveBearerStatsConnector                  | src/nr/helper/mmwave-bearer-stats-connector.cc
-MmWaveEnbMac                                | src/nr/model/mmwave-enb-mac.cc
-MmWaveEnbNetDevice                          | src/nr/model/mmwave-enb-net-device.cc
-MmWaveEnbPhy                                | src/nr/model/mmwave-enb-phy.cc
-MmWaveHarqPhy                               | src/nr/model/mmwave-harq-phy.cc
-MmWaveHelper                                | src/nr/helper/mmwave-helper.cc
-MmWaveMacScheduler                          | src/nr/model/mmwave-mac-scheduler.cc
-MmWaveMacSchedulerCQIManagement             | src/nr/model/mmwave-mac-scheduler-cqi-management.cc
-MmWaveMacSchedulerHarqRr                    | src/nr/model/mmwave-mac-scheduler-harq-rr.cc
-MmWaveMacSchedulerLCG                       | src/nr/model/mmwave-mac-scheduler-lcg.cc
-MmWaveMacSchedulerNs3                       | src/nr/model/mmwave-mac-scheduler-ns3.cc
-MmWaveMacSchedulerNs3Base                   | src/nr/model/mmwave-mac-scheduler-ns3-base.cc
-MmWaveMacSchedulerOfdma                     | src/nr/model/mmwave-mac-scheduler-ofdma.cc
-MmWaveMacSchedulerOfdmaMR                   | src/nr/model/mmwave-mac-scheduler-ofdma-mr.cc
-MmWaveMacSchedulerOfdmaPF                   | src/nr/model/mmwave-mac-scheduler-ofdma-pf.cc
-MmWaveMacSchedulerOfdmaRR                   | src/nr/model/mmwave-mac-scheduler-ofdma-rr.cc
-MmWaveMacSchedulerTdma                      | src/nr/model/mmwave-mac-scheduler-tdma.cc
-MmWaveMacSchedulerTdmaMR                    | src/nr/model/mmwave-mac-scheduler-tdma-mr.cc
-MmWaveMacSchedulerTdmaPF                    | src/nr/model/mmwave-mac-scheduler-tdma-pf.cc
-MmWaveMacSchedulerTdmaRR                    | src/nr/model/mmwave-mac-scheduler-tdma-rr.cc
-MmWaveMacSchedulerUeInfoPF                  | src/nr/model/mmwave-mac-scheduler-ue-info-pf.cc
-MmWaveNetDevice                             | src/nr/model/mmwave-net-device.cc
-MmWavePhy                                   | src/nr/model/mmwave-phy.cc
-MmWavePhyMacCommon                          | src/nr/model/mmwave-phy-mac-common.cc
-MmWavePhyRxTrace                            | src/nr/helper/mmwave-phy-rx-trace.cc
-MmWaveSpectrumPhy                           | src/nr/model/mmwave-spectrum-phy.cc
-MmWaveSpectrumSignalParameters              | src/nr/model/mmwave-spectrum-signal-parameters.cc
-MmWaveSpectrumValueHelper                   | src/nr/model/mmwave-spectrum-value-helper.cc
-MmWaveUeMac                                 | src/nr/model/mmwave-ue-mac.cc
-MmWaveUeNetDevice                           | src/nr/model/mmwave-ue-net-device.cc
-MmWaveUePhy                                 | src/nr/model/mmwave-ue-phy.cc
-MmwaveMacRxTrace                            | src/nr/helper/mmwave-mac-rx-trace.cc
 MobilityBuildingInfo                        | src/buildings/model/mobility-building-info.cc
 MobilityHelper                              | src/mobility/helper/mobility-helper.cc
-MpiInterface                                | src/mpi/model/mpi-interface.cc
 MqQueueDisc                                 | src/traffic-control/model/mq-queue-disc.cc
 MultiModelSpectrumChannel                   | src/spectrum/model/multi-model-spectrum-channel.cc
 Names                                       | src/core/model/names.cc
@@ -2503,6 +2418,8 @@ NodeList                                    | src/network/model/node-list.cc
 NodePrinter                                 | src/core/model/node-printer.cc
 NonCommunicatingNetDevice                   | src/spectrum/model/non-communicating-net-device.cc
 NrAmc                                       | src/nr/model/nr-amc.cc
+NrBearerStatsCalculator                     | src/nr/helper/nr-bearer-stats-calculator.cc
+NrBearerStatsConnector                      | src/nr/helper/nr-bearer-stats-connector.cc
 NrChAccessManager                           | src/nr/model/nr-ch-access-manager.cc
 NrEesmCc                                    | src/nr/model/nr-eesm-cc.cc
 NrEesmCcT1                                  | src/nr/model/nr-eesm-cc-t1.cc
@@ -2512,11 +2429,39 @@ NrEesmIr                                    | src/nr/model/nr-eesm-ir.cc
 NrEesmIrT1                                  | src/nr/model/nr-eesm-ir-t1.cc
 NrEesmIrT2                                  | src/nr/model/nr-eesm-ir-t2.cc
 NrErrorModel                                | src/nr/model/nr-error-model.cc
+NrGnbMac                                    | src/nr/model/nr-gnb-mac.cc
+NrGnbNetDevice                              | src/nr/model/nr-gnb-net-device.cc
+NrGnbPhy                                    | src/nr/model/nr-gnb-phy.cc
+NrHarqPhy                                   | src/nr/model/nr-harq-phy.cc
+NrHelper                                    | src/nr/helper/nr-helper.cc
 NrLteMiErrorModel                           | src/nr/model/nr-lte-mi-error-model.cc
+NrMacRxTrace                                | src/nr/helper/nr-mac-rx-trace.cc
+NrMacScheduler                              | src/nr/model/nr-mac-scheduler.cc
+NrMacSchedulerCQIManagement                 | src/nr/model/nr-mac-scheduler-cqi-management.cc
+NrMacSchedulerHarqRr                        | src/nr/model/nr-mac-scheduler-harq-rr.cc
+NrMacSchedulerLCG                           | src/nr/model/nr-mac-scheduler-lcg.cc
+NrMacSchedulerNs3                           | src/nr/model/nr-mac-scheduler-ns3.cc
+NrMacSchedulerOfdma                         | src/nr/model/nr-mac-scheduler-ofdma.cc
+NrMacSchedulerOfdmaMR                       | src/nr/model/nr-mac-scheduler-ofdma-mr.cc
+NrMacSchedulerOfdmaPF                       | src/nr/model/nr-mac-scheduler-ofdma-pf.cc
+NrMacSchedulerOfdmaRR                       | src/nr/model/nr-mac-scheduler-ofdma-rr.cc
+NrMacSchedulerTdma                          | src/nr/model/nr-mac-scheduler-tdma.cc
+NrMacSchedulerTdmaMR                        | src/nr/model/nr-mac-scheduler-tdma-mr.cc
+NrMacSchedulerTdmaPF                        | src/nr/model/nr-mac-scheduler-tdma-pf.cc
+NrMacSchedulerTdmaRR                        | src/nr/model/nr-mac-scheduler-tdma-rr.cc
+NrMacSchedulerUeInfoPF                      | src/nr/model/nr-mac-scheduler-ue-info-pf.cc
+NrNetDevice                                 | src/nr/model/nr-net-device.cc
+NrPhy                                       | src/nr/model/nr-phy.cc
+NrPhyMacCommon                              | src/nr/model/nr-phy-mac-common.cc
+NrPhyRxTrace                                | src/nr/helper/nr-phy-rx-trace.cc
 NrPointToPointEpcHelper                     | src/nr/helper/nr-point-to-point-epc-helper.cc
+NrSpectrumPhy                               | src/nr/model/nr-spectrum-phy.cc
+NrSpectrumSignalParameters                  | src/nr/model/nr-spectrum-signal-parameters.cc
+NrSpectrumValueHelper                       | src/nr/model/nr-spectrum-value-helper.cc
+NrUeMac                                     | src/nr/model/nr-ue-mac.cc
+NrUeNetDevice                               | src/nr/model/nr-ue-net-device.cc
+NrUePhy                                     | src/nr/model/nr-ue-phy.cc
 Ns2MobilityHelper                           | src/mobility/helper/ns2-mobility-helper.cc
-NullMessageMpiInterface                     | src/mpi/model/null-message-mpi-interface.cc
-NullMessageSimulatorImpl                    | src/mpi/model/null-message-simulator-impl.cc
 Object                                      | src/core/model/object.cc
 ObjectBase                                  | src/core/model/object-base.cc
 ObjectFactory                               | src/core/model/object-factory.cc
@@ -2555,12 +2500,12 @@ PointToPointChannel                         | src/point-to-point/model/point-to-
 PointToPointEpcHelper                       | src/lte/helper/point-to-point-epc-helper.cc
 PointToPointHelper                          | src/point-to-point/helper/point-to-point-helper.cc
 PointToPointNetDevice                       | src/point-to-point/model/point-to-point-net-device.cc
-PointToPointRemoteChannel                   | src/point-to-point/model/point-to-point-remote-channel.cc
 Pointer                                     | src/core/model/pointer.cc
 PositionAllocator                           | src/mobility/model/position-allocator.cc
 PppHeader                                   | src/point-to-point/model/ppp-header.cc
 PrintIntrospectedDoxygen                    | src/nr/utils/print-introspected-doxygen.cc
 PrioQueueDisc                               | src/traffic-control/model/prio-queue-disc.cc
+PriorityQueueScheduler                      | src/core/model/priority-queue-scheduler.cc
 Probe                                       | src/stats/model/probe.cc
 PropagationLossModel                        | src/propagation/model/propagation-loss-model.cc
 PssFfMacScheduler                           | src/lte/model/pss-ff-mac-scheduler.cc
@@ -2707,9 +2652,9 @@ WifiSpectrumValueHelper                     | src/spectrum/model/wifi-spectrum-v
 XmlConfig                                   | src/config-store/model/xml-config.cc
 int64x64                                    | src/core/model/int64x64.cc
 int64x64-128                                | src/core/model/int64x64-128.cc
-mmWaveControlMessage                        | src/nr/model/mmwave-control-messages.cc
-mmWaveInterference                          | src/nr/model/mmwave-interference.cc
-mmWaveRrcProtocolIdeal                      | src/nr/model/mmwave-rrc-protocol-ideal.cc
+nrControlMessage                            | src/nr/model/nr-control-messages.cc
+nrInterference                              | src/nr/model/nr-interference.cc
+nrRrcProtocolIdeal                          | src/nr/model/nr-rrc-protocol-ideal.cc
 
 */
 
@@ -2718,26 +2663,30 @@ mmWaveRrcProtocolIdeal                      | src/nr/model/mmwave-rrc-protocol-i
 
 This is a list of all \ref tracing sources.  For more information see the  \ref tracing section of this API documentation and the Tracing sections in the Tutorial and Manual.
 
-<b>ns3::MmWaveEnbMac</b><br>
+<b>ns3::NrGnbMac</b><br>
 <ul>
 <li><b>DlScheduling</b>: Information regarding DL scheduling.</li>
 <li><b>SrReq</b>: Information regarding received scheduling request.</li>
-<li><b>EnbMacRxedCtrlMsgsTrace</b>: Enb MAC Rxed Control Messages Traces.</li>
-<li><b>EnbMacTxedCtrlMsgsTrace</b>: Enb MAC Txed Control Messages Traces.</li>
+<li><b>GnbMacRxedCtrlMsgsTrace</b>: Enb MAC Rxed Control Messages Traces.</li>
+<li><b>GnbMacTxedCtrlMsgsTrace</b>: Enb MAC Txed Control Messages Traces.</li>
 <li><b>DlHarqFeedback</b>: Harq feedback.</li>
 </ul>
-<b>ns3::MmWaveEnbPhy</b><br>
+<b>ns3::NrGnbPhy</b><br>
 <ul>
 <li><b>UlSinrTrace</b>: UL SINR statistics.</li>
-<li><b>EnbPhyRxedCtrlMsgsTrace</b>: Enb PHY Rxed Control Messages Traces.</li>
-<li><b>EnbPhyTxedCtrlMsgsTrace</b>: Enb PHY Txed Control Messages Traces.</li>
+<li><b>GnbPhyRxedCtrlMsgsTrace</b>: Enb PHY Rxed Control Messages Traces.</li>
+<li><b>GnbPhyTxedCtrlMsgsTrace</b>: Enb PHY Txed Control Messages Traces.</li>
 </ul>
-<b>ns3::mmWaveInterference</b><br>
+<b>ns3::nrInterference</b><br>
 <ul>
 <li><b>SnrPerProcessedChunk</b>: Snr per processed chunk.</li>
 <li><b>RssiPerProcessedChunk</b>: Rssi per processed chunk.</li>
 </ul>
-<b>ns3::MmWaveSpectrumPhy</b><br>
+<b>ns3::NrMacSchedulerOfdma</b><br>
+<ul>
+<li><b>SymPerBeam</b>: Number of assigned symbol per beam. Gets called every time an assignment is made</li>
+</ul>
+<b>ns3::NrSpectrumPhy</b><br>
 <ul>
 <li><b>RxPacketTraceEnb</b>: The no. of packets received and transmitted by the Base Station</li>
 <li><b>TxPacketTraceEnb</b>: Traces when the packet is being transmitted by the Base Station</li>
@@ -2746,12 +2695,12 @@ This is a list of all \ref tracing sources.  For more information see the  \ref 
 <li><b>TxDataTrace</b>: Indicates when the channel is being occupied by a data transmission</li>
 <li><b>TxCtrlTrace</b>: Indicates when the channel is being occupied by a ctrl transmission</li>
 </ul>
-<b>ns3::MmWaveUeMac</b><br>
+<b>ns3::NrUeMac</b><br>
 <ul>
 <li><b>UeMacRxedCtrlMsgsTrace</b>: Ue MAC Control Messages Traces.</li>
 <li><b>UeMacTxedCtrlMsgsTrace</b>: Ue MAC Control Messages Traces.</li>
 </ul>
-<b>ns3::MmWaveUePhy</b><br>
+<b>ns3::NrUePhy</b><br>
 <ul>
 <li><b>ReportCurrentCellRsrpSinr</b>: RSRP and SINR statistics.</li>
 <li><b>ReportUplinkTbSize</b>: Report allocated uplink TB size for trace.</li>
