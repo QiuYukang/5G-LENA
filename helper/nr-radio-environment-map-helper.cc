@@ -224,6 +224,31 @@ NrRadioEnvironmentMapHelper::GetZ () const
   return m_z;
 }
 
+void NrRadioEnvironmentMapHelper::ConfigureRrd ()
+{
+    m_rrd.node = CreateObject<Node> ();                      //Create Node
+
+    Ptr<ListPositionAllocator> rrdPositionAlloc = CreateObject<ListPositionAllocator> ();
+    rrdPositionAlloc->Add (Vector(m_xMin, m_yMin, m_z));  //Assign an initial position
+
+    MobilityHelper rrdMobility;                           //Set Mobility
+    rrdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+    rrdMobility.SetPositionAllocator (rrdPositionAlloc);
+    rrdMobility.Install (m_rrd.node);
+
+    m_rrd.dev =  CreateObject<SimpleNetDevice> ();          //Create device
+    m_rrd.node->AddDevice(m_rrd.dev);
+
+    m_rrd.mob = m_rrd.node->GetObject<MobilityModel> ();
+    //Set Antenna
+    m_rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1));
+    //Configure Antenna
+    //rrd.antenna->ChangeToOmniTx ();
+
+
+
+}
+
 void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev)
  {
      for (NetDeviceContainer::Iterator netDevIt = enbNetDev.Begin ();
@@ -236,8 +261,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         rtd.node = CreateObject<Node> ();            //Create Node
 
         Ptr<ListPositionAllocator> rtdPositionAlloc = CreateObject<ListPositionAllocator> ();
-        rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
-        //rtdPositionAlloc->Add ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
+        //rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
+        rtdPositionAlloc->Add ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
 
         MobilityHelper rtdMobility;                 //Set Mobility
         rtdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -247,7 +272,6 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         rtd.dev =  CreateObject<SimpleNetDevice> ();  //Create device
         rtd.node->AddDevice(rtd.dev);
 
-        //rtd.mob = netDevIt->GetNode ()->GetObject<MobilityModel> ();
         rtd.mob = rtd.node->GetObject<MobilityModel> ();
         //rtd.mob = (*netDevIt)->GetNode ()->GetObject<MobilityModel> ();
         //Set Antenna
@@ -337,40 +361,7 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
 void
 NrRadioEnvironmentMapHelper::CalcRemValue ()
 {
-  // Create objects of rrm
-       // configure node, device, antenna etc
-
-       // Iterate through the list of RemDevices
-       // Iterate through the list of RemPoints
-              //Set position of rrd
-              // configure beam on rtd antenna to point toward rrd
-              // configure beam on rrd antenna to be quasi-omni
-              // for loop m_numOfIterationsToAverage times
-                        //doCalcRxPsd
-                        //get average
-
-  /******************* Create Rem Receiving Device ************************/
-  RemDevice rrd;
-
-  rrd.node = CreateObject<Node> ();                      //Create Node
-
-  Ptr<ListPositionAllocator> rrdPositionAlloc = CreateObject<ListPositionAllocator> ();
-  rrdPositionAlloc->Add (Vector(m_xMin, m_yMin, m_z));  //Assign an initial position
-
-  MobilityHelper rrdMobility;                           //Set Mobility
-  rrdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  rrdMobility.SetPositionAllocator (rrdPositionAlloc);
-  rrdMobility.Install (rrd.node);
-
-  rrd.dev =  CreateObject<SimpleNetDevice> ();          //Create device
-  rrd.node->AddDevice(rrd.dev);
-
-  rrd.mob = rrd.node->GetObject<MobilityModel> ();
-  //Set Antenna
-  rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1));
-  //Configure Antenna
-  //rrd.antenna->ChangeToOmniTx ();
-
+  ConfigureRrd ();
 
   //Save REM creation start time
   auto remStartTime = std::chrono::system_clock::now();
@@ -385,8 +376,8 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
 
       // configure beam on rtd antenna to point toward rrd
       // We configure RRD with some point, we want to see only the beam toward a single point
-      rrd.mob->SetPosition (Vector (10, 0, 1.5));
-      itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, rrd.mob, itRtd->antenna));
+      m_rrd.mob->SetPosition (Vector (10, 0, 1.5));
+      itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, m_rrd.mob, itRtd->antenna));
 
 
       for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
@@ -399,77 +390,77 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
           std::time_t start_time = std::chrono::system_clock::to_time_t(startPsdTime);
           std::cout<<"\n REM point: "<<pointsCounter<<"/"<<m_rem.size()<<" started at:"<<std::ctime(&start_time)<<std::endl;
 
-          rrd.mob->SetPosition (itRemPoint->pos);    //Assign to the rrd mobility all the positions of remPoint
+          m_rrd.mob->SetPosition (itRemPoint->pos);    //Assign to the rrd mobility all the positions of remPoint
 
           // configure beam on rtd antenna to point toward rrd
-          itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, rrd.mob, itRtd->antenna));
+          itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, m_rrd.mob, itRtd->antenna));
 
-      // configure beam on rrd antenna to be quasi-omni
-      UintegerValue numRows, numColumns;
-      rrd.antenna->GetAttribute ("NumRows", numRows);
-      rrd.antenna->GetAttribute ("NumColumns", numColumns);
-      rrd.antenna->SetBeamformingVector (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()));
+          // configure beam on rrd antenna to be quasi-omni
+          UintegerValue numRows, numColumns;
+          m_rrd.antenna->GetAttribute ("NumRows", numRows);
+          m_rrd.antenna->GetAttribute ("NumColumns", numColumns);
+          m_rrd.antenna->SetBeamformingVector (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()));
 
-      //perform calculation m_numOfIterationsToAverage times and get the average value
-      double sumRssi = 0, sumSnr = 0;
+          //perform calculation m_numOfIterationsToAverage times and get the average value
+          double sumRssi = 0, sumSnr = 0;
 
-      for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
-        {
-          CreateTemporalPropagationModels ();
+          for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
+            {
+              CreateTemporalPropagationModels ();
 
-          NS_ASSERT_MSG (m_remSpectrumLossModelCopy, "m_remSpectrumLossModelCopy is null");
-          // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-          m_remSpectrumLossModelCopy->AddDevice (itRtd->dev, itRtd->antenna);
-          m_remSpectrumLossModelCopy->AddDevice (rrd.dev, rrd.antenna);
+              NS_ASSERT_MSG (m_remSpectrumLossModelCopy, "m_remSpectrumLossModelCopy is null");
+              // initialize the devices in the ThreeGppSpectrumPropagationLossModel
+              m_remSpectrumLossModelCopy->AddDevice (itRtd->dev, itRtd->antenna);
+              m_remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
 
-          //Bw, Freq and numerology should be passed from the simulation scenario?
-          Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (itRtd->bandwidth, itRtd->frequency, itRtd->numerology);
-          Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd->txPower, sm1); //txPower?
+              //Bw, Freq and numerology should be passed from the simulation scenario?
+              Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (itRtd->bandwidth, itRtd->frequency, itRtd->numerology);
+              Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd->txPower, sm1); //txPower?
 
-          // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
-          Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
-          double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (0, itRtd->mob, rrd.mob);
-          double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
+              // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
+              Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
+              double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (0, itRtd->mob, m_rrd.mob);
+              double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
-          // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
-          *(rxPsd) *= pathGainLinear;
+              // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
+              *(rxPsd) *= pathGainLinear;
 
-          // Now we call spectrum model, which in this keys add a beamforming gain
-          rxPsd = m_remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, itRtd->mob, rrd.mob);
+              // Now we call spectrum model, which in this keys add a beamforming gain
+              rxPsd = m_remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, itRtd->mob, m_rrd.mob);
 
-          // Now we need to apply noise to obtain SNR
-          Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, sm1);
-          SpectrumValue snr = (*rxPsd) / (*noisePsd);
-          itRemPoint->snrdB = 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
-          sumSnr += itRemPoint->snrdB;
+              // Now we need to apply noise to obtain SNR
+              Ptr<SpectrumValue> noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, sm1);
+              SpectrumValue snr = (*rxPsd) / (*noisePsd);
+              itRemPoint->snrdB = 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+              sumSnr += itRemPoint->snrdB;
 
-          //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
-          itRemPoint->sinrdB = itRemPoint->snrdB; // we save SNR,  until we have some interferers, then we will calculate SINR
+              //NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+              itRemPoint->sinrdB = itRemPoint->snrdB; // we save SNR,  until we have some interferers, then we will calculate SINR
 
-          double rbWidth = snr.GetSpectrumModel ()->Begin()->fh - snr.GetSpectrumModel ()->Begin()->fl;
-          double rssidBm = 10 * log10 (Sum((*noisePsd + *rxPsd)* rbWidth)*1000);
-          itRemPoint->rssidBm = rssidBm;
+              double rbWidth = snr.GetSpectrumModel ()->Begin()->fh - snr.GetSpectrumModel ()->Begin()->fl;
+              double rssidBm = 10 * log10 (Sum((*noisePsd + *rxPsd)* rbWidth)*1000);
+              itRemPoint->rssidBm = rssidBm;
 
-          sumRssi += itRemPoint->rssidBm;
+              sumRssi += itRemPoint->rssidBm;
 
-        }  //end for m_numOfIterationsToAverage  (Average)
+           }  //end for m_numOfIterationsToAverage  (Average)
 
-        itRemPoint->avRssidBm = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
-        itRemPoint->avSnrdB = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
+           itRemPoint->avRssidBm = sumRssi / static_cast <double> (m_numOfIterationsToAverage);
+           itRemPoint->avSnrdB = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
 
-        auto endPsdTime = std::chrono::system_clock::now();
-        //std::time_t end_time = std::chrono::system_clock::to_time_t(endPsdTime);
-        //std::cout<<"\n PSD end time: "<<std::ctime(&end_time)<<std::endl;
-        std::chrono::duration<double> elapsed_seconds = endPsdTime - startPsdTime;
-        //std::cout<< "REM point finished. Execution time:"<<elapsed_seconds.count() << " seconds."<<std::endl;
-        std::cout<<"\n Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.";
-        std::cout<<"\n Estimated time to finish REM:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<<" minutes."<<std::endl;
+           auto endPsdTime = std::chrono::system_clock::now();
+           //std::time_t end_time = std::chrono::system_clock::to_time_t(endPsdTime);
+           //std::cout<<"\n PSD end time: "<<std::ctime(&end_time)<<std::endl;
+           std::chrono::duration<double> elapsed_seconds = endPsdTime - startPsdTime;
+           //std::cout<< "REM point finished. Execution time:"<<elapsed_seconds.count() << " seconds."<<std::endl;
+           std::cout<<"\n Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.";
+           std::cout<<"\n Estimated time to finish REM:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<<" minutes."<<std::endl;
 
-    }  //end for std::list<RemPoint>::iterator  (RemPoints)
+        }  //end for std::list<RemPoint>::iterator  (RemPoints)
 
-    auto remEndTime = std::chrono::system_clock::now();
-    std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
-    std::cout<<"\n Total time was needed to create the REM map:"<<remElapsedSeconds.count()/60<<" minutes."<<std::endl;
+      auto remEndTime = std::chrono::system_clock::now();
+      std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+      std::cout<<"\n Total time was needed to create the REM map:"<<remElapsedSeconds.count()/60<<" minutes."<<std::endl;
 
   }  //end for std::list<RemDev>::iterator  (RTDs)
 }

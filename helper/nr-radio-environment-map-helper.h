@@ -176,7 +176,12 @@ private:
     void CalcRemValue ();
 
     /**
-     * This method
+     * This method configures the REM Receiving Device
+     */
+    void ConfigureRrd ();
+
+    /**
+     * This method creates the temporal Propagation Models
      */
     void CreateTemporalPropagationModels ();
 
@@ -233,6 +238,8 @@ private:
     double m_z;  ///< The `Z` attribute.
 
     uint16_t m_numOfIterationsToAverage;
+
+    RemDevice m_rrd;
 
     ObjectFactory m_propagationLossModelFactory;
     ObjectFactory m_spectrumLossModelFactory;
