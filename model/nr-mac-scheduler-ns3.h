@@ -533,13 +533,15 @@ protected:
    * \brief Create a DCI for the specified UE for UL data
    * \param spoint Starting point
    * \param ueInfo UE specified
+   * \param maxSym maximum amount of symbols that can be assigned
    * \return a pointer to the DciInfoElementTdma
    *
    * The function should create a block in the 2D frequency-time plane in
    * which the specified UE will receive the UL data.
    */
   virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const = 0;
+  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+               uint32_t maxSym) const = 0;
 
   /**
    * \brief Perform a custom operation on the starting point each time all the UE of a DL beam have been scheduled

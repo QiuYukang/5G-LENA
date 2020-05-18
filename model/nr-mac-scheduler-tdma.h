@@ -97,7 +97,8 @@ protected:
   CreateDlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
                uint32_t maxSym) const override;
   virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const override;
+  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+               uint32_t maxSym) const override;
 
   /**
    * \brief Not doing anything, moving forward the spoint is done by CreateDci

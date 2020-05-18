@@ -1382,12 +1382,12 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
               continue;
             }
 
-          std::shared_ptr<DciInfoElementTdma> dci = CreateUlDci (spoint, ue.first);
+          std::shared_ptr<DciInfoElementTdma> dci = CreateUlDci (spoint, ue.first, symPerBeam.at (GetBeam (beam)));
 
           if (dci == nullptr)
             {
               NS_LOG_DEBUG ("No DCI has been created, ignoring");
-              ue.first->ResetDlMetric ();
+              ue.first->ResetUlMetric ();
               continue;
             }
 
@@ -1716,7 +1716,9 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
 
   NS_LOG_DEBUG ("Scheduling UL " << ulSfn <<
                 " UL HARQ to retransmit: " << ulHarqFeedback.size () <<
-                " Active Beams UL HARQ: " << activeUlHarq.size ());
+                " Active Beams UL HARQ: " << activeUlHarq.size () <<
+                " starting from (" << +ulAssignationStartPoint.m_rbg << ", " <<
+                +ulAssignationStartPoint.m_sym << ")");
 
   if (activeUlHarq.size () > 0)
     {

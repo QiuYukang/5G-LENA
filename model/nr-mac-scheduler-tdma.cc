@@ -336,7 +336,8 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
  */
 std::shared_ptr<DciInfoElementTdma>
 NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                     const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const
+                                     const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                                     uint32_t maxSym) const
 {
   NS_LOG_FUNCTION (this);
   uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
@@ -348,8 +349,8 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_ulRBG / GetBandwidthInRbg ());
-  numSym = std::max (numSym, static_cast<uint8_t> (1));
+  uint8_t numSym = static_cast<uint8_t> (std::max (ueInfo->m_ulRBG / GetBandwidthInRbg (), 1U));
+  numSym = std::min (numSym, static_cast<uint8_t> (maxSym));
 
   NS_ASSERT (spoint->m_sym >= numSym);
 
