@@ -302,19 +302,6 @@ main (int argc, char *argv[])
   NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");
 
 
-  //Radio Environment Map Generation
-  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (-10.0);
-  remHelper->SetMaxX (10.0);
-  remHelper->SetResX (50);
-  remHelper->SetMinY (-10.0);
-  remHelper->SetMaxY (10.0);
-  remHelper->SetResY (50);
-  remHelper->SetZ (1.5);
-  remHelper->ConfigurePropagationModelsFactories (m_propagationLossModel, m_spectrumLossModel);
-  remHelper->CreateRem ();
-
-
   Simulator::Stop (MilliSeconds (simTimeMs));
   Simulator::Run ();
 

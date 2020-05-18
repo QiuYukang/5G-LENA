@@ -35,6 +35,8 @@
 #include <ns3/spectrum-model.h>
 #include "ns3/mmwave-spectrum-value-helper.h"
 #include "ns3/beamforming-vector.h"
+#include "ns3/mmwave-enb-net-device.h"
+#include <ns3/mmwave-spectrum-phy.h>
 
 #include <chrono>
 #include <ctime>
@@ -249,7 +251,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd ()
 
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev)
+void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t ccId)
  {
      for (NetDeviceContainer::Iterator netDevIt = enbNetDev.Begin ();
           netDevIt != enbNetDev.End ();
@@ -261,8 +263,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         rtd.node = CreateObject<Node> ();            //Create Node
 
         Ptr<ListPositionAllocator> rtdPositionAlloc = CreateObject<ListPositionAllocator> ();
-        //rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
-        rtdPositionAlloc->Add ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
+        rtdPositionAlloc->Add (Vector(0, 0, m_z));  //Assign an initial position
+        //rtdPositionAlloc->Add ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
 
         MobilityHelper rtdMobility;                 //Set Mobility
         rtdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -277,6 +279,11 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         //Set Antenna
         rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (4), "NumRows", UintegerValue (4));
         //Configure Antenna
+
+        Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
+        NS_ASSERT_MSG (mmwNetDev, "mmwNetDev is null");
+        Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy(ccId);
+
         //rtd.antenna->ChangeToOmniTx ();
         //Configure power
         rtd.txPower = 1;
@@ -287,30 +294,34 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         //Configure numerology
         rtd.numerology = 0;
 
+        ConfigurePropagationModelsFactories (rtdPhy);
+
         m_remDev.push_back (rtd);
      }
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
-                                                                  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel)
+NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const MmWaveEnbPhy> rtdPhy)
 {
-  //Get all the necessary pointers (things may be missing at this point)
-  //If we pass freq, numm and bw, this pointer might not be necessary,
-  //so we could remove it
-  m_propagationLossModel = propagationLossModel;
-  NS_ASSERT_MSG (m_propagationLossModel = propagationLossModel, "m_propagationLossModel is null");
+  Ptr<const MmWaveSpectrumPhy> txSpectrumPhy = rtdPhy->GetSpectrumPhy();
+  Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
+
+  m_propagationLossModel = DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel());
+  m_spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel());
+
+  NS_ASSERT_MSG (m_propagationLossModel, "m_propagationLossModel is null");
+  NS_ASSERT_MSG (m_spectrumLossModel, "m_spectrumLossModel is null");
 
   /***** configure channel condition model factory *****/
   m_channelConditionModelFactory.SetTypeId (m_propagationLossModel->GetChannelConditionModel ()->GetInstanceTypeId ());
   /***** configure pathloss model factory *****/
-  m_propagationLossModelFactory.SetTypeId (propagationLossModel->GetInstanceTypeId ());
+  m_propagationLossModelFactory.SetTypeId (m_propagationLossModel->GetInstanceTypeId ());
   /***** configure spectrum model factory *****/
-  m_spectrumLossModelFactory.SetTypeId (spectrumLossModel->GetInstanceTypeId ());
+  m_spectrumLossModelFactory.SetTypeId (m_spectrumLossModel->GetInstanceTypeId ());
 }
 
 void
-NrRadioEnvironmentMapHelper::CreateRem ()
+NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, uint8_t ccId)
 {
   NS_LOG_FUNCTION (this);
 
@@ -321,6 +332,7 @@ NrRadioEnvironmentMapHelper::CreateRem ()
       return;
     }
 
+  ConfigureRtdList (enbNetDev, ccId);
   CreateListOfRemPoints ();
   CalcRemValue ();
   PrintRemToFile ();

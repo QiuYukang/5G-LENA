@@ -24,6 +24,7 @@
 #include <ns3/object-factory.h>
 #include "ns3/simple-net-device.h"
 #include "ns3/net-device-container.h"
+#include "ns3/mmwave-enb-phy.h"
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <fstream>
@@ -149,20 +150,9 @@ public:
     double GetZ () const;
 
     /**
-     * \brief Configure REM Transmission Devices List
-     */
-    void ConfigureRtdList (NetDeviceContainer enbNetDev);
-
-    /**
-     * \brief Configure propagation loss models
-     */
-    void ConfigurePropagationModelsFactories (Ptr<ThreeGppPropagationLossModel> propagationLossModel,
-                                              Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
-
-    /**
      * This method
      */
-    void CreateRem ();
+    void CreateRem (NetDeviceContainer enbNetDev, uint8_t ccId);
 
     /**
      * This method creates the list of Rem Points
@@ -179,6 +169,16 @@ private:
      * This method configures the REM Receiving Device
      */
     void ConfigureRrd ();
+
+    /**
+     * \brief Configure REM Transmission Devices List
+     */
+    void ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t ccId);
+
+    /**
+     * \brief Configure propagation loss models
+     */
+    void ConfigurePropagationModelsFactories (Ptr<const MmWaveEnbPhy> rtdPhy);
 
     /**
      * This method creates the temporal Propagation Models
@@ -250,7 +250,7 @@ private:
     Ptr<ChannelConditionModel> m_remCondModelCopy;
 
     Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
-    //Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
+    Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
     //Ptr<ChannelConditionModel> m_condModel;
 
     std::string m_outputFile;   ///< The `OutputFile` attribute.

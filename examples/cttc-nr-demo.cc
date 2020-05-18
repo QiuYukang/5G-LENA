@@ -430,15 +430,6 @@ main (int argc, char *argv[])
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBand2/totalBandwidth) * x));
     }
 
-  /*********************** Addition for REM ***********************************/
-  Ptr<MmWaveEnbNetDevice> mmWaveEnbNetDev = enbNetDev.Get (0)->GetObject<MmWaveEnbNetDevice> ();
-  Ptr<const MmWaveEnbPhy> txPhy = mmWaveEnbNetDev->GetPhy (0);    //ccId 0
-  Ptr<const MmWaveSpectrumPhy> txSpectrumPhy = txPhy->GetSpectrumPhy();
-  Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
-  Ptr<ThreeGppPropagationLossModel> txThreeGppPropModel = DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel());
-  Ptr<ThreeGppSpectrumPropagationLossModel> txThreeGppSpectrumPropModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel());
-  /*********************** Addition for REM ***********************************/
-
   // When all the configuration is done, explicitly call UpdateConfig ()
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
@@ -611,7 +602,7 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
 
-  //Radio Environment Map Generation
+  //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
   remHelper->SetMinX (-10.0);
   remHelper->SetMaxX (10.0);
@@ -620,9 +611,7 @@ main (int argc, char *argv[])
   remHelper->SetMaxY (10.0);
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
-  remHelper->ConfigureRtdList (enbNetDev);
-  remHelper->ConfigurePropagationModelsFactories (txThreeGppPropModel, txThreeGppSpectrumPropModel);
-  remHelper->CreateRem ();
+  remHelper->CreateRem (enbNetDev, 0);  //ccId 0
 
 
   Simulator::Stop (MilliSeconds (simTimeMs));
