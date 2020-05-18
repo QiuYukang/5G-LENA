@@ -149,6 +149,12 @@ NrMacSchedulerNs3::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&NrMacSchedulerNs3::m_ulAmc),
                    MakePointerChecker <NrAmc> ())
+    .AddAttribute ("MaxDlMcs",
+                   "Maximum MCS index for DL",
+                   UintegerValue (28),
+                   MakeUintegerAccessor (&NrMacSchedulerNs3::SetMaxDlMcs,
+                                         &NrMacSchedulerNs3::GetMaxDlMcs),
+                   MakeUintegerChecker<uint8_t> (0,28))
   ;
 
   return tid;
@@ -235,6 +241,19 @@ NrMacSchedulerNs3::GetStartMcsDl () const
   return m_startMcsDl;
 }
 
+void
+NrMacSchedulerNs3::SetMaxDlMcs (uint8_t v)
+{
+  NS_LOG_FUNCTION (this);
+  m_maxDlMcs = v;
+}
+
+uint8_t
+NrMacSchedulerNs3::GetMaxDlMcs () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_maxDlMcs;
+}
 void
 NrMacSchedulerNs3::SetStartMcsUl (uint8_t v)
 {
@@ -650,7 +669,7 @@ NrMacSchedulerNs3::DoSchedDlCqiInfoReq (const NrMacSchedSapProvider::SchedDlCqiI
 
       if (cqi.m_cqiType == DlCqiInfo::WB)
         {
-          m_cqiManagement.DlWBCQIReported (cqi, ue, expirationTime);
+          m_cqiManagement.DlWBCQIReported (cqi, ue, expirationTime, m_maxDlMcs);
         }
       else
         {

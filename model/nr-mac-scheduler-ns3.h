@@ -409,6 +409,17 @@ public:
   uint8_t GetStartMcsDl () const;
 
   /**
+   * \brief Set the maximum index for the DL MCS
+   * \param v the value
+   */
+  void SetMaxDlMcs (uint8_t v);
+  /**
+   * \brief Get the maximum DL MCS index
+   * \return the value
+   */
+  uint8_t GetMaxDlMcs () const;
+
+  /**
    * \brief Set the starting value for the UL MCS
    * \param v the value
    */
@@ -785,6 +796,7 @@ private:
   bool    m_fixedMcsUl {false}; //!< Fixed MCS for *all* UE in UL
   uint8_t m_startMcsDl   {0};   //!< Starting (or fixed) value for DL MCS
   uint8_t m_startMcsUl   {0};   //!< Starting (or fixed) value for UL MCS
+  uint8_t m_maxDlMcs   {0};    //!< Maximum index for DL MCS
   Time    m_cqiTimersThreshold; //!< The time while a CQI is valid
 
   NrMacSchedulerCQIManagement m_cqiManagement; //!< CQI Management
