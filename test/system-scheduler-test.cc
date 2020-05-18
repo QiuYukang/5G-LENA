@@ -1,98 +1,49 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  *   Copyright (c) 2018 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *  
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
  *   published by the Free Software Foundation;
- *  
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *  
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
 
-#include "ns3/core-module.h"
-#include "ns3/config-store.h"
-#include "ns3/network-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/internet-apps-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/point-to-point-module.h"
-#include "ns3/flow-monitor-module.h"
-#include "ns3/nr-module.h"
-#include "ns3/config-store-module.h"
-#include "ns3/test.h"
+#include "system-scheduler-test.h"
+#include <ns3/packet.h>
+#include <ns3/simulator.h>
+#include <ns3/nr-module.h>
+#include <ns3/internet-module.h>
+#include <ns3/internet-apps-module.h>
+#include <ns3/flow-monitor-module.h>
+#include <ns3/applications-module.h>
+#include <ns3/point-to-point-helper.h>
 
-using namespace ns3;
+namespace ns3 {
 
-/**
- * \file nr-system-test-schedulers.cc
- * \ingroup test
- * \brief System test for the scheduler classes
- * This test case checks if the throughput obtained per UE is as expected for
- * the specified scheduling logic.
- * The test scenario consists of a scenario in which various UEs are attached to a single gNB.
- * UEs perform UDP full buffer downlink and/or uplink traffic.
- * gNB is configured to have 1 bandwidth part.
- * UEs can belong to the same or different beams.
- * This examples uses beam search beamforming method.
- * The traffic is full buffer traffic.
- */
-class NrSystemTestScheduling : public TestCase
+void
+SystemSchedulerTest::CountPkts (Ptr<const Packet> pkt)
 {
-public:
-  /**
-   * \brief NrSystemTestScheduling is a test constructor which is used to initialise the test parameters.
-   * @param name A unique test configuration name
-   * @param usersPerBeamNum How many users will be installed per beam
-   * @param beamsNum Into how many beams of gNB will be distributed UEs attached to it. The maximum for this test case is 4.
-   * @param numerology The numerology to be used in the simulation
-   * @param bw1 The system bandwidth
-   * @param isDownlnk Is the downlink traffic going to be present in the test case
-   * @param isUplink Is the uplink traffic going to be present in the test case
-   * @param schedulerType Which scheduler is going to be used in the test case Ofdma/Tdma" and the scheduling logic RR, PF, of MR
-   */
-  NrSystemTestScheduling (const std::string & name, uint32_t usersPerBeamNum, uint32_t beamsNum,
-                              uint32_t numerology, double bw1, bool isDownlink,
-                              bool isUplink, const std::string & schedulerType);
-  virtual ~NrSystemTestScheduling ();
+  NS_UNUSED (pkt);
+  m_packets++;
+  if (m_packets == m_limit)
+    {
+      Simulator::Stop();
+    }
+}
 
-private:
-  virtual void DoRun (void);
-
-  uint32_t m_numerology; // the numerology to be used
-  double m_bw1; // bandwidth of bandwidth part 1
-  bool m_isDownlink; // whether to generate the downlink traffic
-  bool m_isUplink; // whether to generate the uplink traffic
-  uint32_t m_usersPerBeamNum; // number of users
-  uint32_t m_beamsNum; // currently the test is supposed to work with maximum 4 beams per gNb
-  std::string m_schedulerType;
-  std::string m_name;
-
-};
-
-/**
- * NrSystemTestScheduling is a test constructor which is used to initialise the test parameters.  
- * @param name A unique test configuration name
- * @param usersPerBeamNum How many users will be installed per beam
- * @param beamsNum Into how many beams of gNB will be distributed UEs attached to it. The maximum for this test case is 4. 
- * @param numerology The numerology to be used in the simulation
- * @param bw1 The system bandwidth
- * @param isDownlnk Is the downlink traffic going to be present in the test case
- * @param isUplink Is the uplink traffic going to be present in the test case
- * @param schedulerType Which scheduler is going to be used in the test case Ofdma/Tdma" and the scheduling logic RR, PF, of MR
- */
-NrSystemTestScheduling::NrSystemTestScheduling (const std::string & name, uint32_t usersPerBeamNum,
-                                                        uint32_t beamsNum, uint32_t numerology,
-                                                        double bw1, bool isDownlnk, bool isUplink,
-                                                        const std::string & schedulerType)
+SystemSchedulerTest::SystemSchedulerTest (const std::string & name, uint32_t usersPerBeamNum,
+                                          uint32_t beamsNum, uint32_t numerology,
+                                          double bw1, bool isDownlnk, bool isUplink,
+                                          const std::string & schedulerType)
 : TestCase (name)
 {
   m_numerology = numerology;
@@ -108,13 +59,13 @@ NrSystemTestScheduling::NrSystemTestScheduling (const std::string & name, uint32
 
 // This destructor does nothing but we include it as a reminder that
 // the test case should clean up after itself
-NrSystemTestScheduling::~NrSystemTestScheduling ()
+SystemSchedulerTest::~SystemSchedulerTest ()
 {
 }
 
 
 void
-NrSystemTestScheduling::DoRun (void)
+SystemSchedulerTest::DoRun (void)
 {
     NS_ABORT_IF(!m_isUplink && !m_isDownlink);
 
@@ -130,6 +81,7 @@ NrSystemTestScheduling::DoRun (void)
     DataRate udpRate = DataRate ("320kbps"); // 400 packets of 800 bits
 
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault ("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
 
@@ -188,7 +140,7 @@ NrSystemTestScheduling::DoRun (void)
     mobility.Install (ueNodes);
 
 
-    // setup the nr simulation
+    // setup the mmWave simulation
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
 
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
@@ -268,7 +220,7 @@ NrSystemTestScheduling::DoRun (void)
     nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
 
 
-    // install nr net devices
+    // install mmWave net devices
     NetDeviceContainer gNbNetDevs = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
     NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
@@ -398,10 +350,21 @@ NrSystemTestScheduling::DoRun (void)
        clientAppsDl.Stop(udpAppStopTimeDl);
      }
 
+    m_limit = ueNodes.GetN () * maxPackets * ((m_isUplink && m_isDownlink)? 2 : 1);
+
+    for (auto it = serverAppsDl.Begin(); it != serverAppsDl.End(); ++it)
+      {
+        (*it)->TraceConnectWithoutContext ("Rx", MakeCallback (&SystemSchedulerTest::CountPkts, this));
+      }
+
+    for (auto it = serverAppsUl.Begin(); it != serverAppsUl.End(); ++it)
+      {
+        (*it)->TraceConnectWithoutContext ("Rx", MakeCallback (&SystemSchedulerTest::CountPkts, this));
+      }
+
     //nrHelper->EnableTraces();
     Simulator::Stop (simTime);
     Simulator::Run ();
-
 
     double dataRecvDl = 0;
     double dataRecvUl = 0;
@@ -425,93 +388,9 @@ NrSystemTestScheduling::DoRun (void)
           }
       }
 
-
     NS_TEST_ASSERT_MSG_EQ_TOL (dataRecvDl + dataRecvUl, udpRate.GetBitRate () * ueNodes.GetN () * ((m_isUplink && m_isDownlink)? 2 : 1), 0.01, "Wrong total DL + UL throughput");
 
     Simulator::Destroy ();
 }
 
-// The TestSuite class names the TestNrSystemTestSchedulingTestSuite, identifies what type of TestSuite,
-// and enables the TestCases to be run. Typically, only the constructor for
-// this class must be defined
-//
-class NrSystemTestSchedulingTestSuite : public TestSuite
-{
-public:
-  NrSystemTestSchedulingTestSuite ();
-};
-
-NrSystemTestSchedulingTestSuite::NrSystemTestSchedulingTestSuite ()
-: TestSuite ("nr-system-test-schedulers", SYSTEM)
-{
-  enum TxMode
-  {
-    DL,
-    UL,
-    DL_UL
-  };
-
-  std::list<std::string> subdivision     = {"Ofdma", "Tdma"};
-  std::list<std::string> scheds          = {"RR", "PF", "MR"};
-  std::list<TxMode>      mode            = {DL, UL, DL_UL};
-  std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 8};
-  std::list<uint32_t>    beams           = {1, 2};
-  std::list<uint32_t>    numerologies    = {0, 1, 2, 3, 4};
-
-
-  // Three QUICK test cases
-  AddTestCase (new NrSystemTestScheduling ("DL, num 0 Tdma RR 1 2", 1, 2, 0, 20e6, true, false,
-                                               "ns3::NrMacSchedulerTdmaRR"), TestCase::QUICK);
-  AddTestCase (new NrSystemTestScheduling ("DL_UL, num 0 Tdma RR 1 2", 1, 2, 0, 20e6, true, true,
-                                               "ns3::NrMacSchedulerTdmaRR"), TestCase::QUICK);
-  AddTestCase (new NrSystemTestScheduling ("UL, num 0 Tdma RR 1 2", 1, 2, 0, 20e6, false, true,
-                                               "ns3::NrMacSchedulerTdmaRR"), TestCase::QUICK);
-
-  for (const auto & num : numerologies)
-    {
-      for (const auto & subType : subdivision)
-        {
-          for (const auto & sched : scheds)
-            {
-              for (const auto & modeType : mode)
-                {
-                  for (const auto & uesPerBeam : uesPerBeamList)
-                    {
-                      for (const auto & beam : beams)
-                        {
-                          std::stringstream ss, schedName;
-                          if (modeType == DL)
-                            {
-                              ss << "DL";
-                            }
-                          else if (modeType == UL)
-                            {
-                              ss << "UL";
-                            }
-                          else
-                            {
-                              ss << "DL_UL";
-                            }
-                          ss << ", Num " << num << ", " << subType << " " << sched << ", "
-                             << uesPerBeam << " UE per beam, " << beam << " beam";
-                          const bool isDl = modeType == DL || modeType == DL_UL;
-                          const bool isUl = modeType == UL || modeType == DL_UL;
-
-                          schedName << "ns3::NrMacScheduler" << subType << sched;
-
-                          AddTestCase (new NrSystemTestScheduling (ss.str(), uesPerBeam, beam, num,
-                                                                       20e6, isDl, isUl,
-                                                                       schedName.str()),
-                                       TestCase::EXTENSIVE);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Do not forget to allocate an instance of this TestSuite
-static NrSystemTestSchedulingTestSuite nrTestSuite;
-
-
+} // namespace ns3
