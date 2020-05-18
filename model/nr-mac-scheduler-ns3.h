@@ -32,6 +32,8 @@
 namespace ns3 {
 
 class NrSchedGeneralTestCase;
+class NrMacSchedulerHarqRr;
+
 /**
  * \ingroup scheduler
  * \brief A general scheduler for nr in NS3
@@ -202,12 +204,10 @@ class NrSchedGeneralTestCase;
  *
  *
  * \section scheduler_harq HARQ
+ *
  * The HARQ scheduling is done, if symbols for HARQ are available, before transmitting
  * new data, and this happens for both DL and UL. The detailed documentation
- * is available in the methods ScheduleDlHarq() and ScheduleUlHarq(),
- * which are delegated to the subclasses.
- * The subclass responsible to manage HARQ is NrMacSchedulerNs3Base, that
- * in turn calls the methods in the class NrMacSchedulerHarqRr.
+ * is available in the methods ScheduleDlHarq() and ScheduleUlHarq().
  *
  * \section scheduler_sched Scheduling new data
  *
@@ -461,10 +461,10 @@ protected:
   virtual uint8_t ScheduleDlHarq (NrMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,
                                   const ActiveHarqMap &activeDlHarq,
-                                  const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > &ueMap,
+                                  const std::unordered_map<uint16_t, UePtr> &ueMap,
                                   std::vector<DlHarqInfo> *dlHarqToRetransmit,
                                   const std::vector<DlHarqInfo> &dlHarqFeedback,
-                                  SlotAllocInfo *slotAlloc) const = 0;
+                                  SlotAllocInfo *slotAlloc) const;
   /**
    * \brief Giving the input, append to slotAlloc the allocations for the DL HARQ retransmissions
    * \param startingPoint starting point of the first retransmission.
@@ -478,10 +478,10 @@ protected:
    */
   virtual uint8_t ScheduleUlHarq (NrMacSchedulerNs3::PointInFTPlane *startingPoint,
                                   uint8_t symAvail,
-                                  const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > &ueMap,
+                                  const std::unordered_map<uint16_t, UePtr> &ueMap,
                                   std::vector<UlHarqInfo> *ulHarqToRetransmit,
                                   const std::vector<UlHarqInfo> &ulHarqFeedback,
-                                  SlotAllocInfo *slotAlloc) const = 0;
+                                  SlotAllocInfo *slotAlloc) const;
 
   /**
    * \brief Assign the DL RBG to the active UE, and return the distribution of symbols per beam
@@ -533,13 +533,15 @@ protected:
    * \brief Create a DCI for the specified UE for UL data
    * \param spoint Starting point
    * \param ueInfo UE specified
+   * \param maxSym maximum amount of symbols that can be assigned
    * \return a pointer to the DciInfoElementTdma
    *
    * The function should create a block in the 2D frequency-time plane in
    * which the specified UE will receive the UL data.
    */
   virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const = 0;
+  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+               uint32_t maxSym) const = 0;
 
   /**
    * \brief Perform a custom operation on the starting point each time all the UE of a DL beam have been scheduled
@@ -565,7 +567,7 @@ protected:
    * in a way that the first element should be the first to transmit, and
    * then (if there is space) the second, the third, and so on.
    */
-  virtual void SortDlHarq (ActiveHarqMap *activeDlHarq) const = 0;
+  virtual void SortDlHarq (ActiveHarqMap *activeDlHarq) const;
 
   /**
    * \brief Sort the UL HARQ retransmission
@@ -575,7 +577,7 @@ protected:
    * in a way that the first element should be the first to transmit, and
    * then (if there is space) the second, the third, and so on.
    */
-  virtual void SortUlHarq (ActiveHarqMap *activeUlHarq) const = 0;
+  virtual void SortUlHarq (ActiveHarqMap *activeUlHarq) const;
 
   virtual LCGPtr
   CreateLCG (const LogicalChannelConfigListElement_s &config) const;
@@ -737,8 +739,7 @@ private:
                             const ActiveUeMap &activeDl, SlotAllocInfo *slotAlloc) const;
   uint8_t DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
                             const ActiveUeMap &activeUl, SlotAllocInfo *slotAlloc) const;
-  uint8_t DoScheduleUlSr (PointInFTPlane *spoint, uint32_t symAvail,
-                          std::list<uint16_t> *rnti, SlotAllocInfo *slotAlloc) const;
+  void DoScheduleUlSr (PointInFTPlane *spoint, const std::list<uint16_t> &rntiList) const;
   uint8_t DoScheduleDl (const std::vector <DlHarqInfo> &dlHarqFeedback, const ActiveHarqMap &activeDlHarq,
                         ActiveUeMap *activeDlUe, const SfnSf &dlSfnSf,
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
@@ -794,6 +795,8 @@ private:
   uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
   uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
+
+  std::unique_ptr <NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 
   friend NrSchedGeneralTestCase;
 };

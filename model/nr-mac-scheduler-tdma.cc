@@ -40,19 +40,36 @@ TypeId
 NrMacSchedulerTdma::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrMacSchedulerTdma")
-    .SetParent<NrMacSchedulerNs3Base> ()
+    .SetParent<NrMacSchedulerNs3> ()
   ;
   return tid;
 }
 
 NrMacSchedulerTdma::NrMacSchedulerTdma ()
-  : NrMacSchedulerNs3Base ()
 {
 }
 
 NrMacSchedulerTdma::~NrMacSchedulerTdma ()
 {
 }
+
+std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>
+NrMacSchedulerTdma::GetUeVectorFromActiveUeMap (const NrMacSchedulerNs3::ActiveUeMap &activeUes)
+{
+  std::vector<UePtrAndBufferReq> ueVector;
+  for (const auto &el : activeUes)
+    {
+      uint64_t size = ueVector.size ();
+      GetSecond GetUeVector;
+      for (const auto &ue : GetUeVector (el))
+        {
+          ueVector.emplace_back (ue);
+        }
+      NS_ASSERT (size + GetUeVector (el).size () == ueVector.size ());
+    }
+  return ueVector;
+}
+
 
 /**
  * \brief Assign the available RBG in a TDMA fashion
@@ -319,7 +336,8 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
  */
 std::shared_ptr<DciInfoElementTdma>
 NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                     const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const
+                                     const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                                     uint32_t maxSym) const
 {
   NS_LOG_FUNCTION (this);
   uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
@@ -331,8 +349,8 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_ulRBG / GetBandwidthInRbg ());
-  numSym = std::max (numSym, static_cast<uint8_t> (1));
+  uint8_t numSym = static_cast<uint8_t> (std::max (ueInfo->m_ulRBG / GetBandwidthInRbg (), 1U));
+  numSym = std::min (numSym, static_cast<uint8_t> (maxSym));
 
   NS_ASSERT (spoint->m_sym >= numSym);
 

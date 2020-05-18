@@ -205,4 +205,29 @@ std::ostream &operator<<(std::ostream &os, const SlotAllocInfo::AllocationType &
   return os;
 }
 
+std::ostream &operator<< (std::ostream &os, const DciInfoElementTdma &item)
+{
+  os << "RNTI=" << item.m_rnti << "|" << item.m_format << "|SYM=" << +item.m_symStart
+     << "|NSYM=" << +item.m_numSym << "|MCS=" << +item.m_mcs << "|TBS=" << item.m_tbSize
+     << "|NDI=" << +item.m_ndi << "|RV=" << +item.m_rv << "|TYPE=" << item.m_type
+     << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess
+     << "|RBG=[";
+
+  uint8_t start = 254, end = 0;
+  for (uint32_t i = 0; i < item.m_rbgBitmask.size(); ++i)
+    {
+      if (item.m_rbgBitmask[i] == 1 && end < i)
+        {
+          end = i;
+        }
+      if (item.m_rbgBitmask[i] == 1 && start > i)
+        {
+          start = i;
+        }
+    }
+
+  os << +start << ";" << +end << "]";
+  return os;
+}
+
 }

@@ -59,7 +59,6 @@ def build(bld):
         'model/nr-mac-scheduler-cqi-management.cc',
         'model/nr-mac-scheduler-lcg.cc',
         'model/nr-mac-scheduler-ns3.cc',
-        'model/nr-mac-scheduler-ns3-base.cc',
         'model/nr-mac-scheduler-tdma.cc',
         'model/nr-mac-scheduler-ofdma.cc',
         'model/nr-mac-scheduler-ofdma-mr.cc',
@@ -90,7 +89,12 @@ def build(bld):
         'test/nr-test-numerology-delay.cc',
         'test/nr-test-fdm-of-numerologies.cc',
         'test/nr-test-sched.cc',
-        'test/nr-system-test-schedulers.cc',
+        'test/nr-system-test-schedulers-tdma-rr.cc',
+        'test/nr-system-test-schedulers-tdma-pf.cc',
+        'test/nr-system-test-schedulers-tdma-mr.cc',
+        'test/nr-system-test-schedulers-ofdma-rr.cc',
+        'test/nr-system-test-schedulers-ofdma-pf.cc',
+        'test/nr-system-test-schedulers-ofdma-mr.cc',
         'test/test-antenna-3gpp-model-conf.cc',
         'test/nr-test-l2sm-eesm.cc',
         'test/nr-lte-pattern-generation.cc',
@@ -99,6 +103,7 @@ def build(bld):
         'test/test-timings.cc',
         'test/test-nr-spectrum-phy.cc',
         'test/nr-lte-cc-bwp-configuration.cc',
+        'test/system-scheduler-test.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -155,7 +160,6 @@ def build(bld):
         'model/nr-mac-scheduler-cqi-management.h',
         'model/nr-mac-scheduler-lcg.h',
         'model/nr-mac-scheduler-ns3.h',
-        'model/nr-mac-scheduler-ns3-base.h',
         'model/nr-mac-scheduler-tdma.h',
         'model/nr-mac-scheduler-ofdma.h',
         'model/nr-mac-scheduler-ofdma-mr.h',
