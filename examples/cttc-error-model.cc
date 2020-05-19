@@ -122,9 +122,7 @@ main (int argc, char *argv[])
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
   Time updateChannelInterval = MilliSeconds (150);
-  uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
-  NS_ABORT_IF (packets == 0);
-
+  bool isUl = false;
 
   std::string errorModel = "ns3::NrEesmCcT1";
 
@@ -143,8 +141,14 @@ main (int argc, char *argv[])
   cmd.AddValue("pktSize",
                "Packet Size",
                pktSize);
+  cmd.AddValue ("isUl",
+                "Is this an UL transmission?",
+                isUl);
 
   cmd.Parse (argc, argv);
+
+  uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
+  NS_ABORT_IF (packets == 0);
 
   /*
    * Default values for the simulation. We are progressively removing all
@@ -254,6 +258,8 @@ main (int argc, char *argv[])
   nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
   nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
 
+  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (totalTxPower));
+
   uint32_t bwpId = 0;
 
   // gNb routing between Bearer and bandwidh part
@@ -321,27 +327,42 @@ main (int argc, char *argv[])
 
   // assign IP address to UEs, and install UDP downlink applications
   uint16_t dlPort = 1234;
-  ApplicationContainer clientApps, serverApps;
-
-  ApplicationContainer clientAppsEmbb, serverAppsEmbb;
-
   UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (ueNodes));
+  ApplicationContainer txApps, sinkApps;
+  NodeContainer txNodes, sinkNodes;
+  Ipv4InterfaceContainer sinkIps;
 
-  // configure here UDP traffic
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  if (isUl)
     {
-      UdpClientHelper dlClient (ueIpIface.GetAddress (j), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(packets));
-      dlClient.SetAttribute("PacketSize", UintegerValue(pktSize));
-      dlClient.SetAttribute ("Interval", TimeValue (packetInterval));
-
-      clientApps.Add (dlClient.Install (remoteHost));
+      sinkIps.Add(internetIpIfaces.Get(1));
+      sinkNodes = remoteHostContainer;
+      txNodes = ueNodes;
+    }
+  else
+    {
+      sinkIps = ueIpIface;
+      sinkNodes = ueNodes;
+      txNodes = remoteHostContainer;
     }
 
-  for (uint32_t j = 0; j < serverApps.GetN (); ++j)
+  // configure here UDP traffic
+  for (uint32_t i = 0; i < txNodes.GetN (); ++i)
     {
-      Ptr<UdpServer> client = DynamicCast<UdpServer> (serverApps.Get (j));
+      for (uint32_t j = 0; j < sinkNodes.GetN(); ++j)
+        {
+          UdpClientHelper dlClient (sinkIps.GetAddress (j), dlPort);
+          dlClient.SetAttribute ("MaxPackets", UintegerValue(packets));
+          dlClient.SetAttribute("PacketSize", UintegerValue(pktSize));
+          dlClient.SetAttribute ("Interval", TimeValue (packetInterval));
+
+          txApps.Add (dlClient.Install (txNodes.Get(i)));
+        }
+    }
+
+  sinkApps.Add (dlPacketSinkHelper.Install (sinkNodes));
+  for (uint32_t j = 0; j < sinkApps.GetN (); ++j)
+    {
+      Ptr<UdpServer> client = DynamicCast<UdpServer> (sinkApps.Get (j));
       NS_ASSERT(client != nullptr);
       std::stringstream ss;
       ss << j;
@@ -349,10 +370,10 @@ main (int argc, char *argv[])
     }
 
   // start UDP server and client apps
-  serverApps.Start(udpAppStartTime);
-  clientApps.Start(udpAppStartTime);
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime));
+  sinkApps.Start(udpAppStartTime);
+  txApps.Start(udpAppStartTime);
+  sinkApps.Stop(Seconds(simTime));
+  txApps.Stop(Seconds(simTime));
 
   // attach UEs to the closest eNB
   nrHelper->AttachToClosestEnb (ueNetDev, gnbNetDev);
@@ -393,7 +414,7 @@ main (int argc, char *argv[])
     }
 
 
-  for (auto it = serverApps.Begin(); it != serverApps.End(); ++it)
+  for (auto it = sinkApps.Begin(); it != sinkApps.End(); ++it)
     {
       uint64_t recv = DynamicCast<UdpServer> (*it)->GetReceived ();
       std::cerr << "Sent: " << packets << " Recv: " << recv << " Lost: "
