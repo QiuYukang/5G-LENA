@@ -436,7 +436,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
 
               // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
               Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
-              double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (itRtd->txPower, itRtd->mob, m_rrd.mob);
+              double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (0, itRtd->mob, m_rrd.mob);
               double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
               // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
