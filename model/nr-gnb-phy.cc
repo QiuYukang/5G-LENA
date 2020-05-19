@@ -1108,24 +1108,16 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
-  if (pktBurst && pktBurst->GetNPackets () > 0)
-    {
-      std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
-      NrMacPduTag macTag;
-      pkts.front ()->PeekPacketTag (macTag);
-    }
-  else
+  if (!pktBurst || pktBurst->GetNPackets () == 0)
     {
       // put an error, as something is wrong. The UE should not be scheduled
       // if there is no data for him...
       NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
-      NrMacPduTag tag (m_currentSlot, dci->m_symStart, dci->m_numSym);
       Ptr<Packet> emptyPdu = Create <Packet> ();
       NrMacPduHeader header;
       MacSubheader subheader (3, 0);    // lcid = 3, size = 0
       header.AddSubheader (subheader);
       emptyPdu->AddHeader (header);
-      emptyPdu->AddPacketTag (tag);
       LteRadioBearerTag bearerTag (dci->m_rnti, 3, 0);
       emptyPdu->AddPacketTag (bearerTag);
       pktBurst = CreateObject<PacketBurst> ();
@@ -1157,7 +1149,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
                                 FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                 dci->m_harqProcess, dci->m_rv, false,
-                                dci->m_symStart, dci->m_numSym);
+                                dci->m_symStart, dci->m_numSym, m_currentSlot);
 
   bool found = false;
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)

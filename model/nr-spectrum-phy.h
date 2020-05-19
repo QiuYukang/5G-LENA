@@ -281,9 +281,11 @@ public:
    * \param downlink indicate if it is downling
    * \param symStart Sym start
    * \param numSym Num of symbols
+   * \param sfn SFN
    */
   void AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t mcs, const std::vector<int> &rbMap,
-                      uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym);
+                      uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym,
+                      const SfnSf &sfn);
 
 protected:
   /**
@@ -364,7 +366,7 @@ private:
   {
     ExpectedTb (uint8_t ndi, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbBitmap,
                 uint8_t harqProcessId, uint8_t rv, bool isDownlink, uint8_t symStart,
-                uint8_t numSym) :
+                uint8_t numSym, const SfnSf &sfn) :
       m_ndi (ndi),
       m_tbSize (tbSize),
       m_mcs (mcs),
@@ -373,7 +375,8 @@ private:
       m_rv (rv),
       m_isDownlink (isDownlink),
       m_symStart (symStart),
-      m_numSym (numSym) { }
+      m_numSym (numSym),
+      m_sfn (sfn) { }
     ExpectedTb () = delete;
     ExpectedTb (const ExpectedTb &o) = default;
 
@@ -386,6 +389,7 @@ private:
     bool m_isDownlink           {0}; //!< is Downlink?
     uint8_t m_symStart          {0}; //!< Sym start
     uint8_t m_numSym            {0}; //!< Num sym
+    SfnSf m_sfn;                     //!< SFN
   };
 
   struct TransportBlockInfo

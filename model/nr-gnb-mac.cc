@@ -1064,7 +1064,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
                   std::vector<RlcPduInfo> &rlcPduInfo = varTtiAllocInfo.m_rlcPduInfo;
                   NS_ASSERT (rlcPduInfo.size () > 0);
-                  MacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), *dciElem.get ());
+                  MacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), dciElem);
                   // insert into MAC PDU map
                   uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
                   std::pair <std::map<uint32_t, struct MacPduInfo>::iterator, bool> mapRet =
@@ -1111,7 +1111,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   pduMapIt->second.m_pdu->PeekHeader (hdrTst);
 
                   NS_ASSERT (pduMapIt->second.m_pdu->GetSize () > 0);
-                  LteRadioBearerTag bearerTag (rnti, pduMapIt->second.m_size, 0);
+                  LteRadioBearerTag bearerTag (rnti, pduMapIt->second.m_dci->m_tbSize, 0);
                   pduMapIt->second.m_pdu->AddPacketTag (bearerTag);
                   NS_LOG_DEBUG ("gNB sending MAC pdu size " << pduMapIt->second.m_pdu->GetSize ());
                   for (unsigned i = 0; i < pduMapIt->second.m_macHeader.GetSubheaders ().size (); i++)
@@ -1121,7 +1121,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   NS_LOG_DEBUG ("Total MAC PDU size " << pduMapIt->second.m_pdu->GetSize ());
                   harqIt->second.at (tbUid).m_pktBurst->AddPacket (pduMapIt->second.m_pdu);
 
-                  m_phySapProvider->SendMacPdu (pduMapIt->second.m_pdu);
+                  m_phySapProvider->SendMacPdu (pduMapIt->second.m_pdu, ind.m_sfnSf, pduMapIt->second.m_dci->m_symStart);
                   m_macPduMap.erase (pduMapIt);    // delete map entry
 
                   m_dlScheduling (ind.m_sfnSf.GetFrame (), ind.m_sfnSf.GetSubframe (), ind.m_sfnSf.GetSlot (),
@@ -1138,16 +1138,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                       for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
                         {
                           Ptr<Packet> pkt = (*j)->Copy ();
-                          NrMacPduTag tag;         // update PDU tag for retransmission
-                          if (!pkt->RemovePacketTag (tag))
-                            {
-                              NS_FATAL_ERROR ("No MAC PDU tag");
-                            }
-                          tag.SetSfn (ind.m_sfnSf);
-                          tag.SetSymStart (dciElem->m_symStart);
-                          tag.SetNumSym (dciElem->m_numSym);
-                          pkt->AddPacketTag (tag);
-                          m_phySapProvider->SendMacPdu (pkt);
+                          m_phySapProvider->SendMacPdu (pkt, ind.m_sfnSf, dciElem->m_symStart);
                         }
                     }
                 }

@@ -110,11 +110,13 @@ public:
 
   /**
    * \brief Store a MAC PDU
-   * \param pb the MAC PDU
+   * \param p the MAC PDU
+   * \param sfn The SfnSf at which store the PDU
+   * \param symStart The symbol inside the SfnSf at which the data will be transmitted
    *
    * It will be saved in the PacketBurst map following the SfnSf present in the tag.
    */
-  void SetMacPdu (Ptr<Packet> pb);
+  void SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart);
 
   /**
    * \brief Send the RachPreamble

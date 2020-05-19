@@ -28,7 +28,6 @@
 #include "nr-phy.h"
 #include "nr-spectrum-value-helper.h"
 #include "nr-spectrum-phy.h"
-#include "nr-mac-pdu-tag.h"
 #include "nr-net-device.h"
 #include "nr-ue-net-device.h"
 #include "nr-gnb-net-device.h"
@@ -49,7 +48,7 @@ class NrMemberPhySapProvider : public NrPhySapProvider
 public:
   NrMemberPhySapProvider (NrPhy* phy);
 
-  virtual void SendMacPdu (Ptr<Packet> p ) override;
+  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart) override;
 
   virtual void SendControlMessage (Ptr<NrControlMessage> msg) override;
 
@@ -84,9 +83,9 @@ NrMemberPhySapProvider::NrMemberPhySapProvider (NrPhy* phy)
 }
 
 void
-NrMemberPhySapProvider::SendMacPdu (Ptr<Packet> p)
+NrMemberPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
 {
-  m_phy->SetMacPdu (p);
+  m_phy->SetMacPdu (p, sfn, symStart);
 }
 
 void
@@ -324,28 +323,20 @@ NrPhy::SendRachPreamble (uint32_t PreambleId, uint32_t Rnti)
 }
 
 void
-NrPhy::SetMacPdu (Ptr<Packet> p)
+NrPhy::SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
 {
   NS_LOG_FUNCTION (this);
-  NrMacPduTag tag;
-  if (p->PeekPacketTag (tag))
-    {
-      NS_ASSERT (tag.GetSfn ().GetNumerology () == GetNumerology());
-      uint64_t key = tag.GetSfn ().GetEncodingWithSymStart (tag.GetSymStart ());
-      auto it = m_packetBurstMap.find (key);
+  NS_ASSERT (sfn.GetNumerology () == GetNumerology());
+  uint64_t key = sfn.GetEncodingWithSymStart (symStart);
+  auto it = m_packetBurstMap.find (key);
 
-      if (it == m_packetBurstMap.end ())
-        {
-          it = m_packetBurstMap.insert (std::make_pair (key, CreateObject<PacketBurst> ())).first;
-        }
-      it->second->AddPacket (p);
-      NS_LOG_INFO ("Adding a packet for the Packet Burst of " << tag.GetSfn () <<
-                   " at sym " << +tag.GetSymStart () << std::endl);
-    }
-  else
+  if (it == m_packetBurstMap.end ())
     {
-      NS_FATAL_ERROR ("No MAC packet PDU header available");
+      it = m_packetBurstMap.insert (std::make_pair (key, CreateObject<PacketBurst> ())).first;
     }
+  it->second->AddPacket (p);
+  NS_LOG_INFO ("Adding a packet for the Packet Burst of " << sfn <<
+               " at sym " << +symStart << std::endl);
 }
 
 void
@@ -643,8 +634,7 @@ NrPhy::PushBackSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
 }
 
 void
-NrPhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
-                                   const SlotAllocInfo &slotAllocInfo)
+NrPhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf, const SlotAllocInfo &slotAllocInfo)
 {
   NS_LOG_FUNCTION (this);
 
@@ -687,18 +677,6 @@ NrPhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf,
       SfnSf old, latest;
       old.Decode (sfnMap.at (burstPair.first));
       latest.Decode (burstPair.first);
-
-      for (auto & p : burstPair.second->GetPackets())
-        {
-          NrMacPduTag tag;
-          bool ret = p->RemovePacketTag (tag);
-          NS_ASSERT (ret);
-
-          tag.SetSfn (latest);
-          p->AddPacketTag (tag);
-        }
-
-
       m_packetBurstMap.insert (std::make_pair (burstPair.first, burstPair.second));
       NS_LOG_INFO ("PacketBurst with " << burstPair.second->GetNPackets() <<
                    "packets for SFN " << old << " now moved to SFN " << latest);
