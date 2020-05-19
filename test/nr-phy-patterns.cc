@@ -173,6 +173,7 @@ public:
   LtePhyPatternTestCase (const std::string &pattern, const std::string &name)
     : TestCase (name), m_pattern (pattern)
   {}
+  ~LtePhyPatternTestCase ();
 
 private:
   virtual void DoRun (void) override;
@@ -186,6 +187,15 @@ private:
   Ptr<NrGnbPhy> m_phy;
   std::string m_pattern;
 };
+
+LtePhyPatternTestCase::~LtePhyPatternTestCase()
+{
+  if (m_phy)
+    {
+      m_phy->Dispose ();
+      m_phy = nullptr;
+    }
+}
 
 void
 LtePhyPatternTestCase::DoRun ()
