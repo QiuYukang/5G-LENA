@@ -410,7 +410,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
           m_rrd.mob->SetPosition (itRemPoint->pos);    //Assign to the rrd mobility all the positions of remPoint
 
           // configure beam on rtd antenna to point toward rrd
-          itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, m_rrd.mob, itRtd->antenna));
+          //itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, m_rrd.mob, itRtd->antenna));
 
           // configure beam on rrd antenna to be quasi-omni
           UintegerValue numRows, numColumns;
