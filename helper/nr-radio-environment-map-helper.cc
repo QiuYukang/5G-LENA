@@ -246,9 +246,6 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd ()
     m_rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1));
     //Configure Antenna
     //rrd.antenna->ChangeToOmniTx ();
-
-
-
 }
 
 void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t ccId)
@@ -285,12 +282,12 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         uint32_t rtdNumRows = static_cast<uint32_t> (uintValue.Get());
         rtdPhy->GetAntennaArray()->GetAttribute("NumColumns", uintValue);
         uint32_t rtdNumColumns = static_cast<uint32_t> (uintValue.Get());
+        BooleanValue boolValue;
+        rtdPhy->GetAntennaArray()->GetAttribute("IsotropicElements", boolValue);
+        bool iso = static_cast<bool> (boolValue.Get());
 
         //Set Antenna
-        rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (rtdNumRows), "NumRows", UintegerValue (rtdNumColumns));
-        //rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (4), "NumRows", UintegerValue (4));
-        //Configure Antenna
-        //rtd.antenna->ChangeToOmniTx ();
+        rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (rtdNumRows), "NumRows", UintegerValue (rtdNumColumns), "IsotropicElements", BooleanValue (iso));
 
         //Configure power
         rtd.txPower = 1;
