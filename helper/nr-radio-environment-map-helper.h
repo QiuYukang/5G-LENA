@@ -186,6 +186,16 @@ private:
     void CreateTemporalPropagationModels ();
 
     /**
+     * Print the position of the gNb.
+     */
+    void PrintGnuplottableEnbListToFile (std::string filename);
+
+    /**
+     * Print the position of the UE.
+     */
+    void PrintGnuplottableUeListToFile (std::string filename);
+
+    /**
      * Go through every listener, write the computed SINR, and then reset it.
      */
     void PrintRemToFile ();

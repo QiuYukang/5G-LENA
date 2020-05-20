@@ -243,7 +243,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd ()
 
     m_rrd.mob = m_rrd.node->GetObject<MobilityModel> ();
     //Set Antenna
-    m_rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1));
+    m_rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1), "IsotropicElements", BooleanValue (false));
     //Configure Antenna
     //rrd.antenna->ChangeToOmniTx ();
 }
@@ -394,6 +394,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
       // configure beam on rtd antenna to point toward rrd
       // We configure RRD with some point, we want to see only the beam toward a single point
       m_rrd.mob->SetPosition (Vector (10, 0, 1.5));
+      PrintGnuplottableUeListToFile ("ues.txt");
       itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, m_rrd.mob, itRtd->antenna));
 
 
@@ -508,9 +509,53 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
 }
 
 void
+NrRadioEnvironmentMapHelper::PrintGnuplottableEnbListToFile (std::string filename)
+{
+  std::ofstream gnbOutFile;
+  gnbOutFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!gnbOutFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+  for (std::list<RemDevice>::iterator itRtd = m_remDev.begin ();
+       itRtd != m_remDev.end ();
+       ++itRtd)
+   {
+      Vector pos = itRtd->dev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+
+      gnbOutFile << "set label \"" << itRtd->dev->GetNode ()->GetId () <<
+                    "\" at "<< pos.x << "," << pos.y <<
+                    " left font \"Helvetica,4\" textcolor rgb \"white\" front  point pt 2 ps 0.3 lc rgb \"white\" offset 0,0" <<
+                    std::endl;
+    }
+}
+
+void
+NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename)
+{
+  std::ofstream ueOutFile;
+  ueOutFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!ueOutFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+  Vector pos = m_rrd.node->GetObject<MobilityModel> ()->GetPosition ();
+
+  ueOutFile << "set label \"" << m_rrd.dev->GetNode ()->GetId () <<
+               "\" at "<< pos.x << "," << pos.y << " left font \"Helvetica,4\" textcolor rgb \"grey\" front point pt 1 ps 0.3 lc rgb \"grey\" offset 0,0" <<
+               std::endl;
+}
+
+void
 NrRadioEnvironmentMapHelper::PrintRemToFile ()
 {
   NS_LOG_FUNCTION (this);
+
+  PrintGnuplottableEnbListToFile ("enbs.txt");
 
   for (std::list<RemPoint>::iterator it = m_rem.begin ();
        it != m_rem.end ();

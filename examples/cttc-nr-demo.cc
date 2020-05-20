@@ -604,11 +604,11 @@ main (int argc, char *argv[])
 
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (-10.0);
-  remHelper->SetMaxX (10.0);
+  remHelper->SetMinX (-20.0);
+  remHelper->SetMaxX (20.0);
   remHelper->SetResX (50);
-  remHelper->SetMinY (-10.0);
-  remHelper->SetMaxY (10.0);
+  remHelper->SetMinY (-20.0);
+  remHelper->SetMaxY (20.0);
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
   remHelper->CreateRem (enbNetDev, 0);  //ccId 0
