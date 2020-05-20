@@ -386,15 +386,15 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
        itRtd != m_remDev.end ();
        ++itRtd)
    {
-      std::cout << "Started to generate REM points for: " <<
-                   itRtd->dev->GetNode ()->GetId () <<
-                   " There are in total:" << m_rem.size() << std::endl;
+      NS_LOG_INFO ("Started to generate REM points for: " << itRtd->dev->GetNode ()->GetId () <<
+                   " There are in total:" << m_rem.size());
       uint16_t pointsCounter = 0;
 
       // configure beam on rtd antenna to point toward rrd
       // We configure RRD with some point, we want to see only the beam toward a single point
       m_rrd.mob->SetPosition (Vector (10, 0, 1.5));
       PrintGnuplottableUeListToFile ("ues.txt");
+
       itRtd->antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd->mob, m_rrd.mob, itRtd->antenna));
 
 
@@ -403,11 +403,7 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
            ++itRemPoint)
        {
           pointsCounter++;
-
           auto startPsdTime = std::chrono::system_clock::now();
-          std::time_t start_time = std::chrono::system_clock::to_time_t(startPsdTime);
-          std::cout<<"\n REM point: "<<pointsCounter<<"/"<<m_rem.size()<<" started at:"<<std::ctime(&start_time)<<std::endl;
-
           m_rrd.mob->SetPosition (itRemPoint->pos);    //Assign to the rrd mobility all the positions of remPoint
 
           // configure beam on rtd antenna to point toward rrd
@@ -417,7 +413,10 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
           UintegerValue numRows, numColumns;
           m_rrd.antenna->GetAttribute ("NumRows", numRows);
           m_rrd.antenna->GetAttribute ("NumColumns", numColumns);
-          m_rrd.antenna->SetBeamformingVector (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()));
+          // configure RRD antenna to have quasi omni beamforming vector
+          //m_rrd.antenna->SetBeamformingVector (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()));
+          // configure RRD antenna to have direct path bfv toward RTD device
+          m_rrd.antenna->SetBeamformingVector (CreateDirectPathBfv (m_rrd.mob, itRtd->mob, m_rrd.antenna));
 
           //perform calculation m_numOfIterationsToAverage times and get the average value
           double sumRssi = 0, sumSnr = 0;
@@ -467,18 +466,15 @@ NrRadioEnvironmentMapHelper::CalcRemValue ()
            itRemPoint->avSnrdB = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
 
            auto endPsdTime = std::chrono::system_clock::now();
-           //std::time_t end_time = std::chrono::system_clock::to_time_t(endPsdTime);
-           //std::cout<<"\n PSD end time: "<<std::ctime(&end_time)<<std::endl;
            std::chrono::duration<double> elapsed_seconds = endPsdTime - startPsdTime;
-           //std::cout<< "REM point finished. Execution time:"<<elapsed_seconds.count() << " seconds."<<std::endl;
-           std::cout<<"\n Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.";
-           std::cout<<"\n Estimated time to finish REM:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<<" minutes."<<std::endl;
+           NS_LOG_UNCOND ("Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.");
+           NS_LOG_INFO ("Estimated time to finish REM:"<<(m_rem.size()-pointsCounter)*elapsed_seconds.count()/60<<" minutes.");
 
         }  //end for std::list<RemPoint>::iterator  (RemPoints)
 
       auto remEndTime = std::chrono::system_clock::now();
       std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
-      std::cout<<"\n Total time was needed to create the REM map:"<<remElapsedSeconds.count()/60<<" minutes."<<std::endl;
+      NS_LOG_UNCOND ("REM map created. Total time needed to create the REM map:"<<remElapsedSeconds.count()/60<<" minutes.");
 
   }  //end for std::list<RemDev>::iterator  (RTDs)
 }
