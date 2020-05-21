@@ -705,7 +705,7 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
                        "Can't find allocation for " << ulSfnSf);
         std::vector<AllocElem> & ulAllocations = itAlloc->second.m_ulAllocations;
 
-        for (auto it = ulAllocations.cbegin (); it != ulAllocations.cend (); ++it)
+        for (auto it = ulAllocations.cbegin (); it != ulAllocations.cend (); /* NO INC */)
           {
             const AllocElem & allocation = *(it);
             if (allocation.m_symStart == symStart)
@@ -719,8 +719,11 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
                                                  params, UeInfoOf (*itUe),
                                                  m_macSchedSapUser->GetSpectrumModel ());
                 found = true;
-                ulAllocations.erase (it);
-                break;
+                it = ulAllocations.erase (it);
+              }
+            else
+              {
+                ++it;
               }
           }
         NS_ASSERT (found);
