@@ -160,10 +160,12 @@ public:
     void CreateListOfRemPoints ();
 
 private:
+
+    void CalcCurrentRemValue ();
     /**
      * This method
      */
-    void CalcRemValue ();
+    void CalcCurrentRemMap ();
 
     /**
      * This method configures the REM Receiving Device
@@ -218,7 +220,18 @@ private:
       uint16_t numerology {0}; // TODO -||-
     };
 
-    std::list<RemDevice> m_remDev;
+    /**
+     * Configures quasi-omni beamforming vector on antenna of the device
+     * \param device which antenna array will be configured to quasi-omni beamforming vector
+     */
+    void ConfigureQuasiOmniBfv (RemDevice& device);
+
+    /*
+     * Configures direct-path beamforming vector of "device" toward "otherDevice"
+     * \param device whose beamforming vector will be configured
+     * \param otherDevice toward this device will be configured the beamforming vector of device
+     */
+    void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
 
     struct RemPoint
     {
@@ -230,6 +243,9 @@ private:
       double avSnrdB {0};
     };
 
+    void CalcCurrentRemValue (RemPoint& itRemPoint,RemDevice& itRtd, RemDevice m_rrd);
+
+    std::list<RemDevice> m_remDev;
     /// List of listeners in the environment.
     std::list<RemPoint> m_rem;
 
