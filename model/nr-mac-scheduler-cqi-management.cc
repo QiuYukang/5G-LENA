@@ -46,40 +46,50 @@ NrMacSchedulerCQIManagement::DlSBCQIReported (const DlCqiInfo &info,
 }
 
 void
-NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime,
-                                                  uint32_t tbs,
-                                                  const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
-                                                  const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                                  const Ptr<const SpectrumModel> &model) const
+NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
+                                              const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
+                                              const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                                              uint16_t startRbg, uint16_t numRbg,
+                                              const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
   NS_UNUSED (tbs);
+
+  NS_LOG_INFO ("Computing SB CQI for UE " << ueInfo->m_rnti << " with a tx that started " <<
+               "at RBG " << startRbg << " and ended at " << startRbg + numRbg);
 
   ueInfo->m_ulCqi.m_sinr = params.m_ulCqi.m_sinr;
   ueInfo->m_ulCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::SB;
   ueInfo->m_ulCqi.m_timer = expirationTime;
 
-  uint32_t i = 0;
-  for (double value : params.m_ulCqi.m_sinr)
-    {
-      NS_LOG_INFO ("UL CQI report for RNTI " << ueInfo->m_rnti <<
-                   " SINR " << value <<
-                   " in chunk " << i++ <<
-                   " frame " << params.m_sfnSf);
-    }
-
-
   SpectrumValue specVals (model);
   Values::iterator specIt = specVals.ValuesBegin ();
+
+  std::stringstream out;
+
   for (uint32_t ichunk = 0; ichunk < model->GetNumBands (); ichunk++)
     {
       NS_ASSERT (specIt != specVals.ValuesEnd ());
-      *specIt = ueInfo->m_ulCqi.m_sinr.at (ichunk);   //sinrLin;
+      if (ichunk >= startRbg && numRbg > 0)
+        {
+          *specIt = ueInfo->m_ulCqi.m_sinr.at (ichunk);
+          numRbg--;
+          out << ueInfo->m_ulCqi.m_sinr.at (ichunk) << " ";
+        }
+      else
+        {
+          out << "0.0 ";
+          *specIt = 0.0;
+        }
+
       specIt++;
     }
 
+  NS_LOG_INFO ("Values of SINR to pass to the AMC: " << out.str ());
+
   // MCS updated inside the function; crappy API... but we can't fix everything
   ueInfo->m_ulCqi.m_cqi = GetAmcUl ()->CreateCqiFeedbackWbTdma (specVals, ueInfo->m_ulMcs);
+  NS_LOG_DEBUG ("Calculated MCS for RNTI " << ueInfo->m_rnti << " is " << ueInfo->m_ulMcs);
 }
 
 void
