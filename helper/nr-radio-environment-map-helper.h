@@ -161,7 +161,49 @@ public:
 
 private:
 
-    void CalcCurrentRemValue ();
+    struct RemPoint
+       {
+         Vector pos {0,0,0};
+         double avgSnrDb {0};
+         double avgSinrDb {0};
+       };
+
+    struct RemDevice
+      {
+        Ptr<Node> node;
+        Ptr<SimpleNetDevice> dev;
+        Ptr<MobilityModel> mob;
+        Ptr<ThreeGppAntennaArrayModel> antenna;
+        double txPower {0}; // TODO just check if this is the good place, attribute is per RTD device
+        double bandwidth {0}; // TODO Check if these three b,f,n maybe should be the parameters/attributes of RemHelper, because 1 REM map makes sense fore 1 configuration of channel,
+        double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
+        uint16_t numerology {0}; // TODO -||-
+        Ptr<const SpectrumModel> spectrumModel {};
+
+        RemDevice ()
+        {
+          node = CreateObject<Node>();
+          dev = CreateObject<SimpleNetDevice>();
+          node->AddDevice(dev);
+          MobilityHelper mobility;
+          mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+          mobility.Install (node);  //Set MobilityModel for this node
+          //antenna = CreateObject<ThreeGppAntennaArrayModel>(); // antenna will be copied from the device so no need to create an instance here
+
+          mob = node->GetObject<MobilityModel> ();  //TODO BB: I think that we can remove mob attribute from RemDevice structure,
+                                                    //         because when we need it we can easily
+                                                    //         obtain it as you did here: rtd.node->GetObject<MobilityModel> ()
+
+        }
+      };
+
+     //TODO
+    double CalculateSnr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
+
+    //TODO
+    double CalculateMaxSinr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
+
+    void CalculateRemValues (RemPoint* remPoint);
     /**
      * This method
      */
@@ -208,18 +250,6 @@ private:
       */
     void Finalize ();
 
-    struct RemDevice
-    {
-      Ptr<Node> node;
-      Ptr<SimpleNetDevice> dev;
-      Ptr<MobilityModel> mob;
-      Ptr<ThreeGppAntennaArrayModel> antenna;
-      double txPower {0}; // TODO just check if this is the good place, attribute is per RTD device
-      double bandwidth {0}; // TODO Check if these three b,f,n maybe should be the parameters/attributes of RemHelper, because 1 REM map makes sense fore 1 configuration of channel,
-      double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
-      uint16_t numerology {0}; // TODO -||-
-    };
-
     /**
      * Configures quasi-omni beamforming vector on antenna of the device
      * \param device which antenna array will be configured to quasi-omni beamforming vector
@@ -233,17 +263,7 @@ private:
      */
     void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
 
-    struct RemPoint
-    {
-      Vector pos {0,0,0};
-      double sinrdB {0};
-      double rssidBm {0};
-      double avRssidBm {0};
-      double snrdB {0};
-      double avSnrdB {0};
-    };
-
-    void CalcCurrentRemValue (RemPoint& itRemPoint,RemDevice& itRtd, RemDevice m_rrd);
+    Ptr<SpectrumValue> CalcRxPsdValues (RemPoint& itRemPoint,RemDevice& itRtd);
 
     std::list<RemDevice> m_remDev;
     /// List of listeners in the environment.
@@ -284,6 +304,9 @@ private:
     /// The channel object taken from the `ChannelPath` attribute.
 
     std::ofstream m_outFile;  ///< Stream the output to a file.
+
+    Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
+
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 
