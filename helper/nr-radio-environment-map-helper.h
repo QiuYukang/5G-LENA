@@ -25,6 +25,7 @@
 #include "ns3/simple-net-device.h"
 #include "ns3/net-device-container.h"
 #include "ns3/mmwave-enb-phy.h"
+#include "ns3/mmwave-ue-phy.h"
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <fstream>
@@ -152,7 +153,7 @@ public:
     /**
      * This method
      */
-    void CreateRem (NetDeviceContainer enbNetDev, uint8_t ccId);
+    void CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
     /**
      * This method creates the list of Rem Points
@@ -182,9 +183,9 @@ private:
 
         RemDevice ()
         {
-          node = CreateObject<Node>();
-          dev = CreateObject<SimpleNetDevice>();
-          node->AddDevice(dev);
+          node = CreateObject<Node> ();
+          dev = CreateObject<SimpleNetDevice> ();
+          node->AddDevice (dev);
           MobilityHelper mobility;
           mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
           mobility.Install (node);  //Set MobilityModel for this node
@@ -212,12 +213,12 @@ private:
     /**
      * This method configures the REM Receiving Device
      */
-    void ConfigureRrd ();
+    void ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
     /**
      * \brief Configure REM Transmission Devices List
      */
-    void ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t ccId);
+    void ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId);
 
     /**
      * \brief Configure propagation loss models
@@ -256,7 +257,7 @@ private:
      */
     void ConfigureQuasiOmniBfv (RemDevice& device);
 
-    /*
+    /**
      * Configures direct-path beamforming vector of "device" toward "otherDevice"
      * \param device whose beamforming vector will be configured
      * \param otherDevice toward this device will be configured the beamforming vector of device

@@ -602,6 +602,8 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
 
+  //Let us create the REM for this user:
+  Ptr<NetDevice> ueRemDevice = ueLowLatNetDev.Get(0);
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
   remHelper->SetMinX (-20.0);
@@ -611,7 +613,7 @@ main (int argc, char *argv[])
   remHelper->SetMaxY (20.0);
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
-  remHelper->CreateRem (enbNetDev, 0);  //ccId 0
+  remHelper->CreateRem (enbNetDev, ueRemDevice, 0);  //bwpId 0
 
 
   Simulator::Stop (MilliSeconds (simTimeMs));

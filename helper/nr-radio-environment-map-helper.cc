@@ -36,6 +36,7 @@
 #include "ns3/mmwave-spectrum-value-helper.h"
 #include "ns3/beamforming-vector.h"
 #include "ns3/mmwave-enb-net-device.h"
+#include "ns3/mmwave-ue-net-device.h"
 #include <ns3/mmwave-spectrum-phy.h>
 
 #include <chrono>
@@ -226,7 +227,7 @@ NrRadioEnvironmentMapHelper::GetZ () const
   return m_z;
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRrd ()
+void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
     m_rrd.node = CreateObject<Node> ();                      //Create Node
 
@@ -242,12 +243,14 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd ()
     m_rrd.node->AddDevice(m_rrd.dev);
 
     m_rrd.mob = m_rrd.node->GetObject<MobilityModel> ();
-    //Set Antenna
-    m_rrd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (1), "NumRows", UintegerValue (1), "IsotropicElements", BooleanValue (false));
-    //Configure Antenna
 
-    //TODO Copy antenna configuration from UE device
-    //m_rrd.antenna = Copy(uePhy->GetAntennaArray());
+    //Get Ue Phy
+    Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
+    NS_ASSERT_MSG (mmwUeNetDev, "mmwUeNetDev is null");
+    Ptr<const MmWaveUePhy> rrdPhy = mmwUeNetDev->GetPhy (bwpId);
+    NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
+
+    m_rrd.antenna = Copy (rrdPhy->GetAntennaArray ());
 
     //TODO following parameter should be obtained from the UE device, it is done something simillar in ConfigureRtdList function
     Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28e9, 4);
@@ -256,48 +259,29 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd ()
     m_noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, sm1);  //TODO take noise figure from UE or RRD
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t ccId)
+void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId)
  {
      for (NetDeviceContainer::Iterator netDevIt = enbNetDev.Begin ();
           netDevIt != enbNetDev.End ();
           ++netDevIt)
      {
-        /****************** Create Rem Transmitting Devices *******************/
         RemDevice rtd;
-        rtd.mob->SetPosition((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());  //Assign the enbNetDev position
+
+        rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
         Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
         NS_ASSERT_MSG (mmwNetDev, "mmwNetDev is null");
-        Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy(ccId);
+        Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy (bwpId);
 
-        //TODO if below "Copy (rtdPhy->GetAntennaArray());" works fine, then we can remove all this part
-        /*UintegerValue uintValue;
-        rtdPhy->GetAntennaArray()->GetAttribute("NumRows", uintValue);
-        uint32_t rtdNumRows = static_cast<uint32_t> (uintValue.Get());
-        rtdPhy->GetAntennaArray()->GetAttribute("NumColumns", uintValue);
-        uint32_t rtdNumColumns = static_cast<uint32_t> (uintValue.Get());
-        BooleanValue boolValue;
-        rtdPhy->GetAntennaArray()->GetAttribute("IsotropicElements", boolValue);
-        bool iso = static_cast<bool> (boolValue.Get());*/
-        //Set Antenna
-        //rtd.antenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (rtdNumRows), "NumRows", UintegerValue (rtdNumColumns), "IsotropicElements", BooleanValue (iso));
-
-        // TODO We should check if this really copies the parameters
-        // Copy should return a deep copy of a antenna.
-        rtd.antenna = Copy (rtdPhy->GetAntennaArray());
-
-        //E.g. in the following way
-        UintegerValue uintValue1, uintValue2;
-        rtd.antenna->GetAttribute("NumColumns", uintValue1);
-        rtdPhy->GetAntennaArray()->GetAttribute ("NumColumns", uintValue2);
-        //std::cout<<"\n "<<uintValue.Get() << " =? "<<
+        rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
 
         //Configure power
         rtd.txPower = rtdPhy->GetTxPower();
         //Configure spectrum model which will be needed to create tx PSD
         // TODO resolve how to obtain central frequency rtdPhy->GetCentralFrequency()
         //double frequency = rtdPhy->GetCentralFrequency(); // why this function is protected??
-        rtd.spectrumModel =  MmWaveSpectrumValueHelper::GetSpectrumModel (static_cast <double>(rtdPhy->GetChannelBandwidth()), 28.0e9 , static_cast <uint8_t> (rtdPhy->GetNumerology()));
+        rtd.spectrumModel = MmWaveSpectrumValueHelper::GetSpectrumModel (static_cast <double> (rtdPhy->GetChannelBandwidth ()),
+                                                                         28.0e9 , static_cast <uint8_t> (rtdPhy->GetNumerology ()));
 
         ConfigurePropagationModelsFactories (rtdPhy);
 
@@ -326,7 +310,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const MmWa
 }
 
 void
-NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, uint8_t ccId)
+NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
 
@@ -337,9 +321,9 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, uint8_t cc
       return;
     }
 
-  ConfigureRtdList (enbNetDev, ccId);
+  ConfigureRtdList (enbNetDev, bwpId);
   CreateListOfRemPoints ();
-  ConfigureRrd ();
+  ConfigureRrd (ueDevice, bwpId);
   CalcCurrentRemMap ();
   PrintRemToFile ();
   PrintGnuplottableUeListToFile ("ues.txt");
