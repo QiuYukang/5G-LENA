@@ -229,20 +229,8 @@ NrRadioEnvironmentMapHelper::GetZ () const
 
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
-    m_rrd.node = CreateObject<Node> ();                      //Create Node
-
     Ptr<ListPositionAllocator> rrdPositionAlloc = CreateObject<ListPositionAllocator> ();
     rrdPositionAlloc->Add (Vector(m_xMin, m_yMin, m_z));  //Assign an initial position
-
-    MobilityHelper rrdMobility;                           //Set Mobility
-    rrdMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-    rrdMobility.SetPositionAllocator (rrdPositionAlloc);
-    rrdMobility.Install (m_rrd.node);
-
-    m_rrd.dev =  CreateObject<SimpleNetDevice> ();          //Create device
-    m_rrd.node->AddDevice(m_rrd.dev);
-
-    m_rrd.mob = m_rrd.node->GetObject<MobilityModel> ();
 
     //Get Ue Phy
     Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
