@@ -268,9 +268,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         //Configure spectrum model which will be needed to create tx PSD
         // TODO resolve how to obtain central frequency rtdPhy->GetCentralFrequency()
         //double frequency = rtdPhy->GetCentralFrequency(); // why this function is protected??
-        rtd.spectrumModel = MmWaveSpectrumValueHelper::GetSpectrumModel (static_cast <double> (rtdPhy->GetChannelBandwidth ()),
-                                                                         28.0e9 , static_cast <uint8_t> (rtdPhy->GetNumerology ()));
-
+        rtd.spectrumModel =  MmWaveSpectrumValueHelper::GetSpectrumModel (static_cast <double>(rtdPhy->GetChannelBandwidth()), rtdPhy->GetCentralFrequency() , static_cast <uint8_t> (rtdPhy->GetNumerology()));
         ConfigurePropagationModelsFactories (rtdPhy);
 
         m_remDev.push_back (rtd);
