@@ -56,14 +56,20 @@ public:
   };
 
   /**
-   * \brief NrRadioEnvironmentMapHelper constructor
+   * @warning the default constructor should not be used
    */
   NrRadioEnvironmentMapHelper ();
+
+  /**
+   * \brief NrRadioEnvironmentMapHelper constructor
+   */
+  NrRadioEnvironmentMapHelper (double bandwidth, double frequency, uint8_t numerology);
 
   /**
    * \brief destructor
    */
   virtual ~NrRadioEnvironmentMapHelper ();
+
 
   // inherited from Object
   virtual void DoDispose (void);
@@ -316,6 +322,7 @@ private:
   std::ofstream m_outFile;  ///< Stream the output to a file.
 
   Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
+
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 

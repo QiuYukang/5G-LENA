@@ -605,7 +605,7 @@ main (int argc, char *argv[])
   //Let us create the REM for this user:
   Ptr<NetDevice> ueRemDevice = ueLowLatNetDev.Get(0);
   //Radio Environment Map Generation for ccId 0
-  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
+  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> (100e6, 28e9, 4);
   remHelper->SetMinX (-20.0);
   remHelper->SetMaxX (20.0);
   remHelper->SetResX (50);

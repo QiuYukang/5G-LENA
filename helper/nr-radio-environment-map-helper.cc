@@ -38,6 +38,7 @@
 #include "ns3/mmwave-enb-net-device.h"
 #include "ns3/mmwave-ue-net-device.h"
 #include <ns3/mmwave-spectrum-phy.h>
+#include <ns3/spectrum-converter.h>
 
 #include <chrono>
 #include <ctime>
@@ -51,14 +52,24 @@ NS_LOG_COMPONENT_DEFINE ("NrRadioEnvironmentMapHelper");
 NS_OBJECT_ENSURE_REGISTERED (NrRadioEnvironmentMapHelper);
 
 
+NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper (double bandwidth, double frequency, uint8_t numerology)
+{
+  // all devices must have the same spectrum model to perform calculation,
+  // if some of the device is of the different then its transmission will have to
+  // converted into spectrum model of this device
+  m_rrd.spectrumModel = MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+}
+
 NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper ()
 {
+  NS_LOG_FUNCTION (this);
+  NS_FATAL_ERROR ("This constructor should not be called");
 }
 
 NrRadioEnvironmentMapHelper::~NrRadioEnvironmentMapHelper ()
 {
-}
 
+}
 
 void
 NrRadioEnvironmentMapHelper::DoDispose ()
@@ -266,36 +277,50 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
 
     m_rrd.antenna = Copy (rrdPhy->GetAntennaArray ());
 
-    //TODO following parameter should be obtained from the UE device, it is done something simillar in ConfigureRtdList function
-    Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (100e6, 28e9, 4);
-    //m_rrd.spectrumModel = MmWaveSpectrumValueHelper::GetSpectrumModel (static_cast <double> (rtdPhy->GetChannelBandwidth ()), rtdPhy->GetCentralFrequency () , static_cast <uint8_t> (rtdPhy->GetNumerology ()));
-
     //TODO noiseFigure, in this case set to 5, should be obtained from UE device phy
-    m_noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, sm1);  //TODO take noise figure from UE or RRD
-
+    m_noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, m_rrd.spectrumModel);  //TODO take noise figure from UE or RRD
 }
 
 void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId)
- {
-     for (NetDeviceContainer::Iterator netDevIt = enbNetDev.Begin ();
-          netDevIt != enbNetDev.End ();
-          ++netDevIt)
-     {
-        RemDevice rtd;
+{
+  for (NetDeviceContainer::Iterator netDevIt = enbNetDev.Begin ();
+      netDevIt != enbNetDev.End ();
+      ++netDevIt)
+    {
+      RemDevice rtd;
 
-        rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
+      rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
-        Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
-        NS_ASSERT_MSG (mmwNetDev, "mmwNetDev is null");
-        Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy (bwpId);
+      Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
+      NS_ASSERT_MSG (mmwNetDev, "mmwNetDev is null");
+      Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy (bwpId);
 
-        rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
-        rtd.txPower = rtdPhy->GetTxPower ();
-        rtd.spectrumModel = MmWaveSpectrumValueHelper::GetSpectrumModel (static_cast <double> (rtdPhy->GetChannelBandwidth ()), rtdPhy->GetCentralFrequency () , static_cast <uint8_t> (rtdPhy->GetNumerology ()));
-        ConfigurePropagationModelsFactories (rtdPhy);
+      rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
+      //Configure power
+      rtd.txPower = rtdPhy->GetTxPower();
+      //Configure spectrum model which will be needed to create tx PSD
+      rtd.spectrumModel = rtdPhy->GetSpectrumModel();
 
-        m_remDev.push_back (rtd);
-     }
+      if (rtd.spectrumModel != m_rrd.spectrumModel)
+        {
+          NS_LOG_WARN("RTD device with different spectrum model, this may slow down significantly the REM map creation. "
+              "Consider setting the same frequency, bandwidth, and numerology to all devices which are used for REM map creation.");
+        };
+
+      std::cout<<"\n rtd spectrum model:"<<rtd.spectrumModel->GetUid()<<std::endl;
+      std::cout<<"\n rtd number of bands:"<<rtd.spectrumModel->GetNumBands()<<std::endl;
+      std::cout <<"\n create new RTD element..."<<std::endl;
+      std::cout<<"\nrtdPhy->GetCentralFrequency()"<<rtdPhy->GetCentralFrequency()<<std::endl;
+      std::cout<<"\nbw:"<<rtdPhy->GetChannelBandwidth()<<std::endl;
+      std::cout<<"\nnum:"<<rtdPhy->GetNumerology()<<std::endl;
+
+      if (netDevIt == enbNetDev.Begin())
+        {
+          ConfigurePropagationModelsFactories (rtdPhy); // we can call only once configuration of prop.models
+        }
+
+      m_remDev.push_back (rtd);
+    }
 }
 
 void
@@ -397,11 +422,26 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemPoint& itRemPoint, RemDevice& it
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
   tempPropModels.remSpectrumLossModelCopy->AddDevice (itRtd.dev, itRtd.antenna);
   tempPropModels.remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
+  Ptr<const SpectrumValue> txPsd = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel);
 
-  Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel); //txPower?
+  // check if RTD has the same spectrum model as RRD
+  // if they have do nothing, if they dont, then convert txPsd of RTD device so to be according to spectrum model of RRD
+
+  Ptr <const SpectrumValue> convertedTxPsd;
+  if (itRtd.spectrumModel->GetUid() == m_rrd.spectrumModel->GetUid())
+    {
+      NS_LOG_LOGIC ("no spectrum conversion needed");
+      convertedTxPsd = txPsd;
+    }
+  else
+    {
+      NS_LOG_LOGIC ("Converting TXPSD of RTD device " << itRtd.spectrumModel->GetUid()  << " --> " << m_rrd.spectrumModel->GetUid());
+      SpectrumConverter converter (itRtd.spectrumModel, m_rrd.spectrumModel);
+      convertedTxPsd = converter.Convert (txPsd);
+    }
 
   // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
-  Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
+  Ptr<SpectrumValue> rxPsd = convertedTxPsd->Copy ();
   double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, itRtd.mob, m_rrd.mob);
   double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
@@ -416,16 +456,14 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemPoint& itRemPoint, RemDevice& it
 
 double NrRadioEnvironmentMapHelper::CalculateSnr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList)
 {
-   SpectrumValue maxRxPsd (m_noisePsd->GetSpectrumModel ()), allSignals (m_noisePsd->GetSpectrumModel ()); // we need spectrum model of the receiver in order to call constructor of SpectrumValue,
-                                                                                                         //we can obtain model from m_noisePsd, because  m_noisePsd is/will be initialized with
-                                                                                                         //RRD parameters (bandwidth, frequency, numerology) in ConfigureRRD device
-   maxRxPsd = 0;
+   SpectrumValue maxRxPsd (m_rrd.spectrumModel);
+   SpectrumValue allSignals (m_rrd.spectrumModel); // we need spectrum model of the receiver in order to call constructor of SpectrumValue
    allSignals = 0;
+   maxRxPsd = 0;
 
    for (auto rxPower: receivedPowerList)
      {
        allSignals += (*rxPower);
-
        if (Sum (*(rxPower)) > Sum (maxRxPsd))
          {
            maxRxPsd = *rxPower;
@@ -441,7 +479,7 @@ double NrRadioEnvironmentMapHelper::CalculateSnr (const std::vector <Ptr<Spectru
 double
 NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList)
 {
-  SpectrumValue allSignals (m_noisePsd->GetSpectrumModel ()), maxSinr (m_noisePsd->GetSpectrumModel ());
+  SpectrumValue allSignals (m_rrd.spectrumModel), maxSinr (m_rrd.spectrumModel);
   allSignals = 0;
   maxSinr = 0;
 
