@@ -293,7 +293,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
         //std::cout<<"\n "<<uintValue.Get() << " =? "<<
 
         //Configure power
-        //rtd.txPower = rtdPhy->GetTxPower();
+        rtd.txPower = rtdPhy->GetTxPower();
         //Configure spectrum model which will be needed to create tx PSD
         // TODO resolve how to obtain central frequency rtdPhy->GetCentralFrequency()
         //double frequency = rtdPhy->GetCentralFrequency(); // why this function is protected??
@@ -397,7 +397,7 @@ NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const Re
 
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::CalcRxPsdValues (RemPoint& itRemPoint,RemDevice& itRtd)
+NrRadioEnvironmentMapHelper::CalcRxPsdValues (RemPoint& itRemPoint, RemDevice& itRtd)
 {
   // TODO once we have configure of RTD and RRM devices working we should remove these following lines that configure antenna beams
   // configure beam on rtd antenna to point toward rrd
