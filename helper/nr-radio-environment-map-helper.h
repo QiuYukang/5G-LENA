@@ -49,262 +49,275 @@ class ThreeGppAntennaArrayModel;
 class NrRadioEnvironmentMapHelper : public Object
 {
 public:
-    /**
-     * \brief NrRadioEnvironmentMapHelper constructor
-     */
-    NrRadioEnvironmentMapHelper ();
 
-    /**
-     * \brief destructor
-     */
-    virtual ~NrRadioEnvironmentMapHelper ();
+  enum RemMode {
+         BEAM_SHAPE,
+         COVERAGE_AREA
+  };
 
-    // inherited from Object
-    virtual void DoDispose (void);
+  /**
+   * \brief NrRadioEnvironmentMapHelper constructor
+   */
+  NrRadioEnvironmentMapHelper ();
 
+  /**
+   * \brief destructor
+   */
+  virtual ~NrRadioEnvironmentMapHelper ();
 
-    /**
-     * \brief Get the type id
-     * \return the type id of the class
-     */
-    static TypeId GetTypeId (void);
-
-    /**
-     * \brief Sets the min x coordinate of the map
-     */
-    void SetMinX (double xMin);
-
-    /**
-     * \brief Sets the min y coordinate of the map
-     */
-    void SetMinY (double yMin);
-
-    /**
-     * \brief Sets the max x coordinate of the map
-     */
-    void SetMaxX (double xMax);
-
-    /**
-     * \brief Sets the max y coordinate of the map
-     */
-    void SetMaxY (double yMax);
-
-    /**
-     * \brief Sets the resolution (number of points)
-     * of the map along the x axis
-     */
-    void SetResX (uint16_t xRes);
-
-    /**
-     * \brief Sets the resolution (number of points)
-     * of the map along the y axis
-     */
-    void SetResY (uint16_t yRes);
-
-    /**
-     * \brief Sets the z coordinate of the map
-     */
-    void SetZ (double z);
-
-    /**
-     * \brief Sets the number of iterations to
-     * calculated the average of rem value
-     */
-    void SetNumOfItToAverage (uint16_t numOfIterationsToAverage);
+  // inherited from Object
+  virtual void DoDispose (void);
 
 
-    /**
-     * \return Gets the value of the min x coordinate of the map
-     */
-    double GetMinX () const;
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
 
-    /**
-     * \return Gets the value of the min y coordinate of the map
-     */
-    double GetMinY () const;
+  //TODO
+  void SetRemMode (enum RemMode remType);
 
-    /**
-     * \return Gets the value of the max x coordinate of the map
-     */
-    double GetMaxX () const;
+  /**
+   * \brief Sets the min x coordinate of the map
+   */
+  void SetMinX (double xMin);
 
-    /**
-     * \return Gets the value of the max y coordinate of the map
-     */
-    double GetMaxY () const;
+  /**
+   * \brief Sets the min y coordinate of the map
+   */
+  void SetMinY (double yMin);
 
-    /**
-     * \return Gets the value of the resolution (number of points)
-     * of the map along the x axis
-     */
-    uint16_t GetResX () const;
+  /**
+   * \brief Sets the max x coordinate of the map
+   */
+  void SetMaxX (double xMax);
 
-    /**
-     * \return Gets the value of the resolution (number of points)
-     * of the map along the y axis
-     */
-    uint16_t GetResY () const;
+  /**
+   * \brief Sets the max y coordinate of the map
+   */
+  void SetMaxY (double yMax);
 
-    /**
-     * \return Gets the value of the z coordinate of the map
-     */
-    double GetZ () const;
+  /**
+   * \brief Sets the resolution (number of points)
+   * of the map along the x axis
+   */
+  void SetResX (uint16_t xRes);
 
-    /**
-     * This method
-     */
-    void CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  /**
+   * \brief Sets the resolution (number of points)
+   * of the map along the y axis
+   */
+  void SetResY (uint16_t yRes);
 
-    /**
-     * This method creates the list of Rem Points
-     */
-    void CreateListOfRemPoints ();
+  /**
+   * \brief Sets the z coordinate of the map
+   */
+  void SetZ (double z);
+
+  /**
+   * \brief Sets the number of iterations to
+   * calculated the average of rem value
+   */
+  void SetNumOfItToAverage (uint16_t numOfIterationsToAverage);
+
+  //TODO
+  enum RemMode GetRemMode () const;
+
+  /**
+   * \return Gets the value of the min x coordinate of the map
+   */
+  double GetMinX () const;
+
+  /**
+   * \return Gets the value of the min y coordinate of the map
+   */
+  double GetMinY () const;
+
+  /**
+   * \return Gets the value of the max x coordinate of the map
+   */
+  double GetMaxX () const;
+
+  /**
+   * \return Gets the value of the max y coordinate of the map
+   */
+  double GetMaxY () const;
+
+  /**
+   * \return Gets the value of the resolution (number of points)
+   * of the map along the x axis
+   */
+  uint16_t GetResX () const;
+
+  /**
+   * \return Gets the value of the resolution (number of points)
+   * of the map along the y axis
+   */
+  uint16_t GetResY () const;
+
+  /**
+   * \return Gets the value of the z coordinate of the map
+   */
+  double GetZ () const;
+
+  /**
+   * This method
+   */
+  void CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+
+  /**
+   * This method creates the list of Rem Points
+   */
+  void CreateListOfRemPoints ();
 
 private:
 
-    struct RemPoint
-       {
-         Vector pos {0,0,0};
-         double avgSnrDb {0};
-         double avgSinrDb {0};
-       };
+  struct RemPoint
+  {
+    Vector pos {0,0,0};
+    double avgSnrDb {0};
+    double avgSinrDb {0};
+  };
 
-    struct RemDevice
-      {
-        Ptr<Node> node;
-        Ptr<SimpleNetDevice> dev;
-        Ptr<MobilityModel> mob;
-        Ptr<ThreeGppAntennaArrayModel> antenna;
-        double txPower {0}; // TODO just check if this is the good place, attribute is per RTD device
-        double bandwidth {0}; // TODO Check if these three b,f,n maybe should be the parameters/attributes of RemHelper, because 1 REM map makes sense fore 1 configuration of channel,
-        double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
-        uint16_t numerology {0}; // TODO -||-
-        Ptr<const SpectrumModel> spectrumModel {};
+  struct RemDevice
+  {
+    Ptr<Node> node;
+    Ptr<SimpleNetDevice> dev;
+    Ptr<MobilityModel> mob;
+    Ptr<ThreeGppAntennaArrayModel> antenna;
+    double txPower {0}; // TODO just check if this is the good place, attribute is per RTD device
+    double bandwidth {0}; // TODO Check if these three b,f,n maybe should be the parameters/attributes of RemHelper, because 1 REM map makes sense fore 1 configuration of channel,
+    double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
+    uint16_t numerology {0}; // TODO -||-
+    Ptr<const SpectrumModel> spectrumModel {};
 
-        RemDevice ()
-        {
-          node = CreateObject<Node> ();
-          dev = CreateObject<SimpleNetDevice> ();
-          node->AddDevice (dev);
-          MobilityHelper mobility;
-          mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-          mobility.Install (node);  //Set MobilityModel for this node
-          //antenna = CreateObject<ThreeGppAntennaArrayModel>(); // antenna will be copied from the device so no need to create an instance here
-
-          mob = node->GetObject<MobilityModel> ();  //TODO BB: I think that we can remove mob attribute from RemDevice structure,
-                                                    //         because when we need it we can easily
-                                                    //         obtain it as you did here: rtd.node->GetObject<MobilityModel> ()
-        }
-      };
-
-    struct PropagationModels
+    RemDevice ()
     {
-      Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
-      Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
-    };
+      node = CreateObject<Node> ();
+      dev = CreateObject<SimpleNetDevice> ();
+      node->AddDevice (dev);
+      MobilityHelper mobility;
+      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+      mobility.Install (node);  //Set MobilityModel for this node
+      //antenna = CreateObject<ThreeGppAntennaArrayModel>(); // antenna will be copied from the device so no need to create an instance here
 
-     //TODO
-    double CalculateSnr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
+      mob = node->GetObject<MobilityModel> ();  //TODO BB: I think that we can remove mob attribute from RemDevice structure,
+      //         because when we need it we can easily
+      //         obtain it as you did here: rtd.node->GetObject<MobilityModel> ()
+    }
+  };
 
-    //TODO
-    double CalculateMaxSinr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
+  struct PropagationModels
+  {
+    Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
+    Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
+  };
 
-    void CalculateRemValues (RemPoint* remPoint);
-    /**
-     * This method
-     */
-    void CalcCurrentRemMap ();
+  //TODO
+  double CalculateSnr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
 
-    /**
-     * This method configures the REM Receiving Device
-     */
-    void ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  //TODO
+  double CalculateMaxSinr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
 
-    /**
-     * \brief Configure REM Transmission Devices List
-     */
-    void ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId);
+  void CalculateRemValues (RemPoint* remPoint);
+  /**
+   * This method
+   */
+  void CalcCurrentRemMap ();
 
-    /**
-     * \brief Configure propagation loss models
-     */
-    void ConfigurePropagationModelsFactories (Ptr<const MmWaveEnbPhy> rtdPhy);
+  /**
+   * This method configures the REM Receiving Device
+   */
+  void ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
-    /**
-     * This method creates the temporal Propagation Models
-     */
-    PropagationModels CreateTemporalPropagationModels ();
+  /**
+   * \brief Configure REM Transmission Devices List
+   */
+  void ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId);
 
-    /**
-     * Print the position of the gNb.
-     */
-    void PrintGnuplottableEnbListToFile (std::string filename);
+  /**
+   * \brief Configure propagation loss models
+   */
+  void ConfigurePropagationModelsFactories (Ptr<const MmWaveEnbPhy> rtdPhy);
 
-    /**
-     * Print the position of the UE.
-     */
-    void PrintGnuplottableUeListToFile (std::string filename);
+  /**
+   * This method creates the temporal Propagation Models
+   */
+  PropagationModels CreateTemporalPropagationModels ();
 
-    /**
-     * Go through every listener, write the computed SINR, and then reset it.
-     */
-    void PrintRemToFile ();
+  /**
+   * Print the position of the gNb.
+   */
+  void PrintGnuplottableEnbListToFile (std::string filename);
 
-     /**
-      * Called when the map generation procedure has been completed.
-      * void Finalize ();
-      */
-    void Finalize ();
+  /**
+   * Print the position of the UE.
+   */
+  void PrintGnuplottableUeListToFile (std::string filename);
 
-    /**
-     * Configures quasi-omni beamforming vector on antenna of the device
-     * \param device which antenna array will be configured to quasi-omni beamforming vector
-     */
-    void ConfigureQuasiOmniBfv (RemDevice& device);
+  /**
+   * Go through every listener, write the computed SINR, and then reset it.
+   */
+  void PrintRemToFile ();
 
-    /**
-     * Configures direct-path beamforming vector of "device" toward "otherDevice"
-     * \param device whose beamforming vector will be configured
-     * \param otherDevice toward this device will be configured the beamforming vector of device
-     */
-    void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
+  /**
+   * Called when the map generation procedure has been completed.
+   * void Finalize ();
+   */
+  void Finalize ();
 
-    Ptr<SpectrumValue> CalcRxPsdValues (RemPoint& itRemPoint,RemDevice& itRtd);
+  /**
+   * Configures quasi-omni beamforming vector on antenna of the device
+   * \param device which antenna array will be configured to quasi-omni beamforming vector
+   */
+  void ConfigureQuasiOmniBfv (RemDevice& device);
 
-    std::list<RemDevice> m_remDev;
-    /// List of listeners in the environment.
-    std::list<RemPoint> m_rem;
+  /**
+   * Configures direct-path beamforming vector of "device" toward "otherDevice"
+   * \param device whose beamforming vector will be configured
+   * \param otherDevice toward this device will be configured the beamforming vector of device
+   */
+  void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
 
-    double m_xMin;   ///< The `XMin` attribute.
-    double m_xMax;   ///< The `XMax` attribute.
-    uint16_t m_xRes; ///< The `XRes` attribute.
-    double m_xStep;  ///< Distance along X axis between adjacent listening points.
+  Ptr<SpectrumValue> CalcRxPsdValues (RemPoint& itRemPoint,RemDevice& itRtd);
 
-    double m_yMin;   ///< The `YMin` attribute.
-    double m_yMax;   ///< The `YMax` attribute.
-    uint16_t m_yRes; ///< The `YRes` attribute.
-    double m_yStep;  ///< Distance along Y axis between adjacent listening points.
+  std::list<RemDevice> m_remDev;
+  /// List of listeners in the environment.
+  std::list<RemPoint> m_rem;
 
-    double m_z;  ///< The `Z` attribute.
+  enum RemMode m_remMode; //
 
-    uint16_t m_numOfIterationsToAverage;
+  double m_xMin;   ///< The `XMin` attribute.
+  double m_xMax;   ///< The `XMax` attribute.
+  uint16_t m_xRes; ///< The `XRes` attribute.
+  double m_xStep;  ///< Distance along X axis between adjacent listening points.
 
-    RemDevice m_rrd;
+  double m_yMin;   ///< The `YMin` attribute.
+  double m_yMax;   ///< The `YMax` attribute.
+  uint16_t m_yRes; ///< The `YRes` attribute.
+  double m_yStep;  ///< Distance along Y axis between adjacent listening points.
 
-    ObjectFactory m_propagationLossModelFactory;
-    ObjectFactory m_spectrumLossModelFactory;
-    ObjectFactory m_channelConditionModelFactory;
+  double m_z;  ///< The `Z` attribute.
 
-    Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
-    Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
+  uint16_t m_numOfIterationsToAverage;
 
-    std::string m_outputFile;   ///< The `OutputFile` attribute.
+  RemDevice m_rrd;
 
-    /// The channel object taken from the `ChannelPath` attribute.
+  ObjectFactory m_propagationLossModelFactory;
+  ObjectFactory m_spectrumLossModelFactory;
+  ObjectFactory m_channelConditionModelFactory;
 
-    std::ofstream m_outFile;  ///< Stream the output to a file.
+  Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
+  Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
 
-    Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
+  std::string m_outputFile;   ///< The `OutputFile` attribute.
+
+  /// The channel object taken from the `ChannelPath` attribute.
+
+  std::ofstream m_outFile;  ///< Stream the output to a file.
+
+  Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 

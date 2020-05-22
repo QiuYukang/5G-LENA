@@ -132,8 +132,29 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                      MakeUintegerAccessor (&NrRadioEnvironmentMapHelper::SetNumOfItToAverage),
                                                            //&NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
                                      MakeUintegerChecker<uint16_t> ())
+                      .AddAttribute ("RemMode",
+                                     "There are two high level modes of Rem generation: "
+                                     "a) BEAM_SHAPE in which are represented the beams that are configured "
+                                     "in the user's script scenario, considering that the receiver always has quasi-omni, and that all the beams "
+                                     "point toward the UE which is passed as UE of interest. The purpose of this map is to illustrate "
+                                     "the REM of the scenario that is configured."
+                                     "b) COVERAGE_AREA which produces two REM map: the worst-case SINR and best-SNR for each rem position;"
+                                     "Worst case SINR means that all interfering devices use for the transmission the beam toward the rem point;"
+                                     "and also for the best-SNR, for each transmitting device and the REM point are used the best directional beam-pair "
+                                     "and then is selected the best SNR.",
+                                     EnumValue (NrRadioEnvironmentMapHelper::COVERAGE_AREA),
+                                     MakeEnumAccessor (&NrRadioEnvironmentMapHelper::SetRemMode,
+                                                       &NrRadioEnvironmentMapHelper::GetRemMode),
+                                     MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
+                                                      NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea"))
     ;
   return tid;
+}
+
+void
+NrRadioEnvironmentMapHelper::SetRemMode (enum RemMode remMode)
+{
+  m_remMode = remMode;
 }
 
 
@@ -185,6 +206,12 @@ NrRadioEnvironmentMapHelper::SetNumOfItToAverage (uint16_t numOfIterationsToAver
   m_numOfIterationsToAverage = numOfIterationsToAverage;
 }
 
+enum NrRadioEnvironmentMapHelper::RemMode
+NrRadioEnvironmentMapHelper::GetRemMode () const
+{
+  return m_remMode;
+}
+
 double
 NrRadioEnvironmentMapHelper::GetMinX () const
 {
@@ -229,8 +256,7 @@ NrRadioEnvironmentMapHelper::GetZ () const
 
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
-    Ptr<ListPositionAllocator> rrdPositionAlloc = CreateObject<ListPositionAllocator> ();
-    rrdPositionAlloc->Add (Vector(m_xMin, m_yMin, m_z));  //Assign an initial position
+    m_rrd.mob->SetPosition(ueDevice->GetNode()->GetObject<MobilityModel>()->GetPosition());
 
     //Get Ue Phy
     Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
