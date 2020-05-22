@@ -376,25 +376,25 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValues (RemPoint& itRemPoint, RemDevice& i
   itRtd.antenna->SetAttribute("IsotropicElements", BooleanValue(true));
   m_rrd.antenna->SetAttribute("IsotropicElements", BooleanValue(true));
 
-  CreateTemporalPropagationModels ();
+  PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
-  NS_ASSERT_MSG (m_remSpectrumLossModelCopy, "m_remSpectrumLossModelCopy is null");
+  NS_ASSERT_MSG (tempPropModels.remSpectrumLossModelCopy, "tempPropModels.remSpectrumLossModelCopy is null");
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-  m_remSpectrumLossModelCopy->AddDevice (itRtd.dev, itRtd.antenna);
-  m_remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
+  tempPropModels.remSpectrumLossModelCopy->AddDevice (itRtd.dev, itRtd.antenna);
+  tempPropModels.remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
 
   Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel); //txPower?
 
   // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
   Ptr<SpectrumValue> rxPsd = txPsd1->Copy ();
-  double pathLossDb = m_remPropagationLossModelCopy->CalcRxPower (0, itRtd.mob, m_rrd.mob);
+  double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, itRtd.mob, m_rrd.mob);
   double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
   // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
   *(rxPsd) *= pathGainLinear;
 
   // Now we call spectrum model, which in this keys add a beamforming gain
-  rxPsd = m_remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, itRtd.mob, m_rrd.mob);
+  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, itRtd.mob, m_rrd.mob);
 
   return rxPsd;
 }
@@ -499,29 +499,33 @@ NrRadioEnvironmentMapHelper::CalcCurrentRemMap ()
   NS_LOG_UNCOND ("REM map created. Total time needed to create the REM map:"<<remElapsedSeconds.count()/60<<" minutes.");
 }
 
-void
+NrRadioEnvironmentMapHelper::PropagationModels
 NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
 {
   //create rem copy of channel condition
-  m_remCondModelCopy = m_channelConditionModelFactory.Create<ChannelConditionModel> ();
+  Ptr<ChannelConditionModel> m_remCondModelCopy = m_channelConditionModelFactory.Create<ChannelConditionModel> ();
   NS_ASSERT_MSG (m_remCondModelCopy, "m_remCondModelCopy is null");
 
+  PropagationModels propModels;
+
   //create rem copy of propagation model
-  m_remPropagationLossModelCopy = m_propagationLossModelFactory.Create <ThreeGppPropagationLossModel> ();
-  NS_ASSERT_MSG (m_remPropagationLossModelCopy, "m_remPropagationLossModelCopy is null");
-  m_remPropagationLossModelCopy->SetAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
+  propModels.remPropagationLossModelCopy = m_propagationLossModelFactory.Create <ThreeGppPropagationLossModel> ();
+  NS_ASSERT_MSG (propModels.remPropagationLossModelCopy, "propModels.remPropagationLossModelCopy is null");
+  propModels.remPropagationLossModelCopy->SetAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
   //TODO: Check how to get if shadowing is true or false
-  m_remPropagationLossModelCopy->SetAttribute ("ShadowingEnabled", BooleanValue (false));
-  m_remPropagationLossModelCopy->SetChannelConditionModel (m_remCondModelCopy);
+  propModels.remPropagationLossModelCopy->SetAttribute ("ShadowingEnabled", BooleanValue (false));
+  propModels.remPropagationLossModelCopy->SetChannelConditionModel (m_remCondModelCopy);
 
   // create rem copy of spectrum model
-  m_remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
-  NS_ASSERT_MSG (m_remSpectrumLossModelCopy, "m_remSpectrumLossModelCopy is null");
-  m_remSpectrumLossModelCopy->SetChannelModelAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
+  propModels.remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
+  NS_ASSERT_MSG (propModels.remSpectrumLossModelCopy, "propModels.remSpectrumLossModelCopy is null");
+  propModels.remSpectrumLossModelCopy->SetChannelModelAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
   //TODO: Check how to get the scenario
   std::string scenario = "UMa";
-  m_remSpectrumLossModelCopy->SetChannelModelAttribute ("Scenario", StringValue (scenario));
-  m_remSpectrumLossModelCopy->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (m_remCondModelCopy));
+  propModels.remSpectrumLossModelCopy->SetChannelModelAttribute ("Scenario", StringValue (scenario));
+  propModels.remSpectrumLossModelCopy->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (m_remCondModelCopy));
+
+  return propModels;
 }
 
 void

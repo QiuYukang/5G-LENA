@@ -194,9 +194,14 @@ private:
           mob = node->GetObject<MobilityModel> ();  //TODO BB: I think that we can remove mob attribute from RemDevice structure,
                                                     //         because when we need it we can easily
                                                     //         obtain it as you did here: rtd.node->GetObject<MobilityModel> ()
-
         }
       };
+
+    struct PropagationModels
+    {
+      Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
+      Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
+    };
 
      //TODO
     double CalculateSnr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
@@ -228,7 +233,7 @@ private:
     /**
      * This method creates the temporal Propagation Models
      */
-    void CreateTemporalPropagationModels ();
+    PropagationModels CreateTemporalPropagationModels ();
 
     /**
      * Print the position of the gNb.
@@ -280,8 +285,6 @@ private:
     uint16_t m_yRes; ///< The `YRes` attribute.
     double m_yStep;  ///< Distance along Y axis between adjacent listening points.
 
-    //uint32_t m_maxPointsPerIteration;  ///< The `MaxPointsPerIteration` attribute.
-
     double m_z;  ///< The `Z` attribute.
 
     uint16_t m_numOfIterationsToAverage;
@@ -292,13 +295,8 @@ private:
     ObjectFactory m_spectrumLossModelFactory;
     ObjectFactory m_channelConditionModelFactory;
 
-    Ptr<ThreeGppPropagationLossModel> m_remPropagationLossModelCopy;
-    Ptr<ThreeGppSpectrumPropagationLossModel> m_remSpectrumLossModelCopy;
-    Ptr<ChannelConditionModel> m_remCondModelCopy;
-
     Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
     Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
-    //Ptr<ChannelConditionModel> m_condModel;
 
     std::string m_outputFile;   ///< The `OutputFile` attribute.
 
@@ -307,7 +305,6 @@ private:
     std::ofstream m_outFile;  ///< Stream the output to a file.
 
     Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
-
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 
