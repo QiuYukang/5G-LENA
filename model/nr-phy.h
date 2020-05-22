@@ -381,6 +381,14 @@ public:
    */
   static bool HasUlSlot (const std::vector<LteNrTddSlotType> &pattern);
 
+  /**
+   * \brief Retrieve the frequency (in Hz) of this PHY's channel
+   * \return the frequency of the channel in Hz
+   *
+   * The function will assert if it is called without having set a frequency first.
+   */
+  double GetCentralFrequency () const;
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -450,14 +458,6 @@ protected:
    * \see NrSpectrumValueHelper::CreateTxPowerSpectralDensity
    */
   Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
-
-  /**
-   * \brief Retrieve the frequency (in Hz) of this PHY's channel
-   * \return the frequency of the channel in Hz
-   *
-   * The function will assert if it is called without having set a frequency first.
-   */
-  double GetCentralFrequency () const;
 
   /**
    * \brief Store the slot allocation info at the front
