@@ -393,15 +393,8 @@ NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const Re
 
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::CalcRxPsdValues (RemPoint& itRemPoint, RemDevice& itRtd)
+NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemPoint& itRemPoint, RemDevice& itRtd)
 {
-  // TODO once we have configure of RTD and RRM devices working we should remove these following lines that configure antenna beams
-  // configure beam on rtd antenna to point toward rrd
-  itRtd.antenna->SetBeamformingVector (CreateDirectPathBfv (itRtd.mob, m_rrd.mob, itRtd.antenna));
-  ConfigureDirectPathBfv (m_rrd, itRtd);
-  itRtd.antenna->SetAttribute("IsotropicElements", BooleanValue(true));
-  m_rrd.antenna->SetAttribute("IsotropicElements", BooleanValue(true));
-
   PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
   NS_ASSERT_MSG (tempPropModels.remSpectrumLossModelCopy, "tempPropModels.remSpectrumLossModelCopy is null");
@@ -481,7 +474,22 @@ NrRadioEnvironmentMapHelper::CalcCurrentRemMap ()
 {
   //Save REM creation start time
   auto remStartTime = std::chrono::system_clock::now();
-  uint16_t pointsCounter = 0;
+  uint16_t calcRxPsdCounter = 0;
+
+  if (m_remMode == COVERAGE_AREA)
+    {
+      //configure each RTD beam toward RRD
+     for(std::list<RemDevice>::iterator itRtd = m_remDev.begin();
+         itRtd != m_remDev.end ();
+                ++itRtd)
+        {
+         ConfigureDirectPathBfv (*itRtd, m_rrd);
+        }
+    }
+  else if (m_remMode == BEAM_SHAPE)
+    {
+      ConfigureQuasiOmniBfv (m_rrd);
+    }
 
   for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
       itRemPoint != m_rem.end ();
@@ -495,13 +503,19 @@ NrRadioEnvironmentMapHelper::CalcCurrentRemMap ()
         {
           std::vector <Ptr<SpectrumValue>> receivedPowerList;// RTD node id, rxPsd of the singla coming from that node
 
-          for (auto itRtd:m_remDev)
+          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin(); itRtd != m_remDev.end (); ++itRtd)
             {
-              pointsCounter++;
+              calcRxPsdCounter++;
 
-              receivedPowerList.push_back (CalcRxPsdValues (*itRemPoint, itRtd));
+              if (m_remMode == COVERAGE_AREA)
+                {
+                  //configure RRD beam toward RTD
+                  ConfigureDirectPathBfv (m_rrd, *itRtd);
+                }
+               // calculate received power from the current RTD device
+               receivedPowerList.push_back (CalcRxPsdValue (*itRemPoint, *itRtd));
 
-              NS_LOG_UNCOND ("Done:"<<(double)pointsCounter/m_rem.size()*100<<" %.");
+              NS_LOG_UNCOND ("Done:"<<(double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size())*100<<" %."); // how many times will be called CalcRxPsdValues
             } //end for std::list<RemDev>::iterator  (RTDs)
 
           sumSnr += CalculateSnr (receivedPowerList);
@@ -513,9 +527,6 @@ NrRadioEnvironmentMapHelper::CalcCurrentRemMap ()
 
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
-
-      std::cout<<"\n sumSnr:"<<sumSnr<<std::endl;
-      std::cout<<"\n avgSnrDb = "<<itRemPoint->avgSnrDb<<std::endl;
 
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 

@@ -280,7 +280,7 @@ private:
    */
   void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
 
-  Ptr<SpectrumValue> CalcRxPsdValues (RemPoint& itRemPoint,RemDevice& itRtd);
+  Ptr<SpectrumValue> CalcRxPsdValue (RemPoint& itRemPoint,RemDevice& itRtd);
 
   std::list<RemDevice> m_remDev;
   /// List of listeners in the environment.
