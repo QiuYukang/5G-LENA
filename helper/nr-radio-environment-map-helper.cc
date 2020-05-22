@@ -489,6 +489,7 @@ NrRadioEnvironmentMapHelper::CalcCurrentRemMap ()
     {
       //perform calculation m_numOfIterationsToAverage times and get the average value
       double sumSnr = 0.0, sumSinr = 0.0;
+      m_rrd.mob->SetPosition (itRemPoint->pos);
 
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
@@ -497,8 +498,6 @@ NrRadioEnvironmentMapHelper::CalcCurrentRemMap ()
           for (auto itRtd:m_remDev)
             {
               pointsCounter++;
-
-              m_rrd.mob->SetPosition (itRemPoint->pos);
 
               receivedPowerList.push_back (CalcRxPsdValues (*itRemPoint, itRtd));
 
