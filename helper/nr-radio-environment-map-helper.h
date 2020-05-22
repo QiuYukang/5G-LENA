@@ -199,12 +199,11 @@ private:
       node->AddDevice (dev);
       MobilityHelper mobility;
       mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-      mobility.Install (node);  //Set MobilityModel for this node
-      //antenna = CreateObject<ThreeGppAntennaArrayModel>(); // antenna will be copied from the device so no need to create an instance here
+      mobility.Install (node);
 
       mob = node->GetObject<MobilityModel> ();  //TODO BB: I think that we can remove mob attribute from RemDevice structure,
-      //         because when we need it we can easily
-      //         obtain it as you did here: rtd.node->GetObject<MobilityModel> ()
+                                                //         because when we need it we can easily
+                                                //         obtain it as you did here: rtd.node->GetObject<MobilityModel> ()
     }
   };
 
@@ -308,8 +307,7 @@ private:
   ObjectFactory m_spectrumLossModelFactory;
   ObjectFactory m_channelConditionModelFactory;
 
-  Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
-  Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
+    Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
 
   std::string m_outputFile;   ///< The `OutputFile` attribute.
 
