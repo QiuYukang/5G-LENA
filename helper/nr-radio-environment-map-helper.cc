@@ -582,8 +582,10 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
   propModels.remPropagationLossModelCopy = m_propagationLossModelFactory.Create <ThreeGppPropagationLossModel> ();
   NS_ASSERT_MSG (propModels.remPropagationLossModelCopy, "propModels.remPropagationLossModelCopy is null");
   propModels.remPropagationLossModelCopy->SetAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
-  //TODO: Check how to get if shadowing is true or false
-  propModels.remPropagationLossModelCopy->SetAttribute ("ShadowingEnabled", BooleanValue (false));
+  BooleanValue boolValue;
+  m_propagationLossModel->GetAttribute ("ShadowingEnabled", boolValue);
+  bool shadowing = static_cast<bool> (boolValue.Get());
+  propModels.remPropagationLossModelCopy->SetAttribute ("ShadowingEnabled", BooleanValue (shadowing));
   propModels.remPropagationLossModelCopy->SetChannelConditionModel (m_remCondModelCopy);
 
   // create rem copy of spectrum model
