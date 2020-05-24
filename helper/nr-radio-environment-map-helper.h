@@ -287,9 +287,8 @@ private:
 
   Ptr<SpectrumValue> CalcRxPsdValue (RemPoint& itRemPoint,RemDevice& itRtd);
 
-  std::list<RemDevice> m_remDev;
-  /// List of listeners in the environment.
-  std::list<RemPoint> m_rem;
+  std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
+  std::list<RemPoint> m_rem; ///< List of REM points.
 
   enum RemMode m_remMode; //
 
@@ -313,16 +312,11 @@ private:
   ObjectFactory m_spectrumLossModelFactory;
   ObjectFactory m_channelConditionModelFactory;
 
-    Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
-
-  std::string m_outputFile;   ///< The `OutputFile` attribute.
-
-  /// The channel object taken from the `ChannelPath` attribute.
-
-  std::ofstream m_outFile;  ///< Stream the output to a file.
-
+  Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
   Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
 
+  std::string m_outputFile;   ///< The `OutputFile` attribute.
+  std::ofstream m_outFile;  ///< Stream the output to a file.
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 
