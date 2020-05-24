@@ -270,14 +270,12 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
 
     //Get Ue Phy
     Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
-    NS_ASSERT_MSG (mmwUeNetDev, "mmwUeNetDev is null");
     Ptr<const MmWaveUePhy> rrdPhy = mmwUeNetDev->GetPhy (bwpId);
     NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
 
     m_rrd.antenna = Copy (rrdPhy->GetAntennaArray ());
 
-    //TODO noiseFigure, in this case set to 5, should be obtained from UE device phy
-    m_noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (5, m_rrd.spectrumModel);  //TODO take noise figure from UE or RRD
+    m_noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
 }
 
 void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId)
@@ -291,7 +289,6 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
       rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
       Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
-      NS_ASSERT_MSG (mmwNetDev, "mmwNetDev is null");
       Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy (bwpId);
       NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
 
