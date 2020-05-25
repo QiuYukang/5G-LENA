@@ -219,17 +219,30 @@ private:
     Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
   };
 
-  //TODO
-  double CalculateSnr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
+  double CalculateSnr (const Ptr<SpectrumValue>& usefulSignal);
+
+  Ptr<SpectrumValue> GetMaxValue(const std::list <Ptr<SpectrumValue>>& values);
 
   //TODO
-  double CalculateMaxSinr (const std::vector <Ptr<SpectrumValue>>& receivedPowerList);
+  double CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList);
+
+  //TODO
+  double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList);
+
+  //For the given list of receivedPowerList calculates SINR
+  //TODO
+  double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal, const std::list <Ptr<SpectrumValue>>& receivedPowerList);
 
   void CalculateRemValues (RemPoint* remPoint);
   /**
    * This method
    */
-  void CalcCurrentRemMap ();
+  void CalcBeamShapeRemMap ();
+
+  double GetMaxValue(std::list<double> listOfValues);
+
+
+  void CalcCoverageAreaRemMap ();
 
   /**
    * This method configures the REM Receiving Device
