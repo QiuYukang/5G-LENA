@@ -111,20 +111,21 @@ NrSlHelper::SetEpcHelper (const Ptr<NrPointToPointEpcHelper> &epcHelper)
 }
 
 void
-NrSlHelper::ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft)
+NrSlHelper::ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft, uint16_t poolId)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (m_epcHelper, "NR Sidelink activation requires EpcHelper to be registered with the NrSlHelper");
-  Simulator::Schedule (activationTime, &NrSlHelper::DoActivateNrSlBearer, this, ues, tft);
+  Simulator::Schedule (activationTime, &NrSlHelper::DoActivateNrSlBearer, this, ues, tft, poolId);
 }
 
 void
-NrSlHelper::DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft)
+NrSlHelper::DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft, uint16_t poolId)
 {
   NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator i = ues.Begin (); i != ues.End (); ++i)
     {
-      m_epcHelper->ActivateNrSlBearerForUe (*i, Create<LteSlTft> (tft)) ;
+      NS_LOG_DEBUG ("Activating SL bearer at " << Simulator::Now () << " destination L2 id " << tft->GetDstL2Id ());
+      m_epcHelper->ActivateNrSlBearerForUe (*i, Create<LteSlTft> (tft), poolId) ;
     }
 }
 
@@ -210,11 +211,11 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
     {
       Ptr<NetDevice> netDev = *i;
       Ptr<NrUeNetDevice> nrUeDev = netDev->GetObject <NrUeNetDevice>();
+      bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
+      NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
       Ptr<LteUeRrc> lteUeRrc = nrUeDev->GetRrc ();
       Ptr<NrSlUeRrc> nrSlUeRrc = lteUeRrc->GetObject <NrSlUeRrc> ();
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
-      bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
-      NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
     }
 }
 
