@@ -921,14 +921,14 @@ NrGnbMac::DoReceiveControlMessage  (Ptr<NrControlMessage> msg)
 }
 
 void
-NrGnbMac::DoUlHarqFeedback (UlHarqInfo params)
+NrGnbMac::DoUlHarqFeedback (const UlHarqInfo &params)
 {
   NS_LOG_FUNCTION (this);
   m_ulHarqInfoReceived.push_back (params);
 }
 
 void
-NrGnbMac::DoDlHarqFeedback (DlHarqInfo params)
+NrGnbMac::DoDlHarqFeedback (const DlHarqInfo &params)
 {
   NS_LOG_FUNCTION (this);
   // Update HARQ buffer

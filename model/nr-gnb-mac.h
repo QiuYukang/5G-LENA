@@ -69,8 +69,18 @@ class NrGnbMac : public Object
   friend class MemberLteCcmMacSapProvider<NrGnbMac>;
 
 public:
+  /**
+   * \brief Get the TypeId
+   * \return the TypeId
+   */
   static TypeId GetTypeId (void);
+  /**
+   * \brief NrGnbMac constructor
+   */
   NrGnbMac (void);
+  /**
+   * \brief ~NrGnbMac
+   */
   virtual ~NrGnbMac (void) override;
 
   /**
@@ -251,14 +261,14 @@ protected:
   uint16_t GetCellId () const;
 
   /**
-   * \brief GetDlCtrlAllocation
-   * \return
+   * \brief Get a DCI for the DL CTRL symbol
+   * \return a DL CTRL allocation
    */
   std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const;
 
   /**
-   * \brief GetUlCtrlAllocation
-   * \return
+   * \brief Get a DCI for the UL CTRL symbol
+   * \return a UL CTRL allocation
    */
   std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const;
 
@@ -298,8 +308,16 @@ private:
   LteEnbCmacSapProvider::RachConfig DoGetRachConfig ();
   LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue DoAllocateNcRaPreamble (uint16_t rnti);
 
-  void DoDlHarqFeedback (DlHarqInfo params);
-  void DoUlHarqFeedback (UlHarqInfo params);
+  /**
+   * \brief Process the newly received DL HARQ feedback
+   * \param params the DL HARQ feedback
+   */
+  void DoDlHarqFeedback (const DlHarqInfo &params);
+  /**
+   * \brief Process the newly received UL HARQ feedback
+   * \param params the UL HARQ feedback
+   */
+  void DoUlHarqFeedback (const UlHarqInfo &params);
 
 private:
   struct NrDlHarqProcessInfo
