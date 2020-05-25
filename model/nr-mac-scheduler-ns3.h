@@ -657,8 +657,10 @@ private:
      * \param numSym Number of symbols
      * \param mcs MCS
      */
-    AllocElem (uint16_t rnti, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs)
-      : m_rnti (rnti), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs)
+    AllocElem (uint16_t rnti, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs,
+               uint16_t rbgStart, uint16_t numRbg)
+      : m_rnti (rnti), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs),
+        m_rbgStart (rbgStart), m_numRbg (numRbg)
     {
     }
 
@@ -667,6 +669,8 @@ private:
     uint8_t m_symStart {0}; //!< Sym start
     uint8_t m_numSym {0}; //!< Allocated symbols
     uint8_t m_mcs   {0};  //!< MCS of the transmission
+    uint16_t m_rbgStart {0}; //!< RBG start
+    uint16_t m_numRbg {0};   //!< allocated RBG
   };
 
   /**

@@ -705,7 +705,7 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
                        "Can't find allocation for " << ulSfnSf);
         std::vector<AllocElem> & ulAllocations = itAlloc->second.m_ulAllocations;
 
-        for (auto it = ulAllocations.cbegin (); it != ulAllocations.cend (); ++it)
+        for (auto it = ulAllocations.cbegin (); it != ulAllocations.cend (); /* NO INC */)
           {
             const AllocElem & allocation = *(it);
             if (allocation.m_symStart == symStart)
@@ -717,10 +717,14 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
 
                 m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_tbs,
                                                  params, UeInfoOf (*itUe),
+                                                 allocation.m_rbgStart, allocation.m_numRbg,
                                                  m_macSchedSapUser->GetSpectrumModel ());
                 found = true;
-                ulAllocations.erase (it);
-                break;
+                it = ulAllocations.erase (it);
+              }
+            else
+              {
+                ++it;
               }
           }
         NS_ASSERT (found);
@@ -1797,12 +1801,26 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
 
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              NS_LOG_INFO ("Placed the above allocation in the CQI map");
+              uint16_t rbgStart = UINT16_MAX, numRbg = 0;
+              for (uint16_t i = 0; i < alloc.m_dci->m_rbgBitmask.size (); ++i)
+                {
+                  if (alloc.m_dci->m_rbgBitmask[i] == 1)
+                    {
+                      numRbg++;
+                      if (i < rbgStart)
+                        {
+                          rbgStart = i;
+                        }
+                    }
+                }
+              NS_LOG_INFO ("Placed the above allocation, that starts at " << rbgStart <<
+                           " and finishes at " << rbgStart + numRbg << " in the CQI map");
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
                                                    alloc.m_dci->m_tbSize,
                                                    alloc.m_dci->m_symStart,
                                                    alloc.m_dci->m_numSym,
-                                                   alloc.m_dci->m_mcs));
+                                                   alloc.m_dci->m_mcs,
+                                                   rbgStart, numRbg));
             }
         }
     }
