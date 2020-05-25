@@ -1209,22 +1209,17 @@ NrUePhy::SetNrSlUePhySapUser(NrSlUePhySapUser* s)
 
 
 void
-NrUePhy::DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+NrUePhy::DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool)
 {
   NS_LOG_FUNCTION (this);
-  m_slPool = txPool;
+  m_slTxPool = txPool;
 }
 
 void
-NrUePhy::DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool)
+NrUePhy::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 {
   NS_LOG_FUNCTION (this);
-}
-
-void
-NrUePhy::DoAddNrSlRemoteL2Id (uint32_t remoteL2Id)
-{
-  NS_LOG_FUNCTION (this);
+  m_slRxPool = rxPool;
 }
 
 
