@@ -70,6 +70,14 @@ public:
    */
   virtual ~NrSlUePhySapUser ();
 
+  /**
+   * \brief Gets the active Sidelink pool id used for transmission for a
+   *        destination.
+   *
+   * \return The active TX pool id
+   */
+  virtual uint16_t GetSlActiveTxPoolId (uint32_t dstL2Id) = 0;
+
 };
 
 
@@ -143,6 +151,7 @@ public:
   MemberNrSlUePhySapUser (C* owner);
 
   // methods inherited from NrSlUePhySapUser go here
+  virtual uint16_t GetSlActiveTxPoolId (uint32_t dstL2Id);
 
 private:
   C* m_owner; ///< the owner class
@@ -153,6 +162,14 @@ MemberNrSlUePhySapUser<C>::MemberNrSlUePhySapUser (C* owner)
   : m_owner (owner)
 {
 }
+
+template <class C>
+uint16_t
+MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId (uint32_t dstL2Id)
+{
+  return m_owner->DoGetSlActiveTxPoolId (dstL2Id);
+}
+
 
 
 
