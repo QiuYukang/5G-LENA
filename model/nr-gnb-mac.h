@@ -20,7 +20,6 @@
 #ifndef NR_ENB_MAC_H
 #define NR_ENB_MAC_H
 
-#include "nr-mac.h"
 #include "nr-phy-mac-common.h"
 #include "nr-mac-sched-sap.h"
 #include "nr-phy-sap.h"
@@ -332,7 +331,7 @@ private:
 
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
-  std::map<uint32_t, struct MacPduInfo> m_macPduMap;
+  std::map<uint32_t, struct NrMacPduInfo> m_macPduMap;
 
   Callback <void, Ptr<Packet> > m_forwardUpCallback;
 

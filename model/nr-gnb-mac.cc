@@ -31,6 +31,7 @@
 #include "nr-mac-sched-sap.h"
 #include "nr-mac-scheduler.h"
 #include "nr-control-messages.h"
+#include "nr-mac-pdu-info.h"
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
 #include <ns3/spectrum-model.h>
@@ -979,7 +980,7 @@ NrGnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
   params.componentCarrierId = GetBwpId ();
   // TB UID passed back along with RLC data as HARQ process ID
   uint32_t tbMapKey = ((params.rnti & 0xFFFF) << 8) | (params.harqProcessId & 0xFF);
-  std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
+  std::map<uint32_t, struct NrMacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
   if (it == m_macPduMap.end ())
     {
       NS_FATAL_ERROR ("No MAC PDU storage element found for this TB UID/RNTI");
@@ -1064,11 +1065,11 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
                   std::vector<RlcPduInfo> &rlcPduInfo = varTtiAllocInfo.m_rlcPduInfo;
                   NS_ASSERT (rlcPduInfo.size () > 0);
-                  MacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), dciElem);
+                  NrMacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), dciElem);
                   // insert into MAC PDU map
                   uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
-                  std::pair <std::map<uint32_t, struct MacPduInfo>::iterator, bool> mapRet =
-                    m_macPduMap.insert (std::pair<uint32_t, struct MacPduInfo> (tbMapKey, macPduInfo));
+                  std::pair <std::map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet =
+                    m_macPduMap.insert (std::pair<uint32_t, struct NrMacPduInfo> (tbMapKey, macPduInfo));
                   if (!mapRet.second)
                     {
                       NS_FATAL_ERROR ("MAC PDU map element exists");
@@ -1081,7 +1082,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   harqIt->second.at (tbUid).m_pktBurst = pb;
                   harqIt->second.at (tbUid).m_lcidList.clear ();
 
-                  std::map<uint32_t, struct MacPduInfo>::iterator pduMapIt = mapRet.first;
+                  std::map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
                   pduMapIt->second.m_numRlcPdu = 0;
                   for (unsigned int ipdu = 0; ipdu < rlcPduInfo.size (); ipdu++)
                     {

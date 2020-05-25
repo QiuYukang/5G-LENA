@@ -127,7 +127,7 @@ def build(bld):
         'model/nr-spectrum-phy.h',
         'model/nr-spectrum-value-helper.h',
         'model/nr-interference.h',
-        'model/nr-mac.h',
+        'model/nr-mac-pdu-info.h',
         'model/nr-phy-mac-common.h',
         'model/nr-mac-scheduler.h',
         'model/nr-mac-scheduler-tdma-rr.h',

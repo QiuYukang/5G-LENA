@@ -31,6 +31,8 @@
 #include "nr-ue-net-device.h"
 #include "nr-spectrum-value-helper.h"
 #include "nr-ch-access-manager.h"
+#include "nr-mac-pdu-header.h"
+
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>

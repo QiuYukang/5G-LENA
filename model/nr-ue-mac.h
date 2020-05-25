@@ -20,9 +20,8 @@
 #ifndef NR_UE_MAC_H
 #define NR_UE_MAC_H
 
-
-#include "nr-mac.h"
 #include "nr-phy-mac-common.h"
+#include "nr-mac-pdu-info.h"
 
 #include <ns3/lte-ue-cmac-sap.h>
 #include <ns3/lte-ccm-mac-sap.h>
@@ -250,7 +249,7 @@ private:
    * \param ulSfn the slot at which the data will be sent
    * \return the iterator for the MAC PDU in the map
    */
-  std::unordered_map<uint32_t, struct MacPduInfo>::iterator
+  std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator
       AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci,
                       unsigned activeLcs, const SfnSf &ulSfn);
 
@@ -270,7 +269,7 @@ private:
 
   SfnSf m_currentSlot;  //!< The current slot
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
-  std::unordered_map<uint32_t, struct MacPduInfo> m_macPduMap; //!< HarqId/PDU map
+  std::unordered_map<uint32_t, struct NrMacPduInfo> m_macPduMap; //!< HarqId/PDU map
 
   std::unordered_map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters> m_ulBsrReceived; //!< BSR received from RLC (the last one)
 

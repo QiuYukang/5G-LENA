@@ -359,50 +359,50 @@ NrUeMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 {
   NS_LOG_FUNCTION (this);
 
-  std::unordered_map<uint32_t, MacPduInfo>::iterator it = m_macPduMap.find (params.harqProcessId);
-  GetSecond GetMacPduInfo;
+  std::unordered_map<uint32_t, NrMacPduInfo>::iterator it = m_macPduMap.find (params.harqProcessId);
+  GetSecond GetNrMacPduInfo;
   if (it == m_macPduMap.end ())
     {
       NS_FATAL_ERROR ("No MAC PDU storage element found for this TB UID/RNTI");
     }
 
-  if (GetMacPduInfo (*it).m_pdu == nullptr)
+  if (GetNrMacPduInfo (*it).m_pdu == nullptr)
     {
-      GetMacPduInfo (*it).m_pdu = params.pdu;
+      GetNrMacPduInfo (*it).m_pdu = params.pdu;
     }
   else
     {
-      GetMacPduInfo (*it).m_pdu->AddAtEnd (params.pdu);   // append to MAC PDU
+      GetNrMacPduInfo (*it).m_pdu->AddAtEnd (params.pdu);   // append to MAC PDU
     }
 
   MacSubheader subheader (params.lcid, params.pdu->GetSize ());
-  GetMacPduInfo (*it).m_macHeader.AddSubheader (subheader);   // add RLC PDU sub-header into MAC header
+  GetNrMacPduInfo (*it).m_macHeader.AddSubheader (subheader);   // add RLC PDU sub-header into MAC header
   m_miUlHarqProcessesPacket.at (params.harqProcessId).m_lcidList.push_back (params.lcid);
 
-  uint32_t realTbSize = params.pdu->GetSize () + GetMacPduInfo (*it).m_macHeader.GetSerializedSize ();
-  if (GetMacPduInfo (*it).m_dci->m_tbSize < realTbSize)
+  uint32_t realTbSize = params.pdu->GetSize () + GetNrMacPduInfo (*it).m_macHeader.GetSerializedSize ();
+  if (GetNrMacPduInfo (*it).m_dci->m_tbSize < realTbSize)
     {
       NS_FATAL_ERROR ("Maximum TB size exceeded");
     }
 
   // wait for all RLC PDUs to be received
-  if (GetMacPduInfo (*it).m_numRlcPdu <= 1)
+  if (GetNrMacPduInfo (*it).m_numRlcPdu <= 1)
     {
-      GetMacPduInfo (*it).m_pdu->AddHeader (GetMacPduInfo (*it).m_macHeader);
+      GetNrMacPduInfo (*it).m_pdu->AddHeader (GetNrMacPduInfo (*it).m_macHeader);
 
       NrMacPduHeader headerTst;
-      GetMacPduInfo (*it).m_pdu->PeekHeader (headerTst);
+      GetNrMacPduInfo (*it).m_pdu->PeekHeader (headerTst);
       LteRadioBearerTag bearerTag (params.rnti, 0, 0);
-      GetMacPduInfo (*it).m_pdu->AddPacketTag (bearerTag);
-      m_miUlHarqProcessesPacket.at (params.harqProcessId).m_pktBurst->AddPacket (GetMacPduInfo (*it).m_pdu);
+      GetNrMacPduInfo (*it).m_pdu->AddPacketTag (bearerTag);
+      m_miUlHarqProcessesPacket.at (params.harqProcessId).m_pktBurst->AddPacket (GetNrMacPduInfo (*it).m_pdu);
       m_miUlHarqProcessesPacketTimer.at (params.harqProcessId) = GetNumHarqProcess();
       //m_harqProcessId = (m_harqProcessId + 1) % GetNumHarqProcess;
-      m_phySapProvider->SendMacPdu (GetMacPduInfo (*it).m_pdu, GetMacPduInfo (*it).m_sfnSf, GetMacPduInfo (*it).m_dci->m_symStart);
+      m_phySapProvider->SendMacPdu (GetNrMacPduInfo (*it).m_pdu, GetNrMacPduInfo (*it).m_sfnSf, GetNrMacPduInfo (*it).m_dci->m_symStart);
       m_macPduMap.erase (it);    // delete map entry
     }
   else
     {
-      GetMacPduInfo (*it).m_numRlcPdu--;   // decrement count of remaining RLC requests
+      GetNrMacPduInfo (*it).m_numRlcPdu--;   // decrement count of remaining RLC requests
     }
 
 }
@@ -619,7 +619,7 @@ NrUeMac::RecvRaResponse (BuildRarListElement_s raResponse)
   m_cmacSapUser->NotifyRandomAccessSuccessful ();
 }
 
-std::unordered_map<uint32_t, struct MacPduInfo>::iterator
+std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator
 NrUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
                          unsigned activeLcs, const SfnSf &ulSfn)
 {
@@ -627,8 +627,8 @@ NrUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
 
   NS_LOG_DEBUG ("Adding PDU at the position " << ulSfn);
 
-  MacPduInfo macPduInfo (ulSfn, activeLcs, dci);
-  std::unordered_map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
+  NrMacPduInfo macPduInfo (ulSfn, activeLcs, dci);
+  std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
 
   if (it != m_macPduMap.end ())
     {
@@ -694,7 +694,7 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
           return;
         }
 
-      std::unordered_map<uint32_t, struct MacPduInfo>::iterator macPduIt = AddToMacPduMap (dciInfoElem, activeLcs, dataSfn);
+      std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator macPduIt = AddToMacPduMap (dciInfoElem, activeLcs, dataSfn);
       std::unordered_map <uint8_t, LcInfo>::iterator lcIt;
       uint32_t bytesPerActiveLc = dciInfoElem->m_tbSize / activeLcs;
       bool statusPduPriority = false;

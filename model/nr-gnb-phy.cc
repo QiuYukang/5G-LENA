@@ -38,6 +38,7 @@
 #include "nr-gnb-net-device.h"
 #include "nr-radio-bearer-tag.h"
 #include "nr-ch-access-manager.h"
+#include "nr-mac-pdu-header.h"
 
 #include <ns3/node-list.h>
 #include <ns3/node.h>
