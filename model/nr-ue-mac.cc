@@ -1115,22 +1115,48 @@ NrUeMac::DoResetNrSlLcMap ()
 }
 
 void
-NrUeMac::DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+NrUeMac::DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool)
 {
-  NS_LOG_FUNCTION (this);
-  m_slPool = txPool;
+  NS_LOG_FUNCTION (this << txPool);
+  m_slTxPool = txPool;
 }
 
 void
-NrUeMac::DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+NrUeMac::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 {
   NS_LOG_FUNCTION (this);
+  m_slRxPool = rxPool;
 }
 
 void
-NrUeMac::DoAddNrSlRemoteL2Id (uint32_t remoteL2Id)
+NrUeMac::DoAddNrSlDstL2Id (uint32_t dstL2Id, uint16_t poolId)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << dstL2Id << poolId);
+  auto dstIt = m_activePoolIdPerDest.find (dstL2Id);
+  if (dstIt == m_activePoolIdPerDest.end ())
+    {
+      m_activePoolIdPerDest.insert (std::make_pair (dstL2Id, poolId));
+    }
+  else if (dstIt->second != poolId)
+    {
+      //Currently, same pool is used for all the bearers to an existing destination
+      NS_FATAL_ERROR ("Destination " << dstL2Id << " already have an active pool. Id : " << poolId);
+    }
+  else
+    {
+      //if the same pool id is used for more bearers to a same destination,
+      //which would be a usual case, then we do nothing.
+      NS_LOG_INFO ("Pool id " << poolId << " already exist. So, we do nothing.");
+    }
+}
+
+uint16_t
+NrUeMac::DoGetSlActiveTxPoolId (uint32_t dstL2Id)
+{
+  NS_LOG_FUNCTION (this << dstL2Id);
+  auto dstIt = m_activePoolIdPerDest.find (dstL2Id);
+  NS_ASSERT_MSG (dstIt != m_activePoolIdPerDest.end (), "Unable to find destination layer 2 id " << dstL2Id);
+  return dstIt->second;
 }
 
 //////////////////////////////////////////////

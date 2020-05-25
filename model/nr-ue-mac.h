@@ -345,39 +345,39 @@ public:
    * \param s the NR Sidelik MAC SAP user interface offered to the
    *          MAC by RLC
    */
-   void SetNrSlMacSapUser (NrSlMacSapUser* s);
+  void SetNrSlMacSapUser (NrSlMacSapUser* s);
 
-   /**
-    * \brief Get the NR Sidelik UE Control MAC SAP offered by MAC to RRC
-    *
-    * \return the NR Sidelik UE Control MAC SAP provider interface offered by
-    *         MAC to RRC
-    */
-   NrSlUeCmacSapProvider* GetNrSlUeCmacSapProvider ();
+  /**
+   * \brief Get the NR Sidelik UE Control MAC SAP offered by MAC to RRC
+   *
+   * \return the NR Sidelik UE Control MAC SAP provider interface offered by
+   *         MAC to RRC
+   */
+  NrSlUeCmacSapProvider* GetNrSlUeCmacSapProvider ();
 
-   /**
-    * \brief Set the NR Sidelik UE Control MAC SAP offered by RRC to MAC
-    *
-    * \param s the NR Sidelik UE Control MAC SAP user interface offered to the
-    *          MAC by RRC
-    */
-    void SetNrSlUeCmacSapUser (NrSlUeCmacSapUser* s);
+  /**
+   * \brief Set the NR Sidelik UE Control MAC SAP offered by RRC to MAC
+   *
+   * \param s the NR Sidelik UE Control MAC SAP user interface offered to the
+   *          MAC by RRC
+   */
+  void SetNrSlUeCmacSapUser (NrSlUeCmacSapUser* s);
 
-    /**
-     * \brief Get the NR Sidelik UE PHY SAP offered by UE MAC to UE PHY
-     *
-     * \return the NR Sidelik UE PHY SAP user interface offered by
-     *         UE MAC to UE PHY
-     */
-    NrSlUePhySapUser* GetNrSlUePhySapUser ();
+  /**
+   * \brief Get the NR Sidelik UE PHY SAP offered by UE MAC to UE PHY
+   *
+   * \return the NR Sidelik UE PHY SAP user interface offered by
+   *         UE MAC to UE PHY
+   */
+  NrSlUePhySapUser* GetNrSlUePhySapUser ();
 
-    /**
-     * \brief Set the NR Sidelik UE PHY SAP offered by UE PHY to UE MAC
-     *
-     * \param s the NR Sidelik UE PHY SAP provider interface offered to the
-     *          UE MAC by UE PHY
-     */
-     void SetNrSlUePhySapProvider (NrSlUePhySapProvider* s);
+  /**
+   * \brief Set the NR Sidelik UE PHY SAP offered by UE PHY to UE MAC
+   *
+   * \param s the NR Sidelik UE PHY SAP provider interface offered to the
+   *          UE MAC by UE PHY
+   */
+  void SetNrSlUePhySapProvider (NrSlUePhySapProvider* s);
 
   /**
    * \brief Set the sidelink AMC model
@@ -430,35 +430,48 @@ protected:
    *
    * Adds transmission pool for NR Sidelink communication
    *
-   * \param remoteL2Id The destination Layer 2 ID
    * \param pool The pointer to the NrSlCommResourcePool
    */
-  void DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool);
+  void DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool);
   /**
    * \brief Add NR Sidelink communication reception pool
    *
    * Adds reception pool for NR Sidelink communication
    *
-   * \param remoteL2Id The destination Layer 2 ID
    * \param pool The pointer to the NrSlCommResourcePool
    */
-  void DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool);
+  void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
   /**
-   * \brief Add NR Sidelink remote Layer 2 Id
+   * \brief Add NR Sidelink destination layer 2 Id
    *
-   * Adds remote layer 2 id to list to destinations
+   * Adds destination layer 2 id to the list of destinations
+   * along with a pool id of the active pool to be used
+   * for this destination. Currently, same pool is used for all
+   * the bearers to an existing destination. The code would hit
+   * an assert if a different pool id (even for a different bearer)
+   * is used for an existing destination.
    *
-   * \param remoteL2Id The destination Layer 2 ID
+   * \param dstL2Id The destination layer 2 ID
+   * \param poolId The id of the pool used for TX and RX
    */
-  void DoAddNrSlRemoteL2Id (uint32_t remoteL2Id);
+  void DoAddNrSlDstL2Id (uint32_t dstL2Id, uint16_t poolId);
+
+  //Forwarded from NR SL UE PHY SAP User
+  /**
+   * \brief Gets the active Sidelink pool id used for transmission for a
+   *        destination.
+   *
+   * \return The active TX pool id
+   */
+  uint16_t DoGetSlActiveTxPoolId (uint32_t dstL2Id);
 
 private:
-  /// Sidelink Communication related variables
+  //Sidelink Logical Channel Identifier
   struct SidelinkLcIdentifier
   {
-    uint8_t lcId; ///< Sidelink LCID
-    uint32_t srcL2Id; ///< Source L2 ID
-    uint32_t dstL2Id; ///< Destination L2 ID
+    uint8_t lcId; //!< Sidelink LCID
+    uint32_t srcL2Id; //!< Source L2 ID
+    uint32_t dstL2Id; //!< Destination L2 ID
   };
 
   /**
@@ -470,23 +483,25 @@ private:
    */
   friend bool operator < (const SidelinkLcIdentifier &l, const SidelinkLcIdentifier &r)
   {
-    return l.lcId < r.lcId || (l.lcId == r.lcId && l.srcL2Id < r.srcL2Id) || (l.lcId == r.lcId && l.srcL2Id == r.srcL2Id && l.dstL2Id < r.dstL2Id);
+   return l.lcId < r.lcId || (l.lcId == r.lcId && l.srcL2Id < r.srcL2Id) || (l.lcId == r.lcId && l.srcL2Id == r.srcL2Id && l.dstL2Id < r.dstL2Id);
   }
 
   struct SlLcInfoUeMac
   {
-    NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
-    NrSlMacSapUser* macSapUser;
+   NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
+   NrSlMacSapUser* macSapUser;
   };
   Ptr<const NrAmc> m_slAmc {nullptr};  //!< AMC model used to compute SL Transport block size
-  std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; ///< Sidelink logical channel info map
+  std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
   NrSlMacSapUser* m_nrSlMacSapUser {nullptr}; //!< SAP interface to call the methods of UE RLC instance
   NrSlUeCmacSapProvider* m_nrSlUeCmacSapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCmacSapUser* m_nrSlUeCmacSapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
   NrSlUePhySapProvider* m_nrSlUePhySapProvider {nullptr}; //!< SAP interface to call the methods of UE PHY instance
   NrSlUePhySapUser* m_nrSlUePhySapUser; //!< SAP interface to receive calls from the UE PHY instance
-  Ptr<const NrSlCommResourcePool> m_slPool;
+  Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
+  Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
+  std::unordered_map <uint32_t, uint16_t> m_activePoolIdPerDest; //!< Map to store Id of the active pool per destination L2 id [key] of the destination
 };
 
 }
