@@ -28,6 +28,8 @@
 #include <ns3/lte-ccm-mac-sap.h>
 #include <ns3/traced-callback.h>
 
+#include <unordered_map>
+
 namespace ns3 {
 
 class NrUePhySapUser;
@@ -144,14 +146,18 @@ public:
   /**
    * \brief Sets the number of HARQ processes
    * \param numHarqProcesses the maximum number of harq processes
+   *
+   * Called by the helper at the moment of UE attachment
    */
   void SetNumHarqProcess (uint8_t numHarqProcesses);
 
   /**
    * \return number of HARQ processes
+   *
+   * Please remember that this number is obtained by the GNB, the UE
+   * cannot configure it.
    */
   uint8_t GetNumHarqProcess () const;
-
 
 protected:
   /**
@@ -171,9 +177,20 @@ protected:
   uint16_t GetCellId () const;
 
 private:
+  /**
+   * \brief Received a RA response
+   * \param raResponse the response
+   */
   void RecvRaResponse (BuildRarListElement_s raResponse);
+  /**
+   * \brief Set the RNTI
+   */
   void SetRnti (uint16_t);
-  void DoSlotIndication (SfnSf sfn);
+  /**
+   * \brief Do some work, we begin a new slot
+   * \param sfn the new slot
+   */
+  void DoSlotIndication (const SfnSf &sfn);
 
   /**
    * \brief Get the total size of the RLC buffers.
@@ -181,7 +198,17 @@ private:
    */
   uint32_t GetTotalBufSize () const __attribute__((warn_unused_result));
 
+  /**
+   * \brief Send to the PHY a SR
+   */
   void SendSR () const;
+  /**
+   * \brief Called by RLC to transmit a RLC PDU
+   * \param params the RLC params
+   *
+   * Please note that this call is triggered by communicating to the RLC
+   * that there is a new transmission opportunity with NotifyTxOpportunity().
+   */
   void DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params);
 
   /**
@@ -208,16 +235,7 @@ private:
   void AddLc (uint8_t lcId, LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu);
   void DoRemoveLc (uint8_t lcId);
   void DoReset ();
-  /**
-   * \brief Notify MAC about the successful RRC connection
-   * establishment.
-   */
   void DoNotifyConnectionSuccessful ();
-  /**
-   * \brief Set IMSI
-   *
-   * \param imsi the IMSI of the UE
-   */
   void DoSetImsi (uint64_t imsi);
 
   void RandomlySelectAndSendRaPreamble ();
@@ -225,10 +243,21 @@ private:
   void SendReportBufferStatus (void);
   void RefreshHarqProcessesPacketBuffer (void);
 
-  std::map<uint32_t, struct MacPduInfo>::iterator AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci,
-                                                                  unsigned activeLcs, const SfnSf &ulSfn);
+  /**
+   * \brief Create a new place in the MAC PDU map
+   * \param dci the DCI that triggered the new MAC PDU
+   * \param activeLcs number of active LC
+   * \param ulSfn the slot at which the data will be sent
+   * \return the iterator for the MAC PDU in the map
+   */
+  std::unordered_map<uint32_t, struct MacPduInfo>::iterator
+      AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci,
+                      unsigned activeLcs, const SfnSf &ulSfn);
 
-private:
+  /**
+   * \brief Process the received UL DCI
+   * \param dciMsg the UL DCI received
+   */
   void ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg);
 
 private:
@@ -239,13 +268,11 @@ private:
   NrUePhySapUser* m_phySapUser {nullptr};
   LteMacSapProvider* m_macSapProvider {nullptr};
 
-  SfnSf m_currentSlot;
-
+  SfnSf m_currentSlot;  //!< The current slot
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
+  std::unordered_map<uint32_t, struct MacPduInfo> m_macPduMap; //!< HarqId/PDU map
 
-  std::map<uint32_t, struct MacPduInfo> m_macPduMap;
-
-  std::map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters> m_ulBsrReceived;   // BSR received from RLC (the last one)
+  std::unordered_map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters> m_ulBsrReceived; //!< BSR received from RLC (the last one)
 
   /**
    * \brief States for the SR/BSR mechanism.
@@ -274,10 +301,11 @@ private:
   SrBsrMachine m_srState {INACTIVE};       //!< Current state for the SR/BSR machine.
 
   Ptr<UniformRandomVariable> m_raPreambleUniformVariable;
-  uint8_t m_raPreambleId {0};
-  uint8_t m_raRnti {0};
-  uint64_t m_imsi {0}; ///< IMSI
+  uint8_t m_raPreambleId {0}; //!< The RA Preamble ID
+  uint8_t m_raRnti {0};       //!< The RA Rnti
+  uint64_t m_imsi {0};        ///< IMSI
 
+  // The HARQ part has to be reviewed
   struct UlHarqProcessInfo
   {
     Ptr<PacketBurst> m_pktBurst;
@@ -287,8 +315,8 @@ private:
   };
 
   //uint8_t m_harqProcessId;
-  std::vector < UlHarqProcessInfo > m_miUlHarqProcessesPacket;   // Packets under trasmission of the UL HARQ processes
-  std::vector < uint8_t > m_miUlHarqProcessesPacketTimer;   // timer for packet life in the buffer
+  std::vector < UlHarqProcessInfo > m_miUlHarqProcessesPacket; //!< Packets under trasmission of the UL HARQ processes
+  std::vector < uint8_t > m_miUlHarqProcessesPacketTimer;      //!< timer for packet life in the buffer
 
   struct LcInfo
   {
@@ -296,11 +324,11 @@ private:
     LteMacSapUser* macSapUser;
   };
 
-  std::map <uint8_t, LcInfo> m_lcInfoMap;
+  std::unordered_map <uint8_t, LcInfo> m_lcInfoMap;
   uint16_t m_rnti {0};
 
-  bool m_waitingForRaResponse {true};
-  static uint8_t g_raPreambleId;
+  bool m_waitingForRaResponse {true}; //!< Indicates if we are waiting for a RA response
+  static uint8_t g_raPreambleId; //!< Preamble ID, fixed, the UEs will not have any collision
 
   /**
    * Trace information regarding Ue MAC Received Control Messages

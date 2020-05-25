@@ -359,7 +359,7 @@ NrUeMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 {
   NS_LOG_FUNCTION (this);
 
-  std::map<uint32_t, MacPduInfo>::iterator it = m_macPduMap.find (params.harqProcessId);
+  std::unordered_map<uint32_t, MacPduInfo>::iterator it = m_macPduMap.find (params.harqProcessId);
   GetSecond GetMacPduInfo;
   if (it == m_macPduMap.end ())
     {
@@ -455,12 +455,12 @@ NrUeMac::SendReportBufferStatus (void)
   bsr.m_macCeType = MacCeElement::BSR;
 
   // BSR is reported for each LCG
-  std::map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters>::iterator it;
+  std::unordered_map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters>::iterator it;
   std::vector<uint32_t> queue (4, 0);   // one value per each of the 4 LCGs, initialized to 0
   for (it = m_ulBsrReceived.begin (); it != m_ulBsrReceived.end (); it++)
     {
       uint8_t lcid = it->first;
-      std::map <uint8_t, LcInfo>::iterator lcInfoMapIt;
+      std::unordered_map <uint8_t, LcInfo>::iterator lcInfoMapIt;
       lcInfoMapIt = m_lcInfoMap.find (lcid);
       NS_ASSERT (lcInfoMapIt !=  m_lcInfoMap.end ());
       NS_ASSERT_MSG ((lcid != 0) || (((*it).second.txQueueSize == 0)
@@ -526,7 +526,7 @@ NrUeMac::RefreshHarqProcessesPacketBuffer (void)
 }
 
 void
-NrUeMac::DoSlotIndication (SfnSf sfn)
+NrUeMac::DoSlotIndication (const SfnSf &sfn)
 {
   NS_LOG_FUNCTION (this);
   m_currentSlot = sfn;
@@ -583,7 +583,7 @@ NrUeMac::DoReceivePhyPdu (Ptr<Packet> p)
               continue;
             }
 
-          std::map <uint8_t, LcInfo>::const_iterator it = m_lcInfoMap.find (macSubheaders[ipdu].m_lcid);
+          std::unordered_map <uint8_t, LcInfo>::const_iterator it = m_lcInfoMap.find (macSubheaders[ipdu].m_lcid);
           NS_ASSERT_MSG (it != m_lcInfoMap.end (), "received packet with unknown lcid");
           Ptr<Packet> rlcPdu;
           if ((p->GetSize () - currPos) < (uint32_t)macSubheaders[ipdu].m_size)
@@ -619,7 +619,7 @@ NrUeMac::RecvRaResponse (BuildRarListElement_s raResponse)
   m_cmacSapUser->NotifyRandomAccessSuccessful ();
 }
 
-std::map<uint32_t, struct MacPduInfo>::iterator
+std::unordered_map<uint32_t, struct MacPduInfo>::iterator
 NrUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
                          unsigned activeLcs, const SfnSf &ulSfn)
 {
@@ -628,7 +628,7 @@ NrUeMac::AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> &dci,
   NS_LOG_DEBUG ("Adding PDU at the position " << ulSfn);
 
   MacPduInfo macPduInfo (ulSfn, activeLcs, dci);
-  std::map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
+  std::unordered_map<uint32_t, struct MacPduInfo>::iterator it = m_macPduMap.find (dci->m_harqProcess);
 
   if (it != m_macPduMap.end ())
     {
@@ -657,7 +657,7 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
       m_miUlHarqProcessesPacket.at (dciInfoElem->m_harqProcess).m_pktBurst = pb;
       m_miUlHarqProcessesPacket.at (dciInfoElem->m_harqProcess).m_lcidList.clear ();
       // Retrieve data from RLC
-      std::map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters>::iterator itBsr;
+      std::unordered_map <uint8_t, LteMacSapProvider::ReportBufferStatusParameters>::iterator itBsr;
       uint16_t activeLcs = 0;
       uint32_t statusPduMinSize = 0;
       for (itBsr = m_ulBsrReceived.begin (); itBsr != m_ulBsrReceived.end (); itBsr++)
@@ -694,8 +694,8 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
           return;
         }
 
-      std::map<uint32_t, struct MacPduInfo>::iterator macPduIt = AddToMacPduMap (dciInfoElem, activeLcs, dataSfn);
-      std::map <uint8_t, LcInfo>::iterator lcIt;
+      std::unordered_map<uint32_t, struct MacPduInfo>::iterator macPduIt = AddToMacPduMap (dciInfoElem, activeLcs, dataSfn);
+      std::unordered_map <uint8_t, LcInfo>::iterator lcIt;
       uint32_t bytesPerActiveLc = dciInfoElem->m_tbSize / activeLcs;
       bool statusPduPriority = false;
       if ((statusPduMinSize != 0)&&(bytesPerActiveLc < statusPduMinSize))
