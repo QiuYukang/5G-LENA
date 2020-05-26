@@ -24,6 +24,7 @@
 #include "nr-mac-sched-sap.h"
 #include "nr-phy-sap.h"
 #include "nr-mac-scheduler.h"
+#include "nr-mac-pdu-info.h"
 
 #include <ns3/lte-enb-cmac-sap.h>
 #include <ns3/lte-mac-sap.h>
@@ -349,7 +350,7 @@ private:
 
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
-  std::map<uint32_t, struct NrMacPduInfo> m_macPduMap;
+  std::unordered_map<uint32_t, struct NrMacPduInfo> m_macPduMap;
 
   Callback <void, Ptr<Packet> > m_forwardUpCallback;
 
@@ -358,13 +359,13 @@ private:
   std::vector <MacCeElement> m_ulCeReceived;   // CE received (BSR up to now)
 
 
-  std::map<uint8_t, uint32_t> m_receivedRachPreambleCount;
+  std::unordered_map<uint8_t, uint32_t> m_receivedRachPreambleCount;
 
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> > m_rlcAttached;
+  std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> > m_rlcAttached;
 
   std::vector <DlHarqInfo> m_dlHarqInfoReceived;   // DL HARQ feedback received
   std::vector <UlHarqInfo> m_ulHarqInfoReceived;   // UL HARQ feedback received
-  std::map <uint16_t, NrDlHarqProcessesBuffer_t> m_miDlHarqProcessesPackets;   // Packet under trasmission of the DL HARQ process
+  std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t> m_miDlHarqProcessesPackets;   // Packet under trasmission of the DL HARQ process
 
   /* That's horribly broken: in the class the DlScheduling attribute refers to
    * the LteGnbMac signature */
@@ -372,7 +373,7 @@ private:
 
   std::list<uint16_t> m_srRntiList; //!< List of RNTI that requested a SR
 
-  std::map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
+  std::unordered_map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
 

@@ -790,7 +790,7 @@ NrGnbMac::DoReceivePhyPdu (Ptr<Packet> p)
   uint16_t rnti = tag.GetRnti ();
   NrMacPduHeader macHeader;
   p->RemoveHeader (macHeader);
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
+  std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
   std::vector<MacSubheader> macSubheaders = macHeader.GetSubheaders ();
   uint32_t currPos = 0;
@@ -800,7 +800,7 @@ NrGnbMac::DoReceivePhyPdu (Ptr<Packet> p)
         {
           continue;
         }
-      std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (macSubheaders[ipdu].m_lcid);
+      std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (macSubheaders[ipdu].m_lcid);
       NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << macSubheaders[ipdu].m_lcid);
       Ptr<Packet> rlcPdu;
       if ((p->GetSize () - currPos) < (uint32_t)macSubheaders[ipdu].m_size)
@@ -932,7 +932,7 @@ NrGnbMac::DoDlHarqFeedback (const DlHarqInfo &params)
 {
   NS_LOG_FUNCTION (this);
   // Update HARQ buffer
-  std::map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it =  m_miDlHarqProcessesPackets.find (params.m_rnti);
+  std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it =  m_miDlHarqProcessesPackets.find (params.m_rnti);
   NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
 
   if (params.m_harqStatus == DlHarqInfo::ACK)
@@ -977,10 +977,9 @@ NrGnbMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters 
 void
 NrGnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 {
-  params.componentCarrierId = GetBwpId ();
   // TB UID passed back along with RLC data as HARQ process ID
   uint32_t tbMapKey = ((params.rnti & 0xFFFF) << 8) | (params.harqProcessId & 0xFF);
-  std::map<uint32_t, struct NrMacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
+  std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
   if (it == m_macPduMap.end ())
     {
       NS_FATAL_ERROR ("No MAC PDU storage element found for this TB UID/RNTI");
@@ -1019,7 +1018,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
   rarMsg->SetSourceBwp (GetBwpId ());
   for (const auto & rarAllocation : ind.m_buildRarList)
     {
-      std::map <uint8_t, uint32_t>::iterator itRapId = m_rapIdRntiMap.find (rarAllocation.m_rnti);
+      std::unordered_map <uint8_t, uint32_t>::iterator itRapId = m_rapIdRntiMap.find (rarAllocation.m_rnti);
       if (itRapId == m_rapIdRntiMap.end ())
         {
           NS_FATAL_ERROR ("Unable to find rapId of RNTI " << rarAllocation.m_rnti);
@@ -1047,7 +1046,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
           && varTtiAllocInfo.m_dci->m_format == DciInfoElementTdma::DL)
         {
           uint16_t rnti = varTtiAllocInfo.m_dci->m_rnti;
-          std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
+          std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
           if (rntiIt == m_rlcAttached.end ())
             {
               NS_FATAL_ERROR ("Scheduled UE " << rntiIt->first << " not attached");
@@ -1068,7 +1067,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   NrMacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), dciElem);
                   // insert into MAC PDU map
                   uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
-                  std::pair <std::map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet =
+                  std::pair <std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet =
                     m_macPduMap.insert (std::pair<uint32_t, struct NrMacPduInfo> (tbMapKey, macPduInfo));
                   if (!mapRet.second)
                     {
@@ -1076,18 +1075,18 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                     }
 
                   // new data -> force emptying correspondent harq pkt buffer
-                  std::map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator harqIt = m_miDlHarqProcessesPackets.find (rnti);
+                  std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator harqIt = m_miDlHarqProcessesPackets.find (rnti);
                   NS_ASSERT (harqIt != m_miDlHarqProcessesPackets.end ());
                   Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
                   harqIt->second.at (tbUid).m_pktBurst = pb;
                   harqIt->second.at (tbUid).m_lcidList.clear ();
 
-                  std::map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
+                  std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
                   pduMapIt->second.m_numRlcPdu = 0;
                   for (unsigned int ipdu = 0; ipdu < rlcPduInfo.size (); ipdu++)
                     {
                       NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
-                      std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (rlcPduInfo[ipdu].m_lcid);
+                      std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (rlcPduInfo[ipdu].m_lcid);
                       NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << rlcPduInfo[ipdu].m_lcid);
                       NS_LOG_DEBUG ("Notifying RLC of TX opportunity for TB " << (unsigned int)tbUid << " PDU num " << ipdu << " size " << (unsigned int) rlcPduInfo[ipdu].m_size);
                       MacSubheader subheader (rlcPduInfo[ipdu].m_lcid, rlcPduInfo[ipdu].m_size);
@@ -1133,7 +1132,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   NS_LOG_INFO ("DL retransmission");
                   if (dciElem->m_tbSize > 0)
                     {
-                      std::map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (rnti);
+                      std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (rnti);
                       NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
                       Ptr<PacketBurst> pb = it->second.at (tbUid).m_pktBurst;
                       for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
@@ -1247,9 +1246,9 @@ void
 NrGnbMac::DoAddUe (uint16_t rnti)
 {
   NS_LOG_FUNCTION (this << " rnti=" << rnti);
-  std::map<uint8_t, LteMacSapUser*> empty;
-  std::pair <std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator, bool>
-  ret = m_rlcAttached.insert (std::pair <uint16_t,  std::map<uint8_t, LteMacSapUser*> >
+  std::unordered_map<uint8_t, LteMacSapUser*> empty;
+  std::pair <std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator, bool>
+  ret = m_rlcAttached.insert (std::pair <uint16_t,  std::unordered_map<uint8_t, LteMacSapUser*> >
                                 (rnti, empty));
   NS_ASSERT_MSG (ret.second, "element already present, RNTI already existed");
 
@@ -1289,13 +1288,13 @@ NrGnbMac::DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu)
   NS_LOG_FUNCTION (this);
   NS_LOG_FUNCTION (this);
 
-  std::map <LteFlowId_t, LteMacSapUser* >::iterator it;
+  std::unordered_map <LteFlowId_t, LteMacSapUser* >::iterator it;
 
   LteFlowId_t flow (lcinfo.rnti, lcinfo.lcId);
 
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (lcinfo.rnti);
+  std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (lcinfo.rnti);
   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "RNTI not found");
-  std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (lcinfo.lcId);
+  std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (lcinfo.lcId);
   if (lcidIt == rntiIt->second.end ())
     {
       rntiIt->second.insert (std::pair<uint8_t, LteMacSapUser*> (lcinfo.lcId, msu));
@@ -1341,7 +1340,7 @@ void
 NrGnbMac::DoReleaseLc (uint16_t rnti, uint8_t lcid)
 {
   //Find user based on rnti and then erase lcid stored against the same
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
+  std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
   rntiIt->second.erase (lcid);
 
   struct NrMacCschedSapProvider::CschedLcReleaseReqParameters params;
