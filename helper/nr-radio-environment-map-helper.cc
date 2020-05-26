@@ -371,8 +371,8 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDev
       NS_FATAL_ERROR ("Unknown REM mode");
     }
   PrintRemToFile ();
-  PrintGnuplottableUeListToFile ("ues.txt");
-  PrintGnuplottableEnbListToFile ("enbs.txt");
+  PrintGnuplottableUeListToFile ("nr-ues.txt");
+  PrintGnuplottableEnbListToFile ("nr-enbs.txt");
 }
 
 void
@@ -535,13 +535,15 @@ NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValu
         it!=receivedPowerList.end(); it++)
     {
       //all signals - rxPower = interference
-      std::list <Ptr<SpectrumValue>> interferenceSignals;//{receivedPowerList.size()-1};
+      std::list <Ptr<SpectrumValue>> interferenceSignals;
+      std::list <Ptr<SpectrumValue>>::const_iterator tempit = it;
+
       if (it!=receivedPowerList.begin())
         {
           interferenceSignals.insert (interferenceSignals.begin(), receivedPowerList.begin(), it);
         }
-      std::list <Ptr<SpectrumValue>>::const_iterator tempit = it;
-      interferenceSignals.insert (interferenceSignals.end(), tempit++, receivedPowerList.end ());
+
+      interferenceSignals.insert (interferenceSignals.end(), ++tempit, receivedPowerList.end ());
       NS_ASSERT(interferenceSignals.size()==receivedPowerList.size()-1);
       sinrList.push_back (CalculateSinr (*it, interferenceSignals));
     }
@@ -576,7 +578,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
                // calculate received power from the current RTD device
               receivedPowerList.push_back (CalcRxPsdValue (*itRemPoint, *itRtd));
 
-              NS_LOG_INFO ("Done:" <<
+              NS_LOG_UNCOND ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
                              " %."); // how many times will be called CalcRxPsdValues
 
@@ -681,7 +683,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
               sinrsPerBeam.push_back (CalculateSinr (usefulSignalRxPsd, interferenceSignalsRxPsds));
               snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
 
-              NS_LOG_INFO ("Done:" <<
+              NS_LOG_UNCOND ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()*m_remDev.size()) * 100 <<
                              " %."); // how many times will be called CalcRxPsdValues
 
