@@ -225,8 +225,8 @@ main (int argc, char *argv[])
   gridScenario.SetUtHeight (1.5);
   gridScenario.SetBsNumber (gNbNum);
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
-  gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
-  gridScenario.SetScenarioLength (3); // be distribuited.
+  gridScenario.SetScenarioHeight (20); // Create a 3x3 scenario where the UE will
+  gridScenario.SetScenarioLength (20); // be distribuited.
   gridScenario.CreateScenario ();
 
   /*
