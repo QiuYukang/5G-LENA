@@ -25,7 +25,6 @@
 #include <ns3/trace-source-accessor.h>
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
-#include "nr-mac-pdu-tag.h"
 #include "nr-lte-mi-error-model.h"
 
 
@@ -609,7 +608,7 @@ NrSpectrumPhy::GetNrInterference (void) const
 void
 NrSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t mcs,
                                   const std::vector<int> &rbMap, uint8_t harqId, uint8_t rv, bool downlink,
-                                  uint8_t symStart, uint8_t numSym)
+                                  uint8_t symStart, uint8_t numSym, const SfnSf &sfn)
 {
   NS_LOG_FUNCTION (this);
   auto it = m_transportBlocks.find (rnti);
@@ -622,7 +621,7 @@ NrSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t
   m_transportBlocks.emplace (std::make_pair(rnti, TransportBlockInfo(ExpectedTb (ndi, size, mcs,
                                                                                 rbMap, harqId, rv,
                                                                                 downlink, symStart,
-                                                                                numSym))));
+                                                                                numSym, sfn))));
   NS_LOG_INFO ("Add expected TB for rnti " << rnti << " size=" << size <<
                " mcs=" << static_cast<uint32_t> (mcs) << " symstart=" <<
                static_cast<uint32_t> (symStart) << " numSym=" <<
@@ -970,17 +969,11 @@ NrSpectrumPhy::EndRxData ()
               NS_LOG_INFO ("TB failed");
             }
 
-          NrMacPduTag pduTag;
-          if (packet->PeekPacketTag (pduTag) == false)
-            {
-              NS_FATAL_ERROR ("No radio bearer tag found");
-            }
-
           RxPacketTraceParams traceParams;
           traceParams.m_tbSize = GetTBInfo(*itTb).m_expected.m_tbSize;
-          traceParams.m_frameNum = pduTag.GetSfn ().GetFrame ();
-          traceParams.m_subframeNum = pduTag.GetSfn ().GetSubframe ();
-          traceParams.m_slotNum = pduTag.GetSfn ().GetSlot ();
+          traceParams.m_frameNum = GetTBInfo(*itTb).m_expected.m_sfn.GetFrame ();
+          traceParams.m_subframeNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSubframe ();
+          traceParams.m_slotNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSlot ();
           traceParams.m_rnti = rnti;
           traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
           traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;

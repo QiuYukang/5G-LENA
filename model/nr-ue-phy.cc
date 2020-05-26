@@ -31,6 +31,8 @@
 #include "nr-ue-net-device.h"
 #include "nr-spectrum-value-helper.h"
 #include "nr-ch-access-manager.h"
+#include "nr-mac-pdu-header.h"
+
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -759,7 +761,7 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, true,
-                                        dci->m_symStart, dci->m_numSym);
+                                        dci->m_symStart, dci->m_numSym, m_currentSlot);
   m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL DATA frame for"
@@ -783,9 +785,6 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   if (pktBurst && pktBurst->GetNPackets () > 0)
     {
       std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
-      NrMacPduTag tag;
-      pkts.front ()->PeekPacketTag (tag);
-
       LteRadioBearerTag bearerTag;
       if (!pkts.front ()->PeekPacketTag (bearerTag))
         {
@@ -797,13 +796,11 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       NS_LOG_WARN ("Send an empty PDU .... ");
       // sometimes the UE will be scheduled when no data is queued
       // in this case, send an empty PDU
-      NrMacPduTag tag (m_currentSlot, dci->m_symStart, dci->m_numSym);
       Ptr<Packet> emptyPdu = Create <Packet> ();
       NrMacPduHeader header;
       MacSubheader subheader (3, 0);    // lcid = 3, size = 0
       header.AddSubheader (subheader);
       emptyPdu->AddHeader (header);
-      emptyPdu->AddPacketTag (tag);
       LteRadioBearerTag bearerTag (m_rnti, 3, 0);
       emptyPdu->AddPacketTag (bearerTag);
       pktBurst = CreateObject<PacketBurst> ();

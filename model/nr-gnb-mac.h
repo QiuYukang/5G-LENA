@@ -20,11 +20,11 @@
 #ifndef NR_ENB_MAC_H
 #define NR_ENB_MAC_H
 
-#include "nr-mac.h"
 #include "nr-phy-mac-common.h"
 #include "nr-mac-sched-sap.h"
 #include "nr-phy-sap.h"
 #include "nr-mac-scheduler.h"
+#include "nr-mac-pdu-info.h"
 
 #include <ns3/lte-enb-cmac-sap.h>
 #include <ns3/lte-mac-sap.h>
@@ -70,8 +70,18 @@ class NrGnbMac : public Object
   friend class MemberLteCcmMacSapProvider<NrGnbMac>;
 
 public:
+  /**
+   * \brief Get the TypeId
+   * \return the TypeId
+   */
   static TypeId GetTypeId (void);
+  /**
+   * \brief NrGnbMac constructor
+   */
   NrGnbMac (void);
+  /**
+   * \brief ~NrGnbMac
+   */
   virtual ~NrGnbMac (void) override;
 
   /**
@@ -252,14 +262,14 @@ protected:
   uint16_t GetCellId () const;
 
   /**
-   * \brief GetDlCtrlAllocation
-   * \return
+   * \brief Get a DCI for the DL CTRL symbol
+   * \return a DL CTRL allocation
    */
   std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci () const;
 
   /**
-   * \brief GetUlCtrlAllocation
-   * \return
+   * \brief Get a DCI for the UL CTRL symbol
+   * \return a UL CTRL allocation
    */
   std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci () const;
 
@@ -299,8 +309,24 @@ private:
   LteEnbCmacSapProvider::RachConfig DoGetRachConfig ();
   LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue DoAllocateNcRaPreamble (uint16_t rnti);
 
-  void DoDlHarqFeedback (DlHarqInfo params);
-  void DoUlHarqFeedback (UlHarqInfo params);
+  /**
+   * \brief Process the newly received DL HARQ feedback
+   * \param params the DL HARQ feedback
+   */
+  void DoDlHarqFeedback (const DlHarqInfo &params);
+  /**
+   * \brief Process the newly received UL HARQ feedback
+   * \param params the UL HARQ feedback
+   */
+  void DoUlHarqFeedback (const UlHarqInfo &params);
+
+  /**
+   * \brief Send to PHY the RAR messages
+   * \param rarList list of messages that come from scheduler
+   *
+   * Clears m_rapIdRntiMap.
+   */
+  void SendRar (const std::vector<BuildRarListElement_s> &rarList);
 
 private:
   struct NrDlHarqProcessInfo
@@ -332,7 +358,7 @@ private:
 
   uint8_t m_numHarqProcess {20}; //!< number of HARQ processes
 
-  std::map<uint32_t, struct MacPduInfo> m_macPduMap;
+  std::unordered_map<uint32_t, struct NrMacPduInfo> m_macPduMap;
 
   Callback <void, Ptr<Packet> > m_forwardUpCallback;
 
@@ -341,13 +367,13 @@ private:
   std::vector <MacCeElement> m_ulCeReceived;   // CE received (BSR up to now)
 
 
-  std::map<uint8_t, uint32_t> m_receivedRachPreambleCount;
+  std::unordered_map<uint8_t, uint32_t> m_receivedRachPreambleCount;
 
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> > m_rlcAttached;
+  std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> > m_rlcAttached;
 
   std::vector <DlHarqInfo> m_dlHarqInfoReceived;   // DL HARQ feedback received
   std::vector <UlHarqInfo> m_ulHarqInfoReceived;   // UL HARQ feedback received
-  std::map <uint16_t, NrDlHarqProcessesBuffer_t> m_miDlHarqProcessesPackets;   // Packet under trasmission of the DL HARQ process
+  std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t> m_miDlHarqProcessesPackets;   // Packet under trasmission of the DL HARQ process
 
   /* That's horribly broken: in the class the DlScheduling attribute refers to
    * the LteGnbMac signature */
@@ -355,7 +381,7 @@ private:
 
   std::list<uint16_t> m_srRntiList; //!< List of RNTI that requested a SR
 
-  std::map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
+  std::unordered_map<uint8_t, uint32_t> m_rapIdRntiMap; //!< RAPID RNTI map
 
   TracedCallback<uint8_t, uint16_t> m_srCallback; //!< Callback invoked when a UE requested a SR
 
