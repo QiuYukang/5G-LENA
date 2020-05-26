@@ -317,7 +317,7 @@ void
 HexagonalGridScenarioHelper::SetUMiParameters ()
 {
   m_isd = 200;
-  m_bsHeight = 25.0;
+  m_bsHeight = 10.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 3;
