@@ -320,6 +320,14 @@ private:
    */
   void DoUlHarqFeedback (const UlHarqInfo &params);
 
+  /**
+   * \brief Send to PHY the RAR messages
+   * \param rarList list of messages that come from scheduler
+   *
+   * Clears m_rapIdRntiMap.
+   */
+  void SendRar (const std::vector<BuildRarListElement_s> &rarList);
+
 private:
   struct NrDlHarqProcessInfo
   {
