@@ -268,6 +268,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
 {
     m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
+    PrintGnuplottableUeListToFile ("nr-ues.txt");
+
     //Get Ue Phy
     Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
     Ptr<const MmWaveUePhy> rrdPhy = mmwUeNetDev->GetPhy (bwpId);
@@ -371,7 +373,6 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDev
       NS_FATAL_ERROR ("Unknown REM mode");
     }
   PrintRemToFile ();
-  PrintGnuplottableUeListToFile ("nr-ues.txt");
   PrintGnuplottableEnbListToFile ("nr-enbs.txt");
 }
 
