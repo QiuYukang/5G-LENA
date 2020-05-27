@@ -604,10 +604,13 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
 
 
 double
-NrRadioEnvironmentMapHelper::GetMaxValue(std::list<double> listOfValues)
+NrRadioEnvironmentMapHelper::GetMaxValue (const std::list<double>& listOfValues) const
 {
-  double maxValue = 0;
-  for (std::list<double>::iterator it = listOfValues.begin(); it != listOfValues.end(); it++ )
+  NS_ABORT_MSG_IF (listOfValues.size(), "GetMaxValue should not be called with an empty list.");
+
+  double maxValue = *(listOfValues.begin());
+  //start from second element, the first is already taken into account
+  for(auto it = ++listOfValues.begin(); it != listOfValues.end(); ++it)
     {
       if (*it > maxValue)
         {
