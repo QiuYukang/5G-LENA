@@ -239,7 +239,7 @@ private:
    */
   void CalcBeamShapeRemMap ();
 
-  double GetMaxValues (const std::list<double>& listOfValues) const;
+  double GetMaxValue (const std::list<double>& listOfValues) const;
 
 
   void CalcCoverageAreaRemMap ();
