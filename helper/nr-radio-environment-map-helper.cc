@@ -469,7 +469,7 @@ Ptr<SpectrumValue>
 NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& values)
 {
   //TODO add this abort, if necessary add include for abort.h
-  //NS_ABORT_IF(value.size()==0, "Must provide a list of values.");
+  NS_ABORT_MSG_IF(values.size() == 0, "Must provide a list of values.");
 
   Ptr<SpectrumValue> maxValue = *(values.begin());
 
@@ -485,7 +485,7 @@ NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& v
 
 double NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
 {
-   Ptr<SpectrumValue> maxSnr = GetMaxValue(receivedPowerList);
+   Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
    SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
    return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
