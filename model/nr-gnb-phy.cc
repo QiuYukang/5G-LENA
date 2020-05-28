@@ -38,7 +38,6 @@
 #include "nr-gnb-net-device.h"
 #include "nr-radio-bearer-tag.h"
 #include "nr-ch-access-manager.h"
-#include "nr-mac-pdu-header.h"
 
 #include <ns3/node-list.h>
 #include <ns3/node.h>
@@ -1114,15 +1113,6 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
       // put an error, as something is wrong. The UE should not be scheduled
       // if there is no data for him...
       NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
-      Ptr<Packet> emptyPdu = Create <Packet> ();
-      NrMacPduHeader header;
-      MacSubheader subheader (3, 0);    // lcid = 3, size = 0
-      header.AddSubheader (subheader);
-      emptyPdu->AddHeader (header);
-      LteRadioBearerTag bearerTag (dci->m_rnti, 3, 0);
-      emptyPdu->AddPacketTag (bearerTag);
-      pktBurst = CreateObject<PacketBurst> ();
-      pktBurst->AddPacket (emptyPdu);
     }
 
   NS_LOG_INFO ("ENB TXing DL DATA frame " << m_currentSlot <<

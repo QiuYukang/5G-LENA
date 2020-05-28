@@ -614,7 +614,6 @@ GetNameMap (void)
     NrMacSchedulerOfdmaPF::GetTypeId (),
     NrMacSchedulerOfdmaMR::GetTypeId (),
     NrMacSchedulerNs3::GetTypeId (),
-    NrMacPduHeader::GetTypeId (),
     nrInterference::GetTypeId (),
     NrHelper::GetTypeId (),
     NrGnbPhy::GetTypeId (),

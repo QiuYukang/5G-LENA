@@ -27,11 +27,11 @@
 
 #include "nr-gnb-mac.h"
 #include "nr-phy-mac-common.h"
-#include "nr-mac-pdu-header.h"
 #include "nr-mac-sched-sap.h"
 #include "nr-mac-scheduler.h"
 #include "nr-control-messages.h"
 #include "nr-mac-pdu-info.h"
+#include "nr-mac-header-vs.h"
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
 #include <ns3/spectrum-model.h>
@@ -785,44 +785,28 @@ void
 NrGnbMac::DoReceivePhyPdu (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this);
+
   LteRadioBearerTag tag;
   p->RemovePacketTag (tag);
+
   uint16_t rnti = tag.GetRnti ();
-  NrMacPduHeader macHeader;
-  p->RemoveHeader (macHeader);
-  std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
+  auto rntiIt = m_rlcAttached.find (rnti);
+
   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
-  std::vector<MacSubheader> macSubheaders = macHeader.GetSubheaders ();
-  uint32_t currPos = 0;
-  for (unsigned ipdu = 0; ipdu < macSubheaders.size (); ipdu++)
+
+  NrMacHeaderVs macHeader;
+  p->RemoveHeader (macHeader);
+
+  auto lcidIt = rntiIt->second.find (macHeader.GetLcId ());
+
+  LteMacSapUser::ReceivePduParameters rxParams;
+  rxParams.p = p;
+  rxParams.lcid = macHeader.GetLcId ();
+  rxParams.rnti = rnti;
+
+  if (rxParams.p->GetSize ())
     {
-      if (macSubheaders[ipdu].m_size == 0)
-        {
-          continue;
-        }
-      std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (macSubheaders[ipdu].m_lcid);
-      NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << macSubheaders[ipdu].m_lcid);
-      Ptr<Packet> rlcPdu;
-      if ((p->GetSize () - currPos) < (uint32_t)macSubheaders[ipdu].m_size)
-        {
-          NS_LOG_ERROR ("Packet size less than specified in MAC header (actual= " \
-                        << p->GetSize () << " header= " << (uint32_t)macSubheaders[ipdu].m_size << ")" );
-        }
-      else if ((p->GetSize () - currPos) > (uint32_t)macSubheaders[ipdu].m_size)
-        {
-          NS_LOG_DEBUG ("Fragmenting MAC PDU (packet size greater than specified in MAC header (actual= " \
-                        << p->GetSize () << " header= " << (uint32_t)macSubheaders[ipdu].m_size << ")" );
-          rlcPdu = p->CreateFragment (currPos, macSubheaders[ipdu].m_size);
-          currPos += macSubheaders[ipdu].m_size;
-          (*lcidIt).second->ReceivePdu (LteMacSapUser::ReceivePduParameters (rlcPdu, rnti, macSubheaders[ipdu].m_lcid));
-        }
-      else
-        {
-          rlcPdu = p->CreateFragment (currPos, p->GetSize () - currPos);
-          currPos = p->GetSize ();
-          (*lcidIt).second->ReceivePdu (LteMacSapUser::ReceivePduParameters (rlcPdu, rnti, macSubheaders[ipdu].m_lcid));
-        }
-      NS_LOG_DEBUG ("Enb Mac Rx Packet, Rnti:" << rnti << " lcid:" << macSubheaders[ipdu].m_lcid << " size:" << macSubheaders[ipdu].m_size);
+      (*lcidIt).second->ReceivePdu (rxParams);
     }
 }
 
@@ -979,26 +963,26 @@ NrGnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 {
   // TB UID passed back along with RLC data as HARQ process ID
   uint32_t tbMapKey = ((params.rnti & 0xFFFF) << 8) | (params.harqProcessId & 0xFF);
-  std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator it = m_macPduMap.find (tbMapKey);
+  auto harqIt = m_miDlHarqProcessesPackets.find (params.rnti);
+  auto it = m_macPduMap.find (tbMapKey);
+
   if (it == m_macPduMap.end ())
     {
       NS_FATAL_ERROR ("No MAC PDU storage element found for this TB UID/RNTI");
     }
-  else
-    {
-      if (it->second.m_pdu == 0)
-        {
-          it->second.m_pdu = params.pdu;
-        }
-      else
-        {
-          it->second.m_pdu->AddAtEnd (params.pdu);   // append to MAC PDU
-        }
 
-      MacSubheader subheader (params.lcid, params.pdu->GetSize ());
-      it->second.m_macHeader.AddSubheader (subheader);   // add RLC PDU sub-header into MAC header
-      it->second.m_numRlcPdu++;
-    }
+  NrMacHeaderVs header;
+  header.SetLcId (params.lcid);
+  header.SetSize (params.pdu->GetSize ());
+
+  params.pdu->AddHeader (header);
+
+  LteRadioBearerTag bearerTag (params.rnti, params.lcid, 0);
+  params.pdu->AddPacketTag (bearerTag);
+
+  harqIt->second.at (params.harqProcessId).m_pktBurst->AddPacket (params.pdu);
+
+  m_phySapProvider->SendMacPdu (params.pdu, it->second.m_sfnSf, it->second.m_dci->m_symStart);
 }
 
 void
@@ -1066,7 +1050,7 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
               NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
               std::vector<RlcPduInfo> &rlcPduInfo = varTtiAllocInfo.m_rlcPduInfo;
               NS_ASSERT (rlcPduInfo.size () > 0);
-              NrMacPduInfo macPduInfo (ind.m_sfnSf, rlcPduInfo.size (), dciElem);
+              NrMacPduInfo macPduInfo (ind.m_sfnSf, dciElem);
               // insert into MAC PDU map
               uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
               std::pair <std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet =
@@ -1084,46 +1068,17 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
               harqIt->second.at (tbUid).m_lcidList.clear ();
 
               std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
-              pduMapIt->second.m_numRlcPdu = 0;
               for (unsigned int ipdu = 0; ipdu < rlcPduInfo.size (); ipdu++)
                 {
                   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
                   std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (rlcPduInfo[ipdu].m_lcid);
                   NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << rlcPduInfo[ipdu].m_lcid);
                   NS_LOG_DEBUG ("Notifying RLC of TX opportunity for TB " << (unsigned int)tbUid << " PDU num " << ipdu << " size " << (unsigned int) rlcPduInfo[ipdu].m_size);
-                  MacSubheader subheader (rlcPduInfo[ipdu].m_lcid, rlcPduInfo[ipdu].m_size);
-
-                  // The MAC and RLC already consider 2 bytes for the header.
-                  // that's a repetition, and prevent transmitting very small
-                  // portions.
-                  //(*lcidIt).second->NotifyTxOpportunity ((rlcPduInfo[ipdu].m_size)-subheader.GetSize (), 0, tbUid, GetBwpId (), rnti, rlcPduInfo[ipdu].m_lcid);
 
                   (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo[ipdu].m_size), 0, tbUid, GetBwpId (), rnti, rlcPduInfo[ipdu].m_lcid));
                   harqIt->second.at (tbUid).m_lcidList.push_back (rlcPduInfo[ipdu].m_lcid);
                 }
 
-              if (pduMapIt->second.m_numRlcPdu == 0)
-                {
-                  MacSubheader subheader (3, 0);    // add subheader for empty packet
-                  pduMapIt->second.m_macHeader.AddSubheader (subheader);
-                }
-              pduMapIt->second.m_pdu->AddHeader (pduMapIt->second.m_macHeader);
-
-              NrMacPduHeader hdrTst;
-              pduMapIt->second.m_pdu->PeekHeader (hdrTst);
-
-              NS_ASSERT (pduMapIt->second.m_pdu->GetSize () > 0);
-              LteRadioBearerTag bearerTag (rnti, pduMapIt->second.m_dci->m_tbSize, 0);
-              pduMapIt->second.m_pdu->AddPacketTag (bearerTag);
-              NS_LOG_DEBUG ("gNB sending MAC pdu size " << pduMapIt->second.m_pdu->GetSize ());
-              for (unsigned i = 0; i < pduMapIt->second.m_macHeader.GetSubheaders ().size (); i++)
-                {
-                  NS_LOG_DEBUG ("Subheader " << i << " size " << pduMapIt->second.m_macHeader.GetSubheaders ().at (i).m_size);
-                }
-              NS_LOG_DEBUG ("Total MAC PDU size " << pduMapIt->second.m_pdu->GetSize ());
-              harqIt->second.at (tbUid).m_pktBurst->AddPacket (pduMapIt->second.m_pdu);
-
-              m_phySapProvider->SendMacPdu (pduMapIt->second.m_pdu, ind.m_sfnSf, pduMapIt->second.m_dci->m_symStart);
               m_macPduMap.erase (pduMapIt);    // delete map entry
 
               m_dlScheduling (ind.m_sfnSf.GetFrame (), ind.m_sfnSf.GetSubframe (), ind.m_sfnSf.GetSlot (),

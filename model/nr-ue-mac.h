@@ -245,13 +245,11 @@ private:
   /**
    * \brief Create a new place in the MAC PDU map
    * \param dci the DCI that triggered the new MAC PDU
-   * \param activeLcs number of active LC
    * \param ulSfn the slot at which the data will be sent
    * \return the iterator for the MAC PDU in the map
    */
   std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator
-      AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci,
-                      unsigned activeLcs, const SfnSf &ulSfn);
+  AddToMacPduMap (const std::shared_ptr<DciInfoElementTdma> & dci, const SfnSf &ulSfn);
 
   /**
    * \brief Process the received UL DCI

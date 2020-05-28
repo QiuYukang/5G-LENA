@@ -31,7 +31,6 @@
 #include "nr-ue-net-device.h"
 #include "nr-spectrum-value-helper.h"
 #include "nr-ch-access-manager.h"
-#include "nr-mac-pdu-header.h"
 
 #include <ns3/log.h>
 #include <ns3/simulator.h>
@@ -793,18 +792,9 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   else
     {
-      NS_LOG_WARN ("Send an empty PDU .... ");
-      // sometimes the UE will be scheduled when no data is queued
-      // in this case, send an empty PDU
-      Ptr<Packet> emptyPdu = Create <Packet> ();
-      NrMacPduHeader header;
-      MacSubheader subheader (3, 0);    // lcid = 3, size = 0
-      header.AddSubheader (subheader);
-      emptyPdu->AddHeader (header);
-      LteRadioBearerTag bearerTag (m_rnti, 3, 0);
-      emptyPdu->AddPacketTag (bearerTag);
-      pktBurst = CreateObject<PacketBurst> ();
-      pktBurst->AddPacket (emptyPdu);
+      // put an error, as something is wrong. The UE should not be scheduled
+      // if there is no data for him...
+      NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
     }
   m_reportUlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
 
