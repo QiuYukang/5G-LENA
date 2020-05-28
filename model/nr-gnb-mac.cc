@@ -1290,8 +1290,6 @@ NrGnbMac::DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu)
   NS_LOG_FUNCTION (this);
   NS_LOG_FUNCTION (this);
 
-  std::unordered_map <LteFlowId_t, LteMacSapUser* >::iterator it;
-
   LteFlowId_t flow (lcinfo.rnti, lcinfo.lcId);
 
   std::unordered_map <uint16_t, std::unordered_map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (lcinfo.rnti);
