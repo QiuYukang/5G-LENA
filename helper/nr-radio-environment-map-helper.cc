@@ -39,6 +39,10 @@
 #include "ns3/mmwave-ue-net-device.h"
 #include <ns3/mmwave-spectrum-phy.h>
 #include <ns3/spectrum-converter.h>
+#include <ns3/buildings-module.h>
+#include <ns3/mobility-building-info.h>
+
+
 
 #include <chrono>
 #include <ctime>
@@ -267,8 +271,10 @@ NrRadioEnvironmentMapHelper::GetZ () const
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
     m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
-
     PrintGnuplottableUeListToFile ("nr-ues.txt");
+
+    Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
+    m_rrd.mob->AggregateObject (buildingInfo);
 
     //Get Ue Phy
     Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
@@ -289,6 +295,9 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
       RemDevice rtd;
 
       rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
+
+      Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
+      rtd.mob->AggregateObject (buildingInfo);
 
       Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
       Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy (bwpId);
@@ -337,7 +346,8 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const MmWa
   NS_ASSERT_MSG (m_spectrumLossModel, "m_spectrumLossModel is null");
 
   /***** configure channel condition model factory *****/
-  m_channelConditionModelFactory.SetTypeId (m_propagationLossModel->GetChannelConditionModel ()->GetInstanceTypeId ());
+  //m_channelConditionModelFactory.SetTypeId (m_propagationLossModel->GetChannelConditionModel ()->GetInstanceTypeId ());
+  m_channelConditionModelFactory.SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
   /***** configure pathloss model factory *****/
   m_propagationLossModelFactory.SetTypeId (m_propagationLossModel->GetInstanceTypeId ());
   /***** configure spectrum model factory *****/
@@ -374,6 +384,7 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDev
     }
   PrintRemToFile ();
   PrintGnuplottableEnbListToFile ("nr-enbs.txt");
+  PrintGnuplottableBuildingListToFile ("nr-buildings.txt");
 }
 
 void
@@ -464,7 +475,6 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemPoint& itRemPoint, RemDevice& it
   return rxPsd;
 }
 
-
 Ptr<SpectrumValue>
 NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& values)
 {
@@ -496,7 +506,6 @@ double NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usef
    return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
-
 double
 NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
                                             const std::list <Ptr<SpectrumValue>>& interferenceSignals)
@@ -524,7 +533,6 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
   // calculate average sinr over RBs, convert it from linear to dB units, and return it
   return 10 * log10 (Sum (sinr) / sinr.GetSpectrumModel ()->GetNumBands ()) ;
 }
-
 
 double
 NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
@@ -569,6 +577,10 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
       //perform calculation m_numOfIterationsToAverage times and get the average value
       double sumSnr = 0.0, sumSinr = 0.0;
       m_rrd.mob->SetPosition (itRemPoint->pos);
+
+      Ptr <MobilityBuildingInfo> buildingInfo = m_rrd.mob->GetObject <MobilityBuildingInfo> ();
+      buildingInfo->MakeConsistent (m_rrd.mob);
+      NS_ASSERT_MSG (buildingInfo, "buildingInfo is null");
 
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
@@ -781,6 +793,31 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename
   ueOutFile << "set label \"" << m_rrd.dev->GetNode ()->GetId () <<
                "\" at "<< pos.x << "," << pos.y << " left font \"Helvetica,4\" textcolor rgb \"grey\" front point pt 1 ps 0.3 lc rgb \"grey\" offset 0,0" <<
                std::endl;
+}
+
+void
+NrRadioEnvironmentMapHelper::PrintGnuplottableBuildingListToFile (std::string filename)
+{
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+  uint32_t index = 0;
+
+  for (BuildingList::Iterator it = BuildingList::Begin (); it != BuildingList::End (); ++it)
+    {
+      ++index;
+      Box box = (*it)->GetBoundaries ();
+      outFile << "set object " << index << " rect from " <<
+                 box.xMin  << "," << box.yMin << " to " <<
+                 box.xMax  << "," << box.yMax <<
+                 " front fs empty " << " border 3 " <<
+                 std::endl;
+    }
 }
 
 void

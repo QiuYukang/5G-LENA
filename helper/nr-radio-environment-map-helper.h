@@ -275,6 +275,11 @@ private:
   void PrintGnuplottableUeListToFile (std::string filename);
 
   /**
+   * Print the position of the Buildings.
+   */
+  void PrintGnuplottableBuildingListToFile (std::string filename);
+
+  /**
    * Go through every listener, write the computed SINR, and then reset it.
    */
   void PrintRemToFile ();
