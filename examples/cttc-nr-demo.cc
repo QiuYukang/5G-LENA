@@ -55,6 +55,7 @@ $ ./waf --run "cttc-nr-demo --Help"
 #include "ns3/mobility-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/flow-monitor-module.h"
+#include <ns3/buildings-module.h>
 #include "ns3/nr-module.h"
 #include "ns3/config-store-module.h"
 
@@ -109,6 +110,12 @@ main (int argc, char *argv[])
   double centralFrequencyBand2 = 28.2e9;
   double bandwidthBand2 = 100e6;
   double totalTxPower = 4;
+
+  //building parameters in case of buildings addition
+  bool enableBuildings = false;
+  uint32_t numOfBuildings = 1;
+  uint32_t apartmentsX = 2;
+  uint32_t nFloors = 1;
 
   // Where we will store the output files.
   std::string simTag = "default";
@@ -171,6 +178,18 @@ main (int argc, char *argv[])
                 "total tx power that will be proportionally assigned to"
                 " bands, CCs and bandwidth parts depending on each BWP bandwidth ",
                 totalTxPower);
+  cmd.AddValue ("enableBuildings",
+                "Enable Buildings in the scenario",
+                enableBuildings);
+  cmd.AddValue ("numOfBuildings",
+                "The number of Buildings to deploy in the scenario",
+                numOfBuildings);
+  cmd.AddValue ("apartmentsX",
+                "The number of apartments inside a building",
+                apartmentsX);
+  cmd.AddValue ("nFloors",
+                "The number of floors of a building",
+                nFloors);
   cmd.AddValue ("simTag",
                 "tag to be appended to output filenames to distinguish simulation campaigns",
                 simTag);
@@ -229,6 +248,30 @@ main (int argc, char *argv[])
   gridScenario.SetScenarioLength (20); // be distribuited.
   gridScenario.CreateScenario ();
 
+  if (enableBuildings)
+  {
+    NodeContainer gnbNode = gridScenario.GetBaseStations ();
+    NodeContainer ueNode = gridScenario.GetUserTerminals ();
+
+    Ptr<GridBuildingAllocator>  gridBuildingAllocator;
+    gridBuildingAllocator = CreateObject<GridBuildingAllocator> ();
+    gridBuildingAllocator->SetAttribute ("GridWidth", UintegerValue (numOfBuildings));
+    gridBuildingAllocator->SetAttribute ("LengthX", DoubleValue (2 * apartmentsX));
+    gridBuildingAllocator->SetAttribute ("LengthY", DoubleValue (10));
+    gridBuildingAllocator->SetAttribute ("DeltaX", DoubleValue (10));
+    gridBuildingAllocator->SetAttribute ("DeltaY", DoubleValue (10));
+    gridBuildingAllocator->SetAttribute ("Height", DoubleValue (3 * nFloors));
+    gridBuildingAllocator->SetBuildingAttribute ("NRoomsX", UintegerValue (apartmentsX));
+    gridBuildingAllocator->SetBuildingAttribute ("NRoomsY", UintegerValue (2));
+    gridBuildingAllocator->SetBuildingAttribute ("NFloors", UintegerValue (nFloors));
+    gridBuildingAllocator->SetAttribute ("MinX", DoubleValue (3));
+    gridBuildingAllocator->SetAttribute ("MinY", DoubleValue (-3));
+    gridBuildingAllocator->Create (numOfBuildings);
+
+    BuildingsHelper::Install (gnbNode);
+    BuildingsHelper::Install (ueNode);
+  }
+
   /*
    * Create two different NodeContainer for the different traffic type.
    * In ueLowLat we will put the UEs that will receive low-latency traffic,
@@ -282,8 +325,17 @@ main (int argc, char *argv[])
 
   // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
   // a single BWP per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
+
+
+  BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::UMa;
+
+  if (enableBuildings)
+  {
+      scenario = BandwidthPartInfo::UMa_Buildings;
+  }
+  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, scenario);
+  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, scenario);
+
 
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
