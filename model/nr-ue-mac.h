@@ -239,7 +239,7 @@ private:
 
   void RandomlySelectAndSendRaPreamble ();
   void SendRaPreamble (bool contention);
-  void SendReportBufferStatus (void);
+  void SendReportBufferStatus (const SfnSf &dataSfn, uint8_t symStart);
   void RefreshHarqProcessesPacketBuffer (void);
 
   /**

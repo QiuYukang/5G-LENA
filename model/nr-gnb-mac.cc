@@ -32,6 +32,9 @@
 #include "nr-control-messages.h"
 #include "nr-mac-pdu-info.h"
 #include "nr-mac-header-vs.h"
+#include "nr-mac-header-fs-ul.h"
+#include "nr-mac-short-bsr-ce.h"
+
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/log.h>
 #include <ns3/spectrum-model.h>
@@ -794,6 +797,33 @@ NrGnbMac::DoReceivePhyPdu (Ptr<Packet> p)
 
   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
 
+  // Try to peek whatever header; in the first byte there will be the LC ID.
+  NrMacHeaderFsUl header;
+  p->PeekHeader (header);
+
+  // Based on LC ID, we know if it is a CE or simply data.
+  if (header.GetLcId () == NrMacHeaderFsUl::SHORT_BSR)
+    {
+      NrMacShortBsrCe bsrHeader;
+      p->RemoveHeader (bsrHeader); // Really remove the header this time
+
+      // Convert our custom header into the structure that the scheduler expects:
+      MacCeElement bsr;
+
+      bsr.m_macCeType = MacCeElement::BSR;
+      bsr.m_rnti = rnti;
+      bsr.m_macCeValue.m_bufferStatus.resize (4);
+      bsr.m_macCeValue.m_bufferStatus[0] = bsrHeader.m_bufferSizeLevel_0;
+      bsr.m_macCeValue.m_bufferStatus[1] = bsrHeader.m_bufferSizeLevel_1;
+      bsr.m_macCeValue.m_bufferStatus[2] = bsrHeader.m_bufferSizeLevel_2;
+      bsr.m_macCeValue.m_bufferStatus[3] = bsrHeader.m_bufferSizeLevel_3;
+
+      ReceiveBsrMessage (bsr); // Here it will be converted again, but our job is done.
+      return;
+    }
+
+  // Ok, we know it is data, so let's extract and pass to RLC.
+
   NrMacHeaderVs macHeader;
   p->RemoveHeader (macHeader);
 
@@ -884,12 +914,6 @@ NrGnbMac::DoReceiveControlMessage  (Ptr<NrControlMessage> msg)
         DlCqiInfo cqiElement = cqi->GetDlCqi ();
         NS_ASSERT (cqiElement.m_rnti != 0);
         m_dlCqiReceived.push_back (cqiElement);
-        break;
-      }
-    case (NrControlMessage::BSR):
-      {
-        Ptr<NrBsrMessage> bsr = DynamicCast<NrBsrMessage> (msg);
-        ReceiveBsrMessage (bsr->GetBsr ());
         break;
       }
     case (NrControlMessage::DL_HARQ):

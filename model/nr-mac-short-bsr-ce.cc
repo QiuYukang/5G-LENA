@@ -71,6 +71,7 @@ NrMacShortBsrCe::Deserialize (Buffer::Iterator start)
 
   auto readBytes = m_header.Deserialize (start);
   start.Next (readBytes);
+  NS_ASSERT (m_header.GetLcId () == NrMacHeaderFsUl::SHORT_BSR);
 
   m_bufferSizeLevel_0 = start.ReadU8 ();
   m_bufferSizeLevel_1 = start.ReadU8 ();
@@ -118,9 +119,10 @@ NrMacShortBsrCe::FromBytesToLevel (uint64_t bufferSize)
   };
 
   uint8_t index = 0;
-  if (bufferSize > lookupVector[32])
+  NS_ASSERT (lookupVector.back () == 150000);
+  if (bufferSize > lookupVector.back ())
     {
-      index = 63;
+      index = 31;
     }
   else if (bufferSize == 0)
     {
@@ -133,6 +135,8 @@ NrMacShortBsrCe::FromBytesToLevel (uint64_t bufferSize)
           index++;
         }
     }
+
+  NS_ASSERT (index <= 31);
 
   return index;
 }
@@ -148,7 +152,13 @@ NrMacShortBsrCe::FromLevelToBytes (uint8_t bufferLevel)
     28581, 39818, 55474, 77284, 107669, 150000
   };
 
-  NS_ASSERT (bufferLevel <= 31);
+  if (bufferLevel > lookupVector.size () - 1)
+    {
+      // The value is > 150000. We cannot return exactly 150000, otherwise the
+      // value would have been 30. So we return something big...
+      return 150000 * 8;
+    }
+
   return lookupVector[bufferLevel];
 }
 

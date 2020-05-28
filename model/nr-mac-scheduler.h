@@ -43,25 +43,6 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \brief Table of the BSR values sent by the UEs, following the standard
-   *
-   * If 1 is sent as a value, it means the UE has 10 bytes stored, and so on.
-   */
-  static const uint32_t BufferSizeLevelBsrTable[64];
-
-  /**
-   * \brief Transform the BSR ID into a real bytes values, following the conversion table
-   * \param id BSR ID
-   * \return the bytes that the ID represents
-   */
-  static uint32_t
-  BsrId2BufferSize (uint8_t id)
-  {
-    NS_ABORT_MSG_UNLESS (id < 64, "id = " << id << " is out of range");
-    return BufferSizeLevelBsrTable[id];
-  }
-
-  /**
    * \brief NrMacScheduler constructor
    */
   NrMacScheduler ();

@@ -1363,16 +1363,6 @@ NrGnbPhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
 
       m_phySapUser->ReceiveControlMessage (msg);
     }
-  else if (msg->GetMessageType () == NrControlMessage::BSR)
-    {
-      Ptr<NrBsrMessage> bsrmsg = DynamicCast<NrBsrMessage> (msg);
-      MacCeElement macCeEl = bsrmsg->GetBsr();
-      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), macCeEl.m_rnti, GetBwpId (), msg);
-
-      NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
-                   m_currentSlot);
-      m_phySapUser->ReceiveControlMessage (msg);
-    }
   else if (msg->GetMessageType () == NrControlMessage::RACH_PREAMBLE)
     {
       NS_LOG_INFO ("received RACH_PREAMBLE");

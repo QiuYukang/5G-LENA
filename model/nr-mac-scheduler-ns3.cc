@@ -27,6 +27,7 @@
 
 #include "nr-mac-scheduler-ns3.h"
 #include "nr-mac-scheduler-harq-rr.h"
+#include "nr-mac-short-bsr-ce.h"
 
 #include <ns3/boolean.h>
 #include <ns3/uinteger.h>
@@ -573,7 +574,7 @@ NrMacSchedulerNs3::BSRReceivedFromUe (const MacCeElement &bsr)
   for (uint8_t lcg = 0; lcg < 4; ++lcg)
     {
       uint8_t bsrId = bsr.m_macCeValue.m_bufferStatus.at (lcg);
-      uint32_t bufSize = BsrId2BufferSize (bsrId);
+      uint32_t bufSize = NrMacShortBsrCe::FromLevelToBytes (bsrId);
 
       auto itLcg = UeInfoOf (*itUe)->m_ulLCG.find (lcg);
       if (itLcg == UeInfoOf (*itUe)->m_ulLCG.end ())

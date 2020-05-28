@@ -33,6 +33,7 @@
 #include "nr-phy-sap.h"
 #include "nr-control-messages.h"
 #include "nr-mac-header-vs.h"
+#include "nr-mac-short-bsr-ce.h"
 
 namespace ns3 {
 
@@ -421,7 +422,7 @@ NrUeMac::DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters p
 
 
 void
-NrUeMac::SendReportBufferStatus (void)
+NrUeMac::SendReportBufferStatus (const SfnSf &dataSfn, uint8_t symStart)
 {
   NS_LOG_FUNCTION (this);
 
@@ -460,18 +461,33 @@ NrUeMac::SendReportBufferStatus (void)
   NS_LOG_INFO ("Sending BSR with this info for the LCG: " << queue.at (0) << " " <<
                queue.at (1) << " " << queue.at(2) << " " << queue.at(3));
   // FF API says that all 4 LCGs are always present
-  bsr.m_macCeValue.m_bufferStatus.push_back (BufferSizeLevelBsr::BufferSize2BsrId (queue.at (0)));
-  bsr.m_macCeValue.m_bufferStatus.push_back (BufferSizeLevelBsr::BufferSize2BsrId (queue.at (1)));
-  bsr.m_macCeValue.m_bufferStatus.push_back (BufferSizeLevelBsr::BufferSize2BsrId (queue.at (2)));
-  bsr.m_macCeValue.m_bufferStatus.push_back (BufferSizeLevelBsr::BufferSize2BsrId (queue.at (3)));
+  bsr.m_macCeValue.m_bufferStatus.push_back (NrMacShortBsrCe::FromBytesToLevel (queue.at (0)));
+  bsr.m_macCeValue.m_bufferStatus.push_back (NrMacShortBsrCe::FromBytesToLevel (queue.at (1)));
+  bsr.m_macCeValue.m_bufferStatus.push_back (NrMacShortBsrCe::FromBytesToLevel (queue.at (2)));
+  bsr.m_macCeValue.m_bufferStatus.push_back (NrMacShortBsrCe::FromBytesToLevel (queue.at (3)));
 
-  // create the feedback to gNB
+  // create the message. It is used only for tracing, but we don't send it...
   Ptr<NrBsrMessage> msg = Create<NrBsrMessage> ();
   msg->SetSourceBwp (GetBwpId ());
   msg->SetBsr (bsr);
 
   m_macTxedCtrlMsgsTrace (m_currentSlot, GetCellId (), bsr.m_rnti, GetBwpId (), msg);
-  m_phySapProvider->SendControlMessage (msg);
+
+  // Here we send the real SHORT_BSR, as a subpdu.
+  Ptr<Packet> p = Create<Packet> ();
+
+  NrMacShortBsrCe header;
+  header.m_bufferSizeLevel_0 = NrMacShortBsrCe::FromBytesToLevel (queue.at (0));
+  header.m_bufferSizeLevel_1 = NrMacShortBsrCe::FromBytesToLevel (queue.at (1));
+  header.m_bufferSizeLevel_2 = NrMacShortBsrCe::FromBytesToLevel (queue.at (2));
+  header.m_bufferSizeLevel_3 = NrMacShortBsrCe::FromBytesToLevel (queue.at (3));
+
+  p->AddHeader (header);
+
+  LteRadioBearerTag bearerTag (m_rnti, NrMacHeaderFsUl::SHORT_BSR, 0);
+  p->AddPacketTag (bearerTag);
+
+  m_phySapProvider->SendMacPdu (p, dataSfn, symStart);
 }
 
 void
@@ -791,7 +807,7 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
   if (GetTotalBufSize () > 0)
     {
       NS_LOG_INFO ("BSR_SENT, bufSize " << GetTotalBufSize ());
-      SendReportBufferStatus ();
+      SendReportBufferStatus (dataSfn, dciInfoElem->m_symStart);
     }
   else
     {
