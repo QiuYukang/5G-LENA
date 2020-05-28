@@ -444,6 +444,7 @@ BandwidthPartInfo::GetScenario () const
     { UMi_StreetCanyon_nLoS, "UMi-StreetCanyon" },
     { InH_OfficeOpen, "InH-OfficeOpen" },
     { InH_OfficeMixed, "InH-OfficeMixed" },
+    { UMa_Buildings, "UMa" },
   };
 
   return lookupTable[m_scenario];
