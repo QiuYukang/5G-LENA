@@ -80,7 +80,8 @@ struct BandwidthPartInfo
     UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in Line-of-Sigth
     InH_OfficeOpen,  //!< InH_OfficeOpen
     InH_OfficeMixed,  //!< InH_OfficeMixed
-    UMa_Buildings  //!< UMa with buildings
+    UMa_Buildings,  //!< UMa with buildings
+    UMi_Buildings  //!< UMi_StreetCanyon with buildings
   } m_scenario {RMa};
 
   /**

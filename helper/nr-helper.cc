@@ -203,6 +203,13 @@ InitUmaBuildings (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCon
   channelConditionModelFactory->SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
 }
 
+static void
+InitUmiBuildings (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
+}
+
 void
 NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
 {
@@ -222,6 +229,7 @@ NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMa_Buildings, std::bind (&InitUmaBuildings, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMi_Buildings, std::bind (&InitUmiBuildings, std::placeholders::_1, std::placeholders::_2)},
   };
 
   // Iterate over all CCs, and instantiate the channel and propagation model
