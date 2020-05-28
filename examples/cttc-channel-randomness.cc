@@ -43,7 +43,7 @@ $ ./waf --run "cttc-channel-randomness --Help"
 #include "ns3/simple-net-device.h"
 #include <ns3/spectrum-model.h>
 #include "ns3/three-gpp-channel-model.h"
-#include "ns3/mmwave-spectrum-value-helper.h"
+#include "ns3/nr-spectrum-value-helper.h"
 #include "ns3/three-gpp-propagation-loss-model.h"
 #include "ns3/three-gpp-spectrum-propagation-loss-model.h"
 #include "ns3/log.h"
@@ -258,8 +258,8 @@ main (int argc, char *argv[])
       }
   }*/
 
-  Ptr<const SpectrumModel> sm1 =  MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
-  Ptr<const SpectrumValue> txPsd1 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm1);
+  Ptr<const SpectrumModel> sm1 =  NrSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  Ptr<const SpectrumValue> txPsd1 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm1);
   NS_LOG_UNCOND ("Average tx power 1: " << 10 * log10 (Sum (*txPsd1) / txPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
   Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob);
   NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
@@ -295,8 +295,8 @@ main (int argc, char *argv[])
   }
 
 
-  Ptr<const SpectrumModel> sm2 =  MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
-  Ptr<const SpectrumValue> txPsd2 = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm2);
+  Ptr<const SpectrumModel> sm2 =  NrSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  Ptr<const SpectrumValue> txPsd2 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, sm2);
   NS_LOG_UNCOND ("Average tx power 1: " << 10 * log10 (Sum (*txPsd2) / txPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");
   Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob);
   NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");
