@@ -346,8 +346,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const MmWa
   NS_ASSERT_MSG (m_spectrumLossModel, "m_spectrumLossModel is null");
 
   /***** configure channel condition model factory *****/
-  //m_channelConditionModelFactory.SetTypeId (m_propagationLossModel->GetChannelConditionModel ()->GetInstanceTypeId ());
-  m_channelConditionModelFactory.SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
+  m_channelConditionModelFactory.SetTypeId (m_propagationLossModel->GetChannelConditionModel ()->GetInstanceTypeId ());
   /***** configure pathloss model factory *****/
   m_propagationLossModelFactory.SetTypeId (m_propagationLossModel->GetInstanceTypeId ());
   /***** configure spectrum model factory *****/
