@@ -24,8 +24,8 @@
 #include <ns3/object-factory.h>
 #include "ns3/simple-net-device.h"
 #include "ns3/net-device-container.h"
-#include "ns3/mmwave-enb-phy.h"
-#include "ns3/mmwave-ue-phy.h"
+#include "ns3/nr-gnb-phy.h"
+#include "ns3/nr-ue-phy.h"
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <fstream>
@@ -170,7 +170,7 @@ public:
   /**
    * This method
    */
-  void CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  void CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
    * This method creates the list of Rem Points
@@ -252,12 +252,12 @@ private:
   /**
    * \brief Configure REM Transmission Devices List
    */
-  void ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId);
+  void ConfigureRtdList (NetDeviceContainer gnbNetDev, uint8_t bwpId);
 
   /**
    * \brief Configure propagation loss models
    */
-  void ConfigurePropagationModelsFactories (Ptr<const MmWaveEnbPhy> rtdPhy);
+  void ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy);
 
   /**
    * This method creates the temporal Propagation Models
@@ -267,7 +267,7 @@ private:
   /**
    * Print the position of the gNb.
    */
-  void PrintGnuplottableEnbListToFile (std::string filename);
+  void PrintGnuplottableGnbListToFile (std::string filename);
 
   /**
    * Print the position of the UE.

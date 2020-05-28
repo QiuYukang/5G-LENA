@@ -33,11 +33,11 @@
 #include "ns3/mobility-module.h"
 #include <ns3/constant-position-mobility-model.h>
 #include <ns3/spectrum-model.h>
-#include "ns3/mmwave-spectrum-value-helper.h"
+#include "ns3/nr-spectrum-value-helper.h"
 #include "ns3/beamforming-vector.h"
-#include "ns3/mmwave-enb-net-device.h"
-#include "ns3/mmwave-ue-net-device.h"
-#include <ns3/mmwave-spectrum-phy.h>
+#include "ns3/nr-gnb-net-device.h"
+#include "ns3/nr-ue-net-device.h"
+#include <ns3/nr-spectrum-phy.h>
 #include <ns3/spectrum-converter.h>
 #include <ns3/buildings-module.h>
 #include <ns3/mobility-building-info.h>
@@ -61,7 +61,7 @@ NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper (double bandwidth, doub
   // all devices must have the same spectrum model to perform calculation,
   // if some of the device is of the different then its transmission will have to
   // converted into spectrum model of this device
-  m_rrd.spectrumModel = MmWaveSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  m_rrd.spectrumModel = NrSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
 }
 
 NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper ()
@@ -277,19 +277,19 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
     m_rrd.mob->AggregateObject (buildingInfo);
 
     //Get Ue Phy
-    Ptr<MmWaveUeNetDevice> mmwUeNetDev = ueDevice->GetObject<MmWaveUeNetDevice> ();
-    Ptr<const MmWaveUePhy> rrdPhy = mmwUeNetDev->GetPhy (bwpId);
+    Ptr<NrUeNetDevice> nrUeNetDev = ueDevice->GetObject<NrUeNetDevice> ();
+    Ptr<const NrUePhy> rrdPhy = nrUeNetDev->GetPhy (bwpId);
     NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
 
     m_rrd.antenna = Copy (rrdPhy->GetAntennaArray ());
 
-    m_noisePsd = MmWaveSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
+    m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev, uint8_t bwpId)
+void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev, uint8_t bwpId)
 {
-  for (NetDeviceContainer::Iterator netDevIt = enbNetDev.Begin ();
-      netDevIt != enbNetDev.End ();
+  for (NetDeviceContainer::Iterator netDevIt = gnbNetDev.Begin ();
+      netDevIt != gnbNetDev.End ();
       ++netDevIt)
     {
       RemDevice rtd;
@@ -299,8 +299,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
       Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
       rtd.mob->AggregateObject (buildingInfo);
 
-      Ptr<MmWaveEnbNetDevice> mmwNetDev = (*netDevIt)->GetObject<MmWaveEnbNetDevice> ();
-      Ptr<const MmWaveEnbPhy> rtdPhy = mmwNetDev->GetPhy (bwpId);
+      Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
+      Ptr<const NrGnbPhy> rtdPhy = nrNetDev->GetPhy (bwpId);
       NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
 
       rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
@@ -324,7 +324,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
                    "\n bw: " << rtdPhy->GetChannelBandwidth () / 10e6 << " MHz " <<
                    "\n num: "<< rtdPhy->GetNumerology ());
 
-      if (netDevIt == enbNetDev.Begin())
+      if (netDevIt == gnbNetDev.Begin())
         {
           ConfigurePropagationModelsFactories (rtdPhy); // we can call only once configuration of prop.models
         }
@@ -334,9 +334,9 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer enbNetDev
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const MmWaveEnbPhy> rtdPhy)
+NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy)
 {
-  Ptr<const MmWaveSpectrumPhy> txSpectrumPhy = rtdPhy->GetSpectrumPhy ();
+  Ptr<const NrSpectrumPhy> txSpectrumPhy = rtdPhy->GetSpectrumPhy ();
   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
 
   m_propagationLossModel = DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
@@ -354,7 +354,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const MmWa
 }
 
 void
-NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
 
@@ -365,7 +365,7 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDev
       return;
     }
 
-  ConfigureRtdList (enbNetDev, bwpId);
+  ConfigureRtdList (gnbNetDev, bwpId);
   CreateListOfRemPoints ();
   ConfigureRrd (ueDevice, bwpId);
   //CalcCurrentRemMap ();
@@ -382,7 +382,7 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer enbNetDev, Ptr<NetDev
       NS_FATAL_ERROR ("Unknown REM mode");
     }
   PrintRemToFile ();
-  PrintGnuplottableEnbListToFile ("nr-enbs.txt");
+  PrintGnuplottableGnbListToFile ("nr-gnbs.txt");
   PrintGnuplottableBuildingListToFile ("nr-buildings.txt");
 }
 
@@ -442,7 +442,7 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemPoint& itRemPoint, RemDevice& it
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
   tempPropModels.remSpectrumLossModelCopy->AddDevice (itRtd.dev, itRtd.antenna);
   tempPropModels.remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
-  Ptr<const SpectrumValue> txPsd = MmWaveSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel);
+  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel);
 
   // check if RTD has the same spectrum model as RRD
   // if they have do nothing, if they dont, then convert txPsd of RTD device so to be according to spectrum model of RRD
@@ -682,7 +682,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 
                   // is this received power useful signal (from RTD for which I configured my beam) or is interference signal
 
-                  if (itRtdBeam->dev->GetNode()->GetId() == itRtdCalc->dev->GetNode()->GetId())
+                  if (itRtdBeam->dev->GetNode ()->GetId () == itRtdCalc->dev->GetNode ()->GetId ())
                     {
                       if (usefulSignalRxPsd!=nullptr)
                         {
@@ -736,7 +736,7 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
   propModels.remPropagationLossModelCopy->SetAttribute ("Frequency", DoubleValue (m_propagationLossModel->GetFrequency ()));
   BooleanValue boolValue;
   m_propagationLossModel->GetAttribute ("ShadowingEnabled", boolValue);
-  bool shadowing = static_cast<bool> (boolValue.Get());
+  bool shadowing = static_cast<bool> (boolValue.Get ());
   propModels.remPropagationLossModelCopy->SetAttribute ("ShadowingEnabled", BooleanValue (shadowing));
   propModels.remPropagationLossModelCopy->SetChannelConditionModel (m_remCondModelCopy);
 
@@ -753,7 +753,7 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
 }
 
 void
-NrRadioEnvironmentMapHelper::PrintGnuplottableEnbListToFile (std::string filename)
+NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filename)
 {
   std::ofstream gnbOutFile;
   gnbOutFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
