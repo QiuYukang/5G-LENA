@@ -35,7 +35,6 @@
 #include "ns3/mobility-module.h"
 #include "ns3/config-store.h"
 #include "ns3/nr-helper.h"
-#include <ns3/buildings-helper.h>
 #include "ns3/log.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/network-module.h"
@@ -45,6 +44,7 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/nr-mac-scheduler-tdma-rr.h"
 #include "ns3/nr-module.h"
+#include <ns3/buildings-module.h>
 
 using namespace ns3;
 
@@ -52,29 +52,104 @@ int
 main (int argc, char *argv[])
 {
   std::string scenario = "UMa"; //scenario
-  double frequency = 28e9; // central frequency
-  double bandwidth = 100e6; //bandwidth
-  double mobility = false; //whether to enable mobility
-  double simTime = 1; // in second
-  double speed = 1; // in m/s for walking UT.
-  bool logging = true; //whether to enable logging from the simulation, another option is by exporting the NS_LOG environment variable
-  double hBS; //base station antenna height in meters
-  double hUT; //user antenna height in meters
-  double txPower = 40; // txPower
   enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
+
+  uint16_t gNbNum = 1;
+  uint16_t ueNumPergNb = 1;
+
+  double frequency = 28e9;
+  double bandwidth = 100e6;
+  uint16_t numerology = 0;
+  double txPower = 40;
+
+  //Antenna Parameters
+  double hBS;   //Depend on the scenario (no input parameters)
+  double hUT;
+  uint32_t numRowsUe = 2;
+  uint32_t numColumnsUe = 2;
+  uint32_t numRowsGnb = 4;
+  uint32_t numColumnsGnb = 4;
+  bool isoUe = true;
+  bool isoGnb = false;
+  bool enableQuasiOmni = false;
+
+  double mobility = false; //whether to enable mobility
+  double speed = 1; // in m/s for walking UT.
+
+  double simTime = 1; // in seconds
+  bool logging = true;
+
+  //building parameters in case of buildings addition
+  bool enableBuildings; //Depends on the scenario (no input parameter)
+  uint32_t numOfBuildings = 1;
+  uint32_t apartmentsX = 2;
+  uint32_t nFloors = 1;
 
   CommandLine cmd;
   cmd.AddValue ("scenario",
                 "The scenario for the simulation. Choose among 'RMa', 'UMa', "
-                "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'.",
+                "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'"
+                "'UMa-Buildings', 'UMi-Buildings'.",
                 scenario);
+  cmd.AddValue ("gNbNum",
+                "The number of gNbs in multiple-ue topology",
+                gNbNum);
+  cmd.AddValue ("ueNumPergNb",
+                "The number of UE per gNb in multiple-ue topology",
+                ueNumPergNb);
   cmd.AddValue ("frequency",
                 "The central carrier frequency in Hz.",
                 frequency);
+  cmd.AddValue ("bandwidth",
+                "The system bandwidth to be used",
+                bandwidth);
+  cmd.AddValue ("numerology",
+                "The numerology to be used",
+                numerology);
+  cmd.AddValue ("txPower",
+                "total tx power that will be proportionally assigned to"
+                " bands, CCs and bandwidth parts depending on each BWP bandwidth ",
+                txPower);
+  cmd.AddValue ("numRowsUe",
+                "Number of rows for the UE antenna",
+                numRowsUe);
+  cmd.AddValue ("numColumnsUe",
+                "Number of columns for the UE antenna",
+                numColumnsUe);
+  cmd.AddValue ("isoUe",
+                "If true (set to 1), use an isotropic radiation pattern in the Ue ",
+                isoUe);
+  cmd.AddValue ("numRowsGnb",
+                "Number of rows for the gNB antenna",
+                numRowsGnb);
+  cmd.AddValue ("numColumnsGnb",
+                "Number of columns for the gNB antenna",
+                numColumnsGnb);
+  cmd.AddValue ("isoGnb",
+                "If true (set to 1), use an isotropic radiation pattern in the gNB ",
+                isoGnb);
   cmd.AddValue ("mobility",
                 "If set to 1 UEs will be mobile, when set to 0 UE will be static. "
                 "By default, they are mobile.",
                 mobility);
+  cmd.AddValue ("numOfBuildings",
+                "The number of Buildings to deploy in the scenario",
+                numOfBuildings);
+  cmd.AddValue ("apartmentsX",
+                "The number of apartments inside a building",
+                apartmentsX);
+  cmd.AddValue ("nFloors",
+                "The number of floors of a building",
+                nFloors);
+  cmd.AddValue ("enableQuasiOmni",
+                "If true (set to 1) enable QuasiOmni DirectPath Beamforming,"
+                "DirectPath Beamforming otherwise",
+                enableQuasiOmni);
+  cmd.AddValue ("logging",
+                "Enable logging"
+                "another option is by exporting the NS_LOG environment variable",
+                logging);
+
   cmd.Parse (argc, argv);
 
   // enable logging
@@ -109,11 +184,25 @@ main (int argc, char *argv[])
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMa;
     }
+  else if(scenario.compare("UMa-Buildings") == 0)
+    {
+      hBS = 25;
+      hUT = 1.5;
+      scenarioEnum = BandwidthPartInfo::UMa_Buildings;
+      enableBuildings = true;
+    }
   else if (scenario.compare("UMi-StreetCanyon") == 0)
     {
       hBS = 10;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
+    }
+  else if (scenario.compare("UMi-Buildings") == 0)
+    {
+      hBS = 10;
+      hUT = 1.5;
+      scenarioEnum = BandwidthPartInfo::UMi_Buildings;
+      enableBuildings = true;
     }
   else if (scenario.compare("InH-OfficeMixed") == 0)
     {
@@ -129,7 +218,8 @@ main (int argc, char *argv[])
     }
   else
     {
-      NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', and 'InH-OfficeOpen'.");
+      NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', "
+                   "'UMi-StreetCanyon', 'InH-OfficeMixed', and 'InH-OfficeOpen'.");
     }
 
   // create base stations and mobile terminals
@@ -169,52 +259,76 @@ main (int argc, char *argv[])
       ueNodes.Get (1)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, 0, 0));
     }
 
+  if (enableBuildings)
+    {
+      Ptr<GridBuildingAllocator>  gridBuildingAllocator;
+      gridBuildingAllocator = CreateObject<GridBuildingAllocator> ();
+      gridBuildingAllocator->SetAttribute ("GridWidth", UintegerValue (numOfBuildings));
+      gridBuildingAllocator->SetAttribute ("LengthX", DoubleValue (2 * apartmentsX));
+      gridBuildingAllocator->SetAttribute ("LengthY", DoubleValue (10));
+      gridBuildingAllocator->SetAttribute ("DeltaX", DoubleValue (10));
+      gridBuildingAllocator->SetAttribute ("DeltaY", DoubleValue (10));
+      gridBuildingAllocator->SetAttribute ("Height", DoubleValue (3 * nFloors));
+      gridBuildingAllocator->SetBuildingAttribute ("NRoomsX", UintegerValue (apartmentsX));
+      gridBuildingAllocator->SetBuildingAttribute ("NRoomsY", UintegerValue (2));
+      gridBuildingAllocator->SetBuildingAttribute ("NFloors", UintegerValue (nFloors));
+      gridBuildingAllocator->SetAttribute ("MinX", DoubleValue (3));
+      gridBuildingAllocator->SetAttribute ("MinY", DoubleValue (-3));
+      gridBuildingAllocator->Create (numOfBuildings);
+
+      BuildingsHelper::Install (gnbNodes);
+      BuildingsHelper::Install (ueNodes);
+    }
+
   /*
    * Create NR simulation helpers
    */
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
+
   nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
-   * Spectrum configuration. We create a single operational band and configure the scenario.
-   */
-  BandwidthPartInfoPtrVector allBwps;
-  CcBwpCreator ccBwpCreator;
-  const uint8_t numCcPerBand = 1;  // in this example we have a single band, and that band is composed of a single component carrier
-
-  /* Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
-   * a single BWP per CC and a single BWP in CC.
-   *
-   * Hence, the configured spectrum is:
+   * Spectrum configuration:
+   * We create a single operational band with 1 CC and 1 BWP.
    *
    * |---------------Band---------------|
    * |---------------CC-----------------|
    * |---------------BWP----------------|
    */
+  BandwidthPartInfoPtrVector allBwps;
+  CcBwpCreator ccBwpCreator;
+  const uint8_t numCcPerBand = 1;
+
+
   CcBwpCreator::SimpleOperationBandConf bandConf (frequency, bandwidth, numCcPerBand, scenarioEnum);
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
   //Initialize channel and pathloss, plus other things inside band.
   nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
-  // Configure ideal beamforming method
+  // Configure beamforming method
   idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+
+  if (enableQuasiOmni)
+  {
+    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+  }
 
   // Configure scheduler
   nrHelper->SetSchedulerTypeId (NrMacSchedulerTdmaRR::GetTypeId ());
 
   // Antennas for the UEs
-  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (numRowsUe));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (numColumnsUe));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (isoUe));
 
   // Antennas for the gNbs
-  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (numRowsGnb));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (numColumnsGnb));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (isoGnb));
 
   // install nr net devices
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
