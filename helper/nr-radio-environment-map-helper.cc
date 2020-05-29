@@ -482,7 +482,7 @@ NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& v
 
   Ptr<SpectrumValue> maxValue = *(values.begin());
 
-  for (auto value: values)
+  for (const auto &value: values)
     {
       if (Sum (*(value)) > Sum (*(maxValue)))
         {
@@ -771,7 +771,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filenam
 
       gnbOutFile << "set label \"" << itRtd->dev->GetNode ()->GetId () <<
                     "\" at "<< pos.x << "," << pos.y <<
-                    " left font \"Helvetica,4\" textcolor rgb \"white\" front  point pt 2 ps 0.3 lc rgb \"white\" offset 0,0" <<
+                    " left font \"Helvetica,4\" textcolor rgb \"white\" front  point pt 2 ps 1 lc rgb \"white\" offset 0,0" <<
                     std::endl;
     }
 }
@@ -790,7 +790,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename
   Vector pos = m_rrd.node->GetObject<MobilityModel> ()->GetPosition ();
 
   ueOutFile << "set label \"" << m_rrd.dev->GetNode ()->GetId () <<
-               "\" at "<< pos.x << "," << pos.y << " left font \"Helvetica,4\" textcolor rgb \"grey\" front point pt 1 ps 0.3 lc rgb \"grey\" offset 0,0" <<
+               "\" at "<< pos.x << "," << pos.y << " left font \"Helvetica,4\" textcolor rgb \"grey\" front point pt 1 ps 1 lc rgb \"grey\" offset 0,0" <<
                std::endl;
 }
 
