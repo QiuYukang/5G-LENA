@@ -56,12 +56,12 @@ NS_LOG_COMPONENT_DEFINE ("NrRadioEnvironmentMapHelper");
 NS_OBJECT_ENSURE_REGISTERED (NrRadioEnvironmentMapHelper);
 
 
-NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper (double bandwidth, double frequency, uint8_t numerology)
+NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper (Ptr<const SpectrumModel>& sm)
 {
-  // all devices must have the same spectrum model to perform calculation,
+  // all devices should have the same spectrum model to perform calculation,
   // if some of the device is of the different then its transmission will have to
   // converted into spectrum model of this device
-  m_rrd.spectrumModel = NrSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  m_rrd.spectrumModel = sm;
 }
 
 NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper ()

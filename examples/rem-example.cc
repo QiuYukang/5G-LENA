@@ -424,8 +424,12 @@ main (int argc, char *argv[])
 
   //Let us create the REM for this user:
   Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
+
+  uint16_t remBwpId = 0;
+  Ptr<const SpectrumModel> remSm = DynamicCast<NrUeNetDevice>(ueRemDevice)->GetPhy(remBwpId)->GetSpectrumModel();
+
   //Radio Environment Map Generation for ccId 0
-  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> (bandwidth, frequency, numerology);
+  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> (remSm);
   remHelper->SetMinX (-20.0);
   remHelper->SetMaxX (20.0);
   remHelper->SetResX (50);
@@ -433,7 +437,7 @@ main (int argc, char *argv[])
   remHelper->SetMaxY (20.0);
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
-  remHelper->CreateRem (gnbNetDev, ueRemDevice, 0);  //bwpId 0
+  remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);  //bwpId 0
 
 
 

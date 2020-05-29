@@ -74,7 +74,7 @@ public:
   /**
    * \brief NrRadioEnvironmentMapHelper constructor
    */
-  NrRadioEnvironmentMapHelper (double bandwidth, double frequency, uint8_t numerology);
+  NrRadioEnvironmentMapHelper (Ptr<const SpectrumModel>& sm);
 
   /**
    * \brief destructor
