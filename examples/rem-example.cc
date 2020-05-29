@@ -22,8 +22,20 @@
  * \ingroup examples
  * \brief REM Creation Example
  *
- * This example describes how to setup a simulation using
- * NrRadioEnvironmentMapHelper.
+ * This example describes how to setup a simulation using NrRadioEnvironmentMapHelper.
+ *
+ * We provide a number of simulation parameters that can be configured in the
+ * command line, such as the number of UEs per cell or the number of rows and
+ * columns of the gNB and Ue antennas.
+ * Please have a look at the possible parameters to know what you can configure
+ * through the command line.
+ *
+ * The user can also specify the type of REM map (BeamShape or CovrageArea) he
+ * wishes to generate with the following command:
+ * ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=BeamShape"
+ *
+ * The output of the REM includes a map with the SNR values and a map with the
+ * SINR. In case there is only one gNB configured, these maps will be the same.
  *
  * The output of this example are REM csv files from which can be generated REM
  * figures with the following command:
