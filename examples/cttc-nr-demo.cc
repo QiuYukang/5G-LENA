@@ -240,6 +240,7 @@ main (int argc, char *argv[])
   gridScenario.SetRows (1);
   gridScenario.SetColumns (gNbNum);
   gridScenario.SetHorizontalBsDistance (5.0);
+  gridScenario.SetVerticalBsDistance (5.0);
   gridScenario.SetBsHeight (1.5);
   gridScenario.SetUtHeight (1.5);
   gridScenario.SetBsNumber (gNbNum);
