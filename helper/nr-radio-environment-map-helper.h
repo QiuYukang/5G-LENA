@@ -259,10 +259,16 @@ private:
    */
   void ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy);
 
+  //TODO
+  void ConfigureObjectFactory (ObjectFactory& objectFactory, Ptr<Object> object);
+
   /**
    * This method creates the temporal Propagation Models
    */
   PropagationModels CreateTemporalPropagationModels ();
+
+  //TODO
+  void CopyThreeGppChannelModelAttributeValues (Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
 
   /**
    * Print the position of the gNb.
@@ -331,6 +337,8 @@ private:
   ObjectFactory m_channelConditionModelFactory;
 
   Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
+  Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
+  Ptr<ChannelConditionModel> m_channelConditionModel;
   Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
 
   std::string m_outputFile;   ///< The `OutputFile` attribute.
