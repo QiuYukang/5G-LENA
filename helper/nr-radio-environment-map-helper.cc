@@ -328,8 +328,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
                    ", create new RTD element... " <<
-                   ", rtdPhy->GetCentralFrequency () " << rtdPhy->GetCentralFrequency () / 10e6 << " MHz " <<
-                   ", BW: " << rtdPhy->GetChannelBandwidth () / 10e6 << " MHz " <<
+                   ", rtdPhy->GetCentralFrequency () " << rtdPhy->GetCentralFrequency () / 1e6 << " MHz " <<
+                   ", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
                    ", num: "<< rtdPhy->GetNumerology ());
 
       if (netDevIt == gnbNetDev.Begin())
@@ -600,7 +600,7 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
 double
 NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
 {
-  NS_ABORT_MSG_IF (receivedPowerList.size() > 1, "The size of received power list shold be greater than one in order to calculate maximum SINR.");
+  NS_ABORT_MSG_IF (receivedPowerList.size() > 1, "The size of received power list should be greater than one in order to calculate maximum SINR.");
   // we calculate sinr considering for each RTD as if it would be TX device, and the rest of RTDs interferers
   std::list <double> sinrList;
 
