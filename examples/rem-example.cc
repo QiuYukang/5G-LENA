@@ -410,6 +410,21 @@ main (int argc, char *argv[])
   // enable the traces provided by the nr module
   nrHelper->EnableTraces();
 
+  //Let us create the REM for this user:
+  Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
+  //Radio Environment Map Generation for ccId 0
+  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> (bandwidth, frequency, numerology);
+  remHelper->SetMinX (-20.0);
+  remHelper->SetMaxX (20.0);
+  remHelper->SetResX (50);
+  remHelper->SetMinY (-20.0);
+  remHelper->SetMaxY (20.0);
+  remHelper->SetResY (50);
+  remHelper->SetZ (1.5);
+  remHelper->CreateRem (gnbNetDev, ueRemDevice, 0);  //bwpId 0
+
+
+
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();
   Simulator::Destroy ();
