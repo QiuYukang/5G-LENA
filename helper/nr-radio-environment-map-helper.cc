@@ -270,6 +270,8 @@ NrRadioEnvironmentMapHelper::GetZ () const
 
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
+    NS_ASSERT_MSG (m_rrd.spectrumModel->GetUid() == ueDevice->GetObject<NrUeNetDevice>()->GetPhy(bwpId)->GetSpectrumModel()->GetUid(),
+                       "Spectrum model of REM map and RRD device are not the same. Ensure that the REM map is created with the same parameter as the RRD device.");
     m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
     PrintGnuplottableUeListToFile ("nr-ues.txt");
 
@@ -292,30 +294,36 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
       netDevIt != gnbNetDev.End ();
       ++netDevIt)
     {
-      RemDevice rtd;
-
-      rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
-
-      Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
-      rtd.mob->AggregateObject (buildingInfo);
-
       Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
       Ptr<const NrGnbPhy> rtdPhy = nrNetDev->GetPhy (bwpId);
       NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
 
+      if (rtdPhy->GetSpectrumModel () != m_rrd.spectrumModel)
+        {
+          if (rtdPhy->GetSpectrumModel ()->IsOrthogonal (*m_rrd.spectrumModel))
+            {
+              NS_LOG_WARN ("RTD device is configured to operate on a spectrum that is orthogonal to the one of RRD device. Hence, that RTD device will not be "
+                  "considered in the calculation of this REM map.");
+              continue;
+            }
+          else
+            {
+              NS_LOG_WARN ("RTD device with different spectrum model, this may slow "
+                           "down significantly the REM map creation. Consider setting "
+                           "the same frequency, bandwidth, and numerology to all "
+                           "devices which are used for REM map creation.");
+            }
+        };
+
+      RemDevice rtd;
+      //Configure spectrum model which will be needed to create tx PSD
+      rtd.spectrumModel = rtdPhy->GetSpectrumModel ();
+      rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
+      Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
+      rtd.mob->AggregateObject (buildingInfo);
       rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
       //Configure power
       rtd.txPower = rtdPhy->GetTxPower ();
-      //Configure spectrum model which will be needed to create tx PSD
-      rtd.spectrumModel = rtdPhy->GetSpectrumModel ();
-
-      if (rtd.spectrumModel != m_rrd.spectrumModel)
-        {
-          NS_LOG_WARN ("RTD device with different spectrum model, this may slow "
-                       "down significantly the REM map creation. Consider setting "
-                       "the same frequency, bandwidth, and numerology to all "
-                       "devices which are used for REM map creation.");
-        };
 
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
@@ -331,6 +339,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
 
       m_remDev.push_back (rtd);
     }
+  NS_ASSERT_MSG(m_remDev.size(),"No RTD devices configured. Check if the RTD devices are on the operating on the same spectrum as RRD device.");
 }
 
 void
@@ -661,6 +670,8 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
 
+      NS_LOG_INFO ("Avg snr value saved:"<<itRemPoint->avgSnrDb);
+      NS_LOG_INFO ("Avg sinr value saved:"<<itRemPoint->avgSinrDb);
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
   auto remEndTime = std::chrono::system_clock::now ();
