@@ -1272,9 +1272,10 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
 
           for (const auto & byteDistribution : distributedBytes)
             {
+              NS_ASSERT (byteDistribution.m_bytes >= 3);
               uint8_t lcId = byteDistribution.m_lcId;
               uint8_t lcgId = byteDistribution.m_lcg;
-              uint32_t bytes = byteDistribution.m_bytes;
+              uint32_t bytes = byteDistribution.m_bytes - 3; // Consider the subPdu overhead
 
               RlcPduInfo newRlcPdu (lcId, bytes);
               HarqProcess & process = ue.first->m_dlHarq.Get (dci->m_harqProcess);

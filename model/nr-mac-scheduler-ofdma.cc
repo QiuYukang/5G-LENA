@@ -357,11 +357,12 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   NS_ASSERT (ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg ());
   NS_ABORT_IF (maxSym > UINT8_MAX);
 
-  // If is less than 4, then we can't transmit any new data, so don't create dci.
-  if (tbs < 4)
+  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
+  // transmit any new data, so don't create dci.
+  if (tbs < 7)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 4");
+                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 7");
       return nullptr;
     }
 
@@ -406,11 +407,12 @@ NrMacSchedulerOfdma::CreateUlDci (PointInFTPlane *spoint,
   uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
                                            ueInfo->m_ulRBG * GetNumRbPerRbg ());
 
-  // If is less than 4, then we can't transmit any new data, so don't create dci.
-  if (tbs < 4)
+  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
+  // transmit any new data, so don't create dci.
+  if (tbs < 7)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 4");
+                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 7");
       return nullptr;
     }
 

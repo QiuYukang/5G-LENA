@@ -304,10 +304,12 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
   NS_UNUSED (maxSym);
   uint32_t tbs = m_dlAmc->CalculateTbSize (ueInfo->m_dlMcs,
                                            ueInfo->m_dlRBG * GetNumRbPerRbg ());
-  if (tbs < 4)
+  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
+  // transmit any new data, so don't create dci.
+  if (tbs < 7)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 4");
+                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 7");
       return nullptr;
     }
 
@@ -342,10 +344,13 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   NS_LOG_FUNCTION (this);
   uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
                                            ueInfo->m_ulRBG * GetNumRbPerRbg ());
-  if (tbs < 4)
+
+  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
+  // transmit any new data, so don't create dci.
+  if (tbs < 7)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 4");
+                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 7");
       return nullptr;
     }
 
