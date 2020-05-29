@@ -44,7 +44,18 @@ class ThreeGppAntennaArrayModel;
  *
  * The purpose of the radio environment map helper is to generate a
  * map where for each point on the map a rem value is calculated.
- * The rem value corresponds to the calculated SINR at this point.
+ *
+ * Two general types of maps can be generated according to whether the
+ * BeamShape or CoverageArea is selected. The gNB and Ue antennas have
+ * to be configured accordingly depending on the map the user wishes
+ * to generate.
+ * The rem value corresponds to the calculated SNR/SINR at this point.
+ *
+ * Let us notice that for the SNR/SINR calculations at each REM Point the
+ * channel is re-created to avoid spatial and temporal dependencies among
+ * independent REM calculations. Moreover, the calculations are the average of
+ * N iterations (specified by the user) in order to consider the randomness of
+ * the channel
  */
 class NrRadioEnvironmentMapHelper : public Object
 {
@@ -168,17 +179,27 @@ public:
   double GetZ () const;
 
   /**
-   * This method
+   * \brief This function is used for the creation of the REM map. When this
+   * function is called from an example, it is responsible for calling all the
+   * necessary functions for the configuration of RTDs and RRDs and the
+   * calculation of SNR/SINR.
+   * \param gnbNetDev gNb devices for which the map will be generated
+   * \param ueDevice The Ue device for which the map will be generated
+   * \param bwpId The bwpId
    */
   void CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
-   * This method creates the list of Rem Points
+   * \brief This method creates the list of Rem Points (coordinates)
    */
   void CreateListOfRemPoints ();
 
 private:
 
+  /**
+   * \brief This struct includes the coordinates of each Rem Point
+   * and the SNR/SINR values as resulted for the calculations
+   */
   struct RemPoint
   {
     Vector pos {0,0,0};
@@ -186,16 +207,20 @@ private:
     double avgSinrDb {0};
   };
 
+  /**
+   * \brief This struct includes the configuration of all the devices of
+   * the REM: Rem Transmitting Devices (RTDs) and Rem Receiving Devices (RRDs)
+   */
   struct RemDevice
   {
     Ptr<Node> node;
     Ptr<SimpleNetDevice> dev;
     Ptr<MobilityModel> mob;
     Ptr<ThreeGppAntennaArrayModel> antenna;
-    double txPower {0}; // TODO just check if this is the good place, attribute is per RTD device
-    double bandwidth {0}; // TODO Check if these three b,f,n maybe should be the parameters/attributes of RemHelper, because 1 REM map makes sense fore 1 configuration of channel,
-    double frequency {0}; // TODO -||-   or maybe we don't need these three as parameter, maybe we can just save pointer to SpectrumModel so we can create txPsd when we need to do so.
-    uint16_t numerology {0}; // TODO -||-
+    double txPower {0};
+    double bandwidth {0};
+    double frequency {0};
+    uint16_t numerology {0};
     Ptr<const SpectrumModel> spectrumModel {};
 
     RemDevice ()
@@ -213,12 +238,26 @@ private:
     }
   };
 
+  /**
+   * \brief This struct includes the pointers that copy the propagation
+   * Loss Model and Spectrum Propagation Loss model (form the example used
+   * to generate the REM map)
+   */
   struct PropagationModels
   {
     Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
     Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
   };
 
+  /**
+   * \brief This function is used for the creation of the REM map. When this
+   * function is called from an example, it is responsible for calling all the
+   * necessary functions for the configuration of RTDs and RRDs and the
+   * calculation of SNR/SINR.
+   * \param gnbNetDev gNb devices for which the map will be generated
+   * \param ueDevice The Ue device for which the map will be generated
+   * \return bwpId The bwpId
+   */
   double CalculateSnr (const Ptr<SpectrumValue>& usefulSignal);
 
   Ptr<SpectrumValue> GetMaxValue(const std::list <Ptr<SpectrumValue>>& values);
@@ -245,17 +284,17 @@ private:
   void CalcCoverageAreaRemMap ();
 
   /**
-   * This method configures the REM Receiving Device
+   * T\brief Configures the REM Receiving Device (RRD)
    */
   void ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
-   * \brief Configure REM Transmission Devices List
+   * \brief Configure REM Transmission Devices (RTDs) List
    */
   void ConfigureRtdList (NetDeviceContainer gnbNetDev, uint8_t bwpId);
 
   /**
-   * \brief Configure propagation loss models
+   * \brief Configure propagation loss model factories
    */
   void ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy);
 
@@ -263,7 +302,7 @@ private:
   void ConfigureObjectFactory (ObjectFactory& objectFactory, Ptr<Object> object);
 
   /**
-   * This method creates the temporal Propagation Models
+   * \brief This method creates the temporal Propagation Models
    */
   PropagationModels CreateTemporalPropagationModels ();
 
@@ -271,22 +310,23 @@ private:
   void CopyThreeGppChannelModelAttributeValues (Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
 
   /**
-   * Print the position of the gNb.
+   * \brief Prints the position of the gNbs.
    */
   void PrintGnuplottableGnbListToFile (std::string filename);
 
   /**
-   * Print the position of the UE.
+   * \brief Print the position of the UE.
    */
   void PrintGnuplottableUeListToFile (std::string filename);
 
   /**
-   * Print the position of the Buildings.
+   * \brief Print the position of the Buildings.
    */
   void PrintGnuplottableBuildingListToFile (std::string filename);
 
   /**
-   * Go through every listener, write the computed SINR, and then reset it.
+   * \brief this method goes through every Rem Point and prints the
+   * calculated SNR/SINR values.
    */
   void PrintRemToFile ();
 
@@ -297,13 +337,13 @@ private:
   void Finalize ();
 
   /**
-   * Configures quasi-omni beamforming vector on antenna of the device
+   * \brief Configures quasi-omni beamforming vector on antenna of the device
    * \param device which antenna array will be configured to quasi-omni beamforming vector
    */
   void ConfigureQuasiOmniBfv (RemDevice& device);
 
   /**
-   * Configures direct-path beamforming vector of "device" toward "otherDevice"
+   * \brief Configures direct-path beamforming vector of "device" toward "otherDevice"
    * \param device whose beamforming vector will be configured
    * \param otherDevice toward this device will be configured the beamforming vector of device
    */
