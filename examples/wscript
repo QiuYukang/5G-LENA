@@ -27,6 +27,10 @@ def build(bld):
     obj.source = 'cttc-error-model-comparison.cc'
     obj = bld.create_ns3_program('cttc-channel-randomness', ['spectrum', 'mobility', 'core', 'nr'])
     obj.source = 'cttc-channel-randomness.cc'
+    obj = bld.create_ns3_program('rem-example', ['spectrum', 'mobility', 'core', 'nr'])
+    obj.source = 'rem-example.cc'
 
 
     bld.recurse('lena-lte-comparison')
+
+
