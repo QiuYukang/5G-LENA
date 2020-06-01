@@ -31,7 +31,7 @@ namespace ns3 {
  *
  * This header performs some sanity check for the LCID value, but the functionality
  * is almost the same as NrMacHeaderFs. Please note that, by standard, only
- * some LCID can be used in DL transmissions.
+ * some LCID values can be used in DL transmissions.
  *
  * Please refer to TS 38.321 section 6.1.2 for more information.
  *

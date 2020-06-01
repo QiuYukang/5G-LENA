@@ -464,6 +464,9 @@ NrUeMac::SendReportBufferStatus (const SfnSf &dataSfn, uint8_t symStart)
   // Here we send the real SHORT_BSR, as a subpdu.
   Ptr<Packet> p = Create<Packet> ();
 
+  // Please note that the levels are defined from the standard. In this case,
+  // we have 5 bit available, so use such standard levels. In the future,
+  // when LONG BSR will be implemented, this have to change.
   NrMacShortBsrCe header;
   header.m_bufferSizeLevel_0 = NrMacShortBsrCe::FromBytesToLevel (queue.at (0));
   header.m_bufferSizeLevel_1 = NrMacShortBsrCe::FromBytesToLevel (queue.at (1));
@@ -580,6 +583,8 @@ NrUeMac::DoReceivePhyPdu (Ptr<Packet> p)
 
   auto it = m_lcInfoMap.find (header.GetLcId());
 
+  // p can be empty. Well, right now no, but when someone will add CE in downlink,
+  // then p can be empty.
   if (rxParams.p->GetSize () > 0)
     {
       it->second.macSapUser->ReceivePdu (rxParams);
@@ -621,37 +626,38 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
   else if (m_ulDci->m_ndi == 1)
     {
       SendNewData ();
-    }
 
-  NS_LOG_INFO ("BSR_SENT, bufSize " << GetTotalBufSize ());
-  SendReportBufferStatus (dataSfn, m_ulDci->m_symStart);
+      NS_LOG_INFO ("After sending NewData, bufSize " << GetTotalBufSize ());
 
-  NS_LOG_INFO ("UL DCI processing done, sent to PHY a total of " << m_ulDciTotalUsed <<
-               " B out of " << m_ulDci->m_tbSize << " allocated bytes ");
+      SendReportBufferStatus (dataSfn, m_ulDci->m_symStart);
 
-  if (GetTotalBufSize () == 0)
-    {
-      m_srState = INACTIVE;
-      NS_LOG_INFO ("ACTIVE -> INACTIVE, bufSize " << GetTotalBufSize ());
+      NS_LOG_INFO ("UL DCI processing done, sent to PHY a total of " << m_ulDciTotalUsed <<
+                   " B out of " << m_ulDci->m_tbSize << " allocated bytes ");
 
-      // the UE may have been scheduled, but we didn't use a single byte
-      // of the allocation. So send an empty PDU. This happens because the
-      // byte reporting in the BSR is not accurate, due to RLC and/or
-      // BSR quantization.
-      if (m_ulDciTotalUsed == 0)
+      if (GetTotalBufSize () == 0)
         {
-          NS_LOG_WARN ("No byte used for this UL-DCI, sending empty PDU");
+          m_srState = INACTIVE;
+          NS_LOG_INFO ("ACTIVE -> INACTIVE, bufSize " << GetTotalBufSize ());
 
-          LteMacSapProvider::TransmitPduParameters txParams;
+          // the UE may have been scheduled, but we didn't use a single byte
+          // of the allocation. So send an empty PDU. This happens because the
+          // byte reporting in the BSR is not accurate, due to RLC and/or
+          // BSR quantization.
+          if (m_ulDciTotalUsed == 0)
+            {
+              NS_LOG_WARN ("No byte used for this UL-DCI, sending empty PDU");
 
-          txParams.pdu = Create<Packet> ();
-          txParams.lcid = 3;
-          txParams.rnti = m_rnti;
-          txParams.layer = 0;
-          txParams.harqProcessId = m_ulDci->m_harqProcess;
-          txParams.componentCarrierId = GetBwpId ();
+              LteMacSapProvider::TransmitPduParameters txParams;
 
-          DoTransmitPdu (txParams);
+              txParams.pdu = Create<Packet> ();
+              txParams.lcid = 3;
+              txParams.rnti = m_rnti;
+              txParams.layer = 0;
+              txParams.harqProcessId = m_ulDci->m_harqProcess;
+              txParams.componentCarrierId = GetBwpId ();
+
+              DoTransmitPdu (txParams);
+            }
         }
     }
 }

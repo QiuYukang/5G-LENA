@@ -70,7 +70,7 @@ NrMacShortBsrCeTest::DoRun ()
   pdu->Print (std::cout);
   std::cout << std::endl;
 
-  // Inside our PDU, there is one subPDU: { [HEADER], [SDU] }
+  // Inside our PDU, there is one subPDU composed by our header: { [HEADER] }
   // Let's try to deserialize it, checking if it's the same
 
   {

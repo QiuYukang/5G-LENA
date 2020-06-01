@@ -132,7 +132,7 @@ NrMacHeaderVs::GetSerializedSize () const
 void
 NrMacHeaderVs::Print (std::ostream &os) const
 {
-  os << "LC " << +m_lcid << " size " << m_size;
+  os << "LCid " << +m_lcid << " size " << m_size;
 }
 
 bool

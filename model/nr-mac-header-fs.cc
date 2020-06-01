@@ -30,11 +30,13 @@ NrMacHeaderFs::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::NrMacHeaderFs")
     .SetParent<Header> ()
+    .AddConstructor <NrMacHeaderFs> ()
   ;
   return tid;
 }
 
-TypeId NrMacHeaderFs::GetInstanceTypeId () const
+TypeId
+NrMacHeaderFs::GetInstanceTypeId () const
 {
   return GetTypeId ();
 }
@@ -75,7 +77,7 @@ void
 NrMacHeaderFs::Print (std::ostream &os) const
 {
   NS_LOG_FUNCTION (this);
-  os << "LC " << +m_lcid;
+  os << "LCid " << +m_lcid;
 }
 
 void

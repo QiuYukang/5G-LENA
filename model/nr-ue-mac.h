@@ -61,7 +61,7 @@ class NrUlDciMessage;
  *
  * \section ue_mac_response_to_dci Response to a DCI
  *
- * When the UE receives an UL_DCI, it can use a part of it send Control Element.
+ * When the UE receives an UL_DCI, it can use a part of it to send a Control Element.
  * The most used control element (and, by the way, the only we support right now)
  * is SHORT_BSR, in which the UE informs the GNB of its buffer status. The rest
  * of the bytes can be used to send data.
@@ -92,7 +92,11 @@ class NrUlDciMessage;
  * to send as many as retx-subPDUs as possible, and finally as many as tx-subPDUs
  * as possible. At the end of all the subPDUs, it will be sent a SHORT_BSR, to
  * indicate to the GNB the new status of the RLC queues. As the SHORT_BSR is
- * a CE and is treated in the same way as data, it may be lost.
+ * a CE and is treated in the same way as data, it may be lost. Please note that
+ * the code substract the amount of bytes devoted to the SHORT_BSR from the
+ * available ones, so there will always be a space to send it. The only
+ * exception (theoretically possible) is when the status PDUs use all the
+ * available space; in this case, a rework of the code will be needed.
  *
  * The SHORT_BSR is not reflecting the standard, but it is the same data that
  * was sent in LENA, indicating the status of 4 LCG at once with an 8-bit value.
@@ -260,9 +264,10 @@ private:
    * Please note that this call is triggered by communicating to the RLC
    * that there is a new transmission opportunity with NotifyTxOpportunity().
    *
-   * Even if the method is called DoTransmitPdu, what we are really sending
-   * down to PHY is a subPDU, that will be grouped by PHY into a PacketBurst,
-   * that represents a PDU.
+   * The method is called DoTransmitPdu, however, it may happen that multiple
+   * PDUs need to be send in the same frame/subframe/slot/symbol, in this case,
+   * they will be grouped (to imitate subPdus) by PHY into a PacketBurst that
+   * represents a PDU.
    */
   void DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params);
 
@@ -302,9 +307,10 @@ private:
    * \brief Process the received UL DCI
    * \param dciMsg the UL DCI received
    *
-   * The method will call SendNewData(), that will take care of sending
-   * data out taking into account the header overhead. At the end of the
-   * process, the method will try to send out a SHORT_BSR.
+   * The method will call SendNewData() or TransmitRetx() (depending on the UL
+   * DCI type), that will take care of sending data out taking into account the
+   * header overhead. After sending new data, the method is allowed to enqueue
+   * a BSR if there are still bytes in the queue.
    *
    */
   void ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg);
