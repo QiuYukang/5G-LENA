@@ -1110,9 +1110,9 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
   if (!pktBurst || pktBurst->GetNPackets () == 0)
     {
-      // put an error, as something is wrong. The UE should not be scheduled
-      // if there is no data for him...
-      NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
+      // sometimes the UE will be scheduled when no data is queued.
+      // In this case, don't send anything, don't put power... don't do nothing!
+      return varTtiPeriod;
     }
 
   NS_LOG_INFO ("ENB TXing DL DATA frame " << m_currentSlot <<
