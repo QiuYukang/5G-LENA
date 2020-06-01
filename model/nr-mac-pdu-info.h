@@ -44,6 +44,7 @@ struct NrMacPduInfo
 
   SfnSf m_sfnSf;                  //!< SfnSf of the PDU
   std::shared_ptr<DciInfoElementTdma> m_dci; //!< The DCI
+  uint32_t m_used {0};  //!< Bytes sent down to PHY for this PDU
 };
 
 } // namespace ns3

@@ -1006,6 +1006,10 @@ NrGnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 
   harqIt->second.at (params.harqProcessId).m_pktBurst->AddPacket (params.pdu);
 
+  it->second.m_used += params.pdu->GetSize ();
+  NS_ASSERT_MSG (it->second.m_dci->m_tbSize >= it->second.m_used,
+                 "DCI OF " << it->second.m_dci->m_tbSize << " total used " << it->second.m_used);
+
   m_phySapProvider->SendMacPdu (params.pdu, it->second.m_sfnSf, it->second.m_dci->m_symStart);
 }
 
