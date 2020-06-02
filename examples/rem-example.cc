@@ -80,21 +80,21 @@ main (int argc, char *argv[])
   double ue2x = -17.0;
   double ue2y = -8.0;
 
-  double frequency = 28e9;
-  double bandwidth = 100e6;
+  double frequency = 2e9;//28e9
+  double bandwidth = 20e6; //100e6
   uint16_t numerology = 0;
-  double txPower = 4;
+  double txPower = 1; //4
 
   //Antenna Parameters
   double hBS;   //Depend on the scenario (no input parameters)
   double hUT;
-  uint32_t numRowsUe = 2;
-  uint32_t numColumnsUe = 2;
-  uint32_t numRowsGnb = 4;
-  uint32_t numColumnsGnb = 4;
+  uint32_t numRowsUe = 1; //2
+  uint32_t numColumnsUe = 1; //2
+  uint32_t numRowsGnb = 1; //4
+  uint32_t numColumnsGnb = 1; //4
   bool isoUe = true;
-  bool isoGnb = false;
-  bool enableQuasiOmni = false;
+  bool isoGnb = true; //false
+  bool enableQuasiOmni = true; //false
 
   double simTime = 1; // in seconds
   bool logging = false;
@@ -225,7 +225,8 @@ main (int argc, char *argv[])
     }
   else if(scenario.compare("UMa") == 0)
     {
-      hBS = 25;
+      //hBS = 25;
+      hBS = 1.5;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMa;
     }
@@ -371,12 +372,14 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-
   if (enableQuasiOmni)
-  {
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
-  }
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+    }
+  else
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    }
 
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
