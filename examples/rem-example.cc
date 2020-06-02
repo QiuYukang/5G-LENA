@@ -96,9 +96,6 @@ main (int argc, char *argv[])
   bool isoGnb = false;
   bool enableQuasiOmni = false;
 
-  double mobility = false; //whether to enable mobility
-  //double speed = 1; // in m/s for walking UT.
-
   double simTime = 1; // in seconds
   bool logging = false;
   bool enableTraces = false;
@@ -180,10 +177,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("isoGnb",
                 "If true (set to 1), use an isotropic radiation pattern in the gNB ",
                 isoGnb);
-  cmd.AddValue ("mobility",
-                "If set to 1 UEs will be mobile, when set to 0 UE will be static. "
-                "By default, they are mobile.",
-                mobility);
   cmd.AddValue ("numOfBuildings",
                 "The number of Buildings to deploy in the scenario",
                 numOfBuildings);
@@ -313,7 +306,7 @@ main (int argc, char *argv[])
 
   // position the mobile terminals
   MobilityHelper uemobility;
-  uemobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
+  uemobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   uemobility.Install (ueNodes);
 
   ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x, ue1y, hUT));
@@ -369,6 +362,11 @@ main (int argc, char *argv[])
   CcBwpCreator::SimpleOperationBandConf bandConf (frequency, bandwidth, numCcPerBand, scenarioEnum);
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
   //Initialize channel and pathloss, plus other things inside band.
+
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
   nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
@@ -380,8 +378,7 @@ main (int argc, char *argv[])
     idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
   }
 
-  // Configure scheduler
-  nrHelper->SetSchedulerTypeId (NrMacSchedulerTdmaRR::GetTypeId ());
+  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (numRowsUe));
@@ -393,16 +390,17 @@ main (int argc, char *argv[])
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (numColumnsGnb));
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (isoGnb));
 
-  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
   // install nr net devices
-  NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
+  NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
   nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetTxPower (txPower);
+  nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
   if (deploymentScenario.compare("TwoGnbs") == 0)
   {
     nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetTxPower (txPower);
+    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
   }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
@@ -485,7 +483,7 @@ main (int argc, char *argv[])
   //Let us create the REM for this user:
   Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
   uint16_t remBwpId = 0;
-  Ptr<const SpectrumModel> remSm = DynamicCast<NrUeNetDevice>(ueRemDevice)->GetPhy(remBwpId)->GetSpectrumModel();
+  Ptr<const SpectrumModel> remSm = DynamicCast<NrUeNetDevice> (ueRemDevice)->GetPhy (remBwpId)->GetSpectrumModel ();
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> (remSm);
   remHelper->SetMinX (-20.0);
