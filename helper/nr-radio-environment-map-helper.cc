@@ -42,8 +42,6 @@
 #include <ns3/buildings-module.h>
 #include <ns3/mobility-building-info.h>
 
-
-
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -270,8 +268,9 @@ NrRadioEnvironmentMapHelper::GetZ () const
 
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
-    NS_ASSERT_MSG (m_rrd.spectrumModel->GetUid() == ueDevice->GetObject<NrUeNetDevice>()->GetPhy(bwpId)->GetSpectrumModel()->GetUid(),
-                       "Spectrum model of REM map and RRD device are not the same. Ensure that the REM map is created with the same parameter as the RRD device.");
+    NS_ASSERT_MSG (m_rrd.spectrumModel->GetUid () == ueDevice->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)->GetSpectrumModel ()->GetUid (),
+                       "Spectrum model of REM map and RRD device are not the same. "
+                       "Ensure that the REM map is created with the same parameter as the RRD device.");
     m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
     PrintGnuplottableUeListToFile ("nr-ues.txt");
 
@@ -302,8 +301,10 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
         {
           if (rtdPhy->GetSpectrumModel ()->IsOrthogonal (*m_rrd.spectrumModel))
             {
-              NS_LOG_WARN ("RTD device is configured to operate on a spectrum that is orthogonal to the one of RRD device. Hence, that RTD device will not be "
-                  "considered in the calculation of this REM map.");
+              NS_LOG_WARN ("RTD device is configured to operate on a spectrum "
+                           "that is orthogonal to the one of RRD device. Hence, "
+                           "that RTD device will not be considered in the "
+                           "calculation of this REM map.");
               continue;
             }
           else
@@ -339,7 +340,9 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
 
       m_remDev.push_back (rtd);
     }
-  NS_ASSERT_MSG(m_remDev.size(),"No RTD devices configured. Check if the RTD devices are on the operating on the same spectrum as RRD device.");
+  NS_ASSERT_MSG(m_remDev.size(),"No RTD devices configured. Check if the RTD "
+                                "devices are on the operating on the same "
+                                "spectrum as RRD device.");
 }
 
 void
@@ -360,34 +363,35 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const NrGn
   ConfigureObjectFactory (m_channelConditionModelFactory, m_channelConditionModel);
 }
 
-
-
 void
 NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactory, const Ptr<Object> object)
 {
-  NS_LOG_FUNCTION(this);
+  NS_LOG_FUNCTION (this);
 
-  TypeId tid = object->GetInstanceTypeId();
+  TypeId tid = object->GetInstanceTypeId ();
   objectFactory.SetTypeId (object->GetInstanceTypeId ());
 
-  NS_LOG_DEBUG ("Configure object factory for:"<<tid.GetName());
+  NS_LOG_DEBUG ("Configure object factory for:" << tid.GetName ());
 
   bool hasParent = false;
   do
     {
-      for (size_t i = 0; i < tid.GetAttributeN(); i++)
+      for (size_t i = 0; i < tid.GetAttributeN (); i++)
         {
-          ns3::TypeId::AttributeInformation attributeInfo = tid.GetAttribute(i);
+          ns3::TypeId::AttributeInformation attributeInfo = tid.GetAttribute (i);
 
-          if (attributeInfo.checker->GetValueTypeName() == "ns3::PointerValue")
+          if (attributeInfo.checker->GetValueTypeName () == "ns3::PointerValue")
             {
               if (attributeInfo.name == "ChannelConditionModel")
                 {
-                  NS_LOG_INFO ("Skipping to copy ChannelConditionModel. According to REM design it should be created as a new object (not copied).");
+                  NS_LOG_INFO ("Skipping to copy ChannelConditionModel."
+                               "According to REM design it should be created "
+                               "as a new object (not copied).");
                 }
               else
                 {
-                  NS_LOG_WARN ("This factory has a PointerValue attribute that is not compatible with this REM helper version.");
+                  NS_LOG_WARN ("This factory has a PointerValue attribute that "
+                               "is not compatible with this REM helper version.");
                 }
 
               continue;
@@ -416,9 +420,9 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactor
   while (hasParent);
 }
 
-
 void
-NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev,
+                                        Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
 
@@ -542,9 +546,9 @@ Ptr<SpectrumValue>
 NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& values)
 {
   //TODO add this abort, if necessary add include for abort.h
-  NS_ABORT_MSG_IF(values.size() == 0, "Must provide a list of values.");
+  NS_ABORT_MSG_IF (values.size () == 0, "Must provide a list of values.");
 
-  Ptr<SpectrumValue> maxValue = *(values.begin());
+  Ptr<SpectrumValue> maxValue = *(values.begin ());
 
   for (const auto &value: values)
     {
@@ -575,17 +579,17 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
 {
   Ptr<SpectrumValue> interferencePsd = nullptr;
 
-  if (interferenceSignals.size() == 0)
+  if (interferenceSignals.size () == 0)
     {
       return CalculateSnr (usefulSignal);
     }
   else
     {
-      interferencePsd = Create<SpectrumValue>(m_rrd.spectrumModel);
+      interferencePsd = Create<SpectrumValue> (m_rrd.spectrumModel);
     }
 
   // sum all interfering signals
-  for (auto rxInterfPower:interferenceSignals)
+  for (auto rxInterfPower: interferenceSignals)
     {
       *interferencePsd += (*rxInterfPower);
     }
@@ -600,24 +604,26 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
 double
 NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
 {
-  NS_ABORT_MSG_IF (receivedPowerList.size() > 1, "The size of received power list should be greater than one in order to calculate maximum SINR.");
+  NS_ABORT_MSG_IF (receivedPowerList.size () > 1, "The size of received power list "
+                                                  "should be greater than one in order "
+                                                  "to calculate maximum SINR.");
   // we calculate sinr considering for each RTD as if it would be TX device, and the rest of RTDs interferers
   std::list <double> sinrList;
 
-  for (std::list <Ptr<SpectrumValue>>::const_iterator it = receivedPowerList.begin();
-        it!=receivedPowerList.end(); it++)
+  for (std::list <Ptr<SpectrumValue>>::const_iterator it = receivedPowerList.begin ();
+        it!=receivedPowerList.end (); it++)
     {
       //all signals - rxPower = interference
       std::list <Ptr<SpectrumValue>> interferenceSignals;
       std::list <Ptr<SpectrumValue>>::const_iterator tempit = it;
 
-      if (it!=receivedPowerList.begin())
+      if (it!=receivedPowerList.begin ())
         {
-          interferenceSignals.insert (interferenceSignals.begin(), receivedPowerList.begin(), it);
+          interferenceSignals.insert (interferenceSignals.begin (), receivedPowerList.begin (), it);
         }
 
-      interferenceSignals.insert (interferenceSignals.end(), ++tempit, receivedPowerList.end ());
-      NS_ASSERT(interferenceSignals.size()==receivedPowerList.size()-1);
+      interferenceSignals.insert (interferenceSignals.end (), ++tempit, receivedPowerList.end ());
+      NS_ASSERT(interferenceSignals.size () == receivedPowerList.size ()-1);
       sinrList.push_back (CalculateSinr (*it, interferenceSignals));
     }
   return GetMaxValue (sinrList);
@@ -649,7 +655,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
         {
           std::list <Ptr<SpectrumValue>> receivedPowerList;// RTD node id, rxPsd of the singal coming from that node
 
-          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin(); itRtd != m_remDev.end (); ++itRtd)
+          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin (); itRtd != m_remDev.end (); ++itRtd)
             {
               calcRxPsdCounter++;
                // calculate received power from the current RTD device
@@ -664,7 +670,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
           sumSnr += CalculateMaxSnr (receivedPowerList);
           sumSinr += CalculateMaxSinr (receivedPowerList);
 
-          receivedPowerList.clear();
+          receivedPowerList.clear ();
         }//end for m_numOfIterationsToAverage  (Average)
 
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
@@ -680,15 +686,15 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
                  remElapsedSeconds.count () / 60 << " minutes.");
 }
 
-
 double
 NrRadioEnvironmentMapHelper::GetMaxValue (const std::list<double>& listOfValues) const
 {
-  NS_ABORT_MSG_IF (listOfValues.size()==0, "GetMaxValue should not be called with an empty list.");
+  NS_ABORT_MSG_IF (listOfValues.size () == 0, "GetMaxValue should not be called "
+                                              "with an empty list.");
 
-  double maxValue = *(listOfValues.begin());
+  double maxValue = *(listOfValues.begin ());
   //start from second element, the first is already taken into account
-  for(auto it = ++listOfValues.begin(); it != listOfValues.end(); ++it)
+  for(auto it = ++listOfValues.begin (); it != listOfValues.end (); ++it)
     {
       if (*it > maxValue)
         {
@@ -697,7 +703,6 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list<double>& listOfValues)
     }
   return maxValue;
 }
-
 
 void
 NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
@@ -728,7 +733,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
           std::list<double> snrsPerBeam; // vector in which we will save snr per each RRD beam
 
           // For each beam configuration at RemPoint/RRD we should calculate SINR, there are as many beam configurations at RemPoint as many RTDs
-          for (std::list<RemDevice>::iterator itRtdBeam = m_remDev.begin(); itRtdBeam != m_remDev.end (); ++itRtdBeam)
+          for (std::list<RemDevice>::iterator itRtdBeam = m_remDev.begin (); itRtdBeam != m_remDev.end (); ++itRtdBeam)
             {
               //configure RRD beam toward RTD
               ConfigureDirectPathBfv (m_rrd, *itRtdBeam);
@@ -750,9 +755,9 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 
                   if (itRtdBeam->dev->GetNode ()->GetId () == itRtdCalc->dev->GetNode ()->GetId ())
                     {
-                      if (usefulSignalRxPsd!=nullptr)
+                      if (usefulSignalRxPsd != nullptr)
                         {
-                          NS_FATAL_ERROR("Already assigned usefulSignal!");
+                          NS_FATAL_ERROR ("Already assigned usefulSignal!");
                         }
                       usefulSignalRxPsd = receivedPower;
                     }
@@ -791,7 +796,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 NrRadioEnvironmentMapHelper::PropagationModels
 NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
 {
-  NS_LOG_FUNCTION(this);
+  NS_LOG_FUNCTION (this);
 
   PropagationModels propModels;
   //create rem copy of channel condition
@@ -817,19 +822,21 @@ NrRadioEnvironmentMapHelper::CopyThreeGppChannelModelAttributeValues (Ptr<ThreeG
 {
   NS_LOG_FUNCTION (this);
 
-  for (size_t i = 0; i < ThreeGppChannelModel::GetTypeId().GetAttributeN(); i++)
+  for (size_t i = 0; i < ThreeGppChannelModel::GetTypeId ().GetAttributeN (); i++)
     {
-      ns3::TypeId::AttributeInformation attributeInfo = ThreeGppChannelModel::GetTypeId().GetAttribute(i);
+      ns3::TypeId::AttributeInformation attributeInfo = ThreeGppChannelModel::GetTypeId ().GetAttribute (i);
 
-      if (attributeInfo.checker->GetValueTypeName() == "ns3::PointerValue")
+      if (attributeInfo.checker->GetValueTypeName () == "ns3::PointerValue")
         {
           if (attributeInfo.name == "ChannelConditionModel")
             {
-              NS_LOG_INFO ("Skipping to copy ChannelConditionModel. According to REM design it should be created as a new object (not copied).");
+              NS_LOG_INFO ("Skipping to copy ChannelConditionModel. According to "
+                           "REM design it should be created as a new object (not copied).");
             }
           else
             {
-              NS_LOG_WARN ("ThreeGppChannelModel has a new pointer attribute that is not compatible with this REM helper version.");
+              NS_LOG_WARN ("ThreeGppChannelModel has a new pointer attribute that "
+                           "is not compatible with this REM helper version.");
             }
 
           continue;
@@ -839,7 +846,8 @@ NrRadioEnvironmentMapHelper::CopyThreeGppChannelModelAttributeValues (Ptr<ThreeG
       m_spectrumLossModel->GetChannelModelAttribute (attributeInfo.name, *attributeValue);
       spectrumLossModel->SetChannelModelAttribute (attributeInfo.name, *attributeValue);
 
-      NS_LOG_DEBUG ("Copy attribute: "<<attributeInfo.name<<" value:"<<attributeValue->SerializeToString (attributeInfo.checker));
+      NS_LOG_DEBUG ("Copy attribute: " << attributeInfo.name << " value:" <<
+                    attributeValue->SerializeToString (attributeInfo.checker));
     }
 }
 
