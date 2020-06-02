@@ -68,11 +68,22 @@ main (int argc, char *argv[])
 
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
+  std::string deploymentScenario = "SingleGnb";
+
+  double gNB1x = 0.0;
+  double gNB1y = 0.0;
+  double gNB2x = -10.0;
+  double gNB2y = -15.0;
+
+  double ue1x = 10.0;
+  double ue1y = 10.0;
+  double ue2x = -17.0;
+  double ue2y = -8.0;
 
   double frequency = 28e9;
   double bandwidth = 100e6;
   uint16_t numerology = 0;
-  double txPower = 40;
+  double txPower = 4;
 
   //Antenna Parameters
   double hBS;   //Depend on the scenario (no input parameters)
@@ -86,13 +97,14 @@ main (int argc, char *argv[])
   bool enableQuasiOmni = false;
 
   double mobility = false; //whether to enable mobility
-  double speed = 1; // in m/s for walking UT.
+  //double speed = 1; // in m/s for walking UT.
 
   double simTime = 1; // in seconds
-  bool logging = true;
+  bool logging = false;
+  bool enableTraces = false;
 
   //building parameters in case of buildings addition
-  bool enableBuildings; //Depends on the scenario (no input parameter)
+  bool enableBuildings = false; //Depends on the scenario (no input parameter)
   uint32_t numOfBuildings = 1;
   uint32_t apartmentsX = 2;
   uint32_t nFloors = 1;
@@ -109,6 +121,34 @@ main (int argc, char *argv[])
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per gNb in multiple-ue topology",
                 ueNumPergNb);
+  cmd.AddValue ("gNB1x",
+                "gNb 1 x position",
+                gNB1x);
+  cmd.AddValue ("gNB1y",
+                "gNb 1 y position",
+                gNB1y);
+  cmd.AddValue ("gNB2x",
+                "gNb 2 x position",
+                gNB2x);
+  cmd.AddValue ("gNB2y",
+                "gNb 2 y position",
+                gNB2y);
+  cmd.AddValue ("ue1x",
+                "ue 1 x position",
+                ue1x);
+  cmd.AddValue ("ue1y",
+                "ue 1 y position",
+                ue1y);
+  cmd.AddValue ("ue2x",
+                "ue 2 x position",
+                ue2x);
+  cmd.AddValue ("ue2y",
+                "ue 2 y position",
+                ue2y);
+  cmd.AddValue ("deploymentScenario",
+                "The deployment scenario for the simulation. Choose among "
+                "'SingleGnb', 'TwoGnbs'.",
+                deploymentScenario);
   cmd.AddValue ("frequency",
                 "The central carrier frequency in Hz.",
                 frequency);
@@ -231,45 +271,56 @@ main (int argc, char *argv[])
   else
     {
       NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', "
-                   "'UMi-StreetCanyon', 'InH-OfficeMixed', and 'InH-OfficeOpen'.");
+                   "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen',"
+                   "'UMa-Buildings', and 'UMi-Buildings'.");
     }
+
+  if(deploymentScenario.compare("SingleGnb") == 0)
+    {
+      gNbNum = 1;
+      ueNumPergNb = 1;
+    }
+  else if (deploymentScenario.compare("TwoGnbs") == 0)
+    {
+      gNbNum = 2;
+      ueNumPergNb = 1;
+    }
+  else
+    {
+      NS_ABORT_MSG("Deployment scenario not supported. "
+                   "Choose among 'SingleGnb', 'TwoGnbs'.");
+    }
+
 
   // create base stations and mobile terminals
   NodeContainer gnbNodes;
   NodeContainer ueNodes;
-  gnbNodes.Create (2);
-  ueNodes.Create (2);
+  gnbNodes.Create (gNbNum);
+  ueNodes.Create (ueNumPergNb * gNbNum);
 
   // position the base stations
   Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator> ();
-  gnbPositionAlloc->Add (Vector (0.0, 0.0, hBS));
-  gnbPositionAlloc->Add (Vector (0.0, 80.0, hBS));
+  gnbPositionAlloc->Add (Vector (gNB1x, gNB1y, hBS));
+  if (deploymentScenario.compare("TwoGnbs") == 0)
+  {
+    gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
+  }
+
   MobilityHelper gnbmobility;
   gnbmobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   gnbmobility.SetPositionAllocator(gnbPositionAlloc);
   gnbmobility.Install (gnbNodes);
 
-  // position the mobile terminals and enable the mobility
+  // position the mobile terminals
   MobilityHelper uemobility;
   uemobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   uemobility.Install (ueNodes);
 
-  if(mobility)
-    {
-      ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (90, 15, hUT)); // (x, y, z) in m
-      ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, speed, 0)); // move UE1 along the y axis
-
-      ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (30, 50.0, hUT)); // (x, y, z) in m
-      ueNodes.Get (1)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (-speed, 0, 0)); // move UE2 along the x axis
-    }
-  else
-    {
-      ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (90, 15, hUT));
-      ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, 0, 0));
-
-      ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (30, 50.0, hUT));
-      ueNodes.Get (1)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, 0, 0));
-    }
+  ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x, ue1y, hUT));
+  if (deploymentScenario.compare("TwoGnbs") == 0)
+  {
+    ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
+  }
 
   if (enableBuildings)
     {
@@ -342,12 +393,17 @@ main (int argc, char *argv[])
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (numColumnsGnb));
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (isoGnb));
 
+  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
+
   // install nr net devices
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
   nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetTxPower (txPower);
-  nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetTxPower (txPower);
+  if (deploymentScenario.compare("TwoGnbs") == 0)
+  {
+    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetTxPower (txPower);
+  }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
   for (auto it = gnbNetDev.Begin (); it != gnbNetDev.End (); ++it)
@@ -420,14 +476,16 @@ main (int argc, char *argv[])
   clientApps.Stop(Seconds(simTime-0.2));
 
   // enable the traces provided by the nr module
-  nrHelper->EnableTraces();
+  if (enableTraces)
+    {
+      nrHelper->EnableTraces();
+    }
+
 
   //Let us create the REM for this user:
   Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
-
   uint16_t remBwpId = 0;
   Ptr<const SpectrumModel> remSm = DynamicCast<NrUeNetDevice>(ueRemDevice)->GetPhy(remBwpId)->GetSpectrumModel();
-
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> (remSm);
   remHelper->SetMinX (-20.0);
@@ -438,7 +496,6 @@ main (int argc, char *argv[])
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
   remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);  //bwpId 0
-
 
 
   Simulator::Stop (Seconds (simTime));
