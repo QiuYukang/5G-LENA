@@ -53,19 +53,9 @@ NS_LOG_COMPONENT_DEFINE ("NrRadioEnvironmentMapHelper");
 
 NS_OBJECT_ENSURE_REGISTERED (NrRadioEnvironmentMapHelper);
 
-
-NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper (Ptr<const SpectrumModel>& sm)
-{
-  // all devices should have the same spectrum model to perform calculation,
-  // if some of the device is of the different then its transmission will have to
-  // converted into spectrum model of this device
-  m_rrd.spectrumModel = sm;
-}
-
 NrRadioEnvironmentMapHelper::NrRadioEnvironmentMapHelper ()
 {
   NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("This constructor should not be called");
 }
 
 NrRadioEnvironmentMapHelper::~NrRadioEnvironmentMapHelper ()
@@ -160,6 +150,12 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                                        &NrRadioEnvironmentMapHelper::GetRemMode),
                                      MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
                                                       NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea"))
+                      .AddAttribute ("InstallationDelay",
+                                     "How many time it is needed in the simulation to configure phy parameters at UE, "
+                                     "depends on RRC message timing.",
+                                     TimeValue (MilliSeconds (100)),
+                                     MakeTimeAccessor (&NrRadioEnvironmentMapHelper::SetInstallationDelay),
+                                     MakeTimeChecker())
     ;
   return tid;
 }
@@ -218,6 +214,12 @@ NrRadioEnvironmentMapHelper::SetNumOfItToAverage (uint16_t numOfIterationsToAver
   m_numOfIterationsToAverage = numOfIterationsToAverage;
 }
 
+void
+NrRadioEnvironmentMapHelper::SetInstallationDelay (Time installationDelay)
+{
+  m_installationDelay = installationDelay;
+}
+
 enum NrRadioEnvironmentMapHelper::RemMode
 NrRadioEnvironmentMapHelper::GetRemMode () const
 {
@@ -268,9 +270,11 @@ NrRadioEnvironmentMapHelper::GetZ () const
 
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
-    NS_ASSERT_MSG (m_rrd.spectrumModel->GetUid () == ueDevice->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)->GetSpectrumModel ()->GetUid (),
-                       "Spectrum model of REM map and RRD device are not the same. "
-                       "Ensure that the REM map is created with the same parameter as the RRD device.");
+    // RTD and RRD devices should have the same spectrum model to perform calculation,
+    // if some of the RTD devices is of the different model then its transmission will have to
+    // converted into spectrum model of this device
+    m_rrd.spectrumModel = ueDevice->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)->GetSpectrumModel ();
+
     m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
     PrintGnuplottableUeListToFile ("nr-ues.txt");
 
@@ -425,17 +429,23 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev,
                                         Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
-
   m_outFile.open (m_outputFile.c_str ());
   if (!m_outFile.is_open ())
     {
       NS_FATAL_ERROR ("Can't open file " << (m_outputFile));
       return;
     }
-
-  ConfigureRtdList (gnbNetDev, bwpId);
   CreateListOfRemPoints ();
+
+  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::InstallRem, this, gnbNetDev, ueDevice, bwpId );
+}
+
+void
+NrRadioEnvironmentMapHelper::InstallRem (NetDeviceContainer gnbNetDev,
+                                         Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+{
   ConfigureRrd (ueDevice, bwpId);
+  ConfigureRtdList (gnbNetDev, bwpId);
   //CalcCurrentRemMap ();
   if (m_remMode == COVERAGE_AREA)
     {

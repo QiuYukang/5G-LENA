@@ -67,14 +67,9 @@ public:
   };
 
   /**
-   * @warning the default constructor should not be used
-   */
-  NrRadioEnvironmentMapHelper ();
-
-  /**
    * \brief NrRadioEnvironmentMapHelper constructor
    */
-  NrRadioEnvironmentMapHelper (Ptr<const SpectrumModel>& sm);
+  NrRadioEnvironmentMapHelper ();
 
   /**
    * \brief destructor
@@ -138,6 +133,12 @@ public:
    */
   void SetNumOfItToAverage (uint16_t numOfIterationsToAverage);
 
+  /*
+   * \brief Sets the installation delay
+   * \param installationDelay delay for the REM installation
+   */
+  void SetInstallationDelay (Time installationDelay);
+
   //TODO
   enum RemMode GetRemMode () const;
 
@@ -188,6 +189,9 @@ public:
    * \param bwpId The bwpId
    */
   void CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+
+  // TODO
+  void InstallRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
    * \brief This method creates the list of Rem Points (coordinates)
@@ -356,19 +360,19 @@ private:
 
   enum RemMode m_remMode; //
 
-  double m_xMin;   ///< The `XMin` attribute.
-  double m_xMax;   ///< The `XMax` attribute.
-  uint16_t m_xRes; ///< The `XRes` attribute.
-  double m_xStep;  ///< Distance along X axis between adjacent listening points.
+  double m_xMin {0};   ///< The `XMin` attribute.
+  double m_xMax {0};   ///< The `XMax` attribute.
+  uint16_t m_xRes {0}; ///< The `XRes` attribute.
+  double m_xStep {0};  ///< Distance along X axis between adjacent listening points.
 
-  double m_yMin;   ///< The `YMin` attribute.
-  double m_yMax;   ///< The `YMax` attribute.
-  uint16_t m_yRes; ///< The `YRes` attribute.
-  double m_yStep;  ///< Distance along Y axis between adjacent listening points.
-
-  double m_z;  ///< The `Z` attribute.
+  double m_yMin {0};   ///< The `YMin` attribute.
+  double m_yMax {0};   ///< The `YMax` attribute.
+  uint16_t m_yRes {0}; ///< The `YRes` attribute.
+  double m_yStep {0};  ///< Distance along Y axis between adjacent listening points.
+  double m_z {0};  ///< The `Z` attribute.
 
   uint16_t m_numOfIterationsToAverage;
+  Time m_installationDelay {Seconds(0)};
 
   RemDevice m_rrd;
 
