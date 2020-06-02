@@ -190,9 +190,6 @@ public:
    */
   void CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
-  // TODO
-  void InstallRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
-
   /**
    * \brief This method creates the list of Rem Points (coordinates)
    */
@@ -252,6 +249,14 @@ private:
     Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
     Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
   };
+
+  /*
+   * \brief This function is used to performed a delayed installation of REM map
+   * \param gnbNetDev gNb devices for which the map will be generated
+   * \param ueDevice The Ue device for which the map will be generated
+   * \param bwpId The bwpId
+   */
+   void InstallRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
    * \brief This function is used for the creation of the REM map. When this
