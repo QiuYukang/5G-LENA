@@ -106,6 +106,15 @@ main (int argc, char *argv[])
   uint32_t apartmentsX = 2;
   uint32_t nFloors = 1;
 
+  //Rem parameters
+  double xMin = -40.0;
+  double xMax = 80.0;
+  uint16_t xRes = 50;
+  double yMin = -70.0;
+  double yMax = 50.0;
+  uint16_t yRes = 50;
+  double z = 1.5;
+
   CommandLine cmd;
   cmd.AddValue ("scenario",
                 "The scenario for the simulation. Choose among 'RMa', 'UMa', "
@@ -195,6 +204,27 @@ main (int argc, char *argv[])
                 "Enable logging"
                 "another option is by exporting the NS_LOG environment variable",
                 logging);
+  cmd.AddValue ("xMin",
+                "The min x coordinate of the rem map",
+                xMin);
+  cmd.AddValue ("xMax",
+                "The max x coordinate of the rem map",
+                xMax);
+  cmd.AddValue ("xRes",
+                "The resolution on the x axis of the rem map",
+                xRes);
+  cmd.AddValue ("yMin",
+                "The min y coordinate of the rem map",
+                yMin);
+  cmd.AddValue ("xMax",
+                "The max y coordinate of the rem map",
+                yMax);
+  cmd.AddValue ("yRes",
+                "The resolution on the y axis of the rem map",
+                yRes);
+  cmd.AddValue ("z",
+                "The z coordinate of the rem map",
+                z);
 
   cmd.Parse (argc, argv);
 
@@ -497,13 +527,13 @@ main (int argc, char *argv[])
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (-40.0);
-  remHelper->SetMaxX (80.0);
-  remHelper->SetResX (50);
-  remHelper->SetMinY (-70.0);
-  remHelper->SetMaxY (50.0);
-  remHelper->SetResY (50);
-  remHelper->SetZ (1.5);
+  remHelper->SetMinX (xMin);
+  remHelper->SetMaxX (xMax);
+  remHelper->SetResX (xRes);
+  remHelper->SetMinY (yMin);
+  remHelper->SetMaxY (yMax);
+  remHelper->SetResY (yRes);
+  remHelper->SetZ (z);
   remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);  //bwpId 0
 
 
