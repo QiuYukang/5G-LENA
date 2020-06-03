@@ -64,6 +64,7 @@ int
 main (int argc, char *argv[])
 {
   std::string scenario = "UMa"; //scenario
+  std::string beamforming = "dir-dir"; //beamforming at gNB and UE, the first is gNB and the second is UE
   enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
 
   uint16_t gNbNum = 1;
@@ -94,7 +95,6 @@ main (int argc, char *argv[])
   uint32_t numColumnsGnb = 1; //4
   bool isoUe = true;
   bool isoGnb = true; //false
-  bool enableQuasiOmni = true; //false
 
   double simTime = 1; // in seconds
   bool logging = false;
@@ -186,10 +186,11 @@ main (int argc, char *argv[])
   cmd.AddValue ("nFloors",
                 "The number of floors of a building",
                 nFloors);
-  cmd.AddValue ("enableQuasiOmni",
-                "If true (set to 1) enable QuasiOmni DirectPath Beamforming,"
-                "DirectPath Beamforming otherwise",
-                enableQuasiOmni);
+  cmd.AddValue ("beamforming",
+                "If dir-dir configure direct-path at both gNB and UE; "
+                "if dir-omni configure direct-path at gNB and quasi-omni at UE;"
+                "if omni-dir configure quasi-omni at gNB and direct-path at UE;",
+                beamforming);
   cmd.AddValue ("logging",
                 "Enable logging"
                 "another option is by exporting the NS_LOG environment variable",
@@ -372,13 +373,21 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure beamforming method
-  if (enableQuasiOmni)
+  if (beamforming.compare ("dir-dir") == 0)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ())); // dir at gNB, dir at UE
+    }
+  else if (beamforming.compare ("dir-omni") == 0)
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ())); // dir at gNB, q-omni at UE
+    }
+  else if (beamforming.compare ("omni-dir") == 0)
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
     }
   else
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+      NS_FATAL_ERROR ("Beamforming does not exist:" << beamforming);
     }
 
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
@@ -488,11 +497,11 @@ main (int argc, char *argv[])
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-  remHelper->SetMinX (-20.0);
-  remHelper->SetMaxX (20.0);
+  remHelper->SetMinX (-40.0);
+  remHelper->SetMaxX (80.0);
   remHelper->SetResX (50);
-  remHelper->SetMinY (-20.0);
-  remHelper->SetMaxY (20.0);
+  remHelper->SetMinY (-70.0);
+  remHelper->SetMaxY (50.0);
   remHelper->SetResY (50);
   remHelper->SetZ (1.5);
   remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);  //bwpId 0

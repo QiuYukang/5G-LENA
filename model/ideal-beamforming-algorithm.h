@@ -306,6 +306,39 @@ protected:
 
 };
 
+
+/**
+ * \ingroup gnb-phy
+ * \brief The QuasiOmniDirectPathBeamforming class
+ */
+class DirectPathQuasiOmniBeamforming: public DirectPathBeamforming
+{
+
+public:
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+
+protected:
+
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using the direct-path beamforming vector for gNB
+   * and quasi-omni beamforming vector for UEs
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+
+};
+
 /**
  * \ingroup gnb-phy
  * \brief The OptimalCovMatrixBeamforming class
