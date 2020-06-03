@@ -25,7 +25,5 @@ def build(bld):
     obj.source = 'cttc-error-model-amc.cc'
     obj = bld.create_ns3_program('cttc-error-model-comparison', ['nr', 'internet-apps'])
     obj.source = 'cttc-error-model-comparison.cc'
-#    obj = bld.create_ns3_program('cttc-simple-interference-example', ['nr', 'internet-apps', 'stats'])
-#    obj.source = 'cttc-simple-interference-example.cc'
     obj = bld.create_ns3_program('s3-scenario', ['nr','flow-monitor'])
     obj.source = 's3-scenario.cc'

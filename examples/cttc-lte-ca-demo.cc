@@ -1,13 +1,21 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*-
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
- * A simple example of Carrier Aggregation (CA) configuration in LTE, where
- * three Component Carriers (CC) are allocated in two operation bands. CA can
- * aggregate contiguous and non-contiguous CCs. In this example, non-contiguous
- * CC are aggregated following the standard configuration CA-38A-40A-40A (Rel.14),
- * and each CC has 20 MHz bandwidth.
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
-
 /**
  * \ingroup examples
  * \file cttc-lte-ca-demo.cc
