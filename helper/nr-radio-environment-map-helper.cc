@@ -41,6 +41,7 @@
 #include <ns3/spectrum-converter.h>
 #include <ns3/buildings-module.h>
 #include <ns3/mobility-building-info.h>
+#include <ns3/beam-manager.h>
 
 #include <chrono>
 #include <ctime>
@@ -291,10 +292,10 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
     m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev, uint8_t bwpId)
+void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rtdDevs, const Ptr<NetDevice>& rrdDev, uint8_t bwpId)
 {
-  for (NetDeviceContainer::Iterator netDevIt = gnbNetDev.Begin ();
-      netDevIt != gnbNetDev.End ();
+  for (NetDeviceContainer::Iterator netDevIt = rtdDevs.Begin ();
+      netDevIt != rtdDevs.End ();
       ++netDevIt)
     {
       Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
@@ -326,7 +327,11 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
       rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
       Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
       rtd.mob->AggregateObject (buildingInfo);
-      rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
+      rtd.antenna = CopyAntenna (rtdPhy->GetAntennaArray ());
+      // since we have delayed install maybe beamforming vector has changed in the RTD device
+      // we want to save beamforming vector toward UE in the case that we will
+      // need it for BEAM_SHAPE calculation
+      rtd.antenna->SetBeamformingVector ((rtdPhy->GetBeamManager()->GetBeamformingVector(rrdDev)));
       //Configure power
       rtd.txPower = rtdPhy->GetTxPower ();
 
@@ -337,7 +342,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (NetDeviceContainer gnbNetDev
                    ", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
                    ", num: "<< rtdPhy->GetNumerology ());
 
-      if (netDevIt == gnbNetDev.Begin())
+      if (netDevIt == rtdDevs.Begin())
         {
           ConfigurePropagationModelsFactories (rtdPhy); // we can call only once configuration of prop.models
         }
@@ -445,8 +450,7 @@ NrRadioEnvironmentMapHelper::InstallRem (NetDeviceContainer gnbNetDev,
                                          Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   ConfigureRrd (ueDevice, bwpId);
-  ConfigureRtdList (gnbNetDev, bwpId);
-  //CalcCurrentRemMap ();
+  ConfigureRtdList (gnbNetDev, ueDevice, bwpId);
   if (m_remMode == COVERAGE_AREA)
     {
       CalcCoverageAreaRemMap();
@@ -951,6 +955,9 @@ NrRadioEnvironmentMapHelper::Finalize ()
   NS_LOG_FUNCTION (this);
   m_outFile.close ();
 
+  // TODO test if we can call this  
+  //system("gnuplot -p nr-ues.txt nr-gnbs.txt buildings.txt plot_rem.gnuplot");
+  // TODO if yes, then we can add also convert command
   //Simulator::Stop ();
 }
 

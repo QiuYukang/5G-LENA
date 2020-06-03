@@ -299,8 +299,11 @@ private:
 
   /**
    * \brief Configure REM Transmission Devices (RTDs) List
+   * \param rtdDevs NetDeviceContainer of the transmitting objects for whose transmissions will be created this REM map
+   * \param rrdDev NetDevice whose antenna configuration will be used as the receiver of this REM map
+   * \param bwpId BWP ID identifies the BWP for which will be generated this REM map
    */
-  void ConfigureRtdList (NetDeviceContainer gnbNetDev, uint8_t bwpId);
+  void ConfigureRtdList (const NetDeviceContainer& rtdDevs, const Ptr<NetDevice>& rrdDev, uint8_t bwpId);
 
   /**
    * \brief Configure propagation loss model factories
