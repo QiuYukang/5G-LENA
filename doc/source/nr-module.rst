@@ -1002,7 +1002,7 @@ cttc-nr-cc-bwp-demo.cc
 The program ``examples/cttc-nr-cc-bwp-demo`` allows the user to setup a simulation
 to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment. 
 The example shows how to configure the operation spectrum by definining all the
-operation bands, Component Carriers (CCs) and Bandwidth Parts (BWPs) that will 
+operation bands, CCs and BWPs that will
 be used in the simulation. The user can select whether the creation of the spectrum 
 structures is automated with the CcBwpCreator helper; or if the user wants to 
 manually provide a more complex spectrum configuration.
@@ -1014,7 +1014,7 @@ transmissions can occur in the same slot.
 
 The UE can be configured to transmit three different traffic flows simultaneously. 
 Each flow is mapped to a unique CC, so the total UE traffic can be aggregated. 
-The generated traffic can be only downlink (DL), only Uplink (UL), or both at the 
+The generated traffic can be only DL, only UL, or both at the
 same time. UE data transmissions will occur in the right DL or UL slot according 
 to the configured TDD pattern.
 
@@ -1035,8 +1035,7 @@ The operation mode is set to TDD. The user can provide a TDD pattern as input to
 the simulation; otherwise the simulation will assume by default that dowlink and 
 uplink transmissions can occur in the same slot.
 
-The example performs inter-band Carrier Aggregation of two Component Carriers 
-(CC), and each CC has one Bandwidth Part (BWP) occupying the whole CC bandwidth. 
+The example performs inter-band Carrier Aggregation of two CC, and each CC has one BWP occupying the whole CC bandwidth.
 
 It is possible to set different configurations for each CC such as the numerology, 
 the transmission power or the TDD pattern. In addition, each gNB can also have a 
@@ -1048,6 +1047,16 @@ is mapped to a single CC, so the total UE traffic can be aggregated.
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-nr-demo_8cc.html
 
+s3-scenario.cc
+===============
+The program ``examples/s3-scenario`` allows the user to run a multi-cell network deployment with site sectorization.
+
+The deployment follows the typical hexagonal grid topology and it is composed of 21 sectorized sites. Each site has 3 sectors, with 3 antennas pointing in different directions. Sectors are equally sized, meaning that each sector covers 120º in azimuth. The deployment assumes a frequency reuse of 3, which is typical in cellular networks. This means that each sector of a site transmits in a separate frequency bands called sub-bands, so sectors of the same site do not interfere. Sub-bands are centered in different frequencies but they all have the same bandwidth. Sub-band utilization is repeated for all sites. The Inter-Site Distance (ISD) is configurable. Although, we use two possible values, one for each of the target scenarios. The two scenarios in consideration are: Urban Macro (UMa), where ISD = 500 metres; and Urban Micro (UMi), where ISD = 200 metres The choice of UMa or UMi determines the value of scenario-specific parameters, such as the height of the gNB, the transmit power, and the propagation model.
+
+The list of simulation parameters that can be provided as input parameters in the simulation run command are defined in the example script. They include, among others, the scenario (UMa or UMi), the number of rings (0, 1, 2, 3), the number of UEs per sector, the packet size, the numerology, the TDD pattern, and the direction (DL or UL).
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/s3-scenario_8cc.html
 
 
 Validation
@@ -1202,7 +1211,7 @@ https://cttc-lena.gitlab.io/nr/test-sfnsf_8cc.html
 
 Test for NR timings
 ===================
-Test case called ``test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL_DCI messages, improvements are more than welcome.
+Test case called ``test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL DCI messages, improvements are more than welcome.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/test-timings_8cc.html
