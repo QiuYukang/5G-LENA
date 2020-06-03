@@ -21,6 +21,7 @@
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
 #include <ns3/angles.h>
+#include <valarray>
 
 namespace ns3{
 
@@ -97,18 +98,15 @@ complexVector_t CreateDirectPathBfv (const Ptr<MobilityModel>& a,
   Angles completeAngle (bPos,aPos);
 
   double posX = bPos.x - aPos.x;
-  double phiAngle = atan ((bPos.y - aPos.y) / posX);
+  double posY = bPos.y - aPos.y;
+  double phiAngle = atan2 (posY, posX);
 
-  if (posX < 0)
-    {
-      phiAngle = phiAngle + M_PI;
-    }
   if (phiAngle < 0)
     {
       phiAngle = phiAngle + 2 * M_PI;
     }
 
-  double hAngleRadian = fmod ((phiAngle + M_PI),2 * M_PI - M_PI); // the azimuth angle
+  double hAngleRadian = phiAngle; // the azimuth angle
   double vAngleRadian = completeAngle.theta; // the elevation angle
 
   // retrieve the number of antenna elements
