@@ -415,6 +415,10 @@ main (int argc, char *argv[])
     {
       idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
     }
+  else if (beamforming.compare ("search-omni") == 0)
+    {
+      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanQuasiOmniBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
+    }
   else
     {
       NS_FATAL_ERROR ("Beamforming does not exist:" << beamforming);
