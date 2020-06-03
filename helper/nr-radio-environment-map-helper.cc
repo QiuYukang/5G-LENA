@@ -327,7 +327,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
       rtd.mob->SetPosition ((*netDevIt)->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
       Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
       rtd.mob->AggregateObject (buildingInfo);
-      rtd.antenna = CopyAntenna (rtdPhy->GetAntennaArray ());
+      rtd.antenna = Copy (rtdPhy->GetAntennaArray ());
       // since we have delayed install maybe beamforming vector has changed in the RTD device
       // we want to save beamforming vector toward UE in the case that we will
       // need it for BEAM_SHAPE calculation
