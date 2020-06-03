@@ -28,10 +28,8 @@
 /**
  * \file nr-lte-cc-bwp-configuration
  * \ingroup test
- * \brief Unit-testing for the configuration of component carriers (CC) for
- * carrier aggregation (CA) and bandwidth parts (BWP).
  *
- * The test aims at proving that the creation of operation bands, component carriers
+ * \brief The test aims at proving that the creation of operation bands, component carriers
  * (CC) and bandwidth parts (BWP) is correct within the limitations of the NR
  * implementation. The main limitation of BWPs is that they do not overlap,
  * because in such case, the interference calculation would be erroneous. This test

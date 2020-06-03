@@ -23,15 +23,15 @@
 /**
  * \file nr-lte-pattern-generation
  * \ingroup test
- * \brief Unit-testing for the LTE/NR TDD pattern
  *
- * The test considers the function NrGnbPhy::GenerateStructuresFromPattern
+ * \brief The test considers the function NrGnbPhy::GenerateStructuresFromPattern
  * and checks that the output of that function is equal to the one pre-defined.
- * Test includes also the Harq feedback indication
+ * Test includes also the Harq feedback indication.
  */
 namespace ns3 {
 
 /**
+ * \ingroup test
  * \brief TestSched testcase
  */
 class LtePatternTestCase : public TestCase

@@ -27,13 +27,10 @@
 /**
  * \file nr-phy-patterns.cc
  * \ingroup test
- * \brief Unit-testing for the LTE/NR TDD pattern
  *
- * The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
- * allocations, it does it for the right slot in pattern.
- *
- * In other words, if the PHY calls the UL slot allocation for a slot that
- * should be DL, the test will fail.
+ * \brief The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
+ * allocations, it does it for the right slot in pattern. In other words, if the
+ * PHY calls the UL slot allocation for a slot that should be DL, the test will fail.
  */
 namespace ns3 {
 

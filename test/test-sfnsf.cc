@@ -20,28 +20,19 @@
 #include <ns3/sfnsf.h>
 
 /**
- * \file nr-lte-pattern-generation
+ * \file test-sfnsf.cc
  * \ingroup test
- * \brief Unit-testing for the LTE/NR TDD pattern
  *
- * The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
- * allocations, it does it for the right slot in pattern.
- *
- * In other words, if the PHY calls the UL slot allocation for a slot that
- * should be DL, the test will fail.
+ * \brief Unit-testing for the frame/subframe/slot numbering, along with the
+ * numerology. The test checks that the normalized slot number equals a
+ * monotonically-increased integer, for every numerology.
  */
 namespace ns3 {
 
-/**
- * \brief TestCase for the PHY TDD Patterns
- */
+
 class TestSfnSfTestCase : public TestCase
 {
 public:
-  /**
-   * \brief Create LtePatternTestCase
-   * \param name Name of the test
-   */
   TestSfnSfTestCase (uint16_t num, const std::string &name)
     : TestCase (name),
       m_numerology (num)

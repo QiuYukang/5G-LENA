@@ -27,21 +27,21 @@ namespace ns3 {
 class Packet;
 
 /**
-  * \file system-scheduler-test.h
-  * \ingroup test
-  * \brief System Test for a scheduler
-  */
-
-/**
+ * \file system-scheduler-test.h
  * \ingroup test
- * \brief System test for the scheduler classes
- * This test case checks if the throughput obtained per UE is as expected for
+ *
+ * \brief This test case checks if the throughput obtained per UE is as expected for
  * the specified scheduling logic.
  * The test scenario consists of a scenario in which various UEs are attached to a single gNB.
  * UEs transmit a fixed amount of packets, at a certain rate, and the test
  * checks that all the packets are delivered correctly. gNB is configured to
  * have 1 bandwidth part. UEs can belong to the same or different beams.
  * This examples uses beam search beamforming method.
+ */
+
+/**
+ * \ingroup test
+ * \brief Main class for testing a scheduler, system-wise
  */
 class SystemSchedulerTest : public TestCase
 {

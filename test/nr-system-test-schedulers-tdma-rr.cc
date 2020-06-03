@@ -24,12 +24,15 @@ using namespace ns3;
 
 /**
   * \file nr-system-test-schedulers-tdma-rr.cc
+  * \ingroup test
   *
-  * System test for TDMA - Round Robin scheduler
+  * \brief System test for TDMA - Round Robin scheduler. It checks that all the
+  * packets sent are delivered correctly.
   */
 
 /**
  * \brief The TDMA RR scheduler system test suite
+ * \ingroup test
  *
  * It will check Tdma RR with:
  *

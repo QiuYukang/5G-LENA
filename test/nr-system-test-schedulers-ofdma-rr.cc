@@ -24,12 +24,15 @@ using namespace ns3;
 
 /**
   * \file nr-system-test-schedulers-ofdma-rr.cc
+  * \ingroup test
   *
-  * System test for OFDMA - Round Robin scheduler
+  * \brief System test for OFDMA - Round Robin scheduler. It checks that all the
+  * packets sent are delivered correctly.
   */
 
 /**
  * \brief The OFDMA RR scheduler system test suite
+ * \ingroup test
  *
  * It will check OFDMA RR with:
  *

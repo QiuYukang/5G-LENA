@@ -24,8 +24,10 @@ using namespace ns3;
 
 /**
   * \file nr-system-test-schedulers-tdma-mr.cc
+  * \ingroup test
   *
-  * System test for TDMA - Max Rate scheduler
+  * \brief System test for TDMA - Max Rate scheduler. It checks that all the
+  * packets sent are delivered correctly.
   */
 
 /**

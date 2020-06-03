@@ -24,12 +24,15 @@ using namespace ns3;
 
 /**
   * \file nr-system-test-schedulers-ofdma-mr.cc
+  * \ingroup test
   *
-  * System test for OFDMA - Max rate scheduler
+  * \brief System test for OFDMA - Max rate scheduler. It checks that all the
+  * packets sent are delivered correctly.
   */
 
 /**
  * \brief The OFDMA MR scheduler system test suite
+ * \ingroup test
  *
  * It will check OFDMA MR with:
  *

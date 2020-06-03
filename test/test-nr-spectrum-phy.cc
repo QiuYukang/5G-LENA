@@ -25,11 +25,6 @@
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/nr-gnb-phy.h"
 
-/**
- * \ingroup nr-tests
- * \defgroup NrSpectrumPhy test cases
- */
-
 namespace ns3 {
 
 NoLossSpectrumPropagationLossModel::NoLossSpectrumPropagationLossModel()
@@ -225,10 +220,6 @@ NrSpectrumPhyTestSuite::NrSpectrumPhyTestSuite ()
 
 
 // Allocate an instance of this TestSuite
-/**
- * \ingroup nr-tests
- * Test suite variable
- */
 static NrSpectrumPhyTestSuite g_nrSpectrumPhyTestSuite;
 
 }  // namespace ns3

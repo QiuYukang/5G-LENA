@@ -26,7 +26,11 @@
 /**
  * \file nr-test-l2sm-eesm.cc
  * \ingroup test
- * \brief Unit-testing the new EESM-based error model.
+ *
+ * \brief This test validates specific functions of the NR PHY abstraction model.
+ * The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
+ * BLER values are properly obtained from the BLER-SINR look up tables for different
+ * block sizes, MCS Tables, BG types, and SINR values.
  *
  */
 namespace ns3 {
