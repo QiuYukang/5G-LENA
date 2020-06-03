@@ -26,7 +26,7 @@
 
 
 /**
- * \file nr-lte-cc-bwp-configuration
+ * \file nr-lte-cc-bwp-configuration.cc
  * \ingroup test
  *
  * \brief The test aims at proving that the creation of operation bands, component carriers

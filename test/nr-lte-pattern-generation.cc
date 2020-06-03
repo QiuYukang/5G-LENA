@@ -21,7 +21,7 @@
 #include <ns3/nr-gnb-phy.h>
 
 /**
- * \file nr-lte-pattern-generation
+ * \file nr-lte-pattern-generation.cc
  * \ingroup test
  *
  * \brief The test considers the function NrGnbPhy::GenerateStructuresFromPattern
