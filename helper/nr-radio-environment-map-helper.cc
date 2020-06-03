@@ -646,9 +646,6 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
   auto remStartTime = std::chrono::system_clock::now ();
   uint16_t calcRxPsdCounter = 0;
 
-  // configure quasi omni beam at REM point for the whole map
-  ConfigureQuasiOmniBfv (m_rrd);
-
   for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
       itRemPoint != m_rem.end ();
       ++itRemPoint)
