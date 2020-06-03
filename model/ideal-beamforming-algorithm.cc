@@ -423,7 +423,7 @@ DirectPathQuasiOmniBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNe
   Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(ccId)->GetAntennaArray();
   Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(ccId)->GetAntennaArray();
 
-  // configure gNb beamforming vector to be quasi omni
+  // configure ue beamforming vector to be quasi omni
   UintegerValue numRows, numColumns;
   ueAntenna->GetAttribute ("NumRows", numRows);
   ueAntenna->GetAttribute ("NumColumns", numColumns);

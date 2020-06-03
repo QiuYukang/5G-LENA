@@ -42,21 +42,31 @@ class ThreeGppAntennaArrayModel;
 /**
  * \brief Generate a radio environment map
  *
- * The purpose of the radio environment map helper is to generate a
- * map where for each point on the map a rem value is calculated.
+ * The purpose of the radio environment map helper is to generate a map, where
+ * for each point on the map (rem point) a rem value is calculated (SNR/SINR).
  *
- * Two general types of maps can be generated according to whether the
- * BeamShape or CoverageArea is selected. The gNB and Ue antennas have
- * to be configured accordingly depending on the map the user wishes
- * to generate.
- * The rem value corresponds to the calculated SNR/SINR at this point.
+ * Two general types of maps can be generated according to whether the BeamShape
+ * or CoverageArea is selected. Notice that the first case considers the
+ * configuration of the beamforming vectors (for each transmitting device) as
+ * defined by the user in the scenario script for which the map is generated.
+ * In the second case, the beams are reconfigured during the map generation for
+ * each rem point in order to visualize the coverage area in terms of SNR and SINR.
  *
  * Let us notice that for the SNR/SINR calculations at each REM Point the
  * channel is re-created to avoid spatial and temporal dependencies among
  * independent REM calculations. Moreover, the calculations are the average of
  * N iterations (specified by the user) in order to consider the randomness of
  * the channel
+ *
+ * For the selection of BeamShape or CoverageArea add in the example execution
+ * the following:
+ *
+ * \code{.unparsed}
+$ ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=CoverageArea"
+    \endcode
+ *
  */
+
 class NrRadioEnvironmentMapHelper : public Object
 {
 public:
@@ -87,59 +97,70 @@ public:
    */
   static TypeId GetTypeId (void);
 
-  //TODO
+  /**
+   * \brief Set the type of REM Map to be generated
+   * \param the desired type (BeamShape/CoverageArea)
+   */
   void SetRemMode (enum RemMode remType);
 
   /**
    * \brief Sets the min x coordinate of the map
+   * \param xMin The min x coordinate
    */
   void SetMinX (double xMin);
 
   /**
    * \brief Sets the min y coordinate of the map
+   * \param yMin The min y coordinate
    */
   void SetMinY (double yMin);
 
   /**
    * \brief Sets the max x coordinate of the map
+   * \param xMax The max x coordinate
    */
   void SetMaxX (double xMax);
 
   /**
    * \brief Sets the max y coordinate of the map
+   * \param yMax The max y coordinate
    */
   void SetMaxY (double yMax);
 
   /**
-   * \brief Sets the resolution (number of points)
-   * of the map along the x axis
+   * \brief Sets the resolution (number of points) of the map along the x axis
+   * \param xRes The x axis resolution
    */
   void SetResX (uint16_t xRes);
 
   /**
-   * \brief Sets the resolution (number of points)
-   * of the map along the y axis
+   * \brief Sets the resolution (number of points) of the map along the y axis
+   * \param yRes The y axis resolution
    */
   void SetResY (uint16_t yRes);
 
   /**
    * \brief Sets the z coordinate of the map
+   * \param z The z coordinate
    */
   void SetZ (double z);
 
   /**
-   * \brief Sets the number of iterations to
-   * calculated the average of rem value
+   * \brief Sets the number of iterations to calculate the average of rem value
+   * \param numOfIterationsToAverage The number of iterations
    */
   void SetNumOfItToAverage (uint16_t numOfIterationsToAverage);
 
-  /*
+  /**
    * \brief Sets the installation delay
    * \param installationDelay delay for the REM installation
    */
   void SetInstallationDelay (Time installationDelay);
 
-  //TODO
+  /**
+   * \brief Get the type of REM Map to be generated
+   * \return The type of the map (BeamShape/CoverageArea)
+   */
   enum RemMode GetRemMode () const;
 
   /**
@@ -181,17 +202,20 @@ public:
 
   /**
    * \brief This function is used for the creation of the REM map. When this
-   * function is called from an example, it is responsible for calling all the
-   * necessary functions for the configuration of RTDs and RRDs and the
-   * calculation of SNR/SINR.
+   * function is called from an example, it is responsible for "installing"
+   * the REM through a callback to the DelayedInstall after a delay of
+   * installationDelay. Then the DelayedInstall takes care to call all the
+   * perform all the necessary actions (call the necessary functions).
    * \param gnbNetDev gNb devices for which the map will be generated
    * \param ueDevice The Ue device for which the map will be generated
    * \param bwpId The bwpId
    */
-  void CreateRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  void CreateRem (NetDeviceContainer gnbNetDev,
+                  Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
-   * \brief This method creates the list of Rem Points (coordinates)
+   * \brief This method creates the list of Rem Points (coordinates) based on
+   * the min/max coprdinates and the resilution defined by the user
    */
   void CreateListOfRemPoints ();
 
@@ -250,46 +274,77 @@ private:
     Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
   };
 
-  /*
+  /**
    * \brief This function is used to performed a delayed installation of REM map
+   * so that there is the sufficient time for the UE to be configured from RRC.
+   * Then, this function is responsible to call all the necessary functions.
    * \param gnbNetDev gNb devices for which the map will be generated
    * \param ueDevice The Ue device for which the map will be generated
    * \param bwpId The bwpId
    */
-   void InstallRem (NetDeviceContainer gnbNetDev, Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+   void DelayedInstall (NetDeviceContainer gnbNetDev,
+                        Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
-   * \brief This function is used for the creation of the REM map. When this
-   * function is called from an example, it is responsible for calling all the
-   * necessary functions for the configuration of RTDs and RRDs and the
-   * calculation of SNR/SINR.
-   * \param gnbNetDev gNb devices for which the map will be generated
-   * \param ueDevice The Ue device for which the map will be generated
-   * \return bwpId The bwpId
+   * \brief This function calculates the SNR.
+   * \param usefulSignal The useful Signal
+   * \return The snr
    */
   double CalculateSnr (const Ptr<SpectrumValue>& usefulSignal);
 
+  /**
+   * \brief This function finds the max value in a space of frequency-dependent
+   * values (such as PSD).
+   * \param values The list of spectrumValues for which we want to find the max
+   * \return The max spectrumValue
+   */
   Ptr<SpectrumValue> GetMaxValue(const std::list <Ptr<SpectrumValue>>& values);
 
-  //TODO
+  /**
+   * \brief This function finds the max value in a space of frequency-dependent
+   * values (such as PSD).
+   * \param values The list of spectrumValues for which we want to find the max
+   * \return The max value (snr)
+   */
   double CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList);
 
-  //TODO
+  /**
+   * \brief This function finds the max value in a space of frequency-dependent
+   * values (such as PSD).
+   * \param values The list of spectrumValues for which we want to find the max
+   * \return The max value (sinr)
+   */
   double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList);
 
-  //For the given list of receivedPowerList calculates SINR
-  //TODO
-  double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal, const std::list <Ptr<SpectrumValue>>& receivedPowerList);
-
-  void CalculateRemValues (RemPoint* remPoint);
   /**
-   * This method
+   * \brief This function calculates the SINR for a given space of frequency-dependent
+   * values (such as PSD).
+   * \param usefulSignal The spectrumValue considered as useful signal
+   * \param interferenceSignals The list of spectrumValues considered as interference
+   * \return The max value (sinr)
+   */
+  double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
+                        const std::list <Ptr<SpectrumValue>>& interferenceSignals);
+
+  /**
+   * \brief This function generates a BeamShape map. Using the configuration
+   * of antennas as have been set in the user scenario script, it calculates
+   * the SNR/SINR.
    */
   void CalcBeamShapeRemMap ();
 
+  /**
+   * \brief This function finds the max value in a list of double values.
+   * \param values The list of of double values
+   * \return The max value
+   */
   double GetMaxValue (const std::list<double>& listOfValues) const;
 
-
+  /**
+   * \brief This function generates a CoverageArea map. In this case, all the
+   * antennas of the rtds are set to point towards the rem point and the antenna
+   * of the rem point towards each rtd device.
+   */
   void CalcCoverageAreaRemMap ();
 
   /**
@@ -303,22 +358,31 @@ private:
    * \param rrdDev NetDevice whose antenna configuration will be used as the receiver of this REM map
    * \param bwpId BWP ID identifies the BWP for which will be generated this REM map
    */
-  void ConfigureRtdList (const NetDeviceContainer& rtdDevs, const Ptr<NetDevice>& rrdDev, uint8_t bwpId);
+  void ConfigureRtdList (const NetDeviceContainer& rtdDevs,
+                         const Ptr<NetDevice>& rrdDev, uint8_t bwpId);
 
   /**
-   * \brief Configure propagation loss model factories
+   * \brief Configures propagation loss model factories
    */
   void ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy);
 
-  //TODO
+  /**
+   * \brief Configures the object factories with the parameters set in the
+   * user scenario script.
+   */
   void ConfigureObjectFactory (ObjectFactory& objectFactory, Ptr<Object> object);
 
   /**
    * \brief This method creates the temporal Propagation Models
+   * \return The struct with the temporal propagation models (created for each
+   * rem point)
    */
   PropagationModels CreateTemporalPropagationModels ();
 
-  //TODO
+  /**
+   * \brief Configures the channel model with the parameters set in the
+   * user scenario script.
+   */
   void CopyThreeGppChannelModelAttributeValues (Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
 
   /**
@@ -343,8 +407,7 @@ private:
   void PrintRemToFile ();
 
   /**
-   * Called when the map generation procedure has been completed.
-   * void Finalize ();
+   * \brief Called when the map generation procedure has been completed.
    */
   void Finalize ();
 
@@ -361,7 +424,11 @@ private:
    */
   void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
 
-  Ptr<SpectrumValue> CalcRxPsdValue (RemPoint& itRemPoint,RemDevice& itRtd);
+  /**
+   * \brief This method calculates the PSD
+   * \return The PSD (spectrumValue)
+   */
+  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& itRtd);
 
   std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
   std::list<RemPoint> m_rem; ///< List of REM points.

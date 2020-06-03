@@ -407,18 +407,19 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactor
             }
 
           // create initial attribute value to store attribute
-          Ptr<AttributeValue> attributeValue = attributeInfo.checker->Create() ;
+          Ptr<AttributeValue> attributeValue = attributeInfo.checker->Create () ;
           // get the attribute value from the object
           object->GetAttribute(attributeInfo.name, *attributeValue);
           //skip pointer value attributes and warn if there is some new unexpceted attribute
           objectFactory.Set (attributeInfo.name, *attributeValue);
           //log current attribute name and value
-          NS_LOG_DEBUG ("Copy attribute: "<<attributeInfo.name<<" value:"<<attributeValue->SerializeToString(attributeInfo.checker));
+          NS_LOG_DEBUG ("Copy attribute: " << attributeInfo.name << " value:" <<
+                        attributeValue->SerializeToString (attributeInfo.checker));
         }
 
-      if (tid.HasParent())
+      if (tid.HasParent ())
         {
-          tid = tid.GetParent();
+          tid = tid.GetParent ();
           hasParent = true;
         }
       else
@@ -442,11 +443,11 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev,
     }
   CreateListOfRemPoints ();
 
-  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::InstallRem, this, gnbNetDev, ueDevice, bwpId );
+  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, gnbNetDev, ueDevice, bwpId );
 }
 
 void
-NrRadioEnvironmentMapHelper::InstallRem (NetDeviceContainer gnbNetDev,
+NrRadioEnvironmentMapHelper::DelayedInstall (NetDeviceContainer gnbNetDev,
                                          Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   ConfigureRrd (ueDevice, bwpId);
@@ -517,7 +518,7 @@ NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const Re
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemPoint& itRemPoint, RemDevice& itRtd)
+NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& itRtd)
 {
   PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
@@ -670,7 +671,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
             {
               calcRxPsdCounter++;
                // calculate received power from the current RTD device
-              receivedPowerList.push_back (CalcRxPsdValue (*itRemPoint, *itRtd));
+              receivedPowerList.push_back (CalcRxPsdValue (*itRtd));
 
               NS_LOG_UNCOND ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
@@ -760,7 +761,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                   // increase counter de calcRXPsd calls
                   calcRxPsdCounter++;
                   // calculate received power from the current RTD device
-                  Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRemPoint, *itRtdCalc);
+                  Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdCalc);
 
                   // is this received power useful signal (from RTD for which I configured my beam) or is interference signal
 
