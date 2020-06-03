@@ -1099,14 +1099,17 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-numerology-delay_8cc.html
 
 
+Test for CC/BWP
+===============
+Test case called ``nr-lte-cc-bwp-configuration`` validates that the creation of operation bands, CCs and BWPs is correct within the limitations of the NR implementation. The main limitation of BWPs is that they do not overlap, because in such case, the interference calculation would be erroneous. This test also proves that the creation of BWP information with the CcBwpHelper is correct.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-lte-cc-bwp-configuration_8cc.html
+
+
 Test of numerology FDM
 ======================
-To test the FDM of numerologies, we have implemented
-the ``NrTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
-operate with
-2 BWPs. The test checks if the achieved throughput of a flow over a specific
-BWP is proportional to the
-bandwidth of the BWP through which it is multiplexed.
+To test the FDM of numerologies, we have implemented the ``nr-test-fdm-of-numerologies``, in which the gNB is configured to operate with 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the bandwidth of the BWP through which it is multiplexed. The scenario consists of two UEs that are attached to a gNB but served through different BWPs, with UDP full buffer downlink traffic. Since the traffic is full buffer traffic, it is expected that when more bandwidth is provided, more throughput will be achieved and vice versa.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
@@ -1114,27 +1117,31 @@ https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
 
 Test for NR schedulers
 ======================
-To test the NR schedulers, we have implemented a system test called
-``NrSystemTestSchedulers`` whose purpose is to test that the
+To test the NR schedulers, we have implemented various system tests called
+``nr-system-test-schedulers-tdma/ofdma-mr/pf/rr`` whose purpose is to test that the
 NR schedulers provide a required amount of resources to all UEs, for both cases,
 the downlink and the uplink. The topology consists of a single gNB and
 variable number of UEs, which are distributed among variable number of beams.
 Test cases are designed in such a way that the offered rate for the flow
 of each UE is dimensioned in such a way that each of the schedulers under the
 selected topology shall provide at least the required service to each of the UEs.
-The system test suite for NR schedulers creates a various number of test cases
-that check different system configuration by choosing
+Different system tests cases are available for the various modes of scheduling (OFDMA and TDMA) and different scheduling algorithms (RR, PR, MR) supported in the simulator. Each of the test cases checks different system configuration by choosing
 different number of UEs, number of beams, numerology, traffic direction (DL, UL,
-DL and UL), modes of scheduling (OFDMA and TDMA) and
-different scheduling algorithms (RR, PR, MR).
+DL and UL).
 
-The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-sched_8cc.html
+The complete details of the validation scripts are provided in
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-mr_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-pf_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-rr_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-mr_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-pf_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-rr_8cc.html
+
+The base class for all the scheduler tests is
+https://cttc-lena.gitlab.io/nr/system-scheduler-test_8h.html
 
 
-Test for error model
-====================
-Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR
+Test for NR error model
+=======================
+Test case called ``nr-test-l2sm-eesm`` validates specific functions of the NR
 PHY abstraction model.
 The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
 BLER values are properly obtained from the BLER-SINR look up tables for different
@@ -1144,8 +1151,8 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
 
 
-Test for antenna model
-======================
+Test for 3GPP antenna model
+===========================
 Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations 
 of the antenna array model by checking if the throughput/SINR/MCS obtained is as 
 expected. The test scenario consists of one gNB and a single UE attached to the
@@ -1157,7 +1164,7 @@ https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
 
 Test for TDD patterns
 =====================
-Test case called ``LtePatternTestCase`` validates the maps generated from the function
+Test case called ``nr-lte-pattern-generation`` validates the maps generated from the function
 ``NrGnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
 DCI and DL HARQ Feedback have to be sent/generated, as well as the scheduling timings
 (K0, K1, k2) that indicate the slot offset to be applied at the UE side for the reception
@@ -1168,7 +1175,7 @@ TDD patterns and compares the output with a predefined set of the expected resul
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-lte-pattern-generation_8cc.html
 
-Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
+Test case called ``nr-phy-patterns`` creates a fake MAC that checks if, that
 when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
 In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
 the test will fail.
@@ -1176,6 +1183,29 @@ the test will fail.
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
 
+
+Test for spectrum phy
+=====================
+Test case called ``test-nr-spectrum-phy`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-nr-spectrum-phy_8h.html
+
+
+Test for frame/subframe/slot number
+===================================
+Test case called ``test-sfnsf`` is a unit-test for the frame/subframe/slot numbering, along with the numerology. The test checks that the normalized slot number equals a monotonically-increased integer, for every numerology.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-sfnsf_8cc.html
+
+
+Test for NR timings
+===================
+Test case called ``test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL_DCI messages, improvements are more than welcome.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-timings_8cc.html
 
 
 Open issues and future work
