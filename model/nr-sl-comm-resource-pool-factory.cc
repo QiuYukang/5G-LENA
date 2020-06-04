@@ -26,6 +26,7 @@ NS_LOG_COMPONENT_DEFINE ("NrSlCommResourcePoolFactory");
 
 NrSlCommResourcePoolFactory::NrSlCommResourcePoolFactory ()
 {
+  NS_LOG_FUNCTION (this);
   m_setupReleasePscch = "SETUP";
   m_slTimeResourcePscch = 2;
   m_slFreqResourcePscch = 10;
@@ -34,7 +35,7 @@ NrSlCommResourcePoolFactory::NrSlCommResourcePoolFactory ()
   m_slSelectionWindow = 10;
   m_slResourceReservePeriodList = {10, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 750, 1000};
   m_slTimeResource = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
-  NS_LOG_FUNCTION (this);
+  m_slMaxNumPerReserve = 2;
 }
 
 NrSlCommResourcePoolFactory::~NrSlCommResourcePoolFactory ()
@@ -239,6 +240,18 @@ NrSlCommResourcePoolFactory::CreatePool ()
         }
     }
 
+  switch (m_slMaxNumPerReserve)
+    {
+    case 2:
+      m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N2;
+      break;
+    case 3:
+      m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N3;
+      break;
+    default:
+      NS_FATAL_ERROR ("Invalid sidelink value " << m_slMaxNumPerReserve << " used for number SlMaxNumPerReserve");
+    }
+
   m_pool.slTimeResource = m_slTimeResource;
 
   return m_pool;
@@ -345,6 +358,18 @@ void
 NrSlCommResourcePoolFactory::SetSlTimeResources (std::vector <std::bitset<1> >& slBitmap)
 {
   m_slTimeResource = slBitmap;
+}
+
+uint16_t
+NrSlCommResourcePoolFactory::GetSlMaxNumPerReserve () const
+{
+  return m_slMaxNumPerReserve;
+}
+
+void
+NrSlCommResourcePoolFactory::SetSlMaxNumPerReserve (uint16_t maxNumPerReserve)
+{
+  m_slMaxNumPerReserve = maxNumPerReserve;
 }
 
 
