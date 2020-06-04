@@ -525,9 +525,9 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice)
+NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice, const Ptr<const ThreeGppAntennaArrayModel>& antenna)
 {
-  device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, m_rrd.antenna));
+  device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, antenna));
 }
 
 Ptr<SpectrumValue>
@@ -749,7 +749,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
          itRtd != m_remDev.end ();
                 ++itRtd)
         {
-          ConfigureDirectPathBfv (*itRtd, m_rrd);
+          ConfigureDirectPathBfv (*itRtd, m_rrd, itRtd->antenna);
         }
 
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
@@ -761,7 +761,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
           for (std::list<RemDevice>::iterator itRtdBeam = m_remDev.begin (); itRtdBeam != m_remDev.end (); ++itRtdBeam)
             {
               //configure RRD beam toward RTD
-              ConfigureDirectPathBfv (m_rrd, *itRtdBeam);
+              ConfigureDirectPathBfv (m_rrd, *itRtdBeam, m_rrd.antenna);
 
               std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
               Ptr<SpectrumValue> usefulSignalRxPsd;

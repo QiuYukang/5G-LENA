@@ -28,6 +28,7 @@
 #include "ns3/nr-ue-phy.h"
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/three-gpp-channel-model.h>
 #include <fstream>
 
 namespace ns3 {
@@ -421,8 +422,9 @@ private:
    * \brief Configures direct-path beamforming vector of "device" toward "otherDevice"
    * \param device whose beamforming vector will be configured
    * \param otherDevice toward this device will be configured the beamforming vector of device
+   * \param antenna of the first device
    */
-  void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice);
+  void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice, const Ptr<const ThreeGppAntennaArrayModel>& antenna);
 
   /**
    * \brief This method calculates the PSD
