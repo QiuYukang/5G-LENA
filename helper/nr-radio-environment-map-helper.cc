@@ -441,7 +441,6 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev,
       NS_FATAL_ERROR ("Can't open file " << (m_outputFile));
       return;
     }
-  CreateListOfRemPoints ();
 
   Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, gnbNetDev, ueDevice, bwpId );
 }
@@ -452,6 +451,7 @@ NrRadioEnvironmentMapHelper::DelayedInstall (NetDeviceContainer gnbNetDev,
 {
   ConfigureRrd (ueDevice, bwpId);
   ConfigureRtdList (gnbNetDev, ueDevice, bwpId);
+  CreateListOfRemPoints ();
   if (m_remMode == COVERAGE_AREA)
     {
       CalcCoverageAreaRemMap();
@@ -489,13 +489,26 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
     {
       for (double y = m_yMin; y < m_yMax + 0.5*m_yStep ; y += m_yStep)
         {
-          RemPoint remPoint;
+          //In case a REM Point is in the same position as a rtd, ignore this point
+          bool isPositionRtd = false;
+          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin (); itRtd != m_remDev.end (); ++itRtd)
+          {
+            if (itRtd->mob->GetPosition () == Vector (x, y, m_z))
+            {
+              isPositionRtd = true;
+            }
+          }
 
-          remPoint.pos.x = x;
-          remPoint.pos.y = y;
-          remPoint.pos.z = m_z;
+          if (!isPositionRtd)
+          {
+            RemPoint remPoint;
 
-          m_rem.push_back (remPoint);
+            remPoint.pos.x = x;
+            remPoint.pos.y = y;
+            remPoint.pos.z = m_z;
+
+            m_rem.push_back (remPoint);
+          }
         }
     }
 }
