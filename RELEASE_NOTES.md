@@ -84,6 +84,8 @@ New user-visible features (old first)
   and without beams.
 - N1 default value is now 2 slots. Before it was 4 slots.
 - Renamed all mmwave- classes, tests, examples, helpers, to nr-.
+- Added SHORT_BSR as MAC CE element, that goes with MAC data, and is evaluated
+  by the error model upon delivery.
 
 Bugs fixed
 ----------
