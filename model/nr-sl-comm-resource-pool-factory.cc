@@ -33,7 +33,7 @@ NrSlCommResourcePoolFactory::NrSlCommResourcePoolFactory ()
   m_slSubchannelSize = 50;
   m_slSensingWindow = 100;
   m_slSelectionWindow = 10;
-  m_slResourceReservePeriodList = {10, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 750, 1000};
+  m_slResourceReservePeriodList = {0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 750, 1000};
   m_slTimeResource = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
   m_slMaxNumPerReserve = 2;
 }
@@ -155,8 +155,8 @@ NrSlCommResourcePoolFactory::CreatePool ()
     {
       switch (i)
         {
-        case 10:
-          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS10;
+        case 0:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS0;
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
