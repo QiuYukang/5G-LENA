@@ -1002,7 +1002,7 @@ cttc-nr-cc-bwp-demo.cc
 The program ``examples/cttc-nr-cc-bwp-demo`` allows the user to setup a simulation
 to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment. 
 The example shows how to configure the operation spectrum by definining all the
-operation bands, Component Carriers (CCs) and Bandwidth Parts (BWPs) that will 
+operation bands, CCs and BWPs that will
 be used in the simulation. The user can select whether the creation of the spectrum 
 structures is automated with the CcBwpCreator helper; or if the user wants to 
 manually provide a more complex spectrum configuration.
@@ -1014,7 +1014,7 @@ transmissions can occur in the same slot.
 
 The UE can be configured to transmit three different traffic flows simultaneously. 
 Each flow is mapped to a unique CC, so the total UE traffic can be aggregated. 
-The generated traffic can be only downlink (DL), only Uplink (UL), or both at the 
+The generated traffic can be only DL, only UL, or both at the
 same time. UE data transmissions will occur in the right DL or UL slot according 
 to the configured TDD pattern.
 
@@ -1035,8 +1035,7 @@ The operation mode is set to TDD. The user can provide a TDD pattern as input to
 the simulation; otherwise the simulation will assume by default that dowlink and 
 uplink transmissions can occur in the same slot.
 
-The example performs inter-band Carrier Aggregation of two Component Carriers 
-(CC), and each CC has one Bandwidth Part (BWP) occupying the whole CC bandwidth. 
+The example performs inter-band Carrier Aggregation of two CC, and each CC has one BWP occupying the whole CC bandwidth.
 
 It is possible to set different configurations for each CC such as the numerology, 
 the transmission power or the TDD pattern. In addition, each gNB can also have a 
@@ -1048,6 +1047,16 @@ is mapped to a single CC, so the total UE traffic can be aggregated.
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-nr-demo_8cc.html
 
+s3-scenario.cc
+===============
+The program ``examples/s3-scenario`` allows the user to run a multi-cell network deployment with site sectorization.
+
+The deployment follows the typical hexagonal grid topology and it is composed of 21 sectorized sites. Each site has 3 sectors, with 3 antennas pointing in different directions. Sectors are equally sized, meaning that each sector covers 120º in azimuth. The deployment assumes a frequency reuse of 3, which is typical in cellular networks. This means that each sector of a site transmits in a separate frequency bands called sub-bands, so sectors of the same site do not interfere. Sub-bands are centered in different frequencies but they all have the same bandwidth. Sub-band utilization is repeated for all sites. The Inter-Site Distance (ISD) is configurable. Although, we use two possible values, one for each of the target scenarios. The two scenarios in consideration are: Urban Macro (UMa), where ISD = 500 metres; and Urban Micro (UMi), where ISD = 200 metres The choice of UMa or UMi determines the value of scenario-specific parameters, such as the height of the gNB, the transmit power, and the propagation model.
+
+The list of simulation parameters that can be provided as input parameters in the simulation run command are defined in the example script. They include, among others, the scenario (UMa or UMi), the number of rings (0, 1, 2, 3), the number of UEs per sector, the packet size, the numerology, the TDD pattern, and the direction (DL or UL).
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/s3-scenario_8cc.html
 
 
 Validation
@@ -1099,14 +1108,17 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-numerology-delay_8cc.html
 
 
+Test for CC/BWP
+===============
+Test case called ``nr-lte-cc-bwp-configuration`` validates that the creation of operation bands, CCs and BWPs is correct within the limitations of the NR implementation. The main limitation of BWPs is that they do not overlap, because in such case, the interference calculation would be erroneous. This test also proves that the creation of BWP information with the CcBwpHelper is correct.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-lte-cc-bwp-configuration_8cc.html
+
+
 Test of numerology FDM
 ======================
-To test the FDM of numerologies, we have implemented
-the ``NrTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
-operate with
-2 BWPs. The test checks if the achieved throughput of a flow over a specific
-BWP is proportional to the
-bandwidth of the BWP through which it is multiplexed.
+To test the FDM of numerologies, we have implemented the ``nr-test-fdm-of-numerologies``, in which the gNB is configured to operate with 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the bandwidth of the BWP through which it is multiplexed. The scenario consists of two UEs that are attached to a gNB but served through different BWPs, with UDP full buffer downlink traffic. Since the traffic is full buffer traffic, it is expected that when more bandwidth is provided, more throughput will be achieved and vice versa.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
@@ -1114,27 +1126,31 @@ https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
 
 Test for NR schedulers
 ======================
-To test the NR schedulers, we have implemented a system test called
-``NrSystemTestSchedulers`` whose purpose is to test that the
+To test the NR schedulers, we have implemented various system tests called
+``nr-system-test-schedulers-tdma/ofdma-mr/pf/rr`` whose purpose is to test that the
 NR schedulers provide a required amount of resources to all UEs, for both cases,
 the downlink and the uplink. The topology consists of a single gNB and
 variable number of UEs, which are distributed among variable number of beams.
 Test cases are designed in such a way that the offered rate for the flow
 of each UE is dimensioned in such a way that each of the schedulers under the
 selected topology shall provide at least the required service to each of the UEs.
-The system test suite for NR schedulers creates a various number of test cases
-that check different system configuration by choosing
+Different system tests cases are available for the various modes of scheduling (OFDMA and TDMA) and different scheduling algorithms (RR, PR, MR) supported in the simulator. Each of the test cases checks different system configuration by choosing
 different number of UEs, number of beams, numerology, traffic direction (DL, UL,
-DL and UL), modes of scheduling (OFDMA and TDMA) and
-different scheduling algorithms (RR, PR, MR).
+DL and UL).
 
-The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-sched_8cc.html
+The complete details of the validation scripts are provided in
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-mr_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-pf_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-rr_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-mr_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-pf_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-rr_8cc.html
+
+The base class for all the scheduler tests is
+https://cttc-lena.gitlab.io/nr/system-scheduler-test_8h.html
 
 
-Test for error model
-====================
-Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR
+Test for NR error model
+=======================
+Test case called ``nr-test-l2sm-eesm`` validates specific functions of the NR
 PHY abstraction model.
 The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
 BLER values are properly obtained from the BLER-SINR look up tables for different
@@ -1144,8 +1160,8 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
 
 
-Test for antenna model
-======================
+Test for 3GPP antenna model
+===========================
 Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations 
 of the antenna array model by checking if the throughput/SINR/MCS obtained is as 
 expected. The test scenario consists of one gNB and a single UE attached to the
@@ -1157,7 +1173,7 @@ https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
 
 Test for TDD patterns
 =====================
-Test case called ``LtePatternTestCase`` validates the maps generated from the function
+Test case called ``nr-lte-pattern-generation`` validates the maps generated from the function
 ``NrGnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
 DCI and DL HARQ Feedback have to be sent/generated, as well as the scheduling timings
 (K0, K1, k2) that indicate the slot offset to be applied at the UE side for the reception
@@ -1168,7 +1184,7 @@ TDD patterns and compares the output with a predefined set of the expected resul
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-lte-pattern-generation_8cc.html
 
-Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
+Test case called ``nr-phy-patterns`` creates a fake MAC that checks if, that
 when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
 In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
 the test will fail.
@@ -1176,6 +1192,29 @@ the test will fail.
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
 
+
+Test for spectrum phy
+=====================
+Test case called ``test-nr-spectrum-phy`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-nr-spectrum-phy_8h.html
+
+
+Test for frame/subframe/slot number
+===================================
+Test case called ``test-sfnsf`` is a unit-test for the frame/subframe/slot numbering, along with the numerology. The test checks that the normalized slot number equals a monotonically-increased integer, for every numerology.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-sfnsf_8cc.html
+
+
+Test for NR timings
+===================
+Test case called ``test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL DCI messages, improvements are more than welcome.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-timings_8cc.html
 
 
 Open issues and future work
