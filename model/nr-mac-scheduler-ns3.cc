@@ -27,6 +27,7 @@
 
 #include "nr-mac-scheduler-ns3.h"
 #include "nr-mac-scheduler-harq-rr.h"
+#include "nr-mac-short-bsr-ce.h"
 
 #include <ns3/boolean.h>
 #include <ns3/uinteger.h>
@@ -573,7 +574,7 @@ NrMacSchedulerNs3::BSRReceivedFromUe (const MacCeElement &bsr)
   for (uint8_t lcg = 0; lcg < 4; ++lcg)
     {
       uint8_t bsrId = bsr.m_macCeValue.m_bufferStatus.at (lcg);
-      uint32_t bufSize = BsrId2BufferSize (bsrId);
+      uint32_t bufSize = NrMacShortBsrCe::FromLevelToBytes (bsrId);
 
       auto itLcg = UeInfoOf (*itUe)->m_ulLCG.find (lcg);
       if (itLcg == UeInfoOf (*itUe)->m_ulLCG.end ())
@@ -1271,9 +1272,10 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
 
           for (const auto & byteDistribution : distributedBytes)
             {
+              NS_ASSERT (byteDistribution.m_bytes >= 3);
               uint8_t lcId = byteDistribution.m_lcId;
               uint8_t lcgId = byteDistribution.m_lcg;
-              uint32_t bytes = byteDistribution.m_bytes;
+              uint32_t bytes = byteDistribution.m_bytes - 3; // Consider the subPdu overhead
 
               RlcPduInfo newRlcPdu (lcId, bytes);
               HarqProcess & process = ue.first->m_dlHarq.Get (dci->m_harqProcess);

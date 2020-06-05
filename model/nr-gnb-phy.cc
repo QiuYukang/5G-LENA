@@ -38,7 +38,6 @@
 #include "nr-gnb-net-device.h"
 #include "nr-radio-bearer-tag.h"
 #include "nr-ch-access-manager.h"
-#include "nr-mac-pdu-header.h"
 
 #include <ns3/node-list.h>
 #include <ns3/node.h>
@@ -1111,18 +1110,9 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
   if (!pktBurst || pktBurst->GetNPackets () == 0)
     {
-      // put an error, as something is wrong. The UE should not be scheduled
-      // if there is no data for him...
-      NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
-      Ptr<Packet> emptyPdu = Create <Packet> ();
-      NrMacPduHeader header;
-      MacSubheader subheader (3, 0);    // lcid = 3, size = 0
-      header.AddSubheader (subheader);
-      emptyPdu->AddHeader (header);
-      LteRadioBearerTag bearerTag (dci->m_rnti, 3, 0);
-      emptyPdu->AddPacketTag (bearerTag);
-      pktBurst = CreateObject<PacketBurst> ();
-      pktBurst->AddPacket (emptyPdu);
+      // sometimes the UE will be scheduled when no data is queued.
+      // In this case, don't send anything, don't put power... don't do nothing!
+      return varTtiPeriod;
     }
 
   NS_LOG_INFO ("ENB TXing DL DATA frame " << m_currentSlot <<
@@ -1371,16 +1361,6 @@ NrGnbPhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       NS_LOG_INFO ("Received DL_CQI for RNTI: " << dlcqiLE.m_rnti << " in slot " <<
                    m_currentSlot);
 
-      m_phySapUser->ReceiveControlMessage (msg);
-    }
-  else if (msg->GetMessageType () == NrControlMessage::BSR)
-    {
-      Ptr<NrBsrMessage> bsrmsg = DynamicCast<NrBsrMessage> (msg);
-      MacCeElement macCeEl = bsrmsg->GetBsr();
-      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), macCeEl.m_rnti, GetBwpId (), msg);
-
-      NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
-                   m_currentSlot);
       m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == NrControlMessage::RACH_PREAMBLE)

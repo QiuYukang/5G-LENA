@@ -759,7 +759,7 @@ Note also that, in case of adaptive MCS, in the simulator, the gNBs DL data tran
 
 Transport block model
 =====================
-The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
+The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP. The incorporation of real MAC headers has recently started, so it is expected that in the next releases such tag will be removed. At the moment, we introduced the concept of MAC header to include the Buffer Status Report as a MAC Control Element, as it is defined by the standard (with some differences, to adapt it to the ancient LTE scheduler interface).
 
 **Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the TB size is computed in the simulator as follows:
 
@@ -970,12 +970,12 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
 
 cttc-3gpp-channel-example.cc
 ============================
-The program ``examples/cttc-3gpp-channel-example`` allows the user to setup a 
-simulation using the implementation of the 3GPP channel model decribed in TR 38.900. 
-The network topology consists, by default, of 2 UEs and 2 gNbs. The user can 
-select any of the typical scenarios in TR 38.900 such as Urban Macro (UMa), 
-Urban Micro Street-Canyon (UMi-Street-Canyon), Rural Macro (RMa) or Indoor 
-Hotspot (InH) in two variants: 'InH-OfficeMixed' and 'InH-OfficeOpen'. The 
+The program ``examples/cttc-3gpp-channel-example`` allows the user to setup a
+simulation using the implementation of the 3GPP channel model decribed in TR 38.900.
+The network topology consists, by default, of 2 UEs and 2 gNbs. The user can
+select any of the typical scenarios in TR 38.900 such as Urban Macro (UMa),
+Urban Micro Street-Canyon (UMi-Street-Canyon), Rural Macro (RMa) or Indoor
+Hotspot (InH) in two variants: 'InH-OfficeMixed' and 'InH-OfficeOpen'. The
 example also supports either mobile or static UEs.
 
 The complete details of the simulation script are provided in
@@ -984,14 +984,14 @@ https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
 cttc-lte-ca-demo.cc
 ===================
 The program ``examples/cttc-lte-ca-demo`` allows the user to setup a simulation
-to test the configuration of inter-band Carrier Aggregation in an LTE deployment. 
-One Component Carrier (CC) is created in LTE Band 40 and two CCs are created in 
+to test the configuration of inter-band Carrier Aggregation in an LTE deployment.
+One Component Carrier (CC) is created in LTE Band 40 and two CCs are created in
 LTE Band 38. The second CC in Band 38 can be configured to operate in TDD or FDD
 mode; the other two CCs are fixed to TDD.  The user can provide the TDD pattern
 to use in every TDD CC as input.
 
-In this example, the deployment consists of one gNB and one UE. The UE can be 
-configure to transmit different traffic flows simultaneously. Each flow is mapped 
+In this example, the deployment consists of one gNB and one UE. The UE can be
+configure to transmit different traffic flows simultaneously. Each flow is mapped
 to a unique CC, so the total UE traffic can be aggregated.
 
 The complete details of the simulation script are provided in
@@ -1000,22 +1000,22 @@ https://cttc-lena.gitlab.io/nr/cttc-lte-ca-demo_8cc.html
 cttc-nr-cc-bwp-demo.cc
 ======================
 The program ``examples/cttc-nr-cc-bwp-demo`` allows the user to setup a simulation
-to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment. 
+to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment.
 The example shows how to configure the operation spectrum by definining all the
 operation bands, CCs and BWPs that will
-be used in the simulation. The user can select whether the creation of the spectrum 
-structures is automated with the CcBwpCreator helper; or if the user wants to 
+be used in the simulation. The user can select whether the creation of the spectrum
+structures is automated with the CcBwpCreator helper; or if the user wants to
 manually provide a more complex spectrum configuration.
 
-In this example, the NR deployment consists of one gNB and one UE. The operation 
+In this example, the NR deployment consists of one gNB and one UE. The operation
 mode is set to TDD. The user can provide a TDD pattern as input to the simulation;
-otherwise the simulation will assume by default that dowlink and uplink 
+otherwise the simulation will assume by default that dowlink and uplink
 transmissions can occur in the same slot.
 
-The UE can be configured to transmit three different traffic flows simultaneously. 
-Each flow is mapped to a unique CC, so the total UE traffic can be aggregated. 
+The UE can be configured to transmit three different traffic flows simultaneously.
+Each flow is mapped to a unique CC, so the total UE traffic can be aggregated.
 The generated traffic can be only DL, only UL, or both at the
-same time. UE data transmissions will occur in the right DL or UL slot according 
+same time. UE data transmissions will occur in the right DL or UL slot according
 to the configured TDD pattern.
 
 The complete details of the simulation script are provided in
@@ -1024,24 +1024,24 @@ https://cttc-lena.gitlab.io/nr/cttc-nr-cc-bwp-demo_8cc.html
 cttc-nr-demo.cc
 ===============
 The program ``examples/cttc-nr-demo`` is recommended as a tutorial to the use of
-the ns-3 NR module. In this example, the user can understand the basics to 
+the ns-3 NR module. In this example, the user can understand the basics to
 successfully configure a full NR simulation with end-to-end data transmission.
 
-Firtly, the example creates the network deployment using the GridScenario helper. 
-By default, the deployment consists of a single gNB and two UEs, but the user 
+Firtly, the example creates the network deployment using the GridScenario helper.
+By default, the deployment consists of a single gNB and two UEs, but the user
 can provide a different number of gNBs and UEs per gNB.
 
-The operation mode is set to TDD. The user can provide a TDD pattern as input to 
-the simulation; otherwise the simulation will assume by default that dowlink and 
+The operation mode is set to TDD. The user can provide a TDD pattern as input to
+the simulation; otherwise the simulation will assume by default that dowlink and
 uplink transmissions can occur in the same slot.
 
 The example performs inter-band Carrier Aggregation of two CC, and each CC has one BWP occupying the whole CC bandwidth.
 
-It is possible to set different configurations for each CC such as the numerology, 
-the transmission power or the TDD pattern. In addition, each gNB can also have a 
+It is possible to set different configurations for each CC such as the numerology,
+the transmission power or the TDD pattern. In addition, each gNB can also have a
 different configuration of its CCs.
 
-The UE can be configure to transmit two traffic flows simultaneously. Each flow 
+The UE can be configure to transmit two traffic flows simultaneously. Each flow
 is mapped to a single CC, so the total UE traffic can be aggregated.
 
 The complete details of the simulation script are provided in
@@ -1162,8 +1162,8 @@ https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
 
 Test for 3GPP antenna model
 ===========================
-Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations 
-of the antenna array model by checking if the throughput/SINR/MCS obtained is as 
+Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations
+of the antenna array model by checking if the throughput/SINR/MCS obtained is as
 expected. The test scenario consists of one gNB and a single UE attached to the
 gNB. Different positions of the UE are evaluated.
 
