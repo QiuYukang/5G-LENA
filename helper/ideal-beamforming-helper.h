@@ -95,6 +95,8 @@ public:
 
 private:
 
+  void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev) const;
+
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.
    *

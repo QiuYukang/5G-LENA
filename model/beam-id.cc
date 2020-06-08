@@ -57,6 +57,13 @@ BeamId::GetElevation () const
   return m_elevation;
 }
 
+
+BeamId
+BeamId::GetEmptyBeamId ()
+{
+  return BeamId (0, 0);
+}
+
 /**
  * \brief Calculate the Cantor function for two unsigned int
  * \param x1 first value max value 65535

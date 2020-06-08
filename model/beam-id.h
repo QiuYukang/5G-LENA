@@ -77,6 +77,12 @@ public:
    */
   double GetElevation () const;
 
+  /*
+   * \brief Create BeamId with 0 sector and 0 elevation
+   * \return BeamId (0,0)
+   */
+  static BeamId GetEmptyBeamId ();
+
 private:
 
   uint16_t m_sector {0};  //!< sector of the beam

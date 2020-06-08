@@ -72,34 +72,40 @@ IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
 {
   NS_LOG_FUNCTION (this);
   m_beamformingTasks.push_back(std::make_pair(gNbDev, ueDev));
+  RunTask (gNbDev, ueDev); // run immediately the task, and next time will be according to configured periodicity
 }
 
 void
 IdealBeamformingHelper::Run () const
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Running the ideal beamforming method. There are :" <<m_beamformingTasks.size()<<" tasks.");
+  NS_LOG_INFO ("Running the ideal beamforming method. There are :" <<
+               m_beamformingTasks.size()<<" tasks.");
 
   for (const auto& task:m_beamformingTasks)
     {
-      NS_LOG_INFO ("Running the ideal beamforming method. There are :" <<task.first->GetCcMapSize()<<" antennas per device.");
+      NS_LOG_INFO ("Running the ideal beamforming method. There are :" <<
+                   task.first->GetCcMapSize ()<< " antennas per device.");
+      Ptr<NrGnbNetDevice> gNbDev = task.first;
+      Ptr<NrUeNetDevice> ueDev = task.second;
+      RunTask (gNbDev, ueDev);
+    }
+}
 
-      for (uint8_t ccId = 0; ccId < task.first->GetCcMapSize() ; ccId++)
-        {
-           Ptr<NrGnbNetDevice> gNbDev = task.first;
-           Ptr<NrUeNetDevice> ueDev = task.second;
-
-           BeamformingVector gnbBfv, ueBfv;
-           m_idealBeamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
-           Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
-           Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
-
-           NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
-
-           gNbPhy->GetBeamManager()->SaveBeamformingVector (gnbBfv, ueDev);
-           uePhy->GetBeamManager()->SaveBeamformingVector (ueBfv, gNbDev);
-           uePhy->GetBeamManager()->ChangeBeamformingVector (gNbDev);
-        }
+void
+IdealBeamformingHelper::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
+                                 const Ptr<NrUeNetDevice>& ueDev) const
+{
+  for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
+    {
+      BeamformingVector gnbBfv, ueBfv;
+      m_idealBeamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
+      Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
+      Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
+      NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
+      gNbPhy->GetBeamManager ()->SaveBeamformingVector (gnbBfv, ueDev);
+      uePhy->GetBeamManager ()->SaveBeamformingVector (ueBfv, gNbDev);
+      uePhy->GetBeamManager ()->ChangeBeamformingVector (gNbDev);
     }
 }
 
@@ -112,12 +118,12 @@ IdealBeamformingHelper::SetIdealBeamformingMethod (const TypeId &beamformingMeth
   ObjectFactory objectFactory;
   objectFactory.SetTypeId (beamformingMethod);
 
-  m_idealBeamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm>();
+  m_idealBeamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm> ();
   ExpireBeamformingTimer ();
 }
 
 void
-IdealBeamformingHelper::ExpireBeamformingTimer()
+IdealBeamformingHelper::ExpireBeamformingTimer ()
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("Beamforming timer expired; programming a beamforming");
