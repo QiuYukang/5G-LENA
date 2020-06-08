@@ -248,7 +248,7 @@ main (int argc, char *argv[])
 
   stream = channelModel->AssignStreams (stream);
 
-  Ptr<const ThreeGppChannelModel::ThreeGppChannelMatrix> channelMatrix1 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
+  Ptr<const ThreeGppChannelModel::ChannelMatrix> channelMatrix1 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
 
 /*  for (uint32_t i = 0; i < channelMatrix1->m_channel.size (); i++)
   {
@@ -275,7 +275,7 @@ main (int argc, char *argv[])
   stream = 1;
   stream = channelModel->AssignStreams (stream);
 
-  Ptr<const ThreeGppChannelModel::ThreeGppChannelMatrix> channelMatrix2 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
+  Ptr<const ThreeGppChannelModel::ChannelMatrix> channelMatrix2 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
 
 /*  for (uint32_t i = 0; i < channelMatrix2->m_channel.size (); i++)
   {
