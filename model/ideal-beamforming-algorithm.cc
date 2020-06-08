@@ -257,6 +257,40 @@ QuasiOmniDirectPathBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNe
   *ueBfv = BeamformingVector (std::make_pair(ueAntennaWeights, BeamId::GetEmptyBeamId()));
 }
 
+TypeId
+DirectPathQuasiOmniBeamforming::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::DirectPathQuasiOmniBeamforming")
+                      .SetParent<DirectPathBeamforming> ()
+                      .AddConstructor<DirectPathQuasiOmniBeamforming>();
+  return tid;
+}
+
+
+void
+DirectPathQuasiOmniBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice> &gnbDev,
+                                                         const Ptr<const NrUeNetDevice> &ueDev,
+                                                         BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<MobilityModel> gnbMob = gnbDev->GetNode()->GetObject<MobilityModel>();
+  Ptr<MobilityModel> ueMob = ueDev->GetNode()->GetObject<MobilityModel>();
+  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy(ccId)->GetAntennaArray();
+  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy(ccId)->GetAntennaArray();
+
+  // configure gNb beamforming vector to be quasi omni
+  UintegerValue numRows, numColumns;
+  ueAntenna->GetAttribute ("NumRows", numRows);
+  ueAntenna->GetAttribute ("NumColumns", numColumns);
+  *ueBfv = std::make_pair (CreateQuasiOmniBfv (numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
+
+  //configure gNB beamforming vector to be directed towards UE
+  complexVector_t gnbAntennaWeights = CreateDirectPathBfv (gnbMob, ueMob, gnbAntenna);
+  // store the antenna weights
+  *gnbBfv = BeamformingVector (std::make_pair(gnbAntennaWeights, BeamId::GetEmptyBeamId()));
+}
+
 
 TypeId
 OptimalCovMatrixBeamforming::GetTypeId (void)
