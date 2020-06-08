@@ -153,6 +153,60 @@ protected:
 
 /**
  * \ingroup gnb-phy
+ * \brief The CellScanQuasiOmniBeamforming class
+ */
+class CellScanQuasiOmniBeamforming: public IdealBeamformingAlgorithm
+{
+
+public:
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+  /**
+   * \return Gets value of BeamSearchAngleStep attribute
+   */
+  double GetBeamSearchAngleStep () const;
+
+  /**
+   * \brief Sets the value of BeamSearchAngleStep attribute
+   */
+  void SetBeamSearchAngleStep (double beamSearchAngleStep);
+
+  /**
+   * \brief constructor
+   */
+  CellScanQuasiOmniBeamforming () = default;
+
+  /**
+   * \brief destructor
+   */
+  virtual ~CellScanQuasiOmniBeamforming () override = default;
+
+protected:
+
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using cell scan method at gnbDev and a fixed quasi-omni beamforming vector at UE
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
+
+  double m_beamSearchAngleStep {30};
+
+};
+
+/**
+ * \ingroup gnb-phy
  * \brief The DirectPathBeamforming class
  */
 class DirectPathBeamforming: public IdealBeamformingAlgorithm
