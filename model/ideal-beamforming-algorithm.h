@@ -64,7 +64,9 @@ public:
 
   virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                       const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const;
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const;
 
   /**
    * \return Gets value of BeamSearchAngleStep attribute
@@ -88,7 +90,9 @@ private:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const = 0;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const = 0;
 
 
 };
@@ -139,7 +143,9 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 
   double m_beamSearchAngleStep {30};
 
@@ -172,7 +178,9 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 };
 
 /**
@@ -203,7 +211,9 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 
 };
 
@@ -236,7 +246,9 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 
 };
 
@@ -260,7 +272,9 @@ protected:
 
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 };
 
 
