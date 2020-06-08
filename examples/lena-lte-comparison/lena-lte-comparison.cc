@@ -40,7 +40,7 @@
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "s3-scenario --Help"
+$ ./waf --run "lena-lte-comparison --Help"
     \endcode
  *
  */
@@ -63,6 +63,8 @@ $ ./waf --run "s3-scenario --Help"
 #include "ns3/lte-module.h"
 #include <ns3/radio-environment-map-helper.h>
 #include "ns3/config-store-module.h"
+#include <ns3/sqlite-output.h>
+#include "radio-network-parameters-helper.h"
 
 /*
  * To be able to use LOG_* functions.
@@ -82,136 +84,69 @@ using namespace ns3;
  */
 NS_LOG_COMPONENT_DEFINE ("S3Scenario");
 
-
-class RadioNetworkParametersHelper
+struct ResultCache
 {
-public:
+  ResultCache (uint16_t c, uint16_t b, uint16_t r, double s)
+    : cellId (c), bwpId (b), rnti (r), avgSinr (s) {}
 
-  /**
-   * \brief Set the radio network parameters to LTE.
-   * \param freqReuse The cell frequency reuse.
-   */
-  void SetNetworkToLte (const std::string scenario,
-                        const std::string operationMode,
-                        uint16_t numCcs);
-
-  /**
-   * \brief Set the radio network parameters to NR.
-   * \param scenario Urban scenario (UMa or UMi).
-   * \param numerology Numerology to use.
-   * \param freqReuse The cell frequency reuse.
-   */
-  void SetNetworkToNr (const std::string scenario,
-                       const std::string operationMode,
-                       uint16_t numerology,
-                       uint16_t numCcs);
-
-  /**
-   * \brief Gets the BS transmit power
-   * \return Transmit power in dBW
-   */
-  double GetTxPower ();
-
-  /**
-   * \brief Gets the operation bandwidth
-   * \return Bandwidth in Hz
-   */
-  double GetBandwidth ();
-
-  /**
-   * \brief Gets the central frequency
-   * \return Central frequency in Hz
-   */
-  double GetCentralFrequency ();
-
-  /**
-   * \brief Gets the band numerology
-   * \return Numerology
-   */
-  uint16_t GetNumerology ();
-
-private:
-  double m_txPower {-1.0};            //!< Transmit power in dBm
-  double m_bandwidth {0.0};           //!< System bandwidth in Hz
-  double m_centralFrequency {-1.0};   //!< Band central frequency in Hz
-  uint16_t m_numerology {0};          //!< Operation band numerology
+  uint16_t cellId {0};
+  uint16_t bwpId {0};
+  uint16_t rnti {0};
+  double avgSinr {0.0};
 };
 
-void
-RadioNetworkParametersHelper::SetNetworkToLte (const std::string scenario,
-                                               const std::string operationMode,
-                                               uint16_t numCcs)
-{
-  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
-                   "Unsupported scenario");
+static std::vector<ResultCache> cache;
 
-  m_numerology = 0;
-  m_centralFrequency = 2e9;
-  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
-  if (operationMode == "FDD")
+static void
+EmptyCache (SQLiteOutput *db)
+{
+  bool ret = db->SpinExec ("BEGIN TRANSACTION;");
+  for (const auto & v : cache)
     {
-      m_bandwidth += m_bandwidth;
+      sqlite3_stmt *stmt;
+      ret = db->SpinPrepare (&stmt, "INSERT INTO sinr VALUES (?,?,?,?,?,?);");
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 1, v.cellId);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 2, v.bwpId);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 3, v.rnti);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 4, v.avgSinr);
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 5, RngSeedManager::GetSeed ());
+      NS_ASSERT (ret);
+      ret = db->Bind (stmt, 6, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      NS_ASSERT (ret);
+
+      ret = db->SpinExec (stmt);
+      NS_ASSERT (ret);
     }
-  if (scenario == "UMa")
-    {
-      m_txPower = 49;
-    }
-  else
-    {
-      m_txPower = 44;
-    }
+  cache.clear ();
+  ret = db->SpinExec ("END TRANSACTION;");
+  NS_ASSERT (ret);
 }
 
-void
-RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
-                                              const std::string operationMode,
-                                              uint16_t numerology,
-                                              uint16_t numCcs)
+static void
+ReportSinrNr (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
 {
-  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
-                   "Unsupported scenario");
+  NS_UNUSED (power);
 
-  m_numerology = numerology;
-  m_centralFrequency = 2e9;
-  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
-  if (operationMode == "FDD")
+  cache.emplace_back (ResultCache (cellId, bwpId, rnti, avgSinr));
+
+  // An entry is 14 byte. Let's wait until ~1MB of entries before
+  // storing it in the database
+  if (cache.size () > 100000)
     {
-      m_bandwidth += m_bandwidth;
-    }
-  if (scenario == "UMa")
-    {
-      m_txPower = 49;
-    }
-  else
-    {
-      m_txPower = 44;
+      EmptyCache (db);
     }
 }
 
-double
-RadioNetworkParametersHelper::GetTxPower ()
+static void
+ReportSinrLena (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
 {
-  return m_txPower;
+  ReportSinrNr (db, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
 }
-
-double
-RadioNetworkParametersHelper::GetBandwidth ()
-{
-  return m_bandwidth;
-}
-
-double
-RadioNetworkParametersHelper::GetCentralFrequency ()
-{
-  return m_centralFrequency;
-}
-
-uint16_t
-RadioNetworkParametersHelper::GetNumerology ()
-{
-  return m_numerology;
-}
-
 
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  std::string scenario,
@@ -228,18 +163,21 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  NetDeviceContainer &enbSector3NetDev,
                                  NetDeviceContainer &ueSector1NetDev,
                                  NetDeviceContainer &ueSector2NetDev,
-                                 NetDeviceContainer &ueSector3NetDev)
+                                 NetDeviceContainer &ueSector3NetDev,
+                                 bool calibration,
+                                 SQLiteOutput *db,
+                                 const std::string &scheduler)
 {
 
   /*
    *  An example of how the spectrum is being used.
    *
-   *                              centralEarfcnFrequencyBand = 300
+   *                              centralEarfcnFrequencyBand = 350
    *                                     |
-   *         100 RB                    100 RB                 100RB
+   *         200 RB                    200 RB                 200RB
    * |-----------------------|-----------------------|-----------------------|
    *
-   *      50RB      50RB         50RB        50RB        50RB       50RB
+   *     100RB      100RB        100RB       100RB       100RB       100RB
    * |-----------|-----------|-----------|-----------|-----------|-----------|
    *       DL          UL          DL         UL           DL         UL
    *
@@ -247,8 +185,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    *     fc_dl       fc_ul       fc_dl       fc_ul        fc_dl      fc_ul
    */
 
-  uint32_t bandwidthBandDl = 100; // 18MHz
-  uint32_t bandwidthBandUl = 100; //
+  uint32_t bandwidthBandDl = 100;
+  uint32_t bandwidthBandUl = 100;
 
   uint32_t centralFrequencyBand1Dl = 100;
   uint32_t centralFrequencyBand1Ul = 200;
@@ -275,34 +213,66 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   lteHelper->SetEpcHelper (epcHelper);
 
   // ALL SECTORS AND BANDS configuration
+  Config::SetDefault ("ns3::FfMacScheduler::UlCqiFilter", EnumValue (FfMacScheduler::PUSCH_UL_CQI));
+  Config::SetDefault ("ns3::LteSpectrumPhy::CtrlErrorModelEnabled", BooleanValue (false));
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-  Config::SetDefault ("ns3::LteGnbPhy::TxPower", DoubleValue (txPower));
+  Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (txPower));
   Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (ueTxPower));
+  Config::SetDefault ("ns3::LteUePhy::NoiseFigure", DoubleValue (5.0));
+  Config::SetDefault ("ns3::LteUePhy::EnableRlfDetection", BooleanValue (false));
+  Config::SetDefault ("ns3::LteAmc::AmcModel", EnumValue(LteAmc::PiroEW2010));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
-  lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
-  lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-  lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
-  lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
+  lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
+  if (scheduler == "PF")
+    {
+      lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
+    }
+  else if (scheduler == "RR")
+    {
+      lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
+    }
+
+  if (calibration)
+    {
+      lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
+      Config::SetDefault ("ns3::LteUePhy::ClosedLoop", BooleanValue (false));
+    }
+  else
+    {
+      lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
+      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
+      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (4.97));
+    }
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDl));
   lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUl));
 
   //SECTOR 1 eNB configuration
-  double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
-  lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+  if (!calibration)
+    {
+      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
+      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+    }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand1Dl));
   lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand1Ul));
   enbSector1NetDev = lteHelper->InstallEnbDevice (enbSector1Container);
 
   //SECTOR 2 eNB configuration
-  orientationDegrees = gridScenario.GetAntennaOrientationDegrees (1, gridScenario.GetNumSectorsPerSite ());
-  lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+  if (!calibration)
+    {
+      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (1, gridScenario.GetNumSectorsPerSite ());
+      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+    }
+
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand2Dl));
   lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand2Ul));
   enbSector2NetDev = lteHelper->InstallEnbDevice (enbSector2Container);
 
   //SECTOR 3 eNB configuration
-  orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
-  lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+  if (!calibration)
+    {
+      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
+      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
+    }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand3Dl));
   lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand3Ul));
   enbSector3NetDev = lteHelper->InstallEnbDevice (enbSector3Container);
@@ -311,6 +281,47 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   ueSector2NetDev = lteHelper->InstallUeDevice(ueSector2Container);
   ueSector3NetDev = lteHelper->InstallUeDevice(ueSector3Container);
 
+  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
+    {
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector1NetDev.Get (i));
+      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
+      auto uePhy = ueNetDevice->GetPhy ();
+
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
+    {
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector2NetDev.Get (i));
+      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
+      auto uePhy = ueNetDevice->GetPhy ();
+
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
+    {
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector3NetDev.Get (i));
+      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
+      auto uePhy = ueNetDevice->GetPhy ();
+
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
+    }
+
+  lteHelper->Initialize ();
+  auto dlSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetDownlinkSpectrumChannel ()->GetPropagationLossModel());
+  auto ulSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetUplinkSpectrumChannel ()->GetPropagationLossModel());
+
+  NS_ASSERT (dlSp != nullptr);
+  NS_ASSERT (ulSp != nullptr);
+
+  NS_ASSERT (dlSp->GetNext() == nullptr);
+  NS_ASSERT (ulSp->GetNext() == nullptr);
+
+  ObjectFactory f;
+  f.SetTypeId (TypeId::LookupByName("ns3::AlwaysLosChannelConditionModel"));
+  dlSp->SetChannelConditionModel (f.Create<ChannelConditionModel> ());
+  ulSp->SetChannelConditionModel (f.Create<ChannelConditionModel> ());
 }
 
 
@@ -335,7 +346,10 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NetDeviceContainer &gnbSector3NetDev,
                                    NetDeviceContainer &ueSector1NetDev,
                                    NetDeviceContainer &ueSector2NetDev,
-                                   NetDeviceContainer &ueSector3NetDev)
+                                   NetDeviceContainer &ueSector3NetDev,
+                                   bool calibration,
+                                   SQLiteOutput *db,
+                                   const std::string &scheduler)
 {
 
 
@@ -345,18 +359,22 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    */
   RadioNetworkParametersHelper ranHelper;
   uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
+  double rbOverhead = 0.1;
+  uint32_t harqProcesses = 20;
+  uint32_t n1Delay = 2;
+  uint32_t n2Delay = 2;
+  ranHelper.SetScenario (scenario);
   if (radioNetwork == "LTE")
     {
-      ranHelper.SetNetworkToLte (scenario, operationMode, 1);
+      ranHelper.SetNetworkToLte (operationMode, 1);
+      rbOverhead = 0.1;
+      harqProcesses = 8;
+      n1Delay = 4;
+      n2Delay = 4;
       if (errorModel == "")
         {
           errorModel = "ns3::LenaErrorModel";
         }
-      // FIXME: if numScPerRb is double then uncomment this
-//      else if (errorModel == "ns3::NrLteMiErrorModel")
-//        {
-//          numScPerRb = 1.2;  // This parameter was tuned for numRBs = 100 and maximum MCS
-//        }
       else if (errorModel != "ns3::NrLteMiErrorModel" && errorModel != "ns3::LenaErrorModel")
         {
           NS_ABORT_MSG ("The selected error model is not recommended for LTE");
@@ -364,7 +382,9 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     }
   else if (radioNetwork == "NR")
     {
-      ranHelper.SetNetworkToNr (scenario, operationMode, numerology, 1);
+      ranHelper.SetNetworkToNr (operationMode, numerology, 1);
+      rbOverhead = 0.04;
+      harqProcesses = 20;
       if (errorModel == "")
         {
           errorModel = "ns3::NrEesmCcT2";
@@ -413,11 +433,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
-      scene =  BandwidthPartInfo::UMi_StreetCanyon;
+      scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
     }
   else if (scenario == "UMa")
     {
-      scene = BandwidthPartInfo::UMa;
+      scene = BandwidthPartInfo::UMa_LoS;
     }
   else
     {
@@ -437,8 +457,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetDlErrorModel (errorModel);
 
   // Both DL and UL AMC will have the same model behind.
-  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
-  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
+  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
+  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
 
   /*
    * Adjust the average number of Reference symbols per RB only for LTE case,
@@ -446,6 +466,13 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    */
   nrHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (numScPerRb));
   nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
+
+  nrHelper->SetGnbPhyAttribute ("RbOverhead", DoubleValue (rbOverhead));
+  nrHelper->SetGnbPhyAttribute ("N2Delay", UintegerValue (n2Delay));
+  nrHelper->SetGnbPhyAttribute ("N1Delay", UintegerValue (n1Delay));
+
+  nrHelper->SetUeMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
+  nrHelper->SetGnbMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
 
   /*
    * Create the necessary operation bands. In this example, each sector operates
@@ -489,21 +516,33 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
   OperationBandInfo band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3);
 
-  /*
-   * Initialize channel and pathloss, plus other things inside band1. If needed,
-   * the band configuration can be done manually, but we leave it for more
-   * sophisticated examples. For the moment, this method will take care
-   * of all the spectrum initialization needs.
-   */
-  nrHelper->InitializeOperationBand (&band1);
-  nrHelper->InitializeOperationBand (&band2);
-  nrHelper->InitializeOperationBand (&band3);
+  if (calibration)
+    {
+      band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+      band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+      band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+      band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+      band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+      band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+
+      // Do not initialize fading (beamforming gain)
+      nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+      nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+      nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+    }
+  else
+    {
+      // Init everything
+      nrHelper->InitializeOperationBand (&band1);
+      nrHelper->InitializeOperationBand (&band2);
+      nrHelper->InitializeOperationBand (&band3);
+    }
+
+
   allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
   bwps1 = CcBwpCreator::GetAllBwps ({band1});
   bwps2 = CcBwpCreator::GetAllBwps ({band2});
   bwps3 = CcBwpCreator::GetAllBwps ({band3});
-
-
 
   /*
    * Start to account for the bandwidth used by the example, as well as
@@ -532,9 +571,6 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    *
    */
 
-  Packet::EnableChecking ();
-  Packet::EnablePrinting ();
-
   /*
    *  Case (i): Attributes valid for all the nodes
    */
@@ -548,15 +584,19 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
 
-  //
-
   // Scheduler type
-    if (radioNetwork == "LTE")
-      {
-        nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
-//      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
-        nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
-      }
+
+  if (scheduler == "PF")
+    {
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
+    }
+  else if (scheduler == "RR")
+    {
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
+    }
+
+  nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
 
@@ -566,8 +606,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
 
   // Antennas for all the gNbs
-  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
-  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
+  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
+  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
   // UE transmit power
@@ -814,6 +854,24 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         }
     }
 
+  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
+    {
+      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
+    {
+      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
+  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
+    {
+      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+    }
+
   // When all the configuration is done, explicitly call UpdateConfig ()
 
   for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
@@ -848,8 +906,88 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
 }
 
+static std::pair<ApplicationContainer, double>
+InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
+             const Address &ueAddress, const std::string &direction,
+             UdpClientHelper *dlClientLowLat, const Ptr<Node> &remoteHost,
+             const Ipv4Address &remoteHostAddr, uint32_t udpAppStartTimeMs,
+             uint16_t dlPortLowLat, const Ptr<UniformRandomVariable> &x,
+             uint32_t appGenerationTimeMs,
+             const Ptr<LteHelper> &lteHelper, const Ptr<NrHelper> &nrHelper)
+{
+  ApplicationContainer app;
 
+  // The bearer that will carry low latency traffic
+  EpsBearer lowLatBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
+  // The filter for the low-latency traffic
+  Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
+  EpcTft::PacketFilter dlpfLowLat;
+  if (direction == "DL")
+    {
+      dlpfLowLat.localPortStart = dlPortLowLat;
+      dlpfLowLat.localPortEnd = dlPortLowLat;
+      dlpfLowLat.direction = EpcTft::DOWNLINK;
+    }
+  else
+    {
+      dlpfLowLat.remotePortStart = dlPortLowLat;
+      dlpfLowLat.remotePortEnd = dlPortLowLat;
+      dlpfLowLat.direction = EpcTft::UPLINK;
+    }
+  lowLatTft->Add (dlpfLowLat);
+
+  // The client, who is transmitting, is installed in the remote host,
+  // with destination address set to the address of the UE
+  if (direction == "DL")
+    {
+      dlClientLowLat->SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+      app = dlClientLowLat->Install (remoteHost);
+    }
+  else
+    {
+      dlClientLowLat->SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+      app = dlClientLowLat->Install (ue);
+    }
+
+  double startTime = x->GetValue (udpAppStartTimeMs, udpAppStartTimeMs + 10);
+  app.Start (MilliSeconds (startTime));
+  app.Stop (MilliSeconds (startTime + appGenerationTimeMs));
+
+  std::cout << "\tStarts at time " << MilliSeconds (startTime).GetMilliSeconds () << " ms and ends at "
+            << (MilliSeconds (startTime + appGenerationTimeMs)).GetMilliSeconds () << " ms" << std::endl;
+
+  // Activate a dedicated bearer for the traffic type
+  if (lteHelper != nullptr)
+    {
+      lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+    }
+  else if (nrHelper != nullptr)
+    {
+      nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+    }
+  else
+    {
+      NS_ABORT_MSG ("Programming error");
+    }
+
+  return std::make_pair(app, startTime);
+}
+
+static void
+DeleteWhere (SQLiteOutput *p, uint32_t seed, uint32_t run, const std::string &table)
+{
+  bool ret;
+  sqlite3_stmt *stmt;
+  ret = p->SpinPrepare (&stmt, "DELETE FROM \"" + table + "\" WHERE SEED = ? AND RUN = ?;");
+  NS_ABORT_IF (ret == false);
+  ret = p->Bind (stmt, 1, seed);
+  NS_ABORT_IF (ret == false);
+  ret = p->Bind (stmt, 2, run);
+
+  ret = p->SpinExec (stmt);
+  NS_ABORT_IF (ret == false);
+}
 
 int 
 main (int argc, char *argv[])
@@ -868,21 +1006,15 @@ main (int argc, char *argv[])
   std::string radioNetwork = "NR";  // LTE or NR
   std::string operationMode = "TDD";  // TDD or FDD
 
-  // Traffic parameters (that we will use inside this script:)
-  uint32_t udpPacketSize = 600;
-  uint32_t lambda = 10000;
-
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
-  uint32_t simTimeMs = 1400;
+  uint32_t appGenerationTimeMs = 1000;
   uint32_t udpAppStartTimeMs = 400;
   std::string direction = "DL";
 
   // Spectrum parameters. We will take the input from the command line, and then
   //  we will pass them inside the NR module.
   uint16_t numerologyBwp = 0;
-//  double centralFrequencyBand = 0.0;  // RadioNetworkParametersHelper provides this hard-coded value
-//  double bandwidthBand = 0.0;  // RadioNetworkParametersHelper provides this hard-coded values
   std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
 
   // Where we will store the output files.
@@ -891,6 +1023,12 @@ main (int argc, char *argv[])
 
   // Error models
   std::string errorModel = "";
+
+  bool calibration = true;
+
+  uint32_t trafficScenario = 0;
+
+  std::string scheduler = "PF";
 
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -914,15 +1052,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("traces",
                 "Enable output traces",
                 traces);
-  cmd.AddValue ("packetSize",
-                "packet size in bytes to be used by UE traffic",
-                udpPacketSize);
-  cmd.AddValue ("lambda",
-                "Number of UDP packets generated in one second per UE",
-                lambda);
-  cmd.AddValue ("simTimeMs",
+  cmd.AddValue ("appGenerationTimeMs",
                 "Simulation time",
-                simTimeMs);
+                appGenerationTimeMs);
   cmd.AddValue ("numerologyBwp",
                 "The numerology to be used (NR only)",
                 numerologyBwp);
@@ -932,12 +1064,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("direction",
                 "The flow direction (DL or UL)",
                 direction);
-//  cmd.AddValue ("centralFrequencyBand",
-//                "The system frequency to be used in band 1",
-//                centralFrequencyBand);
-//  cmd.AddValue ("bandwidthBand",
-//                "The system bandwidth to be used in band 1",
-//                bandwidthBand);
   cmd.AddValue ("simulator",
                 "The cellular network simulator to use: LENA or 5GLENA",
                 simulator);
@@ -956,9 +1082,46 @@ main (int argc, char *argv[])
   cmd.AddValue("errorModelType",
                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                errorModel);
+  cmd.AddValue ("calibration",
+                "disable a bunch of things to make LENA and NR_LTE comparable",
+                calibration);
+  cmd.AddValue ("trafficScenario",
+                "0: saturation (110 Mbps/enb), 1: latency (1 pkt of 10 bytes), 2: low-load (20 Mbps)",
+                trafficScenario);
+  cmd.AddValue ("scheduler",
+                "PF: Proportional Fair, RR: Round-Robin",
+                scheduler);
 
   // Parse the command line
   cmd.Parse (argc, argv);
+
+  // Traffic parameters (that we will use inside this script:)
+  uint32_t udpPacketSize = 1000;
+  uint32_t lambda;
+  uint32_t packetCount;
+
+  switch (trafficScenario)
+    {
+    case 0: // 110 Mbps == 13.75 MBps
+      packetCount = 0xFFFFFFFF;
+      udpPacketSize = 1375;
+      lambda = 10000 / ueNumPergNb;
+      break;
+    case 1:
+      packetCount = 1;
+      udpPacketSize = 12;
+      lambda = 1;
+      break;
+    case 2: // 20 Mbps == 2.5 MB/s
+      packetCount = 0xFFFFFFFF;
+      udpPacketSize = 250;
+      lambda = 10000 / ueNumPergNb;
+      break;
+    default:
+      NS_FATAL_ERROR ("Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+    }
+
+  SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
 
   /*
    * Check if the frequency and numerology are in the allowed range.
@@ -970,6 +1133,7 @@ main (int argc, char *argv[])
   NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD", "Operation mode can only be TDD or FDD");
   NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR", "Unrecognized radio network technology");
   NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA", "Unrecognized simulator");
+  NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR", "Unrecognized scheduler");
   /*
    * If the logging variable is set to true, enable the log of some components
    * through the code. The same effect can be obtained through the use
@@ -997,12 +1161,12 @@ main (int argc, char *argv[])
   /*
    * Create the scenario. In our examples, we heavily use helpers that setup
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
-   * GridScenarioHelper documentation to see how the nodes will be distributed.
+   * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (numOuterRings);
+  gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
   gridScenario.SetScenarioParamenters (scenario);
-  gridScenario.SetNumCells ();  // Note that the call takes no arguments since the number is obtained from the parameters in SetUMaParameters or SetUMiParameters
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
@@ -1088,7 +1252,10 @@ main (int argc, char *argv[])
                                   gnbSector3NetDev,
                                   ueSector1NetDev,
                                   ueSector2NetDev,
-                                  ueSector3NetDev);
+                                  ueSector3NetDev,
+                                  calibration,
+                                  &db,
+                                  scheduler);
     }
   else if (simulator == "5GLENA")
     {
@@ -1114,7 +1281,10 @@ main (int argc, char *argv[])
                                     gnbSector3NetDev,
                                     ueSector1NetDev,
                                     ueSector2NetDev,
-                                    ueSector3NetDev);
+                                    ueSector3NetDev,
+                                    calibration,
+                                    &db,
+                                    scheduler);
     }
   else
     {
@@ -1264,6 +1434,9 @@ main (int argc, char *argv[])
       serverApps.Add (dlPacketSinkLowLat.Install (remoteHost));
     }
 
+  // start UDP server
+  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+
   /*
    * Configure attributes for the different generators, using user-provided
    * parameters for generating a CBR traffic
@@ -1272,139 +1445,45 @@ main (int argc, char *argv[])
    */
   UdpClientHelper dlClientLowLat;
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
-  dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+  dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (packetCount));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
   dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
-
-  // The bearer that will carry low latency traffic
-  EpsBearer lowLatBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
-
-  // The filter for the low-latency traffic
-  Ptr<EpcTft> lowLatTft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpfLowLat;
-  if (direction == "DL")
-    {
-      dlpfLowLat.localPortStart = dlPortLowLat;
-      dlpfLowLat.localPortEnd = dlPortLowLat;
-      dlpfLowLat.direction = EpcTft::DOWNLINK;
-    }
-  else
-    {
-      dlpfLowLat.remotePortStart = dlPortLowLat;
-      dlpfLowLat.remotePortEnd = dlPortLowLat;
-      dlpfLowLat.direction = EpcTft::UPLINK;
-      }
-  lowLatTft->Add (dlpfLowLat);
 
   /*
    * Let's install the applications!
    */
   ApplicationContainer clientApps;
+  std::vector<NodeContainer*> nodes = { &ueSector1Container, &ueSector2Container, &ueSector3Container };
+  std::vector<NetDeviceContainer*> devices = { &ueSector1NetDev, &ueSector2NetDev, &ueSector3NetDev };
+  std::vector<Ipv4InterfaceContainer*> ips = { &ueSector1IpIface, &ueSector2IpIface, &ueSector3IpIface };
 
-  for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  x->SetStream (RngSeedManager::GetRun());
+  double maxStartTime = 0.0;
+
+  for (uint32_t userId = 0; userId < gridScenario.GetUserTerminals().GetN (); ++userId)
     {
-      Ptr<Node> ue = ueSector1Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector1NetDev.Get(i);
-      Address ueAddress = ueSector1IpIface.GetAddress (i);
+      for (uint32_t j = 0; j < 3; ++j)
+        {
+          if (nodes.at (j)->GetN () <= userId)
+            {
+              continue;
+            }
+          Ptr<Node> n = nodes.at(j)->Get (userId);
+          Ptr<NetDevice> d = devices.at(j)->Get(userId);
+          Address a = ips.at(j)->GetAddress(userId);
 
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
+          std::cout << "app for ue " << userId << " in sector " << j+1
+                    << " position " << n->GetObject<MobilityModel>()->GetPosition ()
+                    << ":" << std::endl;
+
+          auto app = InstallApps (n, d, a, direction, &dlClientLowLat, remoteHost,
+                                  remoteHostAddr, udpAppStartTimeMs, dlPortLowLat,
+                                  x, appGenerationTimeMs, lteHelper, nrHelper);
+          maxStartTime = std::max (app.second, maxStartTime);
+          clientApps.Add (app.first);
         }
     }
-
-  for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
-    {
-      Ptr<Node> ue = ueSector2Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector2NetDev.Get(i);
-      Address ueAddress = ueSector2IpIface.GetAddress (i);
-
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector3Container.GetN (); ++i)
-    {
-      Ptr<Node> ue = ueSector3Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector3NetDev.Get(i);
-      Address ueAddress = ueSector3IpIface.GetAddress (i);
-
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
-    }
-
-  // start UDP server and client apps
-  serverApps.Start(MilliSeconds(udpAppStartTimeMs));
-  clientApps.Start(MilliSeconds(udpAppStartTimeMs));
-  serverApps.Stop(MilliSeconds(simTimeMs));
-  clientApps.Stop(MilliSeconds(simTimeMs));
 
   // enable the traces provided by the nr module
   if (traces == true)
@@ -1430,8 +1509,55 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  Simulator::Stop (MilliSeconds (simTimeMs));
+  bool ret;
+  std::string tableName;
+  switch (trafficScenario)
+    {
+    case 0:
+      tableName = "throughput";
+      break;
+    case 1:
+      tableName = "latency";
+      break;
+    case 2:
+      tableName = "s3";
+      break;
+    default:
+      NS_FATAL_ERROR ("NAH");
+    }
+
+  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
+               "FlowId INTEGER NOT NULL, "
+               "TxPackets INTEGER NOT NULL,"
+               "TxBytes INTEGER NOT NULL,"
+               "TxOfferedMbps DOUBLE NOT NULL,"
+               "RxBytes INTEGER NOT NULL,"
+               "ThroughputMbps DOUBLE NOT NULL, "
+               "MeanDelayMs DOUBLE NOT NULL, "
+               "MeanJitterMs DOUBLE NOT NULL, "
+               "RxPackets INTEGER NOT NULL, "
+               "SEED INTEGER NOT NULL,"
+               "RUN INTEGER NOT NULL,"
+               "PRIMARY KEY(FlowId,SEED,RUN)"
+               ");");
+  NS_ABORT_UNLESS (ret);
+
+  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS sinr ("
+                     "CellId INTEGER NOT NULL, "
+                     "BwpId INTEGER NOT NULL,"
+                     "Rnti INTEGER NOT NULL,"
+                     "AvgSinr DOUBLE NOT NULL,"
+                     "Seed INTEGER NOT NULL,"
+                     "Run INTEGER NOT NULL);");
+  NS_ASSERT (ret);
+
+  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), tableName);
+  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "sinr");
+
+  Simulator::Stop (MilliSeconds (appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
+
+  EmptyCache (&db);
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
@@ -1472,45 +1598,83 @@ main (int argc, char *argv[])
         {
           protoStream.str ("UDP");
         }
+
+      sqlite3_stmt *stmt;
+
+      db.SpinPrepare (&stmt, "INSERT INTO " + tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+
+      // Measure the duration of the flow from sender's perspective
+      double rxDuration = i->second.timeLastTxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
+      double txOffered = i->second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0 ;
+
       outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
       outFile << "  Tx Packets: " << i->second.txPackets << "\n";
       outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
-      outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0  << " Mbps\n";
+      outFile << "  TxOffered:  " << txOffered << " Mbps\n";
       outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+
+      ret = db.Bind (stmt, 1, i->first);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 2, i->second.txPackets);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 3, static_cast<uint32_t> (i->second.txBytes));
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 4, txOffered);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 5, static_cast<uint32_t> (i->second.rxBytes));
+      NS_ABORT_UNLESS (ret);
+
       if (i->second.rxPackets > 0)
         {
-          // Measure the duration of the flow from receiver's perspective
-          //double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-          double rxDuration = (simTimeMs - udpAppStartTimeMs) / 1000.0;
+          double th = i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
+          double delay = 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
+          double jitter = 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets;
 
-          averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
-          averageFlowDelay += 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
+          averageFlowThroughput += th;
+          averageFlowDelay += delay;
 
-          outFile << "  Throughput: " << i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000  << " Mbps\n";
-          outFile << "  Mean delay:  " << 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets << " ms\n";
-          //outFile << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 << " Mbps \n";
-          outFile << "  Mean jitter:  " << 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets  << " ms\n";
+          ret = db.Bind (stmt, 6, th);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 7, delay);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 8, jitter);
+          NS_ABORT_UNLESS (ret);
+
+          outFile << "  Throughput: " << th << " Mbps\n";
+          outFile << "  Mean delay:  " <<  delay << " ms\n";
+          outFile << "  Mean jitter:  " << jitter  << " ms\n";
         }
       else
         {
           outFile << "  Throughput:  0 Mbps\n";
-          outFile << "  Mean delay:  0 ms\n";
-          outFile << "  Mean jitter: 0 ms\n";
+          outFile << "  Mean delay:  0 ms (NOT VALID)\n";
+          outFile << "  Mean jitter: 0 ms (NOT VALID)\n";
+          ret = db.Bind (stmt, 6, 0.0);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 7, 0.0);
+          NS_ABORT_UNLESS (ret);
+          ret = db.Bind (stmt, 8, 0.0);
+          NS_ABORT_UNLESS (ret);
         }
       outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
+      ret = db.Bind (stmt, 9, i->second.rxPackets);
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 10, RngSeedManager::GetSeed ());
+      NS_ABORT_UNLESS (ret);
+      ret = db.Bind (stmt, 11, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      NS_ABORT_UNLESS (ret);
+
+      if (i->second.rxPackets > 0)
+        {
+          ret = db.SpinExec (stmt);
+          NS_ABORT_UNLESS (ret);
+        }
     }
 
   outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
 
   outFile.close ();
-
-  std::ifstream f (filename.c_str ());
-
-  if (f.is_open())
-    {
-      std::cout << f.rdbuf();
-    }
 
   Simulator::Destroy ();
   return 0;
