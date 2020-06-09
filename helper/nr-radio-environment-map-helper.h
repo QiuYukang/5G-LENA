@@ -448,7 +448,7 @@ private:
   double m_yStep {0};  ///< Distance along Y axis between adjacent listening points.
   double m_z {0};  ///< The `Z` attribute.
 
-  uint16_t m_numOfIterationsToAverage;
+  uint16_t m_numOfIterationsToAverage {1};
   Time m_installationDelay {Seconds(0)};
 
   RemDevice m_rrd;
@@ -462,7 +462,7 @@ private:
   Ptr<ChannelConditionModel> m_channelConditionModel;
   Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
 
-  std::string m_outputFile;   ///< The `OutputFile` attribute.
+  std::string m_simTag;   ///< The `SimTag` attribute.
   std::ofstream m_outFile;  ///< Stream the output to a file.
 
 }; // end of `class NrRadioEnvironmentMapHelper`

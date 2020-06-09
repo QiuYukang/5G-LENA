@@ -78,12 +78,14 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                       .SetParent<Object> ()
                       .SetGroupName("Nr")
                       .AddConstructor<NrRadioEnvironmentMapHelper> ()
-                      .AddAttribute ("OutputFile",
-                                     "the filename to which the NR Radio"
-                                     "Environment Map is saved",
-                                     StringValue ("NR_REM.out"),
-                                     MakeStringAccessor (&NrRadioEnvironmentMapHelper::m_outputFile),
-                                     MakeStringChecker ())
+                      .AddAttribute ("SimTag",
+                                     "simulation tag that will be concatenated to output file names"
+                                     "in order to distinguish them, for example: NR_REM-${SimTag}.out. "
+                                     "nr-ues-${SimTag}.txt, nr-gnbs-${SimTag}.txt, nr-buildings-${SimTag}.txt"
+                                     ".",
+                                      StringValue (""),
+                                      MakeStringAccessor (&NrRadioEnvironmentMapHelper::m_simTag),
+                                      MakeStringChecker ())
                       .AddAttribute ("XMin",
                                      "The min x coordinate of the map.",
                                      DoubleValue (0.0),
@@ -277,7 +279,11 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
     m_rrd.spectrumModel = ueDevice->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)->GetSpectrumModel ();
 
     m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
-    PrintGnuplottableUeListToFile ("nr-ues.txt");
+
+
+    std::ostringstream oss;
+    oss << "nr-ues" << m_simTag <<".txt";
+    PrintGnuplottableUeListToFile (oss.str());
 
     Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
     m_rrd.mob->AggregateObject (buildingInfo);
@@ -435,10 +441,15 @@ NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev,
                                         Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
-  m_outFile.open (m_outputFile.c_str ());
+
+  std::ostringstream oss;
+  oss << "NR_REM" << m_simTag <<".out";
+
+  std::string outputFile = oss.str ();
+  m_outFile.open (outputFile.c_str ());
   if (!m_outFile.is_open ())
     {
-      NS_FATAL_ERROR ("Can't open file " << (m_outputFile));
+      NS_FATAL_ERROR ("Can't open file " << (outputFile));
       return;
     }
 
@@ -465,8 +476,13 @@ NrRadioEnvironmentMapHelper::DelayedInstall (NetDeviceContainer gnbNetDev,
       NS_FATAL_ERROR ("Unknown REM mode");
     }
   PrintRemToFile ();
-  PrintGnuplottableGnbListToFile ("nr-gnbs.txt");
-  PrintGnuplottableBuildingListToFile ("nr-buildings.txt");
+
+  std::ostringstream ossGnbs;
+  ossGnbs << "nr-gnbs" << m_simTag <<".txt";
+  PrintGnuplottableGnbListToFile (ossGnbs.str());
+  std::ostringstream ossBuildings;
+  ossBuildings << "nr-buildings" << m_simTag <<".txt";
+  PrintGnuplottableBuildingListToFile (ossBuildings.str());
 }
 
 void
