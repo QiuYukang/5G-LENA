@@ -632,9 +632,6 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
 double
 NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
 {
-  NS_ABORT_MSG_IF (receivedPowerList.size () > 1, "The size of received power list "
-                                                  "should be greater than one in order "
-                                                  "to calculate maximum SINR.");
   // we calculate sinr considering for each RTD as if it would be TX device, and the rest of RTDs interferers
   std::list <double> sinrList;
 
