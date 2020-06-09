@@ -911,6 +911,8 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filenam
                     " left font \"Helvetica,4\" textcolor rgb \"white\" front  point pt 2 ps 1 lc rgb \"white\" offset 0,0" <<
                     std::endl;
     }
+
+  gnbOutFile.close ();
 }
 
 void
@@ -929,6 +931,8 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename
   ueOutFile << "set label \"" << m_rrd.dev->GetNode ()->GetId () <<
                "\" at "<< pos.x << "," << pos.y << " left font \"Helvetica,4\" textcolor rgb \"grey\" front point pt 1 ps 1 lc rgb \"grey\" offset 0,0" <<
                std::endl;
+
+  ueOutFile.close ();
 }
 
 void
@@ -973,8 +977,56 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
                 << std::endl;
     }
 
+  if (m_simTag != "")
+    {
+      CreateCustomGnuplotFile ();
+    }
+
   Finalize ();
 }
+
+void
+NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
+{
+  std::ostringstream oss;
+  oss << "plot_rem" << m_simTag <<".gnuplot";
+  std::string filename = oss.str ();
+
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+    if (!outFile.is_open ())
+      {
+        NS_LOG_ERROR ("Can't open file " << filename);
+        return;
+      }
+
+  outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
+  outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
+  outFile<<"set cblabel \"SNR (dB)\""<<std::endl;
+  outFile<<"unset key"<<std::endl;
+  outFile<<"set term postscript eps color"<<std::endl;
+  outFile<<"set output \"rem-snr"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set size ratio -1"<<std::endl;
+  outFile<<"set cbrange [-5:30]"<<std::endl;
+  outFile<<"set xrange [-40:80]"<<std::endl;
+  outFile<<"set yrange [-70:50]"<<std::endl;
+  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($4) with image"<<std::endl;
+
+  outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
+  outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
+  outFile<<"set cblabel \"SINR (dB)\""<<std::endl;
+  outFile<<"unset key"<<std::endl;
+  outFile<<"set term postscript eps color"<<std::endl;
+  outFile<<"set output \"rem-sinr"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set size ratio -1"<<std::endl;
+  outFile<<"set cbrange [-5:30]"<<std::endl;
+  outFile<<"set xrange [-40:80]"<<std::endl;
+  outFile<<"set yrange [-70:50]"<<std::endl;
+  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
+
+  outFile.close ();
+}
+
 
 void
 NrRadioEnvironmentMapHelper::Finalize ()

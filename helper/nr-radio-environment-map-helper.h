@@ -407,6 +407,11 @@ private:
    */
   void PrintRemToFile ();
 
+  /*
+   * Creates rem_plot${SimTag}.gnuplot file
+   */
+  void CreateCustomGnuplotFile ();
+
   /**
    * \brief Called when the map generation procedure has been completed.
    */
