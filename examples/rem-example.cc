@@ -225,9 +225,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("z",
                 "The z coordinate of the rem map",
                 z);
-  cmd.AddValue ("enableBuildings",
-                "If true (set to 1), buildings will be enabled",
-                enableBuildings);
 
   cmd.Parse (argc, argv);
 
