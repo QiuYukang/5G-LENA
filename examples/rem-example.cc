@@ -225,6 +225,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("z",
                 "The z coordinate of the rem map",
                 z);
+  cmd.AddValue ("enableBuildings",
+                "If true (set to 1), buildings will be enabled",
+                enableBuildings);
 
   cmd.Parse (argc, argv);
 
@@ -263,7 +266,7 @@ main (int argc, char *argv[])
     }
   else if(scenario.compare("UMa-Buildings") == 0)
     {
-      hBS = 25;
+      hBS = 1.5; // 25
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMa_Buildings;
       enableBuildings = true;
