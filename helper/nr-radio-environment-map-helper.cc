@@ -81,10 +81,9 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                       .AddAttribute ("SimTag",
                                      "simulation tag that will be concatenated to output file names"
                                      "in order to distinguish them, for example: NR_REM-${SimTag}.out. "
-                                     "nr-ues-${SimTag}.txt, nr-gnbs-${SimTag}.txt, nr-buildings-${SimTag}.txt"
-                                     ".",
+                                     "nr-ues-${SimTag}.txt, nr-gnbs-${SimTag}.txt, nr-buildings-${SimTag}.txt.",
                                       StringValue (""),
-                                      MakeStringAccessor (&NrRadioEnvironmentMapHelper::m_simTag),
+                                      MakeStringAccessor (&NrRadioEnvironmentMapHelper::SetSimTag),
                                       MakeStringChecker ())
                       .AddAttribute ("XMin",
                                      "The min x coordinate of the map.",
@@ -167,6 +166,12 @@ void
 NrRadioEnvironmentMapHelper::SetRemMode (enum RemMode remMode)
 {
   m_remMode = remMode;
+}
+
+void
+NrRadioEnvironmentMapHelper::SetSimTag (std::string simTag)
+{
+  m_simTag = simTag;
 }
 
 void
@@ -273,6 +278,7 @@ NrRadioEnvironmentMapHelper::GetZ () const
 
 void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
+  NS_LOG_FUNCTION (this);
     // RTD and RRD devices should have the same spectrum model to perform calculation,
     // if some of the RTD devices is of the different model then its transmission will have to
     // converted into spectrum model of this device
@@ -282,7 +288,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
 
 
     std::ostringstream oss;
-    oss << "nr-ues" << m_simTag <<".txt";
+    oss << "nr-ues" << m_simTag.c_str() <<".txt";
     PrintGnuplottableUeListToFile (oss.str());
 
     Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
@@ -296,10 +302,14 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_
     m_rrd.antenna = Copy (rrdPhy->GetAntennaArray ());
 
     m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
+
+    ConfigurePropagationModelsFactories (rrdPhy); // we can call only once configuration of prop.models
+
 }
 
 void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rtdDevs, const Ptr<NetDevice>& rrdDev, uint8_t bwpId)
 {
+  NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator netDevIt = rtdDevs.Begin ();
       netDevIt != rtdDevs.End ();
       ++netDevIt)
@@ -348,11 +358,6 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
                    ", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
                    ", num: "<< rtdPhy->GetNumerology ());
 
-      if (netDevIt == rtdDevs.Begin())
-        {
-          ConfigurePropagationModelsFactories (rtdPhy); // we can call only once configuration of prop.models
-        }
-
       m_remDev.push_back (rtd);
     }
   NS_ASSERT_MSG(m_remDev.size(),"No RTD devices configured. Check if the RTD "
@@ -361,8 +366,9 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy)
+NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<const NrPhy>& rtdPhy)
 {
+  NS_LOG_FUNCTION (this);
   Ptr<const NrSpectrumPhy> txSpectrumPhy = rtdPhy->GetSpectrumPhy ();
   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
   m_propagationLossModel = DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
@@ -379,7 +385,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (Ptr<const NrGn
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactory, const Ptr<Object> object)
+NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactory, const Ptr<Object>& object)
 {
   NS_LOG_FUNCTION (this);
 
@@ -437,29 +443,20 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactor
 }
 
 void
-NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer gnbNetDev,
+NrRadioEnvironmentMapHelper::CreateRem (NetDeviceContainer &gnbNetDev,
                                         Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
-
-  std::ostringstream oss;
-  oss << "NR_REM" << m_simTag <<".out";
-
-  std::string outputFile = oss.str ();
-  m_outFile.open (outputFile.c_str ());
-  if (!m_outFile.is_open ())
-    {
-      NS_FATAL_ERROR ("Can't open file " << (outputFile));
-      return;
-    }
 
   Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, gnbNetDev, ueDevice, bwpId );
 }
 
 void
-NrRadioEnvironmentMapHelper::DelayedInstall (NetDeviceContainer gnbNetDev,
+NrRadioEnvironmentMapHelper::DelayedInstall (NetDeviceContainer &gnbNetDev,
                                          Ptr<NetDevice> &ueDevice, uint8_t bwpId)
 {
+  NS_LOG_FUNCTION (this);
+
   ConfigureRrd (ueDevice, bwpId);
   ConfigureRtdList (gnbNetDev, ueDevice, bwpId);
   CreateListOfRemPoints ();
@@ -478,10 +475,10 @@ NrRadioEnvironmentMapHelper::DelayedInstall (NetDeviceContainer gnbNetDev,
   PrintRemToFile ();
 
   std::ostringstream ossGnbs;
-  ossGnbs << "nr-gnbs" << m_simTag <<".txt";
+  ossGnbs << "nr-gnbs" << m_simTag.c_str() <<".txt";
   PrintGnuplottableGnbListToFile (ossGnbs.str());
   std::ostringstream ossBuildings;
-  ossBuildings << "nr-buildings" << m_simTag <<".txt";
+  ossBuildings << "nr-buildings" << m_simTag.c_str() <<".txt";
   PrintGnuplottableBuildingListToFile (ossBuildings.str());
 }
 
@@ -532,6 +529,7 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
 void
 NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 {
+  NS_LOG_FUNCTION (this);
   // configure beam on rrd antenna to be quasi-omni
   UintegerValue numRows, numColumns;
   device.antenna->GetAttribute ("NumRows", numRows);
@@ -543,6 +541,7 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 void
 NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice, const Ptr<const ThreeGppAntennaArrayModel>& antenna)
 {
+  NS_LOG_FUNCTION (this);
   device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, antenna));
 }
 
@@ -606,9 +605,9 @@ NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& v
 
 double NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
 {
-   Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
-   SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
-   return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+  Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
+  SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
+  return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
 double NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal)
@@ -673,6 +672,7 @@ NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValu
 void
 NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
 {
+  NS_LOG_FUNCTION (this);
   //Save REM creation start time
   auto remStartTime = std::chrono::system_clock::now ();
   uint16_t calcRxPsdCounter = 0;
@@ -745,6 +745,7 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list<double>& listOfValues)
 void
 NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 {
+  NS_LOG_FUNCTION (this);
   //Save REM creation start time
   auto remStartTime = std::chrono::system_clock::now ();
   uint16_t calcRxPsdCounter = 0;
@@ -892,6 +893,7 @@ NrRadioEnvironmentMapHelper::CopyThreeGppChannelModelAttributeValues (Ptr<ThreeG
 void
 NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filename)
 {
+  NS_LOG_FUNCTION (this);
   std::ofstream gnbOutFile;
   gnbOutFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
   if (!gnbOutFile.is_open ())
@@ -918,6 +920,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filenam
 void
 NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename)
 {
+  NS_LOG_FUNCTION (this);
   std::ofstream ueOutFile;
   ueOutFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
   if (!ueOutFile.is_open ())
@@ -938,6 +941,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename
 void
 NrRadioEnvironmentMapHelper::PrintGnuplottableBuildingListToFile (std::string filename)
 {
+  NS_LOG_FUNCTION (this);
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
   if (!outFile.is_open ())
@@ -958,6 +962,8 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableBuildingListToFile (std::string fi
                  " front fs empty " << " border 3 " <<
                  std::endl;
     }
+
+  outFile.close ();
 }
 
 void
@@ -965,11 +971,24 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
 {
   NS_LOG_FUNCTION (this);
 
+  std::ostringstream oss;
+  oss << "NR_REM" << m_simTag.c_str() <<".out";
+
+  std::ofstream outFile;
+  std::string outputFile = oss.str ();
+  outFile.open (outputFile.c_str ());
+
+  if (!outFile.is_open ())
+      {
+        NS_FATAL_ERROR ("Can't open file " << (outputFile));
+        return;
+      }
+
   for (std::list<RemPoint>::iterator it = m_rem.begin ();
        it != m_rem.end ();
        ++it)
     {
-      m_outFile << it->pos.x << "\t"
+      outFile << it->pos.x << "\t"
                 << it->pos.y << "\t"
                 << it->pos.z << "\t"
                 << it->avgSnrDb << "\t"
@@ -977,7 +996,9 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
                 << std::endl;
     }
 
-  if (m_simTag != "")
+  outFile.close();
+
+  if (!m_simTag.empty())
     {
       CreateCustomGnuplotFile ();
     }
@@ -988,8 +1009,9 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
 void
 NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
 {
+  NS_LOG_FUNCTION (this);
   std::ostringstream oss;
-  oss << "plot_rem" << m_simTag <<".gnuplot";
+  oss << "plot_rem" << m_simTag.c_str() <<".gnuplot";
   std::string filename = oss.str ();
 
   std::ofstream outFile;
@@ -1008,8 +1030,8 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile<<"set output \"rem-snr"<<m_simTag<<".eps\""<<std::endl;
   outFile<<"set size ratio -1"<<std::endl;
   outFile<<"set cbrange [-5:30]"<<std::endl;
-  outFile<<"set xrange [-40:80]"<<std::endl;
-  outFile<<"set yrange [-70:50]"<<std::endl;
+  outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
+  outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
   outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($4) with image"<<std::endl;
 
   outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
@@ -1020,8 +1042,8 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile<<"set output \"rem-sinr"<<m_simTag<<".eps\""<<std::endl;
   outFile<<"set size ratio -1"<<std::endl;
   outFile<<"set cbrange [-5:30]"<<std::endl;
-  outFile<<"set xrange [-40:80]"<<std::endl;
-  outFile<<"set yrange [-70:50]"<<std::endl;
+  outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
+  outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
   outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
 
   outFile.close ();
@@ -1032,12 +1054,10 @@ void
 NrRadioEnvironmentMapHelper::Finalize ()
 {
   NS_LOG_FUNCTION (this);
-  m_outFile.close ();
-
   // TODO test if we can call this  
   //system("gnuplot -p nr-ues.txt nr-gnbs.txt buildings.txt plot_rem.gnuplot");
   // TODO if yes, then we can add also convert command
-  //Simulator::Stop ();
+  Simulator::Stop ();
 }
 
 

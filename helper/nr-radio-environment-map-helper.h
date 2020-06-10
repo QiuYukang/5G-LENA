@@ -105,6 +105,13 @@ public:
   void SetRemMode (enum RemMode remType);
 
   /**
+   * \brief Set simTag that will be contatenated to 
+   * output file names
+   * \param simTag string to be used as simulation tag
+   */
+  void SetSimTag (std::string simTag);
+
+  /**
    * \brief Sets the min x coordinate of the map
    * \param xMin The min x coordinate
    */
@@ -211,7 +218,7 @@ public:
    * \param ueDevice The Ue device for which the map will be generated
    * \param bwpId The bwpId
    */
-  void CreateRem (NetDeviceContainer gnbNetDev,
+  void CreateRem (NetDeviceContainer &gnbNetDev,
                   Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
@@ -283,7 +290,7 @@ private:
    * \param ueDevice The Ue device for which the map will be generated
    * \param bwpId The bwpId
    */
-   void DelayedInstall (NetDeviceContainer gnbNetDev,
+   void DelayedInstall (NetDeviceContainer &gnbNetDev,
                         Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
@@ -365,13 +372,13 @@ private:
   /**
    * \brief Configures propagation loss model factories
    */
-  void ConfigurePropagationModelsFactories (Ptr<const NrGnbPhy> rtdPhy);
+  void ConfigurePropagationModelsFactories (const Ptr<const NrPhy>& rtdPhy);
 
   /**
    * \brief Configures the object factories with the parameters set in the
    * user scenario script.
    */
-  void ConfigureObjectFactory (ObjectFactory& objectFactory, Ptr<Object> object);
+  void ConfigureObjectFactory (ObjectFactory& objectFactory, const Ptr<Object>& object);
 
   /**
    * \brief This method creates the temporal Propagation Models
@@ -468,7 +475,6 @@ private:
   Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
 
   std::string m_simTag;   ///< The `SimTag` attribute.
-  std::ofstream m_outFile;  ///< Stream the output to a file.
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 
