@@ -216,7 +216,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("yMin",
                 "The min y coordinate of the rem map",
                 yMin);
-  cmd.AddValue ("xMax",
+  cmd.AddValue ("yMax",
                 "The max y coordinate of the rem map",
                 yMax);
   cmd.AddValue ("yRes",
