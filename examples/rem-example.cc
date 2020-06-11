@@ -78,8 +78,8 @@ main (int argc, char *argv[])
 
   double ue1x = 10.0;
   double ue1y = 10.0;
-  double ue2x = -17.0;
-  double ue2y = -8.0;
+  double ue2x = 50.0;
+  double ue2y = -40.0;
 
   double frequency = 2e9;//28e9
   double bandwidth = 20e6; //100e6
@@ -511,7 +511,13 @@ main (int argc, char *argv[])
     }
 
   // attach UEs to the closest gNB
-  nrHelper->AttachToClosestEnb (ueNetDev, gnbNetDev);
+  nrHelper->AttachToEnb (ueNetDev.Get(0), gnbNetDev.Get(0));
+  
+  if (deploymentScenario.compare("TwoGnbs") == 0)
+    {
+        nrHelper->AttachToEnb (ueNetDev.Get(1), gnbNetDev.Get(1));
+    }
+
 
   // start server and client apps
   serverApps.Start(Seconds(0.4));
@@ -538,6 +544,14 @@ main (int argc, char *argv[])
   remHelper->SetMaxY (yMax);
   remHelper->SetResY (yRes);
   remHelper->SetZ (z);
+
+  gnbNetDev.Get(0)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(0));
+
+  if (deploymentScenario.compare("TwoGnbs") == 0)
+    {
+      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(1));
+    }
+
   remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);  //bwpId 0
 
 
