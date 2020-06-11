@@ -218,14 +218,8 @@ public:
    * \param ueDevice The Ue device for which the map will be generated
    * \param bwpId The bwpId
    */
-  void CreateRem (NetDeviceContainer &gnbNetDev,
-                  Ptr<NetDevice> &ueDevice, uint8_t bwpId);
-
-  /**
-   * \brief This method creates the list of Rem Points (coordinates) based on
-   * the min/max coprdinates and the resilution defined by the user
-   */
-  void CreateListOfRemPoints ();
+  void CreateRem (const NetDeviceContainer &gnbNetDev,
+                  const Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
 private:
 
@@ -283,6 +277,20 @@ private:
   };
 
   /**
+   * \brief This method creates the list of Rem Points (coordinates) based on
+   * the min/max coprdinates and the resilution defined by the user
+   */
+  void CreateListOfRemPoints ();
+
+  /**
+   * Function that saves all antenna configurations in a map. This is
+   * done at the installation time to pick up also
+   * user defined configuration of beams.
+   */
+  void SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &gnbNetDev,
+                     const Ptr<NetDevice> &ueNetDevice, uint8_t bwpId);
+
+  /**
    * \brief This function is used to performed a delayed installation of REM map
    * so that there is the sufficient time for the UE to be configured from RRC.
    * Then, this function is responsible to call all the necessary functions.
@@ -290,8 +298,8 @@ private:
    * \param ueDevice The Ue device for which the map will be generated
    * \param bwpId The bwpId
    */
-   void DelayedInstall (NetDeviceContainer &gnbNetDev,
-                        Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+   void DelayedInstall (const NetDeviceContainer &gnbNetDev,
+                        const Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
    * \brief This function calculates the SNR.
@@ -358,7 +366,7 @@ private:
   /**
    * T\brief Configures the REM Receiving Device (RRD)
    */
-  void ConfigureRrd (Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  void ConfigureRrd (const Ptr<NetDevice> &ueDevice, uint8_t bwpId);
 
   /**
    * \brief Configure REM Transmission Devices (RTDs) List
@@ -391,7 +399,7 @@ private:
    * \brief Configures the channel model with the parameters set in the
    * user scenario script.
    */
-  void CopyThreeGppChannelModelAttributeValues (Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
+  void CopyThreeGppChannelModelAttributeValues (const Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
 
   /**
    * \brief Prints the position of the gNbs.
@@ -464,6 +472,8 @@ private:
   Time m_installationDelay {Seconds(0)};
 
   RemDevice m_rrd;
+
+  std::map <const Ptr<NetDevice>, Ptr<ThreeGppAntennaArrayModel>> m_deviceToAntenna;
 
   ObjectFactory m_propagationLossModelFactory;
   ObjectFactory m_spectrumLossModelFactory;
