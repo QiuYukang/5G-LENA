@@ -615,12 +615,13 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& itRtd)
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::GetMaxValue(const std::list <Ptr<SpectrumValue>>& values)
+NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& values)
 {
   //TODO add this abort, if necessary add include for abort.h
   NS_ABORT_MSG_IF (values.size () == 0, "Must provide a list of values.");
 
-  Ptr<SpectrumValue> maxValue = *(values.begin ());
+  Ptr<SpectrumValue> maxValue = Create <SpectrumValue> (m_rrd.spectrumModel);
+  *maxValue = **(values.begin ());
 
   for (const auto &value: values)
     {
