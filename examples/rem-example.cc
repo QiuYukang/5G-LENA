@@ -310,12 +310,18 @@ main (int argc, char *argv[])
       gNbNum = 2;
       ueNumPergNb = 1;
     }
+  else if (deploymentScenario.compare("FourGnbs") == 0)
+    {
+      gNbNum = 4;
+      ueNumPergNb = 1;
+    }
   else
     {
       NS_ABORT_MSG("Deployment scenario not supported. "
                    "Choose among 'SingleGnb', 'TwoGnbs'.");
     }
 
+  double offset = 80;
 
   // create base stations and mobile terminals
   NodeContainer gnbNodes;
@@ -329,6 +335,12 @@ main (int argc, char *argv[])
   if (deploymentScenario.compare("TwoGnbs") == 0)
   {
     gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
+  }
+  if (deploymentScenario.compare("FourGnbs") == 0)
+  {
+    gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
+    gnbPositionAlloc->Add (Vector (gNB1x + offset, gNB1y, hBS));
+    gnbPositionAlloc->Add (Vector (gNB2x + offset, gNB2y, hBS));
   }
 
   MobilityHelper gnbmobility;
@@ -345,6 +357,13 @@ main (int argc, char *argv[])
   if (deploymentScenario.compare("TwoGnbs") == 0)
   {
     ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
+  }
+
+  if (deploymentScenario.compare("FourGnbs") == 0)
+  {
+      ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
+      ueNodes.Get (2)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x + offset, ue1y, hUT));
+      ueNodes.Get (3)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x + offset, ue2y, hUT));
   }
 
   if (enableBuildings)
@@ -449,6 +468,18 @@ main (int argc, char *argv[])
     nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
   }
 
+  if (deploymentScenario.compare("FourGnbs") == 0)
+  {
+    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetTxPower (txPower);
+    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+
+    nrHelper->GetGnbPhy (gnbNetDev.Get (2), 0)->SetTxPower (txPower);
+    nrHelper->GetGnbPhy (gnbNetDev.Get (2), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+
+    nrHelper->GetGnbPhy (gnbNetDev.Get (3), 0)->SetTxPower (txPower);
+    nrHelper->GetGnbPhy (gnbNetDev.Get (3), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+  }
+
   // When all the configuration is done, explicitly call UpdateConfig ()
   for (auto it = gnbNetDev.Begin (); it != gnbNetDev.End (); ++it)
     {
@@ -515,7 +546,14 @@ main (int argc, char *argv[])
   
   if (deploymentScenario.compare("TwoGnbs") == 0)
     {
-        nrHelper->AttachToEnb (ueNetDev.Get(1), gnbNetDev.Get(1));
+      nrHelper->AttachToEnb (ueNetDev.Get(1), gnbNetDev.Get(1));
+    }
+
+  if (deploymentScenario.compare("FourGnbs") == 0)
+    {
+      nrHelper->AttachToEnb (ueNetDev.Get(1), gnbNetDev.Get(1));
+      nrHelper->AttachToEnb (ueNetDev.Get(2), gnbNetDev.Get(2));
+      nrHelper->AttachToEnb (ueNetDev.Get(3), gnbNetDev.Get(3));
     }
 
 
@@ -533,7 +571,7 @@ main (int argc, char *argv[])
 
 
   //Let us create the REM for this user:
-  Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
+  Ptr<NetDevice> ueRemDevice = ueNetDev.Get(1);
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
@@ -550,6 +588,13 @@ main (int argc, char *argv[])
   if (deploymentScenario.compare("TwoGnbs") == 0)
     {
       gnbNetDev.Get(1)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(1));
+    }
+
+  if (deploymentScenario.compare("FourGnbs") == 0)
+    {
+      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(1));
+      gnbNetDev.Get(2)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(2));
+      gnbNetDev.Get(3)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(3));
     }
 
   remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);  //bwpId 0
