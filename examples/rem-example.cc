@@ -379,8 +379,8 @@ main (int argc, char *argv[])
       gridBuildingAllocator->SetBuildingAttribute ("NRoomsX", UintegerValue (apartmentsX));
       gridBuildingAllocator->SetBuildingAttribute ("NRoomsY", UintegerValue (2));
       gridBuildingAllocator->SetBuildingAttribute ("NFloors", UintegerValue (nFloors));
-      gridBuildingAllocator->SetAttribute ("MinX", DoubleValue (3));
-      gridBuildingAllocator->SetAttribute ("MinY", DoubleValue (-3));
+      gridBuildingAllocator->SetAttribute ("MinX", DoubleValue (10));
+      gridBuildingAllocator->SetAttribute ("MinY", DoubleValue (10));
       gridBuildingAllocator->Create (numOfBuildings);
 
       BuildingsHelper::Install (gnbNodes);
@@ -571,7 +571,7 @@ main (int argc, char *argv[])
 
 
   //Let us create the REM for this user:
-  Ptr<NetDevice> ueRemDevice = ueNetDev.Get(1);
+  Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
