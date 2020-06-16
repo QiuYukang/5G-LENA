@@ -33,6 +33,7 @@ namespace ns3 {
 
 class NrSchedGeneralTestCase;
 class NrMacSchedulerHarqRr;
+class NrMacSchedulerSrsDefault;
 
 /**
  * \ingroup scheduler
@@ -772,6 +773,7 @@ private:
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
   uint8_t DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback, const SfnSf &ulSfn,
                         SlotAllocInfo *allocInfo, LteNrTddSlotType type);
+  uint8_t DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocInfo);
 
   static const unsigned m_macHdrSize = 0;  //!< Mac Header size
   static const uint32_t m_subHdrSize = 4;  //!< Sub Header size (?)
@@ -827,6 +829,10 @@ private:
   std::vector<uint8_t> m_notchedRbgsMask; //!< The mask of notched (blank) RBGs
 
   std::unique_ptr <NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
+
+  Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
+
+  uint32_t m_ulSlotCounter {0}; //!< Counter for UL slots
 
   friend NrSchedGeneralTestCase;
 };

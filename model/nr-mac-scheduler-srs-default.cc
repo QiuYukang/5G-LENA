@@ -57,27 +57,24 @@ NrMacSchedulerSrsDefault::AddUe ()
   NS_LOG_FUNCTION (this);
   SrsPeriodicityAndOffset ret;
 
-  if (m_usedOffsets.size () == m_periodicity)
+  if (m_availableOffsetValues.size () == 0)
     {
       return ret; // ret will be invalid
     }
 
-  std::pair<std::set<uint32_t>::iterator, bool> v;
-  uint32_t offset;
-
-  // worst case: this loop never ends :(
-  do
-    {
-      offset = m_random->GetValue (0, m_periodicity - 1);
-      v = m_usedOffsets.insert (offset);
-    }
-  while (v.second == false);
-
-  ret.m_offset = offset;
+  ret.m_offset = m_availableOffsetValues.back ();
   ret.m_periodicity = m_periodicity;
   ret.m_isValid = true;
 
+  m_availableOffsetValues.pop_back();
   return ret;
+}
+
+void
+NrMacSchedulerSrsDefault::RemoveUe (uint32_t offset)
+{
+  NS_LOG_FUNCTION (this);
+  m_availableOffsetValues.push_back (offset); // Offset will be reused as soon as possible
 }
 
 bool
@@ -88,7 +85,7 @@ NrMacSchedulerSrsDefault::IncreasePeriodicity (std::unordered_map<uint16_t, std:
     2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560
   };
 
-  m_usedOffsets.clear ();
+  m_availableOffsetValues.clear ();
   auto it = std::upper_bound (StandardPeriodicity.begin (), StandardPeriodicity.end (),
                               m_periodicity);
   if (it == StandardPeriodicity.end ())
@@ -96,7 +93,7 @@ NrMacSchedulerSrsDefault::IncreasePeriodicity (std::unordered_map<uint16_t, std:
       return false;
     }
 
-  m_periodicity = *it;
+  SetStartingPeriodicity (*it);
   ReassignSrsValue (ueMap);
 
   return true;
@@ -111,7 +108,7 @@ NrMacSchedulerSrsDefault::DecreasePeriodicity (std::unordered_map<uint16_t, std:
     2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560
   };
 
-  m_usedOffsets.clear ();
+  m_availableOffsetValues.clear ();
   auto it = std::lower_bound (StandardPeriodicity.begin (), StandardPeriodicity.end (),
                               m_periodicity);
   if (it == StandardPeriodicity.end ())
@@ -119,7 +116,7 @@ NrMacSchedulerSrsDefault::DecreasePeriodicity (std::unordered_map<uint16_t, std:
       return false;
     }
 
-  m_periodicity = *it;
+  SetStartingPeriodicity (*it);
   ReassignSrsValue (ueMap);
   return true;
 }
@@ -127,9 +124,24 @@ NrMacSchedulerSrsDefault::DecreasePeriodicity (std::unordered_map<uint16_t, std:
 void
 NrMacSchedulerSrsDefault::SetStartingPeriodicity (uint32_t start)
 {
-  NS_ABORT_MSG_IF (m_usedOffsets.size () != 0,
+  NS_ABORT_MSG_IF (m_availableOffsetValues.size () != 0,
                    "We already started giving offset to UEs, you cannot alter the periodicity");
+
   m_periodicity = start;
+  m_availableOffsetValues.resize (m_periodicity);
+
+  // Fill the available values
+  for (uint32_t i = 0; i < m_periodicity; ++i)
+    {
+      m_availableOffsetValues.push_back (i);
+    }
+
+  // Shuffle the available values, so it contains the element in a random order
+  for (auto i = m_availableOffsetValues.size () - 1; i > 0; --i)
+    {
+      auto j = m_random->GetInteger (0, i);
+      std::swap (m_availableOffsetValues[i], m_availableOffsetValues[j]);
+    }
 }
 
 uint32_t
@@ -142,7 +154,6 @@ void
 NrMacSchedulerSrsDefault::ReassignSrsValue (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_usedOffsets.size () == 0);
 
   for (auto & ue : *ueMap)
     {

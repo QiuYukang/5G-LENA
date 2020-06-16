@@ -24,32 +24,64 @@
 
 #include "nr-mac-scheduler-srs.h"
 
-#include <set>
-
 namespace ns3 {
 
+/**
+ * \brief Default algorithm for assigning offset and periodicity
+ *
+ * The algorithm assign the same periodicity to all the UEs. When a new periodicity
+ * is asked, it is returned a value between 1 and the configured periodicity (minus 1).
+ *
+ * The returned values will never be the same; instead, when this must happen,
+ * an invalid valued is returned and (hopefully) an increase of periodicity is invoked.
+ */
 class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
 {
 public:
+  /**
+   * \brief NrMacSchedulerSrsDefault
+   */
   NrMacSchedulerSrsDefault ();
+  /**
+   * \brief ~NrMacSchedulerSrsDefault
+   */
   virtual ~NrMacSchedulerSrsDefault ();
 
+  /**
+   * \brief GetTypeId
+   * \return the object type id
+   */
   static TypeId GetTypeId ();
 
+  // inherited from NrMacSchedulerSrs
   virtual SrsPeriodicityAndOffset AddUe (void) override;
+  void RemoveUe (uint32_t offset) override;
   virtual bool IncreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap) override;
   virtual bool DecreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap) override;
 
+  /**
+   * \brief Set the Periodicity for all the UEs
+   * \param start the periodicity
+   */
   void SetStartingPeriodicity (uint32_t start);
+
+  /**
+   * \brief Get the periodicity
+   * \return the periodicity
+   */
   uint32_t GetStartingPeriodicity () const;
 
 private:
+  /**
+   * \brief Reassign offset/periodicity to all the UEs
+   * \param ueMap the UE map of the scheduler
+   */
   void ReassignSrsValue (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap);
 
 private:
-  uint32_t m_periodicity {0};
-  std::set<uint32_t> m_usedOffsets;
-  Ptr<UniformRandomVariable> m_random;
+  uint32_t m_periodicity {0};  //!< Configured periodicity
+  std::vector<uint32_t> m_availableOffsetValues; //!< Available offset values
+  Ptr<UniformRandomVariable> m_random; //!< Random variable
 };
 
 } // namespace ns3
