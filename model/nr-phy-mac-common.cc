@@ -160,9 +160,9 @@ std::ostream &operator<< (std::ostream &os, const SlotAllocInfo &item)
         {
           type = "CTRL";
         }
-      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
+      else if (alloc.m_dci->m_type == DciInfoElementTdma::SRS)
         {
-          type = "CTRL_DATA";
+          type = "SRS";
         }
       else
         {

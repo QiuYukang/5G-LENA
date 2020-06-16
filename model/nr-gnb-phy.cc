@@ -1054,7 +1054,6 @@ NrGnbPhy::RetrieveDciFromAllocation (const SlotAllocInfo &alloc,
         {
           auto & dciElem = dlAlloc.m_dci;
           NS_ASSERT (dciElem->m_format == format);
-          NS_ASSERT (dciElem->m_tbSize > 0);
           NS_ASSERT_MSG (dciElem->m_symStart + dciElem->m_numSym <= GetSymbolsPerSlot (),
                          "symStart: " << static_cast<uint32_t> (dciElem->m_symStart) <<
                          " numSym: " << static_cast<uint32_t> (dciElem->m_numSym) <<
@@ -1242,7 +1241,7 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
 Time
 NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
-  NS_LOG_INFO (this);
+  NS_LOG_FUNCTION (this);
 
   NS_LOG_DEBUG ("Starting UL DATA TTI at symbol " << +m_currSymStart <<
                 " to " << +m_currSymStart + dci->m_numSym);
@@ -1272,7 +1271,48 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   NS_ASSERT (found);
 
-  NS_LOG_INFO ("ENB RXing UL DATA frame " << m_currentSlot <<
+  NS_LOG_INFO ("GNB RXing UL DATA frame " << m_currentSlot <<
+                " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
+                "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
+                " start " << Simulator::Now () <<
+                " end " << Simulator::Now () + varTtiPeriod);
+  return varTtiPeriod;
+}
+
+Time
+NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_LOG_DEBUG ("Starting UL SRS TTI at symbol " << +m_currSymStart <<
+                " to " << +m_currSymStart + dci->m_numSym);
+
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+                                FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                dci->m_harqProcess, dci->m_rv, false,
+                                dci->m_symStart, dci->m_numSym, m_currentSlot);
+
+  bool found = false;
+  for (uint8_t i = 0; i < m_deviceMap.size (); i++)
+    {
+      Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      if (dci->m_rnti == ueRnti)
+        {
+          NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+          // Even if we change the beamforming vector, we hope that the scheduler
+          // has scheduled UEs within the same beam (and, therefore, have the same
+          // beamforming vector)
+          m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
+          found = true;
+          break;
+        }
+    }
+  NS_ASSERT (found);
+
+  NS_LOG_INFO ("GNB RXing UL CTRL/DATA frame " << m_currentSlot <<
                 " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
                 "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
                 " start " << Simulator::Now () <<
@@ -1291,8 +1331,6 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod;
 
-  NS_ASSERT (dci->m_type != DciInfoElementTdma::CTRL_DATA);
-
   if (dci->m_type == DciInfoElementTdma::CTRL)
     {
       if (dci->m_format == DciInfoElementTdma::DL)
@@ -1304,7 +1342,7 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
           varTtiPeriod = UlCtrl (dci);
         }
     }
-  else  if (dci->m_type == DciInfoElementTdma::DATA)
+  else if (dci->m_type == DciInfoElementTdma::DATA)
     {
       if (dci->m_format == DciInfoElementTdma::DL)
         {
@@ -1313,6 +1351,13 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
       else if (dci->m_format == DciInfoElementTdma::UL)
         {
           varTtiPeriod = UlData (dci);
+        }
+    }
+  else if (dci->m_type == DciInfoElementTdma::SRS)
+    {
+      if (dci->m_format == DciInfoElementTdma::UL)
+        {
+          varTtiPeriod = UlSrs (dci);
         }
     }
 
