@@ -85,6 +85,21 @@ SlotAllocInfo::ContainsDlCtrlAllocation() const
 }
 
 bool
+SlotAllocInfo::ContainsUlCtrlAllocation () const
+{
+  NS_LOG_FUNCTION (this);
+
+  for (const auto & allocation : m_varTtiAllocInfo)
+    {
+      if (allocation.m_dci->m_type == DciInfoElementTdma::SRS)
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+bool
 SlotAllocInfo::operator < (const SlotAllocInfo &rhs) const
 {
   return m_sfnSf < rhs.m_sfnSf;

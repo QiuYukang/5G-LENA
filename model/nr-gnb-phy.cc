@@ -728,7 +728,7 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
         if (SlotAllocInfoExists (ulSfn))
           {
             SlotAllocInfo & ulSlot = PeekSlotAllocInfo (ulSfn);
-            hasUlDci = ulSlot.ContainsDataAllocation ();
+            hasUlDci = ulSlot.ContainsDataAllocation () || ulSlot.ContainsUlCtrlAllocation ();
           }
       }
       // If there is a DL CTRL, try to obtain the channel to transmit it;

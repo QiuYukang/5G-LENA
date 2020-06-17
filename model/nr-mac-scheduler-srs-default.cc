@@ -28,19 +28,28 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("NrMacSchedulerSrsDefault");
 NS_OBJECT_ENSURE_REGISTERED (NrMacSchedulerSrsDefault);
 
+std::vector<uint32_t>
+NrMacSchedulerSrsDefault::StandardPeriodicity = {
+  2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560
+};
+
 NrMacSchedulerSrsDefault::NrMacSchedulerSrsDefault ()
 {
   m_random = CreateObject<UniformRandomVariable> ();
 }
 
 NrMacSchedulerSrsDefault::~NrMacSchedulerSrsDefault ()
-{}
+{
+
+}
 
 TypeId
 NrMacSchedulerSrsDefault::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::NrMacSchedulerSrsDefault")
     .SetParent<Object> ()
+    .AddConstructor<NrMacSchedulerSrsDefault> ()
+    .SetGroupName ("nr")
     .AddAttribute ("StartingPeriodicity",
                    "Starting value for the periodicity",
                    UintegerValue (80),
@@ -81,9 +90,6 @@ bool
 NrMacSchedulerSrsDefault::IncreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap)
 {
   NS_LOG_FUNCTION (this);
-  static std::vector<uint32_t> StandardPeriodicity = {
-    2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560
-  };
 
   m_availableOffsetValues.clear ();
   auto it = std::upper_bound (StandardPeriodicity.begin (), StandardPeriodicity.end (),
@@ -104,10 +110,6 @@ NrMacSchedulerSrsDefault::DecreasePeriodicity (std::unordered_map<uint16_t, std:
 {
   NS_LOG_FUNCTION (this);
 
-  static std::vector<uint32_t> StandardPeriodicity = {
-    2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560
-  };
-
   m_availableOffsetValues.clear ();
   auto it = std::lower_bound (StandardPeriodicity.begin (), StandardPeriodicity.end (),
                               m_periodicity);
@@ -126,6 +128,14 @@ NrMacSchedulerSrsDefault::SetStartingPeriodicity (uint32_t start)
 {
   NS_ABORT_MSG_IF (m_availableOffsetValues.size () != 0,
                    "We already started giving offset to UEs, you cannot alter the periodicity");
+
+  if (std::find (StandardPeriodicity.begin(), StandardPeriodicity.end (), start) == StandardPeriodicity.end ())
+    {
+      NS_FATAL_ERROR ("You cannot use " << start <<
+                      " as periodicity; please use a standard value like "
+                      "2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560"
+                      " (or write your own algorithm)");
+    }
 
   m_periodicity = start;
   m_availableOffsetValues.resize (m_periodicity);

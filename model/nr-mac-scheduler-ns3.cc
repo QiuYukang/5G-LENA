@@ -144,6 +144,12 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerAccessor (&NrMacSchedulerNs3::SetUlCtrlSyms,
                                          &NrMacSchedulerNs3::GetUlCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("SrsSymbols",
+                   "Number of symbols allocated for UL SRS",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&NrMacSchedulerNs3::SetSrsCtrlSyms,
+                                         &NrMacSchedulerNs3::GetSrsCtrlSyms),
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("DlAmc",
                    "The DL AMC of this scheduler",
                    PointerValue (),
@@ -309,6 +315,18 @@ std::vector<uint8_t>
 NrMacSchedulerNs3::GetNotchedRbgMask (void) const
 {
   return m_notchedRbgsMask;
+}
+
+void
+NrMacSchedulerNs3::SetSrsCtrlSyms (uint8_t v)
+{
+  m_srsCtrlSymbols = v;
+}
+
+uint8_t
+NrMacSchedulerNs3::GetSrsCtrlSyms () const
+{
+  return m_srsCtrlSymbols;
 }
 
 uint8_t
@@ -1786,6 +1804,7 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
   // Create the UL allocation map entry
   m_ulAllocationMap.emplace (ulSfn.GetEncoding (), SlotElem (0));
 
+  NS_ASSERT (m_srsCtrlSymbols <= ulSymAvail);
   uint8_t srsSym = DoScheduleSrs (&ulAssignationStartPoint, allocInfo);
   ulSymAvail -= srsSym;
 
@@ -1938,7 +1957,7 @@ NrMacSchedulerNs3::DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocIn
 
   // Schedue 4 allocation, of 1 symbol each, in TDMA mode, for the RNTI found.
 
-  for (uint32_t i = 0; i < 4; ++i)
+  for (uint32_t i = 0; i < m_srsCtrlSymbols; ++i)
     {
       std::vector<uint8_t> rbgAssigned (GetBandwidthInRbg (), 1);
 

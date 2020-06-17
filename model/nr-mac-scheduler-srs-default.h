@@ -33,7 +33,7 @@ namespace ns3 {
  * is asked, it is returned a value between 1 and the configured periodicity (minus 1).
  *
  * The returned values will never be the same; instead, when this must happen,
- * an invalid valued is returned and (hopefully) an increase of periodicity is invoked.
+ * an invalid value is returned and (hopefully) an increase of periodicity is invoked.
  */
 class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
 {
@@ -77,6 +77,7 @@ private:
    * \param ueMap the UE map of the scheduler
    */
   void ReassignSrsValue (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap);
+  static std::vector<uint32_t> StandardPeriodicity; //!< Standard periodicity of SRS
 
 private:
   uint32_t m_periodicity {0};  //!< Configured periodicity

@@ -455,6 +455,17 @@ public:
    */
   std::vector<uint8_t> GetNotchedRbgMask (void) const;
 
+  /**
+   * \brief Set the number of UL SRS symbols
+   * \param v number of SRS symbols
+   */
+  void SetSrsCtrlSyms (uint8_t v);
+
+  /**
+   * \brief Get the configured value for the SRS symbols
+   * \return the number of SRS symbols that will be allocated
+   */
+  uint8_t GetSrsCtrlSyms () const;
 
 protected:
   /**
@@ -825,6 +836,7 @@ private:
   uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
   uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
+  uint8_t m_srsCtrlSymbols {0}; //!< SRS symbols (attribute)
 
   std::vector<uint8_t> m_notchedRbgsMask; //!< The mask of notched (blank) RBGs
 

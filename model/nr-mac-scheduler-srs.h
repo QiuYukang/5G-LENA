@@ -74,7 +74,7 @@ public:
   virtual ~NrMacSchedulerSrs () = default;
 
   /**
-   * \brief Struct to indicate to the scheduler the periodicity and the offset.
+   * \brief Struct to indicate to the scheduler the periodicity and the offset, in slots.
    *
    * The struct must be considerated invalid if the field `m_isValid` is set
    * to false.
@@ -82,8 +82,8 @@ public:
   struct SrsPeriodicityAndOffset
   {
     bool m_isValid { false };     //!< Indicates if the values are valid.
-    uint32_t m_periodicity { 0 }; //!< The periodicity requested.
-    uint32_t m_offset { 0 };      //!< The offset requested.
+    uint32_t m_periodicity { 0 }; //!< The periodicity requested (in slot).
+    uint32_t m_offset { 0 };      //!< The offset requested (in slot).
   };
 
   /**
