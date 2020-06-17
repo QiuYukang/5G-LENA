@@ -53,6 +53,9 @@ us a note on ns-developers mailing list.
 - Added InH_OfficeOpen_{n,}Los and InH_OfficeMixed_{n,}LoS channel modeling
   in cc-bwp-helper.h
 
+* Added attribute "SrsSymbols" in NrMacSchedulerNs3, to indicate how many symbols are
+available to the SRS message.
+
 ### Changes to existing API:
 
 ### Changed behavior:
