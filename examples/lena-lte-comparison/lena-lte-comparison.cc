@@ -235,7 +235,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   if (calibration)
     {
       lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
-      Config::SetDefault ("ns3::LteUePhy::ClosedLoop", BooleanValue (false));
+      Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
     }
   else
     {
