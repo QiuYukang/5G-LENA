@@ -377,7 +377,7 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
 
       m_phySapUser->ReceiveControlMessage (msg);
     }
-  if (msg->GetMessageType () == NrControlMessage::UL_DCI)
+  else if (msg->GetMessageType () == NrControlMessage::UL_DCI)
     {
       auto dciMsg = DynamicCast<NrUlDciMessage> (msg);
       auto dciInfoElem = dciMsg->GetDciInfoElement ();
