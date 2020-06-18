@@ -390,7 +390,6 @@ NrMacSchedulerNs3::DoCschedUeReleaseReq (const NrMacCschedSapProvider::CschedUeR
 uint64_t
 NrMacSchedulerNs3::GetNumRbPerRbg () const
 {
-  NS_LOG_FUNCTION (this);
   return m_macSchedSapUser->GetNumRbPerRbg();
 }
 

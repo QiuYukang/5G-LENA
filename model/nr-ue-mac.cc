@@ -248,13 +248,11 @@ NrUeMac::NrUeMac (void) : Object ()
 
 NrUeMac::~NrUeMac (void)
 {
-  NS_LOG_FUNCTION (this);
 }
 
 void
 NrUeMac::DoDispose ()
 {
-  NS_LOG_FUNCTION (this);
   m_miUlHarqProcessesPacket.clear ();
   m_miUlHarqProcessesPacketTimer.clear ();
   m_ulBsrReceived.clear ();
@@ -315,7 +313,6 @@ NrUeMac::GetCellId () const
 uint32_t
 NrUeMac::GetTotalBufSize () const
 {
-  NS_LOG_FUNCTION (this);
   uint32_t ret = 0;
   for (auto it = m_ulBsrReceived.cbegin (); it != m_ulBsrReceived.cend (); ++it)
     {
@@ -670,6 +667,8 @@ NrUeMac::TransmitRetx ()
   NS_LOG_DEBUG ("UE MAC RETX HARQ " << + m_ulDci->m_harqProcess);
 
   Ptr<PacketBurst> pb = m_miUlHarqProcessesPacket.at (m_ulDci->m_harqProcess).m_pktBurst;
+
+  NS_ASSERT (pb->GetNPackets() > 0);
 
   for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
     {
