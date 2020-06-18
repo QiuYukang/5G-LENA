@@ -820,12 +820,17 @@ NrUeMac::SendNewData ()
   uint32_t usefulTbs = m_ulDci->m_tbSize - m_ulDciTotalUsed - 5;
 
   // Now, we have 3 bytes of overhead for each subPDU. Let's try to serve all
-  // the queues with some RETX data. With a lot of active lcid and a small allocation
-  // probably this code will assert. A more refined version is then needed.
-  NS_ASSERT_MSG (activeLcsRetx * 3 <= usefulTbs,
-                 "The overhead for transmitting data is greater than the space for transmitting it.");
-  usefulTbs -= activeLcsRetx * 3;
-  SendRetxData (usefulTbs, activeLcsRetx);
+  // the queues with some RETX data.
+  if (activeLcsRetx * 3 > usefulTbs)
+    {
+      NS_LOG_DEBUG ("The overhead for transmitting retx data is greater than the space for transmitting it."
+                    "Ignore the TBS of " << usefulTbs << " B.");
+    }
+  else
+    {
+      usefulTbs -= activeLcsRetx * 3;
+      SendRetxData (usefulTbs, activeLcsRetx);
+    }
 
   // Now we have to update our useful TBS for the next transmission.
   // Remember that m_ulDciTotalUsed keep count of data and overhead that we
@@ -834,14 +839,18 @@ NrUeMac::SendNewData ()
                  "The StatusPDU sending required all space, we don't have any for the SHORT_BSR.");
   usefulTbs = m_ulDci->m_tbSize - m_ulDciTotalUsed - 5; // Update the usefulTbs.
 
-  // The last part is for the queues with some non-RETX data. With a lot of active
-  // lcid and a small allocation, probably this code will assert. A more refined
-  // version is then needed.
-
-  NS_ASSERT_MSG (activeLcsTx * 3 <= usefulTbs,
-                 "The overhead for transmitting data is greater than the space for transmitting it.");
-  usefulTbs -= activeLcsTx * 3;
-  SendTxData (usefulTbs, activeLcsTx);
+  // The last part is for the queues with some non-RETX data. If there is no space left,
+  // then nothing.
+  if (activeLcsTx * 3 > usefulTbs)
+    {
+      NS_LOG_DEBUG ("The overhead for transmitting new data is greater than the space for transmitting it."
+                    "Ignore the TBS of " << usefulTbs << " B.");
+    }
+  else
+    {
+      usefulTbs -= activeLcsTx * 3;
+      SendTxData (usefulTbs, activeLcsTx);
+    }
 }
 
 
