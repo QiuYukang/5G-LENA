@@ -138,20 +138,27 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                                            //&NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
                                      MakeUintegerChecker<uint16_t> ())
                       .AddAttribute ("RemMode",
-                                     "There are two high level modes of Rem generation: "
+                                     "There are three high level modes of Rem generation: "
                                      "a) BEAM_SHAPE in which are represented the beams that are configured "
-                                     "in the user's script scenario, considering that the receiver always has quasi-omni, and that all the beams "
-                                     "point toward the UE which is passed as UE of interest. The purpose of this map is to illustrate "
+                                     "in the user's script scenario, considering that the receiver always "
+                                     "has quasi-omni, and that all the beams point toward the UE which is "
+                                     "passed as UE of interest. The purpose of this map is to illustrate "
                                      "the REM of the scenario that is configured."
-                                     "b) COVERAGE_AREA which produces two REM maps: the worst-case SINR and best-SNR for each rem position;"
-                                     "Worst case SINR means that all interfering devices use for the transmission the beam toward the rem point;"
-                                     "and also for the best-SNR, for each transmitting device and the REM point are used the best directional beam-pair "
-                                     "and then is selected the best SNR.",
+                                     "b) COVERAGE_AREA which produces two REM maps: the worst-case SINR and "
+                                     "best-SNR for each rem position; Worst case SINR means that all interfering "
+                                     "devices use for the transmission the beam towards the rem point;"
+                                     "and also for the best-SNR, for each transmitting device and the REM point "
+                                     "are used the best directional beam-pair and then is selected the best SNR."
+                                     "c) UL_COVERAGE_AREA which is similar as the above, although the Tx Device"
+                                     "is the UE (UL direction), and the Rx device is each gNB to which it is "
+                                     "connected each time, while the rest of gNBs (if they are present) are"
+                                     "pointing their beams towards the Rx gNB. ",
                                      EnumValue (NrRadioEnvironmentMapHelper::COVERAGE_AREA),
                                      MakeEnumAccessor (&NrRadioEnvironmentMapHelper::SetRemMode,
                                                        &NrRadioEnvironmentMapHelper::GetRemMode),
                                      MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
-                                                      NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea"))
+                                                      NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea",
+                                                      NrRadioEnvironmentMapHelper::UL_COVERAGE_AREA, "UplinkCoverageArea"))
                       .AddAttribute ("InstallationDelay",
                                      "How many time it is needed in the simulation to configure phy parameters at UE, "
                                      "depends on RRC message timing.",
@@ -534,6 +541,10 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &gnbNetDev
     {
       CalcBeamShapeRemMap();
     }
+  else if (m_remMode == UL_COVERAGE_AREA)
+    {
+      CalcUlCoverageAreaRemMap ();
+    }
   else
     {
       NS_FATAL_ERROR ("Unknown REM mode");
@@ -896,6 +907,12 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
   std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
   NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
+}
+
+void
+NrRadioEnvironmentMapHelper::CalcUlCoverageAreaRemMap ()
+{
+  NS_LOG_FUNCTION (this);
 }
 
 

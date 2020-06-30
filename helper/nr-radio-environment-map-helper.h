@@ -85,7 +85,8 @@ public:
 
   enum RemMode {
          BEAM_SHAPE,
-         COVERAGE_AREA
+         COVERAGE_AREA,
+         UL_COVERAGE_AREA
   };
 
   /**
@@ -373,6 +374,14 @@ private:
    * of the rem point towards each rtd device.
    */
   void CalcCoverageAreaRemMap ();
+
+  /**
+   * \brief This function generates an Uplink CoverageArea map. In this case,
+   * the rrd is the transmitting device, while one rtd each time is considered
+   * as the receiving device and the rest of rtds will have their antennas to
+   * point towards the receiving device.
+   */
+  void CalcUlCoverageAreaRemMap ();
 
   /**
    * T\brief Configures the REM Receiving Device (RRD)
