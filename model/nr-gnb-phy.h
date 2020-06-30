@@ -356,6 +356,22 @@ public:
        const uint8_t bwpId, Ptr<NrControlMessage>);
 
   /**
+   * \brief TracedCallback signature for slot statistics
+   *
+   * \param [in] sfnSf Slot number
+   * \param [in] activeUe The number of active UE in the slot
+   * \param [in] usedRe Used Resource Element Group (1 sym x 1 RB)
+   * \param [in] availableRb Available RBs
+   * \param [in] availableSym Available symbols
+   * \param [in] bwpId BWP ID
+   * \param [in] cellId Cell ID
+   */
+  typedef void (* SlotStatsTracedCallback)(const SfnSf &sfnSf, uint32_t activeUe,
+                                           uint32_t usedRe, uint32_t availableRb,
+                                           uint32_t availableSym, uint16_t bwpId,
+                                           uint16_t cellId);
+
+  /**
    * \brief Retrieve the number of RB per RBG
    * \return the number of RB per RBG
    *
@@ -538,6 +554,8 @@ private:
    */
   void DoStartSlot ();
 
+  void GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const;
+
   // LteEnbCphySapProvider forwarded methods
   void DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth);
   void DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn);
@@ -683,6 +701,11 @@ private:
    * bwpId, pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_phyTxedCtrlMsgsTrace;
+
+  /**
+   * \brief Trace information for the slot statistics
+   */
+  TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotStats;
 
   std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
