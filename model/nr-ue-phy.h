@@ -314,6 +314,24 @@ public:
    */
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
+  /**
+   * \brief TracedCallback signature for power trace source
+   *
+   * It depends on the TxPower configured attribute, and the number of
+   * RB allocated.
+   *
+   * \param [in] sfnSf Slot number
+   * \param [in] v Power Spectral Density
+   * \param [in] time Time for which this power is set
+   * \param [in] rnti RNTI of the UE
+   * \param [in] imsi IMSI of the UE
+   * \param [in] bwpId Reference BWP ID
+   * \param [in] cellId Reference Cell ID
+   */
+  typedef void (* PowerSpectralDensityTracedCallback)(const SfnSf &sfnSf, Ptr<SpectrumValue> v,
+                                                      Time time, uint16_t rnti,
+                                                      uint64_t imsi, uint16_t bwpId, uint16_t cellId);
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -438,8 +456,9 @@ private:
    * \brief Set the Tx power spectral density based on the RB index vector
    * \param mask vector of the index of the RB (in SpectrumValue array)
    * in which there is a transmission
+   * \param numSym number of symbols of the transmission
    */
-  void SetSubChannelsForTransmission (std::vector <int> mask);
+  void SetSubChannelsForTransmission (const std::vector<int> &mask, uint32_t numSym);
   /**
    * \brief Send ctrl msgs considering L1L2CtrlLatency
    * \param msg The ctrl msg to be sent
@@ -595,6 +614,7 @@ private:
   TracedCallback<uint16_t, uint16_t, double, double, uint16_t> m_reportCurrentCellRsrpSinrTrace;
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
+  TracedCallback<const SfnSf &, Ptr<SpectrumValue>, Time, uint16_t, uint64_t, uint16_t, uint16_t> m_reportPowerSpectralDensity; //!< Report the Tx power
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
