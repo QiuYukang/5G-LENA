@@ -623,41 +623,44 @@ NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const Re
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& itRtd)
+NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice)
 {
   PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-  tempPropModels.remSpectrumLossModelCopy->AddDevice (itRtd.dev, itRtd.antenna);
-  tempPropModels.remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
-  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel);
+  tempPropModels.remSpectrumLossModelCopy->AddDevice (device.dev, device.antenna);
+  tempPropModels.remSpectrumLossModelCopy->AddDevice (otherDevice.dev, otherDevice.antenna);
+  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (device.txPower, device.spectrumModel);
 
   // check if RTD has the same spectrum model as RRD
   // if they have do nothing, if they dont, then convert txPsd of RTD device so to be according to spectrum model of RRD
 
   Ptr <const SpectrumValue> convertedTxPsd;
-  if (itRtd.spectrumModel->GetUid () == m_rrd.spectrumModel->GetUid ())
+  if (device.spectrumModel->GetUid () == otherDevice.spectrumModel->GetUid ())
     {
       NS_LOG_LOGIC ("no spectrum conversion needed");
       convertedTxPsd = txPsd;
     }
   else
     {
-      NS_LOG_LOGIC ("Converting TXPSD of RTD device " << itRtd.spectrumModel->GetUid ()  << " --> " << m_rrd.spectrumModel->GetUid ());
-      SpectrumConverter converter (itRtd.spectrumModel, m_rrd.spectrumModel);
+      NS_LOG_LOGIC ("Converting TXPSD of RTD device " <<
+                    device.spectrumModel->GetUid ()  << " --> " <<
+                    otherDevice.spectrumModel->GetUid ());
+
+      SpectrumConverter converter (device.spectrumModel, otherDevice.spectrumModel);
       convertedTxPsd = converter.Convert (txPsd);
     }
 
   // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
   Ptr<SpectrumValue> rxPsd = convertedTxPsd->Copy ();
-  double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, itRtd.mob, m_rrd.mob);
+  double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, device.mob, otherDevice.mob);
   double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
   // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
   *(rxPsd) *= pathGainLinear;
 
   // Now we call spectrum model, which in this keys add a beamforming gain
-  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, itRtd.mob, m_rrd.mob);
+  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, device.mob, otherDevice.mob);
 
   return rxPsd;
 }
@@ -775,7 +778,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
             {
               calcRxPsdCounter++;
                // calculate received power from the current RTD device
-              receivedPowerList.push_back (CalcRxPsdValue (*itRtd));
+              receivedPowerList.push_back (CalcRxPsdValue (*itRtd, m_rrd));
 
               NS_LOG_INFO ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
@@ -866,7 +869,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                   // increase counter de calcRXPsd calls
                   calcRxPsdCounter++;
                   // calculate received power from the current RTD device
-                  Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdCalc);
+                  Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdCalc, m_rrd);
 
                   // is this received power useful signal (from RTD for which I configured my beam) or is interference signal
 

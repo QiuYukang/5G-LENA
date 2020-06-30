@@ -465,7 +465,7 @@ private:
    * \brief This method calculates the PSD
    * \return The PSD (spectrumValue)
    */
-  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& itRtd);
+  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice);
 
   std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
   std::list<RemPoint> m_rem; ///< List of REM points.
