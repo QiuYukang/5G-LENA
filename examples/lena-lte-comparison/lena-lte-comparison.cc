@@ -65,6 +65,10 @@ $ ./waf --run "lena-lte-comparison --Help"
 #include "ns3/config-store-module.h"
 #include <ns3/sqlite-output.h>
 #include "radio-network-parameters-helper.h"
+#include "sinr-output-stats.h"
+#include "flow-monitor-output-stats.h"
+#include "power-output-stats.h"
+#include "slot-output-stats.h"
 
 /*
  * To be able to use LOG_* functions.
@@ -80,72 +84,45 @@ using namespace ns3;
  * With this line, we will be able to see the logs of the file by enabling the
  * component "CttcNrDemo", in this way:
  *
- * $ export NS_LOG="CttcNrDemo=level_info|prefix_func|prefix_time"
+ * $ export NS_LOG="LenaLteComparison=level_info|prefix_func|prefix_time"
  */
-NS_LOG_COMPONENT_DEFINE ("S3Scenario");
-
-struct ResultCache
-{
-  ResultCache (uint16_t c, uint16_t b, uint16_t r, double s)
-    : cellId (c), bwpId (b), rnti (r), avgSinr (s) {}
-
-  uint16_t cellId {0};
-  uint16_t bwpId {0};
-  uint16_t rnti {0};
-  double avgSinr {0.0};
-};
-
-static std::vector<ResultCache> cache;
+NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
 
 static void
-EmptyCache (SQLiteOutput *db)
+ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
+              double power, double avgSinr, uint16_t bwpId)
 {
-  bool ret = db->SpinExec ("BEGIN TRANSACTION;");
-  for (const auto & v : cache)
-    {
-      sqlite3_stmt *stmt;
-      ret = db->SpinPrepare (&stmt, "INSERT INTO sinr VALUES (?,?,?,?,?,?);");
-      NS_ASSERT (ret);
-      ret = db->Bind (stmt, 1, v.cellId);
-      NS_ASSERT (ret);
-      ret = db->Bind (stmt, 2, v.bwpId);
-      NS_ASSERT (ret);
-      ret = db->Bind (stmt, 3, v.rnti);
-      NS_ASSERT (ret);
-      ret = db->Bind (stmt, 4, v.avgSinr);
-      NS_ASSERT (ret);
-      ret = db->Bind (stmt, 5, RngSeedManager::GetSeed ());
-      NS_ASSERT (ret);
-      ret = db->Bind (stmt, 6, static_cast<uint32_t> (RngSeedManager::GetRun ()));
-      NS_ASSERT (ret);
-
-      ret = db->SpinExec (stmt);
-      NS_ASSERT (ret);
-    }
-  cache.clear ();
-  ret = db->SpinExec ("END TRANSACTION;");
-  NS_ASSERT (ret);
+  stats->SaveSinr (cellId, rnti, power, avgSinr, bwpId);
 }
 
 static void
-ReportSinrNr (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
+ReportSinrLena (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
 {
-  NS_UNUSED (power);
-
-  cache.emplace_back (ResultCache (cellId, bwpId, rnti, avgSinr));
-
-  // An entry is 14 byte. Let's wait until ~1MB of entries before
-  // storing it in the database
-  if (cache.size () > 100000)
-    {
-      EmptyCache (db);
-    }
+  ReportSinrNr (stats, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
 }
 
 static void
-ReportSinrLena (SQLiteOutput *db, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
+ReportPowerNr (PowerOutputStats *stats, const SfnSf & sfnSf,
+               Ptr<SpectrumValue> txPsd, Time t, uint16_t rnti, uint64_t imsi,
+               uint16_t bwpId, uint16_t cellId)
 {
-  ReportSinrNr (db, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
+  stats->SavePower (sfnSf, txPsd, t, rnti, imsi, bwpId, cellId);
+}
+
+static void
+ReportPowerLena (PowerOutputStats *stats, Ptr<SpectrumValue> txPsd, uint16_t rnti)
+{
+  // Please note that LENA has less output than NR... so we have to save less information.
+  ReportPowerNr (stats, SfnSf (), txPsd, MilliSeconds (0), rnti, 0, 0, 0);
+}
+
+static void
+ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint32_t activeUe,
+                   uint32_t usedRe, uint32_t availableRb,
+                   uint32_t availableSym, uint16_t bwpId,
+                   uint16_t cellId)
+{
+  stats->SaveSlotStats (sfnSf, bwpId, cellId, activeUe, usedRe, availableRb, availableSym);
 }
 
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
@@ -165,7 +142,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  NetDeviceContainer &ueSector2NetDev,
                                  NetDeviceContainer &ueSector3NetDev,
                                  bool calibration,
-                                 SQLiteOutput *db,
+                                 SinrOutputStats *sinrStats,
+                                 PowerOutputStats *powerStats,
                                  const std::string &scheduler)
 {
 
@@ -287,7 +265,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
+      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
     }
 
   for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
@@ -296,7 +275,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
+      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
     }
 
   for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
@@ -305,7 +285,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, db));
+      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
+      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
     }
 
   lteHelper->Initialize ();
@@ -325,21 +306,21 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 }
 
 
-void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
-                                   std::string scenario,
-                                   std::string radioNetwork,
-                                   std::string errorModel,
-                                   std::string operationMode,
-                                   std::string direction,
+void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
+                                   const std::string &scenario,
+                                   const std::string &radioNetwork,
+                                   std::string &errorModel,
+                                   const std::string &operationMode,
+                                   const std::string &direction,
                                    uint16_t numerology,
-                                   std::string pattern,
-                                   NodeContainer gnbSector1Container,
-                                   NodeContainer gnbSector2Container,
-                                   NodeContainer gnbSector3Container,
-                                   NodeContainer ueSector1Container,
-                                   NodeContainer ueSector2Container,
-                                   NodeContainer ueSector3Container,
-                                   Ptr<PointToPointEpcHelper> &baseEpcHelper,
+                                   const std::string &pattern,
+                                   const NodeContainer &gnbSector1Container,
+                                   const NodeContainer &gnbSector2Container,
+                                   const NodeContainer &gnbSector3Container,
+                                   const NodeContainer &ueSector1Container,
+                                   const NodeContainer &ueSector2Container,
+                                   const NodeContainer &ueSector3Container,
+                                   const Ptr<PointToPointEpcHelper> &baseEpcHelper,
                                    Ptr<NrHelper> &nrHelper,
                                    NetDeviceContainer &gnbSector1NetDev,
                                    NetDeviceContainer &gnbSector2NetDev,
@@ -348,7 +329,9 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NetDeviceContainer &ueSector2NetDev,
                                    NetDeviceContainer &ueSector3NetDev,
                                    bool calibration,
-                                   SQLiteOutput *db,
+                                   SinrOutputStats *sinrStats,
+                                   PowerOutputStats *powerStats,
+                                   SlotOutputStats *slotStats,
                                    const std::string &scheduler)
 {
 
@@ -856,36 +839,102 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
   for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
     {
-      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+      auto uePhyFirst = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
+      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
+                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
+
+      if (operationMode == "FDD")
+        {
+          auto uePhySecond = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 1);
+          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
+        }
+      else
+        {
+          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
+        }
     }
 
   for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
     {
-      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+      auto uePhyFirst = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 0);
+      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
+                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
+
+      if (operationMode == "FDD")
+        {
+          auto uePhySecond = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 1);
+          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
+        }
+      else
+        {
+          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
+        }
     }
 
   for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
     {
-      auto uePhy = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrNr, db));
+      auto uePhyFirst = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 0);
+      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
+                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
+
+      if (operationMode == "FDD")
+        {
+          auto uePhySecond = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 1);
+          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
+        }
+      else
+        {
+          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
+        }
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
   for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
     {
+      uint32_t bwpId = 0;
+      if (operationMode == "FDD" && direction == "UL")
+        {
+          bwpId = 1;
+        }
+      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
+      gnbPhy->TraceConnectWithoutContext ("SlotStats",
+                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
+
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = gnbSector2NetDev.Begin (); it != gnbSector2NetDev.End (); ++it)
     {
+      uint32_t bwpId = 0;
+      if (operationMode == "FDD" && direction == "UL")
+        {
+          bwpId = 1;
+        }
+      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
+      gnbPhy->TraceConnectWithoutContext ("SlotStats",
+                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
+
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
   for (auto it = gnbSector3NetDev.Begin (); it != gnbSector3NetDev.End (); ++it)
     {
+      uint32_t bwpId = 0;
+      if (operationMode == "FDD" && direction == "UL")
+        {
+          bwpId = 1;
+        }
+      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
+      gnbPhy->TraceConnectWithoutContext ("SlotStats",
+                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
+
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
 
@@ -972,21 +1021,6 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
     }
 
   return std::make_pair(app, startTime);
-}
-
-static void
-DeleteWhere (SQLiteOutput *p, uint32_t seed, uint32_t run, const std::string &table)
-{
-  bool ret;
-  sqlite3_stmt *stmt;
-  ret = p->SpinPrepare (&stmt, "DELETE FROM \"" + table + "\" WHERE SEED = ? AND RUN = ?;");
-  NS_ABORT_IF (ret == false);
-  ret = p->Bind (stmt, 1, seed);
-  NS_ABORT_IF (ret == false);
-  ret = p->Bind (stmt, 2, run);
-
-  ret = p->SpinExec (stmt);
-  NS_ABORT_IF (ret == false);
 }
 
 int 
@@ -1122,6 +1156,13 @@ main (int argc, char *argv[])
     }
 
   SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
+  SinrOutputStats sinrStats;
+  PowerOutputStats powerStats;
+  SlotOutputStats slotStats;
+
+  sinrStats.SetDb (&db);
+  powerStats.SetDb (&db);
+  slotStats.SetDb (&db);
 
   /*
    * Check if the frequency and numerology are in the allowed range.
@@ -1254,7 +1295,8 @@ main (int argc, char *argv[])
                                   ueSector2NetDev,
                                   ueSector3NetDev,
                                   calibration,
-                                  &db,
+                                  &sinrStats,
+                                  &powerStats,
                                   scheduler);
     }
   else if (simulator == "5GLENA")
@@ -1283,7 +1325,9 @@ main (int argc, char *argv[])
                                     ueSector2NetDev,
                                     ueSector3NetDev,
                                     calibration,
-                                    &db,
+                                    &sinrStats,
+                                    &powerStats,
+                                    &slotStats,
                                     scheduler);
     }
   else
@@ -1504,12 +1548,11 @@ main (int argc, char *argv[])
   endpointNodes.Add (remoteHost);
   endpointNodes.Add (gridScenario.GetUserTerminals ());
 
-  Ptr<ns3::FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
+  Ptr<FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
   monitor->SetAttribute ("DelayBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  bool ret;
   std::string tableName;
   switch (trafficScenario)
     {
@@ -1526,38 +1569,12 @@ main (int argc, char *argv[])
       NS_FATAL_ERROR ("NAH");
     }
 
-  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
-               "FlowId INTEGER NOT NULL, "
-               "TxPackets INTEGER NOT NULL,"
-               "TxBytes INTEGER NOT NULL,"
-               "TxOfferedMbps DOUBLE NOT NULL,"
-               "RxBytes INTEGER NOT NULL,"
-               "ThroughputMbps DOUBLE NOT NULL, "
-               "MeanDelayMs DOUBLE NOT NULL, "
-               "MeanJitterMs DOUBLE NOT NULL, "
-               "RxPackets INTEGER NOT NULL, "
-               "SEED INTEGER NOT NULL,"
-               "RUN INTEGER NOT NULL,"
-               "PRIMARY KEY(FlowId,SEED,RUN)"
-               ");");
-  NS_ABORT_UNLESS (ret);
-
-  ret = db.SpinExec ("CREATE TABLE IF NOT EXISTS sinr ("
-                     "CellId INTEGER NOT NULL, "
-                     "BwpId INTEGER NOT NULL,"
-                     "Rnti INTEGER NOT NULL,"
-                     "AvgSinr DOUBLE NOT NULL,"
-                     "Seed INTEGER NOT NULL,"
-                     "Run INTEGER NOT NULL);");
-  NS_ASSERT (ret);
-
-  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), tableName);
-  DeleteWhere (&db, RngSeedManager::GetSeed (), RngSeedManager::GetRun(), "sinr");
-
   Simulator::Stop (MilliSeconds (appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
 
-  EmptyCache (&db);
+  sinrStats.EmptyCache ();
+  powerStats.EmptyCache ();
+  slotStats.EmptyCache ();
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
@@ -1566,115 +1583,9 @@ main (int argc, char *argv[])
   config.ConfigureAttributes ();
   */
 
-  // Print per-flow statistics
-  monitor->CheckForLostPackets ();
-  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmonHelper.GetClassifier ());
-  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
-
-  double averageFlowThroughput = 0.0;
-  double averageFlowDelay = 0.0;
-
-  std::ofstream outFile;
-  std::string filename = outputDir + "/" + simTag;
-  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
-  if (!outFile.is_open ())
-    {
-      std::cerr << "Can't open file " << filename << std::endl;
-      return 1;
-    }
-
-  outFile.setf (std::ios_base::fixed);
-
-  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
-    {
-      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-      std::stringstream protoStream;
-      protoStream << (uint16_t) t.protocol;
-      if (t.protocol == 6)
-        {
-          protoStream.str ("TCP");
-        }
-      if (t.protocol == 17)
-        {
-          protoStream.str ("UDP");
-        }
-
-      sqlite3_stmt *stmt;
-
-      db.SpinPrepare (&stmt, "INSERT INTO " + tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
-
-      // Measure the duration of the flow from sender's perspective
-      double rxDuration = i->second.timeLastTxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-      double txOffered = i->second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0 ;
-
-      outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
-      outFile << "  Tx Packets: " << i->second.txPackets << "\n";
-      outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
-      outFile << "  TxOffered:  " << txOffered << " Mbps\n";
-      outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-
-      ret = db.Bind (stmt, 1, i->first);
-      NS_ABORT_UNLESS (ret);
-      ret = db.Bind (stmt, 2, i->second.txPackets);
-      NS_ABORT_UNLESS (ret);
-      ret = db.Bind (stmt, 3, static_cast<uint32_t> (i->second.txBytes));
-      NS_ABORT_UNLESS (ret);
-      ret = db.Bind (stmt, 4, txOffered);
-      NS_ABORT_UNLESS (ret);
-      ret = db.Bind (stmt, 5, static_cast<uint32_t> (i->second.rxBytes));
-      NS_ABORT_UNLESS (ret);
-
-      if (i->second.rxPackets > 0)
-        {
-          double th = i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
-          double delay = 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
-          double jitter = 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets;
-
-          averageFlowThroughput += th;
-          averageFlowDelay += delay;
-
-          ret = db.Bind (stmt, 6, th);
-          NS_ABORT_UNLESS (ret);
-          ret = db.Bind (stmt, 7, delay);
-          NS_ABORT_UNLESS (ret);
-          ret = db.Bind (stmt, 8, jitter);
-          NS_ABORT_UNLESS (ret);
-
-          outFile << "  Throughput: " << th << " Mbps\n";
-          outFile << "  Mean delay:  " <<  delay << " ms\n";
-          outFile << "  Mean jitter:  " << jitter  << " ms\n";
-        }
-      else
-        {
-          outFile << "  Throughput:  0 Mbps\n";
-          outFile << "  Mean delay:  0 ms (NOT VALID)\n";
-          outFile << "  Mean jitter: 0 ms (NOT VALID)\n";
-          ret = db.Bind (stmt, 6, 0.0);
-          NS_ABORT_UNLESS (ret);
-          ret = db.Bind (stmt, 7, 0.0);
-          NS_ABORT_UNLESS (ret);
-          ret = db.Bind (stmt, 8, 0.0);
-          NS_ABORT_UNLESS (ret);
-        }
-      outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
-      ret = db.Bind (stmt, 9, i->second.rxPackets);
-      NS_ABORT_UNLESS (ret);
-      ret = db.Bind (stmt, 10, RngSeedManager::GetSeed ());
-      NS_ABORT_UNLESS (ret);
-      ret = db.Bind (stmt, 11, static_cast<uint32_t> (RngSeedManager::GetRun ()));
-      NS_ABORT_UNLESS (ret);
-
-      if (i->second.rxPackets > 0)
-        {
-          ret = db.SpinExec (stmt);
-          NS_ABORT_UNLESS (ret);
-        }
-    }
-
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
-  outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
-
-  outFile.close ();
+  FlowMonitorOutputStats flowMonStats;
+  flowMonStats.SetDb (&db, tableName);
+  flowMonStats.Save (monitor, flowmonHelper, outputDir + "/" + simTag);
 
   Simulator::Destroy ();
   return 0;
