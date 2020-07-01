@@ -59,13 +59,24 @@ class ThreeGppAntennaArrayModel;
  * N iterations (specified by the user) in order to consider the randomness of
  * the channel
  *
- * For the selection of BeamShape or CoverageArea add in the example execution
- * the following:
+ * For the CoverageArea REM generation the user can include the following code
+ * in the desired example script:
  *
  * \code{.unparsed}
-$ ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=CoverageArea"
+$   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
+$   remHelper->CreateRem (gnbNetDev, ueNetDev, indexPhy);
     \endcode
  *
+ * While for the BeamShape REM generation the user can include the following code:
+ *
+$  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
+$  remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
+$  gnbNetDev.Get(0)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(0));
+$  remHelper->CreateRem (gnbNetDev, ueRemDevice, indexPhy);
+    \endcode
+ *
+ * Please refer to the rest parameters of the REM map that can be set
+ * through the command line (e.g. x, y, z coordinates and resolution)
  */
 
 class NrRadioEnvironmentMapHelper : public Object
