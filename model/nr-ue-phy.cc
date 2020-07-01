@@ -135,6 +135,10 @@ NrUePhy::GetTypeId (void)
                      "Ue PHY DL HARQ Feedback Traces.",
                      MakeTraceSourceAccessor (&NrUePhy::m_phyUeTxedHarqFeedbackTrace),
                      "ns3::NrPhyRxTrace::TxedUePhyHarqFeedbackTracedCallback")
+    .AddTraceSource ("ReportPowerSpectralDensity",
+                     "Power Spectral Density data.",
+                     MakeTraceSourceAccessor (&NrUePhy::m_reportPowerSpectralDensity),
+                     "ns3::NrUePhy::PowerSpectralDensityTracedCallback")
       ;
   return tid;
 }
@@ -187,10 +191,12 @@ NrUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
 }
 
 void
-NrUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
+NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t numSym)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
   NS_ASSERT (txPsd);
+
+  m_reportPowerSpectralDensity (m_currentSlot, txPsd, numSym * GetSymbolPeriod (), m_rnti, m_imsi, GetBwpId (), GetCellId ());
   m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
@@ -735,7 +741,7 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       channelRbs.push_back (static_cast<int> (i));
     }
 
-  SetSubChannelsForTransmission (channelRbs);
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<
@@ -777,7 +783,7 @@ Time
 NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
-  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask));
+  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
   Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);

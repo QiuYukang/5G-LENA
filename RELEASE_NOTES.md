@@ -86,6 +86,8 @@ New user-visible features (old first)
 - Renamed all mmwave- classes, tests, examples, helpers, to nr-.
 - Added SHORT_BSR as MAC CE element, that goes with MAC data, and is evaluated
   by the error model upon delivery.
+- Added "ReportPowerSpectralDensity" trace source in NrUePhy.
+- Added "SlotStats" trace source in NrGnbPhy.
 
 Bugs fixed
 ----------

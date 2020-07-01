@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <functional>
 #include <string>
+#include <unordered_set>
 
 #include "nr-gnb-phy.h"
 #include "nr-ue-phy.h"
@@ -164,6 +165,10 @@ NrGnbPhy::GetTypeId (void)
                    MakeStringAccessor (&NrGnbPhy::SetPattern,
                                        &NrGnbPhy::GetPattern),
                    MakeStringChecker ())
+    .AddTraceSource ("SlotStats",
+                     "Statistics for the current slot: SfnSf, active UE, used RE, available RBs, available symbols",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotStats),
+                     "ns3::NrGnbPhy::SlotStatsTracedCallback")
     ;
   return tid;
 
@@ -717,7 +722,7 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
                   // instantaneously
                   NS_LOG_INFO ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
                   CallMacForSlotIndication (m_currentSlot);
-
+                  GenerateAllocationStatistics (m_currSlotAllocInfo);
                   DoStartSlot ();
                   return; // Exit without calling anything else
                 }
@@ -762,6 +767,8 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
             }
         }
     }
+
+  GenerateAllocationStatistics (m_currSlotAllocInfo);
 }
 
 
@@ -821,6 +828,30 @@ NrGnbPhy::RetrievePrepareEncodeCtrlMsgs ()
           EncodeCtrlMsg (msg);
         }
     }
+}
+
+void
+NrGnbPhy::GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const
+{
+  NS_LOG_FUNCTION (this);
+  std::unordered_set<uint16_t> activeUe;
+  uint32_t resourceElementGroupUsed = 0;
+  uint32_t availRb = GetRbNum();
+
+  for (const auto & alloc : allocInfo.m_varTtiAllocInfo)
+    {
+      if (alloc.m_dci->m_rnti != 0)
+        {
+          activeUe.insert (alloc.m_dci->m_rnti);
+        }
+
+      uint32_t rbg = std::count (alloc.m_dci->m_rbgBitmask.begin (),
+                                 alloc.m_dci->m_rbgBitmask.end (), 1);
+      resourceElementGroupUsed += (rbg * GetNumRbPerRbg ()) * alloc.m_dci->m_numSym;
+    }
+
+  m_phySlotStats (allocInfo.m_sfnSf, activeUe.size (), resourceElementGroupUsed,
+                  availRb, GetSymbolsPerSlot (), GetBwpId (), GetCellId ());
 }
 
 void
