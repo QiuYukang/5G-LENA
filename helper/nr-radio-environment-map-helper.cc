@@ -766,7 +766,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
                // calculate received power from the current RTD device
               receivedPowerList.push_back (CalcRxPsdValue (*itRtd));
 
-              NS_LOG_UNCOND ("Done:" <<
+              NS_LOG_INFO ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
                              " %."); // how many times will be called CalcRxPsdValues
 
@@ -787,7 +787,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
 
   auto remEndTime = std::chrono::system_clock::now ();
   std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
-  NS_LOG_UNCOND ("REM map created. Total time needed to create the REM map:" <<
+  NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
 }
 
@@ -876,7 +876,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
               sinrsPerBeam.push_back (CalculateSinr (usefulSignalRxPsd, interferenceSignalsRxPsds));
               snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
 
-              NS_LOG_UNCOND ("Done:" <<
+              NS_LOG_INFO ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()*m_remDev.size()) * 100 <<
                              " %."); // how many times will be called CalcRxPsdValues
 
@@ -894,7 +894,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 
   auto remEndTime = std::chrono::system_clock::now ();
   std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
-  NS_LOG_UNCOND ("REM map created. Total time needed to create the REM map:" <<
+  NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
 }
 
