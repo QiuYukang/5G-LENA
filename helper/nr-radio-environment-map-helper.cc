@@ -169,7 +169,7 @@ NrRadioEnvironmentMapHelper::SetRemMode (enum RemMode remMode)
 }
 
 void
-NrRadioEnvironmentMapHelper::SetSimTag (std::string simTag)
+NrRadioEnvironmentMapHelper::SetSimTag (const std::string &simTag)
 {
   m_simTag = simTag;
 }
@@ -223,12 +223,12 @@ NrRadioEnvironmentMapHelper::SetNumOfItToAverage (uint16_t numOfIterationsToAver
 }
 
 void
-NrRadioEnvironmentMapHelper::SetInstallationDelay (Time installationDelay)
+NrRadioEnvironmentMapHelper::SetInstallationDelay (const Time &installationDelay)
 {
   m_installationDelay = installationDelay;
 }
 
-enum NrRadioEnvironmentMapHelper::RemMode
+NrRadioEnvironmentMapHelper::RemMode
 NrRadioEnvironmentMapHelper::GetRemMode () const
 {
   return m_remMode;
@@ -921,7 +921,7 @@ NrRadioEnvironmentMapHelper::CopyThreeGppChannelModelAttributeValues (Ptr<ThreeG
 }
 
 void
-NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filename)
+NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (const std::string &filename)
 {
   NS_LOG_FUNCTION (this);
   std::ofstream gnbOutFile;
@@ -948,7 +948,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile (std::string filenam
 }
 
 void
-NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename)
+NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (const std::string &filename)
 {
   NS_LOG_FUNCTION (this);
   std::ofstream ueOutFile;
@@ -969,7 +969,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableUeListToFile (std::string filename
 }
 
 void
-NrRadioEnvironmentMapHelper::PrintGnuplottableBuildingListToFile (std::string filename)
+NrRadioEnvironmentMapHelper::PrintGnuplottableBuildingListToFile (const std::string &filename)
 {
   NS_LOG_FUNCTION (this);
   std::ofstream outFile;

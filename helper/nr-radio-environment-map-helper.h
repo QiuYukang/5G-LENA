@@ -120,7 +120,7 @@ public:
    * output file names
    * \param simTag string to be used as simulation tag
    */
-  void SetSimTag (std::string simTag);
+  void SetSimTag (const std::string &simTag);
 
   /**
    * \brief Sets the min x coordinate of the map
@@ -174,13 +174,13 @@ public:
    * \brief Sets the installation delay
    * \param installationDelay delay for the REM installation
    */
-  void SetInstallationDelay (Time installationDelay);
+  void SetInstallationDelay (const Time &installationDelay);
 
   /**
    * \brief Get the type of REM Map to be generated
    * \return The type of the map (BeamShape/CoverageArea)
    */
-  enum RemMode GetRemMode () const;
+  RemMode GetRemMode () const;
 
   /**
    * \return Gets the value of the min x coordinate of the map
@@ -415,17 +415,17 @@ private:
   /**
    * \brief Prints the position of the gNbs.
    */
-  void PrintGnuplottableGnbListToFile (std::string filename);
+  void PrintGnuplottableGnbListToFile (const std::string &filename);
 
   /**
    * \brief Print the position of the UE.
    */
-  void PrintGnuplottableUeListToFile (std::string filename);
+  void PrintGnuplottableUeListToFile (const std::string &filename);
 
   /**
    * \brief Print the position of the Buildings.
    */
-  void PrintGnuplottableBuildingListToFile (std::string filename);
+  void PrintGnuplottableBuildingListToFile (const std::string &filename);
 
   /**
    * \brief this method goes through every Rem Point and prints the
