@@ -915,9 +915,83 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 void
 NrRadioEnvironmentMapHelper::CalcUlCoverageAreaRemMap ()
 {
-  NS_LOG_FUNCTION (this);
-}
+    NS_LOG_FUNCTION (this);
+    //Save REM creation start time
+    auto remStartTime = std::chrono::system_clock::now ();
 
+    for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
+        itRemPoint != m_rem.end ();
+        ++itRemPoint)
+      {
+        //perform calculation m_numOfIterationsToAverage times and get the average value
+        double sumSnr = 0.0, sumSinr = 0.0;
+        m_rrd.mob->SetPosition (itRemPoint->pos);
+
+        for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
+          {
+            std::list<double> sinrsPerBeam; // vector in which we will save sinr per each RRD beam
+            std::list<double> snrsPerBeam; // vector in which we will save snr per each RRD beam
+
+            //"Associate" UE (RemPoint) with this RTD
+            for (std::list<RemDevice>::iterator itRtdAssociated = m_remDev.begin ();
+                 itRtdAssociated != m_remDev.end ();
+                 ++itRtdAssociated)
+              {
+                //configure RRD (RemPoint) beam toward RTD (itRtdAssociated)
+                ConfigureDirectPathBfv (m_rrd, *itRtdAssociated, m_rrd.antenna);
+                //configure RTD (itRtdAssociated) beam toward RRD (RemPoint)
+                ConfigureDirectPathBfv (*itRtdAssociated, m_rrd, itRtdAssociated->antenna);
+
+                std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
+                Ptr<SpectrumValue> usefulSignalRxPsd;
+
+                for(std::list<RemDevice>::iterator itRtdInterferer = m_remDev.begin ();
+                    itRtdInterferer != m_remDev.end ();
+                    ++itRtdInterferer)
+                  {
+                    if (itRtdAssociated->dev->GetNode ()->GetId () != itRtdInterferer->dev->GetNode ()->GetId ())
+                    {
+                      //configure RTD (itRtdInterferer) beam toward RTD (itRtdAssociated)
+                      ConfigureDirectPathBfv (*itRtdInterferer, *itRtdAssociated, itRtdInterferer->antenna);
+
+                      // calculate received power (interference) from the current RTD device
+                      Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdInterferer, *itRtdAssociated);
+
+                      interferenceSignalsRxPsds.push_back (receivedPower);  //interference
+                    }
+                    else
+                    {
+                      // calculate received power (useful Signal) from the current RRD device
+                      Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (m_rrd, *itRtdAssociated);
+                      if (usefulSignalRxPsd != nullptr)
+                        {
+                          NS_FATAL_ERROR ("Already assigned usefulSignal!");
+                        }
+                      usefulSignalRxPsd = receivedPower;
+                    }
+
+                  }//end for std::list<RemDev>::iterator itRtdInterferer (RTD)
+
+                sinrsPerBeam.push_back (CalculateSinr (usefulSignalRxPsd, interferenceSignalsRxPsds));
+                snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
+
+              }//end for std::list<RemDev>::iterator itRtdAssociated (RTD)
+
+            sumSnr += GetMaxValue (snrsPerBeam);
+            sumSinr += GetMaxValue (sinrsPerBeam);
+
+          }//end for m_numOfIterationsToAverage  (Average)
+
+        itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
+        itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
+
+      }//end for std::list<RemPoint>::iterator  (RemPoints)
+
+    auto remEndTime = std::chrono::system_clock::now ();
+    std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+    NS_LOG_UNCOND ("REM map created. Total time needed to create the REM map:" <<
+                   remElapsedSeconds.count () / 60 << " minutes.");
+}
 
 NrRadioEnvironmentMapHelper::PropagationModels
 NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
