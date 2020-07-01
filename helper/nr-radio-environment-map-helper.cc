@@ -369,24 +369,55 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
   NS_LOG_FUNCTION (this);
   Ptr<const NrSpectrumPhy> txSpectrumPhy = rtdPhy->GetSpectrumPhy ();
   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
-  m_propagationLossModel = DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
-
-  m_spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
-  m_channelConditionModel = m_propagationLossModel->GetChannelConditionModel() ;
 
   /***** configure pathloss model factory *****/
-  ConfigureObjectFactory (m_propagationLossModelFactory, m_propagationLossModel);
+  m_propagationLossModelFactory = ConfigureObjectFactory (txSpectrumChannel->GetPropagationLossModel ());
   /***** configure spectrum model factory *****/
-  ConfigureObjectFactory (m_spectrumLossModelFactory, m_spectrumLossModel);
-  /***** configure channel condition model factory *****/
-  ConfigureObjectFactory (m_channelConditionModelFactory, m_channelConditionModel);
+  m_spectrumLossModelFactory = ConfigureObjectFactory (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+
+  /***** configure ChannelConditionModel factory if ThreeGppPropagationLossModel propagation model is being used ****/
+  Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
+  if (propagationLossModel)
+    {
+      Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+      if (channelConditionModel)
+        {
+          m_channelConditionModelFactory = ConfigureObjectFactory (channelConditionModel);
+        }
+      else
+        {
+          NS_FATAL_ERROR ("ThreeGppPropagationLossModel does not have configured ChannelConditionModel");
+        }
+    }
+  else
+    {
+      NS_LOG_WARN ("RemHelper currently only knows that ThreeGppPropagationLossModel can have ChannelConditionModel. Other models do not support it yet.");
+    }
+
+  /***** configure ThreeGppChannelModel (MatrixBasedChannelModel) factory if spectrumLossModel is ThreeGppSpectrumPropagationLossModel *****/
+  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+  if (spectrumLossModel)
+    {
+      if (spectrumLossModel->GetChannelModel())
+        {
+          m_matrixBasedChannelModelFactory = ConfigureObjectFactory (spectrumLossModel->GetChannelModel());
+        }
+      else
+        {
+          NS_FATAL_ERROR ("ThreeGppSpectrumPropagationLossModel does not have configured MatrixBasedChannelModel");
+        }
+    }
+  else
+    {
+      NS_LOG_WARN ("RemHelper currently only knows that ThreeGppSpectrumPropagationLossModel can have MatrixBasedChannelModel. Other models do not support it yet.");
+    }
 }
 
-void
-NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactory, const Ptr<Object>& object)
+ObjectFactory
+NrRadioEnvironmentMapHelper::ConfigureObjectFactory (const Ptr<Object>& object) const
 {
   NS_LOG_FUNCTION (this);
-
+  ObjectFactory objectFactory;
   TypeId tid = object->GetInstanceTypeId ();
   objectFactory.SetTypeId (object->GetInstanceTypeId ());
 
@@ -404,6 +435,12 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactor
               if (attributeInfo.name == "ChannelConditionModel")
                 {
                   NS_LOG_INFO ("Skipping to copy ChannelConditionModel."
+                               "According to REM design it should be created "
+                               "as a new object (not copied).");
+                }
+              else if (attributeInfo.name == "ChannelModel")
+                {
+                  NS_LOG_INFO ("Skipping to copy ChannelModel."
                                "According to REM design it should be created "
                                "as a new object (not copied).");
                 }
@@ -438,6 +475,7 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (ObjectFactory& objectFactor
         }
     }
   while (hasParent);
+  return objectFactory;
 }
 
 void
@@ -478,7 +516,6 @@ NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams (const NetDeviceCo
         m_deviceToAntenna.insert (std::make_pair (*netDevIt, Copy (rtdPhy->GetAntennaArray ())));
       }
 }
-
 
 void
 NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &gnbNetDev,
@@ -876,48 +913,14 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
   propModels.remPropagationLossModelCopy->SetChannelConditionModel (condModelCopy);
 
   //create rem copy of spectrum loss model
-  propModels.remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
-  propModels.remSpectrumLossModelCopy->SetChannelModelAttribute ("ChannelConditionModel", PointerValue (condModelCopy));
-
-  // copy the rest of channel model attributes
-  CopyThreeGppChannelModelAttributeValues (propModels.remSpectrumLossModelCopy);
-
-  return propModels;
-}
-
-
-void
-NrRadioEnvironmentMapHelper::CopyThreeGppChannelModelAttributeValues (Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel)
-{
-  NS_LOG_FUNCTION (this);
-
-  for (size_t i = 0; i < ThreeGppChannelModel::GetTypeId ().GetAttributeN (); i++)
+  if (m_spectrumLossModelFactory.IsTypeIdSet())
     {
-      ns3::TypeId::AttributeInformation attributeInfo = ThreeGppChannelModel::GetTypeId ().GetAttribute (i);
-
-      if (attributeInfo.checker->GetValueTypeName () == "ns3::PointerValue")
-        {
-          if (attributeInfo.name == "ChannelConditionModel")
-            {
-              NS_LOG_INFO ("Skipping to copy ChannelConditionModel. According to "
-                           "REM design it should be created as a new object (not copied).");
-            }
-          else
-            {
-              NS_LOG_WARN ("ThreeGppChannelModel has a new pointer attribute that "
-                           "is not compatible with this REM helper version.");
-            }
-
-          continue;
-        }
-
-      Ptr<AttributeValue> attributeValue = attributeInfo.checker->Create ();
-      m_spectrumLossModel->GetChannelModelAttribute (attributeInfo.name, *attributeValue);
-      spectrumLossModel->SetChannelModelAttribute (attributeInfo.name, *attributeValue);
-
-      NS_LOG_DEBUG ("Copy attribute: " << attributeInfo.name << " value:" <<
-                    attributeValue->SerializeToString (attributeInfo.checker));
+      Ptr<MatrixBasedChannelModel> channelModelCopy = m_matrixBasedChannelModelFactory.Create<MatrixBasedChannelModel>();
+      channelModelCopy->SetAttribute("ChannelConditionModel", PointerValue (condModelCopy));
+      m_spectrumLossModelFactory.Set ("ChannelModel", PointerValue (channelModelCopy));
+      propModels.remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
     }
+  return propModels;
 }
 
 void

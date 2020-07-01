@@ -396,8 +396,9 @@ private:
   /**
    * \brief Configures the object factories with the parameters set in the
    * user scenario script.
+   * \return Configured ObjectFactory instance
    */
-  void ConfigureObjectFactory (ObjectFactory& objectFactory, const Ptr<Object>& object);
+  ObjectFactory ConfigureObjectFactory (const Ptr<Object>& object) const;
 
   /**
    * \brief This method creates the temporal Propagation Models
@@ -405,12 +406,6 @@ private:
    * rem point)
    */
   PropagationModels CreateTemporalPropagationModels ();
-
-  /**
-   * \brief Configures the channel model with the parameters set in the
-   * user scenario script.
-   */
-  void CopyThreeGppChannelModelAttributeValues (const Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel);
 
   /**
    * \brief Prints the position of the gNbs.
@@ -489,10 +484,8 @@ private:
   ObjectFactory m_propagationLossModelFactory;
   ObjectFactory m_spectrumLossModelFactory;
   ObjectFactory m_channelConditionModelFactory;
+  ObjectFactory m_matrixBasedChannelModelFactory;
 
-  Ptr<ThreeGppPropagationLossModel> m_propagationLossModel;
-  Ptr<ThreeGppSpectrumPropagationLossModel> m_spectrumLossModel;
-  Ptr<ChannelConditionModel> m_channelConditionModel;
   Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
 
   std::string m_simTag;   ///< The `SimTag` attribute.
