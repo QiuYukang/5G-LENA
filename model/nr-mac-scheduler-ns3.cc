@@ -717,7 +717,8 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
 
                 m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_tbs,
                                                  params, UeInfoOf (*itUe),
-                                                 allocation.m_rbgStart, allocation.m_numRbg,
+                                                 allocation.m_rbgStart * GetNumRbPerRbg (),
+                                                 allocation.m_numRbg * GetNumRbPerRbg (),
                                                  m_macSchedSapUser->GetSpectrumModel ());
                 found = true;
                 it = ulAllocations.erase (it);

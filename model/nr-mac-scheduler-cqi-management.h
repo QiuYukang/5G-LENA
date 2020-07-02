@@ -104,8 +104,8 @@ public:
    * \param tbs TBS of the allocation
    * \param params parameters of the received CQI
    * \param ueInfo UE info
-   * \param startRbg Start RBG
-   * \param numRbg Number of RBG
+   * \param startRb Start RB
+   * \param numRb Number of RB
    * \param model SpectrumModel to calculate the CQI
    *
    * To calculate the UL MCS, is necessary to remember the allocation done to
@@ -121,7 +121,7 @@ public:
   void UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                         const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                         const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                        uint16_t startRbg, uint16_t numRbg,
+                        uint16_t startRb, uint16_t numRb,
                         const Ptr<const SpectrumModel> &model) const;
 
   /**

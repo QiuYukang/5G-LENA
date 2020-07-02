@@ -49,14 +49,14 @@ void
 NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                                               const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                                               const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                              uint16_t startRbg, uint16_t numRbg,
+                                              uint16_t startRb, uint16_t numRb,
                                               const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
   NS_UNUSED (tbs);
 
   NS_LOG_INFO ("Computing SB CQI for UE " << ueInfo->m_rnti << " with a tx that started " <<
-               "at RBG " << startRbg << " and ended at " << startRbg + numRbg);
+               "at RBG " << startRb << " and ended at " << startRb + numRb);
 
   ueInfo->m_ulCqi.m_sinr = params.m_ulCqi.m_sinr;
   ueInfo->m_ulCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::SB;
@@ -70,10 +70,10 @@ NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t 
   for (uint32_t ichunk = 0; ichunk < model->GetNumBands (); ichunk++)
     {
       NS_ASSERT (specIt != specVals.ValuesEnd ());
-      if (ichunk >= startRbg && numRbg > 0)
+      if (ichunk >= startRb && numRb > 0)
         {
           *specIt = ueInfo->m_ulCqi.m_sinr.at (ichunk);
-          numRbg--;
+          numRb--;
           out << ueInfo->m_ulCqi.m_sinr.at (ichunk) << " ";
         }
       else
