@@ -117,12 +117,13 @@ ReportPowerLena (PowerOutputStats *stats, Ptr<SpectrumValue> txPsd, uint16_t rnt
 }
 
 static void
-ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint32_t activeUe,
-                   uint32_t usedRe, uint32_t availableRb,
-                   uint32_t availableSym, uint16_t bwpId,
+ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint32_t scheduledUe,
+                   uint32_t usedReg, uint32_t usedSym,
+                   uint32_t availableRb, uint32_t availableSym, uint16_t bwpId,
                    uint16_t cellId)
 {
-  stats->SaveSlotStats (sfnSf, bwpId, cellId, activeUe, usedRe, availableRb, availableSym);
+  stats->SaveSlotStats (sfnSf, scheduledUe, usedReg, usedSym,
+                        availableRb, availableSym, bwpId, cellId);
 }
 
 void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
@@ -904,7 +905,7 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
           bwpId = 1;
         }
       auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotStats",
+      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
@@ -918,7 +919,7 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
           bwpId = 1;
         }
       auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotStats",
+      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
@@ -932,7 +933,7 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
           bwpId = 1;
         }
       auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotStats",
+      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();

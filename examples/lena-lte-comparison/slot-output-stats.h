@@ -75,17 +75,19 @@ public:
 
   /**
    * \brief Save the slot statistics
-   * \param sfnSf slot number
-   * \param bwpId BWP ID
-   * \param cellId Cell ID
-   * \param activeUe Number of active UE
-   * \param usedReg Used Resource Element Group
-   * \param availableRb Available RB
-   * \param availableSym Available Symbols
+   * \param [in] sfnSf Slot number
+   * \param [in] scheduledUe The number of scheduled UE in the slot
+   * \param [in] usedReg Used Resource Element Group (1 sym x 1 RB)
+   * \param [in] usedSym Used symbols
+   * \param [in] availableRb Available RBs
+   * \param [in] availableSym Available symbols
+   * \param [in] bwpId BWP ID
+   * \param [in] cellId Cell ID
    */
-  void SaveSlotStats (const SfnSf &sfnSf, uint16_t bwpId, uint16_t cellId,
-                      uint32_t activeUe, uint32_t usedReg, uint32_t availableRb,
-                      uint32_t availableSym);
+  void SaveSlotStats (const SfnSf &sfnSf, uint32_t scheduledUe, uint32_t usedReg,
+                      uint32_t usedSym, uint32_t availableRb,
+                      uint32_t availableSym, uint16_t bwpId,
+                      uint16_t cellId);
 
   /**
    * \brief Force the cache write to disk, emptying the cache itself.
@@ -101,12 +103,13 @@ private:
   struct SlotCache
   {
     SfnSf sfnSf;
-    uint16_t bwpId;
-    uint16_t cellId;
-    uint32_t activeUe;
+    uint32_t scheduledUe;
     uint32_t usedReg;
+    uint32_t usedSym;
     uint32_t availableRb;
     uint32_t availableSym;
+    uint16_t bwpId;
+    uint16_t cellId;
   };
 
   SQLiteOutput *m_db;                         //!< DB pointer

@@ -40,8 +40,9 @@ SlotOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
                         "Slot INTEGER NOT NULL,"
                         "BwpId INTEGER NOT NULL,"
                         "CellId INTEGER NOT NULL,"
-                        "ActiveUe INTEGER NOT NULL,"
+                        "ScheduledUe INTEGER NOT NULL,"
                         "UsedReg INTEGER NOT NULL,"
+                        "UsedSym INTEGER NOT NULL,"
                         "AvailableRb INTEGER NOT NULL,"
                         "AvailableSym INTEGER NOT NULL,"
                         "Seed INTEGER NOT NULL,"
@@ -53,18 +54,20 @@ SlotOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
 }
 
 void
-SlotOutputStats::SaveSlotStats (const SfnSf &sfnSf, uint16_t bwpId, uint16_t cellId,
-                                uint32_t activeUe, uint32_t usedReg, uint32_t availableRb,
-                                uint32_t availableSym)
+SlotOutputStats::SaveSlotStats (const SfnSf &sfnSf,
+                                uint32_t scheduledUe, uint32_t usedReg,
+                                uint32_t usedSym, uint32_t availableRb,
+                                uint32_t availableSym, uint16_t bwpId, uint16_t cellId)
 {
   SlotCache c;
   c.sfnSf = sfnSf;
-  c.bwpId = bwpId;
-  c.cellId = cellId;
-  c.activeUe = activeUe;
+  c.scheduledUe = scheduledUe;
   c.usedReg = usedReg;
+  c.usedSym = usedSym;
   c.availableRb = availableRb;
   c.availableSym = availableSym;
+  c.bwpId = bwpId;
+  c.cellId = cellId;
 
   m_slotCache.emplace_back (c);
 
@@ -103,7 +106,7 @@ void SlotOutputStats::WriteCache ()
   for (const auto & v : m_slotCache)
     {
       sqlite3_stmt *stmt;
-      ret = m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+      ret = m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 1, v.sfnSf.GetFrame ());
       NS_ASSERT (ret);
@@ -115,17 +118,19 @@ void SlotOutputStats::WriteCache ()
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 5, v.cellId);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 6, v.activeUe);
+      ret = m_db->Bind (stmt, 6, v.scheduledUe);
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 7, v.usedReg);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 8, v.availableRb);
+      ret = m_db->Bind (stmt, 8, v.usedSym);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 9, v.availableSym);
+      ret = m_db->Bind (stmt, 9, v.availableRb);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 10, RngSeedManager::GetSeed ());
+      ret = m_db->Bind (stmt, 10, v.availableSym);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 11, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      ret = m_db->Bind (stmt, 11, RngSeedManager::GetSeed ());
+      NS_ASSERT (ret);
+      ret = m_db->Bind (stmt, 12, static_cast<uint32_t> (RngSeedManager::GetRun ()));
       NS_ASSERT (ret);
 
       ret = m_db->SpinExec (stmt);
