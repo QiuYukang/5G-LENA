@@ -1583,11 +1583,14 @@ main (int argc, char *argv[])
       NS_FATAL_ERROR ("NAH");
     }
 
+
+  Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
+                                              // and when simulation starts the object does not exist anymore, but the scheduled REM events do (exist).
+                                              // So, REM events would be called with invalid pointer to remHelper ...
   if (generateRem)
     {
       if (simulator == "5GLENA" && !calibration)
         {
-          Ptr<NrRadioEnvironmentMapHelper> remHelper;
           NetDeviceContainer gnbContainerRem;
           Ptr<NetDevice> ueRemDevice;
           uint16_t remPhyIndex = 0;
