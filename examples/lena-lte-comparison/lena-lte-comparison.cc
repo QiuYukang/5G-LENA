@@ -1065,6 +1065,19 @@ main (int argc, char *argv[])
 
   std::string scheduler = "PF";
 
+  // Rem parameters: Modify them by hand, don't use the CommandLine for
+  // the moment
+  double xMinRem = -2000.0;
+  double xMaxRem = 2000.0;
+  uint16_t xResRem = 100;
+  double yMinRem = -2000.0;
+  double yMaxRem = 2000.0;
+  uint16_t yResRem = 100;
+  double zRem = 1.5;
+  bool generateRem = false;
+  uint32_t remSector = 1;
+
+
   /*
    * From here, we instruct the ns3::CommandLine class of all the input parameters
    * that we may accept as input, as well as their description, and the storage
@@ -1569,6 +1582,70 @@ main (int argc, char *argv[])
     default:
       NS_FATAL_ERROR ("NAH");
     }
+
+  if (generateRem)
+    {
+      if (simulator == "5GLENA" && !calibration)
+        {
+          Ptr<NrRadioEnvironmentMapHelper> remHelper;
+          NetDeviceContainer gnbContainerRem;
+          Ptr<NetDevice> ueRemDevice;
+          uint16_t remPhyIndex = 0;
+
+          if (remSector == 1)
+            {
+              gnbContainerRem = gnbSector1NetDev;
+              ueRemDevice = ueSector1NetDev.Get(0);
+            }
+          else if (remSector == 2)
+            {
+              gnbContainerRem = gnbSector2NetDev;
+              ueRemDevice = ueSector2NetDev.Get(0);
+            }
+          else if (remSector == 3)
+            {
+              gnbContainerRem = gnbSector3NetDev;
+              ueRemDevice = ueSector3NetDev.Get(0);
+            }
+          else
+            {
+              NS_FATAL_ERROR ("Sector does not exist");
+            }
+
+          //Radio Environment Map Generation for ccId 0
+          remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
+          remHelper->SetMinX (xMinRem);
+          remHelper->SetMaxX (xMaxRem);
+          remHelper->SetResX (xResRem);
+          remHelper->SetMinY (yMinRem);
+          remHelper->SetMaxY (yMaxRem);
+          remHelper->SetResY (yResRem);
+          remHelper->SetZ (zRem);
+
+          //save beamforming vectors
+          for (uint32_t j = 0; j < gridScenario.GetNumSites (); ++j)
+            {
+              switch (remSector - 1)
+              {
+                case 0:
+                  gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
+                  break;
+                case 1:
+                  gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
+                  break;
+                case 2:
+                  gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
+                  break;
+                default:
+                  NS_ABORT_MSG("sector cannot be larger than 3");
+                  break;
+              }
+            }
+
+          remHelper->CreateRem (gnbContainerRem, ueRemDevice, remPhyIndex);  //bwpId 0
+        }
+    }
+
 
   Simulator::Stop (MilliSeconds (appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
