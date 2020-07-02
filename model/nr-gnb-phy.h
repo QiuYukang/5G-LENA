@@ -359,15 +359,17 @@ public:
    * \brief TracedCallback signature for slot statistics
    *
    * \param [in] sfnSf Slot number
-   * \param [in] activeUe The number of active UE in the slot
-   * \param [in] usedRe Used Resource Element Group (1 sym x 1 RB)
+   * \param [in] scheduledUe The number of scheduled UE in the slot
+   * \param [in] usedReg Used Resource Element Group (1 sym x 1 RB)
+   * \param [in] usedSym Used symbols
    * \param [in] availableRb Available RBs
    * \param [in] availableSym Available symbols
    * \param [in] bwpId BWP ID
    * \param [in] cellId Cell ID
    */
-  typedef void (* SlotStatsTracedCallback)(const SfnSf &sfnSf, uint32_t activeUe,
-                                           uint32_t usedRe, uint32_t availableRb,
+  typedef void (* SlotStatsTracedCallback)(const SfnSf &sfnSf, uint32_t scheduledUe,
+                                           uint32_t usedReg, uint32_t usedSym,
+                                           uint32_t availableRb,
                                            uint32_t availableSym, uint16_t bwpId,
                                            uint16_t cellId);
 
@@ -703,9 +705,13 @@ private:
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_phyTxedCtrlMsgsTrace;
 
   /**
-   * \brief Trace information for the slot statistics
+   * \brief Trace information for the ctrl slot statistics
    */
-  TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotStats;
+  TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotCtrlStats;
+  /**
+   * \brief Trace information for the data slot statistics
+   */
+  TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotDataStats;
 
   std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send

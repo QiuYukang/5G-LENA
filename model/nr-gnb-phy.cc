@@ -165,9 +165,15 @@ NrGnbPhy::GetTypeId (void)
                    MakeStringAccessor (&NrGnbPhy::SetPattern,
                                        &NrGnbPhy::GetPattern),
                    MakeStringChecker ())
-    .AddTraceSource ("SlotStats",
-                     "Statistics for the current slot: SfnSf, active UE, used RE, available RBs, available symbols",
-                     MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotStats),
+    .AddTraceSource ("SlotDataStats",
+                     "Data statistics for the current slot: SfnSf, active UE, used RE, "
+                     "used symbols, available RBs, available symbols, bwp ID, cell ID",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotDataStats),
+                     "ns3::NrGnbPhy::SlotStatsTracedCallback")
+    .AddTraceSource ("SlotCtrlStats",
+                     "Ctrl statistics for the current slot: SfnSf, active UE, used RE, "
+                     "used symbols, available RBs, available symbols, bwp ID, cell ID",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotCtrlStats),
                      "ns3::NrGnbPhy::SlotStatsTracedCallback")
     ;
   return tid;
@@ -835,23 +841,56 @@ NrGnbPhy::GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const
 {
   NS_LOG_FUNCTION (this);
   std::unordered_set<uint16_t> activeUe;
-  uint32_t resourceElementGroupUsed = 0;
-  uint32_t availRb = GetRbNum();
+  uint32_t availRb = GetRbNum ();
+  uint32_t dataReg = 0;
+  uint32_t ctrlReg = 0;
+  uint32_t dataSym = 0;
+  uint32_t ctrlSym = 0;
 
-  for (const auto & alloc : allocInfo.m_varTtiAllocInfo)
+  int lastSymStart = -1;
+
+  for (const auto & allocation : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
-      if (alloc.m_dci->m_rnti != 0)
+      uint32_t rbg = std::count (allocation.m_dci->m_rbgBitmask.begin (),
+                                 allocation.m_dci->m_rbgBitmask.end (), 1);
+
+      // First: Store the RNTI of the UE in the active list
+      if (allocation.m_dci->m_rnti != 0)
         {
-          activeUe.insert (alloc.m_dci->m_rnti);
+          activeUe.insert (allocation.m_dci->m_rnti);
         }
 
-      uint32_t rbg = std::count (alloc.m_dci->m_rbgBitmask.begin (),
-                                 alloc.m_dci->m_rbgBitmask.end (), 1);
-      resourceElementGroupUsed += (rbg * GetNumRbPerRbg ()) * alloc.m_dci->m_numSym;
+      NS_ASSERT (lastSymStart <= allocation.m_dci->m_symStart);
+
+      auto rbgUsed = (rbg * GetNumRbPerRbg ()) * allocation.m_dci->m_numSym;
+      if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+        {
+          dataReg += rbgUsed;
+        }
+      else
+        {
+          ctrlReg += rbgUsed;
+        }
+
+      if (lastSymStart != allocation.m_dci->m_symStart)
+        {
+          if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+            {
+              dataSym += allocation.m_dci->m_numSym;
+            }
+          else
+            {
+              ctrlSym += allocation.m_dci->m_numSym;
+            }
+        }
+
+      lastSymStart = allocation.m_dci->m_symStart;
     }
 
-  m_phySlotStats (allocInfo.m_sfnSf, activeUe.size (), resourceElementGroupUsed,
-                  availRb, GetSymbolsPerSlot (), GetBwpId (), GetCellId ());
+  m_phySlotDataStats (allocInfo.m_sfnSf, activeUe.size (), dataReg, dataSym,
+                      availRb, GetSymbolsPerSlot () - ctrlSym, GetBwpId (), GetCellId ());
+  m_phySlotCtrlStats (allocInfo.m_sfnSf, activeUe.size (), ctrlReg, ctrlSym,
+                      availRb, GetSymbolsPerSlot () - dataSym, GetBwpId (), GetCellId ());
 }
 
 void
