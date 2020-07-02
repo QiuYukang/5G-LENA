@@ -306,6 +306,7 @@ protected:
 
 };
 
+
 /**
  * \ingroup gnb-phy
  * \brief The OptimalCovMatrixBeamforming class

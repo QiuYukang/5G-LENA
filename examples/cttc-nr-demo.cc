@@ -55,6 +55,7 @@ $ ./waf --run "cttc-nr-demo --Help"
 #include "ns3/mobility-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/flow-monitor-module.h"
+#include <ns3/buildings-module.h>
 #include "ns3/nr-module.h"
 #include "ns3/config-store-module.h"
 
@@ -221,7 +222,8 @@ main (int argc, char *argv[])
   gridScenario.SetRows (1);
   gridScenario.SetColumns (gNbNum);
   gridScenario.SetHorizontalBsDistance (5.0);
-  gridScenario.SetBsHeight (10.0);
+  gridScenario.SetVerticalBsDistance (5.0);
+  gridScenario.SetBsHeight (1.5);
   gridScenario.SetUtHeight (1.5);
   gridScenario.SetBsNumber (gNbNum);
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
