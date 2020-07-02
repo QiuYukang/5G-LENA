@@ -86,7 +86,7 @@ public:
   enum RemMode {
          BEAM_SHAPE,
          COVERAGE_AREA,
-         UL_COVERAGE_AREA
+         UE_COVERAGE
   };
 
   /**
@@ -376,12 +376,13 @@ private:
   void CalcCoverageAreaRemMap ();
 
   /**
-   * \brief This function generates an Uplink CoverageArea map. In this case,
-   * the rrd is the transmitting device, while one rtd each time is considered
-   * as the receiving device and the rest of rtds will have their antennas to
-   * point towards the receiving device.
+   * \brief This function generates an Ue Coverage map that depicts the SNR
+   * of this UE with respect to its UL transmission towards the gNB form various
+   * points on the map.
+   * An additional SINR map is also generated that can be used in mixed TDD/FDD
+   * scenarios considering interference from neighbor gNBs that transmit in DL.
    */
-  void CalcUlCoverageAreaRemMap ();
+  void CalcUeCoverageRemMap ();
 
   /**
    * T\brief Configures the REM Receiving Device (RRD)

@@ -149,16 +149,17 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                      "devices use for the transmission the beam towards the rem point;"
                                      "and also for the best-SNR, for each transmitting device and the REM point "
                                      "are used the best directional beam-pair and then is selected the best SNR."
-                                     "c) UL_COVERAGE_AREA which is similar as the above, although the Tx Device"
+                                     "c) UE_COVERAGE which is similar as the above, although the Tx Device"
                                      "is the UE (UL direction), and the Rx device is each gNB to which it is "
                                      "connected each time, while the rest of gNBs (if they are present) are"
-                                     "pointing their beams towards the Rx gNB. ",
+                                     "pointing their beams towards the Rx gNB. In case of TDD, the SINR map"
+                                     "will show the interference caused by the DL of these gNBs.",
                                      EnumValue (NrRadioEnvironmentMapHelper::COVERAGE_AREA),
                                      MakeEnumAccessor (&NrRadioEnvironmentMapHelper::SetRemMode,
                                                        &NrRadioEnvironmentMapHelper::GetRemMode),
                                      MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
                                                       NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea",
-                                                      NrRadioEnvironmentMapHelper::UL_COVERAGE_AREA, "UplinkCoverageArea"))
+                                                      NrRadioEnvironmentMapHelper::UE_COVERAGE, "UeCoverageArea"))
                       .AddAttribute ("InstallationDelay",
                                      "How many time it is needed in the simulation to configure phy parameters at UE, "
                                      "depends on RRC message timing.",
@@ -541,9 +542,9 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &gnbNetDev
     {
       CalcBeamShapeRemMap();
     }
-  else if (m_remMode == UL_COVERAGE_AREA)
+  else if (m_remMode == UE_COVERAGE)
     {
-      CalcUlCoverageAreaRemMap ();
+      CalcUeCoverageRemMap ();
     }
   else
     {
@@ -913,7 +914,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 }
 
 void
-NrRadioEnvironmentMapHelper::CalcUlCoverageAreaRemMap ()
+NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
 {
     NS_LOG_FUNCTION (this);
     //Save REM creation start time
