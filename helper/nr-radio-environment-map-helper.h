@@ -226,12 +226,12 @@ public:
    * the REM through a callback to the DelayedInstall after a delay of
    * installationDelay. Then the DelayedInstall takes care to call all the
    * perform all the necessary actions (call the necessary functions).
-   * \param gnbNetDev gNb devices for which the map will be generated
-   * \param ueDevice The Ue device for which the map will be generated
+   * \param rtdNetDev The transmitting devices for which the map will be generated
+   * \param rrdDevice The receiving device for which the map will be generated
    * \param bwpId The bwpId
    */
-  void CreateRem (const NetDeviceContainer &gnbNetDev,
-                  const Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  void CreateRem (const NetDeviceContainer &rtdNetDev,
+                  const Ptr<NetDevice> &rrdDevice, uint8_t bwpId);
 
 private:
 
@@ -290,28 +290,68 @@ private:
 
   /**
    * \brief This method creates the list of Rem Points (coordinates) based on
-   * the min/max coprdinates and the resilution defined by the user
+   * the min/max coprdinates and the resolution defined by the user
    */
   void CreateListOfRemPoints ();
+
+  /**
+   * \brief Configures the REM Receiving Device (RRD)
+   */
+  void ConfigureRrd (const Ptr<NetDevice> &rrdDevice);
+
+  /**
+   * \brief Configure REM Transmission Devices (RTDs) List
+   * \param rtdDevs NetDeviceContainer of the transmitting objects for whose
+   * transmissions will be created this REM map
+   */
+  void ConfigureRtdList (const NetDeviceContainer& rtdDevs);
+
+  /**
+   * \brief This function is used to performed a delayed installation of REM map
+   * so that there is the sufficient time for the UE to be configured from RRC.
+   * Then, this function is responsible to call all the necessary functions.
+   * \param rtdNetDev The container of the Tx devices for which the map will be generated
+   * \param rrdDevice The Rx device for which the map will be generated
+   */
+   void DelayedInstall (const NetDeviceContainer &rtdNetDev,
+                        const Ptr<NetDevice> &rrdDevice);
 
   /**
    * Function that saves all antenna configurations in a map. This is
    * done at the installation time to pick up also
    * user defined configuration of beams.
    */
-  void SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &gnbNetDev,
-                     const Ptr<NetDevice> &ueNetDevice, uint8_t bwpId);
+  void SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &rtdNetDev,
+                                         const Ptr<NetDevice> &rrdDevice);
 
   /**
-   * \brief This function is used to performed a delayed installation of REM map
-   * so that there is the sufficient time for the UE to be configured from RRC.
-   * Then, this function is responsible to call all the necessary functions.
-   * \param gnbNetDev gNb devices for which the map will be generated
-   * \param ueDevice The Ue device for which the map will be generated
-   * \param bwpId The bwpId
+   * \brief This function generates a BeamShape map. Using the configuration
+   * of antennas as have been set in the user scenario script, it calculates
+   * the SNR/SINR.
    */
-   void DelayedInstall (const NetDeviceContainer &gnbNetDev,
-                        const Ptr<NetDevice> &ueDevice, uint8_t bwpId);
+  void CalcBeamShapeRemMap ();
+
+  /**
+   * \brief This function generates a CoverageArea map. In this case, all the
+   * antennas of the rtds are set to point towards the rem point and the antenna
+   * of the rem point towards each rtd device.
+   */
+  void CalcCoverageAreaRemMap ();
+
+  /**
+   * \brief This function generates a Ue Coverage map that depicts the SNR of
+   * this UE with respect to its UL transmission towards the gNB form various
+   * points on the map.
+   * An additional SINR map is also generated that can be used in mixed TDD/FDD
+   * scenarios considering interference from neighbor gNBs that transmit in DL.
+   */
+  void CalcUeCoverageRemMap ();
+
+  /**
+   * \brief This method calculates the PSD
+   * \return The PSD (spectrumValue)
+   */
+  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice);
 
   /**
    * \brief This function calculates the SNR.
@@ -355,48 +395,11 @@ private:
                         const std::list <Ptr<SpectrumValue>>& interferenceSignals);
 
   /**
-   * \brief This function generates a BeamShape map. Using the configuration
-   * of antennas as have been set in the user scenario script, it calculates
-   * the SNR/SINR.
-   */
-  void CalcBeamShapeRemMap ();
-
-  /**
    * \brief This function finds the max value in a list of double values.
    * \param values The list of of double values
    * \return The max value
    */
   double GetMaxValue (const std::list<double>& listOfValues) const;
-
-  /**
-   * \brief This function generates a CoverageArea map. In this case, all the
-   * antennas of the rtds are set to point towards the rem point and the antenna
-   * of the rem point towards each rtd device.
-   */
-  void CalcCoverageAreaRemMap ();
-
-  /**
-   * \brief This function generates an Ue Coverage map that depicts the SNR
-   * of this UE with respect to its UL transmission towards the gNB form various
-   * points on the map.
-   * An additional SINR map is also generated that can be used in mixed TDD/FDD
-   * scenarios considering interference from neighbor gNBs that transmit in DL.
-   */
-  void CalcUeCoverageRemMap ();
-
-  /**
-   * T\brief Configures the REM Receiving Device (RRD)
-   */
-  void ConfigureRrd (const Ptr<NetDevice> &ueDevice, uint8_t bwpId);
-
-  /**
-   * \brief Configure REM Transmission Devices (RTDs) List
-   * \param rtdDevs NetDeviceContainer of the transmitting objects for whose transmissions will be created this REM map
-   * \param rrdDev NetDevice whose antenna configuration will be used as the receiver of this REM map
-   * \param bwpId BWP ID identifies the BWP for which will be generated this REM map
-   */
-  void ConfigureRtdList (const NetDeviceContainer& rtdDevs,
-                         const Ptr<NetDevice>& rrdDev, uint8_t bwpId);
 
   /**
    * \brief Configures propagation loss model factories
@@ -460,18 +463,13 @@ private:
    * \param otherDevice toward this device will be configured the beamforming vector of device
    * \param antenna of the first device
    */
-  void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice, const Ptr<const ThreeGppAntennaArrayModel>& antenna);
-
-  /**
-   * \brief This method calculates the PSD
-   * \return The PSD (spectrumValue)
-   */
-  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice);
+  void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice,
+                               const Ptr<const ThreeGppAntennaArrayModel>& antenna);
 
   std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
   std::list<RemPoint> m_rem; ///< List of REM points.
 
-  enum RemMode m_remMode; //
+  enum RemMode m_remMode;
 
   double m_xMin {0};   ///< The `XMin` attribute.
   double m_xMax {0};   ///< The `XMax` attribute.
@@ -489,6 +487,8 @@ private:
 
   RemDevice m_rrd;
 
+  Ptr<NrPhy> m_rrdPhy;  ///< Pointer to the phy of the RRD
+  std::map <const Ptr<NetDevice>, Ptr<NrPhy>> m_rtdDeviceToPhy;     ///< Map for storing the phy of each RTD device
   std::map <const Ptr<NetDevice>, Ptr<ThreeGppAntennaArrayModel>> m_deviceToAntenna;
 
   ObjectFactory m_propagationLossModelFactory;

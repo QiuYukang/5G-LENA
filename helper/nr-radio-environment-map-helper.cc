@@ -284,16 +284,14 @@ NrRadioEnvironmentMapHelper::GetZ () const
   return m_z;
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
   // RTD and RRD devices should have the same spectrum model to perform calculation,
   // if some of the RTD devices is of the different model then its transmission will have to
   // converted into spectrum model of this device
-  m_rrd.spectrumModel = ueDevice->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)->GetSpectrumModel ();
-
-  m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
-
+  m_rrd.spectrumModel = m_rrdPhy->GetSpectrumModel ();
+  m_rrd.mob->SetPosition (rrdDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
   std::ostringstream oss;
   oss << "nr-ues" << m_simTag.c_str() <<".txt";
@@ -302,30 +300,23 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &ueDevice, 
   Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
   m_rrd.mob->AggregateObject (buildingInfo);
 
-  //Get Ue Phy
-  Ptr<NrUeNetDevice> nrUeNetDev = ueDevice->GetObject<NrUeNetDevice> ();
-  Ptr<const NrUePhy> rrdPhy = nrUeNetDev->GetPhy (bwpId);
-  NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
+  m_rrd.antenna = m_deviceToAntenna.find (rrdDevice)->second;
 
-  m_rrd.antenna = m_deviceToAntenna.find (ueDevice)->second;
+  m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
 
-  m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
-
-  ConfigurePropagationModelsFactories (rrdPhy); // we can call only once configuration of prop.models
+  ConfigurePropagationModelsFactories (m_rrdPhy); // we can call only once configuration of prop.models
 
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rtdDevs, const Ptr<NetDevice>& rrdDev, uint8_t bwpId)
+void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rtdDevs)
 {
   NS_LOG_FUNCTION (this);
+
   for (NetDeviceContainer::Iterator netDevIt = rtdDevs.Begin ();
       netDevIt != rtdDevs.End ();
       ++netDevIt)
     {
-      Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
-      Ptr<const NrGnbPhy> rtdPhy = nrNetDev->GetPhy (bwpId);
-      NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
-
+      Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find (*netDevIt)->second;
       if (rtdPhy->GetSpectrumModel () != m_rrd.spectrumModel)
         {
           if (rtdPhy->GetSpectrumModel ()->IsOrthogonal (*m_rrd.spectrumModel))
@@ -352,16 +343,17 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
       Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
       rtd.mob->AggregateObject (buildingInfo);
 
-      rtd.antenna = m_deviceToAntenna.find(*netDevIt)->second;
+      rtd.antenna = m_deviceToAntenna.find (*netDevIt)->second;
 
-      //Configure power
-      rtd.txPower = rtdPhy->GetTxPower ();
+      //Configure power FIX THIS !!!!!!!!!!!!!!
+      //rtd.txPower = rtdPhy->GetTxPower ();
+      rtd.txPower = 1;
 
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
                    ", create new RTD element... " <<
                    ", rtdPhy->GetCentralFrequency () " << rtdPhy->GetCentralFrequency () / 1e6 << " MHz " <<
-                   ", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
+                   //", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
                    ", num: "<< rtdPhy->GetNumerology ());
 
       m_remDev.push_back (rtd);
@@ -487,10 +479,51 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (const Ptr<Object>& object) 
 }
 
 void
-NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &gnbNetDev,
-                                        const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &rtdNetDev,
+                                        const Ptr<NetDevice> &rrdDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
+
+  for (NetDeviceContainer::Iterator netDevIt = rtdNetDev.Begin ();
+      netDevIt != rtdNetDev.End ();
+      ++netDevIt)
+    {
+      Ptr<NrGnbNetDevice> gnbRtdNetDevice = DynamicCast<NrGnbNetDevice> (*netDevIt);
+      Ptr<NrUeNetDevice> ueRtdNetDevice = DynamicCast<NrUeNetDevice> (*netDevIt);
+
+      if (gnbRtdNetDevice)
+      {
+        NS_LOG_UNCOND ("gnb is rtd");
+        m_rtdDeviceToPhy.insert (std::make_pair (*netDevIt, (*netDevIt)->GetObject<NrGnbNetDevice> ()->GetPhy (bwpId)));
+      }
+      else if (ueRtdNetDevice)
+      {
+        NS_LOG_UNCOND ("ue is rtd");
+        m_rtdDeviceToPhy.insert (std::make_pair (*netDevIt, (*netDevIt)->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)));
+      }
+      else
+      {
+        NS_FATAL_ERROR ("no rtd device!");
+      }
+    }
+
+  Ptr<NrGnbNetDevice> gnbRrdNetDevice = DynamicCast<NrGnbNetDevice> (rrdDevice);
+  Ptr<NrUeNetDevice> ueRrdNetDevice = DynamicCast<NrUeNetDevice> (rrdDevice);
+
+  if (gnbRrdNetDevice)
+  {
+    NS_LOG_UNCOND ("gnb is rrd");
+    m_rrdPhy = (rrdDevice)->GetObject<NrGnbNetDevice> ()->GetPhy (bwpId);
+  }
+  else if (ueRrdNetDevice)
+  {
+    NS_LOG_UNCOND ("ue is rrd");
+    m_rrdPhy = (rrdDevice)->GetObject<NrUeNetDevice> ()->GetPhy (bwpId);
+  }
+  else
+  {
+    NS_FATAL_ERROR ("no rrd device!");
+  }
 
   // save user defined beams, it is like a snapshot, because later during
   // simulation they might change, and for the BEAM_SHAPE type of map
@@ -499,40 +532,33 @@ NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &gnbNetDev,
   // since we have delayed install maybe beamforming vector has changed in the RTD device
   // we want to save beamforming vector toward UE in the case that we will
   // need it for BEAM_SHAPE calculation
-  SaveAntennasWithUserDefinedBeams (gnbNetDev, ueDevice, bwpId);
+  SaveAntennasWithUserDefinedBeams (rtdNetDev, rrdDevice);
 
-  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, gnbNetDev, ueDevice, bwpId );
+  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, rtdNetDev, rrdDevice);
 }
 
 void
-NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &gnbNetDev,
-                                                   const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &rtdNetDev,
+                                                               const Ptr<NetDevice> &rrdDevice)
 {
-
-  Ptr<NrUeNetDevice> nrUeNetDev = ueDevice->GetObject<NrUeNetDevice> ();
-  Ptr<const NrUePhy> rrdPhy = nrUeNetDev->GetPhy (bwpId);
-  NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
-
-  m_deviceToAntenna.insert (std::make_pair (ueDevice, Copy (rrdPhy->GetAntennaArray ())));
-  for (NetDeviceContainer::Iterator netDevIt = gnbNetDev.Begin ();
-        netDevIt != gnbNetDev.End ();
-        ++netDevIt)
+  m_deviceToAntenna.insert (std::make_pair (rrdDevice, Copy (m_rrdPhy->GetAntennaArray ())));
+  for (NetDeviceContainer::Iterator rtdNetDevIt = rtdNetDev.Begin ();
+       rtdNetDevIt != rtdNetDev.End ();
+       ++rtdNetDevIt)
       {
-        Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
-        Ptr<const NrGnbPhy> rtdPhy = nrNetDev->GetPhy (bwpId);
-        NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
-        m_deviceToAntenna.insert (std::make_pair (*netDevIt, Copy (rtdPhy->GetAntennaArray ())));
+        Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find (*rtdNetDevIt)->second;
+        m_deviceToAntenna.insert (std::make_pair (*rtdNetDevIt, Copy (rtdPhy->GetAntennaArray ())));
       }
 }
 
 void
-NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &gnbNetDev,
-                                             const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev,
+                                             const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
 
-  ConfigureRrd (ueDevice, bwpId);
-  ConfigureRtdList (gnbNetDev, ueDevice, bwpId);
+  ConfigureRrd (rrdDevice);
+  ConfigureRtdList (rtdNetDev);
   CreateListOfRemPoints ();
   if (m_remMode == COVERAGE_AREA)
     {
@@ -617,7 +643,9 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice, const Ptr<const ThreeGppAntennaArrayModel>& antenna)
+NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device,
+                                                     const RemDevice& otherDevice,
+                                                     const Ptr<const ThreeGppAntennaArrayModel>& antenna)
 {
   NS_LOG_FUNCTION (this);
   device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, antenna));
@@ -796,8 +824,8 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
 
-      NS_LOG_INFO ("Avg snr value saved:"<<itRemPoint->avgSnrDb);
-      NS_LOG_INFO ("Avg sinr value saved:"<<itRemPoint->avgSinrDb);
+      NS_LOG_INFO ("Avg snr value saved:" << itRemPoint->avgSnrDb);
+      NS_LOG_INFO ("Avg sinr value saved:" << itRemPoint->avgSinrDb);
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
   auto remEndTime = std::chrono::system_clock::now ();
@@ -990,7 +1018,7 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
 
     auto remEndTime = std::chrono::system_clock::now ();
     std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
-    NS_LOG_UNCOND ("REM map created. Total time needed to create the REM map:" <<
+    NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                    remElapsedSeconds.count () / 60 << " minutes.");
 }
 
@@ -1176,7 +1204,6 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
 
   outFile.close ();
 }
-
 
 void
 NrRadioEnvironmentMapHelper::Finalize ()
