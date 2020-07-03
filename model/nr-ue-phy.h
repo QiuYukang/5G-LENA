@@ -116,10 +116,10 @@ public:
   /**
    * \brief Retrieve the TX power of the UE
    *
-   * Please note that there is also an attribute ("NrUePhy::TxPower")
+   * Please note that there is also an attribute ("NrGnbPhy::TxPower")
    * \return the TX power of the UE
    */
-  double GetTxPower () const __attribute__((warn_unused_result));
+  virtual double GetTxPower () const override;
 
   /**
    * \brief Register the UE to a certain Enb

@@ -212,12 +212,12 @@ public:
   void SetTxPower (double pow);
 
   /**
-   * \brief Retrieve the TX power of the UE
+   * \brief Retrieve the TX power of the gNB
    *
    * Please note that there is also an attribute ("NrUePhy::TxPower")
-   * \return the TX power of the UE
+   * \return the TX power of the gNB
    */
-  double GetTxPower () const __attribute__((warn_unused_result));
+  virtual double GetTxPower () const override;
 
   /**
    * \brief Set the Tx power spectral density based on the RB index vector

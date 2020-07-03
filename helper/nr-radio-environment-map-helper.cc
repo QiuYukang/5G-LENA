@@ -345,9 +345,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
 
       rtd.antenna = m_deviceToAntenna.find (*netDevIt)->second;
 
-      //Configure power FIX THIS !!!!!!!!!!!!!!
-      //rtd.txPower = rtdPhy->GetTxPower ();
-      rtd.txPower = 1;
+      rtd.txPower = rtdPhy->GetTxPower ();
 
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
