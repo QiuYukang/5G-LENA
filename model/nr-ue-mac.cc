@@ -21,7 +21,7 @@
   do                                                                     \
     {                                                                    \
       std::clog << " [ CellId " << GetCellId() << ", bwpId "             \
-                << GetBwpId () << "] ";                                  \
+                << GetBwpId () << ", rnti " << m_rnti << "] ";           \
     }                                                                    \
   while (false);
 
@@ -614,11 +614,16 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
   m_macRxedCtrlMsgsTrace (m_currentSlot, GetCellId (), m_rnti, GetBwpId (), dciMsg);
 
   NS_LOG_INFO ("UL DCI received, transmit data in slot " << dataSfn <<
+               " Harq Process " << +m_ulDci->m_harqProcess <<
                " TBS " << m_ulDci->m_tbSize << " total queue " << GetTotalBufSize ());
 
   if (m_ulDci->m_ndi == 0)
     {
+      // This method will retransmit the data saved in the harq buffer
       TransmitRetx ();
+
+      // This method will transmit a new BSR.
+      SendReportBufferStatus (dataSfn, m_ulDci->m_symStart);
     }
   else if (m_ulDci->m_ndi == 1)
     {
@@ -626,6 +631,8 @@ NrUeMac::ProcessUlDci (const Ptr<NrUlDciMessage> &dciMsg)
 
       NS_LOG_INFO ("After sending NewData, bufSize " << GetTotalBufSize ());
 
+      // Send a new BSR. SendNewData() already took into account the size of
+      // the BSR.
       SendReportBufferStatus (dataSfn, m_ulDci->m_symStart);
 
       NS_LOG_INFO ("UL DCI processing done, sent to PHY a total of " << m_ulDciTotalUsed <<
@@ -664,9 +671,18 @@ NrUeMac::TransmitRetx ()
 {
   NS_LOG_FUNCTION (this);
 
-  NS_LOG_DEBUG ("UE MAC RETX HARQ " << + m_ulDci->m_harqProcess);
-
   Ptr<PacketBurst> pb = m_miUlHarqProcessesPacket.at (m_ulDci->m_harqProcess).m_pktBurst;
+
+  if (pb == nullptr)
+    {
+      NS_LOG_WARN ("The previous transmission did not contain any new data; "
+                   "probably it was BSR only. To not send an old BSR to the scheduler, "
+                   "we don't send anything back in this allocation. Eventually, "
+                   "the Harq timer at gnb will expire, and soon this allocation will be forgotten.");
+      return;
+    }
+
+  NS_LOG_DEBUG ("UE MAC RETX HARQ " << + m_ulDci->m_harqProcess);
 
   NS_ASSERT (pb->GetNPackets() > 0);
 
@@ -786,6 +802,7 @@ NrUeMac::SendNewData ()
   Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
   m_miUlHarqProcessesPacket.at (m_ulDci->m_harqProcess).m_pktBurst = pb;
   m_miUlHarqProcessesPacket.at (m_ulDci->m_harqProcess).m_lcidList.clear ();
+  NS_LOG_INFO ("Reset HARQP " << +m_ulDci->m_harqProcess);
 
   // Sending the status data has no boundary: let's try to send the ACK as
   // soon as possible, filling the TBS, if necessary.
@@ -850,6 +867,14 @@ NrUeMac::SendNewData ()
     {
       usefulTbs -= activeLcsTx * 3;
       SendTxData (usefulTbs, activeLcsTx);
+    }
+
+  // If we did not used the packet burst, explicitly signal it to the HARQ
+  // retx, if any.
+  if (m_ulDciTotalUsed == 0)
+    {
+      m_miUlHarqProcessesPacket.at (m_ulDci->m_harqProcess).m_pktBurst = nullptr;
+      m_miUlHarqProcessesPacket.at (m_ulDci->m_harqProcess).m_lcidList.clear ();
     }
 }
 

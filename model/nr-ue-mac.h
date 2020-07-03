@@ -300,6 +300,15 @@ private:
 
   void RandomlySelectAndSendRaPreamble ();
   void SendRaPreamble (bool contention);
+
+  /**
+   * \brief Send a Report Buffer Status
+   * \param dataSfn data slot
+   * \param symStart symStart
+   *
+   * Please note that the BSR is not saved in the HARQ buffer, so it will
+   * not get retransmitted.
+   */
   void SendReportBufferStatus (const SfnSf &dataSfn, uint8_t symStart);
   void RefreshHarqProcessesPacketBuffer (void);
 
