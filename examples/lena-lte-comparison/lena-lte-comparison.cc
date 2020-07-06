@@ -110,7 +110,7 @@ ReportPowerNr (PowerOutputStats *stats, const SfnSf & sfnSf,
 }
 
 static void
-ReportPowerLena (PowerOutputStats *stats, Ptr<SpectrumValue> txPsd, uint16_t rnti)
+ReportPowerLena (PowerOutputStats *stats, uint16_t rnti, Ptr<SpectrumValue> txPsd)
 {
   // Please note that LENA has less output than NR... so we have to save less information.
   ReportPowerNr (stats, SfnSf (), txPsd, MilliSeconds (0), rnti, 0, 0, 0);
