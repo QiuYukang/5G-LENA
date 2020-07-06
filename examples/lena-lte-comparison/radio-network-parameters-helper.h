@@ -29,19 +29,24 @@ public:
 
   /**
    * \brief Set the radio network parameters to LTE.
+   * \param operation mode that can be FDD or TDD in order to determine bandwidth
+   * \param numCcs number of component carriers
+   * \param bandwidthHz bandwidth of a single carrier in MHz
    */
   void SetNetworkToLte (const std::string operationMode,
-                        uint16_t numCcs);
+                        uint16_t numCcs, uint32_t bandwidthMHz);
 
   /**
    * \brief Set the radio network parameters to NR.
-   * \param scenario Urban scenario (UMa or UMi).
+   * \param operation mode that can be FDD or TDD in order to determine bandwidth
    * \param numerology Numerology to use.
-   * \param freqReuse The cell frequency reuse.
+   * \param numCcs number of component carriers
+   * \param bandwidthMHz bandwidth in MHz
    */
   void SetNetworkToNr (const std::string operationMode,
                        uint16_t numerology,
-                       uint16_t numCcs);
+                       uint16_t numCcs,
+                       uint32_t bandwidthMHz);
 
   /**
    * \brief Gets the BS transmit power

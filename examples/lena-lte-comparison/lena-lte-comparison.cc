@@ -145,7 +145,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                  bool calibration,
                                  SinrOutputStats *sinrStats,
                                  PowerOutputStats *powerStats,
-                                 const std::string &scheduler)
+                                 const std::string &scheduler,
+                                 uint32_t bandwidthMHz)
 {
 
   /*
@@ -164,8 +165,33 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    *     fc_dl       fc_ul       fc_dl       fc_ul        fc_dl      fc_ul
    */
 
-  uint32_t bandwidthBandDl = 100;
-  uint32_t bandwidthBandUl = 100;
+  uint32_t bandwidthBandDlRB;
+  uint32_t bandwidthBandUlRB;
+
+  if (bandwidthMHz == 20)
+    {
+      bandwidthBandDlRB = 100;
+      bandwidthBandUlRB = 100;
+    }
+  else if (bandwidthMHz == 15)
+    {
+      bandwidthBandDlRB = 75;
+      bandwidthBandUlRB = 75;
+    }
+  else if (bandwidthMHz == 10)
+    {
+      bandwidthBandDlRB = 50;
+      bandwidthBandUlRB = 50;
+    }
+  else if (bandwidthMHz == 5)
+    {
+      bandwidthBandDlRB = 25;
+      bandwidthBandUlRB = 25;
+    }
+  else
+    {
+      NS_ABORT_MSG ("The configured bandwidth in MHz not supported:" << bandwidthMHz);
+    }
 
   uint32_t centralFrequencyBand1Dl = 100;
   uint32_t centralFrequencyBand1Ul = 200;
@@ -179,13 +205,22 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   std::string pathlossModel;
   if (scenario == "UMa")
     {
-      txPower = 49;
+      txPower = 43;
       pathlossModel = "ns3::ThreeGppUmaPropagationLossModel";
     }
   else if (scenario == "UMi")
     {
       txPower = 44;
       pathlossModel = "ns3::ThreeGppUmiStreetCanyonPropagationLossModel";
+    }
+  else if (scenario == "RMa")
+    {
+      txPower = 43;
+      pathlossModel = "ns3::ThreeGppRmaPropagationLossModel";
+    }
+  else
+    {
+      NS_FATAL_ERROR("Selected scenario " << scenario << " not valid. Valid values: UMa, UMi, RMa");
     }
 
   lteHelper = CreateObject<LteHelper> ();
@@ -222,8 +257,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
       lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (4.97));
     }
-  lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDl));
-  lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUl));
+  lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDlRB));
+  lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUlRB));
 
   //SECTOR 1 eNB configuration
   if (!calibration)
@@ -333,7 +368,8 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
                                    SinrOutputStats *sinrStats,
                                    PowerOutputStats *powerStats,
                                    SlotOutputStats *slotStats,
-                                   const std::string &scheduler)
+                                   const std::string &scheduler,
+                                   uint32_t bandwidthMHz)
 {
 
 
@@ -350,7 +386,7 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
   ranHelper.SetScenario (scenario);
   if (radioNetwork == "LTE")
     {
-      ranHelper.SetNetworkToLte (operationMode, 1);
+      ranHelper.SetNetworkToLte (operationMode, 1, bandwidthMHz);
       rbOverhead = 0.1;
       harqProcesses = 8;
       n1Delay = 4;
@@ -366,7 +402,7 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
     }
   else if (radioNetwork == "NR")
     {
-      ranHelper.SetNetworkToNr (operationMode, numerology, 1);
+      ranHelper.SetNetworkToNr (operationMode, numerology, 1, bandwidthMHz);
       rbOverhead = 0.04;
       harqProcesses = 20;
       if (errorModel == "")
@@ -423,9 +459,13 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
     {
       scene = BandwidthPartInfo::UMa_LoS;
     }
+  else if (scenario == "RMa")
+    {
+      scene = BandwidthPartInfo::RMa_LoS;
+    }
   else
     {
-      NS_ABORT_MSG ("Unsupported scenario");
+      NS_ABORT_MSG ("Unsupported scenario " << scenario << ". Supported values: UMi, UMa, RMa");
     }
 
   /*
@@ -600,7 +640,28 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
   // Set LTE RBG size
   if (radioNetwork == "LTE")
     {
-      nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+      double singleCcBw = numBwpPerCc == 2 ? bandwidthBand / 2 : bandwidthBand;
+
+      if (singleCcBw == 20e6)
+        {
+          nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (4));
+        }
+      else if (singleCcBw == 15e6)
+        {
+          nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (4));
+        }
+      else if (singleCcBw == 10e6)
+        {
+          nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (3));
+        }
+      else if (singleCcBw == 5e6)
+        {
+          nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (2));
+        }
+      else
+        {
+          NS_ABORT_MSG ("Currently, only supported bandwidths are 5, 10, 15, and 20MHz, you chose " << singleCcBw);
+        }
     }
 
   // We assume a common traffic pattern for all UEs
@@ -1051,6 +1112,7 @@ main (int argc, char *argv[])
   //  we will pass them inside the NR module.
   uint16_t numerologyBwp = 0;
   std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
+  uint32_t bandwidthMHz = 20;
 
   // Where we will store the output files.
   std::string simTag = "default";
@@ -1086,7 +1148,7 @@ main (int argc, char *argv[])
   CommandLine cmd;
 
   cmd.AddValue ("scenario",
-                "The urban scenario string (UMa or UMi)",
+                "The urban scenario string (UMa,UMi,RMa)",
                 scenario);
   cmd.AddValue ("numRings",
                 "The number of rings around the central site",
@@ -1094,12 +1156,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per cell or gNB in multiple-ue topology",
                 ueNumPergNb);
-  cmd.AddValue ("logging",
-                "Enable logging",
-                logging);
-  cmd.AddValue ("traces",
-                "Enable output traces",
-                traces);
   cmd.AddValue ("appGenerationTimeMs",
                 "Simulation time",
                 appGenerationTimeMs);
@@ -1139,6 +1195,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("scheduler",
                 "PF: Proportional Fair, RR: Round-Robin",
                 scheduler);
+  cmd.AddValue ("bandwidth",
+                "BW in MHz for each BWP (integer value): valid values are 20, 10, 5",
+                bandwidthMHz);
 
   // Parse the command line
   cmd.Parse (argc, argv);
@@ -1148,11 +1207,27 @@ main (int argc, char *argv[])
   uint32_t lambda;
   uint32_t packetCount;
 
+  NS_ABORT_MSG_IF (bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
+                   "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
+
   switch (trafficScenario)
     {
-    case 0: // 110 Mbps == 13.75 MBps
+    case 0: // let's put 80 Mbps with 20 MHz of bandwidth. Everything else is scaled
       packetCount = 0xFFFFFFFF;
-      udpPacketSize = 1375;
+      switch (bandwidthMHz)
+        {
+        case 20:
+          udpPacketSize = 1000;
+          break;
+        case 10:
+          udpPacketSize = 500;
+          break;
+        case 5:
+          udpPacketSize = 250;
+          break;
+        default:
+          udpPacketSize = 1000;
+        }
       lambda = 10000 / ueNumPergNb;
       break;
     case 1:
@@ -1160,9 +1235,22 @@ main (int argc, char *argv[])
       udpPacketSize = 12;
       lambda = 1;
       break;
-    case 2: // 20 Mbps == 2.5 MB/s
+    case 2: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
       packetCount = 0xFFFFFFFF;
-      udpPacketSize = 250;
+      switch (bandwidthMHz)
+        {
+        case 20:
+          udpPacketSize = 250;
+          break;
+        case 10:
+          udpPacketSize = 125;
+          break;
+        case 5:
+          udpPacketSize = 75;
+          break;
+        default:
+          udpPacketSize = 250;
+        }
       lambda = 10000 / ueNumPergNb;
       break;
     default:
@@ -1311,7 +1399,8 @@ main (int argc, char *argv[])
                                   calibration,
                                   &sinrStats,
                                   &powerStats,
-                                  scheduler);
+                                  scheduler,
+                                  bandwidthMHz);
     }
   else if (simulator == "5GLENA")
     {
@@ -1342,7 +1431,8 @@ main (int argc, char *argv[])
                                     &sinrStats,
                                     &powerStats,
                                     &slotStats,
-                                    scheduler);
+                                    scheduler,
+                                    bandwidthMHz);
     }
   else
     {

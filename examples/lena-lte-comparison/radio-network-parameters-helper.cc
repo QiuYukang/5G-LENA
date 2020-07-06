@@ -24,12 +24,16 @@ namespace ns3 {
 void
 RadioNetworkParametersHelper::SetScenario (const std::string &scenario)
 {
-  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi",
+  NS_ABORT_MSG_IF (scenario != "UMa" && scenario != "UMi" && scenario != "RMa",
                    "Unsupported scenario");
 
   if (scenario == "UMa")
     {
-      m_txPower = 49;
+      m_txPower = 43;
+    }
+  else if (scenario == "RMa")
+    {
+      m_txPower = 43;
     }
   else
     {
@@ -39,11 +43,11 @@ RadioNetworkParametersHelper::SetScenario (const std::string &scenario)
 
   void
 RadioNetworkParametersHelper::SetNetworkToLte (const std::string operationMode,
-                                               uint16_t numCcs)
+                                               uint16_t numCcs, uint32_t bandwidthMHz)
 {
   m_numerology = 0;
   m_centralFrequency = 2e9;
-  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
+  m_bandwidth = bandwidthMHz * 1e6 * numCcs;
   if (operationMode == "FDD")
     {
       m_bandwidth += m_bandwidth;
@@ -54,11 +58,11 @@ RadioNetworkParametersHelper::SetNetworkToLte (const std::string operationMode,
 void
 RadioNetworkParametersHelper::SetNetworkToNr (const std::string operationMode,
                                               uint16_t numerology,
-                                              uint16_t numCcs)
+                                              uint16_t numCcs, uint32_t bandwidthMHz)
 {
   m_numerology = numerology;
   m_centralFrequency = 2e9;
-  m_bandwidth = 20e6 * numCcs;  // 100 RBs per CC (freqReuse)
+  m_bandwidth = bandwidthMHz * 1e6 * numCcs;
   if (operationMode == "FDD")
     {
       m_bandwidth += m_bandwidth;
