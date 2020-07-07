@@ -489,6 +489,7 @@ NrGnbPhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
                 "\t Pattern: " << GetPattern () << std::endl <<
                 "Attached to physical channel: " << std::endl <<
                 "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
                 "\t Num. RB: " << GetRbNum ());
   SfnSf startSlot (frame, subframe, slot, GetNumerology ());
   InitializeMessageList ();
