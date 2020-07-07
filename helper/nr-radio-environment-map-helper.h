@@ -244,6 +244,7 @@ private:
     Vector pos {0,0,0};
     double avgSnrDb {0};
     double avgSinrDb {0};
+    double avRxPowerDb {0};
   };
 
   /**
@@ -400,6 +401,10 @@ private:
    * \return The max value
    */
   double GetMaxValue (const std::list<double>& listOfValues) const;
+
+  double CalculateAggregatedIpsd (const std::list <Ptr<SpectrumValue>>& interferenceSignals);
+
+  double SumListElements (const std::list<double>& listOfValues);
 
   /**
    * \brief Configures propagation loss model factories

@@ -711,16 +711,19 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& 
   return maxValue;
 }
 
-double NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
+double
+NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
 {
   Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
   SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
   return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
-double NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal)
+double
+NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal)
 {
    SpectrumValue snr = (*usefulSignal) / (*m_noisePsd);
+
    return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
@@ -850,6 +853,38 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list<double>& listOfValues)
   return maxValue;
 }
 
+double
+NrRadioEnvironmentMapHelper::CalculateAggregatedIpsd (const std::list <Ptr<SpectrumValue>>& receivedSignals)
+{
+    Ptr<SpectrumValue> sumRxPowers = nullptr;
+    sumRxPowers = Create<SpectrumValue> (m_rrd.spectrumModel);
+
+    // sum the received power of all the rtds
+    for (auto rxPowersIt: receivedSignals)
+      {
+        *sumRxPowers += (*rxPowersIt);
+      }
+
+    SpectrumValue sumRxPowersSv = (*sumRxPowers) ;
+
+    return (Integral (sumRxPowersSv));
+}
+
+double
+NrRadioEnvironmentMapHelper::SumListElements (const std::list<double>& listOfValues)
+{
+    NS_ABORT_MSG_IF (listOfValues.size () == 0, "SumListElements should not be called "
+                                                "with an empty list.");
+
+    double sum = 0;
+
+    for(auto it = listOfValues.begin (); it != listOfValues.end (); ++it)
+      {
+        sum += *it;
+      }
+    return sum;
+}
+
 void
 NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 {
@@ -874,16 +909,25 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
           ConfigureDirectPathBfv (*itRtd, m_rrd, itRtd->antenna);
         }
 
+      std::list<double> rxPsdsListPerIt; //list to save the summed rxPower in each RemPoint for each Iteration (linear)
+
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
           std::list<double> sinrsPerBeam; // vector in which we will save sinr per each RRD beam
           std::list<double> snrsPerBeam; // vector in which we will save snr per each RRD beam
+
+          std::list<Ptr<SpectrumValue>> rxPsdsList; //vector in which we will save the sum of rxPowers per remPoint (linear)
 
           // For each beam configuration at RemPoint/RRD we should calculate SINR, there are as many beam configurations at RemPoint as many RTDs
           for (std::list<RemDevice>::iterator itRtdBeam = m_remDev.begin (); itRtdBeam != m_remDev.end (); ++itRtdBeam)
             {
               //configure RRD beam toward RTD
               ConfigureDirectPathBfv (m_rrd, *itRtdBeam, m_rrd.antenna);
+
+              //Calculate the received power from this RTD for this RemPoint
+              Ptr<SpectrumValue> receivedPowerFromRtd = CalcRxPsdValue (*itRtdBeam, m_rrd);
+              //and put it to the list of the received powers for this RemPoint (to sum all later)
+              rxPsdsList.push_back (receivedPowerFromRtd);
 
               std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
               Ptr<SpectrumValue> usefulSignalRxPsd;
@@ -912,7 +956,8 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                     {
                       interferenceSignalsRxPsds.push_back (receivedPower);  //interference
                     }
-                }
+
+                } //end for std::list<RemDev>::iterator itRtdCalc (RTDs)
 
               sinrsPerBeam.push_back (CalculateSinr (usefulSignalRxPsd, interferenceSignalsRxPsds));
               snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
@@ -921,15 +966,23 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()*m_remDev.size()) * 100 <<
                              " %."); // how many times will be called CalcRxPsdValues
 
-            } //end for std::list<RemDev>::iterator  (RTDs)
+            } //end for std::list<RemDev>::iterator itRtdBeam (RTDs)
 
           sumSnr += GetMaxValue (snrsPerBeam);
           sumSinr += GetMaxValue (sinrsPerBeam);
 
+          //Sum all the rxPowers (for this RemPoint) and put the result to the list for each Iteration (linear)
+          rxPsdsListPerIt.push_back (CalculateAggregatedIpsd (rxPsdsList));
+
         }//end for m_numOfIterationsToAverage  (Average)
+
+      //Sum the rxPower for all the Iterations (linear)
+      double rxPsdsListAllIt = SumListElements (rxPsdsListPerIt);
 
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
+      //do the average (for the rxPowers in each RemPint) in linear and then convert to db
+      itRemPoint->avRxPowerDb =  10 * log10 (rxPsdsListAllIt / static_cast <double> (m_numOfIterationsToAverage));
 
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
@@ -1142,12 +1195,13 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
        it != m_rem.end ();
        ++it)
     {
-      outFile << it->pos.x << "\t"
-                << it->pos.y << "\t"
-                << it->pos.z << "\t"
-                << it->avgSnrDb << "\t"
-                << it->avgSinrDb << "\t"
-                << std::endl;
+      outFile << it->pos.x << "\t" <<
+                 it->pos.y << "\t" <<
+                 it->pos.z << "\t" <<
+                 it->avgSnrDb << "\t" <<
+                 it->avgSinrDb << "\t" <<
+                 it->avRxPowerDb << "\t" <<
+                 std::endl;
     }
 
   outFile.close();
@@ -1199,6 +1253,18 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
   outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
   outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
+
+  outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
+  outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
+  outFile<<"set cblabel \"rxPower (dB)\""<<std::endl;
+  outFile<<"unset key"<<std::endl;
+  outFile<<"set term postscript eps color"<<std::endl;
+  outFile<<"set output \"rem-rxPower"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set size ratio -1"<<std::endl;
+  outFile<<"set cbrange [-120:-60]"<<std::endl;
+  outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
+  outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
+  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($6) with image"<<std::endl;
 
   outFile.close ();
 }
