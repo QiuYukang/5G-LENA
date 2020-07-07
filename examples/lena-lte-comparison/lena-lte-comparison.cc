@@ -201,7 +201,7 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   uint32_t centralFrequencyBand3Ul = 600;
 
   double txPower;
-  double ueTxPower = 20;
+  double ueTxPower = 23;
   std::string pathlossModel;
   if (scenario == "UMa")
     {
@@ -635,7 +635,7 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
 
   // UE transmit power
-  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
+  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
 
   // Set LTE RBG size
   if (radioNetwork == "LTE")
