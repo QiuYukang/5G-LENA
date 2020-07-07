@@ -236,7 +236,10 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   Config::SetDefault ("ns3::LteUePhy::EnableRlfDetection", BooleanValue (false));
   Config::SetDefault ("ns3::LteAmc::AmcModel", EnumValue(LteAmc::PiroEW2010));
   lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
-  lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  // Disable shadowing in calibration, and enable it in non-calibration mode
+  lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (!calibration));
+
   if (scheduler == "PF")
     {
       lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
@@ -474,7 +477,9 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+
+  // Disable shadowing in calibration, and enable it in non-calibration mode
+  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (!calibration));
 
   // Noise figure for the UE
   nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (9.0));
