@@ -257,8 +257,8 @@ void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   else
     {
       lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
-      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (4.97));
+      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (130));
+      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
     }
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDlRB));
   lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUlRB));
@@ -636,11 +636,13 @@ void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenar
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("ElementGain", DoubleValue (0));
 
   // Antennas for all the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+  nrHelper->SetGnbAntennaAttribute ("ElementGain", DoubleValue (0));
 
   // UE transmit power
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
