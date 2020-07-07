@@ -18,7 +18,6 @@
  */
 #include "lena-v2-utils.h"
 
-#include "radio-network-parameters-helper.h"
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
@@ -51,6 +50,15 @@ LenaV2Utils::ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint
 }
 
 void
+LenaV2Utils::ConfigureBwpTo (BandwidthPartInfoPtr & bwp, double centerFreq, double bwpBw)
+{
+  bwp->m_centralFrequency = centerFreq;
+  bwp->m_higherFrequency = centerFreq + (bwpBw / 2);
+  bwp->m_lowerFrequency = centerFreq - (bwpBw / 2);
+  bwp->m_channelBandwidth = bwpBw;
+}
+
+void
 LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
                                            const std::string &scenario,
                                            const std::string &radioNetwork,
@@ -78,21 +86,18 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                            PowerOutputStats *powerStats,
                                            SlotOutputStats *slotStats,
                                            const std::string &scheduler,
-                                           uint32_t bandwidthMHz)
+                                           uint32_t bandwidthMHz, uint32_t freqScenario)
 {
   /*
    * Create the radio network related parameters
    */
-  RadioNetworkParametersHelper ranHelper;
   uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
   double rbOverhead = 0.1;
   uint32_t harqProcesses = 20;
   uint32_t n1Delay = 2;
   uint32_t n2Delay = 2;
-  ranHelper.SetScenario (scenario);
   if (radioNetwork == "LTE")
     {
-      ranHelper.SetNetworkToLte (operationMode, 1, bandwidthMHz);
       rbOverhead = 0.1;
       harqProcesses = 8;
       n1Delay = 4;
@@ -108,7 +113,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
     }
   else if (radioNetwork == "NR")
     {
-      ranHelper.SetNetworkToNr (operationMode, numerology, 1, bandwidthMHz);
       rbOverhead = 0.04;
       harqProcesses = 20;
       if (errorModel == "")
@@ -142,31 +146,22 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
-  /*
-   * Spectrum division. We create one operational band containing three
-   * component carriers, and each CC containing a single bandwidth part
-   * centered at the frequency specified by the input parameters.
-   * Each spectrum part length is, as well, specified by the input parameters.
-   * The operational band will use StreetCanyon channel or UrbanMacro modeling.
-   */
-  BandwidthPartInfoPtrVector allBwps, bwps1, bwps2, bwps3;
-  CcBwpCreator ccBwpCreator;
-  // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
-  // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
-  double centralFrequencyBand = ranHelper.GetCentralFrequency ();
-  double bandwidthBand = ranHelper.GetBandwidth ();
-  const uint8_t numCcPerBand = 1; // In this example, each cell will have one CC with one BWP
+  double txPowerBs = 0.0;
+
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
+      txPowerBs = 44;
       scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
     }
   else if (scenario == "UMa")
     {
+      txPowerBs = 43;
       scene = BandwidthPartInfo::UMa_LoS;
     }
   else if (scenario == "RMa")
     {
+      txPowerBs = 43;
       scene = BandwidthPartInfo::RMa_LoS;
     }
   else
@@ -210,55 +205,132 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   nrHelper->SetGnbMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
 
   /*
-   * Create the necessary operation bands. In this example, each sector operates
-   * in a separate band. Each band contains a single component carrier (CC),
-   * which is made of one BWP in TDD operation mode or two BWPs in FDD mode.
-   * Note that BWPs have the same bandwidth. Therefore, CCs and bands in FDD are
-   * twice larger than in TDD.
+   * Create the necessary operation bands.
    *
-   * The configured spectrum division for TDD operation is:
-   * |---Band1---|---Band2---|---Band3---|
-   * |----CC1----|----CC2----|----CC3----|
+   * In the 0 frequency scenario, each sector operates, in a separate band,
+   * while for scenario 1 all the sectors are in the same band. Please note that
+   * a single BWP in FDD is half the size of the corresponding TDD BWP, and the
+   * parameter bandwidthMHz refers to the size of the FDD BWP.
+   *
+   * TDD scenario 0:
+   *
+   * |----------------Band1--------------|
+   * |----CC1----|----CC2----|----CC3----|   // Sector i will go in BWPi
    * |----BWP1---|----BWP2---|----BWP3---|
+   *
+   * FDD scenario 0:
    *
    * And the configured spectrum division for FDD operation is:
    * |---------Band1---------|---------Band2---------|---------Band3---------|
-   * |----------CC1----------|----------CC2----------|----------CC3----------|
-   * |----BWP1---|----BWP2---|----BWP3---|----BWP4---|----BWP5---|----BWP6---|
+   * |----------CC1----------|----------CC1----------|----------CC1----------| // Sector i will go in Bandi
+   * |----BWP1---|----BWP2---|----BWP1---|----BWP2---|----BWP1---|----BWP2---| // DL in the first, UL in the second
+   *
+   *
+   * TDD scenario 1:
+   *
+   * |----Band1----|
+   * |-----CC1-----|
+   * |-----BWP1----|
+   *
+   * FDD scenario 1:
+   *
+   * And the configured spectrum division for FDD operation is:
+   * |---------Band1---------|
+   * |----------CC1----------|
+   * |----BWP1---|----BWP2---|
+   *
+   * This is tightly coupled with what happens in lena-v1-utils.cc
+   *
    */
-  double centralFrequencyBand1 = centralFrequencyBand - bandwidthBand;
-  double centralFrequencyBand2 = centralFrequencyBand;
-  double centralFrequencyBand3 = centralFrequencyBand + bandwidthBand;
-  double bandwidthBand1 = bandwidthBand;
-  double bandwidthBand2 = bandwidthBand;
-  double bandwidthBand3 = bandwidthBand;
+  OperationBandInfo band1, band2, band3;
+  band1.m_bandId = 0;
+  band2.m_bandId = 1;
+  band3.m_bandId = 2;
 
-  uint8_t numBwpPerCc = 1;
-  if (operationMode == "FDD")
+  if (freqScenario == 0) // NON_OVERLAPPING
     {
-      numBwpPerCc = 2; // FDD will have 2 BWPs per CC
+      CcBwpCreator ccBwpCreator;
+
+      double bandwidthBand = operationMode == "FDD" ? bandwidthMHz * 1e6 : bandwidthMHz * 1e6 * 2;
+      uint8_t numCcPerBand = 1; // one for each sector
+
+      CcBwpCreator::SimpleOperationBandConf bandConf1 (2125e6, bandwidthBand, numCcPerBand, scene);
+      bandConf1.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
+
+      CcBwpCreator::SimpleOperationBandConf bandConf2 (2145e6, bandwidthBand, numCcPerBand, scene);
+      bandConf2.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
+
+      CcBwpCreator::SimpleOperationBandConf bandConf3 (2165e6, bandwidthBand, numCcPerBand, scene);
+      bandConf3.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
+
+      band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1); // Create, then configure
+      band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2); // Create, then configure
+      band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3); // Create, then configure
+
+      if (operationMode == "FDD")
+        {
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], 2130e6, bandwidthBand);
+
+          ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], 2140e6, bandwidthBand);
+          ConfigureBwpTo (band2.m_cc[0]->m_bwp[1], 2150e6, bandwidthBand);
+
+          ConfigureBwpTo (band3.m_cc[0]->m_bwp[0], 2160e6, bandwidthBand);
+          ConfigureBwpTo (band3.m_cc[0]->m_bwp[1], 1850e6, bandwidthBand);
+        }
+      else
+        {
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
+          ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], 2140e6, bandwidthBand);
+          ConfigureBwpTo (band3.m_cc[0]->m_bwp[0], 2160e6, bandwidthBand);
+        }
+
+      std::cout << "BWP Configuration for NON_OVERLAPPING case, mode " << operationMode
+                << std::endl << band1 << std::endl << band2 << std::endl << band3;
     }
+  else // OVERLAPPING
+    {
+      CcBwpCreator ccBwpCreator;
 
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, scene);
-  bandConf1.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, scene);
-  bandConf2.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf3 (centralFrequencyBand3, bandwidthBand3, numCcPerBand, scene);
-  bandConf3.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
+      double bandwidthBand = operationMode == "FDD" ? bandwidthMHz * 1e6 : bandwidthMHz * 1e6 * 2;
+      uint8_t numCcPerBand = 1;
 
-  // By using the configuration created, it is time to make the operation bands
-  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
-  OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
-  OperationBandInfo band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3);
+      CcBwpCreator::SimpleOperationBandConf bandConf1 (2120e6, bandwidthBand, numCcPerBand, scene);
+      bandConf1.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
+
+      // We use the helper function to create the band, and manually we go
+      // to change what is wrong
+      band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+
+      if (operationMode == "FDD")
+        {
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], 1930e6, bandwidthBand);
+        }
+      else
+        {
+          // TDD here, so use the double of the passed parameter (that is for FDD)
+          // You can see this in the definition of bandwidthBand
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
+        }
+
+      std::cout << "BWP Configuration for OVERLAPPING case, mode " << operationMode
+                << std::endl << band1 << std::endl;
+    }
 
   if (calibration)
     {
-      band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-      band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-      band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-      band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-      band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-      band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+      // LENA-compatibility-bug: Put all the sectors and stuff at the same central frequency
+      // in case of non-overlapping mode and FDD
+      if (operationMode == "FDD" && freqScenario == 0)
+        {
+          band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+          band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+          band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+          band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+          band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
+          band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+        }
 
       // Do not initialize fading (beamforming gain)
       nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
@@ -273,24 +345,29 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
       nrHelper->InitializeOperationBand (&band3);
     }
 
-
-  allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
-  bwps1 = CcBwpCreator::GetAllBwps ({band1});
-  bwps2 = CcBwpCreator::GetAllBwps ({band2});
-  bwps3 = CcBwpCreator::GetAllBwps ({band3});
+  BandwidthPartInfoPtrVector sector1Bwps, sector2Bwps, sector3Bwps;
+  if (freqScenario == 0) // NON_OVERLAPPING
+    {
+      sector1Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector2Bwps = CcBwpCreator::GetAllBwps ({band2});
+      sector3Bwps = CcBwpCreator::GetAllBwps ({band3});
+    }
+  else // OVERLAPPING
+    {
+      sector1Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector2Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector3Bwps = CcBwpCreator::GetAllBwps ({band1});
+    }
 
   /*
    * Start to account for the bandwidth used by the example, as well as
-   * the total power that has to be divided among the BWPs. Since there is only
-   * one band and one BWP occupying the entire band, there is no need to divide
-   * power among BWPs.
+   * the total power that has to be divided among the BWPs. Since we are TDD
+   * or FDD with 2 BWP only, there is no need to divide anything.
    */
-  double totalTxPower = ranHelper.GetTxPower (); //Convert to mW
+  double totalTxPower = txPowerBs; //Convert to mW
   double x = pow (10, totalTxPower / 10);
 
   /*
-   * allBwps contains all the spectrum configuration needed for the nrHelper.
-   *
    * Now, we can setup the attributes. We can have three kind of attributes:
    * (i) parameters that are valid for all the bandwidth parts and applies to
    * all nodes, (ii) parameters that are valid for all the bandwidth parts
@@ -351,28 +428,30 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
 
   // Set LTE RBG size
+  // TODO: What these values would be in TDD? bandwidthMhz refers to FDD.
+  // for example, for TDD, if we have bandwidthMhz to 20, we will have a 40 MHz
+  // BWP.
   if (radioNetwork == "LTE")
     {
-      double singleCcBw = numBwpPerCc == 2 ? bandwidthBand / 2 : bandwidthBand;
-      if (singleCcBw == 20e6)
+      if (bandwidthMHz == 20)
         {
           nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (4));
         }
-      else if (singleCcBw == 15e6)
+      else if (bandwidthMHz == 15)
         {
           nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (4));
         }
-      else if (singleCcBw == 10e6)
+      else if (bandwidthMHz == 10)
         {
           nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (3));
         }
-      else if (singleCcBw == 5e6)
+      else if (bandwidthMHz == 5)
         {
           nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (2));
         }
       else
         {
-          NS_ABORT_MSG ("Currently, only supported bandwidths are 5, 10, 15, and 20MHz, you chose " << singleCcBw);
+          NS_ABORT_MSG ("Currently, only supported bandwidths are 5, 10, 15, and 20MHz, you chose " << bandwidthMHz);
         }
     }
 
@@ -407,12 +486,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    */
 
   //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  gnbSector1NetDev = nrHelper->InstallGnbDevice (gnbSector1Container, bwps1);
-  gnbSector2NetDev = nrHelper->InstallGnbDevice (gnbSector2Container, bwps2);
-  gnbSector3NetDev = nrHelper->InstallGnbDevice (gnbSector3Container, bwps3);
-  ueSector1NetDev = nrHelper->InstallUeDevice (ueSector1Container, bwps1);
-  ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, bwps2);
-  ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, bwps3);
+  gnbSector1NetDev = nrHelper->InstallGnbDevice (gnbSector1Container, sector1Bwps);
+  gnbSector2NetDev = nrHelper->InstallGnbDevice (gnbSector2Container, sector2Bwps);
+  gnbSector3NetDev = nrHelper->InstallGnbDevice (gnbSector3Container, sector3Bwps);
+  ueSector1NetDev = nrHelper->InstallUeDevice (ueSector1Container, sector1Bwps);
+  ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, sector2Bwps);
+  ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, sector3Bwps);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -434,7 +513,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
 
           // Set TX power
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
@@ -456,8 +535,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (numerology));
 
           // Set TX power
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
@@ -490,7 +569,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
 
           // Set TX power
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
@@ -512,8 +591,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (numerology));
 
           // Set TX power
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
@@ -547,7 +626,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
 
           // Set TX power
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
@@ -569,8 +648,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (numerology));
 
           // Set TX power
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
@@ -726,7 +805,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
     {
       DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
     }
-
 }
 
 } // namespace ns3

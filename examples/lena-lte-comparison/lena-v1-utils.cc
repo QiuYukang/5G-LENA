@@ -42,7 +42,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
                                            SinrOutputStats *sinrStats,
                                            PowerOutputStats *powerStats,
                                            const std::string &scheduler,
-                                           uint32_t bandwidthMHz)
+                                           uint32_t bandwidthMHz, uint32_t freqScenario)
 {
 
   /*
@@ -89,12 +89,31 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
       NS_ABORT_MSG ("The configured bandwidth in MHz not supported:" << bandwidthMHz);
     }
 
-  uint32_t centralFrequencyBand1Dl = 100;
-  uint32_t centralFrequencyBand1Ul = 200;
-  uint32_t centralFrequencyBand2Dl = 300;
-  uint32_t centralFrequencyBand2Ul = 400;
-  uint32_t centralFrequencyBand3Dl = 500;
-  uint32_t centralFrequencyBand3Ul = 600;
+  uint32_t centralFrequencyBand1Dl;
+  uint32_t centralFrequencyBand1Ul;
+  uint32_t centralFrequencyBand2Dl;
+  uint32_t centralFrequencyBand2Ul;
+  uint32_t centralFrequencyBand3Dl;
+  uint32_t centralFrequencyBand3Ul;
+
+  if (freqScenario == 0)
+    {
+      centralFrequencyBand1Dl = 100; // 2120 MHz
+      centralFrequencyBand1Ul = 200;
+      centralFrequencyBand2Dl = 300;
+      centralFrequencyBand2Ul = 400;
+      centralFrequencyBand3Dl = 500;
+      centralFrequencyBand3Ul = 600;
+    }
+  else
+    {
+      centralFrequencyBand1Dl = 100;   // 2120 MHz
+      centralFrequencyBand1Ul = 18100; // 1930 MHz
+      centralFrequencyBand2Dl = 100;
+      centralFrequencyBand2Ul = 18100;
+      centralFrequencyBand3Dl = 100;
+      centralFrequencyBand3Ul = 18100;
+    }
 
   double txPower;
   double ueTxPower = 23;

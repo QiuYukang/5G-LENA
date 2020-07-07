@@ -34,8 +34,8 @@ class SlotOutputStats;
 class LenaV2Utils
 {
 public:
-  void
-  static SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
+  static
+  void SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
                                        const std::string &scenario,
                                        const std::string &radioNetwork,
                                        std::string &errorModel,
@@ -62,7 +62,7 @@ public:
                                        PowerOutputStats *powerStats,
                                        SlotOutputStats *slotStats,
                                        const std::string &scheduler,
-                                       uint32_t bandwidthMHz);
+                                       uint32_t bandwidthMHz, uint32_t freqScenario);
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
                 double power, double avgSinr, uint16_t bwpId);
@@ -75,6 +75,7 @@ public:
                      uint32_t usedReg, uint32_t usedSym,
                      uint32_t availableRb, uint32_t availableSym, uint16_t bwpId,
                      uint16_t cellId);
+  static void ConfigureBwpTo (BandwidthPartInfoPtr &bwp, double centerFreq, double bwpBw);
 };
 
 } // namespace ns3

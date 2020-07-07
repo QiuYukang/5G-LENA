@@ -59,7 +59,6 @@ $ ./waf --run "lena-lte-comparison --Help"
 #include <ns3/radio-environment-map-helper.h>
 #include "ns3/config-store-module.h"
 #include <ns3/sqlite-output.h>
-#include "radio-network-parameters-helper.h"
 #include "sinr-output-stats.h"
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
@@ -194,6 +193,7 @@ main (int argc, char *argv[])
   uint32_t trafficScenario = 0;
 
   std::string scheduler = "PF";
+  uint32_t freqScenario = 0;
 
   // Rem parameters: Modify them by hand, don't use the CommandLine for
   // the moment
@@ -266,6 +266,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("bandwidth",
                 "BW in MHz for each BWP (integer value): valid values are 20, 10, 5",
                 bandwidthMHz);
+  cmd.AddValue ("freqScenario",
+                "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
+                freqScenario);
 
   // Parse the command line
   cmd.Parse (argc, argv);
@@ -468,7 +471,8 @@ main (int argc, char *argv[])
                                   &sinrStats,
                                   &powerStats,
                                   scheduler,
-                                  bandwidthMHz);
+                                  bandwidthMHz,
+                                  freqScenario);
     }
   else if (simulator == "5GLENA")
     {
@@ -500,7 +504,8 @@ main (int argc, char *argv[])
                                     &powerStats,
                                     &slotStats,
                                     scheduler,
-                                    bandwidthMHz);
+                                    bandwidthMHz,
+                                    freqScenario);
     }
   else
     {
