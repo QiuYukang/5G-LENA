@@ -1567,21 +1567,7 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  std::string tableName;
-  switch (trafficScenario)
-    {
-    case 0:
-      tableName = "throughput";
-      break;
-    case 1:
-      tableName = "latency";
-      break;
-    case 2:
-      tableName = "s3";
-      break;
-    default:
-      NS_FATAL_ERROR ("NAH");
-    }
+  std::string tableName = "e2e";
 
 
   Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
