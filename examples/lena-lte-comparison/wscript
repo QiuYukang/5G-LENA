@@ -3,4 +3,4 @@
 def build(bld):
 
     obj = bld.create_ns3_program('lena-lte-comparison', ['nr','flow-monitor'])
-    obj.source = 'radio-network-parameters-helper.cc lena-lte-comparison.cc sinr-output-stats.cc flow-monitor-output-stats.cc power-output-stats.cc slot-output-stats.cc'
+    obj.source = 'radio-network-parameters-helper.cc lena-lte-comparison.cc sinr-output-stats.cc flow-monitor-output-stats.cc power-output-stats.cc slot-output-stats.cc lena-v1-utils.cc lena-v2-utils.cc'
