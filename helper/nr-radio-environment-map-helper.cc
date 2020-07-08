@@ -707,7 +707,7 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
   // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
   Ptr<SpectrumValue> rxPsd = convertedTxPsd->Copy ();
   double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, device.mob, otherDevice.mob);
-  double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
+  double pathGainLinear = DbToRatio (pathLossDb);
 
   NS_LOG_DEBUG ("Tx power in dBm:" <<  WToDbm (Integral (*convertedTxPsd)));
   NS_LOG_DEBUG ("PathlosDb:" << pathLossDb);
@@ -749,7 +749,7 @@ NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue
 {
   Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
   SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
-  return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+  return RatioToDb (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
 double
@@ -757,7 +757,7 @@ NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSigna
 {
    SpectrumValue snr = (*usefulSignal) / (*m_noisePsd);
 
-   return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+   return RatioToDb (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
 double
@@ -785,7 +785,7 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
   SpectrumValue sinr = (*usefulSignal) / (*interferencePsd + *m_noisePsd) ;
 
   // calculate average sinr over RBs, convert it from linear to dB units, and return it
-  return 10 * log10 (Sum (sinr) / sinr.GetSpectrumModel ()->GetNumBands ()) ;
+  return RatioToDb (Sum (sinr) / sinr.GetSpectrumModel ()->GetNumBands ()) ;
 }
 
 double
