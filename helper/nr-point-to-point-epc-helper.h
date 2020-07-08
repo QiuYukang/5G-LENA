@@ -152,9 +152,8 @@ public:
    *
    * \param ueDevice The device of the UE
    * \param slTft The sidelink traffic flow template for the new bearer
-   * \param poolId The id of the pool to used to TX and RX
    */
-  void ActivateNrSlBearerForUe (const Ptr<NetDevice> &ueDevice, const Ptr<LteSlTft> &slTft, uint16_t poolId) const;
+  void ActivateNrSlBearerForUe (const Ptr<NetDevice> &ueDevice, const Ptr<LteSlTft> &slTft) const;
 
 };
 

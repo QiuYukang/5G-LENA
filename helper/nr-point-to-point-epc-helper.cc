@@ -99,12 +99,12 @@ NrPointToPointEpcHelper::DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevic
 }
 
 void
-NrPointToPointEpcHelper::ActivateNrSlBearerForUe (const Ptr<NetDevice> &ueDevice, const Ptr<LteSlTft> &slTft, uint16_t poolId) const
+NrPointToPointEpcHelper::ActivateNrSlBearerForUe (const Ptr<NetDevice> &ueDevice, const Ptr<LteSlTft> &slTft) const
 {
   Ptr<NrUeNetDevice> nrUeNetDevice = ueDevice->GetObject<NrUeNetDevice> ();
   if (nrUeNetDevice)
     {
-      Simulator::ScheduleNow (&EpcUeNas::ActivateNrSlBearer, nrUeNetDevice->GetNas (), slTft, poolId);
+      Simulator::ScheduleNow (&EpcUeNas::ActivateNrSlBearer, nrUeNetDevice->GetNas (), slTft);
     }
   else
     {

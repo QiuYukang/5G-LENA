@@ -106,17 +106,15 @@ public:
    * \param activationTime The time to setup the sidelink bearer
    * \param ues The list of UEs where the bearer must be activated
    * \param tft The traffic flow template for the bearer (i.e. multicast address and group)
-   * \param poolId The id of the pool used for TX and RX
    */
-  void ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft, uint16_t poolId);
+  void ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft);
   /**
    * \brief Activation of a sidelink bearer
    *
    * \param ues The list of UEs where the bearer must be activated
    * \param tft The traffic flow template for the bearer (i.e. multicast address and group)
-   * \param poolId The id of the pool used for TX and RX
    */
-  void DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft, uint16_t poolId);
+  void DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft);
 
 protected:
   /**

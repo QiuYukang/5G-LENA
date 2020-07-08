@@ -111,21 +111,21 @@ NrSlHelper::SetEpcHelper (const Ptr<NrPointToPointEpcHelper> &epcHelper)
 }
 
 void
-NrSlHelper::ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft, uint16_t poolId)
+NrSlHelper::ActivateNrSlBearer (Time activationTime, NetDeviceContainer ues, const Ptr<LteSlTft> tft)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (m_epcHelper, "NR Sidelink activation requires EpcHelper to be registered with the NrSlHelper");
-  Simulator::Schedule (activationTime, &NrSlHelper::DoActivateNrSlBearer, this, ues, tft, poolId);
+  Simulator::Schedule (activationTime, &NrSlHelper::DoActivateNrSlBearer, this, ues, tft);
 }
 
 void
-NrSlHelper::DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft, uint16_t poolId)
+NrSlHelper::DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft)
 {
   NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator i = ues.Begin (); i != ues.End (); ++i)
     {
       NS_LOG_DEBUG ("Activating SL bearer at " << Simulator::Now () << " destination L2 id " << tft->GetDstL2Id ());
-      m_epcHelper->ActivateNrSlBearerForUe (*i, Create<LteSlTft> (tft), poolId) ;
+      m_epcHelper->ActivateNrSlBearerForUe (*i, Create<LteSlTft> (tft)) ;
     }
 }
 
