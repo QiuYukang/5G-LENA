@@ -1222,6 +1222,12 @@ NrUePhy::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
   m_slRxPool = rxPool;
 }
 
+uint32_t
+NrUePhy::DoGetBwInRbs () const
+{
+ return GetRbNum ();
+}
+
 
 }
 

@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -45,6 +45,12 @@ public:
 
   //Sidelink Communication
   /**
+   * \brief Ask the PHY the bandwidth in RBs
+   *
+   * \return the bandwidth in RBs
+   */
+  virtual uint32_t GetBwInRbs () const = 0;
+  /**
    * set the current sidelink transmit pool
    * \param pool The transmission pool
    */
@@ -71,12 +77,11 @@ public:
   virtual ~NrSlUePhySapUser ();
 
   /**
-   * \brief Gets the active Sidelink pool id used for transmission for a
-   *        destination.
+   * \brief Gets the active Sidelink pool id used for transmission and reception
    *
    * \return The active TX pool id
    */
-  virtual uint16_t GetSlActiveTxPoolId (uint32_t dstL2Id) = 0;
+  virtual uint8_t GetSlActiveTxPoolId () = 0;
 
 };
 
@@ -102,9 +107,10 @@ public:
    */
   MemberNrSlUePhySapProvider (C* owner);
 
+  virtual uint32_t GetBwInRbs () const;
+
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
-
 
 private:
   MemberNrSlUePhySapProvider ();
@@ -115,6 +121,13 @@ template <class C>
 MemberNrSlUePhySapProvider<C>::MemberNrSlUePhySapProvider (C* owner)
   : m_owner (owner)
 {
+}
+
+template <class C>
+uint32_t
+MemberNrSlUePhySapProvider<C>::GetBwInRbs () const
+{
+  return m_owner->DoGetBwInRbs ();
 }
 
 //Sidelink communication
@@ -151,7 +164,7 @@ public:
   MemberNrSlUePhySapUser (C* owner);
 
   // methods inherited from NrSlUePhySapUser go here
-  virtual uint16_t GetSlActiveTxPoolId (uint32_t dstL2Id);
+  virtual uint8_t GetSlActiveTxPoolId ();
 
 private:
   C* m_owner; ///< the owner class
@@ -164,10 +177,10 @@ MemberNrSlUePhySapUser<C>::MemberNrSlUePhySapUser (C* owner)
 }
 
 template <class C>
-uint16_t
-MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId (uint32_t dstL2Id)
+uint8_t
+MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId ()
 {
-  return m_owner->DoGetSlActiveTxPoolId (dstL2Id);
+  return m_owner->DoGetSlActiveTxPoolId ();
 }
 
 

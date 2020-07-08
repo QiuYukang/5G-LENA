@@ -701,6 +701,12 @@ protected:
    * \param rxPool The pointer to the NrSlCommResourcePool
    */
   void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
+  /**
+   * \brief Ask the PHY the bandwidth in RBs
+   *
+   * \return the bandwidth in RBs
+   */
+  uint32_t DoGetBwInRbs () const;
 
 private:
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
