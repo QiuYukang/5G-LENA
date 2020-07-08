@@ -223,8 +223,8 @@ private:
   //SCI fields end
 
   //Optional fields
-  uint16_t m_gapReTx1 {std::numeric_limits <uint16_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
-  uint16_t m_gapReTx2 {std::numeric_limits <uint16_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
+  uint8_t m_gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
+  uint8_t m_gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its second retransmission in slots
 };
 
 
