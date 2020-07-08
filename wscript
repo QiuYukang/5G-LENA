@@ -89,6 +89,7 @@ def build(bld):
         'model/nr-sl-ue-phy-sap.cc',
         'model/nr-sl-sci-f01-header.cc',
         'model/nr-sl-sci-f02-header.cc',
+        'model/nr-sl-ue-mac-sched-sap.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -196,6 +197,8 @@ def build(bld):
         'model/nr-sl-ue-phy-sap.h',
         'model/nr-sl-sci-f01-header.h',
         'model/nr-sl-sci-f02-header.h',
+        'model/nr-sl-ue-mac-sched-sap.h',
+        'model/nr-sl-ue-mac-csched-sap.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
