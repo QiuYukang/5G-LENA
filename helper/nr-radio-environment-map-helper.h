@@ -221,6 +221,24 @@ public:
   double GetZ () const;
 
   /**
+   * Convert from Watts to dBm.
+   *
+   * \param w the power in Watts
+   *
+   * \return the equivalent dBm for the given Watts
+   */
+  double WToDbm (double w);
+
+  /**
+   * Convert from dBm to Watts.
+   *
+   * \param dbm the power in dBm
+   *
+   * \return the equivalent Watts for the given dBm
+   */
+  double DbmToW (double dbm);
+
+  /**
    * \brief This function is used for the creation of the REM map. When this
    * function is called from an example, it is responsible for "installing"
    * the REM through a callback to the DelayedInstall after a delay of
@@ -244,7 +262,7 @@ private:
     Vector pos {0,0,0};
     double avgSnrDb {0};
     double avgSinrDb {0};
-    double avRxPowerDb {0};
+    double avRxPowerDbm {0};
   };
 
   /**

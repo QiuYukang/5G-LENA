@@ -571,8 +571,8 @@ main (int argc, char *argv[])
 
 
   //Let us create the REM for this user:
-  Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
-  //Ptr<NetDevice> gnbRemDevice = gnbNetDev.Get(0);
+  //Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
+  Ptr<NetDevice> gnbRemDevice = gnbNetDev.Get(0);
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
@@ -598,8 +598,8 @@ main (int argc, char *argv[])
       gnbNetDev.Get(3)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(3));
     }
 
-  remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);
-  //remHelper->CreateRem (ueNetDev, gnbRemDevice, remBwpId);
+  //remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);
+  remHelper->CreateRem (ueNetDev, gnbRemDevice, remBwpId);
 
 
   Simulator::Stop (Seconds (simTime));

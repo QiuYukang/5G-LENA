@@ -284,6 +284,18 @@ NrRadioEnvironmentMapHelper::GetZ () const
   return m_z;
 }
 
+double
+NrRadioEnvironmentMapHelper::DbmToW (double dBm)
+{
+  return std::pow (10.0, 0.1 * (dBm - 30.0));
+}
+
+double
+NrRadioEnvironmentMapHelper::WToDbm (double w)
+{
+  return 10.0 * std::log10 (w) + 30.0;
+}
+
 void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
@@ -346,6 +358,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
       rtd.antenna = m_deviceToAntenna.find (*netDevIt)->second;
 
       rtd.txPower = rtdPhy->GetTxPower ();
+
+      NS_LOG_DEBUG ("power of UE: " << rtd.txPower);
 
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
@@ -683,11 +697,18 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
   double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, device.mob, otherDevice.mob);
   double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
 
+  NS_LOG_DEBUG ("Tx power in dBm:" <<  WToDbm (Integral (*convertedTxPsd)));
+  NS_LOG_DEBUG ("PathlosDb:" << pathLossDb);
+
   // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
   *(rxPsd) *= pathGainLinear;
 
+  NS_LOG_DEBUG ("RX power in dBm after pathloss:" << WToDbm (Integral (*rxPsd)));
+
   // Now we call spectrum model, which in this keys add a beamforming gain
   rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, device.mob, otherDevice.mob);
+
+  NS_LOG_DEBUG ("RX power in dBm after fading: " << WToDbm (Integral (*rxPsd)));
 
   return rxPsd;
 }
@@ -929,6 +950,10 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
               //and put it to the list of the received powers for this RemPoint (to sum all later)
               rxPsdsList.push_back (receivedPowerFromRtd);
 
+              NS_LOG_DEBUG ("beam node: " << itRtdBeam->dev->GetNode ()->GetId () <<
+                            " is Rxed in RemPoint with Rx Power in W: " << (Integral (*receivedPowerFromRtd)));
+              NS_LOG_DEBUG ("RxPower in dBm: " << WToDbm (Integral (*receivedPowerFromRtd)));
+
               std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
               Ptr<SpectrumValue> usefulSignalRxPsd;
 
@@ -977,12 +1002,14 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
         }//end for m_numOfIterationsToAverage  (Average)
 
       //Sum the rxPower for all the Iterations (linear)
-      double rxPsdsListAllIt = SumListElements (rxPsdsListPerIt);
+      double rxPsdsAllIt = SumListElements (rxPsdsListPerIt);
 
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
-      //do the average (for the rxPowers in each RemPint) in linear and then convert to db
-      itRemPoint->avRxPowerDb =  10 * log10 (rxPsdsListAllIt / static_cast <double> (m_numOfIterationsToAverage));
+      //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
+      itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
+
+      NS_LOG_DEBUG ("itRemPoint->avRxPowerDb  in dB: " << itRemPoint->avRxPowerDbm);
 
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
@@ -1200,7 +1227,7 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
                  it->pos.z << "\t" <<
                  it->avgSnrDb << "\t" <<
                  it->avgSinrDb << "\t" <<
-                 it->avRxPowerDb << "\t" <<
+                 it->avRxPowerDbm << "\t" <<
                  std::endl;
     }
 
@@ -1256,12 +1283,12 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
 
   outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
   outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
-  outFile<<"set cblabel \"rxPower (dB)\""<<std::endl;
+  outFile<<"set cblabel \"rxPower (dBm)\""<<std::endl;
   outFile<<"unset key"<<std::endl;
   outFile<<"set term postscript eps color"<<std::endl;
   outFile<<"set output \"rem-rxPower"<<m_simTag<<".eps\""<<std::endl;
   outFile<<"set size ratio -1"<<std::endl;
-  outFile<<"set cbrange [-120:-60]"<<std::endl;
+  outFile<<"set cbrange [-100:-20]"<<std::endl;
   outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
   outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
   outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($6) with image"<<std::endl;
