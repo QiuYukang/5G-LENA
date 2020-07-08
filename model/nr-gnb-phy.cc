@@ -728,7 +728,6 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
                   // instantaneously
                   NS_LOG_INFO ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
                   CallMacForSlotIndication (m_currentSlot);
-                  GenerateAllocationStatistics (m_currSlotAllocInfo);
                   DoStartSlot ();
                   return; // Exit without calling anything else
                 }
@@ -773,8 +772,6 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
             }
         }
     }
-
-  GenerateAllocationStatistics (m_currSlotAllocInfo);
 }
 
 
@@ -848,8 +845,9 @@ NrGnbPhy::GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const
   uint32_t ctrlSym = 0;
 
   int lastSymStart = -1;
+  uint32_t symUsed = 0;
 
-  for (const auto & allocation : m_currSlotAllocInfo.m_varTtiAllocInfo)
+  for (const auto & allocation : allocInfo.m_varTtiAllocInfo)
     {
       uint32_t rbg = std::count (allocation.m_dci->m_rbgBitmask.begin (),
                                  allocation.m_dci->m_rbgBitmask.end (), 1);
@@ -874,6 +872,8 @@ NrGnbPhy::GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const
 
       if (lastSymStart != allocation.m_dci->m_symStart)
         {
+          symUsed += allocation.m_dci->m_numSym;
+
           if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
             {
               dataSym += allocation.m_dci->m_numSym;
@@ -886,6 +886,9 @@ NrGnbPhy::GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const
 
       lastSymStart = allocation.m_dci->m_symStart;
     }
+
+  NS_ASSERT_MSG (symUsed == allocInfo.m_numSymAlloc,
+                 "Allocated " << +allocInfo.m_numSymAlloc << " but only " << symUsed << " written in stats");
 
   m_phySlotDataStats (allocInfo.m_sfnSf, activeUe.size (), dataReg, dataSym,
                       availRb, GetSymbolsPerSlot () - ctrlSym, GetBwpId (), GetCellId ());
@@ -903,6 +906,8 @@ NrGnbPhy::DoStartSlot ()
   uint64_t currentSlotN = m_currentSlot.Normalize () % m_tddPattern.size ();;
 
   NS_LOG_DEBUG ("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
+
+  GenerateAllocationStatistics (m_currSlotAllocInfo);
 
   if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
     {
