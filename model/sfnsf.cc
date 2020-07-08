@@ -103,7 +103,7 @@ SfnSf::Normalize () const
 }
 
 SfnSf
-SfnSf::GetFutureSfnSf (uint32_t slotN)
+SfnSf::GetFutureSfnSf (uint32_t slotN) const
 {
   SfnSf ret = *this;
   ret.Add (slotN);
