@@ -239,6 +239,24 @@ public:
   double DbmToW (double dbm);
 
   /**
+   * Convert from dB to ratio.
+   *
+   * \param db the value in dB
+   *
+   * \return ratio in linear scale
+   */
+  double DbToRatio (double dB);
+
+  /**
+   * Convert from ratio to dB.
+   *
+   * \param ratio the ratio in linear scale
+   *
+   * \return the value in dB
+   */
+  double RatioToDb (double ratio);
+
+  /**
    * \brief This function is used for the creation of the REM map. When this
    * function is called from an example, it is responsible for "installing"
    * the REM through a callback to the DelayedInstall after a delay of

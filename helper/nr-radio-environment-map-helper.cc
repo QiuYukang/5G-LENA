@@ -296,6 +296,18 @@ NrRadioEnvironmentMapHelper::WToDbm (double w)
   return 10.0 * std::log10 (w) + 30.0;
 }
 
+double
+NrRadioEnvironmentMapHelper::DbToRatio (double dB)
+{
+  return std::pow (10.0, 0.1 * dB);
+}
+
+double
+NrRadioEnvironmentMapHelper::RatioToDb (double ratio)
+{
+  return 10.0 * std::log10 (ratio);
+}
+
 void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
