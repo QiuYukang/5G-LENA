@@ -330,8 +330,8 @@ public:
    * \param [in] bwpId Reference BWP ID
    * \param [in] cellId Reference Cell ID
    */
-  typedef void (* PowerSpectralDensityTracedCallback)(const SfnSf &sfnSf, Ptr<SpectrumValue> v,
-                                                      Time time, uint16_t rnti,
+  typedef void (* PowerSpectralDensityTracedCallback)(const SfnSf &sfnSf, Ptr<const SpectrumValue> v,
+                                                      const Time &time, uint16_t rnti,
                                                       uint64_t imsi, uint16_t bwpId, uint16_t cellId);
 
 protected:
@@ -616,7 +616,7 @@ private:
   TracedCallback<uint16_t, uint16_t, double, double, uint16_t> m_reportCurrentCellRsrpSinrTrace;
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
-  TracedCallback<const SfnSf &, Ptr<SpectrumValue>, Time, uint16_t, uint64_t, uint16_t, uint16_t> m_reportPowerSpectralDensity; //!< Report the Tx power
+  TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint64_t, uint16_t, uint16_t> m_reportPowerSpectralDensity; //!< Report the Tx power
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
