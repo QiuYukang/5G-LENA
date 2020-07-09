@@ -46,6 +46,20 @@ public:
    */
   struct SidelinkLogicalChannelInfo
   {
+
+    SidelinkLogicalChannelInfo (uint32_t dstL2Id, uint8_t lcId, uint8_t lcGroup,
+                                uint8_t pqi, uint8_t priority, bool isGbr,
+                                uint64_t mbr, uint64_t gbr)
+    {
+      this->dstL2Id = dstL2Id;
+      this->lcId = lcId;
+      this->lcGroup = lcGroup;
+      this->pqi = pqi;
+      this->priority = priority;
+      this->isGbr = isGbr;
+      this->mbr = mbr;
+      this->gbr = gbr;
+    }
     uint32_t dstL2Id {std::numeric_limits <uint32_t>::max ()}; //!< L2 destination id
     uint8_t  lcId {std::numeric_limits <uint8_t>::max ()};     //!< logical channel identifier
     uint8_t  lcGroup {std::numeric_limits <uint8_t>::max ()};  //!< logical channel group
