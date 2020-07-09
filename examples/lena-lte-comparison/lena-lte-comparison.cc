@@ -37,6 +37,7 @@
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
+#include "rb-output-stats.h"
 #include "lena-v1-utils.h"
 #include "lena-v2-utils.h"
 
@@ -185,10 +186,12 @@ LenaLteComparison (const Parameters &params)
   SinrOutputStats sinrStats;
   PowerOutputStats powerStats;
   SlotOutputStats slotStats;
+  RbOutputStats rbStats;
 
   sinrStats.SetDb (&db);
   powerStats.SetDb (&db);
   slotStats.SetDb (&db);
+  rbStats.SetDb (&db);
 
   /*
    * Check if the frequency and numerology are in the allowed range.
@@ -356,6 +359,7 @@ LenaLteComparison (const Parameters &params)
                                     &sinrStats,
                                     &powerStats,
                                     &slotStats,
+                                    &rbStats,
                                     params.scheduler,
                                     params.bandwidthMHz,
                                     params.freqScenario);
@@ -716,6 +720,7 @@ LenaLteComparison (const Parameters &params)
   sinrStats.EmptyCache ();
   powerStats.EmptyCache ();
   slotStats.EmptyCache ();
+  rbStats.EmptyCache ();
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.

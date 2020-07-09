@@ -21,7 +21,7 @@
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
-
+#include "rb-output-stats.h"
 namespace ns3 {
 
 void
@@ -47,6 +47,14 @@ LenaV2Utils::ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint
 {
   stats->SaveSlotStats (sfnSf, scheduledUe, usedReg, usedSym,
                         availableRb, availableSym, bwpId, cellId);
+}
+
+void
+LenaV2Utils::ReportRbStatsNr (RbOutputStats *stats, const SfnSf &sfnSf, uint8_t sym,
+                              const std::vector<int> &rbUsed, uint16_t bwpId,
+                              uint16_t cellId)
+{
+  stats->SaveRbStats (sfnSf, sym, rbUsed, bwpId, cellId);
 }
 
 void
@@ -84,7 +92,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                            bool calibration,
                                            SinrOutputStats *sinrStats,
                                            PowerOutputStats *powerStats,
-                                           SlotOutputStats *slotStats,
+                                           SlotOutputStats *slotStats, RbOutputStats *rbStats,
                                            const std::string &scheduler,
                                            uint32_t bandwidthMHz, uint32_t freqScenario)
 {
@@ -759,6 +767,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
       auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
       gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
+      gnbPhy->TraceConnectWithoutContext ("RBDataStats",
+                                          MakeBoundCallback (&ReportRbStatsNr, rbStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
@@ -773,6 +783,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
       auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
       gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
+      gnbPhy->TraceConnectWithoutContext ("RBDataStats",
+                                          MakeBoundCallback (&ReportRbStatsNr, rbStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
@@ -787,6 +799,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
       auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
       gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
+      gnbPhy->TraceConnectWithoutContext ("RBDataStats",
+                                          MakeBoundCallback (&ReportRbStatsNr, rbStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }

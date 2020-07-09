@@ -30,6 +30,7 @@ namespace ns3 {
 class SinrOutputStats;
 class PowerOutputStats;
 class SlotOutputStats;
+class RbOutputStats;
 
 class LenaV2Utils
 {
@@ -61,6 +62,7 @@ public:
                                        SinrOutputStats *sinrStats,
                                        PowerOutputStats *powerStats,
                                        SlotOutputStats *slotStats,
+                                       RbOutputStats *rbStats,
                                        const std::string &scheduler,
                                        uint32_t bandwidthMHz, uint32_t freqScenario);
   static void
@@ -75,6 +77,11 @@ public:
                      uint32_t usedReg, uint32_t usedSym,
                      uint32_t availableRb, uint32_t availableSym, uint16_t bwpId,
                      uint16_t cellId);
+  static void
+  ReportRbStatsNr (RbOutputStats *stats, const SfnSf &sfnSf, uint8_t sym,
+                                const std::vector<int> &rbUsed, uint16_t bwpId,
+                                uint16_t cellId);
+
   static void ConfigureBwpTo (BandwidthPartInfoPtr &bwp, double centerFreq, double bwpBw);
 };
 
