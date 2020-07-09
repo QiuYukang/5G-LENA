@@ -110,6 +110,7 @@ public:
       this->txQueueHolDelay = txQueueHolDelay;
       this->retxQueueSize = retxQueueSize;
       this->retxQueueHolDelay = retxQueueHolDelay;
+      this->statusPduSize = statusPduSize;
       this->srcL2Id = srcL2Id;
       this->dstL2Id = dstL2Id;
     }
