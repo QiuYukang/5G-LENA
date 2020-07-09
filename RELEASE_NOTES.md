@@ -88,6 +88,7 @@ New user-visible features (old first)
   by the error model upon delivery.
 - Added "ReportPowerSpectralDensity" trace source in NrUePhy.
 - Added "SlotDataStats" and "SlotCtrlStats" trace source in NrGnbPhy.
+- Added "RBDataStats" trace source in NrGnbPhy.
 
 Bugs fixed
 ----------

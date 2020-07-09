@@ -374,6 +374,16 @@ public:
                                            uint16_t cellId);
 
   /**
+   * \brief TracedCallback signature for RB statistics
+   *
+   * \param [in] sfnSf Slot number
+   * \param [in] sym Symbol
+   * \param [in] rbMap RB Map, in the spectrum format (vector of indexes of the active RB)
+   */
+  typedef void (* RBStatsTracedCallback)(const SfnSf &sfnSf, uint8_t sym,
+                                         const std::vector<int> &rbMap);
+
+  /**
    * \brief Retrieve the number of RB per RBG
    * \return the number of RB per RBG
    *
@@ -573,11 +583,12 @@ private:
 
   /**
    * \brief Store the RBG allocation in the symStart, rbg map.
+   * \param map the MAP
    * \param dci DCI
    *
-   * The map will be used to change the subchannels each time the beam is changed.
    */
-  void StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci);
+  void StoreRBGAllocation (std::unordered_map<uint8_t, std::vector<uint8_t> > *map,
+                           const std::shared_ptr<DciInfoElementTdma> &dci) const;
 
   /**
    * \brief Generate the generate/send DCI structures from a pattern
@@ -687,6 +698,7 @@ private:
   Time m_lastSlotStart; //!< Time at which the last slot started
   uint8_t m_currSymStart {0}; //!< Symbol at which the current allocation started
   std::unordered_map<uint8_t, std::vector<uint8_t> > m_rbgAllocationPerSym;  //!< RBG allocation in each sym
+  std::unordered_map<uint8_t, std::vector<uint8_t> > m_rbgAllocationPerSymDataStat;  //!< RBG allocation in each sym, for statistics (UL and DL included, only data)
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_ulSinrTrace; //!< SINR trace
 
@@ -712,6 +724,8 @@ private:
    * \brief Trace information for the data slot statistics
    */
   TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotDataStats;
+
+  TracedCallback<const SfnSf &, uint8_t, const std::vector<int>&> m_rbStatistics;
 
   std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
