@@ -90,6 +90,11 @@ def build(bld):
         'model/nr-sl-sci-f01-header.cc',
         'model/nr-sl-sci-f02-header.cc',
         'model/nr-sl-ue-mac-sched-sap.cc',
+        'model/nr-sl-ue-mac-scheduler.cc',
+        'model/nr-sl-ue-mac-scheduler-lcg.cc',
+        'model/nr-sl-ue-mac-scheduler-dst-info.cc',
+        'model/nr-sl-ue-mac-scheduler-ns3.cc',
+        'model/nr-sl-ue-mac-scheduler-simple.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -199,6 +204,11 @@ def build(bld):
         'model/nr-sl-sci-f02-header.h',
         'model/nr-sl-ue-mac-sched-sap.h',
         'model/nr-sl-ue-mac-csched-sap.h',
+        'model/nr-sl-ue-mac-scheduler.h',
+        'model/nr-sl-ue-mac-scheduler-lcg.h',
+        'model/nr-sl-ue-mac-scheduler-dst-info.h',
+        'model/nr-sl-ue-mac-scheduler-ns3.h',
+        'model/nr-sl-ue-mac-scheduler-simple.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
