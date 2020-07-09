@@ -153,13 +153,16 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                      "is the UE (UL direction), and the Rx device is each gNB to which it is "
                                      "connected each time, while the rest of gNBs (if they are present) are"
                                      "pointing their beams towards the Rx gNB. In case of TDD, the SINR map"
-                                     "will show the interference caused by the DL of these gNBs.",
+                                     "will show the interference caused by the DL of these gNBs."
+                                     "d) UL-REM which generates a UL REM map depicting the rx Power of all the "
+                                     "rtds in each rem point",
                                      EnumValue (NrRadioEnvironmentMapHelper::COVERAGE_AREA),
                                      MakeEnumAccessor (&NrRadioEnvironmentMapHelper::SetRemMode,
                                                        &NrRadioEnvironmentMapHelper::GetRemMode),
                                      MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
                                                       NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea",
-                                                      NrRadioEnvironmentMapHelper::UE_COVERAGE, "UeCoverageArea"))
+                                                      NrRadioEnvironmentMapHelper::UE_COVERAGE, "UeCoverageArea",
+                                                      NrRadioEnvironmentMapHelper::UL_REM, "UlRem"))
                       .AddAttribute ("InstallationDelay",
                                      "How many time it is needed in the simulation to configure phy parameters at UE, "
                                      "depends on RRC message timing.",
@@ -596,6 +599,10 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev
     {
       CalcUeCoverageRemMap ();
     }
+  else if (m_remMode == UL_REM)
+    {
+      CalcUlRemMap ();
+    }
   else
     {
       NS_FATAL_ERROR ("Unknown REM mode");
@@ -1029,6 +1036,12 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
   std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
   NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
+}
+
+void
+NrRadioEnvironmentMapHelper::CalcUlRemMap ()
+{
+  NS_LOG_FUNCTION (this);
 }
 
 void

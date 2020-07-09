@@ -86,7 +86,8 @@ public:
   enum RemMode {
          BEAM_SHAPE,
          COVERAGE_AREA,
-         UE_COVERAGE
+         UE_COVERAGE,
+         UL_REM
   };
 
   /**
@@ -383,6 +384,12 @@ private:
    * scenarios considering interference from neighbor gNBs that transmit in DL.
    */
   void CalcUeCoverageRemMap ();
+
+  /**
+   * \brief This function generates a an UL REM that depicts the rx Power of
+   * all rtds in each rem point.
+   */
+  void CalcUlRemMap ();
 
   /**
    * \brief This method calculates the PSD
