@@ -176,7 +176,7 @@ NrGnbPhy::GetTypeId (void)
                      MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotCtrlStats),
                      "ns3::NrGnbPhy::SlotStatsTracedCallback")
     .AddTraceSource ("RBDataStats",
-                     "Resource Block used for data",
+                     "Resource Block used for data: SfnSf, symbol, RB PHY map, bwp ID, cell ID",
                      MakeTraceSourceAccessor (&NrGnbPhy::m_rbStatistics),
                      "ns3::NrGnbPhy::RBStatsTracedCallback")
     ;
@@ -957,7 +957,8 @@ NrGnbPhy::PrepareRbgAllocationMap (const std::deque<VarTtiAllocInfo> &allocation
   for (const auto & s : m_rbgAllocationPerSymDataStat)
     {
       auto & rbgAllocation = s.second;
-      m_rbStatistics (m_currentSlot, s.first, FromRBGBitmaskToRBAssignment (rbgAllocation));
+      m_rbStatistics (m_currentSlot, s.first, FromRBGBitmaskToRBAssignment (rbgAllocation),
+                      GetBwpId (), GetCellId ());
     }
 
   m_rbgAllocationPerSymDataStat.clear ();

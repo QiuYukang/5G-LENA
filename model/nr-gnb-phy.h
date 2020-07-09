@@ -379,9 +379,12 @@ public:
    * \param [in] sfnSf Slot number
    * \param [in] sym Symbol
    * \param [in] rbMap RB Map, in the spectrum format (vector of indexes of the active RB)
+   * \param [in] bwpId BWP ID
+   * \param [in] cellId Cell ID
    */
   typedef void (* RBStatsTracedCallback)(const SfnSf &sfnSf, uint8_t sym,
-                                         const std::vector<int> &rbMap);
+                                         const std::vector<int> &rbMap,
+                                         uint16_t bwpId, uint16_t cellId);
 
   /**
    * \brief Retrieve the number of RB per RBG
@@ -725,7 +728,7 @@ private:
    */
   TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotDataStats;
 
-  TracedCallback<const SfnSf &, uint8_t, const std::vector<int>&> m_rbStatistics;
+  TracedCallback<const SfnSf &, uint8_t, const std::vector<int>&, uint16_t, uint16_t> m_rbStatistics;
 
   std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send
