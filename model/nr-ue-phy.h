@@ -299,6 +299,8 @@ public:
    */
   void SetCam (const Ptr<NrChAccessManager> &cam);
 
+  const SfnSf & GetCurrentSfnSf () const override;
+
   // From nr phy. Not used in the UE
   virtual BeamId GetBeamId (uint16_t rnti) const override;
 

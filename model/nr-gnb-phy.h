@@ -400,6 +400,8 @@ public:
    */
   uint32_t GetChannelBandwidth () const override;
 
+  const SfnSf & GetCurrentSfnSf () const override;
+
 protected:
   /**
    * \brief DoDispose method inherited from Object

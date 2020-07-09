@@ -287,6 +287,18 @@ public:
                       uint8_t harqId, uint8_t rv, bool downlink, uint8_t symStart, uint8_t numSym,
                       const SfnSf &sfn);
 
+  /**
+   * \brief TracedCallback signature for RB statistics
+   *
+   * \param [in] sfnSf SfnSf
+   * \param [in] v rxPsd values
+   * \param [in] t duration of the reception
+   * \param [in] bwpId BWP ID
+   * \param [in] cellId Cell ID
+   */
+  typedef void (* RxDataTracedCallback)(const SfnSf & sfnSf, Ptr<const SpectrumValue> v,
+                                        const Time & t, uint16_t bwpId, uint16_t cellId);
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -449,6 +461,7 @@ private:
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceEnb; //!< trace callback that is notifying when eNb received the packet
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
+  TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
 };
 
 }

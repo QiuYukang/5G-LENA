@@ -89,6 +89,7 @@ New user-visible features (old first)
 - Added "ReportPowerSpectralDensity" trace source in NrUePhy.
 - Added "SlotDataStats" and "SlotCtrlStats" trace source in NrGnbPhy.
 - Added "RBDataStats" trace source in NrGnbPhy.
+- Added "RxDataTrace" trace source in NrSpectrumPhy.
 
 Bugs fixed
 ----------

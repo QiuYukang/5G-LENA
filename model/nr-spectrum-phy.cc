@@ -158,6 +158,10 @@ NrSpectrumPhy::GetTypeId (void)
                      "Indicates when the channel is being occupied by a ctrl transmission",
                      MakeTraceSourceAccessor (&NrSpectrumPhy::m_txCtrlTrace),
                      "ns3::Time::TracedCallback")
+    .AddTraceSource ("RxDataTrace",
+                     "Indicates the reception of data from this cell (reporting the rxPsd without interferences)",
+                     MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxDataTrace),
+                     "ns3::RxDataTracedCallback::TracedCallback")
   ;
 
   return tid;
@@ -636,6 +640,9 @@ void
 NrSpectrumPhy::StartRxData (const Ptr<NrSpectrumSignalParametersDataFrame>& params)
 {
   NS_LOG_FUNCTION (this);
+
+  m_rxDataTrace (m_phy->GetCurrentSfnSf (), params->psd, params->duration,
+                 m_phy->GetBwpId (), m_phy->GetCellId ());
 
   switch (m_state)
     {

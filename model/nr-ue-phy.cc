@@ -997,6 +997,12 @@ NrUePhy::SetCam(const Ptr<NrChAccessManager> &cam)
   m_cam->SetAccessDeniedCallback (std::bind (&NrUePhy::ChannelAccessDenied, this));
 }
 
+const SfnSf &
+NrUePhy::GetCurrentSfnSf () const
+{
+  return m_currentSlot;
+}
+
 uint16_t
 NrUePhy::GetRnti ()
 {

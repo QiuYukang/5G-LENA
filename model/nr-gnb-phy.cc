@@ -197,6 +197,12 @@ NrGnbPhy::GetChannelBandwidth () const
   return m_channelBandwidth * 1000 * 100;
 }
 
+const SfnSf &
+NrGnbPhy::GetCurrentSfnSf () const
+{
+  return m_currentSlot;
+}
+
 /**
  * \brief An intelligent way to calculate the modulo
  * \param n Number

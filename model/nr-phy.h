@@ -396,6 +396,12 @@ public:
    */
   double GetCentralFrequency () const;
 
+  /**
+   * \brief Get the current SfnSf
+   * \return the current SfnSf
+   */
+  virtual const SfnSf & GetCurrentSfnSf () const = 0;
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
