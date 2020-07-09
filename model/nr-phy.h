@@ -224,6 +224,13 @@ public:
    */
   double GetNoiseFigure () const;
 
+  /**
+   * \brief Retrieve the Tx power
+   *
+   * \return the Tx power
+   */
+   virtual double GetTxPower () const = 0;
+
   // Installation / Helpers
   /**
    * \brief Retrieve a pointer to an instance of NrPhySapProvider

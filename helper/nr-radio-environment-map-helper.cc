@@ -138,20 +138,31 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                                            //&NrRadioEnvironmentMapHelper::GetMaxPointsPerIt),
                                      MakeUintegerChecker<uint16_t> ())
                       .AddAttribute ("RemMode",
-                                     "There are two high level modes of Rem generation: "
+                                     "There are three high level modes of Rem generation: "
                                      "a) BEAM_SHAPE in which are represented the beams that are configured "
-                                     "in the user's script scenario, considering that the receiver always has quasi-omni, and that all the beams "
-                                     "point toward the UE which is passed as UE of interest. The purpose of this map is to illustrate "
+                                     "in the user's script scenario, considering that the receiver always "
+                                     "has quasi-omni, and that all the beams point toward the UE which is "
+                                     "passed as UE of interest. The purpose of this map is to illustrate "
                                      "the REM of the scenario that is configured."
-                                     "b) COVERAGE_AREA which produces two REM maps: the worst-case SINR and best-SNR for each rem position;"
-                                     "Worst case SINR means that all interfering devices use for the transmission the beam toward the rem point;"
-                                     "and also for the best-SNR, for each transmitting device and the REM point are used the best directional beam-pair "
-                                     "and then is selected the best SNR.",
+                                     "b) COVERAGE_AREA which produces two REM maps: the worst-case SINR and "
+                                     "best-SNR for each rem position; Worst case SINR means that all interfering "
+                                     "devices use for the transmission the beam towards the rem point;"
+                                     "and also for the best-SNR, for each transmitting device and the REM point "
+                                     "are used the best directional beam-pair and then is selected the best SNR."
+                                     "c) UE_COVERAGE which is similar as the above, although the Tx Device"
+                                     "is the UE (UL direction), and the Rx device is each gNB to which it is "
+                                     "connected each time, while the rest of gNBs (if they are present) are"
+                                     "pointing their beams towards the Rx gNB. In case of TDD, the SINR map"
+                                     "will show the interference caused by the DL of these gNBs."
+                                     "d) UL-REM which generates a UL REM map depicting the rx Power of all the "
+                                     "rtds in each rem point",
                                      EnumValue (NrRadioEnvironmentMapHelper::COVERAGE_AREA),
                                      MakeEnumAccessor (&NrRadioEnvironmentMapHelper::SetRemMode,
                                                        &NrRadioEnvironmentMapHelper::GetRemMode),
                                      MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
-                                                      NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea"))
+                                                      NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea",
+                                                      NrRadioEnvironmentMapHelper::UE_COVERAGE, "UeCoverageArea",
+                                                      NrRadioEnvironmentMapHelper::UL_REM, "UlRem"))
                       .AddAttribute ("InstallationDelay",
                                      "How many time it is needed in the simulation to configure phy parameters at UE, "
                                      "depends on RRC message timing.",
@@ -276,16 +287,38 @@ NrRadioEnvironmentMapHelper::GetZ () const
   return m_z;
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+double
+NrRadioEnvironmentMapHelper::DbmToW (double dBm) const
+{
+  return std::pow (10.0, 0.1 * (dBm - 30.0));
+}
+
+double
+NrRadioEnvironmentMapHelper::WToDbm (double w) const
+{
+  return 10.0 * std::log10 (w) + 30.0;
+}
+
+double
+NrRadioEnvironmentMapHelper::DbToRatio (double dB) const
+{
+  return std::pow (10.0, 0.1 * dB);
+}
+
+double
+NrRadioEnvironmentMapHelper::RatioToDb (double ratio) const
+{
+  return 10.0 * std::log10 (ratio);
+}
+
+void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
   // RTD and RRD devices should have the same spectrum model to perform calculation,
   // if some of the RTD devices is of the different model then its transmission will have to
   // converted into spectrum model of this device
-  m_rrd.spectrumModel = ueDevice->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)->GetSpectrumModel ();
-
-  m_rrd.mob->SetPosition (ueDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
-
+  m_rrd.spectrumModel = m_rrdPhy->GetSpectrumModel ();
+  m_rrd.mob->SetPosition (rrdDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
   std::ostringstream oss;
   oss << "nr-ues" << m_simTag.c_str() <<".txt";
@@ -294,30 +327,23 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &ueDevice, 
   Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
   m_rrd.mob->AggregateObject (buildingInfo);
 
-  //Get Ue Phy
-  Ptr<NrUeNetDevice> nrUeNetDev = ueDevice->GetObject<NrUeNetDevice> ();
-  Ptr<const NrUePhy> rrdPhy = nrUeNetDev->GetPhy (bwpId);
-  NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
+  m_rrd.antenna = m_deviceToAntenna.find (rrdDevice)->second;
 
-  m_rrd.antenna = m_deviceToAntenna.find (ueDevice)->second;
+  m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
 
-  m_noisePsd = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (rrdPhy->GetNoiseFigure (), m_rrd.spectrumModel);
-
-  ConfigurePropagationModelsFactories (rrdPhy); // we can call only once configuration of prop.models
+  ConfigurePropagationModelsFactories (m_rrdPhy); // we can call only once configuration of prop.models
 
 }
 
-void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rtdDevs, const Ptr<NetDevice>& rrdDev, uint8_t bwpId)
+void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rtdDevs)
 {
   NS_LOG_FUNCTION (this);
+
   for (NetDeviceContainer::Iterator netDevIt = rtdDevs.Begin ();
       netDevIt != rtdDevs.End ();
       ++netDevIt)
     {
-      Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
-      Ptr<const NrGnbPhy> rtdPhy = nrNetDev->GetPhy (bwpId);
-      NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
-
+      Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find (*netDevIt)->second;
       if (rtdPhy->GetSpectrumModel () != m_rrd.spectrumModel)
         {
           if (rtdPhy->GetSpectrumModel ()->IsOrthogonal (*m_rrd.spectrumModel))
@@ -344,16 +370,17 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
       Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
       rtd.mob->AggregateObject (buildingInfo);
 
-      rtd.antenna = m_deviceToAntenna.find(*netDevIt)->second;
+      rtd.antenna = m_deviceToAntenna.find (*netDevIt)->second;
 
-      //Configure power
       rtd.txPower = rtdPhy->GetTxPower ();
+
+      NS_LOG_DEBUG ("power of UE: " << rtd.txPower);
 
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
                    ", create new RTD element... " <<
                    ", rtdPhy->GetCentralFrequency () " << rtdPhy->GetCentralFrequency () / 1e6 << " MHz " <<
-                   ", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
+                   //", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
                    ", num: "<< rtdPhy->GetNumerology ());
 
       m_remDev.push_back (rtd);
@@ -371,9 +398,9 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
 
   /***** configure pathloss model factory *****/
-  m_propagationLossModelFactory = ConfigureObjectFactory (txSpectrumChannel->GetPropagationLossModel ());
+  m_propagationLossModel = txSpectrumChannel->GetPropagationLossModel ();
   /***** configure spectrum model factory *****/
-  m_spectrumLossModelFactory = ConfigureObjectFactory (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+  m_spectrumLossModel = txSpectrumChannel->GetSpectrumPropagationLossModel ();
 
   /***** configure ChannelConditionModel factory if ThreeGppPropagationLossModel propagation model is being used ****/
   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
@@ -479,10 +506,51 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (const Ptr<Object>& object) 
 }
 
 void
-NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &gnbNetDev,
-                                        const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &rtdNetDev,
+                                        const Ptr<NetDevice> &rrdDevice, uint8_t bwpId)
 {
   NS_LOG_FUNCTION (this);
+
+  for (NetDeviceContainer::Iterator netDevIt = rtdNetDev.Begin ();
+      netDevIt != rtdNetDev.End ();
+      ++netDevIt)
+    {
+      Ptr<NrGnbNetDevice> gnbRtdNetDevice = DynamicCast<NrGnbNetDevice> (*netDevIt);
+      Ptr<NrUeNetDevice> ueRtdNetDevice = DynamicCast<NrUeNetDevice> (*netDevIt);
+
+      if (gnbRtdNetDevice)
+      {
+        NS_LOG_UNCOND ("gnb is rtd");
+        m_rtdDeviceToPhy.insert (std::make_pair (*netDevIt, (*netDevIt)->GetObject<NrGnbNetDevice> ()->GetPhy (bwpId)));
+      }
+      else if (ueRtdNetDevice)
+      {
+        NS_LOG_UNCOND ("ue is rtd");
+        m_rtdDeviceToPhy.insert (std::make_pair (*netDevIt, (*netDevIt)->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)));
+      }
+      else
+      {
+        NS_FATAL_ERROR ("no rtd device!");
+      }
+    }
+
+  Ptr<NrGnbNetDevice> gnbRrdNetDevice = DynamicCast<NrGnbNetDevice> (rrdDevice);
+  Ptr<NrUeNetDevice> ueRrdNetDevice = DynamicCast<NrUeNetDevice> (rrdDevice);
+
+  if (gnbRrdNetDevice)
+  {
+    NS_LOG_UNCOND ("gnb is rrd");
+    m_rrdPhy = (rrdDevice)->GetObject<NrGnbNetDevice> ()->GetPhy (bwpId);
+  }
+  else if (ueRrdNetDevice)
+  {
+    NS_LOG_UNCOND ("ue is rrd");
+    m_rrdPhy = (rrdDevice)->GetObject<NrUeNetDevice> ()->GetPhy (bwpId);
+  }
+  else
+  {
+    NS_FATAL_ERROR ("no rrd device!");
+  }
 
   // save user defined beams, it is like a snapshot, because later during
   // simulation they might change, and for the BEAM_SHAPE type of map
@@ -491,40 +559,33 @@ NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &gnbNetDev,
   // since we have delayed install maybe beamforming vector has changed in the RTD device
   // we want to save beamforming vector toward UE in the case that we will
   // need it for BEAM_SHAPE calculation
-  SaveAntennasWithUserDefinedBeams (gnbNetDev, ueDevice, bwpId);
+  SaveAntennasWithUserDefinedBeams (rtdNetDev, rrdDevice);
 
-  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, gnbNetDev, ueDevice, bwpId );
+  Simulator::Schedule (m_installationDelay, &NrRadioEnvironmentMapHelper::DelayedInstall, this, rtdNetDev, rrdDevice);
 }
 
 void
-NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &gnbNetDev,
-                                                   const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &rtdNetDev,
+                                                               const Ptr<NetDevice> &rrdDevice)
 {
-
-  Ptr<NrUeNetDevice> nrUeNetDev = ueDevice->GetObject<NrUeNetDevice> ();
-  Ptr<const NrUePhy> rrdPhy = nrUeNetDev->GetPhy (bwpId);
-  NS_ASSERT_MSG (rrdPhy, "rrdPhy is null");
-
-  m_deviceToAntenna.insert (std::make_pair (ueDevice, Copy (rrdPhy->GetAntennaArray ())));
-  for (NetDeviceContainer::Iterator netDevIt = gnbNetDev.Begin ();
-        netDevIt != gnbNetDev.End ();
-        ++netDevIt)
+  m_deviceToAntenna.insert (std::make_pair (rrdDevice, Copy (m_rrdPhy->GetAntennaArray ())));
+  for (NetDeviceContainer::Iterator rtdNetDevIt = rtdNetDev.Begin ();
+       rtdNetDevIt != rtdNetDev.End ();
+       ++rtdNetDevIt)
       {
-        Ptr<NrGnbNetDevice> nrNetDev = (*netDevIt)->GetObject<NrGnbNetDevice> ();
-        Ptr<const NrGnbPhy> rtdPhy = nrNetDev->GetPhy (bwpId);
-        NS_ASSERT_MSG (rtdPhy, "rtdPhy is null");
-        m_deviceToAntenna.insert (std::make_pair (*netDevIt, Copy (rtdPhy->GetAntennaArray ())));
+        Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find (*rtdNetDevIt)->second;
+        m_deviceToAntenna.insert (std::make_pair (*rtdNetDevIt, Copy (rtdPhy->GetAntennaArray ())));
       }
 }
 
 void
-NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &gnbNetDev,
-                                             const Ptr<NetDevice> &ueDevice, uint8_t bwpId)
+NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev,
+                                             const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
 
-  ConfigureRrd (ueDevice, bwpId);
-  ConfigureRtdList (gnbNetDev, ueDevice, bwpId);
+  ConfigureRrd (rrdDevice);
+  ConfigureRtdList (rtdNetDev);
   CreateListOfRemPoints ();
   if (m_remMode == COVERAGE_AREA)
     {
@@ -533,6 +594,14 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &gnbNetDev
   else if (m_remMode == BEAM_SHAPE)
     {
       CalcBeamShapeRemMap();
+    }
+  else if (m_remMode == UE_COVERAGE)
+    {
+      CalcUeCoverageRemMap ();
+    }
+  else if (m_remMode == UL_REM)
+    {
+      CalcUlRemMap ();
     }
   else
     {
@@ -605,54 +674,66 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 }
 
 void
-NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice, const Ptr<const ThreeGppAntennaArrayModel>& antenna)
+NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device,
+                                                     const RemDevice& otherDevice,
+                                                     const Ptr<const ThreeGppAntennaArrayModel>& antenna)
 {
   NS_LOG_FUNCTION (this);
   device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, antenna));
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& itRtd)
+NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice) const
 {
   PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-  tempPropModels.remSpectrumLossModelCopy->AddDevice (itRtd.dev, itRtd.antenna);
-  tempPropModels.remSpectrumLossModelCopy->AddDevice (m_rrd.dev, m_rrd.antenna);
-  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (itRtd.txPower, itRtd.spectrumModel);
+  tempPropModels.remSpectrumLossModelCopy->AddDevice (device.dev, device.antenna);
+  tempPropModels.remSpectrumLossModelCopy->AddDevice (otherDevice.dev, otherDevice.antenna);
+  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (device.txPower, device.spectrumModel);
 
   // check if RTD has the same spectrum model as RRD
   // if they have do nothing, if they dont, then convert txPsd of RTD device so to be according to spectrum model of RRD
 
   Ptr <const SpectrumValue> convertedTxPsd;
-  if (itRtd.spectrumModel->GetUid () == m_rrd.spectrumModel->GetUid ())
+  if (device.spectrumModel->GetUid () == otherDevice.spectrumModel->GetUid ())
     {
       NS_LOG_LOGIC ("no spectrum conversion needed");
       convertedTxPsd = txPsd;
     }
   else
     {
-      NS_LOG_LOGIC ("Converting TXPSD of RTD device " << itRtd.spectrumModel->GetUid ()  << " --> " << m_rrd.spectrumModel->GetUid ());
-      SpectrumConverter converter (itRtd.spectrumModel, m_rrd.spectrumModel);
+      NS_LOG_LOGIC ("Converting TXPSD of RTD device " <<
+                    device.spectrumModel->GetUid ()  << " --> " <<
+                    otherDevice.spectrumModel->GetUid ());
+
+      SpectrumConverter converter (device.spectrumModel, otherDevice.spectrumModel);
       convertedTxPsd = converter.Convert (txPsd);
     }
 
   // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
   Ptr<SpectrumValue> rxPsd = convertedTxPsd->Copy ();
-  double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, itRtd.mob, m_rrd.mob);
-  double pathGainLinear = std::pow (10.0, (pathLossDb) / 10.0);
+  double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, device.mob, otherDevice.mob);
+  double pathGainLinear = DbToRatio (pathLossDb);
+
+  NS_LOG_DEBUG ("Tx power in dBm:" <<  WToDbm (Integral (*convertedTxPsd)));
+  NS_LOG_DEBUG ("PathlosDb:" << pathLossDb);
 
   // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
   *(rxPsd) *= pathGainLinear;
 
+  NS_LOG_DEBUG ("RX power in dBm after pathloss:" << WToDbm (Integral (*rxPsd)));
+
   // Now we call spectrum model, which in this keys add a beamforming gain
-  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, itRtd.mob, m_rrd.mob);
+  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, device.mob, otherDevice.mob);
+
+  NS_LOG_DEBUG ("RX power in dBm after fading: " << WToDbm (Integral (*rxPsd)));
 
   return rxPsd;
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& values)
+NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& values) const
 {
   //TODO add this abort, if necessary add include for abort.h
   NS_ABORT_MSG_IF (values.size () == 0, "Must provide a list of values.");
@@ -670,22 +751,25 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& 
   return maxValue;
 }
 
-double NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
+double
+NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const
 {
   Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
   SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
-  return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+  return RatioToDb (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
-double NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal)
+double
+NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal) const
 {
    SpectrumValue snr = (*usefulSignal) / (*m_noisePsd);
-   return 10 * log10 (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
+
+   return RatioToDb (Sum (snr) / snr.GetSpectrumModel ()->GetNumBands ());
 }
 
 double
 NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
-                                            const std::list <Ptr<SpectrumValue>>& interferenceSignals)
+                                            const std::list <Ptr<SpectrumValue>>& interferenceSignals) const
 {
   Ptr<SpectrumValue> interferencePsd = nullptr;
 
@@ -708,11 +792,11 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
   SpectrumValue sinr = (*usefulSignal) / (*interferencePsd + *m_noisePsd) ;
 
   // calculate average sinr over RBs, convert it from linear to dB units, and return it
-  return 10 * log10 (Sum (sinr) / sinr.GetSpectrumModel ()->GetNumBands ()) ;
+  return RatioToDb (Sum (sinr) / sinr.GetSpectrumModel ()->GetNumBands ()) ;
 }
 
 double
-NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
+NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const
 {
   // we calculate sinr considering for each RTD as if it would be TX device, and the rest of RTDs interferers
   std::list <double> sinrList;
@@ -764,7 +848,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
             {
               calcRxPsdCounter++;
                // calculate received power from the current RTD device
-              receivedPowerList.push_back (CalcRxPsdValue (*itRtd));
+              receivedPowerList.push_back (CalcRxPsdValue (*itRtd, m_rrd));
 
               NS_LOG_INFO ("Done:" <<
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
@@ -781,8 +865,8 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
 
-      NS_LOG_INFO ("Avg snr value saved:"<<itRemPoint->avgSnrDb);
-      NS_LOG_INFO ("Avg sinr value saved:"<<itRemPoint->avgSinrDb);
+      NS_LOG_INFO ("Avg snr value saved:" << itRemPoint->avgSnrDb);
+      NS_LOG_INFO ("Avg sinr value saved:" << itRemPoint->avgSinrDb);
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
   auto remEndTime = std::chrono::system_clock::now ();
@@ -809,6 +893,38 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list<double>& listOfValues)
   return maxValue;
 }
 
+double
+NrRadioEnvironmentMapHelper::CalculateAggregatedIpsd (const std::list <Ptr<SpectrumValue>>& receivedSignals)
+{
+    Ptr<SpectrumValue> sumRxPowers = nullptr;
+    sumRxPowers = Create<SpectrumValue> (m_rrd.spectrumModel);
+
+    // sum the received power of all the rtds
+    for (auto rxPowersIt: receivedSignals)
+      {
+        *sumRxPowers += (*rxPowersIt);
+      }
+
+    SpectrumValue sumRxPowersSv = (*sumRxPowers) ;
+
+    return (Integral (sumRxPowersSv));
+}
+
+double
+NrRadioEnvironmentMapHelper::SumListElements (const std::list<double>& listOfValues)
+{
+    NS_ABORT_MSG_IF (listOfValues.size () == 0, "SumListElements should not be called "
+                                                "with an empty list.");
+
+    double sum = 0;
+
+    for(auto it = listOfValues.begin (); it != listOfValues.end (); ++it)
+      {
+        sum += *it;
+      }
+    return sum;
+}
+
 void
 NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 {
@@ -833,16 +949,29 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
           ConfigureDirectPathBfv (*itRtd, m_rrd, itRtd->antenna);
         }
 
+      std::list<double> rxPsdsListPerIt; //list to save the summed rxPower in each RemPoint for each Iteration (linear)
+
       for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
           std::list<double> sinrsPerBeam; // vector in which we will save sinr per each RRD beam
           std::list<double> snrsPerBeam; // vector in which we will save snr per each RRD beam
+
+          std::list<Ptr<SpectrumValue>> rxPsdsList; //vector in which we will save the sum of rxPowers per remPoint (linear)
 
           // For each beam configuration at RemPoint/RRD we should calculate SINR, there are as many beam configurations at RemPoint as many RTDs
           for (std::list<RemDevice>::iterator itRtdBeam = m_remDev.begin (); itRtdBeam != m_remDev.end (); ++itRtdBeam)
             {
               //configure RRD beam toward RTD
               ConfigureDirectPathBfv (m_rrd, *itRtdBeam, m_rrd.antenna);
+
+              //Calculate the received power from this RTD for this RemPoint
+              Ptr<SpectrumValue> receivedPowerFromRtd = CalcRxPsdValue (*itRtdBeam, m_rrd);
+              //and put it to the list of the received powers for this RemPoint (to sum all later)
+              rxPsdsList.push_back (receivedPowerFromRtd);
+
+              NS_LOG_DEBUG ("beam node: " << itRtdBeam->dev->GetNode ()->GetId () <<
+                            " is Rxed in RemPoint with Rx Power in W: " << (Integral (*receivedPowerFromRtd)));
+              NS_LOG_DEBUG ("RxPower in dBm: " << WToDbm (Integral (*receivedPowerFromRtd)));
 
               std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
               Ptr<SpectrumValue> usefulSignalRxPsd;
@@ -855,7 +984,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                   // increase counter de calcRXPsd calls
                   calcRxPsdCounter++;
                   // calculate received power from the current RTD device
-                  Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdCalc);
+                  Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdCalc, m_rrd);
 
                   // is this received power useful signal (from RTD for which I configured my beam) or is interference signal
 
@@ -871,7 +1000,8 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                     {
                       interferenceSignalsRxPsds.push_back (receivedPower);  //interference
                     }
-                }
+
+                } //end for std::list<RemDev>::iterator itRtdCalc (RTDs)
 
               sinrsPerBeam.push_back (CalculateSinr (usefulSignalRxPsd, interferenceSignalsRxPsds));
               snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
@@ -880,15 +1010,25 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                              (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()*m_remDev.size()) * 100 <<
                              " %."); // how many times will be called CalcRxPsdValues
 
-            } //end for std::list<RemDev>::iterator  (RTDs)
+            } //end for std::list<RemDev>::iterator itRtdBeam (RTDs)
 
           sumSnr += GetMaxValue (snrsPerBeam);
           sumSinr += GetMaxValue (sinrsPerBeam);
 
+          //Sum all the rxPowers (for this RemPoint) and put the result to the list for each Iteration (linear)
+          rxPsdsListPerIt.push_back (CalculateAggregatedIpsd (rxPsdsList));
+
         }//end for m_numOfIterationsToAverage  (Average)
+
+      //Sum the rxPower for all the Iterations (linear)
+      double rxPsdsAllIt = SumListElements (rxPsdsListPerIt);
 
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
+      //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
+      itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
+
+      NS_LOG_DEBUG ("itRemPoint->avRxPowerDb  in dB: " << itRemPoint->avRxPowerDbm);
 
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
@@ -898,9 +1038,154 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
                  remElapsedSeconds.count () / 60 << " minutes.");
 }
 
+void
+NrRadioEnvironmentMapHelper::CalcUlRemMap ()
+{
+  NS_LOG_FUNCTION (this);
+
+  //Save REM creation start time
+  auto remStartTime = std::chrono::system_clock::now ();
+  uint16_t calcRxPsdCounter = 0;
+
+  for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
+      itRemPoint != m_rem.end ();
+      ++itRemPoint)
+    {
+      //perform calculation m_numOfIterationsToAverage times and get the average value
+      std::list<double> rxPsdsListPerIt; //list to save the summed rxPower in each RemPoint for each Iteration (linear)
+      m_rrd.mob->SetPosition (itRemPoint->pos);
+
+      Ptr <MobilityBuildingInfo> buildingInfo = m_rrd.mob->GetObject <MobilityBuildingInfo> ();
+      buildingInfo->MakeConsistent (m_rrd.mob);
+      NS_ASSERT_MSG (buildingInfo, "buildingInfo is null");
+
+      for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
+        {
+          std::list<Ptr<SpectrumValue>> rxPsdsList; //vector in which we will save the sum of rxPowers per remPoint (linear)
+
+          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin ();
+               itRtd != m_remDev.end ();
+               ++itRtd)
+            {
+              calcRxPsdCounter++;
+
+              //Calculate the received power from this RTD for this RemPoint
+              Ptr<SpectrumValue> receivedPowerFromRtd = CalcRxPsdValue (*itRtd, m_rrd);
+              //and put it to the list of the received powers for this RemPoint (to sum all later)
+              rxPsdsList.push_back (receivedPowerFromRtd);
+
+              NS_LOG_DEBUG ("beam node: " << itRtd->dev->GetNode ()->GetId () <<
+                            " is Rxed in RemPoint with Rx Power in W: " << (Integral (*receivedPowerFromRtd)));
+              NS_LOG_DEBUG ("RxPower in dBm: " << WToDbm (Integral (*receivedPowerFromRtd)));
+
+              NS_LOG_INFO ("Done:" <<
+                           (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
+                           " %."); // how many times will be called CalcRxPsdValues
+
+            } //end for std::list<RemDev>::iterator  (RTDs)
+
+          //Sum all the rxPowers (for this RemPoint) and put the result to the list for each Iteration (linear)
+          rxPsdsListPerIt.push_back (CalculateAggregatedIpsd (rxPsdsList));
+
+        }//end for m_numOfIterationsToAverage  (Average)
+
+      //Sum the rxPower for all the Iterations (linear)
+      double rxPsdsAllIt = SumListElements (rxPsdsListPerIt);
+
+      //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
+      itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
+
+    } //end for std::list<RemPoint>::iterator  (RemPoints)
+
+  auto remEndTime = std::chrono::system_clock::now ();
+  std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+  NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
+                 remElapsedSeconds.count () / 60 << " minutes.");
+}
+
+void
+NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
+{
+    NS_LOG_FUNCTION (this);
+    //Save REM creation start time
+    auto remStartTime = std::chrono::system_clock::now ();
+
+    for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
+        itRemPoint != m_rem.end ();
+        ++itRemPoint)
+      {
+        //perform calculation m_numOfIterationsToAverage times and get the average value
+        double sumSnr = 0.0, sumSinr = 0.0;
+        m_rrd.mob->SetPosition (itRemPoint->pos);
+
+        for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
+          {
+            std::list<double> sinrsPerBeam; // vector in which we will save sinr per each RRD beam
+            std::list<double> snrsPerBeam; // vector in which we will save snr per each RRD beam
+
+            //"Associate" UE (RemPoint) with this RTD
+            for (std::list<RemDevice>::iterator itRtdAssociated = m_remDev.begin ();
+                 itRtdAssociated != m_remDev.end ();
+                 ++itRtdAssociated)
+              {
+                //configure RRD (RemPoint) beam toward RTD (itRtdAssociated)
+                ConfigureDirectPathBfv (m_rrd, *itRtdAssociated, m_rrd.antenna);
+                //configure RTD (itRtdAssociated) beam toward RRD (RemPoint)
+                ConfigureDirectPathBfv (*itRtdAssociated, m_rrd, itRtdAssociated->antenna);
+
+                std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
+                Ptr<SpectrumValue> usefulSignalRxPsd;
+
+                for(std::list<RemDevice>::iterator itRtdInterferer = m_remDev.begin ();
+                    itRtdInterferer != m_remDev.end ();
+                    ++itRtdInterferer)
+                  {
+                    if (itRtdAssociated->dev->GetNode ()->GetId () != itRtdInterferer->dev->GetNode ()->GetId ())
+                    {
+                      //configure RTD (itRtdInterferer) beam toward RTD (itRtdAssociated)
+                      ConfigureDirectPathBfv (*itRtdInterferer, *itRtdAssociated, itRtdInterferer->antenna);
+
+                      // calculate received power (interference) from the current RTD device
+                      Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (*itRtdInterferer, *itRtdAssociated);
+
+                      interferenceSignalsRxPsds.push_back (receivedPower);  //interference
+                    }
+                    else
+                    {
+                      // calculate received power (useful Signal) from the current RRD device
+                      Ptr<SpectrumValue> receivedPower = CalcRxPsdValue (m_rrd, *itRtdAssociated);
+                      if (usefulSignalRxPsd != nullptr)
+                        {
+                          NS_FATAL_ERROR ("Already assigned usefulSignal!");
+                        }
+                      usefulSignalRxPsd = receivedPower;
+                    }
+
+                  }//end for std::list<RemDev>::iterator itRtdInterferer (RTD)
+
+                sinrsPerBeam.push_back (CalculateSinr (usefulSignalRxPsd, interferenceSignalsRxPsds));
+                snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
+
+              }//end for std::list<RemDev>::iterator itRtdAssociated (RTD)
+
+            sumSnr += GetMaxValue (snrsPerBeam);
+            sumSinr += GetMaxValue (sinrsPerBeam);
+
+          }//end for m_numOfIterationsToAverage  (Average)
+
+        itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
+        itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
+
+      }//end for std::list<RemPoint>::iterator  (RemPoints)
+
+    auto remEndTime = std::chrono::system_clock::now ();
+    std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+    NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
+                   remElapsedSeconds.count () / 60 << " minutes.");
+}
 
 NrRadioEnvironmentMapHelper::PropagationModels
-NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
+NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels () const
 {
   NS_LOG_FUNCTION (this);
 
@@ -909,16 +1194,18 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
   Ptr<ChannelConditionModel> condModelCopy = m_channelConditionModelFactory.Create<ChannelConditionModel> ();
 
   //create rem copy of propagation model
-  propModels.remPropagationLossModelCopy = m_propagationLossModelFactory.Create <ThreeGppPropagationLossModel> ();
+  ObjectFactory propLossModelFactory = ConfigureObjectFactory (m_propagationLossModel);
+  propModels.remPropagationLossModelCopy = propLossModelFactory.Create <ThreeGppPropagationLossModel> ();
   propModels.remPropagationLossModelCopy->SetChannelConditionModel (condModelCopy);
 
   //create rem copy of spectrum loss model
-  if (m_spectrumLossModelFactory.IsTypeIdSet())
+  ObjectFactory spectrumLossModelFactory = ConfigureObjectFactory (m_spectrumLossModel);
+  if (spectrumLossModelFactory.IsTypeIdSet())
     {
       Ptr<MatrixBasedChannelModel> channelModelCopy = m_matrixBasedChannelModelFactory.Create<MatrixBasedChannelModel>();
       channelModelCopy->SetAttribute("ChannelConditionModel", PointerValue (condModelCopy));
-      m_spectrumLossModelFactory.Set ("ChannelModel", PointerValue (channelModelCopy));
-      propModels.remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
+      spectrumLossModelFactory.Set ("ChannelModel", PointerValue (channelModelCopy));
+      propModels.remSpectrumLossModelCopy = spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
     }
   return propModels;
 }
@@ -1021,12 +1308,13 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
        it != m_rem.end ();
        ++it)
     {
-      outFile << it->pos.x << "\t"
-                << it->pos.y << "\t"
-                << it->pos.z << "\t"
-                << it->avgSnrDb << "\t"
-                << it->avgSinrDb << "\t"
-                << std::endl;
+      outFile << it->pos.x << "\t" <<
+                 it->pos.y << "\t" <<
+                 it->pos.z << "\t" <<
+                 it->avgSnrDb << "\t" <<
+                 it->avgSinrDb << "\t" <<
+                 it->avRxPowerDbm << "\t" <<
+                 std::endl;
     }
 
   outFile.close();
@@ -1079,9 +1367,20 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
   outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
 
+  outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
+  outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
+  outFile<<"set cblabel \"rxPower (dBm)\""<<std::endl;
+  outFile<<"unset key"<<std::endl;
+  outFile<<"set term postscript eps color"<<std::endl;
+  outFile<<"set output \"rem-rxPower"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set size ratio -1"<<std::endl;
+  outFile<<"set cbrange [-100:-20]"<<std::endl;
+  outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
+  outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
+  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($6) with image"<<std::endl;
+
   outFile.close ();
 }
-
 
 void
 NrRadioEnvironmentMapHelper::Finalize ()
