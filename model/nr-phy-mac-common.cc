@@ -213,7 +213,7 @@ std::ostream &operator<< (std::ostream &os, const DciInfoElementTdma &item)
      << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess
      << "|RBG=[";
 
-  uint8_t start = 254, end = 0;
+  uint16_t start = 65000, end = 0;
   for (uint32_t i = 0; i < item.m_rbgBitmask.size(); ++i)
     {
       if (item.m_rbgBitmask[i] == 1 && end < i)
