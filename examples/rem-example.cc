@@ -70,6 +70,7 @@ main (int argc, char *argv[])
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
   std::string deploymentScenario = "SingleGnb";
+  std::string typeOfRem = "DlRem";
 
   double gNB1x = 0.0;
   double gNB1y = 0.0;
@@ -155,6 +156,10 @@ main (int argc, char *argv[])
                 "The deployment scenario for the simulation. Choose among "
                 "'SingleGnb', 'TwoGnbs'.",
                 deploymentScenario);
+  cmd.AddValue ("typeOfRem",
+                "The type of Rem to generate (DL or UL). Choose among "
+                "'DlRem', 'UlRem'.",
+                typeOfRem);
   cmd.AddValue ("frequency",
                 "The central carrier frequency in Hz.",
                 frequency);
@@ -570,9 +575,7 @@ main (int argc, char *argv[])
     }
 
 
-  //Let us create the REM for this user:
-  //Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
-  Ptr<NetDevice> gnbRemDevice = gnbNetDev.Get(0);
+
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
@@ -598,8 +601,21 @@ main (int argc, char *argv[])
       gnbNetDev.Get(3)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(3));
     }
 
-  //remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);
-  remHelper->CreateRem (ueNetDev, gnbRemDevice, remBwpId);
+  if(typeOfRem.compare("DlRem") == 0)
+  {
+    Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
+    remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);
+  }
+  else if (typeOfRem.compare("UlRem") == 0)
+  {
+    Ptr<NetDevice> gnbRemDevice = gnbNetDev.Get(0);
+    remHelper->CreateRem (ueNetDev, gnbRemDevice, remBwpId);
+  }
+  else
+  {
+    NS_ABORT_MSG("typeOfRem not supported. "
+                 "Choose among 'DlRem', 'UlRem'.");
+  }
 
 
   Simulator::Stop (Seconds (simTime));
