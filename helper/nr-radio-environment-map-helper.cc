@@ -1042,6 +1042,65 @@ void
 NrRadioEnvironmentMapHelper::CalcUlRemMap ()
 {
   NS_LOG_FUNCTION (this);
+
+  //Save REM creation start time
+  auto remStartTime = std::chrono::system_clock::now ();
+  uint16_t calcRxPsdCounter = 0;
+
+  for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
+      itRemPoint != m_rem.end ();
+      ++itRemPoint)
+    {
+      //perform calculation m_numOfIterationsToAverage times and get the average value
+      std::list<double> rxPsdsListPerIt; //list to save the summed rxPower in each RemPoint for each Iteration (linear)
+      m_rrd.mob->SetPosition (itRemPoint->pos);
+
+      Ptr <MobilityBuildingInfo> buildingInfo = m_rrd.mob->GetObject <MobilityBuildingInfo> ();
+      buildingInfo->MakeConsistent (m_rrd.mob);
+      NS_ASSERT_MSG (buildingInfo, "buildingInfo is null");
+
+      for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
+        {
+          std::list<Ptr<SpectrumValue>> rxPsdsList; //vector in which we will save the sum of rxPowers per remPoint (linear)
+
+          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin ();
+               itRtd != m_remDev.end ();
+               ++itRtd)
+            {
+              calcRxPsdCounter++;
+
+              //Calculate the received power from this RTD for this RemPoint
+              Ptr<SpectrumValue> receivedPowerFromRtd = CalcRxPsdValue (*itRtd, m_rrd);
+              //and put it to the list of the received powers for this RemPoint (to sum all later)
+              rxPsdsList.push_back (receivedPowerFromRtd);
+
+              NS_LOG_DEBUG ("beam node: " << itRtd->dev->GetNode ()->GetId () <<
+                            " is Rxed in RemPoint with Rx Power in W: " << (Integral (*receivedPowerFromRtd)));
+              NS_LOG_DEBUG ("RxPower in dBm: " << WToDbm (Integral (*receivedPowerFromRtd)));
+
+              NS_LOG_INFO ("Done:" <<
+                           (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
+                           " %."); // how many times will be called CalcRxPsdValues
+
+            } //end for std::list<RemDev>::iterator  (RTDs)
+
+          //Sum all the rxPowers (for this RemPoint) and put the result to the list for each Iteration (linear)
+          rxPsdsListPerIt.push_back (CalculateAggregatedIpsd (rxPsdsList));
+
+        }//end for m_numOfIterationsToAverage  (Average)
+
+      //Sum the rxPower for all the Iterations (linear)
+      double rxPsdsAllIt = SumListElements (rxPsdsListPerIt);
+
+      //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
+      itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
+
+    } //end for std::list<RemPoint>::iterator  (RemPoints)
+
+  auto remEndTime = std::chrono::system_clock::now ();
+  std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+  NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
+                 remElapsedSeconds.count () / 60 << " minutes.");
 }
 
 void
