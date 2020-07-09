@@ -86,8 +86,8 @@ public:
    *
    * Please note that the values in txPsd will be summed before storing.
    */
-  void SavePower (const SfnSf & sfnSf,
-                  Ptr<SpectrumValue> txPsd, const Time &t, uint16_t rnti, uint64_t imsi,
+  void SavePower (const SfnSf & sfnSf, Ptr<const SpectrumValue> txPsd,
+                  const Time &t, uint16_t rnti, uint64_t imsi,
                   uint16_t bwpId, uint16_t cellId);
 
   /**

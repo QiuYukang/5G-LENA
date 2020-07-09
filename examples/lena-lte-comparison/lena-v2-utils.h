@@ -60,7 +60,8 @@ public:
                                        NetDeviceContainer &ueSector3NetDev,
                                        bool calibration,
                                        SinrOutputStats *sinrStats,
-                                       PowerOutputStats *powerStats,
+                                       PowerOutputStats *ueTxPowerStats,
+                                       PowerOutputStats *gnbRxPowerStats,
                                        SlotOutputStats *slotStats,
                                        RbOutputStats *rbStats,
                                        const std::string &scheduler,
@@ -70,7 +71,7 @@ public:
                 double power, double avgSinr, uint16_t bwpId);
   static void
   ReportPowerNr (PowerOutputStats *stats, const SfnSf & sfnSf,
-                 Ptr<SpectrumValue> txPsd, Time t, uint16_t rnti, uint64_t imsi,
+                 Ptr<const SpectrumValue> txPsd, const Time &t, uint16_t rnti, uint64_t imsi,
                  uint16_t bwpId, uint16_t cellId);
   static void
   ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint32_t scheduledUe,
@@ -81,6 +82,10 @@ public:
   ReportRbStatsNr (RbOutputStats *stats, const SfnSf &sfnSf, uint8_t sym,
                                 const std::vector<int> &rbUsed, uint16_t bwpId,
                                 uint16_t cellId);
+  static void
+  ReportGnbRxDataNr (PowerOutputStats *gnbRxDataStats, const SfnSf &sfnSf,
+                                  Ptr<const SpectrumValue> rxPsd, const Time &t, uint16_t bwpId,
+                                  uint16_t cellId);
 
   static void ConfigureBwpTo (BandwidthPartInfoPtr &bwp, double centerFreq, double bwpBw);
 };

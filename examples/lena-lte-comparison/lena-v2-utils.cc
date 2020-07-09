@@ -33,7 +33,7 @@ LenaV2Utils::ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnt
 
 void
 LenaV2Utils::ReportPowerNr (PowerOutputStats *stats, const SfnSf & sfnSf,
-                            Ptr<SpectrumValue> txPsd, Time t, uint16_t rnti, uint64_t imsi,
+                            Ptr<const SpectrumValue> txPsd, const Time &t, uint16_t rnti, uint64_t imsi,
                             uint16_t bwpId, uint16_t cellId)
 {
   stats->SavePower (sfnSf, txPsd, t, rnti, imsi, bwpId, cellId);
@@ -55,6 +55,14 @@ LenaV2Utils::ReportRbStatsNr (RbOutputStats *stats, const SfnSf &sfnSf, uint8_t 
                               uint16_t cellId)
 {
   stats->SaveRbStats (sfnSf, sym, rbUsed, bwpId, cellId);
+}
+
+void
+LenaV2Utils::ReportGnbRxDataNr (PowerOutputStats *gnbRxDataStats, const SfnSf &sfnSf,
+                                Ptr<const SpectrumValue> rxPsd, const Time &t, uint16_t bwpId,
+                                uint16_t cellId)
+{
+  gnbRxDataStats->SavePower (sfnSf, rxPsd, t, 0, 0, bwpId, cellId);
 }
 
 void
@@ -91,7 +99,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                            NetDeviceContainer &ueSector3NetDev,
                                            bool calibration,
                                            SinrOutputStats *sinrStats,
-                                           PowerOutputStats *powerStats,
+                                           PowerOutputStats *ueTxPowerStats,
+                                           PowerOutputStats *gnbRxPowerStats,
                                            SlotOutputStats *slotStats, RbOutputStats *rbStats,
                                            const std::string &scheduler,
                                            uint32_t bandwidthMHz, uint32_t freqScenario)
@@ -708,12 +717,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
         {
           auto uePhySecond = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 1);
           uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
+                                                   MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
         }
       else
         {
           uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
+                                                  MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
         }
     }
 
@@ -727,12 +736,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
         {
           auto uePhySecond = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 1);
           uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
+                                                   MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
         }
       else
         {
           uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
+                                                  MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
         }
     }
 
@@ -746,12 +755,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
         {
           auto uePhySecond = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 1);
           uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
+                                                   MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
         }
       else
         {
           uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
+                                                  MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
         }
     }
 
@@ -769,6 +778,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
       gnbPhy->TraceConnectWithoutContext ("RBDataStats",
                                           MakeBoundCallback (&ReportRbStatsNr, rbStats));
+      gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
+                                                            MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
@@ -785,6 +796,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
       gnbPhy->TraceConnectWithoutContext ("RBDataStats",
                                           MakeBoundCallback (&ReportRbStatsNr, rbStats));
+      gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
+                                                            MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
@@ -801,6 +814,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
       gnbPhy->TraceConnectWithoutContext ("RBDataStats",
                                           MakeBoundCallback (&ReportRbStatsNr, rbStats));
+      gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
+                                                            MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
 
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }

@@ -184,14 +184,16 @@ LenaLteComparison (const Parameters &params)
 
   SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
   SinrOutputStats sinrStats;
-  PowerOutputStats powerStats;
+  PowerOutputStats ueTxPowerStats;
+  PowerOutputStats gnbRxPowerStats;
   SlotOutputStats slotStats;
   RbOutputStats rbStats;
 
   sinrStats.SetDb (&db);
-  powerStats.SetDb (&db);
+  ueTxPowerStats.SetDb (&db, "ueTxPower");
   slotStats.SetDb (&db);
   rbStats.SetDb (&db);
+  gnbRxPowerStats.SetDb (&db, "gnbRxPower");
 
   /*
    * Check if the frequency and numerology are in the allowed range.
@@ -325,7 +327,7 @@ LenaLteComparison (const Parameters &params)
                                   ueSector3NetDev,
                                   params.calibration,
                                   &sinrStats,
-                                  &powerStats,
+                                  &ueTxPowerStats,
                                   params.scheduler,
                                   params.bandwidthMHz,
                                   params.freqScenario);
@@ -357,7 +359,8 @@ LenaLteComparison (const Parameters &params)
                                     ueSector3NetDev,
                                     params.calibration,
                                     &sinrStats,
-                                    &powerStats,
+                                    &ueTxPowerStats,
+                                    &gnbRxPowerStats,
                                     &slotStats,
                                     &rbStats,
                                     params.scheduler,
@@ -718,7 +721,8 @@ LenaLteComparison (const Parameters &params)
   Simulator::Run ();
 
   sinrStats.EmptyCache ();
-  powerStats.EmptyCache ();
+  ueTxPowerStats.EmptyCache ();
+  gnbRxPowerStats.EmptyCache ();
   slotStats.EmptyCache ();
   rbStats.EmptyCache ();
 
