@@ -456,7 +456,11 @@ operator<< (std::ostream & os, ComponentCarrierInfo const & item)
 {
   os << "id: " << +item.m_ccId << " lower freq " << item.m_lowerFrequency/1e6 <<
         " MHz central freq " << item.m_centralFrequency/1e6 << " MHz higher freq " <<
-        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz.";
+        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz." << std::endl;
+  for (const auto & bwp : item.m_bwp)
+    {
+      os << "\t\t" << *bwp << std::endl;
+    }
   return os;
 }
 
@@ -465,7 +469,11 @@ operator<< (std::ostream & os, OperationBandInfo const & item)
 {
   os << "id: " << +item.m_bandId << " lower freq " << item.m_lowerFrequency/1e6 <<
         " MHz central freq " << item.m_centralFrequency/1e6 << " MHz higher freq " <<
-        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz.";
+        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz." << std::endl;
+  for (const auto & cc : item.m_cc)
+    {
+      os << "\t" << *cc << std::endl;
+    }
   return os;
 }
 
