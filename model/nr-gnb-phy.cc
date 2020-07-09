@@ -175,6 +175,10 @@ NrGnbPhy::GetTypeId (void)
                      "used symbols, available RBs, available symbols, bwp ID, cell ID",
                      MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotCtrlStats),
                      "ns3::NrGnbPhy::SlotStatsTracedCallback")
+    .AddTraceSource ("RBDataStats",
+                     "Resource Block used for data",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_rbStatistics),
+                     "ns3::NrGnbPhy::RBStatsTracedCallback")
     ;
   return tid;
 
@@ -934,14 +938,29 @@ NrGnbPhy::PrepareRbgAllocationMap (const std::deque<VarTtiAllocInfo> &allocation
   m_rbgAllocationPerSym.clear ();
 
   // Create RBG map to know where to put power in DL
-  for (const auto & dlAlloc : allocations)
+  for (const auto & allocation : allocations)
     {
-      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
-          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
+      if (allocation.m_dci->m_type != DciInfoElementTdma::CTRL)
         {
-          StoreRBGAllocation (dlAlloc.m_dci);
+          if (allocation.m_dci->m_format == DciInfoElementTdma::DL)
+            {
+              // In m_rbgAllocationPerSym, store only the DL RBG set to 1:
+              // these will used to put power
+              StoreRBGAllocation (&m_rbgAllocationPerSym, allocation.m_dci);
+            }
+
+          // For statistics, store UL/DL allocations
+          StoreRBGAllocation (&m_rbgAllocationPerSymDataStat, allocation.m_dci);
         }
     }
+
+  for (const auto & s : m_rbgAllocationPerSymDataStat)
+    {
+      auto & rbgAllocation = s.second;
+      m_rbStatistics (m_currentSlot, s.first, FromRBGBitmaskToRBAssignment (rbgAllocation));
+    }
+
+  m_rbgAllocationPerSymDataStat.clear ();
 }
 
 void
@@ -983,14 +1002,15 @@ NrGnbPhy::FillTheEvent ()
 }
 
 void
-NrGnbPhy::StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci)
+NrGnbPhy::StoreRBGAllocation (std::unordered_map<uint8_t, std::vector<uint8_t> > *map,
+                              const std::shared_ptr<DciInfoElementTdma> &dci) const
 {
   NS_LOG_FUNCTION (this);
 
-  auto itAlloc = m_rbgAllocationPerSym.find (dci->m_symStart);
-  if (itAlloc == m_rbgAllocationPerSym.end ())
+  auto itAlloc = map->find (dci->m_symStart);
+  if (itAlloc == map->end ())
     {
-      itAlloc = m_rbgAllocationPerSym.insert (std::make_pair (dci->m_symStart, dci->m_rbgBitmask)).first;
+      itAlloc = map->insert (std::make_pair (dci->m_symStart, dci->m_rbgBitmask)).first;
     }
   else
     {
