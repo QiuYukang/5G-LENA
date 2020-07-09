@@ -62,7 +62,7 @@ void
 LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
                                            const std::string &scenario,
                                            const std::string &radioNetwork,
-                                           std::string &errorModel,
+                                           std::string errorModel,
                                            const std::string &operationMode,
                                            const std::string &direction,
                                            uint16_t numerology,

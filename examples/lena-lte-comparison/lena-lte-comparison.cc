@@ -17,33 +17,7 @@
  *
  */
 
-/**
- * \ingroup examples
- * \file s3-scenario.cc
- * \brief A multi-cell network deployment with site sectorization
- *
- * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of an hexagonal grid deployment
- * consisting on a central site and a number of outer rings of sites around this
- * central site. Each site is sectorized, meaning that a number of three antenna
- * arrays or panels are deployed per gNB. These three antennas are pointing to
- * 30º, 150º and 270º w.r.t. the horizontal axis. We allocate a band to each
- * sector of a site, and the bands are contiguous in frequency.
- *
- * We provide a number of simulation parameters that can be configured in the
- * command line, such as the number of UEs per cell or the number of outer rings.
- * Please have a look at the possible parameters to know what you can configure
- * through the command line.
- *
- * With the default configuration, the example will create one DL flow per UE.
- * The example will print on-screen the end-to-end result of each flow,
- * as well as writing them on a file.
- *
- * \code{.unparsed}
-$ ./waf --run "lena-lte-comparison --Help"
-    \endcode
- *
- */
+#include "lena-lte-comparison.h"
 
 #include "ns3/core-module.h"
 #include "ns3/config-store.h"
@@ -72,17 +46,14 @@ $ ./waf --run "lena-lte-comparison --Help"
 #include "ns3/log.h"
 
 /*
- * Use, always, the namespace ns3. All the NR classes are inside such namespace.
- */
-using namespace ns3;
-
-/*
  * With this line, we will be able to see the logs of the file by enabling the
- * component "CttcNrDemo", in this way:
+ * component "LenaLteComparison", in this way:
  *
  * $ export NS_LOG="LenaLteComparison=level_info|prefix_func|prefix_time"
  */
 NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
+
+namespace ns3 {
 
 static std::pair<ApplicationContainer, double>
 InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
@@ -152,140 +123,22 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
   return std::make_pair(app, startTime);
 }
 
-int 
-main (int argc, char *argv[])
+void
+LenaLteComparison (const Parameters &params)
 {
-  /*
-   * Variables that represent the parameters we will accept as input by the
-   * command line. Each of them is initialized with a default value.
-   */
-  // Scenario parameters (that we will use inside this script):
-  uint16_t numOuterRings = 3;
-  uint16_t ueNumPergNb = 2;
-  bool logging = false;
-  bool traces = true;
-  std::string simulator = "";
-  std::string scenario = "UMa";
-  std::string radioNetwork = "NR";  // LTE or NR
-  std::string operationMode = "TDD";  // TDD or FDD
-
-  // Simulation parameters. Please don't use double to indicate seconds, use
-  // milliseconds and integers to avoid representation errors.
-  uint32_t appGenerationTimeMs = 1000;
-  uint32_t udpAppStartTimeMs = 400;
-  std::string direction = "DL";
-
-  // Spectrum parameters. We will take the input from the command line, and then
-  //  we will pass them inside the NR module.
-  uint16_t numerologyBwp = 0;
-  std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
-  uint32_t bandwidthMHz = 20;
-
-  // Where we will store the output files.
-  std::string simTag = "default";
-  std::string outputDir = "./";
-
-  // Error models
-  std::string errorModel = "";
-
-  bool calibration = true;
-
-  uint32_t trafficScenario = 0;
-
-  std::string scheduler = "PF";
-  uint32_t freqScenario = 0;
-
-  // Rem parameters: Modify them by hand, don't use the CommandLine for
-  // the moment
-  double xMinRem = -2000.0;
-  double xMaxRem = 2000.0;
-  uint16_t xResRem = 100;
-  double yMinRem = -2000.0;
-  double yMaxRem = 2000.0;
-  uint16_t yResRem = 100;
-  double zRem = 1.5;
-  bool generateRem = false;
-  uint32_t remSector = 1;
-
-
-  /*
-   * From here, we instruct the ns3::CommandLine class of all the input parameters
-   * that we may accept as input, as well as their description, and the storage
-   * variable.
-   */
-  CommandLine cmd;
-
-  cmd.AddValue ("scenario",
-                "The urban scenario string (UMa,UMi,RMa)",
-                scenario);
-  cmd.AddValue ("numRings",
-                "The number of rings around the central site",
-                numOuterRings);
-  cmd.AddValue ("ueNumPergNb",
-                "The number of UE per cell or gNB in multiple-ue topology",
-                ueNumPergNb);
-  cmd.AddValue ("appGenerationTimeMs",
-                "Simulation time",
-                appGenerationTimeMs);
-  cmd.AddValue ("numerologyBwp",
-                "The numerology to be used (NR only)",
-                numerologyBwp);
-  cmd.AddValue ("pattern",
-                "The TDD pattern to use",
-                pattern);
-  cmd.AddValue ("direction",
-                "The flow direction (DL or UL)",
-                direction);
-  cmd.AddValue ("simulator",
-                "The cellular network simulator to use: LENA or 5GLENA",
-                simulator);
-  cmd.AddValue ("technology",
-                "The radio access network technology",
-                radioNetwork);
-  cmd.AddValue ("operationMode",
-                "The network operation mode can be TDD or FDD",
-                operationMode);
-  cmd.AddValue ("simTag",
-                "tag to be appended to output filenames to distinguish simulation campaigns",
-                simTag);
-  cmd.AddValue ("outputDir",
-                "directory where to store simulation results",
-                outputDir);
-  cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-               errorModel);
-  cmd.AddValue ("calibration",
-                "disable a bunch of things to make LENA and NR_LTE comparable",
-                calibration);
-  cmd.AddValue ("trafficScenario",
-                "0: saturation (110 Mbps/enb), 1: latency (1 pkt of 10 bytes), 2: low-load (20 Mbps)",
-                trafficScenario);
-  cmd.AddValue ("scheduler",
-                "PF: Proportional Fair, RR: Round-Robin",
-                scheduler);
-  cmd.AddValue ("bandwidth",
-                "BW in MHz for each BWP (integer value): valid values are 20, 10, 5",
-                bandwidthMHz);
-  cmd.AddValue ("freqScenario",
-                "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
-                freqScenario);
-
-  // Parse the command line
-  cmd.Parse (argc, argv);
-
   // Traffic parameters (that we will use inside this script:)
   uint32_t udpPacketSize = 1000;
   uint32_t lambda;
   uint32_t packetCount;
 
-  NS_ABORT_MSG_IF (bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
-                   "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
+  NS_ABORT_MSG_IF (params.bandwidthMHz != 20 && params.bandwidthMHz != 10 && params.bandwidthMHz != 5,
+                   "Valid bandwidth values are 20, 10, 5, you set " << params.bandwidthMHz);
 
-  switch (trafficScenario)
+  switch (params.trafficScenario)
     {
     case 0: // let's put 80 Mbps with 20 MHz of bandwidth. Everything else is scaled
       packetCount = 0xFFFFFFFF;
-      switch (bandwidthMHz)
+      switch (params.bandwidthMHz)
         {
         case 20:
           udpPacketSize = 1000;
@@ -299,7 +152,7 @@ main (int argc, char *argv[])
         default:
           udpPacketSize = 1000;
         }
-      lambda = 10000 / ueNumPergNb;
+      lambda = 10000 / params.ueNumPergNb;
       break;
     case 1:
       packetCount = 1;
@@ -308,7 +161,7 @@ main (int argc, char *argv[])
       break;
     case 2: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
       packetCount = 0xFFFFFFFF;
-      switch (bandwidthMHz)
+      switch (params.bandwidthMHz)
         {
         case 20:
           udpPacketSize = 250;
@@ -322,13 +175,13 @@ main (int argc, char *argv[])
         default:
           udpPacketSize = 250;
         }
-      lambda = 10000 / ueNumPergNb;
+      lambda = 10000 / params.ueNumPergNb;
       break;
     default:
-      NS_FATAL_ERROR ("Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+      NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2");
     }
 
-  SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
+  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
   SinrOutputStats sinrStats;
   PowerOutputStats powerStats;
   SlotOutputStats slotStats;
@@ -342,12 +195,12 @@ main (int argc, char *argv[])
    * If you need to add other checks, here is the best position to put them.
    */
 //  NS_ABORT_IF (centralFrequencyBand > 100e9);
-  NS_ABORT_IF (numerologyBwp > 4);
-  NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
-  NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD", "Operation mode can only be TDD or FDD");
-  NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR", "Unrecognized radio network technology");
-  NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA", "Unrecognized simulator");
-  NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR", "Unrecognized scheduler");
+  NS_ABORT_IF (params.numerologyBwp > 4);
+  NS_ABORT_MSG_IF (params.direction != "DL" && params.direction != "UL", "Flow direction can only be DL or UL");
+  NS_ABORT_MSG_IF (params.operationMode != "TDD" && params.operationMode != "FDD", "Operation mode can only be TDD or FDD");
+  NS_ABORT_MSG_IF (params.radioNetwork != "LTE" && params.radioNetwork != "NR", "Unrecognized radio network technology");
+  NS_ABORT_MSG_IF (params.simulator != "LENA" && params.simulator != "5GLENA", "Unrecognized simulator");
+  NS_ABORT_MSG_IF (params.scheduler != "PF" && params.scheduler != "RR", "Unrecognized scheduler");
   /*
    * If the logging variable is set to true, enable the log of some components
    * through the code. The same effect can be obtained through the use
@@ -358,7 +211,7 @@ main (int argc, char *argv[])
    * Usually, the environment variable way is preferred, as it is more customizable,
    * and more expressive.
    */
-  if (logging)
+  if (params.logging)
     {
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
@@ -378,11 +231,11 @@ main (int argc, char *argv[])
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
   HexagonalGridScenarioHelper gridScenario;
-  gridScenario.SetNumRings (numOuterRings);
+  gridScenario.SetNumRings (params.numOuterRings);
   gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
-  gridScenario.SetScenarioParamenters (scenario);
+  gridScenario.SetScenarioParamenters (params.scenario);
   uint16_t gNbNum = gridScenario.GetNumCells ();
-  uint32_t ueNum = ueNumPergNb * gNbNum;
+  uint32_t ueNum = params.ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
@@ -448,11 +301,11 @@ main (int argc, char *argv[])
   Ptr <LteHelper> lteHelper = nullptr;
   Ptr <NrHelper> nrHelper = nullptr;
 
-  if (simulator == "LENA")
+  if (params.simulator == "LENA")
     {
       epcHelper = CreateObject<PointToPointEpcHelper> ();
       LenaV1Utils::SetLenaV1SimulatorParameters (gridScenario,
-                                  scenario,
+                                  params.scenario,
                                   gnbSector1Container,
                                   gnbSector2Container,
                                   gnbSector3Container,
@@ -467,24 +320,24 @@ main (int argc, char *argv[])
                                   ueSector1NetDev,
                                   ueSector2NetDev,
                                   ueSector3NetDev,
-                                  calibration,
+                                  params.calibration,
                                   &sinrStats,
                                   &powerStats,
-                                  scheduler,
-                                  bandwidthMHz,
-                                  freqScenario);
+                                  params.scheduler,
+                                  params.bandwidthMHz,
+                                  params.freqScenario);
     }
-  else if (simulator == "5GLENA")
+  else if (params.simulator == "5GLENA")
     {
       epcHelper = CreateObject<NrPointToPointEpcHelper> ();
       LenaV2Utils::SetLenaV2SimulatorParameters (gridScenario,
-                                    scenario,
-                                    radioNetwork,
-                                    errorModel,
-                                    operationMode,
-                                    direction,
-                                    numerologyBwp,
-                                    pattern,
+                                    params.scenario,
+                                    params.radioNetwork,
+                                    params.errorModel,
+                                    params.operationMode,
+                                    params.direction,
+                                    params.numerologyBwp,
+                                    params.pattern,
                                     gnbSector1Container,
                                     gnbSector2Container,
                                     gnbSector3Container,
@@ -499,13 +352,13 @@ main (int argc, char *argv[])
                                     ueSector1NetDev,
                                     ueSector2NetDev,
                                     ueSector3NetDev,
-                                    calibration,
+                                    params.calibration,
                                     &sinrStats,
                                     &powerStats,
                                     &slotStats,
-                                    scheduler,
-                                    bandwidthMHz,
-                                    freqScenario);
+                                    params.scheduler,
+                                    params.bandwidthMHz,
+                                    params.freqScenario);
     }
   else
     {
@@ -572,7 +425,7 @@ main (int argc, char *argv[])
             {
               NS_ABORT_MSG ("Programming error");
             }
-          if (logging == true)
+          if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -596,7 +449,7 @@ main (int argc, char *argv[])
             {
               NS_ABORT_MSG ("Programming error");
             }
-          if (logging == true)
+          if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -620,7 +473,7 @@ main (int argc, char *argv[])
             {
               NS_ABORT_MSG ("Programming error");
             }
-          if (logging == true)
+          if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -646,7 +499,7 @@ main (int argc, char *argv[])
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
 
   // The server, that is the application which is listening, is installed in the UE
-  if (direction == "DL")
+  if (params.direction == "DL")
     {
       serverApps.Add (dlPacketSinkLowLat.Install ({ueSector1Container,ueSector2Container,ueSector3Container}));
     }
@@ -656,7 +509,7 @@ main (int argc, char *argv[])
     }
 
   // start UDP server
-  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+  serverApps.Start (MilliSeconds (params.udpAppStartTimeMs));
 
   /*
    * Configure attributes for the different generators, using user-provided
@@ -698,16 +551,16 @@ main (int argc, char *argv[])
                     << " position " << n->GetObject<MobilityModel>()->GetPosition ()
                     << ":" << std::endl;
 
-          auto app = InstallApps (n, d, a, direction, &dlClientLowLat, remoteHost,
-                                  remoteHostAddr, udpAppStartTimeMs, dlPortLowLat,
-                                  x, appGenerationTimeMs, lteHelper, nrHelper);
+          auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
+                                  remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
+                                  x, params.appGenerationTimeMs, lteHelper, nrHelper);
           maxStartTime = std::max (app.second, maxStartTime);
           clientApps.Add (app.first);
         }
     }
 
   // enable the traces provided by the nr module
-  if (traces == true)
+  if (params.traces == true)
     {
       if (lteHelper != nullptr)
         {
@@ -736,25 +589,72 @@ main (int argc, char *argv[])
   Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
                                               // and when simulation starts the object does not exist anymore, but the scheduled REM events do (exist).
                                               // So, REM events would be called with invalid pointer to remHelper ...
-  if (generateRem)
-    {
-      if (simulator == "5GLENA" && !calibration)
-        {
-          NetDeviceContainer gnbContainerRem;
-          Ptr<NetDevice> ueRemDevice;
-          uint16_t remPhyIndex = 0;
 
-          if (remSector == 1)
+  if (params.dlRem || params.ulRem)
+    {
+      NS_ABORT_MSG_IF (params.simulator != "5GLENA",
+                       "Cannot do the REM with the simulator " << params.simulator);
+      NS_ABORT_MSG_IF (params.dlRem && params.ulRem,
+                       "You selected both DL and UL REM, that is not supported");
+      NS_ABORT_MSG_IF (params.remSector == 0 && params.freqScenario != 1,
+                       "RemSector == 0 makes sense only in a OVERLAPPING scenario");
+
+      NetDeviceContainer gnbContainerRem;
+      Ptr<NetDevice> ueRemDevice;
+      uint16_t remPhyIndex = 0;
+      if (params.operationMode == "FDD" && params.direction == "UL")
+      {
+        remPhyIndex = 1;
+      }
+
+      NetDeviceContainer ueContainerRem;
+      Ptr<NetDevice> gnbRemDevice;
+
+      if (params.ulRem)
+        {
+          if (params.remSector == 0)
+            {
+              ueContainerRem.Add (ueSector1NetDev);
+              ueContainerRem.Add (ueSector2NetDev);
+              ueContainerRem.Add (ueSector3NetDev);
+              gnbRemDevice = gnbSector1NetDev.Get (0);
+            }
+          else if (params.remSector == 1)
+            {
+              ueContainerRem = ueSector1NetDev;
+              gnbRemDevice = gnbSector1NetDev.Get(0);
+            }
+          else if (params.remSector == 2)
+            {
+              ueContainerRem = ueSector2NetDev;
+              gnbRemDevice = gnbSector2NetDev.Get(0);
+            }
+          else if (params.remSector == 3)
+            {
+              ueContainerRem = ueSector3NetDev;
+              gnbRemDevice = gnbSector3NetDev.Get(0);
+            }
+        }
+      else
+        {
+          if (params.remSector == 0)
+            {
+              gnbContainerRem.Add (gnbSector1NetDev);
+              gnbContainerRem.Add (gnbSector2NetDev);
+              gnbContainerRem.Add (gnbSector3NetDev);
+              ueRemDevice = ueSector1NetDev.Get (0);
+            }
+          else if (params.remSector == 1)
             {
               gnbContainerRem = gnbSector1NetDev;
               ueRemDevice = ueSector1NetDev.Get(0);
             }
-          else if (remSector == 2)
+          else if (params.remSector == 2)
             {
               gnbContainerRem = gnbSector2NetDev;
               ueRemDevice = ueSector2NetDev.Get(0);
             }
-          else if (remSector == 3)
+          else if (params.remSector == 3)
             {
               gnbContainerRem = gnbSector3NetDev;
               ueRemDevice = ueSector3NetDev.Get(0);
@@ -763,43 +663,54 @@ main (int argc, char *argv[])
             {
               NS_FATAL_ERROR ("Sector does not exist");
             }
+        }
 
-          //Radio Environment Map Generation for ccId 0
-          remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-          remHelper->SetMinX (xMinRem);
-          remHelper->SetMaxX (xMaxRem);
-          remHelper->SetResX (xResRem);
-          remHelper->SetMinY (yMinRem);
-          remHelper->SetMaxY (yMaxRem);
-          remHelper->SetResY (yResRem);
-          remHelper->SetZ (zRem);
+      //Radio Environment Map Generation for ccId 0
+      remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
+      remHelper->SetMinX (params.xMinRem);
+      remHelper->SetMaxX (params.xMaxRem);
+      remHelper->SetResX (params.xResRem);
+      remHelper->SetMinY (params.yMinRem);
+      remHelper->SetMaxY (params.yMaxRem);
+      remHelper->SetResY (params.yResRem);
+      remHelper->SetZ (params.zRem);
 
-          //save beamforming vectors
-          for (uint32_t j = 0; j < gridScenario.GetNumSites (); ++j)
+      //save beamforming vectors
+      for (uint32_t j = 0; j < gridScenario.GetNumSites (); ++j)
+        {
+          switch (params.remSector)
             {
-              switch (remSector - 1)
-              {
-                case 0:
-                  gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
-                  break;
-                case 1:
-                  gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
-                  break;
-                case 2:
-                  gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
-                  break;
-                default:
-                  NS_ABORT_MSG("sector cannot be larger than 3");
-                  break;
-              }
+            case 0:
+              gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
+              gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
+              gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
+              break;
+            case 1:
+              gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
+              break;
+            case 2:
+              gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
+              break;
+            case 3:
+              gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
+              break;
+            default:
+              NS_ABORT_MSG("sector cannot be larger than 3");
+              break;
             }
+        }
 
-          remHelper->CreateRem (gnbContainerRem, ueRemDevice, remPhyIndex);  //bwpId 0
+      if (params.ulRem)
+        {
+          remHelper->CreateRem (ueContainerRem, gnbRemDevice, remPhyIndex);
+        }
+      else
+        {
+          remHelper->CreateRem (gnbContainerRem, ueRemDevice, remPhyIndex);
         }
     }
 
-
-  Simulator::Stop (MilliSeconds (appGenerationTimeMs + maxStartTime));
+  Simulator::Stop (MilliSeconds (params.appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
 
   sinrStats.EmptyCache ();
@@ -815,10 +726,10 @@ main (int argc, char *argv[])
 
   FlowMonitorOutputStats flowMonStats;
   flowMonStats.SetDb (&db, tableName);
-  flowMonStats.Save (monitor, flowmonHelper, outputDir + "/" + simTag);
+  flowMonStats.Save (monitor, flowmonHelper, params.outputDir + "/" + params.simTag);
 
   Simulator::Destroy ();
-  return 0;
 }
 
+} // namespace ns3
 
