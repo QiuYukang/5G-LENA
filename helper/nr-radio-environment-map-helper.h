@@ -236,28 +236,28 @@ public:
    * \param w the power in Watts
    * \return the equivalent dBm for the given Watts
    */
-  double WToDbm (double w);
+  double WToDbm (double w) const;
 
   /**
    * \brief Convert from dBm to Watts.
    * \param dbm the power in dBm
    * \return the equivalent Watts for the given dBm
    */
-  double DbmToW (double dbm);
+  double DbmToW (double dbm) const;
 
   /**
    * \brief Convert from dB to ratio.
    * \param db the value in dB
    * \return ratio in linear scale
    */
-  double DbToRatio (double dB);
+  double DbToRatio (double dB) const;
 
   /**
    * \brief Convert from ratio to dB.
    * \param ratio the ratio in linear scale
    * \return the value in dB
    */
-  double RatioToDb (double ratio);
+  double RatioToDb (double ratio) const;
 
   /**
    * \brief This function is used for the creation of the REM map. When this
@@ -397,14 +397,14 @@ private:
    * \brief This method calculates the PSD
    * \return The PSD (spectrumValue)
    */
-  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice);
+  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice) const;
 
   /**
    * \brief This function calculates the SNR.
    * \param usefulSignal The useful Signal
    * \return The snr
    */
-  double CalculateSnr (const Ptr<SpectrumValue>& usefulSignal);
+  double CalculateSnr (const Ptr<SpectrumValue>& usefulSignal) const;
 
   /**
    * \brief This function finds the max value in a space of frequency-dependent
@@ -412,7 +412,7 @@ private:
    * \param values The list of spectrumValues for which we want to find the max
    * \return The max spectrumValue
    */
-  Ptr<SpectrumValue> GetMaxValue(const std::list <Ptr<SpectrumValue>>& values);
+  Ptr<SpectrumValue> GetMaxValue(const std::list <Ptr<SpectrumValue>>& values) const;
 
   /**
    * \brief This function finds the max value in a space of frequency-dependent
@@ -420,7 +420,7 @@ private:
    * \param values The list of spectrumValues for which we want to find the max
    * \return The max value (snr)
    */
-  double CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList);
+  double CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
 
   /**
    * \brief This function finds the max value in a space of frequency-dependent
@@ -428,7 +428,7 @@ private:
    * \param values The list of spectrumValues for which we want to find the max
    * \return The max value (sinr)
    */
-  double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList);
+  double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
 
   /**
    * \brief This function calculates the SINR for a given space of frequency-dependent
@@ -438,7 +438,7 @@ private:
    * \return The max value (sinr)
    */
   double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
-                        const std::list <Ptr<SpectrumValue>>& interferenceSignals);
+                        const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
 
   /**
    * \brief This function finds the max value in a list of double values.
@@ -475,7 +475,7 @@ private:
    * \return The struct with the temporal propagation models (created for each
    * rem point)
    */
-  PropagationModels CreateTemporalPropagationModels ();
+  PropagationModels CreateTemporalPropagationModels () const;
 
   /**
    * \brief Prints the position of the gNbs.
@@ -548,8 +548,8 @@ private:
   std::map <const Ptr<NetDevice>, Ptr<NrPhy>> m_rtdDeviceToPhy;     ///< Map for storing the phy of each RTD device
   std::map <const Ptr<NetDevice>, Ptr<ThreeGppAntennaArrayModel>> m_deviceToAntenna;
 
-  ObjectFactory m_propagationLossModelFactory;
-  ObjectFactory m_spectrumLossModelFactory;
+  Ptr<PropagationLossModel> m_propagationLossModel;
+  Ptr<SpectrumPropagationLossModel> m_spectrumLossModel;
   ObjectFactory m_channelConditionModelFactory;
   ObjectFactory m_matrixBasedChannelModelFactory;
 

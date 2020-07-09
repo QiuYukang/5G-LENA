@@ -288,25 +288,25 @@ NrRadioEnvironmentMapHelper::GetZ () const
 }
 
 double
-NrRadioEnvironmentMapHelper::DbmToW (double dBm)
+NrRadioEnvironmentMapHelper::DbmToW (double dBm) const
 {
   return std::pow (10.0, 0.1 * (dBm - 30.0));
 }
 
 double
-NrRadioEnvironmentMapHelper::WToDbm (double w)
+NrRadioEnvironmentMapHelper::WToDbm (double w) const
 {
   return 10.0 * std::log10 (w) + 30.0;
 }
 
 double
-NrRadioEnvironmentMapHelper::DbToRatio (double dB)
+NrRadioEnvironmentMapHelper::DbToRatio (double dB) const
 {
   return std::pow (10.0, 0.1 * dB);
 }
 
 double
-NrRadioEnvironmentMapHelper::RatioToDb (double ratio)
+NrRadioEnvironmentMapHelper::RatioToDb (double ratio) const
 {
   return 10.0 * std::log10 (ratio);
 }
@@ -398,9 +398,9 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
 
   /***** configure pathloss model factory *****/
-  m_propagationLossModelFactory = ConfigureObjectFactory (txSpectrumChannel->GetPropagationLossModel ());
+  m_propagationLossModel = txSpectrumChannel->GetPropagationLossModel ();
   /***** configure spectrum model factory *****/
-  m_spectrumLossModelFactory = ConfigureObjectFactory (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+  m_spectrumLossModel = txSpectrumChannel->GetSpectrumPropagationLossModel ();
 
   /***** configure ChannelConditionModel factory if ThreeGppPropagationLossModel propagation model is being used ****/
   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
@@ -683,7 +683,7 @@ NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device,
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice)
+NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice) const
 {
   PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
@@ -733,7 +733,7 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
 }
 
 Ptr<SpectrumValue>
-NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& values)
+NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& values) const
 {
   //TODO add this abort, if necessary add include for abort.h
   NS_ABORT_MSG_IF (values.size () == 0, "Must provide a list of values.");
@@ -752,7 +752,7 @@ NrRadioEnvironmentMapHelper::GetMaxValue (const std::list <Ptr<SpectrumValue>>& 
 }
 
 double
-NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
+NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const
 {
   Ptr<SpectrumValue> maxSnr = GetMaxValue (receivedPowerList);
   SpectrumValue snr = (*maxSnr) / (*m_noisePsd);
@@ -760,7 +760,7 @@ NrRadioEnvironmentMapHelper::CalculateMaxSnr (const std::list <Ptr<SpectrumValue
 }
 
 double
-NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal)
+NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSignal) const
 {
    SpectrumValue snr = (*usefulSignal) / (*m_noisePsd);
 
@@ -769,7 +769,7 @@ NrRadioEnvironmentMapHelper::CalculateSnr (const Ptr<SpectrumValue>& usefulSigna
 
 double
 NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
-                                            const std::list <Ptr<SpectrumValue>>& interferenceSignals)
+                                            const std::list <Ptr<SpectrumValue>>& interferenceSignals) const
 {
   Ptr<SpectrumValue> interferencePsd = nullptr;
 
@@ -796,7 +796,7 @@ NrRadioEnvironmentMapHelper::CalculateSinr (const Ptr<SpectrumValue>& usefulSign
 }
 
 double
-NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList)
+NrRadioEnvironmentMapHelper::CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const
 {
   // we calculate sinr considering for each RTD as if it would be TX device, and the rest of RTDs interferers
   std::list <double> sinrList;
@@ -1185,7 +1185,7 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
 }
 
 NrRadioEnvironmentMapHelper::PropagationModels
-NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
+NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels () const
 {
   NS_LOG_FUNCTION (this);
 
@@ -1194,16 +1194,18 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels ()
   Ptr<ChannelConditionModel> condModelCopy = m_channelConditionModelFactory.Create<ChannelConditionModel> ();
 
   //create rem copy of propagation model
-  propModels.remPropagationLossModelCopy = m_propagationLossModelFactory.Create <ThreeGppPropagationLossModel> ();
+  ObjectFactory propLossModelFactory = ConfigureObjectFactory (m_propagationLossModel);
+  propModels.remPropagationLossModelCopy = propLossModelFactory.Create <ThreeGppPropagationLossModel> ();
   propModels.remPropagationLossModelCopy->SetChannelConditionModel (condModelCopy);
 
   //create rem copy of spectrum loss model
-  if (m_spectrumLossModelFactory.IsTypeIdSet())
+  ObjectFactory spectrumLossModelFactory = ConfigureObjectFactory (m_spectrumLossModel);
+  if (spectrumLossModelFactory.IsTypeIdSet())
     {
       Ptr<MatrixBasedChannelModel> channelModelCopy = m_matrixBasedChannelModelFactory.Create<MatrixBasedChannelModel>();
       channelModelCopy->SetAttribute("ChannelConditionModel", PointerValue (condModelCopy));
-      m_spectrumLossModelFactory.Set ("ChannelModel", PointerValue (channelModelCopy));
-      propModels.remSpectrumLossModelCopy = m_spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
+      spectrumLossModelFactory.Set ("ChannelModel", PointerValue (channelModelCopy));
+      propModels.remSpectrumLossModelCopy = spectrumLossModelFactory.Create <ThreeGppSpectrumPropagationLossModel> ();
     }
   return propModels;
 }
