@@ -62,11 +62,11 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
 
   uint32_t tbs = 0;
   uint8_t assignedSbCh = 0;
-  uint16_t availbelSymbols = txOppsIt->slPscchSymLength;
+  uint16_t availableSymbols = txOppsIt->slPscchSymLength;
   do
     {
       assignedSbCh++;
-      tbs = GetNrSlAmc ()->CalculateTbSize (dstInfo->GetDstMcs (), txOppsIt->slSubchannelSize * availbelSymbols);
+      tbs = GetNrSlAmc ()->CalculateTbSize (dstInfo->GetDstMcs (), txOppsIt->slSubchannelSize * assignedSbCh * availableSymbols);
     }
   while (tbs < bufferSize && (GetTotalSubCh () - assignedSbCh) > 0);
 
@@ -74,7 +74,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
   slotAlloc->indexSubchannelStart = 0;
   slotAlloc->subchannelLength = assignedSbCh;
   slotAlloc->indexSymStart = txOppsIt->slPsschSymStart;
-  slotAlloc->SymLength = availbelSymbols;
+  slotAlloc->SymLength = availableSymbols;
 
   slotAlloc->sfn = txOppsIt->sfn;
   slotAlloc->dstL2Id = dstInfo->GetDstL2Id ();
@@ -103,8 +103,8 @@ NrSlUeMacSchedulerSimple::RandomlySelectSlots (const std::list <NrSlUeMacSchedSa
   NS_ASSERT_MSG (txOpps.size () >= txOppsIt->slMaxNumPerReserve,
                  "not enough txOpps to perform " << txOppsIt->slMaxNumPerReserve << " transmissions");
 
-  NS_ASSERT_MSG (txOppsIt->slMaxNumPerReserve >= 1 && txOppsIt->slMaxNumPerReserve <= 3,
-                                               "slMaxNumPerReserve should be greater than 1 and less than 3");
+  NS_ASSERT_MSG (txOppsIt->slMaxNumPerReserve >= 1 && txOppsIt->slMaxNumPerReserve < 4,
+                                               "slMaxNumPerReserve should be greater than 1 and less than 4");
 
   uint16_t totalReTx = txOppsIt->slMaxNumPerReserve - 1;
   uint16_t txOppSize = static_cast <uint16_t> (txOpps.size ());
