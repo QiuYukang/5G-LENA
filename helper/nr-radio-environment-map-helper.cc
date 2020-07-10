@@ -153,16 +153,13 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                                      "is the UE (UL direction), and the Rx device is each gNB to which it is "
                                      "connected each time, while the rest of gNBs (if they are present) are"
                                      "pointing their beams towards the Rx gNB. In case of TDD, the SINR map"
-                                     "will show the interference caused by the DL of these gNBs."
-                                     "d) UL-REM which generates a UL REM map depicting the rx Power of all the "
-                                     "rtds in each rem point",
+                                     "will show the interference caused by the DL of these gNBs.",
                                      EnumValue (NrRadioEnvironmentMapHelper::COVERAGE_AREA),
                                      MakeEnumAccessor (&NrRadioEnvironmentMapHelper::SetRemMode,
                                                        &NrRadioEnvironmentMapHelper::GetRemMode),
                                      MakeEnumChecker (NrRadioEnvironmentMapHelper::BEAM_SHAPE, "BeamShape",
                                                       NrRadioEnvironmentMapHelper::COVERAGE_AREA, "CoverageArea",
-                                                      NrRadioEnvironmentMapHelper::UE_COVERAGE, "UeCoverageArea",
-                                                      NrRadioEnvironmentMapHelper::UL_REM, "UlRem"))
+                                                      NrRadioEnvironmentMapHelper::UE_COVERAGE, "UeCoverageArea"))
                       .AddAttribute ("InstallationDelay",
                                      "How many time it is needed in the simulation to configure phy parameters at UE, "
                                      "depends on RRC message timing.",
@@ -599,10 +596,6 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev
     {
       CalcUeCoverageRemMap ();
     }
-  else if (m_remMode == UL_REM)
-    {
-      CalcUlRemMap ();
-    }
   else
     {
       NS_FATAL_ERROR ("Unknown REM mode");
@@ -834,6 +827,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
     {
       //perform calculation m_numOfIterationsToAverage times and get the average value
       double sumSnr = 0.0, sumSinr = 0.0;
+      std::list<double> rxPsdsListPerIt; //list to save the summed rxPower in each RemPoint for each Iteration (linear)
       m_rrd.mob->SetPosition (itRemPoint->pos);
 
       Ptr <MobilityBuildingInfo> buildingInfo = m_rrd.mob->GetObject <MobilityBuildingInfo> ();
@@ -844,9 +838,12 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
         {
           std::list <Ptr<SpectrumValue>> receivedPowerList;// RTD node id, rxPsd of the singal coming from that node
 
-          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin (); itRtd != m_remDev.end (); ++itRtd)
+          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin ();
+               itRtd != m_remDev.end ();
+               ++itRtd)
             {
               calcRxPsdCounter++;
+
                // calculate received power from the current RTD device
               receivedPowerList.push_back (CalcRxPsdValue (*itRtd, m_rrd));
 
@@ -859,14 +856,24 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
           sumSnr += CalculateMaxSnr (receivedPowerList);
           sumSinr += CalculateMaxSinr (receivedPowerList);
 
+          //Sum all the rxPowers (for this RemPoint) and put the result to the list for each Iteration (linear)
+          rxPsdsListPerIt.push_back (CalculateAggregatedIpsd (receivedPowerList));
+
           receivedPowerList.clear ();
         }//end for m_numOfIterationsToAverage  (Average)
 
+      //Sum the rxPower for all the Iterations (linear)
+      double rxPsdsAllIt = SumListElements (rxPsdsListPerIt);
+
       itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
       itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
+      //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
+      itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
 
       NS_LOG_INFO ("Avg snr value saved:" << itRemPoint->avgSnrDb);
       NS_LOG_INFO ("Avg sinr value saved:" << itRemPoint->avgSinrDb);
+      NS_LOG_INFO ("Avg ipsd value saved (dBm):" << itRemPoint->avRxPowerDbm);
+
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
   auto remEndTime = std::chrono::system_clock::now ();
@@ -1029,71 +1036,6 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
       itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
 
       NS_LOG_DEBUG ("itRemPoint->avRxPowerDb  in dB: " << itRemPoint->avRxPowerDbm);
-
-    } //end for std::list<RemPoint>::iterator  (RemPoints)
-
-  auto remEndTime = std::chrono::system_clock::now ();
-  std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
-  NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
-                 remElapsedSeconds.count () / 60 << " minutes.");
-}
-
-void
-NrRadioEnvironmentMapHelper::CalcUlRemMap ()
-{
-  NS_LOG_FUNCTION (this);
-
-  //Save REM creation start time
-  auto remStartTime = std::chrono::system_clock::now ();
-  uint16_t calcRxPsdCounter = 0;
-
-  for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
-      itRemPoint != m_rem.end ();
-      ++itRemPoint)
-    {
-      //perform calculation m_numOfIterationsToAverage times and get the average value
-      std::list<double> rxPsdsListPerIt; //list to save the summed rxPower in each RemPoint for each Iteration (linear)
-      m_rrd.mob->SetPosition (itRemPoint->pos);
-
-      Ptr <MobilityBuildingInfo> buildingInfo = m_rrd.mob->GetObject <MobilityBuildingInfo> ();
-      buildingInfo->MakeConsistent (m_rrd.mob);
-      NS_ASSERT_MSG (buildingInfo, "buildingInfo is null");
-
-      for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
-        {
-          std::list<Ptr<SpectrumValue>> rxPsdsList; //vector in which we will save the sum of rxPowers per remPoint (linear)
-
-          for (std::list<RemDevice>::iterator itRtd = m_remDev.begin ();
-               itRtd != m_remDev.end ();
-               ++itRtd)
-            {
-              calcRxPsdCounter++;
-
-              //Calculate the received power from this RTD for this RemPoint
-              Ptr<SpectrumValue> receivedPowerFromRtd = CalcRxPsdValue (*itRtd, m_rrd);
-              //and put it to the list of the received powers for this RemPoint (to sum all later)
-              rxPsdsList.push_back (receivedPowerFromRtd);
-
-              NS_LOG_DEBUG ("beam node: " << itRtd->dev->GetNode ()->GetId () <<
-                            " is Rxed in RemPoint with Rx Power in W: " << (Integral (*receivedPowerFromRtd)));
-              NS_LOG_DEBUG ("RxPower in dBm: " << WToDbm (Integral (*receivedPowerFromRtd)));
-
-              NS_LOG_INFO ("Done:" <<
-                           (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
-                           " %."); // how many times will be called CalcRxPsdValues
-
-            } //end for std::list<RemDev>::iterator  (RTDs)
-
-          //Sum all the rxPowers (for this RemPoint) and put the result to the list for each Iteration (linear)
-          rxPsdsListPerIt.push_back (CalculateAggregatedIpsd (rxPsdsList));
-
-        }//end for m_numOfIterationsToAverage  (Average)
-
-      //Sum the rxPower for all the Iterations (linear)
-      double rxPsdsAllIt = SumListElements (rxPsdsListPerIt);
-
-      //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
-      itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
 
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
