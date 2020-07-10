@@ -80,8 +80,8 @@ NrRadioEnvironmentMapHelper::GetTypeId (void)
                       .AddConstructor<NrRadioEnvironmentMapHelper> ()
                       .AddAttribute ("SimTag",
                                      "simulation tag that will be concatenated to output file names"
-                                     "in order to distinguish them, for example: NR_REM-${SimTag}.out. "
-                                     "nr-ues-${SimTag}.txt, nr-gnbs-${SimTag}.txt, nr-buildings-${SimTag}.txt.",
+                                     "in order to distinguish them, for example: nr-rem-${SimTag}.out. "
+                                     "nr-rem-${SimTag}-ues.txt, nr-rem-${SimTag}-gnbs.txt, nr-rem-${SimTag}-buildings.txt.",
                                       StringValue (""),
                                       MakeStringAccessor (&NrRadioEnvironmentMapHelper::SetSimTag),
                                       MakeStringChecker ())
@@ -321,7 +321,7 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &rrdDevice)
   m_rrd.mob->SetPosition (rrdDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
   std::ostringstream oss;
-  oss << "nr-ues" << m_simTag.c_str() <<".txt";
+  oss << "nr-rem-" << m_simTag.c_str() <<"-ues.txt";
   PrintGnuplottableUeListToFile (oss.str());
 
   Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
@@ -610,10 +610,10 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev
   PrintRemToFile ();
 
   std::ostringstream ossGnbs;
-  ossGnbs << "nr-gnbs" << m_simTag.c_str() <<".txt";
+  ossGnbs << "nr-rem-" << m_simTag.c_str() <<"-gnbs.txt";
   PrintGnuplottableGnbListToFile (ossGnbs.str());
   std::ostringstream ossBuildings;
-  ossBuildings << "nr-buildings" << m_simTag.c_str() <<".txt";
+  ossBuildings << "nr-rem-" << m_simTag.c_str() <<"-buildings.txt";
   PrintGnuplottableBuildingListToFile (ossBuildings.str());
 }
 
@@ -1292,7 +1292,7 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
   NS_LOG_FUNCTION (this);
 
   std::ostringstream oss;
-  oss << "NR_REM" << m_simTag.c_str() <<".out";
+  oss << "nr-rem-" << m_simTag.c_str() <<".out";
 
   std::ofstream outFile;
   std::string outputFile = oss.str ();
@@ -1332,7 +1332,7 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
 {
   NS_LOG_FUNCTION (this);
   std::ostringstream oss;
-  oss << "plot_rem" << m_simTag.c_str() <<".gnuplot";
+  oss << "nr-rem-" << m_simTag.c_str() <<"-plot-rem.gnuplot";
   std::string filename = oss.str ();
 
   std::ofstream outFile;
@@ -1348,36 +1348,36 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile<<"set cblabel \"SNR (dB)\""<<std::endl;
   outFile<<"unset key"<<std::endl;
   outFile<<"set term postscript eps color"<<std::endl;
-  outFile<<"set output \"rem-snr"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set output \"nr-rem-"<<m_simTag<<"-snr.eps\""<<std::endl;
   outFile<<"set size ratio -1"<<std::endl;
   outFile<<"set cbrange [-5:30]"<<std::endl;
   outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
   outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
-  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($4) with image"<<std::endl;
+  outFile<<"plot \"nr-rem-"<<m_simTag<<".out\" using ($1):($2):($4) with image"<<std::endl;
 
   outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
   outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
   outFile<<"set cblabel \"SINR (dB)\""<<std::endl;
   outFile<<"unset key"<<std::endl;
   outFile<<"set term postscript eps color"<<std::endl;
-  outFile<<"set output \"rem-sinr"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set output \"nr-rem-"<<m_simTag<<"-sinr.eps\""<<std::endl;
   outFile<<"set size ratio -1"<<std::endl;
   outFile<<"set cbrange [-5:30]"<<std::endl;
   outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
   outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
-  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
+  outFile<<"plot \"nr-rem-"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
 
   outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
   outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
-  outFile<<"set cblabel \"rxPower (dBm)\""<<std::endl;
+  outFile<<"set cblabel \"IPSD (dBm)\""<<std::endl;
   outFile<<"unset key"<<std::endl;
   outFile<<"set term postscript eps color"<<std::endl;
-  outFile<<"set output \"rem-rxPower"<<m_simTag<<".eps\""<<std::endl;
+  outFile<<"set output \"nr-rem-"<<m_simTag<<"-ipsd.eps\""<<std::endl;
   outFile<<"set size ratio -1"<<std::endl;
   outFile<<"set cbrange [-100:-20]"<<std::endl;
   outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
   outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
-  outFile<<"plot \"NR_REM"<<m_simTag<<".out\" using ($1):($2):($6) with image"<<std::endl;
+  outFile<<"plot \"nr-rem-"<<m_simTag<<".out\" using ($1):($2):($6) with image"<<std::endl;
 
   outFile.close ();
 }
@@ -1387,7 +1387,9 @@ NrRadioEnvironmentMapHelper::Finalize ()
 {
   NS_LOG_FUNCTION (this);
   // TODO test if we can call this  
-  //system("gnuplot -p nr-ues.txt nr-gnbs.txt buildings.txt plot_rem.gnuplot");
+  //std::ostringstream oss;
+  //oss <<"gnuplot -p nr-"<<m_simTag.c_str()<<"-ues.txt nr-"<<m_simTag.c_str()<<"-gnbs.txt nr-rem-"<<m_simTag.c_str()<<"-buildings.txt nr-rem-"<<m_simTag.c_str()<<"-plot-rem.gnuplot";
+  //system(oss.str().c_str());
   // TODO if yes, then we can add also convert command
   Simulator::Stop ();
 }
