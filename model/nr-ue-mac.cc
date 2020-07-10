@@ -32,8 +32,7 @@
 #include <ns3/random-variable-stream.h>
 #include "nr-phy-sap.h"
 #include "nr-control-messages.h"
-#include "nr-amc.h"
-#include <ns3/nr-sl-comm-resource-pool.h>
+#include "nr-sl-ue-mac-csched-sap.h"
 
 namespace ns3 {
 
@@ -211,6 +210,52 @@ MacUeMemberPhySapUser::GetNumHarqProcess () const
   return m_mac->GetNumHarqProcess();
 }
 
+
+class MemberNrSlUeMacSchedSapUser : public NrSlUeMacSchedSapUser
+{
+
+public:
+  MemberNrSlUeMacSchedSapUser (NrUeMac* mac);
+
+  virtual void SchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params);
+  virtual uint8_t GetTotalSubCh () const;
+
+private:
+  NrUeMac* m_mac;
+};
+
+MemberNrSlUeMacSchedSapUser::MemberNrSlUeMacSchedSapUser (NrUeMac* mac)
+:m_mac (mac)
+{
+}
+void
+MemberNrSlUeMacSchedSapUser::SchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params)
+{
+  m_mac->DoSchedUeNrSlConfigInd (params);
+}
+
+uint8_t
+MemberNrSlUeMacSchedSapUser::GetTotalSubCh () const
+{
+  return m_mac->DoGetTotalSubCh ();
+}
+
+class MemberNrSlUeMacCschedSapUser : public NrSlUeMacCschedSapUser
+{
+
+public:
+  MemberNrSlUeMacCschedSapUser (NrUeMac* mac);
+
+
+private:
+  NrUeMac* m_mac;
+};
+
+MemberNrSlUeMacCschedSapUser::MemberNrSlUeMacCschedSapUser (NrUeMac* mac)
+:m_mac (mac)
+{
+}
+
 //-----------------------------------------------------------------------
 
 TypeId
@@ -233,7 +278,39 @@ NrUeMac::GetTypeId (void)
                      "Ue MAC Control Messages Traces.",
                      MakeTraceSourceAccessor (&NrUeMac::m_macTxedCtrlMsgsTrace),
                      "ns3::NrMacRxTrace::TxedUeMacCtrlMsgsTracedCallback")
-  ;
+    .AddAttribute ("EnableSensing",
+                   "Flag to enable NR Sidelink resource selection based on sensing; otherwise, use random selection",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&NrUeMac::EnableSensing),
+                   MakeBooleanChecker ())
+    .AddAttribute ("Tproc0",
+                   "t_proc0 in slots",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&NrUeMac::SetTproc0,
+                                         &NrUeMac::GetTproc0),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("T1",
+                   "The offset in number of slots between the slot in which the"
+                   "resource selection is triggered and the start of the selection window",
+                   UintegerValue (2),
+                   MakeUintegerAccessor (&NrUeMac::SetT1,
+                                         &NrUeMac::GetT1),
+                                         MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("T2",
+                   "The offset in number of slots between the slot in which the"
+                   "resource selection is triggered and the end of the selection window",
+                   UintegerValue (32),
+                   MakeUintegerAccessor (&NrUeMac::SetT2,
+                                         &NrUeMac::GetT2),
+                                         MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("ActivePoolId",
+                   "The pool id of the active pool used for TX and RX",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&NrUeMac::SetSlActivePoolId,
+                                         &NrUeMac::GetSlActivePoolId),
+                                         MakeUintegerChecker<uint8_t> ())
+          ;
+
   return tid;
 }
 
@@ -248,6 +325,8 @@ NrUeMac::NrUeMac (void) : Object ()
   m_nrSlMacSapProvider = new MemberNrSlMacSapProvider <NrUeMac> (this);
   m_nrSlUeCmacSapProvider = new MemberNrSlUeCmacSapProvider<NrUeMac> (this);
   m_nrSlUePhySapUser = new MemberNrSlUePhySapUser<NrUeMac> (this);
+  m_nrSlUeMacCschedSapUser = new MemberNrSlUeMacCschedSapUser (this);
+  m_nrSlUeMacSchedSapUser = new MemberNrSlUeMacSchedSapUser (this);
 }
 
 NrUeMac::~NrUeMac (void)
@@ -271,7 +350,8 @@ NrUeMac::DoDispose ()
   delete m_nrSlMacSapProvider;
   delete m_nrSlUeCmacSapProvider;
   delete m_nrSlUePhySapUser;
-  m_slAmc = nullptr;
+  delete m_nrSlUeMacCschedSapUser;
+  delete m_nrSlUeMacSchedSapUser;
 }
 
 void
@@ -559,6 +639,8 @@ NrUeMac::DoSlotIndication (SfnSf sfn)
       SendSR ();
       m_srState = ACTIVE;
     }
+
+  DoNrSlSlotIndication (sfn);
 
   // Feedback missing
 }
@@ -1000,6 +1082,73 @@ NrUeMac::DoReset ()
 
 //NR SL
 
+std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn, uint16_t poolId)
+{
+  NS_LOG_FUNCTION (this << sfn.GetFrame() << +sfn.GetSubframe() << sfn.GetSlot () << poolId);
+
+  std::list <NrSlCommResourcePool::SlotInfo> candSsResoA, candSsResoB;// S_A and S_B as per TS 38.214
+  uint64_t absSlotIndex = sfn.Normalize ();
+  uint8_t bwpId = GetBwpId ();
+  uint16_t numerology = sfn.GetNumerology ();
+
+  if (m_enableSensing)
+    {
+
+    }
+  else
+    {
+      //no sensing
+      candSsResoA = m_slTxPool->GetNrSlCommOpportunities (absSlotIndex, bwpId, numerology, poolId, m_t1, m_t2);
+      candSsResoB = candSsResoA;
+    }
+
+  return GetNrSupportedList (sfn, candSsResoB);
+}
+
+std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+NrUeMac::GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::SlotInfo> slotInfo)
+{
+  NS_LOG_FUNCTION (this);
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> nrSupportedList;
+  for (const auto& it:slotInfo)
+    {
+      NrSlUeMacSchedSapProvider::NrSlSlotInfo info (it.numSlPscchRbs, it.slPscchSymStart,
+                                                  it.slPscchSymLength, it.slPsschSymStart,
+                                                  it.slPsschSymLength, it.slSubchannelSize,
+                                                  it.slMaxNumPerReserve,
+                                                  sfn.GetFutureSfnSf (it.slotOffset));
+      nrSupportedList.emplace_back (info);
+    }
+
+  return nrSupportedList;
+}
+
+void
+NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
+{
+  NS_LOG_FUNCTION (this << " Frame " << sfn.GetFrame() << " Subframe " << +sfn.GetSubframe() << " slot " << sfn.GetSlot () << " Normalized slot number " << sfn.Normalize ());
+
+  if (m_slTxPool->GetNrSlSchedulingType () == NrSlCommResourcePool::SCHEDULED)
+    {
+
+    }
+  else if (m_slTxPool->GetNrSlSchedulingType () == NrSlCommResourcePool::UE_SELECTED)
+    {
+      for (const auto &dstIt : m_sidelinkDestinations)
+        {
+          NS_LOG_INFO ("scheduling the destination " << dstIt);
+          std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities (sfn, m_poolId);
+          //Now before calling the scheduler we need to remove the opportunities
+          //which are already scheduled/picked by the scheduler
+        }
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Scheduling type " << m_slTxPool->GetNrSlSchedulingType () << " for NR Sidlink pools is unknown");
+    }
+}
+
 NrSlMacSapProvider*
 NrUeMac::GetNrSlMacSapProvider ()
 {
@@ -1042,12 +1191,33 @@ NrUeMac::GetNrSlUeCmacSapProvider ()
    m_nrSlUePhySapProvider = s;
  }
 
-void
-NrUeMac::SetSlAmcModel (const Ptr<NrAmc> &slAmc)
-{
-  NS_LOG_FUNCTION (this);
-  m_slAmc = slAmc;
-}
+ void
+ NrUeMac::SetNrSlUeMacSchedSapProvider (NrSlUeMacSchedSapProvider* s)
+ {
+   NS_LOG_FUNCTION (this);
+   m_nrSlUeMacSchedSapProvider = s;
+ }
+
+ NrSlUeMacSchedSapUser*
+ NrUeMac::GetNrSlUeMacSchedSapUser ()
+ {
+   NS_LOG_FUNCTION (this);
+   return m_nrSlUeMacSchedSapUser;
+ }
+
+ void
+ NrUeMac::SetNrSlUeMacCschedSapProvider (NrSlUeMacCschedSapProvider* s)
+ {
+   NS_LOG_FUNCTION (this);
+   m_nrSlUeMacCschedSapProvider = s;
+ }
+
+ NrSlUeMacCschedSapUser*
+ NrUeMac::GetNrSlUeMacCschedSapUser ()
+ {
+   NS_LOG_FUNCTION (this);
+   return m_nrSlUeMacCschedSapUser;
+ }
 
 void
 NrUeMac::DoTransmitNrSlRlcPdu (const NrSlMacSapProvider::NrSlRlcPduParameters &params)
@@ -1060,7 +1230,33 @@ void
 NrUeMac::DoReportNrSlBufferStatus (const NrSlMacSapProvider::NrSlReportBufferStatusParameters &params)
 {
   NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("Yet to be implemented");
+
+  NS_LOG_INFO ("Reporting for Sidelink. Tx Queue size = " << params.txQueueSize);
+  //Sidelink BSR
+  std::map <SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters>::iterator it;
+
+  SidelinkLcIdentifier slLcId;
+  slLcId.lcId = params.lcid;
+  slLcId.srcL2Id = params.srcL2Id;
+  slLcId.dstL2Id = params.dstL2Id;
+
+  it = m_nrSlBsrReceived.find (slLcId);
+  if (it != m_nrSlBsrReceived.end ())
+    {
+      // update entry
+      (*it).second = params;
+    }
+  else
+    {
+      m_nrSlBsrReceived.insert (std::make_pair (slLcId, params));
+    }
+
+  auto report = NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams (params.rnti, params.lcid,
+                                                                                params.txQueueSize, params.txQueueHolDelay,
+                                                                                params.retxQueueSize, params.retxQueueHolDelay,
+                                                                                params.statusPduSize, params.srcL2Id, params.dstL2Id);
+
+  m_nrSlUeMacSchedSapProvider->SchedUeNrSlRlcBufferReq (report);
 }
 
 void
@@ -1079,6 +1275,13 @@ NrUeMac::DoAddNrSlLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &s
   slLcInfoUeMac.lcInfo = slLcInfo;
   slLcInfoUeMac.macSapUser = msu;
   m_nrSlLcInfoMap.insert (std::make_pair (slLcIdentifier, slLcInfoUeMac));
+
+  auto lcInfo = NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo (slLcInfo.dstL2Id, slLcInfo.lcId,
+                                                                        slLcInfo.lcGroup, slLcInfo.pqi,
+                                                                        slLcInfo.priority, slLcInfo.isGbr,
+                                                                        slLcInfo.mbr, slLcInfo.gbr);
+
+  m_nrSlUeMacCschedSapProvider->CschedUeNrSlLcConfigReq (lcInfo);
 }
 
 void
@@ -1129,34 +1332,109 @@ NrUeMac::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 }
 
 void
-NrUeMac::DoAddNrSlDstL2Id (uint32_t dstL2Id, uint16_t poolId)
+NrUeMac::DoAddNrSlDstL2Id (uint32_t dstL2Id)
 {
-  NS_LOG_FUNCTION (this << dstL2Id << poolId);
-  auto dstIt = m_activePoolIdPerDest.find (dstL2Id);
-  if (dstIt == m_activePoolIdPerDest.end ())
+  NS_LOG_FUNCTION (this << dstL2Id);
+
+  bool inserted = m_sidelinkDestinations.emplace (dstL2Id).second;
+
+  if (!inserted)
     {
-      m_activePoolIdPerDest.insert (std::make_pair (dstL2Id, poolId));
-    }
-  else if (dstIt->second != poolId)
-    {
-      //Currently, same pool is used for all the bearers to an existing destination
-      NS_FATAL_ERROR ("Destination " << dstL2Id << " already have an active pool. Id : " << poolId);
-    }
-  else
-    {
-      //if the same pool id is used for more bearers to a same destination,
-      //which would be a usual case, then we do nothing.
-      NS_LOG_INFO ("Pool id " << poolId << " already exist. So, we do nothing.");
+      NS_LOG_INFO ("Destination already exist. Ignoring, it may happen when we try to add more than one bearer per destination");
     }
 }
 
-uint16_t
-NrUeMac::DoGetSlActiveTxPoolId (uint32_t dstL2Id)
+uint8_t
+NrUeMac::DoGetSlActiveTxPoolId ()
 {
-  NS_LOG_FUNCTION (this << dstL2Id);
-  auto dstIt = m_activePoolIdPerDest.find (dstL2Id);
-  NS_ASSERT_MSG (dstIt != m_activePoolIdPerDest.end (), "Unable to find destination layer 2 id " << dstL2Id);
-  return dstIt->second;
+  return GetSlActivePoolId ();
+}
+
+void
+NrUeMac::DoSchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params)
+{
+  NS_LOG_FUNCTION (this);
+
+  //What to do with the allocation.
+
+}
+
+uint8_t
+NrUeMac::DoGetTotalSubCh () const
+{
+  NS_LOG_FUNCTION (this);
+  return this->GetTotalSubCh (m_poolId);
+}
+
+void
+NrUeMac::EnableSensing (bool enableSensing)
+{
+  NS_LOG_FUNCTION (this << enableSensing);
+  NS_ASSERT_MSG (m_enableSensing == false, " Once the sensing is enabled, it can not be enabled or disabled again");
+  m_enableSensing = enableSensing;
+}
+
+void
+NrUeMac::SetTproc0 (uint8_t tproc0)
+{
+  NS_LOG_FUNCTION (this << +tproc0);
+  m_tproc0 = tproc0;
+}
+
+uint8_t
+NrUeMac::GetTproc0 () const
+{
+  return m_tproc0;
+}
+
+uint8_t
+NrUeMac::GetT1 () const
+{
+  return m_t1;
+}
+
+void
+NrUeMac::SetT1 (uint8_t t1)
+{
+  NS_LOG_FUNCTION (this << +t1);
+  m_t1 = t1;
+}
+
+uint16_t
+NrUeMac::GetT2 () const
+{
+  return m_t2;
+}
+
+void
+NrUeMac::SetT2 (uint16_t t2)
+{
+  NS_LOG_FUNCTION (this << t2);
+  m_t2 = t2;
+}
+
+uint8_t
+NrUeMac::GetSlActivePoolId () const
+{
+  return m_poolId;
+}
+
+void
+NrUeMac::SetSlActivePoolId (uint8_t poolId)
+{
+  m_poolId =  poolId;
+}
+
+uint8_t
+NrUeMac::GetTotalSubCh (uint16_t poolId) const
+{
+  NS_LOG_FUNCTION (this << poolId);
+
+  uint16_t subChSize = m_slTxPool->GetNrSlSubChSize (static_cast <uint8_t> (GetBwpId ()), poolId);
+
+  uint8_t totalSubChanels = static_cast <uint8_t> (std::floor (m_nrSlUePhySapProvider->GetBwInRbs () / subChSize));
+
+  return totalSubChanels;
 }
 
 //////////////////////////////////////////////

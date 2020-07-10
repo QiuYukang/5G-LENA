@@ -31,6 +31,8 @@
 #include <ns3/nr-sl-mac-sap.h>
 #include <ns3/nr-sl-ue-phy-sap.h>
 #include <ns3/nr-sl-ue-cmac-sap.h>
+#include <ns3/nr-sl-comm-resource-pool.h>
+#include "nr-sl-ue-mac-sched-sap.h"
 #include <map>
 #include <unordered_map>
 
@@ -42,8 +44,8 @@ class NrControlMessage;
 class UniformRandomVariable;
 class PacketBurst;
 class NrUlDciMessage;
-class NrAmc;
-class NrSlCommResourcePool;
+class NrSlUeMacCschedSapProvider;
+class NrSlUeMacCschedSapUser;
 
 /**
  * \ingroup ue-mac
@@ -76,6 +78,8 @@ class NrUeMac : public Object
   friend class MemberNrSlMacSapProvider<NrUeMac>;
   friend class MemberNrSlUeCmacSapProvider<NrUeMac>;
   friend class MemberNrSlUePhySapUser<NrUeMac>;
+  friend class MemberNrSlUeMacCschedSapUser;
+  friend class MemberNrSlUeMacSchedSapUser;
 
 public:
   /**
@@ -380,13 +384,95 @@ public:
   void SetNrSlUePhySapProvider (NrSlUePhySapProvider* s);
 
   /**
-   * \brief Set the sidelink AMC model
-   *
-   * Usually it will be set by the NrSlHelper
-   *
-   * \param slAmc The AMC to be used for sidelink
+   * \brief Set the NR Sidelik SAP for Sched primitives offered by the scheduler
+   *        to UE MAC.
+   * \param s pointer of type NrSlUeMacSchedSapProvider
    */
-  void SetSlAmcModel (const Ptr<NrAmc> &slAmc);
+  void SetNrSlUeMacSchedSapProvider (NrSlUeMacSchedSapProvider* s);
+
+  /**
+   * \brief Set the NR Sidelik SAP for Csched primitives offered by the scheduler
+   *        to UE MAC.
+   * \param s pointer of type NrSlUeMacCschedSapProvider
+   */
+  void SetNrSlUeMacCschedSapProvider (NrSlUeMacCschedSapProvider* s);
+
+  /**
+   * \brief Get the NR Sidelik SAP for Sched primitives offered by the UE MAC
+   *        to the UE NR Sidelink scheduler
+   * \return the pointer of type NrSlUeMacSchedSapUser
+   */
+  NrSlUeMacSchedSapUser* GetNrSlUeMacSchedSapUser ();
+
+  /**
+   * \brief Get the NR Sidelik SAP for Csched primitives offered by the UE MAC
+   *        to the UE NR Sidelink scheduler
+   * \return the pointer of type NrSlUeMacCschedSapUser
+   */
+  NrSlUeMacCschedSapUser* GetNrSlUeMacCschedSapUser ();
+
+  /**
+   * \brief Enable sensing for NR Sidelink resource selection
+   * \param enableSensing if True, sensing is used for resource selection. Otherwise, random selection
+   */
+  void EnableSensing (bool enableSensing);
+
+  /**
+   * \brief Set the t_proc0 used for sensing window
+   * \param tprocZero t_proc0 in number of slots
+   */
+  void SetTproc0 (uint8_t tproc0);
+
+  /**
+   * \brief Get the t_proc0 used for sensing window
+   * \return t_proc0 in number of slots
+   */
+  uint8_t GetTproc0 () const;
+
+  /**
+   * \brief Set T1
+   *
+   * The offset in number of slots between the slot in which the resource
+   * selection is triggered and the start of the selection window.
+   *
+   * \param t1
+   */
+  void SetT1 (uint8_t t1);
+
+  /**
+   * \brief Get T1
+   *
+   * Returns The offset in number of slots between the slot in which the resource
+   * selection is triggered and the start of the selection window.
+   *
+   * \return T1
+   */
+  uint8_t GetT1 () const;
+
+  /**
+   * \brief Set T2
+   * \param t2 the offset in number of slots between T1 and the end of the selection window
+   */
+  void SetT2 (uint16_t t2);
+
+  /**
+   * \brief Get T2
+   * \return T2 The offset in number of slots between T1 and the end of the selection window
+   */
+  uint16_t GetT2 () const;
+
+  /**
+   * \brief Set the pool id of the active pool
+   * \param poolId The pool id
+   */
+  void SetSlActivePoolId (uint8_t poolId);
+
+  /**
+   * \brief Get the pool id of the active pool
+   * \return the pool id
+   */
+  uint8_t GetSlActivePoolId () const;
+
 
 protected:
   // forwarded from NR SL UE MAC SAP Provider
@@ -452,9 +538,8 @@ protected:
    * is used for an existing destination.
    *
    * \param dstL2Id The destination layer 2 ID
-   * \param poolId The id of the pool used for TX and RX
    */
-  void DoAddNrSlDstL2Id (uint32_t dstL2Id, uint16_t poolId);
+  void DoAddNrSlDstL2Id (uint32_t dstL2Id);
 
   //Forwarded from NR SL UE PHY SAP User
   /**
@@ -463,9 +548,32 @@ protected:
    *
    * \return The active TX pool id
    */
-  uint16_t DoGetSlActiveTxPoolId (uint32_t dstL2Id);
+  uint8_t DoGetSlActiveTxPoolId ();
+
+
+  // forwarded from MemberNrSlUeMacSchedSapUser
+  /**
+   * \brief Method to communicate NR SL allocations from NR SL UE scheduler
+   * \param params the struct of type SchedUeNrSlAllocation
+   */
+  void DoSchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params);
+
+  /**
+   * \brief Method through which the NR SL scheduler gets the total number of NR
+   * SL sub-channels
+   * \return the total number of NR SL sub-channels
+   */
+  uint8_t DoGetTotalSubCh () const;
 
 private:
+  /**
+   * \brief NR sidelink slot indication
+   * \param sfn
+   */
+  void DoNrSlSlotIndication (const SfnSf& sfn);
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSlTxOpportunities (const SfnSf& sfn, uint16_t poolId);
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::SlotInfo>);
+  uint8_t GetTotalSubCh (uint16_t poolId) const;
   //Sidelink Logical Channel Identifier
   struct SidelinkLcIdentifier
   {
@@ -491,7 +599,7 @@ private:
    NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
    NrSlMacSapUser* macSapUser;
   };
-  Ptr<const NrAmc> m_slAmc {nullptr};  //!< AMC model used to compute SL Transport block size
+
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
   NrSlMacSapUser* m_nrSlMacSapUser {nullptr}; //!< SAP interface to call the methods of UE RLC instance
@@ -501,7 +609,17 @@ private:
   NrSlUePhySapUser* m_nrSlUePhySapUser; //!< SAP interface to receive calls from the UE PHY instance
   Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
   Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
-  std::unordered_map <uint32_t, uint16_t> m_activePoolIdPerDest; //!< Map to store Id of the active pool per destination L2 id [key] of the destination
+  std::set <uint32_t> m_sidelinkDestinations; //!< List of Sidelink communication destinations
+  bool m_enableSensing {false}; //!< Flag to enable NR Sidelink resource selection based on sensing; otherwise, use random selection
+  uint8_t m_tproc0 {0}; //!< t_proc0 in slots
+  uint8_t m_t1 {0}; //!< The offset in number of slots between the slot in which the resource selection is triggered and the start of the selection window
+  uint16_t m_t2 {0}; //!< The offset in number of slots between T1 and the end of the selection window
+  std::map <SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters> m_nrSlBsrReceived; ///< NR Sidelink BSR received from RLC
+  uint8_t m_poolId {std::numeric_limits <uint8_t>::max ()};
+  NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser           {nullptr};  //!< SAP user
+  NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser         {nullptr};  //!< SAP User
+  NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider {nullptr};  //!< SAP Provider
+  NrSlUeMacSchedSapProvider* m_nrSlUeMacSchedSapProvider   {nullptr};  //!< SAP Provider
 };
 
 }
