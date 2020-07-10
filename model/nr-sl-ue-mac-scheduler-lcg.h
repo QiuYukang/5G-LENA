@@ -30,6 +30,7 @@ namespace ns3 {
 
 /**
  * \ingroup scheduler
+ *
  * \brief Represent a NR Sidelink Logical Channel of an UE
  *
  * The scheduler stores here the information that comes from RLC BSR for Sidelink
@@ -44,12 +45,14 @@ class NrSlUeMacSchedulerLC
 public:
   /**
    * \brief NrSlUeMacSchedulerLC constructor
+   *
    * \param conf Configuration of the LC
    */
   NrSlUeMacSchedulerLC (const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& conf);
 
   /**
    * \brief NrSlUeMacSchedulerLC copy constructor (deleted)
+   *
    * \param other other instance
    */
   NrSlUeMacSchedulerLC (const NrSlUeMacSchedulerLC &other) = delete;
@@ -61,14 +64,15 @@ public:
 
   /**
    * \brief Overwrite all the parameters with the one contained in the message
-   * \param params the message received from the RLC layer, containing the information about the queues
    *
+   * \param params the message received from the RLC layer, containing the information about the queues
    * \return Number of bytes added or removed from the LC
    */
   int UpdateLC (const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params);
 
   /**
    * \brief Get the total queue size of the LC
+   *
    * \return the sum of all the queues of the LC in bytes
    */
   uint32_t GetTotalQueueSize () const;
@@ -114,23 +118,26 @@ class NrSlUeMacSchedulerLCG
 public:
   /**
    * \brief NrSlUeMacSchedulerLCG constructor
+   *
    * \param id The id of the LCG
    */
   NrSlUeMacSchedulerLCG (uint8_t id);
 
   /**
    * \brief NrSlUeMacSchedulerLCG copy constructor (deleted)
+   *
    * \param other other instance
    */
   NrSlUeMacSchedulerLCG (const NrSlUeMacSchedulerLCG &other) = delete;
 
-    /**
-   * \brief NrSlUeMacSchedulerLCG destructor
-   */
+  /**
+ * \brief NrSlUeMacSchedulerLCG destructor
+ */
   ~NrSlUeMacSchedulerLCG () = default;
 
   /**
    * \brief Check if the LCG contains the LC id specified
+   *
    * \param lcId LC ID to check for
    * \return true if the LCG contains the LC
    */
@@ -151,6 +158,7 @@ public:
 
   /**
    * \brief Update the LCG with a message coming from RLC in the UE.
+   *
    * \param params message from UE RLC layer.
    *
    * The method is able to update the LC using all the information such as
@@ -162,6 +170,7 @@ public:
 
   /**
    * \brief Get the total size of the queue of all the LCs of the LCG
+   *
    * \return the sum of all the queues of LCs of the LCG
    */
   uint32_t GetTotalSize () const;
@@ -175,12 +184,14 @@ public:
 
   /**
    * \brief Get a vector of LC ID
+   *
    * \return a vector with all the LC id present in this LCG
    */
   std::vector<uint8_t> GetLCId () const;
 
   /**
    * \brief Get the LC PQI value
+   *
    * \param lcId The LC id
    * \return The PQI value of the LC
    */
@@ -195,6 +206,7 @@ public:
 
   /**
    * \brief Check if the LC is GBR
+   *
    * \param lcId The LC id
    * \return true if the LC is GBR, false if the bearer is NON-GBR
    */
@@ -202,6 +214,7 @@ public:
 
   /**
    * \brief Get the LC MBR value
+   *
    * \param lcId The LC id
    * \return The MBR value of the LC
    */
@@ -209,6 +222,7 @@ public:
 
   /**
    * \brief Get the LC GBR value
+   *
    * \param lcId The LC id
    * \return The GBR value of the LC
    */
@@ -216,24 +230,29 @@ public:
 
   /**
    * \brief Inform the LCG of the assigned data to a LC id
+   *
    * \param lcId the LC id to which the data was assigned
    * \param size amount of assigned data
    */
   void AssignedData (uint8_t lcId, uint32_t size);
 
-  uint8_t m_id {0};                          //!< ID of the LCG
+  uint8_t m_id {0};                               //!< ID of the LCG
 
 private:
-  uint32_t m_totalSize {0};                  //!< Total size
+  uint32_t m_totalSize {0};                       //!< Total size
   std::unordered_map<uint8_t, NrSlLCPtr> m_lcMap; //!< Map between LC id and their pointer
 };
 
 /**
- * \brief LCGPtr unique pointer to a LCG
  * \ingroup scheduler
+ *
+ * \brief NrSlLCGPtr unique pointer to a LCG
  */
 typedef std::unique_ptr<NrSlUeMacSchedulerLCG> NrSlLCGPtr;
 /**
+ * \ingroup scheduler
+ *
+ * \brief An iterator to a map containing NrSlLCGPtr unique pointers to LCGs
  */
 typedef std::unordered_map<uint8_t, NrSlLCGPtr>::iterator NrSlLCGIt;
 

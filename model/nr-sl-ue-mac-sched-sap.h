@@ -30,12 +30,12 @@ namespace ns3 {
 
 /**
  * \ingroup scheduler
+ *
  * \brief The SAP interface between NR UE MAC and NR SL UE scheduler
  */
 class NrSlUeMacSchedSapProvider
 {
 public:
-
   /**
    * ~NrSlUeMacSchedSapProvider
    */
@@ -48,6 +48,7 @@ public:
   {
     /**
      * \brief NrSlSlotInfo constructor
+     *
      * \param numSlPscchRbs Indicates the number of PRBs for PSCCH in a resource pool where it is not greater than the number PRBs of the subchannel.
      * \param slPscchSymStart Indicates the starting symbol used for sidelink PSCCH in a slot
      * \param slPscchSymlength Indicates the total number of symbols available for sidelink PSCCH
@@ -90,6 +91,7 @@ public:
   {
     /**
      * \brief NrSlReportBufferStatusParameters constructor
+     *
      * \param rnti RNTI
      * \param lcid Logical Channel ID
      * \param txQueueSize The current size of the RLC transmission queue
@@ -100,9 +102,9 @@ public:
      * \param destL2Id Sidelink destination L2 ID (24 bits)
      */
     SchedUeNrSlReportBufferStatusParams (uint16_t rnti, uint8_t lcId,
-                                      uint32_t txQueueSize, uint16_t txQueueHolDelay,
-                                      uint32_t retxQueueSize, uint16_t retxQueueHolDelay,
-                                      uint16_t statusPduSize, uint32_t srcL2Id,  uint32_t dstL2Id)
+                                         uint32_t txQueueSize, uint16_t txQueueHolDelay,
+                                         uint32_t retxQueueSize, uint16_t retxQueueHolDelay,
+                                         uint16_t statusPduSize, uint32_t srcL2Id,  uint32_t dstL2Id)
     {
       this->rnti = rnti;
       this->lcid = lcId;
@@ -143,6 +145,7 @@ public:
 
 /**
  * \ingroup scheduler
+ *
  * \brief The Interface between NR SL UE Scheduler and NR UE MAC
  */
 class NrSlUeMacSchedSapUser
@@ -186,6 +189,7 @@ public:
 
   /**
    * \brief Method to get total number of sub-channels.
+   *
    * \return the total number of sub-channels.
    */
   virtual uint8_t GetTotalSubCh () const = 0;

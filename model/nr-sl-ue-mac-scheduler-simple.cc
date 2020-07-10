@@ -104,7 +104,7 @@ NrSlUeMacSchedulerSimple::RandomlySelectSlots (const std::list <NrSlUeMacSchedSa
                  "not enough txOpps to perform " << txOppsIt->slMaxNumPerReserve << " transmissions");
 
   NS_ASSERT_MSG (txOppsIt->slMaxNumPerReserve >= 1 && txOppsIt->slMaxNumPerReserve < 4,
-                                               "slMaxNumPerReserve should be greater than 1 and less than 4");
+                 "slMaxNumPerReserve should be greater than 1 and less than 4");
 
   uint16_t totalReTx = txOppsIt->slMaxNumPerReserve - 1;
   uint16_t txOppSize = static_cast <uint16_t> (txOpps.size ());

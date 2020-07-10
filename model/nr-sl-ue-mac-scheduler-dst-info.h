@@ -36,6 +36,7 @@ typedef std::shared_ptr<NrSlUeMacSchedulerDstInfo> DstPtr;
 
 /**
  * \ingroup scheduler
+ *
  * \brief The representation of a destination for any NR Sidelink UE MAC scheduler
  *
  * Basic representation for a destination inside any NR Sidelink UE MAC scheduler.
@@ -45,7 +46,6 @@ typedef std::shared_ptr<NrSlUeMacSchedulerDstInfo> DstPtr;
 class NrSlUeMacSchedulerDstInfo
 {
 public:
-
   /**
    * \brief Create a new destination info
    *
@@ -76,18 +76,21 @@ public:
 
   /**
    * \brief Get destiantion layer 2 id of this destination
+   *
    * \return The destination layer 2 id
    */
   uint32_t GetDstL2Id () const;
 
   /**
    * \brief Set destination MCS
+   *
    * \param mcs The MCS used for the destination
    */
   void SetDstMcs (uint8_t mcs);
 
   /**
    * \brief Get destination MCS
+   *
    * \return The MCS used for the destination
    */
   uint8_t GetDstMcs () const;
@@ -95,7 +98,7 @@ public:
 private:
   std::unordered_map<uint8_t, NrSlLCGPtr> m_nrSlLCG;//!< NR Sidelink LCG
   uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
-  uint8_t m_mcs; //!< The MCS
+  uint8_t m_mcs {0}; //!< The MCS
 };
 
 } // namespace ns3

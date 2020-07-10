@@ -26,13 +26,12 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("NrSlUeMacSchedulerDstInfo");
 
 NrSlUeMacSchedulerDstInfo::NrSlUeMacSchedulerDstInfo (uint32_t dstL2Id)
-   :m_dstL2Id (dstL2Id)
+  : m_dstL2Id (dstL2Id)
 {
 }
 
 NrSlUeMacSchedulerDstInfo::~NrSlUeMacSchedulerDstInfo ()
 {
-
 }
 
 std::unordered_map<uint8_t, NrSlLCGPtr> &

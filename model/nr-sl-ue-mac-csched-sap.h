@@ -34,7 +34,6 @@ namespace ns3 {
 class NrSlUeMacCschedSapProvider
 {
 public:
-
   /**
    * ~NrSlUeMacCschedSapProvider
    */
@@ -42,7 +41,6 @@ public:
 
   /**
    * NR Sidelink Logical Channel information
-   *
    */
   struct SidelinkLogicalChannelInfo
   {
@@ -80,6 +78,7 @@ public:
 
 /**
  * \ingroup scheduler
+ *
  * \brief The Interface between NR SL UE Scheduler and NR UE MAC
  */
 class NrSlUeMacCschedSapUser

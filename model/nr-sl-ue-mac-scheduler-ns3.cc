@@ -47,7 +47,7 @@ NrSlUeMacSchedulerNs3::GetTypeId (void)
                    UintegerValue (14),
                    MakeUintegerAccessor (&NrSlUeMacSchedulerNs3::SetInitialNrSlMcs,
                                          &NrSlUeMacSchedulerNs3::GetInitialNrSlMcs),
-                                         MakeUintegerChecker<uint8_t> ())
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("NrSlAmc",
                    "The NR SL AMC of this scheduler",
                    PointerValue (),
@@ -84,11 +84,11 @@ NrSlUeMacSchedulerNs3::DoCschedUeNrSlLcConfigReq (const NrSlUeMacCschedSapProvid
   auto itLcg = lcgMap.find (params.lcGroup);
   auto itLcgEnd = lcgMap.end ();
   if (itLcg == itLcgEnd)
-      {
-        NS_LOG_DEBUG ("Created new NR SL LCG for destination " << dstInfo->GetDstL2Id () <<
-                      " LCG ID =" << static_cast<uint32_t> (params.lcGroup));
-        itLcg = dstInfo->Insert (CreateLCG (params.lcGroup));
-      }
+    {
+      NS_LOG_DEBUG ("Created new NR SL LCG for destination " << dstInfo->GetDstL2Id () <<
+                    " LCG ID =" << static_cast<uint32_t> (params.lcGroup));
+      itLcg = dstInfo->Insert (CreateLCG (params.lcGroup));
+    }
 
   itLcg->second->Insert (CreateLC (params));
   NS_LOG_INFO ("Added LC id " << +params.lcId << " in LCG " << +params.lcGroup);
@@ -138,7 +138,7 @@ void
 NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq (const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
 {
   NS_LOG_FUNCTION (this << params.dstL2Id <<
-                                           static_cast<uint32_t> (params.lcid));
+                   static_cast<uint32_t> (params.lcid));
 
   GetSecond DstInfoOf;
   auto itDst = m_dstMap.find (params.dstL2Id);

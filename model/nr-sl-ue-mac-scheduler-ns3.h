@@ -32,6 +32,7 @@ namespace ns3 {
 
 /**
  * \ingroup scheduler
+ *
  * \brief A general scheduler for NR SL UE in NS3
  */
 class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
@@ -39,6 +40,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
 public:
   /**
    * \brief GetTypeId
+   *
    * \return The TypeId of the class
    */
   static TypeId GetTypeId (void);
@@ -88,20 +90,24 @@ public:
 
   /**
    * \brief Install the AMC for the NR Sidelink
-   * \param nrSlAmc NR Sidelink AMC
    *
    * Usually called by the helper
+   *
+   * \param nrSlAmc NR Sidelink AMC
    */
   void InstallNrSlAmc (const Ptr<NrAmc> &nrSlAmc);
 
   /**
    * \brief Get the AMC for NR Sidelink
+   *
    * \return the NR Sidelink AMC
    */
   Ptr<const NrAmc> GetNrSlAmc () const;
 
   /**
-   * \brief Set the flag if the MCS for NR SL is fixed (in this case, it will take the initial value)
+   * \brief Set the flag if the MCS for NR SL is fixed (in this case,
+   *        it will take the initial value)
+   *
    * \param fixMcs the flag to indicate if the NR SL MCS is fixed
    *
    * \see SetInitialMcsSl
@@ -115,12 +121,14 @@ public:
 
   /**
    * \brief Set the initial value for the NR SL MCS
+   *
    * \param mcs the MCS value
    */
   void SetInitialNrSlMcs (uint8_t mcs);
 
   /**
    * \brief Get the SL MCS initial value
+   *
    * \return the value
    */
   uint8_t GetInitialNrSlMcs () const;
@@ -143,7 +151,7 @@ public:
   uint8_t GetNrSlReTxWindow () const;
 
   /**
-   * Assign a fixed random variable stream number to the random variables
+   * \brief Assign a fixed random variable stream number to the random variables
    * used by this model. Return the number of streams (possibly zero) that
    * have been assigned.
    *
@@ -154,7 +162,6 @@ public:
 
 
 protected:
-
   /**
    * \brief Do the NE Sidelink allocation
    *
@@ -166,11 +173,12 @@ protected:
    * \param slotAlloc The slot allocation structure to be updated by a specific scheduler
    */
   virtual void
-    DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params,
-                      const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                      std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc) = 0;
+  DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params,
+                    const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
+                    std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc) = 0;
   /**
    * \brief Method to get total number of sub-channels.
+   *
    * \return the total number of sub-channels.
    */
   uint8_t GetTotalSubCh () const;
@@ -178,10 +186,8 @@ protected:
   Ptr<UniformRandomVariable> m_uniformVariable; //!< Uniform random variable
 
 private:
-
   /**
    * \brief Create destination info
-   * \param params params of the UE
    *
    * If the scheduler does not have the destination info then it creates it,
    * and then save its pointer in the m_dstMap map.
@@ -189,30 +195,32 @@ private:
    * If the scheduler already have the destination info, it does noting. This
    * could happen when we are trying add more than one logical channels
    * for a destination.
+   *
+   * \param params params of the UE
    */
   std::shared_ptr<NrSlUeMacSchedulerDstInfo>
   CreateDstInfo (const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params);
 
   /**
    * \brief Create a NR Sidelink logical channel group
-   * \param LcGroup The logical channel group id
    *
    * A subclass can return its own representation of a logical channel by
    * implementing a proper subclass of NrSlUeMacSchedulerLCG and returning a
    * pointer to a newly created instance.
    *
+   * \param lcGroup The logical channel group id
    * \return a pointer to the representation of a logical channel group
    */
   NrSlLCGPtr CreateLCG (uint8_t lcGroup) const;
 
   /**
    * \brief Create a NR Sidelink logical channel
-   * \param params configuration of the logical channel
    *
    * A subclass can return its own representation of a logical channel by
    * implementing a proper subclass of NrSlUeMacSchedulerLC and returning a
    * pointer to a newly created instance.
    *
+   * \param params configuration of the logical channel
    * \return a pointer to the representation of a logical channel
    */
 

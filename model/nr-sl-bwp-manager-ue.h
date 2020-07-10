@@ -99,7 +99,6 @@ public:
 
 
 protected:
-
   // inherited from Object
   virtual void DoDispose ();
 

@@ -19,18 +19,18 @@
 
 namespace ns3 {
 
-  std::ostream &operator<< (std::ostream &os,
-                            const NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams &p)
-  {
-    os << "RNTI: " << p.rnti << " LCId: " << static_cast<uint32_t> (p.lcid)
-       << " RLCTxQueueSize: " << p.txQueueSize
-       << " B, RLCTXHolDel: " << p.txQueueHolDelay
-       << " ms, RLCReTXQueueSize: " << p.retxQueueSize
-       << " B, RLCReTXHolDel: " << p.retxQueueHolDelay
-       << " ms, RLCStatusPduSize: " << p.statusPduSize
-       << " B, source layer 2 id: " << p.srcL2Id
-       << ", destination layer 2 id " << p.dstL2Id;
-    return os;
-  }
+std::ostream &operator<< (std::ostream &os,
+                          const NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams &p)
+{
+  os << "RNTI: " << p.rnti << " LCId: " << static_cast<uint32_t> (p.lcid)
+     << " RLCTxQueueSize: " << p.txQueueSize
+     << " B, RLCTXHolDel: " << p.txQueueHolDelay
+     << " ms, RLCReTXQueueSize: " << p.retxQueueSize
+     << " B, RLCReTXHolDel: " << p.retxQueueHolDelay
+     << " ms, RLCStatusPduSize: " << p.statusPduSize
+     << " B, source layer 2 id: " << p.srcL2Id
+     << ", destination layer 2 id " << p.dstL2Id;
+  return os;
+}
 
 } // namespace ns3

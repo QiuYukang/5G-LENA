@@ -31,7 +31,7 @@ NrSlUeMacScheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrSlUeMacScheduler")
     .SetParent<Object> ()
-    .SetGroupName("nr")
+    .SetGroupName ("nr")
   ;
 
   return tid;
@@ -84,7 +84,7 @@ NrSlUeMacScheduler::GetNrSlUeMacCschedSapProvider ()
 
 //CSCHED API primitives for NR Sidelink
 NrSlUeMacGeneralCschedSapProvider::NrSlUeMacGeneralCschedSapProvider (NrSlUeMacScheduler* scheduler)
-: m_scheduler (scheduler)
+  : m_scheduler (scheduler)
 {
 }
 
@@ -96,7 +96,7 @@ NrSlUeMacGeneralCschedSapProvider::CschedUeNrSlLcConfigReq (const struct NrSlUeM
 
 //SCHED API primitives for NR Sidelink
 NrSlUeMacGeneralSchedSapProvider::NrSlUeMacGeneralSchedSapProvider (NrSlUeMacScheduler* sched)
-: m_scheduler (sched)
+  : m_scheduler (sched)
 {
 }
 

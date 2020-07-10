@@ -26,6 +26,7 @@ namespace ns3 {
 
 /**
  * \ingroup scheduler
+ *
  * \brief A simple NR Sidelink scheduler for NR SL UE in NS3
  */
 class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
@@ -33,6 +34,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
 public:
   /**
    * \brief GetTypeId
+   *
    * \return The TypeId of the class
    */
   static TypeId GetTypeId (void);
@@ -43,15 +45,16 @@ public:
   NrSlUeMacSchedulerSimple ();
 
   /**
-   * \brief Do the NE Sidelink allocation
+   * \brief Do the NR Sidelink allocation
+   *
    * \param txOpps The list of the txOpps for the UE MAC
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
    * \param slotAlloc The slot allocation structure to be updated by this scheduler
    */
   virtual void DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
-                                const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc) override;
+                                 const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
+                                 std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc) override;
 
 private:
   /**
@@ -67,9 +70,6 @@ private:
    */
   std::set <uint16_t>
   RandomlySelectSlots (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps);
-
-
-
 };
 
 } //namespace ns3
