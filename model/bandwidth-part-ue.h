@@ -26,6 +26,7 @@
 #include "ns3/nr-phy.h"
 #include <ns3/nr-ue-phy.h>
 #include <ns3/component-carrier.h>
+#include <ns3/nr-sl-ue-mac-scheduler.h>
 
 namespace ns3 {
 
@@ -89,6 +90,23 @@ protected:
 private:
   Ptr<NrUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier
   Ptr<NrUeMac> m_mac; ///< the MAC instance of this eNodeB component carrier
+
+//NR Sidelink
+public:
+  /**
+   * \brief Set the NR Sidelink UE scheduler type
+   * \param s a pointer to the NrSlUeMacScheduler
+   */
+  void SetNrSlUeMacScheduler (Ptr<NrSlUeMacScheduler> s);
+  /**
+   * \brief Get the NR Sidelink UE scheduler type
+   * \return a pointer to the NrSlUeMacScheduler
+   */
+  Ptr<NrSlUeMacScheduler> GetNrSlUeMacScheduler ();
+
+private:
+
+  Ptr<NrSlUeMacScheduler> m_slUeScheduler {nullptr};
 
 };
 
