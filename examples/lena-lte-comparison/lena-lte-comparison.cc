@@ -615,7 +615,7 @@ LenaLteComparison (const Parameters &params)
       }
 
       NetDeviceContainer ueContainerRem;
-      Ptr<NetDevice> gnbRemDevice;
+      Ptr<NrGnbNetDevice> gnbRemDevice;
 
       if (params.ulRem)
         {
@@ -624,22 +624,24 @@ LenaLteComparison (const Parameters &params)
               ueContainerRem.Add (ueSector1NetDev);
               ueContainerRem.Add (ueSector2NetDev);
               ueContainerRem.Add (ueSector3NetDev);
-              gnbRemDevice = gnbSector1NetDev.Get (0);
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector1NetDev.Get (0));
+              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
+              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
             }
           else if (params.remSector == 1)
             {
               ueContainerRem = ueSector1NetDev;
-              gnbRemDevice = gnbSector1NetDev.Get(0);
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector1NetDev.Get(0));
             }
           else if (params.remSector == 2)
             {
               ueContainerRem = ueSector2NetDev;
-              gnbRemDevice = gnbSector2NetDev.Get(0);
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector2NetDev.Get(0));
             }
           else if (params.remSector == 3)
             {
               ueContainerRem = ueSector3NetDev;
-              gnbRemDevice = gnbSector3NetDev.Get(0);
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector3NetDev.Get(0));
             }
         }
       else
