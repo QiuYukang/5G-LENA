@@ -168,7 +168,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   BandwidthPartInfo::Scenario scene;
   if (scenario == "UMi")
     {
-      txPowerBs = 44;
+      txPowerBs = 30;
       scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
     }
   else if (scenario == "UMa")

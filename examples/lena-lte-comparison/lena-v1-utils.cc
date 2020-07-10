@@ -125,7 +125,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
     }
   else if (scenario == "UMi")
     {
-      txPower = 44;
+      txPower = 30;
       pathlossModel = "ns3::ThreeGppUmiStreetCanyonPropagationLossModel";
     }
   else if (scenario == "RMa")
