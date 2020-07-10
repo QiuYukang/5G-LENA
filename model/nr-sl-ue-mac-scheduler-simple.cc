@@ -62,7 +62,8 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
 
   uint32_t tbs = 0;
   uint8_t assignedSbCh = 0;
-  uint16_t availableSymbols = txOppsIt->slPscchSymLength;
+  uint16_t availableSymbols = txOppsIt->slPsschSymLength;
+  NS_LOG_DEBUG ("Total available symbols for PSSCH = " << availableSymbols);
   do
     {
       assignedSbCh++;
