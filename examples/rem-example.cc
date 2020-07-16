@@ -30,15 +30,25 @@
  * Please have a look at the possible parameters to know what you can configure
  * through the command line.
  *
- * The user can also specify the type of REM map (BeamShape or CovrageArea) he
- * wishes to generate with the following command:
- * ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=BeamShape"
- *
- * The output of the REM includes a map with the SNR values and a map with the
- * SINR. In case there is only one gNB configured, these maps will be the same.
+ * The user can also specify the type of REM map (BeamShape/CovrageArea/UeCoverage)
+ * he wishes to generate with the following command:
+ * \code{.unparsed}
+$  ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=BeamShape"
+    \endcode
+
+ * Moreover, DL or UL REM map can be selected by passing to the rem helper the desired
+ * transmitting device(s) (RTD(s)) and receiving device (RRD), which for the DL
+ * case correspond to gNB(s) and UE and for the UL case to UE(s) and gNB.
+
+ * The output of the REM includes a map with the SNR values, a map with the SINR
+ * and a map with IPSD values (aggregated rx Power in each rem point).
+ * Note that in case there is only one gNB configured, the SNR/SINR maps will be the same.
  *
  * The output of this example are REM csv files from which can be generated REM
  * figures with the following command:
+ * \code{.unparsed}
+$  gnuplot -p nr-rem-SimTag-gnbs.txt nr-rem-SimTag-ues.txt nr-rem-SimTag-buildings.txt nr-rem-SimTag-plot-rem.gnuplot
+    \endcode
  *
  */
 

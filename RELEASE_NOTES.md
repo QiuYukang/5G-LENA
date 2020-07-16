@@ -90,6 +90,8 @@ New user-visible features (old first)
 - Added "SlotDataStats" and "SlotCtrlStats" trace source in NrGnbPhy.
 - Added "RBDataStats" trace source in NrGnbPhy.
 - Added "RxDataTrace" trace source in NrSpectrumPhy.
+- A new NrRadioEnvironmentMapHelper has been implemented for the generation of
+  DL and UL REM maps
 
 Bugs fixed
 ----------

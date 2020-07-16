@@ -817,6 +817,47 @@ The simulator currently reuses the X2 interfaces of LENA ns-3 LTE. For details s
 https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#x2
 
 
+NR REM HELPER
+*************
+
+The purpose of the ``NrRadioEnvironmentMapHelper`` is to generate rem maps, where
+for each point on the map (rem point) a rem value is calculated (SNR/SINR/IPSD).
+The IPSD (Interference Power Spectral Density) corresponds to the aggregated
+received power of all signals at each rem point (treated as interference).
+
+For the nr radio environment helper we have introduced the following terminologies:
+ * RTD(s) -> rem transmitting device(s)
+ * RRD -> rem receiving device
+
+As general case, the rem point is configured according to the RRD passed to the
+``NrRadioEnvironmentMapHelper`` (e.g. antenna configuration).
+
+Two general types of maps can be generated according to whether the BeamShape
+or CoverageArea is selected.
+The first case considers the configuration of the beamforming vectors (for each
+RTD) as defined by the user in the scenario script for which the REM maps
+(SNR/SINR/IPSD) are generated.
+In the second case, the beams are reconfigured during the map generation for
+each rem point in order to visualize the coverage area in terms of SNR, SINR
+and IPSD.
+
+The ``NrRadioEnvironmentMapHelper`` gives the possibility to generate maps either
+for the DL or the UL direction. This can be done by passing to the rem helper
+the desired transmitting device(s) (RTD(s)) and receiving device (RRD), which
+for the DL case correspond to gNB(s) and UE, respectively, while for the UL
+case to UE(s) and gNB, respectively.
+
+Moreover, an UL map can be generated to visualize the coverage area of a tx
+device (UE), while there is the possibility to add interference from DL gNB
+device(s) to study a worst case mixed FDD-TDD scenario.
+
+Let us notice that for the SNR/SINR/IPSD calculations at each REM Point the
+channel is re-created to avoid spatial and temporal dependencies among
+independent REM calculations. Moreover, the calculations are the average of
+N iterations (specified by the user) in order to consider the randomness of
+the channel.
+
+
 NR-U extension
 **************
 TBC

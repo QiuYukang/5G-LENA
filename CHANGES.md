@@ -76,6 +76,8 @@ instances.
 * Added attribute "NumRefScPerRb" in NrAmc, to indicate the number of reference
 subcarriers per RB.
 
+* Added NrRadioEnvironmentMapHelper used to generate DL and UL REM maps
+
 ### Changes to existing API:
 
 * Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
