@@ -17,38 +17,7 @@
  *
  */
 
-/**
- * \ingroup examples
- * \file s3-scenario.cc
- * \brief A multi-cell network deployment with site sectorization
- *
- * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of an hexagonal grid deployment
- * consisting on a central site and a number of outer rings of sites around this
- * central site. Each site is sectorized, meaning that a number of three antenna
- * arrays or panels are deployed per gNB. These three antennas are pointing to
- * 30º, 150º and 270º w.r.t. the horizontal axis. We allocate a band to each
- * sector of a site, and the bands are contiguous in frequency.
- *
- * We provide a number of simulation parameters that can be configured in the
- * command line, such as the number of UEs per cell or the number of outer rings.
- * Please have a look at the possible parameters to know what you can configure
- * through the command line.
- *
- * With the default configuration, the example will create one DL flow per UE.
- * The example will print on-screen the end-to-end result of each flow,
- * as well as writing them on a file.
- *
- * \code{.unparsed}
-$ ./waf --run "lena-lte-comparison --Help"
-    \endcode
- *
- */
-
-/*
- * Include part. Often, you will have to include the headers for an entire module;
- * do that by including the name of the module you need with the suffix "-module.h".
- */
+#include "lena-lte-comparison.h"
 
 #include "ns3/core-module.h"
 #include "ns3/config-store.h"
@@ -59,16 +28,18 @@ $ ./waf --run "lena-lte-comparison --Help"
 #include "ns3/mobility-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/flow-monitor-module.h"
-#include "ns3/nr-module.h"
+
 #include "ns3/lte-module.h"
 #include <ns3/radio-environment-map-helper.h>
 #include "ns3/config-store-module.h"
 #include <ns3/sqlite-output.h>
-#include "radio-network-parameters-helper.h"
 #include "sinr-output-stats.h"
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
+#include "rb-output-stats.h"
+#include "lena-v1-utils.h"
+#include "lena-v2-utils.h"
 
 /*
  * To be able to use LOG_* functions.
@@ -76,885 +47,14 @@ $ ./waf --run "lena-lte-comparison --Help"
 #include "ns3/log.h"
 
 /*
- * Use, always, the namespace ns3. All the NR classes are inside such namespace.
- */
-using namespace ns3;
-
-/*
  * With this line, we will be able to see the logs of the file by enabling the
- * component "CttcNrDemo", in this way:
+ * component "LenaLteComparison", in this way:
  *
  * $ export NS_LOG="LenaLteComparison=level_info|prefix_func|prefix_time"
  */
 NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
 
-static void
-ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
-              double power, double avgSinr, uint16_t bwpId)
-{
-  stats->SaveSinr (cellId, rnti, power, avgSinr, bwpId);
-}
-
-static void
-ReportSinrLena (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
-{
-  ReportSinrNr (stats, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
-}
-
-static void
-ReportPowerNr (PowerOutputStats *stats, const SfnSf & sfnSf,
-               Ptr<SpectrumValue> txPsd, Time t, uint16_t rnti, uint64_t imsi,
-               uint16_t bwpId, uint16_t cellId)
-{
-  stats->SavePower (sfnSf, txPsd, t, rnti, imsi, bwpId, cellId);
-}
-
-static void
-ReportPowerLena (PowerOutputStats *stats, uint16_t rnti, Ptr<SpectrumValue> txPsd)
-{
-  // Please note that LENA has less output than NR... so we have to save less information.
-  ReportPowerNr (stats, SfnSf (), txPsd, MilliSeconds (0), rnti, 0, 0, 0);
-}
-
-static void
-ReportSlotStatsNr (SlotOutputStats *stats, const SfnSf &sfnSf, uint32_t scheduledUe,
-                   uint32_t usedReg, uint32_t usedSym,
-                   uint32_t availableRb, uint32_t availableSym, uint16_t bwpId,
-                   uint16_t cellId)
-{
-  stats->SaveSlotStats (sfnSf, scheduledUe, usedReg, usedSym,
-                        availableRb, availableSym, bwpId, cellId);
-}
-
-void SetLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
-                                 std::string scenario,
-                                 NodeContainer enbSector1Container,
-                                 NodeContainer enbSector2Container,
-                                 NodeContainer enbSector3Container,
-                                 NodeContainer ueSector1Container,
-                                 NodeContainer ueSector2Container,
-                                 NodeContainer ueSector3Container,
-                                 Ptr<PointToPointEpcHelper> &epcHelper,
-                                 Ptr<LteHelper> &lteHelper,
-                                 NetDeviceContainer &enbSector1NetDev,
-                                 NetDeviceContainer &enbSector2NetDev,
-                                 NetDeviceContainer &enbSector3NetDev,
-                                 NetDeviceContainer &ueSector1NetDev,
-                                 NetDeviceContainer &ueSector2NetDev,
-                                 NetDeviceContainer &ueSector3NetDev,
-                                 bool calibration,
-                                 SinrOutputStats *sinrStats,
-                                 PowerOutputStats *powerStats,
-                                 const std::string &scheduler)
-{
-
-  /*
-   *  An example of how the spectrum is being used.
-   *
-   *                              centralEarfcnFrequencyBand = 350
-   *                                     |
-   *         200 RB                    200 RB                 200RB
-   * |-----------------------|-----------------------|-----------------------|
-   *
-   *     100RB      100RB        100RB       100RB       100RB       100RB
-   * |-----------|-----------|-----------|-----------|-----------|-----------|
-   *       DL          UL          DL         UL           DL         UL
-   *
-   * |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-   *     fc_dl       fc_ul       fc_dl       fc_ul        fc_dl      fc_ul
-   */
-
-  uint32_t bandwidthBandDl = 100;
-  uint32_t bandwidthBandUl = 100;
-
-  uint32_t centralFrequencyBand1Dl = 100;
-  uint32_t centralFrequencyBand1Ul = 200;
-  uint32_t centralFrequencyBand2Dl = 300;
-  uint32_t centralFrequencyBand2Ul = 400;
-  uint32_t centralFrequencyBand3Dl = 500;
-  uint32_t centralFrequencyBand3Ul = 600;
-
-  double txPower;
-  double ueTxPower = 20;
-  std::string pathlossModel;
-  if (scenario == "UMa")
-    {
-      txPower = 49;
-      pathlossModel = "ns3::ThreeGppUmaPropagationLossModel";
-    }
-  else if (scenario == "UMi")
-    {
-      txPower = 44;
-      pathlossModel = "ns3::ThreeGppUmiStreetCanyonPropagationLossModel";
-    }
-
-  lteHelper = CreateObject<LteHelper> ();
-  lteHelper->SetEpcHelper (epcHelper);
-
-  // ALL SECTORS AND BANDS configuration
-  Config::SetDefault ("ns3::FfMacScheduler::UlCqiFilter", EnumValue (FfMacScheduler::PUSCH_UL_CQI));
-  Config::SetDefault ("ns3::LteSpectrumPhy::CtrlErrorModelEnabled", BooleanValue (false));
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-  Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (txPower));
-  Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (ueTxPower));
-  Config::SetDefault ("ns3::LteUePhy::NoiseFigure", DoubleValue (5.0));
-  Config::SetDefault ("ns3::LteUePhy::EnableRlfDetection", BooleanValue (false));
-  Config::SetDefault ("ns3::LteAmc::AmcModel", EnumValue(LteAmc::PiroEW2010));
-  lteHelper->SetAttribute ("PathlossModel", StringValue (pathlossModel)); // for each band the same pathloss model
-  lteHelper->SetPathlossModelAttribute ("ShadowingEnabled", BooleanValue (false));
-  if (scheduler == "PF")
-    {
-      lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
-    }
-  else if (scheduler == "RR")
-    {
-      lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
-    }
-
-  if (calibration)
-    {
-      lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
-      Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
-    }
-  else
-    {
-      lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (120));
-      lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (4.97));
-    }
-  lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDl));
-  lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (bandwidthBandUl));
-
-  //SECTOR 1 eNB configuration
-  if (!calibration)
-    {
-      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
-      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
-    }
-  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand1Dl));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand1Ul));
-  enbSector1NetDev = lteHelper->InstallEnbDevice (enbSector1Container);
-
-  //SECTOR 2 eNB configuration
-  if (!calibration)
-    {
-      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (1, gridScenario.GetNumSectorsPerSite ());
-      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
-    }
-
-  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand2Dl));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand2Ul));
-  enbSector2NetDev = lteHelper->InstallEnbDevice (enbSector2Container);
-
-  //SECTOR 3 eNB configuration
-  if (!calibration)
-    {
-      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
-      lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
-    }
-  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand3Dl));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand3Ul));
-  enbSector3NetDev = lteHelper->InstallEnbDevice (enbSector3Container);
-
-  ueSector1NetDev = lteHelper->InstallUeDevice(ueSector1Container);
-  ueSector2NetDev = lteHelper->InstallUeDevice(ueSector2Container);
-  ueSector3NetDev = lteHelper->InstallUeDevice(ueSector3Container);
-
-  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
-    {
-      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector1NetDev.Get (i));
-      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
-      auto uePhy = ueNetDevice->GetPhy ();
-
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
-      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
-    }
-
-  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
-    {
-      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector2NetDev.Get (i));
-      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
-      auto uePhy = ueNetDevice->GetPhy ();
-
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
-      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
-    }
-
-  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
-    {
-      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector3NetDev.Get (i));
-      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
-      auto uePhy = ueNetDevice->GetPhy ();
-
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
-      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
-    }
-
-  lteHelper->Initialize ();
-  auto dlSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetDownlinkSpectrumChannel ()->GetPropagationLossModel());
-  auto ulSp = DynamicCast<ThreeGppPropagationLossModel> (lteHelper->GetUplinkSpectrumChannel ()->GetPropagationLossModel());
-
-  NS_ASSERT (dlSp != nullptr);
-  NS_ASSERT (ulSp != nullptr);
-
-  NS_ASSERT (dlSp->GetNext() == nullptr);
-  NS_ASSERT (ulSp->GetNext() == nullptr);
-
-  ObjectFactory f;
-  f.SetTypeId (TypeId::LookupByName("ns3::AlwaysLosChannelConditionModel"));
-  dlSp->SetChannelConditionModel (f.Create<ChannelConditionModel> ());
-  ulSp->SetChannelConditionModel (f.Create<ChannelConditionModel> ());
-}
-
-
-void Set5gLenaSimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
-                                   const std::string &scenario,
-                                   const std::string &radioNetwork,
-                                   std::string &errorModel,
-                                   const std::string &operationMode,
-                                   const std::string &direction,
-                                   uint16_t numerology,
-                                   const std::string &pattern,
-                                   const NodeContainer &gnbSector1Container,
-                                   const NodeContainer &gnbSector2Container,
-                                   const NodeContainer &gnbSector3Container,
-                                   const NodeContainer &ueSector1Container,
-                                   const NodeContainer &ueSector2Container,
-                                   const NodeContainer &ueSector3Container,
-                                   const Ptr<PointToPointEpcHelper> &baseEpcHelper,
-                                   Ptr<NrHelper> &nrHelper,
-                                   NetDeviceContainer &gnbSector1NetDev,
-                                   NetDeviceContainer &gnbSector2NetDev,
-                                   NetDeviceContainer &gnbSector3NetDev,
-                                   NetDeviceContainer &ueSector1NetDev,
-                                   NetDeviceContainer &ueSector2NetDev,
-                                   NetDeviceContainer &ueSector3NetDev,
-                                   bool calibration,
-                                   SinrOutputStats *sinrStats,
-                                   PowerOutputStats *powerStats,
-                                   SlotOutputStats *slotStats,
-                                   const std::string &scheduler)
-{
-
-
-
-  /*
-   * Create the radio network related parameters
-   */
-  RadioNetworkParametersHelper ranHelper;
-  uint8_t numScPerRb = 1;  //!< The reference signal density is different in LTE and in NR
-  double rbOverhead = 0.1;
-  uint32_t harqProcesses = 20;
-  uint32_t n1Delay = 2;
-  uint32_t n2Delay = 2;
-  ranHelper.SetScenario (scenario);
-  if (radioNetwork == "LTE")
-    {
-      ranHelper.SetNetworkToLte (operationMode, 1);
-      rbOverhead = 0.1;
-      harqProcesses = 8;
-      n1Delay = 4;
-      n2Delay = 4;
-      if (errorModel == "")
-        {
-          errorModel = "ns3::LenaErrorModel";
-        }
-      else if (errorModel != "ns3::NrLteMiErrorModel" && errorModel != "ns3::LenaErrorModel")
-        {
-          NS_ABORT_MSG ("The selected error model is not recommended for LTE");
-        }
-    }
-  else if (radioNetwork == "NR")
-    {
-      ranHelper.SetNetworkToNr (operationMode, numerology, 1);
-      rbOverhead = 0.04;
-      harqProcesses = 20;
-      if (errorModel == "")
-        {
-          errorModel = "ns3::NrEesmCcT2";
-        }
-      else if (errorModel == "ns3::NrLteMiErrorModel")
-        {
-          NS_ABORT_MSG ("The selected error model is not recommended for NR");
-        }
-    }
-  else
-    {
-      NS_ABORT_MSG ("Unrecognized radio network technology");
-    }
-
-  /*
-   * Setup the NR module. We create the various helpers needed for the
-   * NR simulation:
-   * - IdealBeamformingHelper, which takes care of the beamforming part
-   * - NrHelper, which takes care of creating and connecting the various
-   * part of the NR stack
-   */
-
-  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  nrHelper = CreateObject<NrHelper> ();
-
-  // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
-
-  Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
-  nrHelper->SetEpcHelper (epcHelper);
-
-  /*
-   * Spectrum division. We create one operational band containing three
-   * component carriers, and each CC containing a single bandwidth part
-   * centered at the frequency specified by the input parameters.
-   * Each spectrum part length is, as well, specified by the input parameters.
-   * The operational band will use StreetCanyon channel or UrbanMacro modeling.
-   */
-  BandwidthPartInfoPtrVector allBwps, bwps1, bwps2, bwps3;
-  CcBwpCreator ccBwpCreator;
-  // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
-  // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
-  double centralFrequencyBand = ranHelper.GetCentralFrequency ();
-  double bandwidthBand = ranHelper.GetBandwidth ();
-  const uint8_t numCcPerBand = 1; // In this example, each cell will have one CC with one BWP
-  BandwidthPartInfo::Scenario scene;
-  if (scenario == "UMi")
-    {
-      scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
-    }
-  else if (scenario == "UMa")
-    {
-      scene = BandwidthPartInfo::UMa_LoS;
-    }
-  else
-    {
-      NS_ABORT_MSG ("Unsupported scenario");
-    }
-
-  /*
-   * Attributes of ThreeGppChannelModel still cannot be set in our way.
-   * TODO: Coordinate with Tommaso
-   */
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
-  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
-
-  // Error Model: UE and GNB with same spectrum error model.
-  nrHelper->SetUlErrorModel (errorModel);
-  nrHelper->SetDlErrorModel (errorModel);
-
-  // Both DL and UL AMC will have the same model behind.
-  nrHelper->SetGnbDlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
-  nrHelper->SetGnbUlAmcAttribute ("AmcModel", EnumValue (NrAmc::ShannonModel));
-
-  /*
-   * Adjust the average number of Reference symbols per RB only for LTE case,
-   * which is larger than in NR. We assume a value of 4 (could be 3 too).
-   */
-  nrHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (numScPerRb));
-  nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (1));  //FIXME: Might change in LTE
-
-  nrHelper->SetGnbPhyAttribute ("RbOverhead", DoubleValue (rbOverhead));
-  nrHelper->SetGnbPhyAttribute ("N2Delay", UintegerValue (n2Delay));
-  nrHelper->SetGnbPhyAttribute ("N1Delay", UintegerValue (n1Delay));
-
-  nrHelper->SetUeMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
-  nrHelper->SetGnbMacAttribute ("NumHarqProcess", UintegerValue (harqProcesses));
-
-  /*
-   * Create the necessary operation bands. In this example, each sector operates
-   * in a separate band. Each band contains a single component carrier (CC),
-   * which is made of one BWP in TDD operation mode or two BWPs in FDD mode.
-   * Note that BWPs have the same bandwidth. Therefore, CCs and bands in FDD are
-   * twice larger than in TDD.
-   *
-   * The configured spectrum division for TDD operation is:
-   * |---Band1---|---Band2---|---Band3---|
-   * |----CC1----|----CC2----|----CC3----|
-   * |----BWP1---|----BWP2---|----BWP3---|
-   *
-   * And the configured spectrum division for FDD operation is:
-   * |---------Band1---------|---------Band2---------|---------Band3---------|
-   * |----------CC1----------|----------CC2----------|----------CC3----------|
-   * |----BWP1---|----BWP2---|----BWP3---|----BWP4---|----BWP5---|----BWP6---|
-   */
-  double centralFrequencyBand1 = centralFrequencyBand - bandwidthBand;
-  double centralFrequencyBand2 = centralFrequencyBand;
-  double centralFrequencyBand3 = centralFrequencyBand + bandwidthBand;
-  double bandwidthBand1 = bandwidthBand;
-  double bandwidthBand2 = bandwidthBand;
-  double bandwidthBand3 = bandwidthBand;
-
-  uint8_t numBwpPerCc = 1;
-  if (operationMode == "FDD")
-    {
-      numBwpPerCc = 2; // FDD will have 2 BWPs per CC
-    }
-
-  CcBwpCreator::SimpleOperationBandConf bandConf1 (centralFrequencyBand1, bandwidthBand1, numCcPerBand, scene);
-  bandConf1.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf2 (centralFrequencyBand2, bandwidthBand2, numCcPerBand, scene);
-  bandConf2.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf3 (centralFrequencyBand3, bandwidthBand3, numCcPerBand, scene);
-  bandConf3.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
-
-  // By using the configuration created, it is time to make the operation bands
-  OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
-  OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
-  OperationBandInfo band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3);
-
-  if (calibration)
-    {
-      band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-      band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-      band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-      band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-      band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-      band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-
-      // Do not initialize fading (beamforming gain)
-      nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-      nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-      nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-    }
-  else
-    {
-      // Init everything
-      nrHelper->InitializeOperationBand (&band1);
-      nrHelper->InitializeOperationBand (&band2);
-      nrHelper->InitializeOperationBand (&band3);
-    }
-
-
-  allBwps = CcBwpCreator::GetAllBwps ({band1,band2,band3});
-  bwps1 = CcBwpCreator::GetAllBwps ({band1});
-  bwps2 = CcBwpCreator::GetAllBwps ({band2});
-  bwps3 = CcBwpCreator::GetAllBwps ({band3});
-
-  /*
-   * Start to account for the bandwidth used by the example, as well as
-   * the total power that has to be divided among the BWPs. Since there is only
-   * one band and one BWP occupying the entire band, there is no need to divide
-   * power among BWPs.
-   */
-  double totalTxPower = ranHelper.GetTxPower (); //Convert to mW
-  double x = pow (10, totalTxPower/10);
-
-  /*
-   * allBwps contains all the spectrum configuration needed for the nrHelper.
-   *
-   * Now, we can setup the attributes. We can have three kind of attributes:
-   * (i) parameters that are valid for all the bandwidth parts and applies to
-   * all nodes, (ii) parameters that are valid for all the bandwidth parts
-   * and applies to some node only, and (iii) parameters that are different for
-   * every bandwidth parts. The approach is:
-   *
-   * - for (i): Configure the attribute through the helper, and then install;
-   * - for (ii): Configure the attribute through the helper, and then install
-   * for the first set of nodes. Then, change the attribute through the helper,
-   * and install again;
-   * - for (iii): Install, and then configure the attributes by retrieving
-   * the pointer needed, and calling "SetAttribute" on top of such pointer.
-   *
-   */
-
-  /*
-   *  Case (i): Attributes valid for all the nodes
-   */
-  // Beamforming method
-  if (radioNetwork == "LTE")
-    {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
-    }
-  else
-    {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-    }
-
-  // Scheduler type
-
-  if (scheduler == "PF")
-    {
-      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
-    }
-  else if (scheduler == "RR")
-    {
-      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
-    }
-
-  nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
-
-  // Core latency
-  epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
-
-  // Antennas for all the UEs
-  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
-
-  // Antennas for all the gNbs
-  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
-  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
-
-  // UE transmit power
-  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
-
-  // Set LTE RBG size
-  if (radioNetwork == "LTE")
-    {
-      nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
-    }
-
-  // We assume a common traffic pattern for all UEs
-  uint32_t bwpIdForLowLat = 0;
-  if (operationMode == "FDD" && direction == "UL")
-    {
-      bwpIdForLowLat = 1;
-    }
-
-  // gNb routing between Bearer and bandwidth part
-  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
-
-  // Ue routing between Bearer and bandwidth part
-  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
-
-  /*
-   * We miss many other parameters. By default, not configuring them is equivalent
-   * to use the default values. Please, have a look at the documentation to see
-   * what are the default values for all the attributes you are not seeing here.
-   */
-
-  /*
-   * Case (ii): Attributes valid for a subset of the nodes
-   */
-
-  // NOT PRESENT IN THIS SIMPLE EXAMPLE
-
-  /*
-   * We have configured the attributes we needed. Now, install and get the pointers
-   * to the NetDevices, which contains all the NR stack:
-   */
-
-  //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  gnbSector1NetDev = nrHelper->InstallGnbDevice (gnbSector1Container, bwps1);
-  gnbSector2NetDev = nrHelper->InstallGnbDevice (gnbSector2Container, bwps2);
-  gnbSector3NetDev = nrHelper->InstallGnbDevice (gnbSector3Container, bwps3);
-  ueSector1NetDev = nrHelper->InstallUeDevice (ueSector1Container, bwps1);
-  ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, bwps2);
-  ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, bwps3);
-
-  /*
-   * Case (iii): Go node for node and change the attributes we have to setup
-   * per-node.
-   */
-
-  // Sectors (cells) of a site are pointing at different directions
-  double orientationRads = gridScenario.GetAntennaOrientationRadians (0, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN (); ++numCell)
-    {
-      Ptr<NetDevice> gnb = gnbSector1NetDev.Get (numCell);
-      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
-      if (numBwps == 1)  // TDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
-        }
-
-      else if (numBwps == 2)  //FDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
-          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
-          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-
-          // Link the two FDD BWP
-          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
-        }
-
-      else
-        {
-          NS_ABORT_MSG("Incorrect number of BWPs per CC");
-        }
-    }
-
-  orientationRads = gridScenario.GetAntennaOrientationRadians (1, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN (); ++numCell)
-    {
-      Ptr<NetDevice> gnb = gnbSector2NetDev.Get (numCell);
-      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
-      if (numBwps == 1)  // TDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
-        }
-
-      else if (numBwps == 2)  //FDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
-          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
-          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-
-          // Link the two FDD BWP
-          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
-        }
-
-      else
-        {
-          NS_ABORT_MSG("Incorrect number of BWPs per CC");
-        }
-    }
-
-  orientationRads = gridScenario.GetAntennaOrientationRadians (2, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN (); ++numCell)
-    {
-      Ptr<NetDevice> gnb = gnbSector3NetDev.Get (numCell);
-      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
-      if (numBwps == 1)  // TDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
-        }
-
-      else if (numBwps == 2)  //FDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
-          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
-          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-
-          // Link the two FDD BWP
-          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
-        }
-
-      else
-        {
-          NS_ABORT_MSG("Incorrect number of BWPs per CC");
-        }
-    }
-
-
-  // Set the UE routing:
-
-  if (operationMode == "FDD")
-    {
-      for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
-        {
-          nrHelper->GetBwpManagerUe (ueSector1NetDev.Get (i))->SetOutputLink (0, 1);
-        }
-
-      for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
-        {
-          nrHelper->GetBwpManagerUe (ueSector2NetDev.Get (i))->SetOutputLink (0, 1);
-        }
-
-      for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
-        {
-          nrHelper->GetBwpManagerUe (ueSector3NetDev.Get (i))->SetOutputLink (0, 1);
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
-    {
-      auto uePhyFirst = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
-                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
-
-      if (operationMode == "FDD")
-        {
-          auto uePhySecond = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 1);
-          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
-        }
-      else
-        {
-          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
-    {
-      auto uePhyFirst = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 0);
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
-                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
-
-      if (operationMode == "FDD")
-        {
-          auto uePhySecond = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 1);
-          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
-        }
-      else
-        {
-          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
-    {
-      auto uePhyFirst = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 0);
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
-                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
-
-      if (operationMode == "FDD")
-        {
-          auto uePhySecond = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 1);
-          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, powerStats));
-        }
-      else
-        {
-          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, powerStats));
-        }
-    }
-
-  // When all the configuration is done, explicitly call UpdateConfig ()
-
-  for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
-    {
-      uint32_t bwpId = 0;
-      if (operationMode == "FDD" && direction == "UL")
-        {
-          bwpId = 1;
-        }
-      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
-                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
-
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = gnbSector2NetDev.Begin (); it != gnbSector2NetDev.End (); ++it)
-    {
-      uint32_t bwpId = 0;
-      if (operationMode == "FDD" && direction == "UL")
-        {
-          bwpId = 1;
-        }
-      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
-                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
-
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = gnbSector3NetDev.Begin (); it != gnbSector3NetDev.End (); ++it)
-    {
-      uint32_t bwpId = 0;
-      if (operationMode == "FDD" && direction == "UL")
-        {
-          bwpId = 1;
-        }
-      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
-                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
-
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueSector1NetDev.Begin (); it != ueSector1NetDev.End (); ++it)
-    {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueSector2NetDev.Begin (); it != ueSector2NetDev.End (); ++it)
-    {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueSector3NetDev.Begin (); it != ueSector3NetDev.End (); ++it)
-    {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
-    }
-
-}
+namespace ns3 {
 
 static std::pair<ApplicationContainer, double>
 InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
@@ -1024,171 +124,88 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
   return std::make_pair(app, startTime);
 }
 
-int 
-main (int argc, char *argv[])
+void
+LenaLteComparison (const Parameters &params)
 {
-  /*
-   * Variables that represent the parameters we will accept as input by the
-   * command line. Each of them is initialized with a default value.
-   */
-  // Scenario parameters (that we will use inside this script):
-  uint16_t numOuterRings = 3;
-  uint16_t ueNumPergNb = 2;
-  bool logging = false;
-  bool traces = true;
-  std::string simulator = "";
-  std::string scenario = "UMa";
-  std::string radioNetwork = "NR";  // LTE or NR
-  std::string operationMode = "TDD";  // TDD or FDD
-
-  // Simulation parameters. Please don't use double to indicate seconds, use
-  // milliseconds and integers to avoid representation errors.
-  uint32_t appGenerationTimeMs = 1000;
-  uint32_t udpAppStartTimeMs = 400;
-  std::string direction = "DL";
-
-  // Spectrum parameters. We will take the input from the command line, and then
-  //  we will pass them inside the NR module.
-  uint16_t numerologyBwp = 0;
-  std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
-
-  // Where we will store the output files.
-  std::string simTag = "default";
-  std::string outputDir = "./";
-
-  // Error models
-  std::string errorModel = "";
-
-  bool calibration = true;
-
-  uint32_t trafficScenario = 0;
-
-  std::string scheduler = "PF";
-
-  // Rem parameters: Modify them by hand, don't use the CommandLine for
-  // the moment
-  double xMinRem = -2000.0;
-  double xMaxRem = 2000.0;
-  uint16_t xResRem = 100;
-  double yMinRem = -2000.0;
-  double yMaxRem = 2000.0;
-  uint16_t yResRem = 100;
-  double zRem = 1.5;
-  bool generateRem = false;
-  uint32_t remSector = 1;
-
-
-  /*
-   * From here, we instruct the ns3::CommandLine class of all the input parameters
-   * that we may accept as input, as well as their description, and the storage
-   * variable.
-   */
-  CommandLine cmd;
-
-  cmd.AddValue ("scenario",
-                "The urban scenario string (UMa or UMi)",
-                scenario);
-  cmd.AddValue ("numRings",
-                "The number of rings around the central site",
-                numOuterRings);
-  cmd.AddValue ("ueNumPergNb",
-                "The number of UE per cell or gNB in multiple-ue topology",
-                ueNumPergNb);
-  cmd.AddValue ("logging",
-                "Enable logging",
-                logging);
-  cmd.AddValue ("traces",
-                "Enable output traces",
-                traces);
-  cmd.AddValue ("appGenerationTimeMs",
-                "Simulation time",
-                appGenerationTimeMs);
-  cmd.AddValue ("numerologyBwp",
-                "The numerology to be used (NR only)",
-                numerologyBwp);
-  cmd.AddValue ("pattern",
-                "The TDD pattern to use",
-                pattern);
-  cmd.AddValue ("direction",
-                "The flow direction (DL or UL)",
-                direction);
-  cmd.AddValue ("simulator",
-                "The cellular network simulator to use: LENA or 5GLENA",
-                simulator);
-  cmd.AddValue ("technology",
-                "The radio access network technology",
-                radioNetwork);
-  cmd.AddValue ("operationMode",
-                "The network operation mode can be TDD or FDD",
-                operationMode);
-  cmd.AddValue ("simTag",
-                "tag to be appended to output filenames to distinguish simulation campaigns",
-                simTag);
-  cmd.AddValue ("outputDir",
-                "directory where to store simulation results",
-                outputDir);
-  cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-               errorModel);
-  cmd.AddValue ("calibration",
-                "disable a bunch of things to make LENA and NR_LTE comparable",
-                calibration);
-  cmd.AddValue ("trafficScenario",
-                "0: saturation (110 Mbps/enb), 1: latency (1 pkt of 10 bytes), 2: low-load (20 Mbps)",
-                trafficScenario);
-  cmd.AddValue ("scheduler",
-                "PF: Proportional Fair, RR: Round-Robin",
-                scheduler);
-
-  // Parse the command line
-  cmd.Parse (argc, argv);
-
   // Traffic parameters (that we will use inside this script:)
   uint32_t udpPacketSize = 1000;
   uint32_t lambda;
   uint32_t packetCount;
 
-  switch (trafficScenario)
+  NS_ABORT_MSG_IF (params.bandwidthMHz != 20 && params.bandwidthMHz != 10 && params.bandwidthMHz != 5,
+                   "Valid bandwidth values are 20, 10, 5, you set " << params.bandwidthMHz);
+
+  switch (params.trafficScenario)
     {
-    case 0: // 110 Mbps == 13.75 MBps
+    case 0: // let's put 80 Mbps with 20 MHz of bandwidth. Everything else is scaled
       packetCount = 0xFFFFFFFF;
-      udpPacketSize = 1375;
-      lambda = 10000 / ueNumPergNb;
+      switch (params.bandwidthMHz)
+        {
+        case 20:
+          udpPacketSize = 1000;
+          break;
+        case 10:
+          udpPacketSize = 500;
+          break;
+        case 5:
+          udpPacketSize = 250;
+          break;
+        default:
+          udpPacketSize = 1000;
+        }
+      lambda = 10000 / params.ueNumPergNb;
       break;
     case 1:
       packetCount = 1;
       udpPacketSize = 12;
       lambda = 1;
       break;
-    case 2: // 20 Mbps == 2.5 MB/s
+    case 2: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
       packetCount = 0xFFFFFFFF;
-      udpPacketSize = 250;
-      lambda = 10000 / ueNumPergNb;
+      switch (params.bandwidthMHz)
+        {
+        case 20:
+          udpPacketSize = 250;
+          break;
+        case 10:
+          udpPacketSize = 125;
+          break;
+        case 5:
+          udpPacketSize = 75;
+          break;
+        default:
+          udpPacketSize = 250;
+        }
+      lambda = 10000 / params.ueNumPergNb;
       break;
     default:
-      NS_FATAL_ERROR ("Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+      NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2");
     }
 
-  SQLiteOutput db (outputDir + "/" + simTag + ".db", "lena-lte-comparison");
+  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
   SinrOutputStats sinrStats;
-  PowerOutputStats powerStats;
+  PowerOutputStats ueTxPowerStats;
+  PowerOutputStats gnbRxPowerStats;
   SlotOutputStats slotStats;
+  RbOutputStats rbStats;
 
   sinrStats.SetDb (&db);
-  powerStats.SetDb (&db);
+  ueTxPowerStats.SetDb (&db, "ueTxPower");
   slotStats.SetDb (&db);
+  rbStats.SetDb (&db);
+  gnbRxPowerStats.SetDb (&db, "gnbRxPower");
 
   /*
    * Check if the frequency and numerology are in the allowed range.
    * If you need to add other checks, here is the best position to put them.
    */
 //  NS_ABORT_IF (centralFrequencyBand > 100e9);
-  NS_ABORT_IF (numerologyBwp > 4);
-  NS_ABORT_MSG_IF (direction != "DL" && direction != "UL", "Flow direction can only be DL or UL");
-  NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD", "Operation mode can only be TDD or FDD");
-  NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR", "Unrecognized radio network technology");
-  NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA", "Unrecognized simulator");
-  NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR", "Unrecognized scheduler");
+  NS_ABORT_IF (params.numerologyBwp > 4);
+  NS_ABORT_MSG_IF (params.direction != "DL" && params.direction != "UL", "Flow direction can only be DL or UL");
+  NS_ABORT_MSG_IF (params.operationMode != "TDD" && params.operationMode != "FDD", "Operation mode can only be TDD or FDD");
+  NS_ABORT_MSG_IF (params.radioNetwork != "LTE" && params.radioNetwork != "NR", "Unrecognized radio network technology");
+  NS_ABORT_MSG_IF (params.simulator != "LENA" && params.simulator != "5GLENA", "Unrecognized simulator");
+  NS_ABORT_MSG_IF (params.scheduler != "PF" && params.scheduler != "RR", "Unrecognized scheduler");
   /*
    * If the logging variable is set to true, enable the log of some components
    * through the code. The same effect can be obtained through the use
@@ -1199,7 +216,7 @@ main (int argc, char *argv[])
    * Usually, the environment variable way is preferred, as it is more customizable,
    * and more expressive.
    */
-  if (logging)
+  if (params.logging)
     {
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
@@ -1219,11 +236,11 @@ main (int argc, char *argv[])
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
   HexagonalGridScenarioHelper gridScenario;
-  gridScenario.SetNumRings (numOuterRings);
+  gridScenario.SetNumRings (params.numOuterRings);
   gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
-  gridScenario.SetScenarioParamenters (scenario);
+  gridScenario.SetScenarioParamenters (params.scenario);
   uint16_t gNbNum = gridScenario.GetNumCells ();
-  uint32_t ueNum = ueNumPergNb * gNbNum;
+  uint32_t ueNum = params.ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
@@ -1289,11 +306,11 @@ main (int argc, char *argv[])
   Ptr <LteHelper> lteHelper = nullptr;
   Ptr <NrHelper> nrHelper = nullptr;
 
-  if (simulator == "LENA")
+  if (params.simulator == "LENA")
     {
       epcHelper = CreateObject<PointToPointEpcHelper> ();
-      SetLenaSimulatorParameters (gridScenario,
-                                  scenario,
+      LenaV1Utils::SetLenaV1SimulatorParameters (gridScenario,
+                                  params.scenario,
                                   gnbSector1Container,
                                   gnbSector2Container,
                                   gnbSector3Container,
@@ -1308,22 +325,24 @@ main (int argc, char *argv[])
                                   ueSector1NetDev,
                                   ueSector2NetDev,
                                   ueSector3NetDev,
-                                  calibration,
+                                  params.calibration,
                                   &sinrStats,
-                                  &powerStats,
-                                  scheduler);
+                                  &ueTxPowerStats,
+                                  params.scheduler,
+                                  params.bandwidthMHz,
+                                  params.freqScenario);
     }
-  else if (simulator == "5GLENA")
+  else if (params.simulator == "5GLENA")
     {
       epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-      Set5gLenaSimulatorParameters (gridScenario,
-                                    scenario,
-                                    radioNetwork,
-                                    errorModel,
-                                    operationMode,
-                                    direction,
-                                    numerologyBwp,
-                                    pattern,
+      LenaV2Utils::SetLenaV2SimulatorParameters (gridScenario,
+                                    params.scenario,
+                                    params.radioNetwork,
+                                    params.errorModel,
+                                    params.operationMode,
+                                    params.direction,
+                                    params.numerologyBwp,
+                                    params.pattern,
                                     gnbSector1Container,
                                     gnbSector2Container,
                                     gnbSector3Container,
@@ -1338,11 +357,15 @@ main (int argc, char *argv[])
                                     ueSector1NetDev,
                                     ueSector2NetDev,
                                     ueSector3NetDev,
-                                    calibration,
+                                    params.calibration,
                                     &sinrStats,
-                                    &powerStats,
+                                    &ueTxPowerStats,
+                                    &gnbRxPowerStats,
                                     &slotStats,
-                                    scheduler);
+                                    &rbStats,
+                                    params.scheduler,
+                                    params.bandwidthMHz,
+                                    params.freqScenario);
     }
   else
     {
@@ -1409,7 +432,7 @@ main (int argc, char *argv[])
             {
               NS_ABORT_MSG ("Programming error");
             }
-          if (logging == true)
+          if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -1433,7 +456,7 @@ main (int argc, char *argv[])
             {
               NS_ABORT_MSG ("Programming error");
             }
-          if (logging == true)
+          if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -1457,7 +480,7 @@ main (int argc, char *argv[])
             {
               NS_ABORT_MSG ("Programming error");
             }
-          if (logging == true)
+          if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -1483,7 +506,7 @@ main (int argc, char *argv[])
   UdpServerHelper dlPacketSinkLowLat (dlPortLowLat);
 
   // The server, that is the application which is listening, is installed in the UE
-  if (direction == "DL")
+  if (params.direction == "DL")
     {
       serverApps.Add (dlPacketSinkLowLat.Install ({ueSector1Container,ueSector2Container,ueSector3Container}));
     }
@@ -1493,7 +516,7 @@ main (int argc, char *argv[])
     }
 
   // start UDP server
-  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+  serverApps.Start (MilliSeconds (params.udpAppStartTimeMs));
 
   /*
    * Configure attributes for the different generators, using user-provided
@@ -1535,16 +558,16 @@ main (int argc, char *argv[])
                     << " position " << n->GetObject<MobilityModel>()->GetPosition ()
                     << ":" << std::endl;
 
-          auto app = InstallApps (n, d, a, direction, &dlClientLowLat, remoteHost,
-                                  remoteHostAddr, udpAppStartTimeMs, dlPortLowLat,
-                                  x, appGenerationTimeMs, lteHelper, nrHelper);
+          auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
+                                  remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
+                                  x, params.appGenerationTimeMs, lteHelper, nrHelper);
           maxStartTime = std::max (app.second, maxStartTime);
           clientApps.Add (app.first);
         }
     }
 
   // enable the traces provided by the nr module
-  if (traces == true)
+  if (params.traces == true)
     {
       if (lteHelper != nullptr)
         {
@@ -1567,45 +590,86 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  std::string tableName;
-  switch (trafficScenario)
-    {
-    case 0:
-      tableName = "throughput";
-      break;
-    case 1:
-      tableName = "latency";
-      break;
-    case 2:
-      tableName = "s3";
-      break;
-    default:
-      NS_FATAL_ERROR ("NAH");
-    }
+  std::string tableName = "e2e";
 
 
   Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
                                               // and when simulation starts the object does not exist anymore, but the scheduled REM events do (exist).
                                               // So, REM events would be called with invalid pointer to remHelper ...
-  if (generateRem)
-    {
-      if (simulator == "5GLENA" && !calibration)
-        {
-          NetDeviceContainer gnbContainerRem;
-          Ptr<NetDevice> ueRemDevice;
-          uint16_t remPhyIndex = 0;
 
-          if (remSector == 1)
+  if (params.dlRem || params.ulRem)
+    {
+      NS_ABORT_MSG_IF (params.simulator != "5GLENA",
+                       "Cannot do the REM with the simulator " << params.simulator);
+      NS_ABORT_MSG_IF (params.dlRem && params.ulRem,
+                       "You selected both DL and UL REM, that is not supported");
+      NS_ABORT_MSG_IF (params.remSector == 0 && params.freqScenario != 1,
+                       "RemSector == 0 makes sense only in a OVERLAPPING scenario");
+
+      NetDeviceContainer gnbContainerRem;
+      Ptr<NetDevice> ueRemDevice;
+      uint16_t remPhyIndex = 0;
+      if (params.operationMode == "FDD" && params.direction == "UL")
+      {
+        remPhyIndex = 1;
+      }
+
+      NetDeviceContainer ueContainerRem;
+      Ptr<NrGnbNetDevice> gnbRemDevice;
+
+      if (params.ulRem)
+        {
+          if (params.remSector == 0)
+            {
+              ueContainerRem.Add (ueSector1NetDev);
+              ueContainerRem.Add (ueSector2NetDev);
+              ueContainerRem.Add (ueSector3NetDev);
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector1NetDev.Get (0));
+              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
+              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
+            }
+          else if (params.remSector == 1)
+            {
+              ueContainerRem = ueSector1NetDev;
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector1NetDev.Get(0));
+              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
+              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
+            }
+          else if (params.remSector == 2)
+            {
+              ueContainerRem = ueSector2NetDev;
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector2NetDev.Get(0));
+              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
+              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
+            }
+          else if (params.remSector == 3)
+            {
+              ueContainerRem = ueSector3NetDev;
+              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector3NetDev.Get(0));
+              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
+              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
+            }
+        }
+      else
+        {
+          if (params.remSector == 0)
+            {
+              gnbContainerRem.Add (gnbSector1NetDev);
+              gnbContainerRem.Add (gnbSector2NetDev);
+              gnbContainerRem.Add (gnbSector3NetDev);
+              ueRemDevice = ueSector1NetDev.Get (0);
+            }
+          else if (params.remSector == 1)
             {
               gnbContainerRem = gnbSector1NetDev;
               ueRemDevice = ueSector1NetDev.Get(0);
             }
-          else if (remSector == 2)
+          else if (params.remSector == 2)
             {
               gnbContainerRem = gnbSector2NetDev;
               ueRemDevice = ueSector2NetDev.Get(0);
             }
-          else if (remSector == 3)
+          else if (params.remSector == 3)
             {
               gnbContainerRem = gnbSector3NetDev;
               ueRemDevice = ueSector3NetDev.Get(0);
@@ -1614,48 +678,61 @@ main (int argc, char *argv[])
             {
               NS_FATAL_ERROR ("Sector does not exist");
             }
+        }
 
-          //Radio Environment Map Generation for ccId 0
-          remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
-          remHelper->SetMinX (xMinRem);
-          remHelper->SetMaxX (xMaxRem);
-          remHelper->SetResX (xResRem);
-          remHelper->SetMinY (yMinRem);
-          remHelper->SetMaxY (yMaxRem);
-          remHelper->SetResY (yResRem);
-          remHelper->SetZ (zRem);
+      //Radio Environment Map Generation for ccId 0
+      remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
+      remHelper->SetMinX (params.xMinRem);
+      remHelper->SetMaxX (params.xMaxRem);
+      remHelper->SetResX (params.xResRem);
+      remHelper->SetMinY (params.yMinRem);
+      remHelper->SetMaxY (params.yMaxRem);
+      remHelper->SetResY (params.yResRem);
+      remHelper->SetZ (params.zRem);
 
-          //save beamforming vectors
-          for (uint32_t j = 0; j < gridScenario.GetNumSites (); ++j)
+      //save beamforming vectors
+      for (uint32_t j = 0; j < gridScenario.GetNumSites (); ++j)
+        {
+          switch (params.remSector)
             {
-              switch (remSector - 1)
-              {
-                case 0:
-                  gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
-                  break;
-                case 1:
-                  gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
-                  break;
-                case 2:
-                  gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
-                  break;
-                default:
-                  NS_ABORT_MSG("sector cannot be larger than 3");
-                  break;
-              }
+            case 0:
+              gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
+              gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
+              gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
+              break;
+            case 1:
+              gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
+              break;
+            case 2:
+              gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
+              break;
+            case 3:
+              gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
+              break;
+            default:
+              NS_ABORT_MSG("sector cannot be larger than 3");
+              break;
             }
+        }
 
-          remHelper->CreateRem (gnbContainerRem, ueRemDevice, remPhyIndex);  //bwpId 0
+      if (params.ulRem)
+        {
+          remHelper->CreateRem (ueContainerRem, gnbRemDevice, remPhyIndex);
+        }
+      else
+        {
+          remHelper->CreateRem (gnbContainerRem, ueRemDevice, remPhyIndex);
         }
     }
 
-
-  Simulator::Stop (MilliSeconds (appGenerationTimeMs + maxStartTime));
+  Simulator::Stop (MilliSeconds (params.appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
 
   sinrStats.EmptyCache ();
-  powerStats.EmptyCache ();
+  ueTxPowerStats.EmptyCache ();
+  gnbRxPowerStats.EmptyCache ();
   slotStats.EmptyCache ();
+  rbStats.EmptyCache ();
 
   /*
    * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
@@ -1666,10 +743,10 @@ main (int argc, char *argv[])
 
   FlowMonitorOutputStats flowMonStats;
   flowMonStats.SetDb (&db, tableName);
-  flowMonStats.Save (monitor, flowmonHelper, outputDir + "/" + simTag);
+  flowMonStats.Save (monitor, flowmonHelper, params.outputDir + "/" + params.simTag);
 
   Simulator::Destroy ();
-  return 0;
 }
 
+} // namespace ns3
 

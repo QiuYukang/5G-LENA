@@ -284,7 +284,8 @@ HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId) const
 void
 HexagonalGridScenarioHelper::SetScenarioParamenters (const std::string &scenario)
 {
-  NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi", "Unrecognized scenario");
+  NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi" && scenario !="RMa",
+                  "Unrecognized scenario");
 
   if (scenario == "UMa")
     {
@@ -293,6 +294,10 @@ HexagonalGridScenarioHelper::SetScenarioParamenters (const std::string &scenario
   else if (scenario == "UMi")
     {
       SetUMiParameters ();
+    }
+  else if (scenario == "RMa")
+    {
+      SetRMaParameters();
     }
   else
     {
@@ -304,24 +309,36 @@ HexagonalGridScenarioHelper::SetScenarioParamenters (const std::string &scenario
 void
 HexagonalGridScenarioHelper::SetUMaParameters ()
 {
-  m_isd = 500;
-  m_bsHeight = 25.0;
+  m_isd = 1732;
+  m_bsHeight = 30.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 3;
-  m_minBsUtdistance = 35;
+  m_minBsUtdistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
   m_antennaOffset = 1.0;
 }
 
 void
 HexagonalGridScenarioHelper::SetUMiParameters ()
 {
-  m_isd = 200;
+  m_isd = 500;
   m_bsHeight = 10.0;
   m_utHeight = 1.5;
   m_siteSectorization = SiteSectorizationType::TRIPLE;
   m_hexagonalRadius = m_isd / 3;
   m_minBsUtdistance = 10;
+  m_antennaOffset = 1.0;
+}
+
+void
+HexagonalGridScenarioHelper::SetRMaParameters ()
+{
+  m_isd = 7000;
+  m_bsHeight = 45.0;
+  m_utHeight = 1.5;
+  m_siteSectorization = SiteSectorizationType::TRIPLE;
+  m_hexagonalRadius = m_isd / 3;
+  m_minBsUtdistance = 44.63; // minimum 2D distace is 10 meters considering UE height of 1.5 m
   m_antennaOffset = 1.0;
 }
 

@@ -16,55 +16,48 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef POWER_OUTPUT_STATS_H
-#define POWER_OUTPUT_STATS_H
+#ifndef RB_OUTPUT_STATS_H
+#define RB_OUTPUT_STATS_H
 
 #include <inttypes.h>
 #include <vector>
 
 #include <ns3/sqlite-output.h>
-#include <ns3/spectrum-value.h>
 #include <ns3/sfnsf.h>
-#include <ns3/nstime.h>
 
 namespace ns3 {
 
 /**
- * \brief Class to collect and store the transmission power values obtained from a simulation
- *
- * The class is meant to store in a database the values from UE or GNB during
- * a simulation. The class contains a cache, that after some time is written
- * to the disk.
+ * \brief Class to collect and store the Resource Block statistics from a simulation
  *
  * \see SetDb
- * \see SavePower
+ * \see SaveSinr
  * \see EmptyCache
  */
-class PowerOutputStats
+class RbOutputStats
 {
 public:
   /**
    * \brief Constructor
    */
-  PowerOutputStats ();
+  RbOutputStats ();
 
   /**
    * \brief Install the output dabase.
    * \param db database pointer
    * \param tableName name of the table where the values will be stored
    *
-   * The db pointer must be valid through all the lifespan of the class. The
+   *  The db pointer must be valid through all the lifespan of the class. The
    * method creates, if not exists, a table for storing the values. The table
    * will contain the following columns:
    *
-   * - "Frame INTEGER NOT NULL, "
+   * - "(Frame INTEGER NOT NULL, "
    * - "SubFrame INTEGER NOT NULL,"
    * - "Slot INTEGER NOT NULL,"
-   * - "Rnti INTEGER NOT NULL,"
-   * - "Imsi INTEGER NOT NULL,"
+   * - "Symbol INTEGER NOT NULL,"
+   * - "RBIndexActive INTEGER NOT NULL,"
    * - "BwpId INTEGER NOT NULL,"
    * - "CellId INTEGER NOT NULL,"
-   * - "txPsdSum DOUBLE NOT NULL,"
    * - "Seed INTEGER NOT NULL,"
    * - "Run INTEGER NOT NULL);"
    *
@@ -72,23 +65,16 @@ public:
    * the same name, also clean existing values that has the same
    * Seed/Run pair.
    */
-  void SetDb (SQLiteOutput *db, const std::string& tableName = "power");
+  void SetDb (SQLiteOutput *db, const std::string& tableName = "rbStats");
 
   /**
-   * \brief Store power values
-   * \param sfnSf Slot number
-   * \param txPsd TxPsd
-   * \param t Time for the transmission
-   * \param rnti RNTI
-   * \param imsi IMSI
-   * \param bwpId BWP ID
-   * \param cellId cell ID
-   *
-   * Please note that the values in txPsd will be summed before storing.
+   * \brief Save the slot statistics
+   * \param [in] sfnSf Slot number
+   * \param [in] sym Symbol
+   * \param [in] rbUsed RB used
    */
-  void SavePower (const SfnSf & sfnSf, Ptr<const SpectrumValue> txPsd,
-                  const Time &t, uint16_t rnti, uint64_t imsi,
-                  uint16_t bwpId, uint16_t cellId);
+  void SaveRbStats (const SfnSf &sfnSf, uint8_t sym, const std::vector<int> rbUsed,
+                    uint16_t bwpId, uint16_t cellId);
 
   /**
    * \brief Force the cache write to disk, emptying the cache itself.
@@ -96,29 +82,30 @@ public:
   void EmptyCache ();
 
 private:
-
-  struct PowerResultCache
-  {
-    uint16_t frame;
-    uint8_t subFrame;
-    uint16_t slot;
-    uint16_t rnti;
-    uint64_t imsi;
-    uint16_t bwpId;
-    uint16_t cellId;
-    double txPsdSum;
-  };
-
   static void
   DeleteWhere (SQLiteOutput *p, uint32_t seed, uint32_t run, const std::string &table);
 
   void WriteCache ();
 
-  SQLiteOutput *m_db;                           //!< DB pointer
-  std::vector<PowerResultCache> m_powerCache;   //!< Result cache
-  std::string m_tableName;                      //!< Table name
+  struct RbCache
+  {
+    SfnSf sfnSf;
+    uint8_t sym;
+    std::vector<int> rbUsed;
+    uint16_t cellId;
+    uint16_t bwpId;
+
+    uint32_t GetSize ()
+    {
+      return sizeof (RbCache) + (rbUsed.size() * sizeof(int));
+    }
+  };
+
+  SQLiteOutput *m_db;                         //!< DB pointer
+  std::vector<RbCache> m_slotCache;           //!< Result cache
+  std::string m_tableName;                    //!< Table name
 };
 
 } // namespace ns3
 
-#endif // POWER_OUTPUT_STATS_H
+#endif // RB_OUTPUT_STATS_H

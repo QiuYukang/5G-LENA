@@ -151,6 +151,11 @@ public:
    */
   void SetUMiParameters ();
 
+  /**
+   * \brief Sets rural Macro scenario parameters
+   */
+  void SetRMaParameters ();
+
   // inherited
   virtual void CreateScenario () override;
 

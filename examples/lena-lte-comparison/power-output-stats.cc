@@ -51,7 +51,7 @@ PowerOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
                                  RngSeedManager::GetRun(), tableName);
 }
 
-void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<SpectrumValue> txPsd,
+void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> txPsd,
                                  const Time &t, uint16_t rnti, uint64_t imsi,
                                  uint16_t bwpId, uint16_t cellId)
 {
