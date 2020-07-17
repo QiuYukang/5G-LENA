@@ -63,9 +63,20 @@ public:
    */
   static TypeId GetTypeId ();
 
+  /*
+   * \brief configures a predefined beam to use for directional transmissions
+   */
+  void SetPredefinedBeam (complexVector_t predefinedBeam);
+
   /**
-   * \brief Configures quasi-omni beamforming vector and sets up the expire timer
-   * for beamforming
+   * \brief configures a predefined beam to use for directional transmissions
+   * \param sector specifies the sector of the beam to be configured
+   * \param elevation specifies the elevation angle of the beam to be configured
+   */
+  void SetPredefinedBeam (uint16_t sector, double elevation);
+
+  /**
+   * \brief Configures quasi-omni beamforming vector
    *
    * \param antennaArray the antenna array
    */
@@ -150,6 +161,7 @@ private:
   uint32_t m_numColumns {0}; //!< Number of columns of antenna array for which is calculated current quasi omni beamforming vector
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception
   BeamformingStorage m_beamformingVectorMap; //!< device to beamforming vector mapping
+  BeamformingVector m_predefinedDirTxRxW; //!< A predefined vector that is used for directional transmission and reception to any device
 
 };
 
