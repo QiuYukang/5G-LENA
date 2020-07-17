@@ -53,6 +53,7 @@ NrUePhy::NrUePhy ()
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
+  m_ltePowerControl = CreateObject <LteUePowerControl> ();
 }
 
 NrUePhy::~NrUePhy ()
@@ -177,11 +178,19 @@ void
 NrUePhy::SetTxPower (double pow)
 {
   m_txPower = pow;
+  m_ltePowerControl->SetTxPower (pow);
 }
 double
 NrUePhy::GetTxPower () const
 {
   return m_txPower;
+}
+
+Ptr<LteUePowerControl>
+NrUePhy::GetLteUplinkPowerControl () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_ltePowerControl;
 }
 
 void

@@ -23,6 +23,7 @@
 #include "nr-phy.h"
 #include "nr-amc.h"
 #include "nr-harq-phy.h"
+#include <ns3/lte-ue-power-control.h>
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/traced-callback.h>
@@ -120,6 +121,13 @@ public:
    * \return the TX power of the UE
    */
   virtual double GetTxPower () const override;
+
+  /**
+   * \brief Get LTE uplink power control entity
+   *
+   * \return ptr pointer to LTE uplink power control entity
+   */
+  Ptr<LteUePowerControl> GetLteUplinkPowerControl () const;
 
   /**
    * \brief Register the UE to a certain Enb
@@ -586,6 +594,8 @@ private:
   NrUePhySapUser* m_phySapUser;             //!< SAP pointer
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
+
+  Ptr<LteUePowerControl> m_ltePowerControl; //!< LTE UE Power control entity.
 
   Ptr<const NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
 
