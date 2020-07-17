@@ -108,6 +108,11 @@ NrUePhy::GetTypeId (void)
                    MakeTimeAccessor (&NrPhy::SetTbDecodeLatency,
                    &NrPhy::GetTbDecodeLatency),
                    MakeTimeChecker ())
+    .AddAttribute ("EnableUplinkPowerControl",
+                   "If true, Uplink Power Control will be enabled.",
+                    BooleanValue (true),
+                    MakeBooleanAccessor (&NrUePhy::SetEableUplinkPowerControl),
+                    MakeBooleanChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -172,6 +177,12 @@ NrUePhy::GetUeCphySapProvider ()
 {
   NS_LOG_FUNCTION (this);
   return (m_ueCphySapProvider);
+}
+
+void
+NrUePhy::SetEableUplinkPowerControl (bool enable)
+{
+  m_enableUplinkPowerControl = enable;
 }
 
 void

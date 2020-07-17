@@ -106,6 +106,12 @@ public:
    */
   void SetPhySapUser (NrUePhySapUser* ptr);
 
+  /*
+   * \brief Enable or disable uplink power control
+   * \param enable parameter that enables or disables power control
+   */
+  void SetEableUplinkPowerControl (bool enable);
+
   /**
    * \brief Set the transmission power for the UE
    *
@@ -595,6 +601,7 @@ private:
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
 
+  bool m_enableUplinkPowerControl {false}; //!< Flag that indicates whether power control is enabled
   Ptr<LteUePowerControl> m_ltePowerControl; //!< LTE UE Power control entity.
 
   Ptr<const NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
