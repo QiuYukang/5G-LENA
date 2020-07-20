@@ -78,6 +78,9 @@ NrUePowerControl::CalculatePuschTxPower ()
   int32_t j = 1;
   int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
 
+  // update RSRP value for pathloss calculation
+  SetRsrp (m_nrUePhy->GetRsrp());
+
   NS_LOG_INFO ("RB: " << m_M_Pusch << " m_PoPusch: " << PoPusch
                       << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
                       << " deltaTF: " << m_deltaTF << " fc: " << m_fc);
@@ -103,6 +106,8 @@ void
 NrUePowerControl::CalculatePucchTxPower ()
 {
   NS_LOG_FUNCTION (this);
+  // update RSRP value for pathloss calculation
+  SetRsrp (m_nrUePhy->GetRsrp());
   m_curPucchTxPower = m_curPuschTxPower;
   NS_LOG_INFO ("PucchTxPower: " << m_curPucchTxPower);
 }
@@ -113,6 +118,9 @@ NrUePowerControl::CalculateSrsTxPower ()
   NS_LOG_FUNCTION (this);
   int32_t j = 1;
   int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
+
+  // update RSRP value for pathloss calculation
+  SetRsrp (m_nrUePhy->GetRsrp());
 
   NS_LOG_INFO ("RB: " << m_M_Pusch << " m_PoPusch: " << PoPusch
                       << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss

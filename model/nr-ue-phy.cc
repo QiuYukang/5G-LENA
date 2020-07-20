@@ -197,6 +197,12 @@ NrUePhy::GetTxPower () const
   return m_txPower;
 }
 
+double
+NrUePhy::GetRsrp () const
+{
+  return m_rsrp;
+}
+
 Ptr<LteUePowerControl>
 NrUePhy::GetLteUplinkPowerControl () const
 {

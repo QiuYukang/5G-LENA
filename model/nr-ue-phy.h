@@ -129,6 +129,12 @@ public:
   virtual double GetTxPower () const override;
 
   /**
+   * \brief Returns the latest measured RSRP value
+   * Called by NrUePowerControl.
+   */
+  double GetRsrp () const;
+
+  /**
    * \brief Get LTE uplink power control entity
    *
    * \return ptr pointer to LTE uplink power control entity
@@ -638,6 +644,8 @@ private:
   uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
   uint8_t m_dlCtrlSyms {1}; //!< Number of CTRL symbols in DL
   uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
+
+  double m_rsrp {0}; //!< The latest measured RSRP value
 
   /**
    * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding
