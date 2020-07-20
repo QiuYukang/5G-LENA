@@ -495,6 +495,11 @@ protected:
   CreateUeRepresentation (const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const = 0;
 
   /**
+   * \brief Returns TPC command
+   */
+  virtual uint8_t GetTpc () const = 0;
+
+  /**
    * \brief Giving the input, append to slotAlloc the allocations for the DL HARQ retransmissions
    * \param startingPoint starting point of the first retransmission.
    * It should be set to the next available starting point

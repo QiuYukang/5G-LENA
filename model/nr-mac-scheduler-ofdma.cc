@@ -424,7 +424,7 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, DciInfoElementTdma::DL, spoint->m_sym, maxSym, ueInfo->m_dlMcs,
-       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId ());
+       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId (), GetTpc());
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 
@@ -498,7 +498,7 @@ NrMacSchedulerOfdma::CreateUlDci (PointInFTPlane *spoint,
   NS_ASSERT (spoint->m_sym >= maxSym);
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, DciInfoElementTdma::UL, spoint->m_sym - maxSym, maxSym, ueInfo->m_ulMcs,
-       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId ());
+       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId (), GetTpc());
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 
@@ -528,6 +528,13 @@ NrMacSchedulerOfdma::ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) c
 {
   spoint->m_rbg = 0;
   spoint->m_sym -= symOfBeam;
+}
+
+uint8_t
+NrMacSchedulerOfdma::GetTpc () const
+{
+  NS_LOG_FUNCTION (this);
+  return 1; // 1 is mapped to 0 for Accumulated mode, and to -1 in Absolute mode TS38.213 Table Table 7.1.1-1
 }
 
 } // namespace ns3

@@ -433,6 +433,11 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       InsertAllocation (dciInfoElem);
 
       m_phySapUser->ReceiveControlMessage (msg);
+
+      if (m_enableUplinkPowerControl)
+        {
+          m_ltePowerControl->ReportTpc (dciInfoElem->m_tpc);
+        }
     }
   else if (msg->GetMessageType () == NrControlMessage::UL_DCI)
     {
