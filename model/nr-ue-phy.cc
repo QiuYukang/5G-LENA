@@ -790,6 +790,10 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       channelRbs.push_back (static_cast<int> (i));
     }
 
+  if (m_enableUplinkPowerControl)
+    {
+      m_txPower = m_powerControl->GetPucchTxPower (channelRbs);
+    }
   SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
