@@ -53,8 +53,7 @@ NrUePhy::NrUePhy ()
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
-  m_powerControl = CreateObject <NrUePowerControl> ();
-  m_powerControl->Install (this);
+  m_powerControl = CreateObject <NrUePowerControl> (this);
 }
 
 NrUePhy::~NrUePhy ()

@@ -58,6 +58,13 @@ class NrUePowerControl : public LteUePowerControl
 public:
 
   NrUePowerControl ();
+  /**
+   * \brief Constructor that sets a pointer to its NrUePhy instance owner.
+   * This is necessary in order to obtain information such as numerology
+   * that is used in calculation of tranmit power.
+   */
+  NrUePowerControl (const Ptr<NrUePhy>& nrUePhy);
+
   virtual ~NrUePowerControl ();
 
   /**
@@ -68,13 +75,6 @@ public:
   // inherited from Object
   virtual void DoInitialize (void);
   virtual void DoDispose (void);
-
-  /**
-   * \brief Sets a pointer to its NrUePhy instance owner.
-   * This is necessary in order to obtain information such as numerology
-   * that is used in calculation of tranmit power.
-   */
-  void Install (const Ptr<NrUePhy>& nrUePhy);
 
   /// Calculate PUSCH transmit power function
   virtual void CalculatePuschTxPower () override;

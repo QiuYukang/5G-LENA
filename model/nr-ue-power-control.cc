@@ -36,6 +36,11 @@ NrUePowerControl::NrUePowerControl ()
   NS_LOG_FUNCTION (this);
 }
 
+NrUePowerControl::NrUePowerControl (const Ptr<NrUePhy>& nrUePhy)
+{
+  m_nrUePhy = nrUePhy;
+}
+
 NrUePowerControl::~NrUePowerControl ()
 {
   NS_LOG_FUNCTION (this);
@@ -62,13 +67,6 @@ NrUePowerControl::GetTypeId (void)
     .AddConstructor<NrUePowerControl> ()
   ;
   return tid;
-}
-
-
-void
-NrUePowerControl::Install (const Ptr<NrUePhy>& nrUePhy)
-{
-  m_nrUePhy = nrUePhy;
 }
 
 //TS 38.213 Table 7.1.1-1 and Table 7.2.1-1,  Mapping of TPC Command Field in DCI to accumulated and absolute value
