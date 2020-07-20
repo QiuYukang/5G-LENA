@@ -23,7 +23,7 @@
 #include "nr-phy.h"
 #include "nr-amc.h"
 #include "nr-harq-phy.h"
-#include <ns3/lte-ue-power-control.h>
+#include "nr-ue-power-control.h"
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/traced-callback.h>
@@ -602,7 +602,7 @@ private:
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
 
   bool m_enableUplinkPowerControl {false}; //!< Flag that indicates whether power control is enabled
-  Ptr<LteUePowerControl> m_ltePowerControl; //!< LTE UE Power control entity.
+  Ptr<NrUePowerControl> m_powerControl; //!< UE power control entity.
 
   Ptr<const NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
 

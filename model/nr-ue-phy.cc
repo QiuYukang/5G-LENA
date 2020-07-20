@@ -53,7 +53,8 @@ NrUePhy::NrUePhy ()
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
-  m_ltePowerControl = CreateObject <LteUePowerControl> ();
+  m_powerControl = CreateObject <NrUePowerControl> ();
+  m_powerControl->Install (this);
 }
 
 NrUePhy::~NrUePhy ()
@@ -189,7 +190,7 @@ void
 NrUePhy::SetTxPower (double pow)
 {
   m_txPower = pow;
-  m_ltePowerControl->SetTxPower (pow);
+  m_powerControl->SetTxPower (pow);
 }
 double
 NrUePhy::GetTxPower () const
@@ -201,7 +202,7 @@ Ptr<LteUePowerControl>
 NrUePhy::GetLteUplinkPowerControl () const
 {
   NS_LOG_FUNCTION (this);
-  return m_ltePowerControl;
+  return m_powerControl;
 }
 
 void
@@ -436,7 +437,7 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
 
       if (m_enableUplinkPowerControl)
         {
-          m_ltePowerControl->ReportTpc (dciInfoElem->m_tpc);
+          m_powerControl->ReportTpc (dciInfoElem->m_tpc);
         }
     }
   else if (msg->GetMessageType () == NrControlMessage::UL_DCI)
