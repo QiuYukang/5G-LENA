@@ -132,4 +132,42 @@ NrUePowerControl::CalculateSrsTxPower ()
   NS_LOG_INFO ("SrsTxPower: " << m_curSrsTxPower);
 }
 
+double
+NrUePowerControl::GetPuschTxPower (std::vector<uint8_t>& rbMask)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_M_Pusch = rbMask.size ();
+  CalculatePuschTxPower ();
+
+  m_reportPuschTxPower (m_cellId, m_rnti, m_curPuschTxPower);
+
+  return m_curPuschTxPower;
+}
+
+double
+NrUePowerControl::GetPucchTxPower (std::vector<uint8_t>& rbMask)
+{
+  NS_LOG_FUNCTION (this);
+
+  CalculatePucchTxPower ();
+
+  m_reportPucchTxPower (m_cellId, m_rnti, m_curPucchTxPower);
+
+  return m_curPucchTxPower;
+}
+
+double
+NrUePowerControl::GetSrsTxPower (std::vector<uint8_t>& rbMask)
+{
+  NS_LOG_FUNCTION (this);
+
+  m_srsBandwidth = rbMask.size ();
+  CalculateSrsTxPower ();
+
+  m_reportSrsTxPower (m_cellId, m_rnti, m_curSrsTxPower);
+
+  return m_curSrsTxPower;
+}
+
 } // namespace ns3

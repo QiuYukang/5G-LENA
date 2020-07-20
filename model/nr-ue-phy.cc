@@ -833,6 +833,10 @@ Time
 NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
+  if (m_enableUplinkPowerControl)
+      {
+        m_txPower = m_powerControl->GetPuschTxPower (dci->m_rbgBitmask);
+      }
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;

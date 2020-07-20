@@ -83,6 +83,28 @@ public:
   /// Calculate SRS transmit power function
   virtual void CalculateSrsTxPower () override;
 
+  /**
+   * \brief Get PUSCH transmit power function
+   *
+     * \param rbMask UL rbMask that will be used for transmission
+   * \returns the PUSCH transmit power
+   */
+  double GetPuschTxPower (std::vector<uint8_t>& rbMask);
+  /**
+   * \brief Get PUCCH transmit power function
+   *
+   * \param rbMask UL rbMask that will be used for transmission
+   * \returns the PUCCH transmit power
+   */
+  double GetPucchTxPower (std::vector<uint8_t>& rbMask);
+  /**
+   * \brief Get SRS transmit power function
+   *
+   * \param rbMask UL rbMask that will be used for transmission
+   * \returns the SRS transmit power
+   */
+  double GetSrsTxPower (std::vector<uint8_t>& rbMask);
+
 private:
 
   Ptr<NrUePhy> m_nrUePhy; //!< NrUePhy instance owner
