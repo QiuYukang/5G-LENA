@@ -171,11 +171,13 @@ protected:
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
    * \param slotAlloc The slot allocation structure to be updated by a specific scheduler
+   * \return The status of the allocation, true if the destination has been
+   *         allocated some resources; false otherwise.
    */
-  virtual void
+  virtual bool
   DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params,
                     const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                    std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc) = 0;
+                    NrSlUeMacSchedSapUser::NrSlSlotAlloc &slotAlloc) = 0;
   /**
    * \brief Method to get total number of sub-channels.
    *

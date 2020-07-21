@@ -51,10 +51,12 @@ public:
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
    * \param slotAlloc The slot allocation structure to be updated by this scheduler
+   * \return The status of the allocation, true if the destination has been
+   *         allocated some resources; false otherwise.
    */
-  virtual void DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
+  virtual bool DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
                                  const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                 std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc) override;
+                                 NrSlUeMacSchedSapUser::NrSlSlotAlloc &slotAlloc) override;
 
 private:
   /**

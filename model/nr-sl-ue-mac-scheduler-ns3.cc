@@ -163,12 +163,17 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq (uint32_t dstL2Id, const std::lis
 {
   NS_LOG_FUNCTION (this << dstL2Id);
 
-  const auto dstIt = m_dstMap.find (dstL2Id);
+  const auto itDst = m_dstMap.find (dstL2Id);
+  NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << dstL2Id << "info not found");
 
-  NrSlUeMacSchedSapUser::SchedUeNrSlAllocation alloc;
+  NrSlUeMacSchedSapUser::NrSlSlotAlloc alloc;
 
-  DoNrSlAllocation (params, dstIt->second, alloc.slotAlloc);
+  bool allocated = DoNrSlAllocation (params, itDst->second, alloc);
 
+  if (!allocated)
+    {
+      return;
+    }
   m_nrSlUeMacSchedSapUser->SchedUeNrSlConfigInd (alloc);
 }
 

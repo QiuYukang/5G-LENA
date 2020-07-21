@@ -41,12 +41,13 @@ NrSlUeMacSchedulerSimple::GetTypeId (void)
   return tid;
 }
 
-void
+bool
 NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
                                             const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                            std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> &slotAlloc)
+                                            NrSlUeMacSchedSapUser::NrSlSlotAlloc &slotAlloc)
 {
   NS_LOG_FUNCTION (this);
+  bool allocated = false;
   std::set <uint16_t> randTxOpps = RandomlySelectSlots (txOpps);
   std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>::const_iterator txOppsIt = txOpps.begin ();
   std::advance (txOppsIt, *(randTxOpps.begin ()));
@@ -60,6 +61,11 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
 
   uint32_t bufferSize = lcgMap.begin ()->second->GetTotalSizeOfLC (lcVector.at (0));
 
+  if (bufferSize == 0)
+    {
+      return allocated;
+    }
+
   uint32_t tbs = 0;
   uint8_t assignedSbCh = 0;
   uint16_t availableSymbols = txOppsIt->slPsschSymLength;
@@ -71,24 +77,27 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
     }
   while (tbs < bufferSize && (GetTotalSubCh () - assignedSbCh) > 0);
 
-  slotAlloc->tbSize = tbs;
-  slotAlloc->indexSubchannelStart = 0;
-  slotAlloc->subchannelLength = assignedSbCh;
-  slotAlloc->indexSymStart = txOppsIt->slPsschSymStart;
-  slotAlloc->SymLength = availableSymbols;
+  allocated = true;
+  slotAlloc.ndi = 1;
+  slotAlloc.tbSize = tbs;
+  slotAlloc.indexSubchannelStart = 0;
+  slotAlloc.subchannelLength = assignedSbCh;
+  slotAlloc.indexSymStart = txOppsIt->slPsschSymStart;
+  slotAlloc.SymLength = availableSymbols;
 
-  slotAlloc->sfn = txOppsIt->sfn;
-  slotAlloc->dstL2Id = dstInfo->GetDstL2Id ();
-  slotAlloc->lcId = lcVector.at (0);
-  slotAlloc->mcs = dstInfo->GetDstMcs ();
-  slotAlloc->maxNumPerReserve = txOppsIt->slMaxNumPerReserve;
+  slotAlloc.sfn = txOppsIt->sfn;
+  slotAlloc.dstL2Id = dstInfo->GetDstL2Id ();
+  slotAlloc.lcId = lcVector.at (0);
+  slotAlloc.mcs = dstInfo->GetDstMcs ();
+  slotAlloc.maxNumPerReserve = txOppsIt->slMaxNumPerReserve;
   uint16_t gapReTx1 = randTxOpps.size () > 1 ? *(std::next (randTxOpps.begin (), 1)) - *randTxOpps.begin () : 0;
-  slotAlloc->gapReTx1 = static_cast <uint8_t> (gapReTx1);
+  slotAlloc.gapReTx1 = static_cast <uint8_t> (gapReTx1);
   uint16_t gapReTx2 = randTxOpps.size () > 2 ? *(std::next (randTxOpps.begin (), 2)) - *randTxOpps.begin () : 0;
-  slotAlloc->gapReTx2 = static_cast <uint8_t> (gapReTx2);
-  slotAlloc->priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
+  slotAlloc.gapReTx2 = static_cast <uint8_t> (gapReTx2);
+  slotAlloc.priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
 
-  lcgMap.begin ()->second->AssignedData (lcVector.at (0), slotAlloc->tbSize);
+  lcgMap.begin ()->second->AssignedData (lcVector.at (0), slotAlloc.tbSize);
+  return allocated;
 }
 
 

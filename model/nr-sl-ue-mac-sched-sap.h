@@ -161,6 +161,7 @@ public:
     SfnSf sfn {}; //!< The SfnSf
     uint32_t dstL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The destination Layer 2 Id
 
+    uint8_t ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
     uint8_t lcId {std::numeric_limits <uint8_t>::max ()}; //!< The Logical channel id
     uint8_t priority {std::numeric_limits <uint8_t>::max ()}; //!< The LC priority
     uint32_t tbSize {std::numeric_limits <uint32_t>::max ()}; //!< The transport block size
@@ -175,17 +176,24 @@ public:
     uint8_t  gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
   };
 
-  struct SchedUeNrSlAllocation
+  /**
+   * \brief Less than operator overloaded for NrSlSlotAlloc
+   *
+   * \param l first NrSlSlotAlloc
+   * \param r second NrSlSlotAlloc
+   * \returns true if first NrSlSlotAlloc SfnSf parameter values are less than the second NrSlSlotAlloc SfnSf parameters"
+   */
+  friend bool operator < (const NrSlSlotAlloc &l, const NrSlSlotAlloc &r)
   {
-    std::shared_ptr<NrSlUeMacSchedSapUser::NrSlSlotAlloc> slotAlloc;
-  };
+    return l.sfn < r.sfn;
+  }
 
   /**
    * \brief Send the NR Sidelink allocation from the UE scheduler to UE MAC
    *
-   * \param params NrSlUeMacSchedSapUser::SchedUeNrSlAllocation
+   * \param params NrSlUeMacSchedSapUser::NrSlSlotAlloc
    */
-  virtual void SchedUeNrSlConfigInd (const struct SchedUeNrSlAllocation& params) = 0;
+  virtual void SchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params) = 0;
 
   /**
    * \brief Method to get total number of sub-channels.
