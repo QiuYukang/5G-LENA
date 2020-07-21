@@ -707,6 +707,11 @@ protected:
    * \return the bandwidth in RBs
    */
   uint32_t DoGetBwInRbs () const;
+  /**
+   * \brief Get the slot period
+   * \return the slot period (depend on the numerology)
+   */
+  Time DoGetSlotPeriod () const;
 
 private:
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance

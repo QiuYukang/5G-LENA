@@ -1228,6 +1228,12 @@ NrUePhy::DoGetBwInRbs () const
  return GetRbNum ();
 }
 
+Time
+NrUePhy::DoGetSlotPeriod () const
+{
+  return GetSlotPeriod ();
+}
+
 
 }
 

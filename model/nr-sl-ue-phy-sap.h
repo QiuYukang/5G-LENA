@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <ns3/ptr.h>
+#include <ns3/nstime.h>
 
 
 namespace ns3 {
@@ -50,6 +51,11 @@ public:
    * \return the bandwidth in RBs
    */
   virtual uint32_t GetBwInRbs () const = 0;
+  /**
+   * \brief Get the slot period
+   * \return the slot period (depend on the numerology)
+   */
+  virtual Time GetSlotPeriod () const = 0;
   /**
    * set the current sidelink transmit pool
    * \param pool The transmission pool
@@ -108,6 +114,7 @@ public:
   MemberNrSlUePhySapProvider (C* owner);
 
   virtual uint32_t GetBwInRbs () const;
+  virtual Time GetSlotPeriod () const;
 
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
@@ -128,6 +135,13 @@ uint32_t
 MemberNrSlUePhySapProvider<C>::GetBwInRbs () const
 {
   return m_owner->DoGetBwInRbs ();
+}
+
+template <class C>
+Time
+MemberNrSlUePhySapProvider<C>::GetSlotPeriod () const
+{
+  return m_owner->DoGetSlotPeriod ();
 }
 
 //Sidelink communication
