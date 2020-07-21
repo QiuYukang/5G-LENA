@@ -71,6 +71,7 @@ NrUePowerControl::GetTypeId (void)
 
 //TS 38.213 Table 7.1.1-1 and Table 7.2.1-1,  Mapping of TPC Command Field in DCI to accumulated and absolute value
 
+//Implements from from ts_138213 7.1.1
 void
 NrUePowerControl::CalculatePuschTxPower ()
 {
@@ -83,25 +84,35 @@ NrUePowerControl::CalculatePuschTxPower ()
 
   NS_LOG_INFO ("RB: " << m_M_Pusch << " m_PoPusch: " << PoPusch
                       << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
-                      << " deltaTF: " << m_deltaTF << " fc: " << m_fc);
+                      << " deltaTF: " << m_deltaTF << " fc: " << m_fc<<" numerology:"<<m_nrUePhy->GetNumerology());
 
-  if ( m_M_Pusch > 0 )
+  double puschComponent = 0;
+
+  if (m_M_Pusch > 0)
     {
-      m_curPuschTxPower = 10 * log10 (1.0 * m_M_Pusch) + PoPusch + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
+      puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology()) * m_M_Pusch);
       m_M_Pusch = 0;
     }
-  else
-    {
-      m_curPuschTxPower = PoPusch + m_alpha[j] * m_pathLoss + m_fc;
-    }
+
+  /**
+   *  - m_pathloss is a downlink path-loss estimate in dB calculated by the UE using
+   *  reference signal (RS) index for a DL BWP that is linked with UL BWP b of carrier
+   *  f of serving cell c
+   *  m_pathloss = referenceSignalPower – higher layer filtered RSRP, where referenceSignalPower is
+   *  provided by higher layers and RSRP is defined in [7, TS 38.215] for the reference serving cell and the higher
+   *  layer filter configuration is defined in [12, TS 38.331] for the reference serving cell.
+   */
+
+  m_curPuschTxPower = PoPusch + puschComponent + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
 
   NS_LOG_INFO ("CalcPower: " << m_curPuschTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
-  m_curPuschTxPower = m_curPuschTxPower > m_Pcmin ? m_curPuschTxPower : m_Pcmin;
-  m_curPuschTxPower = m_Pcmax < m_curPuschTxPower ? m_Pcmax : m_curPuschTxPower;
+  m_curPuschTxPower = std::min (std::max(m_Pcmin, m_curPuschTxPower), m_Pcmax);
+
   NS_LOG_INFO ("PuschTxPower: " << m_curPuschTxPower);
 }
 
+//Implements from from ts_138213 7.2.1
 void
 NrUePowerControl::CalculatePucchTxPower ()
 {
