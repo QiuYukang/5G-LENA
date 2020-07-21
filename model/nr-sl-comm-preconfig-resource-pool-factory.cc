@@ -225,8 +225,33 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
+        case 700:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS700;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
         case 750:
           slReserved.period = LteRrcSap::SlResourceReservePeriod::MS750;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 800:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS800;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 850:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS850;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 900:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS900;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 950:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS950;
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
