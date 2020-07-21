@@ -76,17 +76,44 @@ public:
   virtual void DoInitialize (void);
   virtual void DoDispose (void);
 
-  /// Calculate PUSCH transmit power function
+  /*
+   * \brief Set PO nominal PUCCH value
+   * \param value the value to set
+   */
+  void SetPoNominalPucch (int16_t value);
+
+  /*
+  * \brief Set PO PUCCH value
+  * \param value the value to set
+  */
+  void SetPoUePucch (int16_t value);
+
+  /**
+   * \brief Calculates PUSCH transmit power
+   * according TS 38.213 7.1.1 formulas
+   */
   virtual void CalculatePuschTxPower () override;
-  /// Calculate PUCCH transmit power function
+
+  /**
+   * \brief Calculates PUCCH transmit power
+   * according TS 38.213 7.2.1 formulas
+   */
   virtual void CalculatePucchTxPower () override;
-  /// Calculate SRS transmit power function
+
+  /**
+   * \brief Calculates SRS transmit power
+   */
   virtual void CalculateSrsTxPower () override;
 
 private:
 
-  Ptr<NrUePhy> m_nrUePhy; //!< NrUePhy instance owner
-
+  Ptr<NrUePhy> m_nrUePhy;                 //!< NrUePhy instance owner
+  std::vector<int16_t> m_PoNominalPucch;  //!< PO nominal PUCCH
+  std::vector<int16_t> m_PoUePucch;       //!< PO US PUCCH
+  uint16_t m_M_Pucch {0};                 //!< size of RB list
+  double m_delta_F_Pucch {0.0};           //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
+  double m_deltaTF_control {0.0};         //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell
+  double m_gc {0.0};                      //!< Is the current PUCCH power control adjustment state. Parameter used for calculation of PUCCH transmit power
 };
 
 }
