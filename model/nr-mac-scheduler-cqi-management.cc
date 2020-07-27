@@ -137,14 +137,14 @@ NrMacSchedulerCQIManagement::InstallGetNrAmcUlFn (const std::function<Ptr<const 
 void
 NrMacSchedulerCQIManagement::DlWBCQIReported (const DlCqiInfo &info,
                                                   const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                                  uint32_t expirationTime, uint8_t maxDlMcs) const
+                                                  uint32_t expirationTime, int8_t maxDlMcs) const
 {
   NS_LOG_INFO (this);
 
   ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
   ueInfo->m_dlCqi.m_cqi = info.m_wbCqi;
   ueInfo->m_dlCqi.m_timer = expirationTime;
-  ueInfo->m_dlMcs = std::min(static_cast<uint8_t> (GetAmcDl()->GetMcsFromCqi (ueInfo->m_dlCqi.m_cqi)), maxDlMcs);
+  ueInfo->m_dlMcs = std::min(static_cast<uint8_t> (GetAmcDl()->GetMcsFromCqi (ueInfo->m_dlCqi.m_cqi)), static_cast<uint8_t> (maxDlMcs));
   NS_LOG_INFO ("Calculated MCS for UE " << static_cast<uint16_t> (ueInfo->m_rnti) <<
                " is " << static_cast<uint32_t> (ueInfo->m_dlMcs));
 

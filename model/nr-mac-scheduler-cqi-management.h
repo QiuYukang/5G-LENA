@@ -89,7 +89,7 @@ public:
    * here.
    */
   void DlWBCQIReported (const DlCqiInfo &info, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                        uint32_t expirationTime, uint8_t maxDlMcs) const;
+                        uint32_t expirationTime, int8_t maxDlMcs) const;
   /**
    * \brief SB CQI reported
    * \param info SB CQI

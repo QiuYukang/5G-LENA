@@ -135,7 +135,7 @@ public:
    * \brief Converts the maxMcsVectorInput (string) into an std::vector of maximum MCS used per cell
    * \return maxMcsVector
    */
-  std::vector<uint16_t> GetMcsVectorFromInput();
+  std::vector<int16_t> GetMcsVectorFromInput();
 
 private:
   double m_txPower {-1.0};            //!< Transmit power in dBm
@@ -144,11 +144,11 @@ private:
   uint16_t m_numerology {0};          //!< Operation band numerology
 };
 
-std::vector<uint16_t>
+std::vector<int16_t>
 GetMcsVectorFromInput (const std::string &pattern)
 {
 
-  static std::unordered_map<std::string, uint16_t> lookupTable =
+  static std::unordered_map<std::string, int16_t> lookupTable =
   {
     { "1", 1 },
     { "2", 2 },
@@ -180,7 +180,7 @@ GetMcsVectorFromInput (const std::string &pattern)
     { "28", 28 },
   };
 
-  std::vector<uint16_t> vector;
+  std::vector<int16_t> vector;
   std::stringstream ss (pattern);
   std::string token;
   std::vector<std::string> extracted;
@@ -301,8 +301,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                                    NetDeviceContainer &ueSector1NetDev,
                                    NetDeviceContainer &ueSector2NetDev,
                                    NetDeviceContainer &ueSector3NetDev,
-                                   uint16_t maxMcsDl1, uint16_t maxMcsDl2,
-                                   std::vector<uint16_t> &maxMcsVector,
+                                   int16_t maxMcsDl1, int16_t maxMcsDl2,
+                                   std::vector<int16_t> &maxMcsVector,
                                    bool uniformMcs,
                                    bool uniformLambda)
 {
@@ -580,7 +580,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * Case (iii): Go node for node and change the attributes we have to setup
    * per-node.
    */
-  uint16_t maxMcsPerCell[gridScenario.GetNumCells ()];
+  int16_t maxMcsPerCell[gridScenario.GetNumCells ()];
   if (uniformMcs)  // if uniformMcs -> same maximum MCS for all cells, input parameter maxMcsDl1
     {
       for (uint32_t i = 0; i < gridScenario.GetNumCells (); ++i)
@@ -657,7 +657,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
             }
 
           // Set max MCS
-          nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (maxMcsPerCell[globalCellId]));
+          nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", IntegerValue (maxMcsPerCell[globalCellId]));
           //nrHelper->GetGnbMac (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
                                                                             // 28, 16, 9 for mcsT1
         }
@@ -726,7 +726,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
             }
 
           // Set max MCS
-          nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (maxMcsPerCell[globalCellId]));
+          nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", IntegerValue (maxMcsPerCell[globalCellId]));
           //nrHelper->GetGnbMac (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
                                                                             // 28, 16, 9 for mcsT1
         }
@@ -796,7 +796,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
             }
 
           // Set max MCS
-          nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (maxMcsPerCell[globalCellId]));
+          nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", IntegerValue (maxMcsPerCell[globalCellId]));
           //nrHelper->GetGnbMac (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
                                                                             // 28, 16, 9 for mcsT1
         }
@@ -944,8 +944,8 @@ main (int argc, char *argv[])
   std::string errorModel = "ns3::NrEesmIrT2";
 
   // Max DL MCS index
-  uint16_t maxMcs1 = 10;
-  uint16_t maxMcs2 = 10;
+  int16_t maxMcs1 = 28;
+  int16_t maxMcs2 = 28;
   //std::vector<uint16_t> maxMcsVector ={4,6,8};
   std::string maxMcsVectorInput = "1|2|4";
 
@@ -1146,7 +1146,7 @@ main (int argc, char *argv[])
   Ptr <LteHelper> lteHelper = nullptr;
   Ptr <NrHelper> nrHelper = nullptr;
 
-  std::vector<uint16_t> maxMcsVector = GetMcsVectorFromInput (maxMcsVectorInput);
+  std::vector<int16_t> maxMcsVector = GetMcsVectorFromInput (maxMcsVectorInput);
 
   epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Set5gLenaSimulatorParameters (gridScenario,

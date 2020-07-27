@@ -35,6 +35,7 @@
 #include <ns3/eps-bearer.h>
 #include <ns3/pointer.h>
 #include <algorithm>
+#include <ns3/integer.h>
 
 namespace ns3 {
 
@@ -151,10 +152,10 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakePointerChecker <NrAmc> ())
     .AddAttribute ("MaxDlMcs",
                    "Maximum MCS index for DL",
-                   UintegerValue (28),
-                   MakeUintegerAccessor (&NrMacSchedulerNs3::SetMaxDlMcs,
+                   IntegerValue (-1),
+                   MakeIntegerAccessor (&NrMacSchedulerNs3::SetMaxDlMcs,
                                          &NrMacSchedulerNs3::GetMaxDlMcs),
-                   MakeUintegerChecker<uint8_t> (0,28))
+                   MakeIntegerChecker<int8_t> (-1,30))
   ;
 
   return tid;
@@ -242,13 +243,13 @@ NrMacSchedulerNs3::GetStartMcsDl () const
 }
 
 void
-NrMacSchedulerNs3::SetMaxDlMcs (uint8_t v)
+NrMacSchedulerNs3::SetMaxDlMcs (int8_t v)
 {
   NS_LOG_FUNCTION (this);
   m_maxDlMcs = v;
 }
 
-uint8_t
+int8_t
 NrMacSchedulerNs3::GetMaxDlMcs () const
 {
   NS_LOG_FUNCTION (this);
