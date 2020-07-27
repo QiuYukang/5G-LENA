@@ -29,6 +29,8 @@ def build(bld):
     obj.source = 'cttc-channel-randomness.cc'
     obj = bld.create_ns3_program('rem-example', ['nr'])
     obj.source = 'rem-example.cc'
+    obj = bld.create_ns3_program('cttc-fh-compression', ['nr','flow-monitor'])
+    obj.source = 'cttc-fh-compression.cc'
 
 
     bld.recurse('lena-lte-comparison')

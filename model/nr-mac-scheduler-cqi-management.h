@@ -81,6 +81,7 @@ public:
    * \param info WB CQI
    * \param ueInfo UE
    * \param expirationTime expiration time of the CQI in number of slot
+   * \param maxDlMcs maximum DL MCS index
    *
    * Store the CQI information inside the m_dlCqi value of the UE, and then
    * calculate the corresponding MCS through NrAmc. The information is
@@ -88,7 +89,7 @@ public:
    * here.
    */
   void DlWBCQIReported (const DlCqiInfo &info, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                        uint32_t expirationTime) const;
+                        uint32_t expirationTime, int8_t maxDlMcs) const;
   /**
    * \brief SB CQI reported
    * \param info SB CQI
