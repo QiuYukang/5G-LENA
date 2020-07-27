@@ -554,7 +554,7 @@ BeamId NrGnbPhy::GetBeamId (uint16_t rnti) const
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
-      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
 
       if (ueRnti == rnti)
         {
@@ -1249,7 +1249,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
-      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
           NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
@@ -1349,7 +1349,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice> (m_deviceMap.at (i));
-      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
       //NS_LOG_INFO ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
       if (dci->m_rnti == ueRnti)
         {
