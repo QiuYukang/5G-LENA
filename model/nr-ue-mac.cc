@@ -500,7 +500,7 @@ NrUeMac::RefreshHarqProcessesPacketBuffer (void)
 
   for (uint16_t i = 0; i < m_miUlHarqProcessesPacketTimer.size (); i++)
     {
-      if (m_miUlHarqProcessesPacketTimer.at (i) == 0)
+      if (m_miUlHarqProcessesPacketTimer.at (i) == 0 && m_miUlHarqProcessesPacket.at (i).m_pktBurst)
         {
           if (m_miUlHarqProcessesPacket.at (i).m_pktBurst->GetSize () > 0)
             {
