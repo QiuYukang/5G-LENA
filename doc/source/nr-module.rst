@@ -817,7 +817,7 @@ The simulator currently reuses the X2 interfaces of LENA ns-3 LTE. For details s
 https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#x2
 
 
-NR REM HELPER
+NR REM Helper
 *************
 
 The purpose of the ``NrRadioEnvironmentMapHelper`` is to generate rem maps, where
@@ -825,7 +825,7 @@ for each point on the map (rem point) a rem value is calculated (SNR/SINR/IPSD).
 The IPSD (Interference Power Spectral Density) corresponds to the aggregated
 received power of all signals at each rem point (treated as interference).
 
-For the nr radio environment helper we have introduced the following terminologies:
+For the nr radio environment helper we have introduced the following terminologies\:
  * RTD(s) -> rem transmitting device(s)
  * RRD -> rem receiving device
 
@@ -836,18 +836,88 @@ Two general types of maps can be generated according to whether the BeamShape
 or CoverageArea is selected.
 The first case considers the configuration of the beamforming vectors (for each
 RTD) as defined by the user in the scenario script for which the REM maps
-(SNR/SINR/IPSD) are generated.
+(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSexamples`
+where the first two figures depict the SNR (left) and SINR (right) for the case
+of two gNBs with antenna array configuration 8x8 and Isotropic elements, while
+the two figures on the bottom correspond to 3GPP element configuration.
+
+.. _fig-BSexamples:
+
+.. figure:: figures/BSexamples.*
+   :align: center
+   :scale: 50 %
+
+   BeamShape map examples (left: SNR, right: SINR)
+
 In the second case, the beams are reconfigured during the map generation for
 each rem point in order to visualize the coverage area in terms of SNR, SINR
-and IPSD.
+and IPSD. Examples of the SNR (left) and SINR (right) CoverageArea maps for two
+gNBs with Isotropic/3GPP (top/bottom) antenna elements are presented in
+Figure :ref:`fig-CAexamples`.
+
+.. _fig-CAexamples:
+
+.. figure:: figures/CAexamples.*
+   :align: center
+   :scale: 50 %
+
+   CoverageArea map examples (left: SNR, right: SINR)
+
+The ``NrRadioEnvironmentMapHelper`` allows also the visualization of the coverage
+holes when buildings are included in the deployment. An example is given in
+Figure :ref:`fig-CAexamplesBuildings`, where Isotropic antenna elements were
+configured to both gNBs of the example.
+
+.. _fig-CAexamplesBuildings:
+
+.. figure:: figures/CAexamplesBuildings.*
+   :align: center
+   :scale: 50 %
+
+   CoverageArea map examples with buildings (left: SNR, right: SINR)
+
+An example for a hexagonal deployment is given in Figure :ref:`fig-S3`. In this
+example the REM depicts a scenario for the frequency band of 2GHz, BW of 10 MHz,
+while the Inter-Site Distance (ISD) has been set to 1732m for the Urban case (top)
+and 7000m for the Rural case (bottom). The transmit power has been set to 43 dBm.
+
+.. _fig-S3:
+
+.. figure:: figures/S3.*
+   :align: center
+   :scale: 50 %
+
+   Hexagonal Topology (BeamShape) map examples (left: SNR, right: SINR)
+
+Finally, Figure :ref:`fig-HetNet` presents an example of a Heterogeneous Network
+(HetNet) of 7 Macro sites and 3 randomly deployed Small Cells.
+
+.. _fig-HetNet:
+
+.. figure:: figures/HetNet.*
+   :align: center
+   :scale: 75 %
+
+   Heterogeneous Network map example (left: SNR, right: SINR)
 
 The ``NrRadioEnvironmentMapHelper`` gives the possibility to generate maps either
 for the DL or the UL direction. This can be done by passing to the rem helper
 the desired transmitting device(s) (RTD(s)) and receiving device (RRD), which
 for the DL case correspond to gNB(s) and UE, respectively, while for the UL
-case to UE(s) and gNB, respectively.
+case to UE(s) and gNB, respectively. An example of an UL case is given in
+Figure :ref:`fig-UlRemHex`, for the hexagonal topology presented in Figure :ref:`fig-S3`
+above (Urban case), for 324 UEs with UE transmit power 23 dBm, antenna height 1.5m
+and 1x1 antenna array.
 
-Moreover, an UL map can be generated to visualize the coverage area of a tx
+.. _fig-UlRemHex:
+
+.. figure:: figures/UlRemHex.*
+   :align: center
+   :scale: 50 %
+
+   UL REM map example (IPSD)
+
+In addition, an UL map can be generated to visualize the coverage area of a tx
 device (UE), while there is the possibility to add interference from DL gNB
 device(s) to study a worst case mixed FDD-TDD scenario.
 
