@@ -179,7 +179,7 @@ NrUePowerControl::SetPoUePucch (int16_t value)
 }
 
 void
-NrUePowerControl::ReportTpc (uint8_t tpc)
+NrUePowerControl::ReportTpcPusch (uint8_t tpc)
 {
   NS_LOG_FUNCTION (this);
 
@@ -187,51 +187,20 @@ NrUePowerControl::ReportTpc (uint8_t tpc)
   if (!m_closedLoop)
      {
        m_fc = 0;
-       m_gc = 0;
        m_hc = 0;
        return;
      }
 
-  int deltaAccumulated = 0, deltaAbsolute = 0;
-
-  switch (tpc)
-      {
-      case 0:
-        deltaAccumulated = -1;
-        deltaAbsolute = -4;
-        break;
-      case 1:
-        deltaAccumulated = 0;
-        deltaAbsolute = -1;
-        break;
-      case 2:
-        deltaAccumulated = 1;
-        deltaAbsolute = 1;
-        break;
-      case 3:
-        deltaAccumulated = 3;
-        deltaAbsolute = 4;
-        break;
-      default:
-        NS_FATAL_ERROR ("Unexpected TPC value");
-      }
-
   if (m_accumulationEnabled)
     {
-      m_deltaPusch.push_back (deltaAccumulated);
-      NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta accumulated: " << deltaAccumulated << " Fc: " << m_fc);
+      m_deltaPusch.push_back (GetAccumulatedDelta(tpc));
+      NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta accumulated: " << GetAccumulatedDelta (tpc) << " Fc: " << m_fc);
     }
   else
     {
-      m_deltaPusch.push_back (deltaAbsolute);
-      NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta absolute: " << deltaAbsolute << " Fc: " << m_fc);
+      m_deltaPusch.push_back (GetAbsoluteDelta(tpc));
+      NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta absolute: " << GetAbsoluteDelta (tpc) << " Fc: " << m_fc);
     }
-
-  /**
-   * According to 36.213 and 38.213 there is only
-   * accumulated mode for PUCCH.
-   */
-  m_deltaPucch.push_back (deltaAccumulated);
 
   /**
    * If m_technicalSpec == TS_38_213 we should only save the
@@ -274,7 +243,105 @@ NrUePowerControl::ReportTpc (uint8_t tpc)
           m_fc = m_deltaPusch.at (0);
           m_deltaPusch.erase (m_deltaPusch.begin ());
         }
+    }
+  else if (m_technicalSpec == TS_38_213)
+    {
+      // don't allow infinite accumulation of TPC command if they are maybe not used
+      // the maximum number of command that will be saved is 100
+      if (m_deltaPusch.size() == 100)
+        {
+          m_deltaPusch.erase (m_deltaPusch.begin ());
+        }
+      // update of m_fc and m_hc happens in a separated function, UpdateFc
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Unknown technical specification.");
+    }
+}
 
+int
+NrUePowerControl::GetAbsoluteDelta (uint8_t tpc)
+{
+  int deltaAbsolute = 0;
+
+  switch (tpc)
+  {
+    case 0:
+      deltaAbsolute = -4;
+      break;
+    case 1:
+      deltaAbsolute = -1;
+      break;
+    case 2:
+      deltaAbsolute = 1;
+      break;
+    case 3:
+      deltaAbsolute = 4;
+      break;
+    default:
+      NS_FATAL_ERROR ("Unexpected TPC value");
+  }
+  return deltaAbsolute;
+}
+
+int
+NrUePowerControl::GetAccumulatedDelta (uint8_t tpc)
+{
+  int deltaAccumulated = 0;
+
+  switch (tpc)
+       {
+       case 0:
+         deltaAccumulated = -1;
+         break;
+       case 1:
+         deltaAccumulated = 0;
+         break;
+       case 2:
+         deltaAccumulated = 1;
+         break;
+       case 3:
+         deltaAccumulated = 3;
+         break;
+       default:
+         NS_FATAL_ERROR ("Unexpected TPC value");
+       }
+  return deltaAccumulated;
+}
+
+void
+NrUePowerControl::ReportTpcPucch (uint8_t tpc)
+{
+  NS_LOG_FUNCTION (this);
+
+  // if closed loop is not enabled return from this function
+  if (!m_closedLoop)
+     {
+       m_gc = 0;
+       return;
+     }
+
+  /**
+   * According to 36.213 and 38.213 there is only
+   * accumulated mode for PUCCH.
+   */
+  m_deltaPucch.push_back (GetAccumulatedDelta (tpc));
+
+  /**
+   * If m_technicalSpec == TS_38_213 we should only save the
+   * deltas, and once that transmission occasion appears then
+   * apply the formula that will calculate the new value for
+   * m_gc and reset the stored values, because
+   * they are not needed to be saved any more.
+   *
+   * It technical specification == TS_36_213 we can update
+   * immediately because it does not depend on previous
+   * occasion and neither on the latest PUSCH time.
+   */
+
+  if (m_technicalSpec == TS_36_213)
+    {
       // PUCCH power control accumulation update
       if (m_deltaPucch.size () == m_k_PUCCH) // the feedback/report that should be used is from (i-m_k_PUSCH) report
         {
@@ -294,17 +361,16 @@ NrUePowerControl::ReportTpc (uint8_t tpc)
     {
       // don't allow infinite accumulation of TPC command if they are maybe not used
       // the maximum number of command that will be saved is 100
-      if (m_deltaPusch.size() == 100)
-        {
-          m_deltaPusch.erase (m_deltaPusch.begin ());
-        }
       if (m_deltaPucch.size() == 100)
         {
           m_deltaPucch.erase (m_deltaPucch.begin ());
         }
-      // update of m_fc, m_gc, m_hc happens in separated functions, such as UpdateFc and UpdateGc
+      // update of m_gc happens in a separated function UpdateGc
     }
-
+  else
+    {
+      NS_FATAL_ERROR ("Unknown technical specification.");
+    }
 }
 
 void

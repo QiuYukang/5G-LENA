@@ -442,7 +442,8 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
 
       if (m_enableUplinkPowerControl)
         {
-          m_powerControl->ReportTpc (dciInfoElem->m_tpc);
+          m_powerControl->ReportTpcPusch (dciInfoElem->m_tpc);
+          m_powerControl->ReportTpcPucch (dciInfoElem->m_tpc);
         }
     }
   else if (msg->GetMessageType () == NrControlMessage::UL_DCI)

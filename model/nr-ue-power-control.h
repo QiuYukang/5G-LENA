@@ -31,7 +31,10 @@
 namespace ns3 {
 
 /**
- * \brief This class realizes NR Uplink Power Control functionality.
+ * \brief This class implements NR Uplink Power Control functionality.
+ * Can operate in two different modes: following specification TS 36.213
+ * that is used in LTE, LAA, etc; or  following specification TS 38.213
+ * for New Radio technology.
  *
  * NrUePowerControl entity is responsible for calculating total
  * power that will be used to transmit PUSCH, PUCCH and SRS.
@@ -49,6 +52,11 @@ namespace ns3 {
  * When closed loop power control is being used NrUePhy should also
  * pass TPC values to NrUePowerControl.
  *
+ * Specification that are used to implement uplink power control feature are
+ * the latest available specifications for LTE and NR:
+ * 1) ETSI TS 136 213 V14.2.0 (2017-04)
+ * 2) ETSI TS 138 213 V15.6.0 (2019-07)
+ *
  */
 
 class NrUePhy;
@@ -58,12 +66,9 @@ class NrUePowerControl : public LteUePowerControl
 public:
 
   /**
-   * Power control technical specification,
-   * currently supports two options:
-   * 1) LTE
-   * 2) NR
-   * E.g. TS_36_213 corresponds to LTE spec.
-   * while, TS_38_213 corresponds to NR spec.
+   * Power control supports two technical specifications:
+   * 1) TS 36.213, for LTE, LAA, etc.
+   * 1) TS 38.213, for New Radio (NR)
    *
    */
   enum TechnicalSpec {
@@ -130,13 +135,43 @@ public:
   */
   void SetPoUePucch (int16_t value);
 
+  /*
+   * \brief Implements conversion from TPC
+   * command to absolute delta value. Follows both,
+   * TS 36.213 and TS 38.213 specification for PUSCH.
+   * In 36.213 table is Table 5.1.1.1-2. and
+   * in 38.213 the table is Table 7.1.1-1.
+   * \param tpc TPC command value from 0 to 3
+   */
+  int GetAbsoluteDelta (uint8_t tpc);
+
+  /*
+   * \brief Implements conversion from TPC
+   * command to accumulated delta value. Follows both,
+   * TS 36.213 and TS 38.213 specification for PUSCH
+   * and PUCCH. In 36.213 tables are Table 5.1.1.1-2.
+   * and Table 5.1.2.1-1;
+   * while in 38.213 tables are:
+   * Table 7.1.1-1 and Table 7.2.1-1.
+   * \param tpc TPC command value from 0 to 3
+   */
+  int GetAccumulatedDelta (uint8_t tpc);
+
   /**
    * \brief Function that is called by NrUePhy
    * to notify NrUePowerControl algorithm
    * that TPC command was received by gNB
    * \param tpc the TPC command
    */
-  virtual void ReportTpc (uint8_t tpc) override;
+  virtual void ReportTpcPusch (uint8_t tpc);
+
+  /**
+     * \brief Function that is called by NrUePhy
+     * to notify NrUePowerControl algorithm
+     * that TPC command for PUCCH was received by gNB
+     * \param tpc the TPC command
+     */
+  virtual void ReportTpcPucch (uint8_t tpc);
 
   /*
    * \brief Calculates fc value for PUSCH power control
