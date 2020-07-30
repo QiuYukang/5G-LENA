@@ -149,6 +149,24 @@ NrUePowerControl::SetP0Srs (bool p0srs)
 }
 
 void
+NrUePowerControl::SetDeltaTF (bool deltaTf)
+{
+  m_deltaTF = deltaTf;
+}
+
+void
+NrUePowerControl::SetDeltaTFControl (bool deltaTfControl)
+{
+  m_deltaTF_control = deltaTfControl;
+}
+
+void
+NrUePowerControl::SetDeltaFPucch (bool deltaFPucch)
+{
+  m_delta_F_Pucch = deltaFPucch;
+}
+
+void
 NrUePowerControl::SetPoNominalPucch (int16_t value)
 {
   NS_LOG_FUNCTION (this);
@@ -454,16 +472,16 @@ NrUePowerControl::CalculatePuschTxPowerNr ()
     }
 
   /**
-   *  - m_pathloss is a downlink path-loss estimate in dB calculated by the UE using
+   *  m_pathloss is a downlink path-loss estimate in dB calculated by the UE using
    *  reference signal (RS) index for a DL BWP that is linked with UL BWP b of carrier
    *  f of serving cell c
    *  m_pathloss = referenceSignalPower – higher layer filtered RSRP, where referenceSignalPower is
    *  provided by higher layers and RSRP is defined in [7, TS 38.215] for the reference serving cell and the higher
    *  layer filter configuration is defined in [12, TS 38.331] for the reference serving cell.
    *
-   *  m_deltaTF currently in the code is always 0. By spec. is deltaTF is 0 when Ks is 0, and
-   *  Ks is provided by higher layer parameter deltaMCS provided for each UL BWP b of each carrier f and
-   *  serving cell c. According to 38.213 2.1.1. If the PUSCH transmission is over more than one layer [6, TS 38.214],
+   *  By spec. is deltaTF is 0 when Ks is 0, and Ks is provided by higher layer parameter deltaMCS
+   *  provided for each UL BWP b of each carrier f and serving cell c.
+   *  According to 38.213 2.1.1. If the PUSCH transmission is over more than one layer [6, TS 38.214],
    *  then deltaTF is 0.
    *
    *  fc is accumulation or current absolute (calculation by using correction values received in TPC commands)
@@ -527,11 +545,12 @@ NrUePowerControl::CalculatePucchTxPowerNr ()
    *  provided by higher layers and RSRP is defined in [7, TS 38.215] for the reference serving cell and the higher
    *  layer filter configuration is defined in [12, TS 38.331] for the reference serving cell.
    *
-   *  m_delta_F_Pucch is a PUCCH transmission power adjustment component for UL BWP b of
-   *  carrier f of primary cell c .
+   *  m_delta_F_Pucch value corresponds to a PUCCH format. It is provided by higher layers
+   *  through deltaF-PUCCH-f0 for PUCCH format 0, deltaF-PUCCH-f1 for PUCCH format 1,
+   *  deltaF-PUCCH-f2 for PUCCH format 2, deltaF-PUCCH-f3 for PUCCH format 3, and
+   *  deltaF-PUCCH-f4 for PUCCH format 4.
    *
-   *  m_deltaTF_control currently in the code is always 0. is a PUCCH transmission power adjustment
-   *  component for UL BWP b of carrier f of primary cell c .
+   *  m_deltaTF_control is a PUCCH transmission power adjustment component
    *
    *  m_gc is equal to 0 if If PO_PUCCH value is provided by higher layers. Currently is
    *  calculated in the same way as m_fc for PUSCH

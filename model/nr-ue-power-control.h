@@ -84,6 +84,9 @@ public:
    */
   NrUePowerControl (const Ptr<NrUePhy>& nrUePhy);
 
+  /**
+   * \brief Destructor
+   */
   virtual ~NrUePowerControl ();
 
   /**
@@ -128,6 +131,32 @@ public:
    * \param p0srs value to be set
    */
   void SetP0Srs (bool p0srs);
+
+  /**
+   * \brief Sets PUSCH transmission power adjustment component for
+   * PUSCH power control calculation
+   * \param deltaTf power adjustment value
+   */
+  void SetDeltaTF (bool deltaTf);
+
+  /**
+   * \brief Sets PUCCH transmission power adjustment component for
+   * PUCCH power control calculation
+   * \param deltaTfControl power adjustment value
+   */
+  void SetDeltaTFControl (bool deltaTfControl);
+
+  /**
+   * \brief Sets delta_f_pucch value needed for calculation of
+   * PUCCH power control. It is provided by higher layers
+   * through deltaF-PUCCH-f0 for PUCCH format 0,
+   * deltaF-PUCCH-f1 for PUCCH format 1,
+   * deltaF-PUCCH-f2 for PUCCH format 2,
+   * deltaF-PUCCH-f3 for PUCCH format 3, and
+   * deltaF-PUCCH-f4 for PUCCH format 4.
+   * \param deltaFPucch value to be set
+   */
+  void SetDeltaFPucch (bool deltaFPucch);
 
   /*
    * \brief Set PO nominal PUCCH value
@@ -252,8 +281,7 @@ private:
   uint16_t m_k_PUCCH {0};                 //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
   bool m_blCe {false};                    /*!< When set to true means that this power control is applied to bandwidth reduced,
                                           low complexity or coverage enhanced device.By default this attribute is set to false.
-                                          Default BL/CE mode is CEModeB.
-                                          */
+                                          Default BL/CE mode is CEModeB.*/
   double m_P_0_SRS{0.0};                  //!< P_0_SRS parameter for calculation of SRS power control
 
 };
