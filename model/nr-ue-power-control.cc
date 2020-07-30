@@ -143,6 +143,12 @@ NrUePowerControl::SetBlCe (bool blCe)
 }
 
 void
+NrUePowerControl::SetP0Srs (bool p0srs)
+{
+  m_P_0_SRS = p0srs;
+}
+
+void
 NrUePowerControl::SetPoNominalPucch (int16_t value)
 {
   NS_LOG_FUNCTION (this);
@@ -262,7 +268,7 @@ NrUePowerControl::ReportTpcPusch (uint8_t tpc)
 }
 
 int
-NrUePowerControl::GetAbsoluteDelta (uint8_t tpc)
+NrUePowerControl::GetAbsoluteDelta (uint8_t tpc) const
 {
   int deltaAbsolute = 0;
 
@@ -287,7 +293,7 @@ NrUePowerControl::GetAbsoluteDelta (uint8_t tpc)
 }
 
 int
-NrUePowerControl::GetAccumulatedDelta (uint8_t tpc)
+NrUePowerControl::GetAccumulatedDelta (uint8_t tpc) const
 {
   int deltaAccumulated = 0;
 
@@ -419,16 +425,15 @@ NrUePowerControl::UpdateGc ()
 //TS 38.213 Table 7.1.1-1 and Table 7.2.1-1,  Mapping of TPC Command Field in DCI to accumulated and absolute value
 
 //Implements from from ts_138213 7.1.1
-void
-NrUePowerControl::CalculatePuschTxPower ()
+double
+NrUePowerControl::CalculatePuschTxPowerNr ()
 {
   NS_LOG_FUNCTION (this);
 
   // if BL/CE device
   if (m_blCe && m_technicalSpec == TS_36_213)
     {
-      m_curPuschTxPower = m_Pcmax;
-      return;
+      return m_Pcmax;
     }
   int32_t j = 1;
   int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
@@ -474,26 +479,27 @@ NrUePowerControl::CalculatePuschTxPower ()
       UpdateFc();
     }
 
-  m_curPuschTxPower = PoPusch + puschComponent + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
+  double txPower = PoPusch + puschComponent + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
 
-  NS_LOG_INFO ("Calculated PUSCH power:" << m_curPuschTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
+  NS_LOG_INFO ("Calculated PUSCH power:" << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
-  m_curPuschTxPower = std::min (std::max(m_Pcmin, m_curPuschTxPower), m_Pcmax);
+  txPower = std::min (std::max(m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("PUSCH TxPower after min/max contstraints: " << m_curPuschTxPower);
+  NS_LOG_INFO ("PUSCH TxPower after min/max contstraints: " << txPower);
+
+  return txPower;
 }
 
 //Implements from from ts_138213 7.2.1
-void
-NrUePowerControl::CalculatePucchTxPower ()
+double
+NrUePowerControl::CalculatePucchTxPowerNr ()
 {
   NS_LOG_FUNCTION (this);
 
   // if BL/CE device
   if (m_blCe && m_technicalSpec == TS_36_213)
     {
-      m_curPucchTxPower = m_Pcmax;
-      return;
+      return m_Pcmax;
     }
 
   int32_t j = 1;
@@ -541,15 +547,19 @@ NrUePowerControl::CalculatePucchTxPower ()
       UpdateGc();
     }
 
-  m_curPucchTxPower = PoPucch + pucchComponent + m_alpha[j] * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
-  NS_LOG_INFO ("Calculated PUCCH power: " << m_curPucchTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
+  double txPower = PoPucch + pucchComponent + m_alpha[j] * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
 
-  m_curPucchTxPower = std::min (std::max (m_Pcmin, m_curPucchTxPower), m_Pcmax);
-  NS_LOG_INFO ("PUCCH TxPower after min/max contstraints: " << m_curPucchTxPower);
+  NS_LOG_INFO ("Calculated PUCCH power: " << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
+
+  txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
+
+  NS_LOG_INFO ("PUCCH TxPower after min/max contstraints: " << txPower);
+
+  return txPower;
 }
 
-void
-NrUePowerControl::CalculateSrsTxPower ()
+double
+NrUePowerControl::CalculateSrsTxPowerNr ()
 {
   NS_LOG_FUNCTION (this);
   int32_t j = 1;
@@ -563,8 +573,6 @@ NrUePowerControl::CalculateSrsTxPower ()
                       << " deltaTF: " << m_deltaTF << " fc: " << m_fc);
 
 
-  double pSrsOffsetValue = -10.5 + m_PsrsOffset * 1.5;
-
   /*
    * According to TS 36.213, 5.1.3.1, alpha can be the same alpha as for PUSCH,
    * P0_SRS can be used P0_PUSCH, and m_hc (accumulation state) is equal to m_fc.
@@ -576,13 +584,27 @@ NrUePowerControl::CalculateSrsTxPower ()
    */
   m_hc = m_fc;
 
-  m_curSrsTxPower = pSrsOffsetValue + 10 * log10 (m_srsBandwidth) + PoPusch + m_alpha[j] * m_pathLoss + m_hc;
+  double txPower = 0;
+  double component = 10 * log10 (std::pow (2, m_nrUePhy->GetNumerology()) * m_srsBandwidth);
 
-  NS_LOG_INFO ("CalcPower: " << m_curSrsTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
+  if (m_technicalSpec == TS_36_213)
+    {
+      double pSrsOffsetValue = -10.5 + m_PsrsOffset * 1.5;
+      txPower = pSrsOffsetValue + component + PoPusch + m_alpha[j] * m_pathLoss + m_hc;
+    }
+  else if (m_technicalSpec == TS_38_213)
+    {
+      txPower = m_P_0_SRS + component +  m_alpha[j] * m_pathLoss + m_hc;  // this formula also can applyu for TS_36_213,
+                                                                           //See 5.1.3 Sounding Reference Symbol (SRS) 5.1.3.1 UE behaviour
+    }
 
-  m_curSrsTxPower = m_curSrsTxPower > m_Pcmin ? m_curSrsTxPower : m_Pcmin;
-  m_curSrsTxPower = m_Pcmax < m_curSrsTxPower ? m_Pcmax : m_curSrsTxPower;
+  NS_LOG_INFO ("CalcPower: " << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
+
+  txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
+
   NS_LOG_INFO ("SrsTxPower: " << m_curSrsTxPower);
+
+  return txPower;
 }
 
 double
@@ -590,7 +612,7 @@ NrUePowerControl::GetPuschTxPower (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
   m_M_Pusch = rbNum;
-  CalculatePuschTxPower ();
+  m_curPuschTxPower = CalculatePuschTxPowerNr ();
   m_reportPuschTxPower (m_cellId, m_rnti, m_curPuschTxPower);
   return m_curPuschTxPower;
 }
@@ -601,7 +623,7 @@ NrUePowerControl::GetPucchTxPower (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
   m_M_Pucch = rbNum;
-  CalculatePucchTxPower ();
+  m_curPucchTxPower = CalculatePucchTxPowerNr ();
   m_reportPucchTxPower (m_cellId, m_rnti, m_curPucchTxPower);
   return m_curPucchTxPower;
 }
@@ -611,7 +633,7 @@ NrUePowerControl::GetSrsTxPower (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
   m_srsBandwidth = rbNum;
-  CalculateSrsTxPower ();
+  m_curSrsTxPower = CalculateSrsTxPowerNr ();
   m_reportSrsTxPower (m_cellId, m_rnti, m_curSrsTxPower);
   return m_curSrsTxPower;
 }

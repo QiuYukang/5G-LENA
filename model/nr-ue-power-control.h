@@ -123,6 +123,12 @@ public:
    */
   void SetBlCe (bool blCe);
 
+  /**
+   * \brief Sets P0 SRS parameter for calculation of SRS power control
+   * \param p0srs value to be set
+   */
+  void SetP0Srs (bool p0srs);
+
   /*
    * \brief Set PO nominal PUCCH value
    * \param value the value to set
@@ -188,7 +194,7 @@ private:
     * in 38.213 the table is Table 7.1.1-1.
     * \param tpc TPC command value from 0 to 3
     */
-   int GetAbsoluteDelta (uint8_t tpc);
+   int GetAbsoluteDelta (uint8_t tpc) const;
 
    /*
     * \brief Implements conversion from TPC
@@ -200,7 +206,7 @@ private:
     * Table 7.1.1-1 and Table 7.2.1-1.
     * \param tpc TPC command value from 0 to 3
     */
-   int GetAccumulatedDelta (uint8_t tpc);
+   int GetAccumulatedDelta (uint8_t tpc) const;
 
    /*
     * \brief Calculates fc value for PUSCH power control
@@ -218,18 +224,18 @@ private:
     * \brief Calculates PUSCH transmit power
     * according TS 38.213 7.1.1 formulas
     */
-   virtual void CalculatePuschTxPower () override;
+  double CalculatePuschTxPowerNr ();
 
    /**
     * \brief Calculates PUCCH transmit power
     * according TS 38.213 7.2.1 formulas
     */
-   virtual void CalculatePucchTxPower () override;
+  double CalculatePucchTxPowerNr ();
 
    /**
     * \brief Calculates SRS transmit power
     */
-   virtual void CalculateSrsTxPower () override;
+  double CalculateSrsTxPowerNr ();
 
 
   TechnicalSpec m_technicalSpec;          //!< Technical specification to be used for transmit power calculations
@@ -248,6 +254,7 @@ private:
                                           low complexity or coverage enhanced device.By default this attribute is set to false.
                                           Default BL/CE mode is CEModeB.
                                           */
+  double m_P_0_SRS{0.0};                  //!< P_0_SRS parameter for calculation of SRS power control
 
 };
 
