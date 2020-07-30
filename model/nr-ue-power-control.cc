@@ -110,7 +110,8 @@ NrUePowerControl::GetTypeId (void)
                     "When set to true means that this power control is applied to "
                     "bandwidth reduced, low complexity or coverage enhanced (BL/CE) device."
                     "By default this attribute is set to false. Default BL_CE "
-                    "mode is CEModeB.",
+                    "mode is CEModeB. This option can be used only in conjuction with "
+                    "attribute TSpec being set to TS 36.213.",
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrUePowerControl::SetBlCe),
                     MakeBooleanChecker ());
@@ -424,7 +425,7 @@ NrUePowerControl::CalculatePuschTxPower ()
   NS_LOG_FUNCTION (this);
 
   // if BL/CE device
-  if (m_blCe)
+  if (m_blCe && m_technicalSpec == TS_36_213)
     {
       m_curPuschTxPower = m_Pcmax;
       return;
@@ -489,7 +490,7 @@ NrUePowerControl::CalculatePucchTxPower ()
   NS_LOG_FUNCTION (this);
 
   // if BL/CE device
-  if (m_blCe)
+  if (m_blCe && m_technicalSpec == TS_36_213)
     {
       m_curPucchTxPower = m_Pcmax;
       return;
