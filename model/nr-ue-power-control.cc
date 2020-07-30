@@ -21,6 +21,7 @@
 #include <ns3/boolean.h>
 #include <ns3/double.h>
 #include <ns3/integer.h>
+#include <ns3/uinteger.h>
 #include <ns3/math.h>
 #include "nr-ue-power-control.h"
 #include "nr-ue-phy.h"
@@ -75,8 +76,69 @@ NrUePowerControl::GetTypeId (void)
                    IntegerValue (0),
                    MakeIntegerAccessor (&NrUePowerControl::SetPoUePucch),
                    MakeIntegerChecker<int16_t> ())
-  ;
+    .AddAttribute ("TSpec",
+                   "Technical specification TS 36.213 or TS 38.213,"
+                   "By default is set TS to 36.213. To configure TS 36.213 "
+                   "set the value TS36.213, while for TS 38.213 should be "
+                   "configured TS28.213.",
+                   EnumValue (NrUePowerControl::TS_36_213),
+                   MakeEnumAccessor (&NrUePowerControl::SetTechnicalSpec),
+                   MakeEnumChecker (NrUePowerControl::TS_36_213, "TS36.213",
+                                    NrUePowerControl::TS_38_213, "TS38.213"))
+    .AddAttribute ("KPusch",
+                   "K_PUSCH parameter needed for PUSCH accumulation state "
+                   "calculation. "
+                   "This value must be carefully configured according to "
+                   "TS 36.213 or TS 38.213 and taking into account the type "
+                   " of simulation scenario. E.g. TDD, FDD, frame structure "
+                   "type, etc. For, LTE FDD or FDD-TDD and frame structure "
+                   "type 1, KPusch is 4.",
+                   UintegerValue (4),
+                   MakeUintegerAccessor(&NrUePowerControl::SetKPusch),
+                   MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("K0Pucch",
+                   "K0_PUCCH parameter needed for PUCCH accumulation state "
+                   "calculation. Should be configured according TS 36.213 or "
+                   "TS 38.213 specification depending on TSpec attribute "
+                   "setting. According to TS 38.213 for FDD or FDD-TDD and "
+                   "primary cell frame structure type 1, M is equal to 1 "
+                   "and K0PUCCH is 4",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&NrUePowerControl::SetK0Pucch),
+                   MakeUintegerChecker<uint16_t> ())
+     .AddAttribute ("BL_CE",
+                    "When set to true means that this power control is applied to "
+                    "bandwidth reduced, low complexity or coverage enhanced (BL/CE) device."
+                    "By default this attribute is set to false. Default BL_CE "
+                    "mode is CEModeB.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&NrUePowerControl::SetBlCe),
+                    MakeBooleanChecker ());
   return tid;
+}
+
+void
+NrUePowerControl::SetKPusch (uint16_t kPusch)
+{
+  m_k_PUSCH = kPusch;
+}
+
+void
+NrUePowerControl::SetK0Pucch (uint16_t kPucch)
+{
+  m_k_PUSCH = kPucch;
+}
+
+void
+NrUePowerControl::SetTechnicalSpec (NrUePowerControl::TechnicalSpec ts)
+{
+  m_technicalSpec = ts;
+}
+
+void
+NrUePowerControl::SetBlCe (bool blCe)
+{
+  m_blCe = blCe;
 }
 
 void
@@ -116,6 +178,110 @@ NrUePowerControl::SetPoUePucch (int16_t value)
     }
 }
 
+void
+NrUePowerControl::ReportTpc (uint8_t tpc)
+{
+  NS_LOG_FUNCTION (this);
+
+  // if closed loop is not enabled return from this function
+  if (!m_closedLoop)
+     {
+       m_fc = 0;
+       m_gc = 0;
+       m_hc = 0;
+       return;
+     }
+
+  int deltaAccumulated = 0, deltaAbsolute = 0;
+
+  switch (tpc)
+      {
+      case 0:
+        deltaAccumulated = -1;
+        deltaAbsolute = -4;
+        break;
+      case 1:
+        deltaAccumulated = 0;
+        deltaAbsolute = -1;
+        break;
+      case 2:
+        deltaAccumulated = 1;
+        deltaAbsolute = 1;
+        break;
+      case 3:
+        deltaAccumulated = 3;
+        deltaAbsolute = 4;
+        break;
+      default:
+        NS_FATAL_ERROR ("Unexpected TPC value");
+      }
+
+  if (m_accumulationEnabled)
+    {
+      m_deltaPusch.push_back (deltaAccumulated);
+      NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta accumulated: " << deltaAccumulated << " Fc: " << m_fc);
+    }
+  else
+    {
+      m_deltaPusch.push_back (deltaAbsolute);
+      NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta absolute: " << deltaAbsolute << " Fc: " << m_fc);
+    }
+
+  /**
+   * According to 36.213 and 38.213 there is only
+   * accumulated mode for PUCCH.
+   */
+  m_deltaPucch.push_back (deltaAccumulated);
+
+
+  if (m_technicalSpec == TS_36_213)
+    {
+      // PUSCH power control accumulation or absolute value configuration
+      if (m_accumulationEnabled)
+        {
+          if (m_deltaPusch.size () == m_k_PUSCH) // the feedback/report that should be used is from (i-m_k_PUSCH) report
+            {
+              if ((m_curPuschTxPower <= m_Pcmin && m_deltaPusch.at (0) < 0)
+                  || (m_curPuschTxPower >= m_Pcmax && m_deltaPusch.at (0) > 0))
+                {
+                  //TPC commands for serving cell shall not be accumulated
+                  m_deltaPusch.erase (m_deltaPusch.begin ());
+                }
+              else
+                {
+                  m_fc = m_fc + m_deltaPusch.at (0);
+                  m_deltaPusch.erase (m_deltaPusch.begin ());
+                }
+            }
+          else
+            {
+              m_fc = 0;
+            }
+        }
+      else
+        { // m_deltaPusch contains absolute values, assign an absolute value
+          m_fc = m_deltaPusch.at (0);
+          m_deltaPusch.erase (m_deltaPusch.begin ());
+        }
+
+      // PUCCH power control accumulation update
+      if (m_deltaPucch.size () == m_k_PUCCH) // the feedback/report that should be used is from (i-m_k_PUSCH) report
+        {
+          if ((m_curPucchTxPower <= m_Pcmin && m_deltaPucch.at (0) < 0) || (m_curPucchTxPower >= m_Pcmax && m_deltaPucch.at (0) > 0))
+             {
+               //TPC commands for should not be accumulated because the maximum or minimum is reached
+               m_deltaPucch.erase (m_deltaPucch.begin ());
+              }
+           else
+             {
+                m_gc = m_gc + m_deltaPucch.at (0); // gc(i) = gc (i-1) + delta (i- KPUCCH) for TDD and FDD-TDD TS 36.213
+                m_deltaPucch.erase (m_deltaPucch.begin ());
+              }
+         }
+    }
+
+}
+
 //TS 38.213 Table 7.1.1-1 and Table 7.2.1-1,  Mapping of TPC Command Field in DCI to accumulated and absolute value
 
 //Implements from from ts_138213 7.1.1
@@ -123,6 +289,13 @@ void
 NrUePowerControl::CalculatePuschTxPower ()
 {
   NS_LOG_FUNCTION (this);
+
+  // if BL/CE device
+  if (m_blCe)
+    {
+      m_curPuschTxPower = m_Pcmax;
+      return;
+    }
   int32_t j = 1;
   int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
 
@@ -171,14 +344,23 @@ void
 NrUePowerControl::CalculatePucchTxPower ()
 {
   NS_LOG_FUNCTION (this);
+
+  // if BL/CE device
+  if (m_blCe)
+    {
+      m_curPucchTxPower = m_Pcmax;
+      return;
+    }
+
   int32_t j = 1;
   int32_t PoPucch = m_PoNominalPucch[j] + m_PoUePucch[j];
   // update RSRP value for pathloss calculation
   SetRsrp (m_nrUePhy->GetRsrp());
-
+  // use the latest m_fc value, since in our model the accumulation for m_fc and m_fc is done in the same way
+  m_gc = m_fc;
   NS_LOG_INFO ("RBs: " << m_M_Pucch << " m_PoPucch: " << PoPucch
                        << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
-                       << " deltaTF: " << m_deltaTF << " fc: " << m_fc<<" numerology:"<<m_nrUePhy->GetNumerology());
+                       << " deltaTF: " << m_deltaTF << " gc: " << m_gc<<" numerology:"<<m_nrUePhy->GetNumerology());
 
   double pucchComponent = 0;
 
@@ -202,13 +384,9 @@ NrUePowerControl::CalculatePucchTxPower ()
    *  m_deltaTF_control currently in the code is always 0. is a PUCCH transmission power adjustment
    *  component for UL BWP b of carrier f of primary cell c .
    *
-   *  m_fc is equal to 0 if If PO_PUCCH value is provided by higher layers. Currently is
+   *  m_gc is equal to 0 if If PO_PUCCH value is provided by higher layers. Currently is
    *  calculated in the same way as m_fc for PUSCH
    */
-
-  // use the latest m_fc value, since in our model there is currently no difference between them
-  m_gc = m_fc;
-
   m_curPucchTxPower = PoPucch + pucchComponent + m_alpha[j] * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
   NS_LOG_INFO ("Calculated PUCCH power: " << m_curPucchTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
@@ -226,20 +404,59 @@ NrUePowerControl::CalculateSrsTxPower ()
   // update RSRP value for pathloss calculation
   SetRsrp (m_nrUePhy->GetRsrp());
 
-  NS_LOG_INFO ("RB: " << m_M_Pusch << " m_PoPusch: " << PoPusch
+  NS_LOG_INFO ("RBs: " << m_srsBandwidth << " m_PoPusch: " << PoPusch
                       << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
                       << " deltaTF: " << m_deltaTF << " fc: " << m_fc);
 
 
   double pSrsOffsetValue = -10.5 + m_PsrsOffset * 1.5;
 
-  m_curSrsTxPower = pSrsOffsetValue + 10 * log10 (m_srsBandwidth) + PoPusch + m_alpha[j] * m_pathLoss + m_fc;
+  /*
+   * Use the latest m_fc value as per TS 38.213. 7.3.1, m_fc  is the current PUSCH power
+   * control adjustment state as described in Subclause 7.1.1, if higher layer parameter
+   * srs-PowerControlAdjustmentStates indicates a same power control adjustment state for
+   * SRS transmissions and PUSCH transmissions
+   */
+  m_hc = m_fc;
+
+  m_curSrsTxPower = pSrsOffsetValue + 10 * log10 (m_srsBandwidth) + PoPusch + m_alpha[j] * m_pathLoss + m_hc;
 
   NS_LOG_INFO ("CalcPower: " << m_curSrsTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
   m_curSrsTxPower = m_curSrsTxPower > m_Pcmin ? m_curSrsTxPower : m_Pcmin;
   m_curSrsTxPower = m_Pcmax < m_curSrsTxPower ? m_Pcmax : m_curSrsTxPower;
   NS_LOG_INFO ("SrsTxPower: " << m_curSrsTxPower);
+}
+
+double
+NrUePowerControl::GetPuschTxPower (std::size_t rbNum)
+{
+  NS_LOG_FUNCTION (this);
+  m_M_Pusch = rbNum;
+  CalculatePuschTxPower ();
+  m_reportPuschTxPower (m_cellId, m_rnti, m_curPuschTxPower);
+  return m_curPuschTxPower;
+}
+
+
+double
+NrUePowerControl::GetPucchTxPower (std::size_t rbNum)
+{
+  NS_LOG_FUNCTION (this);
+  m_M_Pucch = rbNum;
+  CalculatePucchTxPower ();
+  m_reportPucchTxPower (m_cellId, m_rnti, m_curPucchTxPower);
+  return m_curPucchTxPower;
+}
+
+double
+NrUePowerControl::GetSrsTxPower (std::size_t rbNum)
+{
+  NS_LOG_FUNCTION (this);
+  m_srsBandwidth = rbNum;
+  CalculateSrsTxPower ();
+  m_reportSrsTxPower (m_cellId, m_rnti, m_curSrsTxPower);
+  return m_curSrsTxPower;
 }
 
 } // namespace ns3

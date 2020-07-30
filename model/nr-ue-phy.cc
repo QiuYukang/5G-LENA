@@ -798,7 +798,7 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   if (m_enableUplinkPowerControl)
     {
-      m_txPower = m_powerControl->GetPucchTxPower (channelRbs);
+      m_txPower = m_powerControl->GetPucchTxPower (channelRbs.size());
     }
   SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
 
@@ -844,7 +844,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
   if (m_enableUplinkPowerControl)
     {
-      m_txPower = m_powerControl->GetPuschTxPower (FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask));
+      m_txPower = m_powerControl->GetPuschTxPower ((FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask)).size());
     }
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;

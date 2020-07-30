@@ -57,6 +57,20 @@ class NrUePowerControl : public LteUePowerControl
 {
 public:
 
+  /**
+   * Power control technical specification,
+   * currently supports two options:
+   * 1) LTE
+   * 2) NR
+   * E.g. TS_36_213 corresponds to LTE spec.
+   * while, TS_38_213 corresponds to NR spec.
+   *
+   */
+  enum TechnicalSpec {
+     TS_36_213,
+     TS_38_213,
+  };
+
   NrUePowerControl ();
   /**
    * \brief Constructor that sets a pointer to its NrUePhy instance owner.
@@ -77,6 +91,34 @@ public:
   virtual void DoDispose (void);
 
   /*
+   * \brief Sets technical specification according to which will
+   * be calculated power
+   * \param ts technical specification to be used
+   */
+  void SetTechnicalSpec (NrUePowerControl::TechnicalSpec ts);
+
+  /**
+   * \brief Sets KPusch
+   * \param kPusch KPUSCH value to be used in PUSCH transmit power
+   */
+  void SetKPusch (uint16_t kPusch);
+
+  /**
+   * \brief Sets KPucch
+   * \param kPusch KPUCCH value to be used in PUSCH transmit power
+   */
+  void SetK0Pucch (uint16_t kPusch);
+
+  /*
+   * \brief Sets weather the device for which is configure this
+   *  uplink power control algorithm is for device that is
+   *  bandwidth reduced low complexity device or coverage enhanced (BL/CE)
+   *  device
+   * \param blCe an indicator telling whether device is BL/CE or not
+   */
+  void SetBlCe (bool blCe);
+
+  /*
    * \brief Set PO nominal PUCCH value
    * \param value the value to set
    */
@@ -87,6 +129,14 @@ public:
   * \param value the value to set
   */
   void SetPoUePucch (int16_t value);
+
+  /**
+   * \brief Function that is called by NrUePhy
+   * to notify NrUePowerControl algorithm
+   * that TPC command was received by gNB
+   * \param tpc the TPC command
+   */
+  virtual void ReportTpc (uint8_t tpc) override;
 
   /**
    * \brief Calculates PUSCH transmit power
@@ -105,15 +155,47 @@ public:
    */
   virtual void CalculateSrsTxPower () override;
 
+  /**
+   * \brief Overloads LteUePowerControl function
+   * in order to avoid pass by copy of RB vector
+   */
+  double GetPuschTxPower (std::size_t rbNum);
+
+  /**
+   * \brief Overloads LteUePowerControl function
+   * in order to avoid pass by copy of RB vector
+   * and in order to configure m_M_Pucch which is
+   * needed later on for calculation in
+   * CalculatePucchTxPower function.
+   * \param rbs RBs which are used/active for PUCCH transmission
+   */
+  double GetPucchTxPower (std::size_t rbNum);
+
+  /**
+   * \brief Overloads LteUePowerControl function
+   * in order to avoid pass by copy of RB vector
+   */
+  double GetSrsTxPower (std::size_t rbNum);
+
 private:
 
+  TechnicalSpec m_technicalSpec;          //!< Technical specification to be used for transmit power calculations
   Ptr<NrUePhy> m_nrUePhy;                 //!< NrUePhy instance owner
   std::vector<int16_t> m_PoNominalPucch;  //!< PO nominal PUCCH
   std::vector<int16_t> m_PoUePucch;       //!< PO US PUCCH
   uint16_t m_M_Pucch {0};                 //!< size of RB list
   double m_delta_F_Pucch {0.0};           //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
   double m_deltaTF_control {0.0};         //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell
-  double m_gc {0.0};                      //!< Is the current PUCCH power control adjustment state. Parameter used for calculation of PUCCH transmit power
+  std::vector <uint8_t> m_deltaPucch;     //!< vector that saves TPC command accumulated values for PUCCH transmit power calculation
+  double m_gc {0.0};                      //!< Is the current PUCCH power control adjustment state. This variable is used for calculation of PUCCH transmit power.
+  double m_hc {0.0};                      //!< Is the current SRS power control adjustment state. This variable is used for calculation of SRS transmit power.
+  uint16_t m_k_PUSCH {0};                 //!< One of the principal parameters for the calculation of the PUSCH pc accumulation state m_fc
+  uint16_t m_k_PUCCH {0};                 //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
+  bool m_blCe {false};                    /*!< When set to true means that this power control is applied to bandwidth reduced,
+                                          low complexity or coverage enhanced device.By default this attribute is set to false.
+                                          Default BL/CE mode is CEModeB.
+                                          */
+
 };
 
 }
