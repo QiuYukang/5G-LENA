@@ -135,27 +135,32 @@ public:
   */
   void SetPoUePucch (int16_t value);
 
-  /*
-   * \brief Implements conversion from TPC
-   * command to absolute delta value. Follows both,
-   * TS 36.213 and TS 38.213 specification for PUSCH.
-   * In 36.213 table is Table 5.1.1.1-2. and
-   * in 38.213 the table is Table 7.1.1-1.
-   * \param tpc TPC command value from 0 to 3
+  /**
+   * \brief Implements calculation of PUSCH
+   * power control according to TS 36.213 and TS 38.213.
+   * Overloads instead overrides LteUePowerControl function
+   * in order to avoid pass by copy of RB vector.
+   * \param rbNum number of RBs used for PUSCH
    */
-  int GetAbsoluteDelta (uint8_t tpc);
+  double GetPuschTxPower (std::size_t rbNum);
 
-  /*
-   * \brief Implements conversion from TPC
-   * command to accumulated delta value. Follows both,
-   * TS 36.213 and TS 38.213 specification for PUSCH
-   * and PUCCH. In 36.213 tables are Table 5.1.1.1-2.
-   * and Table 5.1.2.1-1;
-   * while in 38.213 tables are:
-   * Table 7.1.1-1 and Table 7.2.1-1.
-   * \param tpc TPC command value from 0 to 3
+  /**
+   * \brief Implements calculation of PUCCH
+   * power control according to TS 36.213 and TS 38.213.
+   * Overloads instead overrides LteUePowerControl function
+   * in order to avoid pass by copy of RB vector.
+   * \param rbNum number of RBs used for PUCCH
    */
-  int GetAccumulatedDelta (uint8_t tpc);
+  double GetPucchTxPower (std::size_t rbNum);
+
+  /**
+   * \brief Implements calculation of SRS
+   * power control according to TS 36.213 and TS 38.213.
+   * Overloads instead overrides LteUePowerControl function
+   * in order to avoid pass by copy of RB vector
+   * \param rbNum number of RBs used for SRS
+   */
+  double GetSrsTxPower (std::size_t rbNum);
 
   /**
    * \brief Function that is called by NrUePhy
@@ -173,58 +178,59 @@ public:
      */
   virtual void ReportTpcPucch (uint8_t tpc);
 
-  /*
-   * \brief Calculates fc value for PUSCH power control
-   * according to TS 38.213 7.2.1 formulas.
-   */
-  void UpdateFc ();
-
-  /*
-   * \brief Calculate gc value for PUCCH power control
-   * according to TS 38.213 7.2.1 formulas.
-   */
-  void UpdateGc ();
-
-  /**
-   * \brief Calculates PUSCH transmit power
-   * according TS 38.213 7.1.1 formulas
-   */
-  virtual void CalculatePuschTxPower () override;
-
-  /**
-   * \brief Calculates PUCCH transmit power
-   * according TS 38.213 7.2.1 formulas
-   */
-  virtual void CalculatePucchTxPower () override;
-
-  /**
-   * \brief Calculates SRS transmit power
-   */
-  virtual void CalculateSrsTxPower () override;
-
-  /**
-   * \brief Overloads LteUePowerControl function
-   * in order to avoid pass by copy of RB vector
-   */
-  double GetPuschTxPower (std::size_t rbNum);
-
-  /**
-   * \brief Overloads LteUePowerControl function
-   * in order to avoid pass by copy of RB vector
-   * and in order to configure m_M_Pucch which is
-   * needed later on for calculation in
-   * CalculatePucchTxPower function.
-   * \param rbs RBs which are used/active for PUCCH transmission
-   */
-  double GetPucchTxPower (std::size_t rbNum);
-
-  /**
-   * \brief Overloads LteUePowerControl function
-   * in order to avoid pass by copy of RB vector
-   */
-  double GetSrsTxPower (std::size_t rbNum);
-
 private:
+
+  /*
+    * \brief Implements conversion from TPC
+    * command to absolute delta value. Follows both,
+    * TS 36.213 and TS 38.213 specification for PUSCH.
+    * In 36.213 table is Table 5.1.1.1-2. and
+    * in 38.213 the table is Table 7.1.1-1.
+    * \param tpc TPC command value from 0 to 3
+    */
+   int GetAbsoluteDelta (uint8_t tpc);
+
+   /*
+    * \brief Implements conversion from TPC
+    * command to accumulated delta value. Follows both,
+    * TS 36.213 and TS 38.213 specification for PUSCH
+    * and PUCCH. In 36.213 tables are Table 5.1.1.1-2.
+    * and Table 5.1.2.1-1;
+    * while in 38.213 tables are:
+    * Table 7.1.1-1 and Table 7.2.1-1.
+    * \param tpc TPC command value from 0 to 3
+    */
+   int GetAccumulatedDelta (uint8_t tpc);
+
+   /*
+    * \brief Calculates fc value for PUSCH power control
+    * according to TS 38.213 7.2.1 formulas.
+    */
+   void UpdateFc ();
+
+   /*
+    * \brief Calculate gc value for PUCCH power control
+    * according to TS 38.213 7.2.1 formulas.
+    */
+   void UpdateGc ();
+
+   /**
+    * \brief Calculates PUSCH transmit power
+    * according TS 38.213 7.1.1 formulas
+    */
+   virtual void CalculatePuschTxPower () override;
+
+   /**
+    * \brief Calculates PUCCH transmit power
+    * according TS 38.213 7.2.1 formulas
+    */
+   virtual void CalculatePucchTxPower () override;
+
+   /**
+    * \brief Calculates SRS transmit power
+    */
+   virtual void CalculateSrsTxPower () override;
+
 
   TechnicalSpec m_technicalSpec;          //!< Technical specification to be used for transmit power calculations
   Ptr<NrUePhy> m_nrUePhy;                 //!< NrUePhy instance owner
