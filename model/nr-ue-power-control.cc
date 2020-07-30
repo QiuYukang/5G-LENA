@@ -412,8 +412,11 @@ NrUePowerControl::CalculateSrsTxPower ()
   double pSrsOffsetValue = -10.5 + m_PsrsOffset * 1.5;
 
   /*
-   * Use the latest m_fc value as per TS 38.213. 7.3.1, m_fc  is the current PUSCH power
-   * control adjustment state as described in Subclause 7.1.1, if higher layer parameter
+   * According to TS 36.213, 5.1.3.1, alpha can be the same alpha as for PUSCH,
+   * P0_SRS can be used P0_PUSCH, and m_hc (accumulation state) is equal to m_fc.
+   *
+   * Also, as per TS 38.213. 7.3.1, the latest m_fc value ( PUSCH power
+   * control adjustment state) as described in Subclause 7.1.1, if higher layer parameter
    * srs-PowerControlAdjustmentStates indicates a same power control adjustment state for
    * SRS transmissions and PUSCH transmissions
    */
