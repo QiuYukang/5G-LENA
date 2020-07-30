@@ -138,6 +138,18 @@ public:
    */
   virtual void ReportTpc (uint8_t tpc) override;
 
+  /*
+   * \brief Calculates fc value for PUSCH power control
+   * according to TS 38.213 7.2.1 formulas.
+   */
+  void UpdateFc ();
+
+  /*
+   * \brief Calculate gc value for PUCCH power control
+   * according to TS 38.213 7.2.1 formulas.
+   */
+  void UpdateGc ();
+
   /**
    * \brief Calculates PUSCH transmit power
    * according TS 38.213 7.1.1 formulas

@@ -233,6 +233,17 @@ NrUePowerControl::ReportTpc (uint8_t tpc)
    */
   m_deltaPucch.push_back (deltaAccumulated);
 
+  /**
+   * If m_technicalSpec == TS_38_213 we should only save the
+   * deltas, and once that transmission occasion appears then
+   * apply the formula that will calculate the new value for
+   * m_fc, m_hc and m_gc and reset the stored values, because
+   * they are not needed to be saved any more.
+   *
+   * It technical specification == TS_36_213 we can update
+   * immediately between it does not depend on previous
+   * occasion and neither on the latest PUSCH time.
+   */
 
   if (m_technicalSpec == TS_36_213)
     {
@@ -279,7 +290,63 @@ NrUePowerControl::ReportTpc (uint8_t tpc)
               }
          }
     }
+  else if (m_technicalSpec == TS_38_213)
+    {
+      // don't allow infinite accumulation of TPC command if they are maybe not used
+      // the maximum number of command that will be saved is 100
+      if (m_deltaPusch.size() == 100)
+        {
+          m_deltaPusch.erase (m_deltaPusch.begin ());
+        }
+      if (m_deltaPucch.size() == 100)
+        {
+          m_deltaPucch.erase (m_deltaPucch.begin ());
+        }
+      // update of m_fc, m_gc, m_hc happens in separated functions, such as UpdateFc and UpdateGc
+    }
 
+}
+
+void
+NrUePowerControl::UpdateFc ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_IF (m_technicalSpec != TS_38_213, "This function is currently being used only for TS 38.213. ");
+
+  // PUSCH power control accumulation or absolute value configuration
+  if (m_accumulationEnabled)
+    {
+      for (const auto& i: m_deltaPusch)
+        {
+          m_fc +=i; // fc already hold value for fc(i-i0) occasion
+        }
+
+      m_deltaPusch.clear(); // we have used these values, no need to save them any more
+    }
+  else
+    {
+      if (m_deltaPusch.size ()>0)
+        {
+          m_fc = m_deltaPusch.back();
+          m_deltaPusch.pop_back(); // use the last received absolute TPC command ( 7.1.1 UE behaviour)
+          m_deltaPusch.clear ();
+        }
+    }
+}
+
+void
+NrUePowerControl::UpdateGc ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_IF (m_technicalSpec != TS_38_213, "This function is currently being used only for TS 38.213. ");
+
+  // PUSCH power control accumulation or absolute value configuration
+  for (const auto& i: m_deltaPucch)
+    {
+      m_gc +=i; // gc already hold value for fc(i-i0) occasion
+    }
+
+  m_deltaPucch.clear(); // we have used these values, no need to save them any more
 }
 
 //TS 38.213 Table 7.1.1-1 and Table 7.2.1-1,  Mapping of TPC Command Field in DCI to accumulated and absolute value
@@ -330,6 +397,16 @@ NrUePowerControl::CalculatePuschTxPower ()
    *  fc is accumulation or current absolute (calculation by using correction values received in TPC commands)
    */
 
+  /**
+   * Depends on the previous occasion timing and on the number
+   * of symbols since the last PDCCH, hence it should be updated
+   * at the transmission occasion time
+   */
+  if (m_technicalSpec == TS_38_213)
+    {
+      UpdateFc();
+    }
+
   m_curPuschTxPower = PoPusch + puschComponent + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
 
   NS_LOG_INFO ("Calculated PUSCH power:" << m_curPuschTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
@@ -356,8 +433,7 @@ NrUePowerControl::CalculatePucchTxPower ()
   int32_t PoPucch = m_PoNominalPucch[j] + m_PoUePucch[j];
   // update RSRP value for pathloss calculation
   SetRsrp (m_nrUePhy->GetRsrp());
-  // use the latest m_fc value, since in our model the accumulation for m_fc and m_fc is done in the same way
-  m_gc = m_fc;
+
   NS_LOG_INFO ("RBs: " << m_M_Pucch << " m_PoPucch: " << PoPucch
                        << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
                        << " deltaTF: " << m_deltaTF << " gc: " << m_gc<<" numerology:"<<m_nrUePhy->GetNumerology());
@@ -387,6 +463,17 @@ NrUePowerControl::CalculatePucchTxPower ()
    *  m_gc is equal to 0 if If PO_PUCCH value is provided by higher layers. Currently is
    *  calculated in the same way as m_fc for PUSCH
    */
+
+  /**
+   * Depends on the previous occasion timing and on the number
+   * of symbols since the last PDCCH, hence it should be updated
+   * at the transmission occasion time.
+   */
+  if (m_technicalSpec == TS_38_213)
+    {
+      UpdateGc();
+    }
+
   m_curPucchTxPower = PoPucch + pucchComponent + m_alpha[j] * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
   NS_LOG_INFO ("Calculated PUCCH power: " << m_curPucchTxPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
