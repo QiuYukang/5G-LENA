@@ -154,11 +154,18 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    * part of the NR stack
    */
 
-  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
   nrHelper = CreateObject<NrHelper> ();
 
-  // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  Ptr<IdealBeamformingHelper> idealBeamformingHelper;
+
+  // in LTE non-calibration we want to use predefined beams that we set directly
+  // through beam manager. Hence, we do not need any ideal algorithm.
+  // For other cases, we need it (and the beam will be overwritten)
+  if (radioNetwork == "NR" || calibration)
+    {
+      idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
+      nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    }
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
   nrHelper->SetEpcHelper (epcHelper);
@@ -404,11 +411,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    *  Case (i): Attributes valid for all the nodes
    */
   // Beamforming method
-  if (radioNetwork == "LTE")
+
+  if (radioNetwork == "LTE" && calibration == true)
     {
       idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
     }
-  else
+  else if (radioNetwork == "NR")
     {
       idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
@@ -436,8 +444,17 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   nrHelper->SetUeAntennaAttribute ("ElementGain", DoubleValue (0));
 
   // Antennas for all the gNbs
-  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
-  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
+  if (calibration)
+    {
+      nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
+      nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
+    }
+  else
+    {
+      nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (5));
+      nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
+    }
+
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
   nrHelper->SetGnbAntennaAttribute ("ElementGain", DoubleValue (0));
 
@@ -529,6 +546,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
             ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy->GetBeamManager ()->SetPredefinedBeam (3, 30);
+
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
 
@@ -545,11 +566,20 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<ThreeGppAntennaArrayModel> antenna0 =
             ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
+
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<ThreeGppAntennaArrayModel> antenna1 =
             ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy1->GetBeamManager ()->SetPredefinedBeam (3, 30);
 
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
@@ -585,6 +615,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
             ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy->GetBeamManager ()->SetPredefinedBeam (2, 30);
+
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
 
@@ -602,10 +636,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           Ptr<ThreeGppAntennaArrayModel> antenna0 =
             ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // configure the beam that points toward the center of hexagonal.
+          // In case of beamforming, it will be overwritten.
+          phy0->GetBeamManager ()->SetPredefinedBeam (2, 30);
+
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<ThreeGppAntennaArrayModel> antenna1 =
             ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy1->GetBeamManager ()->SetPredefinedBeam (2, 30);
 
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
@@ -642,6 +685,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
             ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy->GetBeamManager ()->SetPredefinedBeam (0, 30);
+
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
 
@@ -659,10 +706,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
           Ptr<ThreeGppAntennaArrayModel> antenna0 =
             ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy0->GetBeamManager ()->SetPredefinedBeam (0, 30);
+
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<ThreeGppAntennaArrayModel> antenna1 =
             ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+          // configure the beam that points toward the center of hexagonal
+          // In case of beamforming, it will be overwritten.
+          phy1->GetBeamManager ()->SetPredefinedBeam (0, 30);
 
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));

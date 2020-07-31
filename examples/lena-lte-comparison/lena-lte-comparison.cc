@@ -160,23 +160,23 @@ LenaLteComparison (const Parameters &params)
       udpPacketSize = 12;
       lambda = 1;
       break;
-    case 2: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
+    case 2: // 1 Mbps == 0.125 MB/s in case of 20 MHz, everything else is scaled
       packetCount = 0xFFFFFFFF;
       switch (params.bandwidthMHz)
         {
         case 20:
-          udpPacketSize = 250;
-          break;
-        case 10:
           udpPacketSize = 125;
           break;
+        case 10:
+          udpPacketSize = 63;
+          break;
         case 5:
-          udpPacketSize = 75;
+          udpPacketSize = 32;
           break;
         default:
-          udpPacketSize = 250;
+          udpPacketSize = 125;
         }
-      lambda = 10000 / params.ueNumPergNb;
+      lambda = 1000 / params.ueNumPergNb;
       break;
     default:
       NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2");
