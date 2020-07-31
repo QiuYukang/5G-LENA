@@ -503,7 +503,7 @@ NrUePowerControl::CalculatePuschTxPowerNr ()
 
   txPower = std::min (std::max(m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("PUSCH TxPower after min/max contstraints: " << txPower);
+  NS_LOG_INFO ("PUSCH TxPower after min/max constraints: " << txPower);
 
   return txPower;
 }
@@ -572,7 +572,7 @@ NrUePowerControl::CalculatePucchTxPowerNr ()
 
   txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("PUCCH TxPower after min/max contstraints: " << txPower);
+  NS_LOG_INFO ("PUCCH TxPower after min/max constraints: " << txPower);
 
   return txPower;
 }
@@ -613,15 +613,15 @@ NrUePowerControl::CalculateSrsTxPowerNr ()
     }
   else if (m_technicalSpec == TS_38_213)
     {
-      txPower = m_P_0_SRS + component +  m_alpha[j] * m_pathLoss + m_hc;  // this formula also can applyu for TS_36_213,
-                                                                           //See 5.1.3 Sounding Reference Symbol (SRS) 5.1.3.1 UE behaviour
+      txPower = m_P_0_SRS + component +  m_alpha[j] * m_pathLoss + m_hc;  // this formula also can apply for TS_36_213,
+                                                                           //See 5.1.3 Sounding Reference Symbol (SRS) 5.1.3.1 UE behavior
     }
 
   NS_LOG_INFO ("CalcPower: " << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
   txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("SrsTxPower: " << m_curSrsTxPower);
+  NS_LOG_INFO ("SrsTxPower after min/max constraints: " << m_curSrsTxPower);
 
   return txPower;
 }
