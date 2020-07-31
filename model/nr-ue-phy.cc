@@ -1130,6 +1130,14 @@ NrUePhy::ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subfra
 }
 
 void
+NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
+{
+  NS_LOG_FUNCTION (this << rsReceivedPower);
+  m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
+  NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
+}
+
+void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);

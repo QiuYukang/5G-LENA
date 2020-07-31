@@ -337,6 +337,11 @@ public:
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
   /**
+   * \brief Called when rsReceivedPower is
+   */
+  virtual void ReportRsReceivedPower (const SpectrumValue& power) override;
+
+  /**
    * \brief TracedCallback signature for power trace source
    *
    * It depends on the TxPower configured attribute, and the number of

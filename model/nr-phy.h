@@ -409,6 +409,15 @@ public:
    */
   static std::string GetPattern (const std::vector<LteNrTddSlotType> &pattern);
 
+  /**
+  * Generate a report based on the linear RS power perceived during CTRL
+  * frame
+  * NOTE: used only by UE for evaluating RSRP
+  *
+  * \param power the RS power measured by the device
+  */
+  virtual void ReportRsReceivedPower (const SpectrumValue& power) = 0;
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
