@@ -623,6 +623,12 @@ NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
   m_srsSinrPerceived = srsSinr;
 }
 
+NrSpectrumPhy::AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
+{
+  NS_LOG_FUNCTION (this);
+  m_interferenceData->AddRsPowerChunkProcessor(p);
+}
+
 void
 NrSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
 {

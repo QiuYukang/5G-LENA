@@ -507,6 +507,11 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   pData->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSinrPerceived, channelPhy));
   channelPhy->AddDataSinrChunkProcessor (pData);
 
+
+  Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor> ();
+  pRs->AddCallback (MakeCallback (&NrUePhy::ReportRsReceivedPower, phy));
+  channelPhy->AddRsPowerChunkProcessor (pRs);
+
   if (m_harqEnabled)
     {
       channelPhy->SetPhyDlHarqFeedbackCallback (dlHarqCallback);
