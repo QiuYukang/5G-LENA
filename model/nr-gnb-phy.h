@@ -402,8 +402,6 @@ public:
 
   const SfnSf & GetCurrentSfnSf () const override;
 
-  virtual void ReportRsReceivedPower (const SpectrumValue& power) override;
-
 protected:
   /**
    * \brief DoDispose method inherited from Object

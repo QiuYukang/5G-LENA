@@ -339,7 +339,7 @@ public:
   /**
    * \brief Called when rsReceivedPower is
    */
-  virtual void ReportRsReceivedPower (const SpectrumValue& power) override;
+  void ReportRsReceivedPower (const SpectrumValue& power);
 
   /**
    * \brief TracedCallback signature for power trace source

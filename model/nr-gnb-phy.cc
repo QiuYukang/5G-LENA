@@ -203,12 +203,6 @@ NrGnbPhy::GetCurrentSfnSf () const
   return m_currentSlot;
 }
 
-void
-NrGnbPhy::ReportRsReceivedPower (const SpectrumValue& power)
-{
-  // not used by gNB
-}
-
 /**
  * \brief An intelligent way to calculate the modulo
  * \param n Number
