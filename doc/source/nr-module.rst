@@ -836,14 +836,14 @@ Two general types of maps can be generated according to whether the BeamShape
 or CoverageArea is selected.
 The first case considers the configuration of the beamforming vectors (for each
 RTD) as defined by the user in the scenario script for which the REM maps
-(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSexamples`
+(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSiso3gpp`
 where the first two figures depict the SNR (left) and SINR (right) for the case
 of two gNBs with antenna array configuration 8x8 and Isotropic elements, while
 the two figures on the bottom correspond to 3GPP element configuration.
 
 .. _fig-BSexamples:
 
-.. figure:: figures/BSexamples.*
+.. figure:: figures/BSiso3gpp.*
    :align: center
    :scale: 50 %
 
@@ -853,11 +853,11 @@ In the second case, the beams are reconfigured during the map generation for
 each rem point in order to visualize the coverage area in terms of SNR, SINR
 and IPSD. Examples of the SNR (left) and SINR (right) CoverageArea maps for two
 gNBs with Isotropic/3GPP (top/bottom) antenna elements are presented in
-Figure :ref:`fig-CAexamples`.
+Figure :ref:`fig-CAiso3gpp`.
 
 .. _fig-CAexamples:
 
-.. figure:: figures/CAexamples.*
+.. figure:: figures/CAiso3gpp.*
    :align: center
    :scale: 50 %
 
@@ -876,14 +876,14 @@ configured to both gNBs of the example.
 
    CoverageArea map examples with buildings (left: SNR, right: SINR)
 
-An example for a hexagonal deployment is given in Figure :ref:`fig-S3`. In this
+An example for a hexagonal deployment is given in Figure :ref:`fig-UmaRma`. In this
 example the REM depicts a scenario for the frequency band of 2GHz, BW of 10 MHz,
 while the Inter-Site Distance (ISD) has been set to 1732m for the Urban case (top)
 and 7000m for the Rural case (bottom). The transmit power has been set to 43 dBm.
 
 .. _fig-S3:
 
-.. figure:: figures/S3.*
+.. figure:: figures/UmaRma.*
    :align: center
    :scale: 50 %
 
