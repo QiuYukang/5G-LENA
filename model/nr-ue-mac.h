@@ -46,6 +46,7 @@ class PacketBurst;
 class NrUlDciMessage;
 class NrSlUeMacCschedSapProvider;
 class NrSlUeMacCschedSapUser;
+class NrSlUeMacHarq;
 
 /**
  * \ingroup ue-mac
@@ -333,8 +334,31 @@ private:
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_macTxedCtrlMsgsTrace;
 
+
+public:
+  /**
+   * \brief Assign a fixed random variable stream number to the random variables
+   * used by this model. Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream The first stream index to use
+   * \return The number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
   //NR SL
 public:
+  // Comparator function to sort pairs
+  // according to second value
+  /**
+   * \brief Comparator function to sort pairs according to second value
+   * \param a The first pair
+   * \param b The second pair
+   * \return returns true if second value of first pair is less than the second
+   *         pair second value, false otherwise.
+   */
+  static bool CompareSecond (std::pair<uint32_t, uint8_t>& a, std::pair<uint32_t, uint8_t>& b);
+
   /**
    * \brief Get the NR Sidelik MAC SAP offered by MAC to RLC
    *
@@ -418,6 +442,17 @@ public:
   void EnableSensing (bool enableSensing);
 
   /**
+   * \brief Enable blind retransmissions for NR Sidelink
+   * \param enableBlindReTx if True, blind re-transmissions, i.e.,
+   *        retransmissions are done without HARQ feedback. If it is false,
+   *        retransmissions are performed based on HARQ feedback from the
+   *        receiving UE. The false value of this flag also means that a
+   *        transmitting UE must indicate in the SCI message to a receiving
+   *        UE to send the feedback.
+   */
+  void EnableBlindReTx (bool enableBlindReTx);
+
+  /**
    * \brief Set the t_proc0 used for sensing window
    * \param tprocZero t_proc0 in number of slots
    */
@@ -472,6 +507,35 @@ public:
    * \return the pool id
    */
   uint8_t GetSlActivePoolId () const;
+
+  /**
+   * \brief Set Reservation Period for NR Sidelink
+   *
+   * Only the standard compliant values, including their intermediate values
+   * could be set. \see LteRrcSap::SlResourceReservePeriod
+   *
+   * \param rsvpInMs The reservation period in the milliseconds
+   */
+  void SetReservationPeriod (const Time &rsvpInMs);
+
+  /**
+   * \brief Get Reservation Period for NR Sidelink
+   *
+   * \return The Reservation Period for NR Sidelink
+   */
+  Time GetReservationPeriod () const;
+
+  /**
+   * \brief Sets the number of Sidelink processes of Sidelink HARQ
+   * \param numSidelinkProcesses the maximum number of Sidelink processes
+   */
+  void SetNumSidelinkProcess (uint8_t numSidelinkProcess);
+
+  /**
+   * \brief Gets the number of Sidelink processes of Sidelink HARQ
+   * \return The maximum number of Sidelink processes
+   */
+  uint8_t GetNumSidelinkProcess () const;
 
 
 protected:
@@ -528,18 +592,13 @@ protected:
    */
   void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
   /**
-   * \brief Add NR Sidelink destination layer 2 Id
+   * \brief Set Sidelink probability resource keep
    *
-   * Adds destination layer 2 id to the list of destinations
-   * along with a pool id of the active pool to be used
-   * for this destination. Currently, same pool is used for all
-   * the bearers to an existing destination. The code would hit
-   * an assert if a different pool id (even for a different bearer)
-   * is used for an existing destination.
-   *
-   * \param dstL2Id The destination layer 2 ID
+   * \param prob Indicates the probability with which the UE keeps the
+   *        current resource when the resource reselection counter reaches zero
+   *        for sensing based UE autonomous resource selection (see TS 38.321)
    */
-  void DoAddNrSlDstL2Id (uint32_t dstL2Id);
+  void DoSetSlProbResoKeep (uint8_t prob);
 
   //Forwarded from NR SL UE PHY SAP User
   /**
@@ -554,9 +613,9 @@ protected:
   // forwarded from MemberNrSlUeMacSchedSapUser
   /**
    * \brief Method to communicate NR SL allocations from NR SL UE scheduler
-   * \param params the struct of type SchedUeNrSlAllocation
+   * \param params the struct of type NrSlSlotAlloc
    */
-  void DoSchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params);
+  void DoSchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params);
 
   /**
    * \brief Method through which the NR SL scheduler gets the total number of NR
@@ -566,14 +625,7 @@ protected:
   uint8_t DoGetTotalSubCh () const;
 
 private:
-  /**
-   * \brief NR sidelink slot indication
-   * \param sfn
-   */
-  void DoNrSlSlotIndication (const SfnSf& sfn);
-  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSlTxOpportunities (const SfnSf& sfn, uint16_t poolId);
-  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::SlotInfo>);
-  uint8_t GetTotalSubCh (uint16_t poolId) const;
+
   //Sidelink Logical Channel Identifier
   struct SidelinkLcIdentifier
   {
@@ -600,6 +652,114 @@ private:
    NrSlMacSapUser* macSapUser;
   };
 
+  struct NrSlGrantInfo
+  {
+    uint8_t cReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Cresel counter for the semi-persistently scheduled resources as per TS 38.214
+    uint8_t slResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Sidelink resource re-selection counter for the semi-persistently scheduled resources as per TS 38.214
+    std::set <NrSlUeMacSchedSapUser::NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
+    uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
+  };
+
+  /**
+   * \brief Add NR Sidelink destination layer 2 Id
+   *
+   * Adds destination layer 2 id to the list of destinations.
+   * The destinations in this map are sorted w.r.t their
+   * logical channel priority. That is, the destination
+   * with a logical channel with a highest priority
+   * comes first.
+   *
+   * \param dstL2Id The destination layer 2 ID
+   * \param lcPriority The LC priority
+   */
+  void AddNrSlDstL2Id (uint32_t dstL2Id, uint8_t lcPriority);
+
+  /**
+   * \brief NR sidelink slot indication
+   * \param sfn
+   */
+  void DoNrSlSlotIndication (const SfnSf& sfn);
+  /**
+   * \brief Get NR Sidelink transmit opportunities
+   * \param sfn The current system frame, subframe, and slot number. This SfnSf
+   *        is aligned with the SfnSf of the physical layer
+   * \param poolId The pool if
+   * \return The list of the transmit opportunities (slots) asper the TDD pattern
+   *         and the NR SL bitmap
+   */
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSlTxOpportunities (const SfnSf& sfn, uint16_t poolId);
+  /**
+   * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
+   *        NrSlUeMacSchedSapProvider::NrSlSlotInfo
+   *
+   * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
+   * have an object of NR SfnSf class there due to dependency issue. The use of
+   * SfnSf class makes our life easier since it already implements the necessary
+   * arithmetics of adding slots, constructing new SfnSf given the slot offset,
+   * and e.t.c. In this method, we use the slot offset value, which is the
+   * offset in number of slots from the current slot to construct the object of
+   * SfnSf class.
+   *
+   * \param sfn The current system frame, subframe, and slot number. This SfnSf
+   *        is aligned with the SfnSf of the physical layer.
+   * \param slotInfo the list of LTE module compatible slot info
+   * \return The list of NR compatible slot info
+   */
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::SlotInfo> slotInfo);
+  /**
+   * \brief Get the total number of subchannels based on the system UL bandwidth
+   * \param poolId The pool id of the active pool to retrieve the sub-channel size in RBs
+   * \return The total number of subchannels
+   */
+  uint8_t GetTotalSubCh (uint16_t poolId) const;
+  /**
+   * \brief Get the random selection counter
+   *
+   * See 38.321 section 5.22.1.1 V16
+   *
+   * For 50 ms we use the range as per 36.321 section 5.14.1.1
+   */
+  uint8_t GetRndmReselectionCounter() const;
+  /**
+   * \brief Get the lower bound for the Sidelink resource re-selection
+   *        counter when the resource reservation period is less than
+   *        100 ms. It is as per the Change Request (CR) R2-2005970
+   *        to TS 38.321.
+   * \param pRsrv The resource reservation period
+   * \return The lower bound of the range from which Sidelink resource re-selection
+   *         counter will be drawn.
+   */
+  uint8_t GetLoBoundReselCounter (uint16_t pRsrv) const;
+  /**
+   * \brief Get the upper bound for the Sidelink resource re-selection
+   *        counter when the resource reservation period is less than
+   *        100 ms. It is as per the Change Request (CR) R2-2005970
+   *        to TS 38.321.
+   * \param pRsrv The resource reservation period
+   * \return The upper bound of the range from which Sidelink resource re-selection
+   *         counter will be drawn.
+   */
+  uint8_t GetUpBoundReselCounter (uint16_t pRsrv) const;
+  /**
+   * \brief Create grant info
+   *
+   * \param params The resource allocation from the scheduler
+   * \return The grant info for a destination based on the scheduler allocation
+   */
+  NrSlGrantInfo CreateGrantInfo (NrSlUeMacSchedSapUser::NrSlSlotAlloc params);
+  /**
+   * \brief Filter the Transmit opportunities.
+   *
+   * Due to the semi-persistent scheduling, after calling the GetNrSlTxOpportunities
+   * method, and before asking the scheduler for resources, we need to remove
+   * those available slots, which are already part of the existing grant.
+   *
+   * \param txOppr The list of available slots
+   * \return The list of slots which are not used by any existing semi-persistent grant.
+   */
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr);
+
+
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
   NrSlMacSapUser* m_nrSlMacSapUser {nullptr}; //!< SAP interface to call the methods of UE RLC instance
@@ -609,8 +769,9 @@ private:
   NrSlUePhySapUser* m_nrSlUePhySapUser; //!< SAP interface to receive calls from the UE PHY instance
   Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
   Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
-  std::set <uint32_t> m_sidelinkDestinations; //!< List of Sidelink communication destinations
+  std::vector <std::pair<uint32_t, uint8_t> > m_sidelinkDestinations; //!< vector holding Sidelink communication destinations and the highest priority value among its LCs
   bool m_enableSensing {false}; //!< Flag to enable NR Sidelink resource selection based on sensing; otherwise, use random selection
+  bool m_enableBlindReTx {false}; //!< Flag to enable blind retransmissions for NR Sidelink
   uint8_t m_tproc0 {0}; //!< t_proc0 in slots
   uint8_t m_t1 {0}; //!< The offset in number of slots between the slot in which the resource selection is triggered and the start of the selection window
   uint16_t m_t2 {0}; //!< The offset in number of slots between T1 and the end of the selection window
@@ -620,6 +781,14 @@ private:
   NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser         {nullptr};  //!< SAP User
   NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider {nullptr};  //!< SAP Provider
   NrSlUeMacSchedSapProvider* m_nrSlUeMacSchedSapProvider   {nullptr};  //!< SAP Provider
+  Time m_pRsvpTx {MilliSeconds (std::numeric_limits <uint8_t>::max ())}; //!< Resource Reservation Interval for NR Sidelink in ms
+  Ptr<UniformRandomVariable> m_ueSelectedUniformVariable; //!< uniform random variable used for NR Sidelink
+  typedef std::unordered_map <uint32_t, struct NrSlGrantInfo> GrantInfo_t; //!< The typedef for the map of grant info per destination layer 2 id
+  typedef std::unordered_map <uint32_t, struct NrSlGrantInfo>::iterator GrantInfoIt_t; //!< The typedef for the iterator of the grant info map
+  GrantInfo_t m_grantInfo; //!< The map of grant info per destination layer 2 id
+  uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
+  uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
+  Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
 };
 
 }

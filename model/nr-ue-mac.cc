@@ -33,6 +33,8 @@
 #include "nr-phy-sap.h"
 #include "nr-control-messages.h"
 #include "nr-sl-ue-mac-csched-sap.h"
+#include "nr-sl-ue-mac-harq.h"
+#include <algorithm>
 
 namespace ns3 {
 
@@ -217,7 +219,7 @@ class MemberNrSlUeMacSchedSapUser : public NrSlUeMacSchedSapUser
 public:
   MemberNrSlUeMacSchedSapUser (NrUeMac* mac);
 
-  virtual void SchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params);
+  virtual void SchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params);
   virtual uint8_t GetTotalSubCh () const;
 
 private:
@@ -229,7 +231,7 @@ MemberNrSlUeMacSchedSapUser::MemberNrSlUeMacSchedSapUser (NrUeMac* mac)
 {
 }
 void
-MemberNrSlUeMacSchedSapUser::SchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params)
+MemberNrSlUeMacSchedSapUser::SchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params)
 {
   m_mac->DoSchedUeNrSlConfigInd (params);
 }
@@ -309,6 +311,24 @@ NrUeMac::GetTypeId (void)
                    MakeUintegerAccessor (&NrUeMac::SetSlActivePoolId,
                                          &NrUeMac::GetSlActivePoolId),
                                          MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("ReservationPeriod",
+                   "Resource Reservation Interval for NR Sidelink in ms"
+                   "Must be among the values included in LteRrcSap::SlResourceReservePeriod",
+                   TimeValue(MilliSeconds(100)),
+                   MakeTimeAccessor (&NrUeMac::SetReservationPeriod,
+                                     &NrUeMac::GetReservationPeriod),
+                                     MakeTimeChecker ())
+     .AddAttribute ("NumSidelinkProcess",
+                    "Number of concurrent stop-and-wait Sidelink processes per destination",
+                    UintegerValue (4),
+                    MakeUintegerAccessor (&NrUeMac::SetNumSidelinkProcess,
+                                          &NrUeMac::GetNumSidelinkProcess),
+                    MakeUintegerChecker<uint8_t> ())
+     .AddAttribute ("EnableBlindReTx",
+                    "Flag to enable NR Sidelink blind retransmissions",
+                    BooleanValue (true),
+                    MakeBooleanAccessor (&NrUeMac::EnableBlindReTx),
+                    MakeBooleanChecker ())
           ;
 
   return tid;
@@ -327,6 +347,8 @@ NrUeMac::NrUeMac (void) : Object ()
   m_nrSlUePhySapUser = new MemberNrSlUePhySapUser<NrUeMac> (this);
   m_nrSlUeMacCschedSapUser = new MemberNrSlUeMacCschedSapUser (this);
   m_nrSlUeMacSchedSapUser = new MemberNrSlUeMacSchedSapUser (this);
+  m_ueSelectedUniformVariable = CreateObject<UniformRandomVariable> ();
+  m_nrSlHarq = CreateObject<NrSlUeMacHarq> ();
 }
 
 NrUeMac::~NrUeMac (void)
@@ -344,6 +366,7 @@ NrUeMac::DoDispose ()
   m_lcInfoMap.clear ();
   m_macPduMap.clear ();
   m_raPreambleUniformVariable = nullptr;
+  m_ueSelectedUniformVariable = nullptr;
   delete m_macSapProvider;
   delete m_cmacSapProvider;
   delete m_phySapUser;
@@ -352,6 +375,8 @@ NrUeMac::DoDispose ()
   delete m_nrSlUePhySapUser;
   delete m_nrSlUeMacCschedSapUser;
   delete m_nrSlUeMacSchedSapUser;
+  m_nrSlHarq->Dispose ();
+  m_nrSlHarq = nullptr;
 }
 
 void
@@ -1080,6 +1105,14 @@ NrUeMac::DoReset ()
   NS_LOG_FUNCTION (this);
 }
 
+int64_t
+NrUeMac::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_raPreambleUniformVariable ->SetStream (stream);
+  m_ueSelectedUniformVariable->SetStream (stream + 1);
+  return 2;
+}
 //NR SL
 
 std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
@@ -1127,7 +1160,8 @@ NrUeMac::GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::
 void
 NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
 {
-  NS_LOG_FUNCTION (this << " Frame " << sfn.GetFrame() << " Subframe " << +sfn.GetSubframe() << " slot " << sfn.GetSlot () << " Normalized slot number " << sfn.Normalize ());
+  NS_LOG_FUNCTION (this << " Frame " << sfn.GetFrame() << " Subframe " << +sfn.GetSubframe()
+                        << " slot " << sfn.GetSlot () << " Normalized slot number " << sfn.Normalize ());
 
   if (m_slTxPool->GetNrSlSchedulingType () == NrSlCommResourcePool::SCHEDULED)
     {
@@ -1135,19 +1169,176 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
     }
   else if (m_slTxPool->GetNrSlSchedulingType () == NrSlCommResourcePool::UE_SELECTED)
     {
-      for (const auto &dstIt : m_sidelinkDestinations)
+      std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities (sfn, m_poolId);
+      for (const auto &itDst : m_sidelinkDestinations)
         {
-          NS_LOG_INFO ("scheduling the destination " << dstIt);
-          std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities (sfn, m_poolId);
-          //Now before calling the scheduler we need to remove the opportunities
-          //which are already scheduled/picked by the scheduler
+          const auto itGrantInfo = m_grantInfo.find (itDst.first);
+          //If the re-selection counter of the found destination is not zero,
+          //it means it already have resources assigned to it via semi-persistent
+          //scheduling, thus, we go to the next destination.
+          bool foundDest = itGrantInfo != m_grantInfo.end ();
+          if (foundDest && itGrantInfo->second.slResoReselCounter != 0)
+            {
+              NS_LOG_INFO ("Destination " << itDst.first << " already have the allocation, scheduling the next destination, if any");
+              continue;
+            }
+          uint32_t randProb = m_ueSelectedUniformVariable->GetInteger (0, 1);
+          if (foundDest && itGrantInfo->second.cReselCounter > 0 &&
+              itGrantInfo->second.slotAllocations.size () > 0 && randProb > m_slProbResourceKeep)
+            {
+              NS_ASSERT_MSG (itGrantInfo->second.slResoReselCounter == 0, "Sidelink resource re-selection counter must be zero before continuing with the same grant for dst " << itDst.first);
+              //keeping the resource, reassign the same sidelink resource re-selection
+              //counter we chose while creating the fresh grant
+              itGrantInfo->second.slResoReselCounter = itGrantInfo->second.prevSlResoReselCounter;
+            }
+          else
+            {
+              auto filteredReso = FilterTxOpportunities (availbleReso);
+              if (!filteredReso.empty () && filteredReso.size () >= filteredReso.begin ()->slMaxNumPerReserve)
+                {
+                  //we ask the scheduler for resources only if:
+                  //1. The filtered list is not empty.
+                  //2. The filtered list have enough slots to be allocated for all
+                  //   the possible transmissions.
+                  NS_LOG_INFO ("scheduling the destination " << itDst.first);
+                  m_nrSlUeMacSchedSapProvider->SchedUeNrSlTriggerReq (itDst.first, filteredReso);
+                }
+              else
+                {
+                  NS_LOG_DEBUG ("Do not have enough slots to allocate. Clearing the remaining allocations if any, and not calling the scheduler for dst " << itDst.first);
+                  //Also clear the previous remaining allocations
+                  itGrantInfo->second.cReselCounter = 0;
+                  itGrantInfo->second.prevSlResoReselCounter = 0;
+                  itGrantInfo->second.slotAllocations.erase (itGrantInfo->second.slotAllocations.begin (), itGrantInfo->second.slotAllocations.end ());
+                }
+            }
         }
     }
   else
     {
-      NS_FATAL_ERROR ("Scheduling type " << m_slTxPool->GetNrSlSchedulingType () << " for NR Sidlink pools is unknown");
+      NS_FATAL_ERROR ("Scheduling type " << m_slTxPool->GetNrSlSchedulingType () << " for NR Sidelink pools is unknown");
+    }
+
+  //check if we need to transmit PSCCH + PSSCH
+  for (auto & itGrantInfo : m_grantInfo)
+    {
+      if (itGrantInfo.second.slResoReselCounter != 0 && itGrantInfo.second.slotAllocations.begin ()->sfn == sfn)
+        {
+          --itGrantInfo.second.slResoReselCounter;
+          --itGrantInfo.second.cReselCounter;
+          auto grant = itGrantInfo.second.slotAllocations.begin ();
+          NS_UNUSED (grant);
+
+
+        }
+      else
+        {
+          //When there are no resources it may happen that the re-selection
+          //counter of already existing destination remains zero. In this case,
+          //we just go the next destination, if any.
+          continue;
+
+        }
+
+    }
+
+}
+
+std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+NrUeMac::FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr)
+{
+  NS_LOG_FUNCTION (this);
+
+  NrSlUeMacSchedSapUser::NrSlSlotAlloc dummyAlloc;
+
+  for (const auto & itDst : m_grantInfo)
+    {
+      auto itTxOppr = txOppr.begin ();
+      while (itTxOppr != txOppr.end ())
+        {
+          dummyAlloc.sfn = itTxOppr->sfn;
+          auto itAlloc = itDst.second.slotAllocations.find (dummyAlloc);
+          if (itAlloc != itDst.second.slotAllocations.end ())
+            {
+              itTxOppr = txOppr.erase (itTxOppr);
+            }
+          else
+            {
+              ++itTxOppr;
+            }
+        }
+    }
+
+  return txOppr;
+}
+
+void
+NrUeMac::DoSchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params)
+{
+  NS_LOG_FUNCTION (this);
+  const auto itGrantInfo = m_grantInfo.find (params.dstL2Id);
+
+  if (itGrantInfo == m_grantInfo.end ())
+    {
+      NrSlGrantInfo grant = CreateGrantInfo (params);
+      m_grantInfo.emplace (std::make_pair (params.dstL2Id, grant));
+    }
+  else
+    {
+      NS_ASSERT_MSG (itGrantInfo->second.slResoReselCounter == 0, "Sidelink resource counter must be zero before assigning new grant for dst " << params.dstL2Id);
+      NrSlGrantInfo grant = CreateGrantInfo (params);
+      itGrantInfo->second = grant;
     }
 }
+
+NrUeMac::NrSlGrantInfo
+NrUeMac::CreateGrantInfo (NrSlUeMacSchedSapUser::NrSlSlotAlloc params)
+{
+  NS_LOG_FUNCTION (this);
+  uint8_t reselCounter = GetRndmReselectionCounter ();
+  uint8_t cResel = reselCounter * 10;
+
+  uint16_t resPeriodSlots = m_slTxPool->GetResvPeriodInSlots (GetBwpId (), m_poolId, m_pRsvpTx, m_nrSlUePhySapProvider->GetSlotPeriod ());
+  NrSlGrantInfo grant;
+
+  grant.cReselCounter = cResel;
+  //save reselCounter to be used if probability of keeping the resource would
+  //be higher than the configured one
+  grant.prevSlResoReselCounter = reselCounter;
+  grant.slResoReselCounter = reselCounter;
+
+  for (uint8_t i = 0; i < cResel; i++)
+    {
+      for (uint16_t tx = 0; tx < params.maxNumPerReserve; tx++)
+        {
+          if (tx == 0)
+            {
+              NS_ASSERT_MSG (params.ndi == 1, "Scheduler forgot to set ndi flag");
+              NS_ASSERT_MSG (params.rv == 0, "Scheduler forgot to set redundancy version");
+              params.sfn.Add (i * resPeriodSlots);
+              grant.slotAllocations.emplace (params);
+            }
+          if (tx == 1)
+            {
+              params.sfn.Add (i * resPeriodSlots + params.gapReTx1);
+              params.ndi = 0;
+              params.rv = 1;
+              grant.slotAllocations.emplace (params);
+            }
+          if (tx == 2)
+            {
+              params.sfn.Add (i * resPeriodSlots + params.gapReTx2);
+              params.ndi = 0;
+              params.rv = 2;
+              grant.slotAllocations.emplace (params);
+            }
+        }
+    }
+
+  return grant;
+}
+
+
 
 NrSlMacSapProvider*
 NrUeMac::GetNrSlMacSapProvider ()
@@ -1282,6 +1473,7 @@ NrUeMac::DoAddNrSlLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &s
                                                                         slLcInfo.mbr, slLcInfo.gbr);
 
   m_nrSlUeMacCschedSapProvider->CschedUeNrSlLcConfigReq (lcInfo);
+  AddNrSlDstL2Id (slLcInfo.dstL2Id, slLcInfo.priority);
 }
 
 void
@@ -1318,10 +1510,44 @@ NrUeMac::DoResetNrSlLcMap ()
 }
 
 void
+NrUeMac::AddNrSlDstL2Id (uint32_t dstL2Id, uint8_t lcPriority)
+{
+  NS_LOG_FUNCTION (this << dstL2Id << lcPriority);
+  bool foundDst = false;
+  for (auto& it : m_sidelinkDestinations)
+    {
+      if (it.first == dstL2Id)
+        {
+          foundDst = true;
+          if (lcPriority < it.second)
+            {
+              it.second = lcPriority;
+            }
+          break;
+        }
+    }
+
+  if (!foundDst)
+    {
+      m_sidelinkDestinations.push_back (std::make_pair (dstL2Id, lcPriority));
+      m_nrSlHarq->AddDst (dstL2Id, m_numSidelinkProcess);
+    }
+
+  std::sort (m_sidelinkDestinations.begin (), m_sidelinkDestinations.end (), CompareSecond);
+}
+
+bool
+NrUeMac::CompareSecond (std::pair<uint32_t, uint8_t>& a, std::pair<uint32_t, uint8_t>& b)
+{
+  return a.second < b.second;
+}
+
+void
 NrUeMac::DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool)
 {
   NS_LOG_FUNCTION (this << txPool);
   m_slTxPool = txPool;
+  m_slTxPool->ValidateResvPeriod (GetBwpId (), m_poolId, m_pRsvpTx);
 }
 
 void
@@ -1332,31 +1558,17 @@ NrUeMac::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 }
 
 void
-NrUeMac::DoAddNrSlDstL2Id (uint32_t dstL2Id)
+NrUeMac::DoSetSlProbResoKeep (uint8_t prob)
 {
-  NS_LOG_FUNCTION (this << dstL2Id);
-
-  bool inserted = m_sidelinkDestinations.emplace (dstL2Id).second;
-
-  if (!inserted)
-    {
-      NS_LOG_INFO ("Destination already exist. Ignoring, it may happen when we try to add more than one bearer per destination");
-    }
+  NS_LOG_FUNCTION (this << +prob);
+  NS_ASSERT_MSG (prob <= 1, "Probability value must be less than 1");
+  m_slProbResourceKeep = prob;
 }
 
 uint8_t
 NrUeMac::DoGetSlActiveTxPoolId ()
 {
   return GetSlActivePoolId ();
-}
-
-void
-NrUeMac::DoSchedUeNrSlConfigInd (const struct NrSlUeMacSchedSapUser::SchedUeNrSlAllocation& params)
-{
-  NS_LOG_FUNCTION (this);
-
-  //What to do with the allocation.
-
 }
 
 uint8_t
@@ -1372,6 +1584,14 @@ NrUeMac::EnableSensing (bool enableSensing)
   NS_LOG_FUNCTION (this << enableSensing);
   NS_ASSERT_MSG (m_enableSensing == false, " Once the sensing is enabled, it can not be enabled or disabled again");
   m_enableSensing = enableSensing;
+}
+
+void
+NrUeMac::EnableBlindReTx (bool enableBlindReTx)
+{
+  NS_LOG_FUNCTION (this << enableBlindReTx);
+  NS_ASSERT_MSG (m_enableBlindReTx == false, " Once the blind re-transmissions is enabled, it can not be enabled or disabled again");
+  m_enableSensing = m_enableBlindReTx;
 }
 
 void
@@ -1437,7 +1657,91 @@ NrUeMac::GetTotalSubCh (uint16_t poolId) const
   return totalSubChanels;
 }
 
-//////////////////////////////////////////////
+void
+NrUeMac::SetReservationPeriod (const Time &rsvp)
+{
+  NS_LOG_FUNCTION (this << rsvp);
+  m_pRsvpTx = rsvp;
+}
 
+Time
+NrUeMac::GetReservationPeriod () const
+{
+  return m_pRsvpTx;
+}
+
+uint8_t
+NrUeMac::GetRndmReselectionCounter () const
+{
+  uint8_t min, max;
+  uint16_t periodInt = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ());
+
+  switch(periodInt)
+  {
+    case 50:
+      min = GetLoBoundReselCounter (periodInt);
+      max = GetUpBoundReselCounter (periodInt);
+      break;
+    case 100:
+    case 150:
+    case 200:
+    case 250:
+    case 300:
+    case 350:
+    case 400:
+    case 450:
+    case 500:
+    case 550:
+    case 600:
+    case 700:
+    case 750:
+    case 800:
+    case 850:
+    case 900:
+    case 950:
+    case 1000:
+      min = 5;
+      max = 15;
+      break;
+    default:
+      NS_FATAL_ERROR ("VALUE NOT SUPPORTED!");
+      break;
+  }
+  return m_ueSelectedUniformVariable->GetInteger (min, max);
+}
+
+uint8_t
+NrUeMac::GetLoBoundReselCounter (uint16_t pRsrv) const
+{
+  NS_LOG_FUNCTION (this << pRsrv);
+  NS_ASSERT_MSG (pRsrv < 100, "Resource reservation must be less than 100 ms");
+  uint8_t lBound = (5 * std::ceil (100 / (std::max (static_cast <uint16_t> (20), pRsrv))));
+  return lBound;
+}
+
+uint8_t
+NrUeMac::GetUpBoundReselCounter (uint16_t pRsrv) const
+{
+  NS_LOG_FUNCTION (this << pRsrv);
+  NS_ASSERT_MSG (pRsrv < 100, "Resource reservation must be less than 100 ms");
+  uint8_t uBound = (15 * std::ceil (100 / (std::max (static_cast <uint16_t> (20), pRsrv))));
+  return uBound;
+}
+
+void
+NrUeMac::SetNumSidelinkProcess (uint8_t numSidelinkProcess)
+{
+  NS_LOG_FUNCTION (this);
+  m_numSidelinkProcess = numSidelinkProcess;
+}
+
+uint8_t
+NrUeMac::GetNumSidelinkProcess () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_numSidelinkProcess;
+}
+
+//////////////////////////////////////////////
 
 }
