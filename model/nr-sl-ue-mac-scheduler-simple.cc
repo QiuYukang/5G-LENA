@@ -78,8 +78,10 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
   while (tbs < bufferSize && (GetTotalSubCh () - assignedSbCh) > 0);
 
   allocated = true;
+  NrSlUeMacSchedSapUser::SlRlcPduInfo slRlcPduInfo (lcVector.at (0), tbs);
+  slotAlloc.slRlcPduInfo.push_back (slRlcPduInfo);
   slotAlloc.ndi = 1;
-  slotAlloc.tbSize = tbs;
+  slotAlloc.rv = 0;
   slotAlloc.indexSubchannelStart = 0;
   slotAlloc.subchannelLength = assignedSbCh;
   slotAlloc.indexSymStart = txOppsIt->slPsschSymStart;
@@ -87,7 +89,6 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
 
   slotAlloc.sfn = txOppsIt->sfn;
   slotAlloc.dstL2Id = dstInfo->GetDstL2Id ();
-  slotAlloc.lcId = lcVector.at (0);
   slotAlloc.mcs = dstInfo->GetDstMcs ();
   slotAlloc.maxNumPerReserve = txOppsIt->slMaxNumPerReserve;
   uint16_t gapReTx1 = randTxOpps.size () > 1 ? *(std::next (randTxOpps.begin (), 1)) - *randTxOpps.begin () : 0;
@@ -96,7 +97,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
   slotAlloc.gapReTx2 = static_cast <uint8_t> (gapReTx2);
   slotAlloc.priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
 
-  lcgMap.begin ()->second->AssignedData (lcVector.at (0), slotAlloc.tbSize);
+  lcgMap.begin ()->second->AssignedData (lcVector.at (0), tbs);
   return allocated;
 }
 
