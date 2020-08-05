@@ -95,6 +95,7 @@ def build(bld):
         'model/nr-sl-ue-mac-scheduler-dst-info.cc',
         'model/nr-sl-ue-mac-scheduler-ns3.cc',
         'model/nr-sl-ue-mac-scheduler-simple.cc',
+        'model/nr-sl-mac-pdu-tag.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -209,6 +210,7 @@ def build(bld):
         'model/nr-sl-ue-mac-scheduler-dst-info.h',
         'model/nr-sl-ue-mac-scheduler-ns3.h',
         'model/nr-sl-ue-mac-scheduler-simple.h',
+        'model/nr-sl-mac-pdu-tag.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
