@@ -167,6 +167,22 @@ protected:
    *
    * All the child classes should implement this method
    *
+   * For allocating resources to more than one LCs of a
+   * destination so they can be multiplexed, one could consider
+   * the following procedure.
+   *
+   * 1. Irrespective of the priority of LCc, sum their buffer size.
+   * 2. Compute the TB size using the AMC given the available resources, the
+   *    buffer size computed in step 1, and the MCS.
+   * 3. Starting from the highest priority LC, distribute the bytes among LCs
+   *    from the TB size computed in step 2 as per their buffer status report
+   *    until we satisfy all the LCs or the TB size computed in step 2 is fully
+   *    consumed. There may be more than one LCs with the same priority, which
+   *    could have same or different buffer sizes. In case of equal buffer sizes,
+   *    these LCs should be assigned equal number of bytes. If these LCs have
+   *    unequal buffer sizes, we can use the minimum buffer size among the LCs
+   *    to assign the same bytes.
+   *
    * \param txOpps The list of the txOpps for the UE MAC
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
