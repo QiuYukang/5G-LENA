@@ -156,15 +156,28 @@ public:
    */
   virtual ~NrSlUeMacSchedSapUser () = default;
 
+  /**
+   * \brief The SlRlcPduInfo struct
+   */
+  struct SlRlcPduInfo
+  {
+    SlRlcPduInfo (uint8_t lcid, uint32_t size) :
+      lcid (lcid), size (size)
+    {
+    }
+    uint8_t lcid  {0}; //!< The Logical channel id
+    uint32_t size {0}; //!< The transport block size
+  };
+
   struct NrSlSlotAlloc
   {
     SfnSf sfn {}; //!< The SfnSf
     uint32_t dstL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The destination Layer 2 Id
 
     uint8_t ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
-    uint8_t lcId {std::numeric_limits <uint8_t>::max ()}; //!< The Logical channel id
+    uint8_t rv {std::numeric_limits <uint8_t>::max ()}; //!< The redundancy version
     uint8_t priority {std::numeric_limits <uint8_t>::max ()}; //!< The LC priority
-    uint32_t tbSize {std::numeric_limits <uint32_t>::max ()}; //!< The transport block size
+    std::vector <SlRlcPduInfo> slRlcPduInfo; //!< The vector containing the transport block size per LC id
 
     uint16_t mcs {std::numeric_limits <uint16_t>::max ()}; //!< The MCS
     uint16_t indexSubchannelStart {std::numeric_limits <uint16_t>::max ()}; //!< Index of the first subchannel allocated
