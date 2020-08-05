@@ -28,7 +28,7 @@ NrSlCommPreconfigResourcePoolFactory::NrSlCommPreconfigResourcePoolFactory ()
 {
   NS_LOG_FUNCTION (this);
   m_setupReleasePscch = "SETUP";
-  m_slTimeResourcePscch = 2;
+  m_slTimeResourcePscch = 1;
   m_slFreqResourcePscch = 10;
   m_slSubchannelSize = 50;
   m_slSensingWindow = 100;
