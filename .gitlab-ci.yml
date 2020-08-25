@@ -93,3 +93,8 @@ manual:
     - cd doc && make latexpdf
     - cd ..
     - mv doc/build/latex/*.pdf public
+
+
+include:
+  - '.gitlab-ci-clang.yml'
+  - '.gitlab-ci-gcc.yml'
