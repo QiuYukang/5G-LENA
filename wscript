@@ -204,14 +204,6 @@ def build(bld):
 
     if bld.env.ENABLE_EXAMPLES:
         bld.recurse('examples')
-        for dirname in os.listdir('src/nr'):
-            if dirname.startswith('.') or dirname == 'examples':
-                continue
-            path = os.path.join('src/nr', dirname)
-            if not os.path.isdir(path):
-                continue
-            if os.path.exists(os.path.join(path, 'wscript')):
-                bld.recurse(dirname)
 
     obj = bld.create_ns3_program('nr-print-introspected-doxygen', ['nr'])
     obj.source = 'utils/print-introspected-doxygen.cc'
