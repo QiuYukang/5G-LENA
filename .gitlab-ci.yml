@@ -37,33 +37,24 @@ stages:
 # Defines the per-commit jobs. They are executed for any branch
 per-commit-compile-debug:
   extends: .base-build
-  image: archlinux/base
+  image: natalep/archlinux-nr-environment
   variables:
     COMPILER: g++
     MODE: debug
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel python ccache gsl libgcrypt gtk3 boost git --noconfirm
 
 per-commit-compile-release:
   extends: .base-build
-  image: archlinux/base
+  image: natalep/archlinux-nr-environment
   variables:
     COMPILER: g++
     MODE: release
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel python ccache gsl libgcrypt gtk3 boost git --noconfirm
 
 per-commit-compile-optimized:
   extends: .base-build
-  image: archlinux/base
+  image: natalep/archlinux-nr-environment
   variables:
     COMPILER: g++
     MODE: optimized
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel python ccache gsl libgcrypt gtk3 boost git --noconfirm
 
 ###################### DOC STAGE #############################################
 .doc:
@@ -84,6 +75,8 @@ per-commit-compile-optimized:
 doxygen:
   extends: .doc
   script:
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
     - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
     - mv doc/doc/html/ public/
 
