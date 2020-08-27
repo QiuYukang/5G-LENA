@@ -215,7 +215,7 @@ NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
 {
   NS_LOG_FUNCTION (this);
 
-  static std::unordered_map<BandwidthPartInfo::Scenario, InitPathLossFn> initLookupTable
+  static std::unordered_map<BandwidthPartInfo::Scenario, InitPathLossFn, std::hash<int>> initLookupTable
   {
     {BandwidthPartInfo::RMa, std::bind (&InitRma, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::RMa_LoS, std::bind (&InitRma_LoS, std::placeholders::_1, std::placeholders::_2)},
