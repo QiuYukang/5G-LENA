@@ -766,10 +766,11 @@ LtePatternTestCase::CheckHarqMap (const std::map<uint32_t, uint32_t> &a,
 {
   NS_TEST_ASSERT_MSG_EQ (a.size (), b.size (), "Two HARQ maps have different length");
 
-  for (auto ita = a.begin (), itb = b.begin (); ita != b.end (), itb != b.end(); ++ita, ++itb)
+  for (const auto & element : a)
     {
-       NS_TEST_ASSERT_MSG_EQ (ita->first, itb->first, "Values in HARQ vector differ");
+      NS_TEST_ASSERT_MSG_EQ (element.second, b.at (element.first), "A value in A is different from the value for the same key in B");
     }
+
 }
 
 

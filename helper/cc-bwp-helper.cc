@@ -431,7 +431,7 @@ std::string
 BandwidthPartInfo::GetScenario () const
 {
   NS_LOG_FUNCTION (this);
-  static std::unordered_map <Scenario, std::string> lookupTable
+  static std::unordered_map <Scenario, std::string, std::hash<int>> lookupTable
   {
     { RMa, "RMa"},
     { RMa_LoS, "RMa"},

@@ -180,7 +180,6 @@ private:
   Ptr<NrGnbMac> CreateMac (const Ptr<NrMacScheduler> &sched) const;
   Ptr<NrGnbPhy> CreatePhy (const Ptr<NrGnbMac> &mac) const;
 
-  bool m_verbose = true;
   Ptr<NrGnbPhy> m_phy;
   std::string m_pattern;
 };
