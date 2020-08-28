@@ -17,10 +17,10 @@
  *
  */
 #include "hexagonal-grid-scenario-helper.h"
-#include <math.h>
 #include <ns3/double.h>
 #include <ns3/mobility-helper.h>
 #include <ns3/rng-seed-manager.h>
+#include <cmath>
 
 namespace ns3 {
 
