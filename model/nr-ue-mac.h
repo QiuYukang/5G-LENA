@@ -29,10 +29,11 @@
 #include <ns3/traced-callback.h>
 
 #include <ns3/nr-sl-mac-sap.h>
-#include <ns3/nr-sl-ue-phy-sap.h>
 #include <ns3/nr-sl-ue-cmac-sap.h>
 #include <ns3/nr-sl-comm-resource-pool.h>
+#include "nr-sl-ue-phy-sap.h"
 #include "nr-sl-ue-mac-sched-sap.h"
+#include "nr-sl-phy-mac-common.h"
 #include <map>
 #include <unordered_map>
 
@@ -789,6 +790,12 @@ private:
   uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
+
+  /**
+   * Trace information regarding NR Sidelink PSCCH UE scheduling.
+   * SlPscchUeMacStatParameters (see nr-sl-phy-mac-common.h)
+   */
+  TracedCallback<SlPscchUeMacStatParameters> m_slPscchScheduling; //!< NR SL PSCCH scheduling trace source
 };
 
 }

@@ -34,6 +34,8 @@
 #include "nr-control-messages.h"
 #include "nr-sl-ue-mac-csched-sap.h"
 #include "nr-sl-ue-mac-harq.h"
+#include "nr-sl-sci-f01-header.h"
+#include "nr-sl-mac-pdu-tag.h"
 #include <algorithm>
 
 namespace ns3 {
@@ -329,6 +331,10 @@ NrUeMac::GetTypeId (void)
                     BooleanValue (true),
                     MakeBooleanAccessor (&NrUeMac::EnableBlindReTx),
                     MakeBooleanChecker ())
+     .AddTraceSource ("SlPscchScheduling",
+                      "Information regarding NR SL PSCCH UE scheduling",
+                      MakeTraceSourceAccessor (&NrUeMac::m_slPscchScheduling),
+                      "ns3::SlUeMacStatParameters::TracedCallback")
           ;
 
   return tid;
@@ -1227,7 +1233,48 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           --itGrantInfo.second.slResoReselCounter;
           --itGrantInfo.second.cReselCounter;
           auto grant = itGrantInfo.second.slotAllocations.begin ();
-          NS_UNUSED (grant);
+          //prepare and send SCI format 01 message
+          NrSlSciF01Header sciF01;
+          sciF01.SetPriority (grant->priority);
+          sciF01.SetMcs (grant->mcs);
+          sciF01.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
+          sciF01.SetTotalSubChannels (GetTotalSubCh (m_poolId));
+          sciF01.SetIndexStartSubChannel (grant->indexSubchannelStart);
+          sciF01.SetLengthSubChannel (grant->subchannelLength);
+          sciF01.SetSlMaxNumPerReserve (grant->maxNumPerReserve);
+          sciF01.SetGapReTx1 (grant->gapReTx1);
+          sciF01.SetGapReTx2 (grant->gapReTx2);
+
+          //sum all the assigned bytes to each LC of this destination
+          uint32_t tbs = 0;
+          for (const auto & it : grant->slRlcPduInfo)
+            {
+              NS_LOG_DEBUG ("LC " << static_cast <uint16_t> (it.lcid) << " was assigned " << it.size << "bytes");
+              tbs += it.size;
+            }
+          Ptr<Packet> p = Create<Packet> ();
+          p->AddHeader (sciF01);
+          NrSlMacPduTag tag (m_rnti, grant->sfn, grant->indexSymStart, grant->SymLength, tbs, grant->dstL2Id);
+          p->AddPacketTag (tag);
+
+          m_nrSlUePhySapProvider->SendPscchMacPdu (p);
+
+          // Collect statistics for NR SL PSCCH UE MAC scheduling trace
+          SlPscchUeMacStatParameters pscchStatsParams;
+          pscchStatsParams.timestamp = Simulator::Now ().GetMilliSeconds ();
+          pscchStatsParams.imsi = m_imsi;
+          pscchStatsParams.rnti = m_rnti;
+          pscchStatsParams.frameNum = grant->sfn.GetFrame ();
+          pscchStatsParams.subframeNum = grant->sfn.GetSubframe ();
+          pscchStatsParams.slotNum = grant->sfn.GetSlot ();
+          pscchStatsParams.priority = grant->priority;
+          pscchStatsParams.mcs = grant->mcs;
+          pscchStatsParams.tbSize = tbs;
+          pscchStatsParams.slResourceReservePeriod = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ());
+          pscchStatsParams.gapReTx1 = grant->gapReTx1;
+          pscchStatsParams.gapReTx2 = grant->gapReTx2;
+          m_slPscchScheduling (pscchStatsParams); //Trace
+
 
 
         }
