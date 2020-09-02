@@ -54,6 +54,7 @@ NrUePhy::NrUePhy ()
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
   m_nrSlUeCphySapProvider = new MemberNrSlUeCphySapProvider<NrUePhy> (this);
+  DoReset ();
 }
 
 NrUePhy::~NrUePhy ()
@@ -1017,6 +1018,15 @@ void
 NrUePhy::DoReset ()
 {
   NS_LOG_FUNCTION (this);
+  //initialize NR SL PSCCH packet queue
+  m_nrSlPscchPacketBurstQueue.clear ();
+  Ptr<PacketBurst> pbPscch = CreateObject <PacketBurst> ();
+  m_nrSlPscchPacketBurstQueue.push_back (pbPscch);
+
+  //initialize NR SL PSSCH packet queue
+  m_nrSlPsschPacketBurstQueue.clear ();
+  Ptr<PacketBurst> pbPssch = CreateObject <PacketBurst> ();
+  m_nrSlPsschPacketBurstQueue.push_back (pbPssch);
 }
 
 void

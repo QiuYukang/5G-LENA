@@ -613,13 +613,15 @@ public:
    */
   Ptr<PacketBurst> GetPsschPacketBurst ();
 
+protected:
+  std::vector< Ptr<PacketBurst> > m_nrSlPscchPacketBurstQueue; //!< A queue of NR SL PSCCH (SCI format 0) packet bursts to be sent
+  std::vector< Ptr<PacketBurst> > m_nrSlPsschPacketBurstQueue; //!< A queue of NR SL PSSCH (SCI format 1 + Data) packet bursts to be sent.
+
 private:
   void SetPscchMacPdu (Ptr<Packet> p);
   void SetPsschMacPdu (Ptr<Packet> p);
   //NR Sidelink
   NrSlUePhySapProvider* m_nrSlUePhySapProvider; //!< SAP interface to receive calls from UE MAC instance for NR Sidelink
-  std::vector< Ptr<PacketBurst> > m_nrSlPscchPacketBurstQueue; //!< A queue of NR SL PSCCH (SCI format 0) packet bursts to be sent
-  std::vector< Ptr<PacketBurst> > m_nrSlPsschPacketBurstQueue; //!< A queue of NR SL PSSCH (SCI format 1 + Data) packet bursts to be sent.
 };
 
 } // namespace ns3
