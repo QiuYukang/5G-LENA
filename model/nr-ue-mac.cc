@@ -1637,8 +1637,8 @@ void
 NrUeMac::EnableBlindReTx (bool enableBlindReTx)
 {
   NS_LOG_FUNCTION (this << enableBlindReTx);
-  NS_ASSERT_MSG (m_enableBlindReTx == false, " Once the blind re-transmissions is enabled, it can not be enabled or disabled again");
-  m_enableSensing = m_enableBlindReTx;
+  NS_ASSERT_MSG (m_enableBlindReTx == false, " Once the blind re-transmission is enabled, it can not be enabled or disabled again");
+  m_enableBlindReTx = enableBlindReTx;
 }
 
 void
