@@ -196,6 +196,7 @@ NrPhy::NrPhy ()
 {
   NS_LOG_FUNCTION (this);
   m_phySapProvider = new NrMemberPhySapProvider (this);
+  m_nrSlUePhySapProvider = new MemberNrSlUePhySapProvider<NrPhy> (this);
 }
 
 NrPhy::~NrPhy ()
@@ -220,6 +221,7 @@ NrPhy::DoDispose ()
     }
   m_spectrumPhy = nullptr;
   delete m_phySapProvider;
+  delete m_nrSlUePhySapProvider;
 }
 
 void
@@ -846,5 +848,96 @@ NrPhy::GetTbDecodeLatency (void) const
 {
   return m_tbDecodeLatencyUs;
 }
+
+//NR Sidelink
+
+NrSlUePhySapProvider*
+NrPhy::GetNrSlUePhySapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_nrSlUePhySapProvider;
+}
+
+Time
+NrPhy::DoGetSlotPeriod () const
+{
+  return GetSlotPeriod ();
+}
+
+uint32_t
+NrPhy::DoGetBwInRbs () const
+{
+ return GetRbNum ();
+}
+
+void
+NrPhy::DoSendPscchMacPdu (Ptr<Packet> p)
+{
+  SetPscchMacPdu (p);
+}
+
+void
+NrPhy::DoSendPsschMacPdu (Ptr<Packet> p)
+{
+  SetPsschMacPdu (p);
+}
+
+void
+NrPhy::SetPscchMacPdu (Ptr<Packet> p)
+{
+  NS_LOG_FUNCTION (this);
+  //Since we must send one SCI msg at a given time, initially the queue size must
+  //be 1 with an empty packet burst
+  NS_ASSERT (m_nrSlPscchPacketBurstQueue.size () == 1 && m_nrSlPscchPacketBurstQueue.at (0)->GetNPackets () == 0);
+  m_nrSlPscchPacketBurstQueue.at (0)->AddPacket (p);
+}
+
+void
+NrPhy::SetPsschMacPdu (Ptr<Packet> p)
+{
+  NS_LOG_FUNCTION (this);
+  //At a given time, we must send only one packet burst, which mimics a TB.
+  //The packets in this packet burst would be equal to the number of LCs
+  //multiplexed together plus one SCI format 2 packet
+  NS_ASSERT (m_nrSlPsschPacketBurstQueue.size () == 1);
+  m_nrSlPsschPacketBurstQueue.at (0)->AddPacket (p);
+}
+
+Ptr<PacketBurst>
+NrPhy::GetPscchPacketBurst (void)
+{
+  if (m_nrSlPscchPacketBurstQueue.at (0)->GetSize () > 0)
+    {
+      Ptr<PacketBurst> ret = m_nrSlPscchPacketBurstQueue.at (0)->Copy ();
+      m_nrSlPscchPacketBurstQueue.erase (m_nrSlPscchPacketBurstQueue.begin ());
+      m_nrSlPscchPacketBurstQueue.push_back (CreateObject <PacketBurst> ());
+      return (ret);
+    }
+  else
+    {
+      m_nrSlPscchPacketBurstQueue.erase (m_nrSlPscchPacketBurstQueue.begin ());
+      m_nrSlPscchPacketBurstQueue.push_back (CreateObject <PacketBurst> ());
+      return (0);
+    }
+}
+
+Ptr<PacketBurst>
+NrPhy::GetPsschPacketBurst (void)
+{
+  if (m_nrSlPsschPacketBurstQueue.at (0)->GetSize () > 0)
+    {
+      Ptr<PacketBurst> ret = m_nrSlPsschPacketBurstQueue.at (0)->Copy ();
+      m_nrSlPsschPacketBurstQueue.erase (m_nrSlPsschPacketBurstQueue.begin ());
+      m_nrSlPsschPacketBurstQueue.push_back (CreateObject <PacketBurst> ());
+      return (ret);
+    }
+  else
+    {
+      m_nrSlPsschPacketBurstQueue.erase (m_nrSlPsschPacketBurstQueue.begin ());
+      m_nrSlPsschPacketBurstQueue.push_back (CreateObject <PacketBurst> ());
+      return (0);
+    }
+}
+
 
 }

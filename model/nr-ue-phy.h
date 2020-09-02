@@ -26,7 +26,7 @@
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/nr-sl-ue-cphy-sap.h>
-#include <ns3/nr-sl-ue-phy-sap.h>
+#include "nr-sl-ue-phy-sap.h"
 #include <ns3/traced-callback.h>
 
 namespace ns3 {
@@ -669,14 +669,6 @@ public:
   void SetNrSlUeCphySapUser (NrSlUeCphySapUser* s);
 
   /**
-   * \brief Get the NR Sidelik UE PHY SAP offered by UE PHY to UE MAC
-   *
-   * \return the NR Sidelik UE PHY SAP provider interface offered by
-   *         UE PHY to UE MAC
-   */
-  NrSlUePhySapProvider* GetNrSlUePhySapProvider ();
-
-  /**
    * \brief Set the NR Sidelik UE PHY SAP offered by UE MAC to UE PHY
    *
    * \param s the NR Sidelik UE PHY SAP user interface offered to the
@@ -701,22 +693,10 @@ protected:
    * \param rxPool The pointer to the NrSlCommResourcePool
    */
   void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
-  /**
-   * \brief Ask the PHY the bandwidth in RBs
-   *
-   * \return the bandwidth in RBs
-   */
-  uint32_t DoGetBwInRbs () const;
-  /**
-   * \brief Get the slot period
-   * \return the slot period (depend on the numerology)
-   */
-  Time DoGetSlotPeriod () const;
 
 private:
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCphySapUser* m_nrSlUeCphySapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
-  NrSlUePhySapProvider* m_nrSlUePhySapProvider; //!< SAP interface to receive calls from UE MAC instance
   NrSlUePhySapUser* m_nrSlUePhySapUser {nullptr}; //!< SAP interface to call the methods of UE MAC instance
   Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
   Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools

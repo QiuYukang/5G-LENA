@@ -23,6 +23,7 @@
 #include "nr-phy-sap.h"
 #include "nr-phy-mac-common.h"
 #include <ns3/spectrum-value.h>
+#include "nr-sl-ue-phy-sap.h"
 
 namespace ns3 {
 
@@ -569,6 +570,56 @@ private:
   uint32_t m_subcarrierSpacing {15000};         //!< subcarrier spacing (it is determined by the numerology)
   uint32_t m_rbNum {0};                         //!< number of resource blocks within the channel bandwidth
   double m_rbOh {0.04};                         //!< Overhead for the RB calculation
+
+//NR Sidelink
+
+public:
+  /**
+   * \brief Get the NR Sidelik UE PHY SAP offered by UE PHY to UE MAC
+   *
+   * \return the NR Sidelik UE PHY SAP provider interface offered by
+   *         UE PHY to UE MAC
+   */
+  NrSlUePhySapProvider* GetNrSlUePhySapProvider ();
+  /**
+   * \brief Get the slot period
+   * \return the slot period (depend on the numerology)
+   */
+  Time DoGetSlotPeriod () const;
+  /**
+   * \brief Ask the PHY the bandwidth in RBs
+   *
+   * \return the bandwidth in RBs
+   */
+  uint32_t DoGetBwInRbs () const;
+  /**
+   * \brief Send NR Sidelink PSCCH MAC PDU
+   * \param p The packet
+   */
+  void DoSendPscchMacPdu (Ptr<Packet> p);
+  /**
+   * \brief Send NR Sidelink PSSCH MAC PDU
+   * \param p The packet
+   */
+  void DoSendPsschMacPdu (Ptr<Packet> p);
+  /**
+   * \brief Get the NR Sidelink PSCCH packet burst
+   * \return The packet burst
+   */
+  Ptr<PacketBurst> GetPscchPacketBurst ();
+  /**
+   * \brief Get the NR Sidelink PSSCH packet burst
+   * \return The packet burst
+   */
+  Ptr<PacketBurst> GetPsschPacketBurst ();
+
+private:
+  void SetPscchMacPdu (Ptr<Packet> p);
+  void SetPsschMacPdu (Ptr<Packet> p);
+  //NR Sidelink
+  NrSlUePhySapProvider* m_nrSlUePhySapProvider; //!< SAP interface to receive calls from UE MAC instance for NR Sidelink
+  std::vector< Ptr<PacketBurst> > m_nrSlPscchPacketBurstQueue; //!< A queue of NR SL PSCCH (SCI format 0) packet bursts to be sent
+  std::vector< Ptr<PacketBurst> > m_nrSlPsschPacketBurstQueue; //!< A queue of NR SL PSSCH (SCI format 1 + Data) packet bursts to be sent.
 };
 
 } // namespace ns3

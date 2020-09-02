@@ -54,7 +54,6 @@ NrUePhy::NrUePhy ()
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
   m_nrSlUeCphySapProvider = new MemberNrSlUeCphySapProvider<NrUePhy> (this);
-  m_nrSlUePhySapProvider = new MemberNrSlUePhySapProvider<NrUePhy> (this);
 }
 
 NrUePhy::~NrUePhy ()
@@ -69,7 +68,6 @@ NrUePhy::DoDispose ()
   delete m_ueCphySapProvider;
   NrPhy::DoDispose ();
   delete m_nrSlUeCphySapProvider;
-  delete m_nrSlUePhySapProvider;
 }
 
 TypeId
@@ -1193,13 +1191,6 @@ NrUePhy::SetNrSlUeCphySapUser (NrSlUeCphySapUser* s)
   m_nrSlUeCphySapUser = s;
 }
 
-NrSlUePhySapProvider*
-NrUePhy::GetNrSlUePhySapProvider ()
-{
-  NS_LOG_FUNCTION (this);
-  return m_nrSlUePhySapProvider;
-}
-
 void
 NrUePhy::SetNrSlUePhySapUser(NrSlUePhySapUser* s)
 {
@@ -1221,19 +1212,6 @@ NrUePhy::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
   NS_LOG_FUNCTION (this);
   m_slRxPool = rxPool;
 }
-
-uint32_t
-NrUePhy::DoGetBwInRbs () const
-{
- return GetRbNum ();
-}
-
-Time
-NrUePhy::DoGetSlotPeriod () const
-{
-  return GetSlotPeriod ();
-}
-
 
 }
 

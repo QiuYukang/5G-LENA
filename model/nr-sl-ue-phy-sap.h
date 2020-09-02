@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <ns3/ptr.h>
 #include <ns3/nstime.h>
+#include <ns3/packet-burst.h>
 
 
 namespace ns3 {
@@ -57,10 +58,15 @@ public:
    */
   virtual Time GetSlotPeriod () const = 0;
   /**
-   * set the current sidelink transmit pool
-   * \param pool The transmission pool
+   * \brief Send NR Sidelink PSCCH MAC PDU
+   * \param p The packet
    */
- // virtual void SetSlCommTxPool (Ptr<SidelinkTxCommResourcePool> pool) = 0;
+  virtual void SendPscchMacPdu (Ptr<Packet> p) = 0;
+  /**
+   * \brief Send NR Sidelink PSSCH MAC PDU
+   * \param p The packet
+   */
+  virtual void SendPsschMacPdu (Ptr<Packet> p) = 0;
 
 };
 
@@ -115,6 +121,8 @@ public:
 
   virtual uint32_t GetBwInRbs () const;
   virtual Time GetSlotPeriod () const;
+  virtual void SendPscchMacPdu (Ptr<Packet> p);
+  virtual void SendPsschMacPdu (Ptr<Packet> p);
 
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
@@ -144,16 +152,19 @@ MemberNrSlUePhySapProvider<C>::GetSlotPeriod () const
   return m_owner->DoGetSlotPeriod ();
 }
 
-//Sidelink communication
-/*
 template <class C>
 void
-MemberNrSlUePhySapProvider<C>::SetSlCommTxPool (Ptr<SidelinkTxCommResourcePool> pool)
+MemberNrSlUePhySapProvider<C>::SendPscchMacPdu (Ptr<Packet> p)
 {
-  m_owner->DoSetSlCommTxPool (pool);
+  m_owner->DoSendPscchMacPdu (p);
 }
-*/
 
+template <class C>
+void
+MemberNrSlUePhySapProvider<C>::SendPsschMacPdu (Ptr<Packet> p)
+{
+  m_owner->DoSendPsschMacPdu (p);
+}
 
 
 /**
