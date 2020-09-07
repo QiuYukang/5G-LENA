@@ -107,6 +107,20 @@ BandwidthPartUe::GetMac () const
   return m_mac;
 }
 
+//NR Sidelink
+void
+BandwidthPartUe::SetNrSlUeMacScheduler (Ptr<NrSlUeMacScheduler> s)
+{
+  NS_LOG_FUNCTION (this);
+  m_slUeScheduler = s;
+}
+
+Ptr<NrSlUeMacScheduler>
+BandwidthPartUe::GetNrSlUeMacScheduler ()
+{
+  return m_slUeScheduler;
+}
+
 } // namespace ns3
 
 

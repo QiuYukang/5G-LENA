@@ -26,7 +26,7 @@
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/nr-sl-ue-cphy-sap.h>
-#include <ns3/nr-sl-ue-phy-sap.h>
+#include "nr-sl-ue-phy-sap.h"
 #include <ns3/traced-callback.h>
 
 namespace ns3 {
@@ -669,14 +669,6 @@ public:
   void SetNrSlUeCphySapUser (NrSlUeCphySapUser* s);
 
   /**
-   * \brief Get the NR Sidelik UE PHY SAP offered by UE PHY to UE MAC
-   *
-   * \return the NR Sidelik UE PHY SAP provider interface offered by
-   *         UE PHY to UE MAC
-   */
-  NrSlUePhySapProvider* GetNrSlUePhySapProvider ();
-
-  /**
    * \brief Set the NR Sidelik UE PHY SAP offered by UE MAC to UE PHY
    *
    * \param s the NR Sidelik UE PHY SAP user interface offered to the
@@ -690,33 +682,24 @@ protected:
    *
    * Adds transmission pool for NR Sidelink communication
    *
-   * \param remoteL2Id The destination Layer 2 ID
    * \param txPool The pointer to the NrSlCommResourcePool
    */
-  void DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool);
+  void DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool);
   /**
    * \brief Add NR Sidelink communication reception pool
    *
    * Adds reception pool for NR Sidelink communication
    *
-   * \param remoteL2Id The destination Layer 2 ID
    * \param rxPool The pointer to the NrSlCommResourcePool
    */
-  void DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool);
-  /**
-   * \brief Add NR Sidelink remote Layer 2 Id
-   *
-   * Adds remote layer 2 id to list to destinations
-   *
-   * \param remoteL2Id The destination Layer 2 ID
-   */
-  void DoAddNrSlRemoteL2Id (uint32_t remoteL2Id);
+  void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
+
 private:
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCphySapUser* m_nrSlUeCphySapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
-  NrSlUePhySapProvider* m_nrSlUePhySapProvider; //!< SAP interface to receive calls from UE MAC instance
   NrSlUePhySapUser* m_nrSlUePhySapUser {nullptr}; //!< SAP interface to call the methods of UE MAC instance
-  Ptr<const NrSlCommResourcePool> m_slPool;
+  Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
+  Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
 };
 
 }

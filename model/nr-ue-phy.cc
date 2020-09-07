@@ -54,7 +54,7 @@ NrUePhy::NrUePhy ()
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
   m_nrSlUeCphySapProvider = new MemberNrSlUeCphySapProvider<NrUePhy> (this);
-  m_nrSlUePhySapProvider = new MemberNrSlUePhySapProvider<NrUePhy> (this);
+  DoReset ();
 }
 
 NrUePhy::~NrUePhy ()
@@ -69,7 +69,6 @@ NrUePhy::DoDispose ()
   delete m_ueCphySapProvider;
   NrPhy::DoDispose ();
   delete m_nrSlUeCphySapProvider;
-  delete m_nrSlUePhySapProvider;
 }
 
 TypeId
@@ -1019,6 +1018,15 @@ void
 NrUePhy::DoReset ()
 {
   NS_LOG_FUNCTION (this);
+  //initialize NR SL PSCCH packet queue
+  m_nrSlPscchPacketBurstQueue.clear ();
+  Ptr<PacketBurst> pbPscch = CreateObject <PacketBurst> ();
+  m_nrSlPscchPacketBurstQueue.push_back (pbPscch);
+
+  //initialize NR SL PSSCH packet queue
+  m_nrSlPsschPacketBurstQueue.clear ();
+  Ptr<PacketBurst> pbPssch = CreateObject <PacketBurst> ();
+  m_nrSlPsschPacketBurstQueue.push_back (pbPssch);
 }
 
 void
@@ -1193,13 +1201,6 @@ NrUePhy::SetNrSlUeCphySapUser (NrSlUeCphySapUser* s)
   m_nrSlUeCphySapUser = s;
 }
 
-NrSlUePhySapProvider*
-NrUePhy::GetNrSlUePhySapProvider ()
-{
-  NS_LOG_FUNCTION (this);
-  return m_nrSlUePhySapProvider;
-}
-
 void
 NrUePhy::SetNrSlUePhySapUser(NrSlUePhySapUser* s)
 {
@@ -1209,24 +1210,18 @@ NrUePhy::SetNrSlUePhySapUser(NrSlUePhySapUser* s)
 
 
 void
-NrUePhy::DoAddNrSlCommTxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> txPool)
+NrUePhy::DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool)
 {
   NS_LOG_FUNCTION (this);
-  m_slPool = txPool;
+  m_slTxPool = txPool;
 }
 
 void
-NrUePhy::DoAddNrSlCommRxPool (uint32_t remoteL2Id, Ptr<const NrSlCommResourcePool> rxPool)
+NrUePhy::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 {
   NS_LOG_FUNCTION (this);
+  m_slRxPool = rxPool;
 }
-
-void
-NrUePhy::DoAddNrSlRemoteL2Id (uint32_t remoteL2Id)
-{
-  NS_LOG_FUNCTION (this);
-}
-
 
 }
 

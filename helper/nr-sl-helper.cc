@@ -30,7 +30,10 @@
 #include <ns3/nr-spectrum-phy.h>
 #include <ns3/lte-sl-tft.h>
 #include <ns3/nr-point-to-point-epc-helper.h>
+#include <ns3/bandwidth-part-ue.h>
 #include <ns3/nr-sl-bwp-manager-ue.h>
+#include <ns3/nr-sl-ue-mac-scheduler-simple.h>
+#include <ns3/nr-sl-ue-mac-scheduler.h>
 
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
@@ -52,6 +55,7 @@ NrSlHelper::NrSlHelper (void)
 {
   NS_LOG_FUNCTION (this);
   m_ueSlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
+  m_ueSlScheduler.SetTypeId (NrSlUeMacSchedulerSimple::GetTypeId());
 }
 
 NrSlHelper::~NrSlHelper (void)
@@ -124,6 +128,7 @@ NrSlHelper::DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tf
   NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator i = ues.Begin (); i != ues.End (); ++i)
     {
+      NS_LOG_DEBUG ("Activating SL bearer at " << Simulator::Now () << " destination L2 id " << tft->GetDstL2Id ());
       m_epcHelper->ActivateNrSlBearerForUe (*i, Create<LteSlTft> (tft)) ;
     }
 }
@@ -169,24 +174,36 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
   Ptr<NrAmc> slAmc = CreateUeSlAmc ();
   TypeIdValue typeIdValue;
   slAmc->GetAttribute ("ErrorModelType", typeIdValue);
+  //Retrieve the CC map from the device so we can set the SL scheduler
+  std::map < uint8_t, Ptr<BandwidthPartUe> > ccMap = nrUeDev->GetCcMap ();
 
   for (const auto &itBwps:slBwpIds)
     {
       //Store BWP id in NrSlUeRrc
       nrUeDev->GetRrc()->GetObject <NrSlUeRrc> ()->StoreSlBwpId (itBwps);
-
+      //SAPs between the RRC and the NR UE MAC
       lteUeRrc->SetNrSlUeCmacSapProvider (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlUeCmacSapProvider ());
       nrUeDev->GetMac (itBwps)->SetNrSlUeCmacSapUser (lteUeRrc->GetNrSlUeCmacSapUser ());
-
+      //SAPs between the RRC and the NR UE PHY
       nrUeDev->GetPhy (itBwps)->SetNrSlUeCphySapUser (lteUeRrc->GetNrSlUeCphySapUser ());
       lteUeRrc->SetNrSlUeCphySapProvider (itBwps, nrUeDev->GetPhy (itBwps)->GetNrSlUeCphySapProvider ());
-
+      //NR SL UE MAC scheduler
+      Ptr<NrSlUeMacScheduler> sched = CreateNrSlUeSched ();
+      ccMap.at (itBwps)->SetNrSlUeMacScheduler (sched);
+      //SAPs between the NR SL UE MAC scheduler and NrUeMac
+      sched->SetNrSlUeMacCschedSapUser (nrUeDev->GetMac (itBwps)->GetNrSlUeMacCschedSapUser ());
+      sched->SetNrSlUeMacSchedSapUser (nrUeDev->GetMac (itBwps)->GetNrSlUeMacSchedSapUser ());
+      nrUeDev->GetMac (itBwps)->SetNrSlUeMacCschedSapProvider (sched->GetNrSlUeMacCschedSapProvider ());
+      nrUeDev->GetMac (itBwps)->SetNrSlUeMacSchedSapProvider (sched->GetNrSlUeMacSchedSapProvider ());
+      //Set AMC in the NR SL UE MAC scheduler
+      Ptr<NrSlUeMacSchedulerNs3> schedNs3 = sched->GetObject <NrSlUeMacSchedulerNs3> ();
+      schedNs3->InstallNrSlAmc (slAmc);
+      //SAPs between MAC and PHY
       nrUeDev->GetPhy (itBwps)->SetNrSlUePhySapUser (nrUeDev->GetMac (itBwps)->GetNrSlUePhySapUser ());
       nrUeDev->GetMac (itBwps)->SetNrSlUePhySapProvider (nrUeDev->GetPhy (itBwps)->GetNrSlUePhySapProvider ());
-
+      //Error model type in NRSpectrumPhy for NR SL
       nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ()->SetAttribute ("SlErrorModelType", typeIdValue);
-      nrUeDev->GetMac (itBwps)->SetSlAmcModel (slAmc);
-
+      //Set the SAP of NR UE MAC in SL BWP manager
       bool bwpmTest = slBwpManager->SetNrSlMacSapProviders (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlMacSapProvider ());
 
       if (bwpmTest == false)
@@ -210,11 +227,11 @@ NrSlHelper::InstallNrSlPreConfiguration (NetDeviceContainer c, const LteRrcSap::
     {
       Ptr<NetDevice> netDev = *i;
       Ptr<NrUeNetDevice> nrUeDev = netDev->GetObject <NrUeNetDevice>();
+      bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
+      NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
       Ptr<LteUeRrc> lteUeRrc = nrUeDev->GetRrc ();
       Ptr<NrSlUeRrc> nrSlUeRrc = lteUeRrc->GetObject <NrSlUeRrc> ();
       nrSlUeRrc->SetNrSlPreconfiguration (preConfig);
-      bool ueSlBwpConfigured = ConfigUeParams (nrUeDev, slFreqConfigCommonNr, slPreconfigGeneralNr);
-      NS_ABORT_MSG_IF (ueSlBwpConfigured == false, "No SL configuration found for IMSI " << nrUeDev->GetImsi ());
     }
 }
 
@@ -254,6 +271,22 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
     }
 
   return found;
+}
+
+void
+NrSlHelper::SetUeSlSchedulerAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueSlAmcFactory.Set (n, v);
+}
+
+Ptr<NrSlUeMacScheduler>
+NrSlHelper::CreateNrSlUeSched ()
+{
+  NS_LOG_FUNCTION (this);
+
+  auto sched = (m_ueSlAmcFactory.Create ())->GetObject<NrSlUeMacScheduler> ();
+  return sched;
 }
 
 

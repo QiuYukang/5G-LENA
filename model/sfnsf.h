@@ -125,7 +125,7 @@ public:
    * \param slotN slot to sum
    * \return the SfnSf that results from the operation (*this) + slotN
    */
-  SfnSf GetFutureSfnSf (uint32_t slotN);
+  SfnSf GetFutureSfnSf (uint32_t slotN) const;
 
   /**
    * \brief operator < (less than)

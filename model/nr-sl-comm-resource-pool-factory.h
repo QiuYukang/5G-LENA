@@ -127,6 +127,20 @@ public:
    * \param slBitmap A vector representing a bitmap for sidelink time resources
    */
   void SetSlTimeResources (std::vector <std::bitset<1> >& slBitmap);
+  /**
+   * \brief Get Sidelink maximum number resource reserve for PSCCH/PSSCH
+   *
+   * \return The maximum number of reserved PSCCH/PSSCH resources that can be
+   *         indicated by an SCI.
+   */
+  uint16_t GetSlMaxNumPerReserve () const;
+  /**
+   * \brief Set Sidelink maximum number resource reserve for PSCCH/PSSCH
+   *
+   * \param maxNumPerReserve The maximum number of reserved PSCCH/PSSCH
+   *        resources that can be indicated by an SCI.
+   */
+  void SetSlMaxNumPerReserve (uint16_t maxNumPerReserve);
 
 private:
   LteRrcSap::SlResourcePoolNr m_pool; //!< Sidelink communication pool
@@ -145,7 +159,8 @@ protected:
   uint16_t m_slSelectionWindow; //!< End of the selection window in number of slots.
 
   std::array <uint16_t, 16> m_slResourceReservePeriodList; //!< Set of 16 possible resource reservation period allowed in the resource pool.
-  std::vector <std::bitset<1> > m_slTimeResource;
+  std::vector <std::bitset<1> > m_slTimeResource; //!< The sidelink time resource bitmap
+  uint16_t m_slMaxNumPerReserve; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
 
 
 };

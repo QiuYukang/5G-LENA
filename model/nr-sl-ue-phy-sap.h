@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License version 2 as
@@ -22,6 +22,8 @@
 
 #include <stdint.h>
 #include <ns3/ptr.h>
+#include <ns3/nstime.h>
+#include <ns3/packet-burst.h>
 
 
 namespace ns3 {
@@ -45,10 +47,26 @@ public:
 
   //Sidelink Communication
   /**
-   * set the current sidelink transmit pool
-   * \param pool The transmission pool
+   * \brief Ask the PHY the bandwidth in RBs
+   *
+   * \return the bandwidth in RBs
    */
- // virtual void SetSlCommTxPool (Ptr<SidelinkTxCommResourcePool> pool) = 0;
+  virtual uint32_t GetBwInRbs () const = 0;
+  /**
+   * \brief Get the slot period
+   * \return the slot period (depend on the numerology)
+   */
+  virtual Time GetSlotPeriod () const = 0;
+  /**
+   * \brief Send NR Sidelink PSCCH MAC PDU
+   * \param p The packet
+   */
+  virtual void SendPscchMacPdu (Ptr<Packet> p) = 0;
+  /**
+   * \brief Send NR Sidelink PSSCH MAC PDU
+   * \param p The packet
+   */
+  virtual void SendPsschMacPdu (Ptr<Packet> p) = 0;
 
 };
 
@@ -69,6 +87,13 @@ public:
    * \brief Destructor
    */
   virtual ~NrSlUePhySapUser ();
+
+  /**
+   * \brief Gets the active Sidelink pool id used for transmission and reception
+   *
+   * \return The active TX pool id
+   */
+  virtual uint8_t GetSlActiveTxPoolId () = 0;
 
 };
 
@@ -94,9 +119,13 @@ public:
    */
   MemberNrSlUePhySapProvider (C* owner);
 
+  virtual uint32_t GetBwInRbs () const;
+  virtual Time GetSlotPeriod () const;
+  virtual void SendPscchMacPdu (Ptr<Packet> p);
+  virtual void SendPsschMacPdu (Ptr<Packet> p);
+
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
-
 
 private:
   MemberNrSlUePhySapProvider ();
@@ -109,16 +138,33 @@ MemberNrSlUePhySapProvider<C>::MemberNrSlUePhySapProvider (C* owner)
 {
 }
 
-//Sidelink communication
-/*
+template <class C>
+uint32_t
+MemberNrSlUePhySapProvider<C>::GetBwInRbs () const
+{
+  return m_owner->DoGetBwInRbs ();
+}
+
+template <class C>
+Time
+MemberNrSlUePhySapProvider<C>::GetSlotPeriod () const
+{
+  return m_owner->DoGetSlotPeriod ();
+}
+
 template <class C>
 void
-MemberNrSlUePhySapProvider<C>::SetSlCommTxPool (Ptr<SidelinkTxCommResourcePool> pool)
+MemberNrSlUePhySapProvider<C>::SendPscchMacPdu (Ptr<Packet> p)
 {
-  m_owner->DoSetSlCommTxPool (pool);
+  m_owner->DoSendPscchMacPdu (p);
 }
-*/
 
+template <class C>
+void
+MemberNrSlUePhySapProvider<C>::SendPsschMacPdu (Ptr<Packet> p)
+{
+  m_owner->DoSendPsschMacPdu (p);
+}
 
 
 /**
@@ -143,6 +189,7 @@ public:
   MemberNrSlUePhySapUser (C* owner);
 
   // methods inherited from NrSlUePhySapUser go here
+  virtual uint8_t GetSlActiveTxPoolId ();
 
 private:
   C* m_owner; ///< the owner class
@@ -153,6 +200,14 @@ MemberNrSlUePhySapUser<C>::MemberNrSlUePhySapUser (C* owner)
   : m_owner (owner)
 {
 }
+
+template <class C>
+uint8_t
+MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId ()
+{
+  return m_owner->DoGetSlActiveTxPoolId ();
+}
+
 
 
 

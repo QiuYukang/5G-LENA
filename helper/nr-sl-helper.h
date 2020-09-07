@@ -33,6 +33,7 @@ class NrUeNetDevice;
 class NrAmc;
 class NrPointToPointEpcHelper;
 class LteSlTft;
+class NrSlUeMacScheduler;
 
 
 class NrSlHelper : public Object
@@ -115,6 +116,18 @@ public:
    * \param tft The traffic flow template for the bearer (i.e. multicast address and group)
    */
   void DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft);
+  /**
+   * \brief Set UE sidelink scheduler attribute
+   * \param n The attribute name
+   * \param v The attribute value
+   */
+  void SetUeSlSchedulerAttribute (const std::string &n, const AttributeValue &v);
+  /**
+   * \brief Create NR Sidelink UE scheduler from the object factory of the scheduler
+   *
+   * \return The pointer to a newly created object of the scheduler
+   */
+  Ptr<NrSlUeMacScheduler> CreateNrSlUeSched ();
 
 protected:
   /**
@@ -154,7 +167,8 @@ private:
    */
   Ptr<NrAmc> CreateUeSlAmc () const;
 
-  ObjectFactory m_ueSlAmcFactory;        //!< UE SL AMC Object factory
+  ObjectFactory m_ueSlAmcFactory;           //!< UE SL AMC Object factory
+  ObjectFactory m_ueSlScheduler;            //!< UE SL scheduler Object factory
   Ptr<NrPointToPointEpcHelper> m_epcHelper; //!< the EPC helper
 
 };

@@ -26,15 +26,16 @@ NS_LOG_COMPONENT_DEFINE ("NrSlCommPreconfigResourcePoolFactory");
 
 NrSlCommPreconfigResourcePoolFactory::NrSlCommPreconfigResourcePoolFactory ()
 {
+  NS_LOG_FUNCTION (this);
   m_setupReleasePscch = "SETUP";
-  m_slTimeResourcePscch = 2;
+  m_slTimeResourcePscch = 1;
   m_slFreqResourcePscch = 10;
   m_slSubchannelSize = 50;
   m_slSensingWindow = 100;
   m_slSelectionWindow = 10;
-  m_slResourceReservePeriodList = {10, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 750, 1000};
+  m_slResourceReservePeriodList = {0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 750, 1000};
   m_slTimeResource = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
-  NS_LOG_FUNCTION (this);
+  m_slMaxNumPerReserve = 2;
 }
 
 NrSlCommPreconfigResourcePoolFactory::~NrSlCommPreconfigResourcePoolFactory ()
@@ -154,8 +155,8 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
     {
       switch (i)
         {
-        case 10:
-          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS10;
+        case 0:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS0;
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
@@ -224,8 +225,33 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
+        case 700:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS700;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
         case 750:
           slReserved.period = LteRrcSap::SlResourceReservePeriod::MS750;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 800:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS800;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 850:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS850;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 900:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS900;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 950:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS950;
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
@@ -237,6 +263,18 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
         default:
           NS_FATAL_ERROR ("Invalid sidelink reservation period : " << i << " used");
         }
+    }
+
+  switch (m_slMaxNumPerReserve)
+    {
+    case 2:
+      m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N2;
+      break;
+    case 3:
+      m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N3;
+      break;
+    default:
+      NS_FATAL_ERROR ("Invalid sidelink value " << m_slMaxNumPerReserve << " used for number SlMaxNumPerReserve");
     }
 
   m_pool.slTimeResource = m_slTimeResource;
