@@ -1612,6 +1612,13 @@ NrUeMac::DoSetSlProbResoKeep (uint8_t prob)
   m_slProbResourceKeep = prob;
 }
 
+void
+NrUeMac::DoSetSourceL2Id (uint32_t srcL2Id)
+{
+  NS_LOG_FUNCTION (this << srcL2Id);
+  m_srcL2Id = srcL2Id;
+}
+
 uint8_t
 NrUeMac::DoGetSlActiveTxPoolId ()
 {

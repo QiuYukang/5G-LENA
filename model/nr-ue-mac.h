@@ -600,6 +600,12 @@ protected:
    *        for sensing based UE autonomous resource selection (see TS 38.321)
    */
   void DoSetSlProbResoKeep (uint8_t prob);
+  /**
+   * \brief Set Sidelink source layer 2 id
+   *
+   * \param srcL2Id The Sidelink layer 2 id of the source
+   */
+  void DoSetSourceL2Id (uint32_t srcL2Id);
 
   //Forwarded from NR SL UE PHY SAP User
   /**
@@ -790,6 +796,7 @@ private:
   uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
+  uint32_t m_srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id;
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.
