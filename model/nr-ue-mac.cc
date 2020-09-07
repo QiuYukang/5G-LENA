@@ -1519,8 +1519,14 @@ NrUeMac::DoAddNrSlLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &s
                                                                         slLcInfo.priority, slLcInfo.isGbr,
                                                                         slLcInfo.mbr, slLcInfo.gbr);
 
-  m_nrSlUeMacCschedSapProvider->CschedUeNrSlLcConfigReq (lcInfo);
-  AddNrSlDstL2Id (slLcInfo.dstL2Id, slLcInfo.priority);
+  //Following if is needed because this method is called for both
+  //TX and RX LCs addition into m_nrSlLcInfoMap. In case of RX LC, the
+  //destination is this UE MAC.
+  if (slLcInfo.srcL2Id == m_srcL2Id)
+    {
+      m_nrSlUeMacCschedSapProvider->CschedUeNrSlLcConfigReq (lcInfo);
+      AddNrSlDstL2Id (slLcInfo.dstL2Id, slLcInfo.priority);
+    }
 }
 
 void
