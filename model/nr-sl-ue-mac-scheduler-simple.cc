@@ -77,6 +77,8 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
     }
   while (tbs < bufferSize && (GetTotalSubCh () - assignedSbCh) > 0);
 
+  tbs = tbs - 8 /*(8 bytes overhead of SCI stage 2)*/;
+
   allocated = true;
   NrSlUeMacSchedSapUser::SlRlcPduInfo slRlcPduInfo (lcVector.at (0), tbs);
   slotAlloc.slRlcPduInfo.push_back (slRlcPduInfo);
