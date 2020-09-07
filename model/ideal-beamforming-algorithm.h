@@ -64,7 +64,9 @@ public:
 
   virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                       const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const;
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const;
 
   /**
    * \return Gets value of BeamSearchAngleStep attribute
@@ -88,7 +90,9 @@ private:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const = 0;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const = 0;
 
 
 };
@@ -139,7 +143,63 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
+
+  double m_beamSearchAngleStep {30};
+
+};
+
+/**
+ * \ingroup gnb-phy
+ * \brief The CellScanQuasiOmniBeamforming class
+ */
+class CellScanQuasiOmniBeamforming: public IdealBeamformingAlgorithm
+{
+
+public:
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+  /**
+   * \return Gets value of BeamSearchAngleStep attribute
+   */
+  double GetBeamSearchAngleStep () const;
+
+  /**
+   * \brief Sets the value of BeamSearchAngleStep attribute
+   */
+  void SetBeamSearchAngleStep (double beamSearchAngleStep);
+
+  /**
+   * \brief constructor
+   */
+  CellScanQuasiOmniBeamforming () = default;
+
+  /**
+   * \brief destructor
+   */
+  virtual ~CellScanQuasiOmniBeamforming () override = default;
+
+protected:
+
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using cell scan method at gnbDev and a fixed quasi-omni beamforming vector at UE
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 
   double m_beamSearchAngleStep {30};
 
@@ -172,20 +232,9 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
-
-  /**
-   * \brief Get directs path beamforming vector bfv for a device with the mobility model
-   * a for transmission toward device with a mobility model b, by using antenna aAntenna.
-   * \param [in] a mobility model of the first device
-   * \param [in] b mobility model of the second device
-   * \param [in] aAntenna antenaArray of the first device
-   * \param [out] bfv resulting beamforming vector for antenna array for the first device
-   */
-  virtual void DoGetDirectPathBeamformingVector (const Ptr<MobilityModel>& a,
-                                                 const Ptr<MobilityModel>& b,
-                                                 const Ptr<const ThreeGppAntennaArrayModel>& aAntenna,
-                                                 BeamformingVector* bfv, uint16_t ccId) const;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 };
 
 /**
@@ -216,9 +265,47 @@ protected:
    */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 
 };
+
+
+/**
+ * \ingroup gnb-phy
+ * \brief The QuasiOmniDirectPathBeamforming class
+ */
+class DirectPathQuasiOmniBeamforming: public DirectPathBeamforming
+{
+
+public:
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+
+protected:
+
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using the direct-path beamforming vector for gNB
+   * and quasi-omni beamforming vector for UEs
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                        const Ptr<const NrUeNetDevice>& ueDev,
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
+
+};
+
 
 /**
  * \ingroup gnb-phy
@@ -240,7 +327,9 @@ protected:
 
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const override;
+                                        BeamformingVector* gnbBfv,
+                                        BeamformingVector* ueBfv,
+                                        uint16_t ccId) const override;
 };
 
 

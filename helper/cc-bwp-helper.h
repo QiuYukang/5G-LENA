@@ -24,7 +24,9 @@
 #include <memory>
 #include <vector>
 #include <ns3/ptr.h>
-
+#include <ns3/spectrum-channel.h>
+#include <ns3/spectrum-propagation-loss-model.h>
+#include <ns3/propagation-loss-model.h>
 namespace ns3 {
 
 /*
@@ -35,9 +37,6 @@ namespace ns3 {
 static const uint8_t MAX_CC_INTRA_BAND = 8;  //!< \ingroup utils In NR Rel. 16, up to 8 CCs can be aggregated in the same operation band
 static const uint8_t MAX_CC_INTER_BAND = 16; //!< \ingroup utils The maximum number of aggregated CCs is 16 in NR Rel. 16 (in more than one operation band)
 
-class SpectrumPropagationLossModel;
-class PropagationLossModel;
-class SpectrumChannel;
 
 /**
  * \ingroup helper
@@ -79,7 +78,9 @@ struct BandwidthPartInfo
     UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sigth
     UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in Line-of-Sigth
     InH_OfficeOpen,  //!< InH_OfficeOpen
-    InH_OfficeMixed  //!< InH_OfficeMixed
+    InH_OfficeMixed,  //!< InH_OfficeMixed
+    UMa_Buildings,  //!< UMa with buildings
+    UMi_Buildings  //!< UMi_StreetCanyon with buildings
   } m_scenario {RMa};
 
   /**
@@ -262,7 +263,7 @@ public:
    *
    * \param filename The path to write the output gnuplot file
    */
-  static void PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo> &bands,
+  static void PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo*> &bands,
                                         const std::string &filename);
 
   /**
@@ -271,7 +272,7 @@ public:
    *
    * \param filename The path to write the output gnuplot file
    */
-  static void PlotLteCaConfiguration (const std::vector<OperationBandInfo> &bands,
+  static void PlotLteCaConfiguration (const std::vector<OperationBandInfo*> &bands,
                                       const std::string &filename);
 
 

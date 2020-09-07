@@ -212,12 +212,12 @@ public:
   void SetTxPower (double pow);
 
   /**
-   * \brief Retrieve the TX power of the UE
+   * \brief Retrieve the TX power of the gNB
    *
    * Please note that there is also an attribute ("NrUePhy::TxPower")
-   * \return the TX power of the UE
+   * \return the TX power of the gNB
    */
-  double GetTxPower () const __attribute__((warn_unused_result));
+  virtual double GetTxPower () const override;
 
   /**
    * \brief Set the Tx power spectral density based on the RB index vector
@@ -356,6 +356,37 @@ public:
        const uint8_t bwpId, Ptr<NrControlMessage>);
 
   /**
+   * \brief TracedCallback signature for slot statistics
+   *
+   * \param [in] sfnSf Slot number
+   * \param [in] scheduledUe The number of scheduled UE in the slot
+   * \param [in] usedReg Used Resource Element Group (1 sym x 1 RB)
+   * \param [in] usedSym Used symbols
+   * \param [in] availableRb Available RBs
+   * \param [in] availableSym Available symbols
+   * \param [in] bwpId BWP ID
+   * \param [in] cellId Cell ID
+   */
+  typedef void (* SlotStatsTracedCallback)(const SfnSf &sfnSf, uint32_t scheduledUe,
+                                           uint32_t usedReg, uint32_t usedSym,
+                                           uint32_t availableRb,
+                                           uint32_t availableSym, uint16_t bwpId,
+                                           uint16_t cellId);
+
+  /**
+   * \brief TracedCallback signature for RB statistics
+   *
+   * \param [in] sfnSf Slot number
+   * \param [in] sym Symbol
+   * \param [in] rbMap RB Map, in the spectrum format (vector of indexes of the active RB)
+   * \param [in] bwpId BWP ID
+   * \param [in] cellId Cell ID
+   */
+  typedef void (* RBStatsTracedCallback)(const SfnSf &sfnSf, uint8_t sym,
+                                         const std::vector<int> &rbMap,
+                                         uint16_t bwpId, uint16_t cellId);
+
+  /**
    * \brief Retrieve the number of RB per RBG
    * \return the number of RB per RBG
    *
@@ -368,6 +399,8 @@ public:
    * \return the channel bandwidth in Hz
    */
   uint32_t GetChannelBandwidth () const override;
+
+  const SfnSf & GetCurrentSfnSf () const override;
 
 protected:
   /**
@@ -538,6 +571,8 @@ private:
    */
   void DoStartSlot ();
 
+  void GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const;
+
   // LteEnbCphySapProvider forwarded methods
   void DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth);
   void DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn);
@@ -553,11 +588,12 @@ private:
 
   /**
    * \brief Store the RBG allocation in the symStart, rbg map.
+   * \param map the MAP
    * \param dci DCI
    *
-   * The map will be used to change the subchannels each time the beam is changed.
    */
-  void StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci);
+  void StoreRBGAllocation (std::unordered_map<uint8_t, std::vector<uint8_t> > *map,
+                           const std::shared_ptr<DciInfoElementTdma> &dci) const;
 
   /**
    * \brief Generate the generate/send DCI structures from a pattern
@@ -626,6 +662,34 @@ private:
    */
   void StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot);
 
+  /**
+   * \brief See if the channel should be released at the end of the slot
+   *
+   * If the channel has to be released, then m_channelStatus will be
+   * TO_LOSE.
+   */
+  void DoCheckOrReleaseChannel ();
+
+  /**
+   * \brief Check the control messages, and route them to the NetDevice
+   *
+   * For FDD, we route the CTRL messages to the netdevice (maybe we are in a
+   * UL bwp, and our ctrl messages have to be sent from the DL bwp).
+   */
+  void RetrievePrepareEncodeCtrlMsgs ();
+
+  /**
+   * \brief Prepare the RBG power distribution map for the allocations.
+   *
+   * \param allocations scheduler allocation for this slot.
+   */
+  void PrepareRbgAllocationMap (const std::deque<VarTtiAllocInfo> &allocations);
+
+  /**
+   * \brief Prepare and schedule all the events needed for the current slot.
+   */
+  void FillTheEvent ();
+
 private:
   NrGnbPhySapUser* m_phySapUser {nullptr};           //!< MAC SAP user pointer, MAC is user of services of PHY, implements e.g. ReceiveRachPreamble
   LteEnbCphySapProvider* m_enbCphySapProvider {nullptr}; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call e.g SetBandwidth
@@ -639,6 +703,7 @@ private:
   Time m_lastSlotStart; //!< Time at which the last slot started
   uint8_t m_currSymStart {0}; //!< Symbol at which the current allocation started
   std::unordered_map<uint8_t, std::vector<uint8_t> > m_rbgAllocationPerSym;  //!< RBG allocation in each sym
+  std::unordered_map<uint8_t, std::vector<uint8_t> > m_rbgAllocationPerSymDataStat;  //!< RBG allocation in each sym, for statistics (UL and DL included, only data)
 
   TracedCallback< uint64_t, SpectrumValue&, SpectrumValue& > m_ulSinrTrace; //!< SINR trace
 
@@ -655,6 +720,17 @@ private:
    * bwpId, pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_phyTxedCtrlMsgsTrace;
+
+  /**
+   * \brief Trace information for the ctrl slot statistics
+   */
+  TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotCtrlStats;
+  /**
+   * \brief Trace information for the data slot statistics
+   */
+  TracedCallback<const SfnSf &, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t> m_phySlotDataStats;
+
+  TracedCallback<const SfnSf &, uint8_t, const std::vector<int>&, uint16_t, uint16_t> m_rbStatistics;
 
   std::map<uint32_t, std::vector<uint32_t>> m_toSendDl; //!< Map that indicates, for each slot, what DL DCI we have to send
   std::map<uint32_t, std::vector<uint32_t>> m_toSendUl; //!< Map that indicates, for each slot, what UL DCI we have to send

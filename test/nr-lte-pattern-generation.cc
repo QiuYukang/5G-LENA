@@ -21,17 +21,17 @@
 #include <ns3/nr-gnb-phy.h>
 
 /**
- * \file nr-lte-pattern-generation
+ * \file nr-lte-pattern-generation.cc
  * \ingroup test
- * \brief Unit-testing for the LTE/NR TDD pattern
  *
- * The test considers the function NrGnbPhy::GenerateStructuresFromPattern
+ * \brief The test considers the function NrGnbPhy::GenerateStructuresFromPattern
  * and checks that the output of that function is equal to the one pre-defined.
- * Test includes also the Harq feedback indication
+ * Test includes also the Harq feedback indication.
  */
 namespace ns3 {
 
 /**
+ * \ingroup test
  * \brief TestSched testcase
  */
 class LtePatternTestCase : public TestCase
@@ -766,10 +766,11 @@ LtePatternTestCase::CheckHarqMap (const std::map<uint32_t, uint32_t> &a,
 {
   NS_TEST_ASSERT_MSG_EQ (a.size (), b.size (), "Two HARQ maps have different length");
 
-  for (auto ita = a.begin (), itb = b.begin (); ita != b.end (), itb != b.end(); ++ita, ++itb)
+  for (const auto & element : a)
     {
-       NS_TEST_ASSERT_MSG_EQ (ita->first, itb->first, "Values in HARQ vector differ");
+      NS_TEST_ASSERT_MSG_EQ (element.second, b.at (element.first), "A value in A is different from the value for the same key in B");
     }
+
 }
 
 

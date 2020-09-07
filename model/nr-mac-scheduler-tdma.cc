@@ -40,19 +40,36 @@ TypeId
 NrMacSchedulerTdma::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrMacSchedulerTdma")
-    .SetParent<NrMacSchedulerNs3Base> ()
+    .SetParent<NrMacSchedulerNs3> ()
   ;
   return tid;
 }
 
 NrMacSchedulerTdma::NrMacSchedulerTdma ()
-  : NrMacSchedulerNs3Base ()
 {
 }
 
 NrMacSchedulerTdma::~NrMacSchedulerTdma ()
 {
 }
+
+std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>
+NrMacSchedulerTdma::GetUeVectorFromActiveUeMap (const NrMacSchedulerNs3::ActiveUeMap &activeUes)
+{
+  std::vector<UePtrAndBufferReq> ueVector;
+  for (const auto &el : activeUes)
+    {
+      uint64_t size = ueVector.size ();
+      GetSecond GetUeVector;
+      for (const auto &ue : GetUeVector (el))
+        {
+          ueVector.emplace_back (ue);
+        }
+      NS_ASSERT (size + GetUeVector (el).size () == ueVector.size ());
+    }
+  return ueVector;
+}
+
 
 /**
  * \brief Assign the available RBG in a TDMA fashion
@@ -287,10 +304,12 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
   NS_UNUSED (maxSym);
   uint32_t tbs = m_dlAmc->CalculateTbSize (ueInfo->m_dlMcs,
                                            ueInfo->m_dlRBG * GetNumRbPerRbg ());
-  if (tbs < 4)
+  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
+  // transmit any new data, so don't create dci.
+  if (tbs < 7)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 4");
+                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 7");
       return nullptr;
     }
 
@@ -319,20 +338,24 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
  */
 std::shared_ptr<DciInfoElementTdma>
 NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                     const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const
+                                     const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                                     uint32_t maxSym) const
 {
   NS_LOG_FUNCTION (this);
   uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
                                            ueInfo->m_ulRBG * GetNumRbPerRbg ());
-  if (tbs < 4)
+
+  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
+  // transmit any new data, so don't create dci.
+  if (tbs < 7)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 4");
+                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 7");
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_ulRBG / GetBandwidthInRbg ());
-  numSym = std::max (numSym, static_cast<uint8_t> (1));
+  uint8_t numSym = static_cast<uint8_t> (std::max (ueInfo->m_ulRBG / GetBandwidthInRbg (), 1U));
+  numSym = std::min (numSym, static_cast<uint8_t> (maxSym));
 
   NS_ASSERT (spoint->m_sym >= numSym);
 

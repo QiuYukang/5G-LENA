@@ -27,13 +27,10 @@
 /**
  * \file nr-phy-patterns.cc
  * \ingroup test
- * \brief Unit-testing for the LTE/NR TDD pattern
  *
- * The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
- * allocations, it does it for the right slot in pattern.
- *
- * In other words, if the PHY calls the UL slot allocation for a slot that
- * should be DL, the test will fail.
+ * \brief The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
+ * allocations, it does it for the right slot in pattern. In other words, if the
+ * PHY calls the UL slot allocation for a slot that should be DL, the test will fail.
  */
 namespace ns3 {
 
@@ -173,6 +170,7 @@ public:
   LtePhyPatternTestCase (const std::string &pattern, const std::string &name)
     : TestCase (name), m_pattern (pattern)
   {}
+  ~LtePhyPatternTestCase ();
 
 private:
   virtual void DoRun (void) override;
@@ -182,10 +180,18 @@ private:
   Ptr<NrGnbMac> CreateMac (const Ptr<NrMacScheduler> &sched) const;
   Ptr<NrGnbPhy> CreatePhy (const Ptr<NrGnbMac> &mac) const;
 
-  bool m_verbose = true;
   Ptr<NrGnbPhy> m_phy;
   std::string m_pattern;
 };
+
+LtePhyPatternTestCase::~LtePhyPatternTestCase()
+{
+  if (m_phy)
+    {
+      m_phy->Dispose ();
+      m_phy = nullptr;
+    }
+}
 
 void
 LtePhyPatternTestCase::DoRun ()

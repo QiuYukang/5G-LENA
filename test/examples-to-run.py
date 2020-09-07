@@ -16,6 +16,14 @@ cpp_examples = [
     ("cttc-3gpp-channel-simple-ran", "True", "True"),
     ("cttc-3gpp-indoor-calibration", "True", "True"),
     ("cttc-nr-demo", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|UL|DL|DL|S|UL|UL|DL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|DL|DL|DL|S|UL|DL|DL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|UL|UL|DL|DL|DL|DL|DL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|UL|DL|DL|DL|DL|DL|DL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|DL|DL|DL|DL|DL|DL|DL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|UL|UL|DL|S|UL|UL|DL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|UL|UL|DL|S|UL|UL|UL|\"", "True", "True"),
+    ("cttc-nr-cc-bwp-demo --tddPattern=\"F|F|F|F|F|F|F|F|F|F|\"", "True", "True"),
     ]
 
 # A list of Python examples to run in order to ensure that they remain

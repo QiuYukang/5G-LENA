@@ -550,7 +550,9 @@ NrLteMiErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
 
   // Returns an iterator pointing to the first element in the range [first,last)
   // which compares greater than the third parameter.
-  std::vector<uint16_t>::const_iterator KplusIt = std::upper_bound (cbSizeTable.begin (), cbSizeTable.end (), (static_cast<double> (B1) / C) + 0.001);
+  auto KplusIt = std::upper_bound (cbSizeTable.begin (),
+                                   --cbSizeTable.end (),
+                                   (static_cast<double> (B1) / C) + 0.001);
   Kplus = *KplusIt;
 
   if (C == 1)

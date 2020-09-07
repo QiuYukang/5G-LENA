@@ -31,6 +31,7 @@
 #include "nr-ue-net-device.h"
 #include "nr-spectrum-value-helper.h"
 #include "nr-ch-access-manager.h"
+
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -138,6 +139,10 @@ NrUePhy::GetTypeId (void)
                      "Ue PHY DL HARQ Feedback Traces.",
                      MakeTraceSourceAccessor (&NrUePhy::m_phyUeTxedHarqFeedbackTrace),
                      "ns3::NrPhyRxTrace::TxedUePhyHarqFeedbackTracedCallback")
+    .AddTraceSource ("ReportPowerSpectralDensity",
+                     "Power Spectral Density data.",
+                     MakeTraceSourceAccessor (&NrUePhy::m_reportPowerSpectralDensity),
+                     "ns3::NrUePhy::PowerSpectralDensityTracedCallback")
       ;
   return tid;
 }
@@ -190,10 +195,12 @@ NrUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
 }
 
 void
-NrUePhy::SetSubChannelsForTransmission (std::vector <int> mask)
+NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t numSym)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
   NS_ASSERT (txPsd);
+
+  m_reportPowerSpectralDensity (m_currentSlot, txPsd, numSym * GetSymbolPeriod (), m_rnti, m_imsi, GetBwpId (), GetCellId ());
   m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
 }
 
@@ -380,7 +387,7 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
 
       m_phySapUser->ReceiveControlMessage (msg);
     }
-  if (msg->GetMessageType () == NrControlMessage::UL_DCI)
+  else if (msg->GetMessageType () == NrControlMessage::UL_DCI)
     {
       auto dciMsg = DynamicCast<NrUlDciMessage> (msg);
       auto dciInfoElem = dciMsg->GetDciInfoElement ();
@@ -738,7 +745,7 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       channelRbs.push_back (static_cast<int> (i));
     }
 
-  SetSubChannelsForTransmission (channelRbs);
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<
@@ -763,7 +770,7 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                         dci->m_harqProcess, dci->m_rv, true,
-                                        dci->m_symStart, dci->m_numSym);
+                                        dci->m_symStart, dci->m_numSym, m_currentSlot);
   m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL DATA frame for"
@@ -780,16 +787,13 @@ Time
 NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
-  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask));
+  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
   Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
   if (pktBurst && pktBurst->GetNPackets () > 0)
     {
       std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
-      NrMacPduTag tag;
-      pkts.front ()->PeekPacketTag (tag);
-
       LteRadioBearerTag bearerTag;
       if (!pkts.front ()->PeekPacketTag (bearerTag))
         {
@@ -798,20 +802,9 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   else
     {
-      NS_LOG_WARN ("Send an empty PDU .... ");
-      // sometimes the UE will be scheduled when no data is queued
-      // in this case, send an empty PDU
-      NrMacPduTag tag (m_currentSlot, dci->m_symStart, dci->m_numSym);
-      Ptr<Packet> emptyPdu = Create <Packet> ();
-      NrMacPduHeader header;
-      MacSubheader subheader (3, 0);    // lcid = 3, size = 0
-      header.AddSubheader (subheader);
-      emptyPdu->AddHeader (header);
-      emptyPdu->AddPacketTag (tag);
-      LteRadioBearerTag bearerTag (m_rnti, 3, 0);
-      emptyPdu->AddPacketTag (bearerTag);
-      pktBurst = CreateObject<PacketBurst> ();
-      pktBurst->AddPacket (emptyPdu);
+      // put an error, as something is wrong. The UE should not be scheduled
+      // if there is no data for him...
+      NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
     }
   m_reportUlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
 
@@ -1006,6 +999,12 @@ NrUePhy::SetCam(const Ptr<NrChAccessManager> &cam)
   m_cam->SetAccessGrantedCallback (std::bind (&NrUePhy::ChannelAccessGranted, this,
                                               std::placeholders::_1));
   m_cam->SetAccessDeniedCallback (std::bind (&NrUePhy::ChannelAccessDenied, this));
+}
+
+const SfnSf &
+NrUePhy::GetCurrentSfnSf () const
+{
+  return m_currentSlot;
 }
 
 uint16_t

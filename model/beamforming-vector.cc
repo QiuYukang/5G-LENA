@@ -20,6 +20,8 @@
 #include "beamforming-vector.h"
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
+#include <ns3/angles.h>
+
 
 namespace ns3{
 
@@ -34,7 +36,7 @@ complexVector_t CreateQuasiOmniBfv (uint32_t antennaRows, uint32_t antennaColumn
       std::complex<double> c = 0.0;
       if (antennaRows % 2 == 0)
         {
-          c = exp(std::complex<double> (0, M_PI * ind * ind/ antennaRows));
+          c = exp(std::complex<double> (0, M_PI * ind * ind / antennaRows));
         }
       else
         {
@@ -59,26 +61,66 @@ complexVector_t CreateQuasiOmniBfv (uint32_t antennaRows, uint32_t antennaColumn
   return omni;
 }
 
-complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>& antenna,uint16_t sector, double elevation)
+complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>& antenna,
+                                      uint16_t sector, double elevation)
 {
   complexVector_t tempVector;
 
   UintegerValue uintValueNumRows;
-  antenna->GetAttribute("NumRows", uintValueNumRows);
+  antenna->GetAttribute ("NumRows", uintValueNumRows);
 
-  double hAngle_radian = M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumRows.Get())) - 0.5 * M_PI;
+  double hAngle_radian = M_PI * (static_cast<double> (sector) / static_cast<double> (uintValueNumRows.Get ())) - 0.5 * M_PI;
   double vAngle_radian = elevation * M_PI / 180;
-  uint16_t size = antenna->GetNumberOfElements();
+  uint16_t size = antenna->GetNumberOfElements ();
   double power = 1 / sqrt (size);
   for (auto ind = 0; ind < size; ind++)
     {
-    Vector loc = antenna->GetElementLocation(ind);
+    Vector loc = antenna->GetElementLocation (ind);
     double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
                                 + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
                                 + cos (vAngle_radian) * loc.z);
     tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
     }
   return tempVector;
+}
+
+complexVector_t CreateDirectPathBfv (const Ptr<MobilityModel>& a,
+                                     const Ptr<MobilityModel>& b,
+                                     const Ptr<const ThreeGppAntennaArrayModel>& antenna)
+{
+  complexVector_t antennaWeights;
+
+  // retrieve the position of the two devices
+  Vector aPos = a->GetPosition ();
+  Vector bPos = b->GetPosition ();
+
+  // compute the azimuth and the elevation angles
+  Angles completeAngle (bPos, aPos);
+
+  double hAngleRadian = fmod (completeAngle.phi, 2.0 * M_PI); // the azimuth angle
+  if (hAngleRadian < 0)
+    {
+      hAngleRadian += 2.0 * M_PI;
+    }
+  double vAngleRadian = completeAngle.theta; // the elevation angle
+
+  // retrieve the number of antenna elements
+  int totNoArrayElements = antenna->GetNumberOfElements ();
+
+  // the total power is divided equally among the antenna elements
+  double power = 1 / sqrt (totNoArrayElements);
+
+  // compute the antenna weights
+  for (int ind = 0; ind < totNoArrayElements; ind++)
+    {
+      Vector loc = antenna->GetElementLocation (ind);
+      double phase = -2 * M_PI * (sin (vAngleRadian) * cos (hAngleRadian) * loc.x
+                                  + sin (vAngleRadian) * sin (hAngleRadian) * loc.y
+                                  + cos (vAngleRadian) * loc.z);
+      antennaWeights.push_back (exp (std::complex<double> (0, phase)) * power);
+    }
+
+  return antennaWeights;
 }
 
 }

@@ -25,7 +25,6 @@
 #include <ns3/trace-source-accessor.h>
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
-#include "nr-mac-pdu-tag.h"
 #include "nr-lte-mi-error-model.h"
 
 
@@ -164,6 +163,10 @@ NrSpectrumPhy::GetTypeId (void)
                      "Indicates when the channel is being occupied by a ctrl transmission",
                      MakeTraceSourceAccessor (&NrSpectrumPhy::m_txCtrlTrace),
                      "ns3::Time::TracedCallback")
+    .AddTraceSource ("RxDataTrace",
+                     "Indicates the reception of data from this cell (reporting the rxPsd without interferences)",
+                     MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxDataTrace),
+                     "ns3::RxDataTracedCallback::TracedCallback")
   ;
 
   return tid;
@@ -614,7 +617,7 @@ NrSpectrumPhy::GetNrInterference (void) const
 void
 NrSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t mcs,
                                   const std::vector<int> &rbMap, uint8_t harqId, uint8_t rv, bool downlink,
-                                  uint8_t symStart, uint8_t numSym)
+                                  uint8_t symStart, uint8_t numSym, const SfnSf &sfn)
 {
   NS_LOG_FUNCTION (this);
   auto it = m_transportBlocks.find (rnti);
@@ -627,7 +630,7 @@ NrSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t
   m_transportBlocks.emplace (std::make_pair(rnti, TransportBlockInfo(ExpectedTb (ndi, size, mcs,
                                                                                 rbMap, harqId, rv,
                                                                                 downlink, symStart,
-                                                                                numSym))));
+                                                                                numSym, sfn))));
   NS_LOG_INFO ("Add expected TB for rnti " << rnti << " size=" << size <<
                " mcs=" << static_cast<uint32_t> (mcs) << " symstart=" <<
                static_cast<uint32_t> (symStart) << " numSym=" <<
@@ -643,10 +646,22 @@ NrSpectrumPhy::StartRxData (const Ptr<NrSpectrumSignalParametersDataFrame>& para
 {
   NS_LOG_FUNCTION (this);
 
+  m_rxDataTrace (m_phy->GetCurrentSfnSf (), params->psd, params->duration,
+                 m_phy->GetBwpId (), m_phy->GetCellId ());
+
   switch (m_state)
     {
     case TX:
-      NS_FATAL_ERROR ("Cannot RX while TX.");
+      if (IsEnb()) // I am gNB. We are here because some of my rebellious UEs is transmitting at the same time as me. -> invalid state.
+        {
+          NS_FATAL_ERROR ("eNB transmission overlaps in time with UE transmission. CellId:" << params->cellId);
+        }
+      else // I am UE, and while I am transmitting, someone else also transmits. If we are transmitting on orthogonal TX PSDs then this is most probably valid situation (UEs transmitting to gNB).
+        {
+          //Sanity check, that we do not transmit on the same RBs; this sanity check will not be the same for sidelink/V2X
+          NS_ASSERT_MSG((Sum ((*m_txPsd) * (*params->psd)) == 0), "Transmissions overlap in frequency. Their cellId is:" << params->cellId);
+          return;
+        }
       break;
     case RX_DL_CTRL:
       /* no break */
@@ -966,17 +981,11 @@ NrSpectrumPhy::EndRxData ()
               NS_LOG_INFO ("TB failed");
             }
 
-          NrMacPduTag pduTag;
-          if (packet->PeekPacketTag (pduTag) == false)
-            {
-              NS_FATAL_ERROR ("No radio bearer tag found");
-            }
-
           RxPacketTraceParams traceParams;
           traceParams.m_tbSize = GetTBInfo(*itTb).m_expected.m_tbSize;
-          traceParams.m_frameNum = pduTag.GetSfn ().GetFrame ();
-          traceParams.m_subframeNum = pduTag.GetSfn ().GetSubframe ();
-          traceParams.m_slotNum = pduTag.GetSfn ().GetSlot ();
+          traceParams.m_frameNum = GetTBInfo(*itTb).m_expected.m_sfn.GetFrame ();
+          traceParams.m_subframeNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSubframe ();
+          traceParams.m_slotNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSlot ();
           traceParams.m_rnti = rnti;
           traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
           traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;

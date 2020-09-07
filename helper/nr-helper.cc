@@ -47,6 +47,7 @@
 #include <ns3/beam-manager.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/buildings-channel-condition-model.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/bwp-manager-algorithm.h>
 
@@ -196,12 +197,26 @@ InitIndoorMixed (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCond
   channelConditionModelFactory->SetTypeId (ThreeGppIndoorMixedOfficeChannelConditionModel::GetTypeId ());
 }
 
+static void
+InitUmaBuildings (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmaPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitUmiBuildings (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
+}
+
 void
 NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
 {
   NS_LOG_FUNCTION (this);
 
-  static std::unordered_map<BandwidthPartInfo::Scenario, InitPathLossFn> initLookupTable
+  static std::unordered_map<BandwidthPartInfo::Scenario, InitPathLossFn, std::hash<int>> initLookupTable
   {
     {BandwidthPartInfo::RMa, std::bind (&InitRma, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::RMa_LoS, std::bind (&InitRma_LoS, std::placeholders::_1, std::placeholders::_2)},
@@ -214,6 +229,8 @@ NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
     {BandwidthPartInfo::UMi_StreetCanyon_nLoS, std::bind (&InitUmi_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMa_Buildings, std::bind (&InitUmaBuildings, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::UMi_Buildings, std::bind (&InitUmiBuildings, std::placeholders::_1, std::placeholders::_2)},
   };
 
   // Iterate over all CCs, and instantiate the channel and propagation model

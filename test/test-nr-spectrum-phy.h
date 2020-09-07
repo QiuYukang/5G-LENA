@@ -22,8 +22,12 @@
 #include "ns3/spectrum-propagation-loss-model.h"
 
 /**
- * \ingroup nr-tests
- * \defgroup NrSpectrumPhy test cases
+ * \ingroup test
+ * \file test-nr-spectrum-phy.h
+ *
+ * \brief This test sets two times noise figure and checks if this setting is applied
+ * correctly to connected classes of SpectrumPhy, i.e. SpectrumModel, SpectrumValue,
+ * SpectrumChannel etc.
  */
 
 namespace ns3 {
@@ -31,6 +35,7 @@ namespace ns3 {
 class MobilityModel;
 
 /**
+ * \ingroup test
  * \brief No loss spectrum propagation loss model created for testing purposes.
  * As its name says, there are no losses.
  */
@@ -54,12 +59,6 @@ private:
                                                            Ptr<const MobilityModel> b) const override;
 };
 
-/**
- * \ingroup nr-tests
- * This is NrSpectrumPhy noise configuration test case.
- * This tests sets two times noise figure and checks if this setting is applied correctly to
- * connected classes of SpectrumPhy, i.e. SpectrumModel, SpectrumValue, SpectrumChannel etc.
- */
 class SetNoisePsdTestCase : public TestCase
 {
 public:
@@ -97,7 +96,7 @@ private:
 };
 
 /**
- * \ingroup testing-example
+ * \ingroup test
  * The test suite that runs different test cases to test NrSpectrumPhy.
  */
 class NrSpectrumPhyTestSuite : public TestSuite

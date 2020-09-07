@@ -24,16 +24,18 @@
 /**
  * \file nr-test-sched.cc
  * \ingroup test
- * \brief Unit-testing the Scheduler interface class.
  *
- * The class is a stub for a future, unit-testing component for the various
+ * \brief The class is a stub for a future, unit-testing component for the various
  * kind of schedulers. The idea is to check what is happening to the scheduling
  * part following a black-box approach: passing inputs, and then see what
- * is the output, and if it is like we would expect.
+ * is the output, and if it is like we would expect. The reference API is the
+ * FF API, and we should check what happens, for example, when adding or
+ * removing users, when a CQI is passed, etc.
  */
 namespace ns3 {
 
 /**
+ * \ingroup test
  * \brief The TestCschedSapUser class
  *
  * This class doesn't do absolutely nothing. Thank you for the attention.

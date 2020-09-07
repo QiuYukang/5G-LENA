@@ -111,11 +111,13 @@ public:
 
   /**
    * \brief Store a MAC PDU
-   * \param pb the MAC PDU
+   * \param p the MAC PDU
+   * \param sfn The SfnSf at which store the PDU
+   * \param symStart The symbol inside the SfnSf at which the data will be transmitted
    *
    * It will be saved in the PacketBurst map following the SfnSf present in the tag.
    */
-  void SetMacPdu (Ptr<Packet> pb);
+  void SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart);
 
   /**
    * \brief Send the RachPreamble
@@ -222,6 +224,13 @@ public:
    * \return the noise figure
    */
   double GetNoiseFigure () const;
+
+  /**
+   * \brief Retrieve the Tx power
+   *
+   * \return the Tx power
+   */
+   virtual double GetTxPower () const = 0;
 
   // Installation / Helpers
   /**
@@ -380,6 +389,20 @@ public:
    */
   static bool HasUlSlot (const std::vector<LteNrTddSlotType> &pattern);
 
+  /**
+   * \brief Retrieve the frequency (in Hz) of this PHY's channel
+   * \return the frequency of the channel in Hz
+   *
+   * The function will assert if it is called without having set a frequency first.
+   */
+  double GetCentralFrequency () const;
+
+  /**
+   * \brief Get the current SfnSf
+   * \return the current SfnSf
+   */
+  virtual const SfnSf & GetCurrentSfnSf () const = 0;
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -449,14 +472,6 @@ protected:
    * \see NrSpectrumValueHelper::CreateTxPowerSpectralDensity
    */
   Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
-
-  /**
-   * \brief Retrieve the frequency (in Hz) of this PHY's channel
-   * \return the frequency of the channel in Hz
-   *
-   * The function will assert if it is called without having set a frequency first.
-   */
-  double GetCentralFrequency () const;
 
   /**
    * \brief Store the slot allocation info at the front

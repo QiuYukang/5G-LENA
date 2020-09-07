@@ -447,3 +447,29 @@ make latexpdf
 ```
 
 and a PDF file (NRModule.pdf) will be created inside nr/doc/build/latex.
+
+#### How to create the documentation for a test
+
+Any test (i.e., a file is under the nr/test directory) must include the
+description of the file itself, which explains what is the purpose of the test,
+and how is working. For example:
+
+```
+/**
+  * \file test-timings.cc
+  * \ingroup test
+  *
+  * \brief Check numerology timings. The test, that is run for every numerology,
+  * checks that the slot number of certain events is the same as the one
+  * pre-recorded by an expert, that spent time in checking that such timing is
+  * correct. We currently check only RAR and DL_DCI messages, improvements are
+  * more than welcome.
+  */
+```
+
+The block must start with the command `\file` plus the filename, and must be
+in the `test` group. The brief description must be complete, and without empty
+lines. In this way, the description will be in the forefront of the main test
+page group.
+
+The doxygen for the classes or method is optional.

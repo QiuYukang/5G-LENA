@@ -20,7 +20,9 @@ def build(bld):
         'helper/ideal-beamforming-helper.cc',
         'helper/node-distribution-scenario-interface.cc',
         'helper/grid-scenario-helper.cc',
+        'helper/hexagonal-grid-scenario-helper.cc',
         'helper/cc-bwp-helper.cc',
+        'helper/nr-radio-environment-map-helper.cc',
         'helper/nr-sl-helper.cc',
         'model/nr-net-device.cc',
         'model/nr-gnb-net-device.cc',
@@ -47,8 +49,13 @@ def build(bld):
         'model/nr-gnb-mac.cc',
         'model/nr-ue-mac.cc',
         'model/nr-rrc-protocol-ideal.cc',
-        'model/nr-mac-pdu-header.cc',
-        'model/nr-mac-pdu-tag.cc',
+        'model/nr-mac-header-vs.cc',
+        'model/nr-mac-header-vs-ul.cc',
+        'model/nr-mac-header-vs-dl.cc',
+        'model/nr-mac-header-fs.cc',
+        'model/nr-mac-header-fs-ul.cc',
+        'model/nr-mac-header-fs-dl.cc',
+        'model/nr-mac-short-bsr-ce.cc',
         'model/nr-harq-phy.cc',
         'model/bandwidth-part-gnb.cc',
         'model/bandwidth-part-ue.cc',
@@ -60,7 +67,6 @@ def build(bld):
         'model/nr-mac-scheduler-cqi-management.cc',
         'model/nr-mac-scheduler-lcg.cc',
         'model/nr-mac-scheduler-ns3.cc',
-        'model/nr-mac-scheduler-ns3-base.cc',
         'model/nr-mac-scheduler-tdma.cc',
         'model/nr-mac-scheduler-ofdma.cc',
         'model/nr-mac-scheduler-ofdma-mr.cc',
@@ -106,7 +112,12 @@ def build(bld):
         'test/nr-test-numerology-delay.cc',
         'test/nr-test-fdm-of-numerologies.cc',
         'test/nr-test-sched.cc',
-        'test/nr-system-test-schedulers.cc',
+        'test/nr-system-test-schedulers-tdma-rr.cc',
+        'test/nr-system-test-schedulers-tdma-pf.cc',
+        'test/nr-system-test-schedulers-tdma-mr.cc',
+        'test/nr-system-test-schedulers-ofdma-rr.cc',
+        'test/nr-system-test-schedulers-ofdma-pf.cc',
+        'test/nr-system-test-schedulers-ofdma-mr.cc',
         'test/test-antenna-3gpp-model-conf.cc',
         'test/nr-test-l2sm-eesm.cc',
         'test/nr-lte-pattern-generation.cc',
@@ -115,6 +126,8 @@ def build(bld):
         'test/test-timings.cc',
         'test/test-nr-spectrum-phy.cc',
         'test/nr-lte-cc-bwp-configuration.cc',
+        'test/system-scheduler-test.cc',
+        'test/test-nr-mac-short-bsr-ce.cc',
         'test/test-nr-sl-sci-headers.cc',
         ]
 
@@ -130,7 +143,9 @@ def build(bld):
         'helper/ideal-beamforming-helper.h',
         'helper/node-distribution-scenario-interface.h',
         'helper/grid-scenario-helper.h',
+        'helper/hexagonal-grid-scenario-helper.h',
         'helper/cc-bwp-helper.h',
+        'helper/nr-radio-environment-map-helper.h',
         'helper/nr-sl-helper.h',
         'model/nr-net-device.h',
         'model/nr-gnb-net-device.h',
@@ -141,7 +156,14 @@ def build(bld):
         'model/nr-spectrum-phy.h',
         'model/nr-spectrum-value-helper.h',
         'model/nr-interference.h',
-        'model/nr-mac.h',
+        'model/nr-mac-pdu-info.h',
+        'model/nr-mac-header-vs.h',
+        'model/nr-mac-header-vs-ul.h',
+        'model/nr-mac-header-vs-dl.h',
+        'model/nr-mac-header-fs.h',
+        'model/nr-mac-header-fs-ul.h',
+        'model/nr-mac-header-fs-dl.h',
+        'model/nr-mac-short-bsr-ce.h',
         'model/nr-phy-mac-common.h',
         'model/nr-mac-scheduler.h',
         'model/nr-mac-scheduler-tdma-rr.h',
@@ -159,8 +181,6 @@ def build(bld):
         'model/nr-gnb-mac.h',
         'model/nr-ue-mac.h',
         'model/nr-rrc-protocol-ideal.h',
-        'model/nr-mac-pdu-header.h',
-        'model/nr-mac-pdu-tag.h',
         'model/nr-harq-phy.h',
         'model/bandwidth-part-gnb.h',
         'model/bandwidth-part-ue.h',
@@ -173,7 +193,6 @@ def build(bld):
         'model/nr-mac-scheduler-cqi-management.h',
         'model/nr-mac-scheduler-lcg.h',
         'model/nr-mac-scheduler-ns3.h',
-        'model/nr-mac-scheduler-ns3-base.h',
         'model/nr-mac-scheduler-tdma.h',
         'model/nr-mac-scheduler-ofdma.h',
         'model/nr-mac-scheduler-ofdma-mr.h',
@@ -219,14 +238,6 @@ def build(bld):
 
     if bld.env.ENABLE_EXAMPLES:
         bld.recurse('examples')
-        for dirname in os.listdir('src/nr'):
-            if dirname.startswith('.') or dirname == 'examples':
-                continue
-            path = os.path.join('src/nr', dirname)
-            if not os.path.isdir(path):
-                continue
-            if os.path.exists(os.path.join(path, 'wscript')):
-                bld.recurse(dirname)
 
     obj = bld.create_ns3_program('nr-print-introspected-doxygen', ['nr'])
     obj.source = 'utils/print-introspected-doxygen.cc'

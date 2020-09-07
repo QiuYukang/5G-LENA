@@ -56,11 +56,13 @@ public:
   /**
    * \brief Send a Mac PDU
    * \param p PDU
+   * \param sfn SFN
+   * \param symStart symbol inside the SFN
    *
    * The MAC sends to the PHY a MAC PDU, represented by the packet p. The PDU
    * MUST have a LteRadioBearerTag and a NrMacPduHeader.
    */
-  virtual void SendMacPdu (Ptr<Packet> p ) = 0;
+  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart) = 0;
 
   /**
    * \brief Send a control message

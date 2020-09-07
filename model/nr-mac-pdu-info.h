@@ -16,43 +16,36 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef NR_MAC_H
-#define NR_MAC_H
+#ifndef NR_MAC_PDU_INFO_H
+#define NR_MAC_PDU_INFO_H
 
-#include "nr-mac-pdu-header.h"
-#include "nr-mac-pdu-tag.h"
+#include "nr-phy-mac-common.h"
 
 namespace ns3 {
 
 /**
  * \ingroup ue-mac
  * \ingroup gnb-mac
- * \brief The MacPduInfo struct
+ * \brief Used to track the MAC PDU with the slot in which has to go, and the DCI
+ * that generated it
+ *
  */
-struct MacPduInfo
+struct NrMacPduInfo
 {
   /**
-   * \brief Construct a MacPduInfo
+   * \brief Construct a NrMacPduInfo
    * \param sfn SfnSf of the PDU
-   * \param numRlcPdu Number of PDU inside this struct
    * \param dci DCI of the PDU
    */
-  MacPduInfo (SfnSf sfn, uint8_t numRlcPdu, DciInfoElementTdma dci) :
-    m_sfnSf (sfn), m_size (dci.m_tbSize), m_numRlcPdu (numRlcPdu), m_symStart (dci.m_symStart)
+  NrMacPduInfo (SfnSf sfn, std::shared_ptr<DciInfoElementTdma> dci) :
+    m_sfnSf (sfn), m_dci (dci)
   {
-    m_pdu = Create<Packet> ();
-    m_macHeader = NrMacPduHeader ();
-    NrMacPduTag tag (sfn, dci.m_symStart, dci.m_numSym);
-    m_pdu->AddPacketTag (tag);
   }
 
   SfnSf m_sfnSf;                  //!< SfnSf of the PDU
-  uint32_t m_size;                //!< Size of the PDU
-  uint8_t m_numRlcPdu;            //!< Number of RLC PDU
-  uint8_t m_symStart;             //!< The start symbol of this PDU
-  Ptr<Packet> m_pdu;              //!< The data of the PDU
-  NrMacPduHeader m_macHeader; //!< The MAC header
+  std::shared_ptr<DciInfoElementTdma> m_dci; //!< The DCI
+  uint32_t m_used {0};  //!< Bytes sent down to PHY for this PDU
 };
 
 } // namespace ns3
-#endif // NR_MAC_H
+#endif // NR_MAC_PDU_INFO_H

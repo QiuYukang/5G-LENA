@@ -203,7 +203,13 @@ class BwpManagerUe;
  *
  * \section helper_Traces Traces
  *
- * Kat to fill :-)
+ * We provide a method that enables the generation of files that include among
+ * others information related to the received packets at the gNB and UE side,
+ * the control messages transmitted and received from/at the gNB and UE side,
+ * the SINR, as well as RLC and PDCP statistics such as the packet size.
+ * Please refer to their documentation for more information.
+ * Enabling the traces is done by simply adding the method enableTraces() in the
+ * scenario.
  *
  */
 class NrHelper : public Object
@@ -310,9 +316,12 @@ public:
   void AttachToEnb (const Ptr<NetDevice> &ueDevice, const Ptr<NetDevice> &gnbDevice);
 
   /**
-   * \brief Enable the traces
+   * \brief Enables the following traces:
+   * Transmitted/Received Control Messages
+   * DL/UL Phy Traces
+   * RLC traces
+   * PDCP traces
    *
-   * Kat ?
    */
   void EnableTraces ();
 

@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <functional>
 #include <string>
+#include <unordered_set>
 
 #include "nr-gnb-phy.h"
 #include "nr-ue-phy.h"
@@ -164,6 +165,20 @@ NrGnbPhy::GetTypeId (void)
                    MakeStringAccessor (&NrGnbPhy::SetPattern,
                                        &NrGnbPhy::GetPattern),
                    MakeStringChecker ())
+    .AddTraceSource ("SlotDataStats",
+                     "Data statistics for the current slot: SfnSf, active UE, used RE, "
+                     "used symbols, available RBs, available symbols, bwp ID, cell ID",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotDataStats),
+                     "ns3::NrGnbPhy::SlotStatsTracedCallback")
+    .AddTraceSource ("SlotCtrlStats",
+                     "Ctrl statistics for the current slot: SfnSf, active UE, used RE, "
+                     "used symbols, available RBs, available symbols, bwp ID, cell ID",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_phySlotCtrlStats),
+                     "ns3::NrGnbPhy::SlotStatsTracedCallback")
+    .AddTraceSource ("RBDataStats",
+                     "Resource Block used for data: SfnSf, symbol, RB PHY map, bwp ID, cell ID",
+                     MakeTraceSourceAccessor (&NrGnbPhy::m_rbStatistics),
+                     "ns3::NrGnbPhy::RBStatsTracedCallback")
     ;
   return tid;
 
@@ -180,6 +195,12 @@ NrGnbPhy::GetChannelBandwidth () const
 {
   // m_channelBandwidth is in kHz * 100
   return m_channelBandwidth * 1000 * 100;
+}
+
+const SfnSf &
+NrGnbPhy::GetCurrentSfnSf () const
+{
+  return m_currentSlot;
 }
 
 /**
@@ -468,6 +489,7 @@ NrGnbPhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
                 "\t Pattern: " << GetPattern () << std::endl <<
                 "Attached to physical channel: " << std::endl <<
                 "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
                 "\t Num. RB: " << GetRbNum ());
   SfnSf startSlot (frame, subframe, slot, GetNumerology ());
   InitializeMessageList ();
@@ -532,7 +554,7 @@ BeamId NrGnbPhy::GetBeamId (uint16_t rnti) const
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
-      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
 
       if (ueRnti == rnti)
         {
@@ -717,7 +739,6 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
                   // instantaneously
                   NS_LOG_INFO ("Channel granted; asking MAC for SlotIndication for the future and then start the slot");
                   CallMacForSlotIndication (m_currentSlot);
-
                   DoStartSlot ();
                   return; // Exit without calling anything else
                 }
@@ -764,20 +785,11 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
     }
 }
 
-void NrGnbPhy::DoStartSlot ()
+
+void
+NrGnbPhy::DoCheckOrReleaseChannel ()
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_ctrlMsgs.size () == 0);
-
-  uint64_t currentSlotN = m_currentSlot.Normalize () % m_tddPattern.size ();;
-
-  NS_LOG_DEBUG ("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
-  NS_LOG_INFO ("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
-    {
-      return;
-    }
 
   NS_ASSERT (m_channelStatus == GRANTED);
   // The channel is granted, we have to check if we maintain it for the next
@@ -809,12 +821,12 @@ void NrGnbPhy::DoStartSlot ()
                    (GetSlotPeriod () - lastDataTime).GetMicroSeconds() <<
                    " us, so we're NOT going to lose the channel");
     }
+}
 
-  VarTtiAllocInfo allocation = m_currSlotAllocInfo.m_varTtiAllocInfo.front ();
-  m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front ();
-
-  auto nextVarTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
-
+void
+NrGnbPhy::RetrievePrepareEncodeCtrlMsgs ()
+{
+  NS_LOG_FUNCTION (this);
   auto ctrlMsgs = PopCurrentSlotCtrlMsgs ();
   ctrlMsgs.merge (RetrieveMsgsFromDCIs (m_currentSlot));
 
@@ -830,19 +842,183 @@ void NrGnbPhy::DoStartSlot ()
           EncodeCtrlMsg (msg);
         }
     }
-
-  Simulator::Schedule (nextVarTtiStart, &NrGnbPhy::StartVarTti, this, allocation.m_dci);
 }
 
 void
-NrGnbPhy::StoreRBGAllocation (const std::shared_ptr<DciInfoElementTdma> &dci)
+NrGnbPhy::GenerateAllocationStatistics (const SlotAllocInfo &allocInfo) const
+{
+  NS_LOG_FUNCTION (this);
+  std::unordered_set<uint16_t> activeUe;
+  uint32_t availRb = GetRbNum ();
+  uint32_t dataReg = 0;
+  uint32_t ctrlReg = 0;
+  uint32_t dataSym = 0;
+  uint32_t ctrlSym = 0;
+
+  int lastSymStart = -1;
+  uint32_t symUsed = 0;
+
+  for (const auto & allocation : allocInfo.m_varTtiAllocInfo)
+    {
+      uint32_t rbg = std::count (allocation.m_dci->m_rbgBitmask.begin (),
+                                 allocation.m_dci->m_rbgBitmask.end (), 1);
+
+      // First: Store the RNTI of the UE in the active list
+      if (allocation.m_dci->m_rnti != 0)
+        {
+          activeUe.insert (allocation.m_dci->m_rnti);
+        }
+
+      NS_ASSERT (lastSymStart <= allocation.m_dci->m_symStart);
+
+      auto rbgUsed = (rbg * GetNumRbPerRbg ()) * allocation.m_dci->m_numSym;
+      if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+        {
+          dataReg += rbgUsed;
+        }
+      else
+        {
+          ctrlReg += rbgUsed;
+        }
+
+      if (lastSymStart != allocation.m_dci->m_symStart)
+        {
+          symUsed += allocation.m_dci->m_numSym;
+
+          if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+            {
+              dataSym += allocation.m_dci->m_numSym;
+            }
+          else
+            {
+              ctrlSym += allocation.m_dci->m_numSym;
+            }
+        }
+
+      lastSymStart = allocation.m_dci->m_symStart;
+    }
+
+  NS_ASSERT_MSG (symUsed == allocInfo.m_numSymAlloc,
+                 "Allocated " << +allocInfo.m_numSymAlloc << " but only " << symUsed << " written in stats");
+
+  m_phySlotDataStats (allocInfo.m_sfnSf, activeUe.size (), dataReg, dataSym,
+                      availRb, GetSymbolsPerSlot () - ctrlSym, GetBwpId (), GetCellId ());
+  m_phySlotCtrlStats (allocInfo.m_sfnSf, activeUe.size (), ctrlReg, ctrlSym,
+                      availRb, GetSymbolsPerSlot () - dataSym, GetBwpId (), GetCellId ());
+}
+
+void
+NrGnbPhy::DoStartSlot ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_ctrlMsgs.size () == 0); // This assert has to be re-evaluated for NR-U.
+                                       // We can have messages before we weren't able to tx them before.
+
+  uint64_t currentSlotN = m_currentSlot.Normalize () % m_tddPattern.size ();;
+
+  NS_LOG_DEBUG ("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
+
+  GenerateAllocationStatistics (m_currSlotAllocInfo);
+
+  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () == 0)
+    {
+      return;
+    }
+
+  NS_LOG_INFO ("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
+
+  DoCheckOrReleaseChannel ();
+
+  RetrievePrepareEncodeCtrlMsgs ();
+
+  PrepareRbgAllocationMap (m_currSlotAllocInfo.m_varTtiAllocInfo);
+
+  FillTheEvent ();
+}
+
+void
+NrGnbPhy::PrepareRbgAllocationMap (const std::deque<VarTtiAllocInfo> &allocations)
 {
   NS_LOG_FUNCTION (this);
 
-  auto itAlloc = m_rbgAllocationPerSym.find (dci->m_symStart);
-  if (itAlloc == m_rbgAllocationPerSym.end ())
+  // Start with a clean RBG allocation bitmask
+  m_rbgAllocationPerSym.clear ();
+
+  // Create RBG map to know where to put power in DL
+  for (const auto & allocation : allocations)
     {
-      itAlloc = m_rbgAllocationPerSym.insert (std::make_pair (dci->m_symStart, dci->m_rbgBitmask)).first;
+      if (allocation.m_dci->m_type != DciInfoElementTdma::CTRL)
+        {
+          if (allocation.m_dci->m_format == DciInfoElementTdma::DL)
+            {
+              // In m_rbgAllocationPerSym, store only the DL RBG set to 1:
+              // these will used to put power
+              StoreRBGAllocation (&m_rbgAllocationPerSym, allocation.m_dci);
+            }
+
+          // For statistics, store UL/DL allocations
+          StoreRBGAllocation (&m_rbgAllocationPerSymDataStat, allocation.m_dci);
+        }
+    }
+
+  for (const auto & s : m_rbgAllocationPerSymDataStat)
+    {
+      auto & rbgAllocation = s.second;
+      m_rbStatistics (m_currentSlot, s.first, FromRBGBitmaskToRBAssignment (rbgAllocation),
+                      GetBwpId (), GetCellId ());
+    }
+
+  m_rbgAllocationPerSymDataStat.clear ();
+}
+
+void
+NrGnbPhy::FillTheEvent ()
+{
+  NS_LOG_FUNCTION (this);
+
+  uint8_t lastSymStart = 0;
+  bool useNextAllocationSameSymbol = true;
+  for (const auto & allocation : m_currSlotAllocInfo.m_varTtiAllocInfo)
+    {
+      NS_ASSERT (lastSymStart <= allocation.m_dci->m_symStart);
+
+      if (lastSymStart == allocation.m_dci->m_symStart && !useNextAllocationSameSymbol)
+        {
+          NS_LOG_INFO ("Ignored allocation " << *(allocation.m_dci) << " for OFDMA DL trick");
+          continue;
+        }
+      else
+        {
+          useNextAllocationSameSymbol = true;
+        }
+
+      auto varTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
+      Simulator::Schedule (varTtiStart, &NrGnbPhy::StartVarTti, this, allocation.m_dci);
+      lastSymStart = allocation.m_dci->m_symStart;
+
+      // If the allocation is DL, then don't schedule anything that is in the
+      // same symbol (see OFDMA DL trick documentation)
+      if (allocation.m_dci->m_format == DciInfoElementTdma::DL)
+        {
+          useNextAllocationSameSymbol = false;
+        }
+
+      NS_LOG_INFO ("Scheduled allocation " << *(allocation.m_dci) << " at " << varTtiStart);
+    }
+
+  m_currSlotAllocInfo.m_varTtiAllocInfo.clear ();
+}
+
+void
+NrGnbPhy::StoreRBGAllocation (std::unordered_map<uint8_t, std::vector<uint8_t> > *map,
+                              const std::shared_ptr<DciInfoElementTdma> &dci) const
+{
+  NS_LOG_FUNCTION (this);
+
+  auto itAlloc = map->find (dci->m_symStart);
+  if (itAlloc == map->end ())
+    {
+      itAlloc = map->insert (std::make_pair (dci->m_symStart, dci->m_rbgBitmask)).first;
     }
   else
     {
@@ -979,19 +1155,6 @@ NrGnbPhy::DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_DEBUG ("Starting DL CTRL TTI at symbol " << +m_currSymStart <<
                 " to " << +m_currSymStart + dci->m_numSym);
 
-  // Start with a clean RBG allocation bitmask
-  m_rbgAllocationPerSym.clear ();
-
-  // Create RBG map to know where to put power in DL
-  for (const auto & dlAlloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
-    {
-      if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL
-          && dlAlloc.m_dci->m_format == DciInfoElementTdma::DL)
-        {
-          StoreRBGAllocation (dlAlloc.m_dci);
-        }
-    }
-
   // TX control period
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
@@ -1048,28 +1211,11 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
   Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
-  if (pktBurst && pktBurst->GetNPackets () > 0)
+  if (!pktBurst || pktBurst->GetNPackets () == 0)
     {
-      std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
-      NrMacPduTag macTag;
-      pkts.front ()->PeekPacketTag (macTag);
-    }
-  else
-    {
-      // put an error, as something is wrong. The UE should not be scheduled
-      // if there is no data for him...
-      NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
-      NrMacPduTag tag (m_currentSlot, dci->m_symStart, dci->m_numSym);
-      Ptr<Packet> emptyPdu = Create <Packet> ();
-      NrMacPduHeader header;
-      MacSubheader subheader (3, 0);    // lcid = 3, size = 0
-      header.AddSubheader (subheader);
-      emptyPdu->AddHeader (header);
-      emptyPdu->AddPacketTag (tag);
-      LteRadioBearerTag bearerTag (dci->m_rnti, 3, 0);
-      emptyPdu->AddPacketTag (bearerTag);
-      pktBurst = CreateObject<PacketBurst> ();
-      pktBurst->AddPacket (emptyPdu);
+      // sometimes the UE will be scheduled when no data is queued.
+      // In this case, don't send anything, don't put power... don't do nothing!
+      return varTtiPeriod;
     }
 
   NS_LOG_INFO ("ENB TXing DL DATA frame " << m_currentSlot <<
@@ -1092,26 +1238,24 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_DEBUG ("Starting UL DATA TTI at symbol " << +m_currSymStart <<
                 " to " << +m_currSymStart + dci->m_numSym);
 
-  // Assert: we expect TDMA in UL
-  NS_ASSERT (static_cast<uint32_t> (std::count (dci->m_rbgBitmask.begin (),
-                                                dci->m_rbgBitmask.end (), 1U)) == dci->m_rbgBitmask.size ());
-
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi,
-                                        dci->m_tbSize, dci->m_mcs,
-                                        FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                        dci->m_harqProcess, dci->m_rv, false,
-                                        dci->m_symStart, dci->m_numSym);
+  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+                                FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                dci->m_harqProcess, dci->m_rv, false,
+                                dci->m_symStart, dci->m_numSym, m_currentSlot);
 
   bool found = false;
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
-      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
           NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
+          // Even if we change the beamforming vector, we hope that the scheduler
+          // has scheduled UEs within the same beam (and, therefore, have the same
+          // beamforming vector)
           m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
           found = true;
           break;
@@ -1133,7 +1277,7 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
+  m_beamManager->ChangeToOmniTx (); //assume the control signal is omni
   m_currSymStart = dci->m_symStart;
 
   Time varTtiPeriod;
@@ -1174,36 +1318,6 @@ NrGnbPhy::EndVarTti (const std::shared_ptr<DciInfoElementTdma> &lastDci)
   NS_LOG_DEBUG ("DCI started at symbol " << static_cast<uint32_t> (lastDci->m_symStart) <<
                 " which lasted for " << static_cast<uint32_t> (lastDci->m_numSym) <<
                 " symbols finished");
-
-  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-  m_beamManager->ChangeToOmniTx(); //assume the control signal is omni
-
-  if (m_currSlotAllocInfo.m_varTtiAllocInfo.size () > 0)
-    {
-      VarTtiAllocInfo allocation = m_currSlotAllocInfo.m_varTtiAllocInfo.front ();
-      m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front ();
-
-      if (lastDci->m_symStart == allocation.m_dci->m_symStart)
-        {
-          NS_LOG_INFO ("DCI for UE " << allocation.m_dci->m_rnti << " starts from symbol " <<
-                       static_cast<uint32_t> (allocation.m_dci->m_symStart) << " ignoring at PHY");
-          EndVarTti (allocation.m_dci);
-        }
-      else
-        {
-          auto nextVarTtiStart = GetSymbolPeriod () * allocation.m_dci->m_symStart;
-
-          NS_LOG_INFO ("DCI for UE " << allocation.m_dci->m_rnti << " starts from symbol " <<
-                       static_cast<uint32_t> (allocation.m_dci->m_symStart) << " scheduling at PHY, at " <<
-                       nextVarTtiStart + m_lastSlotStart << " where last slot start = " <<
-                       m_lastSlotStart << " nextVarTti " << nextVarTtiStart);
-
-          Simulator::Schedule (nextVarTtiStart + m_lastSlotStart - Simulator::Now (),
-                               &NrGnbPhy::StartVarTti, this, allocation.m_dci);
-        }
-      // Do not put any code here (tail recursion)
-    }
-  // Do not put any code here (tail recursion)
 }
 
 void
@@ -1235,7 +1349,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice> (m_deviceMap.at (i));
-      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
       //NS_LOG_INFO ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
       if (dci->m_rnti == ueRnti)
         {
@@ -1350,16 +1464,6 @@ NrGnbPhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       NS_LOG_INFO ("Received DL_CQI for RNTI: " << dlcqiLE.m_rnti << " in slot " <<
                    m_currentSlot);
 
-      m_phySapUser->ReceiveControlMessage (msg);
-    }
-  else if (msg->GetMessageType () == NrControlMessage::BSR)
-    {
-      Ptr<NrBsrMessage> bsrmsg = DynamicCast<NrBsrMessage> (msg);
-      MacCeElement macCeEl = bsrmsg->GetBsr();
-      m_phyRxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), macCeEl.m_rnti, GetBwpId (), msg);
-
-      NS_LOG_INFO ("Received BSR for RNTI: " << macCeEl.m_rnti << " in slot " <<
-                   m_currentSlot);
       m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == NrControlMessage::RACH_PREAMBLE)
@@ -1539,7 +1643,7 @@ NrGnbPhy::SetPattern (const std::string &pattern)
 std::string
 NrGnbPhy::GetPattern () const
 {
-  static std::unordered_map<LteNrTddSlotType, std::string> lookupTable =
+  static std::unordered_map<LteNrTddSlotType, std::string, std::hash<int>> lookupTable =
   {
     { LteNrTddSlotType::DL, "DL"},
     { LteNrTddSlotType::UL, "UL"},

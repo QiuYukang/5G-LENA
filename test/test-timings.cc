@@ -43,12 +43,17 @@ using namespace ns3;
 /**
   * \file test-timings.cc
   * \ingroup test
-  * \brief Check each numerology timings
+  *
+  * \brief Check numerology timings. The test, that is run for every numerology,
+  * checks that the slot number of certain events is the same as the one
+  * pre-recorded by an expert, that spent time in checking that such timing is
+  * correct. We currently check only RAR and DL_DCI messages, improvements are
+  * more than welcome.
   */
 
 static uint32_t packetSize = 21;
 
-static const std::unordered_map<NrControlMessage::messageType, bool> messageLog =
+static const std::unordered_map<NrControlMessage::messageType, bool, std::hash<int>> messageLog =
 {
   { NrControlMessage::messageType::UL_DCI,      false },
   { NrControlMessage::messageType::DL_DCI, false },
@@ -62,7 +67,7 @@ static const std::unordered_map<NrControlMessage::messageType, bool> messageLog 
   { NrControlMessage::messageType::SR,       false },
 };
 
-typedef std::unordered_map<NrControlMessage::messageType, uint64_t> TypeToResult;
+typedef std::unordered_map<NrControlMessage::messageType, uint64_t, std::hash<int>> TypeToResult;
 typedef std::unordered_map<uint32_t, TypeToResult> NumerologyToType;
 
 class NrTimingsTest : public TestCase
@@ -121,7 +126,7 @@ SendPacket (const Ptr<NetDevice> &device, const Address& addr)
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
 
-static const std::unordered_map <NrControlMessage::messageType, std::string> TYPE_TO_STRING =
+static const std::unordered_map <NrControlMessage::messageType, std::string, std::hash<int>> TYPE_TO_STRING =
 {
   { NrControlMessage::messageType::UL_DCI,   "UL_DCI" },
   { NrControlMessage::messageType::DL_DCI,   "DL_DCI" },

@@ -77,6 +77,12 @@ public:
    */
   double GetElevation () const;
 
+  /*
+   * \brief Create BeamId with 0 sector and 0 elevation
+   * \return BeamId (0,0)
+   */
+  static BeamId GetEmptyBeamId ();
+
 private:
 
   uint16_t m_sector {0};  //!< sector of the beam
@@ -90,6 +96,14 @@ private:
  * \ingroup utils
  */
 const BeamId OMNI_BEAM_ID = BeamId (UINT16_MAX, UINT16_MAX);
+
+// we reserve pair 65534, 65534 to identify the directional predefined beam
+/**
+ * \brief Reserved ID for the predefined directional beam if it cannot be expressed
+ * through sector and elevation
+ * \ingroup utils
+ */
+const BeamId PREDEFINED_BEAM_ID = BeamId (UINT16_MAX-1, UINT16_MAX-1);
 
 /**
  * \brief Calculate the hash of a BeamId

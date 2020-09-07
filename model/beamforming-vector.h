@@ -22,6 +22,7 @@
 
 #include "beam-id.h"
 #include <ns3/three-gpp-antenna-array-model.h>
+#include <ns3/mobility-model.h>
 
 namespace ns3{
 
@@ -58,7 +59,20 @@ complexVector_t CreateQuasiOmniBfv (uint32_t antennaRows, uint32_t antennaColumn
  * \param elevation elevation to be used
  * \return the beamforming vector
  */
-complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>& antenna, uint16_t sector, double elevation);
+complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>& antenna,
+                                      uint16_t sector, double elevation);
+
+/**
+ * \brief Get directs path beamforming vector bfv for a device with the mobility model
+ * a for transmission toward device with a mobility model b, by using antenna aAntenna.
+ * \param [in] a mobility model of the first device
+ * \param [in] b mobility model of the second device
+ * \param [in] aAntenna antenaArray of the first device
+ * \param [out] bfv resulting beamforming vector for antenna array for the first device
+ */
+complexVector_t CreateDirectPathBfv(const Ptr<MobilityModel>& a,
+                                    const Ptr<MobilityModel>& b,
+                                    const Ptr<const ThreeGppAntennaArrayModel>& antenna);
 
 }
 

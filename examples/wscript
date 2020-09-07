@@ -25,7 +25,16 @@ def build(bld):
     obj.source = 'cttc-error-model-amc.cc'
     obj = bld.create_ns3_program('cttc-error-model-comparison', ['nr', 'internet-apps'])
     obj.source = 'cttc-error-model-comparison.cc'
-#    obj = bld.create_ns3_program('cttc-simple-interference-example', ['nr', 'internet-apps', 'stats'])
-#    obj.source = 'cttc-simple-interference-example.cc'
-    obj = bld.create_ns3_program('s3-scenario', ['nr','flow-monitor'])
-    obj.source = 's3-scenario.cc'
+    obj = bld.create_ns3_program('cttc-channel-randomness', ['nr'])
+    obj.source = 'cttc-channel-randomness.cc'
+    obj = bld.create_ns3_program('rem-example', ['nr'])
+    obj.source = 'rem-example.cc'
+    obj = bld.create_ns3_program('rem-beam-example', ['nr'])
+    obj.source = 'rem-beam-example.cc'
+    obj = bld.create_ns3_program('cttc-fh-compression', ['nr','flow-monitor'])
+    obj.source = 'cttc-fh-compression.cc'
+
+
+    bld.recurse('lena-lte-comparison')
+
+

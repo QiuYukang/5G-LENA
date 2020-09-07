@@ -759,7 +759,7 @@ Note also that, in case of adaptive MCS, in the simulator, the gNBs DL data tran
 
 Transport block model
 =====================
-The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP.
+The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP. The incorporation of real MAC headers has recently started, so it is expected that in the next releases such tag will be removed. At the moment, we introduced the concept of MAC header to include the Buffer Status Report as a MAC Control Element, as it is defined by the standard (with some differences, to adapt it to the ancient LTE scheduler interface).
 
 **Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the TB size is computed in the simulator as follows:
 
@@ -815,6 +815,117 @@ X2 interface
 ************
 The simulator currently reuses the X2 interfaces of LENA ns-3 LTE. For details see:
 https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#x2
+
+
+NR REM Helper
+*************
+
+The purpose of the ``NrRadioEnvironmentMapHelper`` is to generate rem maps, where
+for each point on the map (rem point) a rem value is calculated (SNR/SINR/IPSD).
+The IPSD (Interference Power Spectral Density) corresponds to the aggregated
+received power of all signals at each rem point (treated as interference).
+
+For the nr radio environment helper we have introduced the following terminologies\:
+ * RTD(s) -> rem transmitting device(s)
+ * RRD -> rem receiving device
+
+As general case, the rem point is configured according to the RRD passed to the
+``NrRadioEnvironmentMapHelper`` (e.g. antenna configuration).
+
+Two general types of maps can be generated according to whether the BeamShape
+or CoverageArea is selected.
+The first case considers the configuration of the beamforming vectors (for each
+RTD) as defined by the user in the scenario script for which the REM maps
+(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSiso3gpp`
+where the first two figures depict the SNR (left) and SINR (right) for the case
+of two gNBs with antenna array configuration 8x8 and Isotropic elements, while
+the two figures on the bottom correspond to 3GPP element configuration.
+
+.. _fig-BSexamples:
+
+.. figure:: figures/BSiso3gpp.*
+   :align: center
+   :scale: 50 %
+
+   BeamShape map examples (left: SNR, right: SINR)
+
+In the second case, the beams are reconfigured during the map generation for
+each rem point in order to visualize the coverage area in terms of SNR, SINR
+and IPSD. Examples of the SNR (left) and SINR (right) CoverageArea maps for two
+gNBs with Isotropic/3GPP (top/bottom) antenna elements are presented in
+Figure :ref:`fig-CAiso3gpp`.
+
+.. _fig-CAexamples:
+
+.. figure:: figures/CAiso3gpp.*
+   :align: center
+   :scale: 50 %
+
+   CoverageArea map examples (left: SNR, right: SINR)
+
+The ``NrRadioEnvironmentMapHelper`` allows also the visualization of the coverage
+holes when buildings are included in the deployment. An example is given in
+Figure :ref:`fig-CAexamplesBuildings`, where Isotropic antenna elements were
+configured to both gNBs of the example.
+
+.. _fig-CAexamplesBuildings:
+
+.. figure:: figures/CAexamplesBuildings.*
+   :align: center
+   :scale: 50 %
+
+   CoverageArea map examples with buildings (left: SNR, right: SINR)
+
+An example for a hexagonal deployment is given in Figure :ref:`fig-UmaRma`. In this
+example the REM depicts a scenario for the frequency band of 2GHz, BW of 10 MHz,
+while the Inter-Site Distance (ISD) has been set to 1732m for the Urban case (top)
+and 7000m for the Rural case (bottom). The transmit power has been set to 43 dBm.
+
+.. _fig-S3:
+
+.. figure:: figures/UmaRma.*
+   :align: center
+   :scale: 50 %
+
+   Hexagonal Topology (BeamShape) map examples (left: SNR, right: SINR)
+
+Finally, Figure :ref:`fig-HetNet` presents an example of a Heterogeneous Network
+(HetNet) of 7 Macro sites and 3 randomly deployed Small Cells.
+
+.. _fig-HetNet:
+
+.. figure:: figures/HetNet.*
+   :align: center
+   :scale: 75 %
+
+   Heterogeneous Network map example (left: SNR, right: SINR)
+
+The ``NrRadioEnvironmentMapHelper`` gives the possibility to generate maps either
+for the DL or the UL direction. This can be done by passing to the rem helper
+the desired transmitting device(s) (RTD(s)) and receiving device (RRD), which
+for the DL case correspond to gNB(s) and UE, respectively, while for the UL
+case to UE(s) and gNB, respectively. An example of an UL case is given in
+Figure :ref:`fig-UlRemHex`, for the hexagonal topology presented in Figure :ref:`fig-S3`
+above (Urban case), for 324 UEs with UE transmit power 23 dBm, antenna height 1.5m
+and 1x1 antenna array.
+
+.. _fig-UlRemHex:
+
+.. figure:: figures/UlRemHex.*
+   :align: center
+   :scale: 50 %
+
+   UL REM map example (IPSD)
+
+In addition, an UL map can be generated to visualize the coverage area of a tx
+device (UE), while there is the possibility to add interference from DL gNB
+device(s) to study a worst case mixed FDD-TDD scenario.
+
+Let us notice that for the SNR/SINR/IPSD calculations at each REM Point the
+channel is re-created to avoid spatial and temporal dependencies among
+independent REM calculations. Moreover, the calculations are the average of
+N iterations (specified by the user) in order to consider the randomness of
+the channel.
 
 
 NR-U extension
@@ -970,12 +1081,12 @@ https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
 
 cttc-3gpp-channel-example.cc
 ============================
-The program ``examples/cttc-3gpp-channel-example`` allows the user to setup a 
-simulation using the implementation of the 3GPP channel model decribed in TR 38.900. 
-The network topology consists, by default, of 2 UEs and 2 gNbs. The user can 
-select any of the typical scenarios in TR 38.900 such as Urban Macro (UMa), 
-Urban Micro Street-Canyon (UMi-Street-Canyon), Rural Macro (RMa) or Indoor 
-Hotspot (InH) in two variants: 'InH-OfficeMixed' and 'InH-OfficeOpen'. The 
+The program ``examples/cttc-3gpp-channel-example`` allows the user to setup a
+simulation using the implementation of the 3GPP channel model decribed in TR 38.900.
+The network topology consists, by default, of 2 UEs and 2 gNbs. The user can
+select any of the typical scenarios in TR 38.900 such as Urban Macro (UMa),
+Urban Micro Street-Canyon (UMi-Street-Canyon), Rural Macro (RMa) or Indoor
+Hotspot (InH) in two variants: 'InH-OfficeMixed' and 'InH-OfficeOpen'. The
 example also supports either mobile or static UEs.
 
 The complete details of the simulation script are provided in
@@ -984,14 +1095,14 @@ https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
 cttc-lte-ca-demo.cc
 ===================
 The program ``examples/cttc-lte-ca-demo`` allows the user to setup a simulation
-to test the configuration of inter-band Carrier Aggregation in an LTE deployment. 
-One Component Carrier (CC) is created in LTE Band 40 and two CCs are created in 
+to test the configuration of inter-band Carrier Aggregation in an LTE deployment.
+One Component Carrier (CC) is created in LTE Band 40 and two CCs are created in
 LTE Band 38. The second CC in Band 38 can be configured to operate in TDD or FDD
 mode; the other two CCs are fixed to TDD.  The user can provide the TDD pattern
 to use in every TDD CC as input.
 
-In this example, the deployment consists of one gNB and one UE. The UE can be 
-configure to transmit different traffic flows simultaneously. Each flow is mapped 
+In this example, the deployment consists of one gNB and one UE. The UE can be
+configure to transmit different traffic flows simultaneously. Each flow is mapped
 to a unique CC, so the total UE traffic can be aggregated.
 
 The complete details of the simulation script are provided in
@@ -1000,22 +1111,22 @@ https://cttc-lena.gitlab.io/nr/cttc-lte-ca-demo_8cc.html
 cttc-nr-cc-bwp-demo.cc
 ======================
 The program ``examples/cttc-nr-cc-bwp-demo`` allows the user to setup a simulation
-to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment. 
+to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment.
 The example shows how to configure the operation spectrum by definining all the
-operation bands, Component Carriers (CCs) and Bandwidth Parts (BWPs) that will 
-be used in the simulation. The user can select whether the creation of the spectrum 
-structures is automated with the CcBwpCreator helper; or if the user wants to 
+operation bands, CCs and BWPs that will
+be used in the simulation. The user can select whether the creation of the spectrum
+structures is automated with the CcBwpCreator helper; or if the user wants to
 manually provide a more complex spectrum configuration.
 
-In this example, the NR deployment consists of one gNB and one UE. The operation 
+In this example, the NR deployment consists of one gNB and one UE. The operation
 mode is set to TDD. The user can provide a TDD pattern as input to the simulation;
-otherwise the simulation will assume by default that dowlink and uplink 
+otherwise the simulation will assume by default that dowlink and uplink
 transmissions can occur in the same slot.
 
-The UE can be configured to transmit three different traffic flows simultaneously. 
-Each flow is mapped to a unique CC, so the total UE traffic can be aggregated. 
-The generated traffic can be only downlink (DL), only Uplink (UL), or both at the 
-same time. UE data transmissions will occur in the right DL or UL slot according 
+The UE can be configured to transmit three different traffic flows simultaneously.
+Each flow is mapped to a unique CC, so the total UE traffic can be aggregated.
+The generated traffic can be only DL, only UL, or both at the
+same time. UE data transmissions will occur in the right DL or UL slot according
 to the configured TDD pattern.
 
 The complete details of the simulation script are provided in
@@ -1024,30 +1135,39 @@ https://cttc-lena.gitlab.io/nr/cttc-nr-cc-bwp-demo_8cc.html
 cttc-nr-demo.cc
 ===============
 The program ``examples/cttc-nr-demo`` is recommended as a tutorial to the use of
-the ns-3 NR module. In this example, the user can understand the basics to 
+the ns-3 NR module. In this example, the user can understand the basics to
 successfully configure a full NR simulation with end-to-end data transmission.
 
-Firtly, the example creates the network deployment using the GridScenario helper. 
-By default, the deployment consists of a single gNB and two UEs, but the user 
+Firtly, the example creates the network deployment using the GridScenario helper.
+By default, the deployment consists of a single gNB and two UEs, but the user
 can provide a different number of gNBs and UEs per gNB.
 
-The operation mode is set to TDD. The user can provide a TDD pattern as input to 
-the simulation; otherwise the simulation will assume by default that dowlink and 
+The operation mode is set to TDD. The user can provide a TDD pattern as input to
+the simulation; otherwise the simulation will assume by default that dowlink and
 uplink transmissions can occur in the same slot.
 
-The example performs inter-band Carrier Aggregation of two Component Carriers 
-(CC), and each CC has one Bandwidth Part (BWP) occupying the whole CC bandwidth. 
+The example performs inter-band Carrier Aggregation of two CC, and each CC has one BWP occupying the whole CC bandwidth.
 
-It is possible to set different configurations for each CC such as the numerology, 
-the transmission power or the TDD pattern. In addition, each gNB can also have a 
+It is possible to set different configurations for each CC such as the numerology,
+the transmission power or the TDD pattern. In addition, each gNB can also have a
 different configuration of its CCs.
 
-The UE can be configure to transmit two traffic flows simultaneously. Each flow 
+The UE can be configure to transmit two traffic flows simultaneously. Each flow
 is mapped to a single CC, so the total UE traffic can be aggregated.
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-nr-demo_8cc.html
 
+s3-scenario.cc
+===============
+The program ``examples/s3-scenario`` allows the user to run a multi-cell network deployment with site sectorization.
+
+The deployment follows the typical hexagonal grid topology and it is composed of 21 sectorized sites. Each site has 3 sectors, with 3 antennas pointing in different directions. Sectors are equally sized, meaning that each sector covers 120º in azimuth. The deployment assumes a frequency reuse of 3, which is typical in cellular networks. This means that each sector of a site transmits in a separate frequency bands called sub-bands, so sectors of the same site do not interfere. Sub-bands are centered in different frequencies but they all have the same bandwidth. Sub-band utilization is repeated for all sites. The Inter-Site Distance (ISD) is configurable. Although, we use two possible values, one for each of the target scenarios. The two scenarios in consideration are: Urban Macro (UMa), where ISD = 500 metres; and Urban Micro (UMi), where ISD = 200 metres The choice of UMa or UMi determines the value of scenario-specific parameters, such as the height of the gNB, the transmit power, and the propagation model.
+
+The list of simulation parameters that can be provided as input parameters in the simulation run command are defined in the example script. They include, among others, the scenario (UMa or UMi), the number of rings (0, 1, 2, 3), the number of UEs per sector, the packet size, the numerology, the TDD pattern, and the direction (DL or UL).
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/s3-scenario_8cc.html
 
 
 Validation
@@ -1099,14 +1219,17 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-numerology-delay_8cc.html
 
 
+Test for CC/BWP
+===============
+Test case called ``nr-lte-cc-bwp-configuration`` validates that the creation of operation bands, CCs and BWPs is correct within the limitations of the NR implementation. The main limitation of BWPs is that they do not overlap, because in such case, the interference calculation would be erroneous. This test also proves that the creation of BWP information with the CcBwpHelper is correct.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-lte-cc-bwp-configuration_8cc.html
+
+
 Test of numerology FDM
 ======================
-To test the FDM of numerologies, we have implemented
-the ``NrTestFdmOfNumerologiesTestSuite``, in which the gNB is configured to
-operate with
-2 BWPs. The test checks if the achieved throughput of a flow over a specific
-BWP is proportional to the
-bandwidth of the BWP through which it is multiplexed.
+To test the FDM of numerologies, we have implemented the ``nr-test-fdm-of-numerologies``, in which the gNB is configured to operate with 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the bandwidth of the BWP through which it is multiplexed. The scenario consists of two UEs that are attached to a gNB but served through different BWPs, with UDP full buffer downlink traffic. Since the traffic is full buffer traffic, it is expected that when more bandwidth is provided, more throughput will be achieved and vice versa.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
@@ -1114,27 +1237,31 @@ https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
 
 Test for NR schedulers
 ======================
-To test the NR schedulers, we have implemented a system test called
-``NrSystemTestSchedulers`` whose purpose is to test that the
+To test the NR schedulers, we have implemented various system tests called
+``nr-system-test-schedulers-tdma/ofdma-mr/pf/rr`` whose purpose is to test that the
 NR schedulers provide a required amount of resources to all UEs, for both cases,
 the downlink and the uplink. The topology consists of a single gNB and
 variable number of UEs, which are distributed among variable number of beams.
 Test cases are designed in such a way that the offered rate for the flow
 of each UE is dimensioned in such a way that each of the schedulers under the
 selected topology shall provide at least the required service to each of the UEs.
-The system test suite for NR schedulers creates a various number of test cases
-that check different system configuration by choosing
+Different system tests cases are available for the various modes of scheduling (OFDMA and TDMA) and different scheduling algorithms (RR, PR, MR) supported in the simulator. Each of the test cases checks different system configuration by choosing
 different number of UEs, number of beams, numerology, traffic direction (DL, UL,
-DL and UL), modes of scheduling (OFDMA and TDMA) and
-different scheduling algorithms (RR, PR, MR).
+DL and UL).
 
-The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-sched_8cc.html
+The complete details of the validation scripts are provided in
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-mr_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-pf_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-rr_8cc.html,
+https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-mr_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-pf_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-rr_8cc.html
+
+The base class for all the scheduler tests is
+https://cttc-lena.gitlab.io/nr/system-scheduler-test_8h.html
 
 
-Test for error model
-====================
-Test case called ``NrL2smEesmTestCase`` validates specific functions of the NR
+Test for NR error model
+=======================
+Test case called ``nr-test-l2sm-eesm`` validates specific functions of the NR
 PHY abstraction model.
 The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
 BLER values are properly obtained from the BLER-SINR look up tables for different
@@ -1144,10 +1271,10 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
 
 
-Test for antenna model
-======================
-Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations 
-of the antenna array model by checking if the throughput/SINR/MCS obtained is as 
+Test for 3GPP antenna model
+===========================
+Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations
+of the antenna array model by checking if the throughput/SINR/MCS obtained is as
 expected. The test scenario consists of one gNB and a single UE attached to the
 gNB. Different positions of the UE are evaluated.
 
@@ -1157,7 +1284,7 @@ https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
 
 Test for TDD patterns
 =====================
-Test case called ``LtePatternTestCase`` validates the maps generated from the function
+Test case called ``nr-lte-pattern-generation`` validates the maps generated from the function
 ``NrGnbPhy::GenerateStructuresFromPattern`` that indicate the slots that the DL/UL
 DCI and DL HARQ Feedback have to be sent/generated, as well as the scheduling timings
 (K0, K1, k2) that indicate the slot offset to be applied at the UE side for the reception
@@ -1168,7 +1295,7 @@ TDD patterns and compares the output with a predefined set of the expected resul
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-lte-pattern-generation_8cc.html
 
-Test case called ``LtePhyPatternTestCase`` creates a fake MAC that checks if, that
+Test case called ``nr-phy-patterns`` creates a fake MAC that checks if, that
 when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
 In other words, if the PHY calls the UL slot allocation for a slot that should be DL,
 the test will fail.
@@ -1176,6 +1303,29 @@ the test will fail.
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
 
+
+Test for spectrum phy
+=====================
+Test case called ``test-nr-spectrum-phy`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-nr-spectrum-phy_8h.html
+
+
+Test for frame/subframe/slot number
+===================================
+Test case called ``test-sfnsf`` is a unit-test for the frame/subframe/slot numbering, along with the numerology. The test checks that the normalized slot number equals a monotonically-increased integer, for every numerology.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-sfnsf_8cc.html
+
+
+Test for NR timings
+===================
+Test case called ``test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL DCI messages, improvements are more than welcome.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/test-timings_8cc.html
 
 
 Open issues and future work

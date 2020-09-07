@@ -261,7 +261,7 @@ CcBwpCreator::GetAllBwps(const std::vector<std::reference_wrapper<OperationBandI
 }
 
 void
-CcBwpCreator::PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo> &bands,
+CcBwpCreator::PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo *> &bands,
                                         const std::string &filename)
 {
 
@@ -282,13 +282,13 @@ CcBwpCreator::PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo> &ba
   double maxFreq = 0;
   for (const auto & band : bands)
     {
-      if (band.m_lowerFrequency < minFreq)
+      if (band->m_lowerFrequency < minFreq)
         {
-          minFreq = band.m_lowerFrequency;
+          minFreq = band->m_lowerFrequency;
         }
-      if (band.m_higherFrequency > maxFreq)
+      if (band->m_higherFrequency > maxFreq)
         {
-          maxFreq = band.m_higherFrequency;
+          maxFreq = band->m_higherFrequency;
         }
     }
 
@@ -310,20 +310,20 @@ CcBwpCreator::PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo> &ba
   for (const auto & band : bands)
     {
       std::string label = "n";
-      uint16_t bandId = static_cast<uint16_t> (band.m_bandId);
+      uint16_t bandId = static_cast<uint16_t> (band->m_bandId);
       label += std::to_string (bandId);
-      PlotFrequencyBand (outFile, index, band.m_lowerFrequency * 1e-6, band.m_higherFrequency * 1e-6,
+      PlotFrequencyBand (outFile, index, band->m_lowerFrequency * 1e-6, band->m_higherFrequency * 1e-6,
                          70, 90, label);
       index++;
-      for (uint32_t i = 0; i < band.m_cc.size (); ++i)
+      for (uint32_t i = 0; i < band->m_cc.size (); ++i)
         {
-          const auto & cc = band.m_cc.at (i);
+          const auto & cc = band->m_cc.at (i);
           uint16_t ccId = static_cast<uint16_t> (cc->m_ccId);
           label = "CC" + std::to_string (ccId);
           PlotFrequencyBand (outFile, index, cc->m_lowerFrequency * 1e-6, cc->m_higherFrequency * 1e-6,
                              40, 60, label);
           index++;
-          for (uint32_t j = 0; j < cc->m_bwp.size (); ++i)
+          for (uint32_t j = 0; j < cc->m_bwp.size (); ++j)
             {
               const auto & bwp = cc->m_bwp.at (j);
               uint16_t bwpId = static_cast<uint16_t> (bwp->m_bwpId);
@@ -341,7 +341,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration (const std::vector<OperationBandInfo> &ba
 }
 
 void
-CcBwpCreator::PlotLteCaConfiguration (const std::vector<OperationBandInfo> &bands,
+CcBwpCreator::PlotLteCaConfiguration (const std::vector<OperationBandInfo *> &bands,
                                       const std::string &filename)
 {
   std::ofstream outFile;
@@ -359,13 +359,13 @@ CcBwpCreator::PlotLteCaConfiguration (const std::vector<OperationBandInfo> &band
   double maxFreq = 0;
   for (const auto & band : bands)
     {
-      if (band.m_lowerFrequency < minFreq)
+      if (band->m_lowerFrequency < minFreq)
         {
-          minFreq = band.m_lowerFrequency;
+          minFreq = band->m_lowerFrequency;
         }
-      if (band.m_higherFrequency > maxFreq)
+      if (band->m_higherFrequency > maxFreq)
         {
-          maxFreq = band.m_higherFrequency;
+          maxFreq = band->m_higherFrequency;
         }
     }
 
@@ -387,14 +387,14 @@ CcBwpCreator::PlotLteCaConfiguration (const std::vector<OperationBandInfo> &band
   for (const auto & band : bands)
     {
       std::string label = "n";
-      uint16_t bandId = static_cast<uint16_t> (band.m_bandId);
+      uint16_t bandId = static_cast<uint16_t> (band->m_bandId);
       label += std::to_string (bandId);
-      PlotFrequencyBand (outFile, index, band.m_lowerFrequency * 1e-6, band.m_higherFrequency * 1e-6,
+      PlotFrequencyBand (outFile, index, band->m_lowerFrequency * 1e-6, band->m_higherFrequency * 1e-6,
                          70, 90, label);
       index++;
-      for (uint32_t i = 0; i < band.m_cc.size (); ++i)
+      for (uint32_t i = 0; i < band->m_cc.size (); ++i)
         {
-          const auto & cc = band.m_cc.at (i);
+          const auto & cc = band->m_cc.at (i);
           uint16_t ccId = static_cast<uint16_t> (cc->m_ccId);
           label = "CC" + std::to_string (ccId);
           PlotFrequencyBand (outFile, index, cc->m_lowerFrequency * 1e-6, cc->m_higherFrequency * 1e-6,
@@ -431,7 +431,7 @@ std::string
 BandwidthPartInfo::GetScenario () const
 {
   NS_LOG_FUNCTION (this);
-  static std::unordered_map <Scenario, std::string> lookupTable
+  static std::unordered_map <Scenario, std::string, std::hash<int>> lookupTable
   {
     { RMa, "RMa"},
     { RMa_LoS, "RMa"},
@@ -444,6 +444,8 @@ BandwidthPartInfo::GetScenario () const
     { UMi_StreetCanyon_nLoS, "UMi-StreetCanyon" },
     { InH_OfficeOpen, "InH-OfficeOpen" },
     { InH_OfficeMixed, "InH-OfficeMixed" },
+    { UMa_Buildings, "UMa" },
+    { UMi_Buildings, "UMi-StreetCanyon" },
   };
 
   return lookupTable[m_scenario];
@@ -454,7 +456,11 @@ operator<< (std::ostream & os, ComponentCarrierInfo const & item)
 {
   os << "id: " << +item.m_ccId << " lower freq " << item.m_lowerFrequency/1e6 <<
         " MHz central freq " << item.m_centralFrequency/1e6 << " MHz higher freq " <<
-        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz.";
+        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz." << std::endl;
+  for (const auto & bwp : item.m_bwp)
+    {
+      os << "\t\t" << *bwp << std::endl;
+    }
   return os;
 }
 
@@ -463,7 +469,11 @@ operator<< (std::ostream & os, OperationBandInfo const & item)
 {
   os << "id: " << +item.m_bandId << " lower freq " << item.m_lowerFrequency/1e6 <<
         " MHz central freq " << item.m_centralFrequency/1e6 << " MHz higher freq " <<
-        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz.";
+        item.m_higherFrequency/1e6 << " MHz bw " << item.m_channelBandwidth/1e6 << " MHz." << std::endl;
+  for (const auto & cc : item.m_cc)
+    {
+      os << "\t" << *cc << std::endl;
+    }
   return os;
 }
 

@@ -231,9 +231,9 @@ NrEesmErrorModel::CodeBlockSegmentation (uint32_t B, GraphType bg_type) const
 
   // returns an iterator pointing to the first element in the range [first,last)
   // which compares greater than the third parameter.
-  std::vector<uint16_t>::const_iterator ZcIt = std::upper_bound (LiftingSizeTableBG.begin (),
-                                                                 LiftingSizeTableBG.end (),
-                                                                 (static_cast<double> (K1) / Kb) + 0.001);
+  auto ZcIt = std::upper_bound (LiftingSizeTableBG.begin (),
+                                --LiftingSizeTableBG.end (),
+                                (static_cast<double> (K1) / Kb) + 0.001);
   uint16_t Zc = *ZcIt;
   uint32_t K;
 

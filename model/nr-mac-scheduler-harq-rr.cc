@@ -255,6 +255,7 @@ NrMacSchedulerHarqRr::ScheduleUlHarq (NrMacSchedulerNs3::PointInFTPlane *startin
       NS_ASSERT(harqProcess.m_status == HarqProcess::RECEIVED_FEEDBACK);
 
       harqProcess.m_status = HarqProcess::WAITING_FEEDBACK;
+      harqProcess.m_timer = 0;
       auto & dciInfoReTx = harqProcess.m_dciElement;
 
       NS_LOG_INFO ("Feedback is for UE " << rnti << " process " << +harqId <<

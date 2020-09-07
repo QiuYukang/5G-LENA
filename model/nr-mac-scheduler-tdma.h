@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include "nr-mac-scheduler-ns3-base.h"
+#include "nr-mac-scheduler-ns3.h"
 #include <memory>
 #include <functional>
 
@@ -71,7 +71,7 @@ namespace ns3 {
  * \see NrMacSchedulerTdmaPF
  * \see NrMacSchedulerTdmaMR
  */
-class NrMacSchedulerTdma : public NrMacSchedulerNs3Base
+class NrMacSchedulerTdma : public NrMacSchedulerNs3
 {
 public:
   /**
@@ -97,7 +97,8 @@ protected:
   CreateDlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
                uint32_t maxSym) const override;
   virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo) const override;
+  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+               uint32_t maxSym) const override;
 
   /**
    * \brief Not doing anything, moving forward the spoint is done by CreateDci
@@ -218,6 +219,16 @@ protected:
   virtual void
   BeforeUlSched (const UePtrAndBufferReq &ue,
                  const FTResources &assignableInIteration) const = 0;
+private:
+  /**
+   * \brief Retrieve the UE vector from an ActiveUeMap
+   * \param activeUes UE map
+   * \return A Vector of UEs and their buffer requirements (in B)
+   *
+   * Really used only in TDMA scheduling. Worth moving?
+   */
+  static std::vector<UePtrAndBufferReq>
+  GetUeVectorFromActiveUeMap (const ActiveUeMap &activeUes);
 
 private:
   typedef std::function<void (const UePtrAndBufferReq &, const FTResources &)> BeforeSchedFn; //!< Before scheduling function

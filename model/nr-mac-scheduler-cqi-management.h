@@ -81,6 +81,7 @@ public:
    * \param info WB CQI
    * \param ueInfo UE
    * \param expirationTime expiration time of the CQI in number of slot
+   * \param maxDlMcs maximum DL MCS index
    *
    * Store the CQI information inside the m_dlCqi value of the UE, and then
    * calculate the corresponding MCS through NrAmc. The information is
@@ -88,7 +89,7 @@ public:
    * here.
    */
   void DlWBCQIReported (const DlCqiInfo &info, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                        uint32_t expirationTime) const;
+                        uint32_t expirationTime, int8_t maxDlMcs) const;
   /**
    * \brief SB CQI reported
    * \param info SB CQI
@@ -104,6 +105,8 @@ public:
    * \param tbs TBS of the allocation
    * \param params parameters of the received CQI
    * \param ueInfo UE info
+   * \param startRb Start RB
+   * \param numRb Number of RB
    * \param model SpectrumModel to calculate the CQI
    *
    * To calculate the UL MCS, is necessary to remember the allocation done to
@@ -119,6 +122,7 @@ public:
   void UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                         const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                         const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                        uint16_t startRb, uint16_t numRb,
                         const Ptr<const SpectrumModel> &model) const;
 
   /**

@@ -36,9 +36,8 @@ using namespace ns3;
 /**
  * \ingroup test
  * \file test-antenna-3gpp-model-conf.cc
- * \brief Test the 3GPP Antenna
  *
- * This test case checks if the throughput/SINR/MCS
+ * \brief This test case checks if the throughput/SINR/MCS
  * obtained is as expected for the configured antenna model and for
  * different positions of UE. The test scenario consists of a scenario in
  * which a single UE is attached to a gNB.
