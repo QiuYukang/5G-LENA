@@ -651,13 +651,13 @@ public:
    * \brief Set the pool id of the active pool
    * \param poolId The pool id
    */
-  void SetSlActivePoolId (uint8_t poolId);
+  void SetSlActivePoolId (uint16_t poolId);
 
   /**
    * \brief Get the pool id of the active pool
    * \return the pool id
    */
-  uint8_t GetSlActivePoolId () const;
+  uint16_t GetSlActivePoolId () const;
 
   /**
    * \brief Set Reservation Period for NR Sidelink
@@ -934,7 +934,7 @@ private:
   uint8_t m_t1 {0}; //!< The offset in number of slots between the slot in which the resource selection is triggered and the start of the selection window
   uint16_t m_t2 {0}; //!< The offset in number of slots between T1 and the end of the selection window
   std::map <SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters> m_nrSlBsrReceived; ///< NR Sidelink BSR received from RLC
-  uint8_t m_poolId {std::numeric_limits <uint8_t>::max ()};
+  uint16_t m_poolId {std::numeric_limits <uint16_t>::max ()};
   NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser           {nullptr};  //!< SAP user
   NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser         {nullptr};  //!< SAP User
   NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider {nullptr};  //!< SAP Provider

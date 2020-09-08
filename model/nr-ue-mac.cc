@@ -40,6 +40,7 @@
 #include "nr-sl-sci-f02-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include <algorithm>
+#include <bitset>
 
 namespace ns3 {
 
@@ -315,7 +316,7 @@ NrUeMac::GetTypeId (void)
                    UintegerValue (0),
                    MakeUintegerAccessor (&NrUeMac::SetSlActivePoolId,
                                          &NrUeMac::GetSlActivePoolId),
-                                         MakeUintegerChecker<uint8_t> ())
+                                         MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("ReservationPeriod",
                    "Resource Reservation Interval for NR Sidelink in ms"
                    "Must be among the values included in LteRrcSap::SlResourceReservePeriod",
@@ -656,8 +657,17 @@ NrUeMac::DoSlotIndication (const SfnSf &sfn)
       m_srState = ACTIVE;
     }
 
-  DoNrSlSlotIndication (sfn);
-
+  if (m_nrSlUeCmacSapUser != nullptr)
+    {
+      std::vector <std::bitset<1>> phyPool = m_slTxPool->GetNrSlPhyPool (GetBwpId (), m_poolId);
+      uint64_t absSlotIndex = sfn.Normalize ();
+      uint16_t absPoolIndex = absSlotIndex % phyPool.size ();
+      //trigger SL only when it is a SL slot
+      if (phyPool [absPoolIndex] == 1)
+        {
+          DoNrSlSlotIndication (sfn);
+        }
+    }
   // Feedback missing
 }
 
@@ -1837,14 +1847,14 @@ NrUeMac::SetT2 (uint16_t t2)
   m_t2 = t2;
 }
 
-uint8_t
+uint16_t
 NrUeMac::GetSlActivePoolId () const
 {
   return m_poolId;
 }
 
 void
-NrUeMac::SetSlActivePoolId (uint8_t poolId)
+NrUeMac::SetSlActivePoolId (uint16_t poolId)
 {
   m_poolId =  poolId;
 }
