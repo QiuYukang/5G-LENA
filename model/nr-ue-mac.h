@@ -815,6 +815,7 @@ private:
     uint8_t slResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Sidelink resource re-selection counter for the semi-persistently scheduled resources as per TS 38.214
     std::set <NrSlUeMacSchedSapUser::NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
     uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
+    uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
   };
 
   /**
