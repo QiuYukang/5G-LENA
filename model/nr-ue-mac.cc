@@ -37,6 +37,7 @@
 #include "nr-sl-ue-mac-csched-sap.h"
 #include "nr-sl-ue-mac-harq.h"
 #include "nr-sl-sci-f01-header.h"
+#include "nr-sl-sci-f02-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include <algorithm>
 
@@ -1322,12 +1323,12 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
               NS_LOG_DEBUG ("LC " << static_cast <uint16_t> (it.lcid) << " was assigned " << it.size << "bytes");
               tbs += it.size;
             }
-          Ptr<Packet> p = Create<Packet> ();
-          p->AddHeader (sciF01);
+          Ptr<Packet> pktSciF01 = Create<Packet> ();
+          pktSciF01->AddHeader (sciF01);
           NrSlMacPduTag tag (m_rnti, grant->sfn, grant->indexSymStart, grant->SymLength, tbs, grant->dstL2Id);
-          p->AddPacketTag (tag);
+          pktSciF01->AddPacketTag (tag);
 
-          m_nrSlUePhySapProvider->SendPscchMacPdu (p);
+          m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF01);
 
           // Collect statistics for NR SL PSCCH UE MAC scheduling trace
           SlPscchUeMacStatParameters pscchStatsParams;
@@ -1345,8 +1346,78 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           pscchStatsParams.gapReTx2 = grant->gapReTx2;
           m_slPscchScheduling (pscchStatsParams); //Trace
 
+          //prepare and send SCI format 02 message
+          NrSlSciF02Header sciF02;
+          if (grant->ndi)
+            {
+              uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()};
+              nrSlHarqId = m_nrSlHarq->AssignNrSlHarqProcessId (grant->dstL2Id);
+              sciF02.SetHarqId (nrSlHarqId);
+              itGrantInfo.second.nrSlHarqId = nrSlHarqId;
+            }
+          else
+            {
+              sciF02.SetHarqId (itGrantInfo.second.nrSlHarqId);
+            }
+          sciF02.SetNdi (grant->ndi);
+          sciF02.SetRv (grant->rv);
+          sciF02.SetSrcId (m_srcL2Id);
+          sciF02.SetDstId (grant->dstL2Id);
+          //fields which are not used yet that is why we set them to 0
+          sciF02.SetCsiReq (0);
+          sciF02.SetZoneId (0);
+          sciF02.SetCommRange (0);
+          Ptr<Packet> pktSciF02 = Create<Packet> ();
+          pktSciF02->AddHeader (sciF02);
+          //put SCI stage 2 in PSSCH queue
+          m_nrSlUePhySapProvider->SendPsschMacPdu (pktSciF02);
 
-
+          if (grant->ndi)
+            {
+              for (const auto & itLcRlcPduInfo : grant->slRlcPduInfo)
+                {
+                  SidelinkLcIdentifier slLcId;
+                  slLcId.lcId = itLcRlcPduInfo.lcid;
+                  slLcId.srcL2Id = m_srcL2Id;
+                  slLcId.dstL2Id = grant->dstL2Id;
+                  const auto & itLc = m_nrSlLcInfoMap.find (slLcId);
+                  NS_ASSERT_MSG (itLc != m_nrSlLcInfoMap.end (), "No LC with id " << +itLcRlcPduInfo.lcid << " found for destination " << grant->dstL2Id);
+                  NS_LOG_DEBUG ("Notifying NR SL RLC of TX opportunity for LC id " << +itLcRlcPduInfo.lcid << " for TB size " << itLcRlcPduInfo.size);
+                  NS_ASSERT_MSG (itGrantInfo.second.nrSlHarqId != std::numeric_limits <uint8_t>::max (), "HARQ id was not assigned for destination " << grant->dstL2Id);
+                  itLc->second.macSapUser->NotifyNrSlTxOpportunity (NrSlMacSapUser::NrSlTxOpportunityParameters (itLcRlcPduInfo.size, m_rnti, itLcRlcPduInfo.lcid,
+                                                                                                                 0, itGrantInfo.second.nrSlHarqId, GetBwpId (),
+                                                                                                                 m_srcL2Id, grant->dstL2Id));
+                }
+            }
+          else
+            {
+              //retx from MAC HARQ buffer
+              //we might want to match the LC ids in grant->slRlcPduInfo and
+              //the LC ids whose packets are in the packet bust in the HARQ
+              //buffer. I am not doing it at the moment as it might slow down
+              //the simulation.
+              Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+              if (m_enableBlindReTx)
+                {
+                  pb = m_nrSlHarq->GetPacketBurst (grant->dstL2Id, itGrantInfo.second.nrSlHarqId);
+                  NS_ASSERT_MSG (pb->GetNPackets () > 0, "Packet burst for HARQ id " << +itGrantInfo.second.nrSlHarqId << " is empty");
+                  for (const auto & itPkt : pb->GetPackets ())
+                    {
+                      m_nrSlUePhySapProvider->SendPsschMacPdu (itPkt);
+                    }
+                  if (grant->rv == grant->maxNumPerReserve - 1)
+                    {
+                      //generate fake feedback
+                      m_nrSlHarq->RecvNrSlHarqFeedback (grant->dstL2Id, itGrantInfo.second.nrSlHarqId);
+                    }
+                }
+              else
+                {
+                  //we need to have a feedback to do the retx when blind retx
+                  //are not enabled.
+                  NS_FATAL_ERROR ("Feedback based retransmissions are not supported");
+                }
+            }
         }
       else
         {
@@ -1530,8 +1601,11 @@ NrUeMac::GetNrSlUeCmacSapProvider ()
 void
 NrUeMac::DoTransmitNrSlRlcPdu (const NrSlMacSapProvider::NrSlRlcPduParameters &params)
 {
-  NS_LOG_FUNCTION (this);
-  NS_FATAL_ERROR ("Yet to be implemented");
+  NS_LOG_FUNCTION (this << +params.lcid << +params.harqProcessId);
+  LteRadioBearerTag bearerTag (params.rnti, params.lcid, 0);
+  params.pdu->AddPacketTag (bearerTag);
+  m_nrSlHarq->AddPacket (params.dstL2Id, params.lcid, params.harqProcessId, params.pdu);
+  m_nrSlUePhySapProvider->SendPsschMacPdu (params.pdu);
 }
 
 void
