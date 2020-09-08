@@ -116,19 +116,35 @@ NrSlUeMacHarq::AddPacket (uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Pa
 }
 
 void
-NrSlUeMacHarq::RecvSlHarqFeedback (uint32_t dstL2Id, uint8_t harqProcessId)
+NrSlUeMacHarq::RecvNrSlHarqFeedback (uint32_t dstL2Id, uint8_t harqProcessId)
 {
   NS_LOG_FUNCTION (this << dstL2Id << +harqProcessId);
   std::map <uint32_t, NrSlProcessesBuffer_t>::iterator it;
   it = m_nrSlProcessesPackets.find (dstL2Id);
   NS_ABORT_MSG_IF (it == m_nrSlProcessesPackets.end (), "the destination " << dstL2Id << " does not exist");
-  NS_ABORT_MSG_IF (it->second.at (harqProcessId).slProcessStatus == NrSlProcessInfo::BUSY,
+  NS_ABORT_MSG_IF (it->second.at (harqProcessId).slProcessStatus == NrSlProcessInfo::IDLE,
                    "Can not refresh HARQ buffer of already available SL process " << +harqProcessId << " of the destination " << dstL2Id);
   //refresh Sidelink process info
   it->second.at (harqProcessId).slProcessStatus = NrSlProcessInfo::IDLE;
   Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
   it->second.at (harqProcessId).pktBurst = pb;
   it->second.at (harqProcessId).lcidList.clear ();
+}
+
+Ptr<PacketBurst>
+NrSlUeMacHarq::GetPacketBurst (uint32_t dstL2Id, uint8_t harqId) const
+{
+  NS_LOG_FUNCTION (this << dstL2Id << +harqId);
+  std::map <uint32_t, NrSlProcessesBuffer_t>::const_iterator it;
+  it = m_nrSlProcessesPackets.find (dstL2Id);
+  NS_ABORT_MSG_IF (it == m_nrSlProcessesPackets.end (), "the destination " << dstL2Id << " does not exist");
+  Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+  if (it->second.at (harqId).slProcessStatus == NrSlProcessInfo::BUSY)
+    {
+      pb = it->second.at (harqId).pktBurst->Copy ();
+    }
+
+  return pb;
 }
 
 

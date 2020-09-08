@@ -95,11 +95,21 @@ public:
   void AddPacket (uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Packet> pkt);
 
   /**
-   * \brief Receive Sidelink Harq feedback
+   * \brief Get the packet burst from the Sidelink process buffer, which is identified
+   *        using destination L2 id and the HARQ id.
+   * \param dstL2Id The destination Layer 2 id
+   * \param harqId The HARQ id
+   * \return The packet burst
+   */
+  Ptr<PacketBurst> GetPacketBurst (uint32_t dstL2Id, uint8_t harqId) const;
+
+  /**
+   * \brief Receive NR Sidelink Harq feedback
    * \param dstL2Id Destination Layer 2 id
    * \param harqProcessId The harq process id
    */
-  void RecvSlHarqFeedback (uint32_t dstL2Id, uint8_t harqProcessId);
+  void RecvNrSlHarqFeedback (uint32_t dstL2Id, uint8_t harqProcessId);
+
 
 protected:
   /**
