@@ -246,7 +246,7 @@ main (int argc, char *argv[])
   DoBeamforming (rxDev, rxAntenna, txDev);
 
 
-  stream = channelModel->AssignStreams (stream);
+  channelModel->AssignStreams (stream);
 
   Ptr<const ThreeGppChannelModel::ChannelMatrix> channelMatrix1 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
 
@@ -272,8 +272,8 @@ main (int argc, char *argv[])
   channelModel->SetAttribute ("Scenario", StringValue (scenario));
   channelModel->SetAttribute ("ChannelConditionModel", PointerValue (condModel));
 
-  stream = 1;
-  stream = channelModel->AssignStreams (stream);
+
+  channelModel->AssignStreams (stream);
 
   Ptr<const ThreeGppChannelModel::ChannelMatrix> channelMatrix2 = channelModel->GetChannel (txMob, rxMob, txAntenna, rxAntenna);
 
@@ -285,7 +285,7 @@ main (int argc, char *argv[])
       }
   }*/
 
-  if (channelMatrix1 != channelMatrix2)
+  if (channelMatrix1->m_channel != channelMatrix2->m_channel)
   {
       std::cout << "matrices are different" << std::endl;
   }
