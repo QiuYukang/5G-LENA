@@ -37,6 +37,7 @@
 #include "ns3/nr-gnb-phy.h"
 #include "ns3/nr-ue-phy.h"
 #include "ns3/test.h"
+#include "ns3/three-gpp-channel-model.h"
 //#include "ns3/component-carrier-gnb.h"
 //#include "ns3/component-carrier-nr-ue.h"
 using namespace ns3;
@@ -104,6 +105,8 @@ NrTestFdmOfNumerologiesCase1::DoRun (void)
     Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -193,6 +196,48 @@ NrTestFdmOfNumerologiesCase1::DoRun (void)
 
     nrHelper->GetUePhy (ueNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue ( 10 * log10 ((m_bw1/totalBandwidth) * x)));
     nrHelper->GetUePhy (ueNetDev.Get (0), 1)->SetAttribute ("TxPower", DoubleValue ( 10 * log10 ((m_bw2/totalBandwidth) * x)));
+
+    nrHelper->GetUePhy (ueNetDev.Get (1), 0)->SetAttribute ("TxPower", DoubleValue ( 10 * log10 ((m_bw1/totalBandwidth) * x)));
+    nrHelper->GetUePhy (ueNetDev.Get (1), 1)->SetAttribute ("TxPower", DoubleValue ( 10 * log10 ((m_bw2/totalBandwidth) * x)));
+
+    for (uint32_t j = 0; j < gNbNodes.GetN(); ++j)
+      {
+        //We test 2 BWP in this test
+        for (uint8_t bwpId = 0; bwpId < 2; bwpId++)
+          {
+            Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetGnbPhy (enbNetDev.Get (j), bwpId)->GetSpectrumPhy ();
+            Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
+            Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
+            NS_ASSERT (propagationLossModel != nullptr);
+            propagationLossModel->AssignStreams (1);
+            Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+            channelConditionModel->AssignStreams (1);
+            Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+            NS_ASSERT (spectrumLossModel != nullptr);
+            Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
+            channel->AssignStreams (1);
+          }
+      }
+
+
+    for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+      {
+        //We test 2 BWP in this test
+        for (uint8_t bwpId = 0; bwpId < 2; bwpId++)
+          {
+            Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetUePhy (ueNetDev.Get (j), bwpId)->GetSpectrumPhy ();
+            Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
+            Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
+            NS_ASSERT (propagationLossModel != nullptr);
+            propagationLossModel->AssignStreams (1);
+            Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+            channelConditionModel->AssignStreams (1);
+            Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+            NS_ASSERT (spectrumLossModel != nullptr);
+            Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
+            channel->AssignStreams (1);
+          }
+      }
 
 
     for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
