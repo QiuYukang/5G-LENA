@@ -24,6 +24,7 @@
 #include "nr-phy-mac-common.h"
 #include <ns3/spectrum-value.h>
 #include "nr-sl-ue-phy-sap.h"
+#include "nr-sl-phy-mac-common.h"
 
 namespace ns3 {
 
@@ -627,10 +628,22 @@ public:
    * \return The packet burst
    */
   Ptr<PacketBurst> GetPsschPacketBurst ();
+  /**
+   * \brief Set the allocation info for NR SL slot
+   * \param allocInfo The slot allocation info
+   */
+  void DoSetNrSlAllocInfo (NrSlSlotAlloc allocInfo);
+  /**
+   * \brief Get the allocation info for NR SL slot
+   * \return The slot allocation info
+   */
+  NrSlSlotAlloc GetNrSlAllocationInfo ();
+
 
 protected:
   std::vector< Ptr<PacketBurst> > m_nrSlPscchPacketBurstQueue; //!< A queue of NR SL PSCCH (SCI format 0) packet bursts to be sent
   std::vector< Ptr<PacketBurst> > m_nrSlPsschPacketBurstQueue; //!< A queue of NR SL PSSCH (SCI format 1 + Data) packet bursts to be sent.
+  std::vector<NrSlSlotAlloc> m_slAllocInfoQueue; //!< A queue of NR SL allocation for a slot
 
 private:
   void SetPscchMacPdu (Ptr<Packet> p);

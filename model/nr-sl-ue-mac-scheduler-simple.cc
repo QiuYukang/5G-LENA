@@ -44,7 +44,7 @@ NrSlUeMacSchedulerSimple::GetTypeId (void)
 bool
 NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
                                             const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                            NrSlUeMacSchedSapUser::NrSlSlotAlloc &slotAlloc)
+                                            NrSlSlotAlloc &slotAlloc)
 {
   NS_LOG_FUNCTION (this);
   bool allocated = false;
@@ -80,24 +80,30 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
   tbs = tbs - 8 /*(8 bytes overhead of SCI stage 2)*/;
 
   allocated = true;
-  NrSlUeMacSchedSapUser::SlRlcPduInfo slRlcPduInfo (lcVector.at (0), tbs);
-  slotAlloc.slRlcPduInfo.push_back (slRlcPduInfo);
-  slotAlloc.ndi = 1;
-  slotAlloc.rv = 0;
-  slotAlloc.indexSubchannelStart = 0;
-  slotAlloc.subchannelLength = assignedSbCh;
-  slotAlloc.indexSymStart = txOppsIt->slPsschSymStart;
-  slotAlloc.SymLength = availableSymbols;
-
   slotAlloc.sfn = txOppsIt->sfn;
   slotAlloc.dstL2Id = dstInfo->GetDstL2Id ();
+  slotAlloc.ndi = 1;
+  slotAlloc.rv = 0;
+  slotAlloc.priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
+  SlRlcPduInfo slRlcPduInfo (lcVector.at (0), tbs);
+  slotAlloc.slRlcPduInfo.push_back (slRlcPduInfo);
   slotAlloc.mcs = dstInfo->GetDstMcs ();
+  //PSCCH
+  slotAlloc.numSlPscchRbs = txOppsIt->numSlPscchRbs;
+  slotAlloc.slPscchSymStart = txOppsIt->slPscchSymStart;
+  slotAlloc.slPscchSymLength = txOppsIt->slPscchSymLength;
+  //PSSCH
+  slotAlloc.slPsschSymStart = txOppsIt->slPsschSymStart;
+  slotAlloc.slPsschSymLength = availableSymbols;
+  slotAlloc.slPsschSubChStart = 0;
+  slotAlloc.slPsschSubChLength = assignedSbCh;
+
   slotAlloc.maxNumPerReserve = txOppsIt->slMaxNumPerReserve;
   uint16_t gapReTx1 = randTxOpps.size () > 1 ? *(std::next (randTxOpps.begin (), 1)) - *randTxOpps.begin () : 0;
   slotAlloc.gapReTx1 = static_cast <uint8_t> (gapReTx1);
   uint16_t gapReTx2 = randTxOpps.size () > 2 ? *(std::next (randTxOpps.begin (), 2)) - *randTxOpps.begin () : 0;
   slotAlloc.gapReTx2 = static_cast <uint8_t> (gapReTx2);
-  slotAlloc.priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
+
 
   lcgMap.begin ()->second->AssignedData (lcVector.at (0), tbs);
   return allocated;

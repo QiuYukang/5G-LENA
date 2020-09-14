@@ -225,7 +225,7 @@ class MemberNrSlUeMacSchedSapUser : public NrSlUeMacSchedSapUser
 public:
   MemberNrSlUeMacSchedSapUser (NrUeMac* mac);
 
-  virtual void SchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params);
+  virtual void SchedUeNrSlConfigInd (const NrSlSlotAlloc& params);
   virtual uint8_t GetTotalSubCh () const;
 
 private:
@@ -237,7 +237,7 @@ MemberNrSlUeMacSchedSapUser::MemberNrSlUeMacSchedSapUser (NrUeMac* mac)
 {
 }
 void
-MemberNrSlUeMacSchedSapUser::SchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params)
+MemberNrSlUeMacSchedSapUser::SchedUeNrSlConfigInd (const NrSlSlotAlloc& params)
 {
   m_mac->DoSchedUeNrSlConfigInd (params);
 }
@@ -1311,17 +1311,21 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
     {
       if (itGrantInfo.second.slResoReselCounter != 0 && itGrantInfo.second.slotAllocations.begin ()->sfn == sfn)
         {
+          //first thing first, set this allocation info in PHY
+          m_nrSlUePhySapProvider->SetNrSlAllocInfo (*(itGrantInfo.second.slotAllocations.begin ()));
+
           --itGrantInfo.second.slResoReselCounter;
           --itGrantInfo.second.cReselCounter;
           auto grant = itGrantInfo.second.slotAllocations.begin ();
+
           //prepare and send SCI format 01 message
           NrSlSciF01Header sciF01;
           sciF01.SetPriority (grant->priority);
           sciF01.SetMcs (grant->mcs);
           sciF01.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
           sciF01.SetTotalSubChannels (GetTotalSubCh (m_poolId));
-          sciF01.SetIndexStartSubChannel (grant->indexSubchannelStart);
-          sciF01.SetLengthSubChannel (grant->subchannelLength);
+          sciF01.SetIndexStartSubChannel (grant->slPsschSubChStart);
+          sciF01.SetLengthSubChannel (grant->slPsschSubChLength);
           sciF01.SetSlMaxNumPerReserve (grant->maxNumPerReserve);
           sciF01.SetGapReTx1 (grant->gapReTx1);
           sciF01.SetGapReTx2 (grant->gapReTx2);
@@ -1335,7 +1339,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
             }
           Ptr<Packet> pktSciF01 = Create<Packet> ();
           pktSciF01->AddHeader (sciF01);
-          NrSlMacPduTag tag (m_rnti, grant->sfn, grant->indexSymStart, grant->SymLength, tbs, grant->dstL2Id);
+          NrSlMacPduTag tag (m_rnti, grant->sfn, grant->slPsschSymStart, grant->slPsschSymLength, tbs, grant->dstL2Id);
           pktSciF01->AddPacketTag (tag);
 
           m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF01);
@@ -1447,7 +1451,7 @@ NrUeMac::FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotIn
 {
   NS_LOG_FUNCTION (this);
 
-  NrSlUeMacSchedSapUser::NrSlSlotAlloc dummyAlloc;
+  NrSlSlotAlloc dummyAlloc;
 
   for (const auto & itDst : m_grantInfo)
     {
@@ -1471,7 +1475,7 @@ NrUeMac::FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotIn
 }
 
 void
-NrUeMac::DoSchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params)
+NrUeMac::DoSchedUeNrSlConfigInd (const NrSlSlotAlloc& params)
 {
   NS_LOG_FUNCTION (this);
   const auto itGrantInfo = m_grantInfo.find (params.dstL2Id);
@@ -1490,7 +1494,7 @@ NrUeMac::DoSchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& par
 }
 
 NrUeMac::NrSlGrantInfo
-NrUeMac::CreateGrantInfo (NrSlUeMacSchedSapUser::NrSlSlotAlloc params)
+NrUeMac::CreateGrantInfo (NrSlSlotAlloc params)
 {
   NS_LOG_FUNCTION (this);
   uint8_t reselCounter = GetRndmReselectionCounter ();

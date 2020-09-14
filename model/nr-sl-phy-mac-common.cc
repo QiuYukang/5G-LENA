@@ -22,5 +22,10 @@
 
 namespace ns3 {
 
+  bool
+  NrSlSlotAlloc::operator < (const NrSlSlotAlloc &rhs) const
+  {
+    return sfn < rhs.sfn;
+  }
 
 }

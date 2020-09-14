@@ -772,7 +772,7 @@ protected:
    * \brief Method to communicate NR SL allocations from NR SL UE scheduler
    * \param params the struct of type NrSlSlotAlloc
    */
-  void DoSchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params);
+  void DoSchedUeNrSlConfigInd (const NrSlSlotAlloc& params);
 
   /**
    * \brief Method through which the NR SL scheduler gets the total number of NR
@@ -813,7 +813,7 @@ private:
   {
     uint8_t cReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Cresel counter for the semi-persistently scheduled resources as per TS 38.214
     uint8_t slResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Sidelink resource re-selection counter for the semi-persistently scheduled resources as per TS 38.214
-    std::set <NrSlUeMacSchedSapUser::NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
+    std::set <NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
     uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
     uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
   };
@@ -904,7 +904,7 @@ private:
    * \param params The resource allocation from the scheduler
    * \return The grant info for a destination based on the scheduler allocation
    */
-  NrSlGrantInfo CreateGrantInfo (NrSlUeMacSchedSapUser::NrSlSlotAlloc params);
+  NrSlGrantInfo CreateGrantInfo (NrSlSlotAlloc params);
   /**
    * \brief Filter the Transmit opportunities.
    *

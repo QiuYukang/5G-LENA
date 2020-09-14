@@ -20,8 +20,11 @@
 #ifndef NR_SL_PHY_MAC_COMMON_H
 #define NR_SL_PHY_MAC_COMMON_H
 
+#include "sfnsf.h"
+
 #include <stdint.h>
 #include <limits>
+#include <vector>
 
 namespace ns3 {
 
@@ -67,6 +70,53 @@ struct SlPscchUeMacStatParameters
    * \param [in] params Value of the SlPscchUeMacStatParameters
    */
   typedef void (* TracedCallback)(const SlPscchUeMacStatParameters &params);
+};
+
+/**
+ * \brief The SlRlcPduInfo struct
+ */
+struct SlRlcPduInfo
+{
+  SlRlcPduInfo (uint8_t lcid, uint32_t size) :
+    lcid (lcid), size (size)
+  {
+  }
+  uint8_t lcid  {0}; //!< The Logical channel id
+  uint32_t size {0}; //!< The transport block size
+};
+
+struct NrSlSlotAlloc
+{
+  SfnSf sfn {}; //!< The SfnSf
+  uint32_t dstL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The destination Layer 2 Id
+
+  uint8_t ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
+  uint8_t rv {std::numeric_limits <uint8_t>::max ()}; //!< The redundancy version
+  uint8_t priority {std::numeric_limits <uint8_t>::max ()}; //!< The LC priority
+  std::vector <SlRlcPduInfo> slRlcPduInfo; //!< The vector containing the transport block size per LC id
+  uint16_t mcs {std::numeric_limits <uint16_t>::max ()}; //!< The MCS
+  //PSCCH
+  uint16_t numSlPscchRbs {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the number of PRBs for PSCCH in a resource pool where it is not greater than the number PRBs of the subchannel.
+  uint16_t slPscchSymStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting symbol used for sidelink PSCCH in a slot
+  uint16_t slPscchSymLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of symbols available for sidelink PSCCH
+  //PSSCH
+  uint16_t slPsschSymStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting symbol used for sidelink PSSCH in a slot
+  uint16_t slPsschSymLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of symbols allocated for sidelink PSSCH
+  uint16_t slPsschSubChStart {std::numeric_limits <uint16_t>::max ()}; //!< Index of the first subchannel allocated for data
+  uint16_t slPsschSubChLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of subchannel allocated for data
+
+  uint16_t maxNumPerReserve {std::numeric_limits <uint16_t>::max ()}; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
+  uint8_t  gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
+  uint8_t  gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
+
+  /**
+   * \brief Less than operator overloaded for NrSlSlotAlloc
+   * \param rhs other NrSlSlotAlloc to compare
+   * \return true if this NrSlSlotAlloc SfnSf parameter values are less than the rhs NrSlSlotAlloc SfnSf parameters
+   *
+   * The comparison is done on sfnSf
+   */
+  bool operator < (const NrSlSlotAlloc& rhs) const;
 };
 
 

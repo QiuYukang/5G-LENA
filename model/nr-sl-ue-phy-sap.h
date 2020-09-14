@@ -20,6 +20,8 @@
 #ifndef NR_SL_UE_PHY_SAP_H
 #define NR_SL_UE_PHY_SAP_H
 
+#include "nr-sl-phy-mac-common.h"
+
 #include <stdint.h>
 #include <ns3/ptr.h>
 #include <ns3/nstime.h>
@@ -67,6 +69,11 @@ public:
    * \param p The packet
    */
   virtual void SendPsschMacPdu (Ptr<Packet> p) = 0;
+  /**
+   * \brief Set the allocation info for NR SL slot in PHY
+   * \param allocInfo The slot allocation info
+   */
+  virtual void SetNrSlAllocInfo (NrSlSlotAlloc allocInfo) = 0;
 
 };
 
@@ -123,6 +130,7 @@ public:
   virtual Time GetSlotPeriod () const;
   virtual void SendPscchMacPdu (Ptr<Packet> p);
   virtual void SendPsschMacPdu (Ptr<Packet> p);
+  virtual void SetNrSlAllocInfo (NrSlSlotAlloc allocInfo);
 
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
@@ -164,6 +172,13 @@ void
 MemberNrSlUePhySapProvider<C>::SendPsschMacPdu (Ptr<Packet> p)
 {
   m_owner->DoSendPsschMacPdu (p);
+}
+
+template <class C>
+void
+MemberNrSlUePhySapProvider<C>::SetNrSlAllocInfo (NrSlSlotAlloc allocInfo)
+{
+  m_owner->DoSetNrSlAllocInfo (allocInfo);
 }
 
 

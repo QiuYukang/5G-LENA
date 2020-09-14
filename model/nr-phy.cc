@@ -917,5 +917,22 @@ NrPhy::GetPsschPacketBurst (void)
     }
 }
 
+void
+NrPhy::DoSetNrSlAllocInfo (NrSlSlotAlloc allocInfo)
+{
+  //only one allocInfo should exist, which would be the slot allocation
+  //info for the current slot
+  NS_ASSERT (m_slAllocInfoQueue.size () < 2);
+  m_slAllocInfoQueue.push_back (allocInfo);
+}
+
+NrSlSlotAlloc
+NrPhy::GetNrSlAllocationInfo ()
+{
+  NrSlSlotAlloc info = m_slAllocInfoQueue.at (0);
+  m_slAllocInfoQueue.clear ();
+  return info;
+}
+
 
 }
