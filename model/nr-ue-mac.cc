@@ -1401,6 +1401,8 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
                   itLc->second.macSapUser->NotifyNrSlTxOpportunity (NrSlMacSapUser::NrSlTxOpportunityParameters (itLcRlcPduInfo.size, m_rnti, itLcRlcPduInfo.lcid,
                                                                                                                  0, itGrantInfo.second.nrSlHarqId, GetBwpId (),
                                                                                                                  m_srcL2Id, grant->dstL2Id));
+                  //remove the allocation since we already used it
+                  itGrantInfo.second.slotAllocations.erase (grant);
                 }
             }
           else
@@ -1424,6 +1426,8 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
                       //generate fake feedback
                       m_nrSlHarq->RecvNrSlHarqFeedback (grant->dstL2Id, itGrantInfo.second.nrSlHarqId);
                     }
+                  //remove the allocation since we already used it
+                  itGrantInfo.second.slotAllocations.erase (grant);
                 }
               else
                 {
