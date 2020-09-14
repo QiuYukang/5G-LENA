@@ -1314,8 +1314,6 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           //first thing first, set this allocation info in PHY
           m_nrSlUePhySapProvider->SetNrSlAllocInfo (*(itGrantInfo.second.slotAllocations.begin ()));
 
-          --itGrantInfo.second.slResoReselCounter;
-          --itGrantInfo.second.cReselCounter;
           auto grant = itGrantInfo.second.slotAllocations.begin ();
 
           //prepare and send SCI format 01 message
@@ -1364,6 +1362,8 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           NrSlSciF02Header sciF02;
           if (grant->ndi)
             {
+              --itGrantInfo.second.slResoReselCounter;
+              --itGrantInfo.second.cReselCounter;
               uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()};
               nrSlHarqId = m_nrSlHarq->AssignNrSlHarqProcessId (grant->dstL2Id);
               sciF02.SetHarqId (nrSlHarqId);
