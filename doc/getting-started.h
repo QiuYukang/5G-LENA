@@ -32,11 +32,9 @@ inconsistency, please open a support ticket!
 
 \section getting-started-ns3 Download the ns-3 part of the 5G-LENA project
 
-We try to keep in sync with the latest advancements in ns-3-dev. However, in
-between our upstreamed patched are submitted and accepted, there will be a time
-in which it will be necessary to use patches "on top of" of ns-3-dev. Technically,
-these patches are maintained as a "branch" of the ns-3-dev development, and are
-hosted internally at CTTC.
+We try to keep in sync with the latest advancements in ns-3-dev. By the version
+1.0, we have upstreamed all our patches to ns-3-dev, making our module
+independent from the ns-3 version used.
 
 \note
 If you don't have the permission to see the repository, it is probably due
@@ -44,26 +42,34 @@ to the fact that you did not requested it. Even though 5G LENA is GPLv2-licensed
 the access to the code is restricted.
 
 \subsection download-ns3 Download a brand new ns-3-dev repository
-To download a working copy of the ns-3-dev repository with the latest changes
-to support the NR module, you can do the following:
+To download a working copy of the ns-3-dev repository, you can do the following:
 
 \code{.sh}
-$ git clone git@gitlab.com:cttc-lena/ns-3-dev.git
+$ git clone git@gitlab.com:nsnam/ns-3-dev.git
 $ cd ns-3-dev
-$ git checkout nr
 \endcode
 
-Provide your username and password when asked.
+Provide your username and password when asked. If you don't have an account
+on gitlab.com, you can use `https://gitlab.com/nsnam/ns-3-dev.git` as the
+repository address.
 
-In case you are already using the git mirror of ns-3-dev, hosted at GitHub or GitLab,
-add the branch that make ns-3-dev supporting the NR module is easy as doing:
+In case you are already using the git mirror of ns-3-dev, hosted at GitHub or GitLab, you are already ready to go (please make sure to be up-to-date with
+`git pull` in the master branch!).
+
+\subsection switching-ns3 Switching from CTTC-provided ns-3-dev
+
+Before v1.0, the NR module needed a custom ns-3-dev version. For those of you
+that are upgrading from v0.4 to v1.0, the steps to switch to the official
+ns-3 repository are the following (without recreating the repo configuration):
 
 \code{.sh}
-$ cd your-local-ns-3-dev-git
-$ git remote add mirror-gitlab-cttc git@gitlab.com:cttc-lena/ns-3-dev.git
-$ git fetch -p --all   # fetch all the branches and update the refs
-$ git checkout nr      # checkout a local "nr" branch that points to mirror-gitlab-cttc/nr
+$ git remote add nsnam git@gitlab.com:nsnam/ns-3-dev.git
+$ git checkout master
+$ git pull nsnam master
 \endcode
+
+Anyway, we will make sure that the master of our custom ns-3-dev will stay
+up-to-date with respect to the official ns-3-dev.
 
 \subsection test-ns3 Test the installation
 
