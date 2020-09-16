@@ -7,38 +7,44 @@ be discussed below).
 
 ## Installation for an authorized developer
 
-We try to keep in sync with the latest advancements in ns-3-dev. However, in
-between our upstreamed patched are submitted and accepted, there will be a time
-in which it will be necessary to use patches "on top of" of ns-3-dev. Technically,
-these patches are maintained as a "branch" of the ns-3-dev development.
-The repository is
-[ns-3-dev](https://gitlab.com/cttc-lena/ns-3-dev/tree/nr).
+We try to keep in sync with the latest advancements in ns-3-dev. By the version
+1.0, we have upstreamed all our patches to ns-3-dev, making our module
+independent from the ns-3 version used.
 
 ### Brand new installation of ns-3-dev repository
 
-To download a working copy of the ns-3-dev repository with the latest changes
-to support the NR module, you can do the following:
+To download a working copy of the ns-3-dev repository with the latest changes,
+you can do the following:
 
 ```
-$ git clone git@gitlab.com:cttc-lena/ns-3-dev.git
+$ git clone git@gitlab.com:nsnam/ns-3-dev.git # If you have an account in gitlab.com
 $ cd ns-3-dev
-$ git checkout nr
 ```
 
-Provide your username and password when asked.
+Provide your username and password when asked. If you don't have an account
+on gitlab.com, you can use `https://gitlab.com/nsnam/ns-3-dev.git` as the
+repository address.
 
-### Adding the repository to an existing installation
+### Switching from CTTC-provided ns-3-dev
 
-In case you are already using the git mirror of ns-3-dev, hosted at GitHub or GitLab,
-add the branch that make ns-3-dev supporting the NR module is easy as doing:
+Before v1.0, the NR module needed a custom ns-3-dev version. For those of you
+that are upgrading from v0.4 to v1.0, the steps to switch to the official
+ns-3 repository are the following (without recreating the repo configuration):
 
 ```
-$ cd your-local-ns-3-dev-git
-$ git remote add mirror-cttc-public git@gitlab.com:cttc-lena/ns-3-dev.git 
-$ git fetch -p --all   # fetch all the branches and update the refs
-$ git checkout nr      # checkout a local "nr" branch that points to mirror-cttc-public/nr
+$ git remote add nsnam git@gitlab.com:nsnam/ns-3-dev.git
+$ git checkout master
+$ git pull nsnam master
 ```
 
+Anyway, we will make sure that the master of our custom ns-3-dev will stay
+up-to-date with respect to the official ns-3-dev.
+
+### Using an existing installation of ns-3
+
+In case you are already using the git mirror of ns-3-dev, hosted at GitHub or
+GitLab, you are already ready to go (please make sure to be up-to-date with
+`git pull` in the master branch!).
 
 ### Test the installation
 To test the installation, after following one of the previous point, you can do
@@ -54,20 +60,19 @@ A success for both previous commands indicates an overall success.
 ### Brand new installation of the NR module
 
 As a precondition to the following steps, you must have a working local git
-repository. If that is the case, then, your local git repo is ready to include
-our nr module (only for authorized users):
+repository of ns-3-dev. If that is the case, then, your local git repo is ready
+to include our nr module (only for authorized users):
 
 ```
-$ cd src
+$ cd contrib
 $ git clone git@gitlab.com:cttc-lena/nr.git
 $ cd ..
 ```
 
-Please note that the src/nr directory will be listed as "Untracked files" every
+Please note that the contrib/nr directory will be listed as "Untracked files" every
 time you do a `git status` command. Ignore it, as the directory lives as an
 independent module. As a result, we have now two parallel repository, but one
-lives inside the other. We are working in getting nr working in the contrib/
-directory, as per standard ns-3 rules.
+lives inside the other.
 
 ### Test the NR installation
 
@@ -96,21 +101,13 @@ it. If it is not the case, then please move all your work in a separate branch.
 A vanilla 'master' branch can be updated by simply running:
 
 ```
-$ cd ns-3-dev/src/nr
+$ cd ns-3-dev/contrib/nr    # or src/nr if the module lives under src/
 $ git checkout master
 $ git pull
 ```
 
 At each release, we will incorporate into the master branch all the work that
 is meant to be released.
-
-For what regards ns-3-dev (the main directory in which, under src/ or contrib/,
-you saved the NR module) the story is a bit different. Since we often rewrite
-its history to keep pace with ns-3-dev plus our patches to LTE that have not been
-accepted in the mainline, it is possible that with a simple `git pull` it will
-not upgrade correctly. What we suggest is, if the `git pull` strategy leads to
-conflicts, to download again our ns-3-dev repository, following the instructions
-at the beginning of this file (the repository is gitlab.com:cttc-lena/ns-3-dev.git).
 
 ## Documentation
 
@@ -157,12 +154,6 @@ module is available
 
 ## Future work
 
-## Simulation campaigns
-
-Simulation campaigns are stored in another repository, as they are not part of
-our release. If you have the permissions, please check
-[https://gitlab.cttc.es/ns3-new-radio/sim-campaigns](https://gitlab.cttc.es/ns3-new-radio/sim-campaigns).
-
 ## About
 
 The Mobile Networks group in CTTC is a group of 10 highly skilled researchers, with expertise in the area of mobile and computer networks, ML/AI based network management, SDN/NFV, energy management, performance evaluation. Our work on performance evaluation started with the design and development of the LTE module of ns-3.
@@ -173,8 +164,10 @@ We are [on the web](https://cttc-lena.gitlab.io/5g-lena-website/about/).
 
 In alphabetical order:
 
+- Zoraze Ali
 - Biljana Bojovic
 - Lorenza Giupponi
+- Katerina Koutlia
 - Sandra Lagen
 - Natale Patriciello
 

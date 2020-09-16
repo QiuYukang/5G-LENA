@@ -9,12 +9,12 @@ http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
-Release NR-dev
+Release NR-v1.1
 --------------
 
 Availability
 ------------
-This release is not yet available.
+Not yet released
 
 Supported platforms
 -------------------
@@ -25,7 +25,7 @@ requirements (Note:  not all features available on all platforms):
 - Apple LLVM version 7.0.2 or later
 - clang-3.3 or later
 
-In addition, Python 2.7 (Python 2 series) or Python 3.4-3.7 (Python 3 series)
+In addition, Python 2.7 (Python 2 series) or Python 3.4-3.8 (Python 3 series)
 
 This release has been tested on the following platforms:
 - ArchLinux with g++-9.2.1, clang-9.0.1, and Python 3.8.1
@@ -33,70 +33,125 @@ This release has been tested on the following platforms:
 
 Important news
 --------------
-- This release is aligned with CTTC's ns-3-dev commit id
-8b9decb34 lte: Add enum for TDD slot type  [ZorazeAli]
-that is on top of the nsnam ns-3-dev master commit id
-ea3506784 Merge branch 'gsoc-2019-tommaso'  [Natale Patriciello]
-To upgrade CTTC's ns-3-dev, please run the following (save any non-official
-commit, as they will be deleted):
-
-$ cd /path/to/cttc/ns-3-dev
-$ git reset --hard HEAD~200
-$ git pull
-
 This module can be updated with the usual
 
+```
 $ git pull
+```
 
+command. We hope you will have fun and good times in using our module!
 
 New user-visible features (old first)
 -------------------------
 
-- The control message timings (from PHY to MAC or from MAC to PHY) can be adjusted
-  in a flexible manner according to each release specifications.
-- Processing delays N0, N1, N2 are introduced as attributes of MmWaveEnbPhy.
-  The values K0, K1, K2 are then calculated and communicated to the UE in the DCI.
-- The UlSchedDelay parameter is replaced by N2Delay.
-- UE receives DL data according to K0 and sends UL data according to K2
-  (passed from the gNb in the DL and UL DCI, respectively). Moreover,the DL HARQ
-  Feedback is scheduled according to K1 delay (passed from the gNb to the UE in
-  the DL DCI).
-- UE-side control messages could be scheduled with Ul Data. This behavior is now
-  changed and therefore control messages are sent only in Ul Ctrl.
-- Patterns of size different from 10 (less or greater) are now supported.
-- Ported the code to the ThreeGppChannel of ns-3-dev, developed under the GSoC 2019
-  framework.
-- A new Component Carrier/Bandwidth Part helper has been added in file `cc-bwp-helper.h`.
-  With this class, it is easy to divide the spectrum in different regions.
-- MmWaveHelper is now refactored to take into account Multi-Cell Configurations
-  (i.e., different configuration for different cells).
-- Introduced FDD operational mode for a Bandwidth Part.
-- Removed PhyMacCommon. Its attributes are now divided among different classes.
-  Please check CHANGES.md for the list.
-- Separated NrEesmErrorModel in four different classes: NrEesmIrT1, NrEesmIrT2,
-  NrEesmCcT1, NrEesmCcT2. These classes encapsulate the properties (harq method, table) that
-  were an attribute of NrEesmErrorModel.
-- Added an attribute to the MmWaveEnbPhy and MmWaveUePhy to set the bandwidth overhead
-  to keep in consideration when calculating the number of usable RB. By default,
-  it is now set to 0.04, while before it was set to 0.0 (0.0 means that there are
-  no guard bands, and the entire bandwidth is usable).
-- Added the LENA error model. To be used only in conjunction with a OFDMA scheduler,
-  and without beams.
-- N1 default value is now 2 slots. Before it was 4 slots.
-- Renamed all mmwave- classes, tests, examples, helpers, to nr-.
-- Added SHORT_BSR as MAC CE element, that goes with MAC data, and is evaluated
-  by the error model upon delivery.
-- Added "ReportPowerSpectralDensity" trace source in NrUePhy.
-- Added "SlotDataStats" and "SlotCtrlStats" trace source in NrGnbPhy.
-- Added "RBDataStats" trace source in NrGnbPhy.
-- Added "RxDataTrace" trace source in NrSpectrumPhy.
-- A new NrRadioEnvironmentMapHelper has been implemented for the generation of
-  DL and UL REM maps
 
 Bugs fixed
 ----------
-- Removed cttc-nr-tdd-cc-bwp-demo.cc since it was redundant. The simillar configuration is 
-present in cttc-nr-cc-bwp-demo.cc example.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+Release NR-v1.0
+--------------
+
+Availability
+------------
+Available since Sept. 16, 2020.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note:  not all features available on all platforms):
+
+- g++-4.9 or later
+- Apple LLVM version 7.0.2 or later
+- clang-3.3 or later
+
+In addition, Python 2.7 (Python 2 series) or Python 3.4-3.8 (Python 3 series)
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9.2.1, clang-9.0.1, and Python 3.8.1
+- Ubuntu 18.04 (64 bit) with g++-8.3.0 and Python 2.7.12/3.5.2
+
+Important news
+--------------
+The v1.0 can now be installed in the ns-3-dev repository, or any ns-3 version
+starting from ns-3.31. This module can be updated with the usual
+
+```
+$ git pull
+```
+
+command. We hope you will have fun and good times in using our module!
+
+New user-visible features (old first)
+-------------------------
+
+- Renamed all mmwave- classes, tests, examples, helpers, to nr-. Renamed all
+  the classes by replacing the prefix `MmWave` with `Nr`.
+- Renamed the `Enb` part in `Gnb` (e.g., `NrEnbPhy` -> `NrGnbPhy`)
+- Processing delays N0, N1, N2 are introduced as attributes of NrEnbPhy,
+  respectively for the DL DCI delay, DL HARQ feedback delay, and UL DCI delay.
+  The values K0, K1, K2 (definition in the 3GPP standard) are then calculated
+  and communicated to the UE in the DCI. The N2Delay parameter replaces the old
+  UlSchedDelay parameter.
+- Removed PhyMacCommon. Its attributes are now divided among different
+  classes. Please check CHANGES.md for the list.
+- Separated NrEesmErrorModel in four different classes: NrEesmIrT1, NrEesmIrT2,
+  NrEesmCcT1, NrEesmCcT2. These classes encapsulate the properties (harq method,
+  table) that were an attribute of NrEesmErrorModel.
+- Added the LENA error model. To be used only in conjunction with a OFDMA
+  scheduler, and without beams. This error model has the same performance and
+  values as the error model used in the lte/ module. The reference file is
+  `lena-error-model.h`.
+- Added the attribute `RbOverhead` to the NrGnbPhy and NrUePhy to set the
+  bandwidth overhead to keep in consideration when calculating the number of
+  usable RB. By default, it is set to 0.04, while in the previous versions the
+  effect was like a value set to 0.0 (0.0 means that there are no guard bands,
+  and the entire bandwidth is usable).
+- Starting with this release the simulator is using new ns-3-dev 3ggp
+  channel, spectrum, propagation, channel condition and antenna models
+  that are implemented in spectrum, propagation and antenna modules of
+  ns-3-dev. To allow usage of this new channel and antenna models, we have
+  introduced a new BeamManager class which is responsible configuration of
+  beamforming vectors of antenna arrays. BeamManager class is also responsible
+  of configuring quasi-omni beamforming vector for omni transmissions.
+  Since real beamforming management methods are still not implemented
+  in our module, there are available ideal beamforming methods: cell scan
+  and direct path. User can configure ideal beamforming method by using
+  attribute of IdealBeamformingHelper which is in charge of creating
+  the corresponding beamforming algorithm and calling it with configured
+  periodicity to generate beamforming vectors for pairs of gNBs and UEs.
+  BeamManager class is then responsible to cache beamforming vectors for
+  antenna. For example, at gNB BeamManager for each connected UE device
+  there will be cached the beamforming vector that will be used for  
+  communication with that UE. In the same way, the BeamManager at UE
+  serves the same purpose, with the difference that it will be normally just one
+  element in the map and that is toward its own gNB.
+- Starting with this release the default behaviour will be to calculate
+  interference for all the links, and will not be any more possible to exclude
+  UE->UE and GNB->GNB interference calculations.
+- NrHelper is now refactored to take into account Multi-Cell Configurations
+  (i.e., different configuration for different cells).
+- Introduced the TDD pattern: every gNb can use a different pattern, specified
+  by a string that identify a sequence of slot types (e.g.,
+  "DL|UL|UL|DL|DL|DL|").
+- Introduced FDD operational mode for a Bandwidth Part.
+- A new Component Carrier/Bandwidth Part helper has been added in file
+  `cc-bwp-helper.h`. With this class, it is easy to divide the spectrum in
+  different regions.
+- Added the support for NR MAC sub-headers and subPDU.
+- Added SHORT_BSR as MAC CE element, that goes with MAC data, and is evaluated
+  by the error model upon delivery.
+- A new NrRadioEnvironmentMapHelper has been implemented for the generation of
+  DL and UL REM maps.
+
+Bugs fixed
+----------
+
 - Removed legacy and invalid mmwave-* examples, that were inherited from mmWave codebase.
 - The code performing LBT at UE side always assumed a DL CTRL symbol inside a slot.
   With TDD, that may not happen, and the code has been updated to not
@@ -104,7 +159,7 @@ present in cttc-nr-cc-bwp-demo.cc example.
 - TDMA Scheduler was assuming that there are always UE to schedule. That may not be true
   if these UEs have scheduled an HARQ retransmission (and hence unable to
   receive a new data DCI). Code updated to remove this assumption.
-- Enb was scheduling first DL and then UL, so when it was calculating the symbols to be
+- gNb was scheduling first DL and then UL, so when it was calculating the symbols to be
   assigned to DL, it was not taking into account the UL symbols. Code has been updated to
   schedule first UL and then DL.
 - N1 (used to schedule DL HARQ Feedback) could not be set to zero, because the way the
