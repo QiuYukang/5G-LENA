@@ -659,11 +659,8 @@ NrUeMac::DoSlotIndication (const SfnSf &sfn)
 
   if (m_nrSlUeCmacSapUser != nullptr)
     {
-      std::vector <std::bitset<1>> phyPool = m_slTxPool->GetNrSlPhyPool (GetBwpId (), m_poolId);
-      uint64_t absSlotIndex = sfn.Normalize ();
-      uint16_t absPoolIndex = absSlotIndex % phyPool.size ();
       //trigger SL only when it is a SL slot
-      if (phyPool [absPoolIndex] == 1)
+      if (m_slTxPool->IsSidelinkSlot (GetBwpId (), m_poolId, sfn.Normalize ()))
         {
           DoNrSlSlotIndication (sfn);
         }
