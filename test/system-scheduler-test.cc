@@ -101,13 +101,13 @@ SystemSchedulerTest::DoRun (void)
     double gNbx = 0;
     double gNby = 0;
 
-    for (uint gNb = 0 ; gNb < gNbNum; gNb++)
+    for (uint32_t gNb = 0 ; gNb < gNbNum; gNb++)
       {
         apPositionAlloc->Add (Vector (gNbx, gNby, gNbHeight));
 
-        for (uint beam = 1; beam <= m_beamsNum ; beam ++)
+        for (uint32_t beam = 1; beam <= m_beamsNum ; beam ++)
           {
-            for (uint uePerBeamIndex = 0; uePerBeamIndex < m_usersPerBeamNum ; uePerBeamIndex ++)
+            for (uint32_t uePerBeamIndex = 0; uePerBeamIndex < m_usersPerBeamNum ; uePerBeamIndex ++)
               {
                 if (beam == 1)
                   {

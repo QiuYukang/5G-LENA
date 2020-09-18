@@ -534,13 +534,13 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
           }
       }
 
-    for (uint j = 0; j < selectedUeNodes.GetN (); j++)
+    for (uint32_t j = 0; j < selectedUeNodes.GetN (); j++)
       {
           Vector v = selectedUeNodes.Get (j)->GetObject<MobilityModel> ()->GetPosition ();
           m_outUePositionsFile << j << "\t" << v.x << "\t" << v.y << "\t" << v.z << " " << std::endl;
       }
 
-    for (uint j = 0; j < gNbNodes.GetN (); j++)
+    for (uint32_t j = 0; j < gNbNodes.GetN (); j++)
       {
           Vector v = gNbNodes.Get (j)->GetObject<MobilityModel> ()->GetPosition ();
           m_outGnbPositionsFile << j << "\t" << v.x << "\t" << v.y << "\t" << v.z << " " << std::endl;
@@ -630,7 +630,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
         // gNB noise figure shall be set to 7 dB
         nrHelper->GetGnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("NoiseFigure", DoubleValue (7));
     }
-    for (uint j = 0; j < ueNetDevs.GetN (); j++)
+    for (uint32_t j = 0; j < ueNetDevs.GetN (); j++)
     {
         // UE noise figure shall be set to 10 dB
         nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));

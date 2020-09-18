@@ -1692,7 +1692,7 @@ NrGnbPhy::ChannelAccessGranted (const Time &time)
                toNextSlot.GetMilliSeconds() << " ms. ");
   NS_ASSERT(! m_channelLostTimer.IsRunning ());
 
-  slotGranted = std::max (1L, slotGranted);
+  slotGranted = std::max (1LL, slotGranted);
   m_channelLostTimer = Simulator::Schedule (GetSlotPeriod () * slotGranted - NanoSeconds (1),
                                             &NrGnbPhy::ChannelAccessLost, this);
 }
