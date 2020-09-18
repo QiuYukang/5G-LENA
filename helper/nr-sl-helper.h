@@ -117,6 +117,13 @@ public:
    */
   void DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft);
   /**
+   * \brief Set the NR SL Scheduler TypeId. Works only before it is created.
+   * \param typeId The NR SL scheduler type
+   *
+   * \see NrSlUeMacSchedulerSimple
+   */
+  void SetNrSlSchedulerTypeId (const TypeId &typeId);
+  /**
    * \brief Set UE sidelink scheduler attribute
    * \param n The attribute name
    * \param v The attribute value
@@ -168,7 +175,7 @@ private:
   Ptr<NrAmc> CreateUeSlAmc () const;
 
   ObjectFactory m_ueSlAmcFactory;           //!< UE SL AMC Object factory
-  ObjectFactory m_ueSlScheduler;            //!< UE SL scheduler Object factory
+  ObjectFactory m_ueSlSchedulerFactory;            //!< UE SL scheduler Object factory
   Ptr<NrPointToPointEpcHelper> m_epcHelper; //!< the EPC helper
 
 };
