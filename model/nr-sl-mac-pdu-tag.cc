@@ -50,7 +50,7 @@ NrSlMacPduTag::GetInstanceTypeId (void) const
 uint32_t
 NrSlMacPduTag::GetSerializedSize (void) const
 {
-  return 2 + 8 + 1 + 1 + 4;
+  return 2 + 8 + 1 + 1 + 4 + 4;
 }
 
 void
