@@ -1322,8 +1322,14 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           sciF01.SetIndexStartSubChannel (grant->slPsschSubChStart);
           sciF01.SetLengthSubChannel (grant->slPsschSubChLength);
           sciF01.SetSlMaxNumPerReserve (grant->maxNumPerReserve);
-          sciF01.SetGapReTx1 (grant->gapReTx1);
-          sciF01.SetGapReTx2 (grant->gapReTx2);
+          if (grant->maxNumPerReserve == 2 || grant->maxNumPerReserve == 3)
+            {
+              sciF01.SetGapReTx1 (grant->gapReTx1);
+            }
+          if (grant->maxNumPerReserve == 3)
+            {
+              sciF01.SetGapReTx2 (grant->gapReTx2);
+            }
 
           //sum all the assigned bytes to each LC of this destination
           uint32_t tbs = 0;
