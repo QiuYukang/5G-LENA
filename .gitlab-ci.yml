@@ -85,7 +85,7 @@ manual:
   script:
     - cd doc && make latexpdf
     - cd ..
-    - mv doc/build/latex/*.pdf public
+    - mv doc/build/latex/*.pdf public/
 
 
 include:
