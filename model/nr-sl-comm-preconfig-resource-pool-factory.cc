@@ -61,6 +61,9 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
 
   switch (m_slTimeResourcePscch)
     {
+    case 1:
+      m_pool.slPscchConfig.slTimeResourcePscch.resources = LteRrcSap::SlTimeResourcePscch::N1;
+      break;
     case 2:
       m_pool.slPscchConfig.slTimeResourcePscch.resources = LteRrcSap::SlTimeResourcePscch::N2;
       break;
