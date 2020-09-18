@@ -157,9 +157,6 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
   nrSlUeRrc->SetNrSlEnabled (true);
   nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider ());
   lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser ());
-  uint64_t imsi = lteUeRrc->GetImsi ();
-  NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
-  nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
 
   //Aggregate
   lteUeRrc->AggregateObject (nrSlUeRrc);
@@ -211,6 +208,12 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
           NS_FATAL_ERROR ("Error in SetNrSlMacSapProviders");
         }
     }
+
+  //Since now all the BWP for SL are configured, we can configure src L2 id
+  //for only SL BWP (s) (see LteUeRrc::DoSetSourceL2Id)
+  uint64_t imsi = lteUeRrc->GetImsi ();
+  NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
+  nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
 
   lteUeRrc->SetNrSlBwpIdContainerInBwpm ();
 }
