@@ -1495,7 +1495,7 @@ NrUeMac::DoSchedUeNrSlConfigInd (const NrSlSlotAlloc& params)
 }
 
 NrUeMac::NrSlGrantInfo
-NrUeMac::CreateGrantInfo (NrSlSlotAlloc params)
+NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
 {
   NS_LOG_FUNCTION (this);
   uint8_t reselCounter = GetRndmReselectionCounter ();
@@ -1518,22 +1518,28 @@ NrUeMac::CreateGrantInfo (NrSlSlotAlloc params)
             {
               NS_ASSERT_MSG (params.ndi == 1, "Scheduler forgot to set ndi flag");
               NS_ASSERT_MSG (params.rv == 0, "Scheduler forgot to set redundancy version");
-              params.sfn.Add (i * resPeriodSlots);
-              grant.slotAllocations.emplace (params);
+              auto slAlloc = params;
+              slAlloc.sfn.Add (i * resPeriodSlots);
+              bool insertStatus = grant.slotAllocations.emplace (slAlloc).second;
+              NS_ASSERT_MSG (insertStatus, "slot allocation already exist");
             }
           if (tx == 1)
             {
-              params.sfn.Add (i * resPeriodSlots + params.gapReTx1);
-              params.ndi = 0;
-              params.rv = 1;
-              grant.slotAllocations.emplace (params);
+              auto slAlloc = params;
+              slAlloc.sfn.Add (i * resPeriodSlots + params.gapReTx1);
+              slAlloc.ndi = 0;
+              slAlloc.rv = 1;
+              bool insertStatus = grant.slotAllocations.emplace (slAlloc).second;
+              NS_ASSERT_MSG (insertStatus, "slot allocation already exist");
             }
           if (tx == 2)
             {
-              params.sfn.Add (i * resPeriodSlots + params.gapReTx2);
-              params.ndi = 0;
-              params.rv = 2;
-              grant.slotAllocations.emplace (params);
+              auto slAlloc = params;
+              slAlloc.sfn.Add (i * resPeriodSlots + params.gapReTx2);
+              slAlloc.ndi = 0;
+              slAlloc.rv = 2;
+              bool insertStatus = grant.slotAllocations.emplace (slAlloc).second;
+              NS_ASSERT_MSG (insertStatus, "slot allocation already exist");
             }
         }
     }
@@ -1683,6 +1689,7 @@ NrUeMac::DoAddNrSlLc (const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo &s
   //destination is this UE MAC.
   if (slLcInfo.srcL2Id == m_srcL2Id)
     {
+      NS_LOG_DEBUG ("UE MAC with src id " << m_srcL2Id << " giving info of LC to the scheduler");
       m_nrSlUeMacCschedSapProvider->CschedUeNrSlLcConfigReq (lcInfo);
       AddNrSlDstL2Id (slLcInfo.dstL2Id, slLcInfo.priority);
     }

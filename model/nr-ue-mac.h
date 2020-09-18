@@ -904,7 +904,7 @@ private:
    * \param params The resource allocation from the scheduler
    * \return The grant info for a destination based on the scheduler allocation
    */
-  NrSlGrantInfo CreateGrantInfo (NrSlSlotAlloc params);
+  NrSlGrantInfo CreateGrantInfo (const NrSlSlotAlloc & params);
   /**
    * \brief Filter the Transmit opportunities.
    *
