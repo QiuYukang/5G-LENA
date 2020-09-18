@@ -142,7 +142,7 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq (const struct NrSlUeMacSchedSap
 
   GetSecond DstInfoOf;
   auto itDst = m_dstMap.find (params.dstL2Id);
-  NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << params.dstL2Id << "info not found");
+  NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << params.dstL2Id << " info not found");
 
   for (const auto &lcg : DstInfoOf (*itDst)->GetNrSlLCG ())
     {

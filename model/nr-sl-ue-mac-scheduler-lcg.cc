@@ -83,8 +83,10 @@ NrSlUeMacSchedulerLCG::GetNumOfLC () const
 void
 NrSlUeMacSchedulerLCG::Insert (NrSlLCPtr && lc)
 {
-  bool insertStatus = m_lcMap.emplace (std::make_pair (lc->m_id, std::move (lc))).second;
-  NS_ASSERT_MSG (!insertStatus, "LCG " << m_id << " already contains LCID " << +lc->m_id);
+  std::pair<NrSlLCIt, bool> ret;
+  ret = m_lcMap.emplace (std::make_pair (lc->m_id, std::move (lc)));
+  bool insertStatus = ret.second;
+  NS_ASSERT_MSG (insertStatus, "LCG " << +m_id << " already contains LCID " << +ret.first->second->m_id);
 }
 
 void
