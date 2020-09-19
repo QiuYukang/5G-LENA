@@ -48,9 +48,6 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
 {
   NS_LOG_FUNCTION (this);
   bool allocated = false;
-  std::set <uint16_t> randTxOpps = RandomlySelectSlots (txOpps);
-  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>::const_iterator txOppsIt = txOpps.begin ();
-  std::advance (txOppsIt, *(randTxOpps.begin ()));
 
   const auto & lcgMap = dstInfo->GetNrSlLCG (); //Map of unique_ptr should not copy
 
@@ -65,6 +62,13 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
     {
       return allocated;
     }
+
+  std::set <uint16_t> randTxOpps = RandomlySelectSlots (txOpps);
+
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>::const_iterator txOppsIt = txOpps.begin ();
+  std::advance (txOppsIt, *(randTxOpps.begin ()));
+
+  NS_ASSERT_MSG (randTxOpps.size () == txOppsIt->slMaxNumPerReserve, "Number of randomly chosen slots should be equal to slMaxNumPerReserve");
 
   uint32_t tbs = 0;
   uint8_t assignedSbCh = 0;
@@ -97,13 +101,29 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
   slotAlloc.slPsschSymLength = availableSymbols;
   slotAlloc.slPsschSubChStart = 0;
   slotAlloc.slPsschSubChLength = assignedSbCh;
-
   slotAlloc.maxNumPerReserve = txOppsIt->slMaxNumPerReserve;
-  uint16_t gapReTx1 = randTxOpps.size () > 1 ? *(std::next (randTxOpps.begin (), 1)) - *randTxOpps.begin () : 0;
-  slotAlloc.gapReTx1 = static_cast <uint8_t> (gapReTx1);
-  uint16_t gapReTx2 = randTxOpps.size () > 2 ? *(std::next (randTxOpps.begin (), 2)) - *randTxOpps.begin () : 0;
-  slotAlloc.gapReTx2 = static_cast <uint8_t> (gapReTx2);
 
+  if (randTxOpps.size () > 1)
+    {
+      txOppsIt = txOpps.begin ();
+      NS_LOG_DEBUG ("Advancing to " << *(std::next (randTxOpps.begin (), 1)) << " index for ReTxGap1");
+      std::advance (txOppsIt, *(std::next (randTxOpps.begin (), 1)));
+      uint64_t gapReTx1 = txOppsIt->sfn.Normalize () - slotAlloc.sfn.Normalize ();
+      NS_LOG_DEBUG ("Gap between first Tx and first ReTx is absolute slots = " << gapReTx1);
+      NS_ABORT_IF (gapReTx1 > UINT8_MAX);
+      slotAlloc.gapReTx1 = static_cast <uint8_t> (gapReTx1);
+    }
+
+  if (randTxOpps.size () > 2)
+    {
+      txOppsIt = txOpps.begin ();
+      NS_LOG_DEBUG ("Advancing to " << *(std::next (randTxOpps.begin (), 2)) << " index for ReTxGap2");
+      std::advance (txOppsIt, *(std::next (randTxOpps.begin (), 2)));
+      uint64_t gapReTx2 = txOppsIt->sfn.Normalize () - slotAlloc.sfn.Normalize ();
+      NS_LOG_DEBUG ("Gap between first Tx and second ReTx is absolute slots = " << gapReTx2);
+      NS_ABORT_IF (gapReTx2 > UINT8_MAX);
+      slotAlloc.gapReTx2 = static_cast <uint8_t> (gapReTx2);
+    }
 
   lcgMap.begin ()->second->AssignedData (lcVector.at (0), tbs);
   return allocated;
