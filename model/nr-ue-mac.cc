@@ -1313,82 +1313,114 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
     }
 
   //check if we need to transmit PSCCH + PSSCH
+  //We are starting with the transmission of data packets because if the buffer
+  //at the RLC would be empty we just erase the grant of the current slot
+  //without transmitting SCI 1 and SCI 2 message, and data. Therefore,
+  //even we had the grant we will not put anything in the queues at the PHY.
   for (auto & itGrantInfo : m_grantInfo)
     {
       if (itGrantInfo.second.slResoReselCounter != 0 && itGrantInfo.second.slotAllocations.begin ()->sfn == sfn)
         {
-          //first thing first, set this allocation info in PHY
-          m_nrSlUePhySapProvider->SetNrSlAllocInfo (*(itGrantInfo.second.slotAllocations.begin ()));
+          auto grantIt = itGrantInfo.second.slotAllocations.begin ();
+          NrSlSlotAlloc currentGrant = *grantIt;
+          //remove the allocation since we already used it
+          itGrantInfo.second.slotAllocations.erase (grantIt);
+          NS_LOG_INFO ("Grant at : Frame = " << currentGrant.sfn.GetFrame ()
+                       << " SF = " << +currentGrant.sfn.GetSubframe ()
+                       << " slot = " << currentGrant.sfn.GetSlot ());
 
-          auto grant = itGrantInfo.second.slotAllocations.begin ();
-
-          //prepare and send SCI format 01 message
-          NrSlSciF01Header sciF01;
-          sciF01.SetPriority (grant->priority);
-          sciF01.SetMcs (grant->mcs);
-          sciF01.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
-          sciF01.SetTotalSubChannels (GetTotalSubCh (m_poolId));
-          sciF01.SetIndexStartSubChannel (grant->slPsschSubChStart);
-          sciF01.SetLengthSubChannel (grant->slPsschSubChLength);
-          sciF01.SetSlMaxNumPerReserve (grant->maxNumPerReserve);
-          if (grant->maxNumPerReserve == 2 || grant->maxNumPerReserve == 3)
+          if (currentGrant.ndi)
             {
-              sciF01.SetGapReTx1 (grant->gapReTx1);
-            }
-          if (grant->maxNumPerReserve == 3)
-            {
-              sciF01.SetGapReTx2 (grant->gapReTx2);
-            }
-
-          //sum all the assigned bytes to each LC of this destination
-          uint32_t tbs = 0;
-          for (const auto & it : grant->slRlcPduInfo)
-            {
-              NS_LOG_DEBUG ("LC " << static_cast <uint16_t> (it.lcid) << " was assigned " << it.size << "bytes");
-              tbs += it.size;
-            }
-          Ptr<Packet> pktSciF01 = Create<Packet> ();
-          pktSciF01->AddHeader (sciF01);
-          NrSlMacPduTag tag (m_rnti, grant->sfn, grant->slPsschSymStart, grant->slPsschSymLength, tbs, grant->dstL2Id);
-          pktSciF01->AddPacketTag (tag);
-
-          m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF01);
-
-          // Collect statistics for NR SL PSCCH UE MAC scheduling trace
-          SlPscchUeMacStatParameters pscchStatsParams;
-          pscchStatsParams.timestamp = Simulator::Now ().GetMilliSeconds ();
-          pscchStatsParams.imsi = m_imsi;
-          pscchStatsParams.rnti = m_rnti;
-          pscchStatsParams.frameNum = grant->sfn.GetFrame ();
-          pscchStatsParams.subframeNum = grant->sfn.GetSubframe ();
-          pscchStatsParams.slotNum = grant->sfn.GetSlot ();
-          pscchStatsParams.priority = grant->priority;
-          pscchStatsParams.mcs = grant->mcs;
-          pscchStatsParams.tbSize = tbs;
-          pscchStatsParams.slResourceReservePeriod = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ());
-          pscchStatsParams.gapReTx1 = grant->gapReTx1;
-          pscchStatsParams.gapReTx2 = grant->gapReTx2;
-          m_slPscchScheduling (pscchStatsParams); //Trace
-
-          //prepare and send SCI format 02 message
-          NrSlSciF02Header sciF02;
-          if (grant->ndi)
-            {
-              --itGrantInfo.second.slResoReselCounter;
-              --itGrantInfo.second.cReselCounter;
-              uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()};
-              nrSlHarqId = m_nrSlHarq->AssignNrSlHarqProcessId (grant->dstL2Id);
-              sciF02.SetHarqId (nrSlHarqId);
-              itGrantInfo.second.nrSlHarqId = nrSlHarqId;
+              for (const auto & itLcRlcPduInfo : currentGrant.slRlcPduInfo)
+                {
+                  SidelinkLcIdentifier slLcId;
+                  slLcId.lcId = itLcRlcPduInfo.lcid;
+                  slLcId.srcL2Id = m_srcL2Id;
+                  slLcId.dstL2Id = currentGrant.dstL2Id;
+                  const auto & itLc = m_nrSlLcInfoMap.find (slLcId);
+                  NS_ASSERT_MSG (itLc != m_nrSlLcInfoMap.end (), "No LC with id " << +itLcRlcPduInfo.lcid << " found for destination " << currentGrant.dstL2Id);
+                  //Assign HARQ id and store it in the grant
+                  uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()};
+                  nrSlHarqId = m_nrSlHarq->AssignNrSlHarqProcessId (currentGrant.dstL2Id);
+                  itGrantInfo.second.nrSlHarqId = nrSlHarqId;
+                  NS_ASSERT_MSG (itGrantInfo.second.nrSlHarqId != std::numeric_limits <uint8_t>::max (), "HARQ id was not assigned for destination " << currentGrant.dstL2Id);
+                  NS_LOG_DEBUG ("Notifying NR SL RLC of TX opportunity for LC id " << +itLcRlcPduInfo.lcid << " for TB size " << itLcRlcPduInfo.size);
+                  itLc->second.macSapUser->NotifyNrSlTxOpportunity (NrSlMacSapUser::NrSlTxOpportunityParameters (itLcRlcPduInfo.size, m_rnti, itLcRlcPduInfo.lcid,
+                                                                                                                 0, itGrantInfo.second.nrSlHarqId, GetBwpId (),
+                                                                                                                 m_srcL2Id, currentGrant.dstL2Id));
+                }
+              if (currentGrant.rv == currentGrant.maxNumPerReserve - 1)
+                {
+                  //38.321 5.22.1.3.1a says: if this transmission corresponds
+                  //to the last transmission of the MAC PDU, decrement
+                  //SL_RESOURCE_RESELECTION_COUNTER by 1, if available.
+                  --itGrantInfo.second.slResoReselCounter;
+                  --itGrantInfo.second.cReselCounter;
+                  //Clear the HARQ buffer since we put the TB in HARQ buffer
+                  //even if the retx are not configured
+                  if (m_nrSlMacPduTxed)
+                    {
+                      m_nrSlHarq->RecvNrSlHarqFeedback (currentGrant.dstL2Id, itGrantInfo.second.nrSlHarqId);
+                    }
+                }
             }
           else
             {
-              sciF02.SetHarqId (itGrantInfo.second.nrSlHarqId);
+              //retx from MAC HARQ buffer
+              //we might want to match the LC ids in currentGrant.slRlcPduInfo and
+              //the LC ids whose packets are in the packet burst in the HARQ
+              //buffer. I am not doing it at the moment as it might slow down
+              //the simulation.
+              Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+              pb = m_nrSlHarq->GetPacketBurst (currentGrant.dstL2Id, itGrantInfo.second.nrSlHarqId);
+              if (m_enableBlindReTx)
+                {
+                  if (pb->GetNPackets () > 0)
+                    {
+                      m_nrSlMacPduTxed = true;
+                      NS_ASSERT_MSG (pb->GetNPackets () > 0, "Packet burst for HARQ id " << +itGrantInfo.second.nrSlHarqId << " is empty");
+                      for (const auto & itPkt : pb->GetPackets ())
+                        {
+                          m_nrSlUePhySapProvider->SendPsschMacPdu (itPkt);
+                        }
+                    }
+                  if (currentGrant.rv == currentGrant.maxNumPerReserve - 1)
+                    {
+                      //38.321 5.22.1.3.1a says: if this transmission corresponds
+                      //to the last transmission of the MAC PDU, decrement
+                      //SL_RESOURCE_RESELECTION_COUNTER by 1, if available.
+                      --itGrantInfo.second.slResoReselCounter;
+                      --itGrantInfo.second.cReselCounter;
+                      //generate fake feedback. It is important to clear the
+                      //HARQ buffer, which make the HARQ id available again
+                      //since we assign the HARQ id even in the end
+                      //RLC buffer is empty. See the for loop above to trigger RLC.
+                      NS_LOG_INFO ("sending fake HARQ feedback for HARQ id " << +itGrantInfo.second.nrSlHarqId);
+                      m_nrSlHarq->RecvNrSlHarqFeedback (currentGrant.dstL2Id, itGrantInfo.second.nrSlHarqId);
+                    }
+                }
+              else
+                {
+                  //we need to have a feedback to do the retx when blind retx
+                  //are not enabled.
+                  NS_FATAL_ERROR ("Feedback based retransmissions are not supported");
+                }
             }
-          sciF02.SetNdi (grant->ndi);
-          sciF02.SetRv (grant->rv);
+
+          if (!m_nrSlMacPduTxed)
+            {
+              //NR SL MAC PDU was not txed. It can happen if RLC buffer was empty
+              NS_LOG_UNCOND ("Grant wasted at : Frame = " << currentGrant.sfn.GetFrame () << " SF = " << +currentGrant.sfn.GetSubframe () << " slot = " << currentGrant.sfn.GetSlot ());
+              continue;
+            }
+
+          //prepare and send SCI format 02 message
+          NrSlSciF02Header sciF02;
+          sciF02.SetHarqId (itGrantInfo.second.nrSlHarqId);
+          sciF02.SetNdi (currentGrant.ndi);
+          sciF02.SetRv (currentGrant.rv);
           sciF02.SetSrcId (m_srcL2Id);
-          sciF02.SetDstId (grant->dstL2Id);
+          sciF02.SetDstId (currentGrant.dstL2Id);
           //fields which are not used yet that is why we set them to 0
           sciF02.SetCsiReq (0);
           sciF02.SetZoneId (0);
@@ -1398,56 +1430,56 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           //put SCI stage 2 in PSSCH queue
           m_nrSlUePhySapProvider->SendPsschMacPdu (pktSciF02);
 
-          if (grant->ndi)
+          //first thing first, set this allocation info in PHY
+          m_nrSlUePhySapProvider->SetNrSlAllocInfo (*(itGrantInfo.second.slotAllocations.begin ()));
+
+          //prepare and send SCI format 01 message
+          NrSlSciF01Header sciF01;
+          sciF01.SetPriority (currentGrant.priority);
+          sciF01.SetMcs (currentGrant.mcs);
+          sciF01.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
+          sciF01.SetTotalSubChannels (GetTotalSubCh (m_poolId));
+          sciF01.SetIndexStartSubChannel (currentGrant.slPsschSubChStart);
+          sciF01.SetLengthSubChannel (currentGrant.slPsschSubChLength);
+          sciF01.SetSlMaxNumPerReserve (currentGrant.maxNumPerReserve);
+          if (currentGrant.maxNumPerReserve == 2 || currentGrant.maxNumPerReserve == 3)
             {
-              for (const auto & itLcRlcPduInfo : grant->slRlcPduInfo)
-                {
-                  SidelinkLcIdentifier slLcId;
-                  slLcId.lcId = itLcRlcPduInfo.lcid;
-                  slLcId.srcL2Id = m_srcL2Id;
-                  slLcId.dstL2Id = grant->dstL2Id;
-                  const auto & itLc = m_nrSlLcInfoMap.find (slLcId);
-                  NS_ASSERT_MSG (itLc != m_nrSlLcInfoMap.end (), "No LC with id " << +itLcRlcPduInfo.lcid << " found for destination " << grant->dstL2Id);
-                  NS_LOG_DEBUG ("Notifying NR SL RLC of TX opportunity for LC id " << +itLcRlcPduInfo.lcid << " for TB size " << itLcRlcPduInfo.size);
-                  NS_ASSERT_MSG (itGrantInfo.second.nrSlHarqId != std::numeric_limits <uint8_t>::max (), "HARQ id was not assigned for destination " << grant->dstL2Id);
-                  itLc->second.macSapUser->NotifyNrSlTxOpportunity (NrSlMacSapUser::NrSlTxOpportunityParameters (itLcRlcPduInfo.size, m_rnti, itLcRlcPduInfo.lcid,
-                                                                                                                 0, itGrantInfo.second.nrSlHarqId, GetBwpId (),
-                                                                                                                 m_srcL2Id, grant->dstL2Id));
-                  //remove the allocation since we already used it
-                  itGrantInfo.second.slotAllocations.erase (grant);
-                }
+              sciF01.SetGapReTx1 (currentGrant.gapReTx1);
             }
-          else
+          if (currentGrant.maxNumPerReserve == 3)
             {
-              //retx from MAC HARQ buffer
-              //we might want to match the LC ids in grant->slRlcPduInfo and
-              //the LC ids whose packets are in the packet bust in the HARQ
-              //buffer. I am not doing it at the moment as it might slow down
-              //the simulation.
-              Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
-              if (m_enableBlindReTx)
-                {
-                  pb = m_nrSlHarq->GetPacketBurst (grant->dstL2Id, itGrantInfo.second.nrSlHarqId);
-                  NS_ASSERT_MSG (pb->GetNPackets () > 0, "Packet burst for HARQ id " << +itGrantInfo.second.nrSlHarqId << " is empty");
-                  for (const auto & itPkt : pb->GetPackets ())
-                    {
-                      m_nrSlUePhySapProvider->SendPsschMacPdu (itPkt);
-                    }
-                  if (grant->rv == grant->maxNumPerReserve - 1)
-                    {
-                      //generate fake feedback
-                      m_nrSlHarq->RecvNrSlHarqFeedback (grant->dstL2Id, itGrantInfo.second.nrSlHarqId);
-                    }
-                  //remove the allocation since we already used it
-                  itGrantInfo.second.slotAllocations.erase (grant);
-                }
-              else
-                {
-                  //we need to have a feedback to do the retx when blind retx
-                  //are not enabled.
-                  NS_FATAL_ERROR ("Feedback based retransmissions are not supported");
-                }
+              sciF01.SetGapReTx2 (currentGrant.gapReTx2);
             }
+
+          //sum all the assigned bytes to each LC of this destination
+          uint32_t tbs = 0;
+          for (const auto & it : currentGrant.slRlcPduInfo)
+            {
+              NS_LOG_DEBUG ("LC " << static_cast <uint16_t> (it.lcid) << " was assigned " << it.size << "bytes");
+              tbs += it.size;
+            }
+          Ptr<Packet> pktSciF01 = Create<Packet> ();
+          pktSciF01->AddHeader (sciF01);
+          NrSlMacPduTag tag (m_rnti, currentGrant.sfn, currentGrant.slPsschSymStart, currentGrant.slPsschSymLength, tbs, currentGrant.dstL2Id);
+          pktSciF01->AddPacketTag (tag);
+
+          m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF01);
+
+          // Collect statistics for NR SL PSCCH UE MAC scheduling trace
+          SlPscchUeMacStatParameters pscchStatsParams;
+          pscchStatsParams.timestamp = Simulator::Now ().GetMilliSeconds ();
+          pscchStatsParams.imsi = m_imsi;
+          pscchStatsParams.rnti = m_rnti;
+          pscchStatsParams.frameNum = currentGrant.sfn.GetFrame ();
+          pscchStatsParams.subframeNum = currentGrant.sfn.GetSubframe ();
+          pscchStatsParams.slotNum = currentGrant.sfn.GetSlot ();
+          pscchStatsParams.priority = currentGrant.priority;
+          pscchStatsParams.mcs = currentGrant.mcs;
+          pscchStatsParams.tbSize = tbs;
+          pscchStatsParams.slResourceReservePeriod = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ());
+          pscchStatsParams.gapReTx1 = currentGrant.gapReTx1;
+          pscchStatsParams.gapReTx2 = currentGrant.gapReTx2;
+          m_slPscchScheduling (pscchStatsParams); //Trace
         }
       else
         {
@@ -1455,11 +1487,10 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           //counter of already existing destination remains zero. In this case,
           //we just go the next destination, if any.
           continue;
-
         }
-
+      //make this false before processing the grant for next destination
+      m_nrSlMacPduTxed = false;
     }
-
 }
 
 std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
@@ -1516,6 +1547,8 @@ NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
   uint8_t reselCounter = GetRndmReselectionCounter ();
   uint8_t cResel = reselCounter * 10;
 
+  NS_LOG_DEBUG ("Resel Counter " << reselCounter << " cResel " << cResel);
+
   uint16_t resPeriodSlots = m_slTxPool->GetResvPeriodInSlots (GetBwpId (), m_poolId, m_pRsvpTx, m_nrSlUePhySapProvider->GetSlotPeriod ());
   NrSlGrantInfo grant;
 
@@ -1535,6 +1568,9 @@ NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
               NS_ASSERT_MSG (params.rv == 0, "Scheduler forgot to set redundancy version");
               auto slAlloc = params;
               slAlloc.sfn.Add (i * resPeriodSlots);
+              NS_LOG_DEBUG ("First tx at : Frame = " << slAlloc.sfn.GetFrame ()
+                            << " SF = " << +slAlloc.sfn.GetSubframe ()
+                            << " slot = " << slAlloc.sfn.GetSlot ());
               bool insertStatus = grant.slotAllocations.emplace (slAlloc).second;
               NS_ASSERT_MSG (insertStatus, "slot allocation already exist");
             }
@@ -1544,6 +1580,9 @@ NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
               slAlloc.sfn.Add (i * resPeriodSlots + params.gapReTx1);
               slAlloc.ndi = 0;
               slAlloc.rv = 1;
+              NS_LOG_DEBUG ("First ReTx at : Frame = " << slAlloc.sfn.GetFrame ()
+                            << " SF = " << +slAlloc.sfn.GetSubframe ()
+                            << " slot = " << slAlloc.sfn.GetSlot ());
               bool insertStatus = grant.slotAllocations.emplace (slAlloc).second;
               NS_ASSERT_MSG (insertStatus, "slot allocation already exist");
             }
@@ -1553,6 +1592,9 @@ NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
               slAlloc.sfn.Add (i * resPeriodSlots + params.gapReTx2);
               slAlloc.ndi = 0;
               slAlloc.rv = 2;
+              NS_LOG_DEBUG ("Second ReTx at : Frame = " << slAlloc.sfn.GetFrame ()
+                            << " SF = " << +slAlloc.sfn.GetSubframe ()
+                            << " slot = " << slAlloc.sfn.GetSlot ());
               bool insertStatus = grant.slotAllocations.emplace (slAlloc).second;
               NS_ASSERT_MSG (insertStatus, "slot allocation already exist");
             }
@@ -1640,8 +1682,10 @@ NrUeMac::DoTransmitNrSlRlcPdu (const NrSlMacSapProvider::NrSlRlcPduParameters &p
   NS_LOG_FUNCTION (this << +params.lcid << +params.harqProcessId);
   LteRadioBearerTag bearerTag (params.rnti, params.lcid, 0);
   params.pdu->AddPacketTag (bearerTag);
+  NS_LOG_DEBUG ("Adding packet in HARQ buffer for HARQ id " << +params.harqProcessId);
   m_nrSlHarq->AddPacket (params.dstL2Id, params.lcid, params.harqProcessId, params.pdu);
   m_nrSlUePhySapProvider->SendPsschMacPdu (params.pdu);
+  m_nrSlMacPduTxed = true;
 }
 
 void
@@ -1794,7 +1838,7 @@ void
 NrUeMac::DoSetSlProbResoKeep (uint8_t prob)
 {
   NS_LOG_FUNCTION (this << +prob);
-  NS_ASSERT_MSG (prob <= 1, "Probability value must be less than 1");
+  NS_ASSERT_MSG (prob <= 1, "Probability value must be between 0 and 1");
   m_slProbResourceKeep = prob;
 }
 

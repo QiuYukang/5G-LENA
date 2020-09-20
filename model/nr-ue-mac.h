@@ -948,6 +948,7 @@ private:
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
   uint32_t m_srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id;
+  bool m_nrSlMacPduTxed {false};
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.
