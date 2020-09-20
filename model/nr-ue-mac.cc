@@ -1764,7 +1764,6 @@ NrUeMac::AddNrSlDstL2Id (uint32_t dstL2Id, uint8_t lcPriority)
   if (!foundDst)
     {
       m_sidelinkDestinations.push_back (std::make_pair (dstL2Id, lcPriority));
-      m_nrSlHarq->AddDst (dstL2Id, m_numSidelinkProcess);
     }
 
   std::sort (m_sidelinkDestinations.begin (), m_sidelinkDestinations.end (), CompareSecond);
@@ -1973,7 +1972,9 @@ void
 NrUeMac::SetNumSidelinkProcess (uint8_t numSidelinkProcess)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_grantInfo.size () == 0, "Can not reset the number of Sidelink processes. Scheduler already assigned grants");
   m_numSidelinkProcess = numSidelinkProcess;
+  m_nrSlHarq->InitHarqBuffer (m_numSidelinkProcess);
 }
 
 uint8_t
