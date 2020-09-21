@@ -1356,12 +1356,10 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
                   //SL_RESOURCE_RESELECTION_COUNTER by 1, if available.
                   --itGrantInfo.second.slResoReselCounter;
                   --itGrantInfo.second.cReselCounter;
-                  //Clear the HARQ buffer since we put the TB in HARQ buffer
-                  //even if the retx are not configured
-                  if (m_nrSlMacPduTxed)
-                    {
-                      m_nrSlHarq->RecvNrSlHarqFeedback (currentGrant.dstL2Id, itGrantInfo.second.nrSlHarqId);
-                    }
+                  //Clear the HARQ buffer since we assign the HARQ id
+                  //and put the TB in HARQ buffer (if RLC buffer was not empty)
+                  //even if the retxs are not configured.
+                  m_nrSlHarq->RecvNrSlHarqFeedback (currentGrant.dstL2Id, itGrantInfo.second.nrSlHarqId);
                 }
             }
           else
