@@ -1253,57 +1253,61 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
     }
   else if (m_slTxPool->GetNrSlSchedulingType () == NrSlCommResourcePool::UE_SELECTED)
     {
-      for (const auto &itDst : m_sidelinkDestinations)
+      //Do not ask for resources if no HARQ/Sidelink process is available
+      if (m_nrSlHarq->GetNumAvaiableHarqIds () > 0)
         {
-          const auto itGrantInfo = m_grantInfo.find (itDst.first);
-          bool foundDest = itGrantInfo != m_grantInfo.end () ? true : false;
-          if (foundDest)
+          for (const auto &itDst : m_sidelinkDestinations)
             {
-              //If the re-selection counter of the found destination is not zero,
-              //it means it already have resources assigned to it via semi-persistent
-              //scheduling, thus, we go to the next destination
-              if (itGrantInfo->second.slResoReselCounter != 0)
+              const auto itGrantInfo = m_grantInfo.find (itDst.first);
+              bool foundDest = itGrantInfo != m_grantInfo.end () ? true : false;
+              if (foundDest)
                 {
-                  NS_LOG_INFO ("Destination " << itDst.first << " already have the allocation, scheduling the next destination, if any");
-                  continue;
+                  //If the re-selection counter of the found destination is not zero,
+                  //it means it already have resources assigned to it via semi-persistent
+                  //scheduling, thus, we go to the next destination
+                  if (itGrantInfo->second.slResoReselCounter != 0)
+                    {
+                      NS_LOG_INFO ("Destination " << itDst.first << " already have the allocation, scheduling the next destination, if any");
+                      continue;
+                    }
+
+                  uint32_t randProb = m_ueSelectedUniformVariable->GetInteger (0, 1);
+                  if (itGrantInfo->second.cReselCounter > 0 &&
+                      itGrantInfo->second.slotAllocations.size () > 0 && m_slProbResourceKeep > randProb)
+                    {
+                      NS_LOG_INFO ("IMSI " << m_imsi << " keeping the resource for " << itDst.first);
+                      NS_ASSERT_MSG (itGrantInfo->second.slResoReselCounter == 0, "Sidelink resource re-selection counter must be zero before continuing with the same grant for dst " << itDst.first);
+                      //keeping the resource, reassign the same sidelink resource re-selection
+                      //counter we chose while creating the fresh grant
+                      itGrantInfo->second.slResoReselCounter = itGrantInfo->second.prevSlResoReselCounter;
+                      continue;
+                    }
+                  else
+                    {
+                      //we need to choose new resource so erase the previous allocations
+                      itGrantInfo->second.slotAllocations.erase (itGrantInfo->second.slotAllocations.begin (), itGrantInfo->second.slotAllocations.end ());
+                    }
                 }
 
-              uint32_t randProb = m_ueSelectedUniformVariable->GetInteger (0, 1);
-              if (itGrantInfo->second.cReselCounter > 0 &&
-                  itGrantInfo->second.slotAllocations.size () > 0 && m_slProbResourceKeep > randProb)
+              std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities (sfn, m_poolId);
+              auto filteredReso = FilterTxOpportunities (availbleReso);
+              if (!filteredReso.empty () && filteredReso.size () >= filteredReso.begin ()->slMaxNumPerReserve)
                 {
-                  NS_LOG_INFO ("IMSI " << m_imsi << " keeping the resource for " << itDst.first);
-                  NS_ASSERT_MSG (itGrantInfo->second.slResoReselCounter == 0, "Sidelink resource re-selection counter must be zero before continuing with the same grant for dst " << itDst.first);
-                  //keeping the resource, reassign the same sidelink resource re-selection
-                  //counter we chose while creating the fresh grant
-                  itGrantInfo->second.slResoReselCounter = itGrantInfo->second.prevSlResoReselCounter;
-                  continue;
+                  //we ask the scheduler for resources only if:
+                  //1. The filtered list is not empty.
+                  //2. The filtered list have enough slots to be allocated for all
+                  //   the possible transmissions.
+                  NS_LOG_INFO ("IMSI " << m_imsi << " scheduling the destination " << itDst.first);
+                  m_nrSlUeMacSchedSapProvider->SchedUeNrSlTriggerReq (itDst.first, filteredReso);
                 }
               else
                 {
-                  //we need to choose new resource so erase the previous allocations
+                  NS_LOG_DEBUG ("Do not have enough slots to allocate. Clearing the remaining allocations if any, and not calling the scheduler for dst " << itDst.first);
+                  //Also clear the previous remaining allocations
+                  itGrantInfo->second.cReselCounter = 0;
+                  itGrantInfo->second.prevSlResoReselCounter = 0;
                   itGrantInfo->second.slotAllocations.erase (itGrantInfo->second.slotAllocations.begin (), itGrantInfo->second.slotAllocations.end ());
                 }
-            }
-
-          std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities (sfn, m_poolId);
-          auto filteredReso = FilterTxOpportunities (availbleReso);
-          if (!filteredReso.empty () && filteredReso.size () >= filteredReso.begin ()->slMaxNumPerReserve)
-            {
-              //we ask the scheduler for resources only if:
-              //1. The filtered list is not empty.
-              //2. The filtered list have enough slots to be allocated for all
-              //   the possible transmissions.
-              NS_LOG_INFO ("IMSI " << m_imsi << " scheduling the destination " << itDst.first);
-              m_nrSlUeMacSchedSapProvider->SchedUeNrSlTriggerReq (itDst.first, filteredReso);
-            }
-          else
-            {
-              NS_LOG_DEBUG ("Do not have enough slots to allocate. Clearing the remaining allocations if any, and not calling the scheduler for dst " << itDst.first);
-              //Also clear the previous remaining allocations
-              itGrantInfo->second.cReselCounter = 0;
-              itGrantInfo->second.prevSlResoReselCounter = 0;
-              itGrantInfo->second.slotAllocations.erase (itGrantInfo->second.slotAllocations.begin (), itGrantInfo->second.slotAllocations.end ());
             }
         }
     }
