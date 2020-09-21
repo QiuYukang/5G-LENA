@@ -1302,11 +1302,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
                 }
               else
                 {
-                  NS_LOG_DEBUG ("Do not have enough slots to allocate. Clearing the remaining allocations if any, and not calling the scheduler for dst " << itDst.first);
-                  //Also clear the previous remaining allocations
-                  itGrantInfo->second.cReselCounter = 0;
-                  itGrantInfo->second.prevSlResoReselCounter = 0;
-                  itGrantInfo->second.slotAllocations.erase (itGrantInfo->second.slotAllocations.begin (), itGrantInfo->second.slotAllocations.end ());
+                  NS_LOG_DEBUG ("Do not have enough slots to allocate. Not calling the scheduler for dst " << itDst.first);
                 }
             }
         }
