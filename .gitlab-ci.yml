@@ -1,8 +1,6 @@
 
 stages:
   - build
-#  - test
-  - documentation
 
 
 ###################### BUILD STAGE #############################################
@@ -27,6 +25,8 @@ stages:
     - ./test.py
     - cd ../
     - rm -rf ns-3-dev
+  tags:
+    - cttc
   cache:
     paths:
       - $CCACHE_BASEDIR_VALUE/
@@ -56,9 +56,8 @@ per-commit-compile-optimized:
     COMPILER: g++
     MODE: optimized
 
-###################### DOC STAGE #############################################
 .doc:
-  stage: documentation
+  stage: build
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
