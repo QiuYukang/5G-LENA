@@ -56,7 +56,7 @@ per-commit-compile-optimized:
     COMPILER: g++
     MODE: optimized
 
-.doc:
+pages:
   stage: build
   before_script:
     - apt-get update
@@ -65,28 +65,20 @@ per-commit-compile-optimized:
     - sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
     - sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
   image: ubuntu
+  script:
+    - mkdir -p public/
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
+    - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
+    - mv doc/doc/html/ public/
+    - cd doc && make latexpdf
+    - cd ..
+    - mv doc/build/latex/*.pdf public/
   artifacts:
     paths:
       - public
   only:
     - master
-
-doxygen:
-  extends: .doc
-  script:
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
-    - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
-    - mv doc/doc/html/ public/
-
-manual:
-  extends: .doc
-  script:
-    - cd doc && make latexpdf
-    - cd ..
-    - mkdir public/
-    - mv doc/build/latex/*.pdf public/
-
 
 include:
   - '.gitlab-ci-clang.yml'
