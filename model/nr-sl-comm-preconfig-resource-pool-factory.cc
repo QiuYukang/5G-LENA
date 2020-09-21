@@ -270,6 +270,9 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
 
   switch (m_slMaxNumPerReserve)
     {
+    case 1:
+      m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N1;
+      break;
     case 2:
       m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N2;
       break;
