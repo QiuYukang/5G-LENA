@@ -154,7 +154,7 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
         {
           uint32_t bufQueueSize = schedInfoIt->second;
 
-          if (GetTBSFn (GetUe (*schedInfoIt)) >= bufQueueSize)
+          if (GetTBSFn (GetUe (*schedInfoIt)) >= std::max (bufQueueSize, 7U))
             {
               NS_LOG_INFO ("UE " << GetUe (*schedInfoIt)->m_rnti << " TBS " <<
                            GetTBSFn (GetUe (*schedInfoIt)) << " queue " <<

@@ -197,7 +197,7 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              if (GetUe (*schedInfoIt)->m_dlTbSize >= bufQueueSize)
+              if (GetUe (*schedInfoIt)->m_dlTbSize >= std::max (bufQueueSize, 7U))
                 {
                   schedInfoIt++;
                 }
@@ -286,7 +286,7 @@ NrMacSchedulerOfdma::AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              if (GetUe (*schedInfoIt)->m_ulTbSize >= bufQueueSize)
+              if (GetUe (*schedInfoIt)->m_ulTbSize >= std::max (bufQueueSize, 7U))
                 {
                   schedInfoIt++;
                 }
