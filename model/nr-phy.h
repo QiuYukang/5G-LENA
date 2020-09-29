@@ -619,31 +619,35 @@ public:
    */
   void DoSendPsschMacPdu (Ptr<Packet> p);
   /**
-   * \brief Get the NR Sidelink PSCCH packet burst
-   * \return The packet burst
+   * \brief Set the allocation info for NR SL slot in PHY
+   * \param sfn The SfnSf
+   * \param varTtiInfo The Variable TTI allocation info
    */
-  Ptr<PacketBurst> GetPscchPacketBurst ();
-  /**
-   * \brief Get the NR Sidelink PSSCH packet burst
-   * \return The packet burst
-   */
-  Ptr<PacketBurst> GetPsschPacketBurst ();
-  /**
-   * \brief Set the allocation info for NR SL slot
-   * \param allocInfo The slot allocation info
-   */
-  void DoSetNrSlAllocInfo (NrSlSlotAlloc allocInfo);
-  /**
-   * \brief Get the allocation info for NR SL slot
-   * \return The slot allocation info
-   */
-  NrSlSlotAlloc GetNrSlAllocationInfo ();
-
+  void DoSetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo);
 
 protected:
+  /**
+   * \brief Pop the NR Sidelink PSCCH packet burst
+   * \return The packet burst
+   */
+  Ptr<PacketBurst> PopPscchPacketBurst ();
+  /**
+   * \brief Pop the NR Sidelink PSSCH packet burst
+   * \return The packet burst
+   */
+  Ptr<PacketBurst> PopPsschPacketBurst ();
+  /**
+   * \brief Check if there is an allocation for NR SL slot
+   * \param sfn the sfn
+   * \return true, if allocation info sfn matches the \p sfn and the
+   *         CTRL and data queues have packet (s)
+   */
+  bool NrSlSlotAllocInfoExists (const SfnSf &sfn) const;
+
   std::vector< Ptr<PacketBurst> > m_nrSlPscchPacketBurstQueue; //!< A queue of NR SL PSCCH (SCI format 0) packet bursts to be sent
   std::vector< Ptr<PacketBurst> > m_nrSlPsschPacketBurstQueue; //!< A queue of NR SL PSSCH (SCI format 1 + Data) packet bursts to be sent.
-  std::vector<NrSlSlotAlloc> m_slAllocInfoQueue; //!< A queue of NR SL allocation for a slot
+  std::deque <NrSlPhySlotAlloc> m_nrSlAllocInfoQueue; //!< Current NR SL allocation info for a slot
+  NrSlPhySlotAlloc m_nrSlCurrentAlloc; //!< Current NR SL allocation info for a slot
 
 private:
   void SetPscchMacPdu (Ptr<Packet> p);
