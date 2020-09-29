@@ -1428,8 +1428,14 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           //put SCI stage 2 in PSSCH queue
           m_nrSlUePhySapProvider->SendPsschMacPdu (pktSciF02);
 
-          //first thing first, set this allocation info in PHY
-          m_nrSlUePhySapProvider->SetNrSlAllocInfo (*(itGrantInfo.second.slotAllocations.begin ()));
+          //set the VarTti allocation info for PSSCH
+          NrSlVarTtiAllocInfo dataVarTtiInfo;
+          dataVarTtiInfo.SlVarTtiType = NrSlVarTtiAllocInfo::DATA;
+          dataVarTtiInfo.symStart = currentGrant.slPsschSymStart;
+          dataVarTtiInfo.symLength = currentGrant.slPsschSymLength;
+          dataVarTtiInfo.rbStart = currentGrant.slPsschSubChStart * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
+          dataVarTtiInfo.rbLength = currentGrant.slPsschSubChLength * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId) - 1;
+          m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, dataVarTtiInfo);
 
           //prepare and send SCI format 01 message
           NrSlSciF01Header sciF01;
@@ -1462,6 +1468,15 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           pktSciF01->AddPacketTag (tag);
 
           m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF01);
+
+          //set the VarTti allocation info for PSCCH
+          NrSlVarTtiAllocInfo ctrlVarTtiInfo;
+          ctrlVarTtiInfo.SlVarTtiType = NrSlVarTtiAllocInfo::CTRL;
+          ctrlVarTtiInfo.symStart = currentGrant.slPscchSymStart;
+          ctrlVarTtiInfo.symLength = currentGrant.slPscchSymLength;
+          ctrlVarTtiInfo.rbStart = 0;
+          ctrlVarTtiInfo.rbLength = currentGrant.numSlPscchRbs - 1;
+          m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, ctrlVarTtiInfo);
 
           // Collect statistics for NR SL PSCCH UE MAC scheduling trace
           SlPscchUeMacStatParameters pscchStatsParams;

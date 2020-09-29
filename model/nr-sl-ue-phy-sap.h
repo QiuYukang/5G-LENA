@@ -71,9 +71,10 @@ public:
   virtual void SendPsschMacPdu (Ptr<Packet> p) = 0;
   /**
    * \brief Set the allocation info for NR SL slot in PHY
-   * \param allocInfo The slot allocation info
+   * \param sfn The SfnSf
+   * \param varTtiInfo The Variable TTI allocation info
    */
-  virtual void SetNrSlAllocInfo (NrSlSlotAlloc allocInfo) = 0;
+  virtual void SetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo) = 0;
 
 };
 
@@ -130,7 +131,7 @@ public:
   virtual Time GetSlotPeriod () const;
   virtual void SendPscchMacPdu (Ptr<Packet> p);
   virtual void SendPsschMacPdu (Ptr<Packet> p);
-  virtual void SetNrSlAllocInfo (NrSlSlotAlloc allocInfo);
+  virtual void SetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo);
 
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
@@ -176,9 +177,9 @@ MemberNrSlUePhySapProvider<C>::SendPsschMacPdu (Ptr<Packet> p)
 
 template <class C>
 void
-MemberNrSlUePhySapProvider<C>::SetNrSlAllocInfo (NrSlSlotAlloc allocInfo)
+MemberNrSlUePhySapProvider<C>::SetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo)
 {
-  m_owner->DoSetNrSlAllocInfo (allocInfo);
+  m_owner->DoSetNrSlVarTtiAllocInfo (sfn, varTtiInfo);
 }
 
 
