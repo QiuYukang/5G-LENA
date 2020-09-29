@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <limits>
 #include <vector>
+#include <set>
 
 namespace ns3 {
 
@@ -74,17 +75,22 @@ struct SlPscchUeMacStatParameters
 
 /**
  * \brief The SlRlcPduInfo struct
+ *
+ * \see NrSlSlotAlloc
  */
 struct SlRlcPduInfo
 {
   SlRlcPduInfo (uint8_t lcid, uint32_t size) :
     lcid (lcid), size (size)
-  {
-  }
+  {}
   uint8_t lcid  {0}; //!< The Logical channel id
   uint32_t size {0}; //!< The transport block size
 };
 
+/**
+ * \brief A struct used by the NR SL UE MAC scheduler to communicate slot
+ *        allocation to UE MAC.
+ */
 struct NrSlSlotAlloc
 {
   SfnSf sfn {}; //!< The SfnSf
@@ -119,6 +125,53 @@ struct NrSlSlotAlloc
   bool operator < (const NrSlSlotAlloc& rhs) const;
 };
 
+/**
+ * \brief A struct used by UE MAC to communicate the time and frequency
+ *        allocation information of a Var TTI to UE PHY.
+ *
+ * The UE MAC will pass this struct along with the SFnSF of the slot to
+ * communicate a Var TTI allocation information to UE PHY.
+ */
+struct NrSlVarTtiAllocInfo
+{
+  uint16_t symStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting symbol
+  uint16_t symLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous symbols
+  uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting resource block
+  uint16_t rbLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous resource block
+  /**
+   * \brief The slVarTtiType enum
+   */
+  enum
+  {
+    CTRL,      //!< Used for SL CTRL
+    DATA,      //!< Used for SL DATA
+    INVALID    //!< Default value. Used to initialize
+  } SlVarTtiType {INVALID};
+
+  /**
+   * \brief Less than operator overloaded for NrSlVarTtiAllocInfo
+   * \param rhs other NrSlVarTtiAllocInfo to compare
+   * \return true if this NrSlVarTtiAllocInfo symbol start value is
+   *         less than the rhs NrSlVarTtiAllocInfo symbol start
+   *
+   * The comparison is done on the symbol start
+   */
+  bool operator < (const NrSlVarTtiAllocInfo& o) const;
+};
+
+/**
+ * \brief A struct used by UE PHY to store the time and frequency
+ *        allocation information of each Var TTI communicated by UE MAC.
+ *
+ * All the Var TTI allocations stored by this struct should belong to
+ * the same slot, and each Var TTI in slvarTtiInfoList list must differ
+ * in their symbol start.
+ */
+struct NrSlPhySlotAlloc
+{
+  SfnSf sfn {}; //!< The SfnSf
+  std::set<NrSlVarTtiAllocInfo> slvarTtiInfoList; //!< NR Sidelink variable TTI info list
+};
 
 }
 
