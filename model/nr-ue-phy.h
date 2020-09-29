@@ -717,6 +717,65 @@ protected:
   void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
 
 private:
+  /**
+   * \brief Start the NR SL slot processing
+   * \param s the slot number
+   */
+  void StartNrSlSlot (const SfnSf &s);
+  /**
+   * \brief Start the processing of a NR Sidelink variable TTI
+   * \param varTtiInfo the slot VarTti allocation info of the variable TTI
+   *
+   * This time can be a SL CTRL, a SL data, SL HARQ feedback (not available yet), with
+   * any number of symbols (limited to the number of symbols per slot).
+   *
+   * At the end of processing, it schedules the method EndNrSlVarTtti that will finish
+   * the processing of the variable TTI allocation.
+   *
+   * \see EndNrSlVarTti
+   */
+  void StartNrSlVarTti (const NrSlVarTtiAllocInfo &varTtiInfo);
+  /**
+   * \brief End the processing of a NR Sidelink variable TTI
+   * \param varTtiInfo the slot VarTti allocation info of the variable TTI
+   *
+   * The end of the NR SL variable TTI indicates that the allocation has been
+   * transmitted. Depending on the variable TTI left with the slot, this method
+   * will schedule another NR SL var TTI (StartNrSlVarTti()) or will start
+   * new slot.
+   *
+   * \see StartNrSlVarTti
+   * \see StartNrSlSlot
+   */
+  void EndNrSlVarTti (const NrSlVarTtiAllocInfo &varTtiInfo);
+  /**
+   * \brief Transmit NR SL CTRL and return the time at which the transmission will end
+   * \param varTtiInfo the current slot VarTti allocation info to TX NR SL CTRL
+   * \return the time at which the transmission of NR SL CTRL will end
+   */
+  Time SlCtrl (const NrSlVarTtiAllocInfo &varTtiInfo) __attribute__((warn_unused_result));
+  /**
+   * \brief Transmit to the spectrum phy the NR SL CTRL packet burst
+   *
+   * \param pb Packet burst to transmit
+   * \param varTtiPeriod period of transmission
+   * \param varTtiInfo the slot VarTti allocation info of the variable TTI
+   */
+  void SendNrSlCtrlChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod, const NrSlVarTtiAllocInfo &varTtiInfo);
+  /**
+   * \brief Transmit to the spectrum phy the NR SL CTRL packet burst
+   *
+   * \param pb Packet burst to transmit
+   * \param varTtiPeriod period of transmission
+   * \param varTtiInfo the slot VarTti allocation info of the variable TTI
+   */
+  void SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod, const NrSlVarTtiAllocInfo &varTtiInfo);
+  /**
+   * \brief Transmit NR SL DATA and return the time at which the transmission will end
+   * \param varTtiInfo the current slot VarTti allocation info to TX NR SL DATA
+   * \return the time at which the transmission of NR SL DATA will end
+   */
+  Time SlData (const NrSlVarTtiAllocInfo &varTtiInfo) __attribute__((warn_unused_result));
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCphySapUser* m_nrSlUeCphySapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
   NrSlUePhySapUser* m_nrSlUePhySapUser {nullptr}; //!< SAP interface to call the methods of UE MAC instance

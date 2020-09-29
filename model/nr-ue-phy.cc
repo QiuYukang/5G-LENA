@@ -605,7 +605,17 @@ NrUePhy::StartSlot (const SfnSf &s)
   m_phySapUser->SlotIndication (m_currentSlot);   // trigger mac
 
   // update the current slot object, and insert DL/UL CTRL allocations depending on the TDD pattern
-  if (SlotAllocInfoExists (m_currentSlot))
+  bool nrAllocExists = SlotAllocInfoExists (m_currentSlot);
+  bool slAllocExists = NrSlSlotAllocInfoExists (m_currentSlot);
+
+  if (slAllocExists)
+    {
+      NS_ASSERT_MSG (!nrAllocExists, "Can not start SL slot when there is UL allocation");
+      StartNrSlSlot (s);
+      return;
+    }
+
+  if (nrAllocExists)
     {
       m_currSlotAllocInfo = RetrieveSlotAllocInfo (m_currentSlot);
     }
@@ -1181,7 +1191,7 @@ NrUePhy::RegisterSlBwpId (uint16_t bwpId)
 {
   NS_LOG_FUNCTION (this);
 
-  // we might need to do the same for SL InitializeMessageList ();
+  // we initialize queues in DoReset;
 
   SetBwpId (bwpId);
 }
@@ -1220,6 +1230,153 @@ NrUePhy::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 {
   NS_LOG_FUNCTION (this);
   m_slRxPool = rxPool;
+}
+
+void
+NrUePhy::StartNrSlSlot (const SfnSf &s)
+{
+  NS_LOG_FUNCTION (this);
+  m_nrSlCurrentAlloc = m_nrSlAllocInfoQueue.front ();
+  m_nrSlAllocInfoQueue.pop_front ();
+  NS_ASSERT_MSG (m_nrSlCurrentAlloc.sfn == m_currentSlot, "Unable to find NR SL slot allocation");
+  NrSlVarTtiAllocInfo varTtiInfo = *(m_nrSlCurrentAlloc.slvarTtiInfoList.begin());
+  //erase the retrieved var TTI info
+  m_nrSlCurrentAlloc.slvarTtiInfoList.erase (m_nrSlCurrentAlloc.slvarTtiInfoList.begin());
+  auto nextVarTtiStart = GetSymbolPeriod () * varTtiInfo.symStart;
+  Simulator::Schedule (nextVarTtiStart, &NrUePhy::StartNrSlVarTti, this, varTtiInfo);
+}
+
+void
+NrUePhy::StartNrSlVarTti (const NrSlVarTtiAllocInfo &varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  Time varTtiPeriod;
+
+  if (varTtiInfo.SlVarTtiType == NrSlVarTtiAllocInfo::CTRL)
+    {
+      varTtiPeriod = SlCtrl (varTtiInfo);
+    }
+  else if (varTtiInfo.SlVarTtiType == NrSlVarTtiAllocInfo::DATA)
+    {
+      varTtiPeriod = SlData (varTtiInfo);
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Invalid or unknown SL VarTti type " << varTtiInfo.SlVarTtiType);
+    }
+
+
+  Simulator::Schedule (varTtiPeriod, &NrUePhy::EndNrSlVarTti, this, varTtiInfo);
+}
+
+void
+NrUePhy::EndNrSlVarTti (const NrSlVarTtiAllocInfo &varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_INFO ("NR SL var TTI started at symbol " << varTtiInfo.symStart <<
+               " which lasted for " << varTtiInfo.symLength << " symbols");
+
+  if (m_nrSlCurrentAlloc.slvarTtiInfoList.size () == 0)
+      {
+        // end of slot
+        m_currentSlot.Add (1);
+        //we need trigger the NR Slot start
+        Simulator::Schedule (m_lastSlotStart + GetSlotPeriod () - Simulator::Now (),
+                             &NrUePhy::StartSlot, this, m_currentSlot);
+      }
+    else
+      {
+        NrSlVarTtiAllocInfo nextVarTtiInfo = *(m_nrSlCurrentAlloc.slvarTtiInfoList.begin());
+        //erase the retrieved var TTI info
+        m_nrSlCurrentAlloc.slvarTtiInfoList.erase (m_nrSlCurrentAlloc.slvarTtiInfoList.begin());
+        auto nextVarTtiStart = GetSymbolPeriod () * nextVarTtiInfo.symStart;
+
+        Simulator::Schedule (nextVarTtiStart + m_lastSlotStart - Simulator::Now (),
+                             &NrUePhy::StartNrSlVarTti, this, nextVarTtiInfo);
+      }
+}
+
+Time
+NrUePhy::SlCtrl (const NrSlVarTtiAllocInfo &varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<PacketBurst> pktBurst = PopPscchPacketBurst ();
+  if (!pktBurst || pktBurst->GetNPackets () == 0)
+    {
+      NS_FATAL_ERROR ("No NR SL CTRL packet to transmit");
+    }
+  Time varTtiPeriod = GetSymbolPeriod () * varTtiInfo.symLength;
+  // -1 ns ensures control ends before data period
+  SendNrSlCtrlChannels (pktBurst, varTtiPeriod - NanoSeconds (1.0), varTtiInfo);
+
+ return varTtiPeriod;
+}
+
+void
+NrUePhy::SendNrSlCtrlChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod, const NrSlVarTtiAllocInfo &varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  std::vector<int> channelRbs;
+  for (uint32_t i = 0; i < varTtiInfo.rbLength; i++)
+    {
+      channelRbs.push_back (static_cast<int> (i));
+    }
+
+  SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
+  //m_spectrumPhy->TxPscch (pb, varTtiPeriod);
+}
+
+Time
+NrUePhy::SlData (const NrSlVarTtiAllocInfo &varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  Time varTtiPeriod = GetSymbolPeriod () * varTtiInfo.symLength;
+  Ptr<PacketBurst> pktBurst = PopPsschPacketBurst ();
+
+  if (pktBurst && pktBurst->GetNPackets () > 0)
+    {
+      std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
+      LteRadioBearerTag bearerTag;
+      if (!pkts.front ()->PeekPacketTag (bearerTag))
+        {
+          NS_FATAL_ERROR ("No radio bearer tag");
+        }
+    }
+  else
+    {
+      // put an error, as something is wrong. The UE should not be scheduled
+      // if there is no data for it...
+      NS_FATAL_ERROR ("The UE " << m_rnti << " has been scheduled without NR SL data");
+    }
+
+  NS_LOG_DEBUG ("UE" << m_rnti <<
+                " TXing NR SL DATA frame for symbols "  << varTtiInfo.symStart <<
+                "-" << varTtiInfo.symLength - 1
+                     << "\t start " << Simulator::Now () <<
+                " end " << (Simulator::Now () + varTtiPeriod));
+
+  Simulator::Schedule (NanoSeconds (1.0), &NrUePhy::SendNrSlDataChannels, this,
+                       pktBurst, varTtiPeriod - NanoSeconds (2.0), varTtiInfo);
+  return varTtiPeriod;
+}
+
+void
+NrUePhy::SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod, const NrSlVarTtiAllocInfo &varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  std::vector<int> channelRbs;
+  for (uint32_t i = 0; i < varTtiInfo.rbLength; i++)
+    {
+      channelRbs.push_back (static_cast<int> (i));
+    }
+
+  SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
+  //m_spectrumPhy->TxPssch (pb, varTtiPeriod);
 }
 
 }
