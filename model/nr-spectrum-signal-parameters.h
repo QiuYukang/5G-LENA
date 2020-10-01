@@ -125,6 +125,85 @@ struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
   uint16_t cellId;                                    //!< cell id
 };
 
+// NR SL
+
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * Signal parameters for NR SL Frame
+ */
+struct NrSpectrumSignalParametersSlFrame : public SpectrumSignalParameters
+{
+
+  // inherited from SpectrumSignalParameters
+  virtual Ptr<SpectrumSignalParameters> Copy ();
+
+  /**
+   * \brief NrSlSpectrumSignalParametersSlFrame default constructor
+   */
+  NrSpectrumSignalParametersSlFrame ();
+
+  /**
+   * \brief NrSlSpectrumSignalParametersSlFrame copy constructor
+   * \param p The NrSlSpectrumSignalParametersSlFrame
+   */
+  NrSpectrumSignalParametersSlFrame (const NrSpectrumSignalParametersSlFrame& p);
+
+  Ptr<PacketBurst> packetBurst; //!< The packet burst being transmitted with this signal
+  uint32_t nodeId {std::numeric_limits <uint32_t>::max ()}; //!< Node id
+  //TODO
+  //uint64_t slssId; //!< The Sidelink synchronization signal identifier of the transmitting UE
+
+};
+
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * Signal parameters for NR SL CTRL Frame (PSCCH)
+ */
+struct NrSpectrumSignalParametersSlCtrlFrame : public NrSpectrumSignalParametersSlFrame
+{
+
+  // inherited from SpectrumSignalParameters
+  virtual Ptr<SpectrumSignalParameters> Copy ();
+
+  /**
+   * NrSlSpectrumSignalParametersSlCtrlFrame default constructor
+   */
+  NrSpectrumSignalParametersSlCtrlFrame ();
+
+  /**
+   * \brief NrSlSpectrumSignalParametersSlCtrlFrame copy constructor
+   * \param p The NrSlSpectrumSignalParametersSlFrame
+   */
+  NrSpectrumSignalParametersSlCtrlFrame (const NrSpectrumSignalParametersSlCtrlFrame& p);
+};
+
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * Signal parameters for NR SL DATA Frame (PSSCH)
+ */
+struct NrSpectrumSignalParametersSlDataFrame : public NrSpectrumSignalParametersSlFrame
+{
+
+  // inherited from SpectrumSignalParameters
+  virtual Ptr<SpectrumSignalParameters> Copy ();
+
+  /**
+   * \brief NrSlSpectrumSignalParametersSlDataFrame default constructor
+   */
+  NrSpectrumSignalParametersSlDataFrame ();
+
+  /**
+   * \brief NrSlSpectrumSignalParametersSlDataFrame copy constructor
+   * \param p The NrSlSpectrumSignalParametersSlFrame
+   */
+  NrSpectrumSignalParametersSlDataFrame (const NrSpectrumSignalParametersSlDataFrame& p);
+};
 
 }  // namespace ns3
 

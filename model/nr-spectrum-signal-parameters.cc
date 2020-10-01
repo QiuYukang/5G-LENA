@@ -119,4 +119,100 @@ NrSpectrumSignalParametersUlCtrlFrame::Copy ()
   return lssp;
 }
 
+// NR SL
+
+NrSpectrumSignalParametersSlFrame::NrSpectrumSignalParametersSlFrame ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+NrSpectrumSignalParametersSlFrame::NrSpectrumSignalParametersSlFrame (const NrSpectrumSignalParametersSlFrame& p)
+  : SpectrumSignalParameters (p)
+{
+  NS_LOG_FUNCTION (this << &p);
+  nodeId = p.nodeId;
+  //slssId = p.slssId; //TODO
+  if (p.packetBurst)
+    {
+      packetBurst = p.packetBurst->Copy ();
+    }
+}
+
+Ptr<SpectrumSignalParameters>
+NrSpectrumSignalParametersSlFrame::Copy ()
+{
+  NS_LOG_FUNCTION (this);
+  // Ideally we would use:
+  //   return Copy<NrSlSpectrumSignalParametersSlCtrlFrame> (*this);
+  // but for some reason it doesn't work. Another alternative is
+  //   return Copy<NrSlSpectrumSignalParametersSlCtrlFrame> (this);
+  // but it causes a double creation of the object, hence it is less efficient.
+  // The solution below is copied from the implementation of Copy<> (Ptr<>) in ptr.h
+  Ptr<NrSpectrumSignalParametersSlFrame> lssp (new NrSpectrumSignalParametersSlFrame (*this), false);
+  return lssp;
+}
+
+NrSpectrumSignalParametersSlCtrlFrame::NrSpectrumSignalParametersSlCtrlFrame ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+NrSpectrumSignalParametersSlCtrlFrame::NrSpectrumSignalParametersSlCtrlFrame (const NrSpectrumSignalParametersSlCtrlFrame& p)
+  : NrSpectrumSignalParametersSlFrame (p)
+{
+  NS_LOG_FUNCTION (this << &p);
+  nodeId = p.nodeId;
+  //slssId = p.slssId; //TODO
+  if (p.packetBurst)
+    {
+      packetBurst = p.packetBurst->Copy ();
+    }
+}
+
+Ptr<SpectrumSignalParameters>
+NrSpectrumSignalParametersSlCtrlFrame::Copy ()
+{
+  NS_LOG_FUNCTION (this);
+  // Ideally we would use:
+  //   return Copy<NrSpectrumSignalParametersSlCtrlFrame> (*this);
+  // but for some reason it doesn't work. Another alternative is
+  //   return Copy<NrSpectrumSignalParametersSlCtrlFrame> (this);
+  // but it causes a double creation of the object, hence it is less efficient.
+  // The solution below is copied from the implementation of Copy<> (Ptr<>) in ptr.h
+  Ptr<NrSpectrumSignalParametersSlCtrlFrame> lssp (new NrSpectrumSignalParametersSlCtrlFrame (*this), false);
+  return lssp;
+}
+
+NrSpectrumSignalParametersSlDataFrame::NrSpectrumSignalParametersSlDataFrame ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+NrSpectrumSignalParametersSlDataFrame::NrSpectrumSignalParametersSlDataFrame (const NrSpectrumSignalParametersSlDataFrame& p)
+  : NrSpectrumSignalParametersSlFrame (p)
+{
+  NS_LOG_FUNCTION (this << &p);
+  nodeId = p.nodeId;
+  //slssId = p.slssId; //TODO
+  if (p.packetBurst)
+    {
+      packetBurst = p.packetBurst->Copy ();
+    }
+}
+
+Ptr<SpectrumSignalParameters>
+NrSpectrumSignalParametersSlDataFrame::Copy ()
+{
+  NS_LOG_FUNCTION (this);
+  // Ideally we would use:
+  //   return Copy<NrSpectrumSignalParametersSlCtrlFrame> (*this);
+  // but for some reason it doesn't work. Another alternative is
+  //   return Copy<NrSpectrumSignalParametersSlCtrlFrame> (this);
+  // but it causes a double creation of the object, hence it is less efficient.
+  // The solution below is copied from the implementation of Copy<> (Ptr<>) in ptr.h
+  Ptr<NrSpectrumSignalParametersSlDataFrame> lssp (new NrSpectrumSignalParametersSlDataFrame (*this), false);
+  return lssp;
+}
+
+
 }
