@@ -26,6 +26,7 @@
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
 #include "nr-lte-mi-error-model.h"
+#include <ns3/node.h>
 
 
 namespace ns3 {
@@ -1207,11 +1208,116 @@ NrSpectrumPhy::CheckIfStillBusy ()
     }
 }
 
+//NR SL
+
 void
 NrSpectrumPhy::SetSlErrorModelType (TypeId errorModelType)
 {
   m_slErrorModelType = errorModelType;
 }
 
+void
+NrSpectrumPhy::StartTxNrSlCtrlFrames (const Ptr<PacketBurst>& pb, Time duration)
+{
+  NS_LOG_FUNCTION (this << " state: " << m_state);
+
+  switch (m_state)
+  {
+    case RX_DATA:
+      /* no break */
+    case RX_DL_CTRL:
+      /* no break */
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("Cannot TX while RX.");
+      break;
+    case TX:
+      NS_FATAL_ERROR ("Cannot TX while already TX.");
+      break;
+    case CCA_BUSY:
+      NS_LOG_WARN ("Start transmitting NR SL CTRL while in CCA_BUSY state.");
+      /* no break */
+    case IDLE:
+      {
+        NS_ASSERT (m_txPsd);
+
+        ChangeState (TX, duration);
+
+        Ptr<NrSpectrumSignalParametersSlCtrlFrame> txParams = Create<NrSpectrumSignalParametersSlCtrlFrame> ();
+        txParams->duration = duration;
+        txParams->txPhy = this->GetObject<SpectrumPhy> ();
+        txParams->psd = m_txPsd;
+        txParams->nodeId = GetDevice ()->GetNode ()->GetId ();
+        txParams->packetBurst = pb;
+
+        m_txCtrlTrace (duration);
+
+        if (m_channel)
+          {
+            m_channel->StartTx (txParams);
+          }
+        else
+          {
+            NS_LOG_WARN ("Working without channel (i.e., under test)");
+          }
+
+        Simulator::Schedule (duration, &NrSpectrumPhy::EndTx, this);
+      }
+      break;
+    default:
+      NS_FATAL_ERROR ("Unknown state " << m_state << " Code should not reach this point");
+  }
+}
+
+void
+NrSpectrumPhy::StartTxNrSlDataFrames (const Ptr<PacketBurst>& pb, Time duration)
+{
+  NS_LOG_FUNCTION (this << " state: " << m_state);
+
+  switch (m_state)
+  {
+    case RX_DATA:
+      /* no break */
+    case RX_DL_CTRL:
+      /* no break */
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("Cannot TX while RX.");
+      break;
+    case TX:
+      NS_FATAL_ERROR ("Cannot TX while already TX.");
+      break;
+    case CCA_BUSY:
+      NS_LOG_WARN ("Start transmitting NR SL DATA while in CCA_BUSY state.");
+      /* no break */
+    case IDLE:
+      {
+        NS_ASSERT (m_txPsd);
+
+        ChangeState (TX, duration);
+
+        Ptr<NrSpectrumSignalParametersSlDataFrame> txParams = Create<NrSpectrumSignalParametersSlDataFrame> ();
+        txParams->duration = duration;
+        txParams->txPhy = this->GetObject<SpectrumPhy> ();
+        txParams->psd = m_txPsd;
+        txParams->nodeId = GetDevice ()->GetNode ()->GetId ();
+        txParams->packetBurst = pb;
+
+        m_txDataTrace (duration);
+
+        if (m_channel)
+          {
+            m_channel->StartTx (txParams);
+          }
+        else
+          {
+            NS_LOG_WARN ("Working without channel (i.e., under test)");
+          }
+
+        Simulator::Schedule (duration, &NrSpectrumPhy::EndTx, this);
+      }
+      break;
+    default:
+      NS_FATAL_ERROR ("Unknown state " << m_state << " Code should not reach this point");
+  }
+}
 
 }

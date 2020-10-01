@@ -462,15 +462,27 @@ private:
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
-  //SL
+
+  // NR SL
 public:
-  //SL
   /**
    * \brief Sets the NR sidelink error model type
    *
    * \param errorModelType The TypeId of the error model to be used.
    */
   void SetSlErrorModelType (TypeId errorModelType);
+  /**
+   * \brief Starts transmission of NR SL data frames on connected spectrum channel object
+   * \param pb packet burst to be transmitted
+   * \param duration the duration of transmission
+   */
+  void StartTxNrSlDataFrames (const Ptr<PacketBurst>& pb, Time duration);
+  /**
+   * \brief Starts transmission of NR SL CTRL data frames on connected spectrum channel object
+   * \param pb packet burst to be transmitted
+   * \param duration the duration of transmission
+   */
+  void StartTxNrSlCtrlFrames (const Ptr<PacketBurst>& pb, Time duration);
 
 private:
   TypeId m_slErrorModelType {Object::GetTypeId()}; //!< Sidelink Error model type by default is NrLteMiErrorModel

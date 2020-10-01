@@ -1326,7 +1326,7 @@ NrUePhy::SendNrSlCtrlChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
     }
 
   SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
-  //m_spectrumPhy->TxPscch (pb, varTtiPeriod);
+  m_spectrumPhy->StartTxNrSlCtrlFrames (pb, varTtiPeriod);
 }
 
 Time
@@ -1376,7 +1376,7 @@ NrUePhy::SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
     }
 
   SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
-  //m_spectrumPhy->TxPssch (pb, varTtiPeriod);
+  m_spectrumPhy->StartTxNrSlDataFrames (pb, varTtiPeriod);
 }
 
 }
