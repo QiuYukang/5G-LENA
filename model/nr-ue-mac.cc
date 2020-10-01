@@ -325,7 +325,7 @@ NrUeMac::GetTypeId (void)
                                      &NrUeMac::GetReservationPeriod),
                                      MakeTimeChecker ())
      .AddAttribute ("NumSidelinkProcess",
-                    "Number of concurrent stop-and-wait Sidelink processes per destination",
+                    "Number of concurrent stop-and-wait Sidelink processes for this UE",
                     UintegerValue (4),
                     MakeUintegerAccessor (&NrUeMac::SetNumSidelinkProcess,
                                           &NrUeMac::GetNumSidelinkProcess),
@@ -1434,7 +1434,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           dataVarTtiInfo.symStart = currentGrant.slPsschSymStart;
           dataVarTtiInfo.symLength = currentGrant.slPsschSymLength;
           dataVarTtiInfo.rbStart = currentGrant.slPsschSubChStart * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
-          dataVarTtiInfo.rbLength = currentGrant.slPsschSubChLength * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId) - 1;
+          dataVarTtiInfo.rbLength = currentGrant.slPsschSubChLength * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
           m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, dataVarTtiInfo);
 
           //prepare and send SCI format 01 message
@@ -1475,7 +1475,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           ctrlVarTtiInfo.symStart = currentGrant.slPscchSymStart;
           ctrlVarTtiInfo.symLength = currentGrant.slPscchSymLength;
           ctrlVarTtiInfo.rbStart = 0;
-          ctrlVarTtiInfo.rbLength = currentGrant.numSlPscchRbs - 1;
+          ctrlVarTtiInfo.rbLength = currentGrant.numSlPscchRbs;
           m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, ctrlVarTtiInfo);
 
           // Collect statistics for NR SL PSCCH UE MAC scheduling trace
