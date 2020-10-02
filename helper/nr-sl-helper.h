@@ -27,8 +27,6 @@
 
 namespace ns3 {
 
-class NrSlCommResourcePoolFactory;
-class NrSlCommPreconfigResourcePoolFactory;
 class NrUeNetDevice;
 class NrAmc;
 class NrPointToPointEpcHelper;

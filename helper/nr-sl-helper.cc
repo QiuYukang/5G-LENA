@@ -18,22 +18,21 @@
  */
 
 #include "nr-sl-helper.h"
-#include <ns3/nr-sl-comm-resource-pool-factory.h>
-#include <ns3/nr-sl-comm-preconfig-resource-pool-factory.h>
 #include <ns3/nr-ue-net-device.h>
-#include <ns3/lte-rrc-sap.h>
-#include <ns3/nr-sl-ue-rrc.h>
-#include <ns3/lte-ue-rrc.h>
 #include <ns3/nr-ue-phy.h>
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-amc.h>
 #include <ns3/nr-spectrum-phy.h>
-#include <ns3/lte-sl-tft.h>
 #include <ns3/nr-point-to-point-epc-helper.h>
 #include <ns3/bandwidth-part-ue.h>
 #include <ns3/nr-sl-bwp-manager-ue.h>
 #include <ns3/nr-sl-ue-mac-scheduler-simple.h>
 #include <ns3/nr-sl-ue-mac-scheduler.h>
+#include <ns3/nr-sl-chunk-processor.h>
+#include <ns3/lte-rrc-sap.h>
+#include <ns3/nr-sl-ue-rrc.h>
+#include <ns3/lte-ue-rrc.h>
+#include <ns3/lte-sl-tft.h>
 
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
@@ -200,7 +199,12 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
       nrUeDev->GetPhy (itBwps)->SetNrSlUePhySapUser (nrUeDev->GetMac (itBwps)->GetNrSlUePhySapUser ());
       nrUeDev->GetMac (itBwps)->SetNrSlUePhySapProvider (nrUeDev->GetPhy (itBwps)->GetNrSlUePhySapProvider ());
       //Error model type in NRSpectrumPhy for NR SL
-      nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ()->SetAttribute ("SlErrorModelType", typeIdValue);
+      Ptr<NrSpectrumPhy> spectrumPhy = nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ();
+      spectrumPhy->SetAttribute ("SlErrorModelType", typeIdValue);
+      //Set SL chunk processor
+      Ptr<NrSlChunkProcessor> pSlSinr = Create<NrSlChunkProcessor> ();
+      pSlSinr->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSlSinrPerceived, spectrumPhy));
+      spectrumPhy->AddSlSinrChunkProcessor (pSlSinr);
       //Set the SAP of NR UE MAC in SL BWP manager
       bool bwpmTest = slBwpManager->SetNrSlMacSapProviders (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlMacSapProvider ());
 
