@@ -31,6 +31,8 @@
 #include "nr-spectrum-signal-parameters.h"
 #include "nr-control-messages.h"
 #include <ns3/lte-chunk-processor.h>
+#include "nr-sl-interference.h"
+#include "nr-sl-chunk-processor.h"
 
 namespace ns3 {
 
@@ -483,9 +485,24 @@ public:
    * \param duration the duration of transmission
    */
   void StartTxNrSlCtrlFrames (const Ptr<PacketBurst>& pb, Time duration);
+  /**
+   * \brief Adds the NR SL chunk processor that will process the SL interference
+   * \param p The new NrSlChunkProcessor to be added to the NR Sidelink processing chain
+   */
+  void AddSlSinrChunkProcessor (Ptr<NrSlChunkProcessor> p);
+  /**
+   * \brief This method will be called when the SINR for the received
+   *        NR Sidelink signal, i.e., PSCCH or PSSCH is being calculated by
+   *        the interference object over Sidelink chunk processor.
+   * \param sinr The vector of the resulting SINR values per Sidelink packet.
+   *        These SINR values are spectrum values per each RB.
+   */
+  void UpdateSlSinrPerceived (std::vector <SpectrumValue> sinr);
 
 private:
   TypeId m_slErrorModelType {Object::GetTypeId()}; //!< Sidelink Error model type by default is NrLteMiErrorModel
+  Ptr<NrSlInterference> m_interferenceSl; //!< the Sidelink interference
+  std::vector<SpectrumValue> m_slSinrPerceived; //!< SINR for each NR Sidelink packet received
 };
 
 }

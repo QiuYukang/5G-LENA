@@ -70,6 +70,7 @@ NrSpectrumPhy::NrSpectrumPhy ()
   m_random = CreateObject<UniformRandomVariable> ();
   m_random->SetAttribute ("Min", DoubleValue (0.0));
   m_random->SetAttribute ("Max", DoubleValue (1.0));
+  m_interferenceSl = CreateObject<NrSlInterference> ();
 }
 
 NrSpectrumPhy::~NrSpectrumPhy ()
@@ -100,6 +101,9 @@ NrSpectrumPhy::DoDispose ()
   m_phyRxDataEndOkCallback = MakeNullCallback< void, const Ptr<Packet> &> ();
   m_phyDlHarqFeedbackCallback = MakeNullCallback< void, const DlHarqInfo&> ();
   m_phyUlHarqFeedbackCallback = MakeNullCallback< void, const UlHarqInfo&> ();
+
+  m_interferenceSl->Dispose ();
+  m_interferenceSl = nullptr;
 
   SpectrumPhy::DoDispose ();
 }
@@ -1214,6 +1218,20 @@ void
 NrSpectrumPhy::SetSlErrorModelType (TypeId errorModelType)
 {
   m_slErrorModelType = errorModelType;
+}
+
+void
+NrSpectrumPhy::AddSlSinrChunkProcessor (Ptr<NrSlChunkProcessor> p)
+{
+  NS_LOG_FUNCTION (this);
+  m_interferenceSl->AddSinrChunkProcessor (p);
+}
+
+void
+NrSpectrumPhy::UpdateSlSinrPerceived (std::vector <SpectrumValue> sinr)
+{
+  NS_LOG_FUNCTION (this);
+  m_slSinrPerceived = sinr;
 }
 
 void
