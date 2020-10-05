@@ -1,4 +1,6 @@
 #include <ns3/command-line.h>
+#include <ns3/show-progress.h>
+
 #include "lena-lte-comparison.h"
 
 using namespace ns3;
@@ -129,7 +131,12 @@ main (int argc, char *argv[])
 
   // Parse the command line
   cmd.Parse (argc, argv);
+  params.Validate ();
+  
+  std::cout << params;
 
+  ShowProgress spinner;
+  
   LenaLteComparison (params);
 
   return 0;

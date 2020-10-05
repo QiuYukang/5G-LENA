@@ -17,6 +17,7 @@
  *
  */
 #include <string>
+#include <ostream>
 
 #ifndef LENA_LTE_COMPARISON_H
 #define LENA_LTE_COMPARISON_H
@@ -25,11 +26,17 @@ namespace ns3 {
 
 struct Parameters
 {
+  friend
+  std::ostream &
+  operator << (std::ostream & os, const Parameters & parameters);
+
+  bool Validate (void) const;
+  
   uint16_t numOuterRings = 3;
   uint16_t ueNumPergNb = 2;
   bool logging = false;
   bool traces = false;
-  std::string simulator = "";
+  std::string simulator = "5GLENA";
   std::string scenario = "UMa";
   std::string radioNetwork = "NR";  // LTE or NR
   std::string operationMode = "TDD";  // TDD or FDD
