@@ -442,6 +442,19 @@ public:
    */
   void SetUlCtrlSyms (uint8_t v);
 
+  /**
+   * \brief Set the notched (blank) RBGs Mask
+   * \param notchedRbgsMask The mask of notched RBGs
+   */
+  void SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask);
+
+  /**
+   * \brief Get the notched (blank) RBGs Mask
+   * \return The mask of notched RBGs
+   */
+  std::vector<uint8_t> GetNotchedRbgMask (void) const;
+
+
 protected:
   /**
    * \brief Create an UE representation for the scheduler.
@@ -669,9 +682,9 @@ private:
      * \param mcs MCS
      */
     AllocElem (uint16_t rnti, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs,
-               uint16_t rbgStart, uint16_t numRbg)
+               const std::vector<uint8_t> &rbgMask)
       : m_rnti (rnti), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs),
-        m_rbgStart (rbgStart), m_numRbg (numRbg)
+        m_rbgMask (rbgMask)
     {
     }
 
@@ -680,8 +693,7 @@ private:
     uint8_t m_symStart {0}; //!< Sym start
     uint8_t m_numSym {0}; //!< Allocated symbols
     uint8_t m_mcs   {0};  //!< MCS of the transmission
-    uint16_t m_rbgStart {0}; //!< RBG start
-    uint16_t m_numRbg {0};   //!< allocated RBG
+    std::vector<uint8_t> m_rbgMask; //!< RBG Mask
   };
 
   /**
@@ -811,6 +823,8 @@ private:
   uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
   uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
+
+  std::vector<uint8_t> m_notchedRbgsMask; //!< The mask of notched (blank) RBGs
 
   std::unique_ptr <NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 

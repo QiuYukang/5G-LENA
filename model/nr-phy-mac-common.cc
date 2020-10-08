@@ -211,11 +211,17 @@ std::ostream &operator<< (std::ostream &os, const DciInfoElementTdma &item)
      << "|NSYM=" << +item.m_numSym << "|MCS=" << +item.m_mcs << "|TBS=" << item.m_tbSize
      << "|NDI=" << +item.m_ndi << "|RV=" << +item.m_rv << "|TYPE=" << item.m_type
      << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess
-     << "|RBG=[";
+     << "|RBG=";
 
   uint16_t start = 65000, end = 0;
+  bool canPrint = false;
   for (uint32_t i = 0; i < item.m_rbgBitmask.size(); ++i)
     {
+      if (item.m_rbgBitmask[i] == 1)
+        {
+          canPrint = true;
+        }
+
       if (item.m_rbgBitmask[i] == 1 && end < i)
         {
           end = i;
@@ -224,9 +230,22 @@ std::ostream &operator<< (std::ostream &os, const DciInfoElementTdma &item)
         {
           start = i;
         }
+
+      if (item.m_rbgBitmask[i] == 0 && canPrint)
+        {
+          os << "[" << +start << ";" << +end << "]";
+          start = 65000;
+          end = 0;
+          canPrint = false;
+        }
     }
 
-  os << +start << ";" << +end << "]";
+  if (canPrint)
+    {
+      os << "[" << +start << ";" << +end << "]";
+    }
+
+
   return os;
 }
 

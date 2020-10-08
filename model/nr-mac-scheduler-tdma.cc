@@ -132,14 +132,19 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
   // Create vector of UE (without considering the beam)
   std::vector<UePtrAndBufferReq> ueVector = GetUeVectorFromActiveUeMap (activeUe);
 
-  for (auto & ue : ueVector)
-    {
-      BeforeSchedFn (ue, FTResources (GetBandwidthInRbg (), 1));
-    }
-
   // Distribute the symbols following the selected behaviour among UEs
   uint32_t resources = symAvail;
   FTResources assigned (0, 0);
+
+  const std::vector<uint8_t> notchedRBGsMask = GetNotchedRbgMask ();
+  int zeroes = std::count (notchedRBGsMask.begin (), notchedRBGsMask.end (), 0);
+  uint32_t numOfAssignableRbgs = GetBandwidthInRbg () - zeroes;
+  NS_ASSERT (numOfAssignableRbgs > 0);
+
+  for (auto & ue : ueVector)
+    {
+      BeforeSchedFn (ue, FTResources (numOfAssignableRbgs, 1));
+    }
 
   while (resources > 0)
     {
@@ -177,8 +182,8 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
 
       // Assign 1 entire symbol (full RBG) to the selected UE and to the total
       // resources assigned count
-      GetRBGFn (GetUe (*schedInfoIt)) += GetBandwidthInRbg ();
-      assigned.m_rbg += GetBandwidthInRbg ();
+      GetRBGFn (GetUe (*schedInfoIt)) += numOfAssignableRbgs;
+      assigned.m_rbg += numOfAssignableRbgs;
 
       GetSymFn (GetUe (*schedInfoIt)) += 1;
       assigned.m_sym += 1;
@@ -187,11 +192,11 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
       resources -= 1;
 
       // Update metrics for the successfull UE
-      NS_LOG_DEBUG ("Assigned " << GetBandwidthInRbg () <<
+      NS_LOG_DEBUG ("Assigned " << numOfAssignableRbgs <<
                     " " << type << " RBG (= 1 SYM) to UE " << GetUe (*schedInfoIt)->m_rnti <<
                     " total assigned up to now: " << GetRBGFn (GetUe (*schedInfoIt)) <<
                     " that corresponds to " << assigned.m_rbg);
-      SuccessfullAssignmentFn (*schedInfoIt, FTResources (GetBandwidthInRbg (), 1),
+      SuccessfullAssignmentFn (*schedInfoIt, FTResources (numOfAssignableRbgs, 1),
                                assigned);
 
       // Update metrics for the unsuccessfull UEs (who did not get any resource in this iteration)
@@ -199,7 +204,7 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
         {
           if (GetUe (ue)->m_rnti != GetUe (*schedInfoIt)->m_rnti)
             {
-              UnSuccessfullAssignmentFn (ue, FTResources (GetBandwidthInRbg (), 1),
+              UnSuccessfullAssignmentFn (ue, FTResources (numOfAssignableRbgs, 1),
                                          assigned);
             }
         }
@@ -212,10 +217,7 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
       uint32_t symOfBeam = 0;
       for (const auto &ue : el.second)
         {
-          symOfBeam += GetRBGFn (ue.first) / GetBandwidthInRbg ();
-          NS_ASSERT_MSG (GetRBGFn (ue.first) % GetBandwidthInRbg () == 0,
-                         "Assigned RBG: " << GetRBGFn (ue.first) << " RBG in the BW: " <<
-                         GetBandwidthInRbg ());
+          symOfBeam += GetRBGFn (ue.first) / numOfAssignableRbgs;
         }
       ret.insert (std::make_pair (el.first, symOfBeam));
     }
@@ -313,7 +315,11 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_dlRBG / GetBandwidthInRbg ());
+  const std::vector<uint8_t> notchedRBGsMask = GetNotchedRbgMask ();
+  int zeroes = std::count (notchedRBGsMask.begin (), notchedRBGsMask.end (), 0);
+  uint32_t numOfAssignableRbgs = GetBandwidthInRbg () - zeroes;
+
+  uint8_t numSym = static_cast<uint8_t> (ueInfo->m_dlRBG / numOfAssignableRbgs);
 
   auto dci = CreateDci (spoint, ueInfo, tbs, DciInfoElementTdma::DL, ueInfo->m_dlMcs,
                         std::max (numSym, static_cast<uint8_t> (1)));
@@ -354,7 +360,11 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
       return nullptr;
     }
 
-  uint8_t numSym = static_cast<uint8_t> (std::max (ueInfo->m_ulRBG / GetBandwidthInRbg (), 1U));
+  const std::vector<uint8_t> notchedRBGsMask = GetNotchedRbgMask ();
+  int zeroes = std::count (notchedRBGsMask.begin (), notchedRBGsMask.end (), 0);
+  uint32_t numOfAssignableRbgs = GetBandwidthInRbg () - zeroes;
+
+  uint8_t numSym = static_cast<uint8_t> (std::max (ueInfo->m_ulRBG / numOfAssignableRbgs, 1U));
   numSym = std::min (numSym, static_cast<uint8_t> (maxSym));
 
   NS_ASSERT (spoint->m_sym >= numSym);
@@ -393,18 +403,32 @@ NrMacSchedulerTdma::CreateDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   NS_LOG_FUNCTION (this);
   NS_ASSERT (tbs > 0);
   NS_ASSERT (numSym > 0);
-  std::vector<uint8_t> rbgAssigned (GetBandwidthInRbg (), 1);
-
-  NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
-               static_cast<uint32_t> (spoint->m_rbg) << " to " <<
-               GetBandwidthInRbg () + spoint->m_rbg <<
-               " for " << static_cast<uint32_t> (numSym) << " SYM ");
+  std::vector<uint8_t> rbgAssigned = GetNotchedRbgMask ();
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA,
        GetBwpId ());
 
+  if (rbgAssigned.size() == 0)
+    {
+      rbgAssigned = std::vector<uint8_t> (GetBandwidthInRbg (), 1);
+    }
+
+  NS_ASSERT (rbgAssigned.size () == GetBandwidthInRbg ());
+
   dci->m_rbgBitmask = std::move (rbgAssigned);
+
+  std::ostringstream oss;
+  for (auto & x: dci->m_rbgBitmask)
+    {
+      oss << std::to_string (x) << " ";
+    }
+
+  NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
+               static_cast<uint32_t> (spoint->m_rbg) << " with mask " <<
+               oss.str() << " for " << static_cast<uint32_t> (numSym) << " SYM ");
+
+  NS_ASSERT (std::count (dci->m_rbgBitmask.begin (), dci->m_rbgBitmask.end (), 0) != GetBandwidthInRbg ());
 
   return dci;
 }

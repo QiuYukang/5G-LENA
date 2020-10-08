@@ -287,6 +287,26 @@ NrMacSchedulerNs3::SetUlCtrlSyms (uint8_t v)
   m_ulCtrlSymbols = v;
 }
 
+void
+NrMacSchedulerNs3::SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask)
+{
+  NS_LOG_FUNCTION (this);
+  m_notchedRbgsMask = notchedRbgsMask;
+  std::stringstream ss;
+
+  for (const auto & x : notchedRbgsMask)
+    {
+      ss << +x << " ";
+    }
+  NS_LOG_INFO ("Set notched mask: " << ss.str ());
+}
+
+std::vector<uint8_t>
+NrMacSchedulerNs3::GetNotchedRbgMask (void) const
+{
+  return m_notchedRbgsMask;
+}
+
 uint8_t
 NrMacSchedulerNs3::ScheduleDlHarq (PointInFTPlane *startingPoint,
                                        uint8_t symAvail,
@@ -737,8 +757,8 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
 
                 m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_tbs,
                                                  params, UeInfoOf (*itUe),
-                                                 allocation.m_rbgStart * GetNumRbPerRbg (),
-                                                 allocation.m_numRbg * GetNumRbPerRbg (),
+                                                 allocation.m_rbgMask,
+                                                 m_macSchedSapUser->GetNumRbPerRbg (),
                                                  m_macSchedSapUser->GetSpectrumModel ());
                 found = true;
                 it = ulAllocations.erase (it);
@@ -1823,26 +1843,13 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
 
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              uint16_t rbgStart = UINT16_MAX, numRbg = 0;
-              for (uint16_t i = 0; i < alloc.m_dci->m_rbgBitmask.size (); ++i)
-                {
-                  if (alloc.m_dci->m_rbgBitmask[i] == 1)
-                    {
-                      numRbg++;
-                      if (i < rbgStart)
-                        {
-                          rbgStart = i;
-                        }
-                    }
-                }
-              NS_LOG_INFO ("Placed the above allocation, that starts at " << rbgStart <<
-                           " and finishes at " << rbgStart + numRbg << " in the CQI map");
+              NS_LOG_INFO ("Placed the above allocation in the CQI map");
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
                                                    alloc.m_dci->m_tbSize,
                                                    alloc.m_dci->m_symStart,
                                                    alloc.m_dci->m_numSym,
                                                    alloc.m_dci->m_mcs,
-                                                   rbgStart, numRbg));
+                                                   alloc.m_dci->m_rbgBitmask));
             }
         }
     }

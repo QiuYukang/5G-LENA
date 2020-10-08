@@ -43,7 +43,9 @@ command. We hope you will have fun and good times in using our module!
 
 New user-visible features (old first)
 -------------------------
-
+- The scheduler can selectively leave particular RBG empty. This feature is
+  called notching, and is used when multiple GNBs are collaborating to avoid
+  interferences over a spectrum part.
 
 Bugs fixed
 ----------

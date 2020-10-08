@@ -48,9 +48,14 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+- The scheduler now support the setting of the notched mask, through
+  void SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask);
+
 ### Changes to existing API:
 
 ### Changed behavior:
+- If a notching mask is set, the scheduler will avoid to allocate the RBG in
+  which the mask (a vector of integers) is set to zero.
 
 ---
 
