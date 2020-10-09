@@ -903,7 +903,8 @@ operator << (std::ostream & os, const Parameters & parameters)
         case 5:   os << "250 bytes";     break;
         default:  os << "1000 bytes";
         }
-      MSG ("  Inter-packet interval (per UE)") << 10000 / p.ueNumPergNb << " s";
+      // 1 s / (10000 / nUes)
+      MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb / 10.0 << " ms";
       break ;
       
     case 1:
@@ -924,7 +925,8 @@ operator << (std::ostream & os, const Parameters & parameters)
         case 5:   os << "32 bytes";     break;
         default:  os << "125 bytes";
         }
-      MSG ("  Inter-packet interval (per UE)") << 1000 / p.ueNumPergNb << " s";
+      // 1 s / (1000 / nUes)
+      MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb << " ms";
   
       break ;
 
