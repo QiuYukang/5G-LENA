@@ -112,6 +112,7 @@ def build(bld):
         'test/nr-lte-cc-bwp-configuration.cc',
         'test/system-scheduler-test.cc',
         'test/test-nr-mac-short-bsr-ce.cc',
+        'test/nr-test-notching.cc',
         ]
 
     headers = bld(features='ns3header')
