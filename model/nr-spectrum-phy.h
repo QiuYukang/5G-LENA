@@ -33,6 +33,7 @@
 #include <ns3/lte-chunk-processor.h>
 #include "nr-sl-interference.h"
 #include "nr-sl-chunk-processor.h"
+#include "nr-amc.h"
 
 namespace ns3 {
 
@@ -468,28 +469,172 @@ private:
   // NR SL
 public:
   /**
+   * \brief Structure to store NR Sidelink signal parameter being received
+   *        along with the vector indicating the indexes of the RBs this signal
+   *        is transmitted over.
+   */
+  struct SlRxSigParamInfo
+  {
+    Ptr<NrSpectrumSignalParametersSlFrame> params; //!< Parameters of sidelink signal
+    std::vector<int> rbBitmap;  //!< RB bitmap
+  };
+  /**
+   * \brief SlCtrlSigParamInfo structure
+   */
+  struct SlCtrlSigParamInfo
+  {
+    double sinrAvg {0.0}; //!< Average SINR
+    double sinrMin {0.0}; //!< Minimum SINR
+    uint32_t index {std::numeric_limits <uint32_t>::max ()}; //!< Index of the signal received in the reception buffer
+
+    /**
+     * \brief Implements equal operator
+     * \param a element to compare
+     * \param b element to compare
+     * \return true if the elements are equal
+     */
+    friend bool operator == (const SlCtrlSigParamInfo &a, const SlCtrlSigParamInfo &b);
+
+    /**
+     * \brief Implements less operator
+     * \param a element to compare
+     * \param b element to compare
+     * \return true if a is less than b
+     */
+    friend bool operator < (const SlCtrlSigParamInfo &a, const SlCtrlSigParamInfo &b);
+  };
+  /**
+   * \brief struct to store the PSCCH PDU info
+   *
+   * This struct is used to store the packet and PSD of a
+   * PSCCH transmission.
+   */
+  struct PscchPduInfo
+  {
+    Ptr <Packet> packet; //!< PSCCH packet
+    SpectrumValue psd;  //!< PSD of the received packet
+  };
+  /**
+   * \brief SlTbId struct
+   */
+  struct SlTbId
+  {
+    uint16_t m_rnti; //!< source SL-RNTI
+    uint32_t m_dstId; //!< The destination id
+  };
+
+  /**
+   * \brief Information about the expected NR SL transport block at a certain point in the slot
+   *
+   * Information passed by the PHY through a call to AddSlExpectedTb
+   */
+ struct SlExpectedTb
+ {
+   SlExpectedTb (uint32_t dstId, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbMap,
+               uint8_t symStart, uint8_t numSym, uint8_t maxNumPerReserve, const SfnSf &sfn) :
+     dstId {dstId},
+     tbSize (tbSize),
+     mcs (mcs),
+     rbBitmap (rbMap),
+     symStart (symStart),
+     numSym (numSym),
+     maxNumPerReserve (maxNumPerReserve),
+     sfn (sfn) { }
+   SlExpectedTb () = delete;
+   SlExpectedTb (const SlExpectedTb &o) = default;
+
+   uint32_t dstId            {0}; //!< Destination id
+   uint32_t tbSize           {0}; //!< TBSize
+   uint8_t mcs               {0}; //!< MCS
+   std::vector<int> rbBitmap;     //!< RB Bitmap
+   uint8_t symStart          {0}; //!< Sym start
+   uint8_t numSym            {0}; //!< Num sym
+   uint8_t maxNumPerReserve  {0}; //!< Maximum number of transmissions
+   SfnSf sfn;                     //!< SFN
+ };
+
+ struct SlTransportBlockInfo
+ {
+   SlTransportBlockInfo (const SlExpectedTb &expectedTb) :
+     expectedTb (expectedTb) { }
+   SlTransportBlockInfo () = delete;
+
+   SlExpectedTb expectedTb;                   //!< Expected NR SL data from the PHY. Filled by AddSlExpectedTb
+   bool isDataCorrupted {false};              //!< True if the ErrorModel indicates that the data TB is corrupted.
+   bool isSci2Corrupted {false};              //!< True if the ErrorModel indicates that the SCI stage 2 is corrupted.
+                                              //    Filled at the end of data rx/tx
+   Ptr<NrErrorModelOutput> outputEmForData;   //!< Output of the Error Model (depends on the EM type) for data
+   Ptr<NrErrorModelOutput> outputEmForSci2;   //!< Output of the Error Model (depends on the EM type) for SCI stage 2
+   SpectrumValue sinrPerceived;               //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
+   double sinrAvg {0.0};                      //!< AVG SINR (only for the RB used to transmit the TB)
+   double sinrMin {0.0};                       //!< MIN SINR (only between the RB used to transmit the TB)
+   uint32_t pktIndex {std::numeric_limits <uint32_t>::max ()}; //!< Index of the TB in the \p m_slRxSigParamInfo buffer
+ };
+  /**
+   * \brief This callback method type is used to notify about a successful PSCCH reception
+   */
+  typedef std::function<void (const Ptr<Packet>&, const SpectrumValue&)> NrPhyRxPscchEndOkCallback;
+  /**
+   * \brief This callback method type is used to notify about a successful
+   *        PSSCH reception.
+   */
+  typedef std::function<void (const Ptr<PacketBurst>&)> NrPhyRxPsschEndOkCallback;
+  /**
+   * \brief This callback method type is used to notify about a unsuccessful
+   *        PSSCH reception.
+   */
+  typedef std::function<void (const Ptr<PacketBurst>&)> NrPhyRxPsschEndErrorCallback;
+  /**
    * \brief Sets the NR sidelink error model type
    *
    * \param errorModelType The TypeId of the error model to be used.
    */
   void SetSlErrorModelType (TypeId errorModelType);
   /**
+   * \brief Enables or disabled NR Sidelink data error model
+   * \param slDataErrorModelEnabled boolean saying whether the NR SL data error model should be enabled
+   */
+  void SetSlDataErrorModelEnabled (bool slDataErrorModelEnabled);
+  /**
+   * \brief Enables or disabled NR Sidelink CTRL error model
+   * \param slCtrlErrorModelEnabled boolean saying whether the NR SL CTRL error model should be enabled
+   */
+  void SetSlCtrlErrorModelEnabled (bool slCtrlErrorModelEnabled);
+  /**
+   * \brief Enable or disable the drop of a NR SL TB whose RB collided with
+   *        other TB.
+   *  Note: The same flag is used to enable/disable the drop NR SL PSCCH
+   *        packet burst.
+   * \param drop If true, a TB (for PSSCH) or a packet burst (for PSCCH),
+   *        regardless of SINR value, is drop if its RBs collided with other
+   *        TB or packet burst. Otherwise, its reception will depend on
+   *        the error model output and a random probability of decoding.
+   */
+  void DropTbOnRbOnCollision (bool drop);
+  /**
    * \brief Starts transmission of NR SL data frames on connected spectrum channel object
    * \param pb packet burst to be transmitted
    * \param duration the duration of transmission
    */
-  void StartTxNrSlDataFrames (const Ptr<PacketBurst>& pb, Time duration);
+  void StartTxSlDataFrames (const Ptr<PacketBurst>& pb, Time duration);
   /**
    * \brief Starts transmission of NR SL CTRL data frames on connected spectrum channel object
    * \param pb packet burst to be transmitted
    * \param duration the duration of transmission
    */
-  void StartTxNrSlCtrlFrames (const Ptr<PacketBurst>& pb, Time duration);
+  void StartTxSlCtrlFrames (const Ptr<PacketBurst>& pb, Time duration);
   /**
-   * \brief Adds the NR SL chunk processor that will process the SL interference
+   * \brief Adds the NR SL chunk processor that passes the SINR of received
+   *        signal (s) to this SpectrumPhy once its reception ends.
    * \param p The new NrSlChunkProcessor to be added to the NR Sidelink processing chain
    */
   void AddSlSinrChunkProcessor (Ptr<NrSlChunkProcessor> p);
+  /**
+   * \brief Adds the NR SL chunk processor that passes the PSD of received
+   *        signal (s) to this SpectrumPhy once its reception ends.
+   * \param p The new NrSlChunkProcessor to be added to the NR Sidelink processing chain
+   */
+  void AddSlSignalChunkProcessor (Ptr<NrSlChunkProcessor> p);
   /**
    * \brief This method will be called when the SINR for the received
    *        NR Sidelink signal, i.e., PSCCH or PSSCH is being calculated by
@@ -498,11 +643,118 @@ public:
    *        These SINR values are spectrum values per each RB.
    */
   void UpdateSlSinrPerceived (std::vector <SpectrumValue> sinr);
+  /**
+   * \brief This method will be called when the PSD for the received
+   *        NR Sidelink signal, i.e., PSCCH or PSSCH is being calculated by
+   *        the interference object over Sidelink chunk processor.
+   * \param sig The vector of the resulting PSD values per Sidelink packet.
+   *        These PSD values are spectrum values per each RB.
+   */
+  void UpdateSlSignalPerceived (std::vector <SpectrumValue> sig);
+  /**
+   * \brief Set NR SL AMC
+   *
+   * I needed to add the to compute the size of PSCCH TB to compute BLER.
+   * Theoretically, the SL scheduler should compute this TB size and NrUeMac
+   * should include it in Tag or something. At the moment, I am already
+   * consuming 20 bytes with the NrSlMacPduTag. If I will remove some fields
+   * in the future, maybe, I will include PSCCH TB size there.
+   * \param NR SL AMC
+   */
+  void SetSlAmc (Ptr <NrAmc>);
+  /**
+   * \brief Set the callback for the successful end of a PSCCH RX, as part of the
+   * interconnections between the PHY and the MAC
+   *
+   * \param c The callback
+   */
+  void SetNrPhyRxPscchEndOkCallback (NrPhyRxPscchEndOkCallback c);
+  /**
+   * \brief Set the callback for the end of a successful PSCCH RX.
+   * \param c The callback
+   */
+  void SetNrPhyRxPsschEndOkCallback (NrPhyRxPsschEndOkCallback c);
+  /**
+   * \brief Set the callback for the end of a unsuccessful PSCCH RX.
+   * \param c The callback
+   */
+  void SetNrPhyRxPsschEndErrorCallback (NrPhyRxPsschEndErrorCallback c);
+  /**
+   * \brief
+   * \param rnti
+   * \param dstId
+   * \param tbSize
+   * \param mcs
+   * \param rbMap
+   * \param symStart
+   * \param numSym
+   * \param sfn
+   */
+  void AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbMap,
+                        uint8_t symStart, uint8_t numSym, uint8_t maxNumPerReserve ,const SfnSf &sfn);
 
 private:
+  struct SinrStats
+  {
+    double sinrAvg {0.0};  //!< Average SINR
+    double sinrMin {0.0};  //!< Minimum SINR
+  };
+  /**
+   * \brief Function that is called this SpectrumPhy receives a NR Sidelink
+   *        signal from the channel.
+   * \param params holds NR Sidelink frame signal parameters structure
+   */
+  void StartRxSlFrame (Ptr<NrSpectrumSignalParametersSlFrame> params);
+  /**
+   * \brief End receive Sidelink frame function
+   */
+  void EndRxSlFrame ();
+  /**
+   * \brief Function to process received PSCCH signals/messages
+   * \param paramIndexes Indexes of received PSCCH signals/messages parameters
+   */
+  void RxSlPscch (std::vector<uint32_t> paramIndexes);
+  /**
+   * \brief Function to process received PSSCH signals/messages function
+   * \param paramIndexes Indexes of received PSSCH signals/messages parameters
+   */
+  void RxSlPssch (std::vector<uint32_t> paramIndexes);
+  /**
+   * \brief Get SINR stats function
+   *
+   * This method computes an average SINR and a minimum SINR among the RBs in
+   * linear scale
+   *
+   * \param sinr The SINR values
+   * \param rbBitMap The vector whose size is equal to the number active RBs
+   * \return The SINR stats
+   */
+  const SinrStats GetSinrStats (const SpectrumValue& sinr, const std::vector<int>& rbBitmap);
+  /**
+   * \brief Retrieve the SCI stage 2 from the PSSCH packet burst
+   * \param pktIndex The index of the packet burst received in \p m_slRxSigParamInfo
+   * \return The SCI stage 2 packet
+   */
+  Ptr<Packet> ReteriveSci2FromPktBurst (uint32_t pktIndex);
   TypeId m_slErrorModelType {Object::GetTypeId()}; //!< Sidelink Error model type by default is NrLteMiErrorModel
-  Ptr<NrSlInterference> m_interferenceSl; //!< the Sidelink interference
+  Ptr<NrSlInterference> m_slInterference; //!< the Sidelink interference
   std::vector<SpectrumValue> m_slSinrPerceived; //!< SINR for each NR Sidelink packet received
+  std::vector<SpectrumValue> m_slSigPerceived; //!< PSD for each NR Sidelink packet received
+  std::vector< SlRxSigParamInfo > m_slRxSigParamInfo; //!< NR Sidelink received signal parameter info
+  bool m_dropTbOnRbCollisionEnabled {false}; //!< when true, drop all receptions on colliding RBs regardless SINR value.
+  bool m_slDataErrorModelEnabled {true}; //!< whether the phy error model for NR Sidelink DATA is enabled, by default is enabled
+  bool m_slCtrlErrorModelEnabled {true}; //!< whether the phy error model for NR Sidelinl CTRL is enabled, by default is enabled
+  Ptr<NrAmc> m_slAmc {nullptr}; //!< AMC for SL
+  NrPhyRxPscchEndOkCallback m_nrPhyRxPscchEndOkCallback; //!< the callback for the NR SL PHY PSCCH successful reception
+  NrPhyRxPsschEndOkCallback m_nrPhyRxPsschEndOkCallback; //!< The callback for the NR SL PHY PSSCH successful reception
+  NrPhyRxPsschEndErrorCallback m_nrPhyRxPsschEndErrorCallback; //!< The callback for the NR SL PHY PSSCH unsuccessful reception
+  /**
+   * \brief typedef for NR SL transport block map per RNTI of TBs which are
+   *        expected to be received after successful decoding of SCI stage-1.
+   */
+  typedef std::unordered_map<uint16_t , SlTransportBlockInfo> SlTransportBlocks;
+
+  SlTransportBlocks m_slTransportBlocks; //!< Map of type SlTransportBlocks
 };
 
 }
