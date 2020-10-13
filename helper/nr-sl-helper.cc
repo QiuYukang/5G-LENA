@@ -201,10 +201,26 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
       //Error model type in NRSpectrumPhy for NR SL
       Ptr<NrSpectrumPhy> spectrumPhy = nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ();
       spectrumPhy->SetAttribute ("SlErrorModelType", typeIdValue);
+      //Set AMC in NrSpectrumPhy to compute PSCCH TB size
+      spectrumPhy->SetSlAmc (slAmc);
       //Set SL chunk processor
       Ptr<NrSlChunkProcessor> pSlSinr = Create<NrSlChunkProcessor> ();
       pSlSinr->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSlSinrPerceived, spectrumPhy));
       spectrumPhy->AddSlSinrChunkProcessor (pSlSinr);
+      Ptr<NrSlChunkProcessor> pSlSignal = Create<NrSlChunkProcessor> ();
+      pSlSignal->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSlSignalPerceived, spectrumPhy));
+      spectrumPhy->AddSlSignalChunkProcessor (pSlSignal);
+
+      std::function<void (const Ptr<Packet>&, const SpectrumValue&)> pscchPhyPduCallback;
+      pscchPhyPduCallback = std::bind (&NrUePhy::PhyPscchPduReceived, nrUeDev->GetPhy (itBwps),
+                                      std::placeholders::_1, std::placeholders::_2);
+      spectrumPhy->SetNrPhyRxPscchEndOkCallback (pscchPhyPduCallback);
+
+      std::function<void (const Ptr<PacketBurst>&)> psschPhyPduOkCallback;
+      psschPhyPduOkCallback = std::bind (&NrUePhy::PhyPsschPduReceived, nrUeDev->GetPhy (itBwps),
+                                         std::placeholders::_1);
+      spectrumPhy->SetNrPhyRxPsschEndOkCallback (psschPhyPduOkCallback);
+
       //Set the SAP of NR UE MAC in SL BWP manager
       bool bwpmTest = slBwpManager->SetNrSlMacSapProviders (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlMacSapProvider ());
 
@@ -292,7 +308,7 @@ void
 NrSlHelper::SetUeSlSchedulerAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
-  m_ueSlAmcFactory.Set (n, v);
+  m_ueSlSchedulerFactory.Set (n, v);
 }
 
 Ptr<NrSlUeMacScheduler>
