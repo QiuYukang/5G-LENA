@@ -697,6 +697,16 @@ public:
    *          UE PHY by UE MAC
    */
   void SetNrSlUePhySapUser (NrSlUePhySapUser* s);
+  /**
+   * \brief Receive new PSCCH PHY pdu from SpectrumPhy
+   * \param p The packet received
+   */
+  void PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd);
+  /**
+   * \brief Receive new successfully decoded PSSCH PHY pdu from SpectrumPhy
+   * \param pb The packet burst received
+   */
+  void PhyPsschPduReceived (const Ptr<PacketBurst> &pb);
 
 protected:
   /**

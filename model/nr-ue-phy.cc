@@ -44,6 +44,9 @@
 #include <ns3/pointer.h>
 #include "beam-manager.h"
 
+#include "nr-sl-sci-f01-header.h"
+#include "nr-sl-mac-pdu-tag.h"
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("NrUePhy");
@@ -1376,7 +1379,56 @@ NrUePhy::SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
     }
 
   SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
-  m_spectrumPhy->StartTxNrSlDataFrames (pb, varTtiPeriod);
+  m_spectrumPhy->StartTxSlDataFrames (pb, varTtiPeriod);
+}
+
+void
+NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
+{
+  NS_LOG_FUNCTION (this);
+  NrSlSciF01Header sciF01;
+  NrSlMacPduTag tag;
+
+  p->PeekHeader (sciF01);
+  p->PeekPacketTag (tag);
+
+  std::vector <std::pair<uint32_t, uint8_t> > destinations = m_nrSlUePhySapUser->GetSlDestinations ();
+
+  for (const auto &it:destinations)
+    {
+      if (it.first == tag.GetDstL2Id ())
+        {
+          NS_LOG_INFO ("Received first stage SCI for destination " << it.first << " from RNTI " << tag.GetRnti ());
+
+          NS_ASSERT_MSG (m_slRxPool != nullptr, "No receiving pools configured");
+          uint16_t rbStart = sciF01.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+          uint16_t rbLength = sciF01.GetLengthSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+          std::vector<int> rbBitMap;
+
+          for (uint16_t i = rbStart; i < rbLength; ++i)
+            {
+              rbBitMap.push_back (i);
+            }
+
+          m_spectrumPhy->AddSlExpectedTb (tag.GetRnti (), tag.GetDstL2Id (),
+                                          tag.GetTbSize (), sciF01.GetMcs (),
+                                          rbBitMap, tag.GetSymStart (),
+                                          tag.GetNumSym (), sciF01.GetSlMaxNumPerReserve (),
+                                          tag.GetSfn ());
+        }
+    }
+}
+
+void
+NrUePhy::PhyPsschPduReceived (const Ptr<PacketBurst> &pb)
+{
+  NS_LOG_FUNCTION (this);
+  Simulator::ScheduleWithContext (m_netDevice->GetNode ()->GetId (),
+                                  GetTbDecodeLatency (),
+                                  &NrSlUePhySapUser::ReceivePsschPhyPdu,
+                                  m_nrSlUePhySapUser, pb);
+
+  //m_nrSlUePhySapUser->ReceivePsschPhyPdu (pb);
 }
 
 }
