@@ -1320,13 +1320,13 @@ NrUePhy::SendNrSlCtrlChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
   NS_LOG_FUNCTION (this);
 
   std::vector<int> channelRbs;
-  for (uint32_t i = 0; i < varTtiInfo.rbLength; i++)
+  for (uint32_t i = varTtiInfo.rbStart; i < varTtiInfo.rbLength; i++)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
 
   SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
-  m_spectrumPhy->StartTxNrSlCtrlFrames (pb, varTtiPeriod);
+  m_spectrumPhy->StartTxSlCtrlFrames (pb, varTtiPeriod);
 }
 
 Time
@@ -1370,7 +1370,7 @@ NrUePhy::SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
   NS_LOG_FUNCTION (this);
 
   std::vector<int> channelRbs;
-  for (uint32_t i = 0; i < varTtiInfo.rbLength; i++)
+  for (uint32_t i = varTtiInfo.rbStart; i < varTtiInfo.rbLength; i++)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
