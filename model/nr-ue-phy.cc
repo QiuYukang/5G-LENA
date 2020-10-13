@@ -1069,6 +1069,17 @@ void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_DEBUG ("PHY starting. Configuration: "  << std::endl <<
+                "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                "\t Numerology: " << GetNumerology () << std::endl <<
+                "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                "Attached to physical channel: " << std::endl <<
+                "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                "\t Num. RB: " << GetRbNum ());
   SfnSf startSlot (frame, subframe, slot, GetNumerology ());
   StartSlot (startSlot);
 }
@@ -1079,8 +1090,22 @@ NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
   NS_LOG_FUNCTION (this << +dlBandwidth);
   if (m_channelBandwidth != dlBandwidth)
     {
+      NS_LOG_DEBUG ("Channel bandwidth changed from " << m_channelBandwidth << " to " <<
+                    dlBandwidth);
       m_channelBandwidth = dlBandwidth;
       UpdateRbNum ();
+
+      NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
+                    "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                    "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                    "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                    "\t Numerology: " << GetNumerology () << std::endl <<
+                    "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                    "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                    "Attached to physical channel: " << std::endl <<
+                    "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                    "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                    "\t Num. RB: " << GetRbNum ());
     }
 }
 

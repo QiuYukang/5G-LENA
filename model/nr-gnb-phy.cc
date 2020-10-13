@@ -1652,22 +1652,7 @@ NrGnbPhy::SetPattern (const std::string &pattern)
 std::string
 NrGnbPhy::GetPattern () const
 {
-  static std::unordered_map<LteNrTddSlotType, std::string, std::hash<int>> lookupTable =
-  {
-    { LteNrTddSlotType::DL, "DL"},
-    { LteNrTddSlotType::UL, "UL"},
-    { LteNrTddSlotType::S,  "S"},
-    { LteNrTddSlotType::F,  "F"}
-  };
-
-  std::stringstream ss;
-
-  for (const auto & v : m_tddPattern)
-    {
-      ss << lookupTable[v] << "|";
-    }
-
-  return ss.str ();
+  return NrPhy::GetPattern (m_tddPattern);
 }
 
 void

@@ -402,6 +402,13 @@ public:
    */
   virtual const SfnSf & GetCurrentSfnSf () const = 0;
 
+  /**
+   * \brief Get a string representation of a pattern
+   * \param pattern the TDD pattern
+   * \return a string representation of the pattern, such as "F|F|F|F|..."
+   */
+  static std::string GetPattern (const std::vector<LteNrTddSlotType> &pattern);
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
