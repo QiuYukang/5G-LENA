@@ -163,14 +163,14 @@ void
 NrSlSciF02Header::Print (std::ostream &os)  const
 {
   NS_LOG_FUNCTION (this);
-  os << " HARQ process id " << +m_harqId << "\n";
-  os << " New data indicator " << +m_ndi << "\n";
-  os << " Redundancy version " << +m_rv << "\n";
-  os << " Source layer 2 Id " << +m_srcId << "\n";
-  os << " Destination layer 2 id " << m_dstId << "\n";
-  os << " Channel state information request " << +m_csiReq << "\n";
-  os << " Zone id " << m_zoneId << "\n";
-  os << " Communication range requirement " << +m_commRange << "\n";
+  os << "HARQ process id " << +m_harqId
+     << ", New data indicator " << +m_ndi
+     << ", Redundancy version " << +m_rv
+     << ", Source layer 2 Id " << +m_srcId
+     << ", Destination layer 2 id " << m_dstId
+     << ", Channel state information request " << +m_csiReq
+     << ", Zone id " << m_zoneId
+     << ", Communication range requirement " << +m_commRange;
 }
 
 uint32_t

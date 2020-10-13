@@ -185,15 +185,15 @@ void
 NrSlSciF01Header::Print (std::ostream &os)  const
 {
   NS_LOG_FUNCTION (this);
-  os << "Priority " << +m_priority << "\n";
-  os << "MCS " << +m_mcs << "\n";
-  os << "Resource reservation period " << +m_slResourceReservePeriod << "\n";
-  os << "Total number of Subchannels " << +m_totalSubChannels << "\n";
-  os << "Index starting Subchannel " << +m_indexStartSubChannel << "\n";
-  os << "Total number of allocated Subchannel " << +m_lengthSubChannel << "\n";
-  os << "Maximum number of reservations " << +m_slMaxNumPerReserve << "\n";
-  os << "First retransmission gap in slots " << +m_gapReTx1 << "\n";
-  os << "Second retransmission gap in slots " << +m_gapReTx2 << "\n";
+  os << "Priority " << +m_priority
+     << ", MCS " << +m_mcs
+     << ", Resource reservation period " << +m_slResourceReservePeriod
+     << ", Total number of Subchannels " << +m_totalSubChannels
+     << ", Index starting Subchannel " << +m_indexStartSubChannel
+     << ", Total number of allocated Subchannel " << +m_lengthSubChannel
+     << ", Maximum number of reservations " << +m_slMaxNumPerReserve
+     << ", First retransmission gap in slots " << +m_gapReTx1
+     << ", Second retransmission gap in slots " << +m_gapReTx2;
 }
 
 uint32_t
