@@ -691,13 +691,22 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
     {
       if (m_currentSlot.GetSlot () == 0)
         {
+          bool mibOrSib = false;
           if (m_currentSlot.GetSubframe () == 0)   //send MIB at the beginning of each frame
             {
               QueueMib ();
+              mibOrSib = true;
             }
           else if (m_currentSlot.GetSubframe () == 5)   // send SIB at beginning of second half-frame
             {
               QueueSib ();
+              mibOrSib = true;
+            }
+          if (mibOrSib && !m_currSlotAllocInfo.ContainsDlCtrlAllocation ())
+            {
+              VarTtiAllocInfo dlCtrlSlot (m_phySapUser->GetDlCtrlDci ());
+              m_currSlotAllocInfo.m_varTtiAllocInfo.push_front (dlCtrlSlot);
+              m_currSlotAllocInfo.m_numSymAlloc += 1;
             }
         }
     }
