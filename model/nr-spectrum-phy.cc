@@ -1801,16 +1801,15 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       Ptr<Packet> sci2Pkt = ReteriveSci2FromPktBurst (tbIt.second.pktIndex);
       NrSlSciF02Header sciF02;
       sci2Pkt->PeekHeader (sciF02);
+      if (sciF02.GetNdi ())
+        {
+          NS_LOG_DEBUG ("RemovePrevDecoded: " << +sciF02.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF02.GetRv ());
+          m_harqPhyModule->RemovePrevDecoded (tbIt.first, sciF02.GetHarqId ());
+        }
       //For blind reTxs, we do not dispatch already decode TBs to UE PHY
       bool isPrevDecoded = m_harqPhyModule->IsPrevDecoded (tbIt.first, sciF02.GetHarqId ());
       if ((!m_slDataErrorModelEnabled || isPrevDecoded) && (!m_dropTbOnRbCollisionEnabled || isPrevDecoded))
         {
-          //PSSCH can be retransmitted max twice (total 3 tx)
-          if (sciF02.GetRv () == tbIt.second.expectedTb.maxNumPerReserve - 1)
-            {
-              NS_LOG_DEBUG ("RemovePrevDecoded: " << +sciF02.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF02.GetRv ());
-              m_harqPhyModule->RemovePrevDecoded (tbIt.first, sciF02.GetHarqId ());
-            }
           continue;
         }
 
