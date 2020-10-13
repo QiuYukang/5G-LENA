@@ -688,7 +688,6 @@ public:
    */
   uint8_t GetNumSidelinkProcess () const;
 
-
 protected:
   // forwarded from NR SL UE MAC SAP Provider
   /**
@@ -765,6 +764,16 @@ protected:
    * \return The active TX pool id
    */
   uint8_t DoGetSlActiveTxPoolId ();
+  /**
+   * \brief Get the list Sidelink destination from UE MAC
+   * \return A vector holding Sidelink communication destinations and the highest priority value among its LCs
+   */
+  std::vector <std::pair<uint32_t, uint8_t> > DoGetSlDestinations ();
+  /**
+   * \brief Receive NR SL PSSCH PHY PDU
+   * \return pbu The NR SL PSSCH PHY PDU
+   */
+  void DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
 
 
   // forwarded from MemberNrSlUeMacSchedSapUser

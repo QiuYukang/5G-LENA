@@ -85,7 +85,7 @@ public:
  * Service Access Point (SAP) offered by the UE MAC to the UE PHY
  * for NR Sidelink
  *
- * This is the CPHY SAP User, i.e., the part of the SAP that contains the UE
+ * This is the PHY SAP User, i.e., the part of the SAP that contains the UE
  * MAC methods called by the UE PHY
 */
 class NrSlUePhySapUser
@@ -102,7 +102,16 @@ public:
    * \return The active TX pool id
    */
   virtual uint8_t GetSlActiveTxPoolId () = 0;
-
+  /**
+   * \brief Get the list Sidelink destination from UE MAC
+   * \return A vector holding Sidelink communication destinations and the highest priority value among its LCs
+   */
+  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations () = 0;
+  /**
+   * \brief Receive NR SL PSSCH PHY PDU
+   * \return pbu The NR SL PSSCH PHY PDU
+   */
+  virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu) = 0;
 };
 
 
@@ -206,6 +215,8 @@ public:
 
   // methods inherited from NrSlUePhySapUser go here
   virtual uint8_t GetSlActiveTxPoolId ();
+  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations ();
+  virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
 
 private:
   C* m_owner; ///< the owner class
@@ -224,6 +235,19 @@ MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId ()
   return m_owner->DoGetSlActiveTxPoolId ();
 }
 
+template <class C>
+std::vector <std::pair<uint32_t, uint8_t> >
+MemberNrSlUePhySapUser<C>::GetSlDestinations ()
+{
+  return m_owner->DoGetSlDestinations ();
+}
+
+template <class C>
+void
+MemberNrSlUePhySapUser<C>::ReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
+{
+  m_owner->DoReceivePsschPhyPdu (pdu);
+}
 
 
 

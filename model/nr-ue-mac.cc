@@ -1242,6 +1242,80 @@ NrUeMac::GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::
 }
 
 void
+NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
+{
+  NS_LOG_FUNCTION (this << "Received Sidelink packet");
+  //Sidelink packet. Perform L2 filtering
+  LteRadioBearerTag tag;
+  NrSlSciF02Header sciF02;
+
+  std::list <Ptr<Packet> > dataPkts;
+  bool foundSci2 = false;
+  for (auto packet : pdu->GetPackets ())
+    {
+      LteRadioBearerTag tag;
+      if (packet->PeekPacketTag (tag) == false && packet->PeekHeader(sciF02) == 8)
+        {
+          //SCI stage 2 is the only packet in the packet burst, which does
+          //not have the tag
+          packet->RemoveHeader (sciF02);
+          foundSci2 = true;
+        }
+      else
+        {
+          dataPkts.push_back (packet);
+        }
+    }
+
+  NS_ABORT_MSG_IF (foundSci2 == false, "Did not find SCI stage 2 in PSSCH packet burst");
+  NS_ASSERT_MSG (dataPkts.size () > 0, "Received PHY PDU with not data packets");
+
+  for (auto &pktIt : dataPkts)
+    {
+      bool dstFound = false;
+      for (const auto &dstIt : m_sidelinkDestinations)
+        {
+          if (dstIt.first == sciF02.GetDstId ())
+            {
+              pktIt->RemovePacketTag (tag);
+              //the destination is a group we want to listen to
+              SidelinkLcIdentifier identifier;
+              identifier.lcId = tag.GetLcid ();
+              identifier.srcL2Id = sciF02.GetSrcId ();
+              identifier.dstL2Id = sciF02.GetDstId ();
+
+              std::map <SidelinkLcIdentifier, SlLcInfoUeMac>::iterator it = m_nrSlLcInfoMap.find (identifier);
+              if (it == m_nrSlLcInfoMap.end ())
+                {
+                  //notify RRC to setup bearer
+                  m_nrSlUeCmacSapUser->NotifySidelinkReception (tag.GetLcid (), identifier.srcL2Id, identifier.dstL2Id);
+
+                  //should be setup now
+                  it = m_nrSlLcInfoMap.find (identifier);
+                  if (it == m_nrSlLcInfoMap.end ())
+                    {
+                      NS_FATAL_ERROR ("Failure to setup Sidelink radio bearer for reception");
+                    }
+                }
+              NrSlMacSapUser::NrSlReceiveRlcPduParameters rxPduParams (pktIt, m_rnti, tag.GetLcid (),
+                                                                       identifier.srcL2Id, identifier.dstL2Id);
+              it->second.macSapUser->ReceiveNrSlRlcPdu (rxPduParams);
+              dstFound = true;
+              break;
+            }
+        }
+      if (!dstFound)
+        {
+          NS_LOG_INFO ("Received PHY PDU with unknown destination " << sciF02.GetDstId ());
+          //since all the packets in the packet burst are for the same
+          //destination, if we didn't find the destination for first packet
+          //there is no need to check others.
+          break;
+        }
+    }
+}
+
+void
 NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
 {
   NS_LOG_FUNCTION (this << " Frame " << sfn.GetFrame() << " Subframe " << +sfn.GetSubframe()
@@ -1866,6 +1940,12 @@ uint8_t
 NrUeMac::DoGetSlActiveTxPoolId ()
 {
   return GetSlActivePoolId ();
+}
+
+std::vector <std::pair<uint32_t, uint8_t> >
+NrUeMac::DoGetSlDestinations ()
+{
+  return m_sidelinkDestinations;
 }
 
 uint8_t
