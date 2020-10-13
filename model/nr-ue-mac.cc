@@ -1548,7 +1548,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           ctrlVarTtiInfo.SlVarTtiType = NrSlVarTtiAllocInfo::CTRL;
           ctrlVarTtiInfo.symStart = currentGrant.slPscchSymStart;
           ctrlVarTtiInfo.symLength = currentGrant.slPscchSymLength;
-          ctrlVarTtiInfo.rbStart = 0;
+          ctrlVarTtiInfo.rbStart = currentGrant.slPsschSubChStart * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
           ctrlVarTtiInfo.rbLength = currentGrant.numSlPscchRbs;
           m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, ctrlVarTtiInfo);
 
