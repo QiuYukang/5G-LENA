@@ -21,6 +21,7 @@
 #define NR_SL_PHY_MAC_COMMON_H
 
 #include "sfnsf.h"
+#include "nr-phy-mac-common.h"
 
 #include <stdint.h>
 #include <limits>
@@ -30,6 +31,7 @@
 namespace ns3 {
 
 /**
+ * \ingroup utils
  * \brief NrSlInfoListElement_s
  *
  * Named similar to http://www.eurecom.fr/~kaltenbe/fapi-2.0/structDlInfoListElement__s.html
@@ -46,7 +48,10 @@ struct NrSlInfoListElement_s
   } m_harqStatus {INVALID}; //!< HARQ status
 };
 
-/// SlPscchUeMacStatParameters structure
+/**
+ * \ingroup utils
+ * \brief SlPscchUeMacStatParameters structure
+ */
 struct SlPscchUeMacStatParameters
 {
   int64_t timestamp {std::numeric_limits<int64_t>::max ()}; //!< In millisecond
@@ -66,6 +71,7 @@ struct SlPscchUeMacStatParameters
   uint8_t gapReTx2 {std::numeric_limits<uint8_t>::max ()}; //!< The gap between a transmission and its second re-transmission in slots
 
   /**
+   * \ingroup utils
    *  TracedCallback signature.
    *
    * \param [in] params Value of the SlPscchUeMacStatParameters
@@ -74,6 +80,7 @@ struct SlPscchUeMacStatParameters
 };
 
 /**
+ * \ingroup utils
  * \brief The SlRlcPduInfo struct
  *
  * \see NrSlSlotAlloc
@@ -88,6 +95,7 @@ struct SlRlcPduInfo
 };
 
 /**
+ * \ingroup utils
  * \brief A struct used by the NR SL UE MAC scheduler to communicate slot
  *        allocation to UE MAC.
  */
@@ -116,6 +124,7 @@ struct NrSlSlotAlloc
   uint8_t  gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
 
   /**
+   * \ingroup utils
    * \brief Less than operator overloaded for NrSlSlotAlloc
    * \param rhs other NrSlSlotAlloc to compare
    * \return true if this NrSlSlotAlloc SfnSf parameter values are less than the rhs NrSlSlotAlloc SfnSf parameters
@@ -126,6 +135,7 @@ struct NrSlSlotAlloc
 };
 
 /**
+ * \ingroup utils
  * \brief A struct used by UE MAC to communicate the time and frequency
  *        allocation information of a Var TTI to UE PHY.
  *
@@ -139,6 +149,7 @@ struct NrSlVarTtiAllocInfo
   uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting resource block
   uint16_t rbLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous resource block
   /**
+   * \ingroup utils
    * \brief The slVarTtiType enum
    */
   enum
@@ -149,6 +160,7 @@ struct NrSlVarTtiAllocInfo
   } SlVarTtiType {INVALID};
 
   /**
+   * \ingroup utils
    * \brief Less than operator overloaded for NrSlVarTtiAllocInfo
    * \param rhs other NrSlVarTtiAllocInfo to compare
    * \return true if this NrSlVarTtiAllocInfo symbol start value is
@@ -160,6 +172,7 @@ struct NrSlVarTtiAllocInfo
 };
 
 /**
+ * \ingroup utils
  * \brief A struct used by UE PHY to store the time and frequency
  *        allocation information of each Var TTI communicated by UE MAC.
  *
@@ -171,6 +184,43 @@ struct NrSlPhySlotAlloc
 {
   SfnSf sfn {}; //!< The SfnSf
   std::set<NrSlVarTtiAllocInfo> slvarTtiInfoList; //!< NR Sidelink variable TTI info list
+};
+
+/**
+ * \ingroup utils
+ * \brief The SlDataRxPacketTraceParams struct
+ */
+struct SlRxDataPacketTraceParams:public RxPacketTraceParams
+{
+  uint16_t m_txRnti;
+  double m_tblerSci2;
+  bool m_sci2Corrupted;
+  int m_rbStart;
+  int m_rbEnd;
+  uint32_t m_dstL2Id;
+  uint16_t m_srcL2Id;
+};
+
+/**
+ * \ingroup utils
+ * \brief The SlCtrlRxPacketTraceParams struct
+ */
+struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
+{
+  uint16_t m_txRnti;
+  double m_tblerSci1;
+  bool m_sci1Corrupted;
+  int m_rbStart;
+  int m_rbEnd;
+  uint8_t m_priority;
+  uint16_t m_slResourceReservePeriod;
+  uint16_t m_totalSubChannels;
+  uint8_t m_indexStartSubChannel;
+  uint8_t m_lengthSubChannel;
+  uint8_t m_maxNumPerReserve;
+  uint32_t m_dstL2Id;
+  int m_pscchRbStart;
+  int m_pscchRbEnd;
 };
 
 }
