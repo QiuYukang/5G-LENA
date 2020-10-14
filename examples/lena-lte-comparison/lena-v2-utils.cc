@@ -22,6 +22,11 @@
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
 #include "rb-output-stats.h"
+
+#include "ns3/log.h"
+
+NS_LOG_COMPONENT_DEFINE ("LenaV2Utils");
+
 namespace ns3 {
 
 void
@@ -237,151 +242,298 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    * a single BWP in FDD is half the size of the corresponding TDD BWP, and the
    * parameter bandwidthMHz refers to the size of the FDD BWP.
    *
-   * TDD scenario 0:
-   *
-   * |----------------Band1--------------|
-   * |----CC1----|----CC2----|----CC3----|   // Sector i will go in BWPi
-   * |----BWP1---|----BWP2---|----BWP3---|
-   *
+   * Scenario 0:  sectors NON_OVERLAPPING in frequency
+   * 
    * FDD scenario 0:
    *
-   * And the configured spectrum division for FDD operation is:
-   * |---------Band1---------|---------Band2---------|---------Band3---------|
-   * |----------CC1----------|----------CC1----------|----------CC1----------| // Sector i will go in Bandi
-   * |----BWP1---|----BWP2---|----BWP1---|----BWP2---|----BWP1---|----BWP2---| // DL in the first, UL in the second
+   * |--------Band0--------|--------Band1--------|--------Band2--------|
+   * |---------CC0---------|---------CC1---------|---------CC2---------|
+   * |---BWP0---|---BWP1---|---BWP2---|---BWP3---|---BWP4---|---BWP5---|
+   *
+   *   Sector i will go in Bandi
+   *   DL in the first BWP, UL in the second BWP
+   *
+   * TDD scenario 0:
+   *
+   * |--------Band0--------|--------Band1--------|--------Band2--------|
+   * |---------CC0---------|---------CC2---------|---------CC2---------|
+   * |---------BWP0--------|---------BWP1--------|---------BWP2--------|
+   *
+   *   Sector i will go in BWPi
    *
    *
-   * TDD scenario 1:
+   * Scenario 1:  sectors in OVERLAPPING bands
    *
-   * |----Band1----|
-   * |-----CC1-----|
-   * |-----BWP1----|
+   * Note that this configuration has 1/3 the total bandwidth of the
+   * NON_OVERLAPPING configuration.
    *
    * FDD scenario 1:
    *
-   * And the configured spectrum division for FDD operation is:
-   * |---------Band1---------|
-   * |----------CC1----------|
-   * |----BWP1---|----BWP2---|
+   * |--------Band0--------|
+   * |---------CC0---------|
+   * |---BWP0---|---BWP1---|
+   *
+   *   Sector i will go in BWPi
+   *
+   * TDD scenario 1:
+   *
+   * |--------Band0--------|
+   * |---------CC0---------|
+   * |---------BWP0--------|
    *
    * This is tightly coupled with what happens in lena-v1-utils.cc
    *
    */
-  OperationBandInfo band1, band2, band3;
-  band1.m_bandId = 0;
-  band2.m_bandId = 1;
-  band3.m_bandId = 2;
+  // \todo: set band 0 start frequency from the command line
+  const double band0Start = 2110e6;
+  double bandwidthBwp = bandwidthMHz * 1e6;
+  
+  OperationBandInfo band0, band1, band2;
+  band0.m_bandId = 0;
+  band1.m_bandId = 1;
+  band2.m_bandId = 2;
 
-  if (freqScenario == 0) // NON_OVERLAPPING
+  if ((freqScenario == 0) // NON_OVERLAPPING
+      && (operationMode == "FDD"))
     {
-      CcBwpCreator ccBwpCreator;
-
-      double bandwidthBand = operationMode == "FDD" ? bandwidthMHz * 1e6 : bandwidthMHz * 1e6 * 2;
-      uint8_t numCcPerBand = 1; // one for each sector
-
-      CcBwpCreator::SimpleOperationBandConf bandConf1 (2125e6, bandwidthBand, numCcPerBand, scene);
-      bandConf1.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      CcBwpCreator::SimpleOperationBandConf bandConf2 (2145e6, bandwidthBand, numCcPerBand, scene);
-      bandConf2.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      CcBwpCreator::SimpleOperationBandConf bandConf3 (2165e6, bandwidthBand, numCcPerBand, scene);
-      bandConf3.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1); // Create, then configure
-      band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2); // Create, then configure
-      band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3); // Create, then configure
-
-      if (operationMode == "FDD")
-        {
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], 2130e6, bandwidthBand);
-
-          ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], 2140e6, bandwidthBand);
-          ConfigureBwpTo (band2.m_cc[0]->m_bwp[1], 2150e6, bandwidthBand);
-
-          ConfigureBwpTo (band3.m_cc[0]->m_bwp[0], 2160e6, bandwidthBand);
-          ConfigureBwpTo (band3.m_cc[0]->m_bwp[1], 1850e6, bandwidthBand);
-        }
-      else
-        {
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-          ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], 2140e6, bandwidthBand);
-          ConfigureBwpTo (band3.m_cc[0]->m_bwp[0], 2160e6, bandwidthBand);
-        }
-
-      std::cout << "BWP Configuration for NON_OVERLAPPING case, mode " << operationMode
-                << std::endl << band1 << std::endl << band2 << std::endl << band3;
-    }
-  else // OVERLAPPING
-    {
-      CcBwpCreator ccBwpCreator;
-
-      double bandwidthBand = operationMode == "FDD" ? bandwidthMHz * 1e6 : bandwidthMHz * 1e6 * 2;
+      // FDD uses two BWPs per CC, one CC per band
+      uint8_t numBwp = 2;
+      double bandwidthCc = numBwp * bandwidthBwp;
       uint8_t numCcPerBand = 1;
-
-      CcBwpCreator::SimpleOperationBandConf bandConf1 (2120e6, bandwidthBand, numCcPerBand, scene);
-      bandConf1.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      // We use the helper function to create the band, and manually we go
-      // to change what is wrong
+      double bandwidthBand = numCcPerBand * bandwidthCc;
+      double bandCenter = band0Start + bandwidthBand / 2.0;
+      
+      NS_LOG_LOGIC ("NON_OVERLAPPING, FDD: "
+                    << bandwidthBand << ":" << bandwidthCc << ":"
+                    << bandwidthBwp << ", "
+                    << (int)numCcPerBand << ", " << (int)numBwp);
+      
+      NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf0.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      NS_LOG_LOGIC ("bandConf1: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf1 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf1.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      NS_LOG_LOGIC ("bandConf2: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf2 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf2.m_numBwp = numBwp;
+      
+      // Create, then configure
+      CcBwpCreator ccBwpCreator;
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0); 
+      band0.m_bandId = 0;
+          
       band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
-
-      if (operationMode == "FDD")
-        {
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], 1930e6, bandwidthBand);
-        }
-      else
-        {
-          // TDD here, so use the double of the passed parameter (that is for FDD)
-          // You can see this in the definition of bandwidthBand
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-        }
-
-      std::cout << "BWP Configuration for OVERLAPPING case, mode " << operationMode
-                << std::endl << band1 << std::endl;
+      band1.m_bandId = 1;
+      
+      band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
+      band2.m_bandId = 2;
+      
+      bandCenter = band0Start + bandwidthBwp / 2.0;
+      
+      NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);;
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      NS_LOG_LOGIC ("band0[0][1]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      NS_LOG_LOGIC ("band1[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      NS_LOG_LOGIC ("band1[0][1]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      NS_LOG_LOGIC ("band2[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      NS_LOG_LOGIC ("band2[0][1]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band2.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+      
+      std::cout << "BWP Configuration for NON_OVERLAPPING case, mode "
+                << operationMode << "\n"
+                << band0 << band1 << band2;
     }
-
-  if (calibration)
+  
+  else if ( (freqScenario == 0) // NON_OVERLAPPING
+            && (operationMode == "TDD") )
     {
-      // LENA-compatibility-bug: Put all the sectors and stuff at the same central frequency
-      // in case of non-overlapping mode and FDD
-      if (operationMode == "FDD" && freqScenario == 0)
-        {
-          band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-          band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-          band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-          band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-          band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-          band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-        }
+      // Use double with BWP, to match total bandwidth for FDD in UL and DL
+      bandwidthBwp *= 2;
+      
+      uint8_t numBwp = 1;
+      double bandwidthCc = numBwp * bandwidthBwp;
+      uint8_t numCcPerBand = 1;
+      double bandwidthBand = numCcPerBand * bandwidthCc;
+      double bandCenter = band0Start + bandwidthBand / 2.0;
+      
+      NS_LOG_LOGIC ("NON_OVERLAPPING, TDD: "
+                    << bandwidthBand << ":" << bandwidthCc << ":"
+                    << bandwidthBwp << ", "
+                    << (int)numCcPerBand << ", " << (int)numBwp);
+      
+      NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf0.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
 
-      // Do not initialize fading (beamforming gain)
-      nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-      nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-      nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+      NS_LOG_LOGIC ("bandConf1: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf1 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf1.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      NS_LOG_LOGIC ("bandConf2: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf2 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf2.m_numBwp = numBwp;
+      
+      // Create, then configure
+      CcBwpCreator ccBwpCreator;
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0);
+      band0.m_bandId = 0;
+          
+      band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+      band1.m_bandId = 1;
+      
+      band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
+      band2.m_bandId = 2;
+      
+      bandCenter = band0Start + bandwidthBwp / 2.0;
+      
+      NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      NS_LOG_LOGIC ("band1[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      NS_LOG_LOGIC ("band2[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+
+      std::cout << "BWP Configuration for NON_OVERLAPPING case, mode "
+                << operationMode << "\n"
+                << band0 << band1 << band2;
     }
+
+  else if ( (freqScenario == 1) // OVERLAPPING
+            && (operationMode == "FDD") )
+    {
+      // FDD uses two BWPs per CC, one CC per band
+      uint8_t numBwp = 2;
+      double bandwidthCc = numBwp * bandwidthBwp;
+      uint8_t numCcPerBand = 1;
+      double bandwidthBand = numCcPerBand * bandwidthCc;
+      double bandCenter = band0Start + bandwidthBand / 2.0;
+      
+      NS_LOG_LOGIC ("OVERLAPPING, FDD: "
+                    << bandwidthBand << ":" << bandwidthCc << ":"
+                    << bandwidthBwp << ", "
+                    << (int)numCcPerBand << ", " << (int)numBwp);
+
+      NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf0.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      // Create, then configure
+      CcBwpCreator ccBwpCreator;
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0); 
+      band0.m_bandId = 0;
+          
+      bandCenter = band0Start + bandwidthBwp / 2.0;
+      
+      NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      NS_LOG_LOGIC ("band0[0][1]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+
+      std::cout << "BWP Configuration for OVERLAPPING case, mode "
+                << operationMode << "\n" << band0;
+    }
+
+  else if ( (freqScenario == 1) // OVERLAPPING
+            && (operationMode == "TDD"))
+    {
+      // Use double with BWP, to match total bandwidth for FDD in UL and DL
+      bandwidthBwp *= 2;
+      
+      uint8_t numBwp = 1;
+      double bandwidthCc = numBwp * bandwidthBwp;
+      uint8_t numCcPerBand = 1;
+      double bandwidthBand = numCcPerBand * bandwidthCc;
+      double bandCenter = band0Start + bandwidthBand / 2.0;
+      
+      NS_LOG_LOGIC ("NON_OVERLAPPING, TDD: "
+                    << bandwidthBand << ":" << bandwidthCc << ":"
+                    << bandwidthBwp << ", "
+                    << (int)numCcPerBand << ", " << (int)numBwp);
+      
+      NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf0.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+
+      // Create, then configure
+      CcBwpCreator ccBwpCreator;
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0);
+      band0.m_bandId = 0;
+          
+      bandCenter = band0Start + bandwidthBwp / 2.0;
+      
+      NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+
+      std::cout << "BWP Configuration for OVERLAPPING case, mode "
+                << operationMode << "\n" << band0;
+    }
+
   else
     {
-      // Init everything
-      nrHelper->InitializeOperationBand (&band1);
-      nrHelper->InitializeOperationBand (&band2);
-      nrHelper->InitializeOperationBand (&band3);
+      std::cerr << "unknown combination of freqScenario = " << freqScenario
+                << " and operationMode = " << operationMode
+                << std::endl;
+      exit (1);
     }
+      
+
+  auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
+  // Omit fading from calibration mode
+  if (! calibration)
+    {
+      bandMask |= NrHelper::INIT_FADING;
+    }
+  nrHelper->InitializeOperationBand (&band0, bandMask);
+  nrHelper->InitializeOperationBand (&band1, bandMask);
+  nrHelper->InitializeOperationBand (&band2, bandMask);
 
   BandwidthPartInfoPtrVector sector1Bwps, sector2Bwps, sector3Bwps;
   if (freqScenario == 0) // NON_OVERLAPPING
     {
-      sector1Bwps = CcBwpCreator::GetAllBwps ({band1});
-      sector2Bwps = CcBwpCreator::GetAllBwps ({band2});
-      sector3Bwps = CcBwpCreator::GetAllBwps ({band3});
+      sector1Bwps = CcBwpCreator::GetAllBwps ({band0});
+      sector2Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector3Bwps = CcBwpCreator::GetAllBwps ({band2});
     }
   else // OVERLAPPING
     {
-      sector1Bwps = CcBwpCreator::GetAllBwps ({band1});
-      sector2Bwps = CcBwpCreator::GetAllBwps ({band1});
-      sector3Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector1Bwps = CcBwpCreator::GetAllBwps ({band0});
+      sector2Bwps = CcBwpCreator::GetAllBwps ({band0});
+      sector3Bwps = CcBwpCreator::GetAllBwps ({band0});
     }
 
   /*

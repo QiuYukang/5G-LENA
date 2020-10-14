@@ -48,19 +48,33 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
   NS_UNUSED (downtiltAngle);
 
   /*
-   *  An example of how the spectrum is being used.
+   *  An example of how the spectrum is being used, for 20 MHz bandwidth..
    *
    *                              centralEarfcnFrequencyBand = 350
    *                                     |
-   *         200 RB                    200 RB                 200RB
-   * |-----------------------|-----------------------|-----------------------|
+   *         200 RB                200 RB                200 RB
+   * |---------------------|---------------------|---------------------|
    *
-   *     100RB      100RB        100RB       100RB       100RB       100RB
-   * |-----------|-----------|-----------|-----------|-----------|-----------|
-   *       DL          UL          DL         UL           DL         UL
+   *     100RB      100RB      100RB      100RB      100RB      100RB
+   * |----------|----------|----------|----------|----------|----------|
+   *      DL         UL         DL         UL         DL         UL
    *
-   * |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-   *     fc_dl       fc_ul       fc_dl       fc_ul        fc_dl      fc_ul
+   * |-----|----|-----|----|-----|----|-----|----|-----|----|-----|----|
+   *     fc_dl      fc_ul      fc_dl      fc_ul      fc_dl      fc_ul
+   *
+   * For comparison, the 5GLENA FDD NON_OVERLAPPING case is
+   *
+   * Scenario 0:  sectors NON_OVERLAPPING in frequency
+   * 
+   * FDD scenario 0:
+   *
+   * |--------Band0--------|--------Band1--------|--------Band2--------|
+   * |---------CC0---------|---------CC1---------|---------CC2---------|
+   * |---BWP0---|---BWP1---|---BWP2---|---BWP3---|---BWP4---|---BWP5---|
+   *
+   *   Sector i will go in Bandi
+   *   DL in the first BWP, UL in the second BWP
+   *
    */
 
   uint32_t bandwidthBandDlRB;
@@ -91,30 +105,31 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
       NS_ABORT_MSG ("The configured bandwidth in MHz not supported:" << bandwidthMHz);
     }
 
+  uint32_t centralFrequencyBand0Dl;
+  uint32_t centralFrequencyBand0Ul;
   uint32_t centralFrequencyBand1Dl;
   uint32_t centralFrequencyBand1Ul;
   uint32_t centralFrequencyBand2Dl;
   uint32_t centralFrequencyBand2Ul;
-  uint32_t centralFrequencyBand3Dl;
-  uint32_t centralFrequencyBand3Ul;
 
-  if (freqScenario == 0)
+  if (freqScenario == 0)  // NON_OVERLAPPING
     {
-      centralFrequencyBand1Dl = 100; // 2120 MHz
-      centralFrequencyBand1Ul = 200;
-      centralFrequencyBand2Dl = 300;
-      centralFrequencyBand2Ul = 400;
-      centralFrequencyBand3Dl = 500;
-      centralFrequencyBand3Ul = 600;
+      centralFrequencyBand0Dl = 100; // 2120 MHz
+      centralFrequencyBand0Ul = 200;
+      centralFrequencyBand1Dl = 300;
+      centralFrequencyBand1Ul = 400;
+      centralFrequencyBand2Dl = 500;
+      centralFrequencyBand2Ul = 600;
     }
   else
     {
-      centralFrequencyBand1Dl = 100;   // 2120 MHz
-      centralFrequencyBand1Ul = 18100; // 1930 MHz
+      // OVERLAPPING
+      centralFrequencyBand0Dl = 100;   // 2120 MHz
+      centralFrequencyBand0Ul = 18100; // 1930 MHz
+      centralFrequencyBand1Dl = 100;
+      centralFrequencyBand1Ul = 18100;
       centralFrequencyBand2Dl = 100;
       centralFrequencyBand2Ul = 18100;
-      centralFrequencyBand3Dl = 100;
-      centralFrequencyBand3Ul = 18100;
     }
 
   double txPower;
@@ -186,8 +201,8 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
       double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
-  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand1Dl));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand1Ul));
+  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand0Dl));
+  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand0Ul));
   enbSector1NetDev = lteHelper->InstallEnbDevice (enbSector1Container);
 
   //SECTOR 2 eNB configuration
@@ -197,8 +212,8 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
 
-  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand2Dl));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand2Ul));
+  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand1Dl));
+  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand1Ul));
   enbSector2NetDev = lteHelper->InstallEnbDevice (enbSector2Container);
 
   //SECTOR 3 eNB configuration
@@ -207,8 +222,8 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
       double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
-  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand3Dl));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand3Ul));
+  lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand2Dl));
+  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (centralFrequencyBand2Ul));
   enbSector3NetDev = lteHelper->InstallEnbDevice (enbSector3Container);
 
   ueSector1NetDev = lteHelper->InstallUeDevice (ueSector1Container);
