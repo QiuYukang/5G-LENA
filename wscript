@@ -117,6 +117,7 @@ def build(bld):
         'test/test-nr-mac-short-bsr-ce.cc',
         'test/nr-test-notching.cc',
         'test/nr-realistic-beamforming-test.cc',
+        'test/nr-test-uplink-power-control.cc',
         ]
 
     headers = bld(features='ns3header')
