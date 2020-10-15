@@ -1527,8 +1527,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
   Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice> (GetDevice ());
 
   // When control messages collide in the PSCCH, the receiver cannot know how many transmissions occurred
-  // we sort the messages by SINR and try to decode the ones with highest average SINR per RB first
-  // only one message per RB can be decoded
+  // we sort the messages by SINR and try to decode the ones with highest average SINR per RB first.
   std::list<PscchPduInfo> rxControlMessageOkList;
   bool error = true;
   std::multiset<SlCtrlSigParamInfo> sortedControlMessages;
@@ -1580,7 +1579,6 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
     }
 
   for (auto &ctrlMsgIt : sortedControlMessages)
-  //for (std::multiset<SlCtrlSigParamInfo>::iterator it = sortedControlMessages.begin (); it != sortedControlMessages.end (); it++ )
     {
       uint32_t paramIndex = ctrlMsgIt.index;
 
@@ -1603,7 +1601,8 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
                   break;
                 }
               //the purpose of rbDecodedBitmap and the following "if" is to decode
-              //only one SCI 1 msg among multiple SCIs using same RBs
+              //only one SCI 1 msg among multiple SCIs using same or partially
+              //overlapping RBs
               if (rbDecodedBitmap.find (*rbIt) != rbDecodedBitmap.end ())
                 {
                   NS_LOG_DEBUG (*rbIt << " TB with the similar RB has already been decoded. Avoid to decode it again!");
@@ -1619,9 +1618,9 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
               Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
               NS_ABORT_IF (em == nullptr);
               outputEmForCtrl = em->GetTbDecodificationStats (m_slSinrPerceived.at (paramIndex),
-                                                                                 m_slRxSigParamInfo.at (paramIndex).rbBitmap,
-                                                                                 m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()),
-                                                                                 pscchMcs, NrErrorModel::NrErrorModelHistory ());
+                                                              m_slRxSigParamInfo.at (paramIndex).rbBitmap,
+                                                              m_slAmc->CalculateTbSize (pscchMcs,m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()),
+                                                              pscchMcs, NrErrorModel::NrErrorModelHistory ());
               corrupt = m_random->GetValue () > outputEmForCtrl->m_tbler ? false : true;
               NS_LOG_DEBUG (this << " PSCCH Decoding, errorRate " << outputEmForCtrl << " error " << corrupt);
             }
@@ -1753,19 +1752,6 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       auto sinrStats = GetSinrStats (itTb->second.sinrPerceived, itTb->second.expectedTb.rbBitmap);
       itTb->second.sinrAvg = sinrStats.sinrAvg;
       itTb->second.sinrMin = sinrStats.sinrMin;
-      /*
-      itTb->second.sinrAvg = 0.0;
-      itTb->second.sinrMin = 99999999999;
-      for (const auto & rbIndex : itTb->second.expectedTb.rbBitmap)
-        {
-          itTb->second.sinrAvg += itTb->second.sinrPerceived.ValuesAt (rbIndex);
-          if (itTb->second.sinrPerceived.ValuesAt (rbIndex) < itTb->second.sinrMin)
-            {
-              itTb->second.sinrMin = itTb->second.sinrPerceived.ValuesAt (rbIndex);
-            }
-        }
-
-      itTb->second.sinrAvg = itTb->second.sinrAvg / itTb->second.expectedTb.rbBitmap.size ();*/
 
       NS_LOG_INFO ("Finishing RX, sinrAvg = " << itTb->second.sinrAvg <<
                    " sinrMin = " <<  itTb->second.sinrMin <<
