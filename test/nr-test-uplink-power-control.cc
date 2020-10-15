@@ -283,6 +283,18 @@ NrUplinkPowerControlTestCase::DoRun (void)
   m_ueUpc->TraceConnectWithoutContext ("ReportPucchTxPower",
                                        MakeBoundCallback (&PucchTxPowerReport, this));
 
+
+  // When all the configuration is done, explicitly call UpdateConfig ()
+  for (auto it = enbDevs.Begin (); it != enbDevs.End (); ++it)
+    {
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueDevs.Begin (); it != ueDevs.End (); ++it)
+    {
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
+    }
+
   // Attach a UE to a eNB
   nrHelper->AttachToEnb (ueDevs.Get(0), enbDevs.Get (0));
 
