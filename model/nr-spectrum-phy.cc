@@ -1967,11 +1967,12 @@ NrSpectrumPhy::ReteriveSci2FromPktBurst (uint32_t pktIndex)
   for (it = pktBurst->Begin(); it != pktBurst->End (); it++)
     {
       LteRadioBearerTag tag;
-      if ((*it)->PeekPacketTag (tag) == false && (*it)->PeekHeader(sciF02) == 8)
+      if ((*it)->PeekPacketTag (tag) == false)
         {
           //SCI stage 2 is the only packet in the packet burst, which does
           //not have the tag
           sci2pkt = *it;
+          break;
         }
     }
 

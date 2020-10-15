@@ -1254,7 +1254,7 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
   for (auto packet : pdu->GetPackets ())
     {
       LteRadioBearerTag tag;
-      if (packet->PeekPacketTag (tag) == false && packet->PeekHeader(sciF02) == 8)
+      if (packet->PeekPacketTag (tag) == false)
         {
           //SCI stage 2 is the only packet in the packet burst, which does
           //not have the tag
