@@ -111,7 +111,7 @@ NrUePhy::GetTypeId (void)
     .AddAttribute ("EnableUplinkPowerControl",
                    "If true, Uplink Power Control will be enabled.",
                     BooleanValue (true),
-                    MakeBooleanAccessor (&NrUePhy::SetEableUplinkPowerControl),
+                    MakeBooleanAccessor (&NrUePhy::SetEnableUplinkPowerControl),
                     MakeBooleanChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
@@ -180,7 +180,7 @@ NrUePhy::GetUeCphySapProvider ()
 }
 
 void
-NrUePhy::SetEableUplinkPowerControl (bool enable)
+NrUePhy::SetEnableUplinkPowerControl (bool enable)
 {
   m_enableUplinkPowerControl = enable;
 }
@@ -203,8 +203,8 @@ NrUePhy::GetRsrp () const
   return m_rsrp;
 }
 
-Ptr<LteUePowerControl>
-NrUePhy::GetLteUplinkPowerControl () const
+Ptr<NrUePowerControl>
+NrUePhy::GetUplinkPowerControl () const
 {
   NS_LOG_FUNCTION (this);
   return m_powerControl;
