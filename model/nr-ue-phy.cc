@@ -1135,6 +1135,10 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
   NS_LOG_FUNCTION (this << rsReceivedPower);
   m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
   NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
+  if (m_enableUplinkPowerControl)
+    {
+      m_powerControl->SetRsrp (m_rsrp);
+    }
 }
 
 void
@@ -1194,6 +1198,7 @@ void
 NrUePhy::DoConfigureReferenceSignalPower (int8_t referenceSignalPower)
 {
   NS_LOG_FUNCTION (this << referenceSignalPower);
+  m_powerControl->ConfigureReferenceSignalPower(referenceSignalPower);
 }
 
 void
