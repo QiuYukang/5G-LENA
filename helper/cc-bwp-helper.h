@@ -70,15 +70,19 @@ struct BandwidthPartInfo
   {
     RMa,         //!< RMa
     RMa_LoS,     //!< RMa where all the nodes will be in Line-of-Sight
-    RMa_nLoS,    //!< RMA where all the nodes will not be in Line-of-Sigth
-    UMa_LoS,     //!< UMa where all the nodes will be in Line-of-Sigth
-    UMa_nLoS,    //!< UMa where all the nodes will not be in Line-of-Sigth
+    RMa_nLoS,    //!< RMA where all the nodes will not be in Line-of-Sight
+    UMa_LoS,     //!< UMa where all the nodes will be in Line-of-Sight
+    UMa_nLoS,    //!< UMa where all the nodes will not be in Line-of-Sight
     UMa,         //!< UMa
     UMi_StreetCanyon,      //!< UMi_StreetCanyon
-    UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sigth
-    UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in Line-of-Sigth
+    UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sight
+    UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in Line-of-Sight
     InH_OfficeOpen,  //!< InH_OfficeOpen
+    InH_OfficeOpen_LoS,  //!< indoor office where all the nodes will be in Line-of-Sight
+    InH_OfficeOpen_nLoS,  //!< indoor office where all the nodes will not be in Line-of-Sight
     InH_OfficeMixed,  //!< InH_OfficeMixed
+    InH_OfficeMixed_LoS,  //!< indoor office where all the nodes will be in Line-of-Sight
+    InH_OfficeMixed_nLoS,  //!< indoor office where all the nodes will not be in Line-of-Sight
     UMa_Buildings,  //!< UMa with buildings
     UMi_Buildings  //!< UMi_StreetCanyon with buildings
   } m_scenario {RMa};

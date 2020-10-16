@@ -190,11 +190,40 @@ InitIndoorOpen (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCondi
 }
 
 static void
+InitIndoorOpen_LoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitIndoorOpen_nLoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (NeverLosChannelConditionModel::GetTypeId ());
+}
+
+static void
 InitIndoorMixed (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
 {
   pathlossModelFactory->SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
   channelConditionModelFactory->SetTypeId (ThreeGppIndoorMixedOfficeChannelConditionModel::GetTypeId ());
 }
+
+static void
+InitIndoorMixed_LoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (AlwaysLosChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitIndoorMixed_nLoS (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppIndoorOfficePropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (NeverLosChannelConditionModel::GetTypeId ());
+}
+
 
 static void
 InitUmaBuildings (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
@@ -227,7 +256,11 @@ NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
     {BandwidthPartInfo::UMi_StreetCanyon_LoS, std::bind (&InitUmi_LoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMi_StreetCanyon_nLoS, std::bind (&InitUmi_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeOpen, std::bind (&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::InH_OfficeOpen_LoS, std::bind (&InitIndoorOpen_LoS, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::InH_OfficeOpen_nLoS, std::bind (&InitIndoorOpen_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::InH_OfficeMixed, std::bind (&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::InH_OfficeMixed_LoS, std::bind (&InitIndoorMixed_LoS, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::InH_OfficeMixed_nLoS, std::bind (&InitIndoorMixed_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMa_Buildings, std::bind (&InitUmaBuildings, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMi_Buildings, std::bind (&InitUmiBuildings, std::placeholders::_1, std::placeholders::_2)},
   };
