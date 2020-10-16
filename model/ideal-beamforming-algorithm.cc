@@ -249,7 +249,7 @@ CellScanQuasiOmniBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNetD
   txPhy->GetAntennaArray ()->GetAttribute("NumRows", uintValue);
   uint32_t txNumRows = static_cast<uint32_t> (uintValue.Get ());
 
-  rxPhy->GetBeamManager ()->ChangeToOmniTx (); // we have to set it inmediatelly to q-omni so that we can perform calculations when calling spectrum model above
+  rxPhy->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector (); // we have to set it inmediatelly to q-omni so that we can perform calculations when calling spectrum model above
 
   complexVector_t rxW = rxPhy->GetBeamManager ()->GetCurrentBeamformingVector ();
   *ueBfv = std::make_pair (rxW, OMNI_BEAM_ID);

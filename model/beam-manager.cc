@@ -40,7 +40,7 @@ void
 BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray)
 {
   m_antennaArray = antennaArray;
-  ChangeToOmniTx ();
+  ChangeToQuasiOmniBeamformingVector ();
 }
 
 complexVector_t
@@ -135,7 +135,7 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
         }
       else
         {
-          ChangeToOmniTx();
+          ChangeToQuasiOmniBeamformingVector();
         }
     }
   else
@@ -152,7 +152,7 @@ BeamManager::GetCurrentBeamformingVector ()
 }
 
 void
-BeamManager::ChangeToOmniTx ()
+BeamManager::ChangeToQuasiOmniBeamformingVector ()
 {
   NS_LOG_FUNCTION (this);
 

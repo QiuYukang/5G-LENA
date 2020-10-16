@@ -121,9 +121,9 @@ public:
   virtual void ChangeBeamformingVector (const Ptr<const NetDevice>& device);
 
   /**
-   * \brief Change the antenna model to omnidirectional (ignoring the beams) TODO check this
+   * \brief Change current beamforming vector to quasi-omni beamforming vector
    */
-  virtual void ChangeToOmniTx ();
+  virtual void ChangeToQuasiOmniBeamformingVector ();
 
   /**
    * \brief Function that returns the beamforming vector that is currently being
