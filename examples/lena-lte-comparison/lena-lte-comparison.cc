@@ -285,17 +285,24 @@ LenaLteComparison (const Parameters &params)
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
-  std::cout << "  hexagonal grid\n";  
+  std::cout << "  hexagonal grid: ";  
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (params.numOuterRings);
-  gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
-  gridScenario.SetScenarioParameters (params.scenario);
+  const auto sectorization = HexagonalGridScenarioHelper::TRIPLE;
+  const uint16_t sectorsNum = static_cast<uint16_t> (sectorization);
+  gridScenario.SetSectorization (sectorization);
+  gridScenario.SetScenarioParamenters (params.scenario);
+  uint16_t gNbSites = gridScenario.GetNumSites ();
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = params.ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
   gridScenario.AssignStreams (RngSeedManager::GetRun ());
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
+  std::cout << gNbSites << " sites, "
+            << sectorsNum << " sectors/site, "
+            << gNbNum   << " cells, "
+            << ueNum    << " UEs\n";
 
   /*
    * Create different gNB NodeContainer for the different sectors.
@@ -320,6 +327,11 @@ LenaLteComparison (const Parameters &params)
           break;
       }
     }
+  std::cout << "    gNb containers: "
+            << gnbSector1Container.GetN () << ", "
+            << gnbSector2Container.GetN () << ", "
+            << gnbSector3Container.GetN ()
+            << std::endl;
 
   /*
    * Create different UE NodeContainer for the different sectors.
@@ -345,6 +357,11 @@ LenaLteComparison (const Parameters &params)
           break;
       }
     }
+  std::cout << "    UE containers: "
+            << ueSector1Container.GetN () << ", "
+            << ueSector2Container.GetN () << ", "
+            << ueSector3Container.GetN ()
+            << std::endl;
 
   /*
    * Setup the LTE or NR module. We create the various helpers needed inside
@@ -583,12 +600,18 @@ LenaLteComparison (const Parameters &params)
    *
    * Low-Latency configuration and object creation:
    */
-  std::cout << "  client factory\n";  
+  Time interval = Seconds (1.0/lambda);
+  std::cout << "  client factory:"
+            << "\n    packet size: " << udpPacketSize
+            << "\n    interval:    " << interval
+            << "\n    max packets: " << packetCount
+            << std::endl;
+
   UdpClientHelper dlClientLowLat;
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (packetCount));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
-  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (interval));
 
   /*
    * Let's install the applications!
