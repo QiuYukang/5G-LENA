@@ -473,11 +473,11 @@ LenaLteComparison (const Parameters &params)
   for (uint32_t u = 0; u < ueNum; ++u)
     {
       uint32_t sector = u % ffr;
-      uint32_t i = u / ffr;
+      uint32_t siteId = (u / ffr) % gridScenario.GetNumSites ();
       if (sector == 0)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get (i % gridScenario.GetNumSites ());
-          Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get (i);
+          Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get (siteId);
+          Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get (siteId);
           if (lteHelper != nullptr)
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -500,8 +500,8 @@ LenaLteComparison (const Parameters &params)
         }
       else if (sector == 1)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get (i % gridScenario.GetNumSites ());
-          Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get (i);
+          Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get (siteId);
+          Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get (siteId);
           if (lteHelper != nullptr)
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -524,8 +524,8 @@ LenaLteComparison (const Parameters &params)
         }
       else if (sector == 2)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get (i % gridScenario.GetNumSites ());
-          Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get (i);
+          Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get (siteId);
+          Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get (siteId);
           if (lteHelper != nullptr)
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -603,29 +603,25 @@ LenaLteComparison (const Parameters &params)
   x->SetStream (RngSeedManager::GetRun());
   double maxStartTime = 0.0;
 
-  for (uint32_t userId = 0; userId < gridScenario.GetUserTerminals().GetN (); ++userId)
+  for (uint32_t userId = 0; userId < ueNum; ++userId)
     {
-      for (uint32_t j = 0; j < 3; ++j)
-        {
-          if (nodes.at (j)->GetN () <= userId)
-            {
-              continue;
-            }
-          Ptr<Node> n = nodes.at(j)->Get (userId);
-          Ptr<NetDevice> d = devices.at(j)->Get(userId);
-          Address a = ips.at(j)->GetAddress(userId);
+      uint32_t sector = userId % ffr;
+      uint32_t siteId = (userId / ffr) % gridScenario.GetNumSites ();
+      Ptr<Node> n = nodes.at(sector)->Get (siteId);
+      Ptr<NetDevice> d = devices.at(sector)->Get(siteId);
+      Address a = ips.at(sector)->GetAddress(siteId);
+      
+      std::cout << "app for ue " << userId << " in sector " << sector 
+                << " position " << n->GetObject<MobilityModel>()->GetPosition ()
+                << ":" << std::endl;
 
-          std::cout << "app for ue " << userId << " in sector " << j+1
-                    << " position " << n->GetObject<MobilityModel>()->GetPosition ()
-                    << ":" << std::endl;
-
-          auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
-                                  remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
-                                  x, params.appGenerationTimeMs, lteHelper, nrHelper);
-          maxStartTime = std::max (app.second, maxStartTime);
-          clientApps.Add (app.first);
-        }
+      auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
+                              remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
+                              x, params.appGenerationTimeMs, lteHelper, nrHelper);
+      maxStartTime = std::max (app.second, maxStartTime);
+      clientApps.Add (app.first);
     }
+  std::cout << clientApps.GetN () << " apps\n";
 
   // enable the traces provided by the nr module
   std::cout << "  tracing\n";  
