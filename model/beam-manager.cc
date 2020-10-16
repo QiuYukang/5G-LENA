@@ -135,7 +135,7 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
         }
       else
         {
-          m_antennaArray->ChangeToOmniTx();
+          ChangeToOmniTx();
         }
     }
   else
