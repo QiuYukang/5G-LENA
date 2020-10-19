@@ -17,30 +17,14 @@
  *
  */
 
-#include "ns3/nr-helper.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/config-store.h"
-#include "ns3/nr-helper.h"
-#include "ns3/log.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
-#include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
-#include "ns3/abort.h"
-#include "ns3/object.h"
-#include "ns3/nr-mac-scheduler-ns3.h"
-#include "ns3/nr-mac-scheduler-ofdma.h"
-#include "ns3/nr-mac-scheduler-ofdma-rr.h"
-#include "ns3/nr-phy-mac-common.h"
-#include "ns3/basic-data-calculators.h"
-#include "ns3/nr-spectrum-phy.h"
-#include "ns3/nr-ue-net-device.h"
-#include <ns3/nr-ue-phy.h>
+#include "ns3/config-store-module.h"
 #include "ns3/nr-module.h"
 
 using namespace ns3;
