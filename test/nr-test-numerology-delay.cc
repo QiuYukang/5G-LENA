@@ -17,23 +17,14 @@
  *
  */
 
-#include "ns3/nr-helper.h"
-
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/config-store.h"
-#include "ns3/log.h"
-#include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/nr-module.h"
-
-// An essential include is test.h
-#include "ns3/test.h"
 
 // Do not put your test classes in namespace ns3.  You may find it useful
 // to use the using directive to access the ns3 namespace directly
