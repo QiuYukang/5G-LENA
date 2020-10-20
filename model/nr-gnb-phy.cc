@@ -1286,7 +1286,7 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-  m_beamManager->ChangeToOmniTx (); //assume the control signal is omni
+  m_beamManager->ChangeToQuasiOmniBeamformingVector (); //assume the control signal is omni
   m_currSymStart = dci->m_symStart;
 
   Time varTtiPeriod;

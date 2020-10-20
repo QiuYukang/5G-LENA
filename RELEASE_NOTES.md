@@ -49,6 +49,9 @@ New user-visible features (old first)
 
 Bugs fixed
 ----------
+- BeamManager called the function with the name "ChangeToOmniTx" of 3gpp
+  antenna. This was causing that the CTRL was not being passed through 3gpp
+  spectrum propagation model, but only through the propagation loss model.
 
 Known issues
 ------------
