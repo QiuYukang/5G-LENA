@@ -443,7 +443,11 @@ BandwidthPartInfo::GetScenario () const
     { UMi_StreetCanyon_LoS, "UMi-StreetCanyon" },
     { UMi_StreetCanyon_nLoS, "UMi-StreetCanyon" },
     { InH_OfficeOpen, "InH-OfficeOpen" },
+    { InH_OfficeOpen_LoS, "InH-OfficeOpen" },
+    { InH_OfficeOpen_nLoS, "InH-OfficeOpen" },
     { InH_OfficeMixed, "InH-OfficeMixed" },
+    { InH_OfficeMixed_LoS, "InH-OfficeMixed" },
+    { InH_OfficeMixed_nLoS, "InH-OfficeMixed" },
     { UMa_Buildings, "UMa" },
     { UMi_Buildings, "UMi-StreetCanyon" },
   };

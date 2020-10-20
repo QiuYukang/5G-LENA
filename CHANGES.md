@@ -50,6 +50,8 @@ us a note on ns-developers mailing list.
 
 - The scheduler now support the setting of the notched mask, through
   void SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask);
+- Added InH_OfficeOpen_{n,}Los and InH_OfficeMixed_{n,}LoS channel modeling
+  in cc-bwp-helper.h
 
 ### Changes to existing API:
 
