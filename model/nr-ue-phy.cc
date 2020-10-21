@@ -44,7 +44,7 @@
 #include <ns3/pointer.h>
 #include "beam-manager.h"
 
-#include "nr-sl-sci-f01-header.h"
+#include "nr-sl-sci-f1a-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 
 namespace ns3 {
@@ -1386,10 +1386,10 @@ void
 NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
 {
   NS_LOG_FUNCTION (this);
-  NrSlSciF01Header sciF01;
+  NrSlSciF1aHeader sciF1a;
   NrSlMacPduTag tag;
 
-  p->PeekHeader (sciF01);
+  p->PeekHeader (sciF1a);
   p->PeekPacketTag (tag);
 
   std::vector <std::pair<uint32_t, uint8_t> > destinations = m_nrSlUePhySapUser->GetSlDestinations ();
@@ -1401,8 +1401,8 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
           NS_LOG_INFO ("Received first stage SCI for destination " << it.first << " from RNTI " << tag.GetRnti ());
 
           NS_ASSERT_MSG (m_slRxPool != nullptr, "No receiving pools configured");
-          uint16_t rbStart = sciF01.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
-          uint16_t rbLength = sciF01.GetLengthSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+          uint16_t rbStart = sciF1a.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+          uint16_t rbLength = sciF1a.GetLengthSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
           std::vector<int> rbBitMap;
 
           for (uint16_t i = rbStart; i < rbLength; ++i)
@@ -1411,9 +1411,9 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
             }
 
           m_spectrumPhy->AddSlExpectedTb (tag.GetRnti (), tag.GetDstL2Id (),
-                                          tag.GetTbSize (), sciF01.GetMcs (),
+                                          tag.GetTbSize (), sciF1a.GetMcs (),
                                           rbBitMap, tag.GetSymStart (),
-                                          tag.GetNumSym (), sciF01.GetSlMaxNumPerReserve (),
+                                          tag.GetNumSym (), sciF1a.GetSlMaxNumPerReserve (),
                                           tag.GetSfn ());
         }
     }

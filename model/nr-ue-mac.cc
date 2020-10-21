@@ -36,7 +36,7 @@
 #include "nr-mac-short-bsr-ce.h"
 #include "nr-sl-ue-mac-csched-sap.h"
 #include "nr-sl-ue-mac-harq.h"
-#include "nr-sl-sci-f01-header.h"
+#include "nr-sl-sci-f1a-header.h"
 #include "nr-sl-sci-f02-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include <algorithm>
@@ -1517,22 +1517,23 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           dataVarTtiInfo.rbLength = currentGrant.slPsschSubChLength * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
           m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, dataVarTtiInfo);
 
-          //prepare and send SCI format 01 message
-          NrSlSciF01Header sciF01;
-          sciF01.SetPriority (currentGrant.priority);
-          sciF01.SetMcs (currentGrant.mcs);
-          sciF01.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
-          sciF01.SetTotalSubChannels (GetTotalSubCh (m_poolId));
-          sciF01.SetIndexStartSubChannel (currentGrant.slPsschSubChStart);
-          sciF01.SetLengthSubChannel (currentGrant.slPsschSubChLength);
-          sciF01.SetSlMaxNumPerReserve (currentGrant.maxNumPerReserve);
+          //prepare and send SCI format 1A message
+          NrSlSciF1aHeader sciF1a;
+          sciF1a.SetPriority (currentGrant.priority);
+          sciF1a.SetMcs (currentGrant.mcs);
+          sciF1a.SetSciStage2Format (0);
+          sciF1a.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
+          sciF1a.SetTotalSubChannels (GetTotalSubCh (m_poolId));
+          sciF1a.SetIndexStartSubChannel (currentGrant.slPsschSubChStart);
+          sciF1a.SetLengthSubChannel (currentGrant.slPsschSubChLength);
+          sciF1a.SetSlMaxNumPerReserve (currentGrant.maxNumPerReserve);
           if (currentGrant.maxNumPerReserve == 2 || currentGrant.maxNumPerReserve == 3)
             {
-              sciF01.SetGapReTx1 (currentGrant.gapReTx1);
+              sciF1a.SetGapReTx1 (currentGrant.gapReTx1);
             }
           if (currentGrant.maxNumPerReserve == 3)
             {
-              sciF01.SetGapReTx2 (currentGrant.gapReTx2);
+              sciF1a.SetGapReTx2 (currentGrant.gapReTx2);
             }
 
           //sum all the assigned bytes to each LC of this destination
@@ -1542,12 +1543,12 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
               NS_LOG_DEBUG ("LC " << static_cast <uint16_t> (it.lcid) << " was assigned " << it.size << "bytes");
               tbs += it.size;
             }
-          Ptr<Packet> pktSciF01 = Create<Packet> ();
-          pktSciF01->AddHeader (sciF01);
+          Ptr<Packet> pktSciF1a = Create<Packet> ();
+          pktSciF1a->AddHeader (sciF1a);
           NrSlMacPduTag tag (m_rnti, currentGrant.sfn, currentGrant.slPsschSymStart, currentGrant.slPsschSymLength, tbs, currentGrant.dstL2Id);
-          pktSciF01->AddPacketTag (tag);
+          pktSciF1a->AddPacketTag (tag);
 
-          m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF01);
+          m_nrSlUePhySapProvider->SendPscchMacPdu (pktSciF1a);
 
           //set the VarTti allocation info for PSCCH
           NrSlVarTtiAllocInfo ctrlVarTtiInfo;

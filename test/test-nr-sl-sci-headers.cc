@@ -34,36 +34,36 @@ NrSlSciHeadersTestSuite::NrSlSciHeadersTestSuite ()
 {
 
   //Test only including the mandatory fields
-  NrSlSciF01Header sciF01;
-  sciF01.SetPriority (1);
-  sciF01.SetMcs (12);
-  sciF01.SetSlResourceReservePeriod (200);
-  sciF01.SetTotalSubChannels (1);
-  sciF01.SetIndexStartSubChannel (0);
-  sciF01.SetLengthSubChannel (1);
-  sciF01.SetSlMaxNumPerReserve (1);
+  NrSlSciF1aHeader sciF1a;
+  sciF1a.SetPriority (1);
+  sciF1a.SetMcs (12);
+  sciF1a.SetSciStage2Format (0);
+  sciF1a.SetSlResourceReservePeriod (200);
+  sciF1a.SetTotalSubChannels (1);
+  sciF1a.SetIndexStartSubChannel (0);
+  sciF1a.SetLengthSubChannel (1);
+  sciF1a.SetSlMaxNumPerReserve (1);
 
-  uint16_t sizeSciF01 = 1 + 1 + 2 + 2 + 1 + 1 + 1; // 9 bytes
+  uint16_t sizeSciF1A = 1 + 1 + 1 + 2 + 2 + 1 + 1 + 1; // 10 bytes
 
-  AddTestCase (new NrSlSciF01TestCase (sciF01, sizeSciF01));
+  AddTestCase (new NrSlSciF1aTestCase (sciF1a, sizeSciF1A));
 
   //Test including the mandatory fields and 1 optional field
-  //indexStartSubChannel and lengthSubChannel
-  sciF01.SetSlMaxNumPerReserve (2);
-  sciF01.SetGapReTx1 (2);
+  sciF1a.SetSlMaxNumPerReserve (2);
+  sciF1a.SetGapReTx1 (2);
 
-  sizeSciF01 = sizeSciF01 + 1; // 10 bytes
+  sizeSciF1A = sizeSciF1A + 1; // 11 bytes
 
-  AddTestCase (new NrSlSciF01TestCase (sciF01, sizeSciF01));
+  AddTestCase (new NrSlSciF1aTestCase (sciF1a, sizeSciF1A));
 
   //Test including the mandatory fields and 2 optional fields
-  sciF01.SetSlMaxNumPerReserve (3);
-  sciF01.SetGapReTx1 (2);
-  sciF01.SetGapReTx2 (3);
+  sciF1a.SetSlMaxNumPerReserve (3);
+  sciF1a.SetGapReTx1 (2);
+  sciF1a.SetGapReTx2 (3);
 
-  sizeSciF01 = sizeSciF01 + 1; // 11 bytes
+  sizeSciF1A = sizeSciF1A + 1; // 12 bytes
 
-  AddTestCase (new NrSlSciF01TestCase (sciF01, sizeSciF01));
+  AddTestCase (new NrSlSciF1aTestCase (sciF1a, sizeSciF1A));
 
   //SCI Format 02 tests
   uint16_t sizeSciF02 = 8; //8 bytes fixed
@@ -90,57 +90,57 @@ NrSlSciHeadersTestSuite::NrSlSciHeadersTestSuite ()
 static NrSlSciHeadersTestSuite g_nrSlSciHeadersTestSuite;
 
 /*
- * Test Case SCI Format 01
+ * Test Case SCI Format 1A
  */
 
 std::string
-NrSlSciF01TestCase::BuildNameString (const NrSlSciF01Header &sciF01, uint16_t expectedHeaderSize)
+NrSlSciF1aTestCase::BuildNameString (const NrSlSciF1aHeader &sciF1a, uint16_t expectedHeaderSize)
 {
   std::ostringstream oss;
 
-  oss << " Checked SCI format 01 : Priority " << +sciF01.GetPriority ();
-  oss << " MCS " << +sciF01.GetMcs ();
-  oss << " Resource reservation period " << +sciF01.GetSlResourceReservePeriod ();
-  oss << " Total number of Subchannels " << +sciF01.GetTotalSubChannels ();
-  oss << " Index starting Subchannel " << +sciF01.GetIndexStartSubChannel ();
-  oss << " Total number of allocated Subchannels " << +sciF01.GetLengthSubChannel ();
-  oss << " Maximum number of reservations " << +sciF01.GetSlMaxNumPerReserve ();
-  oss << " First retransmission gap in slots " << +sciF01.GetGapReTx1 ();
-  oss << " Second retransmission gap in slots " << +sciF01.GetGapReTx2 () << "\n";
+  oss << " Checked SCI format 1A : Priority " << +sciF1a.GetPriority ();
+  oss << " MCS " << +sciF1a.GetMcs ();
+  oss << " Resource reservation period " << +sciF1a.GetSlResourceReservePeriod ();
+  oss << " Total number of Subchannels " << +sciF1a.GetTotalSubChannels ();
+  oss << " Index starting Subchannel " << +sciF1a.GetIndexStartSubChannel ();
+  oss << " Total number of allocated Subchannels " << +sciF1a.GetLengthSubChannel ();
+  oss << " Maximum number of reservations " << +sciF1a.GetSlMaxNumPerReserve ();
+  oss << " First retransmission gap in slots " << +sciF1a.GetGapReTx1 ();
+  oss << " Second retransmission gap in slots " << +sciF1a.GetGapReTx2 () << "\n";
   return oss.str ();
 }
 
-NrSlSciF01TestCase::NrSlSciF01TestCase (NrSlSciF01Header sciF01, uint16_t expectedHeaderSize)
-  : TestCase (BuildNameString (sciF01, expectedHeaderSize))
+NrSlSciF1aTestCase::NrSlSciF1aTestCase (NrSlSciF1aHeader sciF1a, uint16_t expectedHeaderSize)
+  : TestCase (BuildNameString (sciF1a, expectedHeaderSize))
 {
   NS_LOG_FUNCTION (this << GetName ());
-  m_sciF01 = sciF01;
+  m_sciF1a = sciF1a;
   m_expectedHeaderSize = expectedHeaderSize;
 }
 
 
-NrSlSciF01TestCase::~NrSlSciF01TestCase ()
+NrSlSciF1aTestCase::~NrSlSciF1aTestCase ()
 {
   NS_LOG_FUNCTION (this << GetName ());
 }
 
 
 void
-NrSlSciF01TestCase::DoRun ()
+NrSlSciF1aTestCase::DoRun ()
 {
   Ptr<Packet> p = Create<Packet> ();
-  p->AddHeader (m_sciF01);
+  p->AddHeader (m_sciF1a);
 
   //deserialized
-  NrSlSciF01Header deSerSciF01;
-  p->RemoveHeader (deSerSciF01);
+  NrSlSciF1aHeader deSerSciF1a;
+  p->RemoveHeader (deSerSciF1a);
 
-  NS_TEST_ASSERT_MSG_EQ (deSerSciF01, m_sciF01,
-                         "SCI format 01 deserialized version is different than the one we serialized");
-  NS_TEST_ASSERT_MSG_EQ (deSerSciF01.GetSerializedSize (), m_expectedHeaderSize,
-                         "SCI format 01 header size is different than the expected size in bytes");
+  NS_TEST_ASSERT_MSG_EQ (deSerSciF1a, m_sciF1a,
+                         "SCI format 1A deserialized version is different than the one we serialized");
+  NS_TEST_ASSERT_MSG_EQ (deSerSciF1a.GetSerializedSize (), m_expectedHeaderSize,
+                         "SCI format 1A header size is different than the expected size in bytes");
 
-} // end of void NrSlSciF01TestCase::DoRun ()
+} // end of void NrSlSciF1aTestCase::DoRun ()
 
 
 

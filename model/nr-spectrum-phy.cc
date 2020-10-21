@@ -29,9 +29,9 @@
 #include "nr-lte-mi-error-model.h"
 #include <ns3/node.h>
 #include "nr-sl-sci-f02-header.h"
-#include "nr-sl-sci-f01-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include <unordered_set>
+#include "nr-sl-sci-f1a-header.h"
 
 
 namespace ns3 {
@@ -1659,7 +1659,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
         }
 
       //Add PSCCH trace.
-      NrSlSciF01Header sciHeader;
+      NrSlSciF1aHeader sciHeader;
       packet->PeekHeader (sciHeader);
       NrSlMacPduTag tag;
       bool tagFound = packet->PeekPacketTag (tag);
