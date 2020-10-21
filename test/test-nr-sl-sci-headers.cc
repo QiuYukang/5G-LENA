@@ -37,7 +37,7 @@ NrSlSciHeadersTestSuite::NrSlSciHeadersTestSuite ()
   NrSlSciF1aHeader sciF1a;
   sciF1a.SetPriority (1);
   sciF1a.SetMcs (12);
-  sciF1a.SetSciStage2Format (0);
+  sciF1a.SetSciStage2Format (NrSlSciF1aHeader::SciFormat2A);
   sciF1a.SetSlResourceReservePeriod (200);
   sciF1a.SetTotalSubChannels (1);
   sciF1a.SetIndexStartSubChannel (0);

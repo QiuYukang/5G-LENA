@@ -40,8 +40,8 @@ NrSlSciF1aHeader::~NrSlSciF1aHeader ()
  * TS 38.212 Table 8.3.1.1-1 specifies the values for 2nd-stage SCI formats.
  * Currently, we only support SCI_FORMAT_2A = 0;
  */
-std::vector<uint8_t>
-NrSlSciF1aHeader::m_allowedSciStage2Format = { 0 };
+std::vector<NrSlSciF1aHeader::SciStage2Format_t>
+NrSlSciF1aHeader::m_allowedSciStage2Format = { SciFormat2A };
 
 TypeId
 NrSlSciF1aHeader::GetTypeId (void)

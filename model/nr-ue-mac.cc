@@ -1521,7 +1521,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           NrSlSciF1aHeader sciF1a;
           sciF1a.SetPriority (currentGrant.priority);
           sciF1a.SetMcs (currentGrant.mcs);
-          sciF1a.SetSciStage2Format (0);
+          sciF1a.SetSciStage2Format (NrSlSciF1aHeader::SciFormat2A);
           sciF1a.SetSlResourceReservePeriod (static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()));
           sciF1a.SetTotalSubChannels (GetTotalSubCh (m_poolId));
           sciF1a.SetIndexStartSubChannel (currentGrant.slPsschSubChStart);

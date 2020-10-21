@@ -62,6 +62,13 @@ public:
   NrSlSciF1aHeader ();
   ~NrSlSciF1aHeader ();
 
+  /// SCI Stage 2 format enumeration
+  enum SciStage2Format_t : uint8_t
+  {
+    SciFormat2A = 0,
+    SciFormat2B = 1,
+  };
+
   /**
    * \brief Set the priority
    *
@@ -256,7 +263,7 @@ private:
   //Optional fields
   uint8_t m_gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
   uint8_t m_gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its second retransmission in slots
-  static std::vector<uint8_t> m_allowedSciStage2Format; //!< Vector of allowed Stage 2 SCI formats, to speed up checking
+  static std::vector<SciStage2Format_t> m_allowedSciStage2Format; //!< Vector of allowed Stage 2 SCI formats, to speed up checking
 };
 
 
