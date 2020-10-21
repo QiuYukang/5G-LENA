@@ -28,10 +28,10 @@
 #include "nr-ue-phy.h"
 #include "nr-lte-mi-error-model.h"
 #include <ns3/node.h>
-#include "nr-sl-sci-f02-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include <unordered_set>
 #include "nr-sl-sci-f1a-header.h"
+#include "nr-sl-sci-f2a-header.h"
 
 
 namespace ns3 {
@@ -1730,10 +1730,10 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       LteRadioBearerTag tag;
       if ((*j)->PeekPacketTag (tag) == false)
         {
-          NrSlSciF02Header sciF02;
-          if ((*j)->PeekHeader(sciF02) != 8 /*8 bytes is the fixed size of SCI-stage 2*/)
+          NrSlSciF2aHeader sciF2a;
+          if ((*j)->PeekHeader(sciF2a) != 5 /*5 bytes is the fixed size of SCI format 2a*/)
             {
-              NS_FATAL_ERROR ("Invalid PSSCH packet type! I didn't find any radio bearer tag neither any NrSlSciF02Header");
+              NS_FATAL_ERROR ("Invalid PSSCH packet type! I didn't find any radio bearer tag neither any NrSlSciF2aHeader");
             }
         }
       SlTransportBlocks::iterator itTb = m_slTransportBlocks.find (tag.GetRnti ());
@@ -1785,15 +1785,15 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
   for (auto &tbIt : m_slTransportBlocks)
     {
       Ptr<Packet> sci2Pkt = ReteriveSci2FromPktBurst (tbIt.second.pktIndex);
-      NrSlSciF02Header sciF02;
-      sci2Pkt->PeekHeader (sciF02);
-      if (sciF02.GetNdi ())
+      NrSlSciF2aHeader sciF2a;
+      sci2Pkt->PeekHeader (sciF2a);
+      if (sciF2a.GetNdi ())
         {
-          NS_LOG_DEBUG ("RemovePrevDecoded: " << +sciF02.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF02.GetRv ());
-          m_harqPhyModule->RemovePrevDecoded (tbIt.first, sciF02.GetHarqId ());
+          NS_LOG_DEBUG ("RemovePrevDecoded: " << +sciF2a.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF2a.GetRv ());
+          m_harqPhyModule->RemovePrevDecoded (tbIt.first, sciF2a.GetHarqId ());
         }
       //For blind reTxs, we do not dispatch already decode TBs to UE PHY
-      bool isPrevDecoded = m_harqPhyModule->IsPrevDecoded (tbIt.first, sciF02.GetHarqId ());
+      bool isPrevDecoded = m_harqPhyModule->IsPrevDecoded (tbIt.first, sciF2a.GetHarqId ());
       if ((!m_slDataErrorModelEnabled || isPrevDecoded) && (!m_dropTbOnRbCollisionEnabled || isPrevDecoded))
         {
           continue;
@@ -1831,9 +1831,9 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
               NS_ABORT_IF (em == nullptr);
               uint8_t Sci2Mcs = 0 /*using QPSK*/;
               tbIt.second.outputEmForSci2 = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
-                                                                                 tbIt.second.expectedTb.rbBitmap,
-                                                                                 8 /*8 bytes is the fixed size of SCI-stage 2*/,
-                                                                                 Sci2Mcs, NrErrorModel::NrErrorModelHistory ());
+                                                                          tbIt.second.expectedTb.rbBitmap,
+                                                                          sciF2a.GetSerializedSize ()/*5 bytes is the fixed size of SCI-stage 2 Format 2A*/,
+                                                                          Sci2Mcs, NrErrorModel::NrErrorModelHistory ());
               tbIt.second.isSci2Corrupted = m_random->GetValue () > tbIt.second.outputEmForSci2->m_tbler ? false : true;
               NS_LOG_DEBUG (this << " SCI stage 2 decoding, errorRate " << tbIt.second.outputEmForSci2->m_tbler << " corrupt " << tbIt.second.isSci2Corrupted);
 
@@ -1841,7 +1841,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
               //otherwise, data is also corrupted
 
               // retrieve HARQ info
-              const NrErrorModel::NrErrorModelHistory & harqInfoList = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF02.GetHarqId ());
+              const NrErrorModel::NrErrorModelHistory & harqInfoList = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
               if (!tbIt.second.isSci2Corrupted)
                 {
                   tbIt.second.outputEmForData = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
@@ -1853,7 +1853,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
                   //if the TB is not corrupted mark it decoded and store its info in HarqPhy
                   if (!tbIt.second.isDataCorrupted)
                     {
-                      m_harqPhyModule->IndicatePrevDecoded (tbIt.first, sciF02.GetHarqId ());
+                      m_harqPhyModule->IndicatePrevDecoded (tbIt.first, sciF2a.GetHarqId ());
                     }
                 }
               else
@@ -1863,25 +1863,25 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
 
               // Arrange the HARQ history
               //PSSCH can be retransmitted max twice (total 3 tx)
-              if (!tbIt.second.isDataCorrupted || sciF02.GetRv () == tbIt.second.expectedTb.maxNumPerReserve - 1)
+              if (!tbIt.second.isDataCorrupted || sciF2a.GetRv () == tbIt.second.expectedTb.maxNumPerReserve - 1)
                 {
-                  NS_LOG_DEBUG ("Reset SL process: " << +sciF02.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF02.GetRv ());
-                  m_harqPhyModule->ResetSlDataHarqProcessStatus (tbIt.first, sciF02.GetHarqId ());
+                  NS_LOG_DEBUG ("Reset SL process: " << +sciF2a.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF2a.GetRv ());
+                  m_harqPhyModule->ResetSlDataHarqProcessStatus (tbIt.first, sciF2a.GetHarqId ());
                 }
               else
                 {
-                  NS_LOG_DEBUG ("Update SL process: " << +sciF02.GetHarqId () << " for the packet received from RNTI " << tbIt.first);
-                  m_harqPhyModule->UpdateSlDataHarqProcessStatus (tbIt.first, sciF02.GetHarqId (), tbIt.second.outputEmForData);
+                  NS_LOG_DEBUG ("Update SL process: " << +sciF2a.GetHarqId () << " for the packet received from RNTI " << tbIt.first);
+                  m_harqPhyModule->UpdateSlDataHarqProcessStatus (tbIt.first, sciF2a.GetHarqId (), tbIt.second.outputEmForData);
                 }
 
               if (tbIt.second.isDataCorrupted)
                 {
                   NS_LOG_INFO ("RNTI " <<tbIt.first << " processId " <<
-                               +sciF02.GetHarqId () << " size " <<
+                               +sciF2a.GetHarqId () << " size " <<
                                tbIt.second.expectedTb.tbSize << " mcs " <<
                                +tbIt.second.expectedTb.mcs << " bitmap size " <<
                                tbIt.second.expectedTb.rbBitmap.size () << " rv from MAC: " <<
-                               +sciF02.GetRv () << " elements in the history: " <<
+                               +sciF2a.GetRv () << " elements in the history: " <<
                                harqInfoList.size () << " TBLER " <<
                                tbIt.second.outputEmForData->m_tbler << " corrupted " <<
                                tbIt.second.isDataCorrupted);
@@ -1927,7 +1927,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       traceParams.m_slotNum = tbIt.second.expectedTb.sfn.GetSlot ();
       traceParams.m_txRnti = tbIt.first; //this is the RNTI of the TX UE
       traceParams.m_mcs = tbIt.second.expectedTb.mcs;
-      traceParams.m_rv = sciF02.GetRv ();
+      traceParams.m_rv = sciF2a.GetRv ();
       traceParams.m_sinr = tbIt.second.sinrAvg;
       traceParams.m_sinrMin = tbIt.second.sinrMin;
       traceParams.m_tbler = tbIt.second.outputEmForData->m_tbler;
@@ -1941,8 +1941,8 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       traceParams.m_rbStart = tbIt.second.expectedTb.rbBitmap.at (0);
       traceParams.m_rbEnd = tbIt.second.expectedTb.rbBitmap.at (rbBitmapSize - 1);
       traceParams.m_rbAssignedNum = rbBitmapSize;
-      traceParams.m_dstL2Id = sciF02.GetDstId ();
-      traceParams.m_srcL2Id = sciF02.GetSrcId ();
+      traceParams.m_dstL2Id = sciF2a.GetDstId ();
+      traceParams.m_srcL2Id = sciF2a.GetSrcId ();
       m_rxPacketTraceUe (traceParams);
 
       // Now dispatch the non corrupted TBs to UE PHY
@@ -1963,7 +1963,6 @@ NrSpectrumPhy::ReteriveSci2FromPktBurst (uint32_t pktIndex)
   Ptr<PacketBurst> pktBurst = m_slRxSigParamInfo.at (pktIndex).params->packetBurst;
   std::list<Ptr<Packet> >::const_iterator it;
   Ptr<Packet> sci2pkt;
-  NrSlSciF02Header sciF02;
   for (it = pktBurst->Begin(); it != pktBurst->End (); it++)
     {
       LteRadioBearerTag tag;

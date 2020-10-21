@@ -17,8 +17,8 @@
 *
 */
 
-#ifndef NR_SL_SCI_F02_HEADER_H
-#define NR_SL_SCI_F02_HEADER_H
+#ifndef NR_SL_SCI_F2_HEADER_H
+#define NR_SL_SCI_F2_HEADER_H
 
 #include "ns3/header.h"
 #include <iostream>
@@ -31,27 +31,25 @@ namespace ns3 {
  * format 02 (TS 38.212 Sec 8.3 Rel 16). The following fields must be set
  * before adding this header to a packet.
  *
- * - m_harqId [5 bits]
+ * - m_harqId [4 bits]
  * - m_ndi [1 bit]
  * - m_rv [2 bits]
  * - m_srcId [8 bits]
  * - m_dstId [16 bits]
  *
- * Following are the fields which are not mandatory to be set since, the
- * code is not yet ready to use them.
+ * Following is the field which is not mandatory to be set since, the
+ * code is not yet ready to use it.
  *
- * - m_csiReq [1 bit]
- * - m_zoneId [12 bits]
- * - m_CommRange [4 bits]
+ * - m_harqFbIndicator [1 bit]
  *
- * The total size of this header is 8 bytes, including the above three
- * non mandatory fields plus 15 bits of zero padding.
+ * The total size of this header is 4 bytes, including the above one
+ * non mandatory field.
  *
  * The use of this header is only possible if:
  * - All the mandatory fields are set using their respective setter methods.
  *   Otherwise, serialization will hit an assert.
  */
-class NrSlSciF02Header : public Header
+class NrSlSciF2Header : public Header
 {
 public:
   /**
@@ -59,8 +57,8 @@ public:
    *
    * Creates an SCI header
    */
-  NrSlSciF02Header ();
-  ~NrSlSciF02Header ();
+  NrSlSciF2Header ();
+  ~NrSlSciF2Header ();
 
   /**
    * \brief Set the HARQ process id field
@@ -93,26 +91,11 @@ public:
    */
   void SetDstId (uint32_t dstId);
   /**
-   * \brief Set the Channel State Information request flag
+   * \brief Set the HARQ feedback indicator
    *
-   * \param csiReq The channel state information request flag
+   * \param harqFb The HARQ feedback enabled/disabled indicator
    */
-  void SetCsiReq (uint8_t csiReq);
-  /**
-   * \brief Set zone id
-   *
-   * \param zoneId The zone id
-   */
-  void SetZoneId (uint16_t zoneId);
-  /**
-   * \brief Set the communication range requirement
-   *
-   * Indicates the communication range requirement, see <b>sl-TransRange</b>
-   * IE in TS 38.331
-   *
-   * \param commRange The communication range requirement
-   */
-  void SetCommRange (uint8_t commRange);
+  void SetHarqFbIndicator (uint8_t harqFb);
 
   /**
    * \brief Get the HARQ process id
@@ -145,26 +128,12 @@ public:
    */
   uint16_t GetDstId () const;
   /**
-   * \brief Get the Channel State Information request flag
+   * \brief Get the HARQ feedback indicator
    *
-   * \return The channel state information request flag
+   * \return The HARQ feedback enabled/disabled indicator
    */
-  uint8_t GetCsiReq () const;
-  /**
-   * \brief Get zone id
-   *
-   * \return The zone id
-   */
-  uint16_t GetZoneId () const;
-  /**
-   * \brief Get the communication range requirement
-   *
-   * Indicates the communication range requirement, see <b>sl-TransRange</b>
-   * IE in TS 38.331
-   *
-   * \return The communication range requirement
-   */
-  uint8_t GetCommRange () const;
+  uint8_t GetHarqFbIndicator () const;
+
 
   /**
    * \brief Ensure that mandatory fields are configured
@@ -176,15 +145,6 @@ public:
    * \return True if all the mandatory fields are set, false otherwise
    */
   bool EnsureMandConfig () const;
-
-  /**
-   * \brief Equality operator
-   *
-   * \param [in] b the NrSlSciF02Header to compare
-   * \returns \c true if \pname{b} is equal
-   */
-  bool operator == (const NrSlSciF02Header &b) const;
-
 
 
   /**
@@ -198,7 +158,18 @@ public:
   virtual void Serialize (Buffer::Iterator start) const;
   virtual uint32_t Deserialize (Buffer::Iterator start);
 
-private:
+protected:
+  /**
+   * \brief Serialize the common fields of second stage SCI
+   * \param i the buffer iterator
+   */
+  void PreSerialize (Buffer::Iterator &i) const;
+  /**
+   * \brief Deserialize the common fields of second stage SCI
+   * \param i the buffer iterator
+   */
+  uint32_t PreDeserialize (Buffer::Iterator &i);
+
   //Mandatory SCI format 02 fields
   uint8_t m_harqId {std::numeric_limits <uint8_t>::max ()}; //!< The HARQ process id
   uint8_t m_ndi {std::numeric_limits <uint8_t>::max ()}; //!< The new data indicator
@@ -208,12 +179,10 @@ private:
   //SCI fields end
 
   //fields which are not used yet, therefore, it is not mandatory to set them
-  uint8_t m_csiReq {0}; //!< The channel state information request flag
-  uint16_t m_zoneId {0}; //!< The zone id
-  uint8_t m_commRange {0}; //!< The communication range requirement
+  uint32_t m_harqFbIndicator {0}; //!< HARQ feedback enabled/disabled indicator
 };
 
 
 } // namespace ns3
 
-#endif // NR_SL_SCI_F02_HEADER_H
+#endif // NR_SL_SCI_F2_HEADER_H

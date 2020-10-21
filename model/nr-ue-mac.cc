@@ -37,7 +37,7 @@
 #include "nr-sl-ue-mac-csched-sap.h"
 #include "nr-sl-ue-mac-harq.h"
 #include "nr-sl-sci-f1a-header.h"
-#include "nr-sl-sci-f02-header.h"
+#include "nr-sl-sci-f2a-header.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include <algorithm>
 #include <bitset>
@@ -1247,7 +1247,7 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
   NS_LOG_FUNCTION (this << "Received Sidelink PDU from PHY");
 
   LteRadioBearerTag tag;
-  NrSlSciF02Header sciF02;
+  NrSlSciF2aHeader sciF2a;
   //Separate SCI stage 2 packet from data packets
   std::list <Ptr<Packet> > dataPkts;
   bool foundSci2 = false;
@@ -1258,7 +1258,7 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
         {
           //SCI stage 2 is the only packet in the packet burst, which does
           //not have the tag
-          packet->RemoveHeader (sciF02);
+          packet->RemoveHeader (sciF2a);
           foundSci2 = true;
         }
       else
@@ -1276,7 +1276,7 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
   bool dstFound = false;
   for (const auto &dstIt : m_sidelinkDestinations)
     {
-      if (dstIt.first == sciF02.GetDstId ())
+      if (dstIt.first == sciF2a.GetDstId ())
         {
           dstFound = true;
           break;
@@ -1287,7 +1287,7 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
     {
       //if we hit this assert that means SCI 1 reception code in NrUePhy
       //is not filtering the SCI 1 correctly.
-      NS_FATAL_ERROR ("Received PHY PDU with unknown destination " << sciF02.GetDstId ());
+      NS_FATAL_ERROR ("Received PHY PDU with unknown destination " << sciF2a.GetDstId ());
     }
 
   for (auto &pktIt : dataPkts)
@@ -1299,8 +1299,8 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
       //packet.
       SidelinkLcIdentifier identifier;
       identifier.lcId = tag.GetLcid ();
-      identifier.srcL2Id = sciF02.GetSrcId ();
-      identifier.dstL2Id = sciF02.GetDstId ();
+      identifier.srcL2Id = sciF2a.GetSrcId ();
+      identifier.dstL2Id = sciF2a.GetDstId ();
 
       std::map <SidelinkLcIdentifier, SlLcInfoUeMac>::iterator it = m_nrSlLcInfoMap.find (identifier);
       if (it == m_nrSlLcInfoMap.end ())
@@ -1492,19 +1492,18 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
               continue;
             }
 
-          //prepare and send SCI format 02 message
-          NrSlSciF02Header sciF02;
-          sciF02.SetHarqId (itGrantInfo.second.nrSlHarqId);
-          sciF02.SetNdi (currentGrant.ndi);
-          sciF02.SetRv (currentGrant.rv);
-          sciF02.SetSrcId (m_srcL2Id);
-          sciF02.SetDstId (currentGrant.dstL2Id);
+          //prepare and send SCI format 2A message
+          NrSlSciF2aHeader sciF2a;
+          sciF2a.SetHarqId (itGrantInfo.second.nrSlHarqId);
+          sciF2a.SetNdi (currentGrant.ndi);
+          sciF2a.SetRv (currentGrant.rv);
+          sciF2a.SetSrcId (m_srcL2Id);
+          sciF2a.SetDstId (currentGrant.dstL2Id);
           //fields which are not used yet that is why we set them to 0
-          sciF02.SetCsiReq (0);
-          sciF02.SetZoneId (0);
-          sciF02.SetCommRange (0);
+          sciF2a.SetCsiReq (0);
+          sciF2a.SetCastType (NrSlSciF2aHeader::Broadcast);
           Ptr<Packet> pktSciF02 = Create<Packet> ();
-          pktSciF02->AddHeader (sciF02);
+          pktSciF02->AddHeader (sciF2a);
           //put SCI stage 2 in PSSCH queue
           m_nrSlUePhySapProvider->SendPsschMacPdu (pktSciF02);
 

@@ -79,11 +79,11 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
       assignedSbCh++;
       tbs = GetNrSlAmc ()->CalculateTbSize (dstInfo->GetDstMcs (), txOppsIt->slSubchannelSize * assignedSbCh * availableSymbols);
     }
-  while (tbs < bufferSize + 8 /*(8 bytes overhead of SCI stage 2)*/ && (GetTotalSubCh () - assignedSbCh) > 0);
+  while (tbs < bufferSize + 5 /*(5 bytes overhead of SCI format 2A)*/ && (GetTotalSubCh () - assignedSbCh) > 0);
 
-  //Now, before allocating bytes to LCs we subtract 8 bytes for SCI stage 2
+  //Now, before allocating bytes to LCs we subtract 5 bytes for SCI format 2A
   //since we already took it into account while computing the TB size.
-  tbs = tbs - 8 /*(8 bytes overhead of SCI stage 2)*/;
+  tbs = tbs - 5 /*(5 bytes overhead of SCI stage 2)*/;
 
   allocated = true;
   slotAlloc.sfn = txOppsIt->sfn;
