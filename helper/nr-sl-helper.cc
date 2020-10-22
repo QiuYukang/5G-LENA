@@ -323,6 +323,8 @@ NrSlHelper::CreateNrSlUeSched ()
 uint16_t
 NrSlHelper::GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, uint16_t numUlTddPattern)
 {
+  NS_ABORT_MSG_IF (slBitmapLen % numUlTddPattern != 0, "SL bit map size should be multiple of number of UL slots in the TDD pattern");
+  NS_ABORT_MSG_IF (slBitmapLen < tddPatternLen, "SL bit map size should be greater than or equal to the TDD pattern size");
   uint16_t poolLen = (slBitmapLen / numUlTddPattern) * tddPatternLen;
   return poolLen;
 }
