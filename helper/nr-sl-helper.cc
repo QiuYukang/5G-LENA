@@ -320,6 +320,12 @@ NrSlHelper::CreateNrSlUeSched ()
   return sched;
 }
 
+uint16_t
+NrSlHelper::GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, uint16_t numUlTddPattern)
+{
+  uint16_t poolLen = (slBitmapLen / numUlTddPattern) * tddPatternLen;
+  return poolLen;
+}
 
 } // namespace ns3
 

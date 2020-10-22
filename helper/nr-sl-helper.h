@@ -133,6 +133,16 @@ public:
    * \return The pointer to a newly created object of the scheduler
    */
   Ptr<NrSlUeMacScheduler> CreateNrSlUeSched ();
+  /**
+   * \brief Get the length of the physical Sidelink pool based on
+   *        SL bitmap length, TDD pattern length, and the number of UL slots
+   *        in the TDD pattern.
+   * \param slBitmapLen The SL bitmap length
+   * \param tddPatternLen The TDD pattern length
+   * \param numUlTddPattern the number of UL slots in the TDD pattern
+   * \return The resultant length of the physical Sidelink pool in slots
+   */
+  static uint16_t GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, uint16_t numUlTddPattern);
 
 protected:
   /**
