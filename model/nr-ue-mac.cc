@@ -1917,7 +1917,7 @@ NrUeMac::DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool)
 {
   NS_LOG_FUNCTION (this << txPool);
   m_slTxPool = txPool;
-  m_slTxPool->ValidateResvPeriod (GetBwpId (), m_poolId, m_pRsvpTx);
+  m_slTxPool->ValidateResvPeriod (GetBwpId (), m_poolId, m_pRsvpTx, m_nrSlUePhySapProvider->GetSlotPeriod ());
 }
 
 void

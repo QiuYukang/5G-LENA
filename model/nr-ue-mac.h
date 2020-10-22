@@ -663,9 +663,20 @@ public:
    * \brief Set Reservation Period for NR Sidelink
    *
    * Only the standard compliant values, including their intermediate values
-   * could be set. \see LteRrcSap::SlResourceReservePeriod
+   * could be set. TS38.321 sec 5.22.1.1 instructs to select one of the
+   * allowed values configured by RRC in sl-ResourceReservePeriodList and
+   * set the resource reservation interval with the selected value. In the
+   * simulator we made it an attribute of UE MAC so we can change it on
+   * run time. Remember, this attribute value must be in the list of
+   * resource reservations configured using pre-configuration. UE MAC calls
+   * \link NrSlCommResourcePool::ValidateResvPeriod \endlink to validate its
+   * value and also that this value is multiple of the length of the physical
+   * sidelink pool (i.e., the resultant bitmap after applying SL bitmap over
+   * the TDD pattern).
    *
    * \param rsvpInMs The reservation period in the milliseconds
+   *
+   * \see LteRrcSap::SlResourceReservePeriod
    */
   void SetReservationPeriod (const Time &rsvpInMs);
 
