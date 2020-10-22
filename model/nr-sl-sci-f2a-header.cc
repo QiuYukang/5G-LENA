@@ -90,7 +90,7 @@ NrSlSciF2aHeader::Print (std::ostream &os)  const
 {
   NS_LOG_FUNCTION (this);
   NrSlSciF2Header::Print (os);
-  os << ", HARQ process id " << +m_castType
+  os << ", Cast type indicator " << +m_castType
      << ", Channel state information request " << +m_csiReq;
 }
 
