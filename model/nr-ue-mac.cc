@@ -1638,9 +1638,9 @@ NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
 {
   NS_LOG_FUNCTION (this);
   uint8_t reselCounter = GetRndmReselectionCounter ();
-  uint8_t cResel = reselCounter * 10;
+  uint16_t cResel = reselCounter * 10;
 
-  NS_LOG_DEBUG ("Resel Counter " << reselCounter << " cResel " << cResel);
+  NS_LOG_DEBUG ("Resel Counter " << +reselCounter << " cResel " << cResel);
 
   uint16_t resPeriodSlots = m_slTxPool->GetResvPeriodInSlots (GetBwpId (), m_poolId, m_pRsvpTx, m_nrSlUePhySapProvider->GetSlotPeriod ());
   NrSlGrantInfo grant;
@@ -1651,7 +1651,7 @@ NrUeMac::CreateGrantInfo (const NrSlSlotAlloc & params)
   grant.prevSlResoReselCounter = reselCounter;
   grant.slResoReselCounter = reselCounter;
 
-  for (uint8_t i = 0; i < cResel; i++)
+  for (uint16_t i = 0; i < cResel; i++)
     {
       for (uint16_t tx = 0; tx < params.maxNumPerReserve; tx++)
         {
