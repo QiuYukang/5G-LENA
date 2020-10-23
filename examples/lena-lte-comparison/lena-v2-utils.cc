@@ -80,7 +80,7 @@ LenaV2Utils::ConfigureBwpTo (BandwidthPartInfoPtr & bwp, double centerFreq, doub
 }
 
 void
-LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
+LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            const std::string &scenario,
                                            const std::string &radioNetwork,
                                            std::string errorModel,
@@ -696,7 +696,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    */
 
   // Sectors (cells) of a site are pointing at different directions
-  double orientationRads = gridScenario.GetAntennaOrientationRadians (0, gridScenario.GetNumSectorsPerSite ());
+  double orientationRads = sector0AngleRad;
   for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector1NetDev.Get (numCell);
@@ -765,7 +765,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
         }
     }
 
-  orientationRads = gridScenario.GetAntennaOrientationRadians (1, gridScenario.GetNumSectorsPerSite ());
+  orientationRads = sector0AngleRad + 2.0 * M_PI / 3.0; // + 120 deg
   for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector2NetDev.Get (numCell);
@@ -835,7 +835,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
         }
     }
 
-  orientationRads = gridScenario.GetAntennaOrientationRadians (2, gridScenario.GetNumSectorsPerSite ());
+  orientationRads = sector0AngleRad - 2.0 * M_PI / 3.0; // - 120 deg
   for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector3NetDev.Get (numCell);

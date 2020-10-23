@@ -36,7 +36,7 @@ class LenaV1Utils
 {
 public:
   static void
-  SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScenario,
+  SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                    std::string scenario,
                                    NodeContainer enbSector1Container,
                                    NodeContainer enbSector2Container,

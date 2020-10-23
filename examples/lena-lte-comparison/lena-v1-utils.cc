@@ -22,7 +22,7 @@
 namespace ns3 {
 
 void
-LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScenario,
+LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                            std::string scenario,
                                            NodeContainer enbSector1Container,
                                            NodeContainer enbSector2Container,
@@ -198,7 +198,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
   //SECTOR 1 eNB configuration
   if (!calibration)
     {
-      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (0, gridScenario.GetNumSectorsPerSite ());
+      double orientationDegrees = sector0AngleRad * 180.0 / M_PI;  
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand0Dl));
@@ -208,7 +208,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
   //SECTOR 2 eNB configuration
   if (!calibration)
     {
-      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (1, gridScenario.GetNumSectorsPerSite ());
+      double orientationDegrees = sector0AngleRad * 180.0 / M_PI + 120;
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
 
@@ -219,7 +219,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
   //SECTOR 3 eNB configuration
   if (!calibration)
     {
-      double orientationDegrees = gridScenario.GetAntennaOrientationDegrees (2, gridScenario.GetNumSectorsPerSite ());
+      double orientationDegrees = sector0AngleRad * 180.0 / M_PI - 120;
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand2Dl));

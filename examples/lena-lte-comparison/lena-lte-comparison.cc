@@ -295,6 +295,7 @@ LenaLteComparison (const Parameters &params)
   gridScenario.SetUtNumber (ueNum);
   gridScenario.AssignStreams (RngSeedManager::GetRun ());
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
+  
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
   std::cout << gNbSites << " sites, "
             << sectorsNum << " sectors/site, "
@@ -373,10 +374,12 @@ LenaLteComparison (const Parameters &params)
   Ptr <LteHelper> lteHelper = nullptr;
   Ptr <NrHelper> nrHelper = nullptr;
 
+  double sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0, sectorization);
+                                                                     
   if (params.simulator == "LENA")
     {
       epcHelper = CreateObject<PointToPointEpcHelper> ();
-      LenaV1Utils::SetLenaV1SimulatorParameters (gridScenario,
+      LenaV1Utils::SetLenaV1SimulatorParameters (sector0AngleRad,
                                   params.scenario,
                                   gnbSector1Container,
                                   gnbSector2Container,
@@ -403,7 +406,7 @@ LenaLteComparison (const Parameters &params)
   else if (params.simulator == "5GLENA")
     {
       epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-      LenaV2Utils::SetLenaV2SimulatorParameters (gridScenario,
+      LenaV2Utils::SetLenaV2SimulatorParameters (sector0AngleRad,
                                     params.scenario,
                                     params.radioNetwork,
                                     params.errorModel,
