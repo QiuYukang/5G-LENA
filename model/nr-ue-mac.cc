@@ -1365,6 +1365,12 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
                   else
                     {
                       //we need to choose new resource so erase the previous allocations
+                      NS_LOG_DEBUG ("Choosing new resources : ResoReselCounter "
+                                    << +itGrantInfo->second.slResoReselCounter
+                                    << " cResel " << itGrantInfo->second.cReselCounter
+                                    << " remaining alloc " << itGrantInfo->second.slotAllocations.size ()
+                                    << " slProbResourceKeep " << +m_slProbResourceKeep
+                                    << " random prob " << randProb);
                       itGrantInfo->second.slotAllocations.erase (itGrantInfo->second.slotAllocations.begin (), itGrantInfo->second.slotAllocations.end ());
                     }
                 }
