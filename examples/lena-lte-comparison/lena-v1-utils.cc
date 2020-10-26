@@ -227,7 +227,9 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
   enbSector3NetDev = lteHelper->InstallEnbDevice (enbSector3Container);
 
   ueSector1NetDev = lteHelper->InstallUeDevice (ueSector1Container);
+  NetDeviceContainer ueNetDevs (ueSector1NetDev);
   ueSector2NetDev = lteHelper->InstallUeDevice (ueSector2Container);
+  ueNetDevs.Add (ueSector2NetDev);
   ueSector3NetDev = lteHelper->InstallUeDevice (ueSector3Container);
 
   int64_t randomStream = 1;
@@ -238,29 +240,11 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
   randomStream += lteHelper->AssignStreams (ueSector2NetDev, randomStream);
   randomStream += lteHelper->AssignStreams (ueSector3NetDev, randomStream);
 
-  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
+  ueNetDevs.Add (ueSector3NetDev);
+  
+  for (auto nd = ueNetDevs.Begin (); nd != ueNetDevs.End (); ++nd)
     {
-      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector1NetDev.Get (i));
-      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
-      auto uePhy = ueNetDevice->GetPhy ();
-
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
-      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
-    }
-
-  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
-    {
-      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector2NetDev.Get (i));
-      NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
-      auto uePhy = ueNetDevice->GetPhy ();
-
-      uePhy->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr", MakeBoundCallback (&ReportSinrLena, sinrStats));
-      uePhy->TraceConnectWithoutContext ("ReportPowerSpectralDensity", MakeBoundCallback (&ReportPowerLena, powerStats));
-    }
-
-  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
-    {
-      auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector3NetDev.Get (i));
+      auto ueNetDevice = DynamicCast<LteUeNetDevice> (*nd);
       NS_ASSERT (ueNetDevice->GetCcMap ().size () == 1);
       auto uePhy = ueNetDevice->GetPhy ();
 
