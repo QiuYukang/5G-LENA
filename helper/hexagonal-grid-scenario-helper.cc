@@ -283,6 +283,18 @@ HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId) const
   return cellId / static_cast<uint16_t> (m_siteSectorization);
 }
 
+uint16_t
+HexagonalGridScenarioHelper::GetSectorIndex (uint16_t cellId) const
+{
+  return cellId % static_cast<uint16_t> (m_siteSectorization);
+}
+
+uint16_t
+HexagonalGridScenarioHelper::GetCellIndex (uint16_t ueId) const
+{
+  return ueId % m_numCells;
+}
+
 void
 HexagonalGridScenarioHelper::SetScenarioParameters (const std::string &scenario)
 {
@@ -381,30 +393,32 @@ HexagonalGridScenarioHelper::CreateScenario ()
   Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator> ();
 
   // BS position
-  for (uint16_t cellIndex = 0; cellIndex < m_numCells; cellIndex++)
+  for (uint16_t cellId = 0; cellId < m_numCells; cellId++)
     {
-      uint16_t siteIndex = GetSiteIndex (cellIndex);
+      uint16_t siteIndex = GetSiteIndex (cellId);
       Vector sitePos (m_centralPos);
-      sitePos.x += m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
-      sitePos.y += m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
+      const double dist = siteDistances.at(siteIndex);
+      const double angleRad = siteAngles.at(siteIndex) * M_PI / 180;
+      sitePos.x += m_isd * dist * cos(angleRad);
+      sitePos.y += m_isd * dist * sin(angleRad);
       sitePos.z = m_bsHeight;
 
-      if (cellIndex % static_cast<uint16_t> (m_siteSectorization) == 0)
+      if (GetSectorIndex (cellId) == 0)
         {
           sitePosVector->Add (sitePos);
         }
 
       // FIXME: Until sites can have more than one antenna array, it is necessary to apply some distance offset from the site center (gNBs cannot have the same location)
       Vector bsPos = GetAntennaPos (sitePos,
-                                  cellIndex,
-                                  m_siteSectorization,
-                                  m_antennaOffset);
+                                    cellId,
+                                    m_siteSectorization,
+                                    m_antennaOffset);
 
       bsPosVector->Add (bsPos);
 
       // Store cell center position for plotting the deployment
       Vector cellCenterPos = GetHexagonalCellCenter (bsPos,
-                                                     cellIndex,
+                                                     cellId,
                                                      m_siteSectorization,
                                                      m_hexagonalRadius);
       bsCenterVector->Add (cellCenterPos);
@@ -425,12 +439,12 @@ HexagonalGridScenarioHelper::CreateScenario ()
     {
       uint32_t utN = m_ut.GetN ();
 
-      for (uint32_t i = 0; i < utN; ++i)
+      for (uint32_t utId = 0; utId < utN; ++utId)
         {
           // This is the cell center location, same for cells belonging to the same site
           Vector cellPos = bsPosVector->GetNext ();
           // UEs shall be spread over the cell area (hexagonal cell)
-          uint16_t cellId = i % m_numCells;
+          uint16_t cellId = GetCellIndex (utId);
           Vector cellCenterPos = GetHexagonalCellCenter (cellPos,
                                                          cellId,
                                                          m_siteSectorization,
