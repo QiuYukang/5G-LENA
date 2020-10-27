@@ -118,10 +118,6 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
     {
       nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
-  else
-    {
-      NS_ABORT_MSG ("Programming error");
-    }
 
   return std::make_pair(app, startTime);
 }
@@ -146,6 +142,8 @@ Parameters::Validate (void) const
                    "Operation mode can only be TDD or FDD");
   NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR",
                    "Unrecognized radio network technology");
+  NS_ABORT_MSG_IF (radioNetwork == "LTE" && operationMode != "FDD",
+                   "Operation mode must be FDD in a 4G LTE network.");
   NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA",
                    "Unrecognized simulator");
   NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
@@ -166,7 +164,6 @@ Parameters::Validate (void) const
       NS_ABORT_MSG_IF (remSector == 0 && freqScenario != 1,
                        "RemSector == 0 makes sense only in a OVERLAPPING scenario");
     }
-  
   
   return true;
 }
@@ -439,10 +436,13 @@ LenaLteComparison (const Parameters &params)
                                     params.freqScenario,
                                     params.downtiltAngle);
     }
-  else
+
+  // Check we got one valid helper
+  if ( (lteHelper == nullptr) && (nrHelper == nullptr) )
     {
-      NS_ABORT_MSG ("Unrecognized cellular simulator");
+      NS_ABORT_MSG ("Programming error: no valid helper");
     }
+  
 
   // From here, it is standard NS3. In the future, we will create helpers
   // for this part as well.
@@ -503,10 +503,6 @@ LenaLteComparison (const Parameters &params)
             {
               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
             }
-          else
-            {
-              NS_ABORT_MSG ("Programming error");
-            }
           if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -526,10 +522,6 @@ LenaLteComparison (const Parameters &params)
           else if (nrHelper != nullptr)
             {
               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-            }
-          else
-            {
-              NS_ABORT_MSG ("Programming error");
             }
           if (params.logging == true)
             {
@@ -551,10 +543,6 @@ LenaLteComparison (const Parameters &params)
             {
               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
             }
-          else
-            {
-              NS_ABORT_MSG ("Programming error");
-            }
           if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -562,10 +550,6 @@ LenaLteComparison (const Parameters &params)
               double distance = CalculateDistance (gnbpos, uepos);
               std::cout << "Distance = " << distance << " meters" << std::endl;
             }
-        }
-      else
-        {
-          NS_ABORT_MSG("Number of sector cannot be larger than 3");
         }
     }
 
@@ -682,12 +666,6 @@ LenaLteComparison (const Parameters &params)
 
   if (params.dlRem || params.ulRem)
     {
-      NS_ABORT_MSG_IF (params.simulator != "5GLENA",
-                       "Cannot do the REM with the simulator " << params.simulator);
-      NS_ABORT_MSG_IF (params.dlRem && params.ulRem,
-                       "You selected both DL and UL REM, that is not supported");
-      NS_ABORT_MSG_IF (params.remSector == 0 && params.freqScenario != 1,
-                       "RemSector == 0 makes sense only in a OVERLAPPING scenario");
 
       NetDeviceContainer gnbContainerRem;
       Ptr<NetDevice> ueRemDevice;
@@ -791,9 +769,6 @@ LenaLteComparison (const Parameters &params)
               break;
             case 3:
               gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
-              break;
-            default:
-              NS_ABORT_MSG("sector cannot be larger than 3");
               break;
             }
         }
