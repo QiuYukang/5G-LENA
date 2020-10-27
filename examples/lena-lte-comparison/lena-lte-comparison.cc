@@ -304,6 +304,15 @@ LenaLteComparison (const Parameters &params)
 
   /*
    * Create different gNB NodeContainer for the different sectors.
+   *
+   * Relationships between cellId, sectorId and siteId:
+   *   sector = cellId % sectorsNum
+   *   siteId = cellId / sectorsNum
+   *   cellId = siteId * sectorsNum + sector
+   *
+   * Iterate/index gnbNodes, gnbNetDevs by cellId.
+   * Iterate/index gnbSector<N>Container, gnbNodesBySector[sector],
+   *   gnbSector<N>NetDev, gnbNdBySector[sector] by siteId
    */
   NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
   for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
@@ -333,6 +342,15 @@ LenaLteComparison (const Parameters &params)
 
   /*
    * Create different UE NodeContainer for the different sectors.
+   *
+   * Relationships between ueId, sector and site:
+   *   sector = ueId % sectorsNum
+   *   siteId = (ueId / sectorsNum) % gnbSites
+   *
+   * Multiple UEs per sector!
+   * Iterate/index ueNodes, ueNetDevs, ueIpIfaces by ueId.
+   * Iterate/Index ueSector<N>Container, ueNodesBySector[sector],
+   *   ueSector<N>NetDev, ueNdBySector[sector] with i % gnbSites
    */
   NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
 
