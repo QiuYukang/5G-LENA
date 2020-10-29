@@ -801,6 +801,15 @@ protected:
    */
   uint8_t DoGetTotalSubCh () const;
 
+  // forwarded from MemberNrSlUeMacCschedSapUser
+  /**
+   * \brief Send the confirmation about the successful configuration of LC
+   *        to the UE MAC.
+   * \param lcg The logical group
+   * \param lcId The Logical Channel id
+   */
+  void  DoCschedUeNrSlLcConfigCnf (uint8_t lcg, uint8_t lcId);
+
 private:
 
   //Sidelink Logical Channel Identifier

@@ -88,6 +88,13 @@ public:
    * \brief ~NrSlUeMacCschedSapUser
    */
   virtual ~NrSlUeMacCschedSapUser () = default;
+  /**
+   * \brief Send the confirmation about the successful configuration of LC
+   *        to the UE MAC.
+   * \param lcg The logical group
+   * \param lcId The Logical Channel id
+   */
+  virtual void  CschedUeNrSlLcConfigCnf (uint8_t lcg, uint8_t lcId) = 0;
 
 };
 

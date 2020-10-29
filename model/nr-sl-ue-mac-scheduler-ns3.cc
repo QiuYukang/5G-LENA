@@ -92,6 +92,8 @@ NrSlUeMacSchedulerNs3::DoCschedUeNrSlLcConfigReq (const NrSlUeMacCschedSapProvid
 
   itLcg->second->Insert (CreateLC (params));
   NS_LOG_INFO ("Added LC id " << +params.lcId << " in LCG " << +params.lcGroup);
+  //send confirmation to UE MAC
+  m_nrSlUeMacCschedSapUser->CschedUeNrSlLcConfigCnf (params.lcGroup, params.lcId);
 }
 
 std::shared_ptr<NrSlUeMacSchedulerDstInfo>

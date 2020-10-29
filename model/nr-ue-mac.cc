@@ -253,6 +253,7 @@ class MemberNrSlUeMacCschedSapUser : public NrSlUeMacCschedSapUser
 
 public:
   MemberNrSlUeMacCschedSapUser (NrUeMac* mac);
+  virtual void  CschedUeNrSlLcConfigCnf (uint8_t lcg, uint8_t lcId);
 
 
 private:
@@ -262,6 +263,12 @@ private:
 MemberNrSlUeMacCschedSapUser::MemberNrSlUeMacCschedSapUser (NrUeMac* mac)
 :m_mac (mac)
 {
+}
+
+void
+MemberNrSlUeMacCschedSapUser::CschedUeNrSlLcConfigCnf (uint8_t lcg, uint8_t lcId)
+{
+  m_mac->DoCschedUeNrSlLcConfigCnf (lcg, lcId);
 }
 
 //-----------------------------------------------------------------------
@@ -1965,6 +1972,13 @@ NrUeMac::DoGetTotalSubCh () const
 {
   NS_LOG_FUNCTION (this);
   return this->GetTotalSubCh (m_poolId);
+}
+
+void
+NrUeMac::DoCschedUeNrSlLcConfigCnf (uint8_t lcg, uint8_t lcId)
+{
+  NS_LOG_FUNCTION (this << +lcg << +lcId);
+  NS_LOG_INFO ("SL UE scheduler successfully added LCG " << +lcg << " LC id " << +lcId);
 }
 
 void
