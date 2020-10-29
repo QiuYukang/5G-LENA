@@ -515,13 +515,22 @@ LenaLteComparison (const Parameters &params)
         {
           nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
         }
-      if (params.logging == true)
-        {
-          Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-          Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-          double distance = CalculateDistance (gnbpos, uepos);
-          std::cout << "Distance = " << distance << " meters" << std::endl;
-        }
+
+      // UL phy
+      uint32_t bwp = (params.operationMode == "FDD" ? 1 : 0);
+      auto ueUlPhy {nrHelper->GetUePhy (ueNetDev, bwp)};
+      auto rnti = ueUlPhy->GetRnti ();
+
+      Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+      Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+      double distance = CalculateDistance (gnbpos, uepos);
+      std::cout << "ueId: " << ueId
+                << ", rnti: " << rnti
+                << ", at " << uepos
+                << ", attached to eNB " << cellId
+                << " at " << gnbpos
+                << ", range: " << distance << " meters"
+                << std::endl;
     }
 
   /*
@@ -590,7 +599,6 @@ LenaLteComparison (const Parameters &params)
                 << ", cellId " << cellId
                 << ", sector " << sector
                 << ", siteId " << siteId
-                << ", position " << node->GetObject<MobilityModel>()->GetPosition ()
                 << ":" << std::endl;
 
       auto app = InstallApps (node, dev, addr,
