@@ -339,6 +339,11 @@ NrDlHarqFeedbackMessage::GetDlHarqFeedback (void)
   return m_dlHarqInfo;
 }
 
+NrSrsMessage::NrSrsMessage ()
+{
+  SetMessageType (NrControlMessage::SRS);
+}
+
 std::ostream &
 operator<< (std::ostream &os, const LteNrTddSlotType &item)
 {

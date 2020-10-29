@@ -323,6 +323,9 @@ public:
   NrMacHarqVector m_dlHarq;     //!< HARQ process vector for DL
   NrMacHarqVector m_ulHarq;     //!< HARQ process vector for UL
 
+  uint32_t m_srsPeriodicity {0}; //!< SRS periodicity
+  uint32_t m_srsOffset {0};      //!< SRS offset
+
 protected:
   /**
    * \brief Retrieve the number of RB per RBG

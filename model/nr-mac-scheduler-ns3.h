@@ -33,6 +33,7 @@ namespace ns3 {
 
 class NrSchedGeneralTestCase;
 class NrMacSchedulerHarqRr;
+class NrMacSchedulerSrsDefault;
 
 /**
  * \ingroup scheduler
@@ -454,6 +455,17 @@ public:
    */
   std::vector<uint8_t> GetNotchedRbgMask (void) const;
 
+  /**
+   * \brief Set the number of UL SRS symbols
+   * \param v number of SRS symbols
+   */
+  void SetSrsCtrlSyms (uint8_t v);
+
+  /**
+   * \brief Get the configured value for the SRS symbols
+   * \return the number of SRS symbols that will be allocated
+   */
+  uint8_t GetSrsCtrlSyms () const;
 
 protected:
   /**
@@ -772,6 +784,7 @@ private:
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
   uint8_t DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback, const SfnSf &ulSfn,
                         SlotAllocInfo *allocInfo, LteNrTddSlotType type);
+  uint8_t DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocInfo);
 
   static const unsigned m_macHdrSize = 0;  //!< Mac Header size
   static const uint32_t m_subHdrSize = 4;  //!< Sub Header size (?)
@@ -823,10 +836,15 @@ private:
   uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
   uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
+  uint8_t m_srsCtrlSymbols {0}; //!< SRS symbols (attribute)
 
   std::vector<uint8_t> m_notchedRbgsMask; //!< The mask of notched (blank) RBGs
 
   std::unique_ptr <NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
+
+  Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
+
+  uint32_t m_ulSlotCounter {0}; //!< Counter for UL slots
 
   friend NrSchedGeneralTestCase;
 };

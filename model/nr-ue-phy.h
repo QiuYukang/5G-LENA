@@ -473,6 +473,20 @@ private:
   void DoSendControlMessageNow (Ptr<NrControlMessage> msg);
 
   /**
+   * \brief Process a received data Dci
+   * \param ulSfnSf The slot to which the Dci refers to
+   * \param dciInfoElem the DCI
+   */
+  void ProcessDataDci (const SfnSf &ulSfnSf, const std::shared_ptr<DciInfoElementTdma> &dciInfoElem);
+
+  /**
+   * \brief Process a received SRS Dci
+   * \param ulSfnSf The slot to which the Dci refers to
+   * \param dciInfoElem the DCI
+   */
+  void ProcessSrsDci (const SfnSf &ulSfnSf, const std::shared_ptr<DciInfoElementTdma> &dciInfoElem);
+
+  /**
    * \brief Transmit to the spectrum phy the data stored in pb
    *
    * \param pb Data to transmit

@@ -550,6 +550,16 @@ private:
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
+   * \brief Receive UL SRS and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the reception of UL data will end
+   *
+   * The method will put the PHY in listening mode, to get any data sent by
+   * the UEs. This data would be a CTRL message (e.g., a SRS)
+   */
+  Time UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
+
+  /**
    * \brief Queue a MIB message, to be sent (hopefully) in this slot
    *
    * Only "primary" PHY will send the message.

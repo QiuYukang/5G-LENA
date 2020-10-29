@@ -88,6 +88,7 @@ def build(bld):
         'model/ideal-beamforming-algorithm.cc',
         'model/sfnsf.cc',
         'model/lena-error-model.cc',
+        'model/nr-mac-scheduler-srs-default.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -201,6 +202,8 @@ def build(bld):
         'model/ideal-beamforming-algorithm.h',
         'model/sfnsf.h',
         'model/lena-error-model.h',
+        'model/nr-mac-scheduler-srs.h',
+        'model/nr-mac-scheduler-srs-default.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
