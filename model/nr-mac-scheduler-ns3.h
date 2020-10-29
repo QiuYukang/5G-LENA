@@ -444,16 +444,28 @@ public:
   void SetUlCtrlSyms (uint8_t v);
 
   /**
-   * \brief Set the notched (blank) RBGs Mask
+   * \brief Set the notched (blank) RBGs Mask for the DL
    * \param notchedRbgsMask The mask of notched RBGs
    */
-  void SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask);
+  void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
 
   /**
-   * \brief Get the notched (blank) RBGs Mask
+   * \brief Get the notched (blank) RBGs Mask for the DL
    * \return The mask of notched RBGs
    */
-  std::vector<uint8_t> GetNotchedRbgMask (void) const;
+  std::vector<uint8_t> GetDlNotchedRbgMask (void) const;
+
+  /**
+   * \brief Set the notched (blank) RBGs Mask for the UL
+   * \param notchedRbgsMask The mask of notched RBGs
+   */
+  void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
+
+  /**
+   * \brief Get the notched (blank) RBGs Mask for the UL
+   * \return The mask of notched RBGs
+   */
+  std::vector<uint8_t> GetUlNotchedRbgMask (void) const;
 
   /**
    * \brief Set the number of UL SRS symbols
@@ -838,7 +850,8 @@ private:
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
   uint8_t m_srsCtrlSymbols {0}; //!< SRS symbols (attribute)
 
-  std::vector<uint8_t> m_notchedRbgsMask; //!< The mask of notched (blank) RBGs
+  std::vector<uint8_t> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
+  std::vector<uint8_t> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
 
   std::unique_ptr <NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 

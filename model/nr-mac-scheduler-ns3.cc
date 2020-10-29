@@ -298,23 +298,45 @@ NrMacSchedulerNs3::SetUlCtrlSyms (uint8_t v)
 }
 
 void
-NrMacSchedulerNs3::SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask)
+NrMacSchedulerNs3::SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask)
 {
   NS_LOG_FUNCTION (this);
-  m_notchedRbgsMask = notchedRbgsMask;
+  m_dlNotchedRbgsMask = dlNotchedRbgsMask;
   std::stringstream ss;
 
-  for (const auto & x : notchedRbgsMask)
+  //print the DL mask set (prefix + is added just for printing purposes)
+  for (const auto & x : m_dlNotchedRbgsMask)
     {
       ss << +x << " ";
     }
-  NS_LOG_INFO ("Set notched mask: " << ss.str ());
+  NS_LOG_INFO ("Set DL notched mask: " << ss.str ());
 }
 
 std::vector<uint8_t>
-NrMacSchedulerNs3::GetNotchedRbgMask (void) const
+NrMacSchedulerNs3::GetDlNotchedRbgMask (void) const
 {
-  return m_notchedRbgsMask;
+  return m_dlNotchedRbgsMask;
+}
+
+void
+NrMacSchedulerNs3::SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask)
+{
+  NS_LOG_FUNCTION (this);
+  m_ulNotchedRbgsMask = ulNotchedRbgsMask;
+  std::stringstream ss;
+
+  //print the UL mask set (prefix + is added just for printing purposes)
+  for (const auto & x : m_ulNotchedRbgsMask)
+    {
+      ss << +x << " ";
+    }
+  NS_LOG_INFO ("Set UL notched mask: " << ss.str ());
+}
+
+std::vector<uint8_t>
+NrMacSchedulerNs3::GetUlNotchedRbgMask (void) const
+{
+  return m_ulNotchedRbgsMask;
 }
 
 void

@@ -49,7 +49,10 @@ us a note on ns-developers mailing list.
 ### New API:
 
 - The scheduler now support the setting of the notched mask, through
-  void SetNotchedRbgMask (const std::vector<uint8_t> &notchedRbgsMask);
+  void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
+  for the DL and
+  void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
+  for the UL
 - Added InH_OfficeOpen_{n,}Los and InH_OfficeMixed_{n,}LoS channel modeling
   in cc-bwp-helper.h
 
