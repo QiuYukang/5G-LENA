@@ -58,6 +58,12 @@ us a note on ns-developers mailing list.
 
 * Added attribute "SrsSymbols" in NrMacSchedulerNs3, to indicate how many symbols are
 available to the SRS message.
+ 
+- Added new beamforming algorithm called `RealisticBeamformingAlgorithm` 
+  which determines the beamforming vector of the transmitter and receiver based on 
+  the SINR of SRS.
+
+- Added != operator function to `BeamId` class.
 
 ### Changes to existing API:
 

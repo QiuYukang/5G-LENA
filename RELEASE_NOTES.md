@@ -46,8 +46,13 @@ New user-visible features (old first)
 - The scheduler can selectively leave particular RBG empty. This feature is
   called notching, and is used when multiple GNBs are collaborating to avoid
   interferences over a spectrum part.
+
 - Added a SRS message that takes 4 symbols (in the default configuration) within some
   periodicity (default at 80 slots). This will be used by the UE in a future update.
+
+- `RealisticBeamformingAlgorithm` class is added that implements a 
+  beamforming algorithm that determines the beamforming vectors of the transmitter 
+  and the receiver based on the SINR SRS.
 
 Bugs fixed
 ----------
