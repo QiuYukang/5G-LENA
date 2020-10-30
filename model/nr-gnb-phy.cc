@@ -1444,7 +1444,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)));
 
   std::list<Ptr<NrControlMessage> > ctrlMsgs;
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod, dci->m_symStart);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
 }
 
 void

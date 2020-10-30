@@ -922,7 +922,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
                 " end " << (Simulator::Now () + varTtiPeriod));
 
   Simulator::Schedule (NanoSeconds (1.0), &NrUePhy::SendDataChannels, this,
-                       pktBurst, ctrlMsg, varTtiPeriod - NanoSeconds (2.0), dci->m_symStart);
+                       pktBurst, ctrlMsg, varTtiPeriod - NanoSeconds (2.0));
   return varTtiPeriod;
 }
 
@@ -1009,8 +1009,8 @@ NrUePhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 
 void
 NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
-                               const std::list<Ptr<NrControlMessage> > &ctrlMsg,
-                               const Time &duration, uint8_t slotInd)
+                           const std::list<Ptr<NrControlMessage> > &ctrlMsg,
+                           const Time &duration)
 {
   if (pb->GetNPackets () > 0)
     {
@@ -1021,7 +1021,7 @@ NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
         }
     }
 
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration, slotInd);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration);
 }
 
 void

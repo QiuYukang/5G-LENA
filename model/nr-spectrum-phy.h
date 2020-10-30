@@ -211,11 +211,10 @@ public:
   /**
    * \brief Starts transmission of data frames on connected spectrum channel object
    * \param pb packet burst to be transmitted
-   * \param ctrlMsgList conrol message list
+   * \param ctrlMsgList control message list
    * \param duration the duration of transmission
-   * \param slotInd the slot indication
    */
-  void StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<NrControlMessage> >& ctrlMsgList, Time duration, uint8_t slotInd);
+ void StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<NrControlMessage> >& ctrlMsgList, Time duration);
   /**
    * \brief Starts transmission of DL CTRL
    * \param duration the duration of this transmission

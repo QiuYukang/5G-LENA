@@ -534,11 +534,10 @@ private:
    * \param pb Data to transmit
    * \param duration period of transmission
    * \param ctrlMsg Control messages
-   * \param slotInd slot indication (?)
    */
   void SendDataChannels (const Ptr<PacketBurst> &pb,
                          const std::list<Ptr<NrControlMessage> > &ctrlMsg,
-                         const Time &duration, uint8_t slotInd);
+                         const Time &duration);
   /**
    * \brief Transmit the control channel
    *
