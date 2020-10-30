@@ -113,8 +113,9 @@ int
 main (int argc, char *argv[])
 {
   double frequency = 28.0e9;
-  double bandwidth = 100e6;
-  uint8_t numerology = 0;
+  uint32_t rbNum = 555; // bandwidth in number of RBs, for numerology 0 is equivalent to 555 RBs
+  double subcarrierSpacing = 15000; // subcarrier spacing for numerology 0
+
   double txPower = 40;
   double distance = 10.0;
   std::string scenario = "UMa"; // 3GPP propagation scenario
@@ -126,12 +127,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("frequency",
                 "The operating frequency in Hz (2125.0e6 corresponds to EARFCN 2100)",
                 frequency);
-  cmd.AddValue ("bandwidth",
-                "The system BW",
-                bandwidth);
-  cmd.AddValue ("numerology",
-                "The numerology",
-                numerology);
+  cmd.AddValue ("rbNum",
+                "The system BW in number of resource blocks",
+                rbNum);
+  cmd.AddValue ("subcarrierSpacing",
+                "The subcarrier spacing",
+                subcarrierSpacing);
   cmd.AddValue ("txPower",
                 "The transmission power in dBm",
                 txPower);
@@ -258,8 +259,7 @@ main (int argc, char *argv[])
       }
   }*/
 
-
-  Ptr<const SpectrumModel> sm1 =  NrSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  Ptr<const SpectrumModel> sm1 =  NrSpectrumValueHelper::GetSpectrumModel (rbNum, frequency, subcarrierSpacing);
   std::vector<int> activeRbs;
   for (size_t rbId = 0; rbId < sm1->GetNumBands(); rbId++)
     {
@@ -270,9 +270,7 @@ main (int argc, char *argv[])
   Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob);
   NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
 
-
   channelModel = {nullptr};
-
   channelModel = CreateObject<ThreeGppChannelModel> ();
   channelModel->SetAttribute ("Frequency", DoubleValue (frequency));
   channelModel->SetAttribute ("Scenario", StringValue (scenario));
@@ -301,13 +299,14 @@ main (int argc, char *argv[])
   }
 
 
-  Ptr<const SpectrumModel> sm2 =  NrSpectrumValueHelper::GetSpectrumModel (bandwidth, frequency, numerology);
+  Ptr<const SpectrumModel> sm2 =  NrSpectrumValueHelper::GetSpectrumModel (rbNum, frequency, subcarrierSpacing);
   std::vector<int> activeRbs2;
   for (size_t rbId = 0; rbId < sm2->GetNumBands(); rbId++)
     {
       activeRbs2.push_back(rbId);
     }
   Ptr<const SpectrumValue> txPsd2 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs2, sm2, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+
   NS_LOG_UNCOND ("Average tx power 1: " << 10 * log10 (Sum (*txPsd2) / txPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");
   Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob);
   NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");

@@ -109,7 +109,9 @@ SetNoisePsdTestCase::DoRun (void)
   Ptr<NrGnbPhy> phy = CreateObject<NrGnbPhy>();
   phy->DoSetCellId(99);
   rxPhy->InstallPhy(phy);
-  Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (m_bandwidth, centerFrequency, m_numerology);
+  double subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, m_numerology));
+  uint32_t rbNum = m_bandwidth / (12 * subcarrierSpacing);
+  Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (rbNum, centerFrequency, subcarrierSpacing);
 
   std::vector<int> activeRbs;
   for (size_t rbId = 0; rbId < sm->GetNumBands(); rbId++)

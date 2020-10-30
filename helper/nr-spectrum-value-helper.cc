@@ -69,22 +69,17 @@ operator < (const NrSpectrumModelId& a, const NrSpectrumModelId& b)
 
 static std::map<NrSpectrumModelId, Ptr<SpectrumModel> > g_nrSpectrumModelMap; ///< nr spectrum model map
 
-
-Ptr<const SpectrumModel>
-NrSpectrumValueHelper::GetSpectrumModel (double bandwidth, double centerFrequency, uint8_t numerology)
-{
-  uint32_t scSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
-  uint32_t numRbs = static_cast<uint32_t> (bandwidth / (scSpacing * SUBCARRIERS_PER_RB));
-
-  NS_ABORT_MSG_IF (numRbs == 0, "Total bandwidth is less than the RB width. Total bandwidth should be increased.");
-
-  return GetSpectrumModel (numRbs, centerFrequency, scSpacing);
-}
-
 Ptr<const SpectrumModel>
 NrSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency, double subcarrierSpacing)
 {
   NS_LOG_FUNCTION (centerFrequency << numRbs << subcarrierSpacing);
+
+  NS_ABORT_MSG_IF (numRbs == 0, "Total bandwidth cannot be 0 RBs");
+  NS_ABORT_MSG_IF (centerFrequency < 0.5e9 || centerFrequency > 100e9, "Central frequency should be in range from 0.5GHz to 100GHz");
+  NS_ABORT_MSG_IF (subcarrierSpacing!=15000 && subcarrierSpacing!=30000 && subcarrierSpacing!=60000 &&
+                   subcarrierSpacing!=120000 && subcarrierSpacing!=240000 && subcarrierSpacing!=480000,
+                   "Supported subcarrier spacing values are: 15000, 30000, 60000, 120000, 240000 and 480000 Hz.");
+
 
   NrSpectrumModelId modelId = NrSpectrumModelId (centerFrequency, numRbs, subcarrierSpacing);
 
@@ -110,7 +105,7 @@ NrSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency
   Ptr<SpectrumModel> model = Create<SpectrumModel> (rbs);
   // save this model to the map of spectrum models
   g_nrSpectrumModelMap.insert (std::pair<NrSpectrumModelId, Ptr<SpectrumModel> > (modelId, model));
-
+  NS_LOG_INFO ("Created SpectrumModel with frequency: "<<f<<" NumRB: "<< rbs.size()<<" subcarrier spacing: "<<subcarrierSpacing << ", and global UID: "<<model->GetUid());
   return model;
 }
 
