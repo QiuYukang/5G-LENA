@@ -136,7 +136,7 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
   uint32_t resources = symAvail;
   FTResources assigned (0, 0);
 
-  const std::vector<uint8_t> notchedRBGsMask = GetNotchedRbgMask ();
+  const std::vector<uint8_t> notchedRBGsMask = type == "DL" ? GetDlNotchedRbgMask () : GetUlNotchedRbgMask ();
   int zeroes = std::count (notchedRBGsMask.begin (), notchedRBGsMask.end (), 0);
   uint32_t numOfAssignableRbgs = GetBandwidthInRbg () - zeroes;
   NS_ASSERT (numOfAssignableRbgs > 0);
@@ -315,7 +315,7 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
       return nullptr;
     }
 
-  const std::vector<uint8_t> notchedRBGsMask = GetNotchedRbgMask ();
+  const std::vector<uint8_t> notchedRBGsMask = GetDlNotchedRbgMask ();
   int zeroes = std::count (notchedRBGsMask.begin (), notchedRBGsMask.end (), 0);
   uint32_t numOfAssignableRbgs = GetBandwidthInRbg () - zeroes;
 
@@ -360,7 +360,7 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
       return nullptr;
     }
 
-  const std::vector<uint8_t> notchedRBGsMask = GetNotchedRbgMask ();
+  const std::vector<uint8_t> notchedRBGsMask = GetUlNotchedRbgMask ();
   int zeroes = std::count (notchedRBGsMask.begin (), notchedRBGsMask.end (), 0);
   uint32_t numOfAssignableRbgs = GetBandwidthInRbg () - zeroes;
 
@@ -396,18 +396,20 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
  */
 std::shared_ptr<DciInfoElementTdma>
 NrMacSchedulerTdma::CreateDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                   const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                   uint32_t tbs, DciInfoElementTdma::DciFormat fmt,
-                                   uint32_t mcs, uint8_t numSym) const
+                               const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                               uint32_t tbs, DciInfoElementTdma::DciFormat fmt,
+                               uint32_t mcs, uint8_t numSym) const
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (tbs > 0);
   NS_ASSERT (numSym > 0);
-  std::vector<uint8_t> rbgAssigned = GetNotchedRbgMask ();
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA,
        GetBwpId ());
+
+  std::vector<uint8_t> rbgAssigned = fmt == DciInfoElementTdma::DL ? GetDlNotchedRbgMask () :
+                                                                     GetUlNotchedRbgMask ();
 
   if (rbgAssigned.size() == 0)
     {

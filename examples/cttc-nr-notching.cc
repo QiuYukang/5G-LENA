@@ -383,7 +383,7 @@ main (int argc, char *argv[])
 
       //Set the mask
       Ptr<NrMacSchedulerNs3> schedulerBwp1 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler (enbNetDev.Get (i), 0));
-      schedulerBwp1->SetNotchedRbgMask (notchedMask);
+      schedulerBwp1->SetDlNotchedRbgMask (notchedMask);
 
       if (operationMode == "TDD")
         {
@@ -398,7 +398,7 @@ main (int argc, char *argv[])
           nrHelper->GetGnbPhy (enbNetDev.Get (i), 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
           Ptr<NrMacSchedulerNs3> schedulerBwp2 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler(enbNetDev.Get (i), 1));
-          schedulerBwp2->SetNotchedRbgMask (notchedMask);
+          schedulerBwp2->SetUlNotchedRbgMask (notchedMask);
 
           // Link the two FDD BWPs:
           nrHelper->GetBwpManagerGnb (enbNetDev.Get (i))->SetOutputLink (1, 0);

@@ -293,7 +293,7 @@ private:
   Ptr<TestNotchingGnbMac> CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
                              NrMacCschedSapProvider::CschedCellConfigReqParameters params) const;
 
-  bool m_verbose = true;
+  bool m_verbose = false;
   const std::vector<uint8_t> m_mask;
   const std::string m_schedulerType;
   uint32_t m_numOfUesPerBeam;
@@ -328,7 +328,8 @@ NrNotchingTestCase::CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
   mac->SetNrMacCschedSapProvider (scheduler->GetMacCschedSapProvider ());
   scheduler->SetMacSchedSapUser (mac->GetNrMacSchedSapUser ());
   scheduler->SetMacCschedSapUser (mac->GetNrMacCschedSapUser ());
-  scheduler->SetNotchedRbgMask (m_mask);
+  scheduler->SetDlNotchedRbgMask (m_mask);
+  scheduler->SetUlNotchedRbgMask (m_mask);
   // Config sched
   scheduler->DoCschedCellConfigReq (params);
 
