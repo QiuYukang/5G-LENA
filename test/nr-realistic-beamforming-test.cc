@@ -234,10 +234,24 @@ NrRealisticBeamformingTestCase::DoRun (void)
         }
     }
 
-  NS_TEST_ASSERT_MSG_EQ_TOL (highSinrCounter / (double) totalCounter, 1, 0.2 ,
-                             "The pair of beamforming vectors should be equal in most of the cases when SINR is high, and they are not");
-  NS_TEST_ASSERT_MSG_EQ_TOL (lowSinrCounter / (double) totalCounter, 1, 0.2 ,
-                             "The pair of beamforming vectors should not be equal in most of the cases when SINR is low, and they are");
+  double tolerance = 0.2;
+  if (m_duration == TestCase::EXTENSIVE)
+    {
+      tolerance = 0.2;
+    }
+  else
+    {
+      tolerance = 0.3;  // relax tolerance for QUICK mode since there are only 4 test configurations, e.g.,
+                        // if 3 results of 4 are as expected that is already enough, but that gives 0.75 thus
+                        // it needs larger tolerance than 0.2 which is fine for EXTENSIVE mode
+    }
+
+    NS_TEST_ASSERT_MSG_EQ_TOL (highSinrCounter / (double) totalCounter, 1, tolerance,
+                               "The pair of beamforming vectors should be equal in most of the cases when SINR is high, and they are not");
+    NS_TEST_ASSERT_MSG_EQ_TOL (lowSinrCounter / (double) totalCounter, 1, tolerance ,
+                               "The pair of beamforming vectors should not be equal in most of the cases when SINR is low, and they are");
+
+
 
   NS_LOG_INFO ("The result is as expected when high SINR in " << highSinrCounter << " out of "<< totalCounter <<" total cases.");
   NS_LOG_INFO ("The result is as expected when low SINR in " << lowSinrCounter << " out of " << totalCounter <<" total cases.");
