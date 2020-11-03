@@ -697,25 +697,25 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
 
   Ptr<NrHarqPhy> harq = Create<NrHarqPhy> ();
   channelPhy->InstallHarqPhyModule (harq);
+  channelPhy->SetDevice (dev);
+  phy->SetDevice (dev);
+  channelPhy->SetChannel (bwp->m_channel);
+  channelPhy->InstallPhy (phy);
 
   Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> ();
+  Ptr<LteChunkProcessor> pSrs = Create<LteChunkProcessor> ();
   if (!m_snrTest)
     {
       pData->AddCallback (MakeCallback (&NrGnbPhy::GenerateDataCqiReport, phy));
       pData->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSinrPerceived, channelPhy));
+      pSrs->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSrsSinrPerceived, channelPhy));
     }
   channelPhy->AddDataSinrChunkProcessor (pData);
-
-  phy->SetDevice (dev);
-
-  channelPhy->SetChannel (bwp->m_channel);
-  channelPhy->InstallPhy (phy);
+  channelPhy->AddSrsSinrChunkProcessor (pSrs);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling NrHelper::InstallEnbDevice ()");
   channelPhy->SetMobility (mm);
-
-  channelPhy->SetDevice (dev);
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&NrGnbPhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (phyEndCtrlCallback);
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&NrGnbPhy::ReportUlHarqFeedback, phy));
