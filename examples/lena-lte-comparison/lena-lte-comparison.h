@@ -16,6 +16,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+
+#include <ns3/nstime.h>
 #include <string>
 #include <ostream>
 
@@ -43,8 +45,8 @@ struct Parameters
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
-  uint32_t appGenerationTimeMs = 1000;
-  uint32_t udpAppStartTimeMs = 400;
+  Time appGenerationTime = MilliSeconds (1000);
+  Time udpAppStartTime = MilliSeconds (400);
   std::string direction = "DL";
 
   // Spectrum parameters. We will take the input from the command line, and then

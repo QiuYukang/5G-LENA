@@ -57,14 +57,16 @@
 NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
 
 namespace ns3 {
+
+const Time appStartWindow = MilliSeconds (50);
   
-static std::pair<ApplicationContainer, double>
+static std::pair<ApplicationContainer, Time>
 InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
              const Address &ueAddress, const std::string &direction,
              UdpClientHelper *dlClientLowLat, const Ptr<Node> &remoteHost,
-             const Ipv4Address &remoteHostAddr, uint32_t udpAppStartTimeMs,
+             const Ipv4Address &remoteHostAddr, Time udpAppStartTime,
              uint16_t dlPortLowLat, const Ptr<UniformRandomVariable> &x,
-             uint32_t appGenerationTimeMs,
+             Time appGenerationTime,
              const Ptr<LteHelper> &lteHelper, const Ptr<NrHelper> &nrHelper)
 {
   ApplicationContainer app;
@@ -102,12 +104,14 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
       app = dlClientLowLat->Install (ue);
     }
 
-  double startTime = x->GetValue (udpAppStartTimeMs, udpAppStartTimeMs + 10);
-  app.Start (MilliSeconds (startTime));
-  app.Stop (MilliSeconds (startTime + appGenerationTimeMs));
+  double start = x->GetValue (udpAppStartTime.GetMilliSeconds (),
+                              (udpAppStartTime + appStartWindow).GetMilliSeconds ());
+  Time startTime = MilliSeconds (start);
+  app.Start (startTime);
+  app.Stop (startTime + appGenerationTime);
 
-  std::cout << "\tStarts at time " << MilliSeconds (startTime).GetMilliSeconds () << " ms and ends at "
-            << (MilliSeconds (startTime + appGenerationTimeMs)).GetMilliSeconds () << " ms" << std::endl;
+  std::cout << "\tStarts at time " << startTime.As (Time::MS) << " and ends at "
+            << (startTime + appGenerationTime).As (Time::MS) << std::endl;
 
   // Activate a dedicated bearer for the traffic type
   if (lteHelper != nullptr)
@@ -556,7 +560,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   // start UDP server
-  serverApps.Start (MilliSeconds (params.udpAppStartTimeMs));
+  serverApps.Start (params.udpAppStartTime);
 
   /*
    * Configure attributes for the different generators, using user-provided
@@ -584,7 +588,7 @@ LenaLteComparison (const Parameters &params)
   ApplicationContainer clientApps;
   Ptr<UniformRandomVariable> startRng = CreateObject<UniformRandomVariable> ();
   startRng->SetStream (RngSeedManager::GetRun());
-  double maxStartTime = 0.0;
+  Time maxStartTime;
 
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
@@ -604,8 +608,8 @@ LenaLteComparison (const Parameters &params)
       auto app = InstallApps (node, dev, addr,
                               params.direction, &dlClientLowLat,
                               remoteHost, remoteHostAddr,
-                              params.udpAppStartTimeMs, dlPortLowLat,
-                              startRng, params.appGenerationTimeMs,
+                              params.udpAppStartTime, dlPortLowLat,
+                              startRng, params.appGenerationTime,
                               lteHelper, nrHelper);
       maxStartTime = std::max (app.second, maxStartTime);
       clientApps.Add (app.first);
@@ -717,7 +721,10 @@ LenaLteComparison (const Parameters &params)
   std::cout << "\n----------------------------------------\n"
             << "Start simulation"
             << std::endl;
-  Simulator::Stop (MilliSeconds (params.appGenerationTimeMs + maxStartTime));
+  // Add some extra time for the last generated packets to be received
+  const Time appStopWindow = MilliSeconds (50);
+  Time stopTime = maxStartTime + params.appGenerationTime + appStopWindow;
+  Simulator::Stop (stopTime);
   Simulator::Run ();
 
   sinrStats.EmptyCache ();
@@ -863,8 +870,8 @@ operator << (std::ostream & os, const Parameters & parameters)
       os << "\n  (Unknown configuration)";
     }
 
-  MSG ("Application start window")      << p.udpAppStartTimeMs << " + 10 ms";
-  MSG ("Application on duration")       << p.appGenerationTimeMs << " ms";
+  MSG ("Application start window")      << p.udpAppStartTime.As (Time::MS) << " + " << appStartWindow.As (Time::MS);
+  MSG ("Application on duration")       << p.appGenerationTime.As (Time::MS);
   MSG ("Traffic direction")             << p.direction;
 
   MSG ("");
