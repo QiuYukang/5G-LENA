@@ -19,6 +19,7 @@
 #ifndef NODE_DISTRIBUTION_SCENARIO_INTERFACE_H
 #define NODE_DISTRIBUTION_SCENARIO_INTERFACE_H
 
+#include "scenario-parameters.h"
 #include <ns3/node-container.h>
 #include <ns3/vector.h>
 
@@ -32,19 +33,9 @@ namespace ns3 {
  *
  * Site sectorizaton must be set before setting the number of sites or base stations.
  */
-class NodeDistributionScenarioInterface
+class NodeDistributionScenarioInterface : public ScenarioParameters
 {
 public:
-  /**
-   * \brief Type of site sectorization
-   */
-  enum SiteSectorizationType
-  {
-    NONE = 0,   //!< Unconfigured value
-    SINGLE = 1, //!< Site with a 360º-width sector
-    TRIPLE = 3  //!< Site with 3 120º-width sectors
-  };
-  
   /**
    * \brief ~NodeDistributionScenarioInterface
    */
@@ -147,50 +138,6 @@ public:
    */
   uint16_t GetCellIndex (std::size_t ueId) const;
 
-  /**
-   * \brief SetGnbHeight
-   * \param h height
-   */
-  void SetBsHeight (double h);
-
-  /**
-   * \brief SetUeHeight
-   * \param h heights
-   */
-  void SetUtHeight (double h);
-
-  /**
-   * \brief Gets the number of sectors per site
-   */
-  SiteSectorizationType GetNumSectorsPerSite (void) const;
-
-  /**
-   * \brief Sets the number of sectors of every site.
-   * \param numSectors Number of sectors. Values can be 1 or 3.
-   */
-  void SetSectorization (SiteSectorizationType numSectors);
-
-  /**
-   * \brief Sets parameters to the specified scenario
-   * \param scenario Scenario to simulate
-   */
-  void SetScenarioParameters (const std::string &scenario);
-
-  /**
-   * \brief Sets the Urban Macro (UMa) scenario parameters
-   */
-  void SetUMaParameters (void);
-
-  /**
-   * \brief Sets the Urban Micro (UMi) scenario parameters
-   */
-  void SetUMiParameters (void);
-
-  /**
-   * \brief Sets rural Macro scenario parameters
-   */
-  void SetRMaParameters (void);
-
 protected:
   
   std::size_t m_numSites; //!< Number of sites with base stations
@@ -198,16 +145,6 @@ protected:
   std::size_t m_numUt; //!< Number of user terminals to create
   NodeContainer m_bs;  //!< Base stations
   NodeContainer m_ut;  //!< User Terminals
-
-  double m_isd {-1.0};  //!< Inter-site distance (ISD) in meters
-  double m_bsHeight {-1.0}; //!< Height of gNB nodes
-  double m_utHeight {-1.0}; //!< Height of UE nodes
-  SiteSectorizationType m_sectorization {NONE};  //!< Number of sectors per site
-  double m_minBsUtDistance {-1.0}; //!< Minimum distance between BS and UT in meters
-  double m_antennaOffset {-1.0}; //!< Cell antenna offset in meters w.r.t. site location
-
-  /** Maximum distance between a sector antenna panel and the site it belongs to  */
-  static double MAX_ANTENNA_OFFSET;
 
 };
 

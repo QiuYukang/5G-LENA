@@ -287,6 +287,11 @@ LenaLteComparison (const Parameters &params)
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
 
+  ScenarioParameters scenarioParams;
+  scenarioParams.SetScenarioParameters (params.scenario);
+  // Customize parameters here
+  //  scenarioParams.isd = ...
+  
   // The essentials describing a laydown
   uint32_t gnbSites = 0;
   NodeContainer gnbNodes;
@@ -301,10 +306,8 @@ LenaLteComparison (const Parameters &params)
   if (true)
     {
       std::cout << "  hexagonal grid: ";
-      const auto sectorization = static_cast<HexagonalGridScenarioHelper::SiteSectorizationType> (sectors);
-      gridScenario.SetSectorization (sectorization);
+      gridScenario.SetScenarioParameters (scenarioParams);
       gridScenario.SetNumRings (params.numOuterRings);
-      gridScenario.SetScenarioParameters (params.scenario);
       gnbSites = gridScenario.GetNumSites ();
       uint32_t ueNum = params.ueNumPergNb * gnbSites * sectors;
       gridScenario.SetUtNumber (ueNum);

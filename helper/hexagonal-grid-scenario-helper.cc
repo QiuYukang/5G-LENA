@@ -175,16 +175,17 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
 {
   Vector center (sitePos);
 
-  switch (m_sectorization)
+  auto sectors = GetNumSectorsPerSite ();
+  switch (sectors)
   {
-    case SiteSectorizationType::NONE:
+  case 0:
       NS_ABORT_MSG ("Number of sectors has not been defined");
       break;
 
-    case SiteSectorizationType::SINGLE:
+  case 1:
       break;
 
-    case SiteSectorizationType::TRIPLE:
+  case 3:
       switch (GetSectorIndex (cellId))
         {
         case 0:
@@ -218,7 +219,6 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
 void
 HexagonalGridScenarioHelper::CreateScenario ()
 {
-  //auto sectors = static_cast<std::size_t> (m_sectorization);
   m_hexagonalRadius = m_isd / 3;
   
   m_bs.Create (m_numBs);
@@ -226,7 +226,6 @@ HexagonalGridScenarioHelper::CreateScenario ()
 
   NS_ASSERT (m_isd > 0);
   NS_ASSERT (m_numRings < 4);
-  NS_ASSERT (m_sectorization > 0);
   NS_ASSERT (m_hexagonalRadius > 0);
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);

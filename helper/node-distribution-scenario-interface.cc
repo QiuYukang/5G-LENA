@@ -23,7 +23,6 @@
 
 namespace ns3 {
 
-double NodeDistributionScenarioInterface::MAX_ANTENNA_OFFSET = 1;  
 
 NodeDistributionScenarioInterface::~NodeDistributionScenarioInterface ()
 {
@@ -138,85 +137,6 @@ NodeDistributionScenarioInterface::GetAntennaPosition (const Vector &sitePos,
   pos.x += m_antennaOffset * cos (angle * M_PI / 180);
   pos.y += m_antennaOffset * sin (angle * M_PI / 180);
   return pos;
-}
-
-void
-NodeDistributionScenarioInterface::SetBsHeight (double h)
-{
-  m_bsHeight = h;
-}
-
-void
-NodeDistributionScenarioInterface::SetUtHeight (double h)
-{
-  m_utHeight = h;
-}
-
-NodeDistributionScenarioInterface::SiteSectorizationType
-NodeDistributionScenarioInterface::GetNumSectorsPerSite (void) const
-{
-  return m_sectorization;
-}
-
-void
-NodeDistributionScenarioInterface::SetSectorization (SiteSectorizationType numSectors)
-{
-  m_sectorization = numSectors;
-}
-
-void
-NodeDistributionScenarioInterface::SetScenarioParameters (const std::string &scenario)
-{
-  if (scenario == "UMa")
-    {
-      SetUMaParameters ();
-    }
-  else if (scenario == "UMi")
-    {
-      SetUMiParameters ();
-    }
-  else if (scenario == "RMa")
-    {
-      SetRMaParameters();
-    }
-  else
-    {
-      NS_ABORT_MSG("Unrecognized scenario: " << scenario);
-    }
-
-}
-
-void
-NodeDistributionScenarioInterface::SetUMaParameters (void)
-{
-  m_isd = 1732;
-  m_bsHeight = 30.0;
-  m_utHeight = 1.5;
-  m_sectorization = SiteSectorizationType::TRIPLE;
-  m_minBsUtDistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
-  m_antennaOffset = 1.0;
-}
-
-void
-NodeDistributionScenarioInterface::SetUMiParameters (void)
-{
-  m_isd = 500;
-  m_bsHeight = 10.0;
-  m_utHeight = 1.5;
-  m_sectorization = SiteSectorizationType::TRIPLE;
-  m_minBsUtDistance = 10;
-  m_antennaOffset = 1.0;
-}
-
-void
-NodeDistributionScenarioInterface::SetRMaParameters (void)
-{
-  m_isd = 7000;
-  m_bsHeight = 45.0;
-  m_utHeight = 1.5;
-  m_sectorization = SiteSectorizationType::TRIPLE;
-  m_minBsUtDistance = 44.63; // minimum 2D distace is 10 meters considering UE height of 1.5 m
-  m_antennaOffset = 1.0;
 }
 
 } //namespace ns3
