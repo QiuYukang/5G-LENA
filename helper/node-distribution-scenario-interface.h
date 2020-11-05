@@ -20,6 +20,7 @@
 #define NODE_DISTRIBUTION_SCENARIO_INTERFACE_H
 
 #include <ns3/node-container.h>
+#include <ns3/vector.h>
 
 namespace ns3 {
 
@@ -28,10 +29,22 @@ namespace ns3 {
  *
  * Set the relevant settings, and then call CreateScenario. After that call,
  * the node containers can be retrieved through GetBaseStations and GetUserTerminals.
+ *
+ * Site sectorizaton must be set before setting the number of sites or base stations.
  */
 class NodeDistributionScenarioInterface
 {
 public:
+  /**
+   * \brief Type of site sectorization
+   */
+  enum SiteSectorizationType
+  {
+    NONE = 0,   //!< Unconfigured value
+    SINGLE = 1, //!< Site with a 360ยบ-width sector
+    TRIPLE = 3  //!< Site with 3 120ยบ-width sectors
+  };
+  
   /**
    * \brief ~NodeDistributionScenarioInterface
    */
@@ -56,6 +69,85 @@ public:
   virtual void CreateScenario () = 0;
 
   /**
+   * \brief Set number of sites/towers.
+   * \param n the number of sites
+   */
+  void SetSitesNumber (std::size_t n);
+
+  /**
+   * \brief Set the number of base stations.
+   * \param n the number of bs
+   *
+   * Will invalidate already existing BS (recreating the container)
+   */
+  void SetBsNumber (std::size_t n);
+
+  /**
+   * \brief Set the number of UT/UE.
+   * \param n the number of ut
+   *
+   * Will invalidate already existing UT (recreating the container)
+   */
+  void SetUtNumber (std::size_t n);
+
+  /**
+   * \brief Gets the number of sites with cell base stations.
+   * \return Number of sites in the network deployment
+   */
+  std::size_t GetNumSites () const;
+
+  /**
+   * \brief Gets the total number of cells deployed
+   * \return Number of cells in the network deployment
+   */
+  std::size_t GetNumCells () const;
+
+  /**
+   * \brief Returns the orientation in degrees of the antenna array
+   * for the given cellId.
+   * The orientation is the azimuth angle of the antenna bore sight.
+   * \param cellId Cell Id
+   * \return The antenna orientation in degrees [0ฐ, 360ฐ]
+   */
+  double GetAntennaOrientationDegrees (std::size_t cellId) const;
+
+  /**
+   * \brief Returns the orientation in radians of the antenna array
+   * for the given cellId
+   * \param cellId Cell Id
+   * \return The antenna orientation in radians [-PI, PI]
+   */
+  double GetAntennaOrientationRadians (std::size_t cellId) const;
+
+  /**
+   * \brief Returns the position of the cell antenna
+   * \param sitePos Site position coordinates in meters
+   * \param cell Id Cell id of the antenna
+   */
+  Vector GetAntennaPosition (const Vector &sitePos, uint16_t cellId) const;
+
+  /**
+   * \brief Gets the site index the queried cell id belongs to
+   * \param cellId Cell index
+   * \return site id
+   */
+  uint16_t GetSiteIndex (std::size_t cellId) const;
+
+  /**
+   * \brief Get the sector index the queried cell id belongs to.
+   * \param cellId Cell index.
+   * \return The sector id.
+   */
+  uint16_t GetSectorIndex (std::size_t cellId) const;
+
+  /**
+   * \brief Get the cell (base station) index the queried UE id belongs to.
+   * \param ueId UE index.
+   * \return The cell id.
+   */
+  uint16_t GetCellIndex (std::size_t ueId) const;
+
+  /**
    * \brief SetGnbHeight
    * \param h height
    */
@@ -68,27 +160,55 @@ public:
   void SetUtHeight (double h);
 
   /**
-   * \brief SetBsNumber
-   * \param n the number of bs
-   *
-   * Will invalidate already existing BS (recreating the container)
+   * \brief Gets the number of sectors per site
    */
-  void SetBsNumber (uint32_t n);
+  SiteSectorizationType GetNumSectorsPerSite (void) const;
 
   /**
-   * \brief SetUtNumber
-   * \param n the number of ut
-   *
-   * Will invalidate already existing UT (recreating the container)
+   * \brief Sets the number of sectors of every site.
+   * \param numSectors Number of sectors. Values can be 1 or 3.
    */
-  void SetUtNumber (uint32_t n);
+  void SetSectorization (SiteSectorizationType numSectors);
+
+  /**
+   * \brief Sets parameters to the specified scenario
+   * \param scenario Scenario to simulate
+   */
+  void SetScenarioParameters (const std::string &scenario);
+
+  /**
+   * \brief Sets the Urban Macro (UMa) scenario parameters
+   */
+  void SetUMaParameters (void);
+
+  /**
+   * \brief Sets the Urban Micro (UMi) scenario parameters
+   */
+  void SetUMiParameters (void);
+
+  /**
+   * \brief Sets rural Macro scenario parameters
+   */
+  void SetRMaParameters (void);
 
 protected:
+  
+  std::size_t m_numSites; //!< Number of sites with base stations
+  std::size_t m_numBs; //!< Number of base stations to create
+  std::size_t m_numUt; //!< Number of user terminals to create
   NodeContainer m_bs;  //!< Base stations
   NodeContainer m_ut;  //!< User Terminals
 
-  double m_utHeight {-1.0}; //!< Height of UE nodes
+  double m_isd {-1.0};  //!< Inter-site distance (ISD) in meters
   double m_bsHeight {-1.0}; //!< Height of gNB nodes
+  double m_utHeight {-1.0}; //!< Height of UE nodes
+  SiteSectorizationType m_sectorization {NONE};  //!< Number of sectors per site
+  double m_minBsUtDistance {-1.0}; //!< Minimum distance between BS and UT in meters
+  double m_antennaOffset {-1.0}; //!< Cell antenna offset in meters w.r.t. site location
+
+  /** Maximum distance between a sector antenna panel and the site it belongs to  */
+  static double MAX_ANTENNA_OFFSET;
+
 };
 
 } // namespace ns3

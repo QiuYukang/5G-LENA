@@ -19,7 +19,11 @@
 
 #include "node-distribution-scenario-interface.h"
 
+#include <cmath>  // cos, sin, M_PI (non-standard)
+
 namespace ns3 {
+
+double NodeDistributionScenarioInterface::MAX_ANTENNA_OFFSET = 1;  
 
 NodeDistributionScenarioInterface::~NodeDistributionScenarioInterface ()
 {
@@ -38,6 +42,105 @@ NodeDistributionScenarioInterface::GetUserTerminals () const
 }
 
 void
+NodeDistributionScenarioInterface::SetSitesNumber (std::size_t n)
+{
+  NS_ASSERT_MSG (m_sectorization != SiteSectorizationType::NONE,
+		 "Must set sectorization first.");
+  m_numSites = n;
+  auto sectors = static_cast<std::size_t> (m_sectorization);
+  m_numBs = m_numSites * sectors;
+}
+  
+void
+NodeDistributionScenarioInterface::SetBsNumber (std::size_t n)
+{
+  NS_ASSERT_MSG (m_sectorization != SiteSectorizationType::NONE,
+		 "Must set sectorization first.");
+  auto sectors = static_cast<std::size_t> (m_sectorization);
+  // Compute the number of sites, then set that,
+  // so m_numBs is consistent with sectorization
+  std::size_t sites = n / sectors;
+  SetSitesNumber (sites);
+}
+
+void
+NodeDistributionScenarioInterface::SetUtNumber (std::size_t n)
+{
+  m_numUt = n;
+}
+
+std::size_t
+NodeDistributionScenarioInterface::GetNumSites () const
+{
+  return m_numSites;
+}
+
+std::size_t
+NodeDistributionScenarioInterface::GetNumCells () const
+{
+  return m_numBs;
+}
+
+double
+NodeDistributionScenarioInterface::GetAntennaOrientationDegrees (std::size_t cellId) const
+{
+  double orientation = 0.0;
+  if (m_sectorization == TRIPLE)
+    {
+      auto sectors = static_cast<std::size_t> (m_sectorization);
+      std::size_t sector = cellId % sectors;
+      double sectorSize = 360.0 / sectors;
+      orientation = sectorSize * (sector + 0.5);  // First sector starts at 0°
+    }
+  return orientation;
+}
+
+double
+NodeDistributionScenarioInterface::GetAntennaOrientationRadians (std::size_t cellId) const
+{
+  double orientationRads = GetAntennaOrientationDegrees (cellId) * M_PI / 180;
+  if (orientationRads > M_PI)
+    {
+      orientationRads -= 2 * M_PI;
+    }
+
+  return orientationRads;
+}
+
+uint16_t
+NodeDistributionScenarioInterface::GetSiteIndex (std::size_t cellId) const
+{
+  auto sectors = static_cast<std::size_t> (m_sectorization);
+  return cellId / sectors;
+}
+
+uint16_t
+NodeDistributionScenarioInterface::GetSectorIndex (std::size_t cellId) const
+{
+  auto sectors = static_cast<std::size_t> (m_sectorization);
+  return cellId % sectors;
+}
+
+uint16_t
+NodeDistributionScenarioInterface::GetCellIndex (std::size_t ueId) const
+{
+  return ueId % m_numBs;
+}
+
+Vector
+NodeDistributionScenarioInterface::GetAntennaPosition (const Vector &sitePos,
+						       uint16_t cellId) const
+{
+
+  Vector pos (sitePos);
+
+  double angle = GetAntennaOrientationDegrees(cellId);
+  pos.x += m_antennaOffset * cos (angle * M_PI / 180);
+  pos.y += m_antennaOffset * sin (angle * M_PI / 180);
+  return pos;
+}
+
+void
 NodeDistributionScenarioInterface::SetBsHeight (double h)
 {
   m_bsHeight = h;
@@ -49,16 +152,71 @@ NodeDistributionScenarioInterface::SetUtHeight (double h)
   m_utHeight = h;
 }
 
-void
-NodeDistributionScenarioInterface::SetBsNumber (uint32_t n)
+NodeDistributionScenarioInterface::SiteSectorizationType
+NodeDistributionScenarioInterface::GetNumSectorsPerSite (void) const
 {
-  m_bs.Create (n);
+  return m_sectorization;
 }
 
 void
-NodeDistributionScenarioInterface::SetUtNumber (uint32_t n)
+NodeDistributionScenarioInterface::SetSectorization (SiteSectorizationType numSectors)
 {
-  m_ut.Create (n);
+  m_sectorization = numSectors;
+}
+
+void
+NodeDistributionScenarioInterface::SetScenarioParameters (const std::string &scenario)
+{
+  if (scenario == "UMa")
+    {
+      SetUMaParameters ();
+    }
+  else if (scenario == "UMi")
+    {
+      SetUMiParameters ();
+    }
+  else if (scenario == "RMa")
+    {
+      SetRMaParameters();
+    }
+  else
+    {
+      NS_ABORT_MSG("Unrecognized scenario: " << scenario);
+    }
+
+}
+
+void
+NodeDistributionScenarioInterface::SetUMaParameters (void)
+{
+  m_isd = 1732;
+  m_bsHeight = 30.0;
+  m_utHeight = 1.5;
+  m_sectorization = SiteSectorizationType::TRIPLE;
+  m_minBsUtDistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
+  m_antennaOffset = 1.0;
+}
+
+void
+NodeDistributionScenarioInterface::SetUMiParameters (void)
+{
+  m_isd = 500;
+  m_bsHeight = 10.0;
+  m_utHeight = 1.5;
+  m_sectorization = SiteSectorizationType::TRIPLE;
+  m_minBsUtDistance = 10;
+  m_antennaOffset = 1.0;
+}
+
+void
+NodeDistributionScenarioInterface::SetRMaParameters (void)
+{
+  m_isd = 7000;
+  m_bsHeight = 45.0;
+  m_utHeight = 1.5;
+  m_sectorization = SiteSectorizationType::TRIPLE;
+  m_minBsUtDistance = 44.63; // minimum 2D distace is 10 meters considering UE height of 1.5 m
+  m_antennaOffset = 1.0;
 }
 
 } //namespace ns3

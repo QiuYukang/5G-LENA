@@ -288,59 +288,64 @@ LenaLteComparison (const Parameters &params)
    */
 
   // The essentials describing a laydown
-  uint32_t gnbSites = 1;
-  uint32_t sectorsNum = 3;
+  uint32_t gnbSites = 0;
   NodeContainer gnbNodes;
   NodeContainer ueNodes;
   double sector0AngleRad = 0;
+  const uint32_t sectors = 3;
 
+  // 
+  NodeDistributionScenarioInterface * scenario {NULL};
+  HexagonalGridScenarioHelper gridScenario;
+  
   if (true)
     {
-      std::cout << "  hexagonal grid: ";  
-      HexagonalGridScenarioHelper gridScenario;
-      gridScenario.SetNumRings (params.numOuterRings);
-      const auto sectorization = HexagonalGridScenarioHelper::TRIPLE;
-      sectorsNum = static_cast<uint32_t> (sectorization);
+      std::cout << "  hexagonal grid: ";
+      const auto sectorization = static_cast<HexagonalGridScenarioHelper::SiteSectorizationType> (sectors);
       gridScenario.SetSectorization (sectorization);
+      gridScenario.SetNumRings (params.numOuterRings);
       gridScenario.SetScenarioParameters (params.scenario);
       gnbSites = gridScenario.GetNumSites ();
-      uint32_t gnbNum = gridScenario.GetNumCells ();
-      uint32_t ueNum = params.ueNumPergNb * gnbNum;
+      uint32_t ueNum = params.ueNumPergNb * gnbSites * sectors;
       gridScenario.SetUtNumber (ueNum);
+      sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0);
+      std::cout << sector0AngleRad << std::endl;
+      
       // Creates and plots the network deployment
       gridScenario.CreateScenario ();  
-      sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0, sectorization);
-                                                                     
       gnbNodes = gridScenario.GetBaseStations ();
       ueNodes = gridScenario.GetUserTerminals ();
+      scenario = &gridScenario;
     }
 
   // Log the configuration
-  std::cout << gnbSites << " sites, "
-            << sectorsNum << " sectors/site, "
+  std::cout << "\n    Topology configuration: " << gnbSites << " sites, "
+            << sectors << " sectors/site, "
             << gnbNodes.GetN ()   << " cells, "
             << ueNodes.GetN ()    << " UEs\n";
 
   /*
    * Create different gNB NodeContainer for the different sectors.
    *
-   * Relationships between cellId, sectorId and siteId:
-   *   sector = cellId % sectorsNum
-   *   siteId = cellId / sectorsNum
-   *   cellId = siteId * sectorsNum + sector
+   * Relationships between ueId, cellId, sectorId and siteId:
+   * ~~~{.cc}
+   *   cellId = scenario->GetCellIndex (ueId);
+   *   sector = scenario->GetSectorIndex (cellId);
+   *   siteId = scenario->GetSiteIndex (cellId);
+   * ~~~{.cc}
    *
-   * Iterate/index gnbNodes, gnbNetDevs by cellId.
+   * Iterate/index gnbNodes, gnbNetDevs by `cellId`.
    * Iterate/index gnbSector<N>Container, gnbNodesBySector[sector],
-   *   gnbSector<N>NetDev, gnbNdBySector[sector] by siteId
+   *   gnbSector<N>NetDev, gnbNdBySector[sector] by `siteId`
    */
   NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
   std::vector<NodeContainer*> gnbNodesBySector{&gnbSector1Container, &gnbSector2Container, &gnbSector3Container};
   for (uint32_t cellId = 0; cellId < gnbNodes.GetN (); ++cellId)
     {
       Ptr<Node> gnb = gnbNodes.Get (cellId);
-      uint32_t sector = cellId % sectorsNum;
+      auto sector = scenario->GetSectorIndex (cellId);
       gnbNodesBySector[sector]->Add (gnb);
-      }
+    }
   std::cout << "    gNb containers: "
             << gnbSector1Container.GetN () << ", "
             << gnbSector2Container.GetN () << ", "
@@ -350,12 +355,8 @@ LenaLteComparison (const Parameters &params)
   /*
    * Create different UE NodeContainer for the different sectors.
    *
-   * Relationships between ueId, sector and site:
-   *   sector = ueId % sectorsNum
-   *   siteId = (ueId / sectorsNum) % gnbSites
-   *
    * Multiple UEs per sector!
-   * Iterate/index ueNodes, ueNetDevs, ueIpIfaces by ueId.
+   * Iterate/index ueNodes, ueNetDevs, ueIpIfaces by `ueId`.
    * Iterate/Index ueSector<N>Container, ueNodesBySector[sector],
    *   ueSector<N>NetDev, ueNdBySector[sector] with i % gnbSites
    */
@@ -364,7 +365,8 @@ LenaLteComparison (const Parameters &params)
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
       Ptr<Node> ue = ueNodes.Get (ueId);
-      uint32_t sector = ueId % sectorsNum;
+      auto cellId = scenario->GetCellIndex (ueId);
+      auto sector = scenario->GetSectorIndex (cellId);
       ueNodesBySector[sector]->Add (ue);
     }
   std::cout << "    UE containers: "
@@ -506,9 +508,7 @@ LenaLteComparison (const Parameters &params)
   std::cout << "  attach UEs to gNBs\n";  
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
-      uint32_t sector = ueId % sectorsNum;
-      uint32_t siteId = (ueId / sectorsNum) % gnbSites;
-      uint32_t cellId = siteId * sectorsNum + sector;
+      auto cellId = scenario->GetCellIndex (ueId);
       Ptr<NetDevice> gnbNetDev = gnbNetDevs.Get (cellId);
       Ptr<NetDevice> ueNetDev = ueNetDevs.Get (ueId);
       if (lteHelper != nullptr)
@@ -592,9 +592,9 @@ LenaLteComparison (const Parameters &params)
 
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
-      uint32_t sector = ueId % sectorsNum;
-      uint32_t siteId = (ueId / sectorsNum) % gnbSites;
-      uint32_t cellId = siteId * sectorsNum + sector;
+      auto cellId = scenario->GetCellIndex (ueId);
+      auto sector = scenario->GetSectorIndex (cellId);
+      auto siteId = scenario->GetSiteIndex (cellId);
       Ptr<Node> node = ueNodes.Get (ueId);
       Ptr<NetDevice> dev = ueNetDevs.Get(ueId);
       Address addr = ueIpIfaces.GetAddress (ueId);
@@ -673,7 +673,7 @@ LenaLteComparison (const Parameters &params)
         }
       
       // Reverse order so we get sector 1 for the remSector == 0 case
-      for (uint32_t sector = 3; sector > 0; --sector)
+      for (uint32_t sector = sectors; sector > 0; --sector)
         {
           if ( (params.remSector == sector) || (params.remSector == 0) )
             {
@@ -700,7 +700,7 @@ LenaLteComparison (const Parameters &params)
       remHelper->SetZ (params.zRem);
 
       //save beamforming vectors, one per site (?)
-      for (uint32_t sector = 3; sector > 0; --sector)
+      for (uint32_t sector = sectors; sector > 0; --sector)
         {
           if ( (params.remSector == sector) || (params.remSector == 0) )
             {
