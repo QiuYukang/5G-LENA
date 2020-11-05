@@ -301,9 +301,46 @@ LenaLteComparison (const Parameters &params)
 
   // 
   NodeDistributionScenarioInterface * scenario {NULL};
+  FileScenarioHelper fileScenario;
   HexagonalGridScenarioHelper gridScenario;
   
-  if (true)
+  if (params.baseStationFile != "")
+    {
+      std::cout << "  using tower positions from " << params.baseStationFile
+                << std::endl;
+      std::cout << "    setting sectorization" << std::endl;
+      fileScenario.SetSectorization (sectors);
+      std::cout << "    adding site file" << std::endl;
+      fileScenario.Add (params.baseStationFile);
+      std::cout << "    setting scenario" << std::endl;
+      fileScenario.SetScenarioParameters (params.scenario);
+      std::cout << "    getting number of sites..." << std::flush;
+      gnbSites = fileScenario.GetNumSites ();
+      std::cout << gnbSites << std::endl;
+      std::cout << "    getting number of cells..." << std::flush;
+      uint32_t gnbNum = fileScenario.GetNumCells ();
+      std::cout << gnbNum << std::endl;
+      uint32_t ueNum = params.ueNumPergNb * gnbNum;
+      std::cout << "    setting number of UEs..." << ueNum << std::endl;
+      fileScenario.SetUtNumber (ueNum);
+      std::cout << "    getting sector 0 angle..." << std::flush;
+      sector0AngleRad = fileScenario.GetAntennaOrientationRadians (0);
+      std::cout << sector0AngleRad << std::endl;
+
+      // Creates and plots the network deployment
+      std::cout << "    creating scenario" << std::endl;
+      fileScenario.CreateScenario ();
+      std::cout << "    getting gnbNodes..." << std::flush;
+      gnbNodes = fileScenario.GetBaseStations ();
+      std::cout << gnbNodes.GetN () << std::endl;
+      std::cout << "    getting ueNodes..." << std::flush;
+      ueNodes = fileScenario.GetUserTerminals ();
+      std::cout << ueNodes.GetN () << std::endl;
+      std::cout << "    setting scenario pointer..." << std::flush;
+      scenario = &fileScenario;
+      std::cout << "0x" << std::hex << scenario << std::dec << std::endl;
+    }
+  else
     {
       std::cout << "  hexagonal grid: ";
       gridScenario.SetScenarioParameters (scenarioParams);
@@ -799,6 +836,15 @@ operator << (std::ostream & os, const Parameters & parameters)
       MSG ("Operation mode")            << p.operationMode;
     }
 
+  if (p.baseStationFile != "")
+    {
+      MSG ("Base station positions")    << "read from file " << p.baseStationFile;
+    }
+  else
+    {
+      MSG ("Base station positions")    << "regular hexaonal lay down";
+    }
+
   MSG ("");
   MSG ("Channel bandwidth")             << p.bandwidthMHz << " MHz";
   MSG ("Spectrum configuration")
@@ -823,7 +869,10 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       os << "\n  (unknown configuration)";
     }
-  MSG ("Number of outer rings")         << p.numOuterRings;
+  if (p.baseStationFile == "")
+    {
+      MSG ("Number of outer rings")         << p.numOuterRings;
+    }
   MSG ("Number of UEs per sector")      << p.ueNumPergNb;
   MSG ("Antenna down tilt angle (deg)") << p.downtiltAngle;
 

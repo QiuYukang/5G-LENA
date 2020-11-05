@@ -42,6 +42,7 @@ struct Parameters
   std::string scenario = "UMa";
   std::string radioNetwork = "NR";  // LTE or NR
   std::string operationMode = "TDD";  // TDD or FDD
+  std::string baseStationFile = ""; // path to file of tower/site coordinates
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
