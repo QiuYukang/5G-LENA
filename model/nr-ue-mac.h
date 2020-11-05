@@ -785,6 +785,16 @@ protected:
    * \return pbu The NR SL PSSCH PHY PDU
    */
   void DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
+  /**
+   * \brief Receive the sensing information from PHY to MAC
+   * \param sfn The SfnSf
+   * \param rsvp The resource reservation period in ms
+   * \param rbstart The PSSCH starting resource block
+   * \param rbLen The PSCSCH length in number of RBs
+   * \param prio The priority
+   * \param slRsrp The measured RSRP value over the used resource blocks
+   */
+  void DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp);
 
 
   // forwarded from MemberNrSlUeMacSchedSapUser
@@ -845,6 +855,16 @@ private:
     std::set <NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
     uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
     uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
+  };
+
+  struct SensingData
+  {
+    SfnSf sfn {}; //!< The SfnSf
+    uint16_t rsvp {0}; //!< The resource reservation period in ms
+    uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< The PSSCH starting resource block
+    uint16_t rbLen {std::numeric_limits <uint16_t>::max ()}; //!< The PSCSCH length in number of RBs
+    uint8_t prio {std::numeric_limits <uint8_t>::max ()}; //!< The priority
+    double slRsrp {0.0}; //!< The measured RSRP value over the used resource blocks
   };
 
   /**
@@ -945,7 +965,13 @@ private:
    * \return The list of slots which are not used by any existing semi-persistent grant.
    */
   std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr);
-
+  /**
+   * \brief Update the sensing window
+   * \param sfn The current system frame, subframe, and slot number. This SfnSf
+   *        is aligned with the SfnSf of the physical layer.
+   * It will remove the sensing data, which lies outside the sensing window length.
+   */
+  void UpdateSensingWindow (const SfnSf& sfn);
 
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
@@ -977,7 +1003,8 @@ private:
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
   uint32_t m_srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id;
-  bool m_nrSlMacPduTxed {false};
+  bool m_nrSlMacPduTxed {false}; //!< Flag to indicate the TX of SL MAC PDU to PHY
+  std::list<SensingData> m_sensingData; //!< List to store sensing data
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.

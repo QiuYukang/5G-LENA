@@ -786,6 +786,16 @@ private:
    * \return the time at which the transmission of NR SL DATA will end
    */
   Time SlData (const NrSlVarTtiAllocInfo &varTtiInfo) __attribute__((warn_unused_result));
+  /**
+   * \brief Get the Sidelink RSRP value in dBm
+   *
+   * At the moment, SL RSRP is computed using the PSD of the signal in PSCCH
+   * for which we have successfully decoded the SCI-1A.
+   *
+   * \param psd the power spectral density per each RB
+   * \return Sidelink RSRP in dBm
+   */
+  double GetSidelinkRsrp (SpectrumValue psd);
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCphySapUser* m_nrSlUeCphySapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
   NrSlUePhySapUser* m_nrSlUePhySapUser {nullptr}; //!< SAP interface to call the methods of UE MAC instance

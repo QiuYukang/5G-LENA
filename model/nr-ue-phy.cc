@@ -1394,22 +1394,32 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
 
   std::vector <std::pair<uint32_t, uint8_t> > destinations = m_nrSlUePhySapUser->GetSlDestinations ();
 
+  NS_ASSERT_MSG (m_slRxPool != nullptr, "No receiving pools configured");
+  uint16_t rbStart = sciF1a.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+  uint16_t rbLength = sciF1a.GetLengthSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+  std::vector<int> rbBitMap;
+
+  for (uint16_t i = rbStart; i < rbLength; ++i)
+    {
+      rbBitMap.push_back (i);
+    }
+
+  double rsrpDbm = GetSidelinkRsrp (psd);
+
+  NS_LOG_DEBUG ("Sending sensing data to UE MAC. RSRP " << rsrpDbm << " dBm "
+                << " Frame " << m_currentSlot.GetFrame ()
+                << " SubFrame " << +m_currentSlot.GetSubframe ()
+                << " Slot " << m_currentSlot.GetSlot ());
+
+  m_nrSlUePhySapUser->ReceiveSensingData (m_currentSlot, sciF1a.GetSlResourceReservePeriod (),
+                                          rbStart, rbBitMap.size (),
+                                          sciF1a.GetPriority (), rsrpDbm);
+
   for (const auto &it:destinations)
     {
       if (it.first == tag.GetDstL2Id ())
         {
           NS_LOG_INFO ("Received first stage SCI for destination " << it.first << " from RNTI " << tag.GetRnti ());
-
-          NS_ASSERT_MSG (m_slRxPool != nullptr, "No receiving pools configured");
-          uint16_t rbStart = sciF1a.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
-          uint16_t rbLength = sciF1a.GetLengthSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
-          std::vector<int> rbBitMap;
-
-          for (uint16_t i = rbStart; i < rbLength; ++i)
-            {
-              rbBitMap.push_back (i);
-            }
-
           m_spectrumPhy->AddSlExpectedTb (tag.GetRnti (), tag.GetDstL2Id (),
                                           tag.GetTbSize (), sciF1a.GetMcs (),
                                           rbBitMap, tag.GetSymStart (),
@@ -1429,6 +1439,33 @@ NrUePhy::PhyPsschPduReceived (const Ptr<PacketBurst> &pb)
                                   m_nrSlUePhySapUser, pb);
 
   //m_nrSlUePhySapUser->ReceivePsschPhyPdu (pb);
+}
+
+double
+NrUePhy::GetSidelinkRsrp (SpectrumValue psd)
+{
+  // Measure instantaneous S-RSRP...
+  double sum = 0.0;
+  uint16_t numRB = 0;
+
+      for (Values::const_iterator itPi = psd.ConstValuesBegin(); itPi != psd.ConstValuesEnd(); itPi++)
+        {
+          if((*itPi))
+            {
+              uint32_t scSpacing = 15000 * static_cast<uint32_t> (std::pow (2, GetNumerology ()));
+              uint32_t RbWidthInHz = static_cast<uint32_t> (scSpacing * NrSpectrumValueHelper::SUBCARRIERS_PER_RB);
+              double powerTxWattPerRb = ((*itPi) * RbWidthInHz); //convert PSD [W/Hz] to linear power [W]
+              double powerTxWattPerRe = (powerTxWattPerRb / NrSpectrumValueHelper::SUBCARRIERS_PER_RB); // power of one RE per RB
+              double PowerTxWattDmrsPerRb = powerTxWattPerRe * 3.0; // TS 38.211 sec 8.4.1.3, 3 RE per RB carries PSCCH DMRS, i.e. Comb 4
+              sum += PowerTxWattDmrsPerRb;
+              numRB++;
+            }
+        }
+
+  double avrgRsrpWatt = (sum / ((double) numRB * 3.0));
+  double rsrpDbm = 10 * log10 (1000 * (avrgRsrpWatt));
+
+  return rsrpDbm;
 }
 
 }

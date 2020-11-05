@@ -1238,15 +1238,63 @@ NrUeMac::GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::
   for (const auto& it:slotInfo)
     {
       NrSlUeMacSchedSapProvider::NrSlSlotInfo info (it.numSlPscchRbs, it.slPscchSymStart,
-                                                  it.slPscchSymLength, it.slPsschSymStart,
-                                                  it.slPsschSymLength, it.slSubchannelSize,
-                                                  it.slMaxNumPerReserve,
-                                                  sfn.GetFutureSfnSf (it.slotOffset));
+                                                    it.slPscchSymLength, it.slPsschSymStart,
+                                                    it.slPsschSymLength, it.slSubchannelSize,
+                                                    it.slMaxNumPerReserve,
+                                                    sfn.GetFutureSfnSf (it.slotOffset));
       nrSupportedList.emplace_back (info);
     }
 
   return nrSupportedList;
 }
+
+void
+NrUeMac::DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp)
+{
+  NS_LOG_FUNCTION (this << sfn << rsvp << rbStart << rbLen << +prio << slRsrp);
+
+  if (m_enableSensing)
+    {
+      SensingData data;
+      data.sfn = sfn;
+      data.rsvp = rsvp;
+      data.rbStart = rbStart;
+      data.rbLen = rbLen;
+      data.prio = prio;
+      data.slRsrp = slRsrp;
+      //oldest data will be at the front of the queue
+      m_sensingData.push_back (data);
+    }
+}
+
+void
+NrUeMac::UpdateSensingWindow (const SfnSf& sfn)
+{
+  NS_LOG_FUNCTION (this << sfn);
+
+  uint16_t sensWindLen = m_slTxPool->GetNrSlSensWindInSlots (GetBwpId (), m_poolId, m_nrSlUePhySapProvider->GetSlotPeriod ());
+  auto it = m_sensingData.cbegin();
+  while (it != m_sensingData.cend ())
+    {
+      if (it->sfn.Normalize () < sfn.Normalize () - sensWindLen)
+        {
+          it = m_sensingData.erase (it);
+        }
+      else
+        {
+          //once we reached the sensing data, which lies in the
+          //sensing window, we break. If the last entry lies in the sensing
+          //window rest of the entries as well.
+          break;
+        }
+      ++it;
+    }
+
+  NS_ABORT_MSG_IF (m_sensingData.size () > sensWindLen,
+                   "Buffer size of sensing data " << m_sensingData.size ()
+                   << " exceeded max size of " << sensWindLen);
+}
+
 
 void
 NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
@@ -1333,6 +1381,8 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
 {
   NS_LOG_FUNCTION (this << " Frame " << sfn.GetFrame() << " Subframe " << +sfn.GetSubframe()
                         << " slot " << sfn.GetSlot () << " Normalized slot number " << sfn.Normalize ());
+
+  UpdateSensingWindow (sfn);
 
   if (m_slTxPool->GetNrSlSchedulingType () == NrSlCommResourcePool::SCHEDULED)
     {
@@ -1514,6 +1564,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           sciF2a.SetDstId (currentGrant.dstL2Id);
           //fields which are not used yet that is why we set them to 0
           sciF2a.SetCsiReq (0);
+          sciF2a.SetHarqFbIndicator (0);
           sciF2a.SetCastType (NrSlSciF2aHeader::Broadcast);
           Ptr<Packet> pktSciF02 = Create<Packet> ();
           pktSciF02->AddHeader (sciF2a);

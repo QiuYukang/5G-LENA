@@ -112,6 +112,16 @@ public:
    * \return pbu The NR SL PSSCH PHY PDU
    */
   virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu) = 0;
+  /**
+   * \brief Receive the sensing information from PHY to MAC
+   * \param sfn The SfnSf
+   * \param rsvp The resource reservation period in ms
+   * \param rbstart The PSSCH starting resource block
+   * \param rbLen The PSCSCH length in number of RBs
+   * \param prio The priority
+   * \param slRsrp The measured RSRP value over the used resource blocks
+   */
+  virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp) = 0;
 };
 
 
@@ -217,6 +227,7 @@ public:
   virtual uint8_t GetSlActiveTxPoolId ();
   virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations ();
   virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
+  virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp);
 
 private:
   C* m_owner; ///< the owner class
@@ -247,6 +258,13 @@ void
 MemberNrSlUePhySapUser<C>::ReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
 {
   m_owner->DoReceivePsschPhyPdu (pdu);
+}
+
+template <class C>
+void
+MemberNrSlUePhySapUser<C>::ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp)
+{
+  m_owner->DoReceiveSensingData (sfn, rsvp, rbStart, rbLen, prio, slRsrp);
 }
 
 
