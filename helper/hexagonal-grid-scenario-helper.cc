@@ -62,7 +62,8 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
 
   // Try to open a new GNUPLOT file
   std::ofstream topologyOutfile;
-  std::string topologyFileName = "./hexagonal-topology.gnuplot";
+  std::string topologyFileRoot = "./hexagonal-topology";
+  std::string topologyFileName = topologyFileRoot + ".gnuplot";
   topologyOutfile.open (topologyFileName.c_str (), std::ios_base::out | std::ios_base::trunc);
   if (!topologyOutfile.is_open ())
     {
@@ -75,8 +76,8 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
   NS_ASSERT (numSectors > 0);
   uint16_t numUts = utPosVector->GetSize ();
 
-  topologyOutfile << "set term eps" << std::endl;
-  topologyOutfile << "set output \"" << topologyFileName << ".pdf\"" << std::endl;
+  topologyOutfile << "set term pdf" << std::endl;
+  topologyOutfile << "set output \"" << topologyFileRoot << ".pdf\"" << std::endl;
   topologyOutfile << "set style arrow 1 lc \"black\" lt 1 head filled" << std::endl;
 //  topologyOutfile << "set autoscale" << std::endl;
 
