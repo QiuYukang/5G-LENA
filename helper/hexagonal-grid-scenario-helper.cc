@@ -426,40 +426,37 @@ HexagonalGridScenarioHelper::CreateScenario ()
       //What about the antenna orientation? It should be dealt with when installing the gNB
     }
 
-  // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
-
-  NS_ASSERT (m_minBsUtdistance < m_hexagonalRadius * std::sqrt(3) / 2);
-
-  m_r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
-  m_r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
+  // To allocate UEs, I need the center of the hexagonal cell.
+  // Allocate UE around the disk of radius isd/3, the diameter of a the
+  // hexagon representing the footprint of a single sector.
+  // Reduce this radius by the min BS-UT distance, to respect that standoff
+  // at the one corner of the sector hexagon where the sector antenna lies.
+  // This results in UTs uniformly distributed in a disc centered on
+  // the sector hexagon; there are no UTs near the vertices of the hexagon.
+  // Spread UEs inside the inner hexagonal radius
+  // Need to weight r to get uniform in the sector hexagon
+  // See https://stackoverflow.com/questions/5837572
+  // Set max = radius^2 here, then take sqrt below
+  const double outerR = m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance;
+  m_r->SetAttribute ("Min", DoubleValue (0));
+  m_r->SetAttribute ("Max", DoubleValue (outerR * outerR));
   m_theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
   m_theta->SetAttribute ("Max", DoubleValue (M_PI));
+
   // UT position
-  if (m_ut.GetN () > 0)
+  
+  for (uint32_t utId = 0; utId < m_ut.GetN(); ++utId)
     {
-      uint32_t utN = m_ut.GetN ();
+      double d = std::sqrt (m_r->GetValue ());
+      double t = m_theta->GetValue ();
 
-      for (uint32_t utId = 0; utId < utN; ++utId)
-        {
-          // This is the cell center location, same for cells belonging to the same site
-          Vector cellPos = bsPosVector->GetNext ();
-          // UEs shall be spread over the cell area (hexagonal cell)
-          uint16_t cellId = GetCellIndex (utId);
-          Vector cellCenterPos = GetHexagonalCellCenter (cellPos,
-                                                         cellId,
-                                                         m_siteSectorization,
-                                                         m_hexagonalRadius);
-
-          double d = m_r->GetValue ();
-          double t = m_theta->GetValue ();
-
-          Vector utPos (cellCenterPos);
-          utPos.x += d * cos (t);
-          utPos.y += d * sin (t);
-          utPos.z = m_utHeight;
-
-          utPosVector->Add (utPos);
-        }
+      // Vector utPos (cellCenterPos);
+      Vector utPos (bsCenterVector->GetNext ());
+      utPos.x += d * cos (t);
+      utPos.y += d * sin (t);
+      utPos.z = m_utHeight;
+      
+      utPosVector->Add (utPos);
     }
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
