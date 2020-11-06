@@ -23,6 +23,7 @@
 #include <ns3/object.h>
 #include "beam-id.h"
 #include "beamforming-vector.h"
+#include "ideal-beamforming-algorithm.h"
 #include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/mobility-module.h>
 #include <ns3/multi-model-spectrum-channel.h>
@@ -54,7 +55,7 @@ class NrUeNetDevice;
  * is not valid for it. Currently, it is only compatible with the beam search method. "
  */
 
-class RealisticBeamformingAlgorithm: public Object
+class RealisticBeamformingAlgorithm: public IdealBeamformingAlgorithm
 {
 
 public:
@@ -78,7 +79,7 @@ public:
                                       const Ptr<const NrUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv,
                                       BeamformingVector* ueBfv,
-                                      uint16_t ccId) const;
+                                      uint16_t ccId) const override;
 
   /**
    * \return Gets value of BeamSearchAngleStep attribute
@@ -119,7 +120,7 @@ private:
                                         const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv,
                                         BeamformingVector* ueBfv,
-                                        uint16_t ccId) const;
+                                        uint16_t ccId) const override;
 
   /**
    * \brief Calculates an estimation of the long term component based on the channel measurements
@@ -140,7 +141,8 @@ private:
 
 
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
-  double m_lastRerportedSrsSinr; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
+
+  double m_lastRerportedSrsSinr {0}; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
   Ptr<NormalRandomVariable> m_normalRandomVariable; //!< The random variable used for the estimation of the error
 };
 

@@ -271,6 +271,14 @@ NrUePhy::ProcessSrsDci (const SfnSf &ulSfnSf, const std::shared_ptr<DciInfoEleme
   NS_UNUSED (ulSfnSf);
   NS_UNUSED (dciInfoElem);
   // Instruct PHY for transmitting the SRS
+  if (ulSfnSf == m_currentSlot)
+    {
+      InsertAllocation (dciInfoElem);
+    }
+  else
+    {
+      InsertFutureAllocation (ulSfnSf, dciInfoElem);
+    }
 }
 
 void
@@ -650,7 +658,10 @@ NrUePhy::PushCtrlAllocations (const SfnSf currentSfnSf)
 void
 NrUePhy::StartSlot (const SfnSf &s)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);  else
+    {
+      NS_FATAL_ERROR ("Unknowd dci type ");
+    }
   m_currentSlot = s;
   m_lastSlotStart = Simulator::Now ();
 
@@ -755,6 +766,13 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+
+  if (dci->m_type == DciInfoElementTdma::SRS)
+    {
+      Ptr<NrSrsMessage> srsMsg = Create<NrSrsMessage> ();
+      srsMsg->SetSourceBwp(GetBwpId());
+      EncodeCtrlMsg (srsMsg);
+    }
 
   if (m_ctrlMsgs.size () == 0)
     {
@@ -894,7 +912,7 @@ NrUePhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       varTtiPeriod = DlCtrl (dci);
     }
-  else if (dci->m_type == DciInfoElementTdma::CTRL && dci->m_format == DciInfoElementTdma::UL)
+  else if ((dci->m_type == DciInfoElementTdma::CTRL || dci->m_type == DciInfoElementTdma::SRS) && dci->m_format == DciInfoElementTdma::UL)
     {
       varTtiPeriod = UlCtrl (dci);
     }

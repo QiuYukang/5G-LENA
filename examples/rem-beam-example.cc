@@ -138,7 +138,7 @@ main (int argc, char *argv[])
   // Create and configure helpers
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ()));
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
   nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);

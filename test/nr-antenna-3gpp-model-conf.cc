@@ -221,9 +221,9 @@ TestAntenna3gppModelConf::DoRun (void)
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
   // Put the pointers inside nrHelper
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
   double beamSearchAngleStep = 30.0;
-  idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+  idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
   nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
 
 

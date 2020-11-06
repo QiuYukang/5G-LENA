@@ -199,7 +199,7 @@ NrTestNumerologyDelayCase1::DoRun (void)
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
 
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);

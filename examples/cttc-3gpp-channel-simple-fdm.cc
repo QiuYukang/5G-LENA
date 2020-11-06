@@ -240,7 +240,7 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));

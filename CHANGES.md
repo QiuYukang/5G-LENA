@@ -57,7 +57,7 @@ us a note on ns-developers mailing list.
   in cc-bwp-helper.h
 
 * Added attribute "SrsSymbols" in NrMacSchedulerNs3, to indicate how many symbols are
-available to the SRS message.
+  available to the SRS message.
  
 - Added new beamforming algorithm called `RealisticBeamformingAlgorithm` 
   which determines the beamforming vector of the transmitter and receiver based on 
@@ -82,6 +82,15 @@ available to the SRS message.
 ### Changes to existing API:
 
 - PF in UL direction is added
+
+- Added `RealisticBeamformingHelper` that needs to be used when 
+  `RealisticBeamformingAlgorithm` is being configured in order to 
+  schedule beamforming updates and to collect the information of SRS SINR 
+  reports that are necessary for the `RealisticBeamformingAlgorithm` 
+  execution. 
+
+- Attribute `IdealBeamformingMethod` of `IdealBeamformingHelper` class 
+  is renamed to `BeamformingMethod`
 
 ### Changed behavior:
 - If a notching mask is set, the scheduler will avoid to allocate the RBG in

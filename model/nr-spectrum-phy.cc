@@ -620,7 +620,11 @@ NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
 {
   NS_LOG_FUNCTION (this << srsSinr);
   NS_LOG_INFO ("Update SRS SINR perceived with this value: " << srsSinr);
-  m_srsSinrPerceived = srsSinr;
+
+  if (!m_srsSinrReportCallback.IsNull())
+    {
+      m_srsSinrReportCallback (GetCellId(), m_currentSrsRnti, Integral (srsSinr));
+    }
 }
 
 void
@@ -699,6 +703,17 @@ NrSpectrumPhy::AddExpectedTb (uint16_t rnti, uint8_t ndi, uint32_t size, uint8_t
                static_cast<uint32_t> (numSym));
 }
 
+void
+NrSpectrumPhy::AddExpectedSrsRnti (uint16_t rnti)
+{
+  m_currentSrsRnti = rnti;
+}
+
+void
+NrSpectrumPhy::SetSrsSinrReportCallback (SrsSinrReportCallback callback)
+{
+  m_srsSinrReportCallback = callback;
+}
 
 // private
 
@@ -888,12 +903,12 @@ NrSpectrumPhy::StartRxUlCtrl (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& 
 void
 NrSpectrumPhy::StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params)
 {
+  NS_LOG_FUNCTION (this);
   // The current code of this function assumes:
   // 1) that this function is called only when cellId = m_cellId
   // 2) this function should be only called for gNB, only gNB should enter into reception of UL SRS signals
   // 3) SRS should be received only one at a time, otherwise this function should assert
   // 4) CTRL message list contains only one message and that one is SRS CTRL message
-  NS_LOG_FUNCTION (this);
   NS_ASSERT (params->cellId == GetCellId () &&
              IsEnb () &&
              m_state != RX_UL_SRS &&

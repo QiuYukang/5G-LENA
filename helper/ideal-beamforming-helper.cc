@@ -44,6 +44,13 @@ IdealBeamformingHelper::~IdealBeamformingHelper ()
   NS_LOG_FUNCTION (this);
 }
 
+void
+IdealBeamformingHelper::DoInitialize ()
+{
+  m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
+                                              &IdealBeamformingHelper::ExpireBeamformingTimer, this);
+}
+
 TypeId
 IdealBeamformingHelper::GetTypeId (void)
 {
@@ -51,16 +58,16 @@ IdealBeamformingHelper::GetTypeId (void)
       TypeId ("ns3::IdealBeamformingHelper")
       .SetParent<Object> ()
       .AddConstructor<IdealBeamformingHelper> ()
-      .AddAttribute ("IdealBeamformingMethod",
+      .AddAttribute ("BeamformingMethod",
                      "Type of the ideal beamforming method in the case that it is enabled, by default is \"cell scan\" method.",
-                     TypeIdValue (CellScanBeamforming::GetTypeId ()),
-                     MakeTypeIdAccessor (&IdealBeamformingHelper::SetIdealBeamformingMethod),
-                     MakeTypeIdChecker ())
+                      TypeIdValue (CellScanBeamforming::GetTypeId ()),
+                      MakeTypeIdAccessor (&IdealBeamformingHelper::SetBeamformingMethod),
+                      MakeTypeIdChecker ())
       .AddAttribute ("BeamformingPeriodicity",
                      "Interval between consecutive beamforming method executions.",
                       TimeValue (MilliSeconds (100)),
-                      MakeTimeAccessor (&IdealBeamformingHelper::SetIdealBeamformingPeriodicity,
-                                        &IdealBeamformingHelper::GetIdealBeamformingPeriodicity),
+                      MakeTimeAccessor (&IdealBeamformingHelper::SetPeriodicity,
+                                        &IdealBeamformingHelper::GetPeriodicity),
                       MakeTimeChecker())
       ;
     return tid;
@@ -79,13 +86,12 @@ void
 IdealBeamformingHelper::Run () const
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("Running the ideal beamforming method. There are :" <<
+  NS_LOG_INFO ("Running the beamforming method. There are :" <<
                m_beamformingTasks.size()<<" tasks.");
 
   for (const auto& task:m_beamformingTasks)
     {
-      NS_LOG_INFO ("Running the ideal beamforming method. There are :" <<
-                   task.first->GetCcMapSize ()<< " antennas per device.");
+      NS_LOG_INFO ("There are :" << task.first->GetCcMapSize ()<< " antennas per device.");
       Ptr<NrGnbNetDevice> gNbDev = task.first;
       Ptr<NrUeNetDevice> ueDev = task.second;
       RunTask (gNbDev, ueDev);
@@ -99,7 +105,7 @@ IdealBeamformingHelper::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
       BeamformingVector gnbBfv, ueBfv;
-      m_idealBeamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
+      m_beamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
       Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
       Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
       NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
@@ -110,7 +116,7 @@ IdealBeamformingHelper::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
 }
 
 void
-IdealBeamformingHelper::SetIdealBeamformingMethod (const TypeId &beamformingMethod)
+IdealBeamformingHelper::SetBeamformingMethod (const TypeId &beamformingMethod)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (beamformingMethod.IsChildOf (IdealBeamformingAlgorithm::GetTypeId ()));
@@ -118,8 +124,7 @@ IdealBeamformingHelper::SetIdealBeamformingMethod (const TypeId &beamformingMeth
   ObjectFactory objectFactory;
   objectFactory.SetTypeId (beamformingMethod);
 
-  m_idealBeamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm> ();
-  ExpireBeamformingTimer ();
+  m_beamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm> ();
 }
 
 void
@@ -137,7 +142,7 @@ IdealBeamformingHelper::ExpireBeamformingTimer ()
 }
 
 void
-IdealBeamformingHelper::SetIdealBeamformingPeriodicity (const Time &v)
+IdealBeamformingHelper::SetPeriodicity (const Time &v)
 {
   NS_LOG_FUNCTION (this);
 
@@ -145,7 +150,7 @@ IdealBeamformingHelper::SetIdealBeamformingPeriodicity (const Time &v)
 }
 
 Time
-IdealBeamformingHelper::GetIdealBeamformingPeriodicity () const
+IdealBeamformingHelper::GetPeriodicity () const
 {
   NS_LOG_FUNCTION (this);
 
@@ -153,12 +158,12 @@ IdealBeamformingHelper::GetIdealBeamformingPeriodicity () const
 }
 
 void
-IdealBeamformingHelper::SetIdealBeamFormingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
+IdealBeamformingHelper::SetBeamformingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_idealBeamformingAlgorithm != nullptr, "Call SetIdealBeamformingMethod before this function");
+  NS_ASSERT_MSG (m_beamformingAlgorithm != nullptr, "Call SetBeamformingMethod before this function");
 
-  m_idealBeamformingAlgorithm->SetAttribute (n, v);
+  m_beamformingAlgorithm->SetAttribute (n, v);
 }
 
 
