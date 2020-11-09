@@ -30,9 +30,13 @@
  * \file nr-test-notching.cc
  * \ingroup test
  *
- * \brief This test is used to validate the notcing functionality. In order to
- * do so, it creates a fake MAC that checks if the dci RB mask has been
- * constructed in accordance with the notching mask
+ * \brief This test is used to validate the notching functionality.
+ * In order to do so, it creates a fake MAC and checks in the method
+ * TestNotchingGnbMac::DoSchedConfigIndication() that RBG mask is
+ * in the DCI is constructed in accordance with the (tested)
+ * notching mask.
+ *
+ * \see TestNotchingGnbMac::DoSchedConfigIndication
  */
 namespace ns3 {
 
@@ -80,6 +84,7 @@ TestNotchingPhySapProvider::SetParams (uint32_t numOfUesPerBeam, uint32_t numOfB
 uint32_t
 TestNotchingPhySapProvider::GetSymbolsPerSlot() const
 {
+  //Fixed 14 symbols per slot.
   return 14;
 }
 
@@ -104,6 +109,8 @@ TestNotchingPhySapProvider::GetCellId () const
 Time
 TestNotchingPhySapProvider::GetSlotPeriod () const
 {
+  //If in the future the scheduler calls this method, remove this assert"
+  NS_FATAL_ERROR ("GetSlotPeriod should not be called");
   return MilliSeconds (1);
 }
 
@@ -140,7 +147,9 @@ TestNotchingPhySapProvider::NotifyConnectionSuccessful ()
 uint32_t
 TestNotchingPhySapProvider::GetRbNum () const
 {
-  return 25;
+  //If in the future the scheduler calls this method, remove this assert"
+  NS_FATAL_ERROR ("GetRbNum should not be called");
+  return 53;
 }
 
 BeamId
@@ -278,11 +287,9 @@ public:
    */
   NrNotchingTestCase (const std::string &name, const std::vector<uint8_t> &mask,
                       const std::string &schedulerType,
-                      uint32_t numOfUesPerBeam, uint32_t beamsNum,
-                      uint32_t numerology)
+                      uint32_t numOfUesPerBeam, uint32_t beamsNum)
     : TestCase (name), m_mask (mask), m_schedulerType (schedulerType),
-      m_numOfUesPerBeam (numOfUesPerBeam), m_beamsNum (beamsNum),
-      m_numerology (numerology)
+      m_numOfUesPerBeam (numOfUesPerBeam), m_beamsNum (beamsNum)
   {}
 
   ~NrNotchingTestCase ();
@@ -298,7 +305,6 @@ private:
   const std::string m_schedulerType;
   uint32_t m_numOfUesPerBeam;
   uint32_t m_beamsNum;
-  uint32_t m_numerology;
   TestNotchingPhySapProvider * m_phySapProvider;
 };
 
@@ -435,6 +441,8 @@ class NrNotchingTestSuite : public TestSuite
 public:
   NrNotchingTestSuite () : TestSuite ("nr-test-notching", UNIT)
     {
+      //We simulate BW of 10 MHz so the size of the mask is 53 RBGs
+      //considering that 1 RBG contains 1 RB
       std::vector<uint8_t> notchedMask1 {0, 0, 1, 0, 0,
                                          0, 0, 1, 1, 1,
                                          1, 1, 1, 0, 1,
@@ -463,35 +471,30 @@ public:
       std::list<std::string> scheds          = {"RR"};
       std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 6};
       std::list<uint32_t>    beams           = {1, 2};
-      std::list<uint32_t>    numerologies    = {0}; // for the moment only num 0
 
-      for (const auto & num : numerologies)
+      for (const auto & subType : subdivision)
         {
-          for (const auto & subType : subdivision)
+          for (const auto & sched : scheds)
             {
-              for (const auto & sched : scheds)
+              for (const auto & uesPerBeam : uesPerBeamList)
                 {
-                  for (const auto & uesPerBeam : uesPerBeamList)
+                  for (const auto & beam : beams)
                     {
-                      for (const auto & beam : beams)
-                        {
-                          std::stringstream ss, schedName;
-                          ss << ", Num " << num << ", " << ", " <<
-                                subType << " " << sched << ", " <<
-                                uesPerBeam << " UE per beam, " <<
-                                beam << " beam";
+                      std::stringstream ss, schedName;
+                      ss << ", " << subType << " " << sched << ", " <<
+                            uesPerBeam << " UE per beam, " <<
+                            beam << " beam";
 
-                          schedName << "ns3::NrMacScheduler" << subType << sched;
+                      schedName << "ns3::NrMacScheduler" << subType << sched;
 
-                          AddTestCase (new NrNotchingTestCase (ss.str(), notchedMask1,
-                                                               schedName.str(),
-                                                               uesPerBeam, beam, num),
-                                                               QUICK);
-                          AddTestCase (new NrNotchingTestCase (ss.str(), notchedMask2,
-                                                               schedName.str(),
-                                                               uesPerBeam, beam, num),
-                                                               QUICK);
-                        }
+                      AddTestCase (new NrNotchingTestCase (ss.str(), notchedMask1,
+                                                           schedName.str(),
+                                                           uesPerBeam, beam),
+                                                           QUICK);
+                      AddTestCase (new NrNotchingTestCase (ss.str(), notchedMask2,
+                                                           schedName.str(),
+                                                           uesPerBeam, beam),
+                                                           QUICK);
                     }
                 }
             }
