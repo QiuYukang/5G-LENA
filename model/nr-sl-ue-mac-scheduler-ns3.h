@@ -23,6 +23,7 @@
 #include "nr-sl-ue-mac-scheduler.h"
 #include "nr-sl-ue-mac-scheduler-dst-info.h"
 #include "nr-amc.h"
+#include "nr-sl-phy-mac-common.h"
 #include <ns3/random-variable-stream.h>
 #include <memory>
 #include <functional>
@@ -193,7 +194,7 @@ protected:
   virtual bool
   DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params,
                     const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                    NrSlUeMacSchedSapUser::NrSlSlotAlloc &slotAlloc) = 0;
+                    NrSlSlotAlloc &slotAlloc) = 0;
   /**
    * \brief Method to get total number of sub-channels.
    *

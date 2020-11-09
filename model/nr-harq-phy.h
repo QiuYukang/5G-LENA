@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <ns3/simple-ref-count.h>
 #include "nr-error-model.h"
+#include <unordered_set>
 
 namespace ns3 {
 
@@ -151,6 +152,58 @@ private:
 
   HistoryMap m_dlHistory; //!< HARQ history map for DL
   HistoryMap m_ulHistory; //!< HARQ history map for UL
+
+//NR SL
+public:
+  /**
+   * \brief Return the info of the HARQ procId in case of retranmissions
+   *        for NR SL DATA
+   * \param rnti the RNTI
+   * \param harqProcId the HARQ proc id
+   * \return the vector of the info related to HARQ proc Id
+   */
+  const NrErrorModel::NrErrorModelHistory & GetHarqProcessInfoSlData (uint16_t rnti, uint8_t harqProcId);
+  /**
+   * \brief Update the Info associated to the decodification of an HARQ process
+   *        for NR SL DATA
+   * \param rnti the RNTI
+   * \param harqProcId the HARQ process id
+   * \param output output of the error model
+   */
+  void UpdateSlDataHarqProcessStatus (uint16_t rnti, uint8_t harqProcId,
+                                  const Ptr<NrErrorModelOutput> &output);
+  /**
+   * \brief Reset the info associated to the decodification of an HARQ process
+   * for NR SL DATA
+   * \param rnti the RNTI
+   * \param id the HARQ process id
+   */
+  void ResetSlDataHarqProcessStatus (uint16_t rnti, uint8_t id);
+  /**
+   * \brief Store the info of the successfully decoded NR SL TB
+   *
+   * \param rnti The UE identifier
+   * \param harqId The HARQ id
+   */
+  void IndicatePrevDecoded (uint16_t rnti, uint8_t harqId);
+  /**
+   * \brief Gets the flag that indicates whether or not the TB's with given
+   *        \rnti and \pharqId has already been decoded.
+   * \param rnti The UE identifier
+   * \param harqId The HARQ id
+   * \returns True, if the TB has been decoded; false, otherwise.
+   */
+  bool IsPrevDecoded (uint16_t rnti, uint8_t harqId);
+  /**
+   * \brief Remove the entry with given \rnti and \pharqId, which indicates
+   *        that the TB's has already been decoded.
+   * \param rnti The UE identifier
+   * \param harqId The HARQ id
+   */
+  void RemovePrevDecoded (uint16_t rnti, uint8_t harqId);
+private:
+  HistoryMap m_slDataHistory; //!< HARQ history map for NR SL PSSCH
+  std::unordered_set<uint32_t> m_slDecodedTb; //!< Container to track NR Sidelink communication decoded TBs
 };
 
 

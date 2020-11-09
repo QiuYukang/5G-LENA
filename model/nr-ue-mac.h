@@ -651,21 +651,32 @@ public:
    * \brief Set the pool id of the active pool
    * \param poolId The pool id
    */
-  void SetSlActivePoolId (uint8_t poolId);
+  void SetSlActivePoolId (uint16_t poolId);
 
   /**
    * \brief Get the pool id of the active pool
    * \return the pool id
    */
-  uint8_t GetSlActivePoolId () const;
+  uint16_t GetSlActivePoolId () const;
 
   /**
    * \brief Set Reservation Period for NR Sidelink
    *
    * Only the standard compliant values, including their intermediate values
-   * could be set. \see LteRrcSap::SlResourceReservePeriod
+   * could be set. TS38.321 sec 5.22.1.1 instructs to select one of the
+   * allowed values configured by RRC in sl-ResourceReservePeriodList and
+   * set the resource reservation interval with the selected value. In the
+   * simulator we made it an attribute of UE MAC so we can change it on
+   * run time. Remember, this attribute value must be in the list of
+   * resource reservations configured using pre-configuration. UE MAC calls
+   * \link NrSlCommResourcePool::ValidateResvPeriod \endlink to validate its
+   * value and also that this value is multiple of the length of the physical
+   * sidelink pool (i.e., the resultant bitmap after applying SL bitmap over
+   * the TDD pattern).
    *
    * \param rsvpInMs The reservation period in the milliseconds
+   *
+   * \see LteRrcSap::SlResourceReservePeriod
    */
   void SetReservationPeriod (const Time &rsvpInMs);
 
@@ -687,7 +698,6 @@ public:
    * \return The maximum number of Sidelink processes
    */
   uint8_t GetNumSidelinkProcess () const;
-
 
 protected:
   // forwarded from NR SL UE MAC SAP Provider
@@ -765,6 +775,26 @@ protected:
    * \return The active TX pool id
    */
   uint8_t DoGetSlActiveTxPoolId ();
+  /**
+   * \brief Get the list Sidelink destination from UE MAC
+   * \return A vector holding Sidelink communication destinations and the highest priority value among its LCs
+   */
+  std::vector <std::pair<uint32_t, uint8_t> > DoGetSlDestinations ();
+  /**
+   * \brief Receive NR SL PSSCH PHY PDU
+   * \return pbu The NR SL PSSCH PHY PDU
+   */
+  void DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
+  /**
+   * \brief Receive the sensing information from PHY to MAC
+   * \param sfn The SfnSf
+   * \param rsvp The resource reservation period in ms
+   * \param rbstart The PSSCH starting resource block
+   * \param rbLen The PSCSCH length in number of RBs
+   * \param prio The priority
+   * \param slRsrp The measured RSRP value over the used resource blocks
+   */
+  void DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp);
 
 
   // forwarded from MemberNrSlUeMacSchedSapUser
@@ -772,7 +802,7 @@ protected:
    * \brief Method to communicate NR SL allocations from NR SL UE scheduler
    * \param params the struct of type NrSlSlotAlloc
    */
-  void DoSchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params);
+  void DoSchedUeNrSlConfigInd (const NrSlSlotAlloc& params);
 
   /**
    * \brief Method through which the NR SL scheduler gets the total number of NR
@@ -780,6 +810,15 @@ protected:
    * \return the total number of NR SL sub-channels
    */
   uint8_t DoGetTotalSubCh () const;
+
+  // forwarded from MemberNrSlUeMacCschedSapUser
+  /**
+   * \brief Send the confirmation about the successful configuration of LC
+   *        to the UE MAC.
+   * \param lcg The logical group
+   * \param lcId The Logical Channel id
+   */
+  void  DoCschedUeNrSlLcConfigCnf (uint8_t lcg, uint8_t lcId);
 
 private:
 
@@ -811,10 +850,21 @@ private:
 
   struct NrSlGrantInfo
   {
-    uint8_t cReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Cresel counter for the semi-persistently scheduled resources as per TS 38.214
+    uint16_t cReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Cresel counter for the semi-persistently scheduled resources as per TS 38.214
     uint8_t slResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Sidelink resource re-selection counter for the semi-persistently scheduled resources as per TS 38.214
-    std::set <NrSlUeMacSchedSapUser::NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
+    std::set <NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
     uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
+    uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
+  };
+
+  struct SensingData
+  {
+    SfnSf sfn {}; //!< The SfnSf
+    uint16_t rsvp {0}; //!< The resource reservation period in ms
+    uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< The PSSCH starting resource block
+    uint16_t rbLen {std::numeric_limits <uint16_t>::max ()}; //!< The PSCSCH length in number of RBs
+    uint8_t prio {std::numeric_limits <uint8_t>::max ()}; //!< The priority
+    double slRsrp {0.0}; //!< The measured RSRP value over the used resource blocks
   };
 
   /**
@@ -903,7 +953,7 @@ private:
    * \param params The resource allocation from the scheduler
    * \return The grant info for a destination based on the scheduler allocation
    */
-  NrSlGrantInfo CreateGrantInfo (NrSlUeMacSchedSapUser::NrSlSlotAlloc params);
+  NrSlGrantInfo CreateGrantInfo (const NrSlSlotAlloc & params);
   /**
    * \brief Filter the Transmit opportunities.
    *
@@ -915,7 +965,13 @@ private:
    * \return The list of slots which are not used by any existing semi-persistent grant.
    */
   std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr);
-
+  /**
+   * \brief Update the sensing window
+   * \param sfn The current system frame, subframe, and slot number. This SfnSf
+   *        is aligned with the SfnSf of the physical layer.
+   * It will remove the sensing data, which lies outside the sensing window length.
+   */
+  void UpdateSensingWindow (const SfnSf& sfn);
 
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
@@ -933,7 +989,7 @@ private:
   uint8_t m_t1 {0}; //!< The offset in number of slots between the slot in which the resource selection is triggered and the start of the selection window
   uint16_t m_t2 {0}; //!< The offset in number of slots between T1 and the end of the selection window
   std::map <SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters> m_nrSlBsrReceived; ///< NR Sidelink BSR received from RLC
-  uint8_t m_poolId {std::numeric_limits <uint8_t>::max ()};
+  uint16_t m_poolId {std::numeric_limits <uint16_t>::max ()};
   NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser           {nullptr};  //!< SAP user
   NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser         {nullptr};  //!< SAP User
   NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider {nullptr};  //!< SAP Provider
@@ -947,6 +1003,8 @@ private:
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
   uint32_t m_srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id;
+  bool m_nrSlMacPduTxed {false}; //!< Flag to indicate the TX of SL MAC PDU to PHY
+  std::list<SensingData> m_sensingData; //!< List to store sensing data
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.

@@ -99,6 +99,13 @@ typedef std::unique_ptr<NrSlUeMacSchedulerLC> NrSlLCPtr;
 
 /**
  * \ingroup scheduler
+ *
+ * \brief An iterator to a map containing NrSlLCPtr unique pointers to LCs
+ */
+typedef std::unordered_map<uint8_t, NrSlLCPtr>::iterator NrSlLCIt;
+
+/**
+ * \ingroup scheduler
  * \brief Represent an NR Sidelink UE LCG
  *
  * A Logical Channel Group has an id (represented by m_id) and can contain

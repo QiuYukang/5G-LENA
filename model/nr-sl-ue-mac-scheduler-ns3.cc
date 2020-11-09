@@ -92,6 +92,8 @@ NrSlUeMacSchedulerNs3::DoCschedUeNrSlLcConfigReq (const NrSlUeMacCschedSapProvid
 
   itLcg->second->Insert (CreateLC (params));
   NS_LOG_INFO ("Added LC id " << +params.lcId << " in LCG " << +params.lcGroup);
+  //send confirmation to UE MAC
+  m_nrSlUeMacCschedSapUser->CschedUeNrSlLcConfigCnf (params.lcGroup, params.lcId);
 }
 
 std::shared_ptr<NrSlUeMacSchedulerDstInfo>
@@ -142,7 +144,7 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq (const struct NrSlUeMacSchedSap
 
   GetSecond DstInfoOf;
   auto itDst = m_dstMap.find (params.dstL2Id);
-  NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << params.dstL2Id << "info not found");
+  NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << params.dstL2Id << " info not found");
 
   for (const auto &lcg : DstInfoOf (*itDst)->GetNrSlLCG ())
     {
@@ -166,7 +168,7 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq (uint32_t dstL2Id, const std::lis
   const auto itDst = m_dstMap.find (dstL2Id);
   NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << dstL2Id << "info not found");
 
-  NrSlUeMacSchedSapUser::NrSlSlotAlloc alloc;
+  NrSlSlotAlloc alloc;
 
   bool allocated = DoNrSlAllocation (params, itDst->second, alloc);
 

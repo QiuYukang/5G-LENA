@@ -17,8 +17,8 @@
 *
 */
 
-#ifndef NR_SL_SCI_F01_HEADER_H
-#define NR_SL_SCI_F01_HEADER_H
+#ifndef NR_SL_SCI_F1A_HEADER_H
+#define NR_SL_SCI_F1A_HEADER_H
 
 #include "ns3/header.h"
 #include <iostream>
@@ -28,17 +28,20 @@ namespace ns3 {
 /**
  * \ingroup nr
  * \brief The packet header for the NR Sidelink Control Information (SCI)
- * format 01. It is not a standard compliment header, therefore, its size (in bytes)
+ * format 1A. It is not a standard compliment header, therefore, its size (in bytes)
  * is also different. The following fields must be set before adding this
  * header to a packet.
  *
  * - m_priority [1 byte, always present]
  * - m_mcs [1 byte, always present]
+ * - m_slSciStage2Format [1 byte, always present]
  * - m_slResourceReservePeriod [2 byte, always present]
  * - m_totalSubChannels [2 bytes, always present]
  * - m_IndexStartSubChannel [1 byte, always present]
  * - m_lengthSubChannel [1 byte, always present]
  * - m_slMaxNumPerReserve [1 byte, always present]
+ *
+ * 10 bytes always present.
  *
  * Optional fields:
  * - m_gapReTx1 = [1 byte if slMaxNumPerReserve == 2]
@@ -48,7 +51,7 @@ namespace ns3 {
  * - All the mandatory fields are set using their respective setter methods. Otherwise,
  *   serialization will hit an assert.
  */
-class NrSlSciF01Header : public Header
+class NrSlSciF1aHeader : public Header
 {
 public:
   /**
@@ -56,8 +59,15 @@ public:
    *
    * Creates an SCI header
    */
-  NrSlSciF01Header ();
-  ~NrSlSciF01Header ();
+  NrSlSciF1aHeader ();
+  ~NrSlSciF1aHeader ();
+
+  /// SCI Stage 2 format enumeration
+  enum SciStage2Format_t : uint8_t
+  {
+    SciFormat2A = 0,
+    SciFormat2B = 1,
+  };
 
   /**
    * \brief Set the priority
@@ -118,6 +128,20 @@ public:
    * \param gapReTx1 The gap between a transmission and its second re-transmission in slots
    */
   void SetGapReTx2 (uint8_t gapReTx2);
+  /**
+   * \brief Set the second stage SCI format value.
+   *
+   * We only support SCI format 2A
+   *
+   * TS 38.212 Table 8.3.1.1-1
+   * SCI format 2A = 0
+   * SCI format 2B = 1
+   * Reserved = 2
+   * Reserved = 3
+   *
+   * \param formatValue the second stage SCI format value
+   */
+  void SetSciStage2Format (uint8_t formatValue);
 
 
   /**
@@ -177,6 +201,19 @@ public:
    * \return The gap between a transmission and its second re-transmission in slots
    */
   uint8_t GetGapReTx2 () const;
+  /**
+   * \brief Get the second stage SCI format value.
+   *
+   * TS 38.212 Table 8.3.1.1-1
+   * SCI format 2A = 0
+   * SCI format 2B = 1
+   * Reserved = 2
+   * Reserved = 3
+   *
+   * \return the second stage SCI format value
+   */
+  uint8_t GetSciStage2Format () const;
+
 
   /**
    * \brief Ensure that mandatory fields are configured
@@ -192,10 +229,10 @@ public:
   /**
    * \brief Equality operator
    *
-   * \param [in] b the NrSlSciF01Header to compare
+   * \param [in] b the NrSlSciF1aHeader to compare
    * \returns \c true if \pname{b} is equal
    */
-  bool operator == (const NrSlSciF01Header &b) const;
+  bool operator == (const NrSlSciF1aHeader &b) const;
 
 
 
@@ -220,14 +257,16 @@ private:
   uint8_t m_mcs {std::numeric_limits <uint8_t>::max ()}; //!< The Modulation and Coding Scheme (MCS)
   uint16_t m_slResourceReservePeriod {std::numeric_limits <uint16_t>::max ()}; //!< Resource reservation period
   uint8_t m_slMaxNumPerReserve {std::numeric_limits <uint8_t>::max ()}; //!< maximum number of reserved resources
+  uint8_t m_slSciStage2Format {std::numeric_limits <uint8_t>::max ()}; //!< maximum number of reserved resources
   //SCI fields end
 
   //Optional fields
   uint8_t m_gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
   uint8_t m_gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its second retransmission in slots
+  static std::vector<SciStage2Format_t> m_allowedSciStage2Format; //!< Vector of allowed Stage 2 SCI formats, to speed up checking
 };
 
 
 } // namespace ns3
 
-#endif // NR_SL_SCI_F01_HEADER_H
+#endif // NR_SL_SCI_F1A_HEADER_H

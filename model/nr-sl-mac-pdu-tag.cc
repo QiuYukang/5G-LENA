@@ -50,7 +50,7 @@ NrSlMacPduTag::GetInstanceTypeId (void) const
 uint32_t
 NrSlMacPduTag::GetSerializedSize (void) const
 {
-  return 2 + 8 + 1 + 1 + 4;
+  return 2 + 8 + 1 + 1 + 4 + 4;
 }
 
 void
@@ -80,8 +80,14 @@ NrSlMacPduTag::Deserialize (TagBuffer i)
 void
 NrSlMacPduTag::Print (std::ostream &os) const
 {
-  os << " " << m_rnti << m_sfnSf << " " << +m_symStart << " " << +m_numSym
-     << " " << m_tbSize << " " << m_dstL2Id;
+  os << "RNTI " << m_rnti
+     << ", Destination id " << m_dstL2Id
+     << ", Frame " << m_sfnSf.GetFrame ()
+     << ", Subframe " << +m_sfnSf.GetSubframe ()
+     << ", Slot " << m_sfnSf.GetSlot ()
+     << ", PSCCH symbol start " << +m_symStart
+     << ", Total number of symbols " << +m_numSym
+     << ", TB size " << m_tbSize << " bytes";
 }
 
 uint16_t

@@ -18,22 +18,21 @@
  */
 
 #include "nr-sl-helper.h"
-#include <ns3/nr-sl-comm-resource-pool-factory.h>
-#include <ns3/nr-sl-comm-preconfig-resource-pool-factory.h>
 #include <ns3/nr-ue-net-device.h>
-#include <ns3/lte-rrc-sap.h>
-#include <ns3/nr-sl-ue-rrc.h>
-#include <ns3/lte-ue-rrc.h>
 #include <ns3/nr-ue-phy.h>
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-amc.h>
 #include <ns3/nr-spectrum-phy.h>
-#include <ns3/lte-sl-tft.h>
 #include <ns3/nr-point-to-point-epc-helper.h>
 #include <ns3/bandwidth-part-ue.h>
 #include <ns3/nr-sl-bwp-manager-ue.h>
 #include <ns3/nr-sl-ue-mac-scheduler-simple.h>
 #include <ns3/nr-sl-ue-mac-scheduler.h>
+#include <ns3/nr-sl-chunk-processor.h>
+#include <ns3/lte-rrc-sap.h>
+#include <ns3/nr-sl-ue-rrc.h>
+#include <ns3/lte-ue-rrc.h>
+#include <ns3/lte-sl-tft.h>
 
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
@@ -55,7 +54,7 @@ NrSlHelper::NrSlHelper (void)
 {
   NS_LOG_FUNCTION (this);
   m_ueSlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
-  m_ueSlScheduler.SetTypeId (NrSlUeMacSchedulerSimple::GetTypeId());
+  m_ueSlSchedulerFactory.SetTypeId (NrSlUeMacSchedulerSimple::GetTypeId());
 }
 
 NrSlHelper::~NrSlHelper (void)
@@ -157,9 +156,6 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
   nrSlUeRrc->SetNrSlEnabled (true);
   nrSlUeRrc->SetNrSlUeRrcSapProvider (lteUeRrc->GetNrSlUeRrcSapProvider ());
   lteUeRrc->SetNrSlUeRrcSapUser (nrSlUeRrc->GetNrSlUeRrcSapUser ());
-  uint64_t imsi = lteUeRrc->GetImsi ();
-  NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
-  nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
 
   //Aggregate
   lteUeRrc->AggregateObject (nrSlUeRrc);
@@ -189,6 +185,7 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
       lteUeRrc->SetNrSlUeCphySapProvider (itBwps, nrUeDev->GetPhy (itBwps)->GetNrSlUeCphySapProvider ());
       //NR SL UE MAC scheduler
       Ptr<NrSlUeMacScheduler> sched = CreateNrSlUeSched ();
+      NS_ABORT_MSG_IF (sched == nullptr, "sched is null");
       ccMap.at (itBwps)->SetNrSlUeMacScheduler (sched);
       //SAPs between the NR SL UE MAC scheduler and NrUeMac
       sched->SetNrSlUeMacCschedSapUser (nrUeDev->GetMac (itBwps)->GetNrSlUeMacCschedSapUser ());
@@ -202,7 +199,28 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
       nrUeDev->GetPhy (itBwps)->SetNrSlUePhySapUser (nrUeDev->GetMac (itBwps)->GetNrSlUePhySapUser ());
       nrUeDev->GetMac (itBwps)->SetNrSlUePhySapProvider (nrUeDev->GetPhy (itBwps)->GetNrSlUePhySapProvider ());
       //Error model type in NRSpectrumPhy for NR SL
-      nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ()->SetAttribute ("SlErrorModelType", typeIdValue);
+      Ptr<NrSpectrumPhy> spectrumPhy = nrUeDev->GetPhy (itBwps)->GetSpectrumPhy ();
+      spectrumPhy->SetAttribute ("SlErrorModelType", typeIdValue);
+      //Set AMC in NrSpectrumPhy to compute PSCCH TB size
+      spectrumPhy->SetSlAmc (slAmc);
+      //Set SL chunk processor
+      Ptr<NrSlChunkProcessor> pSlSinr = Create<NrSlChunkProcessor> ();
+      pSlSinr->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSlSinrPerceived, spectrumPhy));
+      spectrumPhy->AddSlSinrChunkProcessor (pSlSinr);
+      Ptr<NrSlChunkProcessor> pSlSignal = Create<NrSlChunkProcessor> ();
+      pSlSignal->AddCallback (MakeCallback (&NrSpectrumPhy::UpdateSlSignalPerceived, spectrumPhy));
+      spectrumPhy->AddSlSignalChunkProcessor (pSlSignal);
+
+      std::function<void (const Ptr<Packet>&, const SpectrumValue&)> pscchPhyPduCallback;
+      pscchPhyPduCallback = std::bind (&NrUePhy::PhyPscchPduReceived, nrUeDev->GetPhy (itBwps),
+                                      std::placeholders::_1, std::placeholders::_2);
+      spectrumPhy->SetNrPhyRxPscchEndOkCallback (pscchPhyPduCallback);
+
+      std::function<void (const Ptr<PacketBurst>&)> psschPhyPduOkCallback;
+      psschPhyPduOkCallback = std::bind (&NrUePhy::PhyPsschPduReceived, nrUeDev->GetPhy (itBwps),
+                                         std::placeholders::_1);
+      spectrumPhy->SetNrPhyRxPsschEndOkCallback (psschPhyPduOkCallback);
+
       //Set the SAP of NR UE MAC in SL BWP manager
       bool bwpmTest = slBwpManager->SetNrSlMacSapProviders (itBwps, nrUeDev->GetMac (itBwps)->GetNrSlMacSapProvider ());
 
@@ -211,6 +229,12 @@ NrSlHelper::PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::s
           NS_FATAL_ERROR ("Error in SetNrSlMacSapProviders");
         }
     }
+
+  //Since now all the BWP for SL are configured, we can configure src L2 id
+  //for only SL BWP (s) (see LteUeRrc::DoSetSourceL2Id)
+  uint64_t imsi = lteUeRrc->GetImsi ();
+  NS_ASSERT_MSG (imsi != 0, "IMSI was not set in UE RRC");
+  nrSlUeRrc->SetSourceL2Id (static_cast <uint32_t> (imsi & 0xFFFFFF)); //use lower 24 bits of IMSI as source
 
   lteUeRrc->SetNrSlBwpIdContainerInBwpm ();
 }
@@ -274,10 +298,17 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
 }
 
 void
+NrSlHelper::SetNrSlSchedulerTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueSlSchedulerFactory.SetTypeId (typeId);
+}
+
+void
 NrSlHelper::SetUeSlSchedulerAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
-  m_ueSlAmcFactory.Set (n, v);
+  m_ueSlSchedulerFactory.Set (n, v);
 }
 
 Ptr<NrSlUeMacScheduler>
@@ -285,10 +316,18 @@ NrSlHelper::CreateNrSlUeSched ()
 {
   NS_LOG_FUNCTION (this);
 
-  auto sched = (m_ueSlAmcFactory.Create ())->GetObject<NrSlUeMacScheduler> ();
+  auto sched = (m_ueSlSchedulerFactory.Create ())->GetObject<NrSlUeMacScheduler> ();
   return sched;
 }
 
+uint16_t
+NrSlHelper::GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, uint16_t numUlTddPattern)
+{
+  NS_ABORT_MSG_IF (slBitmapLen % numUlTddPattern != 0, "SL bit map size should be multiple of number of UL slots in the TDD pattern");
+  NS_ABORT_MSG_IF (slBitmapLen < tddPatternLen, "SL bit map size should be greater than or equal to the TDD pattern size");
+  uint16_t poolLen = (slBitmapLen / numUlTddPattern) * tddPatternLen;
+  return poolLen;
+}
 
 } // namespace ns3
 

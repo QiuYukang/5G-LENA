@@ -19,6 +19,7 @@
 #define NR_SL_UE_MAC_SCHED_SAP_PROVIDER_H
 
 #include "sfnsf.h"
+#include "nr-sl-phy-mac-common.h"
 
 #include <iostream>
 #include <list>
@@ -157,56 +158,11 @@ public:
   virtual ~NrSlUeMacSchedSapUser () = default;
 
   /**
-   * \brief The SlRlcPduInfo struct
-   */
-  struct SlRlcPduInfo
-  {
-    SlRlcPduInfo (uint8_t lcid, uint32_t size) :
-      lcid (lcid), size (size)
-    {
-    }
-    uint8_t lcid  {0}; //!< The Logical channel id
-    uint32_t size {0}; //!< The transport block size
-  };
-
-  struct NrSlSlotAlloc
-  {
-    SfnSf sfn {}; //!< The SfnSf
-    uint32_t dstL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The destination Layer 2 Id
-
-    uint8_t ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
-    uint8_t rv {std::numeric_limits <uint8_t>::max ()}; //!< The redundancy version
-    uint8_t priority {std::numeric_limits <uint8_t>::max ()}; //!< The LC priority
-    std::vector <SlRlcPduInfo> slRlcPduInfo; //!< The vector containing the transport block size per LC id
-
-    uint16_t mcs {std::numeric_limits <uint16_t>::max ()}; //!< The MCS
-    uint16_t indexSubchannelStart {std::numeric_limits <uint16_t>::max ()}; //!< Index of the first subchannel allocated
-    uint16_t subchannelLength {std::numeric_limits <uint16_t>::max ()}; //!< Total number of subchannel allocated
-    uint16_t indexSymStart {std::numeric_limits <uint16_t>::max ()}; //!< Index of the first symbol allocated
-    uint16_t SymLength {std::numeric_limits <uint16_t>::max ()}; //!< Total number of symbol allocated
-    uint16_t maxNumPerReserve {std::numeric_limits <uint16_t>::max ()}; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
-    uint8_t  gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
-    uint8_t  gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
-  };
-
-  /**
-   * \brief Less than operator overloaded for NrSlSlotAlloc
-   *
-   * \param l first NrSlSlotAlloc
-   * \param r second NrSlSlotAlloc
-   * \returns true if first NrSlSlotAlloc SfnSf parameter values are less than the second NrSlSlotAlloc SfnSf parameters"
-   */
-  friend bool operator < (const NrSlSlotAlloc &l, const NrSlSlotAlloc &r)
-  {
-    return l.sfn < r.sfn;
-  }
-
-  /**
    * \brief Send the NR Sidelink allocation from the UE scheduler to UE MAC
    *
    * \param params NrSlUeMacSchedSapUser::NrSlSlotAlloc
    */
-  virtual void SchedUeNrSlConfigInd (const NrSlUeMacSchedSapUser::NrSlSlotAlloc& params) = 0;
+  virtual void SchedUeNrSlConfigInd (const NrSlSlotAlloc& params) = 0;
 
   /**
    * \brief Method to get total number of sub-channels.

@@ -24,7 +24,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("NrSlUeBwpManager");
+NS_LOG_COMPONENT_DEFINE ("NrSlBwpManagerUe");
 NS_OBJECT_ENSURE_REGISTERED (NrSlBwpManagerUe);
 
 TypeId

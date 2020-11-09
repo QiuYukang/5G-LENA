@@ -20,6 +20,8 @@
 #ifndef NR_SL_UE_PHY_SAP_H
 #define NR_SL_UE_PHY_SAP_H
 
+#include "nr-sl-phy-mac-common.h"
+
 #include <stdint.h>
 #include <ns3/ptr.h>
 #include <ns3/nstime.h>
@@ -67,6 +69,12 @@ public:
    * \param p The packet
    */
   virtual void SendPsschMacPdu (Ptr<Packet> p) = 0;
+  /**
+   * \brief Set the allocation info for NR SL slot in PHY
+   * \param sfn The SfnSf
+   * \param varTtiInfo The Variable TTI allocation info
+   */
+  virtual void SetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo) = 0;
 
 };
 
@@ -77,7 +85,7 @@ public:
  * Service Access Point (SAP) offered by the UE MAC to the UE PHY
  * for NR Sidelink
  *
- * This is the CPHY SAP User, i.e., the part of the SAP that contains the UE
+ * This is the PHY SAP User, i.e., the part of the SAP that contains the UE
  * MAC methods called by the UE PHY
 */
 class NrSlUePhySapUser
@@ -94,7 +102,26 @@ public:
    * \return The active TX pool id
    */
   virtual uint8_t GetSlActiveTxPoolId () = 0;
-
+  /**
+   * \brief Get the list Sidelink destination from UE MAC
+   * \return A vector holding Sidelink communication destinations and the highest priority value among its LCs
+   */
+  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations () = 0;
+  /**
+   * \brief Receive NR SL PSSCH PHY PDU
+   * \return pbu The NR SL PSSCH PHY PDU
+   */
+  virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu) = 0;
+  /**
+   * \brief Receive the sensing information from PHY to MAC
+   * \param sfn The SfnSf
+   * \param rsvp The resource reservation period in ms
+   * \param rbstart The PSSCH starting resource block
+   * \param rbLen The PSCSCH length in number of RBs
+   * \param prio The priority
+   * \param slRsrp The measured RSRP value over the used resource blocks
+   */
+  virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp) = 0;
 };
 
 
@@ -123,6 +150,7 @@ public:
   virtual Time GetSlotPeriod () const;
   virtual void SendPscchMacPdu (Ptr<Packet> p);
   virtual void SendPsschMacPdu (Ptr<Packet> p);
+  virtual void SetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo);
 
   // methods inherited from NrSlUePhySapProvider go here
   //NR Sidelink communication
@@ -166,6 +194,13 @@ MemberNrSlUePhySapProvider<C>::SendPsschMacPdu (Ptr<Packet> p)
   m_owner->DoSendPsschMacPdu (p);
 }
 
+template <class C>
+void
+MemberNrSlUePhySapProvider<C>::SetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo)
+{
+  m_owner->DoSetNrSlVarTtiAllocInfo (sfn, varTtiInfo);
+}
+
 
 /**
  * \ingroup nr
@@ -190,6 +225,9 @@ public:
 
   // methods inherited from NrSlUePhySapUser go here
   virtual uint8_t GetSlActiveTxPoolId ();
+  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations ();
+  virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
+  virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp);
 
 private:
   C* m_owner; ///< the owner class
@@ -208,6 +246,26 @@ MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId ()
   return m_owner->DoGetSlActiveTxPoolId ();
 }
 
+template <class C>
+std::vector <std::pair<uint32_t, uint8_t> >
+MemberNrSlUePhySapUser<C>::GetSlDestinations ()
+{
+  return m_owner->DoGetSlDestinations ();
+}
+
+template <class C>
+void
+MemberNrSlUePhySapUser<C>::ReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
+{
+  m_owner->DoReceivePsschPhyPdu (pdu);
+}
+
+template <class C>
+void
+MemberNrSlUePhySapUser<C>::ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp)
+{
+  m_owner->DoReceiveSensingData (sfn, rsvp, rbStart, rbLen, prio, slRsrp);
+}
 
 
 

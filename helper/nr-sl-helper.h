@@ -27,8 +27,6 @@
 
 namespace ns3 {
 
-class NrSlCommResourcePoolFactory;
-class NrSlCommPreconfigResourcePoolFactory;
 class NrUeNetDevice;
 class NrAmc;
 class NrPointToPointEpcHelper;
@@ -117,6 +115,13 @@ public:
    */
   void DoActivateNrSlBearer (NetDeviceContainer ues, const Ptr<LteSlTft> tft);
   /**
+   * \brief Set the NR SL Scheduler TypeId. Works only before it is created.
+   * \param typeId The NR SL scheduler type
+   *
+   * \see NrSlUeMacSchedulerSimple
+   */
+  void SetNrSlSchedulerTypeId (const TypeId &typeId);
+  /**
    * \brief Set UE sidelink scheduler attribute
    * \param n The attribute name
    * \param v The attribute value
@@ -128,6 +133,16 @@ public:
    * \return The pointer to a newly created object of the scheduler
    */
   Ptr<NrSlUeMacScheduler> CreateNrSlUeSched ();
+  /**
+   * \brief Get the length of the physical Sidelink pool based on
+   *        SL bitmap length, TDD pattern length, and the number of UL slots
+   *        in the TDD pattern.
+   * \param slBitmapLen The SL bitmap length
+   * \param tddPatternLen The TDD pattern length
+   * \param numUlTddPattern the number of UL slots in the TDD pattern
+   * \return The resultant length of the physical Sidelink pool in slots
+   */
+  static uint16_t GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, uint16_t numUlTddPattern);
 
 protected:
   /**
@@ -168,7 +183,7 @@ private:
   Ptr<NrAmc> CreateUeSlAmc () const;
 
   ObjectFactory m_ueSlAmcFactory;           //!< UE SL AMC Object factory
-  ObjectFactory m_ueSlScheduler;            //!< UE SL scheduler Object factory
+  ObjectFactory m_ueSlSchedulerFactory;            //!< UE SL scheduler Object factory
   Ptr<NrPointToPointEpcHelper> m_epcHelper; //!< the EPC helper
 
 };

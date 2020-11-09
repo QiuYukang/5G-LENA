@@ -17,79 +17,87 @@
 *
 */
 
-#include "nr-sl-sci-f01-header.h"
+#include "nr-sl-sci-f1a-header.h"
 #include <ns3/log.h>
+#include <algorithm>
 
 
 namespace ns3 {
 
 
-NS_OBJECT_ENSURE_REGISTERED (NrSlSciF01Header);
-NS_LOG_COMPONENT_DEFINE ("NrSlSciF01Header");
+NS_OBJECT_ENSURE_REGISTERED (NrSlSciF1aHeader);
+NS_LOG_COMPONENT_DEFINE ("NrSlSciF1aHeader");
 
-NrSlSciF01Header::NrSlSciF01Header ()
+NrSlSciF1aHeader::NrSlSciF1aHeader ()
 {
 }
 
-NrSlSciF01Header::~NrSlSciF01Header ()
+NrSlSciF1aHeader::~NrSlSciF1aHeader ()
 {
 }
+
+/**
+ * TS 38.212 Table 8.3.1.1-1 specifies the values for 2nd-stage SCI formats.
+ * Currently, we only support SCI_FORMAT_2A = 0;
+ */
+std::vector<NrSlSciF1aHeader::SciStage2Format_t>
+NrSlSciF1aHeader::m_allowedSciStage2Format = { SciFormat2A };
 
 TypeId
-NrSlSciF01Header::GetTypeId (void)
+NrSlSciF1aHeader::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::NrSlSciF01Header")
+  static TypeId tid = TypeId ("ns3::NrSlSciF1aHeader")
     .SetParent<Header> ()
-    .AddConstructor<NrSlSciF01Header> ()
+    .AddConstructor<NrSlSciF1aHeader> ()
   ;
   return tid;
 }
 
 TypeId
-NrSlSciF01Header::GetInstanceTypeId (void) const
+NrSlSciF1aHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
 
 void
-NrSlSciF01Header::SetPriority (uint8_t priority)
+NrSlSciF1aHeader::SetPriority (uint8_t priority)
 {
   m_priority = priority;
 }
 
 void
-NrSlSciF01Header::SetTotalSubChannels (uint16_t totalSubChannels)
+NrSlSciF1aHeader::SetTotalSubChannels (uint16_t totalSubChannels)
 {
   NS_ASSERT_MSG (m_totalSubChannels > 0, "Total number of sub-channels must be greater than 0");
   m_totalSubChannels = totalSubChannels;
 }
 
 void
-NrSlSciF01Header::SetIndexStartSubChannel (uint8_t indexStartSubChannel)
+NrSlSciF1aHeader::SetIndexStartSubChannel (uint8_t indexStartSubChannel)
 {
   m_indexStartSubChannel = indexStartSubChannel;
 }
 
 void
-NrSlSciF01Header::SetLengthSubChannel (uint8_t lengthSubChannel)
+NrSlSciF1aHeader::SetLengthSubChannel (uint8_t lengthSubChannel)
 {
   m_lengthSubChannel = lengthSubChannel;
 }
 
 void
-NrSlSciF01Header::SetSlResourceReservePeriod (uint16_t slResourceReservePeriod)
+NrSlSciF1aHeader::SetSlResourceReservePeriod (uint16_t slResourceReservePeriod)
 {
   m_slResourceReservePeriod = slResourceReservePeriod;
 }
 
 void
-NrSlSciF01Header::SetMcs (uint8_t mcs)
+NrSlSciF1aHeader::SetMcs (uint8_t mcs)
 {
   m_mcs = mcs;
 }
 
 void
-NrSlSciF01Header::SetSlMaxNumPerReserve (uint8_t slMaxNumPerReserve)
+NrSlSciF1aHeader::SetSlMaxNumPerReserve (uint8_t slMaxNumPerReserve)
 {
   //Just a sanity check
   bool valueCheck = false;
@@ -99,78 +107,93 @@ NrSlSciF01Header::SetSlMaxNumPerReserve (uint8_t slMaxNumPerReserve)
 }
 
 void
-NrSlSciF01Header::SetGapReTx1 (uint8_t gapReTx1)
+NrSlSciF1aHeader::SetGapReTx1 (uint8_t gapReTx1)
 {
   NS_ASSERT_MSG (m_slMaxNumPerReserve == 2 || m_slMaxNumPerReserve == 3, "SlMaxNumPerReserve should be set to 2 or 3 before setting GapReTx1");
   m_gapReTx1 = gapReTx1;
 }
 
 void
-NrSlSciF01Header::SetGapReTx2 (uint8_t gapReTx2)
+NrSlSciF1aHeader::SetGapReTx2 (uint8_t gapReTx2)
 {
   NS_ASSERT_MSG (m_slMaxNumPerReserve == 3, "SlMaxNumPerReserve should be set to 3 before setting GapReTx2");
   NS_ASSERT_MSG (gapReTx2 != GetGapReTx1 (), "The second retransmission should be perform in a different slot than the first retransmission");
   m_gapReTx2 = gapReTx2;
 }
 
+void
+NrSlSciF1aHeader::SetSciStage2Format (uint8_t formatValue)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (std::find (m_allowedSciStage2Format.begin(), m_allowedSciStage2Format.end(), formatValue) != m_allowedSciStage2Format.end ());
+  m_slSciStage2Format = formatValue;
+}
+
 uint8_t
-NrSlSciF01Header::GetPriority () const
+NrSlSciF1aHeader::GetPriority () const
 {
   return m_priority;
 }
 uint16_t
-NrSlSciF01Header::GetTotalSubChannels () const
+NrSlSciF1aHeader::GetTotalSubChannels () const
 {
   return m_totalSubChannels;
 }
 
 uint8_t
-NrSlSciF01Header::GetIndexStartSubChannel () const
+NrSlSciF1aHeader::GetIndexStartSubChannel () const
 {
   return m_indexStartSubChannel;
 }
 
 uint8_t
-NrSlSciF01Header::GetLengthSubChannel () const
+NrSlSciF1aHeader::GetLengthSubChannel () const
 {
   return m_lengthSubChannel;
 }
 
 uint16_t
-NrSlSciF01Header::GetSlResourceReservePeriod () const
+NrSlSciF1aHeader::GetSlResourceReservePeriod () const
 {
   return m_slResourceReservePeriod;
 }
 
 uint8_t
-NrSlSciF01Header::GetMcs () const
+NrSlSciF1aHeader::GetMcs () const
 {
   return m_mcs;
 }
 
 uint8_t
-NrSlSciF01Header::GetSlMaxNumPerReserve () const
+NrSlSciF1aHeader::GetSlMaxNumPerReserve () const
 {
   return m_slMaxNumPerReserve;
 }
 
 uint8_t
-NrSlSciF01Header::GetGapReTx1 () const
+NrSlSciF1aHeader::GetGapReTx1 () const
 {
   return m_gapReTx1;
 }
 
 uint8_t
-NrSlSciF01Header::GetGapReTx2 () const
+NrSlSciF1aHeader::GetGapReTx2 () const
 {
   return m_gapReTx2;
 }
 
+uint8_t
+NrSlSciF1aHeader::GetSciStage2Format () const
+{
+  return m_slSciStage2Format;
+}
+
 bool
-NrSlSciF01Header::EnsureMandConfig () const
+NrSlSciF1aHeader::EnsureMandConfig () const
 {
   bool shouldBeSet = m_priority != std::numeric_limits <uint8_t>::max ()
     && m_mcs != std::numeric_limits <uint8_t>::max ()
+    && m_slSciStage2Format != std::numeric_limits <uint8_t>::max ()
     && m_slResourceReservePeriod != std::numeric_limits <uint16_t>::max ()
     && m_totalSubChannels != std::numeric_limits <uint16_t>::max ()
     && m_indexStartSubChannel != std::numeric_limits <uint8_t>::max ()
@@ -182,27 +205,29 @@ NrSlSciF01Header::EnsureMandConfig () const
 
 
 void
-NrSlSciF01Header::Print (std::ostream &os)  const
+NrSlSciF1aHeader::Print (std::ostream &os)  const
 {
   NS_LOG_FUNCTION (this);
-  os << "Priority " << +m_priority << "\n";
-  os << "MCS " << +m_mcs << "\n";
-  os << "Resource reservation period " << +m_slResourceReservePeriod << "\n";
-  os << "Total number of Subchannels " << +m_totalSubChannels << "\n";
-  os << "Index starting Subchannel " << +m_indexStartSubChannel << "\n";
-  os << "Total number of allocated Subchannel " << +m_lengthSubChannel << "\n";
-  os << "Maximum number of reservations " << +m_slMaxNumPerReserve << "\n";
-  os << "First retransmission gap in slots " << +m_gapReTx1 << "\n";
-  os << "Second retransmission gap in slots " << +m_gapReTx2 << "\n";
+  os << "Priority " << +m_priority
+     << ", MCS " << +m_mcs
+     << ", 2nd stage SCI format " << +m_slSciStage2Format
+     << ", Resource reservation period " << +m_slResourceReservePeriod
+     << ", Total number of Subchannels " << +m_totalSubChannels
+     << ", Index starting Subchannel " << +m_indexStartSubChannel
+     << ", Total number of allocated Subchannel " << +m_lengthSubChannel
+     << ", Maximum number of reservations " << +m_slMaxNumPerReserve
+     << ", First retransmission gap in slots " << +m_gapReTx1
+     << ", Second retransmission gap in slots " << +m_gapReTx2;
 }
 
 uint32_t
-NrSlSciF01Header::GetSerializedSize (void) const
+NrSlSciF1aHeader::GetSerializedSize (void) const
 {
   uint32_t totalSize = 0; //bytes
   //Always present
   //priority =  1 byte
   //mcs =  1 byte
+  //slSciStage2Format = 1 byte
   //slResourceReservePeriod = 2 bytes
   //totalSubChannels = 2 bytes
   //indexStartSubChannel = 1 byte
@@ -212,7 +237,7 @@ NrSlSciF01Header::GetSerializedSize (void) const
   //Optional fields
   //gapReTx1 = 1 byte if slMaxNumPerReserve == 2
   //gapReTx2 = 1 byte if slMaxNumPerReserve == 3
-  totalSize = 1 + 1 + 2 + 2 + 1 + 1 + 1;
+  totalSize = 1 + 1 + 1 + 2 + 2 + 1 + 1 + 1;
   totalSize = (m_slMaxNumPerReserve == 2 ? totalSize + 1 : totalSize + 0); //only gapReTx1
   totalSize = (m_slMaxNumPerReserve == 3 ? totalSize + 2 : totalSize + 0); //both gapReTx1 and gapReTx2
 
@@ -220,13 +245,14 @@ NrSlSciF01Header::GetSerializedSize (void) const
 }
 
 void
-NrSlSciF01Header::Serialize (Buffer::Iterator start) const
+NrSlSciF1aHeader::Serialize (Buffer::Iterator start) const
 {
   NS_ASSERT_MSG (EnsureMandConfig (), "All the mandatory fields must be set before serializing");
   Buffer::Iterator i = start;
 
   i.WriteU8 (m_priority);
   i.WriteU8 (m_mcs);
+  i.WriteU8 (m_slSciStage2Format);
   i.WriteHtonU16 (m_slResourceReservePeriod);
   i.WriteHtonU16 (m_totalSubChannels);
   i.WriteU8 (m_indexStartSubChannel);
@@ -244,12 +270,13 @@ NrSlSciF01Header::Serialize (Buffer::Iterator start) const
 }
 
 uint32_t
-NrSlSciF01Header::Deserialize (Buffer::Iterator start)
+NrSlSciF1aHeader::Deserialize (Buffer::Iterator start)
 {
   Buffer::Iterator i = start;
 
   m_priority = i.ReadU8 ();
   m_mcs = i.ReadU8 ();
+  m_slSciStage2Format = i.ReadU8 ();
   m_slResourceReservePeriod = i.ReadNtohU16 ();
   m_totalSubChannels = i.ReadNtohU16 ();
   m_indexStartSubChannel = i.ReadU8 ();
@@ -269,10 +296,11 @@ NrSlSciF01Header::Deserialize (Buffer::Iterator start)
 }
 
 bool
-NrSlSciF01Header::operator == (const NrSlSciF01Header &b) const
+NrSlSciF1aHeader::operator == (const NrSlSciF1aHeader &b) const
 {
   if (m_priority == b.m_priority
       && m_mcs == b.m_mcs
+      && m_slSciStage2Format == b.m_slSciStage2Format
       && m_slResourceReservePeriod == b.m_slResourceReservePeriod
       && m_totalSubChannels == b.m_totalSubChannels
       && m_indexStartSubChannel == b.m_indexStartSubChannel

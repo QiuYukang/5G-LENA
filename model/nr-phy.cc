@@ -882,8 +882,9 @@ NrPhy::SetPsschMacPdu (Ptr<Packet> p)
 }
 
 Ptr<PacketBurst>
-NrPhy::GetPscchPacketBurst (void)
+NrPhy::PopPscchPacketBurst (void)
 {
+  NS_LOG_FUNCTION (this);
   if (m_nrSlPscchPacketBurstQueue.at (0)->GetSize () > 0)
     {
       Ptr<PacketBurst> ret = m_nrSlPscchPacketBurstQueue.at (0)->Copy ();
@@ -900,8 +901,9 @@ NrPhy::GetPscchPacketBurst (void)
 }
 
 Ptr<PacketBurst>
-NrPhy::GetPsschPacketBurst (void)
+NrPhy::PopPsschPacketBurst (void)
 {
+  NS_LOG_FUNCTION (this);
   if (m_nrSlPsschPacketBurstQueue.at (0)->GetSize () > 0)
     {
       Ptr<PacketBurst> ret = m_nrSlPsschPacketBurstQueue.at (0)->Copy ();
@@ -915,6 +917,46 @@ NrPhy::GetPsschPacketBurst (void)
       m_nrSlPsschPacketBurstQueue.push_back (CreateObject <PacketBurst> ());
       return (0);
     }
+}
+
+void
+NrPhy::DoSetNrSlVarTtiAllocInfo (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo)
+{
+  NS_LOG_FUNCTION (this);
+  //only one allocInfo should exist, which would be the slot allocation
+  //info for the current slot.
+  if (m_nrSlAllocInfoQueue.empty ())
+    {
+      //new allocation
+      NrSlPhySlotAlloc alloc;
+      alloc.sfn = sfn;
+      //each Var TTI in slvarTtiInfoList list must differ in their symbol start
+      bool insertStatus = alloc.slvarTtiInfoList.emplace (varTtiInfo).second;
+      NS_ASSERT_MSG (insertStatus, "Insertion failed. A Var TTI starting from symbol " << varTtiInfo.symStart << " already exists");
+      m_nrSlAllocInfoQueue.emplace_front (alloc);
+    }
+  else
+    {
+      auto it = m_nrSlAllocInfoQueue.begin();
+      NS_ASSERT_MSG (it->sfn == sfn, "Allocation queue must contain the allocation info of the same slot");
+      //each Var TTI in slvarTtiInfoList list must differ in their symbol start
+      bool insertStatus = it->slvarTtiInfoList.emplace (varTtiInfo).second;
+      NS_ASSERT_MSG (insertStatus, "Insertion failed. A Var TTI starting from symbol " << varTtiInfo.symStart << " already exists");
+    }
+}
+
+bool
+NrPhy::NrSlSlotAllocInfoExists (const SfnSf &sfn) const
+{
+  NS_LOG_FUNCTION (this);
+  if (m_nrSlPsschPacketBurstQueue.at (0)->GetNPackets () > 0
+      && m_nrSlPsschPacketBurstQueue.at (0)->GetNPackets () > 0
+      && !m_nrSlAllocInfoQueue.empty ())
+    {
+      return true;
+    }
+
+  return false;
 }
 
 

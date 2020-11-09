@@ -21,6 +21,7 @@
 
 
 #include "nr-sl-ue-mac-scheduler-ns3.h"
+#include "nr-sl-phy-mac-common.h"
 
 namespace ns3 {
 
@@ -56,7 +57,7 @@ public:
    */
   virtual bool DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
                                  const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                 NrSlUeMacSchedSapUser::NrSlSlotAlloc &slotAlloc) override;
+                                 NrSlSlotAlloc &slotAlloc) override;
 
 private:
   /**

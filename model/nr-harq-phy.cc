@@ -150,6 +150,70 @@ NrHarqPhy::GetHarqProcessInfo (NrHarqPhy::HistoryMap *map, uint16_t rnti,
   return GetProcIdHistoryMapOf (procIdMap, harqProcId)->second;
 }
 
+//NR SL
+const NrErrorModel::NrErrorModelHistory &
+NrHarqPhy::GetHarqProcessInfoSlData (uint16_t rnti, uint8_t harqProcId)
+{
+  NS_LOG_FUNCTION (this);
+  return GetHarqProcessInfo (&m_slDataHistory, rnti, harqProcId);
+}
+
+void
+NrHarqPhy::UpdateSlDataHarqProcessStatus (uint16_t rnti, uint8_t harqProcId,
+                                          const Ptr<NrErrorModelOutput> &output)
+{
+  NS_LOG_FUNCTION (this);
+  UpdateHarqProcessStatus (&m_slDataHistory, rnti, harqProcId, output);
+}
+
+void
+NrHarqPhy::ResetSlDataHarqProcessStatus (uint16_t rnti, uint8_t id)
+{
+  NS_LOG_FUNCTION (this);
+  ResetHarqProcessStatus (&m_slDataHistory, rnti, id);
+}
+
+void
+NrHarqPhy::IndicatePrevDecoded (uint16_t rnti, uint8_t harqId)
+{
+  NS_LOG_FUNCTION (this << rnti << static_cast<uint16_t> (harqId));
+
+  uint32_t decodedId = (rnti << 8) + harqId;
+
+  if (m_slDecodedTb.find (decodedId) == m_slDecodedTb.end ())
+    {
+      m_slDecodedTb.insert (decodedId);
+    }
+}
+
+bool
+NrHarqPhy::IsPrevDecoded (uint16_t rnti, uint8_t harqId)
+{
+  NS_LOG_FUNCTION (this << rnti << static_cast<uint16_t> (harqId));
+
+  uint32_t decodedId = (rnti << 8) + harqId;
+
+  std::unordered_set<uint32_t>::iterator it = m_slDecodedTb.find (decodedId);
+
+  bool prevDecoded = (it != m_slDecodedTb.end ());
+
+  return prevDecoded;
+}
+
+void
+NrHarqPhy::RemovePrevDecoded (uint16_t rnti, uint8_t harqId)
+{
+  NS_LOG_FUNCTION (this << rnti << static_cast<uint16_t> (harqId));
+
+  uint32_t decodedId = (rnti << 8) + harqId;
+
+  std::unordered_set<uint32_t>::iterator it = m_slDecodedTb.find (decodedId);
+
+  if (it != m_slDecodedTb.end ())
+    {
+      m_slDecodedTb.erase (it);
+    }
+}
 
 
 

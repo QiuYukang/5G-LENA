@@ -61,6 +61,9 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
 
   switch (m_slTimeResourcePscch)
     {
+    case 1:
+      m_pool.slPscchConfig.slTimeResourcePscch.resources = LteRrcSap::SlTimeResourcePscch::N1;
+      break;
     case 2:
       m_pool.slPscchConfig.slTimeResourcePscch.resources = LteRrcSap::SlTimeResourcePscch::N2;
       break;
@@ -160,8 +163,48 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
+        case 10:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS10;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 20:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS20;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 30:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS30;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 40:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS40;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
         case 50:
           slReserved.period = LteRrcSap::SlResourceReservePeriod::MS50;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 60:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS60;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 70:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS70;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 80:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS80;
+          m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
+          ++index;
+          break;
+        case 90:
+          slReserved.period = LteRrcSap::SlResourceReservePeriod::MS90;
           m_pool.slUeSelectedConfigRp.slResourceReservePeriodList [index] = slReserved;
           ++index;
           break;
@@ -267,6 +310,9 @@ NrSlCommPreconfigResourcePoolFactory::CreatePool ()
 
   switch (m_slMaxNumPerReserve)
     {
+    case 1:
+      m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N1;
+      break;
     case 2:
       m_pool.slUeSelectedConfigRp.slMaxNumPerReserve.maxNumPerRes = LteRrcSap::SlMaxNumPerReserve::N2;
       break;

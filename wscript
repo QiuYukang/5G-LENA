@@ -93,8 +93,9 @@ def build(bld):
         'model/nr-sl-comm-preconfig-resource-pool-factory.cc',
         'model/nr-sl-bwp-manager-ue.cc',
         'model/nr-sl-ue-phy-sap.cc',
-        'model/nr-sl-sci-f01-header.cc',
-        'model/nr-sl-sci-f02-header.cc',
+        'model/nr-sl-sci-f1a-header.cc',
+        'model/nr-sl-sci-f2-header.cc',
+        'model/nr-sl-sci-f2a-header.cc',
         'model/nr-sl-ue-mac-sched-sap.cc',
         'model/nr-sl-ue-mac-scheduler.cc',
         'model/nr-sl-ue-mac-scheduler-lcg.cc',
@@ -104,6 +105,8 @@ def build(bld):
         'model/nr-sl-mac-pdu-tag.cc',
         'model/nr-sl-ue-mac-harq.cc',
         'model/nr-sl-phy-mac-common.cc',
+        'model/nr-sl-interference.cc',
+        'model/nr-sl-chunk-processor.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -222,8 +225,9 @@ def build(bld):
         'model/nr-sl-comm-preconfig-resource-pool-factory.h',
         'model/nr-sl-bwp-manager-ue.h',
         'model/nr-sl-ue-phy-sap.h',
-        'model/nr-sl-sci-f01-header.h',
-        'model/nr-sl-sci-f02-header.h',
+        'model/nr-sl-sci-f1a-header.h',
+        'model/nr-sl-sci-f2-header.h',
+        'model/nr-sl-sci-f2a-header.h',
         'model/nr-sl-ue-mac-sched-sap.h',
         'model/nr-sl-ue-mac-csched-sap.h',
         'model/nr-sl-ue-mac-scheduler.h',
@@ -234,6 +238,8 @@ def build(bld):
         'model/nr-sl-mac-pdu-tag.h',
         'model/nr-sl-ue-mac-harq.h',
         'model/nr-sl-phy-mac-common.h',
+        'model/nr-sl-interference.h',
+        'model/nr-sl-chunk-processor.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
