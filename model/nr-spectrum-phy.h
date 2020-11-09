@@ -108,6 +108,7 @@ public:
     RX_DATA,   //!< Receiving data
     RX_DL_CTRL,//!< Receiveing DL CTRL
     RX_UL_CTRL,//!< Receiving UL CTRL
+    RX_UL_SRS, //!< Receiving SRS
     CCA_BUSY   //!< BUSY state (channel occupied by another entity)
   };
 
@@ -239,6 +240,13 @@ public:
    * \param p the chunk processor
    */
   void AddDataSinrChunkProcessor (const Ptr<LteChunkProcessor>& p);
+
+  /*
+   * \brief Adds the chunk processort that will process the interference for SRS signals at gNBs
+   * \param p the chunk processor
+   */
+  void AddSrsSinrChunkProcessor (const Ptr<LteChunkProcessor>& p);
+
   /**
    * \brief SpectrumPhy that will be called when the SINR for the received
    * DATA is being calculated by the interference object over DATA chunk
@@ -246,6 +254,14 @@ public:
    * \param sinr the resulting SINR spectrum value
    */
   void UpdateSinrPerceived (const SpectrumValue& sinr);
+
+  /**
+    * \brief SpectrumPhy that will be called when the SINR for the received
+    * SRS at gNB is being calculated by the interference object over SRS chunk
+    * processor
+    * \param sinr the resulting SRS SINR spectrum value
+    */
+   void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
   /**
    * \brief Install HARQ phy module of this spectrum phy
    * \param harq Harq module of this spectrum phy
@@ -326,6 +342,12 @@ private:
    */
   void StartRxUlCtrl (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
   /**
+   * \brief Function that is called when is being received SRS
+   * \param param should hold UL CTRL frame singal parameters containing only
+   * one CTRL message which should be of type SRS
+   */
+  void StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
+  /**
    * \return the cell id
    */
   uint16_t GetCellId () const;
@@ -361,6 +383,12 @@ private:
    */
    void EndRxCtrl ();
    /**
+    * \brief Function that is celled when the spectrum phy finishes the reception of SRS.
+    * It stores SRS message, calles the interference calculator to notify the end of the
+    * reception which will trigger SRS SINR calculation, and it also updates the spectrum phy state.
+    */
+   void EndRxSrs ();
+   /**
     * \brief Check if the channel is busy. If yes, updates the spectrum phy state.
     */
    void MaybeCcaBusy ();
@@ -372,6 +400,15 @@ private:
     * channel is BUSY to switch back from busy to idle.
     */
    void CheckIfStillBusy ();
+   /**
+    * \brief Checks whether the CTRL message list contains only SRS control message.
+    * Only if the list has only one CTRL message and that message is SRS the function
+    * will return true, otherwise it will return false.
+    * \ctrlMsgList uplink control message list
+    * \returns an indicator whether the ctrlListMessage contains only SRS message
+    */
+   bool IsOnlySrs (const std::list<Ptr<NrControlMessage> >& ctrlMsgList);
+
    /**
     * \brief Information about the expected transport block at a certain point in the slot
     *
@@ -437,6 +474,7 @@ private:
   Ptr<const NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
   Ptr<NrHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
   Ptr<nrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
+  Ptr<nrInterference> m_interferenceSrs {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy, exists only at gNB phy
   Ptr<SpectrumValue> m_txPsd {nullptr}; //!< tx power spectral density
   Ptr<UniformRandomVariable> m_random {nullptr}; //!< the random variable used for TB decoding
 
@@ -448,6 +486,7 @@ private:
   Time m_firstRxDuration {Seconds (0)}; //!< the duration of the current reception
   State m_state {IDLE}; //!<spectrum phy state
   SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
+  SpectrumValue m_srsSinrPerceived; //!< SINR that is being updated at the end of the SRS reception at the gNB, it is used to notify realistic-beamforming mechanism about SRS SINR
   EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY to IDLE.
   Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time
 

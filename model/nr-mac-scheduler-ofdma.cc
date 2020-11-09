@@ -172,11 +172,16 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
   for (const auto &el : activeDl)
     {
       // Distribute the RBG evenly among UEs of the same beam
-      uint32_t resources = GetBandwidthInRbg ();
       uint32_t beamSym = symPerBeam.at (GetBeamId (el));
-      uint32_t rbgAssignable = beamSym;
+      uint32_t rbgAssignable = 1 * beamSym;
       std::vector<UePtrAndBufferReq> ueVector;
       FTResources assigned (0,0);
+      const std::vector<uint8_t> dlNotchedRBGsMask = GetDlNotchedRbgMask ();
+      uint32_t resources = dlNotchedRBGsMask.size () > 0 ? std::count (dlNotchedRBGsMask.begin (),
+                                                                     dlNotchedRBGsMask.end (),
+                                                                     1) : GetBandwidthInRbg ();
+      NS_ASSERT (resources > 0);
+
       for (const auto &ue : GetUeVector (el))
         {
           ueVector.emplace_back (ue);
@@ -197,7 +202,7 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              if (GetUe (*schedInfoIt)->m_dlTbSize >= bufQueueSize)
+              if (GetUe (*schedInfoIt)->m_dlTbSize >= std::max (bufQueueSize, 7U))
                 {
                   schedInfoIt++;
                 }
@@ -261,11 +266,16 @@ NrMacSchedulerOfdma::AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl
   for (const auto &el : activeUl)
     {
       // Distribute the RBG evenly among UEs of the same beam
-      uint32_t resources = GetBandwidthInRbg ();
       uint32_t beamSym = symPerBeam.at (GetBeamId (el));
-      uint32_t rbgAssignable = beamSym;
+      uint32_t rbgAssignable = 1 * beamSym;
       std::vector<UePtrAndBufferReq> ueVector;
       FTResources assigned (0,0);
+      const std::vector<uint8_t> ulNotchedRBGsMask = GetUlNotchedRbgMask ();
+      uint32_t resources = ulNotchedRBGsMask.size () > 0 ? std::count (ulNotchedRBGsMask.begin (),
+                                                                     ulNotchedRBGsMask.end (),
+                                                                     1) : GetBandwidthInRbg ();
+      NS_ASSERT (resources > 0);
+
       for (const auto &ue : GetUeVector (el))
         {
           ueVector.emplace_back (ue);
@@ -286,7 +296,7 @@ NrMacSchedulerOfdma::AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              if (GetUe (*schedInfoIt)->m_ulTbSize >= bufQueueSize)
+              if (GetUe (*schedInfoIt)->m_ulTbSize >= std::max (bufQueueSize, 7U))
                 {
                   schedInfoIt++;
                 }
@@ -346,8 +356,8 @@ NrMacSchedulerOfdma::AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl
  */
 std::shared_ptr<DciInfoElementTdma>
 NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
-                                      const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                      uint32_t maxSym) const
+                                  const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
+                                  uint32_t maxSym) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -355,7 +365,8 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
                                            ueInfo->m_dlRBG * GetNumRbPerRbg ());
   NS_ASSERT_MSG (ueInfo->m_dlRBG % maxSym == 0, " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
   NS_ASSERT (ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg ());
-  NS_ABORT_IF (maxSym > UINT8_MAX);
+  NS_ASSERT (spoint->m_rbg < GetBandwidthInRbg ());
+  NS_ASSERT (maxSym <= UINT8_MAX);
 
   // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
   // transmit any new data, so don't create dci.
@@ -367,24 +378,49 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
     }
 
   uint32_t RBGNum = ueInfo->m_dlRBG / maxSym;
-  std::vector<uint8_t> rbgBitmask;
+  std::vector<uint8_t> rbgBitmask = GetDlNotchedRbgMask ();
 
+  if (rbgBitmask.size () == 0)
+    {
+      rbgBitmask = std::vector<uint8_t> (GetBandwidthInRbg (), 1);
+    }
+
+  // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
+
+  NS_ASSERT (rbgBitmask.size () == GetBandwidthInRbg ());
+
+  uint32_t lastRbg = spoint->m_rbg;
+
+  // Limit the places in which we can transmit following the starting point
+  // and the number of RBG assigned to the UE
   for (uint32_t i = 0; i < GetBandwidthInRbg (); ++i)
     {
-      if (i >= spoint->m_rbg && i < spoint->m_rbg + RBGNum)
+      if (i >= spoint->m_rbg && RBGNum > 0 && rbgBitmask[i] == 1)
         {
-          rbgBitmask.push_back (1);
+          // assigned! Decrement RBGNum and continue the for
+          RBGNum--;
+          lastRbg = i;
         }
       else
         {
-          rbgBitmask.push_back (0);
+          // Set to 0 the position < spoint->m_rbg OR the remaining RBG when
+          // we already assigned the number of requested RBG
+          rbgBitmask[i] = 0;
         }
     }
 
+  NS_ASSERT_MSG (RBGNum == 0,
+                 "If you see this message, it means that the AssignRBG and CreateDci method are unaligned");
+
+  std::ostringstream oss;
+  for (const auto & x: rbgBitmask)
+    {
+      oss << std::to_string (x) << " ";
+    }
+
   NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
-               static_cast<uint32_t> (spoint->m_rbg) << " to " <<
-               static_cast<uint32_t> (spoint->m_rbg + RBGNum) << " for " <<
-               static_cast<uint32_t> (maxSym) << " SYM.");
+               static_cast<uint32_t> (spoint->m_rbg) << " with mask " <<
+               oss.str () << " for " << static_cast<uint32_t> (maxSym) << " SYM.");
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, DciInfoElementTdma::DL, spoint->m_sym, maxSym, ueInfo->m_dlMcs,
@@ -392,7 +428,9 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 
-  spoint->m_rbg += RBGNum;
+  NS_ASSERT (std::count (dci->m_rbgBitmask.begin (), dci->m_rbgBitmask.end (), 0) != GetBandwidthInRbg ());
+
+  spoint->m_rbg = lastRbg + 1;
 
   return dci;
 }
@@ -417,23 +455,44 @@ NrMacSchedulerOfdma::CreateUlDci (PointInFTPlane *spoint,
     }
 
   uint32_t RBGNum = ueInfo->m_ulRBG / maxSym;
-  std::vector<uint8_t> rbgBitmask;
+  std::vector<uint8_t> rbgBitmask = GetUlNotchedRbgMask ();
 
+  if (rbgBitmask.size () == 0)
+    {
+      rbgBitmask = std::vector<uint8_t> (GetBandwidthInRbg (), 1);
+    }
+
+  // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
+
+  NS_ASSERT (rbgBitmask.size () == GetBandwidthInRbg ());
+
+  uint32_t lastRbg = spoint->m_rbg;
+  uint32_t assigned = RBGNum;
+
+  // Limit the places in which we can transmit following the starting point
+  // and the number of RBG assigned to the UE
   for (uint32_t i = 0; i < GetBandwidthInRbg (); ++i)
     {
-      if (i >= spoint->m_rbg && i < spoint->m_rbg + RBGNum)
+      if (i >= spoint->m_rbg && RBGNum > 0 && rbgBitmask[i] == 1)
         {
-          rbgBitmask.push_back (1);
+          // assigned! Decrement RBGNum and continue the for
+          RBGNum--;
+          lastRbg = i;
         }
       else
         {
-          rbgBitmask.push_back (0);
+          // Set to 0 the position < spoint->m_rbg OR the remaining RBG when
+          // we already assigned the number of requested RBG
+          rbgBitmask[i] = 0;
         }
     }
 
+  NS_ASSERT_MSG (RBGNum == 0,
+                 "If you see this message, it means that the AssignRBG and CreateDci method are unaligned");
+
   NS_LOG_INFO ("UE " << ueInfo->m_rnti << " assigned RBG from " <<
                static_cast<uint32_t> (spoint->m_rbg) << " to " <<
-               static_cast<uint32_t> (spoint->m_rbg + RBGNum) << " for " <<
+               static_cast<uint32_t> (spoint->m_rbg + assigned) << " for " <<
                static_cast<uint32_t> (maxSym) << " SYM.");
 
   NS_ASSERT (spoint->m_sym >= maxSym);
@@ -443,7 +502,16 @@ NrMacSchedulerOfdma::CreateUlDci (PointInFTPlane *spoint,
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 
-  spoint->m_rbg += RBGNum;
+  std::ostringstream oss;
+  for (auto x: dci->m_rbgBitmask)
+  {
+   oss << std::to_string(x) << " ";
+  }
+  NS_LOG_INFO ("UE " << ueInfo->m_rnti << " DCI RBG mask: " << oss.str());
+
+  NS_ASSERT (std::count (dci->m_rbgBitmask.begin (), dci->m_rbgBitmask.end (), 0) != GetBandwidthInRbg ());
+
+  spoint->m_rbg = lastRbg + 1;
 
   return dci;
 }

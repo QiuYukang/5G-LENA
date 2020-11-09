@@ -222,6 +222,38 @@ NrUePhy::DoSendControlMessageNow (Ptr<NrControlMessage> msg)
 }
 
 void
+NrUePhy::ProcessDataDci (const SfnSf &ulSfnSf,
+                         const std::shared_ptr<DciInfoElementTdma> &dciInfoElem)
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_LOG_DEBUG ("UE" << m_rnti <<
+                " UL-DCI received for slot " << ulSfnSf <<
+                " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
+                " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
+                " tbs " << dciInfoElem->m_tbSize <<
+                " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+
+  if (ulSfnSf == m_currentSlot)
+    {
+      InsertAllocation (dciInfoElem);
+    }
+  else
+    {
+      InsertFutureAllocation (ulSfnSf, dciInfoElem);
+    }
+}
+
+void
+NrUePhy::ProcessSrsDci (const SfnSf &ulSfnSf, const std::shared_ptr<DciInfoElementTdma> &dciInfoElem)
+{
+  NS_LOG_FUNCTION (this);
+  NS_UNUSED (ulSfnSf);
+  NS_UNUSED (dciInfoElem);
+  // Instruct PHY for transmitting the SRS
+}
+
+void
 NrUePhy::RegisterToEnb (uint16_t bwpId)
 {
   NS_LOG_FUNCTION (this);
@@ -363,7 +395,6 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
           return;   // DCI not for me
         }
 
-
       SfnSf dciSfn = m_currentSlot;
       uint32_t k0Delay = dciMsg->GetKDelay ();
       dciSfn.Add (k0Delay);
@@ -406,23 +437,16 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       uint32_t k2Delay = dciMsg->GetKDelay ();
       ulSfnSf.Add (k2Delay);
 
-      NS_LOG_DEBUG ("UE" << m_rnti <<
-                    " UL-DCI received for slot " << ulSfnSf <<
-                    " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
-                    " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                    " tbs " << dciInfoElem->m_tbSize <<
-                    " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
-
-      if (ulSfnSf == m_currentSlot)
+      if (dciInfoElem->m_type == DciInfoElementTdma::DATA)
         {
-          InsertAllocation (dciInfoElem);
+          ProcessDataDci (ulSfnSf, dciInfoElem);
+          m_phySapUser->ReceiveControlMessage (msg);
         }
-      else
+      else if (dciInfoElem->m_type == DciInfoElementTdma::SRS)
         {
-          InsertFutureAllocation (ulSfnSf, dciInfoElem);
+          ProcessSrsDci (ulSfnSf, dciInfoElem);
+          // Do not pass the DCI to MAC
         }
-
-      m_phySapUser->ReceiveControlMessage (msg);
     }
   else if (msg->GetMessageType () == NrControlMessage::MIB)
     {
@@ -640,9 +664,9 @@ NrUePhy::StartSlot (const SfnSf &s)
         {
           type = "CTRL";
         }
-      else if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL_DATA)
+      else if (alloc.m_dci->m_type == DciInfoElementTdma::SRS)
         {
-          type = "CTRL_DATA";
+          type = "SRS";
         }
       else
         {
@@ -1095,6 +1119,17 @@ void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_DEBUG ("PHY starting. Configuration: "  << std::endl <<
+                "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                "\t Numerology: " << GetNumerology () << std::endl <<
+                "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                "Attached to physical channel: " << std::endl <<
+                "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                "\t Num. RB: " << GetRbNum ());
   SfnSf startSlot (frame, subframe, slot, GetNumerology ());
   StartSlot (startSlot);
 }
@@ -1105,8 +1140,22 @@ NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
   NS_LOG_FUNCTION (this << +dlBandwidth);
   if (m_channelBandwidth != dlBandwidth)
     {
+      NS_LOG_DEBUG ("Channel bandwidth changed from " << m_channelBandwidth << " to " <<
+                    dlBandwidth);
       m_channelBandwidth = dlBandwidth;
       UpdateRbNum ();
+
+      NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
+                    "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                    "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                    "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                    "\t Numerology: " << GetNumerology () << std::endl <<
+                    "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                    "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                    "Attached to physical channel: " << std::endl <<
+                    "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                    "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                    "\t Num. RB: " << GetRbNum ());
     }
 }
 

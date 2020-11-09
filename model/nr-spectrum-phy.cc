@@ -62,6 +62,9 @@ operator<<(std::ostream &os, const enum NrSpectrumPhy::State state)
     case NrSpectrumPhy::IDLE:
       os << "IDLE";
       break;
+    case NrSpectrumPhy::RX_UL_SRS:
+      os << "RX_UL_SRS";
+      break;
     default:
       NS_ABORT_MSG ("Unknown state.");
   }
@@ -96,6 +99,12 @@ NrSpectrumPhy::DoDispose ()
   if (m_interferenceData)
     {
       m_interferenceData->Dispose ();
+    }
+
+  if (m_interferenceSrs)
+    {
+      m_interferenceSrs->Dispose ();
+      m_interferenceSrs = nullptr;
     }
 
   m_interferenceData = nullptr;
@@ -233,6 +242,18 @@ void
 NrSpectrumPhy::SetDevice (Ptr<NetDevice> d)
 {
   m_device = d;
+  // It would be appropriate that the creation of interference for SRS is in the constructor.
+  // But, in the constructor since the device is yet not configured we don't know if we
+  // need or not to create the interference object for SRS. It should be only created at gNBs, and
+  // not at UEs. That is why we postpone the creation to the moment of setting the device.
+  // The other option would be to pass the device as a parameter to the constructor of the NrSpectrumPhy.
+  // But since NrSpectrumPhy inherits this SetDevice function from SpectrumPhy class, so
+  // passing also device as a parameter to constructor would create a more complicate interface.
+
+  if (IsEnb ())
+    {
+      m_interferenceSrs = CreateObject<nrInterference> ();
+    }
 }
 
 Ptr<NetDevice>
@@ -319,7 +340,13 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noi
   NS_ASSERT (noisePsd);
   m_rxSpectrumModel = noisePsd->GetSpectrumModel ();
   m_interferenceData->SetNoisePowerSpectralDensity (noisePsd);
+  if (m_interferenceSrs)
+    {
+      m_interferenceSrs->SetNoisePowerSpectralDensity (noisePsd);
+    }
+    
   m_slInterference->SetNoisePowerSpectralDensity (noisePsd);
+  
   if (m_channel)
     {
       m_channel->AddRx (this);
@@ -346,6 +373,12 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
   // pass it to interference calculations regardless of the type (nr or non-nr)
   m_interferenceData->AddSignal (rxPsd, duration);
+
+  // pass the signal to the interference calculator regardless of the type (nr or non-nr)
+  if (m_interferenceSrs)
+    {
+      m_interferenceSrs->AddSignal (rxPsd, duration);
+    }
 
   Ptr<NrSpectrumSignalParametersDataFrame> nrDataRxParams =
     DynamicCast<NrSpectrumSignalParametersDataFrame> (params);
@@ -398,7 +431,14 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
         {
           if (ulCtrlRxParams->cellId == GetCellId ())
             {
-              StartRxUlCtrl (ulCtrlRxParams);
+              if (IsOnlySrs (ulCtrlRxParams->ctrlMsgList))
+                {
+                  StartRxSrs (ulCtrlRxParams);
+                }
+              else
+                {
+                  StartRxUlCtrl (ulCtrlRxParams);
+                }
             }
           else
             {
@@ -441,6 +481,8 @@ NrSpectrumPhy::StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Pt
     case RX_DL_CTRL:
       /* no break */
     case RX_UL_CTRL:
+      /* no break*/
+    case RX_UL_SRS:
       NS_FATAL_ERROR ("Cannot TX while RX.");
       break;
     case TX:
@@ -509,6 +551,8 @@ NrSpectrumPhy::StartTxDlControlFrames (const std::list<Ptr<NrControlMessage> > &
     case RX_DL_CTRL:
       /* no break */
     case RX_UL_CTRL:
+      /* no break*/
+    case RX_UL_SRS:
       NS_FATAL_ERROR ("Cannot TX while RX.");
       break;
     case TX:
@@ -557,6 +601,8 @@ NrSpectrumPhy::StartTxUlControlFrames (const std::list<Ptr<NrControlMessage> > &
     case RX_DL_CTRL:
       /* no break */ 
     case RX_UL_CTRL:
+      /* no break */
+    case RX_UL_SRS:
       NS_FATAL_ERROR ("Cannot TX while RX.");
       break;
     case TX:
@@ -605,10 +651,26 @@ NrSpectrumPhy::AddDataSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
 }
 
 void
+NrSpectrumPhy::AddSrsSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (IsEnb () && m_interferenceSrs, "Something is wrong. SRS interference object does not exist or this device is not gNb.");
+  m_interferenceSrs->AddSinrChunkProcessor (p);
+}
+
+void
+NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
+{
+  NS_LOG_FUNCTION (this << srsSinr);
+  NS_LOG_INFO ("Update SRS SINR perceived with this value: " << srsSinr);
+  m_srsSinrPerceived = srsSinr;
+}
+
+void
 NrSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
 {
   NS_LOG_FUNCTION (this << sinr);
-  NS_LOG_LOGIC ("Update SINR perceived with this value: " << sinr);
+  NS_LOG_INFO ("Update SINR perceived with this value: " << sinr);
   m_sinrPerceived = sinr;
 }
 
@@ -688,7 +750,7 @@ NrSpectrumPhy::StartRxData (const Ptr<NrSpectrumSignalParametersDataFrame>& para
   switch (m_state)
     {
     case TX:
-      if (IsEnb()) // I am gNB. We are here because some of my rebellious UEs is transmitting at the same time as me. -> invalid state.
+      if (IsEnb ()) // I am gNB. We are here because some of my rebellious UEs is transmitting at the same time as me. -> invalid state.
         {
           NS_FATAL_ERROR ("eNB transmission overlaps in time with UE transmission. CellId:" << params->cellId);
         }
@@ -702,6 +764,8 @@ NrSpectrumPhy::StartRxData (const Ptr<NrSpectrumSignalParametersDataFrame>& para
     case RX_DL_CTRL:
       /* no break */
     case RX_UL_CTRL:
+      /* no break */
+    case RX_UL_SRS:
       NS_FATAL_ERROR ("Cannot receive DATA while receiving CTRL.");
       break;
     case CCA_BUSY:
@@ -772,7 +836,9 @@ NrSpectrumPhy::StartRxDlCtrl (const Ptr<NrSpectrumSignalParametersDlCtrlFrame>& 
       NS_FATAL_ERROR ("Cannot RX DL CTRL while already receiving DL CTRL.");
       break;
     case RX_UL_CTRL:
-      NS_FATAL_ERROR ("UE should never be in RX_UL_CTRL state.");
+      /* no break */
+    case RX_UL_SRS:
+      NS_FATAL_ERROR ("UE should never be in RX_UL_CTRL or RX_UL_SRS state.");
       break;
     case CCA_BUSY:
       NS_LOG_INFO ("Start receiving CTRL while channel in CCA_BUSY state.");
@@ -813,6 +879,9 @@ NrSpectrumPhy::StartRxUlCtrl (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& 
     case RX_DATA:
       NS_FATAL_ERROR ("Cannot RX UL CTRL while receiving DATA.");
       break;
+    case RX_UL_SRS:
+      NS_FATAL_ERROR ("Cannot start RX UL CTRL while already receiving SRS.");
+      break;
     case RX_DL_CTRL:
       NS_FATAL_ERROR ("gNB should not be in RX_DL_CTRL state.");
       break;
@@ -851,6 +920,62 @@ NrSpectrumPhy::StartRxUlCtrl (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& 
     }
 }
 
+void
+NrSpectrumPhy::StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params)
+{
+  // The current code of this function assumes:
+  // 1) that this function is called only when cellId = m_cellId
+  // 2) this function should be only called for gNB, only gNB should enter into reception of UL SRS signals
+  // 3) SRS should be received only one at a time, otherwise this function should assert
+  // 4) CTRL message list contains only one message and that one is SRS CTRL message
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (params->cellId == GetCellId () &&
+             IsEnb () &&
+             m_state != RX_UL_SRS &&
+             params->ctrlMsgList.size() == 1 &&
+             (*params->ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS);
+
+  switch (m_state)
+    {
+    case TX:
+      NS_FATAL_ERROR ("Cannot RX SRS while TX.");
+      break;
+    case RX_DATA:
+      NS_FATAL_ERROR ("Cannot RX SRS while receiving DATA.");
+      break;
+    case RX_DL_CTRL:
+      NS_FATAL_ERROR ("gNB should not be in RX_DL_CTRL state.");
+      break;
+    case RX_UL_CTRL:
+      NS_FATAL_ERROR ("gNB should not receive simultaneously non SRS and SRS uplink control signals");
+      break;
+    case CCA_BUSY:
+      NS_LOG_INFO ("Start receiving UL SRS while channel in CCA_BUSY state.");
+      /* no break */
+    case IDLE:
+      {
+        // at the gNB we can receive only one SRS at a time, and the only allowed states before starting it are IDLE or BUSY
+        m_interferenceSrs->StartRx (params->psd);
+        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be empty
+        NS_ASSERT (m_rxControlMessageList.empty ());
+        m_firstRxStart = Simulator::Now ();
+        m_firstRxDuration = params->duration;
+        NS_LOG_LOGIC (this << " scheduling EndRx for SRS signal reception with delay " << params->duration);
+        // store the SRS message in the CTRL message list
+        m_rxControlMessageList = params->ctrlMsgList;
+        Simulator::Schedule (params->duration, &NrSpectrumPhy::EndRxSrs, this);
+        ChangeState (RX_UL_SRS, params->duration);
+      }
+      break;
+    default:
+      {
+        // not allowed state for starting the SRS reception
+        NS_FATAL_ERROR ("Not allowed state for starting SRS reception.");
+        break;
+      }
+    }
+}
+
 uint16_t
 NrSpectrumPhy::GetCellId() const
 {
@@ -865,6 +990,7 @@ uint16_t NrSpectrumPhy::GetBwpId() const
 bool
 NrSpectrumPhy::IsEnb () const
 {
+  NS_ASSERT_MSG (GetDevice () != nullptr, "IsEnb should not be called before device is being set.");
   return (DynamicCast<NrGnbNetDevice> (GetDevice ()) != nullptr);
 }
 
@@ -1182,6 +1308,35 @@ NrSpectrumPhy::EndRxCtrl ()
 }
 
 void
+NrSpectrumPhy::EndRxSrs ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_state == RX_UL_SRS && m_rxControlMessageList.size() ==1 );
+
+  // notify interference calculator that the reception of SRS is finished,
+  // so that chunk processors can be notified to calcualate SINR, and if other
+  // processor is registered
+  m_interferenceSrs->EndRx();
+
+  if (m_phyRxCtrlEndOkCallback)
+    {
+      m_phyRxCtrlEndOkCallback (m_rxControlMessageList, GetBwpId ());
+    }
+
+  // if in unlicensed mode check after reception if we are in IDLE or CCA_BUSY mode
+  if (m_unlicensedMode)
+    {
+      MaybeCcaBusy ();
+    }
+  else
+    {
+      ChangeState (IDLE, Seconds (0));
+    }
+
+  m_rxControlMessageList.clear ();
+}
+
+void
 NrSpectrumPhy::MaybeCcaBusy ()
 {
   NS_LOG_FUNCTION (this);
@@ -1241,6 +1396,21 @@ NrSpectrumPhy::CheckIfStillBusy ()
           NS_LOG_INFO (" Wait while channel BUSY for: "<<delayUntilCcaEnd<<" ns.");
         }
     }
+}
+
+bool
+NrSpectrumPhy::IsOnlySrs (const std::list<Ptr<NrControlMessage> >& ctrlMsgList)
+{
+  NS_ASSERT_MSG(ctrlMsgList.size(), "Passed an empty uplink control list");
+
+   if (ctrlMsgList.size() == 1 && (*ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS )
+     {
+       return true;
+     }
+   else
+     {
+       return false;
+     }
 }
 
 //NR SL

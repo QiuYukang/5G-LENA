@@ -33,6 +33,8 @@ def build(bld):
     obj.source = 'rem-beam-example.cc'
     obj = bld.create_ns3_program('cttc-fh-compression', ['nr','flow-monitor'])
     obj.source = 'cttc-fh-compression.cc'
+    obj = bld.create_ns3_program('cttc-nr-notching', ['nr','flow-monitor'])
+    obj.source = 'cttc-nr-notching.cc'
 
 
     bld.recurse('lena-lte-comparison')

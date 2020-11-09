@@ -92,6 +92,16 @@ compiler errors: but we are sure you can fix them.
 1. Reduce compile times;
 2. Break cyclic references when two definitions both uses each other.
 
+Note that the files from the local folder are included by using "", 
+while the files from the other folders are included with <>, 
+i.e., files that are included with "ns3/" prefix. E.g.,: 
+
+```
+#include <ns3/log.h> // inclusion of a header from another folder
+#include "nr-phy.h"  // inclusion of a header from the same folder
+```
+
+
 API design
 ----------
 

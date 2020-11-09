@@ -67,6 +67,7 @@ public:
     BSR,          //!< Buffer Status Report
     DL_HARQ,      //!< DL HARQ feedback
     SR,           //!< Scheduling Request: asking for space
+    SRS,          //!< SRS
   };
 
   /**
@@ -522,6 +523,24 @@ public:
 private:
   DlHarqInfo m_dlHarqInfo; //!< DL Harq Info
 
+};
+
+/**
+ * \ingroup utils
+ * \brief NrSrsMessage message
+ *
+ */
+class NrSrsMessage : public NrControlMessage
+{
+public:
+  /**
+   * \brief NrDlHarqFeedbackMessage constructor
+   */
+  NrSrsMessage (void);
+  /**
+   * \brief ~NrDlHarqFeedbackMessage
+   */
+  virtual ~NrSrsMessage (void) = default;
 };
 
 }

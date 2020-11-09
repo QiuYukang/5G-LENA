@@ -156,9 +156,9 @@ struct DciInfoElementTdma
    */
   enum VarTtiType
   {
-    CTRL_DATA = 0, //!< Not used anywhere
-    DATA = 1,      //!< Used for DL/UL DATA
-    CTRL = 2       //!< Used for DL/UL CTRL
+    SRS = 0,   //!< Used for SRS (it would be like DCI format 2_3)
+    DATA = 1,  //!< Used for DL/UL DATA
+    CTRL = 2,  //!< Used for DL/UL CTRL
   };
 
   /**
@@ -233,7 +233,7 @@ struct DciInfoElementTdma
   const uint32_t m_tbSize     {0};
   const uint8_t m_ndi         {0};   // By default is retransmission
   const uint8_t m_rv          {0};   // not used for UL DCI
-  const VarTtiType m_type     {CTRL_DATA};
+  const VarTtiType m_type     {SRS};
   const uint8_t m_bwpIndex    {0};  //!< BWP Index to identify to which BWP this DCI applies to.
   uint8_t m_harqProcess {0};
   std::vector<uint8_t> m_rbgBitmask  {};   //!< RBG mask: 0 if the RBG is not used, 1 otherwise
@@ -335,6 +335,11 @@ struct SlotAllocInfo
    * \return true if m_varTtiAllocInfo contains a DL ctrl allocation
    */
   bool ContainsDlCtrlAllocation () const;
+
+  /**
+   * \return true if m_varTtiAllocInfo contains a scheduled UL ctrl allocation (e.g., SRS)
+   */
+  bool ContainsUlCtrlAllocation () const;
 
   SfnSf m_sfnSf          {};     //!< SfnSf of this allocation
   uint32_t m_numSymAlloc {0};    //!< Number of allocated symbols

@@ -89,6 +89,8 @@ def build(bld):
         'model/ideal-beamforming-algorithm.cc',
         'model/sfnsf.cc',
         'model/lena-error-model.cc',
+        'model/nr-mac-scheduler-srs-default.cc',
+        'model/realistic-beamforming-algorithm.cc',
         'model/nr-sl-comm-resource-pool-factory.cc',
         'model/nr-sl-comm-preconfig-resource-pool-factory.cc',
         'model/nr-sl-bwp-manager-ue.cc',
@@ -131,7 +133,9 @@ def build(bld):
         'test/nr-lte-cc-bwp-configuration.cc',
         'test/system-scheduler-test.cc',
         'test/test-nr-mac-short-bsr-ce.cc',
+        'test/nr-test-notching.cc',
         'test/test-nr-sl-sci-headers.cc',
+        'test/nr-realistic-beamforming-test.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -221,6 +225,9 @@ def build(bld):
         'model/ideal-beamforming-algorithm.h',
         'model/sfnsf.h',
         'model/lena-error-model.h',
+        'model/nr-mac-scheduler-srs.h',
+        'model/nr-mac-scheduler-srs-default.h',
+        'model/realistic-beamforming-algorithm.h',
         'model/nr-sl-comm-resource-pool-factory.h',
         'model/nr-sl-comm-preconfig-resource-pool-factory.h',
         'model/nr-sl-bwp-manager-ue.h',

@@ -285,7 +285,7 @@ private:
   void DoReportSrToScheduler (uint16_t rnti);
   void DoReceivePhyPdu (Ptr<Packet> p);
   void DoReceiveControlMessage  (Ptr<NrControlMessage> msg);
-  void DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters ind);
+  virtual void DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters ind);
   // forwarded from LteMacSapProvider
   void DoTransmitPdu (LteMacSapProvider::TransmitPduParameters);
   void DoReportBufferStatus (LteMacSapProvider::ReportBufferStatusParameters);

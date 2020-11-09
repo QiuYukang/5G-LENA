@@ -392,6 +392,27 @@ NrPhy::GetCentralFrequency() const
   return m_centralFrequency;
 }
 
+std::string
+NrPhy::GetPattern (const std::vector<LteNrTddSlotType> &pattern)
+{
+  static std::unordered_map<LteNrTddSlotType, std::string, std::hash<int>> lookupTable =
+  {
+    { LteNrTddSlotType::DL, "DL"},
+    { LteNrTddSlotType::UL, "UL"},
+    { LteNrTddSlotType::S,  "S"},
+    { LteNrTddSlotType::F,  "F"}
+  };
+
+  std::stringstream ss;
+
+  for (const auto & v : pattern)
+    {
+      ss << lookupTable[v] << "|";
+    }
+
+  return ss.str ();
+}
+
 void
 NrPhy::EnqueueCtrlMessage (const Ptr<NrControlMessage> &m)
 {

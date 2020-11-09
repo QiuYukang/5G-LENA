@@ -64,6 +64,12 @@ public:
   bool operator==(const BeamId& p) const;
 
   /**
+   * \brief Overrides != operator for the general use case
+   * \param p BeamId with which we compare this object
+   */
+  bool operator!=(const BeamId& p) const;
+
+  /**
    * \brief Extract the sector from the beam id
    * \return The sector of the beam
    * \param b beam

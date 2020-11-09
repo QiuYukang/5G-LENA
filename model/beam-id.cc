@@ -38,11 +38,16 @@ BeamId::BeamId (uint16_t sector, double elevation)
   m_elevation = elevation;
 }
 
-
 bool
 BeamId::operator==(const BeamId& p) const
 {
   return m_sector == p.GetSector() && m_elevation == p.GetElevation();
+}
+
+bool
+BeamId::operator!=(const BeamId& p) const
+{
+  return (m_sector != p.GetSector() || m_elevation != p.GetElevation());
 }
 
 uint16_t

@@ -40,7 +40,7 @@ void
 BeamManager::Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray)
 {
   m_antennaArray = antennaArray;
-  ChangeToOmniTx ();
+  ChangeToQuasiOmniBeamformingVector ();
 }
 
 complexVector_t
@@ -135,7 +135,7 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
         }
       else
         {
-          m_antennaArray->ChangeToOmniTx();
+          ChangeToQuasiOmniBeamformingVector();
         }
     }
   else
@@ -143,6 +143,7 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
       NS_LOG_INFO ("Beamforming vector found");
       m_antennaArray->SetBeamformingVector(it->second.first);
     }
+  NS_ASSERT_MSG (!m_antennaArray->IsOmniTx(), "IsOmniTx indicator in antenna should always be false");
 }
 
 complexVector_t
@@ -152,7 +153,7 @@ BeamManager::GetCurrentBeamformingVector ()
 }
 
 void
-BeamManager::ChangeToOmniTx ()
+BeamManager::ChangeToQuasiOmniBeamformingVector ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -232,6 +233,7 @@ void
 BeamManager::SetSector (uint16_t sector, double elevation) const
 {
   NS_LOG_INFO ("Set sector to :"<< (unsigned) sector<< ", and elevation to:"<< elevation);
+  NS_ASSERT_MSG (!m_antennaArray->IsOmniTx(), "IsOmniTx indicator in antenna should always be false");
   m_antennaArray->SetBeamformingVector(CreateDirectionalBfv (m_antennaArray, sector, elevation));
 }
 

@@ -44,175 +44,126 @@ us a note on ns-developers mailing list.
 
 ---
 
-## Changes from NR-v0.4 to NR-dev
+## Changes from NR-v1.0 to v1.1
 
 ### New API:
 
-* Extended the GridScenarioHelper with the introduction of the GridScenarioHelper
-class. This new class creates a hexagonal grid deployment consisiting of up to 19 
-sites with 3 sectors of 120º each, resulting in 57 hexagonal cells. The resulting
-location of sites and UEs can be represented with gnuplot.
+- The scheduler now support the setting of the notched mask, through
+  void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
+  for the DL and
+  void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
+  for the UL
+- Added InH_OfficeOpen_{n,}Los and InH_OfficeMixed_{n,}LoS channel modeling
+  in cc-bwp-helper.h
 
-* Added GetSpectrumModel to the SAP interface between PHY and MAC, so the CQI calculation
-can see that value.
+* Added attribute "SrsSymbols" in NrMacSchedulerNs3, to indicate how many symbols are
+available to the SRS message.
+ 
+- Added new beamforming algorithm called `RealisticBeamformingAlgorithm` 
+  which determines the beamforming vector of the transmitter and receiver based on 
+  the SINR of SRS.
 
-* Added Pattern attribute to MmWaveEnbPhy, to set the TDD Pattern.
-
-* Added IdealBeamformingHelper class that is used to configure ideal beamforming 
-algorithm and the periodicity of performing the ideal beamforming methods. 
-Attribute IdealBeamformingMethod will be used to configure the beamforming algorithm. 
-And BeamformingPeriodicity to configure the beamforming periodicity.
-
-* Added IdealBeamformingAlgorithm class and its subclasses that are used to 
-configure beamforming vectors for the pairs of devices, normally between gNB and UE, 
-but is possible to use it in future for UE to UE.  
-
-* Added BeamManager class at gNB and UE phy that is responsible for caching 
-beamforming vectors to use when communicating with connected devices. It is also 
-responsible for configuring quasi-omni beamforming vector for omni transmissions.
-This class should be used by gNB and UE to control its ThreeGppAntennaArrayModel 
-instances.
-
-* Added attribute "NumRefScPerRb" in NrAmc, to indicate the number of reference
-subcarriers per RB.
-
-* Added NrRadioEnvironmentMapHelper used to generate DL and UL REM maps
+- Added != operator function to `BeamId` class.
 
 ### Changes to existing API:
 
-* Functions MmWaveEnbPhy::ReceiveUlHarqFeedback and MmWaveLteUePhy::ReceiveLteDlHarqFeedback
-are renamed to MmWaveLteEnbPhy::ReportUlHarqFeedback and MmWaveLteUePhy::EnqueueDlHarqFeedback,
-respectively to avoid confusion. mmwave-helper callbacks are updated accordingly
+### Changed behavior:
+- If a notching mask is set, the scheduler will avoid to allocate the RBG in
+  which the mask (a vector of integers) is set to zero.
 
-* Removed attribute NumberOfComponentCarriers and UseCa from MmWaveHelper.
+---
 
-* Removed SetScheduler from MmWaveHelper. Use MmWavePhyMacConfig instead.
+## Changes from NR-v0.4 to v1.0
 
-* Ue control messages are only scheduled in Ul Ctrl (previously could be send
-along with Ul Data).
+### New API:
 
-* MmWaveUePhy includes now traces for the DL DCI and the corresponding DL HARQ Feedback
+* Added `ReportPowerSpectralDensity` trace source in NrUePhy.
+* Added `SlotDataStats` and `SlotCtrlStats` trace source in NrGnbPhy.
+* Added `RBDataStats` trace source in NrGnbPhy.
+* Added `RxDataTrace` trace source in NrSpectrumPhy.
+* Extended the GridScenarioHelper with the introduction of the
+  HexagonalGridScenarioHelper class. This new class creates a hexagonal grid
+  deployment consisting of up to 19 sites with 3 sectors of 120º each,
+  resulting in 57 hexagonal cells. The location of sites and UEs can be
+  represented with gnuplot.
+* Added GetSpectrumModel to the SAP interface between PHY and MAC, so the CQI
+  calculation can see that value.
+* Added `Pattern` attribute to NrGnbPhy, to set the TDD Pattern.
+* Added IdealBeamformingHelper class that is used to configure ideal beamforming
+  algorithm and the periodicity of performing the ideal beamforming methods.
+  Attribute `IdealBeamformingMethod` will be used to configure the beamforming
+  algorithm, and `BeamformingPeriodicity` to configure the beamforming
+  periodicity.
+* Added IdealBeamformingAlgorithm class and its subclasses that are used to
+  configure beamforming vectors for the pairs of devices, normally between gNB
+  and UE, but is possible to use it in future for UE to UE.  
+* Added BeamManager class at gNB and UE phy that is responsible for caching
+  beamforming vectors to use when communicating with connected devices. It is
+  also responsible for configuring quasi-omni beamforming vector for omni
+  transmissions. This class should be used by gNB and UE to control its
+  ThreeGppAntennaArrayModel instances.
+* Added attribute `NumRefScPerRb` in NrAmc, to indicate the number of reference
+  subcarriers per RB.
 
-* Renamed MmWaveEnbNetDevice attribute ComponentCarrierMap into BandwidthPartMap
 
-* Removed CentreFrequency attribute from MmWavePhyMacCommon: it is now set by the helper.
+### Changes to existing API:
 
-* Removed N0Delay,N1Delay, attributes from MmWavePhyMacCommon: they are now in MmWaveEnbPhy.
-
-* Removed TbDecodeLatency attribute from MmWavePhyMacCommon: it is now attribute of 
-MmWaveEnbPhy and MmWaveUePhy.
-
-* Removed NumRbPerRbg attribute from MmWavePhyMacCommon to MmWaveEnbMac. 
-This attribute is still needed by UE PHY, thus for the moment this attribute 
-cannot be reconfigured once being set. Once that DCI bitmask is changed to 
-work per the RB granularity, this attribute can be reconfigured.
-
-* Removed CellId attribute from MmWaveEnbNetDevice, as it was not used.
-
-* Removed NumRbPerRbg attribute from MmWavePhyMacCommon to MmWaveEnbMac. This 
-value is used by PHY and scheduler and they obtain it through SAP interface 
-by calling MAC public function GetNumPerRbg. This attribute is currently 
-needed by UE PHY, and is configured in MmWaveHelper in AttachToEnb function, 
-thus this attribute cannot be reconfigured once UEs attachment has started.
-When DCI bitmask is changed to work per the RB granularity, UE will not need 
-anymore this information, and consequently it will be possible to 
-reconfigure the attribute at gNb MAC.
-
-* Removed CcId attribute from PhyMacConfig.
-
-* Removed MacSchedType attribute from PhyMacConfig.
-
-* Removed method GetNumScsPerRb() from PhyMacConfig, replaced by a static
-const in mmwave-phy-mac-confg.h.
-
-* Removed Bandwidth, Numerology, SymbolsPerSlot attribute from MmWavePhyMacCommon.
-Moved to EnbPhy, while the UE get these values from RRC or from direct call by the
-helper at the attaching moment.
-
-* Moved GetNumRefScPerRb() from MmWavePhyMacCommon to NrAmc.
-
-* Removed NumHarqProcess and HarqDlTimeout from MmWavePhyMacCommon. 
-NumHarqProcess is now attribute of MmWaveEnbMac and MmWaveUeMac, while HarqDlTimeout 
-is completely removed since the timeout is equivalent to the (maximum) number of 
-harq processes. 
-
-* Removed GetNumRbPerRbg() from MmWavePhyMacCommon. It was already an attribute of
-MmWaveEnbMac
-
-* The number of DL and UL CTRL symbols can be configured now in MmWaveMacSchedulerNs3
-through the attributes DlCtrlSymbols and UlCtrlSymbols.
-
-* GetN2Delay moved to MmWaveEnbPhy.
-
-* Removed attribute L1L2CtrlLatency, and fixed it to 2 in MmWavePhy.
-
-* Removed EnableAllInterferences from MmWaveSpectrumPhy which was used to 
-enable or disable interference calculations for all links. 
-
+* Functions `NrGnbPhy::ReceiveUlHarqFeedback` and `NrUePhy::ReceiveLteDlHarqFeedback`
+  are renamed to `NrGnbPhy::ReportUlHarqFeedback` and `NrUePhy::EnqueueDlHarqFeedback`, respectively.
+* Removed attribute `NumberOfComponentCarriers` and `UseCa` from NrHelper.
+* Removed `SetScheduler` method from NrHelper.
+* NrUePhy includes now traces for the DL DCI and the corresponding DL HARQ Feedback
+* Renamed MmWaveEnbNetDevice attribute `ComponentCarrierMap` into BandwidthPartMap
+* Removed `CentreFrequency` attribute from MmWavePhyMacCommon: it is now Set
+  by the CcBwpHelper while dividing the spectrum.
+* Removed `N0Delay` and `N1Delay` attributes from MmWavePhyMacCommon: they are
+  now in NrGnbPhy.
+* Removed `TbDecodeLatency` attribute from MmWavePhyMacCommon: it is now
+  an attribute of `NrGnbPhy` and `NrUePhy`.
+* Moved `NumRbPerRbg` attribute from MmWavePhyMacCommon to NrGnbMac.
+  This attribute is still needed by UE PHY, thus for the moment this attribute
+  cannot be reconfigured once being set. Once that DCI bitmask is changed to
+  work per the RB granularity, this attribute can be reconfigured.
+* Removed `CellId` attribute from NrGnbNetDevice.
+* Removed `CcId` attribute from MmWavePhyMacCommon.
+* Removed `MacSchedType` attribute from MmWavePhyMacCommon.
+* Removed `Bandwidth`, `Numerology`, `SymbolsPerSlot` attribute from
+  MmWavePhyMacCommon. These attribute are now of NrGnbPhy, while the UEs get
+  these values from RRC or from direct call by the helper at the attaching
+  moment.
+* Removed `NumHarqProcess` and `HarqDlTimeout` from MmWavePhyMacCommon.
+  `NumHarqProcess` is now attribute of NrGnbnbMac and NrUeMac, while
+  `HarqDlTimeout` is completely removed since the timeout is equivalent to the (maximum) number of harq processes.
+* The number of DL and UL CTRL symbols can be configured now in
+  NrMacSchedulerNs3 through the attributes `DlCtrlSymbols` and `UlCtrlSymbols`.
+* Removed attribute `L1L2CtrlLatency`, and fixed it to 2 in NrPhy.
+* Removed `EnableAllInterferences` attribute from MmWaveSpectrumPhy which was
+  used to enable or disable interference calculations for all links.
 * Replaced the message DCI_TDMA with UL_DCI and DL_DCI, to differentiate among
-the allocations.
-
-* The EESM error model class has been separated, and the attributes HarqMethod and
-McsTable removed. Now, to configure different error model based on EESM,
-you have to specify directly the Harq method and the table name in the
-error model name: the new classes are NrEesmIrT1, NrEesmIrT2, NrEesmCcT1,
-NrEesmCcT2.
-
+  the allocations.
+* The EESM error model class has been separated, and the attributes HarqMethod
+  and McsTable removed. Now, to configure different error model based on EESM,
+  you have to specify directly the Harq method and the table name in the
+  error model name: the new classes are NrEesmIrT1, NrEesmIrT2, NrEesmCcT1,
+  NrEesmCcT2.
 * The AMC inside the scheduler has been separated into an UL and a DL part.
-Methods in the helper have been added to help the user configuring that part.
-In particular, have a look at SetGnbDlAmcAttribute and SetGnbUlAmcAttribute.
-
-* Removed attribute "Ber" in NrAmc, which is now set based on the error model in use.
-
-* The TBS calculation in NrAmc is now divided for UL and DL. With the NR error models,
-  will lead to the same result, but with LTE error model the result can be different.
-
+  Methods in the helper have been added to help the user configuring that part.
+  In particular, have a look at SetGnbDlAmcAttribute and SetGnbUlAmcAttribute.
+* Removed attribute `Ber` in NrAmc, which is now set based on the error model
+  in use.
 * Renamed all mmwave- classes, tests, examples, helpers, to nr-.
-
 
 ### Changed behavior:
 
-* Starting with this release the simulator is using new ns-3-dev 3ggp 
-channel, spectrum, propagation, channel condition and antenna models 
-that are implemented in spectrum, propagation and antenna modules of 
-ns-3-dev. To allow usage of this new channel and antenna models, we have 
-introduced a new BeamManager class which is responsible configuration of 
-beamforming vectors of antenna arrays. BeamManager class is also responsible 
-of configuring quasi-omni beamforming vector for omni transmissions. 
-Since real beamforming management methods are still not implemented 
-in our module, there are available ideal beamforming methods: cell scan 
-and direct path. User can configure ideal beamforming method by using 
-attribute of IdealBeamformingHelper which is in charge of creating 
-the corresponding beamforming algorithm and calling it with configured 
-periodicity to generate beamforming vectors for pairs of gNBs and UEs. 
-BeamManager class is then responsible to cache beamforming vectors for 
-antenna. For example, at gNB BeamManager for each connected UE device 
-there will be cached the beamforming vector that will be used for  
-communication with that UE. In the same way, the BeamManager at UE 
-serves the same purpose, with the difference that it will be normally just one 
-element in the map and that is toward its own gNB.
-
 * K0, K1, K2 Delays are removed from the phy-mac common, instead they are
-implemented as parameters of the DCI.
-* In the DCI message, the gNb reports the K{0,1,2} delay instead of the
-sfn number.
-* L1L2DataLatency is removed (defined in phy-mac common).
-* N0, N1, N2 processing delays were initially defined in phy-mac common but are 
-latter moved to MmWaveEnbPhy.
-* The UlSchedDelay is replaced by N2Delay.
+  implemented as parameters of the DCI. In the DCI message, the gNb reports the
+  K{0,1,2} delay instead of the sfn number.
 * UE receives DL data according to K0 and sends UL data according to K2
-(passed from the gNb in the DL and UL DCI, respectively).
+  (passed from the gNb in the DL and UL DCI, respectively).
 * UE schedules the DL HARQ Feedback according to K1 delay (passed from the
-gNb to the UE in the DL DCI).
-* Patterns of size different from 10 (less or greater) are now supported.
-Changes mainly apply in the MmWaveEnbPhy::GenerateStructuresFromPattern that now
-calculates k0, k1, k2
-* Enb first schedules UL and then DL
-* Starting with this release the default behaviour will be to calculate interference 
-for all the links, and will not be any more possible to exclude UE->UE and GNB->GNB 
-interference calculations (Removed attribute EnableAllInterference from MmWaveSpectrumPhy).
+  gNb to the UE in the DL DCI).
+* Gnb first schedules UL and then DL.
 * RACH Preamble is sent without applying any delay (i.e. L1l2CtrlLatency)
-
 
 ---
 

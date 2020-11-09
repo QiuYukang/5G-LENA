@@ -28,6 +28,7 @@
 #include "nr-mac-scheduler-ns3.h"
 #include "nr-mac-scheduler-harq-rr.h"
 #include "nr-mac-short-bsr-ce.h"
+#include "nr-mac-scheduler-srs-default.h"
 
 #include <ns3/boolean.h>
 #include <ns3/uinteger.h>
@@ -58,6 +59,9 @@ NrMacSchedulerNs3::NrMacSchedulerNs3 () : NrMacScheduler ()
   m_cqiManagement.InstallGetNrAmcUlFn (std::bind ([this] () { return m_ulAmc; }));
   m_cqiManagement.InstallGetStartMcsDlFn (std::bind ([this] () { return m_startMcsDl; }));
   m_cqiManagement.InstallGetStartMcsUlFn (std::bind ([this] () { return m_startMcsUl; }));
+
+  // If more Srs allocators will be created, then we will add an attribute
+  m_schedulerSrs = CreateObject<NrMacSchedulerSrsDefault> ();
 }
 
 NrMacSchedulerNs3::~NrMacSchedulerNs3 ()
@@ -139,6 +143,12 @@ NrMacSchedulerNs3::GetTypeId (void)
                    UintegerValue (1),
                    MakeUintegerAccessor (&NrMacSchedulerNs3::SetUlCtrlSyms,
                                          &NrMacSchedulerNs3::GetUlCtrlSyms),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("SrsSymbols",
+                   "Number of symbols allocated for UL SRS",
+                   UintegerValue (4),
+                   MakeUintegerAccessor (&NrMacSchedulerNs3::SetSrsCtrlSyms,
+                                         &NrMacSchedulerNs3::GetSrsCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("DlAmc",
                    "The DL AMC of this scheduler",
@@ -287,6 +297,60 @@ NrMacSchedulerNs3::SetUlCtrlSyms (uint8_t v)
   m_ulCtrlSymbols = v;
 }
 
+void
+NrMacSchedulerNs3::SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask)
+{
+  NS_LOG_FUNCTION (this);
+  m_dlNotchedRbgsMask = dlNotchedRbgsMask;
+  std::stringstream ss;
+
+  //print the DL mask set (prefix + is added just for printing purposes)
+  for (const auto & x : m_dlNotchedRbgsMask)
+    {
+      ss << +x << " ";
+    }
+  NS_LOG_INFO ("Set DL notched mask: " << ss.str ());
+}
+
+std::vector<uint8_t>
+NrMacSchedulerNs3::GetDlNotchedRbgMask (void) const
+{
+  return m_dlNotchedRbgsMask;
+}
+
+void
+NrMacSchedulerNs3::SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask)
+{
+  NS_LOG_FUNCTION (this);
+  m_ulNotchedRbgsMask = ulNotchedRbgsMask;
+  std::stringstream ss;
+
+  //print the UL mask set (prefix + is added just for printing purposes)
+  for (const auto & x : m_ulNotchedRbgsMask)
+    {
+      ss << +x << " ";
+    }
+  NS_LOG_INFO ("Set UL notched mask: " << ss.str ());
+}
+
+std::vector<uint8_t>
+NrMacSchedulerNs3::GetUlNotchedRbgMask (void) const
+{
+  return m_ulNotchedRbgsMask;
+}
+
+void
+NrMacSchedulerNs3::SetSrsCtrlSyms (uint8_t v)
+{
+  m_srsCtrlSymbols = v;
+}
+
+uint8_t
+NrMacSchedulerNs3::GetSrsCtrlSyms () const
+{
+  return m_srsCtrlSymbols;
+}
+
 uint8_t
 NrMacSchedulerNs3::ScheduleDlHarq (PointInFTPlane *startingPoint,
                                        uint8_t symAvail,
@@ -372,14 +436,29 @@ NrMacSchedulerNs3::DoCschedUeConfigReq (const NrMacCschedSapProvider::CschedUeCo
   GetSecond UeInfoOf;
   if (itUe == m_ueMap.end ())
     {
-      NS_LOG_INFO ("Creating user, beam " << params.m_beamId << " and ue " << params.m_rnti);
-
       itUe = m_ueMap.insert (std::make_pair (params.m_rnti, CreateUeRepresentation (params))).first;
 
       UeInfoOf (*itUe)->m_dlHarq.SetMaxSize (static_cast<uint8_t> (m_macSchedSapUser->GetNumHarqProcess ()));
       UeInfoOf (*itUe)->m_ulHarq.SetMaxSize (static_cast<uint8_t> (m_macSchedSapUser->GetNumHarqProcess ()));
       UeInfoOf (*itUe)->m_dlMcs = m_startMcsDl;
       UeInfoOf (*itUe)->m_ulMcs = m_startMcsUl;
+
+      NrMacSchedulerSrs::SrsPeriodicityAndOffset srs = m_schedulerSrs->AddUe ();
+
+      if (! srs.m_isValid)
+        {
+          bool ret = m_schedulerSrs->IncreasePeriodicity (&m_ueMap); // The new UE will get the SRS offset/periodicity here
+          NS_ASSERT (ret);
+        }
+      else
+        {
+          UeInfoOf (*itUe)->m_srsPeriodicity = srs.m_periodicity; // set the periodicity/offset based on the return value
+          UeInfoOf (*itUe)->m_srsOffset = srs.m_offset;
+        }
+
+      NS_LOG_INFO ("Creating user, beam " << params.m_beamId << " and ue " << params.m_rnti <<
+                   " assigned SRS periodicity " << srs.m_periodicity << " and offset " <<
+                   srs.m_offset);
     }
   else
     {
@@ -392,7 +471,8 @@ NrMacSchedulerNs3::DoCschedUeConfigReq (const NrMacCschedSapProvider::CschedUeCo
  * \brief Release an UE
  * \param params params of the UE to release
  *
- * Remove the UE from the ueMap (m_ueMap).
+ * Remove the UE from the ueMap (m_ueMap) and release its SRS offset for
+ * later usage.
  */
 void
 NrMacSchedulerNs3::DoCschedUeReleaseReq (const NrMacCschedSapProvider::CschedUeReleaseReqParameters& params)
@@ -402,7 +482,11 @@ NrMacSchedulerNs3::DoCschedUeReleaseReq (const NrMacCschedSapProvider::CschedUeR
   auto itUe = m_ueMap.find (params.m_rnti);
   NS_ABORT_IF (itUe == m_ueMap.end ());
 
+  m_schedulerSrs->RemoveUe (itUe->second->m_srsOffset);
   m_ueMap.erase (itUe);
+
+  // When it will be the case of reducing the periodicity? Question for the
+  // future...
 
   NS_LOG_INFO ("Release RNTI " << params.m_rnti);
 }
@@ -737,8 +821,8 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
 
                 m_cqiManagement.UlSBCQIReported (expirationTime, allocation.m_tbs,
                                                  params, UeInfoOf (*itUe),
-                                                 allocation.m_rbgStart * GetNumRbPerRbg (),
-                                                 allocation.m_numRbg * GetNumRbPerRbg (),
+                                                 allocation.m_rbgMask,
+                                                 m_macSchedSapUser->GetNumRbPerRbg (),
                                                  m_macSchedSapUser->GetSpectrumModel ());
                 found = true;
                 it = ulAllocations.erase (it);
@@ -1728,6 +1812,8 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
       dataSymPerSlot -= m_dlCtrlSymbols;
     }
 
+  m_ulSlotCounter++; // It's an uint, don't worry about wrap around
+
   ActiveHarqMap activeUlHarq;
   ComputeActiveHarq (&activeUlHarq, ulHarqFeedback);
 
@@ -1739,6 +1825,10 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
 
   // Create the UL allocation map entry
   m_ulAllocationMap.emplace (ulSfn.GetEncoding (), SlotElem (0));
+
+  NS_ASSERT (m_srsCtrlSymbols <= ulSymAvail);
+  uint8_t srsSym = DoScheduleSrs (&ulAssignationStartPoint, allocInfo);
+  ulSymAvail -= srsSym;
 
   NS_LOG_DEBUG ("Scheduling UL " << ulSfn <<
                 " UL HARQ to retransmit: " << ulHarqFeedback.size () <<
@@ -1823,26 +1913,13 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
 
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              uint16_t rbgStart = UINT16_MAX, numRbg = 0;
-              for (uint16_t i = 0; i < alloc.m_dci->m_rbgBitmask.size (); ++i)
-                {
-                  if (alloc.m_dci->m_rbgBitmask[i] == 1)
-                    {
-                      numRbg++;
-                      if (i < rbgStart)
-                        {
-                          rbgStart = i;
-                        }
-                    }
-                }
-              NS_LOG_INFO ("Placed the above allocation, that starts at " << rbgStart <<
-                           " and finishes at " << rbgStart + numRbg << " in the CQI map");
+              NS_LOG_INFO ("Placed the above allocation in the CQI map");
               allocations.emplace_back (AllocElem (alloc.m_dci->m_rnti,
                                                    alloc.m_dci->m_tbSize,
                                                    alloc.m_dci->m_symStart,
                                                    alloc.m_dci->m_numSym,
                                                    alloc.m_dci->m_mcs,
-                                                   rbgStart, numRbg));
+                                                   alloc.m_dci->m_rbgBitmask));
             }
         }
     }
@@ -1865,6 +1942,66 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
   NS_ASSERT (m_ulAllocationMap.at (ulSfn.GetEncoding ()).m_totUlSym == totUlSym);
 
   return dataSymPerSlot - ulSymAvail;
+}
+
+uint8_t
+NrMacSchedulerNs3::DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocInfo)
+{
+  NS_LOG_FUNCTION (this);
+
+  uint8_t used = 0;
+
+  // Without UE, don't schedule any SRS
+  if (m_ueMap.size () == 0)
+    {
+      return used;
+    }
+
+  // Find the UE for which this is true:
+  // absolute_slot_number % periodicity = offset_UEx
+  // Assuming that all UEs share the same periodicity.
+
+  uint32_t offset_UEx = m_ulSlotCounter % m_ueMap.begin()->second->m_srsPeriodicity;
+  uint16_t rnti = 0;
+
+  for (const auto & ue : m_ueMap)
+    {
+      if (ue.second->m_srsOffset == offset_UEx)
+        {
+          rnti = ue.second->m_rnti;
+        }
+    }
+
+  if (rnti == 0)
+    {
+      return used; // No SRS in this slot!
+    }
+
+  // Schedue 4 allocation, of 1 symbol each, in TDMA mode, for the RNTI found.
+
+  for (uint32_t i = 0; i < m_srsCtrlSymbols; ++i)
+    {
+      std::vector<uint8_t> rbgAssigned (GetBandwidthInRbg (), 1);
+
+      NS_LOG_INFO ("UE " << rnti << " assigned symbol " << +spoint->m_sym << " for SRS tx");
+
+      std::vector<uint8_t> rbgBitmask (GetBandwidthInRbg (), 1);
+
+      spoint->m_sym--;
+
+      auto dci = std::make_shared<DciInfoElementTdma> (rnti, DciInfoElementTdma::UL,
+                                                       spoint->m_sym, 1, 0, 0, 1, 0,
+                                                       DciInfoElementTdma::SRS,
+                                                       GetBwpId());
+      dci->m_rbgBitmask = rbgBitmask;
+
+      allocInfo->m_numSymAlloc += 1;
+      allocInfo->m_varTtiAllocInfo.emplace_front (VarTtiAllocInfo (dci));
+
+      used++;
+    }
+
+  return used;
 }
 
 uint16_t

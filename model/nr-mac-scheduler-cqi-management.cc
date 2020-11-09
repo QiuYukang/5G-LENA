@@ -49,18 +49,32 @@ void
 NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
                                               const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                                               const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                              uint16_t startRb, uint16_t numRb,
+                                              const std::vector<uint8_t> &rbgMask,
+                                              uint32_t numRbPerRbg,
                                               const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
   NS_UNUSED (tbs);
+  NS_ASSERT (rbgMask.size () > 0);
 
-  NS_LOG_INFO ("Computing SB CQI for UE " << ueInfo->m_rnti << " with a tx that started " <<
-               "at RBG " << startRb << " and ended at " << startRb + numRb);
+  NS_LOG_INFO ("Computing SB CQI for UE " << ueInfo->m_rnti);
 
   ueInfo->m_ulCqi.m_sinr = params.m_ulCqi.m_sinr;
   ueInfo->m_ulCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::SB;
   ueInfo->m_ulCqi.m_timer = expirationTime;
+
+  std::vector<int> rbAssignment (params.m_ulCqi.m_sinr.size (), 0);
+
+  for (uint32_t i = 0; i < rbgMask.size (); ++i)
+    {
+      if (rbgMask.at (i) == 1)
+        {
+          for (uint32_t k = 0; k < numRbPerRbg; ++k)
+            {
+              rbAssignment[i * numRbPerRbg + k] = 1;
+            }
+        }
+    }
 
   SpectrumValue specVals (model);
   Values::iterator specIt = specVals.ValuesBegin ();
@@ -70,10 +84,9 @@ NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t 
   for (uint32_t ichunk = 0; ichunk < model->GetNumBands (); ichunk++)
     {
       NS_ASSERT (specIt != specVals.ValuesEnd ());
-      if (ichunk >= startRb && numRb > 0)
+      if (rbAssignment[ichunk] == 1)
         {
           *specIt = ueInfo->m_ulCqi.m_sinr.at (ichunk);
-          numRb--;
           out << ueInfo->m_ulCqi.m_sinr.at (ichunk) << " ";
         }
       else

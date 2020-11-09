@@ -33,6 +33,7 @@ namespace ns3 {
 
 class NrSchedGeneralTestCase;
 class NrMacSchedulerHarqRr;
+class NrMacSchedulerSrsDefault;
 
 /**
  * \ingroup scheduler
@@ -442,6 +443,42 @@ public:
    */
   void SetUlCtrlSyms (uint8_t v);
 
+  /**
+   * \brief Set the notched (blank) RBGs Mask for the DL
+   * \param notchedRbgsMask The mask of notched RBGs
+   */
+  void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
+
+  /**
+   * \brief Get the notched (blank) RBGs Mask for the DL
+   * \return The mask of notched RBGs
+   */
+  std::vector<uint8_t> GetDlNotchedRbgMask (void) const;
+
+  /**
+   * \brief Set the notched (blank) RBGs Mask for the UL
+   * \param notchedRbgsMask The mask of notched RBGs
+   */
+  void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
+
+  /**
+   * \brief Get the notched (blank) RBGs Mask for the UL
+   * \return The mask of notched RBGs
+   */
+  std::vector<uint8_t> GetUlNotchedRbgMask (void) const;
+
+  /**
+   * \brief Set the number of UL SRS symbols
+   * \param v number of SRS symbols
+   */
+  void SetSrsCtrlSyms (uint8_t v);
+
+  /**
+   * \brief Get the configured value for the SRS symbols
+   * \return the number of SRS symbols that will be allocated
+   */
+  uint8_t GetSrsCtrlSyms () const;
+
 protected:
   /**
    * \brief Create an UE representation for the scheduler.
@@ -669,9 +706,9 @@ private:
      * \param mcs MCS
      */
     AllocElem (uint16_t rnti, uint32_t tbs, uint8_t symStart, uint8_t numSym, uint8_t mcs,
-               uint16_t rbgStart, uint16_t numRbg)
+               const std::vector<uint8_t> &rbgMask)
       : m_rnti (rnti), m_tbs (tbs), m_symStart (symStart), m_numSym (numSym), m_mcs (mcs),
-        m_rbgStart (rbgStart), m_numRbg (numRbg)
+        m_rbgMask (rbgMask)
     {
     }
 
@@ -680,8 +717,7 @@ private:
     uint8_t m_symStart {0}; //!< Sym start
     uint8_t m_numSym {0}; //!< Allocated symbols
     uint8_t m_mcs   {0};  //!< MCS of the transmission
-    uint16_t m_rbgStart {0}; //!< RBG start
-    uint16_t m_numRbg {0};   //!< allocated RBG
+    std::vector<uint8_t> m_rbgMask; //!< RBG Mask
   };
 
   /**
@@ -760,6 +796,7 @@ private:
                         const SlotElem &ulAllocations, SlotAllocInfo *allocInfo);
   uint8_t DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback, const SfnSf &ulSfn,
                         SlotAllocInfo *allocInfo, LteNrTddSlotType type);
+  uint8_t DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocInfo);
 
   static const unsigned m_macHdrSize = 0;  //!< Mac Header size
   static const uint32_t m_subHdrSize = 4;  //!< Sub Header size (?)
@@ -811,8 +848,16 @@ private:
   uint16_t m_bandwidth {0}; //!< Bandwidth in number of RBG
   uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
+  uint8_t m_srsCtrlSymbols {0}; //!< SRS symbols (attribute)
+
+  std::vector<uint8_t> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
+  std::vector<uint8_t> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
 
   std::unique_ptr <NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
+
+  Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
+
+  uint32_t m_ulSlotCounter {0}; //!< Counter for UL slots
 
   friend NrSchedGeneralTestCase;
 };

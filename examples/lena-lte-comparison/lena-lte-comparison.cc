@@ -41,6 +41,8 @@
 #include "lena-v1-utils.h"
 #include "lena-v2-utils.h"
 
+#include <iomanip>
+
 /*
  * To be able to use LOG_* functions.
  */
@@ -55,7 +57,7 @@
 NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
 
 namespace ns3 {
-
+  
 static std::pair<ApplicationContainer, double>
 InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
              const Address &ueAddress, const std::string &direction,
@@ -124,17 +126,67 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
   return std::make_pair(app, startTime);
 }
 
+
+bool
+Parameters::Validate (void) const
+{
+  
+  NS_ABORT_MSG_IF (bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
+                   "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
+
+  NS_ABORT_MSG_IF (trafficScenario > 2,
+                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+
+  NS_ABORT_MSG_IF (numerologyBwp > 4,
+                   "At most 4 bandwidth parts supported.");
+  
+  NS_ABORT_MSG_IF (direction != "DL" && direction != "UL",
+                   "Flow direction can only be DL or UL");
+  NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD",
+                   "Operation mode can only be TDD or FDD");
+  NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR",
+                   "Unrecognized radio network technology");
+  NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA",
+                   "Unrecognized simulator");
+  NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
+                   "Unrecognized scheduler");
+  
+  NS_ABORT_MSG_IF (trafficScenario > 2,
+                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+
+  if (dlRem || ulRem)
+    {
+      NS_ABORT_MSG_IF (simulator != "5GLENA",
+                   "Cannot do the REM with the simulator " << simulator);
+      NS_ABORT_MSG_IF (dlRem && ulRem,
+                       "You selected both DL and UL REM, that is not supported");
+      NS_ABORT_MSG_IF (remSector > 3,
+                       "Only three sectors supported for REM");
+      
+      NS_ABORT_MSG_IF (remSector == 0 && freqScenario != 1,
+                       "RemSector == 0 makes sense only in a OVERLAPPING scenario");
+    }
+  
+  
+  return true;
+}
+
+  
 void
 LenaLteComparison (const Parameters &params)
 {
+  params.Validate ();
+      
   // Traffic parameters (that we will use inside this script:)
   uint32_t udpPacketSize = 1000;
   uint32_t lambda;
   uint32_t packetCount;
 
-  NS_ABORT_MSG_IF (params.bandwidthMHz != 20 && params.bandwidthMHz != 10 && params.bandwidthMHz != 5,
-                   "Valid bandwidth values are 20, 10, 5, you set " << params.bandwidthMHz);
+  std::cout << "\n----------------------------------------\n"
+            << "Configuring scenario"
+            << std::endl;
 
+  std::cout << "  traffic parameters\n";
   switch (params.trafficScenario)
     {
     case 0: // let's put 80 Mbps with 20 MHz of bandwidth. Everything else is scaled
@@ -182,6 +234,7 @@ LenaLteComparison (const Parameters &params)
       NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2");
     }
 
+  std::cout << "  statistics\n";
   SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
   SinrOutputStats sinrStats;
   PowerOutputStats ueTxPowerStats;
@@ -199,13 +252,8 @@ LenaLteComparison (const Parameters &params)
    * Check if the frequency and numerology are in the allowed range.
    * If you need to add other checks, here is the best position to put them.
    */
-//  NS_ABORT_IF (centralFrequencyBand > 100e9);
-  NS_ABORT_IF (params.numerologyBwp > 4);
-  NS_ABORT_MSG_IF (params.direction != "DL" && params.direction != "UL", "Flow direction can only be DL or UL");
-  NS_ABORT_MSG_IF (params.operationMode != "TDD" && params.operationMode != "FDD", "Operation mode can only be TDD or FDD");
-  NS_ABORT_MSG_IF (params.radioNetwork != "LTE" && params.radioNetwork != "NR", "Unrecognized radio network technology");
-  NS_ABORT_MSG_IF (params.simulator != "LENA" && params.simulator != "5GLENA", "Unrecognized simulator");
-  NS_ABORT_MSG_IF (params.scheduler != "PF" && params.scheduler != "RR", "Unrecognized scheduler");
+  std::cout << "  checking frequency and numerology\n";
+  
   /*
    * If the logging variable is set to true, enable the log of some components
    * through the code. The same effect can be obtained through the use
@@ -216,6 +264,7 @@ LenaLteComparison (const Parameters &params)
    * Usually, the environment variable way is preferred, as it is more customizable,
    * and more expressive.
    */
+  std::cout << "  logging\n";
   if (params.logging)
     {
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
@@ -228,6 +277,7 @@ LenaLteComparison (const Parameters &params)
    * Default values for the simulation. We are progressively removing all
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
+  std::cout << "  max tx buffer size\n";  
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   /*
@@ -235,6 +285,7 @@ LenaLteComparison (const Parameters &params)
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
+  std::cout << "  hexagonal grid\n";  
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (params.numOuterRings);
   gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
@@ -298,6 +349,7 @@ LenaLteComparison (const Parameters &params)
    * Setup the LTE or NR module. We create the various helpers needed inside
    * their respective configuration functions
    */
+  std::cout << "  helpers\n";  
   Ptr<PointToPointEpcHelper> epcHelper;
 
   NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
@@ -377,6 +429,7 @@ LenaLteComparison (const Parameters &params)
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost
+  std::cout << "  pgw and internet\n";  
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
@@ -405,6 +458,7 @@ LenaLteComparison (const Parameters &params)
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Set the default gateway for the UEs
+  std::cout << "  default gateway\n";  
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
     {
       Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
@@ -412,6 +466,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   // attach UEs to their gNB. Try to attach them per cellId order
+  std::cout << "  attach UEs to gNBs\n";  
   for (uint32_t u = 0; u < ueNum; ++u)
     {
       uint32_t sector = u % ffr;
@@ -498,6 +553,7 @@ LenaLteComparison (const Parameters &params)
    * Traffic part. Install two kind of traffic: low-latency and voice, each
    * identified by a particular source port.
    */
+  std::cout << "  server factory\n";  
   uint16_t dlPortLowLat = 1234;
 
   ApplicationContainer serverApps;
@@ -524,6 +580,7 @@ LenaLteComparison (const Parameters &params)
    *
    * Low-Latency configuration and object creation:
    */
+  std::cout << "  client factory\n";  
   UdpClientHelper dlClientLowLat;
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (packetCount));
@@ -533,6 +590,7 @@ LenaLteComparison (const Parameters &params)
   /*
    * Let's install the applications!
    */
+  std::cout << "  applications\n";  
   ApplicationContainer clientApps;
   std::vector<NodeContainer*> nodes = { &ueSector1Container, &ueSector2Container, &ueSector3Container };
   std::vector<NetDeviceContainer*> devices = { &ueSector1NetDev, &ueSector2NetDev, &ueSector3NetDev };
@@ -567,6 +625,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   // enable the traces provided by the nr module
+  std::cout << "  tracing\n";  
   if (params.traces == true)
     {
       if (lteHelper != nullptr)
@@ -580,6 +639,7 @@ LenaLteComparison (const Parameters &params)
     }
 
 
+  std::cout << "  flowmon\n";  
   FlowMonitorHelper flowmonHelper;
   NodeContainer endpointNodes;
   endpointNodes.Add (remoteHost);
@@ -593,6 +653,7 @@ LenaLteComparison (const Parameters &params)
   std::string tableName = "e2e";
 
 
+  std::cout << "  rem helper\n";  
   Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
                                               // and when simulation starts the object does not exist anymore, but the scheduled REM events do (exist).
                                               // So, REM events would be called with invalid pointer to remHelper ...
@@ -725,6 +786,9 @@ LenaLteComparison (const Parameters &params)
         }
     }
 
+  std::cout << "\n----------------------------------------\n"
+            << "Start simulation"
+            << std::endl;
   Simulator::Stop (MilliSeconds (params.appGenerationTimeMs + maxStartTime));
   Simulator::Run ();
 
@@ -747,6 +811,160 @@ LenaLteComparison (const Parameters &params)
 
   Simulator::Destroy ();
 }
+
+std::ostream &
+operator << (std::ostream & os, const Parameters & parameters)
+{
+  // Use p as shorthand for arg parametersx
+  auto p {parameters};
+
+#define MSG(m) \
+    os << "\n" << m << std::left \
+       << std::setw (40 - strlen (m)) << (strlen (m) > 0 ? ":" : "")
+
+  
+  MSG ("LENA LTE Scenario Parameters");
+  MSG ("");
+  MSG ("Model version")
+    << p.simulator << (p.simulator == "LENA" ? " (v1)" : " (v2)");
+  if (p.simulator == "5GLENA")
+    {
+      MSG ("LTE Standard")
+        << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
+      MSG ("4G-NR calibration mode")    << (p.calibration ? "ON" : "off");
+      MSG ("Operation mode")            << p.operationMode;
+      if (p.operationMode == "TDD")
+        {
+          MSG ("Numerology")            << p.numerologyBwp;
+          MSG ("TDD pattern")           << p.pattern;
+        }
+      if (p.errorModel != "")
+        {
+          MSG ("Error model")           << p.errorModel;
+        }
+      else if (p.radioNetwork == "LTE")
+        {
+          MSG ("Error model")           << "ns3::LenaErrorModel";
+        }
+      else if (p.radioNetwork == "NR")
+        {
+          MSG ("Error model")           << "ns3::NrEesmCcT2";
+        }
+        
+    }
+  else
+    {
+      // LENA v1
+      p.operationMode = "FDD";
+      MSG ("LTE Standard")              << "4G";
+      MSG ("Calibration mode")          << (p.calibration ? "ON" : "off");
+      MSG ("Operation mode")            << p.operationMode;
+    }
+
+  MSG ("");
+  MSG ("Channel bandwidth")             << p.bandwidthMHz << " MHz";
+  MSG ("Spectrum configuration")
+    <<    (p.freqScenario == 0 ? "non-" : "") << "overlapping";
+  MSG ("LTE Scheduler")                 << p.scheduler;
+
+  MSG ("");
+  MSG ("Basic scenario")                << p.scenario;
+  if (p.scenario == "UMa")
+    {
+      os << "\n  (ISD: 1.7 km, BS: 30 m, UE: 1.5 m, UE-BS min: 30.2 m)";
+    }
+  else if (p.scenario == "UMi")
+    {
+      os << "\n  (ISD: 0.5 km, BS: 10 m, UE: 1.5 m, UE-BS min: 10 m)";
+    }
+  else if (p.scenario == "RMa")
+    {
+      os << "\n  (ISD: 7.0 km, BS: 45 m, UE: 1.5 m, UE-BS min: 44.6 m)";
+    }
+  else 
+    {
+      os << "\n  (unknown configuration)";
+    }
+  MSG ("Number of outer rings")         << p.numOuterRings;
+  MSG ("Number of UEs per sector")      << p.ueNumPergNb;
+
+  MSG ("");
+  MSG ("Network loading")               << p.trafficScenario;
+  switch (p.trafficScenario)
+    {
+    case 0:
+      MSG ("  Max loading (80 Mbps/20 MHz)");
+      MSG ("  Number of packets")       << "infinite";
+      MSG ("  Packet size");
+      switch (p.bandwidthMHz)
+        {
+        case 20:  os << "1000 bytes";    break;
+        case 10:  os << "500 bytes";     break;
+        case 5:   os << "250 bytes";     break;
+        default:  os << "1000 bytes";
+        }
+      // 1 s / (10000 / nUes)
+      MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb / 10.0 << " ms";
+      break ;
+      
+    case 1:
+      MSG ("  Latency");
+      MSG ("  Number of packets")              << 1;
+      MSG ("  Packet size")                    << "12 bytes";
+      MSG ("  Inter-packet interval (per UE)") << "1 s"; 
+      break ;
+
+    case 2:
+      MSG ("  Moderate loading");
+      MSG ("  Number of packets")              << "infinite";
+      MSG ("  Packet size");
+      switch (p.bandwidthMHz)
+        {
+        case 20:  os << "125 bytes";    break;
+        case 10:  os << "63 bytes";     break;
+        case 5:   os << "32 bytes";     break;
+        default:  os << "125 bytes";
+        }
+      // 1 s / (1000 / nUes)
+      MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb << " ms";
+  
+      break ;
+
+    default:
+      os << "\n  (Unknown configuration)";
+    }
+
+  MSG ("Application start window")      << p.udpAppStartTimeMs << " + 10 ms";
+  MSG ("Application on duration")       << p.appGenerationTimeMs << " ms";
+  MSG ("Traffic direction")             << p.direction;
+
+  MSG ("");
+  MSG ("Output file name")              << p.simTag;
+  MSG ("Output directory")              << p.outputDir;
+  MSG ("Logging")                       << (p.logging ? "ON" : "off");
+  MSG ("Trace file generation")         << (p.traces ? "ON" : "off");
+  MSG ("");
+  MSG ("Radio environment map")         << (p.dlRem ? "DL" : (p.ulRem ? "UL" : "off"));
+  if (p.dlRem || p.ulRem)
+    {
+      MSG ("  Sector to sample");
+      if (p.remSector == 0)
+        {
+          os << "all";
+        }
+      else
+        {
+          os << p.remSector;
+        }
+      MSG ("  X range") << p.xMinRem << " - " << p.xMaxRem << ", in " << p.xResRem << " m steps";
+      MSG ("  Y range") << p.yMinRem << " - " << p.yMaxRem << ", in " << p.yResRem << " m steps";
+      MSG ("  Altitude (Z)")             << p.zRem << " m";
+    }
+
+  os << std::endl;
+  return os;
+}
+  
 
 } // namespace ns3
 

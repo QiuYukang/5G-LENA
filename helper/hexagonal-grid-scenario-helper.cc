@@ -416,7 +416,9 @@ HexagonalGridScenarioHelper::CreateScenario ()
   r->SetStream (RngSeedManager::GetRun ());
   theta->SetStream (RngSeedManager::GetRun () + 1);
 
-  r->SetAttribute ("Min", DoubleValue (0));
+  NS_ASSERT (m_minBsUtdistance < m_hexagonalRadius * std::sqrt(3) / 2);
+
+  r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
   r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
   theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
   theta->SetAttribute ("Max", DoubleValue (M_PI));

@@ -17,30 +17,14 @@
  *
  */
 
-#include "ns3/nr-helper.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/config-store.h"
-#include "ns3/nr-helper.h"
-#include "ns3/log.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
-#include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
-#include "ns3/abort.h"
-#include "ns3/object.h"
-#include "ns3/nr-mac-scheduler-ns3.h"
-#include "ns3/nr-mac-scheduler-ofdma.h"
-#include "ns3/nr-mac-scheduler-ofdma-rr.h"
-#include "ns3/nr-phy-mac-common.h"
-#include "ns3/basic-data-calculators.h"
-#include "ns3/nr-spectrum-phy.h"
-#include "ns3/nr-ue-net-device.h"
-#include <ns3/nr-ue-phy.h>
+#include "ns3/config-store-module.h"
 #include "ns3/nr-module.h"
 
 using namespace ns3;
@@ -534,13 +518,13 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
           }
       }
 
-    for (uint j = 0; j < selectedUeNodes.GetN (); j++)
+    for (uint32_t j = 0; j < selectedUeNodes.GetN (); j++)
       {
           Vector v = selectedUeNodes.Get (j)->GetObject<MobilityModel> ()->GetPosition ();
           m_outUePositionsFile << j << "\t" << v.x << "\t" << v.y << "\t" << v.z << " " << std::endl;
       }
 
-    for (uint j = 0; j < gNbNodes.GetN (); j++)
+    for (uint32_t j = 0; j < gNbNodes.GetN (); j++)
       {
           Vector v = gNbNodes.Get (j)->GetObject<MobilityModel> ()->GetPosition ();
           m_outGnbPositionsFile << j << "\t" << v.x << "\t" << v.y << "\t" << v.z << " " << std::endl;
@@ -630,7 +614,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
         // gNB noise figure shall be set to 7 dB
         nrHelper->GetGnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("NoiseFigure", DoubleValue (7));
     }
-    for (uint j = 0; j < ueNetDevs.GetN (); j++)
+    for (uint32_t j = 0; j < ueNetDevs.GetN (); j++)
     {
         // UE noise figure shall be set to 10 dB
         nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));
