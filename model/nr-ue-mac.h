@@ -761,6 +761,13 @@ protected:
    */
   void DoSetSlProbResoKeep (uint8_t prob);
   /**
+   * \brief Set the maximum transmission number (including new transmission and
+   *        retransmission) for PSSCH.
+   *
+   * \param maxTxPssch The max number of PSSCH transmissions
+   */
+  void DoSetSlMaxTxTransNumPssch (uint8_t maxTxPssch);
+  /**
    * \brief Set Sidelink source layer 2 id
    *
    * \param srcL2Id The Sidelink layer 2 id of the source
@@ -1000,6 +1007,10 @@ private:
   typedef std::unordered_map <uint32_t, struct NrSlGrantInfo>::iterator GrantInfoIt_t; //!< The typedef for the iterator of the grant info map
   GrantInfo_t m_grantInfo; //!< The map of grant info per destination layer 2 id
   uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
+  uint8_t m_slMaxTxTransNumPssch; /**< Indicates the maximum transmission number
+                                     (including new transmission and
+                                     retransmission) for PSSCH.
+                                     */
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
   uint32_t m_srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id;

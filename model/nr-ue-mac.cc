@@ -2000,6 +2000,14 @@ NrUeMac::DoSetSlProbResoKeep (uint8_t prob)
 }
 
 void
+NrUeMac::DoSetSlMaxTxTransNumPssch (uint8_t maxTxPssch)
+{
+  NS_LOG_FUNCTION (this << +maxTxPssch);
+  NS_ASSERT_MSG (maxTxPssch <= 32, "Number of PSSCH transmissions can not exceed 32");
+  m_slMaxTxTransNumPssch = maxTxPssch;
+}
+
+void
 NrUeMac::DoSetSourceL2Id (uint32_t srcL2Id)
 {
   NS_LOG_FUNCTION (this << srcL2Id);
