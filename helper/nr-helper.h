@@ -81,7 +81,7 @@ class BwpManagerUe;
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 \endverbatim
  *
@@ -359,11 +359,10 @@ public:
 
   /**
    * \brief Set an ideal beamforming helper
-   * \param idealBeamformingHelper a pointer to the ideal beamforming helper
+   * \param beamformingHelper a pointer to the beamforming helper
    *
-   * Biljana?
    */
-  void SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper);
+  void SetBeamformingHelper (Ptr<BeamformingHelperBase> beamformingHelper);
 
   /**
    * \brief SetHarqEnabled
@@ -794,7 +793,7 @@ private:
   Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
 
   Ptr<EpcHelper> m_epcHelper {nullptr};                           //!< Ptr to the EPC helper (optional)
-  Ptr<IdealBeamformingHelper> m_idealBeamformingHelper {nullptr}; //!< Ptr to the beamforming helper (optional)
+  Ptr<BeamformingHelperBase> m_beamformingHelper {nullptr}; //!< Ptr to the beamforming helper
 
   bool m_harqEnabled {false};
   bool m_snrTest {false};

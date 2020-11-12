@@ -20,7 +20,7 @@
 #ifndef SRC_NR_MODEL_BEAM_MANAGER_H_
 #define SRC_NR_MODEL_BEAM_MANAGER_H_
 
-#include "ideal-beamforming-algorithm.h"
+#include "beamforming-algorithm.h"
 #include "ns3/event-id.h"
 #include <ns3/nstime.h>
 #include <ns3/net-device.h>
@@ -30,7 +30,7 @@ namespace ns3 {
 
 class NrUeNetDevice;
 class NrGnbNetDevice;
-class IdealBeamformingHelper;
+class BeamformingHelperBase;
 
 /**
  * \ingroup gnb-phy
@@ -44,7 +44,7 @@ class IdealBeamformingHelper;
 class BeamManager: public Object
 {
 
-friend IdealBeamformingHelper;
+friend BeamformingHelperBase;
 
 public:
   /**

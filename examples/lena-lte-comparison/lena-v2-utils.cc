@@ -165,7 +165,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   if (radioNetwork == "NR" || calibration)
     {
       idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
-      nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+      nrHelper->SetBeamformingHelper (idealBeamformingHelper);
     }
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);

@@ -17,16 +17,16 @@
  *
  */
 
+#include <ns3/beamforming-algorithm.h>
 #include <ns3/object-factory.h>
-#include "beamforming-helper-base.h"
 #include <ns3/nstime.h>
 #include <ns3/vector.h>
 #include <ns3/net-device.h>
 #include <ns3/net-device-container.h>
 #include "ns3/event-id.h"
 
-#ifndef SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
-#define SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
+#ifndef SRC_NR_HELPER_BEAMFORMING_HELPER_BASE_H_
+#define SRC_NR_HELPER_BEAMFORMING_HELPER_BASE_H_
 
 namespace ns3 {
 
@@ -35,19 +35,19 @@ class NrUeNetDevice;
 
 /**
  * \ingroup helper
- * \brief The IdealBeamformingHelper class
+ * \brief The BeamformingHelperBase class
  */
-class IdealBeamformingHelper : public BeamformingHelperBase
+class BeamformingHelperBase : public Object
 {
 public:
   /**
-   * \brief IdealBeamformingHelper
+   * \brief BeamformingHelperBase
    */
-  IdealBeamformingHelper ();
+  BeamformingHelperBase ();
   /**
-   * \brief ~IdealBeamformingHelper
+   * \brief ~BeamformingHelperBase
    */
-  virtual ~IdealBeamformingHelper ();
+  virtual ~BeamformingHelperBase ();
 
   virtual void DoInitialize ();
 
@@ -63,43 +63,32 @@ public:
    * \param ueDev
    */
   virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                   const Ptr<NrUeNetDevice>& ueDev) override;
+                                   const Ptr<NrUeNetDevice>& ueDev);
 
   /**
    * \brief SetBeamformingMethod
    * \param beamformingMethod
    */
-  virtual void SetBeamformingMethod (const TypeId &beamformingMethod) override;
+  virtual void SetBeamformingMethod (const TypeId &beamformingMethod) = 0;
 
   /**
-   * \brief SetIdealBeamformingPeriodicity
-   * \param v
+   * Set an attribute for the <> to be created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
    */
-  void SetPeriodicity (const Time &v);
-  /**
-   * \brief GetIdealBeamformingPeriodicity
-   * \return
-   */
-  Time GetPeriodicity () const;
-
-  /**
-   * \brief Run
-   */
-  virtual void Run () const;
+  void SetBeamformingAlgorithmAttribute (const std::string &n, const AttributeValue &v);
 
 protected:
 
-  /**
-   * \brief The beamforming timer has expired; at the next slot, perform beamforming.
-   *
-   */
-  virtual void ExpireBeamformingTimer ();
+  virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const;
 
+  std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks;
   Time m_beamformingPeriodicity;
-  EventId m_beamformingTimer; //!< Beamforming timer
+  Ptr<BeamformingAlgorithm> m_beamformingAlgorithm;
 };
 
 }; //ns3 namespace
 
 
-#endif /* SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_ */
+#endif /* SRC_NR_HELPER_BEAMFORMING_HELPER_BASE_H_ */

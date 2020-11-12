@@ -34,45 +34,32 @@ NS_LOG_COMPONENT_DEFINE ("RealisticBeamformingHelper");
 NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingHelper);
 
 
-RealisticBeamformingHelper::RealisticBeamformingHelper ()
-{
-  // TODO Auto-generated constructor stub
-  NS_LOG_FUNCTION (this);
-}
-
-RealisticBeamformingHelper::~RealisticBeamformingHelper ()
-{
-  // TODO Auto-generated destructor stub
-  NS_LOG_FUNCTION (this);
-}
-
 TypeId
 RealisticBeamformingHelper::GetTypeId (void)
 {
-  static TypeId tid =
-      TypeId ("ns3::RealisticBeamformingHelper")
-      .SetParent<IdealBeamformingHelper> ()
-      .AddConstructor<RealisticBeamformingHelper> ()
-      .AddAttribute ("TriggerEvent",
-                     "Defines a beamforming trigger event",
-                      EnumValue (RealisticBeamformingHelper::SRS_COUNT),
-                      MakeEnumAccessor (&RealisticBeamformingHelper::SetTriggerEvent,
-                                        &RealisticBeamformingHelper::GetTriggerEvent),
-                      MakeEnumChecker (RealisticBeamformingHelper::SRS_COUNT, "SrsCount",
-                                       RealisticBeamformingHelper::DELAYED_UPDATE, "DelayedUpdate"))
-      .AddAttribute ("SrsCountPeriodicity",
-                     "Interval between consecutive beamforming update method executions expressed in the number of SRS SINR reports"
-                     "to wait before triggering the next beamforming update method execution.",
-                      UintegerValue (1),
-                      MakeUintegerAccessor (&RealisticBeamformingHelper::SetSrsCountPeriodicity,
-                                            &RealisticBeamformingHelper::GetSrsCountPeriodicity),
-                      MakeUintegerChecker <uint16_t>())
-      .AddAttribute ("SrsToBeamformingDelay",
-                     "Delay between SRS SINR report and the beamforming vectors update. ",
-                      TimeValue (MilliSeconds (10)),
-                      MakeTimeAccessor (&RealisticBeamformingHelper::SetSrsToBeamformingDelay,
-                                        &RealisticBeamformingHelper::GetSrsToBeamformingDelay),
-                      MakeTimeChecker());
+  static TypeId tid = TypeId ("ns3::RealisticBeamformingHelper")
+                      .SetParent<BeamformingHelperBase> ()
+                      .AddConstructor<RealisticBeamformingHelper> ()
+                      .AddAttribute ("TriggerEvent",
+                                     "Defines a beamforming trigger event",
+                                     EnumValue (RealisticBeamformingHelper::SRS_COUNT),
+                                     MakeEnumAccessor (&RealisticBeamformingHelper::SetTriggerEvent,
+                                                       &RealisticBeamformingHelper::GetTriggerEvent),
+                                     MakeEnumChecker (RealisticBeamformingHelper::SRS_COUNT, "SrsCount",
+                                                      RealisticBeamformingHelper::DELAYED_UPDATE, "DelayedUpdate"))
+                      .AddAttribute ("SrsCountPeriodicity",
+                                     "Interval between consecutive beamforming update method executions expressed in the number of SRS SINR reports"
+                                     "to wait before triggering the next beamforming update method execution.",
+                                     UintegerValue (1),
+                                     MakeUintegerAccessor (&RealisticBeamformingHelper::SetSrsCountPeriodicity,
+                                                           &RealisticBeamformingHelper::GetSrsCountPeriodicity),
+                                     MakeUintegerChecker <uint16_t>())
+                      .AddAttribute ("SrsToBeamformingDelay",
+                                     "Delay between SRS SINR report and the beamforming vectors update. ",
+                                     TimeValue (MilliSeconds (10)),
+                                     MakeTimeAccessor (&RealisticBeamformingHelper::SetSrsToBeamformingDelay,
+                                                       &RealisticBeamformingHelper::GetSrsToBeamformingDelay),
+                                     MakeTimeChecker());
     return tid;
 }
 
@@ -123,7 +110,8 @@ RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDe
                                                 const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
-  m_beamformingTasks.push_back (std::make_pair (gNbDev, ueDev));
+
+  BeamformingHelperBase ::AddBeamformingTask (gNbDev, ueDev);
 
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
@@ -134,21 +122,6 @@ RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDe
           m_srsSinrReportsListsPerCellId [cellId] = SrsReports ();
         }
     }
-}
-
-void
-RealisticBeamformingHelper::Run () const
-{
-  NS_FATAL_ERROR ("Run function should not be called when RealisticBeamforming is being used.");
-  // run function is used to run all beamforming tasks (updates) at the same time, this is different
-  // from realistic beamforming behaviour in which we will not have updates at the same time,
-  // instead each beamforming task will be triggered based on its own event (SRS count or delay)
-}
-
-void
-RealisticBeamformingHelper::ExpireBeamformingTimer ()
-{
-  NS_FATAL_ERROR ("ExpireBeamformingTimer function should not be called when RealisticBeamforming is being used.");
 }
 
 void
@@ -210,7 +183,7 @@ RealisticBeamformingHelper::TriggerBeamformingAlgorithm (uint16_t cellId, uint16
 {
   NS_LOG_FUNCTION (this);
   Ptr<RealisticBeamformingAlgorithm> realBeamforming = DynamicCast <RealisticBeamformingAlgorithm> (m_beamformingAlgorithm);
-  NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not initialized yet or is of the wrong type. Should be RealisticBeamformingAlgorithm." );
+  NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not initialized yet or is of the wrong type. Should be RealisticBeamformingHelper." );
 
   for (const auto& task:m_beamformingTasks)
     {
@@ -229,6 +202,17 @@ RealisticBeamformingHelper::TriggerBeamformingAlgorithm (uint16_t cellId, uint16
     }
 
   NS_FATAL_ERROR ("Beamforming task not found for cellId and rnti: "<< cellId << "," << rnti);
+}
+
+void
+RealisticBeamformingHelper::SetBeamformingMethod (const TypeId &beamformingMethod)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (beamformingMethod.IsChildOf (RealisticBeamformingAlgorithm::GetTypeId ()));
+
+  ObjectFactory objectFactory;
+  objectFactory.SetTypeId (beamformingMethod);
+  m_beamformingAlgorithm = objectFactory.Create<RealisticBeamformingAlgorithm> ();
 }
 
 

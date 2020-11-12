@@ -18,7 +18,7 @@
  */
 
 #include <ns3/object-factory.h>
-#include "ideal-beamforming-helper.h"
+#include "beamforming-helper-base.h"
 #include <ns3/realistic-beamforming-algorithm.h>
 
 #ifndef SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
@@ -31,6 +31,7 @@ class NrUeNetDevice;
 class NrGnbPhy;
 class NrUePhy;
 
+
 /**
  * \ingroup helper
  * \brief The RealisticBeamformingHelper class that helps user create beamforming tasks
@@ -42,14 +43,17 @@ class NrUePhy;
  * there must be a class that will be able to emulate the beamforming procedure, and that is,
  * to update the beamforming vectors of both devices, gNB and UE, at the same time.
  *
- * This class allows setting what will be the trigger event to update the beamfomring vectors.
+ * In ideal algorithms there is a run function that is used to run all beamforming tasks (updates)
+ * at the same time. Here is different, not all beams are updated at the same time,
+ * instead each beamforming task will be triggered based on its own event (SRS count or delay)
+ * To allow that, this class has attribute throught which can be set the trigger event type.
  * E.g., the trigger event can be that it has been received a certain number of SRSs signals
  * from a UE.
  * This helper saves all SRS reports for each gNB and all of its users, and it is saved per
  * component carrier identified by cellId.
  *
  */
-class RealisticBeamformingHelper : public IdealBeamformingHelper
+class RealisticBeamformingHelper : public BeamformingHelperBase
 {
 public:
 
@@ -67,15 +71,6 @@ public:
     SRS_COUNT,
     DELAYED_UPDATE
   };
-
-  /**
-   * \brief IdealBeamformingHelper
-   */
-  RealisticBeamformingHelper ();
-  /**
-   * \brief ~IdealBeamformingHelper
-   */
-  virtual ~RealisticBeamformingHelper ();
 
   /**
    * \brief Get the Type ID
@@ -137,9 +132,12 @@ public:
    * \param srsSinr value of srsSinr to be passed to RealisticBeamformingAlgorithm
    */
   void TriggerBeamformingAlgorithm (uint16_t cellId, uint16_t rnti, double srsSinr);
-  // inherited from IdealBamformingHelper
-  virtual void Run () const override;
-  virtual void ExpireBeamformingTimer () override;
+
+  /**
+   * \brief SetBeamformingMethod
+   * \param beamformingMethod
+   */
+  virtual void SetBeamformingMethod (const TypeId &beamformingMethod) override;
 
 private:
 

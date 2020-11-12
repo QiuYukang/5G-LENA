@@ -355,7 +355,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper = CreateObject<NrHelper> ();
 
   // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
   nrHelper->SetEpcHelper (epcHelper);

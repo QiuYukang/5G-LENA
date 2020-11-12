@@ -18,6 +18,7 @@
  */
 
 #include "ideal-beamforming-helper.h"
+#include  <ns3/ideal-beamforming-algorithm.h>
 #include <ns3/log.h>
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-ue-net-device.h>
@@ -56,7 +57,7 @@ IdealBeamformingHelper::GetTypeId (void)
 {
   static TypeId tid =
       TypeId ("ns3::IdealBeamformingHelper")
-      .SetParent<Object> ()
+      .SetParent<BeamformingHelperBase> ()
       .AddConstructor<IdealBeamformingHelper> ()
       .AddAttribute ("BeamformingMethod",
                      "Type of the ideal beamforming method in the case that it is enabled, by default is \"cell scan\" method.",
@@ -78,7 +79,8 @@ IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                             const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
-  m_beamformingTasks.push_back(std::make_pair(gNbDev, ueDev));
+  BeamformingHelperBase::AddBeamformingTask (gNbDev, ueDev);
+
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
       RunTask (gNbDev, ueDev, ccId); // run immediately the task, and next time will be according to configured periodicity
@@ -98,26 +100,11 @@ IdealBeamformingHelper::Run () const
       Ptr<NrGnbNetDevice> gNbDev = task.first;
       Ptr<NrUeNetDevice> ueDev = task.second;
 
-  for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
+      for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
         {
           RunTask (gNbDev, ueDev, ccId);
         }
     }
-}
-
-void
-IdealBeamformingHelper::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                 const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const
-{
-  NS_LOG_FUNCTION (this);
-  BeamformingVector gnbBfv, ueBfv;
-  m_beamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
-  Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
-  Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
-  NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
-  gNbPhy->GetBeamManager ()->SaveBeamformingVector (gnbBfv, ueDev);
-  uePhy->GetBeamManager ()->SaveBeamformingVector (ueBfv, gNbDev);
-  uePhy->GetBeamManager ()->ChangeBeamformingVector (gNbDev);
 }
 
 void
@@ -160,15 +147,6 @@ IdealBeamformingHelper::GetPeriodicity () const
   NS_LOG_FUNCTION (this);
 
   return m_beamformingPeriodicity;
-}
-
-void
-IdealBeamformingHelper::SetBeamformingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_beamformingAlgorithm != nullptr, "Call SetBeamformingMethod before this function");
-
-  m_beamformingAlgorithm->SetAttribute (n, v);
 }
 
 

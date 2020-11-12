@@ -1016,7 +1016,7 @@ NrHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       ueNas->Connect (enbNetDev->GetBwpId (i), enbNetDev->GetEarfcn (i));
     }
 
-  if (m_epcHelper != nullptr)
+  if (m_epcHelper)
     {
       // activate default EPS bearer
       m_epcHelper->ActivateEpsBearer (ueDevice, ueNetDev->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
@@ -1028,9 +1028,9 @@ NrHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
   ueNetDev->SetTargetEnb (enbNetDev);
   //}
 
-  if (m_idealBeamformingHelper != nullptr)
+  if (m_beamformingHelper)
     {
-      m_idealBeamformingHelper->AddBeamformingTask (enbNetDev, ueNetDev);
+      m_beamformingHelper->AddBeamformingTask (enbNetDev, ueNetDev);
     }
 }
 
@@ -1346,10 +1346,10 @@ NrHelper::SetEpcHelper (Ptr<EpcHelper> epcHelper)
 }
 
 void
-NrHelper::SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper)
+NrHelper::SetBeamformingHelper (Ptr<BeamformingHelperBase> beamformingHelper)
 {
-  m_idealBeamformingHelper = idealBeamformingHelper;
-  m_idealBeamformingHelper->Initialize();
+  m_beamformingHelper = beamformingHelper;
+  m_beamformingHelper->Initialize();
 }
 
 class NrDrbActivator : public SimpleRefCount<NrDrbActivator>

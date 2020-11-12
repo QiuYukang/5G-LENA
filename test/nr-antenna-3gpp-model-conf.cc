@@ -224,7 +224,7 @@ TestAntenna3gppModelConf::DoRun (void)
   idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
   double beamSearchAngleStep = 30.0;
   idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
 
 
   // set the number of antenna elements of UE

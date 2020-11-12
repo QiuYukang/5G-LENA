@@ -201,7 +201,7 @@ NrTestNumerologyDelayCase1::DoRun (void)
   // Beamforming method
   idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   BandwidthPartInfoPtrVector allBwps;

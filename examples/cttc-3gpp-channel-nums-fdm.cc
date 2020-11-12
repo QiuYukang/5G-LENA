@@ -171,7 +171,7 @@ main (int argc, char *argv[])
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
   // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   BandwidthPartInfoPtrVector allBwps;

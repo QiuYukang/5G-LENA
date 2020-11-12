@@ -23,7 +23,7 @@
 #include <ns3/object.h>
 #include "beam-id.h"
 #include "beamforming-vector.h"
-#include "ideal-beamforming-algorithm.h"
+#include "beamforming-algorithm.h"
 #include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/mobility-module.h>
 #include <ns3/multi-model-spectrum-channel.h>
@@ -37,11 +37,36 @@ class SpectrumValue;
 class NrGnbNetDevice;
 class NrUeNetDevice;
 
+
+/**
+ * \ingroup gnb-phy
+ * \brief Generate "Ideal" beamforming vectors
+ * This class is inherited by all algorithms that do not assume the
+ * perfect knowledge of the channel, but instead are performing the
+ * estimation of the channel based on measurements, e.g., based on
+ * SRS SINR measurement.
+ */
+class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
+{
+public:
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+  /**
+   * \brief Sets the sirn SRS value to be used. In lineal unit.
+   */
+  virtual void SetSrsSinr (double sinrSrs) = 0;
+};
+
+
 /**
  * \ingroup gnb-phy
  * \brief Generate "Ideal" beamforming vectors
  *
- * RealisticBeamformingAlgorithm purpose is to generate beams for the pair
+ * SrsRealisticBeamformingAlgorithm purpose is to generate beams for the pair
  * of communicating devices based on the SRS measurements. Differently from
  * IdealBeamformingAlgorithm this type of algorithm does not assume a perfect
  * knowledge of the channel. It instead estimates the long-term fast fading
@@ -55,7 +80,7 @@ class NrUeNetDevice;
  * only compatible with the beam search method."
  */
 
-class RealisticBeamformingAlgorithm: public IdealBeamformingAlgorithm
+class SrsRealisticBeamformingAlgorithm: public RealisticBeamformingAlgorithm
 {
 
 public:
@@ -64,16 +89,6 @@ public:
    * \return the type id of the class
    */
   static TypeId GetTypeId (void);
-
-  /**
-   * \brief constructor
-   */
-  RealisticBeamformingAlgorithm ();
-
-  /**
-   * \brief destructor
-   */
-  virtual ~RealisticBeamformingAlgorithm ();
 
   virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                       const Ptr<const NrUeNetDevice>& ueDev,
@@ -93,7 +108,7 @@ public:
   /**
    * \brief Sets the sirn SRS value to be used. In lineal unit.
    */
-  void SetSrsSinr (double sinrSrs);
+  virtual void SetSrsSinr (double sinrSrs) override;
 
   /**
    * Assign a fixed random variable stream number to the random variables

@@ -38,7 +38,6 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
-<<<<<<< HEAD
   m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
 }
 
