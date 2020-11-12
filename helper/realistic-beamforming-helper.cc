@@ -69,7 +69,7 @@ RealisticBeamformingHelper::GetTypeId (void)
                       MakeUintegerChecker <uint16_t>())
       .AddAttribute ("SrsToBeamformingDelay",
                      "Delay between SRS SINR report and the beamforming vectors update. ",
-                      TimeValue (MilliSeconds(10)),
+                      TimeValue (MilliSeconds (10)),
                       MakeTimeAccessor (&RealisticBeamformingHelper::SetSrsToBeamformingDelay,
                                         &RealisticBeamformingHelper::GetSrsToBeamformingDelay),
                       MakeTimeChecker());
@@ -122,13 +122,17 @@ void
 RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                                 const Ptr<NrUeNetDevice>& ueDev)
 {
-
   NS_LOG_FUNCTION (this);
   m_beamformingTasks.push_back (std::make_pair (gNbDev, ueDev));
 
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
       gNbDev->GetPhy (ccId)->GetSpectrumPhy()->SetSrsSinrReportCallback (MakeCallback (&RealisticBeamformingHelper::SaveSrsSinrReport, this));
+      auto cellId = gNbDev->GetPhy (ccId)->GetCellId ();
+      if (m_srsSinrReportsListsPerCellId.find (cellId) == m_srsSinrReportsListsPerCellId.end())
+        {
+          m_srsSinrReportsListsPerCellId [cellId] = SrsReports ();
+        }
     }
 }
 
@@ -136,6 +140,9 @@ void
 RealisticBeamformingHelper::Run () const
 {
   NS_FATAL_ERROR ("Run function should not be called when RealisticBeamforming is being used.");
+  // run function is used to run all beamforming tasks (updates) at the same time, this is different
+  // from realistic beamforming behaviour in which we will not have updates at the same time,
+  // instead each beamforming task will be triggered based on its own event (SRS count or delay)
 }
 
 void
@@ -145,60 +152,56 @@ RealisticBeamformingHelper::ExpireBeamformingTimer ()
 }
 
 void
-RealisticBeamformingHelper::RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev,
-                                     const Ptr<NrGnbPhy>& gNbPhy, const Ptr<NrUePhy>& uePhy, uint8_t ccId) const
-{
-
-  NS_LOG_FUNCTION (this);
-  BeamformingVector gnbBfv, ueBfv;
-  m_beamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
-  NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
-  gNbPhy->GetBeamManager ()->SaveBeamformingVector (gnbBfv, ueDev);
-  uePhy->GetBeamManager ()->SaveBeamformingVector (ueBfv, gNbDev);
-  uePhy->GetBeamManager ()->ChangeBeamformingVector (gNbDev);
-
-}
-
-void
 RealisticBeamformingHelper::SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not set");
 
-  if (m_beamformingAlgorithm == nullptr)
-    {
-      NS_FATAL_ERROR ("beamforming is nullptr");
-    }
+  GetSecond srsList;
+  GetSecond srs;
+  auto itCell = m_srsSinrReportsListsPerCellId.find (cellId);
+  auto itRnti = srsList (*itCell).find (rnti);
 
-  if (m_srsSinrReportsPerUe.find (rnti) != m_srsSinrReportsPerUe.end())
+  NS_ASSERT_MSG (itCell != m_srsSinrReportsListsPerCellId.end (),
+                 "SRS report map for this cellId not initialized in AddBeaformingTask");
+
+  if (itRnti != srsList (*itCell).end ())
     {
-      m_srsSinrReportsPerUe.find (rnti)->second.reportTime = Simulator::Now();
-      m_srsSinrReportsPerUe.find (rnti)->second.srsSinrValue = srsSinr;
+      srs (*itRnti).time = Simulator::Now ();
+      srs (*itRnti).srsSinr = srsSinr;
 
       if (m_triggerEvent == SRS_COUNT)
         {
-          m_srsSinrReportsPerUe.find(rnti)->second.counter++;
+          srs (*itRnti).counter++;
         }
     }
   else
     {
-      m_srsSinrReportsPerUe [rnti] = SrsSinrReport (Simulator::Now(), srsSinr, 0);
+      srsList (*itCell)[rnti] = SrsSinrReport (Simulator::Now (), srsSinr, 0);
     }
 
   switch (m_triggerEvent)
   {
     case SRS_COUNT:
-      if (m_srsSinrReportsPerUe.find (rnti)->second.counter == m_srsSinrPeriodicity)
-        {
-          m_srsSinrReportsPerUe.find (rnti)->second.counter = 0;
-          TriggerBeamformingAlgorithm (cellId, rnti, srsSinr);
-        }
-      break;
+      {
+        if (srs (*itRnti).counter == m_srsSinrPeriodicity)
+          {
+            srs (*itRnti).counter = 0;
+            TriggerBeamformingAlgorithm (cellId, rnti, srsSinr);
+          }
+        break;
+      }
     case DELAYED_UPDATE:
-      Simulator::Schedule (GetSrsToBeamformingDelay (),
-                           &RealisticBeamformingHelper::TriggerBeamformingAlgorithm, this, cellId, rnti, srsSinr);
-      break;
+      {
+        Simulator::Schedule (GetSrsToBeamformingDelay (),
+                             &RealisticBeamformingHelper::TriggerBeamformingAlgorithm, this,
+                             cellId, rnti, srsSinr);
+        break;
+      }
     default:
-      NS_FATAL_ERROR ("Unknown trigger event.");
+      {
+        NS_FATAL_ERROR ("Unknown trigger event type.");
+      }
   }
 }
 
@@ -206,20 +209,25 @@ void
 RealisticBeamformingHelper::TriggerBeamformingAlgorithm (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
+  Ptr<RealisticBeamformingAlgorithm> realBeamforming = DynamicCast <RealisticBeamformingAlgorithm> (m_beamformingAlgorithm);
+  NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not initialized yet or is of the wrong type. Should be RealisticBeamformingAlgorithm." );
 
   for (const auto& task:m_beamformingTasks)
     {
       for (uint8_t ccId = 0; ccId < task.first->GetCcMapSize () ; ccId++)
         {
-          if (task.first->GetPhy(ccId)->GetCellId () == cellId && task.second->GetRrc()->GetRnti () == rnti)
+          auto currentCellId = task.first->GetPhy (ccId)->GetCellId ();
+          auto currentRnti = task.second->GetRrc ()->GetRnti ();
+
+          if (currentCellId == cellId && currentRnti == rnti)
             {
-              NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not initialized yet!" );
-              (DynamicCast <RealisticBeamformingAlgorithm> (m_beamformingAlgorithm))-> SetSrsSinr (srsSinr);
-              RunTask (task.first, task.second, task.first->GetPhy(ccId), task.second->GetPhy(ccId), ccId);
+              realBeamforming->SetSrsSinr (srsSinr);
+              RunTask (task.first, task.second, ccId);
               return;
             }
         }
     }
+
   NS_FATAL_ERROR ("Beamforming task not found for cellId and rnti: "<< cellId << "," << rnti);
 }
 

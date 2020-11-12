@@ -97,7 +97,7 @@ public:
 
 protected:
 
-  virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev) const;
+  virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const;
 
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.

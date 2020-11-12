@@ -33,7 +33,21 @@ class NrUePhy;
 
 /**
  * \ingroup helper
- * \brief The RealisticBeamformingHelper class
+ * \brief The RealisticBeamformingHelper class that helps user create beamforming tasks
+ * and configure when these tasks should be executed. This helper also collects SRS measurements
+ * for each gNB and UE. This helper class is currently compatible only with the
+ * RealisticBeamformingAlgorithm.
+ *
+ * Similarly to IdealBeamformingHelper, since there is no real beamforming procedure,
+ * there must be a class that will be able to emulate the beamforming procedure, and that is,
+ * to update the beamforming vectors of both devices, gNB and UE, at the same time.
+ *
+ * This class allows setting what will be the trigger event to update the beamfomring vectors.
+ * E.g., the trigger event can be that it has been received a certain number of SRSs signals
+ * from a UE.
+ * This helper saves all SRS reports for each gNB and all of its users, and it is saved per
+ * component carrier identified by cellId.
+ *
  */
 class RealisticBeamformingHelper : public IdealBeamformingHelper
 {
@@ -41,13 +55,11 @@ public:
 
   struct SrsSinrReport
   {
-    Time reportTime {0};
-    double srsSinrValue {0};
-    double counter {0};
-
+    Time time {0}; // srs report time
+    double srsSinr {0}; // srs SINR in watts
+    double counter {0}; // counter of SRS reports between consecutive beamforming updates
     SrsSinrReport (){}
-    SrsSinrReport (Time rTime, double sValue, double c):reportTime (rTime), srsSinrValue(sValue), counter(c) {};
-
+    SrsSinrReport (Time rTime, double sValue, double c):time (rTime), srsSinr (sValue), counter (c) {};
   };
 
   enum TriggerEvent
@@ -73,8 +85,15 @@ public:
 
   void DoInitialize ();
 
+  /**
+   * \brief Sets the beamforming update trigger event, trigger event type
+   * is one for all the nodes
+   * \param triggerEvent triggerEvent type
+   */
   void SetTriggerEvent (RealisticBeamformingHelper::TriggerEvent triggerEvent);
-
+  /**
+   * \return Returns the trigger event type
+   */
   RealisticBeamformingHelper::TriggerEvent GetTriggerEvent () const;
 
   /**
@@ -93,36 +112,42 @@ public:
    * \param delay the delay after reception of SRS SINR
    */
   void SetSrsToBeamformingDelay (Time delay);
-
   /**
    * \return returns the delay after sSRS SINR report and beamforming
    */
   Time GetSrsToBeamformingDelay () const;
-
+  /**
+   * \brief Adds the beamforming task to the list of tasks
+   * \gnbDev gNbDev pointer to gNB device
+   * \ueDev ueDev pointer to UE device
+   */
   virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                    const Ptr<NrUeNetDevice>& ueDev) override;
-
   /**
    * \brief Saves SRS sinr report for this RNTI
    * \param srsSinr
    * \param rnti
    */
   void SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr);
-
+  /**
+   * \brief When the condition for triggering a beamforming update is fullfilled
+   * this function will be triggered
+   * \param cellId id that uniquely identifies the gNB phy
+   * \param rnti id that uniquely identifies the user of gNb
+   * \param srsSinr value of srsSinr to be passed to RealisticBeamformingAlgorithm
+   */
   void TriggerBeamformingAlgorithm (uint16_t cellId, uint16_t rnti, double srsSinr);
-
+  // inherited from IdealBamformingHelper
   virtual void Run () const override;
   virtual void ExpireBeamformingTimer () override;
 
 private:
 
-  virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev,
-                        const Ptr<NrGnbPhy>& gNbPhy, const Ptr<NrUePhy>& uePhy, uint8_t ccId) const ;
-
-  bool m_periodicityMode {true};                  //!< When true beamforming will be triggered by using srsCountPeriodicity attribute, when false delay attribute will be used
-  uint16_t m_srsSinrPeriodicity {3};             //!< Periodicity of beamforming update in number of SRS SINR reports
+  bool m_periodicityMode {true}; //!< When true beamforming will be triggered by using srsCountPeriodicity attribute, when false delay attribute will be used
+  uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
   Time m_srsToBeamformingDelay {MilliSeconds(0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
-  std::unordered_map<uint16_t, SrsSinrReport > m_srsSinrReportsPerUe;
+  typedef std::unordered_map <uint16_t, SrsSinrReport > SrsReports; //!< List of SRS reports by RNTI
+  std::unordered_map< uint16_t, SrsReports > m_srsSinrReportsListsPerCellId; //!< SRS reports per cellId
   TriggerEvent m_triggerEvent; //!< Defines what will be the trigger event for the update of the beamforming vectors
 
 };

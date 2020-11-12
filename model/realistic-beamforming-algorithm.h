@@ -43,16 +43,16 @@ class NrUeNetDevice;
  *
  * RealisticBeamformingAlgorithm purpose is to generate beams for the pair
  * of communicating devices based on the SRS measurements. Differently from
- * IdealBeamformingAlgorithm this type of algorithm does not assume
- * a perfect knowledge of the channel.
- * It instead estimates the long-term fast fading channel
- * component based on the received SRS. Accordingly, this approach
- * could be used with any beamforming algorithm that makes use of the channel estimation,
- * e.g., beam search method (e.g., such as the one implemented in CellScanBeamforming
- * class). Note that the LOS type of method (e.g., such as the one implemented in
- * DirectPathBeamforming class) does not use the channel matrix, but instead the
- * angles of arrival and departure of the LOS path, and so, the proposed method
- * is not valid for it. Currently, it is only compatible with the beam search method. "
+ * IdealBeamformingAlgorithm this type of algorithm does not assume a perfect
+ * knowledge of the channel. It instead estimates the long-term fast fading
+ * channel component based on the received SRS. Accordingly, this approach
+ * could be used with any beamforming algorithm that makes use of the channel
+ * estimation, e.g., beam search method (e.g., such as the one implemented in
+ * CellScanBeamforming class). Note that the LOS type of method (e.g., such as
+ * the one implemented in DirectPathBeamforming class) does not use the
+ * channel matrix, but instead the angles of arrival and departure of the LOS
+ * path, and so, the proposed method is not valid for it. Currently, it is
+ * only compatible with the beam search method."
  */
 
 class RealisticBeamformingAlgorithm: public IdealBeamformingAlgorithm
@@ -80,7 +80,6 @@ public:
                                       BeamformingVector* gnbBfv,
                                       BeamformingVector* ueBfv,
                                       uint16_t ccId) const override;
-
   /**
    * \return Gets value of BeamSearchAngleStep attribute
    */
@@ -108,14 +107,6 @@ public:
 
 private:
 
-  /**
-   * \brief Function that generates the beamforming vectors for a pair of
-   * communicating devices
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
-   */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv,

@@ -611,7 +611,7 @@ void
 NrSpectrumPhy::AddSrsSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (IsEnb () && m_interferenceSrs, "Something is wrong. SRS interference object does not exist or this device is not gNb.");
+  NS_ASSERT_MSG (IsEnb () && m_interferenceSrs, "SRS interference object does not exist or this device is not gNb so the function should not be called.");
   m_interferenceSrs->AddSinrChunkProcessor (p);
 }
 

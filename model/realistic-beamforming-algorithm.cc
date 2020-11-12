@@ -38,6 +38,7 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
+<<<<<<< HEAD
   m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
 }
 
@@ -51,7 +52,6 @@ RealisticBeamformingAlgorithm::AssignStreams (int64_t stream)
 
 RealisticBeamformingAlgorithm::~RealisticBeamformingAlgorithm()
 {
-
 }
 
 TypeId
@@ -121,7 +121,7 @@ RealisticBeamformingAlgorithm::DoGetBeamformingVectors (const Ptr<const NrGnbNet
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
-  complexVector_t  maxTxW, maxRxW;
+  complexVector_t maxTxW, maxRxW;
 
   UintegerValue uintValue;
   gnbPhy->GetAntennaArray ()->GetAttribute ("NumRows", uintValue);
@@ -220,9 +220,7 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
 
   NS_LOG_DEBUG ("Calculate the estimation of the long term component with sAntenna: " << sAntenna << " uAntenna: " << uAntenna);
   ThreeGppAntennaArrayModel::ComplexVector estimatedlongTerm;
-
   double varError = 1 / (m_lastRerportedSrsSinr); // SINR the SINR from UL SRS reception
-
   uint8_t numCluster = static_cast<uint8_t> (channelMatrix->m_channel[0][0].size ());
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
@@ -236,7 +234,6 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
               //error is generated from the normal random variable with mean 0 and  variance varError*sqrt(1/2) for real/imaginary parts
               std::complex<double> error = std::complex <double> (m_normalRandomVariable->GetValue (0, sqrt (0.5) * varError),
                                                                   m_normalRandomVariable->GetValue (0, sqrt (0.5) * varError)) ;
-
               std::complex<double> hEstimate = channelMatrix->m_channel [uIndex][sIndex][cIndex] + error;
               rxSum += uW[uIndex] * (hEstimate);
             }
@@ -246,7 +243,6 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
     }
   return estimatedlongTerm;
 }
-
 
 
 void
