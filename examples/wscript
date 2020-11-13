@@ -35,7 +35,7 @@ def build(bld):
     obj.source = 'cttc-fh-compression.cc'
     obj = bld.create_ns3_program('cttc-nr-notching', ['nr','flow-monitor'])
     obj.source = 'cttc-nr-notching.cc'
-    obj = bld.create_ns3_program('cttc-realistic-beamforming', ['nr'])
+    obj = bld.create_ns3_program('cttc-realistic-beamforming', ['nr', 'stats'])
     obj.source = 'cttc-realistic-beamforming.cc'
 
 

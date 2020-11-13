@@ -26,6 +26,7 @@
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/config-store-module.h"
 #include "ns3/nr-module.h"
+#include "ns3/stats-module.h"
 
 using namespace ns3;
 
@@ -118,9 +119,8 @@ public:
   void UeRssiPerProcessedChunk (double rssidBm);
 
   /**
-   * Function that will actually configure all the simulation parameters,
-   * topology and run the simulation by using the parameters that are being
-   * configured for the specific run.
+   * \brief Function that will save the configuration parameters to be used later for
+   * printing the results into the files.
    *
    * @param deltaX delta that will be used to determine X coordinate of UE wrt to gNB X coordindate
    * @param deltaY delta that will be used to determine Y coordinate of UE wrt to gNB Y coordinate
@@ -136,14 +136,45 @@ public:
    * to be able to distinguish the results file for different runs for different
    * parameters configuration
    */
-  void Run (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
+  void Configure (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
             uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
             std::string resultsDirPath, std::string tag);
+
+
+  /**
+   * \brief Function that will actually configure all the simulation parameters,
+   * topology and run the simulation by using the parameters that are being
+   * configured for the specific run.
+   */
+  void RunSimulation ();
   /**
    * \brief Destructor that closes the output file stream and finished the
-   * writing into the files.
+   *  writing into the files.
    */
   ~CttcRealisticBeamforming ();
+  /**
+  * \brief Creates a string tag that contains some simulation run specific values in
+  * order to be able to distinguish the results files for different runs for
+  * different parameters.
+  */
+  std::string BuildTag ();
+  /**
+   * \brief
+   * Prepare files for the output of the results
+   */
+  void PrepareOutputFiles ();
+  /**
+   * \brief
+   * Print the statistics to the output files
+   */
+  void PrintResultsToFiles ();
+  /**
+   * \brief
+   * Create traffic applications
+   */
+  void CreateDlTrafficApplications (ApplicationContainer& serverAppDl, ApplicationContainer& clientAppDl,
+                                    NodeContainer& ueNode, Ptr<Node> remoteHost, NetDeviceContainer ueNetDev,
+                                    Ipv4InterfaceContainer& ueIpIface);
 
 private:
 
@@ -151,6 +182,37 @@ private:
   std::ofstream m_outSnrFile;          //!< the output file stream for the SNR file
   std::ofstream m_outRssiFile;         //!< the output file stream for the RSSI file
 
+  MinMaxAvgTotalCalculator<double> m_sinrStats;  //!< the statistics calculator for SINR values
+  MinMaxAvgTotalCalculator<double> m_snrStats;   //!< the statistics calculator for SNR values
+  MinMaxAvgTotalCalculator<double> m_rssiStats;  //!< the statistics calculator for RSSI values
+
+  // main simulation parameters that is expected that user will change often
+  double m_deltaX {1};
+  double m_deltaY {1};
+  BeamformingMethod m_beamforming {IDEAL};
+  uint64_t m_rngRun  {1};
+  uint16_t m_numerology {0};
+  bool m_gnbAntennaModel {true};
+  bool m_ueAntennaModel {true};
+  std::string m_resultsDirPath {""};
+  std::string m_tag {""};
+
+  // simulation parameters that are not expected to be changed often by the user
+  Time m_simTime = MilliSeconds (150);
+  Time m_udpAppStartTimeDl = MilliSeconds (100);
+  Time m_udpAppStopTimeDl = MilliSeconds (150);
+  uint32_t m_packetSize = 1000;
+  DataRate m_udpRate = DataRate ("1kbps");
+  double m_centralFrequency = 28e9;
+  double m_bandwidth = 100e6;
+  double m_gNbHeight = 3; // gNB antenna height is 3 meters
+  double m_ueHeight = 1.5; // UE antenna height is 1.5 meters
+  double m_gNbTxPower = 5;
+  double m_ueTxPower = 5;
+  BandwidthPartInfo::Scenario m_scenario = BandwidthPartInfo::InH_OfficeMixed;
+  const uint8_t m_numCcPerBand = 1;
+  double m_gNbX = 0;
+  double m_gNbY = 0;
 };
 
 /**
@@ -170,38 +232,79 @@ BuildFileNameString (std::string directoryName, std::string filePrefix, std::str
   return oss.str ();
 }
 
-/**
- * Creates a string tag that contains some simulation run specific values in
- * order to be able to distinguish the results files for different runs for
- * different parameters.
- * @param doubleX delta that defines UE X coordinate wrt gNB position
- * @param doubleY delta that defines UE Y coordinate wrt gNB position
- * @param beamformingMethod BeamformingMethod that will be used (IDEAL or REALISTIC)
- * @param gNbAntennaModel gNb antenna model
- * @param ueAntennaModel UE antenna model
- * @param scenario The indoor scenario to be used
- * @param speed The speed of UEs in km/h
- * @return the parameter specific simulation name
- */
 std::string
-BuildTag (double deltaX, double deltaY, CttcRealisticBeamforming::BeamformingMethod beamformingMethod,
-          uint32_t rngRun, uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel)
+CttcRealisticBeamforming:: BuildTag ()
 {
   std::ostringstream oss;
 
-  std::string algorithm = (beamformingMethod == CttcRealisticBeamforming::IDEAL) ? "I" : "R";
-  std::string gnbAmodel = (gNbAntennaModel) ? "ISO" : "3GPP";
-  std::string ueAmodel = (ueAntennaModel) ? "ISO" : "3GPP";
+  std::string algorithm = (m_beamforming == CttcRealisticBeamforming::IDEAL) ? "I" : "R";
+  std::string gnbAmodel = (m_gnbAntennaModel) ? "ISO" : "3GPP";
+  std::string ueAmodel = (m_ueAntennaModel) ? "ISO" : "3GPP";
 
-  oss << "-"   << algorithm  <<
-         "-dX" << deltaX     <<
-         "-dY" << deltaY     <<
-         "-r"  << rngRun     <<
-         "-mu" << numerology <<
-         "-aG" << gnbAmodel  <<
-         "-aU" << ueAmodel ;
+  double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
+
+  oss << "-"   << algorithm   <<
+         "-d" << distance2D <<
+         "-mu" << m_numerology <<
+         "-gnb" << gnbAmodel  <<
+         "-ue" << ueAmodel ;
 
   return oss.str ();
+}
+
+
+void
+CttcRealisticBeamforming::PrepareOutputFiles ()
+{
+  // If simulation tag is not provided create one, user can provide his own tag through the command line
+  if (m_tag == "")
+    {
+      m_tag = BuildTag ();
+    }
+  std::string fileSinr = BuildFileNameString ( m_resultsDirPath , "sinrs", m_tag);
+  std::string fileSnr = BuildFileNameString ( m_resultsDirPath , "snrs", m_tag);
+  std::string fileRssi = BuildFileNameString ( m_resultsDirPath , "rssi", m_tag);
+
+  m_outSinrFile.open (fileSinr.c_str (), std::_S_app);
+  m_outSinrFile.setf (std::ios_base::fixed);
+  NS_ABORT_MSG_IF (!m_outSinrFile.is_open (), "Can't open file " << fileSinr);
+
+  m_outSnrFile.open (fileSnr.c_str (), std::_S_app);
+  m_outSnrFile.setf (std::ios_base::fixed);
+  NS_ABORT_MSG_IF (!m_outSnrFile.is_open (), "Can't open file " << fileSnr);
+
+  m_outRssiFile.open (fileRssi.c_str (), std::_S_app);
+  m_outRssiFile.setf (std::ios_base::fixed);
+  NS_ABORT_MSG_IF (!m_outRssiFile.is_open(), "Can't open file " << fileRssi);
+
+}
+
+
+void
+CttcRealisticBeamforming::CreateDlTrafficApplications (ApplicationContainer& serverAppDl, ApplicationContainer& clientAppDl,
+                                                     NodeContainer& ueNode, Ptr<Node> remoteHost, NetDeviceContainer ueNetDev,
+                                                     Ipv4InterfaceContainer& ueIpIface)
+{
+  uint16_t dlPort = 1234;
+  //Calculate UDP interval based on the packetSize and desired udp rate
+  Time udpInterval = Time::FromDouble ((m_packetSize * 8) / static_cast<double> (m_udpRate.GetBitRate ()), Time::S);
+  UdpServerHelper dlPacketSinkHelper (dlPort);
+  serverAppDl.Add (dlPacketSinkHelper.Install (ueNode));
+  // Configure UDP downlink traffic
+  for (uint32_t i = 0 ; i < ueNetDev.GetN (); i ++)
+    {
+      UdpClientHelper dlClient (ueIpIface.GetAddress (i), dlPort);
+      dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
+      dlClient.SetAttribute("PacketSize", UintegerValue (m_packetSize));
+      dlClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
+      clientAppDl.Add (dlClient.Install (remoteHost));
+    }
+
+  // Start UDP server and client app, and configure stop time
+  serverAppDl.Start (m_udpAppStartTimeDl);
+  clientAppDl.Start (m_udpAppStartTimeDl);
+  serverAppDl.Stop (m_udpAppStopTimeDl);
+  clientAppDl.Stop (m_udpAppStopTimeDl);
 }
 
 /**
@@ -234,25 +337,22 @@ void UeRssiPerProcessedChunkTrace (CttcRealisticBeamforming* simSetup, double rs
   simSetup->UeRssiPerProcessedChunk (rssidBm);
 }
 
-
 void
 CttcRealisticBeamforming::UeReception (RxPacketTraceParams params)
 {
-  m_outSinrFile << params.m_cellId << params.m_rnti <<
-                   "\t" << 10*log10 (params.m_sinr) << std::endl;
+  m_sinrStats.Update (params.m_sinr); // we have to pas the linear value
 }
 
 void
 CttcRealisticBeamforming::UeSnrPerProcessedChunk (double snr)
 {
-  m_outSnrFile << 10 * log10 (snr) << std::endl;
+  m_snrStats.Update (snr);
 }
-
 
 void
 CttcRealisticBeamforming::UeRssiPerProcessedChunk (double rssidBm)
 {
-  m_outRssiFile << rssidBm << std::endl;
+  m_rssiStats.Update (rssidBm);
 }
 
 CttcRealisticBeamforming::~CttcRealisticBeamforming ()
@@ -263,57 +363,46 @@ CttcRealisticBeamforming::~CttcRealisticBeamforming ()
 }
 
 void
-CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
-                               uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
-                               std::string resultsDirPath, std::string tag)
+CttcRealisticBeamforming::PrintResultsToFiles ()
 {
-  uint32_t duration = 150; // in ms
-  Time simTime = MilliSeconds (duration);
-  Time udpAppStartTimeDl = MilliSeconds (100);
-  Time udpAppStopTimeDl = MilliSeconds (duration);
-  uint32_t packetSize = 1000;
-  DataRate udpRate = DataRate ("1kbps");
-  double centralFrequency = 28e9;
-  double bandwidth = 100e6;
-  double gNbHeight = 3; // gNB antenna height is 3 meters
-  double ueHeight = 1.5; // UE antenna height is 1.5 meters
-  double gNbTxPower = 5;
-  double ueTxPower = 5;
-  BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::InH_OfficeMixed;
+  m_outSinrFile << 10 * log10 (m_sinrStats.getMean ()) << std::endl;
+  m_outSnrFile <<  10 * log10 (m_snrStats.getMean ()) << std::endl;
+  m_outRssiFile << 10 * log10 (m_rssiStats.getMean ()) << std::endl;
+}
 
-  SeedManager::SetRun (rngRun);
+void
+CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
+                                     uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
+                                     std::string resultsDirPath, std::string tag)
 
-  // if simulation tag is not provided create one
-  if (tag == "")
-    {
-      tag = BuildTag (deltaX, deltaY, beamforming, rngRun, numerology, gNbAntennaModel, ueAntennaModel);
-    }
-  std::string fileSinr = BuildFileNameString ( resultsDirPath , "sinrs", tag);
-  std::string fileSnr = BuildFileNameString ( resultsDirPath , "snrs", tag);
-  std::string fileRssi = BuildFileNameString ( resultsDirPath , "rssi", tag);
+{
+  m_deltaX = deltaX;
+  m_deltaY = deltaY;
+  m_beamforming = beamforming;
+  m_rngRun = rngRun;
+  m_numerology = numerology;
+  m_gnbAntennaModel = gNbAntennaModel;
+  m_ueAntennaModel = ueAntennaModel;
+  m_resultsDirPath = resultsDirPath;
+  m_tag = tag;
+}
 
-  m_outSinrFile.open (fileSinr.c_str ());
-  m_outSinrFile.setf (std::ios_base::fixed);
-  NS_ABORT_MSG_IF (!m_outSinrFile.is_open (), "Can't open file " << fileSinr);
+void
+CttcRealisticBeamforming::RunSimulation ()
+{
+  // Set simulation run number
+  SeedManager::SetRun (m_rngRun);
 
-  m_outSnrFile.open (fileSnr.c_str ());
-  m_outSnrFile.setf (std::ios_base::fixed);
-  NS_ABORT_MSG_IF (!m_outSnrFile.is_open (), "Can't open file " << fileSnr);
-
-  m_outRssiFile.open (fileRssi.c_str ());
-  m_outRssiFile.setf (std::ios_base::fixed);
-  NS_ABORT_MSG_IF (!m_outRssiFile.is_open(), "Can't open file " << fileRssi);
-
-  // create gNB and UE nodes
+  // Create gNB and UE nodes
   NodeContainer gNbNode;
   NodeContainer ueNode;
   gNbNode.Create (1);
   ueNode.Create (1);
 
-  // set positions
+  // Set positions
   Ptr<ListPositionAllocator> positions = CreateObject<ListPositionAllocator> ();
-  positions -> Add (Vector (0, 0, gNbHeight));  //gNb will take this position
-  positions -> Add (Vector (deltaX, deltaY, ueHeight)); //UE will take this position
+  positions -> Add (Vector (m_gNbX, m_gNbY, m_gNbHeight));  //gNb will take this position
+  positions -> Add (Vector (m_gNbX + m_deltaX, m_gNbY + m_deltaY, m_ueHeight)); //UE will take this position
   MobilityHelper mobility;
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positions);
@@ -324,14 +413,14 @@ CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod b
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
 
-  // initialize beamforming
+  // Initialize beamforming
   Ptr<BeamformingHelperBase> beamformingHelper;
-  if (beamforming == CttcRealisticBeamforming::IDEAL)
+  if (m_beamforming == CttcRealisticBeamforming::IDEAL)
     {
       beamformingHelper = CreateObject<IdealBeamformingHelper> ();
       beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId());
     }
-  else if (beamforming == CttcRealisticBeamforming::REALISTIC)
+  else if (m_beamforming == CttcRealisticBeamforming::REALISTIC)
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
       beamformingHelper->SetBeamformingMethod (SrsRealisticBeamformingAlgorithm::GetTypeId());
@@ -349,12 +438,11 @@ CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod b
    *
    */
   CcBwpCreator ccBwpCreator;
-  const uint8_t numCcPerBand = 1;
   // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates a single BWP per CC
-  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequency,
-                                                  bandwidth,
-                                                  numCcPerBand,
-                                                  scenario);
+  CcBwpCreator::SimpleOperationBandConf bandConf (m_centralFrequency,
+                                                  m_bandwidth,
+                                                  m_numCcPerBand,
+                                                  m_scenario);
   // By using the configuration created, make the operation band
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
   nrHelper->InitializeOperationBand (&band);
@@ -363,24 +451,24 @@ CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod b
   // Configure antenna of gNb
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (gNbAntennaModel));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (m_gnbAntennaModel));
   // Configure antenna of UE
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (ueAntennaModel));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (m_ueAntennaModel));
 
-  // install nr net devices
+  // Install nr net devices
   NetDeviceContainer gNbDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
 
   for (uint32_t i = 0 ; i < gNbDev.GetN (); i ++)
     {
-      nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-      nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (gNbTxPower)));
+      nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (m_numerology));
+      nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (m_gNbTxPower)));
     }
   for (uint32_t j = 0; j < ueNetDev.GetN (); j++)
     {
-      nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (10*log10 (ueTxPower)));
+      nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (10*log10 (m_ueTxPower)));
     }
 
   // Update configuration
@@ -410,8 +498,6 @@ CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod b
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
-  // in this container, interface 0 is the pgw, 1 is the remoteHost
-  //Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Configure routing
   Ipv4StaticRoutingHelper ipv4RoutingHelper;
@@ -432,28 +518,9 @@ CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod b
   nrHelper->AttachToEnb (ueNetDev.Get(0), gNbDev.Get(0));
 
   // Install UDP downlink applications
-  uint16_t dlPort = 1234;
   ApplicationContainer clientAppDl;
   ApplicationContainer serverAppDl;
-  //Calculate UDP interval based on the packetSize and desired udp rate
-  Time udpInterval = Time::FromDouble ((packetSize * 8) / static_cast<double> (udpRate.GetBitRate ()), Time::S);
-  UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverAppDl.Add (dlPacketSinkHelper.Install (ueNode));
-  // Configure UDP downlink traffic
-  for (uint32_t i = 0 ; i < ueNetDev.GetN (); i ++)
-    {
-      UdpClientHelper dlClient (ueIpIface.GetAddress (i), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-      dlClient.SetAttribute("PacketSize", UintegerValue (packetSize));
-      dlClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
-      clientAppDl.Add (dlClient.Install (remoteHost));
-    }
-
-  // Start UDP server and client app, and configure stop time
-  serverAppDl.Start (udpAppStartTimeDl);
-  clientAppDl.Start (udpAppStartTimeDl);
-  serverAppDl.Stop (udpAppStopTimeDl);
-  clientAppDl.Stop (udpAppStopTimeDl);
+  CreateDlTrafficApplications (clientAppDl, serverAppDl, ueNode, remoteHost, ueNetDev, ueIpIface);
 
   // Connect traces to our listener functions
   for (uint32_t i = 0 ; i < ueNetDev.GetN (); i ++)
@@ -466,7 +533,7 @@ CttcRealisticBeamforming::Run (double deltaX, double deltaY, BeamformingMethod b
       ue1SpectrumPhyInterference->TraceConnectWithoutContext ("RssiPerProcessedChunk", MakeBoundCallback (&UeRssiPerProcessedChunkTrace, this));
     }
 
-  Simulator::Stop (simTime);
+  Simulator::Stop (m_simTime);
   Simulator::Run ();
   Simulator::Destroy ();
 }
@@ -484,33 +551,44 @@ main (int argc, char *argv[])
   double deltaY = 10.0;
   CttcRealisticBeamforming::BeamformingMethod beamformingType;
   uint64_t rngRun = 1;
+  double ueTxPower = 0;
+  double gnbTxPower = 0;
 
   CommandLine cmd;
 
   cmd.AddValue ("deltaX",
-                "Determines X coordinate of UE wrt to gNB X coordinate.",
+                "Determines X coordinate of UE wrt. to gNB X coordinate [meters].",
                 deltaX);
   cmd.AddValue ("deltaY",
-                "Determines Y coordinate of UE wrt to gNB Y coordinate.",
+                "Determines Y coordinate of UE wrt. to gNB Y coordinate [meters].",
                 deltaY);
   cmd.AddValue ("algType",
-                "Algorithm type to be used. Can be: Ideal or Real.",
+                "Algorithm type to be used. Can be: 'Ideal' or 'Real'.",
                 algType);
   cmd.AddValue ("rngRun",
-                "Rng run random number",
+                "Rng run random number.",
                 rngRun);
   cmd.AddValue ("enableGnbIso",
-                "Configure isotropic antenna elements at gNB",
+                "Configure isotropic antenna elements at gNB. "
+                "For ISO value to be provided is 1, for 3GPP value to be provide is 0.",
                 enableGnbIso);
   cmd.AddValue ("enableGnbIso",
-                "Configure Isotropic antenna elements at UE",
+                "Configure isotropic antenna elements at UE."
+                "For ISO value to be provided is 1, for 3GPP value to be provide is 0.",
                 enableUeIso);
   cmd.AddValue ("resultsDir",
-                "directory where to store the simulation results",
+                "Directory where to store the simulation results.",
                 resultsDir);
   cmd.AddValue ("simTag",
-                "tag to be appended to output filenames to distinguish simulation campaigns",
+                "Tag to be appended to output filenames to distinguish simulation campaigns.",
                 simTag);
+  cmd.AddValue ("ueTxPower",
+                "Tx power to be used by the UE [dBm].",
+                ueTxPower);
+  cmd.AddValue ("gnbTxPower",
+                "Tx power to be used by the gNB [dBm].",
+                gnbTxPower);
+
 
   cmd.Parse (argc, argv);
 
@@ -525,15 +603,14 @@ main (int argc, char *argv[])
     }
   else
     {
-      NS_ABORT_MSG ("Not supported value for algType:"<<algType);
+      NS_ABORT_MSG ("Not supported value for algType:" << algType);
     }
 
-
   CttcRealisticBeamforming simpleBeamformingScenario;
-  simpleBeamformingScenario.Run (deltaX, deltaY, beamformingType, rngRun,
-                                 numerology, enableGnbIso, enableUeIso,
-                                 resultsDir, simTag);
+  simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, rngRun, numerology, enableGnbIso, enableUeIso, resultsDir, simTag);
+  simpleBeamformingScenario.PrepareOutputFiles ();
+  simpleBeamformingScenario.RunSimulation ();
+  simpleBeamformingScenario.PrintResultsToFiles ();
 
-  return 0;
 }
 
