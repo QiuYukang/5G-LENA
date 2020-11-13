@@ -178,7 +178,8 @@ public:
 
 private:
 
-  std::ofstream m_outSinrFile;         //!< the output file stream for the SINR file
+  std::ofstream m_outSinrFile;         //!< the output file stream for the SINR file in linear scale
+  std::ofstream m_outSinrFileDb;       //!< the output file stream for the SINR values in dBs
   std::ofstream m_outSnrFile;          //!< the output file stream for the SNR file
   std::ofstream m_outRssiFile;         //!< the output file stream for the RSSI file
 
@@ -262,12 +263,17 @@ CttcRealisticBeamforming::PrepareOutputFiles ()
       m_tag = BuildTag ();
     }
   std::string fileSinr = BuildFileNameString ( m_resultsDirPath , "sinrs", m_tag);
+  std::string fileSinrDb  = BuildFileNameString ( m_resultsDirPath , "sinrsDb", m_tag);
   std::string fileSnr = BuildFileNameString ( m_resultsDirPath , "snrs", m_tag);
   std::string fileRssi = BuildFileNameString ( m_resultsDirPath , "rssi", m_tag);
 
   m_outSinrFile.open (fileSinr.c_str (), std::_S_app);
   m_outSinrFile.setf (std::ios_base::fixed);
   NS_ABORT_MSG_IF (!m_outSinrFile.is_open (), "Can't open file " << fileSinr);
+
+  m_outSinrFileDb.open (fileSinrDb.c_str (), std::_S_app);
+  m_outSinrFileDb.setf (std::ios_base::fixed);
+  NS_ABORT_MSG_IF (!m_outSinrFileDb.is_open (), "Can't open file " << fileSinrDb);
 
   m_outSnrFile.open (fileSnr.c_str (), std::_S_app);
   m_outSnrFile.setf (std::ios_base::fixed);
@@ -276,7 +282,6 @@ CttcRealisticBeamforming::PrepareOutputFiles ()
   m_outRssiFile.open (fileRssi.c_str (), std::_S_app);
   m_outRssiFile.setf (std::ios_base::fixed);
   NS_ABORT_MSG_IF (!m_outRssiFile.is_open(), "Can't open file " << fileRssi);
-
 }
 
 
@@ -358,6 +363,7 @@ CttcRealisticBeamforming::UeRssiPerProcessedChunk (double rssidBm)
 CttcRealisticBeamforming::~CttcRealisticBeamforming ()
 {
   m_outSinrFile.close ();
+  m_outSinrFileDb.close ();
   m_outSnrFile.close ();
   m_outRssiFile.close ();
 }
@@ -365,7 +371,8 @@ CttcRealisticBeamforming::~CttcRealisticBeamforming ()
 void
 CttcRealisticBeamforming::PrintResultsToFiles ()
 {
-  m_outSinrFile << 10 * log10 (m_sinrStats.getMean ()) << std::endl;
+  m_outSinrFile << m_sinrStats.getMean () << std::endl;
+  m_outSinrFileDb << 10 * log10 (m_sinrStats.getMean ()) << std::endl;
   m_outSnrFile <<  10 * log10 (m_snrStats.getMean ()) << std::endl;
   m_outRssiFile << 10 * log10 (m_rssiStats.getMean ()) << std::endl;
 }
