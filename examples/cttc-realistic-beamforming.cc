@@ -27,6 +27,7 @@
 #include "ns3/config-store-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/stats-module.h"
+#include <ns3/sqlite-output.h>
 
 using namespace ns3;
 
@@ -138,7 +139,7 @@ public:
    */
   void Configure (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
             uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
-            std::string resultsDirPath, std::string tag);
+            std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName);
 
 
   /**
@@ -176,13 +177,49 @@ public:
                                     NodeContainer& ueNode, Ptr<Node> remoteHost, NetDeviceContainer ueNetDev,
                                     Ipv4InterfaceContainer& ueIpIface);
 
+  /**
+   * \brief Prepare the database to print the results, e.g., open it, and
+   * create the necessary table if it does not exist.
+   * Method creates, if not exists, a table for storing the values. The table
+   * will contain the following columns:
+   *
+   * - "(Sinr DOUBLE NOT NULL, "
+   * - "Distance DOUBLE NULL,"
+   *   "DeltaX DOUBLE NULL,
+   *   "DeltaY DOUBLE NULL,
+   *   "BeamformingType TEXT NOT NULL,"
+   *   "RngRun INTEGER NOT NULL,"
+   *   "numerology INTEGER NOT NULL,"
+   *   *gNBAntenna TEXT NOT NULL,"
+   *   "ueAntenna TEXT NOT NULL,"
+   * - "Seed INTEGER NOT NULL,"
+   * - "Run INTEGER NOT NULL);"
+   *
+   * NOTE: If the database already contains a table with
+   * the same name, this method will clean existing values
+   * with the same Run value.
+   */
+  void PrepareDatabase ();
+
+  /**
+   * \brief Insert results to the table in database.
+   */
+  void PrintResultsToDatabase ();
+
 private:
 
+  //output file streams
   std::ofstream m_outSinrFile;         //!< the output file stream for the SINR file in linear scale
   std::ofstream m_outSinrFileDb;       //!< the output file stream for the SINR values in dBs
   std::ofstream m_outSnrFile;          //!< the output file stream for the SNR file
   std::ofstream m_outRssiFile;         //!< the output file stream for the RSSI file
 
+  // database related attributes
+  sqlite3 *m_db { nullptr };                          //!< DB pointer
+  std::string m_tableName {"results"};                //!< Table name
+  std::string m_dbName {"realistic_beamforming.db"};  //!< Database name
+
+  // statistics objects
   MinMaxAvgTotalCalculator<double> m_sinrStats;  //!< the statistics calculator for SINR values
   MinMaxAvgTotalCalculator<double> m_snrStats;   //!< the statistics calculator for SNR values
   MinMaxAvgTotalCalculator<double> m_rssiStats;  //!< the statistics calculator for RSSI values
@@ -191,7 +228,7 @@ private:
   double m_deltaX {1};
   double m_deltaY {1};
   BeamformingMethod m_beamforming {IDEAL};
-  uint64_t m_rngRun  {1};
+  uint32_t m_rngRun {1};
   uint16_t m_numerology {0};
   bool m_gnbAntennaModel {true};
   bool m_ueAntennaModel {true};
@@ -284,6 +321,102 @@ CttcRealisticBeamforming::PrepareOutputFiles ()
   NS_ABORT_MSG_IF (!m_outRssiFile.is_open(), "Can't open file " << fileRssi);
 }
 
+void
+CttcRealisticBeamforming::PrepareDatabase ()
+{
+  int rc = sqlite3_open (m_dbName.c_str (), &m_db);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Failed to open DB");
+
+  std::string cmd = "CREATE TABLE IF NOT EXISTS " + m_tableName + " ("
+                    "SINR DOUBLE NOT NULL, "
+                    "Distance DOUBLE NOT NULL,"
+                    "DeltaX DOUBLE NOT NULL,"
+                    "DeltaY DOUBLE NOT NULL,"
+                    "BeamformingType TEXT NOT NULL,"
+                    "RngRun INTEGER NOT NULL,"
+                    "Numerology INTEGER NOT NULL,"
+                    "GnbAntenna TEXT NOT NULL,"
+                    "UeAntenna TEXT NOT NULL);";
+
+   sqlite3_stmt *stmt;
+
+   // prepare the statement for creating the table
+   do
+     {
+       rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+     }
+   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+   // check if it went correctly
+   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the statement for creating the table. Db error:" << sqlite3_errmsg (m_db)
+                        <<"full command is: \n"<<cmd);
+
+   // execute a step operation on a statement until the result is ok or an error
+   do
+      {
+        rc = sqlite3_step (stmt);
+      }
+    while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+   // check if it went correctly
+   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
+
+   // finalize the statement until the result is ok or an error occures
+   do
+     {
+       rc = sqlite3_finalize (stmt);
+     }
+   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+   // check if it went correctly
+   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
+}
+
+void
+CttcRealisticBeamforming::PrintResultsToDatabase ()
+{
+  sqlite3_stmt *stmt;
+  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+  std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
+  std::string gnbAntenna = (m_gnbAntennaModel) ? "Iso":"3gpp";
+  std::string ueAntenna = (m_ueAntennaModel) ? "Iso":"3gpp";
+  int rc;
+  double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
+
+  // prepare the statement for creating the table
+  do
+    {
+      rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the insert into the table statement. "
+                                                             " Db error:" << sqlite3_errmsg (m_db)<<". The full command is: \n"<<cmd);
+
+  // add all parameters to the command
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_sinrStats.getMean()) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, distance2D) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 3, m_deltaX) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 4, m_deltaY) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 5, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 6, m_rngRun) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_numerology) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, gnbAntenna.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, ueAntenna.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+
+  // finalize the command
+   do
+      {
+        rc = sqlite3_step (stmt);
+      }
+    while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+   // check if it went correctly
+   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+  do
+    {
+      rc = sqlite3_finalize (stmt);
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+
+}
 
 void
 CttcRealisticBeamforming::CreateDlTrafficApplications (ApplicationContainer& serverAppDl, ApplicationContainer& clientAppDl,
@@ -380,7 +513,7 @@ CttcRealisticBeamforming::PrintResultsToFiles ()
 void
 CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
                                      uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
-                                     std::string resultsDirPath, std::string tag)
+                                     std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName)
 
 {
   m_deltaX = deltaX;
@@ -560,6 +693,8 @@ main (int argc, char *argv[])
   uint64_t rngRun = 1;
   double ueTxPower = 0;
   double gnbTxPower = 0;
+  std::string dbName = "realistic-beamforming.db";
+  std::string tableName = "results";
 
   CommandLine cmd;
 
@@ -589,6 +724,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("simTag",
                 "Tag to be appended to output filenames to distinguish simulation campaigns.",
                 simTag);
+  cmd.AddValue ("dbName",
+                "Database name.",
+                 dbName);
+  cmd.AddValue ("tableName",
+                "Table name.",
+                 tableName);
   cmd.AddValue ("ueTxPower",
                 "Tx power to be used by the UE [dBm].",
                 ueTxPower);
@@ -614,9 +755,12 @@ main (int argc, char *argv[])
     }
 
   CttcRealisticBeamforming simpleBeamformingScenario;
-  simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, rngRun, numerology, enableGnbIso, enableUeIso, resultsDir, simTag);
+  simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, rngRun, numerology, enableGnbIso,
+                                       enableUeIso, resultsDir, simTag, dbName, tableName);
+  simpleBeamformingScenario.PrepareDatabase ();
   simpleBeamformingScenario.PrepareOutputFiles ();
   simpleBeamformingScenario.RunSimulation ();
+  simpleBeamformingScenario.PrintResultsToDatabase ();
   simpleBeamformingScenario.PrintResultsToFiles ();
 
 }
