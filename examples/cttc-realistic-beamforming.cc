@@ -499,6 +499,11 @@ CttcRealisticBeamforming::~CttcRealisticBeamforming ()
   m_outSinrFileDb.close ();
   m_outSnrFile.close ();
   m_outRssiFile.close ();
+
+  // Failed to close the database
+  int rc = SQLITE_FAIL;
+  rc = sqlite3_close_v2 (m_db);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Failed to close DB");
 }
 
 void
@@ -762,6 +767,5 @@ main (int argc, char *argv[])
   simpleBeamformingScenario.RunSimulation ();
   simpleBeamformingScenario.PrintResultsToDatabase ();
   simpleBeamformingScenario.PrintResultsToFiles ();
-
 }
 
