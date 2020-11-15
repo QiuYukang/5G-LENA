@@ -33,4 +33,10 @@ std::ostream &operator<< (std::ostream &os,
   return os;
 }
 
+bool
+NrSlUeMacSchedSapProvider::NrSlSlotInfo::operator < (const NrSlSlotInfo &rhs) const
+{
+  return sfn < rhs.sfn;
+}
+
 } // namespace ns3

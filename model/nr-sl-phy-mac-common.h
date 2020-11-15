@@ -120,8 +120,8 @@ struct NrSlSlotAlloc
   uint16_t slPsschSubChLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of subchannel allocated for data
 
   uint16_t maxNumPerReserve {std::numeric_limits <uint16_t>::max ()}; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
-  uint8_t  gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
-  uint8_t  gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
+  bool txSci1A {false}; //!< Flag to indicate if the slots must carry SCI 1-A
+  uint8_t slotNumInd {0}; //!< The number of future TXs an SCI 1-A can indicate
 
   /**
    * \ingroup utils

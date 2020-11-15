@@ -135,21 +135,15 @@ public:
   uint8_t GetInitialNrSlMcs () const;
 
   /**
-   * \brief Set the retransmission window
+   * \brief Get Redundancy Version number
    *
-   * All the retransmissions (if configured) must be scheduled
-   * with in this window after the first transmission
+   * We assume rvid = 0, so RV would take 0, 2, 3, 1. See TS 38.21 table 6.1.2.1-2
    *
-   * \param reTxWin The NR SL retransmission window in slots
+   * \param txNumTb The transmission index of the TB, e.g., 0 for initial tx,
+   *        1 for a first retransmission, and so on.
+   * \return The Redundancy Version number
    */
-  void SetNrSlReTxWindow (uint8_t reTxWin);
-
-  /**
-   * \brief Get the retransmission window
-   *
-   * \return The retransmission window in slots
-   */
-  uint8_t GetNrSlReTxWindow () const;
+  uint8_t GetRv (uint8_t txNumTb) const;
 
   /**
    * \brief Assign a fixed random variable stream number to the random variables
@@ -187,20 +181,28 @@ protected:
    * \param txOpps The list of the txOpps for the UE MAC
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
-   * \param slotAlloc The slot allocation structure to be updated by a specific scheduler
+   * \param slotAllocList The slot allocation list to be updated by a specific scheduler
    * \return The status of the allocation, true if the destination has been
    *         allocated some resources; false otherwise.
    */
   virtual bool
   DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params,
                     const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                    NrSlSlotAlloc &slotAlloc) = 0;
+                    std::set<NrSlSlotAlloc> &slotAllocList) = 0;
   /**
    * \brief Method to get total number of sub-channels.
    *
    * \return the total number of sub-channels.
    */
   uint8_t GetTotalSubCh () const;
+
+  /**
+   * \brief Method to get the maximum transmission number
+   *        (including new transmission and retransmission) for PSSCH.
+   *
+   * \return The max number of PSSCH transmissions
+   */
+  uint8_t GetSlMaxTxTransNumPssch () const;
 
   Ptr<UniformRandomVariable> m_uniformVariable; //!< Uniform random variable
 
@@ -252,8 +254,6 @@ private:
   bool    m_fixedNrSlMcs {false}; //!< Fixed MCS for *all* the destinations
 
   uint8_t m_initialNrSlMcs   {0}; //!< Initial (or fixed) value for NR SL MCS
-
-  uint8_t m_reTxWindow {0};       //!< The retransmission window in slots
 
 };
 

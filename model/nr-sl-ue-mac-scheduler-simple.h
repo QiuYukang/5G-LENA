@@ -48,16 +48,21 @@ public:
   /**
    * \brief Do the NR Sidelink allocation
    *
+   * The SCI 1-A is Txed with every new transmission and after the transmission
+   * for, which \c txNumTb mod MaxNumPerReserved == 0 \c, where the txNumTb
+   * is the transmission index of the TB, e.g., 0 for initial tx, 1 for a first
+   * retransmission, and so on.
+   *
    * \param txOpps The list of the txOpps for the UE MAC
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
-   * \param slotAlloc The slot allocation structure to be updated by this scheduler
+   * \param slotAllocList The slot allocation list to be updated by this scheduler
    * \return The status of the allocation, true if the destination has been
    *         allocated some resources; false otherwise.
    */
   virtual bool DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
                                  const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                 NrSlSlotAlloc &slotAlloc) override;
+                                 std::set<NrSlSlotAlloc> &slotAllocList) override;
 
 private:
   /**
@@ -71,8 +76,8 @@ private:
    * \return the set containing the indices of the randomly chosen slots in the
    *         txOpps list
    */
-  std::set <uint16_t>
-  RandomlySelectSlots (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps);
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+  RandomlySelectSlots (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps);
 };
 
 } //namespace ns3

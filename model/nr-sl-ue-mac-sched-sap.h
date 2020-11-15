@@ -83,6 +83,15 @@ public:
     uint16_t slSubchannelSize {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the subchannel size in number of RBs
     uint16_t slMaxNumPerReserve {std::numeric_limits <uint16_t>::max ()}; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
     SfnSf sfn {}; //!< The SfnSf
+
+    /**
+     * \brief operator < (less than)
+     * \param rhs other NrSlSlotInfo to compare
+     * \return true if this NrSlSlotInfo is less than rhs
+     *
+     * The comparison is done on sfnSf
+     */
+    bool operator < (const NrSlSlotInfo& rhs) const;
   };
 
   /**
@@ -158,11 +167,14 @@ public:
   virtual ~NrSlUeMacSchedSapUser () = default;
 
   /**
-   * \brief Send the NR Sidelink allocation from the UE scheduler to UE MAC
+   * \brief Send the NR Sidelink allocation from the UE scheduler to NrUeMac
    *
-   * \param params NrSlUeMacSchedSapUser::NrSlSlotAlloc
+   * \param slotAllocList The slot allocation list passed by a specific
+   *        scheduler to NrUeMac
+   *
+   * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
    */
-  virtual void SchedUeNrSlConfigInd (const NrSlSlotAlloc& params) = 0;
+  virtual void SchedUeNrSlConfigInd (const std::set<NrSlSlotAlloc>& slotAllocList) = 0;
 
   /**
    * \brief Method to get total number of sub-channels.
@@ -170,6 +182,14 @@ public:
    * \return the total number of sub-channels.
    */
   virtual uint8_t GetTotalSubCh () const = 0;
+
+  /**
+   * \brief Method to get the maximum transmission number
+   *        (including new transmission and retransmission) for PSSCH.
+   *
+   * \return The max number of PSSCH transmissions
+   */
+  virtual uint8_t GetSlMaxTxTransNumPssch () const = 0;
 
 };
 

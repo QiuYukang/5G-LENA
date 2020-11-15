@@ -807,9 +807,12 @@ protected:
   // forwarded from MemberNrSlUeMacSchedSapUser
   /**
    * \brief Method to communicate NR SL allocations from NR SL UE scheduler
-   * \param params the struct of type NrSlSlotAlloc
+   * \param slotAllocList The slot allocation list passed by a specific
+   *        scheduler to NrUeMac
+   *
+   * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
    */
-  void DoSchedUeNrSlConfigInd (const NrSlSlotAlloc& params);
+  void DoSchedUeNrSlConfigInd (const std::set<NrSlSlotAlloc>& slotAllocList);
 
   /**
    * \brief Method through which the NR SL scheduler gets the total number of NR
@@ -817,6 +820,14 @@ protected:
    * \return the total number of NR SL sub-channels
    */
   uint8_t DoGetTotalSubCh () const;
+  /**
+   * \brief Method through which the NR SL scheduler gets the maximum
+   *        transmission number (including new transmission and retransmission)
+   *        for PSSCH.
+   *
+   * \return The max number of PSSCH transmissions
+   */
+  uint8_t DoGetSlMaxTxTransNumPssch () const;
 
   // forwarded from MemberNrSlUeMacCschedSapUser
   /**
@@ -862,6 +873,8 @@ private:
     std::set <NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
     uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
     uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
+    uint8_t nSelected {0}; //!< The number of slots selected by the scheduler for first reservation period
+    uint8_t tbTxCounter {0}; //!< The counter to count the number of time a TB is tx/reTx in a reservation period
   };
 
   struct SensingData
@@ -957,10 +970,14 @@ private:
   /**
    * \brief Create grant info
    *
-   * \param params The resource allocation from the scheduler
+   * \param slotAllocList The slot allocation list passed by a specific
+   *        scheduler to NrUeMac
    * \return The grant info for a destination based on the scheduler allocation
+   *
+   * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
+   * \see NrSlGrantInfo
    */
-  NrSlGrantInfo CreateGrantInfo (const NrSlSlotAlloc & params);
+  NrSlGrantInfo CreateGrantInfo (const std::set<NrSlSlotAlloc>& params);
   /**
    * \brief Filter the Transmit opportunities.
    *
@@ -979,6 +996,17 @@ private:
    * It will remove the sensing data, which lies outside the sensing window length.
    */
   void UpdateSensingWindow (const SfnSf& sfn);
+  /**
+   * \brief Compute the gaps in slots for the possible retransmissions
+   *        indicated by an SCI 1-A.
+   * \param sfn The SfnSf of the current slot which will carry the SCI 1-A.
+   * \param it The iterator to a slot allocation list, which is pointing to the
+   *        first possible retransmission.   *
+   * \param slotNumInd The parameter indicating how many gaps we need to compute.
+   * \return A vector containing the value gaps in slots for the possible retransmissions
+   *        indicated by an SCI 1-A.
+   */
+  std::vector<uint8_t> ComputeGaps (const SfnSf& sfn, std::set <NrSlSlotAlloc>::const_iterator it, uint8_t slotNumInd);
 
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
@@ -1007,7 +1035,7 @@ private:
   typedef std::unordered_map <uint32_t, struct NrSlGrantInfo>::iterator GrantInfoIt_t; //!< The typedef for the iterator of the grant info map
   GrantInfo_t m_grantInfo; //!< The map of grant info per destination layer 2 id
   uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
-  uint8_t m_slMaxTxTransNumPssch; /**< Indicates the maximum transmission number
+  uint8_t m_slMaxTxTransNumPssch {0}; /**< Indicates the maximum transmission number
                                      (including new transmission and
                                      retransmission) for PSSCH.
                                      */

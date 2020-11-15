@@ -53,12 +53,6 @@ NrSlUeMacSchedulerNs3::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&NrSlUeMacSchedulerNs3::m_nrSlAmc),
                    MakePointerChecker <NrAmc> ())
-    .AddAttribute ("ReTxWindow",
-                   "The retransmission window in slots",
-                   UintegerValue (32),
-                   MakeUintegerAccessor (&NrSlUeMacSchedulerNs3::SetNrSlReTxWindow,
-                                         &NrSlUeMacSchedulerNs3::GetNrSlReTxWindow),
-                   MakeUintegerChecker<uint8_t> ())
   ;
   return tid;
 }
@@ -168,15 +162,15 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq (uint32_t dstL2Id, const std::lis
   const auto itDst = m_dstMap.find (dstL2Id);
   NS_ABORT_MSG_IF (itDst == m_dstMap.end (), "Destination " << dstL2Id << "info not found");
 
-  NrSlSlotAlloc alloc;
+  std::set<NrSlSlotAlloc> allocList;
 
-  bool allocated = DoNrSlAllocation (params, itDst->second, alloc);
+  bool allocated = DoNrSlAllocation (params, itDst->second, allocList);
 
   if (!allocated)
     {
       return;
     }
-  m_nrSlUeMacSchedSapUser->SchedUeNrSlConfigInd (alloc);
+  m_nrSlUeMacSchedSapUser->SchedUeNrSlConfigInd (allocList);
 }
 
 
@@ -184,6 +178,12 @@ uint8_t
 NrSlUeMacSchedulerNs3::GetTotalSubCh () const
 {
   return m_nrSlUeMacSchedSapUser->GetTotalSubCh ();
+}
+
+uint8_t
+NrSlUeMacSchedulerNs3::GetSlMaxTxTransNumPssch () const
+{
+  return m_nrSlUeMacSchedSapUser->GetSlMaxTxTransNumPssch ();
 }
 
 
@@ -231,18 +231,33 @@ NrSlUeMacSchedulerNs3::GetInitialNrSlMcs () const
   return m_initialNrSlMcs;
 }
 
-void
-NrSlUeMacSchedulerNs3::SetNrSlReTxWindow (uint8_t reTxWin)
-{
-  NS_LOG_FUNCTION (this);
-  m_reTxWindow = reTxWin;
-}
-
 uint8_t
-NrSlUeMacSchedulerNs3::GetNrSlReTxWindow () const
+NrSlUeMacSchedulerNs3::GetRv (uint8_t txNumTb) const
 {
-  NS_LOG_FUNCTION (this);
-  return m_reTxWindow;
+  NS_LOG_FUNCTION (this << +txNumTb);
+  uint8_t modulo  = txNumTb % 4;
+  //we assume rvid = 0, so RV would take 0, 2, 3, 1
+  //see TS 38.21 table 6.1.2.1-2
+  uint8_t rv = 0;
+  switch (modulo)
+  {
+    case 0:
+      rv = 0;
+      break;
+    case 1:
+      rv = 2;
+      break;
+    case 2:
+      rv = 3;
+      break;
+    case 3:
+      rv = 1;
+      break;
+    default:
+      NS_ABORT_MSG ("Wrong modulo result to deduce RV");
+  }
+
+  return rv;
 }
 
 int64_t
