@@ -617,11 +617,27 @@ public:
   uint32_t DoGetBwInRbs () const;
   /**
    * \brief Send NR Sidelink PSCCH MAC PDU
+   *
+   * In future, when PSCCH could go without data, consider receiving
+   * the pscch pkt and its var tti info using one method, e.g.,
+   * SendPscchMacPdu (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo, Ptr<Packet> p).
+   * This will make sure that PHY receives var tti info of each MAC PDU
+   * transmission. Then, within this method call DoSetNrSlVarTtiAllocInfo
+   * and SetPscchMacPdu.
+   *
    * \param p The packet
    */
   void DoSendPscchMacPdu (Ptr<Packet> p);
   /**
    * \brief Send NR Sidelink PSSCH MAC PDU
+   *
+   * In future, when PSCCH could go without data, consider receiving
+   * the pssch pkt and its var tti info using one method, e.g.,
+   * SendPsschMacPdu (const SfnSf &sfn, const NrSlVarTtiAllocInfo& varTtiInfo, Ptr<Packet> p).
+   * This will make sure that PHY receives var tti info of each MAC PDU
+   * transmission. Then, within this method call DoSetNrSlVarTtiAllocInfo
+   * and SetPscchMacPdu.
+   *
    * \param p The packet
    */
   void DoSendPsschMacPdu (Ptr<Packet> p);
@@ -657,7 +673,21 @@ protected:
   NrSlPhySlotAlloc m_nrSlCurrentAlloc; //!< Current NR SL allocation info for a slot
 
 private:
+  /**
+   * \brief Set NR Sidelink PSCCH MAC PDU
+   *
+   * Add the PSCCH MAC PDU to the queue
+   *
+   * \param p The packet
+   */
   void SetPscchMacPdu (Ptr<Packet> p);
+  /**
+   * \brief Set NR Sidelink PSSCH MAC PDU
+   *
+   * Add the PSSCH MAC PDU to the queue
+   *
+   * \param p The packet
+   */
   void SetPsschMacPdu (Ptr<Packet> p);
   //NR Sidelink
   NrSlUePhySapProvider* m_nrSlUePhySapProvider; //!< SAP interface to receive calls from UE MAC instance for NR Sidelink
