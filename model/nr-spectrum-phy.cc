@@ -2212,7 +2212,7 @@ NrSpectrumPhy::SetNrPhyRxPsschEndErrorCallback (NrPhyRxPsschEndErrorCallback c)
 
 void
 NrSpectrumPhy::AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbMap,
-                                uint8_t symStart, uint8_t numSym, uint8_t maxNumPerReserve, const SfnSf &sfn)
+                                uint8_t symStart, uint8_t numSym, const SfnSf &sfn)
 {
   NS_LOG_FUNCTION (this);
   auto it = m_slTransportBlocks.find (rnti);
@@ -2226,7 +2226,7 @@ NrSpectrumPhy::AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, 
 
   auto tbInfo = SlTransportBlockInfo (SlExpectedTb (dstId, tbSize, mcs,
                                                     rbMap, symStart,
-                                                    numSym, maxNumPerReserve, sfn));
+                                                    numSym, sfn));
 
   bool insertStatus = m_slTransportBlocks.emplace (rnti, tbInfo).second;
 

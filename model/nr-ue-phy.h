@@ -29,6 +29,9 @@
 #include "nr-sl-ue-phy-sap.h"
 #include <ns3/traced-callback.h>
 
+#include "nr-sl-sci-f1a-header.h"
+#include "nr-sl-mac-pdu-tag.h"
+
 namespace ns3 {
 
 class NrChAccessManager;
@@ -742,6 +745,38 @@ protected:
 
 private:
   /**
+   * \brief Sidelink RX grant information about the expected NR SL transport
+   *        block at a certain point in the slot
+   *
+   * This information will be passed by the NrUePhy to NrSpectrumhy through a
+   * call to AddSlExpectedTb
+   */
+ struct SlRxGrantInfo
+ {
+   SlRxGrantInfo (uint16_t rnti, uint32_t dstId, uint32_t tbSize, uint8_t mcs,
+                  const std::vector<int> &rbMap, uint8_t symStart,
+                  uint8_t numSym, const SfnSf &sfn) :
+     rnti {rnti},
+     dstId {dstId},
+     tbSize (tbSize),
+     mcs (mcs),
+     rbBitmap (rbMap),
+     symStart (symStart),
+     numSym (numSym),
+     sfn (sfn) { }
+   SlRxGrantInfo () = delete;
+   SlRxGrantInfo (const SlRxGrantInfo &o) = default;
+
+   uint16_t rnti             {0}; //!< Tx RNTI
+   uint32_t dstId            {0}; //!< Destination id
+   uint32_t tbSize           {0}; //!< TBSize
+   uint8_t mcs               {0}; //!< MCS
+   std::vector<int> rbBitmap;     //!< RB Bitmap
+   uint8_t symStart          {0}; //!< Sym start
+   uint8_t numSym            {0}; //!< Num sym
+   SfnSf sfn;                     //!< SFN
+ };
+  /**
    * \brief Start the NR SL slot processing
    * \param s the slot number
    */
@@ -810,11 +845,26 @@ private:
    * \return Sidelink RSRP in dBm
    */
   double GetSidelinkRsrp (SpectrumValue psd);
+  /**
+   * \brief Save the future Sidelink RX grants indicated by SCI 1-A
+   * \param sciF1a SCI 1-A header
+   * \param tag NrSlMacPduTag
+   */
+  void SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a, const NrSlMacPduTag& tag, const std::vector<int>& rbBitMap);
+  /**
+   * \brief Send Sidelink expected TB info to NrSpectrumPhy
+   *
+   * This method will go over the \link m_slRxGrants \endlink list, which stores
+   * the info about the possible expected TBs to be received in the current
+   * slot without SCI 1-A, and send this info to NrSpectrumPhy.
+   */
+  void SendSlExpectedTbInfo (const SfnSf &s);
   NrSlUeCphySapProvider* m_nrSlUeCphySapProvider; //!< Control SAP interface to receive calls from the UE RRC instance
   NrSlUeCphySapUser* m_nrSlUeCphySapUser {nullptr}; //!< Control SAP interface to call the methods of UE RRC instance
   NrSlUePhySapUser* m_nrSlUePhySapUser {nullptr}; //!< SAP interface to call the methods of UE MAC instance
   Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
   Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
+  std::deque <SlRxGrantInfo> m_slRxGrants; //!< Sidelink RX grants indicated by SCI 1-A
 };
 
 }
