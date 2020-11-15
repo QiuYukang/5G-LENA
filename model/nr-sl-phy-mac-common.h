@@ -192,13 +192,14 @@ struct NrSlPhySlotAlloc
  */
 struct SlRxDataPacketTraceParams:public RxPacketTraceParams
 {
-  uint16_t m_txRnti;
-  double m_tblerSci2;
-  bool m_sci2Corrupted;
-  int m_rbStart;
-  int m_rbEnd;
-  uint32_t m_dstL2Id;
-  uint16_t m_srcL2Id;
+  uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
+  uint8_t m_ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
+  double m_tblerSci2; //!< TBLER of SCI stage 2
+  bool m_sci2Corrupted {false}; //!< The flag to indicate the success/failure of SCI stage 2 decodification
+  int m_rbStart; //!< The start RB index
+  int m_rbEnd; //!< The end RB index
+  uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
+  uint16_t m_srcL2Id {0}; //!< The source layer 2 id
 };
 
 /**
@@ -207,20 +208,18 @@ struct SlRxDataPacketTraceParams:public RxPacketTraceParams
  */
 struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
 {
-  uint16_t m_txRnti;
-  double m_tblerSci1;
-  bool m_sci1Corrupted;
-  int m_rbStart;
-  int m_rbEnd;
-  uint8_t m_priority;
-  uint16_t m_slResourceReservePeriod;
-  uint16_t m_totalSubChannels;
-  uint8_t m_indexStartSubChannel;
-  uint8_t m_lengthSubChannel;
-  uint8_t m_maxNumPerReserve;
-  uint32_t m_dstL2Id;
-  int m_pscchRbStart;
-  int m_pscchRbEnd;
+  uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
+  double m_tblerSci1; //!< TBLER of SCI stage 1
+  bool m_sci1Corrupted {false}; //!< The flag to indicate the new data allocation
+  int m_rbStart; //!< The start RB index
+  int m_rbEnd; //!< The end RB index
+  uint8_t m_priority {std::numeric_limits <uint8_t>::max ()}; //!< The priority
+  uint16_t m_slResourceReservePeriod {std::numeric_limits <uint16_t>::max ()}; //!< The resource reservation period
+  uint16_t m_totalSubChannels {0}; //!< The total number of subchannel
+  uint8_t m_indexStartSubChannel {std::numeric_limits <uint8_t>::max ()}; //!< The starting index of the subchannel
+  uint8_t m_lengthSubChannel {std::numeric_limits <uint8_t>::max ()}; //!< The total number of subchannel assigned
+  uint8_t m_maxNumPerReserve {std::numeric_limits <uint8_t>::max ()}; //!< The MaxNumPerReserved
+  uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
 };
 
 }

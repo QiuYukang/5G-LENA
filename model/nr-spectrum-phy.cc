@@ -2007,11 +2007,22 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
               tbIt.second.isSci2Corrupted = m_random->GetValue () > tbIt.second.outputEmForSci2->m_tbler ? false : true;
               NS_LOG_DEBUG (this << " SCI stage 2 decoding, errorRate " << tbIt.second.outputEmForSci2->m_tbler << " corrupt " << tbIt.second.isSci2Corrupted);
 
-              //If SCI stage 2 is not corrupted we try to decode the TB,
-              //otherwise, data is also corrupted
-
+              //Since we do not rely on RV to track the number of transmissions,
+              //before decoding the data erase the HARQ history of a TB
+              //which was not decoded and received from the same rnti and HARQ
+              //process
               // retrieve HARQ info
               const NrErrorModel::NrErrorModelHistory & harqInfoList = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
+              if (sciF2a.GetNdi () && harqInfoList.size () > 0)
+                {
+                  m_harqPhyModule->ResetSlDataHarqProcessStatus (tbIt.first, sciF2a.GetHarqId ());
+                  //fetch again an empty HARQ info
+                  //sorry to demage the sanity of const but I had no choice
+                  const_cast<NrErrorModel::NrErrorModelHistory &>(harqInfoList) = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
+                }
+
+              //If SCI stage 2 is not corrupted we try to decode the TB,
+              //otherwise, data is also corrupted
               if (!tbIt.second.isSci2Corrupted)
                 {
                   tbIt.second.outputEmForData = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
@@ -2032,8 +2043,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
                 }
 
               // Arrange the HARQ history
-              //PSSCH can be retransmitted max twice (total 3 tx)
-              if (!tbIt.second.isDataCorrupted || sciF2a.GetRv () == tbIt.second.expectedTb.maxNumPerReserve - 1)
+              if (!tbIt.second.isDataCorrupted)
                 {
                   NS_LOG_DEBUG ("Reset SL process: " << +sciF2a.GetHarqId () << " for the packets received from RNTI " << tbIt.first << " rv " << +sciF2a.GetRv ());
                   m_harqPhyModule->ResetSlDataHarqProcessStatus (tbIt.first, sciF2a.GetHarqId ());
@@ -2098,6 +2108,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       traceParams.m_txRnti = tbIt.first; //this is the RNTI of the TX UE
       traceParams.m_mcs = tbIt.second.expectedTb.mcs;
       traceParams.m_rv = sciF2a.GetRv ();
+      traceParams.m_ndi = sciF2a.GetNdi ();
       traceParams.m_sinr = tbIt.second.sinrAvg;
       traceParams.m_sinrMin = tbIt.second.sinrMin;
       traceParams.m_tbler = tbIt.second.outputEmForData->m_tbler;
