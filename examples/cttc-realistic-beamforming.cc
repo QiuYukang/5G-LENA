@@ -324,7 +324,7 @@ CttcRealisticBeamforming::PrepareOutputFiles ()
 void
 CttcRealisticBeamforming::PrepareDatabase ()
 {
-  int rc = sqlite3_open (m_dbName.c_str (), &m_db);
+  int rc = sqlite3_open ((m_resultsDirPath + m_dbName).c_str(), &m_db);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Failed to open DB");
 
   std::string cmd = "CREATE TABLE IF NOT EXISTS " + m_tableName + " ("
@@ -560,6 +560,7 @@ CttcRealisticBeamforming::RunSimulation ()
 
   // Initialize beamforming
   Ptr<BeamformingHelperBase> beamformingHelper;
+
   if (m_beamforming == CttcRealisticBeamforming::IDEAL)
     {
       beamformingHelper = CreateObject<IdealBeamformingHelper> ();
@@ -569,6 +570,10 @@ CttcRealisticBeamforming::RunSimulation ()
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
       beamformingHelper->SetBeamformingMethod (SrsRealisticBeamformingAlgorithm::GetTypeId());
+    }
+  else
+    {
+      NS_ABORT_MSG ("Unknown beamforming type.");
     }
   nrHelper->SetBeamformingHelper (beamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
@@ -686,21 +691,25 @@ CttcRealisticBeamforming::RunSimulation ()
 int
 main (int argc, char *argv[])
 {
+
+  // simulation configuration parameters
+  double deltaX = 10.0;
+  double deltaY = 10.0;
+  std::string algType = "Real";
+  uint64_t rngRun = 1;
   uint16_t numerology = 2;
   bool enableGnbIso = true;
   bool enableUeIso = true;
-  std::string algType = "Ideal";
-  std::string resultsDir = "./";
-  std::string simTag = "";
-  double deltaX = 10.0;
-  double deltaY = 10.0;
-  CttcRealisticBeamforming::BeamformingMethod beamformingType;
-  uint64_t rngRun = 1;
   double ueTxPower = 0;
   double gnbTxPower = 0;
+
+  // parameters for saving the output
+  std::string resultsDir = "./";
+  std::string simTag = "";
   std::string dbName = "realistic-beamforming.db";
   std::string tableName = "results";
 
+  CttcRealisticBeamforming::BeamformingMethod beamformingType;
   CommandLine cmd;
 
   cmd.AddValue ("deltaX",
@@ -715,14 +724,24 @@ main (int argc, char *argv[])
   cmd.AddValue ("rngRun",
                 "Rng run random number.",
                 rngRun);
+  cmd.AddValue ("numerology",
+                "Numerology to be used.",
+                numerology);
   cmd.AddValue ("enableGnbIso",
                 "Configure isotropic antenna elements at gNB. "
                 "For ISO value to be provided is 1, for 3GPP value to be provide is 0.",
                 enableGnbIso);
-  cmd.AddValue ("enableGnbIso",
+  cmd.AddValue ("enableUeIso",
                 "Configure isotropic antenna elements at UE."
                 "For ISO value to be provided is 1, for 3GPP value to be provide is 0.",
                 enableUeIso);
+  cmd.AddValue ("ueTxPower",
+                "Tx power to be used by the UE [dBm].",
+                ueTxPower);
+  cmd.AddValue ("gnbTxPower",
+                "Tx power to be used by the gNB [dBm].",
+                gnbTxPower);
+  // output command line parameters
   cmd.AddValue ("resultsDir",
                 "Directory where to store the simulation results.",
                 resultsDir);
@@ -735,14 +754,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("tableName",
                 "Table name.",
                  tableName);
-  cmd.AddValue ("ueTxPower",
-                "Tx power to be used by the UE [dBm].",
-                ueTxPower);
-  cmd.AddValue ("gnbTxPower",
-                "Tx power to be used by the gNB [dBm].",
-                gnbTxPower);
-
-
   cmd.Parse (argc, argv);
 
 

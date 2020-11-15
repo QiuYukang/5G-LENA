@@ -150,8 +150,11 @@ RealisticBeamformingHelper::SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, d
     }
   else
     {
-      srsList (*itCell)[rnti] = SrsSinrReport (Simulator::Now (), srsSinr, 0);
+      srsList (*itCell)[rnti] = SrsSinrReport (Simulator::Now (), srsSinr, 0); // insert a new element
     }
+
+  // update the pointer to point to the newly added element
+  itRnti = srsList (*itCell).find (rnti);
 
   switch (m_triggerEvent)
   {
