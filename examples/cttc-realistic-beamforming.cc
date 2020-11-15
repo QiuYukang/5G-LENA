@@ -123,9 +123,11 @@ public:
    * \brief Function that will save the configuration parameters to be used later for
    * printing the results into the files.
    *
-   * @param deltaX delta that will be used to determine X coordinate of UE wrt to gNB X coordindate
+   * @param deltaX delta that will be used to determine X coordinate of UE wrt to gNB X coordinate
    * @param deltaY delta that will be used to determine Y coordinate of UE wrt to gNB Y coordinate
-   * @param beamforming beamforming type: Ideal or Rea
+   * @param beamforming beamforming type: Ideal or Real
+   * @param realTriggerEvent if realistic beamforming is used it defines the trigger event
+   * @param idealPeriodicity if the ideal beamforming is used it defines the periodicity
    * @param rngRun rngRun number that will be used to run the simulation
    * @param numerology The numerology
    * @param gNbAntennaModel antenna model to be used by gNB device, can be ISO
@@ -137,9 +139,10 @@ public:
    * to be able to distinguish the results file for different runs for different
    * parameters configuration
    */
-  void Configure (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
-            uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
-            std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName);
+  void Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
+                  RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
+                  uint32_t idealPeriodicity, uint64_t rngRun, uint16_t numerology, bool gNbAntennaModel,
+                  bool ueAntennaModel, std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName);
 
 
   /**
@@ -229,6 +232,8 @@ private:
   double m_deltaY {1};
   BeamformingMethod m_beamforming {IDEAL};
   uint32_t m_rngRun {1};
+  RealisticBeamformingHelper::TriggerEvent m_realTriggerEvent {RealisticBeamformingHelper::SRS_COUNT};
+  uint32_t m_idealPeriodicity = {0}; // ideal beamforming periodicity in the number of milli seconds
   uint16_t m_numerology {0};
   bool m_gnbAntennaModel {true};
   bool m_ueAntennaModel {true};
@@ -516,7 +521,9 @@ CttcRealisticBeamforming::PrintResultsToFiles ()
 }
 
 void
-CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming, uint64_t rngRun,
+CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
+                                     RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
+                                     uint32_t idealPeriodicity, uint64_t rngRun,
                                      uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
                                      std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName)
 
@@ -525,6 +532,8 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
   m_deltaY = deltaY;
   m_beamforming = beamforming;
   m_rngRun = rngRun;
+  m_realTriggerEvent = realTriggerEvent;
+  m_idealPeriodicity = idealPeriodicity;
   m_numerology = numerology;
   m_gnbAntennaModel = gNbAntennaModel;
   m_ueAntennaModel = ueAntennaModel;
@@ -564,11 +573,13 @@ CttcRealisticBeamforming::RunSimulation ()
   if (m_beamforming == CttcRealisticBeamforming::IDEAL)
     {
       beamformingHelper = CreateObject<IdealBeamformingHelper> ();
+      beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (m_idealPeriodicity)));
       beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId());
     }
   else if (m_beamforming == CttcRealisticBeamforming::REALISTIC)
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
+      beamformingHelper->SetAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
       beamformingHelper->SetBeamformingMethod (SrsRealisticBeamformingAlgorithm::GetTypeId());
     }
   else
@@ -696,6 +707,8 @@ main (int argc, char *argv[])
   double deltaX = 10.0;
   double deltaY = 10.0;
   std::string algType = "Real";
+  std::string realTriggerEvent = "SrsCount"; // what will be the trigger event to update the beamforming vectors, only used when --algType="Real"
+  uint32_t idealPeriodicity = 0 ; // how often will be updated the beamforming vectors, only used when --algType="Real"
   uint64_t rngRun = 1;
   uint16_t numerology = 2;
   bool enableGnbIso = true;
@@ -710,6 +723,7 @@ main (int argc, char *argv[])
   std::string tableName = "results";
 
   CttcRealisticBeamforming::BeamformingMethod beamformingType;
+  RealisticBeamformingHelper::TriggerEvent triggerEventEnum;
   CommandLine cmd;
 
   cmd.AddValue ("deltaX",
@@ -721,6 +735,16 @@ main (int argc, char *argv[])
   cmd.AddValue ("algType",
                 "Algorithm type to be used. Can be: 'Ideal' or 'Real'.",
                 algType);
+  cmd.AddValue ("realTriggerEvent",
+                "In the case of the realistic beafmorming (algType=\"Real\") it defines when the beamforming "
+                "vectors will be updated: upon each SRS reception but with a certain delay, or after certain number of SRSs."
+                "For the first option the parameter should be configured with 'DelayedUpdate' and for the "
+                "second option the value to be configured is 'SrsCount'",
+                realTriggerEvent);
+  cmd.AddValue ("idealPeriodicity",
+                "In the case of the ideal beamforminng (algType=\"Ideal\") it defines how often the "
+                "beamforming vectors will be updated in milli seconds [ms].",
+                idealPeriodicity);
   cmd.AddValue ("rngRun",
                 "Rng run random number.",
                 rngRun);
@@ -764,6 +788,20 @@ main (int argc, char *argv[])
   else if (algType == "Real")
     {
       beamformingType = CttcRealisticBeamforming::REALISTIC;
+
+      if (realTriggerEvent == "SrsCount")
+        {
+          triggerEventEnum = RealisticBeamformingHelper::SRS_COUNT;
+        }
+      else if (realTriggerEvent == "DelayedUpdate")
+        {
+          triggerEventEnum = RealisticBeamformingHelper::DELAYED_UPDATE;
+        }
+      else
+        {
+          NS_ABORT_MSG ("Not supported trigger event for the realistic type of beamforming:" << algType);
+        }
+
     }
   else
     {
@@ -771,8 +809,9 @@ main (int argc, char *argv[])
     }
 
   CttcRealisticBeamforming simpleBeamformingScenario;
-  simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, rngRun, numerology, enableGnbIso,
-                                       enableUeIso, resultsDir, simTag, dbName, tableName);
+  simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, triggerEventEnum, idealPeriodicity,
+                                       rngRun, numerology, enableGnbIso, enableUeIso,
+                                       resultsDir, simTag, dbName, tableName);
   simpleBeamformingScenario.PrepareDatabase ();
   simpleBeamformingScenario.PrepareOutputFiles ();
   simpleBeamformingScenario.RunSimulation ();
