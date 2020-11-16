@@ -29,6 +29,8 @@
 #include "ns3/stats-module.h"
 #include <ns3/sqlite-output.h>
 
+const uint32_t DB_ATTEMPT_LIMIT = 20; // how many times to try to perform DB query before giving up, we dont want to enter to a infinite loop
+
 using namespace ns3;
 
 /**
@@ -37,9 +39,12 @@ using namespace ns3;
  * \brief Simulation script for the realistic beamforming evaluation.
  * Simulation allows to configure various parameters out of which the
  * most important are:
- * - distance between transmitter and the receiver (since we want to evaluate how the distance impact
- * the selection of the correct beam). Distance will be configured with deltaX and delta Y
- * simulation parameters that define the relative position of UE with respect to gNB's position.
+ * - distance (by configuring deltaX and deltaY parameters). Distance
+ * between transmitter and the receiver is an important parameter
+ * (since we want to evaluate how the distance impact the selection of
+ * the correct beam). Distance will be configured with deltaX and delta Y
+ * simulation parameters that define the relative position of UE with
+ * respect to gNB's position.
  * - type of the beamfoming methods (because we want to obtain results
  * for both ideal beamforming algorithm and realistic beamforming
  * algorithm. Expected behavior is that as the distance increases that
@@ -63,20 +68,34 @@ using namespace ns3;
  *   gNB+  ------------deltaX-------------------------
  * </pre>
  *
- * The results of the simulation are files containing data that is being
- * collected over the course of the simulation execution:
  *
- * - SINR values
- * - SNR values
- * - RSSI values
+ * The output files contain SINR values. File name starts with the prefix
+ * "sinrs" which is followed by the ${simTag} if provided or by default with
+ * a string that briefly describes the configuration parameters
+ * that are being set in the specific simulation execution.
  *
- * The file names are created by default in the root project directory if not
+ * The output file is created by default in the root project directory if not
  * configured differently by setting resultsDirPath parameter of the Run()
  * function.
+ * To run this simulation you can use for example the following command:
  *
- * The file names by default start with the prefixes such as "sinrs", "snrs",
- * "rssi", which are followed by the string that briefly describes the
- * configuration parameters that are being set in the specific simulation execution.
+ * ./waf --run cttc-realistic-beamforming '--command=%s
+ *    --deltaX=300
+ *    --deltaY=0
+ *    --algType=Real
+ *    --rngRun=1
+ *    --numerology=0
+ *    --gnbAntenna=3gpp
+ *    --ueAntenna=3gpp
+ *    --simTag=-sim-campaign-algReal-rng1-mu0-gNb3gpp-ue3gpp
+ *    --resultsDir=/tmp/results/realistic-beamforming/
+ *    --dbName=realistic_beamforming.db
+ *    --tableName=results'
+ *
+ * To check all the parameters that are available you can always use:
+ *
+ * ./waf --run "cttc-realistic-beamforming --PrintHelp"
+ *
  */
 
 
@@ -107,19 +126,6 @@ public:
   void UeReception (RxPacketTraceParams params);
 
   /**
-   * \brief This function converts a linear SNR value to dBs and prints it to
-   * the output file containing SNR values.
-   * @param snr SNR value in linear units
-   */
-  void UeSnrPerProcessedChunk (double snr);
-
-  /**
-   * \brief This function prints out the RSSI value in dBm to file.
-   * @param rssidBm RSSI value in dBm
-   */
-  void UeRssiPerProcessedChunk (double rssidBm);
-
-  /**
    * \brief Function that will save the configuration parameters to be used later for
    * printing the results into the files.
    *
@@ -130,10 +136,10 @@ public:
    * @param idealPeriodicity if the ideal beamforming is used it defines the periodicity
    * @param rngRun rngRun number that will be used to run the simulation
    * @param numerology The numerology
-   * @param gNbAntennaModel antenna model to be used by gNB device, can be ISO
-   * directional 3GPP
-   * @param ueAntennaModel antenna model to be used by gNB device, can be ISO
-   * directional 3GPP
+   * @param gnbAntenna antenna model to be used by gNB device, can be Iso or directional 3gpp
+   * @param ueAntenna antenna model to be used by UE device, can be Iso directional 3gpp
+   * @param gnbTxPower gnbTxPower
+   * @param ueTxPower ueTxPower
    * @param resultsDirPath results directory path
    * @param tag A tag that contains some simulation run specific values in order
    * to be able to distinguish the results file for different runs for different
@@ -141,9 +147,11 @@ public:
    */
   void Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
                   RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
-                  uint32_t idealPeriodicity, uint64_t rngRun, uint16_t numerology, bool gNbAntennaModel,
-                  bool ueAntennaModel, std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName);
-
+                  uint32_t idealPeriodicity, uint64_t rngRun, uint16_t numerology,
+                  std::string gnbAntenna, std::string ueAntenna,
+                  double gnbTxPower, double ueTxPower,
+                  std::string resultsDirPath, std::string tag,
+                  std::string dbName, std::string tableName);
 
   /**
    * \brief Function that will actually configure all the simulation parameters,
@@ -213,19 +221,14 @@ private:
 
   //output file streams
   std::ofstream m_outSinrFile;         //!< the output file stream for the SINR file in linear scale
-  std::ofstream m_outSinrFileDb;       //!< the output file stream for the SINR values in dBs
-  std::ofstream m_outSnrFile;          //!< the output file stream for the SNR file
-  std::ofstream m_outRssiFile;         //!< the output file stream for the RSSI file
 
   // database related attributes
   sqlite3 *m_db { nullptr };                          //!< DB pointer
   std::string m_tableName {"results"};                //!< Table name
   std::string m_dbName {"realistic_beamforming.db"};  //!< Database name
 
-  // statistics objects
+  // statistics collecting object
   MinMaxAvgTotalCalculator<double> m_sinrStats;  //!< the statistics calculator for SINR values
-  MinMaxAvgTotalCalculator<double> m_snrStats;   //!< the statistics calculator for SNR values
-  MinMaxAvgTotalCalculator<double> m_rssiStats;  //!< the statistics calculator for RSSI values
 
   // main simulation parameters that is expected that user will change often
   double m_deltaX {1};
@@ -235,8 +238,8 @@ private:
   RealisticBeamformingHelper::TriggerEvent m_realTriggerEvent {RealisticBeamformingHelper::SRS_COUNT};
   uint32_t m_idealPeriodicity = {0}; // ideal beamforming periodicity in the number of milli seconds
   uint16_t m_numerology {0};
-  bool m_gnbAntennaModel {true};
-  bool m_ueAntennaModel {true};
+  std::string m_gnbAntennaModel {"Iso"};
+  std::string m_ueAntennaModel {"Iso"};
   std::string m_resultsDirPath {""};
   std::string m_tag {""};
 
@@ -261,7 +264,7 @@ private:
 /**
  * Function that creates the output file name for the results.
  * @param directoryName Directory name
- * @param filePrefix The prefix for the file name, e.g. sinr, snr,..
+ * @param filePrefix The prefix for the file name, e.g. sinr
  * @param tag A tag that contains some simulation run specific values in order to be
  * able to distinguish the results file for different runs for different parameters
  * configuration
@@ -271,26 +274,24 @@ std::string
 BuildFileNameString (std::string directoryName, std::string filePrefix, std::string tag)
 {
   std::ostringstream oss;
-  oss << directoryName << filePrefix << tag;
+  oss << directoryName <<"/"<<filePrefix << tag;
   return oss.str ();
 }
 
 std::string
 CttcRealisticBeamforming:: BuildTag ()
 {
+  NS_LOG_FUNCTION (this);
+
   std::ostringstream oss;
-
   std::string algorithm = (m_beamforming == CttcRealisticBeamforming::IDEAL) ? "I" : "R";
-  std::string gnbAmodel = (m_gnbAntennaModel) ? "ISO" : "3GPP";
-  std::string ueAmodel = (m_ueAntennaModel) ? "ISO" : "3GPP";
-
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
 
   oss << "-"   << algorithm   <<
          "-d" << distance2D <<
          "-mu" << m_numerology <<
-         "-gnb" << gnbAmodel  <<
-         "-ue" << ueAmodel ;
+         "-gnb" << m_gnbAntennaModel  <<
+         "-ue" << m_ueAntennaModel ;
 
   return oss.str ();
 }
@@ -299,37 +300,25 @@ CttcRealisticBeamforming:: BuildTag ()
 void
 CttcRealisticBeamforming::PrepareOutputFiles ()
 {
+  NS_LOG_FUNCTION (this);
   // If simulation tag is not provided create one, user can provide his own tag through the command line
   if (m_tag == "")
     {
       m_tag = BuildTag ();
     }
   std::string fileSinr = BuildFileNameString ( m_resultsDirPath , "sinrs", m_tag);
-  std::string fileSinrDb  = BuildFileNameString ( m_resultsDirPath , "sinrsDb", m_tag);
-  std::string fileSnr = BuildFileNameString ( m_resultsDirPath , "snrs", m_tag);
-  std::string fileRssi = BuildFileNameString ( m_resultsDirPath , "rssi", m_tag);
 
   m_outSinrFile.open (fileSinr.c_str (), std::_S_app);
   m_outSinrFile.setf (std::ios_base::fixed);
   NS_ABORT_MSG_IF (!m_outSinrFile.is_open (), "Can't open file " << fileSinr);
-
-  m_outSinrFileDb.open (fileSinrDb.c_str (), std::_S_app);
-  m_outSinrFileDb.setf (std::ios_base::fixed);
-  NS_ABORT_MSG_IF (!m_outSinrFileDb.is_open (), "Can't open file " << fileSinrDb);
-
-  m_outSnrFile.open (fileSnr.c_str (), std::_S_app);
-  m_outSnrFile.setf (std::ios_base::fixed);
-  NS_ABORT_MSG_IF (!m_outSnrFile.is_open (), "Can't open file " << fileSnr);
-
-  m_outRssiFile.open (fileRssi.c_str (), std::_S_app);
-  m_outRssiFile.setf (std::ios_base::fixed);
-  NS_ABORT_MSG_IF (!m_outRssiFile.is_open(), "Can't open file " << fileRssi);
 }
 
 void
 CttcRealisticBeamforming::PrepareDatabase ()
 {
-  int rc = sqlite3_open ((m_resultsDirPath + m_dbName).c_str(), &m_db);
+  NS_LOG_FUNCTION (this);
+
+  int rc = sqlite3_open ((m_resultsDirPath + "/" + m_dbName).c_str(), &m_db);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Failed to open DB");
 
   std::string cmd = "CREATE TABLE IF NOT EXISTS " + m_tableName + " ("
@@ -346,9 +335,13 @@ CttcRealisticBeamforming::PrepareDatabase ()
    sqlite3_stmt *stmt;
 
    // prepare the statement for creating the table
+   uint32_t attemptCount = 0;
    do
      {
        rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                            "Check if you have the database/table open with another program. "
+                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
      }
    while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
    // check if it went correctly
@@ -356,18 +349,26 @@ CttcRealisticBeamforming::PrepareDatabase ()
                         <<"full command is: \n"<<cmd);
 
    // execute a step operation on a statement until the result is ok or an error
+   attemptCount = 0;
    do
       {
         rc = sqlite3_step (stmt);
+        NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                             "Check if you have the database/table open with another program. "
+                                                             "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
       }
     while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
    // check if it went correctly
    NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
 
    // finalize the statement until the result is ok or an error occures
+   attemptCount = 0;
    do
      {
        rc = sqlite3_finalize (stmt);
+       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                            "Check if you have the database/table open with another program. "
+                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
      }
    while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
    // check if it went correctly
@@ -377,18 +378,22 @@ CttcRealisticBeamforming::PrepareDatabase ()
 void
 CttcRealisticBeamforming::PrintResultsToDatabase ()
 {
+  NS_LOG_FUNCTION (this);
+
   sqlite3_stmt *stmt;
   std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
   std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
-  std::string gnbAntenna = (m_gnbAntennaModel) ? "Iso":"3gpp";
-  std::string ueAntenna = (m_ueAntennaModel) ? "Iso":"3gpp";
   int rc;
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
 
   // prepare the statement for creating the table
+  uint32_t attemptCount = 0;
   do
     {
       rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                           "Check if you have the database/table open with another program. "
+                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
   // check if it went correctly
@@ -403,20 +408,28 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 5, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 6, m_rngRun) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_numerology) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, gnbAntenna.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, ueAntenna.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
 
   // finalize the command
-   do
-      {
-        rc = sqlite3_step (stmt);
-      }
-    while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  attemptCount = 0;
+  do
+    {
+      rc = sqlite3_step (stmt);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                           "Check if you have the database/table open with another program. "
+                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
    // check if it went correctly
    NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+  attemptCount = 0;
   do
     {
       rc = sqlite3_finalize (stmt);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                           "Check if you have the database/table open with another program. "
+                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
@@ -428,6 +441,7 @@ CttcRealisticBeamforming::CreateDlTrafficApplications (ApplicationContainer& ser
                                                      NodeContainer& ueNode, Ptr<Node> remoteHost, NetDeviceContainer ueNetDev,
                                                      Ipv4InterfaceContainer& ueIpIface)
 {
+  NS_LOG_FUNCTION (this);
   uint16_t dlPort = 1234;
   //Calculate UDP interval based on the packetSize and desired udp rate
   Time udpInterval = Time::FromDouble ((m_packetSize * 8) / static_cast<double> (m_udpRate.GetBitRate ()), Time::S);
@@ -460,50 +474,16 @@ void UeReceptionTrace (CttcRealisticBeamforming* simSetup, RxPacketTraceParams p
   simSetup->UeReception (params);
  }
 
-/**
- * A callback function that redirects a call to the scenario instance.
- * @param simSetup A pointer to a simulation instance
- * @param snr SNR value
- */
-void UeSnrPerProcessedChunkTrace (CttcRealisticBeamforming* simSetup, double snr)
-{
-  simSetup->UeSnrPerProcessedChunk (snr);
-}
-
-/**
- * A callback function that redirects a call to the scenario instance.
- * @param simSetup A pointer to a simulation instance
- * @param rssidBm rssidBm RSSI value in dBm
- */
-void UeRssiPerProcessedChunkTrace (CttcRealisticBeamforming* simSetup, double rssidBm)
-{
-  simSetup->UeRssiPerProcessedChunk (rssidBm);
-}
-
 void
 CttcRealisticBeamforming::UeReception (RxPacketTraceParams params)
 {
-  m_sinrStats.Update (params.m_sinr); // we have to pas the linear value
-}
-
-void
-CttcRealisticBeamforming::UeSnrPerProcessedChunk (double snr)
-{
-  m_snrStats.Update (snr);
-}
-
-void
-CttcRealisticBeamforming::UeRssiPerProcessedChunk (double rssidBm)
-{
-  m_rssiStats.Update (rssidBm);
+  m_sinrStats.Update (params.m_sinr); // we have to pass the linear value
 }
 
 CttcRealisticBeamforming::~CttcRealisticBeamforming ()
 {
+  // close the output results file
   m_outSinrFile.close ();
-  m_outSinrFileDb.close ();
-  m_outSnrFile.close ();
-  m_outRssiFile.close ();
 
   // Failed to close the database
   int rc = SQLITE_FAIL;
@@ -514,20 +494,22 @@ CttcRealisticBeamforming::~CttcRealisticBeamforming ()
 void
 CttcRealisticBeamforming::PrintResultsToFiles ()
 {
+  NS_LOG_FUNCTION (this);
   m_outSinrFile << m_sinrStats.getMean () << std::endl;
-  m_outSinrFileDb << 10 * log10 (m_sinrStats.getMean ()) << std::endl;
-  m_outSnrFile <<  10 * log10 (m_snrStats.getMean ()) << std::endl;
-  m_outRssiFile << 10 * log10 (m_rssiStats.getMean ()) << std::endl;
 }
 
 void
 CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
                                      RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
                                      uint32_t idealPeriodicity, uint64_t rngRun,
-                                     uint16_t numerology, bool gNbAntennaModel, bool ueAntennaModel,
-                                     std::string resultsDirPath, std::string tag, std::string dbName, std::string tableName)
+                                     uint16_t numerology,
+                                     std::string gNbAntennaModel, std::string ueAntennaModel,
+                                     double gnbTxPower, double ueTxPower,
+                                     std::string resultsDirPath, std::string tag,
+                                     std::string dbName, std::string tableName)
 
 {
+  NS_LOG_FUNCTION (this);
   m_deltaX = deltaX;
   m_deltaY = deltaY;
   m_beamforming = beamforming;
@@ -537,6 +519,8 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
   m_numerology = numerology;
   m_gnbAntennaModel = gNbAntennaModel;
   m_ueAntennaModel = ueAntennaModel;
+  m_gNbTxPower = gnbTxPower;
+  m_ueTxPower = ueTxPower;
   m_resultsDirPath = resultsDirPath;
   m_tag = tag;
 }
@@ -544,6 +528,8 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
 void
 CttcRealisticBeamforming::RunSimulation ()
 {
+  NS_LOG_FUNCTION (this);
+
   // Set simulation run number
   SeedManager::SetRun (m_rngRun);
 
@@ -612,11 +598,12 @@ CttcRealisticBeamforming::RunSimulation ()
   // Configure antenna of gNb
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (m_gnbAntennaModel));
+  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue ((m_gnbAntennaModel == "Iso")? true:false));
+
   // Configure antenna of UE
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (m_ueAntennaModel));
+  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue ((m_ueAntennaModel == "Iso")? true:false));
 
   // Install nr net devices
   NetDeviceContainer gNbDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
@@ -625,11 +612,11 @@ CttcRealisticBeamforming::RunSimulation ()
   for (uint32_t i = 0 ; i < gNbDev.GetN (); i ++)
     {
       nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (m_numerology));
-      nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (m_gNbTxPower)));
+      nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (m_gNbTxPower));
     }
   for (uint32_t j = 0; j < ueNetDev.GetN (); j++)
     {
-      nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (10*log10 (m_ueTxPower)));
+      nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (m_ueTxPower));
     }
 
   // Update configuration
@@ -690,8 +677,6 @@ CttcRealisticBeamforming::RunSimulation ()
       ue1SpectrumPhy->TraceConnectWithoutContext ("RxPacketTraceUe", MakeBoundCallback (&UeReceptionTrace, this));
       Ptr<nrInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetNrInterference ();
       NS_ABORT_IF (!ue1SpectrumPhyInterference);
-      ue1SpectrumPhyInterference->TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeBoundCallback (&UeSnrPerProcessedChunkTrace, this));
-      ue1SpectrumPhyInterference->TraceConnectWithoutContext ("RssiPerProcessedChunk", MakeBoundCallback (&UeRssiPerProcessedChunkTrace, this));
     }
 
   Simulator::Stop (m_simTime);
@@ -702,22 +687,21 @@ CttcRealisticBeamforming::RunSimulation ()
 int
 main (int argc, char *argv[])
 {
-
   // simulation configuration parameters
   double deltaX = 10.0;
   double deltaY = 10.0;
   std::string algType = "Real";
   std::string realTriggerEvent = "SrsCount"; // what will be the trigger event to update the beamforming vectors, only used when --algType="Real"
-  uint32_t idealPeriodicity = 0 ; // how often will be updated the beamforming vectors, only used when --algType="Real"
+  uint32_t idealPeriodicity = 10 ; // how often will be updated the beamforming vectors, only used when --algType="Real", in [ms]
   uint64_t rngRun = 1;
   uint16_t numerology = 2;
-  bool enableGnbIso = true;
-  bool enableUeIso = true;
-  double ueTxPower = 0;
-  double gnbTxPower = 0;
+  std::string gnbAntenna = "Iso";
+  std::string ueAntenna = "Iso";
+  double gnbTxPower = 1;
+  double ueTxPower = 1;
 
   // parameters for saving the output
-  std::string resultsDir = "./";
+  std::string resultsDir = ".";
   std::string simTag = "";
   std::string dbName = "realistic-beamforming.db";
   std::string tableName = "results";
@@ -751,14 +735,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("numerology",
                 "Numerology to be used.",
                 numerology);
-  cmd.AddValue ("enableGnbIso",
-                "Configure isotropic antenna elements at gNB. "
-                "For ISO value to be provided is 1, for 3GPP value to be provide is 0.",
-                enableGnbIso);
-  cmd.AddValue ("enableUeIso",
-                "Configure isotropic antenna elements at UE."
-                "For ISO value to be provided is 1, for 3GPP value to be provide is 0.",
-                enableUeIso);
+  cmd.AddValue ("gnbAntenna",
+                "Configure antenna elements at gNb: Iso or 3gpp",
+                gnbAntenna);
+  cmd.AddValue ("ueAntenna",
+                "Configure antenna elements at UE: Iso or 3gpp",
+                ueAntenna);
   cmd.AddValue ("ueTxPower",
                 "Tx power to be used by the UE [dBm].",
                 ueTxPower);
@@ -810,7 +792,7 @@ main (int argc, char *argv[])
 
   CttcRealisticBeamforming simpleBeamformingScenario;
   simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, triggerEventEnum, idealPeriodicity,
-                                       rngRun, numerology, enableGnbIso, enableUeIso,
+                                       rngRun, numerology, gnbAntenna, ueAntenna, gnbTxPower, ueTxPower,
                                        resultsDir, simTag, dbName, tableName);
   simpleBeamformingScenario.PrepareDatabase ();
   simpleBeamformingScenario.PrepareOutputFiles ();
@@ -818,4 +800,3 @@ main (int argc, char *argv[])
   simpleBeamformingScenario.PrintResultsToDatabase ();
   simpleBeamformingScenario.PrintResultsToFiles ();
 }
-

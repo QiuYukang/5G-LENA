@@ -65,7 +65,7 @@ IdealBeamformingHelper::GetTypeId (void)
                       MakeTypeIdAccessor (&IdealBeamformingHelper::SetBeamformingMethod),
                       MakeTypeIdChecker ())
       .AddAttribute ("BeamformingPeriodicity",
-                     "Interval between consecutive beamforming method executions.",
+                     "Interval between consecutive beamforming method executions. If set to 0 it will not be updated.",
                       TimeValue (MilliSeconds (100)),
                       MakeTimeAccessor (&IdealBeamformingHelper::SetPeriodicity,
                                         &IdealBeamformingHelper::GetPeriodicity),
@@ -137,7 +137,7 @@ void
 IdealBeamformingHelper::SetPeriodicity (const Time &v)
 {
   NS_LOG_FUNCTION (this);
-
+  NS_ABORT_MSG_IF ( v == MilliSeconds (0), "Periodicity must be greater than 0 ms.");
   m_beamformingPeriodicity = v;
 }
 
