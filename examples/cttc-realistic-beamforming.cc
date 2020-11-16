@@ -217,6 +217,11 @@ public:
    */
   void PrintResultsToDatabase ();
 
+  /**
+   * \brief Delete results entry from database if already exist
+   */
+  void DeleteFromDatabaseIfAlreadyExist ();
+
 private:
 
   //output file streams
@@ -380,6 +385,8 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
 {
   NS_LOG_FUNCTION (this);
 
+  DeleteFromDatabaseIfAlreadyExist ();
+
   sqlite3_stmt *stmt;
   std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
   std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
@@ -433,6 +440,71 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+
+}
+
+void
+CttcRealisticBeamforming::DeleteFromDatabaseIfAlreadyExist ()
+{
+  sqlite3_stmt *stmt;
+  std::string cmd= "DELETE FROM \"" + m_tableName + "\" WHERE "
+                   "deltaX == ? AND "  // 1
+                   "deltaY == ? AND "  //2
+                   "BeamformingType = ? AND " //3
+                   "RngRun == ? AND " //4
+                   "Numerology == ? AND " //5
+                   "GnbAntenna = ? AND " //6
+                   "UeAntenna = ?;"; //7
+  int rc;
+
+  // prepare the statement for creating the table
+  uint32_t attemptCount = 0;
+  do
+    {
+      rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                           "Check if you have the database/table open with another program. "
+                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the delete statement. "
+                                                              " Db error:" << sqlite3_errmsg (m_db)<<". The full command is: \n"<<cmd);
+
+
+  std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
+  // add all parameters to the command
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_deltaX) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, m_deltaY) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 3, beamformingType.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 4, m_rngRun) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 5, m_numerology) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 6, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 7, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+
+
+  // finalize the command
+   attemptCount = 0;
+   do
+     {
+       rc = sqlite3_step (stmt);
+       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                            "Check if you have the database/table open with another program. "
+                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+     }
+   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+    // check if it went correctly
+    NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+   attemptCount = 0;
+   do
+     {
+       rc = sqlite3_finalize (stmt);
+       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                                                            "Check if you have the database/table open with another program. "
+                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+     }
+   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
 
 }
 
