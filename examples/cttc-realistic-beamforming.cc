@@ -735,7 +735,7 @@ CttcRealisticBeamforming::RunSimulation ()
     }
   for (uint32_t j = 0; j < ueNetDev.GetN (); j++)
     {
-      nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (m_ueTxPower));
+      nrHelper->GetUePhy ( ueNetDev.Get (j), 0)->SetAttribute ("TxPower", DoubleValue (m_ueTxPower));
     }
 
   // Update configuration
