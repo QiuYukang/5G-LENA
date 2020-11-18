@@ -87,6 +87,7 @@ using namespace ns3;
  *    --numerology=0
  *    --gnbAntenna=3gpp
  *    --ueAntenna=3gpp
+ *    --uePower=10
  *    --scenario=Uma
  *    --simTag=-sim-campaign-algReal-rng1-mu0-gNb3gpp-ue3gpp
  *    --resultsDir=/tmp/results/realistic-beamforming/
@@ -140,8 +141,7 @@ public:
    * @param gnbAntenna antenna model to be used by gNB device, can be Iso or directional 3gpp
    * @param ueAntenna antenna model to be used by UE device, can be Iso directional 3gpp
    * @param scenario deployment scenario, can be Uma, Umi, Inh, Rma
-   * @param gnbTxPower gnbTxPower
-   * @param ueTxPower ueTxPower
+   * @param uePower uePower
    * @param resultsDirPath results directory path
    * @param tag A tag that contains some simulation run specific values in order
    * to be able to distinguish the results file for different runs for different
@@ -150,8 +150,8 @@ public:
   void Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
                   RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
                   uint32_t idealPeriodicity, uint64_t rngRun, uint16_t numerology,
-                  std::string gnbAntenna, std::string ueAntenna, std::string scenario,
-                  double gnbTxPower, double ueTxPower,
+                  std::string gnbAntenna, std::string ueAntenna,
+                  std::string scenario, double uePower,
                   std::string resultsDirPath, std::string tag,
                   std::string dbName, std::string tableName);
 
@@ -205,6 +205,7 @@ public:
    *   "numerology INTEGER NOT NULL,"
    *   "gNBAntenna TEXT NOT NULL,"
    *   "ueAntenna TEXT NOT NULL,"
+   *   "uePower INTEGER NOT NULL,"
    *   "scenario TEXT NOT NULL,"
    * - "Seed INTEGER NOT NULL,"
    * - "Run INTEGER NOT NULL);"
@@ -254,6 +255,7 @@ private:
   double m_gNbHeight {25};
   double m_gNbTxPower {35};
   BandwidthPartInfo::Scenario m_deployScenario {BandwidthPartInfo::UMa};
+  double m_ueTxPower {23};
 
   // simulation parameters that are not expected to be changed often by the user
   Time m_simTime = MilliSeconds (150);
@@ -264,7 +266,7 @@ private:
   double m_centralFrequency = 28e9;
   double m_bandwidth = 100e6;
   double m_ueHeight = 1.5; // UE antenna height is 1.5 meters
-  double m_ueTxPower = 23;
+
 
   const uint8_t m_numCcPerBand = 1;
   double m_gNbX = 0;
@@ -302,6 +304,7 @@ CttcRealisticBeamforming:: BuildTag ()
          "-mu" << m_numerology <<
          "-gnb" << m_gnbAntennaModel  <<
          "-ue" << m_ueAntennaModel <<
+         "-uePow" << m_ueTxPower <<
          "-scenario" << m_scenario;
 
   return oss.str ();
@@ -342,6 +345,7 @@ CttcRealisticBeamforming::PrepareDatabase ()
                     "Numerology INTEGER NOT NULL,"
                     "GnbAntenna TEXT NOT NULL,"
                     "UeAntenna TEXT NOT NULL,"
+                    "UePower INTEGER NOT NULL,"
                     "Scenario TEXT NOT NULL);";
 
    sqlite3_stmt *stmt;
@@ -395,7 +399,7 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
   DeleteFromDatabaseIfAlreadyExist ();
 
   sqlite3_stmt *stmt;
-  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
   std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
   int rc;
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
@@ -424,7 +428,9 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_numerology) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 10, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 10, m_ueTxPower) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 11, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+
 
   // finalize the command
   attemptCount = 0;
@@ -463,7 +469,8 @@ CttcRealisticBeamforming::DeleteFromDatabaseIfAlreadyExist ()
                    "Numerology == ? AND " //5
                    "GnbAntenna = ? AND " //6
                    "UeAntenna = ? AND " //7
-                   "Scenario = ?;"; //8
+                   "UePower = ? AND " //8
+                   "Scenario = ?;"; //9
   int rc;
 
   // prepare the statement for creating the table
@@ -490,7 +497,8 @@ CttcRealisticBeamforming::DeleteFromDatabaseIfAlreadyExist ()
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 5, m_numerology) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 6, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 7, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, m_ueTxPower) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
 
 
   // finalize the command
@@ -586,8 +594,7 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
                                      uint32_t idealPeriodicity, uint64_t rngRun,
                                      uint16_t numerology,
                                      std::string gNbAntennaModel, std::string ueAntennaModel,
-                                     std::string scenario,
-                                     double gnbTxPower, double ueTxPower,
+                                     std::string scenario, double uePower,
                                      std::string resultsDirPath, std::string tag,
                                      std::string dbName, std::string tableName)
 
@@ -603,8 +610,7 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
   m_gnbAntennaModel = gNbAntennaModel;
   m_ueAntennaModel = ueAntennaModel;
   m_scenario = scenario;
-  m_gNbTxPower = gnbTxPower;
-  m_ueTxPower = ueTxPower;
+  m_ueTxPower = uePower;
   m_resultsDirPath = resultsDirPath;
   m_tag = tag;
 
@@ -810,7 +816,6 @@ main (int argc, char *argv[])
   uint16_t numerology = 2;
   std::string gnbAntenna = "Iso";
   std::string ueAntenna = "Iso";
-  double gnbTxPower = 1;
   double ueTxPower = 1;
   std::string scenario = "Uma";
 
@@ -858,12 +863,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("scenario",
                 "Deployment scenario: Uma, Umi, Inh",
                 scenario);
-  cmd.AddValue ("ueTxPower",
+  cmd.AddValue ("uePower",
                 "Tx power to be used by the UE [dBm].",
                 ueTxPower);
-  cmd.AddValue ("gnbTxPower",
-                "Tx power to be used by the gNB [dBm].",
-                gnbTxPower);
   // output command line parameters
   cmd.AddValue ("resultsDir",
                 "Directory where to store the simulation results.",
@@ -909,7 +911,7 @@ main (int argc, char *argv[])
 
   CttcRealisticBeamforming simpleBeamformingScenario;
   simpleBeamformingScenario.Configure (deltaX, deltaY, beamformingType, triggerEventEnum, idealPeriodicity,
-                                       rngRun, numerology, gnbAntenna, ueAntenna, scenario, gnbTxPower, ueTxPower,
+                                       rngRun, numerology, gnbAntenna, ueAntenna, scenario, ueTxPower,
                                        resultsDir, simTag, dbName, tableName);
   simpleBeamformingScenario.PrepareDatabase ();
   simpleBeamformingScenario.PrepareOutputFiles ();
