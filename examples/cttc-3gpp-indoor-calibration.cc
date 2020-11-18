@@ -617,7 +617,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     for (uint32_t j = 0; j < ueNetDevs.GetN (); j++)
     {
         // UE noise figure shall be set to 10 dB
-        nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (10));
+        nrHelper->GetUePhy (ueNetDevs.Get (j), 0)->SetAttribute ("NoiseFigure", DoubleValue (10));
     }
 
 
