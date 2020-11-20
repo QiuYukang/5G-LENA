@@ -620,6 +620,18 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
       m_gNbTxPower = 35;  // gNB transmit power
       m_deployScenario = BandwidthPartInfo::UMa;
     }
+  else if (scenario == "UmaLos")
+    {
+      m_gNbHeight = 25;
+      m_gNbTxPower = 35;
+      m_deployScenario = BandwidthPartInfo::UMa_LoS;
+    }
+  else if (scenario == "UmaNlos")
+    {
+      m_gNbHeight = 25;
+      m_gNbTxPower = 35;
+      m_deployScenario = BandwidthPartInfo::UMa_nLoS;
+    }
   else if (scenario == "Rma")
     {
       m_gNbHeight = 35;
@@ -631,6 +643,18 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
       m_gNbHeight = 10;
       m_gNbTxPower = 35;
       m_deployScenario = BandwidthPartInfo::UMi_StreetCanyon;
+    }
+  else if (scenario == "UmiLos")
+    {
+      m_gNbHeight = 10;
+      m_gNbTxPower = 35;
+      m_deployScenario = BandwidthPartInfo::UMi_StreetCanyon_LoS;
+    }
+  else if (scenario == "UmiNlos")
+    {
+      m_gNbHeight = 10;
+      m_gNbTxPower = 35;
+      m_deployScenario = BandwidthPartInfo::UMi_StreetCanyon_nLoS;
     }
   else if (scenario == "Inh")
     {
@@ -735,7 +759,7 @@ CttcRealisticBeamforming::RunSimulation ()
     }
   for (uint32_t j = 0; j < ueNetDev.GetN (); j++)
     {
-      nrHelper->GetUePhy ( ueNetDev.Get (j), 0)->SetAttribute ("TxPower", DoubleValue (m_ueTxPower));
+      nrHelper->GetUePhy (ueNetDev.Get (j), 0)->SetAttribute ("TxPower", DoubleValue (m_ueTxPower));
     }
 
   // Update configuration
