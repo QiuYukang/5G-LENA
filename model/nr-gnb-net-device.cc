@@ -24,6 +24,7 @@
 #include <ns3/log.h>
 #include <ns3/lte-enb-component-carrier-manager.h>
 #include <ns3/ipv4-l3-protocol.h>
+#include <ns3/ipv6-l3-protocol.h>
 
 #include "bandwidth-part-gnb.h"
 #include "nr-gnb-mac.h"
@@ -206,8 +207,10 @@ NrGnbNetDevice::GetRrc (void)
 bool
 NrGnbNetDevice::DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
-  NS_LOG_FUNCTION (this << packet   << dest << protocolNumber);
-  NS_ASSERT_MSG (protocolNumber == Ipv4L3Protocol::PROT_NUMBER, "unsupported protocol " << protocolNumber << ", only IPv4 is supported");
+  NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
+  NS_ABORT_MSG_IF (protocolNumber != Ipv4L3Protocol::PROT_NUMBER
+                   && protocolNumber != Ipv6L3Protocol::PROT_NUMBER,
+                   "unsupported protocol " << protocolNumber << ", only IPv4 and IPv6 are supported");
   return m_rrc->SendData (packet);
 }
 

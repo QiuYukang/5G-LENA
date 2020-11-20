@@ -23,6 +23,8 @@
 #include <ns3/uinteger.h>
 #include <ns3/channel.h>
 #include "nr-net-device.h"
+#include <ns3/ipv6-l3-protocol.h>
+#include <ns3/ipv6-header.h>
 
 namespace ns3 {
 
@@ -203,7 +205,24 @@ void
 NrNetDevice::Receive (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << p);
-  m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
+
+  Ipv4Header ipv4Header;
+  Ipv6Header ipv6Header;
+
+  if (p->PeekHeader (ipv4Header) != 0)
+    {
+      NS_LOG_INFO ("IPv4 stack...");
+      m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
+    }
+  else if  (p->PeekHeader (ipv6Header) != 0)
+    {
+      NS_LOG_INFO ("IPv6 stack...");
+      m_rxCallback (this, p, Ipv6L3Protocol::PROT_NUMBER, Address ());
+    }
+  else
+    {
+      NS_ABORT_MSG ("NrNetDevice::Receive - Unknown IP type...");
+    }
 }
 
 bool

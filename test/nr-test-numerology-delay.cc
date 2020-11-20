@@ -166,6 +166,12 @@ ConnectRlcPdcpTraces (NrTestNumerologyDelayCase1 *testcase)
 static void SendPacket (Ptr<NetDevice> device, Address& addr)
 {
   Ptr<Packet> pkt = Create<Packet> (packetSize);
+  //Adding empty IPV4 header after adding the IPV6 support for NR module.
+  //NrNetDevice::Receive need to peek the header to know the IP protocol.
+  //Since, there are no apps install in this test, this packet will be
+  //dropped in Ipv4L3Protocol::Receive method upon not finding the route.
+  Ipv4Header ipHeader;
+  pkt->AddHeader (ipHeader);
   EpsBearerTag tag (1, 1);
   pkt->AddPacketTag (tag);
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
