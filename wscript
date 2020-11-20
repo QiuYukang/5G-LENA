@@ -9,7 +9,7 @@ import os
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('nr', ['lte'])
+    module = bld.create_ns3_module('nr', ['lte', 'internet-apps'])
     module.source = [
         'helper/nr-helper.cc',
         'helper/nr-phy-rx-trace.cc',
