@@ -28,6 +28,7 @@ def build(bld):
         'helper/nr-radio-environment-map-helper.cc',
         'helper/nr-spectrum-value-helper.cc',
         'helper/scenario-parameters.cc',
+        'helper/three-gpp-ftp-m1-helper.cc',
         'model/nr-net-device.cc',
         'model/nr-gnb-net-device.cc',
         'model/nr-ue-net-device.cc',
@@ -97,6 +98,8 @@ def build(bld):
         'model/nr-mac-scheduler-srs-default.cc',
         'model/nr-ue-power-control.cc',
         'model/realistic-bf-manager.cc',
+        'utils/file-transfer-helper.cc',
+        'utils/file-transfer-application.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -148,6 +151,7 @@ def build(bld):
         'helper/nr-radio-environment-map-helper.h',
         'helper/nr-spectrum-value-helper.h',
         'helper/scenario-parameters.h',
+        'helper/three-gpp-ftp-m1-helper.h',
         'model/nr-net-device.h',
         'model/nr-gnb-net-device.h',
         'model/nr-ue-net-device.h',
@@ -224,6 +228,8 @@ def build(bld):
         'model/nr-mac-scheduler-srs-default.h',
         'model/nr-ue-power-control.h',
         'model/realistic-bf-manager.h',
+        'utils/file-transfer-helper.h',
+        'utils/file-transfer-application.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
