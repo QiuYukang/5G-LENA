@@ -638,6 +638,18 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
       m_gNbTxPower = 35;
       m_deployScenario = BandwidthPartInfo::RMa;
     }
+  else if (scenario == "RmaLos")
+    {
+      m_gNbHeight = 35;
+      m_gNbTxPower = 35;
+      m_deployScenario = BandwidthPartInfo::RMa_LoS;
+    }
+  else if (scenario == "RmaNlos")
+    {
+      m_gNbHeight = 35;
+      m_gNbTxPower = 35;
+      m_deployScenario = BandwidthPartInfo::RMa_nLoS;
+    }
   else if (scenario == "Umi")
     {
       m_gNbHeight = 10;
@@ -661,6 +673,18 @@ CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMe
       m_gNbHeight = 3;
       m_gNbTxPower = 24;
       m_deployScenario = BandwidthPartInfo::InH_OfficeOpen;
+    }
+  else if (scenario == "InhLos")
+    {
+      m_gNbHeight = 3;
+      m_gNbTxPower = 24;
+      m_deployScenario = BandwidthPartInfo::InH_OfficeOpen_LoS;
+    }
+  else if (scenario == "InhNlos")
+    {
+      m_gNbHeight = 3;
+      m_gNbTxPower = 24;
+      m_deployScenario = BandwidthPartInfo::InH_OfficeOpen_nLoS;
     }
   else
     {
