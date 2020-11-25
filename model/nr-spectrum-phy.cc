@@ -453,7 +453,15 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (nrSlRxParams != nullptr)
     {
-      StartRxSlFrame (nrSlRxParams);
+      if (m_state != TX)
+        {
+          //Half duplex SL
+          StartRxSlFrame (nrSlRxParams);
+        }
+      else
+        {
+          NS_LOG_DEBUG ("Ignoring the reception. Sidelink is half duplex. State : " << m_state);
+        }
     }
   else
     {
