@@ -24,8 +24,8 @@
  *
  * This is a simple example which can be used to test different configurations of
  * gNB antenna array parameters and visualize its radiation through REM map.
- * Parameters that can be provided as input through command line to configure antenna
- * array and its beamforming vector are:
+ * Parameters that can be provided as input through the command line to configure
+ * antenna array and its beamforming vector are:
  *  - numRowsGnb (number of rows of antenna array)
  *  - numColumnsGnb (number of columns of antenna array)
  *  - sector (sector with which will be created the beamforming vector, see
@@ -34,16 +34,23 @@
  *
  * The rest of parameters are for REM map configuration, such as parameters for
  * resolution and REM area.
-
- * ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=BeamShape"
  *
- * The output of the REM includes various output files. The user should
- * run the following:
+ * ./waf --run "rem-beam-example"
  *
- * gnuplot ${nameOfTheFile}.gnuplot
+ * The output of this example are REM csv files from which REM figures can be
+ * generated with the following command:
+ * \code{.unparsed}
+ * $  gnuplot -p nr-rem-{simTag}-gnbs.txt nr-rem-{simTag}-ues.txt nr-rem-{simTag}-buildings.txt nr-rem-{simTag}-plot-rem.gnuplot
+ *\endcode
  *
- * nameOfTheFile - name of the output that will be used to generate REM figures
- * with SNR, SINR and IPSD values. Normally is nr-rem-${simTag}.gnuplot.
+ * If no simTag is specified then to plot run the following command:
+ *
+ *\code{.unparsed}
+ * gnuplot -p nr-rem--gnbs.txt nr-rem--ues.txt nr-rem--buildings.txt nr-rem--plot-rem.gnuplot
+ * \endcode
+ *
+ * The following files will be generated (in the root project folder if not specified
+ * differently): nr-rem--sinr.png, nr-rem--snr.png and nr-rem--ipsd.png
  *
  */
 
@@ -78,6 +85,9 @@ main (int argc, char *argv[])
   std::string simTag = "";
 
   CommandLine cmd;
+  cmd.AddValue ("simTag",
+                "The simTag to be used for REM files creation",
+                simTag);
   cmd.AddValue ("numRowsGnb",
                 "Number of rows for the gNB antenna",
                 numRowsGnb);
@@ -108,9 +118,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("yRes",
                 "The resolution on the y axis of the rem map",
                 yRes);
-  cmd.AddValue ("simTag",
-                "The simTag to be used for REM files creation",
-                simTag);
 
   cmd.Parse (argc, argv);
 
@@ -151,7 +158,7 @@ main (int argc, char *argv[])
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
   //Initialize channel and pathloss, plus other things inside band.
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
   nrHelper->InitializeOperationBand (&band);
@@ -174,8 +181,8 @@ main (int argc, char *argv[])
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, singleBwp);
 
   // this is probably not necessary, since we did not update configuration after installation
-  DynamicCast<NrGnbNetDevice>(gnbNetDev.Get(0))->UpdateConfig();
-  DynamicCast<NrUeNetDevice> (ueNetDev.Get(0))->UpdateConfig ();
+  DynamicCast<NrGnbNetDevice>(gnbNetDev.Get (0))->UpdateConfig ();
+  DynamicCast<NrUeNetDevice>(ueNetDev.Get (0))->UpdateConfig ();
 
   // install the IP stack on the UEs, this is needed to allow attachment
   InternetStackHelper internet;
@@ -197,8 +204,8 @@ main (int argc, char *argv[])
   remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
 
   //configure beam that will be shown in REM map
-  DynamicCast<NrGnbNetDevice>(gnbNetDev.Get(0))->GetPhy(0)->GetBeamManager ()->SetSector (sector, theta);
-  DynamicCast<NrUeNetDevice>(ueNetDev.Get(0))->GetPhy(0)->GetBeamManager()->ChangeToQuasiOmniBeamformingVector();
+  DynamicCast<NrGnbNetDevice>(gnbNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->SetSector (sector, theta);
+  DynamicCast<NrUeNetDevice>(ueNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
   remHelper->CreateRem (gnbNetDev, ueNetDev.Get(0), 0);
 
   Simulator::Stop (Seconds (simTime));

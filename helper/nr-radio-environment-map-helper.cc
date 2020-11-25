@@ -318,8 +318,8 @@ void NrRadioEnvironmentMapHelper::ConfigureRrd (const Ptr<NetDevice> &rrdDevice)
   m_rrd.mob->SetPosition (rrdDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ());
 
   std::ostringstream oss;
-  oss << "nr-rem-" << m_simTag.c_str() <<"-ues.txt";
-  PrintGnuplottableUeListToFile (oss.str());
+  oss << "nr-rem-" << m_simTag.c_str() << "-ues.txt";
+  PrintGnuplottableUeListToFile (oss.str ());
 
   Ptr<MobilityBuildingInfo> buildingInfo = CreateObject<MobilityBuildingInfo> ();
   m_rrd.mob->AggregateObject (buildingInfo);
@@ -376,15 +376,16 @@ void NrRadioEnvironmentMapHelper::ConfigureRtdList (const NetDeviceContainer& rt
       NS_LOG_INFO ("RTD spectrum model: " << rtd.spectrumModel->GetUid () <<
                    ", RTD number of bands: " << rtd.spectrumModel->GetNumBands () <<
                    ", create new RTD element... " <<
-                   ", rtdPhy->GetCentralFrequency () " << rtdPhy->GetCentralFrequency () / 1e6 << " MHz " <<
+                   ", rtdPhy->GetCentralFrequency () " <<
+                   rtdPhy->GetCentralFrequency () / 1e6 << " MHz " <<
                    //", BW: " << rtdPhy->GetChannelBandwidth () / 1e6 << " MHz " <<
                    ", num: "<< rtdPhy->GetNumerology ());
 
       m_remDev.push_back (rtd);
     }
-  NS_ASSERT_MSG(m_remDev.size(),"No RTD devices configured. Check if the RTD "
-                                "devices are on the operating on the same "
-                                "spectrum as RRD device.");
+  NS_ASSERT_MSG (m_remDev.size (),"No RTD devices configured. Check if the RTD "
+                                  "devices are on the operating on the same "
+                                  "spectrum as RRD device.");
 }
 
 void
@@ -403,7 +404,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
   if (propagationLossModel)
     {
-      Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+      Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
       if (channelConditionModel)
         {
           m_channelConditionModelFactory = ConfigureObjectFactory (channelConditionModel);
@@ -422,9 +423,9 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
   Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
   if (spectrumLossModel)
     {
-      if (spectrumLossModel->GetChannelModel())
+      if (spectrumLossModel->GetChannelModel ())
         {
-          m_matrixBasedChannelModelFactory = ConfigureObjectFactory (spectrumLossModel->GetChannelModel());
+          m_matrixBasedChannelModelFactory = ConfigureObjectFactory (spectrumLossModel->GetChannelModel ());
         }
       else
         {
@@ -473,7 +474,6 @@ NrRadioEnvironmentMapHelper::ConfigureObjectFactory (const Ptr<Object>& object) 
                   NS_LOG_WARN ("This factory has a PointerValue attribute that "
                                "is not compatible with this REM helper version.");
                 }
-
               continue;
             }
 
@@ -603,11 +603,11 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev
   PrintRemToFile ();
 
   std::ostringstream ossGnbs;
-  ossGnbs << "nr-rem-" << m_simTag.c_str() <<"-gnbs.txt";
-  PrintGnuplottableGnbListToFile (ossGnbs.str());
+  ossGnbs << "nr-rem-" << m_simTag.c_str () << "-gnbs.txt";
+  PrintGnuplottableGnbListToFile (ossGnbs.str ());
   std::ostringstream ossBuildings;
-  ossBuildings << "nr-rem-" << m_simTag.c_str() <<"-buildings.txt";
-  PrintGnuplottableBuildingListToFile (ossBuildings.str());
+  ossBuildings << "nr-rem-" << m_simTag.c_str () << "-buildings.txt";
+  PrintGnuplottableBuildingListToFile (ossBuildings.str ());
 }
 
 void
@@ -617,8 +617,8 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints ()
 
   //Create the list of the REM Points
 
-  m_xStep = (m_xMax - m_xMin)/(m_xRes);
-  m_yStep = (m_yMax - m_yMin)/(m_yRes);
+  m_xStep = (m_xMax - m_xMin) / (m_xRes);
+  m_yStep = (m_yMax - m_yMin) / (m_yRes);
 
   NS_ASSERT_MSG (m_xMax > m_xMin, "xMax must be higher than xMin");
   NS_ASSERT_MSG (m_yMax > m_yMin, "yMax must be higher than yMin");
@@ -848,8 +848,8 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
               receivedPowerList.push_back (CalcRxPsdValue (*itRtd, m_rrd));
 
               NS_LOG_INFO ("Done:" <<
-                             (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
-                             " %."); // how many times will be called CalcRxPsdValues
+                           (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
+                           " %."); // how many times will be called CalcRxPsdValues
 
             } //end for std::list<RemDev>::iterator  (RTDs)
 
@@ -1014,8 +1014,8 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
               snrsPerBeam.push_back (CalculateSnr (usefulSignalRxPsd));
 
               NS_LOG_INFO ("Done:" <<
-                             (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()*m_remDev.size()) * 100 <<
-                             " %."); // how many times will be called CalcRxPsdValues
+                           (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()*m_remDev.size()) * 100 <<
+                           " %."); // how many times will be called CalcRxPsdValues
 
             } //end for std::list<RemDev>::iterator itRtdBeam (RTDs)
 
@@ -1123,7 +1123,7 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
     auto remEndTime = std::chrono::system_clock::now ();
     std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
     NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
-                   remElapsedSeconds.count () / 60 << " minutes.");
+                 remElapsedSeconds.count () / 60 << " minutes.");
 }
 
 NrRadioEnvironmentMapHelper::PropagationModels
@@ -1261,11 +1261,7 @@ NrRadioEnvironmentMapHelper::PrintRemToFile ()
 
   outFile.close();
 
-  if (!m_simTag.empty())
-    {
-      CreateCustomGnuplotFile ();
-    }
-
+  CreateCustomGnuplotFile ();
   Finalize ();
 }
 
@@ -1274,52 +1270,52 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
 {
   NS_LOG_FUNCTION (this);
   std::ostringstream oss;
-  oss << "nr-rem-" << m_simTag.c_str() <<"-plot-rem.gnuplot";
+  oss << "nr-rem-" << m_simTag.c_str () << "-plot-rem.gnuplot";
   std::string filename = oss.str ();
 
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
-    if (!outFile.is_open ())
-      {
-        NS_LOG_ERROR ("Can't open file " << filename);
-        return;
-      }
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
 
-    outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
-    outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
-    outFile<<"set cblabel \"SNR (dB)\""<<std::endl;
-    outFile<<"unset key"<<std::endl;
-    outFile<<"set terminal png"<<std::endl;
-    outFile<<"set output \"nr-rem-"<<m_simTag<<"-snr.png\""<<std::endl;
-    outFile<<"set size ratio -1"<<std::endl;
-    outFile<<"set cbrange [-5:30]"<<std::endl;
-    outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
-    outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
-    outFile<<"plot \"nr-rem-"<<m_simTag<<".out\" using ($1):($2):($4) with image"<<std::endl;
+  outFile << "set xlabel \"x-coordinate (m)\"" << std::endl;
+  outFile << "set ylabel \"y-coordinate (m)\"" << std::endl;
+  outFile << "set cblabel \"SNR (dB)\"" << std::endl;
+  outFile << "unset key" << std::endl;
+  outFile << "set terminal png" << std::endl;
+  outFile << "set output \"nr-rem-" << m_simTag << "-snr.png\"" << std::endl;
+  outFile << "set size ratio -1" << std::endl;
+  outFile << "set cbrange [-5:30]" << std::endl;
+  outFile << "set xrange [" << m_xMin << ":" << m_xMax << "]" << std::endl;
+  outFile << "set yrange [" << m_yMin << ":" << m_yMax << "]" << std::endl;
+  outFile << "plot \"nr-rem-" << m_simTag << ".out\" using ($1):($2):($4) with image" << std::endl;
 
-    outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
-    outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
-    outFile<<"set cblabel \"SINR (dB)\""<<std::endl;
-    outFile<<"unset key"<<std::endl;
-    outFile<<"set terminal png"<<std::endl;
-    outFile<<"set output \"nr-rem-"<<m_simTag<<"-sinr.png\""<<std::endl;
-    outFile<<"set size ratio -1"<<std::endl;
-    outFile<<"set cbrange [-5:30]"<<std::endl;
-    outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
-    outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
-    outFile<<"plot \"nr-rem-"<<m_simTag<<".out\" using ($1):($2):($5) with image"<<std::endl;
+  outFile << "set xlabel \"x-coordinate (m)\"" << std::endl;
+  outFile << "set ylabel \"y-coordinate (m)\"" << std::endl;
+  outFile << "set cblabel \"SINR (dB)\"" << std::endl;
+  outFile << "unset key" << std::endl;
+  outFile << "set terminal png" << std::endl;
+  outFile << "set output \"nr-rem-" << m_simTag << "-sinr.png\"" << std::endl;
+  outFile << "set size ratio -1" << std::endl;
+  outFile << "set cbrange [-5:30]" << std::endl;
+  outFile << "set xrange [" <<m_xMin << ":" << m_xMax<< "]" << std::endl;
+  outFile << "set yrange [" <<m_yMin << ":" << m_yMax<< "]" << std::endl;
+  outFile << "plot \"nr-rem-" << m_simTag << ".out\" using ($1):($2):($5) with image" << std::endl;
 
-    outFile<<"set xlabel \"x-coordinate (m)\""<<std::endl;
-    outFile<<"set ylabel \"y-coordinate (m)\""<<std::endl;
-    outFile<<"set cblabel \"IPSD (dBm)\""<<std::endl;
-    outFile<<"unset key"<<std::endl;
-    outFile<<"set terminal png"<<std::endl;
-    outFile<<"set output \"nr-rem-"<<m_simTag<<"-ipsd.png\""<<std::endl;
-    outFile<<"set size ratio -1"<<std::endl;
-    outFile<<"set cbrange [-100:-20]"<<std::endl;
-    outFile<<"set xrange ["<<m_xMin<<":"<<m_xMax<<"]"<<std::endl;
-    outFile<<"set yrange ["<<m_yMin<<":"<<m_yMax<<"]"<<std::endl;
-    outFile<<"plot \"nr-rem-"<<m_simTag<<".out\" using ($1):($2):($6) with image"<<std::endl;
+  outFile << "set xlabel \"x-coordinate (m)\"" << std::endl;
+  outFile << "set ylabel \"y-coordinate (m)\"" << std::endl;
+  outFile << "set cblabel \"IPSD (dBm)\"" << std::endl;
+  outFile << "unset key" << std::endl;
+  outFile << "set terminal png" << std::endl;
+  outFile << "set output \"nr-rem-" << m_simTag << "-ipsd.png\"" << std::endl;
+  outFile << "set size ratio -1" << std::endl;
+  outFile << "set cbrange [-100:-20]" << std::endl;
+  outFile << "set xrange [" << m_xMin << ":" << m_xMax << "]" << std::endl;
+  outFile << "set yrange [" << m_yMin << ":" << m_yMax << "]" << std::endl;
+  outFile << "plot \"nr-rem-" << m_simTag << ".out\" using ($1):($2):($6) with image" << std::endl;
 
   outFile.close ();
 }
