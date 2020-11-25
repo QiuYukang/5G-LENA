@@ -1463,7 +1463,8 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
 
   m_nrSlUePhySapUser->ReceiveSensingData (m_currentSlot, sciF1a.GetSlResourceReservePeriod (),
                                           rbStart, rbBitMap.size (),
-                                          sciF1a.GetPriority (), rsrpDbm);
+                                          sciF1a.GetPriority (), rsrpDbm,
+                                          sciF1a.GetGapReTx1 (), sciF1a.GetGapReTx2 ());
 
   for (const auto &it:destinations)
     {
@@ -1480,7 +1481,9 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
 }
 
 void
-NrUePhy::SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a, const NrSlMacPduTag& tag, const std::vector<int>& rbBitMap)
+NrUePhy::SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a,
+                               const NrSlMacPduTag& tag,
+                               const std::vector<int>& rbBitMap)
 {
   NS_LOG_FUNCTION (this);
   SlRxGrantInfo infoTb (tag.GetRnti (), tag.GetDstL2Id (),
