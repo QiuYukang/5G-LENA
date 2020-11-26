@@ -1267,6 +1267,15 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
       auto itLastSlot = nrCandSsResoA.end ();
       uint64_t selecWindLen = itLastSlot->sfn.Normalize () - itFirstSlot->sfn.Normalize ();
       uint64_t t2 = GetT1 () + selecWindLen;
+      // calculate all possible transmissions of sensed data
+      //using unordered map, since we need to check all the senesed slots
+      //anyway, thus, the order does not matter.
+      std::unordered_map<uint64_t, std::list<SensingData>> allSensingData;
+      for (const auto &itSensedSlot:m_sensingData)
+        {
+          std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot, t2);
+          allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
+        }
 
       //step 5 point 1: We don't need to implement it since we only sense those
       //slots at which this UE does not transmit. This is due to the half
@@ -1291,10 +1300,10 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
                   slAlloc.sfn.Add (i * pPrimeRsvpTx);
                   listFutureCands.emplace_back (slAlloc);
                 }
-              // calculate all possible transmissions of sensed data
-              for (const auto &itSensedSlot:m_sensingData)
+              // Traverse over all the possible transmissions of each sensed slot
+              for (const auto &itSensedSlot:allSensingData)
                 {
-                  std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot, t2);
+                  std::list<SensingData> listFutureSensTx = itSensedSlot.second;
                   // for all proposed transmissions of current candidate resource
                   for (const auto &itFutureCand:listFutureCands)
                     {
@@ -1319,7 +1328,7 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
                     }
                   if (erased)
                     {
-                      break; // break for (const auto &itSensedSlot:m_sensingData)
+                      break; // break for (const auto &itSensedSlot:allSensingData)
                     }
                 }
               if (!erased)
