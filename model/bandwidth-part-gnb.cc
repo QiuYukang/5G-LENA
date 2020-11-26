@@ -25,7 +25,6 @@
 #include <ns3/nr-gnb-phy.h>
 #include <ns3/pointer.h>
 #include <ns3/nr-gnb-mac.h>
-#include <ns3/lte-ffr-algorithm.h>
 #include <ns3/ff-mac-scheduler.h>
 #include "bandwidth-part-gnb.h"
 

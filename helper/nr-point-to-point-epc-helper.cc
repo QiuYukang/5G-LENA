@@ -56,29 +56,29 @@ NrPointToPointEpcHelper::GetTypeId (void)
 }
 
 void
-NrPointToPointEpcHelper::DoAddX2Interface (const Ptr<EpcX2> &enb1X2, const Ptr<NetDevice> &enb1LteDev,
-                                           const Ipv4Address &enb1X2Address,
-                                           const Ptr<EpcX2> &enb2X2, const Ptr<NetDevice> &enb2LteDev,
-                                           const Ipv4Address &enb2X2Address) const
+NrPointToPointEpcHelper::DoAddX2Interface (const Ptr<EpcX2> &gnb1X2, const Ptr<NetDevice> &gnb1NetDev,
+                                           const Ipv4Address &gnb1X2Address,
+                                           const Ptr<EpcX2> &gnb2X2, const Ptr<NetDevice> &gnb2NetDev,
+                                           const Ipv4Address &gnb2X2Address) const
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<NrGnbNetDevice> enb1LteDevice = enb1LteDev->GetObject<NrGnbNetDevice> ();
-  Ptr<NrGnbNetDevice> enb2LteDevice = enb2LteDev->GetObject<NrGnbNetDevice> ();
-  uint16_t enb1CellId = enb1LteDevice->GetCellId ();
-  uint16_t enb2CellId = enb2LteDevice->GetCellId ();
+  Ptr<NrGnbNetDevice> gnb1NetDevice = gnb1NetDev->GetObject<NrGnbNetDevice> ();
+  Ptr<NrGnbNetDevice> gnb2NetDevice = gnb2NetDev->GetObject<NrGnbNetDevice> ();
+  uint16_t gnb1CellId = gnb1NetDevice->GetCellId ();
+  uint16_t gnb2CellId = gnb2NetDevice->GetCellId ();
 
-  NS_ABORT_IF (enb1LteDevice == nullptr);
-  NS_ABORT_IF (enb2LteDevice == nullptr);
+  NS_ABORT_IF (gnb1NetDevice == nullptr);
+  NS_ABORT_IF (gnb2NetDevice == nullptr);
 
-  NS_LOG_LOGIC ("LteEnbNetDevice #1 = " << enb1LteDev << " - CellId = " << enb1CellId);
-  NS_LOG_LOGIC ("LteEnbNetDevice #2 = " << enb2LteDev << " - CellId = " << enb2CellId);
+  NS_LOG_LOGIC ("NrGnbNetDevice #1 = " << gnb1NetDev << " - CellId = " << gnb1CellId);
+  NS_LOG_LOGIC ("NrGnbNetDevice #2 = " << gnb2NetDev << " - CellId = " << gnb2CellId);
 
-  enb1X2->AddX2Interface (enb1CellId, enb1X2Address, enb2CellId, enb2X2Address);
-  enb2X2->AddX2Interface (enb2CellId, enb2X2Address, enb1CellId, enb1X2Address);
+  gnb1X2->AddX2Interface (gnb1CellId, gnb1X2Address, gnb2CellId, gnb2X2Address);
+  gnb2X2->AddX2Interface (gnb2CellId, gnb2X2Address, gnb1CellId, gnb1X2Address);
 
-  enb1LteDevice->GetRrc ()->AddX2Neighbour (enb2CellId);
-  enb2LteDevice->GetRrc ()->AddX2Neighbour (enb1CellId);
+  gnb1NetDevice->GetRrc ()->AddX2Neighbour (gnb2CellId);
+  gnb2NetDevice->GetRrc ()->AddX2Neighbour (gnb1CellId);
 }
 
 void
@@ -86,10 +86,10 @@ NrPointToPointEpcHelper::DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevic
                                                    const Ptr<EpcTft> &tft,
                                                    const EpsBearer &bearer) const
 {
-  Ptr<NrUeNetDevice> ueLteDevice = ueDevice->GetObject<NrUeNetDevice> ();
-  if (ueLteDevice)
+  Ptr<NrUeNetDevice> ueNetDevice = ueDevice->GetObject<NrUeNetDevice> ();
+  if (ueNetDevice)
     {
-      Simulator::ScheduleNow (&EpcUeNas::ActivateEpsBearer, ueLteDevice->GetNas (), bearer, tft);
+      Simulator::ScheduleNow (&EpcUeNas::ActivateEpsBearer, ueNetDevice->GetNas (), bearer, tft);
     }
   else
     {
