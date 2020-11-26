@@ -86,6 +86,13 @@ static int g_pdcpTraceCallbackCalled = false; //!< Global variable used to check
 static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
 {
   Ptr<Packet> pkt = Create<Packet> (packetSize);
+  //Adding empty IPV4 header after adding the IPV6 support for NR module.
+  //NrNetDevice::Receive need to peek the header to know the IP protocol.
+  //Since, there are no apps install in this test, this packet will be
+  //dropped in Ipv4L3Protocol::Receive method upon not finding the route.
+  Ipv4Header ipHeader;
+  pkt->AddHeader (ipHeader);
+
   // the dedicated bearer that we activate in the simulation 
   // will have bearerId = 2
   EpsBearerTag tag (1, 2);
