@@ -427,6 +427,40 @@ Optionally, unchecked the box **"Delete source branch when merge request is acce
 if it is not desirable. Then, click the button **Submit merge request**. Congratulations,
 you have created your first merge request.
 
+##### How to close a merge automatically upon merging the feature branch into the master?
+
+Git automatically closes a merge request if its index is mentioned in the description
+of a commit in the feature branch to be merged in the master. Now, for an issue
+in the issue tracker, the index is known before creating a merge request
+to fix it; therefore, one could easily mention it in the description
+of a commit. On the other hand, to merge a new feature branch, we need first to
+create a merge request to know its index. So, once we have created a merge
+request following the above steps, it is time to modify the latest commit
+message of our feature branch by using the following command.
+
+```
+git commit --amend
+```
+
+This would open your default Git editor, here we would use the default Vim
+editor and follow the same steps mentioned in [Step 3](#3-commit-message-format)
+to edit the commit. Press **i** to enter in the edit mode, move the cursor till the
+end of your commit subject line and then hit enter key twice. This would separate
+our new line by a blank line. The new message line should look like the following:
+
+```
+see MR !the-index-of-merge-request
+```
+
+Notice, **!** sign. It is very important to use **!** sign to mention a
+merge request. Now, press **Esc** to go out of insert mode, and then type
+**:wq** to save and quit. Since we have changed the commit message we need to
+update our remote feature branch by doing a force push.
+
+```
+git push -f
+```
+
 ##### What if the master branch has progressed after creating the merge request? 
 
 This is a very usual case during an active development project. If this happens,
