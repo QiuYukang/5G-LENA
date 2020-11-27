@@ -115,9 +115,31 @@ protected:
                                        const FTResources &notAssigned,
                                        const FTResources &totalAssigned) const override;
 
+  /**
+   * \brief Update the UE representation after a symbol (UL) has been assigned to it
+   * \param ue UE to which a symbol has been assigned
+   * \param assigned the amount of resources assigned
+   * \param totAssigned the total amount of resources assigned in the slot
+   *
+   * Update UL metrics by calling NrMacSchedulerUeInfoRR::UpdateUlMetric
+   */
+  virtual void AssignedUlResources (const UePtrAndBufferReq &ue,
+                                    const FTResources &assigned,
+                                    const FTResources &totAssigned) const override;
+
+  virtual void NotAssignedUlResources (const UePtrAndBufferReq &ue,
+                                       const FTResources &notAssigned,
+                                       const FTResources &totalAssigned) const override;
+
+
   virtual void
   BeforeDlSched (const UePtrAndBufferReq &ue,
                  const FTResources &assignableInIteration) const override;
+
+  virtual void
+  BeforeUlSched (const UePtrAndBufferReq &ue,
+                 const FTResources &assignableInIteration) const override;
+
 
 
 private:
