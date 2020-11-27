@@ -70,13 +70,13 @@ public:
   Ptr<NrMacScheduler> GetScheduler ();
 
   /**
-   * Set the LteGnbPhy
-   * \param s a pointer to the LteGnbPhy
+   * Set the NrGnbPhy
+   * \param s a pointer to the NrGnbPhy
    */
   void SetPhy (Ptr<NrGnbPhy> s);
   /**
-   * Set the LteGnbMac
-   * \param s a pointer to the LteGnbMac
+   * Set the NrGnbMac
+   * \param s a pointer to the NrGnbMac
    */
   void SetMac (Ptr<NrGnbMac> s);
 

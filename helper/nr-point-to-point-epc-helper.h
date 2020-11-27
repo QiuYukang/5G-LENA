@@ -135,10 +135,10 @@ public:
   static TypeId GetTypeId (void);
 
 protected:
-  virtual void DoAddX2Interface (const Ptr<EpcX2> &enb1X2, const Ptr<NetDevice> &enb1LteDev,
-                                 const Ipv4Address &enb1X2Address,
-                                 const Ptr<EpcX2> &enb2X2, const Ptr<NetDevice> &enb2LteDev,
-                                 const Ipv4Address &enb2X2Address) const override;
+  virtual void DoAddX2Interface (const Ptr<EpcX2> &gnb1X2, const Ptr<NetDevice> &gnb1NetDev,
+                                 const Ipv4Address &gnb1X2Address,
+                                 const Ptr<EpcX2> &gnb2X2, const Ptr<NetDevice> &gnb2NetDev,
+                                 const Ipv4Address &gnb2X2Address) const override;
   virtual void DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevice,
                                          const Ptr<EpcTft> &tft,
                                          const EpsBearer &bearer) const override;

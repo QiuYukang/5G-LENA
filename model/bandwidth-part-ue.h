@@ -66,14 +66,14 @@ public:
   Ptr<NrUeMac> GetMac (void) const;
 
   /**
-   * Set LteUePhy
-   * \param s a pointer to the LteUePhy
+   * Set NrUePhy
+   * \param s a pointer to the NrUePhy
    */
   void SetPhy (Ptr<NrUePhy> s);
 
   /**
-   * Set the LteGnbMac
-   * \param s a pointer to the LteGnbMac
+   * Set the NrGnbMac
+   * \param s a pointer to the NrGnbMac
    */
   void SetMac (Ptr<NrUeMac> s);
 
