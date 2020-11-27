@@ -119,8 +119,36 @@ protected:
   virtual void NotAssignedDlResources (const UePtrAndBufferReq &ue,
                                        const FTResources &notAssigned,
                                        const FTResources &totAssigned) const override;
+
+  /**
+   * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
+   * \param ue UE to update
+   * \param assigned the amount of resources assigned
+   * \param totAssigned the total amount of resources assigned in the slot
+   */
+  virtual void AssignedUlResources (const UePtrAndBufferReq &ue,
+                                    const FTResources &assigned,
+                                    const FTResources &totAssigned) const override;
+
+  /**
+   * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
+   * \param ue UE to update
+   * \param notAssigned the amount of resources assigned
+   * \param totAssigned the total amount of resources assigned in the slot
+   *
+   * Even if the UE did not get any resource assigned, change its current throughput
+   * over the total number of symbols assigned.
+   */
+  virtual void NotAssignedUlResources (const UePtrAndBufferReq &ue,
+                                       const FTResources &notAssigned,
+                                       const FTResources &totAssigned) const override;
+
   virtual void
   BeforeDlSched (const UePtrAndBufferReq &ue,
+                 const FTResources &assignableInIteration) const override;
+
+  virtual void
+  BeforeUlSched (const UePtrAndBufferReq &ue,
                  const FTResources &assignableInIteration) const override;
 
 private:
