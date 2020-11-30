@@ -1,3 +1,5 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+
 #include <ns3/command-line.h>
 #include <ns3/show-progress.h>
 
@@ -97,6 +99,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("freqScenario",
                 "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
                 params.freqScenario);
+  cmd.AddValue ("downtiltAngle",
+                "Base station antenna down tilt angle (deg)",
+                params.downtiltAngle);
   cmd.AddValue ("xMin",
                 "The min x coordinate of the rem map",
                 params.xMinRem);

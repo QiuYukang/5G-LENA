@@ -1,3 +1,5 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+
 #include <ns3/command-line.h>
 #include "lena-lte-comparison.h"
 
@@ -50,7 +52,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 params.outputDir);
-  cmd.AddValue("errorModelType",
+  cmd.AddValue ("errorModelType",
                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                params.errorModel);
   cmd.AddValue ("calibration",
@@ -68,6 +70,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("freqScenario",
                 "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
                 params.freqScenario);
+  cmd.AddValue ("downtiltAngle",
+                "Base station antenna down tilt angle (deg)",
+                params.downtiltAngle);
 
   // Parse the command line
   cmd.Parse (argc, argv);
