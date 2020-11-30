@@ -103,7 +103,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
                                            PowerOutputStats *gnbRxPowerStats,
                                            SlotOutputStats *slotStats, RbOutputStats *rbStats,
                                            const std::string &scheduler,
-                                           uint32_t bandwidthMHz, uint32_t freqScenario)
+                                           uint32_t bandwidthMHz, uint32_t freqScenario,
+                                           double downtiltAngle)
 {
   /*
    * Create the radio network related parameters
@@ -457,6 +458,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
 
   nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
   nrHelper->SetGnbAntennaAttribute ("ElementGain", DoubleValue (0));
+  nrHelper->SetGnbAntennaAttribute ("DowntiltAngle",
+                                    DoubleValue (downtiltAngle * M_PI / 180.0));
 
   // UE transmit power
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));

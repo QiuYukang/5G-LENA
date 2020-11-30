@@ -57,7 +57,8 @@ public:
                                    PowerOutputStats *powerStats,
                                    const std::string &scheduler,
                                    uint32_t bandwidthMHz,
-                                   uint32_t freqScenario);
+                                   uint32_t freqScenario,
+                                   double downtiltAngle);
 
   static void
   ReportSinrLena (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId);

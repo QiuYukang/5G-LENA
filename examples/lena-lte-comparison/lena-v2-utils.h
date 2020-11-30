@@ -65,7 +65,8 @@ public:
                                        SlotOutputStats *slotStats,
                                        RbOutputStats *rbStats,
                                        const std::string &scheduler,
-                                       uint32_t bandwidthMHz, uint32_t freqScenario);
+                                       uint32_t bandwidthMHz, uint32_t freqScenario,
+                                       double downtiltAngle);
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
                 double power, double avgSinr, uint16_t bwpId);

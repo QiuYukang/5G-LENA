@@ -42,8 +42,10 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
                                            SinrOutputStats *sinrStats,
                                            PowerOutputStats *powerStats,
                                            const std::string &scheduler,
-                                           uint32_t bandwidthMHz, uint32_t freqScenario)
+                                           uint32_t bandwidthMHz, uint32_t freqScenario,
+                                           double downtiltAngle)
 {
+  NS_UNUSED (downtiltAngle);
 
   /*
    *  An example of how the spectrum is being used.
