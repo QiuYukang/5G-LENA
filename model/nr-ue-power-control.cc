@@ -63,9 +63,46 @@ TypeId
 NrUePowerControl::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NrUePowerControl")
-    .SetParent<LteUePowerControl> ()
-    .SetGroupName("NrPhy")
+    .SetParent<Object> ()
+    .SetGroupName ("NrPhy")
     .AddConstructor<NrUePowerControl> ()
+    .AddAttribute ("ClosedLoop",
+                   "If true Closed Loop mode will be active, otherwise Open Loop",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrUePowerControl::SetClosedLoop),
+                   MakeBooleanChecker ())
+    .AddAttribute ("AccumulationEnabled",
+                   "If true TPC accumulation mode will be active, otherwise absolute mode will be active",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrUePowerControl::SetAccumulationEnabled),
+                   MakeBooleanChecker ())
+    .AddAttribute ("Alpha",
+                   "Value of Alpha parameter",
+                   DoubleValue (1.0),
+                   MakeDoubleAccessor (&NrUePowerControl::SetAlpha),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("Pcmax",
+                   "Max Transmission power in dBm, Default value 23 dBm"
+                   "TS36.101 section 6.2.3",
+                   DoubleValue (23.0),
+                   MakeDoubleAccessor (&NrUePowerControl::SetPcmax),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("Pcmin",
+                   "Min Transmission power in dBm, Default value -40 dBm"
+                   "TS36.101 section 6.2.3",
+                   DoubleValue (-40),
+                   MakeDoubleAccessor (&NrUePowerControl::SetPcmin),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("PoNominalPusch",
+                   "P_O_NOMINAL_PUSCH   INT (-126 ... 24), Default value -80",
+                   IntegerValue (-80),
+                   MakeIntegerAccessor (&NrUePowerControl::SetPoNominalPusch),
+                   MakeIntegerChecker<int16_t> ())
+    .AddAttribute ("PoUePusch",
+                   "P_O_UE_PUSCH   INT(-8...7), Default value 0",
+                   IntegerValue (0),
+                   MakeIntegerAccessor (&NrUePowerControl::SetPoUePusch),
+                   MakeIntegerChecker<int16_t> ())
     .AddAttribute ("PoNominalPucch",
                    "P_O_NOMINAL_PUCCH   INT (-126 ... 24), Default value -80",
                    IntegerValue (-80),
@@ -75,6 +112,11 @@ NrUePowerControl::GetTypeId (void)
                    "P_O_UE_PUCCH   INT(-8...7), Default value 0",
                    IntegerValue (0),
                    MakeIntegerAccessor (&NrUePowerControl::SetPoUePucch),
+                   MakeIntegerChecker<int16_t> ())
+    .AddAttribute ("PsrsOffset",
+                   "P_SRS_OFFSET   INT(0...15), Default value 7",
+                   IntegerValue (7),
+                   MakeIntegerAccessor (&NrUePowerControl::m_PsrsOffset),
                    MakeIntegerChecker<int16_t> ())
     .AddAttribute ("TSpec",
                    "Technical specification TS 36.213 or TS 38.213,"
@@ -106,64 +148,152 @@ NrUePowerControl::GetTypeId (void)
                    UintegerValue (4),
                    MakeUintegerAccessor (&NrUePowerControl::SetK0Pucch),
                    MakeUintegerChecker<uint16_t> ())
-     .AddAttribute ("BL_CE",
-                    "When set to true means that this power control is applied to "
-                    "bandwidth reduced, low complexity or coverage enhanced (BL/CE) device."
-                    "By default this attribute is set to false. Default BL_CE "
-                    "mode is CEModeB. This option can be used only in conjuction with "
-                    "attribute TSpec being set to TS 36.213.",
+    .AddAttribute ("BL_CE",
+                   "When set to true means that this power control is applied to "
+                   "bandwidth reduced, low complexity or coverage enhanced (BL/CE) device."
+                   "By default this attribute is set to false. Default BL_CE "
+                   "mode is CEModeB. This option can be used only in conjuction with "
+                   "attribute TSpec being set to TS 36.213.",
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrUePowerControl::SetBlCe),
-                    MakeBooleanChecker ());
-  return tid;
+                    MakeBooleanChecker ())
+    .AddTraceSource ("ReportPuschTxPower",
+                     "Report PUSCH TxPower in dBm",
+                     MakeTraceSourceAccessor (&NrUePowerControl::m_reportPuschTxPower),
+                     "ns3::NrUePowerControl::TxPowerTracedCallback")
+    .AddTraceSource ("ReportPucchTxPower",
+                     "Report PUCCH TxPower in dBm",
+                     MakeTraceSourceAccessor (&NrUePowerControl::m_reportPucchTxPower),
+                     "ns3::NrUePowerControl::TxPowerTracedCallback")
+    .AddTraceSource ("ReportSrsTxPower",
+                     "Report SRS TxPower in dBm",
+                     MakeTraceSourceAccessor (&NrUePowerControl::m_reportSrsTxPower),
+                     "ns3::NrUePowerControl::TxPowerTracedCallback");
+     return tid;
+}
+
+
+void
+NrUePowerControl::SetClosedLoop (bool value)
+{
+  NS_LOG_FUNCTION (this);
+  m_closedLoop = value;
 }
 
 void
-NrUePowerControl::SetKPusch (uint16_t kPusch)
+NrUePowerControl::SetAccumulationEnabled (bool value)
 {
-  m_k_PUSCH = kPusch;
+  NS_LOG_FUNCTION (this);
+  m_accumulationEnabled = value;
 }
 
 void
-NrUePowerControl::SetK0Pucch (uint16_t kPucch)
+NrUePowerControl::SetAlpha (double value)
 {
-  m_k_PUSCH = kPucch;
+  NS_LOG_FUNCTION (this);
+  uint32_t temp = value * 10;
+  switch (temp)
+    {
+    case 0:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      break;
+    default:
+      NS_FATAL_ERROR ("Unexpected Alpha value");
+    }
+
+  if (m_alpha.empty ())
+    {
+      m_alpha.push_back (value);
+      m_alpha.push_back (value);
+      m_alpha.push_back (0);
+    }
+  else
+    {
+      m_alpha[0] = value;
+      m_alpha[1] = value;
+      m_alpha[2] = 1;
+    }
+
 }
 
 void
-NrUePowerControl::SetTechnicalSpec (NrUePowerControl::TechnicalSpec ts)
+NrUePowerControl::SetRsrp (double value)
 {
-  m_technicalSpec = ts;
+  NS_LOG_FUNCTION (this);
+
+  if (!m_rsrpSet)
+    {
+      m_rsrp = value;
+      m_rsrpSet = true;
+      return;
+    }
+
+  double alphaRsrp = std::pow (0.5, m_pcRsrpFilterCoefficient / 4.0);
+  m_rsrp = (1 - alphaRsrp) * m_rsrp + alphaRsrp * value;
+
+  m_pathLoss = m_referenceSignalPower - m_rsrp;
+}
+
+void
+NrUePowerControl::SetKPusch (uint16_t value)
+{
+  NS_LOG_FUNCTION (this);
+  m_k_PUSCH = value;
+}
+
+void
+NrUePowerControl::SetK0Pucch (uint16_t value)
+{
+  NS_LOG_FUNCTION (this);
+  m_k_PUCCH = value;
+}
+
+void
+NrUePowerControl::SetTechnicalSpec (NrUePowerControl::TechnicalSpec value)
+{
+  NS_LOG_FUNCTION (this);
+  m_technicalSpec = value;
 }
 
 void
 NrUePowerControl::SetBlCe (bool blCe)
 {
+  NS_LOG_FUNCTION (this);
   m_blCe = blCe;
 }
 
 void
-NrUePowerControl::SetP0Srs (bool p0srs)
+NrUePowerControl::SetP0Srs (bool value)
 {
-  m_P_0_SRS = p0srs;
+  NS_LOG_FUNCTION (this);
+  m_P_0_SRS = value;
 }
 
 void
-NrUePowerControl::SetDeltaTF (bool deltaTf)
+NrUePowerControl::SetDeltaTF (bool value)
 {
-  m_deltaTF = deltaTf;
+  NS_LOG_FUNCTION (this);
+  m_deltaTF = value;
 }
 
 void
-NrUePowerControl::SetDeltaTFControl (bool deltaTfControl)
+NrUePowerControl::SetDeltaTFControl (bool value)
 {
-  m_deltaTF_control = deltaTfControl;
+  NS_LOG_FUNCTION (this);
+  m_deltaTF_control = value;
 }
 
 void
-NrUePowerControl::SetDeltaFPucch (bool deltaFPucch)
+NrUePowerControl::SetDeltaFPucch (bool value)
 {
-  m_delta_F_Pucch = deltaFPucch;
+  NS_LOG_FUNCTION (this);
+  m_delta_F_Pucch = value;
 }
 
 void
@@ -201,6 +331,73 @@ NrUePowerControl::SetPoUePucch (int16_t value)
       m_PoUePucch [1] = value;
       m_PoUePucch [2] = 0;
     }
+}
+
+void
+NrUePowerControl::SetPcmax (double value)
+{
+  NS_LOG_FUNCTION (this);
+  m_Pcmax = value;
+}
+
+void
+NrUePowerControl::SetPcmin (double value)
+{
+  NS_LOG_FUNCTION (this);
+  m_Pcmin = value;
+}
+
+void
+NrUePowerControl::SetPoNominalPusch (int16_t value)
+{
+  NS_LOG_FUNCTION (this);
+
+  if (m_PoNominalPusch.empty ())
+    {
+      m_PoNominalPusch.push_back (value);
+      m_PoNominalPusch.push_back (value);
+      m_PoNominalPusch.push_back (value);
+    }
+  else
+    {
+      m_PoNominalPusch[0] = value;
+      m_PoNominalPusch[1] = value;
+      m_PoNominalPusch[2] = value;
+    }
+
+}
+void
+NrUePowerControl::SetPoUePusch (int16_t value)
+{
+  NS_LOG_FUNCTION (this);
+  if (m_PoUePusch.empty ())
+    {
+      m_PoUePusch.push_back (value);
+      m_PoUePusch.push_back (value);
+      m_PoUePusch.push_back (0);
+    }
+  else
+    {
+      m_PoUePusch[0] = value;
+      m_PoUePusch[1] = value;
+      m_PoUePusch[2] = 0;
+    }
+}
+
+void
+NrUePowerControl::SetTxPower (double value)
+{
+  NS_LOG_FUNCTION (this);
+  m_curPuschTxPower = value;
+  m_curPucchTxPower = value;
+  m_curSrsTxPower = value;
+}
+
+void
+NrUePowerControl::ConfigureReferenceSignalPower (int8_t value)
+{
+  NS_LOG_FUNCTION (this);
+  m_referenceSignalPower = value;
 }
 
 void
@@ -409,17 +606,17 @@ NrUePowerControl::UpdateFc ()
     {
       for (const auto& i: m_deltaPusch)
         {
-          m_fc +=i; // fc already hold value for fc(i-i0) occasion
+          m_fc += i; // fc already hold value for fc(i-i0) occasion
         }
 
-      m_deltaPusch.clear(); // we have used these values, no need to save them any more
+      m_deltaPusch.clear (); // we have used these values, no need to save them any more
     }
   else
     {
       if (m_deltaPusch.size ()>0)
         {
-          m_fc = m_deltaPusch.back();
-          m_deltaPusch.pop_back(); // use the last received absolute TPC command ( 7.1.1 UE behaviour)
+          m_fc = m_deltaPusch.back ();
+          m_deltaPusch.pop_back (); // use the last received absolute TPC command ( 7.1.1 UE behaviour)
           m_deltaPusch.clear ();
         }
     }
@@ -437,14 +634,14 @@ NrUePowerControl::UpdateGc ()
       m_gc +=i; // gc already hold value for fc(i-i0) occasion
     }
 
-  m_deltaPucch.clear(); // we have used these values, no need to save them any more
+  m_deltaPucch.clear (); // we have used these values, no need to save them any more
 }
 
 //TS 38.213 Table 7.1.1-1 and Table 7.2.1-1,  Mapping of TPC Command Field in DCI to accumulated and absolute value
 
 //Implements from from ts_138213 7.1.1
 double
-NrUePowerControl::CalculatePuschTxPowerNr ()
+NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
 
@@ -459,16 +656,20 @@ NrUePowerControl::CalculatePuschTxPowerNr ()
   // update RSRP value for pathloss calculation
   SetRsrp (m_nrUePhy->GetRsrp());
 
-  NS_LOG_INFO ("RBs: " << m_M_Pusch << " m_PoPusch: " << PoPusch
-                      << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
-                      << " deltaTF: " << m_deltaTF << " fc: " << m_fc<<" numerology:"<<m_nrUePhy->GetNumerology());
+  NS_LOG_INFO ("RBs: " << rbNum <<
+               " m_PoPusch: " << PoPusch <<
+               " Alpha: " << m_alpha [j] <<
+               " PathLoss: " << m_pathLoss <<
+               " deltaTF: " << m_deltaTF <<
+               " fc: " << m_fc <<
+               " numerology:" << m_nrUePhy->GetNumerology ());
 
   double puschComponent = 0;
 
-  if (m_M_Pusch > 0)
+  if (rbNum > 0)
     {
-      puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology()) * m_M_Pusch);
-      m_M_Pusch = 0;
+      puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
+      rbNum = 0;
     }
 
   /**
@@ -494,14 +695,14 @@ NrUePowerControl::CalculatePuschTxPowerNr ()
    */
   if (m_technicalSpec == TS_38_213)
     {
-      UpdateFc();
+      UpdateFc ();
     }
 
   double txPower = PoPusch + puschComponent + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
 
   NS_LOG_INFO ("Calculated PUSCH power:" << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
-  txPower = std::min (std::max(m_Pcmin, txPower), m_Pcmax);
+  txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
 
   NS_LOG_INFO ("PUSCH TxPower after min/max constraints: " << txPower);
 
@@ -510,7 +711,7 @@ NrUePowerControl::CalculatePuschTxPowerNr ()
 
 //Implements from from ts_138213 7.2.1
 double
-NrUePowerControl::CalculatePucchTxPowerNr ()
+NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
 
@@ -521,20 +722,14 @@ NrUePowerControl::CalculatePucchTxPowerNr ()
     }
 
   int32_t j = 1;
-  int32_t PoPucch = m_PoNominalPucch[j] + m_PoUePucch[j];
+  int32_t PoPucch = m_PoNominalPucch [j] + m_PoUePucch [j];
   // update RSRP value for pathloss calculation
   SetRsrp (m_nrUePhy->GetRsrp());
-
-  NS_LOG_INFO ("RBs: " << m_M_Pucch << " m_PoPucch: " << PoPucch
-                       << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
-                       << " deltaTF: " << m_deltaTF << " gc: " << m_gc<<" numerology:"<<m_nrUePhy->GetNumerology());
-
   double pucchComponent = 0;
-
-  if (m_M_Pucch > 0)
+  if (rbNum > 0)
     {
-      pucchComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology()) * m_M_Pucch);
-      m_M_Pucch = 0;
+      pucchComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology()) * rbNum);
+      rbNum = 0;
     }
 
   /**
@@ -566,6 +761,14 @@ NrUePowerControl::CalculatePucchTxPowerNr ()
       UpdateGc();
     }
 
+  NS_LOG_INFO ("RBs: " << rbNum <<
+               " m_PoPucch: " << PoPucch <<
+               " Alpha: " << m_alpha[j] <<
+               " PathLoss: " << m_pathLoss <<
+               " deltaTF: " << m_deltaTF_control <<
+               " gc: " << m_gc <<
+               " numerology: " << m_nrUePhy->GetNumerology ());
+
   double txPower = PoPucch + pucchComponent + m_alpha[j] * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
 
   NS_LOG_INFO ("Calculated PUCCH power: " << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
@@ -578,19 +781,21 @@ NrUePowerControl::CalculatePucchTxPowerNr ()
 }
 
 double
-NrUePowerControl::CalculateSrsTxPowerNr ()
+NrUePowerControl::CalculateSrsTxPowerNr (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
   int32_t j = 1;
   int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
 
   // update RSRP value for pathloss calculation
-  SetRsrp (m_nrUePhy->GetRsrp());
+  SetRsrp (m_nrUePhy->GetRsrp ());
 
-  NS_LOG_INFO ("RBs: " << m_srsBandwidth << " m_PoPusch: " << PoPusch
-                      << " Alpha: " << m_alpha[j] << " PathLoss: " << m_pathLoss
-                      << " deltaTF: " << m_deltaTF << " fc: " << m_fc);
-
+  NS_LOG_INFO ("RBs: " << rbNum <<
+               " m_PoPusch: " << PoPusch <<
+               " Alpha: " << m_alpha[j] <<
+               " PathLoss: " << m_pathLoss <<
+               " deltaTF: " << m_deltaTF <<
+               " fc: " << m_fc);
 
   /*
    * According to TS 36.213, 5.1.3.1, alpha can be the same alpha as for PUSCH,
@@ -604,7 +809,7 @@ NrUePowerControl::CalculateSrsTxPowerNr ()
   m_hc = m_fc;
 
   double txPower = 0;
-  double component = 10 * log10 (std::pow (2, m_nrUePhy->GetNumerology()) * m_srsBandwidth);
+  double component = 10 * log10 (std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
 
   if (m_technicalSpec == TS_36_213)
     {
@@ -630,20 +835,17 @@ double
 NrUePowerControl::GetPuschTxPower (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
-  m_M_Pusch = rbNum;
-  m_curPuschTxPower = CalculatePuschTxPowerNr ();
-  m_reportPuschTxPower (m_cellId, m_rnti, m_curPuschTxPower);
+  m_curPuschTxPower = CalculatePuschTxPowerNr (rbNum);
+  m_reportPuschTxPower (m_nrUePhy->GetCellId (), m_nrUePhy->GetRnti (), m_curPuschTxPower);
   return m_curPuschTxPower;
 }
-
 
 double
 NrUePowerControl::GetPucchTxPower (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
-  m_M_Pucch = rbNum;
-  m_curPucchTxPower = CalculatePucchTxPowerNr ();
-  m_reportPucchTxPower (m_cellId, m_rnti, m_curPucchTxPower);
+  m_curPucchTxPower = CalculatePucchTxPowerNr (rbNum);
+  m_reportPucchTxPower (m_nrUePhy->GetCellId (), m_nrUePhy->GetRnti (), m_curPucchTxPower);
   return m_curPucchTxPower;
 }
 
@@ -651,10 +853,10 @@ double
 NrUePowerControl::GetSrsTxPower (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
-  m_srsBandwidth = rbNum;
-  m_curSrsTxPower = CalculateSrsTxPowerNr ();
-  m_reportSrsTxPower (m_cellId, m_rnti, m_curSrsTxPower);
+  m_curSrsTxPower = CalculateSrsTxPowerNr (rbNum);
+  m_reportSrsTxPower (m_nrUePhy->GetCellId (), m_nrUePhy->GetRnti (), m_curSrsTxPower);
   return m_curSrsTxPower;
 }
+
 
 } // namespace ns3

@@ -25,7 +25,6 @@
 #include <ns3/traced-callback.h>
 #include <ns3/object.h>
 #include <vector>
-#include <ns3/lte-ue-power-control.h>
 
 
 namespace ns3 {
@@ -39,10 +38,11 @@ namespace ns3 {
  * NrUePowerControl entity is responsible for calculating total
  * power that will be used to transmit PUSCH, PUCCH and SRS.
  *
- * NrUePowerControl extends and redefines some of the functionalities
- * defined in LteUePowerControl, to make it more flexible and
- * compatible with NR standard (e.g. support different numerologies).
- * It also extends LteUePowerControls to support power control for PUCCH.
+ * NrUePowerControl functionality is inspired by LteUePowerControl,
+ * but it does not inherits it because almost all of its functions needed to be
+ * overidden and extended in order to support different specifications, i.e., to be
+ * compatible with both LTE and NR standard (e.g. support different numerologies).
+ * And also to support power control for PUCCH.
  *
  * NrUePowerControl computes the TX power based on pre-configured
  * parameters and current measurements, such as path loss.
@@ -61,7 +61,7 @@ namespace ns3 {
 
 class NrUePhy;
 
-class NrUePowerControl : public LteUePowerControl
+class NrUePowerControl : public Object
 {
 public:
 
@@ -98,54 +98,76 @@ public:
   virtual void DoInitialize (void);
   virtual void DoDispose (void);
 
+
+  // set functions
+
   /*
    * \brief Sets technical specification according to which will
    * be calculated power
-   * \param ts technical specification to be used
+   * \param value technical specification to be used
    */
-  void SetTechnicalSpec (NrUePowerControl::TechnicalSpec ts);
-
+  void SetTechnicalSpec (NrUePowerControl::TechnicalSpec value);
+  /**
+   * \brief Sets whether Closed loop model will be active.
+   * \param value If true Closed loop mode will be used, otherwise Open Loop.
+   */
+  void SetClosedLoop (bool value);
+  /**
+   * \brief Sets whether the accumulation mode will be used or not.
+   * \param value If true TPC accumulation mode will be active,
+   * otherwise absolute mode will be active
+   */
+  void SetAccumulationEnabled (bool value);
+  /**
+   * \brief Sets alpha parameter for uplink power control calculation.
+   * \param value the value of Alpha parameter
+   */
+  void SetAlpha (double value);
+  /**
+   * \brief Set PC maximum function
+   * \param value the PC maximum value
+   */
+  void SetPcmax (double value);
+  /**
+   * \brief Set PC minimum function
+   * \param value the PC minimum value
+   */
+  void SetPcmin (double pcmin);
   /**
    * \brief Sets KPusch
-   * \param kPusch KPUSCH value to be used in PUSCH transmit power
+   * \param value KPUSCH value to be used in PUSCH transmit power
    */
-  void SetKPusch (uint16_t kPusch);
-
+  void SetKPusch (uint16_t value);
   /**
    * \brief Sets KPucch
-   * \param kPusch KPUCCH value to be used in PUSCH transmit power
+   * \param value KPUCCH value to be used in PUSCH transmit power
    */
-  void SetK0Pucch (uint16_t kPusch);
-
+  void SetK0Pucch (uint16_t value);
   /*
    * \brief Sets weather the device for which is configure this
    *  uplink power control algorithm is for device that is
    *  bandwidth reduced low complexity device or coverage enhanced (BL/CE)
    *  device
-   * \param blCe an indicator telling whether device is BL/CE or not
+   * \param value an indicator telling whether device is BL/CE or not
    */
-  void SetBlCe (bool blCe);
-
+  void SetBlCe (bool value);
   /**
    * \brief Sets P0 SRS parameter for calculation of SRS power control
-   * \param p0srs value to be set
+   * \param value P0 SRS value to be set
    */
-  void SetP0Srs (bool p0srs);
-
+  void SetP0Srs (bool value);
   /**
-   * \brief Sets PUSCH transmission power adjustment component for
+   * \brief Sets Delta TF power adjustment component for
    * PUSCH power control calculation
-   * \param deltaTf power adjustment value
+   * \param value Delta TF power adjustment value
    */
-  void SetDeltaTF (bool deltaTf);
-
+  void SetDeltaTF (bool value);
   /**
-   * \brief Sets PUCCH transmission power adjustment component for
+   * \brief Sets Delta TF transmission power adjustment component for
    * PUCCH power control calculation
-   * \param deltaTfControl power adjustment value
+   * \param value power adjustment value
    */
-  void SetDeltaTFControl (bool deltaTfControl);
-
+  void SetDeltaTFControl (bool value);
   /**
    * \brief Sets delta_f_pucch value needed for calculation of
    * PUCCH power control. It is provided by higher layers
@@ -154,64 +176,97 @@ public:
    * deltaF-PUCCH-f2 for PUCCH format 2,
    * deltaF-PUCCH-f3 for PUCCH format 3, and
    * deltaF-PUCCH-f4 for PUCCH format 4.
-   * \param deltaFPucch value to be set
+   * \param value delta_F_Pucch value to be set
    */
-  void SetDeltaFPucch (bool deltaFPucch);
-
+  void SetDeltaFPucch (bool value);
   /*
    * \brief Set PO nominal PUCCH value
    * \param value the value to set
    */
   void SetPoNominalPucch (int16_t value);
-
   /*
   * \brief Set PO PUCCH value
   * \param value the value to set
   */
   void SetPoUePucch (int16_t value);
+  /**
+   * \brief Set Po nominal Pusch
+   * \param value the Po nominal Pusch
+   */
+  void SetPoNominalPusch (int16_t value);
+  /**
+   * \brief Set Po Ue Pusch
+   * \param value the Po Ue Pusch
+   */
+  void SetPoUePusch (int16_t value);
+  /**
+   * \brief Set transmit power function
+   * \param value the transmit power value
+   */
+  void SetTxPower (double value);
+  /**
+   * \brief Configure reference signal power (dBm) function
+   * \param value the reference signal power
+   */
+  void ConfigureReferenceSignalPower (int8_t value);
+  /**
+   * \brief Set RSRP function
+   * \param value the RSRP (dBm) value to set
+   */
+  void SetRsrp (double value);
+  /**
+   * \brief Set RSRP function
+   * \param rsrpFilterCoefficient value. Determines the strength of
+   * smoothing effect induced by layer 3 filtering of RSRP
+   * used for uplink power control in all attached UE.
+   * If equals to 0, no layer 3 filtering is applicable.
+   */
+  void SetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient);
 
+  // Get functions
   /**
    * \brief Implements calculation of PUSCH
    * power control according to TS 36.213 and TS 38.213.
-   * Overloads instead overrides LteUePowerControl function
-   * in order to avoid pass by copy of RB vector.
    * \param rbNum number of RBs used for PUSCH
    */
   double GetPuschTxPower (std::size_t rbNum);
-
   /**
    * \brief Implements calculation of PUCCH
    * power control according to TS 36.213 and TS 38.213.
-   * Overloads instead overrides LteUePowerControl function
-   * in order to avoid pass by copy of RB vector.
    * \param rbNum number of RBs used for PUCCH
    */
   double GetPucchTxPower (std::size_t rbNum);
-
   /**
    * \brief Implements calculation of SRS
    * power control according to TS 36.213 and TS 38.213.
-   * Overloads instead overrides LteUePowerControl function
-   * in order to avoid pass by copy of RB vector
    * \param rbNum number of RBs used for SRS
    */
   double GetSrsTxPower (std::size_t rbNum);
-
   /**
    * \brief Function that is called by NrUePhy
    * to notify NrUePowerControl algorithm
    * that TPC command was received by gNB
    * \param tpc the TPC command
    */
-  virtual void ReportTpcPusch (uint8_t tpc);
+  void ReportTpcPusch (uint8_t tpc);
+  /**
+   * \brief Function that is called by NrUePhy
+   * to notify NrUePowerControl algorithm
+   * that TPC command for PUCCH was received by gNB
+   * \param tpc the TPC command
+   */
+  void ReportTpcPucch (uint8_t tpc);
 
   /**
-     * \brief Function that is called by NrUePhy
-     * to notify NrUePowerControl algorithm
-     * that TPC command for PUCCH was received by gNB
-     * \param tpc the TPC command
-     */
-  virtual void ReportTpcPucch (uint8_t tpc);
+   * TracedCallback signature for uplink transmit power.
+   *
+   * \param [in] cellId Cell identifier.
+   * \param [in] rnti The C-RNTI identifying the UE.
+   * \param [in] power The current TX power.
+   */
+  typedef void (* TxPowerTracedCallback)
+    (uint16_t cellId, uint16_t rnti, double power);
+
 
 private:
 
@@ -252,38 +307,89 @@ private:
    /**
     * \brief Calculates PUSCH transmit power
     * according TS 38.213 7.1.1 formulas
+    * \param rbNum number of RBs
     */
-  double CalculatePuschTxPowerNr ();
+  double CalculatePuschTxPowerNr (std::size_t rbNum);
 
    /**
     * \brief Calculates PUCCH transmit power
     * according TS 38.213 7.2.1 formulas
+    * \param rbNum number of RBs
     */
-  double CalculatePucchTxPowerNr ();
+  double CalculatePucchTxPowerNr (std::size_t rbNum);
 
    /**
     * \brief Calculates SRS transmit power
+    * \param rbNum number of RBs
     */
-  double CalculateSrsTxPowerNr ();
+  double CalculateSrsTxPowerNr (std::size_t rbNum);
+
+  // general attributes
+  bool m_closedLoop;                            //!< is closed loop
+  bool m_accumulationEnabled;                   //!< accumulation enabled
+  TechnicalSpec m_technicalSpec;                //!< Technical specification to be used for transmit power calculations
+  double m_Pcmax;                               //!< PC maximum
+  double m_Pcmin;                               //!< PC minimum
+  double m_referenceSignalPower;                //!< reference signal power in dBm
+  std::vector<double> m_alpha;                  //!< alpha values
+  bool m_blCe {false};                          /*!< Indicator whether the power control is applied to bandwidth reduced low complexity or coverage enhanced devices.
+                                                       When set to true means that this power control is applied to bandwidth reduced,
+                                                       low complexity or coverage enhanced device. By default this attribute is set to false.
+                                                       Default BL/CE mode is CEModeB.*/
+  double m_P_0_SRS{0.0};                        //!< P_0_SRS parameter for calculation of SRS power control
 
 
-  TechnicalSpec m_technicalSpec;          //!< Technical specification to be used for transmit power calculations
-  Ptr<NrUePhy> m_nrUePhy;                 //!< NrUePhy instance owner
-  std::vector<int16_t> m_PoNominalPucch;  //!< PO nominal PUCCH
-  std::vector<int16_t> m_PoUePucch;       //!< PO US PUCCH
-  uint16_t m_M_Pucch {0};                 //!< size of RB list
-  double m_delta_F_Pucch {0.0};           //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
-  double m_deltaTF_control {0.0};         //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell
-  std::vector <uint8_t> m_deltaPucch;     //!< vector that saves TPC command accumulated values for PUCCH transmit power calculation
-  double m_gc {0.0};                      //!< Is the current PUCCH power control adjustment state. This variable is used for calculation of PUCCH transmit power.
-  double m_hc {0.0};                      //!< Is the current SRS power control adjustment state. This variable is used for calculation of SRS transmit power.
-  uint16_t m_k_PUSCH {0};                 //!< One of the principal parameters for the calculation of the PUSCH pc accumulation state m_fc
-  uint16_t m_k_PUCCH {0};                 //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
-  bool m_blCe {false};                    /*!< When set to true means that this power control is applied to bandwidth reduced,
-                                          low complexity or coverage enhanced device.By default this attribute is set to false.
-                                          Default BL/CE mode is CEModeB.*/
-  double m_P_0_SRS{0.0};                  //!< P_0_SRS parameter for calculation of SRS power control
+  // PUSCH attributes
+  std::vector<int16_t> m_PoNominalPusch;        //!< PO nominal PUSCH
+  std::vector<int16_t> m_PoUePusch;             //!< PO US PUSCH
+  uint16_t m_k_PUSCH {0};                       //!< One of the principal parameters for the calculation of the PUSCH pc accumulation state m_fc
+  double m_deltaTF;                             //!< PUSCH transmission power adjustment component for UL BWP of carrier of primary cell
 
+  // PUCCH attributes
+  std::vector<int16_t> m_PoNominalPucch;        //!< PO nominal PUCCH
+  std::vector<int16_t> m_PoUePucch;             //!< PO US PUCCH
+  uint16_t m_k_PUCCH {0};                       //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
+  double m_delta_F_Pucch {0.0};                 //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
+  double m_deltaTF_control {0.0};               //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell
+
+  // other variables
+  double m_curPuschTxPower;                     //!< current PUSCH transmit power
+  double m_curPucchTxPower;                     //!< current PUCCH transmit power
+  double m_curSrsTxPower;                       //!< current SRS transmit power
+  bool m_rsrpSet;                               //!< is RSRP set?
+  double m_rsrp;                                //!< RSRP value in dBm
+  int16_t m_PsrsOffset;                         //!< PSRS offset
+  double m_pathLoss;                            //!< path loss value in dB
+  std::vector <uint8_t> m_deltaPucch;           //!< vector that saves TPC command accumulated values for PUCCH transmit power calculation
+  std::vector <int8_t> m_deltaPusch;            //!< vector that saves TPC command accumulated values for PUSCH transmit power calculation
+  double m_fc {0.0};                            //!< FC
+  double m_gc {0.0};                            //!< Is the current PUCCH power control adjustment state. This variable is used for calculation of PUCCH transmit power.
+  double m_hc {0.0};                            //!< Is the current SRS power control adjustment state. This variable is used for calculation of SRS transmit power.
+
+  //another attributes needed for function calls
+  Ptr<NrUePhy> m_nrUePhy;                       //!< NrUePhy instance owner
+
+  /**
+  * The `RsrpFilterCoefficient` attribute. Determines the strength of
+  * smoothing effect induced by layer 3 filtering of RSRP in all attached UE.
+  * If equals to 0, no layer 3 filtering is applicable.
+  */
+  uint8_t m_pcRsrpFilterCoefficient;
+  /**
+   * Trace information regarding Uplink TxPower
+   * uint16_t cellId, uint16_t rnti, double txPower
+   */
+  TracedCallback<uint16_t, uint16_t, double> m_reportPuschTxPower;
+  /**
+   * Trace information regarding Uplink TxPower
+   * uint16_t cellId, uint16_t rnti, double txPower
+   */
+  TracedCallback<uint16_t, uint16_t, double> m_reportPucchTxPower;
+  /**
+   * Trace information regarding Uplink TxPower
+   * uint16_t cellId, uint16_t rnti, double txPower
+   */
+  TracedCallback<uint16_t, uint16_t, double> m_reportSrsTxPower;
 };
 
 }
