@@ -61,7 +61,7 @@ public:
     m_lastAvgTputDl = m_avgTputDl;
     m_avgTputDl = 0.0;
     m_currTputDl = 0.0;
-    m_potentialTput = 0.0;
+    m_potentialTputDl = 0.0;
     NrMacSchedulerUeInfo::ResetDlSchedInfo ();
   }
 
@@ -71,7 +71,7 @@ public:
    * Set the last average throughput to the current average throughput,
    * and zeroes the average throughput as well as the current throughput.
    *
-   * It calls also NrMacSchedulerUeInfo::ResetUlSchedInfo.
+   * It also calls NrMacSchedulerUeInfo::ResetUlSchedInfo.
    */
   virtual void ResetUlSchedInfo () override
   {
@@ -105,6 +105,10 @@ public:
    * \param totAssigned the resources assigned
    * \param timeWindow the time window
    * \param amc a pointer to the AMC
+   *
+   * Updates m_currTputDl and m_avgTputDl by keeping in consideration
+   * the assigned resources (in form of TBS) and the time window.
+   * It gets the tbSise by calling NrMacSchedulerUeInfo::UpdateDlMetric.
    */
   void UpdateDlPFMetric (const NrMacSchedulerNs3::FTResources &totAssigned,
                          double timeWindow,
@@ -115,6 +119,10 @@ public:
    * \param totAssigned the resources assigned
    * \param timeWindow the time window
    * \param amc a pointer to the AMC
+   *
+   * Updates m_currTputUl and m_avgTputUl by keeping in consideration
+   * the assigned resources (in form of TBS) and the time window.
+   * It gets the tbSise by calling NrMacSchedulerUeInfo::UpdateUlMetric.
    */
   void UpdateUlPFMetric (const NrMacSchedulerNs3::FTResources &totAssigned,
                          double timeWindow,
@@ -125,7 +133,7 @@ public:
    * \param assignableInIteration resources assignable
    * \param amc a pointer to the AMC
    */
-  void CalculatePotentialTPut (const NrMacSchedulerNs3::FTResources &assignableInIteration,
+  void CalculatePotentialTPutDl (const NrMacSchedulerNs3::FTResources &assignableInIteration,
                                const Ptr<const NrAmc> &amc);
 
   /**
@@ -143,7 +151,7 @@ public:
    * than (i.e. is ordered before) the second.
    * \param lue Left UE
    * \param rue Right UE
-   * \return true if the PF metric of the left UE are higher than the right UE
+   * \return true if the PF metric of the left UE is higher than the right UE
    *
    * The PF metric is calculated as following:
    *
@@ -158,8 +166,8 @@ public:
     auto luePtr = dynamic_cast<NrMacSchedulerUeInfoPF*> (lue.first.get ());
     auto ruePtr = dynamic_cast<NrMacSchedulerUeInfoPF*> (rue.first.get ());
 
-    double lPfMetric = std::pow (luePtr->m_potentialTput, luePtr->m_alpha) / std::max (1E-9, luePtr->m_avgTputDl);
-    double rPfMetric = std::pow (ruePtr->m_potentialTput, ruePtr->m_alpha) / std::max (1E-9, ruePtr->m_avgTputDl);
+    double lPfMetric = std::pow (luePtr->m_potentialTputDl, luePtr->m_alpha) / std::max (1E-9, luePtr->m_avgTputDl);
+    double rPfMetric = std::pow (ruePtr->m_potentialTputDl, ruePtr->m_alpha) / std::max (1E-9, ruePtr->m_avgTputDl);
 
     return (lPfMetric > rPfMetric);
   }
@@ -170,7 +178,7 @@ public:
    * than (i.e. is ordered before) the second.
    * \param lue Left UE
    * \param rue Right UE
-   * \return true if the PF metric of the left UE are higher than the right UE
+   * \return true if the PF metric of the left UE is higher than the right UE
    *
    * The PF metric is calculated as following:
    *
@@ -191,16 +199,16 @@ public:
     return (lPfMetric > rPfMetric);
   }
 
-  double m_currTputDl {0.0};    //!< Current slot throughput
-  double m_avgTputDl  {0.0};    //!< Average throughput during all the slots
-  double m_lastAvgTputDl {0.0}; //!< Last average throughput
-  double m_potentialTput {0.0}; //!< Potential throughput in one assignable resource (can be a symbol or a RBG)
+  double m_currTputDl {0.0};    //!< Current slot throughput in downlink
+  double m_avgTputDl  {0.0};    //!< Average throughput in downlink during all the slots
+  double m_lastAvgTputDl {0.0}; //!< Last average throughput in downlink
+  double m_potentialTputDl {0.0}; //!< Potential throughput in downlink in one assignable resource (can be a symbol or a RBG)
   float  m_alpha {0.0};         //!< PF fairness metric
 
-  double m_currTputUl {0.0};    //!< Current slot throughput
-  double m_avgTputUl  {0.0};    //!< Average throughput during all the slots
-  double m_lastAvgTputUl {0.0}; //!< Last average throughput
-  double m_potentialTputUl {0.0}; //!< Potential throughput in one assignable resource (can be a symbol or a RBG)
+  double m_currTputUl {0.0};    //!< Current slot throughput in uplink
+  double m_avgTputUl  {0.0};    //!< Average throughput in uplink during all the slots
+  double m_lastAvgTputUl {0.0}; //!< Last average throughput in uplink
+  double m_potentialTputUl {0.0}; //!< Potential throughput in uplink in one assignable resource (can be a symbol or a RBG)
 };
 
 

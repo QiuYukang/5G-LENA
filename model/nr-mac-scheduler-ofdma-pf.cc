@@ -154,7 +154,7 @@ NrMacSchedulerOfdmaPF::BeforeDlSched (const UePtrAndBufferReq &ue,
 {
   NS_LOG_FUNCTION (this);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
-  uePtr->CalculatePotentialTPut (assignableInIteration, m_dlAmc);
+  uePtr->CalculatePotentialTPutDl (assignableInIteration, m_dlAmc);
 }
 
 void

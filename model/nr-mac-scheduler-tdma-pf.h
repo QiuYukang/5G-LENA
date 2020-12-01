@@ -102,6 +102,12 @@ protected:
    * \param ue UE to update
    * \param assigned the amount of resources assigned
    * \param totAssigned the total amount of resources assigned in the slot
+   *
+   * The DL metrics (current Throughput and average Throughput) will be updated
+   * by calling the NrMacSchedulerUeInfoPF::UpdateDlPFMetric, which in turn will
+   * call NrMacSchedulerUeInfo::UpdateDlMetric in order to get the tbSize
+   * based on the resources assigned to the user. This will help the sorting
+   * function to sort the UEs for resource allocation.
    */
   virtual void AssignedDlResources (const UePtrAndBufferReq &ue,
                                     const FTResources &assigned,
@@ -109,12 +115,19 @@ protected:
 
   /**
    * \brief Update DL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFDlMetric
-   * \param ue UE to update
-   * \param notAssigned the amount of resources assigned
+   * \param ue UE to update (ue that didn't get any resources)
+   * \param notAssigned the amount of resources not assigned
    * \param totAssigned the total amount of resources assigned in the slot
    *
    * Even if the UE did not get any resource assigned, change its current throughput
    * over the total number of symbols assigned.
+   *
+   * The DL metrics (current Throughput and average Throughput) will be updated
+   * by calling the NrMacSchedulerUeInfoPF::UpdateDlPFMetric, which in turn will
+   * call NrMacSchedulerUeInfo::UpdateDlMetric in order to get the tbSize
+   * based on the resources assigned to the user. Since no resources have been
+   * assigned, the tbSize will be zero. This will help the sorting function to
+   * sort the UEs for resource allocation.
    */
   virtual void NotAssignedDlResources (const UePtrAndBufferReq &ue,
                                        const FTResources &notAssigned,
@@ -125,6 +138,12 @@ protected:
    * \param ue UE to update
    * \param assigned the amount of resources assigned
    * \param totAssigned the total amount of resources assigned in the slot
+   *
+   * The UL metrics (current Throughput and average Throughput) will be updated
+   * by calling the NrMacSchedulerUeInfoPF::UpdateUlPFMetric, which in turn will
+   * call NrMacSchedulerUeInfo::UpdateUlMetric in order to get the tbSize
+   * based on the resources assigned to the user. This will help the sorting
+   * function to sort the UEs for resource allocation.
    */
   virtual void AssignedUlResources (const UePtrAndBufferReq &ue,
                                     const FTResources &assigned,
@@ -132,21 +151,44 @@ protected:
 
   /**
    * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
-   * \param ue UE to update
-   * \param notAssigned the amount of resources assigned
+   * \param ue UE to update (ue that didn't get any resources)
+   * \param notAssigned the amount of resources not assigned
    * \param totAssigned the total amount of resources assigned in the slot
    *
    * Even if the UE did not get any resource assigned, change its current throughput
    * over the total number of symbols assigned.
+   *
+   * The UL metrics (current Throughput and average Throughput) will be updated
+   * by calling the NrMacSchedulerUeInfoPF::UpdateUlPFMetric, which in turn will
+   * call NrMacSchedulerUeInfo::UpdateUlMetric in order to get the tbSize
+   * based on the resources assigned to the user. Since no resources have been
+   * assigned, the tbSize will be zero. This will help the sorting function to
+   * sort the UEs for resource allocation.
    */
   virtual void NotAssignedUlResources (const UePtrAndBufferReq &ue,
                                        const FTResources &notAssigned,
                                        const FTResources &totAssigned) const override;
 
+  /**
+   * \brief Calculate the potential throughtput for the DL based on the available resources
+   * \param ue UE to which a symbol has been assigned
+   * \param assignableInIteration the minimum amount of resources to be assigned
+   *
+   * Calculates the the potential throughput by calling
+   * NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl.
+   */
   virtual void
   BeforeDlSched (const UePtrAndBufferReq &ue,
                  const FTResources &assignableInIteration) const override;
 
+  /**
+   * \brief Calculate the potential throughput for the UL based on the available resources
+   * \param ue UE to which a symbol has been assigned
+   * \param assignableInIteration the minimum amount of resources to be assigned
+   *
+   * Calculates the the potential throughput by calling
+   * NrMacSchedulerUeInfoPF::CalculatePotentialTPutUl.
+   */
   virtual void
   BeforeUlSched (const UePtrAndBufferReq &ue,
                  const FTResources &assignableInIteration) const override;

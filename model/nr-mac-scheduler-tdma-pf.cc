@@ -106,8 +106,8 @@ NrMacSchedulerTdmaPF::GetUeCompareUlFn () const
 
 void
 NrMacSchedulerTdmaPF::AssignedDlResources (const UePtrAndBufferReq &ue,
-                                               const FTResources &assigned,
-                                               const FTResources &totAssigned) const
+                                           const FTResources &assigned,
+                                           const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (assigned);
@@ -117,8 +117,8 @@ NrMacSchedulerTdmaPF::AssignedDlResources (const UePtrAndBufferReq &ue,
 
 void
 NrMacSchedulerTdmaPF::NotAssignedDlResources (const NrMacSchedulerNs3::UePtrAndBufferReq &ue,
-                                                  const NrMacSchedulerNs3::FTResources &notAssigned,
-                                                  const NrMacSchedulerNs3::FTResources &totAssigned) const
+                                              const NrMacSchedulerNs3::FTResources &notAssigned,
+                                              const NrMacSchedulerNs3::FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (notAssigned);
@@ -128,8 +128,8 @@ NrMacSchedulerTdmaPF::NotAssignedDlResources (const NrMacSchedulerNs3::UePtrAndB
 
 void
 NrMacSchedulerTdmaPF::AssignedUlResources (const UePtrAndBufferReq &ue,
-                                               const FTResources &assigned,
-                                               const FTResources &totAssigned) const
+                                           const FTResources &assigned,
+                                           const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (assigned);
@@ -139,8 +139,8 @@ NrMacSchedulerTdmaPF::AssignedUlResources (const UePtrAndBufferReq &ue,
 
 void
 NrMacSchedulerTdmaPF::NotAssignedUlResources (const NrMacSchedulerNs3::UePtrAndBufferReq &ue,
-                                                  const NrMacSchedulerNs3::FTResources &notAssigned,
-                                                  const NrMacSchedulerNs3::FTResources &totAssigned) const
+                                              const NrMacSchedulerNs3::FTResources &notAssigned,
+                                              const NrMacSchedulerNs3::FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (notAssigned);
@@ -150,16 +150,16 @@ NrMacSchedulerTdmaPF::NotAssignedUlResources (const NrMacSchedulerNs3::UePtrAndB
 
 void
 NrMacSchedulerTdmaPF::BeforeDlSched (const UePtrAndBufferReq &ue,
-                                         const FTResources &assignableInIteration) const
+                                     const FTResources &assignableInIteration) const
 {
   NS_LOG_FUNCTION (this);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
-  uePtr->CalculatePotentialTPut (assignableInIteration, m_dlAmc);
+  uePtr->CalculatePotentialTPutDl (assignableInIteration, m_dlAmc);
 }
 
 void
 NrMacSchedulerTdmaPF::BeforeUlSched (const UePtrAndBufferReq &ue,
-                                         const FTResources &assignableInIteration) const
+                                     const FTResources &assignableInIteration) const
 {
   NS_LOG_FUNCTION (this);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
