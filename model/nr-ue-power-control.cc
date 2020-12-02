@@ -226,6 +226,8 @@ NrUePowerControl::SetRsrp (double value)
   m_rsrp = (1 - alphaRsrp) * m_rsrp + alphaRsrp * value;
 
   m_pathLoss = m_referenceSignalPower - m_rsrp;
+
+  NS_LOG_INFO ("Pathloss updated to: " << m_pathLoss << " , rsrp updated to:" << m_rsrp);
 }
 
 void
@@ -593,9 +595,6 @@ NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
     }
   int32_t PoPusch = m_PoNominalPusch + m_PoUePusch;
 
-  // update RSRP value for pathloss calculation
-  SetRsrp (m_nrUePhy->GetRsrp ());
-
   NS_LOG_INFO ("RBs: " << rbNum <<
                " m_PoPusch: " << PoPusch <<
                " Alpha: " << m_alpha <<
@@ -662,8 +661,6 @@ NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
     }
 
   int32_t PoPucch = m_PoNominalPucch + m_PoUePucch;
-  // update RSRP value for pathloss calculation
-  SetRsrp (m_nrUePhy->GetRsrp ());
   double pucchComponent = 0;
   if (rbNum > 0)
     {
@@ -686,7 +683,7 @@ NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
    *
    *  m_deltaTF_control is a PUCCH transmission power adjustment component
    *
-   *  m_gc is equal to 0 if If PO_PUCCH value is provided by higher layers. Currently is
+   *  m_gc is equal to 0 if PO_PUCCH value is provided by higher layers. Currently is
    *  calculated in the same way as m_fc for PUSCH
    */
 
@@ -724,9 +721,6 @@ NrUePowerControl::CalculateSrsTxPowerNr (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
   int32_t PoPusch = m_PoNominalPusch + m_PoUePusch;
-
-  // update RSRP value for pathloss calculation
-  SetRsrp (m_nrUePhy->GetRsrp ());
 
   NS_LOG_INFO ("RBs: " << rbNum <<
                " m_PoPusch: " << PoPusch <<
