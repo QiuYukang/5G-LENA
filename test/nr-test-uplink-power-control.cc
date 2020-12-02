@@ -68,10 +68,10 @@ public:
   /**
    * \brief Constructor
    * \param name the test case name
-   * \param openLoop openLoop - whether open or closed loop mode will be activated
+   * \param closedLoop - whether open or closed loop mode will be activated, if true closed loop will be used, if false open loop
    * \param accumulatedMode - if closed loop is activated then this variable defines whether absolute or accumulation mode is being used
    */
-  NrUplinkPowerControlTestCase (std::string name, bool openLoop, bool accumulatedMode);
+  NrUplinkPowerControlTestCase (std::string name, bool closedLoop, bool accumulatedMode);
   /**
    * \brief Destructor
    */
@@ -125,8 +125,8 @@ NrUplinkPowerControlTestSuite::NrUplinkPowerControlTestSuite ()
   //LogComponentEnable ("NrUplinkPowerControlTestSuite", logLevel);
   NS_LOG_INFO ("Creating NrUplinkPowerControlTestSuite");
   AddTestCase (new NrUplinkPowerControlTestCase ("OpenLoopPowerControlTest", false, false), TestCase::QUICK);
- // AddTestCase (new NrUplinkPowerControlTestCase ("ClosedLoopPowerControlAbsoluteModeTest", true, false), TestCase::QUICK);
-  //AddTestCase (new NrUplinkPowerControlTestCase ("ClosedLoopPowerControlAccumulatedModeTest", true, true), TestCase::QUICK);
+  AddTestCase (new NrUplinkPowerControlTestCase ("ClosedLoopPowerControlAbsoluteModeTest", true, false), TestCase::QUICK);
+  AddTestCase (new NrUplinkPowerControlTestCase ("ClosedLoopPowerControlAccumulatedModeTest", true, true), TestCase::QUICK);
 }
 
 static NrUplinkPowerControlTestSuite lteUplinkPowerControlTestSuite;
@@ -148,11 +148,11 @@ PucchTxPowerReport (NrUplinkPowerControlTestCase *testcase,
   testcase->PucchTxPowerTrace (cellId, rnti, txPower);
 }
 
-NrUplinkPowerControlTestCase::NrUplinkPowerControlTestCase (std::string name, bool openLoop, bool accumulatedMode)
+NrUplinkPowerControlTestCase::NrUplinkPowerControlTestCase (std::string name, bool closedLoop, bool accumulatedMode)
   : TestCase (name)
 {
   NS_LOG_INFO ("Creating NrUplinkPowerControlTestCase");
-  m_closedLoop = openLoop;
+  m_closedLoop = closedLoop;
   m_accumulatedMode = accumulatedMode; // if closed loope configures indicates which TPC mode will be used for the closed loop power control
 }
 
@@ -169,10 +169,10 @@ NrUplinkPowerControlTestCase::MoveUe (uint32_t distance, double expectedPuschTxP
   m_pucchTxPowerTraceFired = false; // reset
   NS_TEST_ASSERT_MSG_EQ (m_puschTxPowerTraceFired, true, "Power trace for PUSCH did not get triggered. Test check did PUSCH not executed as expected. ");
   m_puschTxPowerTraceFired = false; // reset
-  Vector newPosition = m_ueMobility->GetPosition();
+  Vector newPosition = m_ueMobility->GetPosition ();
   newPosition.x = distance;
   m_ueMobility->SetPosition (newPosition);
-  NS_LOG_DEBUG ("Move UE to : "<<m_ueMobility->GetPosition());
+  NS_LOG_DEBUG ("Move UE to : "<<m_ueMobility->GetPosition ());
   m_movingTime = Simulator::Now ();
   m_expectedPuschTxPower = expectedPuschTxPower;
   m_expectedPucchTxPower = expectedPucchTxPower;
@@ -297,8 +297,8 @@ NrUplinkPowerControlTestCase::DoRun (void)
 
   m_ueUpc->TraceConnectWithoutContext ("ReportPuschTxPower",
                                        MakeBoundCallback (&PuschTxPowerReport, this));
- // m_ueUpc->TraceConnectWithoutContext ("ReportPucchTxPower",
-  //                                     MakeBoundCallback (&PucchTxPowerReport, this));
+  m_ueUpc->TraceConnectWithoutContext ("ReportPucchTxPower",
+                                       MakeBoundCallback (&PucchTxPowerReport, this));
 
 
   Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetGnbPhy (gnbDevs.Get (0), 0)->GetSpectrumPhy ();

@@ -155,19 +155,19 @@ public:
    * \brief Sets P0 SRS parameter for calculation of SRS power control
    * \param value P0 SRS value to be set
    */
-  void SetP0Srs (bool value);
+  void SetP0Srs (double value);
   /**
    * \brief Sets Delta TF power adjustment component for
    * PUSCH power control calculation
    * \param value Delta TF power adjustment value
    */
-  void SetDeltaTF (bool value);
+  void SetDeltaTF (double value);
   /**
    * \brief Sets Delta TF transmission power adjustment component for
    * PUCCH power control calculation
    * \param value power adjustment value
    */
-  void SetDeltaTFControl (bool value);
+  void SetDeltaTFControl (double value);
   /**
    * \brief Sets delta_f_pucch value needed for calculation of
    * PUCCH power control. It is provided by higher layers
@@ -178,7 +178,7 @@ public:
    * deltaF-PUCCH-f4 for PUCCH format 4.
    * \param value delta_F_Pucch value to be set
    */
-  void SetDeltaFPucch (bool value);
+  void SetDeltaFPucch (double value);
   /**
    * \brief Set PO nominal PUCCH value
    * \param value the value to set
@@ -208,7 +208,7 @@ public:
    * \brief Configure reference signal power (dBm) function
    * \param value the reference signal power
    */
-  void ConfigureReferenceSignalPower (int8_t value);
+  void ConfigureReferenceSignalPower (double value);
   /**
    * \brief Set RSRP function
    * \param value the RSRP (dBm) value to set
@@ -334,14 +334,14 @@ private:
 
 
   // PUSCH attributes
-  int16_t m_PoNominalPusch;                     //!< PO nominal PUSCH, current code supports only a single parameter set configuration
-  int16_t m_PoUePusch;                          //!< PO US PUSCH, current code supports only a single parameter set configuration
+  int16_t m_PoNominalPusch {0};                 //!< PO nominal PUSCH, current code supports only a single parameter set configuration
+  int16_t m_PoUePusch {0};                      //!< PO US PUSCH, current code supports only a single parameter set configuration
   uint16_t m_k_PUSCH {0};                       //!< One of the principal parameters for the calculation of the PUSCH pc accumulation state m_fc
   double m_deltaTF {0};                         //!< PUSCH transmission power adjustment component for UL BWP of carrier of primary cell
 
   // PUCCH attributes
-  int16_t m_PoNominalPucch;                     //!< PO nominal PUCCH, current code supports only a single parameter set configuration
-  int16_t m_PoUePucch;                          //!< PO US PUCCH, current code supports only a single parameter set configuration
+  int16_t m_PoNominalPucch {0};                 //!< PO nominal PUCCH, current code supports only a single parameter set configuration
+  int16_t m_PoUePucch {0};                      //!< PO US PUCCH, current code supports only a single parameter set configuration
   uint16_t m_k_PUCCH {0};                       //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
   double m_delta_F_Pucch {0.0};                 //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
   double m_deltaTF_control {0.0};               //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell

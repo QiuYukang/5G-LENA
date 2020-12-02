@@ -259,28 +259,28 @@ NrUePowerControl::SetBlCe (bool blCe)
 }
 
 void
-NrUePowerControl::SetP0Srs (bool value)
+NrUePowerControl::SetP0Srs (double value)
 {
   NS_LOG_FUNCTION (this);
   m_P_0_SRS = value;
 }
 
 void
-NrUePowerControl::SetDeltaTF (bool value)
+NrUePowerControl::SetDeltaTF (double value)
 {
   NS_LOG_FUNCTION (this);
   m_deltaTF = value;
 }
 
 void
-NrUePowerControl::SetDeltaTFControl (bool value)
+NrUePowerControl::SetDeltaTFControl (double value)
 {
   NS_LOG_FUNCTION (this);
   m_deltaTF_control = value;
 }
 
 void
-NrUePowerControl::SetDeltaFPucch (bool value)
+NrUePowerControl::SetDeltaFPucch (double value)
 {
   NS_LOG_FUNCTION (this);
   m_delta_F_Pucch = value;
@@ -337,7 +337,7 @@ NrUePowerControl::SetTxPower (double value)
 }
 
 void
-NrUePowerControl::ConfigureReferenceSignalPower (int8_t value)
+NrUePowerControl::ConfigureReferenceSignalPower (double value)
 {
   NS_LOG_FUNCTION (this);
   m_referenceSignalPower = value;
