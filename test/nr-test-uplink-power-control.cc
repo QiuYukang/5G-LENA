@@ -81,8 +81,8 @@ public:
    * Function that moves the UE to a different position
    *
    * \param distance a new distance to be set between UE and gNB
-   * \param expectedPuschTxPower the expected PUSCH transmit power after moving to a new position
-   * \param expectedPucchTxPower the expected PUCCH transmit power after moving to a new position
+   * \param expectedPuschTxPower the expected PUSCH transmit power in dBm after moving to a new position
+   * \param expectedPucchTxPower the expected PUCCH transmit power in dBm after moving to a new position
    */
   void MoveUe (uint32_t distance, double expectedPuschTxPower, double expectedPucchTxPower);
 
@@ -110,14 +110,12 @@ protected:
   double m_expectedPuschTxPower {0.0};  //!< expected PUSCH transmit power in dBm
   double m_expectedPucchTxPower {0.0};  //!< expected PUCCH transmit power in dBm
   bool m_closedLoop {true};             //!< indicates whether open or closed loops is being used
-  bool m_accumulatedMode {true};        //!< if closed loop is configured indicates which TPC mode will be used for the closed loop power control
-  bool m_puschTxPowerTraceFired {true}; //! flag to indicate if the trace, which calls the test function got executed
-  bool m_pucchTxPowerTraceFired {true}; //! Flag to indicate if the trace, which calls the test function got executed
+  bool m_accumulatedMode {true};        //!< if closed loop is configured, this would indicate the type of a TPC mode to be used for the closed loop power control.
+  bool m_puschTxPowerTraceFired {true}; //!< flag to indicate if the trace, which calls the test function got executed
+  bool m_pucchTxPowerTraceFired {true}; //!< Flag to indicate if the trace, which calls the test function got executed
 };
 
-/**
- * TestSuite
- */
+
 NrUplinkPowerControlTestSuite::NrUplinkPowerControlTestSuite ()
   : TestSuite ("nr-test-uplink-power-control", SYSTEM)
 {
@@ -131,9 +129,6 @@ NrUplinkPowerControlTestSuite::NrUplinkPowerControlTestSuite ()
 
 static NrUplinkPowerControlTestSuite lteUplinkPowerControlTestSuite;
 
-/**
- * TestCase Data
- */
 void
 PuschTxPowerReport (NrUplinkPowerControlTestCase *testcase,
                           uint16_t cellId, uint16_t rnti, double txPower)
@@ -153,7 +148,7 @@ NrUplinkPowerControlTestCase::NrUplinkPowerControlTestCase (std::string name, bo
 {
   NS_LOG_INFO ("Creating NrUplinkPowerControlTestCase");
   m_closedLoop = closedLoop;
-  m_accumulatedMode = accumulatedMode; // if closed loope configures indicates which TPC mode will be used for the closed loop power control
+  m_accumulatedMode = accumulatedMode; // if closed loop is configured, this would indicate the type of a TPC mode to be used for the closed loop power control.
 }
 
 NrUplinkPowerControlTestCase::~NrUplinkPowerControlTestCase ()
@@ -165,14 +160,14 @@ NrUplinkPowerControlTestCase::MoveUe (uint32_t distance, double expectedPuschTxP
 {
   NS_LOG_FUNCTION (this);
 
-  //NS_TEST_ASSERT_MSG_EQ (m_pucchTxPowerTraceFired, true, "Power trace for PUCCH did not get triggered. Test check for PUCCH did not executed as expected. ");
+  NS_TEST_ASSERT_MSG_EQ (m_pucchTxPowerTraceFired, true, "Power trace for PUCCH did not get triggered. Test check for PUCCH did not execute as expected. ");
   m_pucchTxPowerTraceFired = false; // reset
-  NS_TEST_ASSERT_MSG_EQ (m_puschTxPowerTraceFired, true, "Power trace for PUSCH did not get triggered. Test check did PUSCH not executed as expected. ");
+  NS_TEST_ASSERT_MSG_EQ (m_puschTxPowerTraceFired, true, "Power trace for PUSCH did not get triggered. Test check did PUSCH not execute as expected. ");
   m_puschTxPowerTraceFired = false; // reset
   Vector newPosition = m_ueMobility->GetPosition ();
   newPosition.x = distance;
   m_ueMobility->SetPosition (newPosition);
-  NS_LOG_DEBUG ("Move UE to : "<<m_ueMobility->GetPosition ());
+  NS_LOG_DEBUG ("Move UE to : " << m_ueMobility->GetPosition ());
   m_movingTime = Simulator::Now ();
   m_expectedPuschTxPower = expectedPuschTxPower;
   m_expectedPucchTxPower = expectedPucchTxPower;
