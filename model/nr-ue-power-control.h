@@ -46,7 +46,7 @@ namespace ns3 {
  *
  * NrUePowerControl computes the TX power based on pre-configured
  * parameters and current measurements, such as path loss.
- * NrUePhy should pass to NrUePowerControl RSRP, while
+ * NrUePhy should pass the RSRP to NrUePowerControl, while
  * referenceSignalPower is configurable by attribute system.
  * NrUePowerControl uses latter values to calculate path loss.
  * When closed loop power control is being used NrUePhy should also
@@ -143,8 +143,8 @@ public:
    * \param value KPUCCH value to be used in PUSCH transmit power
    */
   void SetK0Pucch (uint16_t value);
-  /*
-   * \brief Sets weather the device for which is configure this
+  /**
+   * \brief Sets whether the device for which is configure this
    *  uplink power control algorithm is for device that is
    *  bandwidth reduced low complexity device or coverage enhanced (BL/CE)
    *  device
@@ -179,12 +179,12 @@ public:
    * \param value delta_F_Pucch value to be set
    */
   void SetDeltaFPucch (bool value);
-  /*
+  /**
    * \brief Set PO nominal PUCCH value
    * \param value the value to set
    */
   void SetPoNominalPucch (int16_t value);
-  /*
+  /**
   * \brief Set PO PUCCH value
   * \param value the value to set
   */
@@ -279,7 +279,6 @@ private:
     * \param tpc TPC command value from 0 to 3
     */
    int GetAbsoluteDelta (uint8_t tpc) const;
-
    /*
     * \brief Implements conversion from TPC
     * command to accumulated delta value. Follows both,
@@ -291,33 +290,28 @@ private:
     * \param tpc TPC command value from 0 to 3
     */
    int GetAccumulatedDelta (uint8_t tpc) const;
-
-   /*
+   /**
     * \brief Calculates fc value for PUSCH power control
     * according to TS 38.213 7.2.1 formulas.
     */
    void UpdateFc ();
-
-   /*
+   /**
     * \brief Calculate gc value for PUCCH power control
     * according to TS 38.213 7.2.1 formulas.
     */
    void UpdateGc ();
-
    /**
     * \brief Calculates PUSCH transmit power
     * according TS 38.213 7.1.1 formulas
     * \param rbNum number of RBs
     */
   double CalculatePuschTxPowerNr (std::size_t rbNum);
-
    /**
     * \brief Calculates PUCCH transmit power
     * according TS 38.213 7.2.1 formulas
     * \param rbNum number of RBs
     */
   double CalculatePucchTxPowerNr (std::size_t rbNum);
-
    /**
     * \brief Calculates SRS transmit power
     * \param rbNum number of RBs
@@ -325,8 +319,8 @@ private:
   double CalculateSrsTxPowerNr (std::size_t rbNum);
 
   // general attributes
-  bool m_closedLoop;                            //!< is closed loop
-  bool m_accumulationEnabled;                   //!< accumulation enabled
+  bool m_closedLoop {true};                     //!< is closed loop
+  bool m_accumulationEnabled {true};            //!< accumulation enabled
   TechnicalSpec m_technicalSpec;                //!< Technical specification to be used for transmit power calculations
   double m_Pcmax;                               //!< PC maximum
   double m_Pcmin;                               //!< PC minimum
@@ -343,23 +337,23 @@ private:
   int16_t m_PoNominalPusch;                     //!< PO nominal PUSCH, current code supports only a single parameter set configuration
   int16_t m_PoUePusch;                          //!< PO US PUSCH, current code supports only a single parameter set configuration
   uint16_t m_k_PUSCH {0};                       //!< One of the principal parameters for the calculation of the PUSCH pc accumulation state m_fc
-  double m_deltaTF;                             //!< PUSCH transmission power adjustment component for UL BWP of carrier of primary cell
+  double m_deltaTF {0};                         //!< PUSCH transmission power adjustment component for UL BWP of carrier of primary cell
 
   // PUCCH attributes
-  int16_t m_PoNominalPucch;                    //!< PO nominal PUCCH, current code supports only a single parameter set configuration
-  int16_t m_PoUePucch;                         //!< PO US PUCCH, current code supports only a single parameter set configuration
+  int16_t m_PoNominalPucch;                     //!< PO nominal PUCCH, current code supports only a single parameter set configuration
+  int16_t m_PoUePucch;                          //!< PO US PUCCH, current code supports only a single parameter set configuration
   uint16_t m_k_PUCCH {0};                       //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
   double m_delta_F_Pucch {0.0};                 //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
   double m_deltaTF_control {0.0};               //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell
 
   // other variables
-  double m_curPuschTxPower;                     //!< current PUSCH transmit power
-  double m_curPucchTxPower;                     //!< current PUCCH transmit power
-  double m_curSrsTxPower;                       //!< current SRS transmit power
-  bool m_rsrpSet;                               //!< is RSRP set?
-  double m_rsrp;                                //!< RSRP value in dBm
+  double m_curPuschTxPower {10};               //!< current PUSCH transmit power
+  double m_curPucchTxPower {10};               //!< current PUCCH transmit power
+  double m_curSrsTxPower {10};                 //!< current SRS transmit power
+  bool m_rsrpSet {false};                       //!< is RSRP set?
+  double m_rsrp {-40};                         //!< RSRP value in dBm
   int16_t m_PsrsOffset;                         //!< PSRS offset
-  double m_pathLoss;                            //!< path loss value in dB
+  double m_pathLoss {100};                      //!< path loss value in dB
   std::vector <uint8_t> m_deltaPucch;           //!< vector that saves TPC command accumulated values for PUCCH transmit power calculation
   std::vector <int8_t> m_deltaPusch;            //!< vector that saves TPC command accumulated values for PUSCH transmit power calculation
   double m_fc {0.0};                            //!< FC
@@ -374,7 +368,7 @@ private:
   * smoothing effect induced by layer 3 filtering of RSRP in all attached UE.
   * If equals to 0, no layer 3 filtering is applicable.
   */
-  uint8_t m_pcRsrpFilterCoefficient;
+  uint8_t m_pcRsrpFilterCoefficient {4};
   /**
    * Trace information regarding Uplink TxPower
    * uint16_t cellId, uint16_t rnti, double txPower
