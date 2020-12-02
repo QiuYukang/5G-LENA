@@ -331,23 +331,23 @@ private:
   double m_Pcmax;                               //!< PC maximum
   double m_Pcmin;                               //!< PC minimum
   double m_referenceSignalPower;                //!< reference signal power in dBm
-  std::vector<double> m_alpha;                  //!< alpha values
+  double m_alpha;                               //!< alpha value, current code supports only a single parameter set configuration
   bool m_blCe {false};                          /*!< Indicator whether the power control is applied to bandwidth reduced low complexity or coverage enhanced devices.
                                                        When set to true means that this power control is applied to bandwidth reduced,
                                                        low complexity or coverage enhanced device. By default this attribute is set to false.
                                                        Default BL/CE mode is CEModeB.*/
-  double m_P_0_SRS{0.0};                        //!< P_0_SRS parameter for calculation of SRS power control
+  double m_P_0_SRS {0.0};                       //!< P_0_SRS parameter for calculation of SRS power control
 
 
   // PUSCH attributes
-  std::vector<int16_t> m_PoNominalPusch;        //!< PO nominal PUSCH
-  std::vector<int16_t> m_PoUePusch;             //!< PO US PUSCH
+  int16_t m_PoNominalPusch;                     //!< PO nominal PUSCH, current code supports only a single parameter set configuration
+  int16_t m_PoUePusch;                          //!< PO US PUSCH, current code supports only a single parameter set configuration
   uint16_t m_k_PUSCH {0};                       //!< One of the principal parameters for the calculation of the PUSCH pc accumulation state m_fc
   double m_deltaTF;                             //!< PUSCH transmission power adjustment component for UL BWP of carrier of primary cell
 
   // PUCCH attributes
-  std::vector<int16_t> m_PoNominalPucch;        //!< PO nominal PUCCH
-  std::vector<int16_t> m_PoUePucch;             //!< PO US PUCCH
+  int16_t m_PoNominalPucch;                    //!< PO nominal PUCCH, current code supports only a single parameter set configuration
+  int16_t m_PoUePucch;                         //!< PO US PUCCH, current code supports only a single parameter set configuration
   uint16_t m_k_PUCCH {0};                       //!< One of the principal parameters for the calculation of the PUCCH pc accumulation state m_gc
   double m_delta_F_Pucch {0.0};                 //!< Delta F_PUCCH to calculate 38.213 7.2.1 formula for PUCCH transmit power
   double m_deltaTF_control {0.0};               //!< PUCCH transmission power adjustment component for UL BWP of carrier of primary cell

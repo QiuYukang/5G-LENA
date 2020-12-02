@@ -212,8 +212,10 @@ NrUplinkPowerControlTestCase::DoRun (void)
   std::string scenario = "InH-OfficeMixed"; //scenario
   double frequency = 2e9; // central frequency
   double bandwidth = 4.6e6; //bandwidth
-  double hBS = 1.5, hUT = 1.5; //base station antenna height in meters, and user antenna height in meters
-  double gNBTxPower = 30, ueTxPower = 10; // txPower
+  double hBS = 1.5; // base station antenna height in meters, and
+  double hUT = 1.5; // user antenna height in meters
+  double gNBTxPower = 30; // gNb tx power
+  double ueTxPower = 10; // ue tx power
   enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::InH_OfficeMixed_LoS;
   uint16_t numerology = 0; // numerology to be used
   uint16_t numCcPerBand = 1; // number of component carrier in the assigned band

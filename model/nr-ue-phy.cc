@@ -42,6 +42,7 @@
 #include <ns3/boolean.h>
 #include <ns3/pointer.h>
 #include "beam-manager.h"
+#include "nr-ue-power-control.h"
 
 namespace ns3 {
 
@@ -1198,7 +1199,7 @@ void
 NrUePhy::DoConfigureReferenceSignalPower (int8_t referenceSignalPower)
 {
   NS_LOG_FUNCTION (this << referenceSignalPower);
-  m_powerControl->ConfigureReferenceSignalPower(referenceSignalPower);
+  m_powerControl->ConfigureReferenceSignalPower (referenceSignalPower);
 }
 
 void

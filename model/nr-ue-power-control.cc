@@ -97,32 +97,32 @@ NrUePowerControl::GetTypeId (void)
                    "P_O_NOMINAL_PUSCH   INT (-126 ... 24), Default value -80",
                    IntegerValue (-80),
                    MakeIntegerAccessor (&NrUePowerControl::SetPoNominalPusch),
-                   MakeIntegerChecker<int16_t> ())
+                   MakeIntegerChecker<int16_t> (-126, 24))
     .AddAttribute ("PoUePusch",
                    "P_O_UE_PUSCH   INT(-8...7), Default value 0",
                    IntegerValue (0),
                    MakeIntegerAccessor (&NrUePowerControl::SetPoUePusch),
-                   MakeIntegerChecker<int16_t> ())
+                   MakeIntegerChecker<int16_t> (-8, 7))
     .AddAttribute ("PoNominalPucch",
                    "P_O_NOMINAL_PUCCH   INT (-126 ... 24), Default value -80",
                    IntegerValue (-80),
                    MakeIntegerAccessor (&NrUePowerControl::SetPoNominalPucch),
-                   MakeIntegerChecker<int16_t> ())
+                   MakeIntegerChecker<int16_t> (-126, 24))
     .AddAttribute ("PoUePucch",
                    "P_O_UE_PUCCH   INT(-8...7), Default value 0",
                    IntegerValue (0),
                    MakeIntegerAccessor (&NrUePowerControl::SetPoUePucch),
-                   MakeIntegerChecker<int16_t> ())
+                   MakeIntegerChecker<int16_t> (-8, 7))
     .AddAttribute ("PsrsOffset",
                    "P_SRS_OFFSET   INT(0...15), Default value 7",
                    IntegerValue (7),
                    MakeIntegerAccessor (&NrUePowerControl::m_PsrsOffset),
-                   MakeIntegerChecker<int16_t> ())
+                   MakeIntegerChecker<int16_t> (0, 15))
     .AddAttribute ("TSpec",
                    "Technical specification TS 36.213 or TS 38.213,"
                    "By default is set TS to 36.213. To configure TS 36.213 "
                    "set the value TS36.213, while for TS 38.213 should be "
-                   "configured TS28.213.",
+                   "configured TS38.213.",
                    EnumValue (NrUePowerControl::TS_36_213),
                    MakeEnumAccessor (&NrUePowerControl::SetTechnicalSpec),
                    MakeEnumChecker (NrUePowerControl::TS_36_213, "TS36.213",
@@ -132,7 +132,7 @@ NrUePowerControl::GetTypeId (void)
                    "calculation. "
                    "This value must be carefully configured according to "
                    "TS 36.213 or TS 38.213 and taking into account the type "
-                   " of simulation scenario. E.g. TDD, FDD, frame structure "
+                   "of simulation scenario. E.g. TDD, FDD, frame structure "
                    "type, etc. For, LTE FDD or FDD-TDD and frame structure "
                    "type 1, KPusch is 4.",
                    UintegerValue (4),
@@ -207,19 +207,7 @@ NrUePowerControl::SetAlpha (double value)
       NS_FATAL_ERROR ("Unexpected Alpha value");
     }
 
-  if (m_alpha.empty ())
-    {
-      m_alpha.push_back (value);
-      m_alpha.push_back (value);
-      m_alpha.push_back (0);
-    }
-  else
-    {
-      m_alpha[0] = value;
-      m_alpha[1] = value;
-      m_alpha[2] = 1;
-    }
-
+  m_alpha = value;
 }
 
 void
@@ -300,37 +288,14 @@ void
 NrUePowerControl::SetPoNominalPucch (int16_t value)
 {
   NS_LOG_FUNCTION (this);
-
-  if (m_PoNominalPucch.empty ())
-    {
-      m_PoNominalPucch.push_back (value);
-      m_PoNominalPucch.push_back (value);
-      m_PoNominalPucch.push_back (value);
-    }
-  else
-    {
-      m_PoNominalPucch [0] = value;
-      m_PoNominalPucch [1] = value;
-      m_PoNominalPucch [2] = value;
-    }
+  m_PoNominalPucch = value;
 }
 
 void
 NrUePowerControl::SetPoUePucch (int16_t value)
 {
   NS_LOG_FUNCTION (this);
-  if (m_PoUePucch.empty ())
-    {
-      m_PoUePucch.push_back (value);
-      m_PoUePucch.push_back (value);
-      m_PoUePucch.push_back (0);
-    }
-  else
-    {
-      m_PoUePucch [0] = value;
-      m_PoUePucch [1] = value;
-      m_PoUePucch [2] = 0;
-    }
+  m_PoUePucch = value;
 }
 
 void
@@ -351,37 +316,13 @@ void
 NrUePowerControl::SetPoNominalPusch (int16_t value)
 {
   NS_LOG_FUNCTION (this);
-
-  if (m_PoNominalPusch.empty ())
-    {
-      m_PoNominalPusch.push_back (value);
-      m_PoNominalPusch.push_back (value);
-      m_PoNominalPusch.push_back (value);
-    }
-  else
-    {
-      m_PoNominalPusch[0] = value;
-      m_PoNominalPusch[1] = value;
-      m_PoNominalPusch[2] = value;
-    }
-
+  m_PoNominalPusch = value;
 }
 void
 NrUePowerControl::SetPoUePusch (int16_t value)
 {
   NS_LOG_FUNCTION (this);
-  if (m_PoUePusch.empty ())
-    {
-      m_PoUePusch.push_back (value);
-      m_PoUePusch.push_back (value);
-      m_PoUePusch.push_back (0);
-    }
-  else
-    {
-      m_PoUePusch[0] = value;
-      m_PoUePusch[1] = value;
-      m_PoUePusch[2] = 0;
-    }
+  m_PoUePusch = value;
 }
 
 void
@@ -415,12 +356,12 @@ NrUePowerControl::ReportTpcPusch (uint8_t tpc)
 
   if (m_accumulationEnabled)
     {
-      m_deltaPusch.push_back (GetAccumulatedDelta(tpc));
+      m_deltaPusch.push_back (GetAccumulatedDelta (tpc));
       NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta accumulated: " << GetAccumulatedDelta (tpc) << " Fc: " << m_fc);
     }
   else
     {
-      m_deltaPusch.push_back (GetAbsoluteDelta(tpc));
+      m_deltaPusch.push_back (GetAbsoluteDelta (tpc));
       NS_LOG_INFO ("Reported TPC: " << (int)tpc << " delta absolute: " << GetAbsoluteDelta (tpc) << " Fc: " << m_fc);
     }
 
@@ -470,7 +411,7 @@ NrUePowerControl::ReportTpcPusch (uint8_t tpc)
     {
       // don't allow infinite accumulation of TPC command if they are maybe not used
       // the maximum number of command that will be saved is 100
-      if (m_deltaPusch.size() == 100)
+      if (m_deltaPusch.size () == 100)
         {
           m_deltaPusch.erase (m_deltaPusch.begin ());
         }
@@ -583,7 +524,7 @@ NrUePowerControl::ReportTpcPucch (uint8_t tpc)
     {
       // don't allow infinite accumulation of TPC command if they are maybe not used
       // the maximum number of command that will be saved is 100
-      if (m_deltaPucch.size() == 100)
+      if (m_deltaPucch.size () == 100)
         {
           m_deltaPucch.erase (m_deltaPucch.begin ());
         }
@@ -631,7 +572,7 @@ NrUePowerControl::UpdateGc ()
   // PUSCH power control accumulation or absolute value configuration
   for (const auto& i: m_deltaPucch)
     {
-      m_gc +=i; // gc already hold value for fc(i-i0) occasion
+      m_gc += i; // gc already hold value for fc(i-i0) occasion
     }
 
   m_deltaPucch.clear (); // we have used these values, no need to save them any more
@@ -650,15 +591,14 @@ NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
     {
       return m_Pcmax;
     }
-  int32_t j = 1;
-  int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
+  int32_t PoPusch = m_PoNominalPusch + m_PoUePusch;
 
   // update RSRP value for pathloss calculation
-  SetRsrp (m_nrUePhy->GetRsrp());
+  SetRsrp (m_nrUePhy->GetRsrp ());
 
   NS_LOG_INFO ("RBs: " << rbNum <<
                " m_PoPusch: " << PoPusch <<
-               " Alpha: " << m_alpha [j] <<
+               " Alpha: " << m_alpha <<
                " PathLoss: " << m_pathLoss <<
                " deltaTF: " << m_deltaTF <<
                " fc: " << m_fc <<
@@ -680,7 +620,7 @@ NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
    *  provided by higher layers and RSRP is defined in [7, TS 38.215] for the reference serving cell and the higher
    *  layer filter configuration is defined in [12, TS 38.331] for the reference serving cell.
    *
-   *  By spec. is deltaTF is 0 when Ks is 0, and Ks is provided by higher layer parameter deltaMCS
+   *  By spec. deltaTF is 0 when Ks is 0, and Ks is provided by higher layer parameter deltaMCS
    *  provided for each UL BWP b of each carrier f and serving cell c.
    *  According to 38.213 2.1.1. If the PUSCH transmission is over more than one layer [6, TS 38.214],
    *  then deltaTF is 0.
@@ -698,7 +638,7 @@ NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
       UpdateFc ();
     }
 
-  double txPower = PoPusch + puschComponent + m_alpha[j] * m_pathLoss + m_deltaTF + m_fc;
+  double txPower = PoPusch + puschComponent + m_alpha * m_pathLoss + m_deltaTF + m_fc;
 
   NS_LOG_INFO ("Calculated PUSCH power:" << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
@@ -721,14 +661,13 @@ NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
       return m_Pcmax;
     }
 
-  int32_t j = 1;
-  int32_t PoPucch = m_PoNominalPucch [j] + m_PoUePucch [j];
+  int32_t PoPucch = m_PoNominalPucch + m_PoUePucch;
   // update RSRP value for pathloss calculation
-  SetRsrp (m_nrUePhy->GetRsrp());
+  SetRsrp (m_nrUePhy->GetRsrp ());
   double pucchComponent = 0;
   if (rbNum > 0)
     {
-      pucchComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology()) * rbNum);
+      pucchComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
       rbNum = 0;
     }
 
@@ -758,18 +697,18 @@ NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
    */
   if (m_technicalSpec == TS_38_213)
     {
-      UpdateGc();
+      UpdateGc ();
     }
 
   NS_LOG_INFO ("RBs: " << rbNum <<
                " m_PoPucch: " << PoPucch <<
-               " Alpha: " << m_alpha[j] <<
+               " Alpha: " << m_alpha <<
                " PathLoss: " << m_pathLoss <<
                " deltaTF: " << m_deltaTF_control <<
                " gc: " << m_gc <<
                " numerology: " << m_nrUePhy->GetNumerology ());
 
-  double txPower = PoPucch + pucchComponent + m_alpha[j] * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
+  double txPower = PoPucch + pucchComponent + m_alpha * m_pathLoss + m_delta_F_Pucch + m_deltaTF_control +  m_gc;
 
   NS_LOG_INFO ("Calculated PUCCH power: " << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);
 
@@ -784,15 +723,14 @@ double
 NrUePowerControl::CalculateSrsTxPowerNr (std::size_t rbNum)
 {
   NS_LOG_FUNCTION (this);
-  int32_t j = 1;
-  int32_t PoPusch = m_PoNominalPusch[j] + m_PoUePusch[j];
+  int32_t PoPusch = m_PoNominalPusch + m_PoUePusch;
 
   // update RSRP value for pathloss calculation
   SetRsrp (m_nrUePhy->GetRsrp ());
 
   NS_LOG_INFO ("RBs: " << rbNum <<
                " m_PoPusch: " << PoPusch <<
-               " Alpha: " << m_alpha[j] <<
+               " Alpha: " << m_alpha <<
                " PathLoss: " << m_pathLoss <<
                " deltaTF: " << m_deltaTF <<
                " fc: " << m_fc);
@@ -814,12 +752,12 @@ NrUePowerControl::CalculateSrsTxPowerNr (std::size_t rbNum)
   if (m_technicalSpec == TS_36_213)
     {
       double pSrsOffsetValue = -10.5 + m_PsrsOffset * 1.5;
-      txPower = pSrsOffsetValue + component + PoPusch + m_alpha[j] * m_pathLoss + m_hc;
+      txPower = pSrsOffsetValue + component + PoPusch + m_alpha * m_pathLoss + m_hc;
     }
   else if (m_technicalSpec == TS_38_213)
     {
-      txPower = m_P_0_SRS + component +  m_alpha[j] * m_pathLoss + m_hc;  // this formula also can apply for TS_36_213,
-                                                                           //See 5.1.3 Sounding Reference Symbol (SRS) 5.1.3.1 UE behavior
+      txPower = m_P_0_SRS + component +  m_alpha * m_pathLoss + m_hc;  // this formula also can apply for TS_36_213,
+                                                                       //See 5.1.3 Sounding Reference Symbol (SRS) 5.1.3.1 UE behavior
     }
 
   NS_LOG_INFO ("CalcPower: " << txPower << " MinPower: " << m_Pcmin << " MaxPower:" << m_Pcmax);

@@ -23,7 +23,6 @@
 #include "nr-phy.h"
 #include "nr-amc.h"
 #include "nr-harq-phy.h"
-#include "nr-ue-power-control.h"
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/traced-callback.h>
@@ -33,6 +32,7 @@ namespace ns3 {
 class NrChAccessManager;
 class BeamManager;
 class BeamId;
+class NrUePowerControl;
 
 /**
  * \ingroup ue-phy
