@@ -192,10 +192,10 @@ struct DciInfoElementTdma
    */
   DciInfoElementTdma (uint16_t rnti, DciFormat format, uint8_t symStart,
                       uint8_t numSym, uint8_t mcs, uint32_t tbs, uint8_t ndi,
-                      uint8_t rv, VarTtiType type, uint8_t bwpIndex)
+                      uint8_t rv, VarTtiType type, uint8_t bwpIndex, uint8_t tpc)
     : m_rnti (rnti), m_format (format), m_symStart (symStart),
     m_numSym (numSym), m_mcs (mcs), m_tbSize (tbs), m_ndi (ndi), m_rv (rv), m_type (type),
-    m_bwpIndex (bwpIndex)
+    m_bwpIndex (bwpIndex), m_tpc (tpc)
   {
   }
 
@@ -221,7 +221,8 @@ struct DciInfoElementTdma
       m_type (o.m_type),
       m_bwpIndex (o.m_bwpIndex),
       m_harqProcess (o.m_harqProcess),
-      m_rbgBitmask (o.m_rbgBitmask)
+      m_rbgBitmask (o.m_rbgBitmask),
+      m_tpc (o.m_tpc)
   {
   }
 
@@ -235,8 +236,9 @@ struct DciInfoElementTdma
   const uint8_t m_rv          {0};   // not used for UL DCI
   const VarTtiType m_type     {SRS};
   const uint8_t m_bwpIndex    {0};  //!< BWP Index to identify to which BWP this DCI applies to.
-  uint8_t m_harqProcess {0};
+  uint8_t m_harqProcess       {0};
   std::vector<uint8_t> m_rbgBitmask  {};   //!< RBG mask: 0 if the RBG is not used, 1 otherwise
+  const uint8_t m_tpc         {0};  //!< Tx power control command
 };
 
 /**

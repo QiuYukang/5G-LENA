@@ -42,6 +42,7 @@
 #include <ns3/boolean.h>
 #include <ns3/pointer.h>
 #include "beam-manager.h"
+#include "nr-ue-power-control.h"
 
 namespace ns3 {
 
@@ -53,6 +54,7 @@ NrUePhy::NrUePhy ()
   NS_LOG_FUNCTION (this);
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
+  m_powerControl = CreateObject <NrUePowerControl> (this);
 }
 
 NrUePhy::~NrUePhy ()
@@ -107,6 +109,11 @@ NrUePhy::GetTypeId (void)
                    MakeTimeAccessor (&NrPhy::SetTbDecodeLatency,
                    &NrPhy::GetTbDecodeLatency),
                    MakeTimeChecker ())
+    .AddAttribute ("EnableUplinkPowerControl",
+                   "If true, Uplink Power Control will be enabled.",
+                    BooleanValue (true),
+                    MakeBooleanAccessor (&NrUePhy::SetEnableUplinkPowerControl),
+                    MakeBooleanChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -174,14 +181,34 @@ NrUePhy::GetUeCphySapProvider ()
 }
 
 void
+NrUePhy::SetEnableUplinkPowerControl (bool enable)
+{
+  m_enableUplinkPowerControl = enable;
+}
+
+void
 NrUePhy::SetTxPower (double pow)
 {
   m_txPower = pow;
+  m_powerControl->SetTxPower (pow);
 }
 double
 NrUePhy::GetTxPower () const
 {
   return m_txPower;
+}
+
+double
+NrUePhy::GetRsrp () const
+{
+  return m_rsrp;
+}
+
+Ptr<NrUePowerControl>
+NrUePhy::GetUplinkPowerControl () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_powerControl;
 }
 
 void
@@ -413,6 +440,12 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       InsertAllocation (dciInfoElem);
 
       m_phySapUser->ReceiveControlMessage (msg);
+
+      if (m_enableUplinkPowerControl)
+        {
+          m_powerControl->ReportTpcPusch (dciInfoElem->m_tpc);
+          m_powerControl->ReportTpcPucch (dciInfoElem->m_tpc);
+        }
     }
   else if (msg->GetMessageType () == NrControlMessage::UL_DCI)
     {
@@ -765,6 +798,10 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
       channelRbs.push_back (static_cast<int> (i));
     }
 
+  if (m_enableUplinkPowerControl)
+    {
+      m_txPower = m_powerControl->GetPucchTxPower (channelRbs.size());
+    }
   SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
@@ -807,6 +844,10 @@ Time
 NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
+  if (m_enableUplinkPowerControl)
+    {
+      m_txPower = m_powerControl->GetPuschTxPower ((FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask)).size());
+    }
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
@@ -1090,6 +1131,18 @@ NrUePhy::ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subfra
 }
 
 void
+NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
+{
+  NS_LOG_FUNCTION (this << rsReceivedPower);
+  m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
+  NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
+  if (m_enableUplinkPowerControl)
+    {
+      m_powerControl->SetRsrp (m_rsrp);
+    }
+}
+
+void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);
@@ -1146,6 +1199,7 @@ void
 NrUePhy::DoConfigureReferenceSignalPower (int8_t referenceSignalPower)
 {
   NS_LOG_FUNCTION (this << referenceSignalPower);
+  m_powerControl->ConfigureReferenceSignalPower (referenceSignalPower);
 }
 
 void

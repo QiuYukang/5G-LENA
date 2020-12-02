@@ -143,7 +143,7 @@ uint8_t NrMacSchedulerHarqRr::ScheduleDlHarq (NrMacSchedulerNs3::PointInFTPlane 
                                                            startingPoint->m_sym, symPerBeam,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
                                                            0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA,
-                                                           dciInfoReTx->m_bwpIndex);
+                                                           dciInfoReTx->m_bwpIndex, dciInfoReTx->m_tpc);
           dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
           dci->m_harqProcess = dciInfoReTx->m_harqProcess;
 
@@ -273,7 +273,7 @@ NrMacSchedulerHarqRr::ScheduleUlHarq (NrMacSchedulerNs3::PointInFTPlane *startin
                                                            dciInfoReTx->m_numSym,
                                                            dciInfoReTx->m_mcs, dciInfoReTx->m_tbSize,
                                                            0, dciInfoReTx->m_rv + 1, DciInfoElementTdma::DATA,
-                                                           dciInfoReTx->m_bwpIndex);
+                                                           dciInfoReTx->m_bwpIndex, dciInfoReTx->m_tpc);
           dci->m_rbgBitmask = harqProcess.m_dciElement->m_rbgBitmask;
           dci->m_harqProcess = harqId;
           harqProcess.m_dciElement = dci;

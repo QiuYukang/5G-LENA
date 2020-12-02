@@ -90,6 +90,7 @@ def build(bld):
         'model/lena-error-model.cc',
         'model/nr-mac-scheduler-srs-default.cc',
         'model/realistic-beamforming-algorithm.cc',
+        'model/nr-ue-power-control.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -116,6 +117,7 @@ def build(bld):
         'test/test-nr-mac-short-bsr-ce.cc',
         'test/nr-test-notching.cc',
         'test/nr-realistic-beamforming-test.cc',
+        'test/nr-test-uplink-power-control.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -207,6 +209,7 @@ def build(bld):
         'model/nr-mac-scheduler-srs.h',
         'model/nr-mac-scheduler-srs-default.h',
         'model/realistic-beamforming-algorithm.h',
+        'model/nr-ue-power-control.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

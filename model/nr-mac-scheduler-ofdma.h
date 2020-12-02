@@ -108,6 +108,8 @@ protected:
   NrMacSchedulerOfdma::BeamSymbolMap
   GetSymPerBeam (uint32_t symAvail, const ActiveUeMap &activeDl) const;
 
+  virtual uint8_t GetTpc () const override;
+
 private:
 
   TracedValue<uint32_t> m_tracedValueSymPerBeam;
