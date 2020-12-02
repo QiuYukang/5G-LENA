@@ -9,7 +9,7 @@ import os
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('nr', ['core','network', 'spectrum', 'virtual-net-device','point-to-point','applications','internet', 'lte', 'propagation'])
+    module = bld.create_ns3_module('nr', ['lte'])
     module.source = [
         'helper/nr-helper.cc',
         'helper/nr-phy-rx-trace.cc',
