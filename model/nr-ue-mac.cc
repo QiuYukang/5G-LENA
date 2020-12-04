@@ -371,10 +371,14 @@ NrUeMac::GetTypeId (void)
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrUeMac::ConsiderReTxForSensing),
                     MakeBooleanChecker ())
-     .AddTraceSource ("SlPscchScheduling",
-                      "Information regarding NR SL PSCCH UE scheduling",
-                      MakeTraceSourceAccessor (&NrUeMac::m_slPscchScheduling),
-                      "ns3::SlUeMacStatParameters::TracedCallback")
+    .AddTraceSource ("SlPscchScheduling",
+                     "Information regarding NR SL PSCCH UE scheduling",
+                     MakeTraceSourceAccessor (&NrUeMac::m_slPscchScheduling),
+                     "ns3::SlPscchUeMacStatParameters::TracedCallback")
+    .AddTraceSource ("SlPsschScheduling",
+                     "Information regarding NR SL PSSCH UE scheduling",
+                     MakeTraceSourceAccessor (&NrUeMac::m_slPsschScheduling),
+                     "ns3::SlPsschUeMacStatParameters::TracedCallback")
           ;
 
   return tid;
@@ -1794,6 +1798,30 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           dataVarTtiInfo.rbLength = currentGrant.slPsschSubChLength * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
           m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo (sfn, dataVarTtiInfo);
 
+          // Collect statistics for NR SL PSCCH UE MAC scheduling trace
+          SlPsschUeMacStatParameters psschStatsParams;
+          psschStatsParams.timeMs = Simulator::Now ().GetMilliSeconds ();
+          psschStatsParams.imsi = m_imsi;
+          psschStatsParams.rnti = m_rnti;
+          psschStatsParams.frameNum = currentGrant.sfn.GetFrame ();
+          psschStatsParams.subframeNum = currentGrant.sfn.GetSubframe ();
+          psschStatsParams.slotNum = currentGrant.sfn.GetSlot ();
+          psschStatsParams.symStart = currentGrant.slPsschSymStart;
+          psschStatsParams.symLength = currentGrant.slPsschSymLength;
+          psschStatsParams.rbStart = currentGrant.slPsschSubChStart * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
+          psschStatsParams.subChannelSize = m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
+          psschStatsParams.rbLength = currentGrant.slPsschSubChLength * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
+          psschStatsParams.harqId = itGrantInfo.second.nrSlHarqId;
+          psschStatsParams.ndi = currentGrant.ndi;
+          psschStatsParams.rv = currentGrant.rv;
+          psschStatsParams.srcL2Id = m_srcL2Id;
+          psschStatsParams.dstL2Id = currentGrant.dstL2Id;
+          psschStatsParams.csiReq = sciF2a.GetCsiReq ();
+          psschStatsParams.castType = sciF2a.GetCastType ();
+          psschStatsParams.resoReselCounter = itGrantInfo.second.slResoReselCounter;
+          psschStatsParams.cReselCounter = itGrantInfo.second.cReselCounter;
+          m_slPsschScheduling (psschStatsParams); //Trace
+
           if (currentGrant.txSci1A)
             {
               //prepare and send SCI format 1A message
@@ -1837,16 +1865,24 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
 
               // Collect statistics for NR SL PSCCH UE MAC scheduling trace
               SlPscchUeMacStatParameters pscchStatsParams;
-              pscchStatsParams.timestamp = Simulator::Now ().GetMilliSeconds ();
+              pscchStatsParams.timeMs = Simulator::Now ().GetMilliSeconds ();
               pscchStatsParams.imsi = m_imsi;
               pscchStatsParams.rnti = m_rnti;
               pscchStatsParams.frameNum = currentGrant.sfn.GetFrame ();
               pscchStatsParams.subframeNum = currentGrant.sfn.GetSubframe ();
               pscchStatsParams.slotNum = currentGrant.sfn.GetSlot ();
+              pscchStatsParams.symStart = currentGrant.slPscchSymStart;
+              pscchStatsParams.symLength = currentGrant.slPscchSymLength;
+              pscchStatsParams.rbStart = currentGrant.slPsschSubChStart * m_slTxPool->GetNrSlSubChSize (GetBwpId (), m_poolId);
+              pscchStatsParams.rbLength = currentGrant.numSlPscchRbs;
               pscchStatsParams.priority = currentGrant.priority;
               pscchStatsParams.mcs = currentGrant.mcs;
               pscchStatsParams.tbSize = tbSize;
               pscchStatsParams.slResourceReservePeriod = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ());
+              pscchStatsParams.totalSubChannels = GetTotalSubCh (m_poolId);
+              pscchStatsParams.slPsschSubChStart = currentGrant.slPsschSubChStart;
+              pscchStatsParams.slPsschSubChLength = currentGrant.slPsschSubChLength;
+              pscchStatsParams.slMaxNumPerReserve = currentGrant.maxNumPerReserve;
               pscchStatsParams.gapReTx1 = sciF1a.GetGapReTx1 ();
               pscchStatsParams.gapReTx2 = sciF1a.GetGapReTx2 ();
               m_slPscchScheduling (pscchStatsParams); //Trace

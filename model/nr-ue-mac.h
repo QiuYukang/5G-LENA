@@ -1111,6 +1111,11 @@ private:
    * SlPscchUeMacStatParameters (see nr-sl-phy-mac-common.h)
    */
   TracedCallback<SlPscchUeMacStatParameters> m_slPscchScheduling; //!< NR SL PSCCH scheduling trace source
+  /**
+   * Trace information regarding NR Sidelink PSSCH UE scheduling.
+   * SlPsschUeMacStatParameters (see nr-sl-phy-mac-common.h)
+   */
+  TracedCallback<SlPsschUeMacStatParameters> m_slPsschScheduling; //!< NR SL PSCCH scheduling trace source
 };
 
 }
