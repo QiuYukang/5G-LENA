@@ -55,17 +55,17 @@ public:
    * method creates, if not exists, a table for storing the values. The table
    * will contain the following columns:
    *
-   * - "Time(sec) DOUBLE NOT NULL, "
-   * - "Tx/Rx TEXT NOT NULL,"
-   * - "NodeId INTEGER NOT NULL,"
-   * - "IMSI INTEGER NOT NULL,"
-   * - "PktSizeBytes INTEGER NOT NULL,"
-   * - "SrcIp TEXT NOT NULL,"
-   * - "SrcPort TEXT NOT NULL,"
-   * - "DstIp TEXT NOT NULL,"
-   * - "DstPort TEXT NOT NULL,"
+   * - "timeSec DOUBLE NOT NULL, "
+   * - "txRx TEXT NOT NULL,"
+   * - "nodeId INTEGER NOT NULL,"
+   * - "imsi INTEGER NOT NULL,"
+   * - "pktSizeBytes INTEGER NOT NULL,"
+   * - "srcIp TEXT NOT NULL,"
+   * - "srcPort TEXT NOT NULL,"
+   * - "dstIp TEXT NOT NULL,"
+   * - "dstPort TEXT NOT NULL,"
    * - "SEED INTEGER NOT NULL,"
-   * - "RUN INTEGER NOT NULL,"
+   * - "RUN INTEGER NOT NULL"
    *
    * Please note that this method, if the db already contains a table with
    * the same name, also clean existing values that has the same
