@@ -793,6 +793,9 @@ private:
   typedef std::unordered_map<uint16_t , SlTransportBlockInfo> SlTransportBlocks;
 
   SlTransportBlocks m_slTransportBlocks; //!< Map of type SlTransportBlocks
+
+  TracedCallback<SlRxCtrlPacketTraceParams> m_rxPscchTraceUe; //!< trace source for PSCCH reception
+  TracedCallback<SlRxDataPacketTraceParams> m_rxPsschTraceUe; //!< trace source for PSSCH reception
 };
 
 }

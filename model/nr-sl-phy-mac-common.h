@@ -233,6 +233,7 @@ struct NrSlPhySlotAlloc
  */
 struct SlRxDataPacketTraceParams:public RxPacketTraceParams
 {
+  int64_t m_timeMs {0}; //!< Time stamp in MilliSeconds
   uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
   uint8_t m_ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
   double m_tblerSci2; //!< TBLER of SCI stage 2
@@ -241,6 +242,14 @@ struct SlRxDataPacketTraceParams:public RxPacketTraceParams
   int m_rbEnd; //!< The end RB index
   uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
   uint16_t m_srcL2Id {0}; //!< The source layer 2 id
+
+  /**
+   * \ingroup utils
+   *  TracedCallback signature.
+   *
+   * \param [in] params Value of the SlRxDataPacketTraceParams
+   */
+  typedef void (* TracedCallback)(const SlRxDataPacketTraceParams params);
 };
 
 /**
@@ -249,9 +258,9 @@ struct SlRxDataPacketTraceParams:public RxPacketTraceParams
  */
 struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
 {
+  int64_t m_timeMs {0}; //!< Time stamp in MilliSeconds
   uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
   double m_tblerSci1; //!< TBLER of SCI stage 1
-  bool m_sci1Corrupted {false}; //!< The flag to indicate the new data allocation
   int m_rbStart; //!< The start RB index
   int m_rbEnd; //!< The end RB index
   uint8_t m_priority {std::numeric_limits <uint8_t>::max ()}; //!< The priority
@@ -261,6 +270,14 @@ struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
   uint8_t m_lengthSubChannel {std::numeric_limits <uint8_t>::max ()}; //!< The total number of subchannel assigned
   uint8_t m_maxNumPerReserve {std::numeric_limits <uint8_t>::max ()}; //!< The MaxNumPerReserved
   uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
+
+  /**
+   * \ingroup utils
+   *  TracedCallback signature.
+   *
+   * \param [in] params Value of the SlRxCtrlPacketTraceParams
+   */
+  typedef void (* TracedCallback)(const SlRxCtrlPacketTraceParams params);
 };
 
 }

@@ -205,6 +205,15 @@ NrSpectrumPhy::GetTypeId (void)
                      "Indicates the reception of data from this cell (reporting the rxPsd without interferences)",
                      MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxDataTrace),
                      "ns3::RxDataTracedCallback::TracedCallback")
+    .AddTraceSource ("RxPscchTraceUe",
+                     "The PSCCH transmission received by the User Device",
+                     MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxPscchTraceUe),
+                     "ns3::SlRxCtrlPacketTraceParams::TracedCallback")
+   .AddTraceSource ("RxPsschTraceUe",
+                    "The PSSCH transmission received by the User Device",
+                    MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxPsschTraceUe),
+                    "ns3::SlRxDataPacketTraceParams::TracedCallback")
+
   ;
 
   return tid;
@@ -1846,6 +1855,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       bool tagFound = packet->PeekPacketTag (tag);
       NS_ABORT_MSG_IF (!tagFound, "Did not find NrSlMacPduTag");
       SlRxCtrlPacketTraceParams traceParams;
+      traceParams.m_timeMs = Simulator::Now ().GetMilliSeconds ();
       traceParams.m_cellId = ueRx->GetPhy (GetBwpId ())->GetCellId ();
       traceParams.m_rnti = ueRx->GetPhy (GetBwpId ())->GetRnti ();
       traceParams.m_tbSize = m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
@@ -1857,19 +1867,20 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       traceParams.m_sinr = ctrlMsgIt.sinrAvg;
       traceParams.m_sinrMin = ctrlMsgIt.sinrMin;
       traceParams.m_tblerSci1 = outputEmForCtrl->m_tbler;
-      traceParams.m_sci1Corrupted = corrupt;
+      traceParams.m_corrupt = corrupt;
       traceParams.m_symStart = tag.GetSymStart (); //DATA symbol start
       traceParams.m_numSym = tag.GetNumSym (); //DATA symbol length
       traceParams.m_bwpId = GetBwpId ();
       traceParams.m_indexStartSubChannel = sciHeader.GetIndexStartSubChannel ();
       traceParams.m_lengthSubChannel = sciHeader.GetLengthSubChannel ();
+      traceParams.m_slResourceReservePeriod = sciHeader.GetSlResourceReservePeriod ();
       traceParams.m_maxNumPerReserve = sciHeader.GetSlMaxNumPerReserve ();
       traceParams.m_dstL2Id = tag.GetDstL2Id ();
       uint32_t rbBitmapSize = static_cast<uint32_t> (m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
       traceParams.m_rbStart = m_slRxSigParamInfo.at (paramIndex).rbBitmap.at (0);
       traceParams.m_rbEnd = m_slRxSigParamInfo.at (paramIndex).rbBitmap.at (rbBitmapSize - 1);
       traceParams.m_rbAssignedNum = rbBitmapSize;
-      m_rxPacketTraceUe (traceParams);
+      m_rxPscchTraceUe (traceParams);
     }
 
   if (paramIndexes.size () > 0)
@@ -2110,6 +2121,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
         }
 
       SlRxDataPacketTraceParams traceParams;
+      traceParams.m_timeMs = Simulator::Now ().GetMilliSeconds ();
       traceParams.m_cellId = ueRx->GetPhy (GetBwpId ())->GetCellId ();
       traceParams.m_rnti = ueRx->GetPhy (GetBwpId ())->GetRnti ();
       traceParams.m_tbSize = tbIt.second.expectedTb.tbSize;
@@ -2135,7 +2147,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       traceParams.m_rbAssignedNum = rbBitmapSize;
       traceParams.m_dstL2Id = sciF2a.GetDstId ();
       traceParams.m_srcL2Id = sciF2a.GetSrcId ();
-      m_rxPacketTraceUe (traceParams);
+      m_rxPsschTraceUe (traceParams);
 
       // Now dispatch the non corrupted TBs to UE PHY
       if (!tbIt.second.isDataCorrupted)
