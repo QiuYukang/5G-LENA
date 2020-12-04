@@ -102,8 +102,10 @@ private:
                          uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
                          Address srcAddrs, Address dstAddrs)
       : timeSec (timeSec), txRx (txRx), localAddrs (localAddrs),
-        nodeId (nodeId), imsi (imsi), p (p), srcAddrs (srcAddrs),
-        dstAddrs (dstAddrs){}
+      nodeId (nodeId), imsi (imsi), p (p), srcAddrs (srcAddrs),
+      dstAddrs (dstAddrs)
+    {
+    }
 
     double timeSec {0.0};
     std::string txRx {""};
@@ -128,7 +130,7 @@ private:
   void WriteCache ();
 
   SQLiteOutput *m_db {nullptr}; //!< DB pointer
-  std::string m_tableName {"IvalidTableName"}; //!< table name
+  std::string m_tableName {"InvalidTableName"}; //!< table name
   std::vector<UePacketResultCache> m_pktCache;   //!< Result cache
 };
 

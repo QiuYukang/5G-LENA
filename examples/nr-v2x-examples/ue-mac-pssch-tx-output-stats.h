@@ -108,7 +108,7 @@ private:
   void WriteCache ();
 
   SQLiteOutput *m_db {nullptr}; //!< DB pointer
-  std::string m_tableName {"IvalidTableName"}; //!< table name
+  std::string m_tableName {"InvalidTableName"}; //!< table name
   std::vector<SlPsschUeMacStatParameters> m_psschCache;   //!< Result cache
 };
 

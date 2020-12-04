@@ -62,7 +62,7 @@ UeMacPsschTxOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
   NS_ABORT_UNLESS (ret);
 
   UeMacPsschTxOutputStats::DeleteWhere (m_db, RngSeedManager::GetSeed (),
-                                       RngSeedManager::GetRun(), tableName);
+                                        RngSeedManager::GetRun (), tableName);
 }
 
 void
@@ -78,7 +78,7 @@ UeMacPsschTxOutputStats::Save (const SlPsschUeMacStatParameters psschStatsParams
 }
 
 void
-UeMacPsschTxOutputStats::EmptyCache()
+UeMacPsschTxOutputStats::EmptyCache ()
 {
   WriteCache ();
 }
@@ -147,7 +147,7 @@ UeMacPsschTxOutputStats::WriteCache ()
 
 void
 UeMacPsschTxOutputStats::DeleteWhere (SQLiteOutput *p, uint32_t seed,
-                                           uint32_t run, const std::string &table)
+                                      uint32_t run, const std::string &table)
 {
   bool ret;
   sqlite3_stmt *stmt;

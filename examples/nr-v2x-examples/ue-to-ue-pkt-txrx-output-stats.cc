@@ -53,13 +53,13 @@ UeToUePktTxRxOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
   NS_ABORT_UNLESS (ret);
 
   UeToUePktTxRxOutputStats::DeleteWhere (m_db, RngSeedManager::GetSeed (),
-                                       RngSeedManager::GetRun(), tableName);
+                                         RngSeedManager::GetRun (), tableName);
 }
 
 void
 UeToUePktTxRxOutputStats::Save (const std::string txRx, const Address &localAddrs,
-                             uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
-                             const Address &srcAddrs, const Address &dstAddrs)
+                                uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
+                                const Address &srcAddrs, const Address &dstAddrs)
 {
   m_pktCache.emplace_back (UePacketResultCache (Simulator::Now ().GetNanoSeconds () / (double) 1e9,
                                                 txRx, localAddrs,
@@ -74,7 +74,7 @@ UeToUePktTxRxOutputStats::Save (const std::string txRx, const Address &localAddr
 }
 
 void
-UeToUePktTxRxOutputStats::EmptyCache()
+UeToUePktTxRxOutputStats::EmptyCache ()
 {
   WriteCache ();
 }
@@ -161,65 +161,65 @@ UeToUePktTxRxOutputStats::WriteCache ()
             }
         }
       else if (Inet6SocketAddress::IsMatchingType (v.srcAddrs))
-          {
-            oss << Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetIpv6 ();
-            if (!oss.str ().compare ("::")) //srcAddrs not set
-              {
-                std::ostringstream ip;
-                ip << Ipv6Address::ConvertFrom (v.localAddrs);
-                std::string srcStr = ip.str ();
-                ret = m_db->Bind (stmt, 6, srcStr);
-                NS_ABORT_UNLESS (ret);
-                ret = m_db->Bind (stmt, 7, Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
-                NS_ABORT_UNLESS (ret);
-                ip.str ("");
-                ip << Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetIpv6 ();
-                std::string dstStr =  ip.str ();
-                ret = m_db->Bind (stmt, 8, dstStr);
-                NS_ABORT_UNLESS (ret);
-                ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
-                NS_ABORT_UNLESS (ret);
-              }
-            else
-              {
-                oss.str ("");
-                oss << Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetIpv6 ();
-                if (!oss.str ().compare ("::")) //dstAddrs not set
-                  {
-                    std::ostringstream ip;
-                    ip << Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetIpv6 ();
-                    std::string srcStr = ip.str ();
-                    ret = m_db->Bind (stmt, 6, srcStr);
-                    NS_ABORT_UNLESS (ret);
-                    ret = m_db->Bind (stmt, 7, Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
-                    NS_ABORT_UNLESS (ret);
-                    ip.str ("");
-                    ip << Ipv6Address::ConvertFrom (v.localAddrs);
-                    std::string dstStr =  ip.str ();
-                    ret = m_db->Bind (stmt, 8, dstStr);
-                    NS_ABORT_UNLESS (ret);
-                    ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
-                    NS_ABORT_UNLESS (ret);
-                  }
-                else
-                  {
-                    std::ostringstream ip;
-                    ip << Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetIpv6 ();
-                    std::string srcStr = ip.str ();
-                    ret = m_db->Bind (stmt, 6, srcStr);
-                    NS_ABORT_UNLESS (ret);
-                    ret = m_db->Bind (stmt, 7, Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
-                    NS_ABORT_UNLESS (ret);
-                    ip.str ("");
-                    ip << Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetIpv6 ();
-                    std::string dstStr =  ip.str ();
-                    ret = m_db->Bind (stmt, 8, dstStr);
-                    NS_ABORT_UNLESS (ret);
-                    ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
-                    NS_ABORT_UNLESS (ret);
-                  }
-              }
-          }
+        {
+          oss << Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetIpv6 ();
+          if (!oss.str ().compare ("::"))   //srcAddrs not set
+            {
+              std::ostringstream ip;
+              ip << Ipv6Address::ConvertFrom (v.localAddrs);
+              std::string srcStr = ip.str ();
+              ret = m_db->Bind (stmt, 6, srcStr);
+              NS_ABORT_UNLESS (ret);
+              ret = m_db->Bind (stmt, 7, Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
+              NS_ABORT_UNLESS (ret);
+              ip.str ("");
+              ip << Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetIpv6 ();
+              std::string dstStr =  ip.str ();
+              ret = m_db->Bind (stmt, 8, dstStr);
+              NS_ABORT_UNLESS (ret);
+              ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
+              NS_ABORT_UNLESS (ret);
+            }
+          else
+            {
+              oss.str ("");
+              oss << Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetIpv6 ();
+              if (!oss.str ().compare ("::"))   //dstAddrs not set
+                {
+                  std::ostringstream ip;
+                  ip << Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetIpv6 ();
+                  std::string srcStr = ip.str ();
+                  ret = m_db->Bind (stmt, 6, srcStr);
+                  NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 7, Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
+                  NS_ABORT_UNLESS (ret);
+                  ip.str ("");
+                  ip << Ipv6Address::ConvertFrom (v.localAddrs);
+                  std::string dstStr =  ip.str ();
+                  ret = m_db->Bind (stmt, 8, dstStr);
+                  NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
+                  NS_ABORT_UNLESS (ret);
+                }
+              else
+                {
+                  std::ostringstream ip;
+                  ip << Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetIpv6 ();
+                  std::string srcStr = ip.str ();
+                  ret = m_db->Bind (stmt, 6, srcStr);
+                  NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 7, Inet6SocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
+                  NS_ABORT_UNLESS (ret);
+                  ip.str ("");
+                  ip << Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetIpv6 ();
+                  std::string dstStr =  ip.str ();
+                  ret = m_db->Bind (stmt, 8, dstStr);
+                  NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
+                  NS_ABORT_UNLESS (ret);
+                }
+            }
+        }
       else
         {
           NS_FATAL_ERROR ("Unknown address type!");
@@ -241,7 +241,7 @@ UeToUePktTxRxOutputStats::WriteCache ()
 
 void
 UeToUePktTxRxOutputStats::DeleteWhere (SQLiteOutput *p, uint32_t seed,
-                                           uint32_t run, const std::string &table)
+                                       uint32_t run, const std::string &table)
 {
   bool ret;
   sqlite3_stmt *stmt;
