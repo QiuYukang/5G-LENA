@@ -420,6 +420,8 @@ NrUeMac::DoDispose ()
   delete m_nrSlUeMacSchedSapUser;
   m_nrSlHarq->Dispose ();
   m_nrSlHarq = nullptr;
+  m_slTxPool = nullptr;
+  m_slRxPool = nullptr;
 }
 
 void

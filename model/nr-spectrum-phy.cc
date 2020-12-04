@@ -119,6 +119,9 @@ NrSpectrumPhy::DoDispose ()
   m_slInterference->Dispose ();
   m_slInterference = nullptr;
   m_slAmc = nullptr;
+  m_nrPhyRxPscchEndOkCallback = nullptr;
+  m_nrPhyRxPsschEndOkCallback = nullptr;
+  m_nrPhyRxPsschEndErrorCallback = nullptr;
 
   SpectrumPhy::DoDispose ();
 }
@@ -2236,7 +2239,7 @@ NrSpectrumPhy::AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, 
                                                     rbMap, symStart,
                                                     numSym, sfn));
 
-  bool insertStatus = m_slTransportBlocks.emplace (rnti, tbInfo).second;
+  bool insertStatus = m_slTransportBlocks.emplace (std::make_pair (rnti, tbInfo)).second;
 
   NS_ASSERT_MSG (insertStatus == true, "Unable to emplace the info of an NR SL expected TB");
 

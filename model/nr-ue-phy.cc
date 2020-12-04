@@ -70,6 +70,8 @@ NrUePhy::DoDispose ()
   delete m_ueCphySapProvider;
   NrPhy::DoDispose ();
   delete m_nrSlUeCphySapProvider;
+  m_slTxPool = nullptr;
+  m_slRxPool = nullptr;
 }
 
 TypeId
