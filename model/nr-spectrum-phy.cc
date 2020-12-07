@@ -1812,7 +1812,9 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
                                                               m_slAmc->CalculateTbSize (pscchMcs,m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()),
                                                               pscchMcs, NrErrorModel::NrErrorModelHistory ());
               corrupt = m_random->GetValue () > outputEmForCtrl->m_tbler ? false : true;
-              NS_LOG_DEBUG (this << " PSCCH Decoding, errorRate " << outputEmForCtrl << " error " << corrupt);
+              NS_LOG_DEBUG ("SCI 1 number of RBs " << m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
+              NS_LOG_DEBUG ("SCI 1 TB size " << m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()));
+              NS_LOG_DEBUG (this << " PSCCH Decoding, errorRate " << outputEmForCtrl->m_tbler << " error " << corrupt);
             }
         }
       else
@@ -1866,7 +1868,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       traceParams.m_mcs = pscchMcs;
       traceParams.m_sinr = ctrlMsgIt.sinrAvg;
       traceParams.m_sinrMin = ctrlMsgIt.sinrMin;
-      traceParams.m_tblerSci1 = outputEmForCtrl->m_tbler;
+      traceParams.m_tbler = outputEmForCtrl->m_tbler;
       traceParams.m_corrupt = corrupt;
       traceParams.m_symStart = tag.GetSymStart (); //DATA symbol start
       traceParams.m_numSym = tag.GetNumSym (); //DATA symbol length
