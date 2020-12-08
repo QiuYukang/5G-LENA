@@ -699,6 +699,43 @@ public:
    */
   uint8_t GetNumSidelinkProcess () const;
 
+  /**
+   * \brief Sets a threshold in dBm used for sensing based UE autonomous resource selection
+   * \param thresRsrp The RSRP threshold in dBm
+   */
+  void SetSlThresPsschRsrp (int thresRsrp);
+
+  /**
+   * \brief Gets a threshold in dBm used for sensing based UE autonomous resource selection
+   * \return The RSRP threshold in dBm
+   */
+  int GetSlThresPsschRsrp () const;
+
+  /**
+   * \brief Sets the percentage threshold to indicate the minimum number of
+   *        candidate single-slot resources to be selected using sensing
+   *        procedure.
+   * \param percentage The percentage, e.g., 1, 2, 3,.. and so on.
+   */
+  void SetResourcePercentage (uint8_t percentage);
+
+  /**
+   * \brief Gets the percentage threshold to indicate the minimum number of
+   *        candidate single-slot resources to be selected using sensing
+   *        procedure.
+   * \return The percentage, e.g., 1, 2, 3,.. and so on.
+   */
+  uint8_t GetResourcePercentage () const;
+
+  /**
+   * \brief Consider retransmissions of the sensed slot in sensing based
+   *        resource allocation.
+   * \param reTxSensingFlag true if UE MAC needs to consider retransmissions
+   *        of the sensed slot in the sensing based resource allocation;
+   *        false otherwise.
+   */
+  void ConsiderReTxForSensing (bool reTxSensingFlag);
+
 protected:
   // forwarded from NR SL UE MAC SAP Provider
   /**
@@ -761,6 +798,13 @@ protected:
    */
   void DoSetSlProbResoKeep (uint8_t prob);
   /**
+   * \brief Set the maximum transmission number (including new transmission and
+   *        retransmission) for PSSCH.
+   *
+   * \param maxTxPssch The max number of PSSCH transmissions
+   */
+  void DoSetSlMaxTxTransNumPssch (uint8_t maxTxPssch);
+  /**
    * \brief Set Sidelink source layer 2 id
    *
    * \param srcL2Id The Sidelink layer 2 id of the source
@@ -793,16 +837,23 @@ protected:
    * \param rbLen The PSCSCH length in number of RBs
    * \param prio The priority
    * \param slRsrp The measured RSRP value over the used resource blocks
+   * \param gapReTx1 Gap for a first retransmission in absolute slots
+   * \param gapReTx2 Gap for a second retransmission in absolute slots
    */
-  void DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart, uint16_t rbLen, uint8_t prio, double slRsrp);
+  void DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart,
+                             uint16_t rbLen, uint8_t prio, double slRsrp,
+                             uint8_t gapReTx1, uint8_t gapReTx2);
 
 
   // forwarded from MemberNrSlUeMacSchedSapUser
   /**
    * \brief Method to communicate NR SL allocations from NR SL UE scheduler
-   * \param params the struct of type NrSlSlotAlloc
+   * \param slotAllocList The slot allocation list passed by a specific
+   *        scheduler to NrUeMac
+   *
+   * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
    */
-  void DoSchedUeNrSlConfigInd (const NrSlSlotAlloc& params);
+  void DoSchedUeNrSlConfigInd (const std::set<NrSlSlotAlloc>& slotAllocList);
 
   /**
    * \brief Method through which the NR SL scheduler gets the total number of NR
@@ -810,6 +861,14 @@ protected:
    * \return the total number of NR SL sub-channels
    */
   uint8_t DoGetTotalSubCh () const;
+  /**
+   * \brief Method through which the NR SL scheduler gets the maximum
+   *        transmission number (including new transmission and retransmission)
+   *        for PSSCH.
+   *
+   * \return The max number of PSSCH transmissions
+   */
+  uint8_t DoGetSlMaxTxTransNumPssch () const;
 
   // forwarded from MemberNrSlUeMacCschedSapUser
   /**
@@ -855,6 +914,8 @@ private:
     std::set <NrSlSlotAlloc> slotAllocations; //!< List of all the slots available for transmission with the pool
     uint8_t prevSlResoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< Previously drawn Sidelink resource re-selection counter
     uint8_t nrSlHarqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
+    uint8_t nSelected {0}; //!< The number of slots selected by the scheduler for first reservation period
+    uint8_t tbTxCounter {0}; //!< The counter to count the number of time a TB is tx/reTx in a reservation period
   };
 
   struct SensingData
@@ -865,6 +926,8 @@ private:
     uint16_t rbLen {std::numeric_limits <uint16_t>::max ()}; //!< The PSCSCH length in number of RBs
     uint8_t prio {std::numeric_limits <uint8_t>::max ()}; //!< The priority
     double slRsrp {0.0}; //!< The measured RSRP value over the used resource blocks
+    uint8_t gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< Gap for a first retransmission in absolute slots
+    uint8_t gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< Gap for a second retransmission in absolute slots
   };
 
   /**
@@ -889,12 +952,18 @@ private:
   /**
    * \brief Get NR Sidelink transmit opportunities
    * \param sfn The current system frame, subframe, and slot number. This SfnSf
-   *        is aligned with the SfnSf of the physical layer
-   * \param poolId The pool if
+   *        is aligned with the SfnSf of the physical layer.
    * \return The list of the transmit opportunities (slots) asper the TDD pattern
    *         and the NR SL bitmap
    */
-  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSlTxOpportunities (const SfnSf& sfn, uint16_t poolId);
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSlTxOpportunities (const SfnSf& sfn);
+  /**
+   * \brief Get the list of the future transmission slots based on sensed data.
+   * \param sensedData The data extracted from the sensed SCI 1-A.
+   * \param T2 Parameter that determines the end of the selection window.
+   * \return The list of the future transmission slots based on sensed data.
+   */
+  std::list<NrUeMac::SensingData> GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData, uint64_t T2);
   /**
    * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
    *        NrSlUeMacSchedSapProvider::NrSlSlotInfo
@@ -950,10 +1019,14 @@ private:
   /**
    * \brief Create grant info
    *
-   * \param params The resource allocation from the scheduler
+   * \param slotAllocList The slot allocation list passed by a specific
+   *        scheduler to NrUeMac
    * \return The grant info for a destination based on the scheduler allocation
+   *
+   * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
+   * \see NrSlGrantInfo
    */
-  NrSlGrantInfo CreateGrantInfo (const NrSlSlotAlloc & params);
+  NrSlGrantInfo CreateGrantInfo (const std::set<NrSlSlotAlloc>& params);
   /**
    * \brief Filter the Transmit opportunities.
    *
@@ -972,6 +1045,17 @@ private:
    * It will remove the sensing data, which lies outside the sensing window length.
    */
   void UpdateSensingWindow (const SfnSf& sfn);
+  /**
+   * \brief Compute the gaps in slots for the possible retransmissions
+   *        indicated by an SCI 1-A.
+   * \param sfn The SfnSf of the current slot which will carry the SCI 1-A.
+   * \param it The iterator to a slot allocation list, which is pointing to the
+   *        first possible retransmission.   *
+   * \param slotNumInd The parameter indicating how many gaps we need to compute.
+   * \return A vector containing the value gaps in slots for the possible retransmissions
+   *        indicated by an SCI 1-A.
+   */
+  std::vector<uint8_t> ComputeGaps (const SfnSf& sfn, std::set <NrSlSlotAlloc>::const_iterator it, uint8_t slotNumInd);
 
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
@@ -1000,17 +1084,38 @@ private:
   typedef std::unordered_map <uint32_t, struct NrSlGrantInfo>::iterator GrantInfoIt_t; //!< The typedef for the iterator of the grant info map
   GrantInfo_t m_grantInfo; //!< The map of grant info per destination layer 2 id
   uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
+  uint8_t m_slMaxTxTransNumPssch {0}; /**< Indicates the maximum transmission number
+                                     (including new transmission and
+                                     retransmission) for PSSCH.
+                                     */
   uint8_t m_numSidelinkProcess {0}; //!< Maximum number of Sidelink processes
   Ptr <NrSlUeMacHarq> m_nrSlHarq; //!< Pointer to the NR SL UE MAC HARQ object
   uint32_t m_srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id;
   bool m_nrSlMacPduTxed {false}; //!< Flag to indicate the TX of SL MAC PDU to PHY
   std::list<SensingData> m_sensingData; //!< List to store sensing data
+  int m_thresRsrp {-128}; //!< A threshold in dBm used for sensing based UE autonomous resource selection
+  uint8_t m_resPercentage {0}; /**< The percentage threshold to indicate the
+                                    minimum number of candidate single-slot
+                                    resources to be selected using sensing procedure.
+                                    */
+  uint8_t m_reselCounter {0}; //!< The resource selection counter
+  uint16_t m_cResel {0}; //!< The C_resel counter
+  bool m_reTxSensingFlag {false}; /**< Flag to indicate whether to
+                                       consider retransmissions
+                                       of the sensed slot in sensing
+                                       based resource allocation
+                                       */
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.
    * SlPscchUeMacStatParameters (see nr-sl-phy-mac-common.h)
    */
   TracedCallback<SlPscchUeMacStatParameters> m_slPscchScheduling; //!< NR SL PSCCH scheduling trace source
+  /**
+   * Trace information regarding NR Sidelink PSSCH UE scheduling.
+   * SlPsschUeMacStatParameters (see nr-sl-phy-mac-common.h)
+   */
+  TracedCallback<SlPsschUeMacStatParameters> m_slPsschScheduling; //!< NR SL PSCCH scheduling trace source
 };
 
 }

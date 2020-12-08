@@ -570,14 +570,13 @@ public:
  struct SlExpectedTb
  {
    SlExpectedTb (uint32_t dstId, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbMap,
-               uint8_t symStart, uint8_t numSym, uint8_t maxNumPerReserve, const SfnSf &sfn) :
+               uint8_t symStart, uint8_t numSym, const SfnSf &sfn) :
      dstId {dstId},
      tbSize (tbSize),
      mcs (mcs),
      rbBitmap (rbMap),
      symStart (symStart),
      numSym (numSym),
-     maxNumPerReserve (maxNumPerReserve),
      sfn (sfn) { }
    SlExpectedTb () = delete;
    SlExpectedTb (const SlExpectedTb &o) = default;
@@ -588,7 +587,6 @@ public:
    std::vector<int> rbBitmap;     //!< RB Bitmap
    uint8_t symStart          {0}; //!< Sym start
    uint8_t numSym            {0}; //!< Num sym
-   uint8_t maxNumPerReserve  {0}; //!< Maximum number of transmissions
    SfnSf sfn;                     //!< SFN
  };
 
@@ -729,8 +727,9 @@ public:
    * \param numSym
    * \param sfn
    */
-  void AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbMap,
-                        uint8_t symStart, uint8_t numSym, uint8_t maxNumPerReserve ,const SfnSf &sfn);
+  void AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize,
+                        uint8_t mcs, const std::vector<int> &rbMap,
+                        uint8_t symStart, uint8_t numSym,const SfnSf &sfn);
 
 private:
   struct SinrStats
@@ -794,6 +793,9 @@ private:
   typedef std::unordered_map<uint16_t , SlTransportBlockInfo> SlTransportBlocks;
 
   SlTransportBlocks m_slTransportBlocks; //!< Map of type SlTransportBlocks
+
+  TracedCallback<SlRxCtrlPacketTraceParams> m_rxPscchTraceUe; //!< trace source for PSCCH reception
+  TracedCallback<SlRxDataPacketTraceParams> m_rxPsschTraceUe; //!< trace source for PSSCH reception
 };
 
 }

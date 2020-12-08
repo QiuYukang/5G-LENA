@@ -44,11 +44,11 @@ NrSlUeMacSchedulerSimple::GetTypeId (void)
 bool
 NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
                                             const std::shared_ptr<NrSlUeMacSchedulerDstInfo> &dstInfo,
-                                            NrSlSlotAlloc &slotAlloc)
+                                            std::set<NrSlSlotAlloc> &slotAllocList)
 {
   NS_LOG_FUNCTION (this);
   bool allocated = false;
-
+  NS_ASSERT_MSG (txOpps.size () > 0, "Scheduler received an empty txOpps list from UE MAC");
   const auto & lcgMap = dstInfo->GetNrSlLCG (); //Map of unique_ptr should not copy
 
   NS_ASSERT_MSG (lcgMap.size () == 1, "NrSlUeMacSchedulerSimple can handle only one LCG");
@@ -63,21 +63,19 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
       return allocated;
     }
 
-  std::set <uint16_t> randTxOpps = RandomlySelectSlots (txOpps);
 
-  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>::const_iterator txOppsIt = txOpps.begin ();
-  std::advance (txOppsIt, *(randTxOpps.begin ()));
-
-  NS_ASSERT_MSG (randTxOpps.size () == txOppsIt->slMaxNumPerReserve, "Number of randomly chosen slots should be equal to slMaxNumPerReserve");
-
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> selectedTxOpps;
+  selectedTxOpps = RandomlySelectSlots (txOpps);
+  NS_ASSERT_MSG (selectedTxOpps.size () > 0, "Scheduler should select at least 1 slot from txOpps");
   uint32_t tbs = 0;
   uint8_t assignedSbCh = 0;
-  uint16_t availableSymbols = txOppsIt->slPsschSymLength;
+  uint16_t availableSymbols = selectedTxOpps.begin ()->slPsschSymLength;
+  uint16_t sbChSize = selectedTxOpps.begin ()->slSubchannelSize;
   NS_LOG_DEBUG ("Total available symbols for PSSCH = " << availableSymbols);
   do
     {
       assignedSbCh++;
-      tbs = GetNrSlAmc ()->CalculateTbSize (dstInfo->GetDstMcs (), txOppsIt->slSubchannelSize * assignedSbCh * availableSymbols);
+      tbs = GetNrSlAmc ()->CalculateTbSize (dstInfo->GetDstMcs (), sbChSize * assignedSbCh * availableSymbols);
     }
   while (tbs < bufferSize + 5 /*(5 bytes overhead of SCI format 2A)*/ && (GetTotalSubCh () - assignedSbCh) > 0);
 
@@ -86,45 +84,48 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
   tbs = tbs - 5 /*(5 bytes overhead of SCI stage 2)*/;
 
   allocated = true;
-  slotAlloc.sfn = txOppsIt->sfn;
-  slotAlloc.dstL2Id = dstInfo->GetDstL2Id ();
-  slotAlloc.ndi = 1;
-  slotAlloc.rv = 0;
-  slotAlloc.priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
-  SlRlcPduInfo slRlcPduInfo (lcVector.at (0), tbs);
-  slotAlloc.slRlcPduInfo.push_back (slRlcPduInfo);
-  slotAlloc.mcs = dstInfo->GetDstMcs ();
-  //PSCCH
-  slotAlloc.numSlPscchRbs = txOppsIt->numSlPscchRbs;
-  slotAlloc.slPscchSymStart = txOppsIt->slPscchSymStart;
-  slotAlloc.slPscchSymLength = txOppsIt->slPscchSymLength;
-  //PSSCH
-  slotAlloc.slPsschSymStart = txOppsIt->slPsschSymStart;
-  slotAlloc.slPsschSymLength = availableSymbols;
-  slotAlloc.slPsschSubChStart = 0;
-  slotAlloc.slPsschSubChLength = assignedSbCh;
-  slotAlloc.maxNumPerReserve = txOppsIt->slMaxNumPerReserve;
 
-  if (randTxOpps.size () > 1)
+  for (const auto &itTxOpps:selectedTxOpps)
     {
-      txOppsIt = txOpps.begin ();
-      NS_LOG_DEBUG ("Advancing to " << *(std::next (randTxOpps.begin (), 1)) << " index for ReTxGap1");
-      std::advance (txOppsIt, *(std::next (randTxOpps.begin (), 1)));
-      uint64_t gapReTx1 = txOppsIt->sfn.Normalize () - slotAlloc.sfn.Normalize ();
-      NS_LOG_DEBUG ("Gap between first Tx and first ReTx is absolute slots = " << gapReTx1);
-      NS_ABORT_IF (gapReTx1 > UINT8_MAX);
-      slotAlloc.gapReTx1 = static_cast <uint8_t> (gapReTx1);
-    }
+      NrSlSlotAlloc slotAlloc;
+      slotAlloc.sfn = itTxOpps.sfn;
+      slotAlloc.dstL2Id = dstInfo->GetDstL2Id ();
+      slotAlloc.priority = lcgMap.begin ()->second->GetLcPriority (lcVector.at (0));
+      SlRlcPduInfo slRlcPduInfo (lcVector.at (0), tbs);
+      slotAlloc.slRlcPduInfo.push_back (slRlcPduInfo);
+      slotAlloc.mcs = dstInfo->GetDstMcs ();
+      //PSCCH
+      slotAlloc.numSlPscchRbs = itTxOpps.numSlPscchRbs;
+      slotAlloc.slPscchSymStart = itTxOpps.slPscchSymStart;
+      slotAlloc.slPscchSymLength = itTxOpps.slPscchSymLength;
+      //PSSCH
+      slotAlloc.slPsschSymStart = itTxOpps.slPsschSymStart;
+      slotAlloc.slPsschSymLength = availableSymbols;
+      slotAlloc.slPsschSubChStart = 0;
+      slotAlloc.slPsschSubChLength = assignedSbCh;
+      slotAlloc.maxNumPerReserve = itTxOpps.slMaxNumPerReserve;
+      slotAlloc.ndi = slotAllocList.empty () == true ? 1 : 0;
+      slotAlloc.rv = GetRv (static_cast<uint8_t>(slotAllocList.size ()));
+      if (static_cast<uint16_t>(slotAllocList.size ()) % itTxOpps.slMaxNumPerReserve == 0)
+        {
+          slotAlloc.txSci1A = true;
+          if (slotAllocList.size () + itTxOpps.slMaxNumPerReserve <= selectedTxOpps.size ())
+            {
+              slotAlloc.slotNumInd = itTxOpps.slMaxNumPerReserve;
+            }
+          else
+            {
+              slotAlloc.slotNumInd = selectedTxOpps.size () - slotAllocList.size ();
+            }
+        }
+      else
+        {
+          slotAlloc.txSci1A = false;
+          //Slot, which does not carry SCI 1-A can not indicate future TXs
+          slotAlloc.slotNumInd = 0;
+        }
 
-  if (randTxOpps.size () > 2)
-    {
-      txOppsIt = txOpps.begin ();
-      NS_LOG_DEBUG ("Advancing to " << *(std::next (randTxOpps.begin (), 2)) << " index for ReTxGap2");
-      std::advance (txOppsIt, *(std::next (randTxOpps.begin (), 2)));
-      uint64_t gapReTx2 = txOppsIt->sfn.Normalize () - slotAlloc.sfn.Normalize ();
-      NS_LOG_DEBUG ("Gap between first Tx and second ReTx is absolute slots = " << gapReTx2);
-      NS_ABORT_IF (gapReTx2 > UINT8_MAX);
-      slotAlloc.gapReTx2 = static_cast <uint8_t> (gapReTx2);
+      slotAllocList.emplace (slotAlloc);
     }
 
   lcgMap.begin ()->second->AssignedData (lcVector.at (0), tbs);
@@ -132,61 +133,35 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
 }
 
 
-std::set <uint16_t>
-NrSlUeMacSchedulerSimple::RandomlySelectSlots (const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps)
+std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+NrSlUeMacSchedulerSimple::RandomlySelectSlots (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps)
 {
   NS_LOG_FUNCTION (this);
 
-  std::set <uint16_t> randIndex;
+  uint8_t totalTx = GetSlMaxTxTransNumPssch ();
+  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> newTxOpps;
 
-  std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>::const_iterator txOppsIt = txOpps.begin ();
-
-  NS_ASSERT_MSG (txOpps.size () >= txOppsIt->slMaxNumPerReserve,
-                 "not enough txOpps to perform " << txOppsIt->slMaxNumPerReserve << " transmissions");
-
-  NS_ASSERT_MSG (txOppsIt->slMaxNumPerReserve >= 1 && txOppsIt->slMaxNumPerReserve < 4,
-                 "slMaxNumPerReserve should be greater than 1 and less than 4");
-
-  uint16_t totalReTx = txOppsIt->slMaxNumPerReserve - 1;
-  uint16_t txOppSize = static_cast <uint16_t> (txOpps.size ());
-  uint16_t reTxWindSize = static_cast <uint16_t> (GetNrSlReTxWindow ());
-
-  uint16_t firstTxSlot = m_uniformVariable->GetInteger (1, (txOppSize - totalReTx));
-
-  uint32_t firstTxIndex = firstTxSlot - 1; //adjust since list index start from 0
-
-  randIndex.insert (firstTxIndex);
-
-  if (txOppsIt->slMaxNumPerReserve == 1)
+  if (txOpps.size () > totalTx)
     {
-      return randIndex;
+      while (newTxOpps.size () != totalTx)
+        {
+          auto txOppsIt = txOpps.begin ();
+          // Walk through list until the random element is reached
+          std::advance (txOppsIt, m_uniformVariable->GetInteger (0, txOpps.size () - 1));
+          //copy the randomly selected slot info into the new list
+          newTxOpps.emplace_back (*txOppsIt);
+          //erase the selected one from the list
+          txOppsIt = txOpps.erase (txOppsIt);
+        }
     }
-
-  uint16_t remainingTxSlots = txOppSize - firstTxSlot;
-
-  uint16_t finalRetxWind = std::min (reTxWindSize, remainingTxSlots);
-
-  uint16_t lastSlotForRetxOne = (finalRetxWind - totalReTx) + 1 + firstTxSlot;
-
-  uint16_t reTxOneSlot = m_uniformVariable->GetInteger ((firstTxSlot + 1), lastSlotForRetxOne);
-
-  uint16_t reTxOneIndex = reTxOneSlot - 1; //adjust since list index start from 0
-
-  randIndex.insert (reTxOneIndex);
-
-  if (txOppsIt->slMaxNumPerReserve == 2)
+  else
     {
-      return randIndex;
+      newTxOpps = txOpps;
     }
-
-  uint16_t lastSlotForRetxTwo = firstTxSlot + finalRetxWind;
-
-  uint16_t reTxTwoSlot = m_uniformVariable->GetInteger ((reTxOneSlot + 1), lastSlotForRetxTwo);
-
-  uint16_t reTxTwoIndex = reTxTwoSlot - 1; //adjust since list index start from 0
-
-  randIndex.insert (reTxTwoIndex);
-  return randIndex;
+  //sort the list by SfnSf before returning
+  newTxOpps.sort ();
+  NS_ASSERT_MSG (newTxOpps.size () <= totalTx, "Number of randomly selected slots exceeded total number of TX");
+  return newTxOpps;
 }
 
 

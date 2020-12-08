@@ -54,18 +54,23 @@ struct NrSlInfoListElement_s
  */
 struct SlPscchUeMacStatParameters
 {
-  int64_t timestamp {std::numeric_limits<int64_t>::max ()}; //!< In millisecond
+  int64_t timeMs {0}; //!< Time stamp in MilliSeconds
   uint64_t imsi {std::numeric_limits<uint64_t>::max ()}; //!< The IMSI of the scheduled UE
   uint16_t rnti {std::numeric_limits<uint16_t>::max ()}; //!< The RNTI scheduled
   uint32_t frameNum {std::numeric_limits<uint32_t>::max ()}; //!< The frame number
   uint32_t subframeNum {std::numeric_limits<uint32_t>::max ()}; //!< The subframe number
   uint16_t slotNum {std::numeric_limits<uint16_t>::max ()}; //!< The slot number
+  uint16_t symStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting symbol used for sidelink PSCCH in a slot
+  uint16_t symLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of symbols allocated for sidelink PSCCH
+  uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting resource block
+  uint16_t rbLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous resource block
   uint8_t priority {std::numeric_limits<uint8_t>::max ()}; //!< The priority of a LC. When multiple LCs are multiplexed it is the priority of the LC with the highest priority.
   uint8_t mcs {std::numeric_limits<uint8_t>::max ()}; //!< The MCS for transport block
   uint16_t tbSize {std::numeric_limits<uint16_t>::max ()}; //!< The PSSCH transport block size in bytes
   uint16_t slResourceReservePeriod {std::numeric_limits<uint16_t>::max ()}; //!< The Resource reservation period in milliseconds
   uint16_t totalSubChannels {std::numeric_limits<uint16_t>::max ()}; //!< The total number of sub-channels given the SL bandwidth
-  uint8_t indexSubchannelStart {std::numeric_limits<uint8_t>::max ()}; //!< The index of the starting sub-channel
+  uint16_t slPsschSubChStart {std::numeric_limits <uint16_t>::max ()}; //!< Index of the first subchannel allocated for data
+  uint16_t slPsschSubChLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of subchannel allocated for data
   uint8_t slMaxNumPerReserve {std::numeric_limits<uint8_t>::max ()}; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI
   uint8_t gapReTx1 {std::numeric_limits<uint8_t>::max ()}; //!< The gap between a transmission and its first re-transmission in slots
   uint8_t gapReTx2 {std::numeric_limits<uint8_t>::max ()}; //!< The gap between a transmission and its second re-transmission in slots
@@ -76,7 +81,43 @@ struct SlPscchUeMacStatParameters
    *
    * \param [in] params Value of the SlPscchUeMacStatParameters
    */
-  typedef void (* TracedCallback)(const SlPscchUeMacStatParameters &params);
+  typedef void (* TracedCallback)(const SlPscchUeMacStatParameters params);
+};
+
+/**
+ * \ingroup utils
+ * \brief SlPsschUeMacStatParameters structure
+ */
+struct SlPsschUeMacStatParameters
+{
+  int64_t timeMs {0}; //!< Time stamp in MilliSeconds
+  uint64_t imsi {std::numeric_limits<uint64_t>::max ()}; //!< The IMSI of the scheduled UE
+  uint16_t rnti {std::numeric_limits<uint16_t>::max ()}; //!< The RNTI scheduled
+  uint32_t frameNum {std::numeric_limits<uint32_t>::max ()}; //!< The frame number
+  uint32_t subframeNum {std::numeric_limits<uint32_t>::max ()}; //!< The subframe number
+  uint16_t slotNum {std::numeric_limits<uint16_t>::max ()}; //!< The slot number
+  uint16_t symStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting symbol used for sidelink PSSCH in a slot
+  uint16_t symLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of symbols allocated for sidelink PSSCH
+  uint16_t subChannelSize {std::numeric_limits<uint16_t>::max ()}; //!< The subchannel size in RBs
+  uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting resource block
+  uint16_t rbLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous resource block
+  uint8_t harqId {std::numeric_limits <uint8_t>::max ()}; //!< The NR SL HARQ process id assigned at the time of transmitting new data
+  uint8_t ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
+  uint8_t rv {std::numeric_limits <uint8_t>::max ()}; //!< The redundancy version
+  uint32_t srcL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The NR Sidelink Source L2 id
+  uint32_t dstL2Id {std::numeric_limits <uint32_t>::max ()}; //!< The destination Layer 2 Id
+  uint8_t csiReq {std::numeric_limits <uint8_t>::max ()}; //!< The channel state information request flag
+  uint8_t castType {std::numeric_limits <uint8_t>::max ()}; //!< The cast type
+  uint8_t resoReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Sidelink resource re-selection counter for the semi-persistently scheduled resources as per TS 38.214
+  uint16_t cReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Cresel counter for the semi-persistently scheduled resources as per TS 38.214
+
+  /**
+   * \ingroup utils
+   *  TracedCallback signature.
+   *
+   * \param [in] params Value of the SlPsschUeMacStatParameters
+   */
+  typedef void (* TracedCallback)(const SlPsschUeMacStatParameters params);
 };
 
 /**
@@ -120,8 +161,8 @@ struct NrSlSlotAlloc
   uint16_t slPsschSubChLength {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of subchannel allocated for data
 
   uint16_t maxNumPerReserve {std::numeric_limits <uint16_t>::max ()}; //!< The maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
-  uint8_t  gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
-  uint8_t  gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
+  bool txSci1A {false}; //!< Flag to indicate if the slots must carry SCI 1-A
+  uint8_t slotNumInd {0}; //!< The number of future TXs an SCI 1-A can indicate
 
   /**
    * \ingroup utils
@@ -192,13 +233,23 @@ struct NrSlPhySlotAlloc
  */
 struct SlRxDataPacketTraceParams:public RxPacketTraceParams
 {
-  uint16_t m_txRnti;
-  double m_tblerSci2;
-  bool m_sci2Corrupted;
-  int m_rbStart;
-  int m_rbEnd;
-  uint32_t m_dstL2Id;
-  uint16_t m_srcL2Id;
+  int64_t m_timeMs {0}; //!< Time stamp in MilliSeconds
+  uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
+  uint8_t m_ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
+  double m_tblerSci2; //!< TBLER of SCI stage 2
+  bool m_sci2Corrupted {false}; //!< The flag to indicate the success/failure of SCI stage 2 decodification
+  int m_rbStart; //!< The start RB index
+  int m_rbEnd; //!< The end RB index
+  uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
+  uint16_t m_srcL2Id {0}; //!< The source layer 2 id
+
+  /**
+   * \ingroup utils
+   *  TracedCallback signature.
+   *
+   * \param [in] params Value of the SlRxDataPacketTraceParams
+   */
+  typedef void (* TracedCallback)(const SlRxDataPacketTraceParams params);
 };
 
 /**
@@ -207,20 +258,25 @@ struct SlRxDataPacketTraceParams:public RxPacketTraceParams
  */
 struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
 {
-  uint16_t m_txRnti;
-  double m_tblerSci1;
-  bool m_sci1Corrupted;
-  int m_rbStart;
-  int m_rbEnd;
-  uint8_t m_priority;
-  uint16_t m_slResourceReservePeriod;
-  uint16_t m_totalSubChannels;
-  uint8_t m_indexStartSubChannel;
-  uint8_t m_lengthSubChannel;
-  uint8_t m_maxNumPerReserve;
-  uint32_t m_dstL2Id;
-  int m_pscchRbStart;
-  int m_pscchRbEnd;
+  int64_t m_timeMs {0}; //!< Time stamp in MilliSeconds
+  uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
+  int m_rbStart; //!< The start RB index
+  int m_rbEnd; //!< The end RB index
+  uint8_t m_priority {std::numeric_limits <uint8_t>::max ()}; //!< The priority
+  uint16_t m_slResourceReservePeriod {std::numeric_limits <uint16_t>::max ()}; //!< The resource reservation period
+  uint16_t m_totalSubChannels {0}; //!< The total number of subchannel
+  uint8_t m_indexStartSubChannel {std::numeric_limits <uint8_t>::max ()}; //!< The starting index of the subchannel
+  uint8_t m_lengthSubChannel {std::numeric_limits <uint8_t>::max ()}; //!< The total number of subchannel assigned
+  uint8_t m_maxNumPerReserve {std::numeric_limits <uint8_t>::max ()}; //!< The MaxNumPerReserved
+  uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
+
+  /**
+   * \ingroup utils
+   *  TracedCallback signature.
+   *
+   * \param [in] params Value of the SlRxCtrlPacketTraceParams
+   */
+  typedef void (* TracedCallback)(const SlRxCtrlPacketTraceParams params);
 };
 
 }

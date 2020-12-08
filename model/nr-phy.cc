@@ -908,6 +908,11 @@ NrPhy::PopPscchPacketBurst (void)
   NS_LOG_FUNCTION (this);
   if (m_nrSlPscchPacketBurstQueue.at (0)->GetSize () > 0)
     {
+      //At this stage we assume that PSCCH is not sent without data.
+      //Check the doxy of DoSendPscchMacPdu, and DoSendPsschMacPdu.
+      NS_ASSERT_MSG (m_nrSlPsschPacketBurstQueue.at (0)->GetSize () > 0,
+                     "Currently, PSCCH always goes with data.");
+
       Ptr<PacketBurst> ret = m_nrSlPscchPacketBurstQueue.at (0)->Copy ();
       m_nrSlPscchPacketBurstQueue.erase (m_nrSlPscchPacketBurstQueue.begin ());
       m_nrSlPscchPacketBurstQueue.push_back (CreateObject <PacketBurst> ());
@@ -971,7 +976,6 @@ NrPhy::NrSlSlotAllocInfoExists (const SfnSf &sfn) const
 {
   NS_LOG_FUNCTION (this);
   if (m_nrSlPsschPacketBurstQueue.at (0)->GetNPackets () > 0
-      && m_nrSlPsschPacketBurstQueue.at (0)->GetNPackets () > 0
       && !m_nrSlAllocInfoQueue.empty ())
     {
       return true;

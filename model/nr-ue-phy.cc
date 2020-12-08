@@ -44,9 +44,6 @@
 #include <ns3/pointer.h>
 #include "beam-manager.h"
 
-#include "nr-sl-sci-f1a-header.h"
-#include "nr-sl-mac-pdu-tag.h"
-
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("NrUePhy");
@@ -73,6 +70,8 @@ NrUePhy::DoDispose ()
   delete m_ueCphySapProvider;
   NrPhy::DoDispose ();
   delete m_nrSlUeCphySapProvider;
+  m_slTxPool = nullptr;
+  m_slRxPool = nullptr;
 }
 
 TypeId
@@ -634,6 +633,8 @@ NrUePhy::StartSlot (const SfnSf &s)
   // update the current slot object, and insert DL/UL CTRL allocations depending on the TDD pattern
   bool nrAllocExists = SlotAllocInfoExists (m_currentSlot);
   bool slAllocExists = NrSlSlotAllocInfoExists (m_currentSlot);
+
+  SendSlExpectedTbInfo (s);
 
   if (slAllocExists)
     {
@@ -1378,6 +1379,7 @@ NrUePhy::SendNrSlCtrlChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
     }
 
   SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
+  NS_LOG_DEBUG ("Sending PSCCH on SfnSf " << m_currentSlot);
   m_spectrumPhy->StartTxSlCtrlFrames (pb, varTtiPeriod);
 }
 
@@ -1428,6 +1430,7 @@ NrUePhy::SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
     }
 
   SetSubChannelsForTransmission (channelRbs, varTtiInfo.symLength);
+  NS_LOG_DEBUG ("Sending PSSCH on SfnSf " << m_currentSlot);
   m_spectrumPhy->StartTxSlDataFrames (pb, varTtiPeriod);
 }
 
@@ -1462,7 +1465,8 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
 
   m_nrSlUePhySapUser->ReceiveSensingData (m_currentSlot, sciF1a.GetSlResourceReservePeriod (),
                                           rbStart, rbBitMap.size (),
-                                          sciF1a.GetPriority (), rsrpDbm);
+                                          sciF1a.GetPriority (), rsrpDbm,
+                                          sciF1a.GetGapReTx1 (), sciF1a.GetGapReTx2 ());
 
   for (const auto &it:destinations)
     {
@@ -1472,8 +1476,59 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
           m_spectrumPhy->AddSlExpectedTb (tag.GetRnti (), tag.GetDstL2Id (),
                                           tag.GetTbSize (), sciF1a.GetMcs (),
                                           rbBitMap, tag.GetSymStart (),
-                                          tag.GetNumSym (), sciF1a.GetSlMaxNumPerReserve (),
-                                          tag.GetSfn ());
+                                          tag.GetNumSym (), tag.GetSfn ());
+          SaveFutureSlRxGrants (sciF1a, tag, rbBitMap);
+        }
+    }
+}
+
+void
+NrUePhy::SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a,
+                               const NrSlMacPduTag& tag,
+                               const std::vector<int>& rbBitMap)
+{
+  NS_LOG_FUNCTION (this);
+  SlRxGrantInfo infoTb (tag.GetRnti (), tag.GetDstL2Id (),
+                        tag.GetTbSize (), sciF1a.GetMcs (),
+                        rbBitMap, tag.GetSymStart (),
+                        tag.GetNumSym (), tag.GetSfn ());
+
+  if (sciF1a.GetGapReTx1 () != std::numeric_limits <uint8_t>::max ())
+    {
+      infoTb.sfn = tag.GetSfn().GetFutureSfnSf (sciF1a.GetGapReTx1 ());
+      m_slRxGrants.push_back (infoTb);
+    }
+  if (sciF1a.GetGapReTx2 () != std::numeric_limits <uint8_t>::max ())
+    {
+      infoTb.sfn = tag.GetSfn().GetFutureSfnSf (sciF1a.GetGapReTx2 ());
+      m_slRxGrants.push_back (infoTb);
+    }
+
+  NS_LOG_DEBUG ("Expecting " << m_slRxGrants.size () << " future PSSCH slots without SCI 1-A");
+  for (const auto &it : m_slRxGrants)
+    {
+      NS_LOG_DEBUG ("Expecting on SfnSf " << it.sfn);
+    }
+}
+
+void
+NrUePhy::SendSlExpectedTbInfo (const SfnSf &s)
+{
+  NS_LOG_FUNCTION (this);
+  if (m_slRxGrants.size () > 0)
+    {
+      auto expextedTbInfo = m_slRxGrants.front ();
+      if (expextedTbInfo.sfn == s)
+        {
+          m_slRxGrants.pop_front ();
+          m_spectrumPhy->AddSlExpectedTb (expextedTbInfo.rnti,
+                                          expextedTbInfo.dstId,
+                                          expextedTbInfo.tbSize,
+                                          expextedTbInfo.mcs,
+                                          expextedTbInfo.rbBitmap,
+                                          expextedTbInfo.symStart,
+                                          expextedTbInfo.numSym,
+                                          expextedTbInfo.sfn);
         }
     }
 }
