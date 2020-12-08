@@ -38,5 +38,6 @@ def build(bld):
 
 
     bld.recurse('lena-lte-comparison')
+    bld.recurse('nr-v2x-examples')
 
 
