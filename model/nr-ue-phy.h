@@ -37,6 +37,7 @@ namespace ns3 {
 class NrChAccessManager;
 class BeamManager;
 class BeamId;
+class NrUePowerControl;
 class NrSlCommResourcePool;
 
 /**
@@ -114,6 +115,12 @@ public:
    */
   void SetPhySapUser (NrUePhySapUser* ptr);
 
+  /*
+   * \brief Enable or disable uplink power control
+   * \param enable parameter that enables or disables power control
+   */
+  void SetEnableUplinkPowerControl (bool enable);
+
   /**
    * \brief Set the transmission power for the UE
    *
@@ -129,6 +136,19 @@ public:
    * \return the TX power of the UE
    */
   virtual double GetTxPower () const override;
+
+  /**
+   * \brief Returns the latest measured RSRP value
+   * Called by NrUePowerControl.
+   */
+  double GetRsrp () const;
+
+  /**
+   * \brief Get LTE uplink power control entity
+   *
+   * \return ptr pointer to LTE uplink power control entity
+   */
+  Ptr<NrUePowerControl> GetUplinkPowerControl () const;
 
   /**
    * \brief Register the UE to a certain Enb
@@ -324,6 +344,11 @@ public:
    * \param slot Slot
    */
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
+
+  /**
+   * \brief Called when rsReceivedPower is
+   */
+  void ReportRsReceivedPower (const SpectrumValue& power);
 
   /**
    * \brief TracedCallback signature for power trace source
@@ -616,6 +641,9 @@ private:
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
 
+  bool m_enableUplinkPowerControl {false}; //!< Flag that indicates whether power control is enabled
+  Ptr<NrUePowerControl> m_powerControl; //!< UE power control entity
+
   Ptr<const NrAmc> m_amc;  //!< AMC model used to compute the CQI feedback
 
   Time m_wbCqiLast;
@@ -650,6 +678,8 @@ private:
   uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
   uint8_t m_dlCtrlSyms {1}; //!< Number of CTRL symbols in DL
   uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
+
+  double m_rsrp {0}; //!< The latest measured RSRP value
 
   /**
    * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding

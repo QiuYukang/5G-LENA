@@ -101,7 +101,7 @@ std::function<bool (const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
                     const NrMacSchedulerNs3::UePtrAndBufferReq &rhs)>
 NrMacSchedulerOfdmaPF::GetUeCompareUlFn () const
 {
-  return NrMacSchedulerUeInfoRR::CompareUeWeightsUl;
+  return NrMacSchedulerUeInfoPF::CompareUeWeightsUl;
 }
 
 void
@@ -127,12 +127,43 @@ NrMacSchedulerOfdmaPF::NotAssignedDlResources (const NrMacSchedulerNs3::UePtrAnd
 }
 
 void
+NrMacSchedulerOfdmaPF::AssignedUlResources (const UePtrAndBufferReq &ue,
+                                                const FTResources &assigned,
+                                                const FTResources &totAssigned) const
+{
+  NS_LOG_FUNCTION (this);
+  NS_UNUSED (assigned);
+  auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
+  uePtr->UpdateUlPFMetric (totAssigned, m_timeWindow, m_ulAmc);
+}
+
+void
+NrMacSchedulerOfdmaPF::NotAssignedUlResources (const NrMacSchedulerNs3::UePtrAndBufferReq &ue,
+                                                   const NrMacSchedulerNs3::FTResources &assigned,
+                                                   const NrMacSchedulerNs3::FTResources &totAssigned) const
+{
+  NS_LOG_FUNCTION (this);
+  NS_UNUSED (assigned);
+  auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
+  uePtr->UpdateUlPFMetric (totAssigned, m_timeWindow, m_ulAmc);
+}
+
+void
 NrMacSchedulerOfdmaPF::BeforeDlSched (const UePtrAndBufferReq &ue,
                                           const FTResources &assignableInIteration) const
 {
   NS_LOG_FUNCTION (this);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
-  uePtr->CalculatePotentialTPut (assignableInIteration, m_dlAmc);
+  uePtr->CalculatePotentialTPutDl (assignableInIteration, m_dlAmc);
+}
+
+void
+NrMacSchedulerOfdmaPF::BeforeUlSched (const UePtrAndBufferReq &ue,
+                                          const FTResources &assignableInIteration) const
+{
+  NS_LOG_FUNCTION (this);
+  auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
+  uePtr->CalculatePotentialTPutUl (assignableInIteration, m_ulAmc);
 }
 
 } // namespace ns3

@@ -381,6 +381,13 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   return dci;
 }
 
+uint8_t
+NrMacSchedulerTdma::GetTpc () const
+{
+  NS_LOG_FUNCTION (this);
+  return 1; // 1 is mapped to 0 for Accumulated mode, and to -1 in Absolute mode TS38.213 Table Table 7.1.1-1
+}
+
 /**
  * \brief Create a DCI with the parameters specified as input
  * \param spoint starting point
@@ -406,7 +413,7 @@ NrMacSchedulerTdma::CreateDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
 
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, fmt, spoint->m_sym, numSym, mcs, tbs, 1, 0, DciInfoElementTdma::DATA,
-       GetBwpId ());
+       GetBwpId (), GetTpc());
 
   std::vector<uint8_t> rbgAssigned = fmt == DciInfoElementTdma::DL ? GetDlNotchedRbgMask () :
                                                                      GetUlNotchedRbgMask ();

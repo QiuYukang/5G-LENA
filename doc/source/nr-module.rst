@@ -769,6 +769,45 @@ where :math:`R` is the ECR of the selected MCS, :math:`Q` is the modulation orde
 
 After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
 
+.. _Notching:
+
+UFA aka Notching
+================
+UL Frequency Avoidance (UFA) (known also as spectrum notching) is a
+technique that restricts the usage of certain Resource Block Groups (RBGs)
+for UL transmissions referred to as "notched" RBGs. For more details
+please see [notching1]_, [notching2]_.
+
+We opted for a flexible solution that is independent of the size, location and
+continuity/discontinuity of the notched RBGs, as well as for the transmission
+direction, i.e. DL/UL. The UFA feature is implemented on top of the TDMA/OFDMA
+scheduler classes (``NrMacSchedulerTdma`` and ``NrMacSchedulerOfdma``).
+
+In particular, the parent class ``NrMacSchedulerNs3`` can get as input a DL and/or
+an UL notched mask through the ``SetDlNotchedRbgMask`` and ``SetUlNotchedRbgMask``
+methods. The masks will define the resources per gNB that can and cannot be assigned
+for its DL and/or UL transmissions. These masks are actually comprised by 1s (normal
+RBGs) and 0s (notched RBGs), while the index of the position of each bit inside
+the mask corresponds to each RBG index. Therefore, the size of the mask must
+change in accordance to the selected bandwidth (BW).
+
+An example of the notched mask is: 1 1 1 1 1 1 0 1 1 1 1 1 0 0 0 0 1 1 1 1 0 1 1 1 1
+
+Based on this mask, the scheduler before performing the assignment of RBGs to the
+active UEs, calculates the number of available RBGs to be distributed among the
+UEs (by RR, PF, etc). Then, during the scheduling process, it is responsible for
+not assigning the RBGs that conflict with the notched RBGs defined in the mask.
+The result of this process is a mask for each UE that contains the RBGs assigned
+to that UE. Since the scheduling processes for both DL and UL directions are included
+in the gNB functionality, this mask is communicated to the UE through the DL/UL DCI.
+
+Let us notice that if no mask is defined or if a mask with all 1s is selected,
+the scheduler will take under consideration all the RBGs in the scheduling process.
+
+UFA in 5G-LENA can be simulated with the :ref:`notchingExample` example described
+in detail in :ref:`Examples` section, while the notching functionality is tested
+with the UNIT Test :ref:`notchingTest` described in :ref:`Validation` section.
+
 
 RLC layer
 *********
@@ -836,7 +875,7 @@ Two general types of maps can be generated according to whether the BeamShape
 or CoverageArea is selected.
 The first case considers the configuration of the beamforming vectors (for each
 RTD) as defined by the user in the scenario script for which the REM maps
-(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSiso3gpp`
+(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSexamples`
 where the first two figures depict the SNR (left) and SINR (right) for the case
 of two gNBs with antenna array configuration 8x8 and Isotropic elements, while
 the two figures on the bottom correspond to 3GPP element configuration.
@@ -853,7 +892,7 @@ In the second case, the beams are reconfigured during the map generation for
 each rem point in order to visualize the coverage area in terms of SNR, SINR
 and IPSD. Examples of the SNR (left) and SINR (right) CoverageArea maps for two
 gNBs with Isotropic/3GPP (top/bottom) antenna elements are presented in
-Figure :ref:`fig-CAiso3gpp`.
+Figure :ref:`fig-CAexamples`.
 
 .. _fig-CAexamples:
 
@@ -876,7 +915,7 @@ configured to both gNBs of the example.
 
    CoverageArea map examples with buildings (left: SNR, right: SINR)
 
-An example for a hexagonal deployment is given in Figure :ref:`fig-UmaRma`. In this
+An example for a hexagonal deployment is given in Figure :ref:`fig-S3`. In this
 example the REM depicts a scenario for the frequency band of 2GHz, BW of 10 MHz,
 while the Inter-Site Distance (ISD) has been set to 1732m for the Urban case (top)
 and 7000m for the Rural case (bottom). The transmit power has been set to 43 dBm.
@@ -955,6 +994,7 @@ Usage
 This section is principally concerned with the usage of the model, using
 the public API. We discuss on examples available to the user.
 
+.. _Examples:
 
 Examples
 ********
@@ -1170,6 +1210,31 @@ The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/s3-scenario_8cc.html
 
 
+.. _notchingExample:
+
+cttc-nr-notching.cc
+===================
+The program ``examples/cttc-nr-notching`` allows the user to setup a simulation
+to test the notching functionality described in :ref:`Notching`. The example
+allows the configuration of:
+
+* Variable number of gNBs
+* Definition of a (continuous) set of notched RBGs (through: notchedRbStart and numOfNotchedRbs)
+* Operation Mode: TDD/FDD + pattern for TDD case
+* Frequency, Bandwidth (5, 10 and 20 MHz), Numerology and transmit power per gNB
+* Scheduler Type: TDMA RR, PF, MR / OFDMA RR, PF, MR per gNB
+* Possibility to have only DL flows, only UL or both
+* Logging and traces
+
+Moreover, the user can study the variations in the throughput (e.g. when increasing
+the number of notched RBGs, the throughput gets decreased), as well in the SINR.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/cttc-nr-notching_8cc.html
+
+
+.. _Validation:
+
 Validation
 ----------
 
@@ -1327,6 +1392,21 @@ Test case called ``test-timings`` checks the NR timings for different numerologi
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/test-timings_8cc.html
 
+.. _notchingTest:
+
+Test for notching
+=================
+Test case called ``nr-test-notching`` validates the notching functionality
+(for more details please see :ref:`Notching`) for various beams, various number
+of UEs per beam, TDMA RR and OFDMA RR and different notching masks, by checking
+the RBG allocation to the different UEs.
+In particular, the test creates a fake MAC and checks in the method
+``TestNotchingGnbMac::DoSchedConfigIndication()`` that the RBG mask in the DCI
+is constructed in accordance with the (tested) notching mask.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
+
 
 Open issues and future work
 ---------------------------
@@ -1362,3 +1442,7 @@ Open issues and future work
 .. [nr-l2sm] S. Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello, L. Giupponi, "New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks", in Proceedings of IEEE International Conference on Communications (IEEE ICC), 7-11 June 2020, Dublin (Ireland).
 
 .. [baldo2009] N. Baldo and M. Miozzo, "Spectrum-aware Channel and PHY layer modeling for ns3", Proceedings of ICST NSTools 2009, Pisa, Italy.
+
+.. [notching1] H. McDonald, D. Shyy, M. Steele and C. Patterson, "LTE Uplink Interference Mitigation Features," MILCOM 2018 - 2018 IEEE Military Communications Conference (MILCOM), Los Angeles, CA, 2018, pp. 505-511, doi: 10.1109/MILCOM.2018.8599850
+
+.. [notching2] H. McDonald et al., "AWS-3 Interference Mitigation: Improving Spectrum Sharing with LTE & 5G Uplink Spectrum Control," MILCOM 2019 - 2019 IEEE Military Communications Conference (MILCOM), Norfolk, VA, USA, 2019, pp. 102-107, doi: 10.1109/MILCOM47813.2019.9020877

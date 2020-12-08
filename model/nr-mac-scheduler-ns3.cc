@@ -1992,7 +1992,7 @@ NrMacSchedulerNs3::DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocIn
       auto dci = std::make_shared<DciInfoElementTdma> (rnti, DciInfoElementTdma::UL,
                                                        spoint->m_sym, 1, 0, 0, 1, 0,
                                                        DciInfoElementTdma::SRS,
-                                                       GetBwpId());
+                                                       GetBwpId(), GetTpc ());
       dci->m_rbgBitmask = rbgBitmask;
 
       allocInfo->m_numSymAlloc += 1;

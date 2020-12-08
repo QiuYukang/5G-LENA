@@ -687,6 +687,13 @@ NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
 }
 
 void
+NrSpectrumPhy::AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
+{
+  NS_LOG_FUNCTION (this);
+  m_interferenceData->AddRsPowerChunkProcessor(p);
+}
+
+void
 NrSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
 {
   NS_LOG_FUNCTION (this << sinr);
@@ -868,6 +875,7 @@ NrSpectrumPhy::StartRxDlCtrl (const Ptr<NrSpectrumSignalParametersDlCtrlFrame>& 
         NS_ASSERT (m_rxControlMessageList.empty ());
         NS_LOG_LOGIC (this << "receiving DL CTRL from cellId:"<<params->cellId<< "and scheduling EndRx with delay " << params->duration);
         // store the DCIs
+        m_interferenceData->StartRx(params->psd);
         m_rxControlMessageList = params->ctrlMsgList;
         Simulator::Schedule (params->duration, &NrSpectrumPhy::EndRxCtrl, this);
         ChangeState (RX_DL_CTRL, params->duration);
@@ -1303,7 +1311,7 @@ NrSpectrumPhy::EndRxCtrl ()
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_state == RX_DL_CTRL || m_state == RX_UL_CTRL);
-
+  m_interferenceData->EndRx();
   // control error model not supported
   // forward control messages of this frame to LtePhy
   if (!m_rxControlMessageList.empty ())

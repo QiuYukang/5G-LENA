@@ -29,17 +29,19 @@
  * columns of the gNB and Ue antennas.
  * Please have a look at the possible parameters to know what you can configure
  * through the command line.
- *
- * The user can also specify the type of REM map (BeamShape/CovrageArea/UeCoverage)
- * he wishes to generate with the following command:
+ * The user can also specify the type of REM map (BeamShape/CoverageArea/UeCoverage)
+ * he wishes to generate with some of the following commands:
  * \code{.unparsed}
-$  ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=BeamShape"
-    \endcode
-
- * Moreover, DL or UL REM map can be selected by passing to the rem helper the desired
+   $ ./waf --run "rem-example --simTag=d --remMode=CoverageArea"
+   $ ./waf --run "rem-example --simTag=u --remMode=UeCoverage"
+   $ ./waf --run "rem-example --simTag=b1 --remMode=BeamShape --typeOfRem=DlRem"
+   $ ./waf --run "rem-example --simTag=b2 --remMode=BeamShape --typeOfRem=UlRem"
+   \endcode
+ *
+ * DL or UL REM map can be selected by passing to the rem helper the desired
  * transmitting device(s) (RTD(s)) and receiving device (RRD), which for the DL
  * case correspond to gNB(s) and UE and for the UL case to UE(s) and gNB.
-
+ *
  * The output of the REM includes a map with the SNR values, a map with the SINR
  * and a map with IPSD values (aggregated rx Power in each rem point).
  * Note that in case there is only one gNB configured, the SNR/SINR maps will be the same.
@@ -47,8 +49,17 @@ $  ./waf --run "rem-example --ns3::NrRadioEnvironmentMapHelper::RemMode=BeamShap
  * The output of this example are REM csv files from which can be generated REM
  * figures with the following command:
  * \code{.unparsed}
-$  gnuplot -p nr-rem-SimTag-gnbs.txt nr-rem-SimTag-ues.txt nr-rem-SimTag-buildings.txt nr-rem-SimTag-plot-rem.gnuplot
-    \endcode
+   $ gnuplot -p nr-rem-{simTag}-gnbs.txt nr-rem-{simTag}-ues.txt nr-rem-{simTag}-buildings.txt nr-rem-{simTag}-plot-rem.gnuplot
+   \endcode
+ *
+ * If no simTag is specified then to plot run the following command:
+ *
+ * \code{.unparsed}
+   $ gnuplot -p nr-rem--gnbs.txt nr-rem--ues.txt nr-rem--buildings.txt nr-rem--plot-rem.gnuplot
+   \endcode
+ *
+ * And the following files will be generated (in the root project folder if not specified
+ * differently): nr-rem--sinr.png, nr-rem--snr.png and nr-rem--ipsd.png
  *
  */
 
@@ -73,6 +84,9 @@ using namespace ns3;
 int 
 main (int argc, char *argv[])
 {
+  std::string remMode = "CoverageArea";
+  std::string simTag = "";
+
   std::string scenario = "UMa"; //scenario
   std::string beamforming = "dir-dir"; //beamforming at gNB and UE, the first is gNB and the second is UE
   enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
@@ -105,7 +119,7 @@ main (int argc, char *argv[])
   uint32_t numRowsGnb = 1; //4
   uint32_t numColumnsGnb = 1; //4
   bool isoUe = true;
-  bool isoGnb = true; //false
+  bool isoGnb = false; //false
 
   double simTime = 1; // in seconds
   bool logging = false;
@@ -127,6 +141,19 @@ main (int argc, char *argv[])
   double z = 1.5;
 
   CommandLine cmd;
+  cmd.AddValue ("remMode",
+                "What type of REM map to use: BeamShape, CoverageArea, UeCoverage."
+                "BeamShape shows beams that are configured in a user's script. "
+                "Coverage area is used to show worst-case SINR and best-case SNR maps "
+                "considering that at each point of the map the best beam is used "
+                "towards that point from the serving gNB and also of all the interfering"
+                "gNBs in the case of worst-case SINR."
+                "UeCoverage is similar to the previous, just that it is showing the "
+                "uplink coverage.",
+                 remMode);
+  cmd.AddValue ("simTag",
+                "Simulation string tag that will be concatenated to output file names",
+                 simTag);
   cmd.AddValue ("scenario",
                 "The scenario for the simulation. Choose among 'RMa', 'UMa', "
                 "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'"
@@ -167,7 +194,7 @@ main (int argc, char *argv[])
                 "'SingleGnb', 'TwoGnbs'.",
                 deploymentScenario);
   cmd.AddValue ("typeOfRem",
-                "The type of Rem to generate (DL or UL). Choose among "
+                "The type of Rem to generate (DL or UL) in the case of BeamShape option. Choose among "
                 "'DlRem', 'UlRem'.",
                 typeOfRem);
   cmd.AddValue ("frequency",
@@ -263,46 +290,46 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
-  if(scenario.compare("RMa") == 0)
+  if (scenario.compare ("RMa") == 0)
     {
       hBS = 35;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::RMa;
     }
-  else if(scenario.compare("UMa") == 0)
+  else if (scenario.compare ("UMa") == 0)
     {
       //hBS = 25;
       hBS = 1.5;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMa;
     }
-  else if(scenario.compare("UMa-Buildings") == 0)
+  else if (scenario.compare ("UMa-Buildings") == 0)
     {
       hBS = 1.5; // 25
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMa_Buildings;
       enableBuildings = true;
     }
-  else if (scenario.compare("UMi-StreetCanyon") == 0)
+  else if (scenario.compare ("UMi-StreetCanyon") == 0)
     {
       hBS = 10;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-  else if (scenario.compare("UMi-Buildings") == 0)
+  else if (scenario.compare ("UMi-Buildings") == 0)
     {
       hBS = 10;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMi_Buildings;
       enableBuildings = true;
     }
-  else if (scenario.compare("InH-OfficeMixed") == 0)
+  else if (scenario.compare ("InH-OfficeMixed") == 0)
     {
       hBS = 3;
       hUT = 1;
       scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
     }
-  else if (scenario.compare("InH-OfficeOpen") == 0)
+  else if (scenario.compare ("InH-OfficeOpen") == 0)
     {
       hBS = 3;
       hUT = 1;
@@ -310,30 +337,30 @@ main (int argc, char *argv[])
     }
   else
     {
-      NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', "
-                   "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen',"
-                   "'UMa-Buildings', and 'UMi-Buildings'.");
+      NS_ABORT_MSG ("Scenario not supported. Choose among 'RMa', 'UMa', "
+                    "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen',"
+                    "'UMa-Buildings', and 'UMi-Buildings'.");
     }
 
-  if(deploymentScenario.compare("SingleGnb") == 0)
+  if (deploymentScenario.compare ("SingleGnb") == 0)
     {
       gNbNum = 1;
       ueNumPergNb = 1;
     }
-  else if (deploymentScenario.compare("TwoGnbs") == 0)
+  else if (deploymentScenario.compare ("TwoGnbs") == 0)
     {
       gNbNum = 2;
       ueNumPergNb = 1;
     }
-  else if (deploymentScenario.compare("FourGnbs") == 0)
+  else if (deploymentScenario.compare ("FourGnbs") == 0)
     {
       gNbNum = 4;
       ueNumPergNb = 1;
     }
   else
     {
-      NS_ABORT_MSG("Deployment scenario not supported. "
-                   "Choose among 'SingleGnb', 'TwoGnbs'.");
+      NS_ABORT_MSG ("Deployment scenario not supported. "
+                    "Choose among 'SingleGnb', 'TwoGnbs'.");
     }
 
   double offset = 80;
@@ -347,34 +374,34 @@ main (int argc, char *argv[])
   // position the base stations
   Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator> ();
   gnbPositionAlloc->Add (Vector (gNB1x, gNB1y, hBS));
-  if (deploymentScenario.compare("TwoGnbs") == 0)
+  if (deploymentScenario.compare ("TwoGnbs") == 0)
   {
     gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
   }
-  if (deploymentScenario.compare("FourGnbs") == 0)
+  if (deploymentScenario.compare ("FourGnbs") == 0)
   {
     gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
     gnbPositionAlloc->Add (Vector (gNB1x + offset, gNB1y, hBS));
     gnbPositionAlloc->Add (Vector (gNB2x + offset, gNB2y, hBS));
   }
 
-  MobilityHelper gnbmobility;
-  gnbmobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  gnbmobility.SetPositionAllocator(gnbPositionAlloc);
-  gnbmobility.Install (gnbNodes);
+  MobilityHelper gnbMobility;
+  gnbMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  gnbMobility.SetPositionAllocator (gnbPositionAlloc);
+  gnbMobility.Install (gnbNodes);
 
   // position the mobile terminals
-  MobilityHelper uemobility;
-  uemobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  uemobility.Install (ueNodes);
+  MobilityHelper ueMobility;
+  ueMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  ueMobility.Install (ueNodes);
 
   ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x, ue1y, hUT));
-  if (deploymentScenario.compare("TwoGnbs") == 0)
+  if (deploymentScenario.compare ("TwoGnbs") == 0)
   {
     ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
   }
 
-  if (deploymentScenario.compare("FourGnbs") == 0)
+  if (deploymentScenario.compare ("FourGnbs") == 0)
   {
       ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
       ueNodes.Get (2)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x + offset, ue1y, hUT));
@@ -383,7 +410,7 @@ main (int argc, char *argv[])
 
   if (enableBuildings)
     {
-      Ptr<GridBuildingAllocator>  gridBuildingAllocator;
+      Ptr<GridBuildingAllocator> gridBuildingAllocator;
       gridBuildingAllocator = CreateObject<GridBuildingAllocator> ();
       gridBuildingAllocator->SetAttribute ("GridWidth", UintegerValue (numOfBuildings));
       gridBuildingAllocator->SetAttribute ("LengthX", DoubleValue (2 * apartmentsX));
@@ -427,8 +454,8 @@ main (int argc, char *argv[])
 
   CcBwpCreator::SimpleOperationBandConf bandConf (frequency, bandwidth, numCcPerBand, scenarioEnum);
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
-  //Initialize channel and pathloss, plus other things inside band.
 
+  //Initialize channel and pathloss, plus other things inside band.
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
@@ -475,25 +502,11 @@ main (int argc, char *argv[])
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
-  nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetTxPower (txPower);
-  nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-  if (deploymentScenario.compare("TwoGnbs") == 0)
-  {
-    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetTxPower (txPower);
-    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-  }
-
-  if (deploymentScenario.compare("FourGnbs") == 0)
-  {
-    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetTxPower (txPower);
-    nrHelper->GetGnbPhy (gnbNetDev.Get (1), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-    nrHelper->GetGnbPhy (gnbNetDev.Get (2), 0)->SetTxPower (txPower);
-    nrHelper->GetGnbPhy (gnbNetDev.Get (2), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-    nrHelper->GetGnbPhy (gnbNetDev.Get (3), 0)->SetTxPower (txPower);
-    nrHelper->GetGnbPhy (gnbNetDev.Get (3), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-  }
+  for (uint32_t i = 0; i < gNbNum; ++i)
+    {
+      nrHelper->GetGnbPhy (gnbNetDev.Get (i), 0)->SetTxPower (txPower);
+      nrHelper->GetGnbPhy (gnbNetDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
+    }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
   for (auto it = gnbNetDev.Begin (); it != gnbNetDev.End (); ++it)
@@ -566,25 +579,23 @@ main (int argc, char *argv[])
 
   if (deploymentScenario.compare("FourGnbs") == 0)
     {
-      nrHelper->AttachToEnb (ueNetDev.Get(1), gnbNetDev.Get(1));
-      nrHelper->AttachToEnb (ueNetDev.Get(2), gnbNetDev.Get(2));
-      nrHelper->AttachToEnb (ueNetDev.Get(3), gnbNetDev.Get(3));
+      nrHelper->AttachToEnb (ueNetDev.Get (1), gnbNetDev.Get (1));
+      nrHelper->AttachToEnb (ueNetDev.Get (2), gnbNetDev.Get (2));
+      nrHelper->AttachToEnb (ueNetDev.Get (3), gnbNetDev.Get (3));
     }
 
 
   // start server and client apps
-  serverApps.Start(Seconds(0.4));
-  clientApps.Start(Seconds(0.4));
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime-0.2));
+  serverApps.Start (Seconds (0.4));
+  clientApps.Start (Seconds (0.4));
+  serverApps.Stop (Seconds (simTime));
+  clientApps.Stop (Seconds (simTime-0.2));
 
   // enable the traces provided by the nr module
   if (enableTraces)
     {
-      nrHelper->EnableTraces();
+      nrHelper->EnableTraces ();
     }
-
-
 
   uint16_t remBwpId = 0;
   //Radio Environment Map Generation for ccId 0
@@ -596,37 +607,54 @@ main (int argc, char *argv[])
   remHelper->SetMaxY (yMax);
   remHelper->SetResY (yRes);
   remHelper->SetZ (z);
+  remHelper->SetSimTag (simTag);
 
-  gnbNetDev.Get(0)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(0));
+  gnbNetDev.Get(0)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (0));
 
   if (deploymentScenario.compare("TwoGnbs") == 0)
     {
-      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(1));
+      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
     }
 
   if (deploymentScenario.compare("FourGnbs") == 0)
     {
-      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(1));
-      gnbNetDev.Get(2)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(2));
-      gnbNetDev.Get(3)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(3));
+      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
+      gnbNetDev.Get(2)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (2));
+      gnbNetDev.Get(3)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (3));
     }
 
-  if(typeOfRem.compare("DlRem") == 0)
-  {
-    Ptr<NetDevice> ueRemDevice = ueNetDev.Get(0);
-    remHelper->CreateRem (gnbNetDev, ueRemDevice, remBwpId);
-  }
-  else if (typeOfRem.compare("UlRem") == 0)
-  {
-    Ptr<NetDevice> gnbRemDevice = gnbNetDev.Get(0);
-    remHelper->CreateRem (ueNetDev, gnbRemDevice, remBwpId);
-  }
-  else
-  {
-    NS_ABORT_MSG("typeOfRem not supported. "
-                 "Choose among 'DlRem', 'UlRem'.");
-  }
+  if (remMode == "BeamShape")
+    {
+      remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
 
+      if(typeOfRem.compare ("DlRem") == 0)
+        {
+          remHelper->CreateRem (gnbNetDev, ueNetDev.Get (0), remBwpId);
+        }
+      else if (typeOfRem.compare ("UlRem") == 0)
+        {
+          remHelper->CreateRem (ueNetDev, gnbNetDev.Get (0), remBwpId);
+        }
+      else
+        {
+          NS_ABORT_MSG ("typeOfRem not supported. "
+                        "Choose among 'DlRem', 'UlRem'.");
+        }
+    }
+  else if (remMode == "CoverageArea")
+    {
+      remHelper->SetRemMode (NrRadioEnvironmentMapHelper::COVERAGE_AREA);
+      remHelper->CreateRem (gnbNetDev, ueNetDev.Get (0), remBwpId);
+    }
+  else if (remMode == "UeCoverage")
+    {
+      remHelper->SetRemMode (NrRadioEnvironmentMapHelper::UE_COVERAGE);
+      remHelper->CreateRem (ueNetDev, gnbNetDev.Get (0), remBwpId);
+    }
+  else
+    {
+      NS_ABORT_MSG ("Not supported remMode.");
+    }
 
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();

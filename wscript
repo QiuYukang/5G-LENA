@@ -9,7 +9,7 @@ import os
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('nr', ['core','network', 'spectrum', 'virtual-net-device','point-to-point','applications','internet', 'lte', 'propagation'])
+    module = bld.create_ns3_module('nr', ['lte'])
     module.source = [
         'helper/nr-helper.cc',
         'helper/nr-phy-rx-trace.cc',
@@ -91,6 +91,7 @@ def build(bld):
         'model/lena-error-model.cc',
         'model/nr-mac-scheduler-srs-default.cc',
         'model/realistic-beamforming-algorithm.cc',
+        'model/nr-ue-power-control.cc',
         'model/nr-sl-comm-resource-pool-factory.cc',
         'model/nr-sl-comm-preconfig-resource-pool-factory.cc',
         'model/nr-sl-bwp-manager-ue.cc',
@@ -136,6 +137,7 @@ def build(bld):
         'test/nr-test-notching.cc',
         'test/test-nr-sl-sci-headers.cc',
         'test/nr-realistic-beamforming-test.cc',
+        'test/nr-test-uplink-power-control.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -228,6 +230,7 @@ def build(bld):
         'model/nr-mac-scheduler-srs.h',
         'model/nr-mac-scheduler-srs-default.h',
         'model/realistic-beamforming-algorithm.h',
+        'model/nr-ue-power-control.h',
         'model/nr-sl-comm-resource-pool-factory.h',
         'model/nr-sl-comm-preconfig-resource-pool-factory.h',
         'model/nr-sl-bwp-manager-ue.h',

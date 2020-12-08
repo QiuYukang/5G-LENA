@@ -65,11 +65,16 @@ available to the SRS message.
 
 - Added != operator function to `BeamId` class.
 
+- New PF UL functions
+
 ### Changes to existing API:
+
+- PF in UL direction is added
 
 ### Changed behavior:
 - If a notching mask is set, the scheduler will avoid to allocate the RBG in
   which the mask (a vector of integers) is set to zero.
+- When PF scheduler is configured, UL is also PF (previously RR UL was considered)
 
 ---
 

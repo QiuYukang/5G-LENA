@@ -41,7 +41,8 @@
  * \file cttc-nr-notching.cc
  * \ingroup examples
  *
- * \brief Creates a configurable NR TDD/FDD deployment with up to 2 gNBs, for testing a notching mask.
+ * \brief Creates a configurable NR TDD/FDD deployment with up to 2 gNBs, for
+ * testing a notching mask.
  *
  * This example is used to study notching. By default the notching mask (mask with
  * 0s and 1s, where 0s denote the RBs to be notched) is configured to all ones,
@@ -112,8 +113,11 @@ main (int argc, char *argv[])
 
   bool enableOfdma = false;
 
-  int notchedRbStart = 0;
-  int numOfNotchedRbs = 0;
+  int notchedRbStartDl = 0;
+  int numOfNotchedRbsDl = 0;
+
+  int notchedRbStartUl = 0;
+  int numOfNotchedRbsUl = 0;
 
   std::string simTag = "default";
   std::string outputDir = "./";
@@ -173,15 +177,26 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableOfdma",
                 "enable Ofdma scheduler. If false (default) Tdma is enabled",
                 enableOfdma);
-  cmd.AddValue ("notchedRbStart",
-                "starting point of notched RBs (choose among RBs 0-52 for BW of 10 MHz)",
-                notchedRbStart);
-  cmd.AddValue ("numOfNotchedRbs",
-                "Number of notched RBs. "
+  cmd.AddValue ("notchedRbStartDl",
+                "starting point of notched RBs (choose among RBs 0-52 for BW of 10 MHz)"
+                "for the DL",
+                notchedRbStartDl);
+  cmd.AddValue ("numOfNotchedRbsDl",
+                "Number of notched RBs for the DL. "
                 "Please be sure that the number of 'normal' RBs is sufficient to "
                 "perform transmissions of the UEs. If an error occurs, please try "
                 "to reduce either the number of UEs or the number of the RBs notched.",
-                numOfNotchedRbs);
+                numOfNotchedRbsDl);
+  cmd.AddValue ("notchedRbStartUl",
+                "starting point of notched RBs (choose among RBs 0-52 for BW of 10 MHz)"
+                "for the UL",
+                notchedRbStartUl);
+  cmd.AddValue ("numOfNotchedRbsUl",
+                "Number of notched RBs for the UL. "
+                "Please be sure that the number of 'normal' RBs is sufficient to "
+                "perform transmissions of the UEs. If an error occurs, please try "
+                "to reduce either the number of UEs or the number of the RBs notched.",
+                numOfNotchedRbsUl);
   cmd.AddValue ("simTag",
                 "tag to be appended to output filenames to distinguish simulation campaigns",
                 simTag);
@@ -201,26 +216,38 @@ main (int argc, char *argv[])
   if (bandwidth == 5e6)
    {
      size = 26;
-     NS_ABORT_MSG_IF (notchedRbStart < 0 || notchedRbStart > 25, "The starting point "
-                      "of the notched RBs must be between 0 and 25 for BW of 5MHz");
-     NS_ABORT_MSG_IF ((notchedRbStart + numOfNotchedRbs) > 25, "The available RBs "
-                      "are 26 (from 0 to 25) for BW of 5MHz");
+     NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 25, "The starting point "
+                      "of the DL notched RBs must be between 0 and 25 for BW of 5MHz");
+     NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 25, "The available RBs "
+                      "in DL are 26 (from 0 to 25) for BW of 5MHz");
+     NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 25, "The starting point "
+                      "of the UL notched RBs must be between 0 and 25 for BW of 5MHz");
+     NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 25, "The available RBs "
+                      "in UL are 26 (from 0 to 25) for BW of 5MHz");
    }
   else if (bandwidth == 10e6)
   {
     size = 53;
-    NS_ABORT_MSG_IF (notchedRbStart < 0 || notchedRbStart > 52, "The starting point "
-                     "of the notched RBs must be between 0 and 52 for BW of 10MHz");
-    NS_ABORT_MSG_IF ((notchedRbStart + numOfNotchedRbs) > 52, "The available RBs "
-                     "are 53 (from 0 to 52) for BW of 10MHz");
+    NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 52, "The starting point "
+                     "of the DL notched RBs must be between 0 and 52 for BW of 10MHz");
+    NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 52, "The available RBs "
+                     "in DL are 53 (from 0 to 52) for BW of 10MHz");
+    NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 52, "The starting point "
+                     "of the UL notched RBs must be between 0 and 52 for BW of 10MHz");
+    NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 52, "The available RBs "
+                     "in UL are 53 (from 0 to 52) for BW of 10MHz");
   }
   else if (bandwidth == 20e6)
   {
     size = 106;
-    NS_ABORT_MSG_IF (notchedRbStart < 0 || notchedRbStart > 105, "The starting point "
-                     "of the notched RBs must be between 0 and 105 for BW of 20MHz");
-    NS_ABORT_MSG_IF ((notchedRbStart + numOfNotchedRbs) > 105, "The available RBs "
-                     "are 106 (from 0 to 105) for BW of 20MHz");
+    NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 105, "The starting point "
+                     "of the DL notched RBs must be between 0 and 105 for BW of 20MHz");
+    NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 105, "The available RBs "
+                     "in DL are 106 (from 0 to 105) for BW of 20MHz");
+    NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 105, "The starting point "
+                     "of the UL notched RBs must be between 0 and 105 for BW of 20MHz");
+    NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 105, "The available RBs "
+                     "in UL are 106 (from 0 to 105) for BW of 20MHz");
   }
   else
   {
@@ -229,16 +256,28 @@ main (int argc, char *argv[])
   }
 
   // Default mask (all 1s)
-  std::vector<uint8_t> notchedMask (size, 1);
+  std::vector<uint8_t> notchedMaskDl (size, 1);
+  std::vector<uint8_t> notchedMaskUl (size, 1);
 
   //mute RBs from notchedRbStart to (notchedRbStart + numOfNotchedRbs)
-  for (int i = notchedRbStart; i < (notchedRbStart + numOfNotchedRbs); i++)
+  for (int i = notchedRbStartDl; i < (notchedRbStartDl + numOfNotchedRbsDl); i++)
     {
-      notchedMask[i] = 0;
+      notchedMaskDl[i] = 0;
     }
 
-  std::cout << "notched Mask: ";
-  for (int x : notchedMask)
+  for (int i = notchedRbStartUl; i < (notchedRbStartUl + numOfNotchedRbsUl); i++)
+    {
+      notchedMaskUl[i] = 0;
+    }
+
+  std::cout << "DL notched Mask: ";
+  for (int x : notchedMaskDl)
+    {
+      std::cout << x << " ";
+    }
+  std::cout << std::endl;
+  std::cout << "UL notched Mask: ";
+  for (int x : notchedMaskUl)
     {
       std::cout << x << " ";
     }
@@ -383,11 +422,12 @@ main (int argc, char *argv[])
 
       //Set the mask
       Ptr<NrMacSchedulerNs3> schedulerBwp1 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler (enbNetDev.Get (i), 0));
-      schedulerBwp1->SetDlNotchedRbgMask (notchedMask);
+      schedulerBwp1->SetDlNotchedRbgMask (notchedMaskDl);
 
       if (operationMode == "TDD")
         {
           nrHelper->GetGnbPhy (enbNetDev.Get (i), 0)->SetAttribute ("Pattern", StringValue (pattern));
+          schedulerBwp1->SetUlNotchedRbgMask (notchedMaskUl);
         }
       else
         {
@@ -398,7 +438,7 @@ main (int argc, char *argv[])
           nrHelper->GetGnbPhy (enbNetDev.Get (i), 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
           Ptr<NrMacSchedulerNs3> schedulerBwp2 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler(enbNetDev.Get (i), 1));
-          schedulerBwp2->SetUlNotchedRbgMask (notchedMask);
+          schedulerBwp2->SetUlNotchedRbgMask (notchedMaskUl);
 
           // Link the two FDD BWPs:
           nrHelper->GetBwpManagerGnb (enbNetDev.Get (i))->SetOutputLink (1, 0);
@@ -511,8 +551,8 @@ main (int argc, char *argv[])
   // The filter for the voice traffic
   Ptr<EpcTft> voiceTft = Create<EpcTft> ();
   EpcTft::PacketFilter ulpfVoice;
-  ulpfVoice.localPortStart = ulPortVoice;
-  ulpfVoice.localPortEnd = ulPortVoice;
+  ulpfVoice.remotePortStart = ulPortVoice;
+  ulpfVoice.remotePortEnd = ulPortVoice;
   ulpfVoice.direction = EpcTft::UPLINK;
   voiceTft->Add (ulpfVoice);
 

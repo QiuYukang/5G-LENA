@@ -67,6 +67,8 @@ struct Parameters
   std::string scheduler = "PF";
   uint32_t freqScenario = 0;
 
+  double downtiltAngle = 0;
+
   double xMinRem = -2000.0;
   double xMaxRem = 2000.0;
   uint16_t xResRem = 100;

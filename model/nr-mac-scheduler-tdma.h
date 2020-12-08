@@ -124,6 +124,8 @@ protected:
     NS_UNUSED (symOfBeam);
   }
 
+  virtual uint8_t GetTpc () const override;
+
   /**
    * \brief Provide the comparison function to order the UE when scheduling DL
    * \return a function that should order two UEs based on their priority: if

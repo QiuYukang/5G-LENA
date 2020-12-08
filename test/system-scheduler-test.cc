@@ -22,8 +22,6 @@
 #include <ns3/simulator.h>
 #include <ns3/nr-module.h>
 #include <ns3/internet-module.h>
-#include <ns3/internet-apps-module.h>
-#include <ns3/flow-monitor-module.h>
 #include <ns3/applications-module.h>
 #include <ns3/point-to-point-helper.h>
 

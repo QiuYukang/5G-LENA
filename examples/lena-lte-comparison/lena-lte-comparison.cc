@@ -382,7 +382,8 @@ LenaLteComparison (const Parameters &params)
                                   &ueTxPowerStats,
                                   params.scheduler,
                                   params.bandwidthMHz,
-                                  params.freqScenario);
+                                  params.freqScenario,
+                                  params.downtiltAngle);
     }
   else if (params.simulator == "5GLENA")
     {
@@ -417,7 +418,8 @@ LenaLteComparison (const Parameters &params)
                                     &rbStats,
                                     params.scheduler,
                                     params.bandwidthMHz,
-                                    params.freqScenario);
+                                    params.freqScenario,
+                                    params.downtiltAngle);
     }
   else
     {
@@ -887,6 +889,7 @@ operator << (std::ostream & os, const Parameters & parameters)
     }
   MSG ("Number of outer rings")         << p.numOuterRings;
   MSG ("Number of UEs per sector")      << p.ueNumPergNb;
+  MSG ("Antenna down tilt angle (deg)") << p.downtiltAngle;
 
   MSG ("");
   MSG ("Network loading")               << p.trafficScenario;
