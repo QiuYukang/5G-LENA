@@ -1269,12 +1269,12 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           return nrCandSsResoA;
         }
       //Compute T2
-      auto itFirstSlot = nrCandSsResoA.begin ();
       auto itLastSlot = nrCandSsResoA.end ();
-      uint64_t selecWindLen = itLastSlot->sfn.Normalize () - itFirstSlot->sfn.Normalize ();
-      uint64_t t2 = GetT1 () + selecWindLen;
+      //here the T2 is in absolute slots because it will be converted into
+      //ms to compute Tscal in GetFutSlotsBasedOnSens
+      uint64_t t2 = itLastSlot->sfn.Normalize () - sfn.Normalize ();
       // calculate all possible transmissions of sensed data
-      //using unordered map, since we need to check all the senesed slots
+      //using unordered map, since we need to check all the sensed slots
       //anyway, thus, the order does not matter.
       std::unordered_map<uint64_t, std::list<SensingData>> allSensingData;
       for (const auto &itSensedSlot:m_sensingData)
@@ -1299,7 +1299,10 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
               bool erased = false;
               // calculate all proposed transmissions of current candidate resource
               std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> listFutureCands;
-              uint16_t pPrimeRsvpTx = m_slTxPool->GetResvPeriodInSlots (GetBwpId (), m_poolId, m_pRsvpTx, m_nrSlUePhySapProvider->GetSlotPeriod ());
+              uint16_t pPrimeRsvpTx = m_slTxPool->GetResvPeriodInSlots (GetBwpId (),
+                                                                        m_poolId,
+                                                                        m_pRsvpTx,
+                                                                        m_nrSlUePhySapProvider->GetSlotPeriod ());
               for (uint16_t i = 0; i < m_cResel; i++)
                 {
                   auto slAlloc = *itCandSsResoA;
@@ -1377,7 +1380,10 @@ NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData, uint64_t t2)
     {
       q = 1;
     }
-  uint16_t pPrimeRsvpRx = m_slTxPool->GetResvPeriodInSlots (GetBwpId (), m_poolId, MilliSeconds (sensedData.rsvp), m_nrSlUePhySapProvider->GetSlotPeriod ());
+  uint16_t pPrimeRsvpRx = m_slTxPool->GetResvPeriodInSlots (GetBwpId (),
+                                                            m_poolId,
+                                                            MilliSeconds (sensedData.rsvp),
+                                                            m_nrSlUePhySapProvider->GetSlotPeriod ());
   for (uint16_t i = 1; i <= q; i++)
     {
       auto sensedSlotData = sensedData;
@@ -1451,7 +1457,9 @@ NrUeMac::UpdateSensingWindow (const SfnSf& sfn)
 {
   NS_LOG_FUNCTION (this << sfn);
 
-  uint16_t sensWindLen = m_slTxPool->GetNrSlSensWindInSlots (GetBwpId (), m_poolId, m_nrSlUePhySapProvider->GetSlotPeriod ());
+  uint16_t sensWindLen = m_slTxPool->GetNrSlSensWindInSlots (GetBwpId (),
+                                                             m_poolId,
+                                                             m_nrSlUePhySapProvider->GetSlotPeriod ());
   //oldest sensing data is on the top of the list
   auto it = m_sensingData.cbegin();
   while (it != m_sensingData.cend ())
