@@ -720,7 +720,6 @@ main (int argc, char *argv[])
     }
   else
     {
-      NS_FATAL_ERROR ("NR module does not support IPV6 yet");
       Ipv6InterfaceContainer ueIpIface;
       ueIpIface = epcHelper->AssignUeIpv6Address (ueVoiceNetDev);
 
