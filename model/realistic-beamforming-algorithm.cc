@@ -27,7 +27,7 @@
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
 #include "beam-manager.h"
-#include "nr-spectrum-value-helper.h"
+#include <ns3/nr-spectrum-value-helper.h>
 #include "ns3/random-variable-stream.h"
 #include "ns3/three-gpp-spectrum-propagation-loss-model.h"
 

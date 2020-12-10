@@ -29,7 +29,7 @@
 
 #include "nr-ue-phy.h"
 #include "nr-ue-net-device.h"
-#include "nr-spectrum-value-helper.h"
+#include <ns3/nr-spectrum-value-helper.h>
 #include "nr-ch-access-manager.h"
 
 #include <ns3/log.h>
