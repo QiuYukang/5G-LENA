@@ -322,10 +322,10 @@ private:
   bool m_closedLoop {true};                     //!< is closed loop
   bool m_accumulationEnabled {true};            //!< accumulation enabled
   TechnicalSpec m_technicalSpec;                //!< Technical specification to be used for transmit power calculations
-  double m_Pcmax;                               //!< PC maximum
-  double m_Pcmin;                               //!< PC minimum
-  double m_referenceSignalPower;                //!< reference signal power in dBm
-  double m_alpha;                               //!< alpha value, current code supports only a single parameter set configuration
+  double m_Pcmax {0};                           //!< PC maximum
+  double m_Pcmin {0};                           //!< PC minimum
+  double m_referenceSignalPower {30};           //!< reference signal power in dBm
+  double m_alpha {0};                           //!< alpha value, current code supports only a single parameter set configuration
   bool m_blCe {false};                          /*!< Indicator whether the power control is applied to bandwidth reduced low complexity or coverage enhanced devices.
                                                        When set to true means that this power control is applied to bandwidth reduced,
                                                        low complexity or coverage enhanced device. By default this attribute is set to false.
