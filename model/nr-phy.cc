@@ -379,7 +379,7 @@ NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm );
+  return NrSpectrumValueHelper::CreateTxPsdOverActiveRbs  (m_txPower, rbIndexVector, sm );
 }
 
 double
