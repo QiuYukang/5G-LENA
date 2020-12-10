@@ -24,25 +24,25 @@
 #include <stdio.h>
 #include <algorithm>
 
-NS_LOG_COMPONENT_DEFINE ("nrInterference");
+NS_LOG_COMPONENT_DEFINE ("NrInterference");
 
 namespace ns3 {
 
 
-nrInterference::nrInterference ()
+NrInterference::NrInterference ()
   : LteInterference (),
   m_firstPower (0.0)
 {
   NS_LOG_FUNCTION (this);
 }
 
-nrInterference::~nrInterference ()
+NrInterference::~NrInterference ()
 {
   NS_LOG_FUNCTION (this);
 }
 
 void
-nrInterference::DoDispose ()
+NrInterference::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   LteInterference::DoDispose ();
@@ -50,24 +50,24 @@ nrInterference::DoDispose ()
 
 
 TypeId
-nrInterference::GetTypeId (void)
+NrInterference::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::nrInterference")
+  static TypeId tid = TypeId ("ns3::NrInterference")
     .SetParent<Object> ()
     .AddTraceSource ("SnrPerProcessedChunk",
                      "Snr per processed chunk.",
-                     MakeTraceSourceAccessor (&nrInterference::m_snrPerProcessedChunk),
+                     MakeTraceSourceAccessor (&NrInterference::m_snrPerProcessedChunk),
                      "ns3::SnrPerProcessedChunk::TracedCallback")
     .AddTraceSource ("RssiPerProcessedChunk",
                      "Rssi per processed chunk.",
-                     MakeTraceSourceAccessor (&nrInterference::m_rssiPerProcessedChunk),
+                     MakeTraceSourceAccessor (&NrInterference::m_rssiPerProcessedChunk),
                      "ns3::RssiPerProcessedChunk::TracedCallback")
   ;
   return tid;
 }
 
 void
-nrInterference::AddSignal (Ptr<const SpectrumValue> spd, Time duration)
+NrInterference::AddSignal (Ptr<const SpectrumValue> spd, Time duration)
 {
   NS_LOG_FUNCTION (this << *spd << duration);
 
@@ -90,7 +90,7 @@ nrInterference::AddSignal (Ptr<const SpectrumValue> spd, Time duration)
 }
 
 void
-nrInterference::ConditionallyEvaluateChunk ()
+NrInterference::ConditionallyEvaluateChunk ()
 {
   NS_LOG_FUNCTION (this);
   if (m_receiving)
@@ -130,32 +130,32 @@ nrInterference::ConditionallyEvaluateChunk ()
  *       short period of time.
  ****************************************************************/
 
-nrInterference::NiChange::NiChange (Time time, double delta)
+NrInterference::NiChange::NiChange (Time time, double delta)
   : m_time (time),
     m_delta (delta)
 {
 }
 
 Time
-nrInterference::NiChange::GetTime (void) const
+NrInterference::NiChange::GetTime (void) const
 {
   return m_time;
 }
 
 double
-nrInterference::NiChange::GetDelta (void) const
+NrInterference::NiChange::GetDelta (void) const
 {
   return m_delta;
 }
 
 bool
-nrInterference::NiChange::operator < (const nrInterference::NiChange& o) const
+NrInterference::NiChange::operator < (const NrInterference::NiChange& o) const
 {
   return (m_time < o.m_time);
 }
 
 bool
-nrInterference::IsChannelBusyNow (double energyW)
+NrInterference::IsChannelBusyNow (double energyW)
 {
   double detectedPowerW = Integral (*m_allSignals);
   double powerDbm = 10 * log10 (detectedPowerW * 1000);
@@ -177,7 +177,7 @@ nrInterference::IsChannelBusyNow (double energyW)
 }
 
 Time
-nrInterference::GetEnergyDuration (double energyW)
+NrInterference::GetEnergyDuration (double energyW)
 {
   if (!IsChannelBusyNow (energyW))
     {
@@ -223,26 +223,26 @@ nrInterference::GetEnergyDuration (double energyW)
 }
 
 void
-nrInterference::EraseEvents (void)
+NrInterference::EraseEvents (void)
 {
   m_niChanges.clear ();
   m_firstPower = 0.0;
 }
 
-nrInterference::NiChanges::iterator
-nrInterference::GetPosition (Time moment)
+NrInterference::NiChanges::iterator
+NrInterference::GetPosition (Time moment)
 {
   return std::upper_bound (m_niChanges.begin (), m_niChanges.end (), NiChange (moment, 0));
 }
 
 void
-nrInterference::AddNiChangeEvent (NiChange change)
+NrInterference::AddNiChangeEvent (NiChange change)
 {
   m_niChanges.insert (GetPosition (change.GetTime ()), change);
 }
 
 void
-nrInterference::AppendEvent (Time startTime, Time endTime, double rxPowerW)
+NrInterference::AppendEvent (Time startTime, Time endTime, double rxPowerW)
 {
   Time now = Simulator::Now ();
   

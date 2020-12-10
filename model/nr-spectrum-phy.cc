@@ -68,7 +68,7 @@ operator<<(std::ostream &os, const enum NrSpectrumPhy::State state)
 NrSpectrumPhy::NrSpectrumPhy ()
   : SpectrumPhy ()
 {
-  m_interferenceData = CreateObject<nrInterference> ();
+  m_interferenceData = CreateObject<NrInterference> ();
   m_random = CreateObject<UniformRandomVariable> ();
   m_random->SetAttribute ("Min", DoubleValue (0.0));
   m_random->SetAttribute ("Max", DoubleValue (1.0));
@@ -221,7 +221,7 @@ NrSpectrumPhy::SetDevice (Ptr<NetDevice> d)
 
   if (IsEnb ())
     {
-      m_interferenceSrs = CreateObject<nrInterference> ();
+      m_interferenceSrs = CreateObject<NrInterference> ();
     }
 }
 
@@ -669,7 +669,7 @@ NrSpectrumPhy::GetHarqPhyModule (void) const
   return m_harqPhyModule;
 }
 
-Ptr<nrInterference>
+Ptr<NrInterference>
 NrSpectrumPhy::GetNrInterference (void) const
 {
   NS_LOG_FUNCTION (this);
