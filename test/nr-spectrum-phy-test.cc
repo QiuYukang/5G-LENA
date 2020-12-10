@@ -17,7 +17,7 @@
 *
 */
 
-#include "test-nr-spectrum-phy.h"
+#include "nr-spectrum-phy-test.h"
 #include "ns3/nr-spectrum-phy.h"
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/nr-spectrum-value-helper.h"
