@@ -172,8 +172,6 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
   //std::vector<int> cqi;
   uint8_t cqi = 0;
   double seAvg = 0;
-  double mcsAvg = 0;
-  double cqiAvg = 0;
 
   Values::const_iterator it;
   if (m_amcModel == ShannonModel)
@@ -202,8 +200,6 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
               seAvg += s;
 
               int cqi_ = GetCqiFromSpectralEfficiency (s);
-              mcsAvg += GetMcsFromSpectralEfficiency (s);
-              cqiAvg += cqi_;
               rbNum++;
 
               NS_LOG_LOGIC (" PRB =" << sinr.GetSpectrumModel ()->GetNumBands ()
@@ -215,9 +211,6 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
             }
         }
       seAvg /= rbNum;
-      mcsAvg /= rbNum;
-      cqiAvg /= rbNum;
-      cqi = ceil (cqiAvg);  //GetCqiFromSpectralEfficiency (seAvg);
       mcs = GetMcsFromSpectralEfficiency (seAvg);   //ceil(mcsAvg);
     }
   else if (m_amcModel == ErrorModel)
