@@ -289,7 +289,7 @@ LenaLteComparison (const Parameters &params)
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (params.numOuterRings);
   gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
-  gridScenario.SetScenarioParamenters (params.scenario);
+  gridScenario.SetScenarioParameters (params.scenario);
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = params.ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);

@@ -139,7 +139,7 @@ public:
    * \brief Sets parameters to the specified scenario
    * \param scenario Scenario to simulate
    */
-  void SetScenarioParamenters (const std::string &scenario);
+  void SetScenarioParameters (const std::string &scenario);
 
   /**
    * \brief Sets the Urban Macro (UMa) scenario parameters
