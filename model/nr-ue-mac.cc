@@ -314,15 +314,13 @@ NrUeMac::GetTypeId (void)
                                          &NrUeMac::GetTproc0),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("T1",
-                   "The offset in number of slots between the slot in which the"
-                   "resource selection is triggered and the start of the selection window",
+                   "The start of the selection window in physical slots, accounting for physical layer processing delay",
                    UintegerValue (2),
                    MakeUintegerAccessor (&NrUeMac::SetT1,
                                          &NrUeMac::GetT1),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("T2",
-                   "The offset in number of logical slots between the slot in which the"
-                   "resource selection is triggered and the end of the selection window",
+                   "The end of the selection window in physical slots",
                    UintegerValue (32),
                    MakeUintegerAccessor (&NrUeMac::SetT2,
                                          &NrUeMac::GetT2),
@@ -1256,6 +1254,14 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
 
   //step 4 as per TS 38.214 sec 8.1.4
   auto allTxOpps = m_slTxPool->GetNrSlCommOpportunities (absSlotIndex, bwpId, numerology, GetSlActivePoolId (), m_t1, m_t2);
+  if (allTxOpps.size () == 0)
+    {
+      //Since, all the parameters (i.e., T1, T2min, and T2) of the selection
+      //window are in terms of physical slots, it may happen that there are no
+      //slots available for Sidelink, which depends on the TDD pattern and the
+      //Sidelink bitmap.
+      return GetNrSupportedList (sfn, allTxOpps);
+    }
   candSsResoA = allTxOpps;
   uint32_t mTotal = candSsResoA.size (); // total number of candidate single-slot resources
   int rsrpThrehold = GetSlThresPsschRsrp ();
@@ -1268,18 +1274,13 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           nrCandSsResoA = GetNrSupportedList (sfn, candSsResoA);
           return nrCandSsResoA;
         }
-      //Compute T2
-      auto itLastSlot = nrCandSsResoA.end ();
-      //here the T2 is in absolute slots because it will be converted into
-      //ms to compute Tscal in GetFutSlotsBasedOnSens
-      uint64_t t2 = itLastSlot->sfn.Normalize () - sfn.Normalize ();
       // calculate all possible transmissions of sensed data
       //using unordered map, since we need to check all the sensed slots
       //anyway, thus, the order does not matter.
       std::unordered_map<uint64_t, std::list<SensingData>> allSensingData;
       for (const auto &itSensedSlot:m_sensingData)
         {
-          std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot, t2);
+          std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot);
           allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
         }
 
@@ -1361,13 +1362,14 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
 }
 
 std::list<NrUeMac::SensingData>
-NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData, uint64_t t2)
+NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
 {
   NS_LOG_FUNCTION (this);
   std::list<SensingData> listFutureSensTx;
   double slotLenMiSec = m_nrSlUePhySapProvider->GetSlotPeriod ().GetSeconds () * 1000.0;
   NS_ABORT_MSG_IF (slotLenMiSec > 1, "Slot length can not exceed 1 ms");
-  double tScalMilSec = t2 * slotLenMiSec;
+  uint16_t selecWindLen = (m_t2 - m_t1) + 1; //selection window length in physical slots
+  double tScalMilSec = selecWindLen * slotLenMiSec;
   double pRsvpRxMilSec = static_cast<double> (sensedData.rsvp);
   uint16_t q = 0;
   //I am aware that two double variable are compared. I don't expect these two

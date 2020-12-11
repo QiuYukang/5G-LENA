@@ -617,33 +617,27 @@ public:
 
   /**
    * \brief Set T1
-   *
-   * The offset in number of slots between the slot in which the resource
-   * selection is triggered and the start of the selection window.
-   *
-   * \param t1
+   * \param t1 The start of the selection window in physical slots,
+   *           accounting for physical layer processing delay.
    */
   void SetT1 (uint8_t t1);
 
   /**
    * \brief Get T1
-   *
-   * Returns The offset in number of slots between the slot in which the resource
-   * selection is triggered and the start of the selection window.
-   *
-   * \return T1
+   * \return T1 The start of the selection window in physical slots, accounting
+   *            for physical layer processing delay.
    */
   uint8_t GetT1 () const;
 
   /**
    * \brief Set T2
-   * \param t2 the offset in number of slots between T1 and the end of the selection window
+   * \param t2 The end of the selection window in physical slots.
    */
   void SetT2 (uint16_t t2);
 
   /**
    * \brief Get T2
-   * \return T2 The offset in number of slots between T1 and the end of the selection window
+   * \return T2 The end of the selection window in physical slots.
    */
   uint16_t GetT2 () const;
 
@@ -960,10 +954,9 @@ private:
   /**
    * \brief Get the list of the future transmission slots based on sensed data.
    * \param sensedData The data extracted from the sensed SCI 1-A.
-   * \param T2 Parameter that determines the end of the selection window.
    * \return The list of the future transmission slots based on sensed data.
    */
-  std::list<NrUeMac::SensingData> GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData, uint64_t T2);
+  std::list<NrUeMac::SensingData> GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData);
   /**
    * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
    *        NrSlUeMacSchedSapProvider::NrSlSlotInfo
