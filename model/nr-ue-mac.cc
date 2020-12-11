@@ -1256,6 +1256,14 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
 
   //step 4 as per TS 38.214 sec 8.1.4
   auto allTxOpps = m_slTxPool->GetNrSlCommOpportunities (absSlotIndex, bwpId, numerology, GetSlActivePoolId (), m_t1, m_t2);
+  if (allTxOpps.size () == 0)
+    {
+      //Since, all the parameters (i.e., T1, T2min, and T2) of the selection
+      //window are in terms of physical slots, it may happen that there are no
+      //slots available for Sidelink, which depends on the TDD pattern and the
+      //Sidelink bitmap.
+      return GetNrSupportedList (sfn, allTxOpps);
+    }
   candSsResoA = allTxOpps;
   uint32_t mTotal = candSsResoA.size (); // total number of candidate single-slot resources
   int rsrpThrehold = GetSlThresPsschRsrp ();
