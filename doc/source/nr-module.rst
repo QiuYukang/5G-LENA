@@ -428,6 +428,76 @@ The 'NR' module supports different methods: long-term covariance matrix (Optimal
 
 All methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
 
+.. _UplinkPowerControl:
+
+Uplink power control
+====================
+
+Closed Loop Uplink Power Control (CLPC) allows an eNB to adjust the transmission power 
+of an UE, and as such it plays a critical role in reducing inter-cell Interference. 
+In LTE and NR, the standardized  procedure can have two forms: open and closed loop, 
+where closed loop relies on open loop functionality, and extends it with control 
+coming from eNB. Open loop can be entirely be implemented at UE side, while the 
+closed loop depends on the algorithm and logic implemented at eNB. 
+Open loop in general is aimed to compensate the slow variations of the received 
+signal (i.e., path loss and shadowing), while CLPC is used to further adjust 
+the UEs’ transmission power so as to optimize the overall system performance. 
+CLCP determines a power for different types of transmissions, such as, PUSCH, 
+PUCCH, and SRS.
+
+As a starting point for the development of CLPC feature for LTE/NR we have used 
+implementation that was already available in ns-3 simulator in LTE module 
+(see the full description here: ns-3 LTE Uplink Power Control Design [lte-ulpc]_. 
+However, this class only supports PUSCH and SRS power control, while there is 
+no support for PUCCH. Since in the goal is to have a high fidelity simulations 
+with realistic uplink transmissions, including PUCCH, CLPC for PUCCH is a 
+mandatory feature. Whatsoever in ns-3 LTE module, this was not considered 
+important since in ns-3 LTE models all uplink control messages are modeled 
+as ideal (do not consume resources, and hence no error model). Moreover, 
+ns-3 LTE CLPC implements only TS 36.213, which is limited only to a specific 
+set of frequencies. A newer TS 38.213 extends TS 36.213 and allows its 
+application in a wide range of frequencies. In our extended model, 
+we have added support for an independent reporting of Transmit Power Command 
+(TPC) for PUSCH/SRS and PUCCH.
+
+ns-3 LTE power control feature is implemented in LteUePowerControl class 
+which computes and updates the power levels for PUSCH and Sounding Reference 
+Signals (SRS) transmissions. It implements open and closed loop mode. 
+According the open loop the UE transmission power depends on the estimation 
+of the downlink path loss and channel configuration. On the other hand, 
+closed loop, additionally allows the eNB to control the UE transmission 
+power by means of explicit TPC included in the Downlink Control Information 
+(DCI). In closed Loop,  two modes are available: the absolute mode, according 
+to which the txPower is computed with absolute TPC values, and the accumulation 
+mode, which instead computes the txPower using accumulated TPC values. When 
+the MAC scheduler creates DCI messages, it calls the GetTpc function to ask 
+for TPC values that should be sent to each UE. 
+
+Regarding design decisions, we have started from LteUePowerControl in order 
+to maximize possible re-utilization of the code, but the most of the parts 
+had to be rewritten. It is finally observed that NrUePowerControl should not 
+inherit ns-3 LteUePowerControl class since it needs to redefine and extend 
+all of its functionalities. For example, comparing to LTE power control it 
+needs to support the following:
+
+- PUCCH power control,
+- low bandwidth and enhanced coverage BL/EC devices,
+- independent TPC reporting for PUSCH and PUCCH,
+- TS 38.213 technical specification for NR uplink power control (PUSCH, PUCCH, SRS power control)
+- upgrade the API to reduce time/memory footprint that could affect significantly 
+large scale simulations. 
+
+Moreover, NrUePowerControl includes a full implementation of LTE and NR 
+uplink power control functionalities, by allowing a user to specify in 
+which mode the power control will execute: LTE/LAA (TS 36.213) or NR (and TS 38.213) 
+uplink power control (i.e. by using TSpec attribute of NrUePowerControl). 
+As a results, NrUePowerControl supports the following:
+
+- PUSCH power control implementation for LTE and NR
+- PUCCH power control implementation for LTE and NR
+- SRS power control implementation for LTE and NR
+- CLPC implementation (accumulation and absolute modes)
+
 
 HARQ
 ****
@@ -1446,3 +1516,5 @@ Open issues and future work
 .. [notching1] H. McDonald, D. Shyy, M. Steele and C. Patterson, "LTE Uplink Interference Mitigation Features," MILCOM 2018 - 2018 IEEE Military Communications Conference (MILCOM), Los Angeles, CA, 2018, pp. 505-511, doi: 10.1109/MILCOM.2018.8599850
 
 .. [notching2] H. McDonald et al., "AWS-3 Interference Mitigation: Improving Spectrum Sharing with LTE & 5G Uplink Spectrum Control," MILCOM 2019 - 2019 IEEE Military Communications Conference (MILCOM), Norfolk, VA, USA, 2019, pp. 102-107, doi: 10.1109/MILCOM47813.2019.9020877
+
+.. [lte-ulpc] LTE ns-3 implementation of uplink power control: https://www.nsnam.org/docs/models/html/lte-design.html#power-control
