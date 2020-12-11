@@ -282,7 +282,7 @@ HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId) const
 }
 
 void
-HexagonalGridScenarioHelper::SetScenarioParamenters (const std::string &scenario)
+HexagonalGridScenarioHelper::SetScenarioParameters (const std::string &scenario)
 {
   NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi" && scenario !="RMa",
                   "Unrecognized scenario");
