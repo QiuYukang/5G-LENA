@@ -1276,18 +1276,13 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           nrCandSsResoA = GetNrSupportedList (sfn, candSsResoA);
           return nrCandSsResoA;
         }
-      //Compute T2
-      auto itLastSlot = nrCandSsResoA.end ();
-      //here the T2 is in absolute slots because it will be converted into
-      //ms to compute Tscal in GetFutSlotsBasedOnSens
-      uint64_t t2 = itLastSlot->sfn.Normalize () - sfn.Normalize ();
       // calculate all possible transmissions of sensed data
       //using unordered map, since we need to check all the sensed slots
       //anyway, thus, the order does not matter.
       std::unordered_map<uint64_t, std::list<SensingData>> allSensingData;
       for (const auto &itSensedSlot:m_sensingData)
         {
-          std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot, t2);
+          std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot);
           allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
         }
 
@@ -1369,13 +1364,14 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
 }
 
 std::list<NrUeMac::SensingData>
-NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData, uint64_t t2)
+NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
 {
   NS_LOG_FUNCTION (this);
   std::list<SensingData> listFutureSensTx;
   double slotLenMiSec = m_nrSlUePhySapProvider->GetSlotPeriod ().GetSeconds () * 1000.0;
   NS_ABORT_MSG_IF (slotLenMiSec > 1, "Slot length can not exceed 1 ms");
-  double tScalMilSec = t2 * slotLenMiSec;
+  uint16_t selecWindLen = (m_t2 - m_t1) + 1; //selection window length in physical slots
+  double tScalMilSec = selecWindLen * slotLenMiSec;
   double pRsvpRxMilSec = static_cast<double> (sensedData.rsvp);
   uint16_t q = 0;
   //I am aware that two double variable are compared. I don't expect these two

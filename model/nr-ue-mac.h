@@ -960,10 +960,9 @@ private:
   /**
    * \brief Get the list of the future transmission slots based on sensed data.
    * \param sensedData The data extracted from the sensed SCI 1-A.
-   * \param T2 Parameter that determines the end of the selection window.
    * \return The list of the future transmission slots based on sensed data.
    */
-  std::list<NrUeMac::SensingData> GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData, uint64_t T2);
+  std::list<NrUeMac::SensingData> GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData);
   /**
    * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
    *        NrSlUeMacSchedSapProvider::NrSlSlotInfo
