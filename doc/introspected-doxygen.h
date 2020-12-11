@@ -833,7 +833,7 @@ No TraceSources are defined for this type.<br>
 
 /*!
 
-\class ns3::nrInterference
+\class ns3::NrInterference
 
 Introspection did not find any typical Config paths.<br>
 No Attributes are defined for this type.<br>
@@ -1954,7 +1954,7 @@ For more information see the \ref TypeId section of this API documentation and t
   <li><b>ns3::NrGnbNetDevice</b></li>
   <li><b>ns3::NrGnbPhy</b></li>
   <li><b>ns3::NrHelper</b></li>
-  <li><b>ns3::nrInterference</b></li>
+  <li><b>ns3::NrInterference</b></li>
   <li><b>ns3::NrLteMiErrorModel</b></li>
   <li><b>ns3::NrMacPduHeader</b></li>
   <li><b>ns3::NrMacPduTag</b></li>
@@ -2653,7 +2653,7 @@ XmlConfig                                   | src/config-store/model/xml-config.
 int64x64                                    | src/core/model/int64x64.cc
 int64x64-128                                | src/core/model/int64x64-128.cc
 nrControlMessage                            | src/nr/model/nr-control-messages.cc
-nrInterference                              | src/nr/model/nr-interference.cc
+NrInterference                              | src/nr/model/nr-interference.cc
 nrRrcProtocolIdeal                          | src/nr/model/nr-rrc-protocol-ideal.cc
 
 */
@@ -2677,7 +2677,7 @@ This is a list of all \ref tracing sources.  For more information see the  \ref 
 <li><b>GnbPhyRxedCtrlMsgsTrace</b>: Enb PHY Rxed Control Messages Traces.</li>
 <li><b>GnbPhyTxedCtrlMsgsTrace</b>: Enb PHY Txed Control Messages Traces.</li>
 </ul>
-<b>ns3::nrInterference</b><br>
+<b>ns3::NrInterference</b><br>
 <ul>
 <li><b>SnrPerProcessedChunk</b>: Snr per processed chunk.</li>
 <li><b>RssiPerProcessedChunk</b>: Rssi per processed chunk.</li>

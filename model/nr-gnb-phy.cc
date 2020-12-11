@@ -1483,15 +1483,13 @@ NrGnbPhy::GenerateDataCqiReport (const SpectrumValue& sinr)
   Values::const_iterator it;
   NrMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi;
   ulcqi.m_ulCqi.m_type = UlCqiInfo::PUSCH;
-  int i = 0;
   for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
     {
       //   double sinrdb = 10 * std::log10 ((*it));
       //       NS_LOG_INFO ("ULCQI RB " << i << " value " << sinrdb);
       // convert from double to fixed point notaltion Sxxxxxxxxxxx.xxx
       //   int16_t sinrFp = LteFfConverter::double2fpS11dot3 (sinrdb);
-      ulcqi.m_ulCqi.m_sinr.push_back (*it);
-      i++;
+      ulcqi.m_ulCqi.m_sinr.push_back (*it);  // will be processed by NrMacSchedulerCQIManagement::UlSBCQIReported, it will look into a map of assignment
     }
 
   // here we use the start symbol index of the var tti in place of the var tti index because the absolute UL var tti index is

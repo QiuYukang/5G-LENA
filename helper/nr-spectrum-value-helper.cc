@@ -115,7 +115,27 @@ NrSpectrumValueHelper::GetSpectrumModel (uint32_t numRbs, double centerFrequency
 }
 
 Ptr<SpectrumValue>
-NrSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, const std::vector <int>& activeRbs, const Ptr<const SpectrumModel>& spectrumModel)
+NrSpectrumValueHelper::CreateTxPsdOverActiveRbs (double powerTx, const std::vector <int>& activeRbs, const Ptr<const SpectrumModel>& spectrumModel)
+{
+  NS_LOG_FUNCTION (powerTx << activeRbs << spectrumModel);
+  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (spectrumModel);
+  double powerTxW = std::pow (10., (powerTx - 30) / 10);
+  double txPowerDensity = 0;
+  double subbandWidth = (spectrumModel->Begin()->fh - spectrumModel->Begin()->fl);
+  NS_ABORT_MSG_IF(subbandWidth < 180000, "Erroneous spectrum model. RB width should be equal or greater than 180KHz");
+  txPowerDensity = powerTxW / (subbandWidth * activeRbs.size());
+  for (std::vector <int>::const_iterator it = activeRbs.begin (); it != activeRbs.end (); it++)
+    {
+      int rbId = (*it);
+      (*txPsd)[rbId] = txPowerDensity;
+    }
+  NS_LOG_LOGIC (*txPsd);
+  return txPsd;
+}
+
+
+Ptr<SpectrumValue>
+NrSpectrumValueHelper::CreateTxPsdOverAllRbs (double powerTx, const std::vector <int>& activeRbs, const Ptr<const SpectrumModel>& spectrumModel)
 {
   NS_LOG_FUNCTION (powerTx << activeRbs << spectrumModel);
   Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (spectrumModel);
@@ -141,7 +161,7 @@ NrSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, const Ptr<c
     {
       activeRbs.push_back(rbId);
     }
-  return CreateTxPowerSpectralDensity (powerTx, activeRbs, txSm);
+  return CreateTxPsdOverAllRbs (powerTx, activeRbs, txSm);
 }
 
 

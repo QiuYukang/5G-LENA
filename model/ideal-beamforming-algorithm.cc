@@ -29,7 +29,7 @@
 #include <ns3/double.h>
 #include <ns3/angles.h>
 #include <ns3/uinteger.h>
-#include "nr-spectrum-value-helper.h"
+#include <ns3/nr-spectrum-value-helper.h>
 
 namespace ns3{
 

@@ -58,14 +58,27 @@ public:
   static Ptr<const SpectrumModel> GetSpectrumModel (uint32_t numRbs, double centerFrequency, double subcarrierSpacing);
 
   /**
-   * \brief Create SpectrumValue that will represent transmit power spectral density
+   * \brief Create SpectrumValue that will represent transmit power spectral density, and
+   * the total transmit power will be uniformly distributed only over active RBs
    * \param powerTx total power in dBm
    * \param activeRbs vector of RBs that are active for this transmission
    * \param spectrumModel spectrumModel to be used to create this SpectrumValue
    */
-  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (double powerTx,
-                                                          const std::vector <int>& activeRbs,
-                                                          const Ptr<const SpectrumModel>& spectrumModel);
+  static Ptr<SpectrumValue> CreateTxPsdOverActiveRbs (double powerTx,
+                                                      const std::vector <int>& activeRbs,
+                                                      const Ptr<const SpectrumModel>& spectrumModel);
+
+
+  /**
+   * \brief Create SpectrumValue that will represent transmit power spectral density, and
+   * the total transmit power will divided among all RBs, and then it will be assigned to active RBs
+   * \param powerTx total power in dBm
+   * \param activeRbs vector of RBs that are active for this transmission
+   * \param spectrumModel spectrumModel to be used to create this SpectrumValue
+   */
+  static Ptr<SpectrumValue> CreateTxPsdOverAllRbs (double powerTx,
+                                                   const std::vector <int>& activeRbs,
+                                                   const Ptr<const SpectrumModel>& spectrumModel);
 
   /**
     * \brief Create SpectrumValue that will represent transmit power spectral density,

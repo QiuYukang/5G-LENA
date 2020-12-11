@@ -59,7 +59,7 @@ TestSfnSfTestCase::DoRun ()
 class TestSfnSf : public TestSuite
 {
 public:
-  TestSfnSf () : TestSuite ("test-sfnsf", UNIT)
+  TestSfnSf () : TestSuite ("nr-test-sfnsf", UNIT)
     {
       AddTestCase (new TestSfnSfTestCase (0, "SfnSf TestAdd with num 2"), QUICK);
       AddTestCase (new TestSfnSfTestCase (1, "SfnSf TestAdd with num 2"), QUICK);

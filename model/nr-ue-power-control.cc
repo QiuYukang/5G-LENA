@@ -608,7 +608,10 @@ NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
   if (rbNum > 0)
     {
       puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
-      rbNum = 0;
+    }
+  else
+    {
+      NS_ABORT_MSG ("Should not be called CalculatePuschTxPowerNr if no RBs are assigned.");
     }
 
   /**

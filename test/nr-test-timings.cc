@@ -869,7 +869,7 @@ public:
 };
 
 NrTimingsTestSuite::NrTimingsTestSuite ()
-  : TestSuite ("test-timings", SYSTEM)
+  : TestSuite ("nr-test-timings", SYSTEM)
 {
   AddTestCase (new NrTimingsTest ("num=4", 4, false), TestCase::QUICK);
   AddTestCase (new NrTimingsTest ("num=3", 3, false), TestCase::QUICK);

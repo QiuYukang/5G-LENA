@@ -17,7 +17,7 @@
 *
 */
 
-#include "test-nr-spectrum-phy.h"
+#include "nr-spectrum-phy-test.h"
 #include "ns3/nr-spectrum-phy.h"
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/nr-spectrum-value-helper.h"
@@ -127,11 +127,11 @@ SetNoisePsdTestCase::DoRun (void)
 
   Simulator::Schedule (MilliSeconds(0), &NrSpectrumPhy::SetNoisePowerSpectralDensity, rxPhy, nsv0first);
   Simulator::Schedule (MilliSeconds(1), &MultiModelSpectrumChannel::StartTx, spectrumChannel, params1);
-  Simulator::Schedule (MilliSeconds(3), &nrInterference::EndRx, rxPhy->GetNrInterference());
+  Simulator::Schedule (MilliSeconds(3), &NrInterference::EndRx, rxPhy->GetNrInterference());
 
   Simulator::Schedule (MilliSeconds(4), &NrSpectrumPhy::SetNoisePowerSpectralDensity, rxPhy, nsv0second);
   Simulator::Schedule (MilliSeconds(5), &MultiModelSpectrumChannel::StartTx, spectrumChannel, params1);
-  Simulator::Schedule (MilliSeconds(7), &nrInterference::EndRx, rxPhy->GetNrInterference());
+  Simulator::Schedule (MilliSeconds(7), &NrInterference::EndRx, rxPhy->GetNrInterference());
 
   Simulator::Schedule (MilliSeconds(9), &SetNoisePsdTestCase::DoEvaluateTest, this);
 
@@ -142,7 +142,7 @@ SetNoisePsdTestCase::DoRun (void)
 }
 
 NrSpectrumPhyTestSuite::NrSpectrumPhyTestSuite ()
-  : TestSuite ("test-nr-spectrum-phy")
+  : TestSuite ("nr-spectrum-phy-test")
 {
   struct TestInputValues {
     double bandwidth {100e6}; //Hz

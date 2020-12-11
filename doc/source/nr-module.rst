@@ -1338,13 +1338,13 @@ https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
 
 Test for 3GPP antenna model
 ===========================
-Test case called ``test-antenna-3gpp-model-conf`` validates multiple configurations
+Test case called ``nr-antenna-3gpp-model-conf`` validates multiple configurations
 of the antenna array model by checking if the throughput/SINR/MCS obtained is as
 expected. The test scenario consists of one gNB and a single UE attached to the
 gNB. Different positions of the UE are evaluated.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/test-antenna-3gpp-model-conf_8cc.html
+https://cttc-lena.gitlab.io/nr/nr-antenna-3gpp-model-conf_8cc.html
 
 
 Test for TDD patterns
@@ -1371,26 +1371,26 @@ https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
 
 Test for spectrum phy
 =====================
-Test case called ``test-nr-spectrum-phy`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
+Test case called ``nr-spectrum-phy-test`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/test-nr-spectrum-phy_8h.html
+https://cttc-lena.gitlab.io/nr/nr-spectrum-phy-test_8h.html
 
 
 Test for frame/subframe/slot number
 ===================================
-Test case called ``test-sfnsf`` is a unit-test for the frame/subframe/slot numbering, along with the numerology. The test checks that the normalized slot number equals a monotonically-increased integer, for every numerology.
+Test case called ``nr-test-sfnsf`` is a unit-test for the frame/subframe/slot numbering, along with the numerology. The test checks that the normalized slot number equals a monotonically-increased integer, for every numerology.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/test-sfnsf_8cc.html
+https://cttc-lena.gitlab.io/nr/nr-test-sfnsf_8cc.html
 
 
 Test for NR timings
 ===================
-Test case called ``test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL DCI messages, improvements are more than welcome.
+Test case called ``nr-test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL DCI messages, improvements are more than welcome.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/test-timings_8cc.html
+https://cttc-lena.gitlab.io/nr/nr-test-timings_8cc.html
 
 .. _notchingTest:
 
