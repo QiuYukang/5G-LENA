@@ -314,15 +314,13 @@ NrUeMac::GetTypeId (void)
                                          &NrUeMac::GetTproc0),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("T1",
-                   "The offset in number of slots between the slot in which the"
-                   "resource selection is triggered and the start of the selection window",
+                   "The start of the selection window in physical slots, accounting for physical layer processing delay",
                    UintegerValue (2),
                    MakeUintegerAccessor (&NrUeMac::SetT1,
                                          &NrUeMac::GetT1),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("T2",
-                   "The offset in number of logical slots between the slot in which the"
-                   "resource selection is triggered and the end of the selection window",
+                   "The end of the selection window in physical slots",
                    UintegerValue (32),
                    MakeUintegerAccessor (&NrUeMac::SetT2,
                                          &NrUeMac::GetT2),
