@@ -142,7 +142,7 @@ SetNoisePsdTestCase::DoRun (void)
 }
 
 NrSpectrumPhyTestSuite::NrSpectrumPhyTestSuite ()
-  : TestSuite ("test-nr-spectrum-phy")
+  : TestSuite ("nr-spectrum-phy-test")
 {
   struct TestInputValues {
     double bandwidth {100e6}; //Hz
