@@ -1298,10 +1298,17 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_spectrumPhy->AddExpectedSrsRnti (dci->m_rnti);
 
   bool found = false;
+  uint16_t notValidRntiCounter = 0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
+                                    // if yes, and the rnti for the current SRS is not found in the list,
+                                    // the code will not abort
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
       uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      if (ueRnti == 0)
+        {
+          notValidRntiCounter++;
+        }
       if (dci->m_rnti == ueRnti)
         {
           NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
@@ -1313,9 +1320,16 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
           break;
         }
     }
-  NS_ASSERT (found);
 
-  NS_LOG_INFO ("GNB RXing UL CTRL/DATA frame " << m_currentSlot <<
+  NS_ABORT_MSG_IF (!found && (notValidRntiCounter == 0), "All RNTIs are already set (all UEs received RAR message), "
+                                                         "but the RNTI for this SRS was not found");
+
+  if (!found)
+    {
+      NS_LOG_WARN ("The UE for which is scheduled this SRS does not have yet initialized RNTI. RAR message was not received yet.");
+    }
+
+  NS_LOG_INFO ("GNB RXing UL SRS frame " << m_currentSlot <<
                 " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
                 "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
                 " start " << Simulator::Now () <<
@@ -1358,8 +1372,8 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   else if (dci->m_type == DciInfoElementTdma::SRS)
     {
-        NS_ASSERT (dci->m_format == DciInfoElementTdma::UL);
-        varTtiPeriod = UlSrs (dci);
+      NS_ASSERT (dci->m_format == DciInfoElementTdma::UL);
+      varTtiPeriod = UlSrs (dci);
     }
 
   Simulator::Schedule (varTtiPeriod, &NrGnbPhy::EndVarTti, this, dci);
