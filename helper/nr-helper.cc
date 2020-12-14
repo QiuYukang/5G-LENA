@@ -50,6 +50,8 @@
 #include <ns3/buildings-channel-condition-model.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/bwp-manager-algorithm.h>
+#include <ns3/three-gpp-v2v-propagation-loss-model.h>
+#include <ns3/three-gpp-v2v-channel-condition-model.h>
 
 #include <algorithm>
 
@@ -239,6 +241,20 @@ InitUmiBuildings (ObjectFactory *pathlossModelFactory, ObjectFactory *channelCon
   channelConditionModelFactory->SetTypeId (BuildingsChannelConditionModel::GetTypeId ());
 }
 
+static void
+InitV2VHighway (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppV2vHighwayPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (ThreeGppV2vHighwayChannelConditionModel::GetTypeId ());
+}
+
+static void
+InitV2VUrban (ObjectFactory *pathlossModelFactory, ObjectFactory *channelConditionModelFactory)
+{
+  pathlossModelFactory->SetTypeId (ThreeGppV2vUrbanPropagationLossModel::GetTypeId ());
+  channelConditionModelFactory->SetTypeId (ThreeGppV2vUrbanChannelConditionModel::GetTypeId ());
+}
+
 void
 NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
 {
@@ -263,6 +279,8 @@ NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
     {BandwidthPartInfo::InH_OfficeMixed_nLoS, std::bind (&InitIndoorMixed_nLoS, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMa_Buildings, std::bind (&InitUmaBuildings, std::placeholders::_1, std::placeholders::_2)},
     {BandwidthPartInfo::UMi_Buildings, std::bind (&InitUmiBuildings, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::V2V_Highway, std::bind (&InitV2VHighway, std::placeholders::_1, std::placeholders::_2)},
+    {BandwidthPartInfo::V2V_Urban, std::bind (&InitV2VUrban, std::placeholders::_1, std::placeholders::_2)},
   };
 
   // Iterate over all CCs, and instantiate the channel and propagation model
