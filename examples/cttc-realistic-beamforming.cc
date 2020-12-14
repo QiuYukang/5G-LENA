@@ -842,7 +842,7 @@ CttcRealisticBeamforming::RunSimulation ()
     {
       Ptr<NrSpectrumPhy> ue1SpectrumPhy = DynamicCast <NrUeNetDevice> (ueNetDev.Get (i))->GetPhy (0)->GetSpectrumPhy ();
       ue1SpectrumPhy->TraceConnectWithoutContext ("RxPacketTraceUe", MakeBoundCallback (&UeReceptionTrace, this));
-      Ptr<nrInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetNrInterference ();
+      Ptr<NrInterference> ue1SpectrumPhyInterference = ue1SpectrumPhy->GetNrInterference ();
       NS_ABORT_IF (!ue1SpectrumPhyInterference);
     }
 
