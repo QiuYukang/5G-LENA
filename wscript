@@ -93,7 +93,6 @@ def build(bld):
         'model/sfnsf.cc',
         'model/lena-error-model.cc',
         'model/nr-mac-scheduler-srs-default.cc',
-        'model/realistic-beamforming-algorithm.cc',
         'model/nr-ue-power-control.cc',
         ]
 
@@ -216,7 +215,6 @@ def build(bld):
         'model/lena-error-model.h',
         'model/nr-mac-scheduler-srs.h',
         'model/nr-mac-scheduler-srs-default.h',
-        'model/realistic-beamforming-algorithm.h',
         'model/nr-ue-power-control.h',
         ]
 
