@@ -874,7 +874,7 @@ main (int argc, char *argv[])
   std::string tableName = "results";
 
   CttcRealisticBeamforming::BeamformingMethod beamformingType;
-  RealisticBeamformingHelper::TriggerEvent triggerEventEnum;
+  RealisticBeamformingHelper::TriggerEvent triggerEventEnum = RealisticBeamformingHelper::SRS_COUNT;
   CommandLine cmd;
 
   cmd.AddValue ("deltaX",
