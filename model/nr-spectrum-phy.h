@@ -64,7 +64,7 @@ namespace ns3 {
  * at some point should be called AddRx function of the spectrum channel
  * to register the NrSpectrumPhy instance as a receiver on that channel.
  *
- * This class also has the interface with nrInterference class to
+ * This class also has the interface with NrInterference class to
  * pass the necessary information for the interference calculation and to
  * obtain the interference calculation results.
  *
@@ -290,9 +290,9 @@ public:
    */
   Ptr<NrHarqPhy> GetHarqPhyModule (void) const;
   /**
-   * \return nrInterference instance of this spectrum phy
+   * \return NrInterference instance of this spectrum phy
    */
-  Ptr<nrInterference> GetNrInterference (void) const;
+  Ptr<NrInterference> GetNrInterference (void) const;
   /**
    * \brief Instruct the Spectrum Model of a incoming transmission.
    * \param rnti RNTI
@@ -478,8 +478,8 @@ private:
   Ptr<NetDevice> m_device {nullptr}; //!< the device to which belongs this spectrum phy
   Ptr<const NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
   Ptr<NrHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
-  Ptr<nrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
-  Ptr<nrInterference> m_interferenceSrs {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy, exists only at gNB phy
+  Ptr<NrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
+  Ptr<NrInterference> m_interferenceSrs {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy, exists only at gNB phy
   Ptr<SpectrumValue> m_txPsd {nullptr}; //!< tx power spectral density
   Ptr<UniformRandomVariable> m_random {nullptr}; //!< the random variable used for TB decoding
 

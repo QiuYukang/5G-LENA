@@ -52,7 +52,7 @@ static const uint8_t MAX_CC_INTER_BAND = 16; //!< \ingroup utils The maximum num
  * have to indicate the central frequency and the higher/lower frequency, as
  * well as the entire bandwidth plus the modeling.
  *
- * The pointers to the channels, if left empty, will be initializated by
+ * The pointers to the channels, if left empty, will be initialized by
  * NrHelper::InitializeOperationBand().
  */
 struct BandwidthPartInfo
@@ -64,7 +64,7 @@ struct BandwidthPartInfo
   double m_channelBandwidth {0.0};   //!< BWP bandwidth
 
   /**
-   * \brief Different types for the propagation loss model of this bandwidth parth
+   * \brief Different types for the propagation loss model of this bandwidth part
    */
   enum Scenario
   {
@@ -84,7 +84,9 @@ struct BandwidthPartInfo
     InH_OfficeMixed_LoS,  //!< indoor office where all the nodes will be in Line-of-Sight
     InH_OfficeMixed_nLoS,  //!< indoor office where all the nodes will not be in Line-of-Sight
     UMa_Buildings,  //!< UMa with buildings
-    UMi_Buildings  //!< UMi_StreetCanyon with buildings
+    UMi_Buildings,  //!< UMi_StreetCanyon with buildings
+    V2V_Highway, //!< V2V_Highway
+    V2V_Urban //!< V2V_Urban
   } m_scenario {RMa};
 
   /**

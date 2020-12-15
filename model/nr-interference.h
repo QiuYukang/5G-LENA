@@ -37,24 +37,24 @@ namespace ns3 {
 /**
  * \ingroup spectrum
  *
- * \brief The nrInterference class inherits LteInterference which
+ * \brief The NrInterference class inherits LteInterference which
  * implements a gaussian interference model, i.e., all
  * incoming signals are added to the total interference.
- * nrInterference class extends this functionality to support
+ * NrInterference class extends this functionality to support
  * energy detection functionality.
  *
  */
-class nrInterference : public LteInterference
+class NrInterference : public LteInterference
 {
 public:
   /**
-  * \brief nrInterference constructor
+  * \brief NrInterference constructor
   */
-  nrInterference ();
+  NrInterference ();
   /**
-   * \brief ~nrInterference
+   * \brief ~NrInterference
    */
-  virtual ~nrInterference ();
+  virtual ~NrInterference ();
   /**
    * \brief Get the object TypeId
    * \return the object TypeId
@@ -155,7 +155,7 @@ private:
    * the list because after the given moment they do not contribute
    * anymore to the total energy received.
    */
-  nrInterference::NiChanges::iterator GetPosition (Time moment);
+  NrInterference::NiChanges::iterator GetPosition (Time moment);
   
   //inherited from LteInterference
   virtual void ConditionallyEvaluateChunk () override;

@@ -82,6 +82,8 @@ SystemSchedulerTest::DoRun (void)
     Config::SetDefault ("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
     Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
+    Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (false)); // scheduler tests are designed to expect the maximum transmit power, maximum MCS, 
+                                                                                        // thus uplink power control is not compatible, because it will adjust 
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -386,7 +388,8 @@ SystemSchedulerTest::DoRun (void)
           }
       }
 
-    NS_TEST_ASSERT_MSG_EQ_TOL (dataRecvDl + dataRecvUl, udpRate.GetBitRate () * ueNodes.GetN () * ((m_isUplink && m_isDownlink)? 2 : 1), 0.01, "Wrong total DL + UL throughput");
+    double expectedBitRate = udpRate.GetBitRate () * ueNodes.GetN () * ((m_isUplink && m_isDownlink)? 2 : 1);
+    NS_TEST_ASSERT_MSG_EQ_TOL (dataRecvDl + dataRecvUl, expectedBitRate, expectedBitRate * 0.05, "Wrong total DL + UL throughput");
 
     Simulator::Destroy ();
 }

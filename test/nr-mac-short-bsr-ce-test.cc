@@ -96,7 +96,7 @@ NrMacShortBsrCeTest::DoRun ()
 class NrMacShortBsrCeTestSuite : public TestSuite
 {
 public:
-  NrMacShortBsrCeTestSuite () : TestSuite ("test-nr-mac-short-bsr-ce", UNIT)
+  NrMacShortBsrCeTestSuite () : TestSuite ("nr-mac-short-bsr-ce-test", UNIT)
     {
       AddTestCase (new NrMacShortBsrCeTest ("Short BSR CE test"), QUICK);
     }

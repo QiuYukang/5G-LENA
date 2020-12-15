@@ -1076,7 +1076,7 @@ main (int argc, char *argv[])
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (numOuterRings);
   gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
-  gridScenario.SetScenarioParamenters (scenario);
+  gridScenario.SetScenarioParameters (scenario);
   uint16_t gNbNum = gridScenario.GetNumCells ();
   std::cout << "numcells: " << gNbNum << std::endl;
   uint32_t ueNum = ueNumPergNb * gNbNum;

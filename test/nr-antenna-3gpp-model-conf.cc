@@ -421,7 +421,7 @@ public:
 };
 
 Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite ()
-: TestSuite ("test-antenna-3gpp-model-conf", SYSTEM)
+: TestSuite ("nr-antenna-3gpp-model-conf", SYSTEM)
 {
 
 

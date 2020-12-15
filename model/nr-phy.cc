@@ -26,7 +26,7 @@
   while (false);
 
 #include "nr-phy.h"
-#include "nr-spectrum-value-helper.h"
+#include <ns3/nr-spectrum-value-helper.h>
 #include "nr-spectrum-phy.h"
 #include "nr-net-device.h"
 #include "nr-ue-net-device.h"
@@ -381,7 +381,7 @@ NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, rbIndexVector, sm );
+  return NrSpectrumValueHelper::CreateTxPsdOverActiveRbs  (m_txPower, rbIndexVector, sm );
 }
 
 double

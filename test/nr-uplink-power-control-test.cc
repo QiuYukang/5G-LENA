@@ -117,7 +117,7 @@ protected:
 
 
 NrUplinkPowerControlTestSuite::NrUplinkPowerControlTestSuite ()
-  : TestSuite ("nr-test-uplink-power-control", SYSTEM)
+  : TestSuite ("nr-uplink-power-control-test", SYSTEM)
 {
   //LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_DEBUG);
   //LogComponentEnable ("NrUplinkPowerControlTestSuite", logLevel);
