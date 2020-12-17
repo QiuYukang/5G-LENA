@@ -19,13 +19,14 @@
 #include "hexagonal-grid-scenario-helper.h"
 #include <ns3/double.h>
 #include <ns3/mobility-helper.h>
-#include <ns3/rng-seed-manager.h>
 #include <cmath>
 
 namespace ns3 {
 
 HexagonalGridScenarioHelper::HexagonalGridScenarioHelper ()
 {
+  m_r = CreateObject<UniformRandomVariable> ();
+  m_theta = CreateObject<UniformRandomVariable> ();
 }
 
 HexagonalGridScenarioHelper::~HexagonalGridScenarioHelper ()
@@ -411,17 +412,13 @@ HexagonalGridScenarioHelper::CreateScenario ()
     }
 
   // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
-  Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
-  Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
-  r->SetStream (RngSeedManager::GetRun ());
-  theta->SetStream (RngSeedManager::GetRun () + 1);
 
   NS_ASSERT (m_minBsUtdistance < m_hexagonalRadius * std::sqrt(3) / 2);
 
-  r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
-  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
-  theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
-  theta->SetAttribute ("Max", DoubleValue (M_PI));
+  m_r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
+  m_r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
+  m_theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
+  m_theta->SetAttribute ("Max", DoubleValue (M_PI));
   // UT position
   if (m_ut.GetN () > 0)
     {
@@ -438,8 +435,8 @@ HexagonalGridScenarioHelper::CreateScenario ()
                                                          m_siteSectorization,
                                                          m_hexagonalRadius);
 
-          double d = r->GetValue ();
-          double t = theta->GetValue ();
+          double d = m_r->GetValue ();
+          double t = m_theta->GetValue ();
 
           Vector utPos (cellCenterPos);
           utPos.x += d * cos (t);
@@ -459,6 +456,14 @@ HexagonalGridScenarioHelper::CreateScenario ()
 
   PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius);
 
+}
+
+int64_t
+HexagonalGridScenarioHelper::AssignStreams (int64_t stream)
+{
+  m_r->SetStream (stream);
+  m_theta->SetStream (stream + 1);
+  return 2;
 }
 
 } // namespace ns3
