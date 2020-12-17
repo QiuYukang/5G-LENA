@@ -38,7 +38,15 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
+  m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
+}
 
+int64_t
+RealisticBeamformingAlgorithm::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_normalRandomVariable->SetStream (stream);
+  return 1;
 }
 
 RealisticBeamformingAlgorithm::~RealisticBeamformingAlgorithm()
@@ -225,10 +233,9 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
           std::complex<double> rxSum (0,0);
           for (uint16_t uIndex = 0; uIndex < uAntenna; uIndex++)
             {
-              Ptr<NormalRandomVariable> normalRandomVariable = CreateObject<NormalRandomVariable> ();
               //error is generated from the normal random variable with mean 0 and  variance varError*sqrt(1/2) for real/imaginary parts
-              std::complex<double> error = std::complex <double> (normalRandomVariable->GetValue (0, sqrt (0.5) * varError),
-                                                                  normalRandomVariable->GetValue (0, sqrt (0.5) * varError)) ;
+              std::complex<double> error = std::complex <double> (m_normalRandomVariable->GetValue (0, sqrt (0.5) * varError),
+                                                                  m_normalRandomVariable->GetValue (0, sqrt (0.5) * varError)) ;
 
               std::complex<double> hEstimate = channelMatrix->m_channel [uIndex][sIndex][cIndex] + error;
               rxSum += uW[uIndex] * (hEstimate);
