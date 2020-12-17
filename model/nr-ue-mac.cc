@@ -1059,5 +1059,12 @@ NrUeMac::DoReset ()
 }
 //////////////////////////////////////////////
 
+int64_t
+NrUeMac::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_raPreambleUniformVariable->SetStream (stream);
+  return 1;
+}
 
 }
