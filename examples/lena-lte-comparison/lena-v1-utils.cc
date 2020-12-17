@@ -215,6 +215,14 @@ LenaV1Utils::SetLenaV1SimulatorParameters (HexagonalGridScenarioHelper gridScena
   ueSector2NetDev = lteHelper->InstallUeDevice (ueSector2Container);
   ueSector3NetDev = lteHelper->InstallUeDevice (ueSector3Container);
 
+  int64_t randomStream = 1;
+  randomStream += lteHelper->AssignStreams (enbSector1NetDev, randomStream);
+  randomStream += lteHelper->AssignStreams (enbSector2NetDev, randomStream);
+  randomStream += lteHelper->AssignStreams (enbSector3NetDev, randomStream);
+  randomStream += lteHelper->AssignStreams (ueSector1NetDev, randomStream);
+  randomStream += lteHelper->AssignStreams (ueSector2NetDev, randomStream);
+  randomStream += lteHelper->AssignStreams (ueSector3NetDev, randomStream);
+
   for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
     {
       auto ueNetDevice = DynamicCast<LteUeNetDevice> (ueSector1NetDev.Get (i));

@@ -607,6 +607,10 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     NetDeviceContainer gNbDevs = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
     NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice (selectedUeNodes, allBwps);
 
+    int64_t randomStream = 1;
+    randomStream += nrHelper->AssignStreams (gNbDevs, randomStream);
+    randomStream += nrHelper->AssignStreams (ueNetDevs, randomStream);
+
     for (uint32_t i = 0 ; i < gNbDevs.GetN (); i ++)
     {
         nrHelper->GetGnbPhy (gNbDevs.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));

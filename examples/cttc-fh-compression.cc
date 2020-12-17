@@ -65,6 +65,7 @@ $ ./waf --run "cttc-fh-compression --Help"
 #include "ns3/config-store-module.h"
 #include <algorithm>
 #include <iostream>
+#include <ns3/rng-seed-manager.h>
 /*
  * To be able to use LOG_* functions.
  */
@@ -576,6 +577,14 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, bwps2);
   ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, bwps3);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbSector1NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (gnbSector2NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (gnbSector3NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector1NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector2NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector3NetDev, randomStream);
+
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
    * per-node.
@@ -1082,6 +1091,7 @@ main (int argc, char *argv[])
   uint32_t ueNum = ueNumPergNb * gNbNum;
   std::cout << "numUEs: " << ueNum << std::endl;
   gridScenario.SetUtNumber (ueNum);
+  gridScenario.AssignStreams (RngSeedManager::GetRun ());
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
 

@@ -502,6 +502,10 @@ main (int argc, char *argv[])
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+
   for (uint32_t i = 0; i < gNbNum; ++i)
     {
       nrHelper->GetGnbPhy (gnbNetDev.Get (i), 0)->SetTxPower (txPower);

@@ -530,6 +530,14 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, sector2Bwps);
   ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, sector3Bwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbSector1NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (gnbSector2NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (gnbSector3NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector1NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector2NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector3NetDev, randomStream);
+
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
    * per-node.

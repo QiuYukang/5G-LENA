@@ -335,6 +335,10 @@ main (int argc, char *argv[])
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes,
                                                                allBwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gNbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 

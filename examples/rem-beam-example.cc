@@ -180,6 +180,10 @@ main (int argc, char *argv[])
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbNodes, singleBwp);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, singleBwp);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+
   // this is probably not necessary, since we did not update configuration after installation
   DynamicCast<NrGnbNetDevice>(gnbNetDev.Get (0))->UpdateConfig ();
   DynamicCast<NrUeNetDevice>(ueNetDev.Get (0))->UpdateConfig ();
