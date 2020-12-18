@@ -218,6 +218,10 @@ main (int argc, char *argv[])
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPower);
   nrHelper->GetGnbPhy (enbNetDev.Get (1), 0)->SetTxPower (txPower);
 

@@ -22,6 +22,7 @@
 
 #include "node-distribution-scenario-interface.h"
 #include <ns3/vector.h>
+#include <ns3/random-variable-stream.h>
 
 namespace ns3 {
 
@@ -73,6 +74,16 @@ public:
   // inherited
   virtual void CreateScenario () override;
 
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
 private:
   double m_verticalBsDistance {-1.0}; //!< Distance between gnb
   double m_horizontalBsDistance {-1.0}; //!< Distance between gnb
@@ -81,6 +92,8 @@ private:
   Vector m_initialPos;        //!< Initial Position
   double m_length {0};        //!< Scenario length
   double m_height {0};        //!< Scenario height
+  Ptr<UniformRandomVariable> m_x; //!< Random variable for X coordinate
+  Ptr<UniformRandomVariable> m_y; //!< Random variable for Y coordinate
 };
 
 } // namespace ns3

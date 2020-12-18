@@ -197,6 +197,7 @@ main (int argc, char *argv[])
                 isUll);
   cmd.Parse (argc, argv);
 
+  int64_t randomStream = 1;
   //Create the scenario
   GridScenarioHelper gridScenario;
   gridScenario.SetRows (1);
@@ -208,6 +209,7 @@ main (int argc, char *argv[])
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
   gridScenario.SetScenarioLength (3); // be distributed.
+  randomStream += gridScenario.AssignStreams (randomStream);
   gridScenario.CreateScenario ();
 
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
@@ -264,6 +266,9 @@ main (int argc, char *argv[])
   //Install and get the pointers to the NetDevices
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));

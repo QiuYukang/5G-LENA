@@ -95,6 +95,16 @@ public:
    */
   void SetSrsSinr (double sinrSrs);
 
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
 private:
 
   /**
@@ -131,6 +141,7 @@ private:
 
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
   double m_lastRerportedSrsSinr; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
+  Ptr<NormalRandomVariable> m_normalRandomVariable; //!< The random variable used for the estimation of the error
 };
 
 } // end of namespace ns-3

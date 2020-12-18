@@ -263,6 +263,10 @@ main (int argc, char *argv[])
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
    * per-node.

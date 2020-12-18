@@ -31,6 +31,8 @@ NS_LOG_COMPONENT_DEFINE ("GridScenarioHelper");
 
 GridScenarioHelper::GridScenarioHelper ()
 {
+  m_x = CreateObject<UniformRandomVariable> ();
+  m_y = CreateObject<UniformRandomVariable> ();
   m_initialPos.x = 0.0;
   m_initialPos.y = 0.0;
   m_initialPos.z = 0.0;
@@ -115,12 +117,11 @@ GridScenarioHelper::CreateScenario ()
         }
     }
 
-  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
-  Ptr<UniformRandomVariable> y = CreateObject<UniformRandomVariable> ();
-  x->SetAttribute ("Min", DoubleValue (0.0));
-  x->SetAttribute ("Max", DoubleValue (m_height));
-  y->SetAttribute ("Min", DoubleValue (0.0));
-  y->SetAttribute ("Max", DoubleValue (m_length));
+
+  m_x->SetAttribute ("Min", DoubleValue (0.0));
+  m_x->SetAttribute ("Max", DoubleValue (m_height));
+  m_y->SetAttribute ("Min", DoubleValue (0.0));
+  m_y->SetAttribute ("Max", DoubleValue (m_length));
   // UT position
   if (m_ut.GetN () > 0)
     {
@@ -130,8 +131,8 @@ GridScenarioHelper::CreateScenario ()
         {
           Vector pos = bsPos->GetNext ();
 
-          pos.x += x->GetValue ();
-          pos.y += y->GetValue ();
+          pos.x += m_x->GetValue ();
+          pos.y += m_y->GetValue ();
           pos.z = m_utHeight;
 
           NS_LOG_DEBUG ("UE Position: " << pos);
@@ -146,6 +147,14 @@ GridScenarioHelper::CreateScenario ()
 
   mobility.SetPositionAllocator (utPos);
   mobility.Install (m_ut);
+}
+
+int64_t
+GridScenarioHelper::AssignStreams (int64_t stream)
+{
+  m_x->SetStream (stream);
+  m_y->SetStream (stream + 1);
+  return 2;
 }
 
 } // namespace ns3

@@ -147,6 +147,8 @@ main (int argc, char *argv[])
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
+  int64_t randomStream = 1;
+
   GridScenarioHelper gridScenario;
   gridScenario.SetRows (gNbNum / 2);
   gridScenario.SetColumns (gNbNum);
@@ -157,6 +159,7 @@ main (int argc, char *argv[])
   gridScenario.SetUtNumber (ueNum);
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
   gridScenario.SetScenarioLength (3); // be distribuited.
+  randomStream += gridScenario.AssignStreams (randomStream);
   gridScenario.CreateScenario ();
 
   /*
@@ -237,6 +240,9 @@ main (int argc, char *argv[])
 
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   NS_ASSERT (enbNetDev.GetN () == 4);
 

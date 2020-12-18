@@ -1378,5 +1378,13 @@ NrSpectrumPhy::IsOnlySrs (const std::list<Ptr<NrControlMessage> >& ctrlMsgList)
      }
 }
 
+int64_t
+NrSpectrumPhy::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_random->SetStream (stream);
+  return 1;
+}
+
 
 }

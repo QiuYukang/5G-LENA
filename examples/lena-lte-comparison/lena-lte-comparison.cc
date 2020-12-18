@@ -293,6 +293,7 @@ LenaLteComparison (const Parameters &params)
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = params.ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
+  gridScenario.AssignStreams (RngSeedManager::GetRun ());
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
 

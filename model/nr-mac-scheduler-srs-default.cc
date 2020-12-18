@@ -38,6 +38,14 @@ NrMacSchedulerSrsDefault::NrMacSchedulerSrsDefault ()
   m_random = CreateObject<UniformRandomVariable> ();
 }
 
+int64_t
+NrMacSchedulerSrsDefault::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_random->SetStream (stream);
+  return 1;
+}
+
 NrMacSchedulerSrsDefault::~NrMacSchedulerSrsDefault ()
 {
 
