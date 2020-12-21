@@ -224,9 +224,7 @@ NrUePowerControl::SetRsrp (double value)
 
   double alphaRsrp = std::pow (0.5, m_pcRsrpFilterCoefficient / 4.0);
   m_rsrp = (1 - alphaRsrp) * m_rsrp + alphaRsrp * value;
-
   m_pathLoss = m_referenceSignalPower - m_rsrp;
-
   NS_LOG_INFO ("Pathloss updated to: " << m_pathLoss << " , rsrp updated to:" << m_rsrp);
 }
 
@@ -425,7 +423,7 @@ NrUePowerControl::ReportTpcPusch (uint8_t tpc)
     }
 }
 
-int
+int8_t
 NrUePowerControl::GetAbsoluteDelta (uint8_t tpc) const
 {
   int deltaAbsolute = 0;
@@ -450,28 +448,28 @@ NrUePowerControl::GetAbsoluteDelta (uint8_t tpc) const
   return deltaAbsolute;
 }
 
-int
+int8_t
 NrUePowerControl::GetAccumulatedDelta (uint8_t tpc) const
 {
   int deltaAccumulated = 0;
 
   switch (tpc)
-       {
-       case 0:
-         deltaAccumulated = -1;
-         break;
-       case 1:
-         deltaAccumulated = 0;
-         break;
-       case 2:
-         deltaAccumulated = 1;
-         break;
-       case 3:
-         deltaAccumulated = 3;
-         break;
-       default:
-         NS_FATAL_ERROR ("Unexpected TPC value");
-       }
+  {
+    case 0:
+      deltaAccumulated = -1;
+      break;
+    case 1:
+      deltaAccumulated = 0;
+      break;
+    case 2:
+      deltaAccumulated = 1;
+      break;
+    case 3:
+      deltaAccumulated = 3;
+      break;
+    default:
+      NS_FATAL_ERROR ("Unexpected TPC value");
+  }
   return deltaAccumulated;
 }
 
@@ -668,7 +666,10 @@ NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
   if (rbNum > 0)
     {
       pucchComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
-      rbNum = 0;
+    }
+  else
+    {
+      NS_ABORT_MSG ("Should not be called CalculatePuschTxPowerNr if no RBs are assigned.");
     }
 
   /**
@@ -742,9 +743,17 @@ NrUePowerControl::CalculateSrsTxPowerNr (std::size_t rbNum)
    * SRS transmissions and PUSCH transmissions
    */
   m_hc = m_fc;
-
   double txPower = 0;
-  double component = 10 * log10 (std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
+  double component = 0;
+
+  if (rbNum > 0)
+    {
+      component = 10 * log10 (std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
+    }
+  else
+    {
+      NS_ABORT_MSG ("Should not be called CalculateSrsTxPowerNr if no RBs are assigned.");
+    }
 
   if (m_technicalSpec == TS_36_213)
     {
