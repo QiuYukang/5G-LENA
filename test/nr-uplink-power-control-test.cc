@@ -480,6 +480,10 @@ NrUplinkPowerControlTestCase::DoRun (void)
     }
   else
     {
+      /**
+       *  By default the TPC command is 1 which is mapped to 0 for Accumulated mode,
+       *  and to -1 in Absolute mode, TS38.213 Table Table 7.1.1-1
+       */
       if (m_accumulatedMode)
         {
           Simulator::Schedule (MilliSeconds (0),
