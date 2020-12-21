@@ -57,7 +57,7 @@ TypeId
 RealisticBeamformingAlgorithm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RealisticBeamformingAlgorithm")
-                     .SetParent<IdealBeamformingAlgorithm> ()
+                     .SetParent<BeamformingAlgorithm> ()
                      .AddConstructor<RealisticBeamformingAlgorithm> ()
                      .AddAttribute ("BeamSearchAngleStep",
                                     "Angle step when searching for the best beam",

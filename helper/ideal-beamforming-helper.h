@@ -83,7 +83,7 @@ public:
   Time GetPeriodicity () const;
 
   /**
-   * \brief Run
+   * \brief Run beamforming task
    */
   virtual void Run () const;
 
@@ -95,7 +95,7 @@ protected:
    */
   virtual void ExpireBeamformingTimer ();
 
-  Time m_beamformingPeriodicity;
+  Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming tasks will be executed
   EventId m_beamformingTimer; //!< Beamforming timer
 };
 

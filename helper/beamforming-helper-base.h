@@ -35,20 +35,27 @@ class NrUeNetDevice;
 
 /**
  * \ingroup helper
- * \brief The BeamformingHelperBase class
+ * \brief The BeamformingHelperBase class that is being
+ * used as the general interface for beamforming helper
+ * classes. Currently, there are two beamforming helper classes:
+ * `IdealBeamformingHelper` and `RealisticBeamformingHelper`
+ * that inherit this base beamforming helper class.s
  */
 class BeamformingHelperBase : public Object
 {
 public:
   /**
-   * \brief BeamformingHelperBase
+   * \brief BeamformingHelperBase constructor
    */
   BeamformingHelperBase ();
   /**
-   * \brief ~BeamformingHelperBase
+   * \brief ~BeamformingHelperBase destructor
    */
   virtual ~BeamformingHelperBase ();
 
+  /**
+   * \brief Initialize
+   */
   virtual void DoInitialize ();
 
   /**
@@ -81,11 +88,17 @@ public:
 
 protected:
 
+  /**
+   * \brief The function that runs the beamforming algorithm among the provided gNB and UE
+   * device, and for a specified bwp index
+   * \param gNbDev a pointer to a gNB device
+   * \param ueDev a pointer to a UE device
+   * \param ccId bwp index
+   */
   virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const;
 
-  std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks;
-  Time m_beamformingPeriodicity;
-  Ptr<BeamformingAlgorithm> m_beamformingAlgorithm;
+  std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks; //!< The list of beamforming tasks to be executed
+  Ptr<BeamformingAlgorithm> m_beamformingAlgorithm; //!< The beamforming algorithm
 };
 
 }; //ns3 namespace

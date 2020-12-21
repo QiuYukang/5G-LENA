@@ -733,7 +733,7 @@ CttcRealisticBeamforming::RunSimulation ()
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
       beamformingHelper->SetAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
-      beamformingHelper->SetBeamformingMethod (SrsRealisticBeamformingAlgorithm::GetTypeId());
+      beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId());
     }
   else
     {

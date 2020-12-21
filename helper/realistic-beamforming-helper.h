@@ -46,7 +46,7 @@ class NrUePhy;
  * In ideal algorithms there is a run function that is used to run all beamforming tasks (updates)
  * at the same time. Here is different, not all beams are updated at the same time,
  * instead each beamforming task will be triggered based on its own event (SRS count or delay)
- * To allow that, this class has attribute throught which can be set the trigger event type.
+ * To allow that, this class has attribute through which can be set the trigger event type.
  * E.g., the trigger event can be that it has been received a certain number of SRSs signals
  * from a UE.
  * This helper saves all SRS reports for each gNB and all of its users, and it is saved per
@@ -143,7 +143,7 @@ private:
 
   bool m_periodicityMode {true}; //!< When true beamforming will be triggered by using srsCountPeriodicity attribute, when false delay attribute will be used
   uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
-  Time m_srsToBeamformingDelay {MilliSeconds(0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
+  Time m_srsToBeamformingDelay {MilliSeconds (0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
   typedef std::unordered_map <uint16_t, SrsSinrReport > SrsReports; //!< List of SRS reports by RNTI
   std::unordered_map< uint16_t, SrsReports > m_srsSinrReportsListsPerCellId; //!< SRS reports per cellId
   TriggerEvent m_triggerEvent; //!< Defines what will be the trigger event for the update of the beamforming vectors

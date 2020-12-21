@@ -35,14 +35,13 @@ NS_OBJECT_ENSURE_REGISTERED (IdealBeamformingHelper);
 
 IdealBeamformingHelper::IdealBeamformingHelper ()
 {
-  // TODO Auto-generated constructor stub
   NS_LOG_FUNCTION (this);
 }
 
 IdealBeamformingHelper::~IdealBeamformingHelper ()
 {
-  // TODO Auto-generated destructor stub
   NS_LOG_FUNCTION (this);
+  m_beamformingAlgorithm = nullptr;
 }
 
 void
@@ -115,7 +114,6 @@ IdealBeamformingHelper::SetBeamformingMethod (const TypeId &beamformingMethod)
 
   ObjectFactory objectFactory;
   objectFactory.SetTypeId (beamformingMethod);
-
   m_beamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm> ();
 }
 
@@ -126,9 +124,7 @@ IdealBeamformingHelper::ExpireBeamformingTimer ()
   NS_LOG_INFO ("Beamforming timer expired; programming a beamforming");
 
   Run (); //Run beamforming tasks
-
   m_beamformingTimer.Cancel (); // Cancel any previous beamforming event
-
   m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
                                             &IdealBeamformingHelper::ExpireBeamformingTimer, this);
 }
@@ -145,7 +141,6 @@ Time
 IdealBeamformingHelper::GetPeriodicity () const
 {
   NS_LOG_FUNCTION (this);
-
   return m_beamformingPeriodicity;
 }
 

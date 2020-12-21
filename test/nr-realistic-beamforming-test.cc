@@ -202,7 +202,7 @@ NrRealisticBeamformingTestCase::DoRun (void)
                                                               &idealUeBfv,
                                                               0);
 
-                  Ptr<SrsRealisticBeamformingAlgorithm> realisticBeamforming = CreateObject<SrsRealisticBeamformingAlgorithm>();
+                  Ptr<RealisticBeamformingAlgorithm> realisticBeamforming = CreateObject<RealisticBeamformingAlgorithm>();
                   BeamformingVector realisticGnbBfv1;
                   BeamformingVector realisticUeBfv1;
                   realisticBeamforming->SetSrsSinr (sinrSrsHighLineal); //update SINR SRS to a high value

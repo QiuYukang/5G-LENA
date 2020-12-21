@@ -40,33 +40,13 @@ class NrUeNetDevice;
 
 /**
  * \ingroup gnb-phy
- * \brief Generate "Ideal" beamforming vectors
+ * \brief Generate "Real" beamforming vectors
  * This class is inherited by all algorithms that do not assume the
  * perfect knowledge of the channel, but instead are performing the
  * estimation of the channel based on measurements, e.g., based on
  * SRS SINR measurement.
- */
-class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
-{
-public:
-  /**
-   * \brief Get the type id
-   * \return the type id of the class
-   */
-  static TypeId GetTypeId (void);
-
-  /**
-   * \brief Sets the sirn SRS value to be used. In lineal unit.
-   */
-  virtual void SetSrsSinr (double sinrSrs) = 0;
-};
-
-
-/**
- * \ingroup gnb-phy
- * \brief Generate "Ideal" beamforming vectors
  *
- * SrsRealisticBeamformingAlgorithm purpose is to generate beams for the pair
+ * RealisticBeamformingAlgorithm purpose is to generate beams for the pair
  * of communicating devices based on the SRS measurements. Differently from
  * IdealBeamformingAlgorithm this type of algorithm does not assume a perfect
  * knowledge of the channel. It instead estimates the long-term fast fading
@@ -79,16 +59,36 @@ public:
  * path, and so, the proposed method is not valid for it. Currently, it is
  * only compatible with the beam search method."
  */
-
-class SrsRealisticBeamformingAlgorithm: public RealisticBeamformingAlgorithm
+class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
 {
-
 public:
+
+  /**
+   * \brief constructor
+   */
+  RealisticBeamformingAlgorithm ();
+
+  /**
+   * \brief destructor
+   */
+  virtual ~RealisticBeamformingAlgorithm ();
+
   /**
    * \brief Get the type id
    * \return the type id of the class
    */
   static TypeId GetTypeId (void);
+
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
 
   virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                       const Ptr<const NrUeNetDevice>& ueDev,
@@ -108,17 +108,7 @@ public:
   /**
    * \brief Sets the sirn SRS value to be used. In lineal unit.
    */
-  virtual void SetSrsSinr (double sinrSrs) override;
-
-  /**
-   * Assign a fixed random variable stream number to the random variables
-   * used by this model.  Return the number of streams (possibly zero) that
-   * have been assigned.
-   *
-   * \param stream first stream index to use
-   * \return the number of stream indices assigned by this model
-   */
-  int64_t AssignStreams (int64_t stream);
+  virtual void SetSrsSinr (double sinrSrs);
 
 private:
 
