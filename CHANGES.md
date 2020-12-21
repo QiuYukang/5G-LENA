@@ -67,6 +67,18 @@ available to the SRS message.
 
 - New PF UL functions
 
+- Added `NrHelper::AssignStreams` function that is a central function in NR module for
+  assigning streams. The exceptions are: 
+  `HexagonalGridScenarioHelper` and `GridScenarioHelper` whose randomness is not 
+  controlled from NrHelper::AssignStreams function, but instead it needs to be called 
+  separately if one wants to assign streams for scenarios. Also, class `RealisticBeamformingAlgorithm` 
+  is not controlled from `NrHelper::AssignStreams`, but it should be from future upgrades.
+  To allow assigning streams and control randomness in NR module all functions that have 
+  some random variables are extended with `AssignStreams` function. Classes that are extended 
+  include: `NrUeMac`, `NrSpectrumPhy`, `NrMacSchedulerSrsDefault` (also parent classes
+  `NrMacSchedulerNs3` and `NrMacScheduler`), `RealisticBeamformingAlgorithm`, `NrHelper`, 
+  `GridScenarioHelper`, `HexagonalGridScenarioHelper`.
+
 ### Changes to existing API:
 
 - PF in UL direction is added
@@ -75,7 +87,11 @@ available to the SRS message.
 - If a notching mask is set, the scheduler will avoid to allocate the RBG in
   which the mask (a vector of integers) is set to zero.
 - When PF scheduler is configured, UL is also PF (previously RR UL was considered)
-
+- Newly added `NrHelper::AssignStreams` function may change default stream assignment that 
+  was being assigned previously in NR examples. 
+  All examples are updated to use `NrHelper::AssignStreams`
+  to fix random streams in NR module.
+  
 ---
 
 ## Changes from NR-v0.4 to v1.0
