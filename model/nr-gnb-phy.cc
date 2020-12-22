@@ -190,13 +190,6 @@ NrGnbPhy::GetNumRbPerRbg () const
   return m_phySapUser->GetNumRbPerRbg();
 }
 
-uint32_t
-NrGnbPhy::GetChannelBandwidth () const
-{
-  // m_channelBandwidth is in kHz * 100
-  return m_channelBandwidth * 1000 * 100;
-}
-
 const SfnSf &
 NrGnbPhy::GetCurrentSfnSf () const
 {
@@ -606,7 +599,7 @@ NrGnbPhy::QueueMib ()
 {
   NS_LOG_FUNCTION (this);
   LteRrcSap::MasterInformationBlock mib;
-  mib.dlBandwidth = m_channelBandwidth;
+  mib.dlBandwidth = GetChannelBandwidth () / (1000 * 100);
   mib.systemFrameNumber = 1;
   Ptr<NrMibMessage> mibMsg = Create<NrMibMessage> ();
   mibMsg->SetSourceBwp (GetBwpId ());
@@ -1573,8 +1566,13 @@ NrGnbPhy::DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +ulBandwidth << +dlBandwidth);
   NS_ASSERT (ulBandwidth == dlBandwidth);
-  m_channelBandwidth = dlBandwidth;
-  UpdateRbNum ();
+
+  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
+
+  if (GetChannelBandwidth () != dlBandwidthInHz)
+    {
+      SetChannelBandwidth (dlBandwidth);
+    }
 }
 
 void

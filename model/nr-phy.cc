@@ -58,7 +58,7 @@ public:
 
   virtual BeamId GetBeamId (uint8_t rnti) const override;
 
-  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () override;
 
   virtual void NotifyConnectionSuccessful () override;
 
@@ -113,7 +113,7 @@ NrMemberPhySapProvider::GetBeamId (uint8_t rnti) const
 }
 
 Ptr<const SpectrumModel>
-NrMemberPhySapProvider::GetSpectrumModel() const
+NrMemberPhySapProvider::GetSpectrumModel ()
 {
   return m_phy->GetSpectrumModel ();
 }
@@ -125,25 +125,25 @@ NrMemberPhySapProvider::NotifyConnectionSuccessful ()
 }
 
 uint16_t
-NrMemberPhySapProvider::GetBwpId() const
+NrMemberPhySapProvider::GetBwpId () const
 {
   return m_phy->GetBwpId ();
 }
 
 uint16_t
-NrMemberPhySapProvider::GetCellId() const
+NrMemberPhySapProvider::GetCellId () const
 {
   return m_phy->GetCellId ();
 }
 
 uint32_t
-NrMemberPhySapProvider::GetSymbolsPerSlot() const
+NrMemberPhySapProvider::GetSymbolsPerSlot () const
 {
   return m_phy->GetSymbolsPerSlot ();
 }
 
 Time
-NrMemberPhySapProvider::GetSlotPeriod() const
+NrMemberPhySapProvider::GetSlotPeriod () const
 {
   return m_phy->GetSlotPeriod ();
 }
@@ -247,6 +247,16 @@ NrPhy::InstallCentralFrequency (double f)
 }
 
 void
+NrPhy::SetChannelBandwidth (uint16_t channelBandwidth)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelBandwidth = channelBandwidth;
+
+  // number of RB and noise PSD must be updated when bandwidth or numerology gets changed
+  DoUpdateRbNum ();
+}
+
+void
 NrPhy::SetNumerology (uint16_t numerology)
 {
   NS_LOG_FUNCTION (this);
@@ -257,14 +267,15 @@ NrPhy::SetNumerology (uint16_t numerology)
   m_subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, numerology));
   m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
 
-  UpdateRbNum ();
+  // number of RB and noise PSD must be updated when bandwidth or numerology gets changed
+  DoUpdateRbNum ();
 
-  NS_LOG_INFO (" Numerology configured:" << m_numerology <<
+  NS_LOG_INFO (" Numerology configured:" << GetNumerology () <<
                " slots per subframe: " << m_slotsPerSubframe <<
-               " slot period:" << m_slotPeriod <<
-               " symbol period:" << m_symbolPeriod <<
-               " subcarrier spacing: " << m_subcarrierSpacing <<
-               " number of RBs: " << m_rbNum );
+               " slot period:" << GetSlotPeriod () <<
+               " symbol period:" << GetSymbolPeriod () <<
+               " subcarrier spacing: " << GetSubcarrierSpacing () <<
+               " number of RBs: " << GetRbNum () );
 }
 
 uint16_t
@@ -369,13 +380,13 @@ NrPhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
 }
 
 Ptr<SpectrumValue>
-NrPhy::GetNoisePowerSpectralDensity () const
+NrPhy::GetNoisePowerSpectralDensity ()
 {
   return NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigure, GetSpectrumModel ());
 }
 
 Ptr<SpectrumValue>
-NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const
+NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector)
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
@@ -480,8 +491,28 @@ NrPhy::HasUlSlot (const std::vector<LteNrTddSlotType> &pattern)
   return false;
 }
 
+
+uint32_t
+NrPhy::GetRbNum () const
+{
+  return m_rbNum;
+}
+
+uint32_t
+NrPhy::GetChannelBandwidth () const
+{
+  // m_channelBandwidth is in kHz * 100
+  return m_channelBandwidth * 1000 * 100;
+}
+
+uint32_t
+NrPhy::GetSubcarrierSpacing () const
+{
+  return m_subcarrierSpacing;
+}
+
 void
-NrPhy::UpdateRbNum ()
+NrPhy::DoUpdateRbNum ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -489,19 +520,15 @@ NrPhy::UpdateRbNum ()
   uint32_t rbWidth = m_subcarrierSpacing * NrSpectrumValueHelper::SUBCARRIERS_PER_RB;
 
   m_rbNum = static_cast<uint32_t> (realBw / rbWidth);
-  NS_ASSERT (m_rbNum > 0);
+  NS_ASSERT (GetRbNum () > 0);
 
-  NS_LOG_INFO ("Updated RbNum to " << m_rbNum);
+  NS_LOG_INFO ("Updated RbNum to " << GetRbNum ());
 
   if (m_spectrumPhy)
     {
       // Update the noisePowerSpectralDensity, as it depends on m_rbNum
       m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
       NS_LOG_INFO ("Noise Power Spectral Density updated");
-    }
-  else
-    {
-      NS_LOG_INFO ("Noise Power Spectral Density NOT updated");
     }
 }
 
@@ -786,14 +813,17 @@ Ptr<BeamManager> NrPhy::GetBeamManager() const
 }
 
 Ptr<const SpectrumModel>
-NrPhy::GetSpectrumModel () const
+NrPhy::GetSpectrumModel ()
 {
   NS_LOG_FUNCTION (this);
-  NS_ABORT_MSG_IF (m_subcarrierSpacing < 0.0, "Set a valid numerology");
-
+  NS_ABORT_MSG_IF (GetSubcarrierSpacing () < 0.0, "Set a valid numerology");
+  if (GetRbNum() == 0)
+    {
+       DoUpdateRbNum ();
+    }
   return NrSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
-                                                      GetCentralFrequency (),
-                                                      m_subcarrierSpacing);
+                                                  GetCentralFrequency (),
+                                                  GetSubcarrierSpacing ());
 }
 
 Time
@@ -801,13 +831,6 @@ NrPhy::GetSymbolPeriod () const
 {
   NS_LOG_FUNCTION (this);
   return m_symbolPeriod;
-}
-
-uint32_t
-NrPhy::GetRbNum () const
-{
-  NS_LOG_FUNCTION (this);
-  return m_rbNum;
 }
 
 Ptr<const ThreeGppAntennaArrayModel>

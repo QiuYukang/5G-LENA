@@ -349,12 +349,6 @@ NrUePhy::GetNumRbPerRbg () const
   return m_numRbPerRbg;
 }
 
-uint32_t
-NrUePhy::GetChannelBandwidth() const
-{
-  // m_channelBandwidth is in kHz * 100
-  return m_channelBandwidth * 1000 * 100;
-}
 
 double
 NrUePhy::ComputeAvgSinr (const SpectrumValue &sinr)
@@ -1208,12 +1202,15 @@ void
 NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
-  if (m_channelBandwidth != dlBandwidth)
+
+  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
+
+  if (GetChannelBandwidth () != dlBandwidthInHz)
     {
-      NS_LOG_DEBUG ("Channel bandwidth changed from " << m_channelBandwidth << " to " <<
-                    dlBandwidth);
-      m_channelBandwidth = dlBandwidth;
-      UpdateRbNum ();
+      NS_LOG_DEBUG ("Channel bandwidth changed from " << GetChannelBandwidth () << " to " <<
+                    dlBandwidth * 100 * 1000 << " Hz.");
+
+      SetChannelBandwidth (dlBandwidth);
 
       NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
                     "\t TxPower: " << m_txPower << " dB" << std::endl <<

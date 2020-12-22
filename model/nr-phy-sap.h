@@ -112,7 +112,7 @@ public:
    * if the CQI calculation is done in the PHY layer, just reporting to MAC
    * its value.
    */
-  virtual Ptr<const SpectrumModel> GetSpectrumModel () const = 0;
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () = 0;
 
   /**
    * \brief Retrieve the bandwidth part id
