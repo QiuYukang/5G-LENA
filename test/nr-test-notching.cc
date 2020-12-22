@@ -46,7 +46,7 @@ public:
   TestNotchingPhySapProvider ();
   virtual ~TestNotchingPhySapProvider (void) override;
   virtual uint32_t GetSymbolsPerSlot () const override;
-  virtual Ptr<const SpectrumModel> GetSpectrumModel () const override;
+  virtual Ptr<const SpectrumModel> GetSpectrumModel () override;
   virtual uint16_t GetBwpId () const override;
   virtual uint16_t GetCellId () const override;
   virtual Time GetSlotPeriod () const override;
@@ -89,7 +89,7 @@ TestNotchingPhySapProvider::GetSymbolsPerSlot() const
 }
 
 Ptr<const SpectrumModel>
-TestNotchingPhySapProvider::GetSpectrumModel () const
+TestNotchingPhySapProvider::GetSpectrumModel ()
 {
   return nullptr;
 }
