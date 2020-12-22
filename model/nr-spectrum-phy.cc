@@ -1963,12 +1963,19 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       //Note: m_slRxSigParamInfo, contains all the received
       //PSSCH transmissions. On the other hand, m_slTransportBlocks contains
       //the info of only those transmissions, which the receiving UE is
-      //interest in to listen. So, it might happen that we would not find the
-      //RNTI we are looking for. This case would happen where a UE wants to
-      //listen to some selective destinations or transmitting UEs. If this happens,
-      //replace the following assert with a continue statement.
-      //I am waiting for that day.
-      NS_ABORT_MSG_IF (itTb == m_slTransportBlocks.end (), "Unable to find the RNTI " << tag.GetRnti () << " in expected TB map");
+      //interested in to listen and had decoded SCI stage 1. So, it might happen
+      //that we would not find the RNTI present in m_slRxSigParamInfo
+      //in m_slTransportBlocks. This would happen
+      //in the following cases:
+      //1.RX UE failed to decode all the SCI stage 1
+      //2.RX UE decoded only non collided, one or multiple, SCI stage 1 but not from the RNTI we are looking.
+      //3.RX UE wants to listen to some selective destinations or transmitting UEs.
+      //In any of the above case, there is no need to create a mapping between
+      //the packet tag and the index of the packet bursts.
+      if (itTb == m_slTransportBlocks.end ())
+        {
+          continue;
+        }
       itTb->second.sinrPerceived = m_slSinrPerceived.at (pktIndex);
       itTb->second.pktIndex = pktIndex;
       //Let's compute some stats
