@@ -23,6 +23,7 @@
 #include <ns3/object.h>
 #include "beam-id.h"
 #include "beamforming-vector.h"
+#include "beamforming-algorithm.h"
 #include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/mobility-module.h>
 #include <ns3/multi-model-spectrum-channel.h>
@@ -36,33 +37,31 @@ class SpectrumValue;
 class NrGnbNetDevice;
 class NrUeNetDevice;
 
+
 /**
  * \ingroup gnb-phy
- * \brief Generate "Ideal" beamforming vectors
+ * \brief Generate "Real" beamforming vectors
+ * This class is inherited by all algorithms that do not assume the
+ * perfect knowledge of the channel, but instead are performing the
+ * estimation of the channel based on measurements, e.g., based on
+ * SRS SINR measurement.
  *
  * RealisticBeamformingAlgorithm purpose is to generate beams for the pair
  * of communicating devices based on the SRS measurements. Differently from
- * IdealBeamformingAlgorithm this type of algorithm does not assume
- * a perfect knowledge of the channel.
- * It instead estimates the long-term fast fading channel
- * component based on the received SRS. Accordingly, this approach
- * could be used with any beamforming algorithm that makes use of the channel estimation,
- * e.g., beam search method (e.g., such as the one implemented in CellScanBeamforming
- * class). Note that the LOS type of method (e.g., such as the one implemented in
- * DirectPathBeamforming class) does not use the channel matrix, but instead the
- * angles of arrival and departure of the LOS path, and so, the proposed method
- * is not valid for it. Currently, it is only compatible with the beam search method. "
+ * IdealBeamformingAlgorithm this type of algorithm does not assume a perfect
+ * knowledge of the channel. It instead estimates the long-term fast fading
+ * channel component based on the received SRS. Accordingly, this approach
+ * could be used with any beamforming algorithm that makes use of the channel
+ * estimation, e.g., beam search method (e.g., such as the one implemented in
+ * CellScanBeamforming class). Note that the LOS type of method (e.g., such as
+ * the one implemented in DirectPathBeamforming class) does not use the
+ * channel matrix, but instead the angles of arrival and departure of the LOS
+ * path, and so, the proposed method is not valid for it. Currently, it is
+ * only compatible with the beam search method."
  */
-
-class RealisticBeamformingAlgorithm: public Object
+class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
 {
-
 public:
-  /**
-   * \brief Get the type id
-   * \return the type id of the class
-   */
-  static TypeId GetTypeId (void);
 
   /**
    * \brief constructor
@@ -74,12 +73,28 @@ public:
    */
   virtual ~RealisticBeamformingAlgorithm ();
 
+  /**
+   * \brief Get the type id
+   * \return the type id of the class
+   */
+  static TypeId GetTypeId (void);
+
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
+
   virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                       const Ptr<const NrUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv,
                                       BeamformingVector* ueBfv,
-                                      uint16_t ccId) const;
-
+                                      uint16_t ccId) const override;
   /**
    * \return Gets value of BeamSearchAngleStep attribute
    */
@@ -93,33 +108,15 @@ public:
   /**
    * \brief Sets the sirn SRS value to be used. In lineal unit.
    */
-  void SetSrsSinr (double sinrSrs);
-
-  /**
-   * Assign a fixed random variable stream number to the random variables
-   * used by this model.  Return the number of streams (possibly zero) that
-   * have been assigned.
-   *
-   * \param stream first stream index to use
-   * \return the number of stream indices assigned by this model
-   */
-  int64_t AssignStreams (int64_t stream);
+  virtual void SetSrsSinr (double sinrSrs);
 
 private:
 
-  /**
-   * \brief Function that generates the beamforming vectors for a pair of
-   * communicating devices
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
-   */
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
                                         BeamformingVector* gnbBfv,
                                         BeamformingVector* ueBfv,
-                                        uint16_t ccId) const;
+                                        uint16_t ccId) const override;
 
   /**
    * \brief Calculates an estimation of the long term component based on the channel measurements
@@ -140,7 +137,8 @@ private:
 
 
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
-  double m_lastRerportedSrsSinr; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
+
+  double m_lastRerportedSrsSinr {0}; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
   Ptr<NormalRandomVariable> m_normalRandomVariable; //!< The random variable used for the estimation of the error
 };
 

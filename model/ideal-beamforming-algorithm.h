@@ -23,6 +23,7 @@
 #include <ns3/object.h>
 #include "beam-id.h"
 #include "beamforming-vector.h"
+#include "beamforming-algorithm.h"
 #include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/mobility-module.h>
 
@@ -38,11 +39,12 @@ class NrUeNetDevice;
  * \brief Generate "Ideal" beamforming vectors
  *
  * IdealBeamformingAlgorithm purpose is to generate beams for the pair
- * of communicating devices. This group of algorithms assumes
- * a perfect knowledge of the channel, because of which is called "ideal"
- * algorithm.
+ * of communicating devices.
+ *
+ * Algorithms that inherit this class assume a perfect knowledge of the channel,
+ * because of which this group of algorithms is called "ideal".
  */
-class IdealBeamformingAlgorithm: public Object
+class IdealBeamformingAlgorithm: public BeamformingAlgorithm
 {
 
 public:
@@ -51,50 +53,6 @@ public:
    * \return the type id of the class
    */
   static TypeId GetTypeId (void);
-
-  /**
-   * \brief constructor
-   */
-  IdealBeamformingAlgorithm ();
-
-  /**
-   * \brief destructor
-   */
-  virtual ~IdealBeamformingAlgorithm ();
-
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const;
-
-  /**
-   * \return Gets value of BeamSearchAngleStep attribute
-   */
-  double GetBeamSearchAngleStep () const;
-
-  /**
-   * \brief Sets the value of BeamSearchAngleStep attribute
-   */
-  void SetBeamSearchAngleStep (double beamSearchAngleStep);
-
-private:
-
-  /**
-   * \brief Function that generates the beamforming vectors for a pair of
-   * communicating devices
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
-   */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const = 0;
-
-
 };
 
 /**

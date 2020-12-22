@@ -436,7 +436,7 @@ main (int argc, char *argv[])
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
@@ -466,19 +466,19 @@ main (int argc, char *argv[])
   // Configure beamforming method
   if (beamforming.compare ("dir-dir") == 0)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ())); // dir at gNB, dir at UE
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ())); // dir at gNB, dir at UE
     }
   else if (beamforming.compare ("dir-omni") == 0)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ())); // dir at gNB, q-omni at UE
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ())); // dir at gNB, q-omni at UE
     }
   else if (beamforming.compare ("omni-dir") == 0)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
     }
   else if (beamforming.compare ("search-omni") == 0)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanQuasiOmniBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanQuasiOmniBeamforming::GetTypeId ())); // q-omni at gNB, dir at UE
     }
   else
     {

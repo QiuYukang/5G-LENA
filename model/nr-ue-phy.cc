@@ -271,6 +271,14 @@ NrUePhy::ProcessSrsDci (const SfnSf &ulSfnSf, const std::shared_ptr<DciInfoEleme
   NS_UNUSED (ulSfnSf);
   NS_UNUSED (dciInfoElem);
   // Instruct PHY for transmitting the SRS
+  if (ulSfnSf == m_currentSlot)
+    {
+      InsertAllocation (dciInfoElem);
+    }
+  else
+    {
+      InsertFutureAllocation (ulSfnSf, dciInfoElem);
+    }
 }
 
 void
@@ -749,6 +757,37 @@ NrUePhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
   return varTtiPeriod;
 }
 
+
+Time
+NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
+{
+  NS_LOG_FUNCTION (this);
+
+  std::vector<int> channelRbs;
+  for (uint32_t i = 0; i < GetRbNum (); i++)
+    {
+      channelRbs.push_back (static_cast<int> (i));
+    }
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
+
+  std::list <Ptr<NrControlMessage>> srsMsg;
+  Ptr<NrSrsMessage> srs = Create<NrSrsMessage> ();
+  srs->SetSourceBwp (GetBwpId());
+  srsMsg.push_back (srs);
+  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+
+  m_spectrumPhy->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+
+  NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL SRS frame for symbols " <<
+                  +dci->m_symStart << "-" <<
+                  +(dci->m_symStart + dci->m_numSym - 1) <<
+                  "\t start " << Simulator::Now () << " end " <<
+                  (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)));
+
+  ChannelAccessDenied (); // Reset the channel status
+  return varTtiPeriod;
+}
+
 Time
 NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
@@ -897,6 +936,10 @@ NrUePhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
   else if (dci->m_type == DciInfoElementTdma::CTRL && dci->m_format == DciInfoElementTdma::UL)
     {
       varTtiPeriod = UlCtrl (dci);
+    }
+  else if (dci->m_type == DciInfoElementTdma::SRS && dci->m_format == DciInfoElementTdma::UL)
+    {
+      varTtiPeriod = UlSrs (dci);
     }
   else if (dci->m_type == DciInfoElementTdma::DATA && dci->m_format == DciInfoElementTdma::DL)
     {

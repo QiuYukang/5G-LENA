@@ -126,7 +126,7 @@ NrTestFdmOfNumerologiesCase1::DoRun (void)
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
     // Put the pointers inside nrHelper
-    nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    nrHelper->SetBeamformingHelper (idealBeamformingHelper);
     
     // Antennas for all the UEs
     nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));

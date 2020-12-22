@@ -188,7 +188,7 @@ main (int argc, char *argv[])
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-    nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    nrHelper->SetBeamformingHelper (idealBeamformingHelper);
     nrHelper->SetEpcHelper (epcHelper);
 
     // Create one operational band containing one CC with one bandwidth part
@@ -213,7 +213,7 @@ main (int argc, char *argv[])
     allBwps = CcBwpCreator::GetAllBwps ({band1});
 
     // Beamforming method
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
     // Antennas for all the UEs
     nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));

@@ -418,7 +418,12 @@ private:
    * \return the time at which the transmission of UL CTRL will end
    */
   Time UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
-
+  /**
+   * \brief Transmit UL SRS and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the transmission of UL SRS will end
+   */
+  Time UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci);
   /**
    * \brief Receive DL data and return the time at which the transmission will end
    * \param dci the current DCI

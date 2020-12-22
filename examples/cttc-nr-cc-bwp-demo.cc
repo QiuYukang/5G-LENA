@@ -305,7 +305,7 @@ main (int argc, char *argv[])
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper(idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper(idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
 
@@ -429,12 +429,12 @@ main (int argc, char *argv[])
   // Beamforming method
   if (cellScan)
   {
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
-    idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
   }
   else
   {
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
   }
 
   nrHelper->InitializeOperationBand (&band);

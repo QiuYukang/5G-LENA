@@ -355,7 +355,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   nrHelper = CreateObject<NrHelper> ();
 
   // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
   nrHelper->SetEpcHelper (epcHelper);
@@ -498,11 +498,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   // Beamforming method
   if (radioNetwork == "LTE")
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
     }
   else
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
 
   //

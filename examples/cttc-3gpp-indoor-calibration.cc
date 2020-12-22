@@ -539,7 +539,7 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
 
-    nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    nrHelper->SetBeamformingHelper (idealBeamformingHelper);
     nrHelper->SetEpcHelper (epcHelper);
 
     /*
@@ -581,12 +581,12 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
 
     if (cellScan)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
-      idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
     }
     else
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
 
     nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaPF"));

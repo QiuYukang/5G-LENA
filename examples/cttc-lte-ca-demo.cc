@@ -297,19 +297,19 @@ main (int argc, char *argv[])
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
   if (cellScan)
   {
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
-    idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
   }
   else
   {
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
   }
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 

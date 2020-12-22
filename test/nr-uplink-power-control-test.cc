@@ -250,7 +250,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   // Create Nodes: eNodeB and UE
@@ -287,7 +287,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure ideal beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));

@@ -321,7 +321,7 @@ main (int argc, char *argv[])
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
@@ -336,7 +336,7 @@ main (int argc, char *argv[])
     }
 
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   /*
    * Setup the configuration of the spectrum. One operation band is deployed

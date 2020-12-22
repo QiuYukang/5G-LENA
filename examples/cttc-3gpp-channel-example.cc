@@ -173,7 +173,7 @@ main (int argc, char *argv[])
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
@@ -199,7 +199,7 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure ideal beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Configure scheduler
   nrHelper->SetSchedulerTypeId (NrMacSchedulerTdmaRR::GetTypeId ());

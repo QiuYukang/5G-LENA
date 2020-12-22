@@ -144,11 +144,11 @@ SystemSchedulerTest::DoRun (void)
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
 
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-    idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
-    idealBeamformingHelper->SetIdealBeamFormingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (10.0));
+    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+    idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (10.0));
 
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-    nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+    nrHelper->SetBeamformingHelper (idealBeamformingHelper);
 
     // set the number of antenna elements of UE
     nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
