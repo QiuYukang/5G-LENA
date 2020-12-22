@@ -35,6 +35,7 @@
 #include "nr-sl-ue-phy-sap.h"
 #include "nr-sl-ue-mac-sched-sap.h"
 #include "nr-sl-phy-mac-common.h"
+#include <unordered_set>
 #include <map>
 
 namespace ns3 {
@@ -804,6 +805,12 @@ protected:
    * \param srcL2Id The Sidelink layer 2 id of the source
    */
   void DoSetSourceL2Id (uint32_t srcL2Id);
+  /**
+   * \brief Add NR Sidelink destination layer 2 id for reception
+   *
+   * \param dstL2Id The Sidelink layer 2 id of the destination to listen to.
+   */
+  void DoAddNrSlRxDstL2Id (uint32_t dstL2Id);
 
   //Forwarded from NR SL UE PHY SAP User
   /**
@@ -814,10 +821,15 @@ protected:
    */
   uint8_t DoGetSlActiveTxPoolId ();
   /**
-   * \brief Get the list Sidelink destination from UE MAC
+   * \brief Get the list of Sidelink destination for transmission from UE MAC
    * \return A vector holding Sidelink communication destinations and the highest priority value among its LCs
    */
-  std::vector <std::pair<uint32_t, uint8_t> > DoGetSlDestinations ();
+  std::vector <std::pair<uint32_t, uint8_t> > DoGetSlTxDestinations ();
+  /**
+   * \brief Get the list of Sidelink destination for reception from UE MAC
+   * \return A vector holding Sidelink communication destinations for reception
+   */
+  std::unordered_set <uint32_t> DoGetSlRxDestinations ();
   /**
    * \brief Receive NR SL PSSCH PHY PDU
    * \return pbu The NR SL PSSCH PHY PDU
@@ -1059,7 +1071,8 @@ private:
   NrSlUePhySapUser* m_nrSlUePhySapUser; //!< SAP interface to receive calls from the UE PHY instance
   Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
   Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
-  std::vector <std::pair<uint32_t, uint8_t> > m_sidelinkDestinations; //!< vector holding Sidelink communication destinations and the highest priority value among its LCs
+  std::vector <std::pair<uint32_t, uint8_t> > m_sidelinkTxDestinations; //!< vector holding Sidelink communication destinations for transmission and the highest priority value among its LCs
+  std::unordered_set <uint32_t> m_sidelinkRxDestinations; //!< vector holding Sidelink communication destinations for reception
   bool m_enableSensing {false}; //!< Flag to enable NR Sidelink resource selection based on sensing; otherwise, use random selection
   bool m_enableBlindReTx {false}; //!< Flag to enable blind retransmissions for NR Sidelink
   uint8_t m_tproc0 {0}; //!< t_proc0 in slots

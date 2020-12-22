@@ -1498,7 +1498,7 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
   p->PeekHeader (sciF1a);
   p->PeekPacketTag (tag);
 
-  std::vector <std::pair<uint32_t, uint8_t> > destinations = m_nrSlUePhySapUser->GetSlDestinations ();
+  std::unordered_set <uint32_t> destinations = m_nrSlUePhySapUser->GetSlRxDestinations ();
 
   NS_ASSERT_MSG (m_slRxPool != nullptr, "No receiving pools configured");
   uint16_t rbStart = sciF1a.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
@@ -1522,17 +1522,19 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
                                           sciF1a.GetPriority (), rsrpDbm,
                                           sciF1a.GetGapReTx1 (), sciF1a.GetGapReTx2 ());
 
-  for (const auto &it:destinations)
+  auto it = destinations.find (tag.GetDstL2Id ());
+  if (it != destinations.end ())
     {
-      if (it.first == tag.GetDstL2Id ())
-        {
-          NS_LOG_INFO ("Received first stage SCI for destination " << it.first << " from RNTI " << tag.GetRnti ());
-          m_spectrumPhy->AddSlExpectedTb (tag.GetRnti (), tag.GetDstL2Id (),
-                                          tag.GetTbSize (), sciF1a.GetMcs (),
-                                          rbBitMap, tag.GetSymStart (),
-                                          tag.GetNumSym (), tag.GetSfn ());
-          SaveFutureSlRxGrants (sciF1a, tag, rbBitMap);
-        }
+      NS_LOG_INFO ("Received first stage SCI for destination " << *it << " from RNTI " << tag.GetRnti ());
+      m_spectrumPhy->AddSlExpectedTb (tag.GetRnti (), tag.GetDstL2Id (),
+                                      tag.GetTbSize (), sciF1a.GetMcs (),
+                                      rbBitMap, tag.GetSymStart (),
+                                      tag.GetNumSym (), tag.GetSfn ());
+      SaveFutureSlRxGrants (sciF1a, tag, rbBitMap);
+    }
+  else
+    {
+      NS_LOG_INFO ("Ignoring PSCCH! Destination " << tag.GetDstL2Id () << " is not monitored by RNTI " << m_rnti);
     }
 }
 

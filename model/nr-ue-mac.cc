@@ -1531,17 +1531,8 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
   //Perform L2 filtering.
   //Remember, all the packets in the packet burst are for the same
   //destination, therefore it is safe to do the following.
-  bool dstFound = false;
-  for (const auto &dstIt : m_sidelinkDestinations)
-    {
-      if (dstIt.first == sciF2a.GetDstId ())
-        {
-          dstFound = true;
-          break;
-        }
-    }
-
-  if (!dstFound)
+  auto it = m_sidelinkRxDestinations.find (sciF2a.GetDstId ());
+  if (it == m_sidelinkRxDestinations.end ())
     {
       //if we hit this assert that means SCI 1 reception code in NrUePhy
       //is not filtering the SCI 1 correctly.
@@ -1596,7 +1587,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
       //Do not ask for resources if no HARQ/Sidelink process is available
       if (m_nrSlHarq->GetNumAvaiableHarqIds () > 0)
         {
-          for (const auto &itDst : m_sidelinkDestinations)
+          for (const auto &itDst : m_sidelinkTxDestinations)
             {
               const auto itGrantInfo = m_grantInfo.find (itDst.first);
               bool foundDest = itGrantInfo != m_grantInfo.end () ? true : false;
@@ -2201,7 +2192,7 @@ NrUeMac::AddNrSlDstL2Id (uint32_t dstL2Id, uint8_t lcPriority)
 {
   NS_LOG_FUNCTION (this << dstL2Id << lcPriority);
   bool foundDst = false;
-  for (auto& it : m_sidelinkDestinations)
+  for (auto& it : m_sidelinkTxDestinations)
     {
       if (it.first == dstL2Id)
         {
@@ -2216,10 +2207,10 @@ NrUeMac::AddNrSlDstL2Id (uint32_t dstL2Id, uint8_t lcPriority)
 
   if (!foundDst)
     {
-      m_sidelinkDestinations.push_back (std::make_pair (dstL2Id, lcPriority));
+      m_sidelinkTxDestinations.push_back (std::make_pair (dstL2Id, lcPriority));
     }
 
-  std::sort (m_sidelinkDestinations.begin (), m_sidelinkDestinations.end (), CompareSecond);
+  std::sort (m_sidelinkTxDestinations.begin (), m_sidelinkTxDestinations.end (), CompareSecond);
 }
 
 bool
@@ -2266,6 +2257,13 @@ NrUeMac::DoSetSourceL2Id (uint32_t srcL2Id)
   m_srcL2Id = srcL2Id;
 }
 
+void
+NrUeMac::DoAddNrSlRxDstL2Id (uint32_t dstL2Id)
+{
+  NS_LOG_FUNCTION (this << dstL2Id);
+  m_sidelinkRxDestinations.insert (dstL2Id);
+}
+
 uint8_t
 NrUeMac::DoGetSlActiveTxPoolId ()
 {
@@ -2273,9 +2271,15 @@ NrUeMac::DoGetSlActiveTxPoolId ()
 }
 
 std::vector <std::pair<uint32_t, uint8_t> >
-NrUeMac::DoGetSlDestinations ()
+NrUeMac::DoGetSlTxDestinations ()
 {
-  return m_sidelinkDestinations;
+  return m_sidelinkTxDestinations;
+}
+
+std::unordered_set <uint32_t>
+NrUeMac::DoGetSlRxDestinations ()
+{
+  return m_sidelinkRxDestinations;
 }
 
 uint8_t
