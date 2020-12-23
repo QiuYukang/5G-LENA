@@ -291,7 +291,7 @@ LenaLteComparison (const Parameters &params)
   const auto sectorization = HexagonalGridScenarioHelper::TRIPLE;
   const uint16_t sectorsNum = static_cast<uint16_t> (sectorization);
   gridScenario.SetSectorization (sectorization);
-  gridScenario.SetScenarioParamenters (params.scenario);
+  gridScenario.SetScenarioParameters (params.scenario);
   uint16_t gNbSites = gridScenario.GetNumSites ();
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = params.ueNumPergNb * gNbNum;
