@@ -1879,7 +1879,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       bool tagFound = packet->PeekPacketTag (tag);
       NS_ABORT_MSG_IF (!tagFound, "Did not find NrSlMacPduTag");
       SlRxCtrlPacketTraceParams traceParams;
-      traceParams.m_timeMs = Simulator::Now ().GetMilliSeconds ();
+      traceParams.m_timeMs = Simulator::Now ().GetSeconds () * 1000.0;
       traceParams.m_cellId = ueRx->GetPhy (GetBwpId ())->GetCellId ();
       traceParams.m_rnti = ueRx->GetPhy (GetBwpId ())->GetRnti ();
       traceParams.m_tbSize = m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
@@ -2175,7 +2175,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
         }
 
       SlRxDataPacketTraceParams traceParams;
-      traceParams.m_timeMs = Simulator::Now ().GetMilliSeconds ();
+      traceParams.m_timeMs = Simulator::Now ().GetSeconds () * 1000.0;
       traceParams.m_cellId = ueRx->GetPhy (GetBwpId ())->GetCellId ();
       traceParams.m_rnti = ueRx->GetPhy (GetBwpId ())->GetRnti ();
       traceParams.m_tbSize = tbIt.second.expectedTb.tbSize;

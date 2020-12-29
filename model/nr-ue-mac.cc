@@ -1801,7 +1801,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
 
           // Collect statistics for NR SL PSCCH UE MAC scheduling trace
           SlPsschUeMacStatParameters psschStatsParams;
-          psschStatsParams.timeMs = Simulator::Now ().GetMilliSeconds ();
+          psschStatsParams.timeMs = Simulator::Now ().GetSeconds () * 1000.0;
           psschStatsParams.imsi = m_imsi;
           psschStatsParams.rnti = m_rnti;
           psschStatsParams.frameNum = currentGrant.sfn.GetFrame ();
@@ -1866,7 +1866,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
 
               // Collect statistics for NR SL PSCCH UE MAC scheduling trace
               SlPscchUeMacStatParameters pscchStatsParams;
-              pscchStatsParams.timeMs = Simulator::Now ().GetMilliSeconds ();
+              pscchStatsParams.timeMs = Simulator::Now ().GetSeconds () * 1000.0;
               pscchStatsParams.imsi = m_imsi;
               pscchStatsParams.rnti = m_rnti;
               pscchStatsParams.frameNum = currentGrant.sfn.GetFrame ();
