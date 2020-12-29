@@ -41,6 +41,7 @@
 #include "nr-sl-sci-f1a-header.h"
 #include "nr-sl-sci-f2a-header.h"
 #include "nr-sl-mac-pdu-tag.h"
+#include "ns3/lte-rlc-tag.h"
 #include <algorithm>
 #include <bitset>
 
@@ -377,6 +378,10 @@ NrUeMac::GetTypeId (void)
                      "Information regarding NR SL PSSCH UE scheduling",
                      MakeTraceSourceAccessor (&NrUeMac::m_slPsschScheduling),
                      "ns3::SlPsschUeMacStatParameters::TracedCallback")
+    .AddTraceSource ("RxRlcPduWithTxRnti",
+                     "PDU received trace also exporting TX UE RNTI in SL.",
+                     MakeTraceSourceAccessor (&NrUeMac::m_rxRlcPduWithTxRnti),
+                     "ns3::NrUeMac::ReceiveWithTxRntiTracedCallback")
           ;
 
   return tid;
@@ -1566,6 +1571,9 @@ NrUeMac::DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
         }
       NrSlMacSapUser::NrSlReceiveRlcPduParameters rxPduParams (pktIt, m_rnti, tag.GetLcid (),
                                                                identifier.srcL2Id, identifier.dstL2Id);
+
+      FireTraceSlRlcRxPduWithTxRnti (pktIt->Copy (), tag.GetLcid ());
+
       it->second.macSapUser->ReceiveNrSlRlcPdu (rxPduParams);
     }
 }
@@ -2501,6 +2509,21 @@ NrUeMac::ConsiderReTxForSensing (bool reTxSensingFlag)
 {
   NS_LOG_FUNCTION (this);
   m_reTxSensingFlag = reTxSensingFlag;
+}
+
+void
+NrUeMac::FireTraceSlRlcRxPduWithTxRnti (const Ptr<Packet> p, uint8_t lcid)
+{
+  NS_LOG_FUNCTION (this);
+  // Receiver timestamp
+  RlcTag rlcTag;
+  Time delay;
+
+  bool ret = p->FindFirstMatchingByteTag (rlcTag);
+  NS_ASSERT_MSG (ret, "RlcTag is missing for NR SL");
+
+  delay = Simulator::Now () - rlcTag.GetSenderTimestamp ();
+  m_rxRlcPduWithTxRnti (m_imsi, m_rnti, rlcTag.GetTxRnti (), lcid, p->GetSize (), delay.GetSeconds ());
 }
 
 //////////////////////////////////////////////

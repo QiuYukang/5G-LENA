@@ -500,6 +500,19 @@ public:
 
   //NR SL
 public:
+  /**
+   * TracedCallback signature for
+   *
+   * \param [in] imsi The IMSI.
+   * \param [in] rnti C-RNTI scheduled.
+   * \param [in] txRnti C-RNTI of the transmitting UE.
+   * \param [in] lcid The logical channel id corresponding to
+   *             the sending RLC instance.
+   * \param [in] bytes The packet size.
+   * \param [in] delay Delay since sender timestamp, in sec.
+   */
+  typedef void (* ReceiveWithTxRntiTracedCallback)
+    (uint64_t imsi, uint16_t rnti, uint16_t txRnti, uint8_t lcid, uint32_t bytes, double delay);
   // Comparator function to sort pairs
   // according to second value
   /**
@@ -746,6 +759,13 @@ protected:
    * \param params NrSlReportBufferStatusParameters
    */
   void DoReportNrSlBufferStatus (const NrSlMacSapProvider::NrSlReportBufferStatusParameters &params);
+  /**
+   * \brief Fire the trace for SL RLC Reception with Tx Rnti
+   *
+   * \param p the PDU
+   * \param lcid The LCID
+   */
+  void FireTraceSlRlcRxPduWithTxRnti (const Ptr<Packet> p, uint8_t lcid);
 
   // forwarded from UE CMAC SAP
   /**
@@ -1122,6 +1142,11 @@ private:
    * SlPsschUeMacStatParameters (see nr-sl-phy-mac-common.h)
    */
   TracedCallback<SlPsschUeMacStatParameters> m_slPsschScheduling; //!< NR SL PSCCH scheduling trace source
+
+  /**
+   * Trace information regarding RLC PDU reception from MAC
+   */
+  TracedCallback<uint64_t, uint16_t, uint16_t, uint8_t, uint32_t, double> m_rxRlcPduWithTxRnti;
 };
 
 }
