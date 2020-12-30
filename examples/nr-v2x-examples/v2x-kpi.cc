@@ -169,7 +169,7 @@ V2xKpi::SaveAvrgPir ()
       for (const auto &it2:it.second)
         {
           double avrgPir = ComputeAvrgPir (it2.second);
-          NS_LOG_UNCOND ("Avrg PIR " << avrgPir);
+          //NS_LOG_UNCOND ("Avrg PIR " << avrgPir);
           PktTxRxData data = it2.second.at (0);
           sqlite3_stmt *stmt;
           std::string cmd = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
@@ -199,7 +199,7 @@ V2xKpi::ComputeAvrgPir (std::vector <PktTxRxData> data)
   double lastPktRxTime = 0.0;
   double pir = 0.0;
 
-  NS_LOG_UNCOND ("Packet Vector size " << data.size () << " to compute average PIR");
+  //NS_LOG_UNCOND ("Packet Vector size " << data.size () << " to compute average PIR");
 
   for (const auto &it:data)
     {
@@ -246,7 +246,7 @@ V2xKpi::SaveThput ()
       for (const auto &it2:it.second)
         {
           double thput = ComputeThput (it2.second);
-          NS_LOG_UNCOND ("thput " << thput << " kbps");
+          //NS_LOG_UNCOND ("thput " << thput << " kbps");
           PktTxRxData data = it2.second.at (0);
           sqlite3_stmt *stmt;
           std::string cmd = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
@@ -278,7 +278,7 @@ V2xKpi::ComputeThput (std::vector <PktTxRxData> data)
   NS_ABORT_MSG_IF (m_txAppDuration == 0.0, "Can not compute throughput with " << m_txAppDuration << " duration");
   uint64_t rxByteCounter = 0;
 
-  NS_LOG_UNCOND ("Packet Vector size " << data.size () << " to throughput");
+  //NS_LOG_UNCOND ("Packet Vector size " << data.size () << " to throughput");
   for (const auto &it:data)
     {
       rxByteCounter += it.pktSize;
