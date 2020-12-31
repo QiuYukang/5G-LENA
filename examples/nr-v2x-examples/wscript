@@ -3,3 +3,5 @@
 def build(bld):
     obj = bld.create_ns3_program('cttc-nr-v2x-demo-simple', ['nr'])
     obj.source = 'cttc-nr-v2x-demo-simple.cc ue-to-ue-pkt-txrx-output-stats.cc ue-mac-pscch-tx-output-stats.cc ue-mac-pssch-tx-output-stats.cc ue-phy-pscch-rx-output-stats.cc ue-phy-pssch-rx-output-stats.cc'
+    obj = bld.create_ns3_program('nr-v2x-west-to-east-highway', ['nr'])
+    obj.source = 'nr-v2x-west-to-east-highway.cc ue-to-ue-pkt-txrx-output-stats.cc ue-mac-pscch-tx-output-stats.cc ue-mac-pssch-tx-output-stats.cc ue-phy-pscch-rx-output-stats.cc ue-phy-pssch-rx-output-stats.cc v2x-kpi.cc ue-rlc-rx-output-stats.cc'
