@@ -1978,6 +1978,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
         }
       itTb->second.sinrPerceived = m_slSinrPerceived.at (pktIndex);
       itTb->second.pktIndex = pktIndex;
+      itTb->second.sinrUpdated = true;
       //Let's compute some stats
       auto sinrStats = GetSinrStats (itTb->second.sinrPerceived, itTb->second.expectedTb.rbBitmap);
       itTb->second.sinrAvg = sinrStats.sinrAvg;
@@ -2014,6 +2015,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
   //Compute the error and check for collision for each expected TB
   for (auto &tbIt : m_slTransportBlocks)
     {
+      NS_ABORT_MSG_IF (tbIt.second.sinrUpdated == false, "SINR not updated for the expected TB from RNTI " << tbIt.first);
       Ptr<Packet> sci2Pkt = ReteriveSci2FromPktBurst (tbIt.second.pktIndex);
       NrSlSciF2aHeader sciF2a;
       sci2Pkt->PeekHeader (sciF2a);
