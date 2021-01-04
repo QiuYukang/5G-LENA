@@ -143,6 +143,19 @@ public:
    * \return The resultant length of the physical Sidelink pool in slots
    */
   static uint16_t GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, uint16_t numUlTddPattern);
+  /**
+    * \brief Assign a fixed random variable stream number to the random variables used.
+    *
+    * The InstallUeDevice and PrepareUeForSidelink method should have previously
+    * been called by the user on the given devices.
+    *
+    *
+    * \param c NetDeviceContainer of the NR SL UE NetDevices for which
+    *          we need to fix the stream
+    * \param stream first stream index to use
+    * \return the number of stream indices (possibly zero) that have been assigned
+    */
+   int64_t AssignStreams (NetDeviceContainer c, int64_t stream);
 
 protected:
   /**

@@ -329,5 +329,29 @@ NrSlHelper::GetPhySlPoolLength (uint16_t slBitmapLen, uint16_t tddPatternLen, ui
   return poolLen;
 }
 
+int64_t
+NrSlHelper::AssignStreams (NetDeviceContainer c, int64_t stream)
+{
+  int64_t currentStream = stream;
+  Ptr<NetDevice> netDevice;
+  for (NetDeviceContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+      {
+        netDevice = (*i);
+        Ptr<NrUeNetDevice> nrUeDev = DynamicCast<NrUeNetDevice> (netDevice);
+        if (nrUeDev)
+          {
+            //Retrieve the CC map from the device so we can set the SL scheduler
+            std::map < uint8_t, Ptr<BandwidthPartUe> > ccMap = nrUeDev->GetCcMap ();
+            for (uint32_t bwp = 0; bwp < ccMap.size (); bwp++)
+              {
+                Ptr<NrSlUeMacScheduler> sched = ccMap.at (bwp)->GetNrSlUeMacScheduler ();
+                currentStream += sched->AssignStreams (currentStream);
+              }
+          }
+      }
+
+    return (currentStream - stream);
+}
+
 } // namespace ns3
 
