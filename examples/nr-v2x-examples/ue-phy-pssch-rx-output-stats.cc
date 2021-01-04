@@ -95,7 +95,7 @@ UePhyPsschRxOutputStats::WriteCache ()
     {
       sqlite3_stmt *stmt;
       m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
-      ret = m_db->Bind (stmt, 1, static_cast<double> (v.m_timeMs));
+      ret = m_db->Bind (stmt, 1, v.m_timeMs);
       NS_ABORT_UNLESS (ret);
       ret = m_db->Bind (stmt, 2, static_cast<uint32_t> (v.m_cellId));
       NS_ABORT_UNLESS (ret);

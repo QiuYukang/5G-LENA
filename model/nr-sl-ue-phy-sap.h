@@ -26,6 +26,7 @@
 #include <ns3/ptr.h>
 #include <ns3/nstime.h>
 #include <ns3/packet-burst.h>
+#include <unordered_set>
 
 
 namespace ns3 {
@@ -103,10 +104,16 @@ public:
    */
   virtual uint8_t GetSlActiveTxPoolId () = 0;
   /**
-   * \brief Get the list Sidelink destination from UE MAC
-   * \return A vector holding Sidelink communication destinations and the highest priority value among its LCs
+   * \brief Get the list of Sidelink destination for transmission from UE MAC
+   * \return A vector holding Sidelink communication destinations for transmission and the highest priority value among its LCs
    */
-  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations () = 0;
+  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlTxDestinations () = 0;
+  /**
+   * \brief Get the list of Sidelink destination for reception from UE MAC
+   * \return A vector holding Sidelink communication destinations for reception and the highest priority value among its LCs
+   */
+  virtual std::unordered_set <uint32_t> GetSlRxDestinations () = 0;
+
   /**
    * \brief Receive NR SL PSSCH PHY PDU
    * \return pbu The NR SL PSSCH PHY PDU
@@ -230,7 +237,8 @@ public:
 
   // methods inherited from NrSlUePhySapUser go here
   virtual uint8_t GetSlActiveTxPoolId ();
-  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlDestinations ();
+  virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlTxDestinations ();
+  virtual std::unordered_set <uint32_t> GetSlRxDestinations ();
   virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
   virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp,
                                    uint16_t rbStart, uint16_t rbLen,
@@ -256,9 +264,16 @@ MemberNrSlUePhySapUser<C>::GetSlActiveTxPoolId ()
 
 template <class C>
 std::vector <std::pair<uint32_t, uint8_t> >
-MemberNrSlUePhySapUser<C>::GetSlDestinations ()
+MemberNrSlUePhySapUser<C>::GetSlTxDestinations ()
 {
-  return m_owner->DoGetSlDestinations ();
+  return m_owner->DoGetSlTxDestinations ();
+}
+
+template <class C>
+std::unordered_set <uint32_t>
+MemberNrSlUePhySapUser<C>::GetSlRxDestinations ()
+{
+  return m_owner->DoGetSlRxDestinations ();
 }
 
 template <class C>

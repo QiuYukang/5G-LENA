@@ -1781,6 +1781,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       uint32_t paramIndex = ctrlMsgIt.index;
 
       bool corrupt = false;
+      bool corruptDecode = false;
       uint8_t pscchMcs = 0 /*using QPSK*/;
       Ptr<NrErrorModelOutput> outputEmForCtrl;
 
@@ -1809,20 +1810,33 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
                 }
             }
 
-          if (!corrupt)
+          //We need to call GetTbDecodificationStats for SCI 1 outside
+          //of "if (!corrupt && !corruptDecode)" because in the trace we
+          //retrieve tbler using
+          //traceParams.m_tbler = outputEmForCtrl->m_tbler;
+          //if we will do it inside "if (!corrupt && !corruptDecode)"
+          //outputEmForData will remain null.
+          ObjectFactory emFactory;
+          emFactory.SetTypeId (m_slErrorModelType);
+          Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
+          NS_ABORT_IF (em == nullptr);
+          outputEmForCtrl = em->GetTbDecodificationStats (m_slSinrPerceived.at (paramIndex),
+                                                          m_slRxSigParamInfo.at (paramIndex).rbBitmap,
+                                                          m_slAmc->CalculateTbSize (pscchMcs,m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()),
+                                                          pscchMcs, NrErrorModel::NrErrorModelHistory ());
+          corruptDecode = m_random->GetValue () > outputEmForCtrl->m_tbler ? false : true;
+
+          NS_LOG_DEBUG ("SCI 1 number of RBs " << m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
+          NS_LOG_DEBUG ("SCI 1 TB size " << m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()));
+
+          if (!corrupt && !corruptDecode)
             {
-              ObjectFactory emFactory;
-              emFactory.SetTypeId (m_slErrorModelType);
-              Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
-              NS_ABORT_IF (em == nullptr);
-              outputEmForCtrl = em->GetTbDecodificationStats (m_slSinrPerceived.at (paramIndex),
-                                                              m_slRxSigParamInfo.at (paramIndex).rbBitmap,
-                                                              m_slAmc->CalculateTbSize (pscchMcs,m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()),
-                                                              pscchMcs, NrErrorModel::NrErrorModelHistory ());
-              corrupt = m_random->GetValue () > outputEmForCtrl->m_tbler ? false : true;
-              NS_LOG_DEBUG ("SCI 1 number of RBs " << m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
-              NS_LOG_DEBUG ("SCI 1 TB size " << m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ()));
-              NS_LOG_DEBUG (this << " PSCCH Decoding, errorRate " << outputEmForCtrl->m_tbler << " error " << corrupt);
+              NS_LOG_DEBUG (this << " PSCCH Decoding successful, errorRate " << outputEmForCtrl->m_tbler << " error " << corrupt);
+            }
+          else
+            {
+              NS_LOG_DEBUG (this << " PSCCH Decoding failed, errorRate " << outputEmForCtrl->m_tbler << " error " << corrupt);
+              corrupt = true;
             }
         }
       else
@@ -1865,7 +1879,7 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       bool tagFound = packet->PeekPacketTag (tag);
       NS_ABORT_MSG_IF (!tagFound, "Did not find NrSlMacPduTag");
       SlRxCtrlPacketTraceParams traceParams;
-      traceParams.m_timeMs = Simulator::Now ().GetMilliSeconds ();
+      traceParams.m_timeMs = Simulator::Now ().GetSeconds () * 1000.0;
       traceParams.m_cellId = ueRx->GetPhy (GetBwpId ())->GetCellId ();
       traceParams.m_rnti = ueRx->GetPhy (GetBwpId ())->GetRnti ();
       traceParams.m_tbSize = m_slAmc->CalculateTbSize (pscchMcs, m_slRxSigParamInfo.at (paramIndex).rbBitmap.size ());
@@ -1876,7 +1890,14 @@ NrSpectrumPhy::RxSlPscch (std::vector<uint32_t> paramIndexes)
       traceParams.m_mcs = pscchMcs;
       traceParams.m_sinr = ctrlMsgIt.sinrAvg;
       traceParams.m_sinrMin = ctrlMsgIt.sinrMin;
-      traceParams.m_tbler = outputEmForCtrl->m_tbler;
+      if (m_slCtrlErrorModelEnabled)
+        {
+          traceParams.m_tbler = outputEmForCtrl->m_tbler;
+        }
+      else
+        {
+          traceParams.m_tbler = 0;
+        }
       traceParams.m_corrupt = corrupt;
       traceParams.m_symStart = tag.GetSymStart (); //DATA symbol start
       traceParams.m_numSym = tag.GetNumSym (); //DATA symbol length
@@ -1942,14 +1963,22 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       //Note: m_slRxSigParamInfo, contains all the received
       //PSSCH transmissions. On the other hand, m_slTransportBlocks contains
       //the info of only those transmissions, which the receiving UE is
-      //interest in to listen. So, it might happen that we would not find the
-      //RNTI we are looking for. This case would happen where a UE wants to
-      //listen to some selective destinations or transmitting UEs. If this happens,
-      //replace the following assert with a continue statement.
-      //I am waiting for that day.
-      NS_ABORT_MSG_IF (itTb == m_slTransportBlocks.end (), "Unable to find the RNTI " << tag.GetRnti () << " in expected TB map");
+      //interested in to listen and had decoded SCI stage 1. So, it might happen
+      //that we would not find the RNTI present in m_slRxSigParamInfo
+      //in m_slTransportBlocks. This would happen
+      //in the following cases:
+      //1.RX UE failed to decode all the SCI stage 1
+      //2.RX UE decoded only non collided, one or multiple, SCI stage 1 but not from the RNTI we are looking.
+      //3.RX UE wants to listen to some selective destinations or transmitting UEs.
+      //In any of the above case, there is no need to create a mapping between
+      //the packet tag and the index of the packet bursts.
+      if (itTb == m_slTransportBlocks.end ())
+        {
+          continue;
+        }
       itTb->second.sinrPerceived = m_slSinrPerceived.at (pktIndex);
       itTb->second.pktIndex = pktIndex;
+      itTb->second.sinrUpdated = true;
       //Let's compute some stats
       auto sinrStats = GetSinrStats (itTb->second.sinrPerceived, itTb->second.expectedTb.rbBitmap);
       itTb->second.sinrAvg = sinrStats.sinrAvg;
@@ -1986,6 +2015,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
   //Compute the error and check for collision for each expected TB
   for (auto &tbIt : m_slTransportBlocks)
     {
+      NS_ABORT_MSG_IF (tbIt.second.sinrUpdated == false, "SINR not updated for the expected TB from RNTI " << tbIt.first);
       Ptr<Packet> sci2Pkt = ReteriveSci2FromPktBurst (tbIt.second.pktIndex);
       NrSlSciF2aHeader sciF2a;
       sci2Pkt->PeekHeader (sciF2a);
@@ -2024,54 +2054,70 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
                 }
             }
 
+          //We need to call GetTbDecodificationStats for SCI 2 and data outside
+          //of "if (!rbCollided)" because in the trace we retrieve tbler using
+          //traceParams.m_tbler = tbIt.second.outputEmForData->m_tbler;
+          //traceParams.m_tblerSci2 = tbIt.second.outputEmForSci2->m_tbler;
+          //if we will do it inside "if (!rbCollided)" outputEmForData will remain
+          //null.
+
+          //First we decode SCI stage 2
+          ObjectFactory emFactory;
+          emFactory.SetTypeId (m_slErrorModelType);
+          Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
+          NS_ABORT_IF (em == nullptr);
+          uint8_t Sci2Mcs = 0 /*using QPSK*/;
+          tbIt.second.outputEmForSci2 = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
+                                                                      tbIt.second.expectedTb.rbBitmap,
+                                                                      sciF2a.GetSerializedSize ()/*5 bytes is the fixed size of SCI-stage 2 Format 2A*/,
+                                                                      Sci2Mcs, NrErrorModel::NrErrorModelHistory ());
+
+          //Since we do not rely on RV to track the number of transmissions,
+          //before decoding the data erase the HARQ history of a TB
+          //which was not decoded and received from the same rnti and HARQ
+          //process
+          // retrieve HARQ info
+          const NrErrorModel::NrErrorModelHistory & harqInfoList = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
+          if (sciF2a.GetNdi () && harqInfoList.size () > 0)
+            {
+              m_harqPhyModule->ResetSlDataHarqProcessStatus (tbIt.first, sciF2a.GetHarqId ());
+              //fetch again an empty HARQ info
+              //sorry to damage the sanity of const but I had no choice
+              const_cast<NrErrorModel::NrErrorModelHistory &>(harqInfoList) = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
+            }
+
+
+          tbIt.second.outputEmForData = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
+                                                                      tbIt.second.expectedTb.rbBitmap,
+                                                                      tbIt.second.expectedTb.tbSize,
+                                                                      tbIt.second.expectedTb.mcs, harqInfoList);
+
           if (!rbCollided)
             {
-              //First we decode SCI stage 2
-              ObjectFactory emFactory;
-              emFactory.SetTypeId (m_slErrorModelType);
-              Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
-              NS_ABORT_IF (em == nullptr);
-              uint8_t Sci2Mcs = 0 /*using QPSK*/;
-              tbIt.second.outputEmForSci2 = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
-                                                                          tbIt.second.expectedTb.rbBitmap,
-                                                                          sciF2a.GetSerializedSize ()/*5 bytes is the fixed size of SCI-stage 2 Format 2A*/,
-                                                                          Sci2Mcs, NrErrorModel::NrErrorModelHistory ());
+              //check the decodification of SCI stage 2 with a random probability
               tbIt.second.isSci2Corrupted = m_random->GetValue () > tbIt.second.outputEmForSci2->m_tbler ? false : true;
               NS_LOG_DEBUG (this << " SCI stage 2 decoding, errorRate " << tbIt.second.outputEmForSci2->m_tbler << " corrupt " << tbIt.second.isSci2Corrupted);
 
-              //Since we do not rely on RV to track the number of transmissions,
-              //before decoding the data erase the HARQ history of a TB
-              //which was not decoded and received from the same rnti and HARQ
-              //process
-              // retrieve HARQ info
-              const NrErrorModel::NrErrorModelHistory & harqInfoList = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
-              if (sciF2a.GetNdi () && harqInfoList.size () > 0)
+              //check the decodification of data with a random probability
+              tbIt.second.isDataCorrupted = m_random->GetValue () > tbIt.second.outputEmForData->m_tbler ? false : true;
+              //If SCI stage 2 is corrupted, data is also corrupted.
+              //So, mark data corrupted if any of them is corrupt.
+              if (tbIt.second.isSci2Corrupted || tbIt.second.isDataCorrupted)
                 {
-                  m_harqPhyModule->ResetSlDataHarqProcessStatus (tbIt.first, sciF2a.GetHarqId ());
-                  //fetch again an empty HARQ info
-                  //sorry to demage the sanity of const but I had no choice
-                  const_cast<NrErrorModel::NrErrorModelHistory &>(harqInfoList) = m_harqPhyModule->GetHarqProcessInfoSlData (tbIt.first, sciF2a.GetHarqId ());
-                }
-
-              //If SCI stage 2 is not corrupted we try to decode the TB,
-              //otherwise, data is also corrupted
-              if (!tbIt.second.isSci2Corrupted)
-                {
-                  tbIt.second.outputEmForData = em->GetTbDecodificationStats (tbIt.second.sinrPerceived,
-                                                                         tbIt.second.expectedTb.rbBitmap,
-                                                                         tbIt.second.expectedTb.tbSize,
-                                                                         tbIt.second.expectedTb.mcs, harqInfoList);
-                  tbIt.second.isDataCorrupted = m_random->GetValue () > tbIt.second.outputEmForData->m_tbler ? false : true;
-                  NS_LOG_DEBUG (this << " PSSCH TB decoding, errorRate " << tbIt.second.outputEmForData->m_tbler << " corrupt " << tbIt.second.isDataCorrupted);
-                  //if the TB is not corrupted mark it decoded and store its info in HarqPhy
-                  if (!tbIt.second.isDataCorrupted)
-                    {
-                      m_harqPhyModule->IndicatePrevDecoded (tbIt.first, sciF2a.GetHarqId ());
-                    }
+                  NS_LOG_DEBUG (this << " PSSCH TB decoding failed, errorRate "
+                                     << tbIt.second.outputEmForData->m_tbler
+                                     << " data corrupt " << tbIt.second.isDataCorrupted);
+                  //it is needed because maybe data was decoded successful
+                  //but SCI 2 wasn't. In this case, we need to mark successfully
+                  //decoded data as corrupt.
+                  tbIt.second.isDataCorrupted = true;
                 }
               else
                 {
-                  tbIt.second.isDataCorrupted = tbIt.second.isSci2Corrupted;
+                  NS_LOG_DEBUG (this << " PSSCH TB decoding successful, errorRate "
+                                     << tbIt.second.outputEmForData->m_tbler
+                                     << " data corrupt " << tbIt.second.isDataCorrupted);
+                  m_harqPhyModule->IndicatePrevDecoded (tbIt.first, sciF2a.GetHarqId ());
                 }
 
               // Arrange the HARQ history
@@ -2131,7 +2177,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
         }
 
       SlRxDataPacketTraceParams traceParams;
-      traceParams.m_timeMs = Simulator::Now ().GetMilliSeconds ();
+      traceParams.m_timeMs = Simulator::Now ().GetSeconds () * 1000.0;
       traceParams.m_cellId = ueRx->GetPhy (GetBwpId ())->GetCellId ();
       traceParams.m_rnti = ueRx->GetPhy (GetBwpId ())->GetRnti ();
       traceParams.m_tbSize = tbIt.second.expectedTb.tbSize;
@@ -2144,8 +2190,16 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
       traceParams.m_ndi = sciF2a.GetNdi ();
       traceParams.m_sinr = tbIt.second.sinrAvg;
       traceParams.m_sinrMin = tbIt.second.sinrMin;
-      traceParams.m_tbler = tbIt.second.outputEmForData->m_tbler;
-      traceParams.m_tblerSci2 = tbIt.second.outputEmForSci2->m_tbler;
+      if (m_slDataErrorModelEnabled)
+        {
+          traceParams.m_tbler = tbIt.second.outputEmForData->m_tbler;
+          traceParams.m_tblerSci2 = tbIt.second.outputEmForSci2->m_tbler;
+        }
+      else
+        {
+          traceParams.m_tbler = 0;
+          traceParams.m_tblerSci2 = 0;
+        }
       traceParams.m_corrupt = tbIt.second.isDataCorrupted;
       traceParams.m_sci2Corrupted = tbIt.second.isSci2Corrupted;
       traceParams.m_symStart = tbIt.second.expectedTb.symStart;
@@ -2265,10 +2319,13 @@ NrSpectrumPhy::AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, 
 
   NS_ASSERT_MSG (insertStatus == true, "Unable to emplace the info of an NR SL expected TB");
 
-  NS_LOG_INFO ("Added NR SL expected TB from rnti " << rnti << " with Dest id " << dstId
-               << " TB size = " << tbSize << " mcs = " << static_cast<uint32_t> (mcs)
-               << " symstart = " << static_cast<uint32_t> (symStart)
-               << " numSym = " << static_cast<uint32_t> (numSym));
+  Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice> (GetDevice ());
+
+  NS_LOG_DEBUG ("RNTI " << ueRx->GetPhy (GetBwpId ())->GetRnti ()
+                << " added NR SL expected TB from rnti " << rnti << " with Dest id " << dstId
+                << " TB size = " << tbSize << " mcs = " << static_cast<uint32_t> (mcs)
+                << " sfn: " << sfn << " symstart = " << static_cast<uint32_t> (symStart)
+                << " numSym = " << static_cast<uint32_t> (numSym));
 }
 
 bool

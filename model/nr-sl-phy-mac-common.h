@@ -54,7 +54,7 @@ struct NrSlInfoListElement_s
  */
 struct SlPscchUeMacStatParameters
 {
-  int64_t timeMs {0}; //!< Time stamp in MilliSeconds
+  double timeMs {0.0}; //!< Time stamp in MilliSeconds
   uint64_t imsi {std::numeric_limits<uint64_t>::max ()}; //!< The IMSI of the scheduled UE
   uint16_t rnti {std::numeric_limits<uint16_t>::max ()}; //!< The RNTI scheduled
   uint32_t frameNum {std::numeric_limits<uint32_t>::max ()}; //!< The frame number
@@ -90,7 +90,7 @@ struct SlPscchUeMacStatParameters
  */
 struct SlPsschUeMacStatParameters
 {
-  int64_t timeMs {0}; //!< Time stamp in MilliSeconds
+  double timeMs {0.0}; //!< Time stamp in MilliSeconds
   uint64_t imsi {std::numeric_limits<uint64_t>::max ()}; //!< The IMSI of the scheduled UE
   uint16_t rnti {std::numeric_limits<uint16_t>::max ()}; //!< The RNTI scheduled
   uint32_t frameNum {std::numeric_limits<uint32_t>::max ()}; //!< The frame number
@@ -233,7 +233,7 @@ struct NrSlPhySlotAlloc
  */
 struct SlRxDataPacketTraceParams:public RxPacketTraceParams
 {
-  int64_t m_timeMs {0}; //!< Time stamp in MilliSeconds
+  double m_timeMs {0.0}; //!< Time stamp in MilliSeconds
   uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
   uint8_t m_ndi {std::numeric_limits <uint8_t>::max ()}; //!< The flag to indicate the new data allocation
   double m_tblerSci2; //!< TBLER of SCI stage 2
@@ -258,7 +258,7 @@ struct SlRxDataPacketTraceParams:public RxPacketTraceParams
  */
 struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
 {
-  int64_t m_timeMs {0}; //!< Time stamp in MilliSeconds
+  double m_timeMs {0.0}; //!< Time stamp in MilliSeconds
   uint16_t m_txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The TX UE RNTI
   int m_rbStart; //!< The start RB index
   int m_rbEnd; //!< The end RB index

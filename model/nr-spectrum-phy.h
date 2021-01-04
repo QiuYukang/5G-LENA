@@ -608,6 +608,7 @@ public:
    Ptr<NrErrorModelOutput> outputEmForData;   //!< Output of the Error Model (depends on the EM type) for data
    Ptr<NrErrorModelOutput> outputEmForSci2;   //!< Output of the Error Model (depends on the EM type) for SCI stage 2
    SpectrumValue sinrPerceived;               //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
+   bool sinrUpdated {false};                  //!< Flag to indicate the successful update of sinrPerceived
    double sinrAvg {0.0};                      //!< AVG SINR (only for the RB used to transmit the TB)
    double sinrMin {0.0};                       //!< MIN SINR (only between the RB used to transmit the TB)
    uint32_t pktIndex {std::numeric_limits <uint32_t>::max ()}; //!< Index of the TB in the \p m_slRxSigParamInfo buffer
