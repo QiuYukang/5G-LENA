@@ -528,6 +528,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
+  cmd.AddValue ("simTag",
+                "tag identifying the simulation compaigns",
+                simTag);
   cmd.AddValue ("generateInitialPosGnuScript",
                 "generate gnuplot script to plot initial positions of the UEs",
                 generateInitialPosGnuScript);
