@@ -153,7 +153,7 @@ public:
    * \param stream The first stream index to use
    * \return The number of stream indices assigned by this model
    */
-  int64_t AssignStreams (int64_t stream);
+  virtual int64_t AssignStreams (int64_t stream) override;
 
 
 protected:
