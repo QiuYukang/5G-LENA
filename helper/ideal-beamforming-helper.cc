@@ -18,7 +18,8 @@
  */
 
 #include "ideal-beamforming-helper.h"
-#include  <ns3/ideal-beamforming-algorithm.h>
+#include <ns3/object-factory.h>
+#include <ns3/ideal-beamforming-algorithm.h>
 #include <ns3/log.h>
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-ue-net-device.h>
@@ -49,6 +50,7 @@ IdealBeamformingHelper::DoInitialize ()
 {
   m_beamformingTimer = Simulator::Schedule (m_beamformingPeriodicity,
                                               &IdealBeamformingHelper::ExpireBeamformingTimer, this);
+  BeamformingHelperBase::DoInitialize ();
 }
 
 TypeId

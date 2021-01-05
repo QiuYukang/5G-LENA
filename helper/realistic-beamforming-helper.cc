@@ -64,12 +64,6 @@ RealisticBeamformingHelper::GetTypeId (void)
 }
 
 void
-RealisticBeamformingHelper::DoInitialize ()
-{
-
-}
-
-void
 RealisticBeamformingHelper::SetTriggerEvent (RealisticBeamformingHelper::TriggerEvent triggerEvent)
 {
   m_triggerEvent = triggerEvent;
