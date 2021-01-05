@@ -528,6 +528,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
+  cmd.AddValue ("simTag",
+                "tag identifying the simulation compaigns",
+                simTag);
   cmd.AddValue ("generateInitialPosGnuScript",
                 "generate gnuplot script to plot initial positions of the UEs",
                 generateInitialPosGnuScript);
@@ -836,26 +839,11 @@ main (int argc, char *argv[])
   /****************************** End SL Configuration ***********************/
 
   /*
-   * Fix the random stream of the channel
+   * Fix the random streams
    */
-  for (uint32_t j = 0; j < allSlUesContainer.GetN (); ++j)
-    {
-      //We test 2 BWP in this test
-      for (uint8_t bwpId = 0; bwpId < 1; bwpId++)
-        {
-          Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetUePhy (allSlUesNetDeviceContainer.Get (j), bwpId)->GetSpectrumPhy ();
-          Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
-          Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
-          NS_ASSERT (propagationLossModel != nullptr);
-          propagationLossModel->AssignStreams (1);
-          Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
-          channelConditionModel->AssignStreams (1);
-          Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
-          NS_ASSERT (spectrumLossModel != nullptr);
-          Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel ());
-          channel->AssignStreams (1);
-        }
-    }
+  int64_t stream = 1;
+  stream += nrHelper->AssignStreams (allSlUesNetDeviceContainer, stream);
+  stream += nrSlHelper->AssignStreams (allSlUesNetDeviceContainer, stream);
 
   /*
    * if enableOneTxPerLane is true:
@@ -986,7 +974,7 @@ main (int argc, char *argv[])
   // Random variable to randomize a bit start times of the client applications
   //to avoid simulation artifacts of all the TX UEs transmitting at the same time.
   Ptr<UniformRandomVariable> startTimeSeconds = CreateObject<UniformRandomVariable> ();
-  startTimeSeconds->SetStream (1);
+  startTimeSeconds->SetStream (stream);
   startTimeSeconds->SetAttribute ("Min", DoubleValue (0));
   startTimeSeconds->SetAttribute ("Max", DoubleValue (0.010));
 
