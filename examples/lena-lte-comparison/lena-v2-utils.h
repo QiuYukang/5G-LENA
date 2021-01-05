@@ -36,7 +36,7 @@ class LenaV2Utils
 {
 public:
   static
-  void SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
+  void SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                        const std::string &scenario,
                                        const std::string &radioNetwork,
                                        std::string errorModel,

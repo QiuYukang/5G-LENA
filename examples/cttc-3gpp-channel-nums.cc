@@ -222,8 +222,8 @@ main (int argc, char *argv[])
 
   // Beamforming method
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
 
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
 //  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
@@ -334,6 +334,10 @@ main (int argc, char *argv[])
 
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes,
                                                                allBwps);
+
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gNbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
 
   // When all the configuration is done, explicitly call UpdateConfig ()

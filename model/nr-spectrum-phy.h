@@ -312,6 +312,16 @@ public:
                       const SfnSf &sfn);
 
   /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
+  /**
    * \brief TracedCallback signature for RB statistics
    *
    * \param [in] sfnSf SfnSf
@@ -322,6 +332,14 @@ public:
    */
   typedef void (* RxDataTracedCallback)(const SfnSf & sfnSf, Ptr<const SpectrumValue> v,
                                         const Time & t, uint16_t bwpId, uint16_t cellId);
+
+
+  void AddExpectedSrsRnti (uint16_t rnti);
+
+  // SRS SINR callback
+  typedef Callback < void, uint16_t, uint16_t, double> SrsSinrReportCallback;
+
+  void SetSrsSinrReportCallback (SrsSinrReportCallback callback);
 
 protected:
   /**
@@ -491,7 +509,8 @@ private:
   Time m_firstRxDuration {Seconds (0)}; //!< the duration of the current reception
   State m_state {IDLE}; //!<spectrum phy state
   SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
-  SpectrumValue m_srsSinrPerceived; //!< SINR that is being updated at the end of the SRS reception at the gNB, it is used to notify realistic-beamforming mechanism about SRS SINR
+  SrsSinrReportCallback m_srsSinrReportCallback;
+  uint16_t m_currentSrsRnti {0};
   EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY to IDLE.
   Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time
 

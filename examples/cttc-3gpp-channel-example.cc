@@ -173,7 +173,7 @@ main (int argc, char *argv[])
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
@@ -199,7 +199,7 @@ main (int argc, char *argv[])
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure ideal beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Configure scheduler
   nrHelper->SetSchedulerTypeId (NrMacSchedulerTdmaRR::GetTypeId ());
@@ -217,6 +217,10 @@ main (int argc, char *argv[])
   // install nr net devices
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
+
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPower);
   nrHelper->GetGnbPhy (enbNetDev.Get (1), 0)->SetTxPower (txPower);

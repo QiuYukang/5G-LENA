@@ -187,7 +187,7 @@ public:
    * \brief Get the spectrum model of the PHY
    * \return a pointer to the spectrum model
    */
-  Ptr<const SpectrumModel> GetSpectrumModel () const;
+  Ptr<const SpectrumModel> GetSpectrumModel ();
 
   /**
    * \brief Get the number of symbols in a slot
@@ -334,7 +334,20 @@ public:
    *
    * It changes with the numerology and the channel bandwidth
    */
-  uint32_t GetRbNum () const;
+  uint32_t GetRbNum () const ;
+
+  /**
+   * \brief Retrieve the channel bandwidth, in Hz
+   * \return the channel bandwidth in Hz
+   */
+  uint32_t GetChannelBandwidth () const;
+
+  /**
+   * \brief Retrieve the subcarrier spacing in Hz. Subcarrier spacing
+   * is updated when the numerology is being updated.
+   * \return the channel bandwidth in Hz
+   */
+  uint32_t GetSubcarrierSpacing () const;
 
   /**
    * \return the latency (in n. of slots) between L1 and L2 layers. Default to 2.
@@ -419,7 +432,14 @@ protected:
   /**
    * \brief Update the number of RB. Usually called after bandwidth changes
    */
-  void UpdateRbNum ();
+  void DoUpdateRbNum ();
+
+  /**
+   * \brief Protected function to set the channel bandwidth, used also by child classes.
+   * This function also updates the rbNum and spectrum model for noise PSD.
+   * \param bandwidth channel bandwidth in kHz * 100
+   */
+  void SetChannelBandwidth (uint16_t bandwidth);
 
   /**
    * \brief Check if a pattern is TDD
@@ -452,11 +472,6 @@ protected:
   virtual uint32_t GetNumRbPerRbg () const = 0;
 
   /**
-   * \return the channel bandwidth in Hz
-   */
-  virtual uint32_t GetChannelBandwidth () const = 0;
-
-  /**
    * \brief Retrieve the PacketBurst at the slot/symbol specified
    * \param sym Symbol at which the PacketBurst should be sent
    * \return a pointer to the burst, if present, otherwise nullptr
@@ -468,7 +483,7 @@ protected:
    * \return A SpectrumValue array with fixed size, in which a value is
    * update to a particular value of the noise
    */
-  Ptr<SpectrumValue> GetNoisePowerSpectralDensity () const;
+  Ptr<SpectrumValue> GetNoisePowerSpectralDensity ();
 
   /**
    * Create Tx Power Spectral Density
@@ -479,7 +494,7 @@ protected:
    * or is left untouched otherwise.
    * \see NrSpectrumValueHelper::CreateTxPowerSpectralDensity
    */
-  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector) const;
+  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector);
 
   /**
    * \brief Store the slot allocation info at the front
@@ -581,6 +596,7 @@ private:
 
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0};             //!< Channel central frequency -- set by the helper
+  uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
 
   uint16_t m_cellId {0};             //!< Cell ID which identify this BWP.
   uint16_t m_bwpId {UINT16_MAX};     //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper

@@ -97,6 +97,13 @@ NrMacSchedulerNs3::GetDlAmc() const
   return m_dlAmc;
 }
 
+int64_t
+NrMacSchedulerNs3::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  return m_schedulerSrs->AssignStreams (stream);;
+}
+
 TypeId
 NrMacSchedulerNs3::GetTypeId (void)
 {
@@ -1977,7 +1984,7 @@ NrMacSchedulerNs3::DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocIn
       return used; // No SRS in this slot!
     }
 
-  // Schedue 4 allocation, of 1 symbol each, in TDMA mode, for the RNTI found.
+  // Schedule 4 allocation, of 1 symbol each, in TDMA mode, for the RNTI found.
 
   for (uint32_t i = 0; i < m_srsCtrlSymbols; ++i)
     {

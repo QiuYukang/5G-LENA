@@ -278,7 +278,7 @@ private:
     * in 38.213 the table is Table 7.1.1-1.
     * \param tpc TPC command value from 0 to 3
     */
-   int GetAbsoluteDelta (uint8_t tpc) const;
+   int8_t GetAbsoluteDelta (uint8_t tpc) const;
    /*
     * \brief Implements conversion from TPC
     * command to accumulated delta value. Follows both,
@@ -289,7 +289,7 @@ private:
     * Table 7.1.1-1 and Table 7.2.1-1.
     * \param tpc TPC command value from 0 to 3
     */
-   int GetAccumulatedDelta (uint8_t tpc) const;
+   int8_t GetAccumulatedDelta (uint8_t tpc) const;
    /**
     * \brief Calculates fc value for PUSCH power control
     * according to TS 38.213 7.2.1 formulas.
@@ -354,7 +354,7 @@ private:
   double m_rsrp {-40};                         //!< RSRP value in dBm
   int16_t m_PsrsOffset;                         //!< PSRS offset
   double m_pathLoss {100};                      //!< path loss value in dB
-  std::vector <uint8_t> m_deltaPucch;           //!< vector that saves TPC command accumulated values for PUCCH transmit power calculation
+  std::vector <int8_t> m_deltaPucch;           //!< vector that saves TPC command accumulated values for PUCCH transmit power calculation
   std::vector <int8_t> m_deltaPusch;            //!< vector that saves TPC command accumulated values for PUSCH transmit power calculation
   double m_fc {0.0};                            //!< FC
   double m_gc {0.0};                            //!< Is the current PUCCH power control adjustment state. This variable is used for calculation of PUCCH transmit power.

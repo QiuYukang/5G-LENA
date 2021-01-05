@@ -118,10 +118,6 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
     {
       nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
-  else
-    {
-      NS_ABORT_MSG ("Programming error");
-    }
 
   return std::make_pair(app, startTime);
 }
@@ -146,6 +142,8 @@ Parameters::Validate (void) const
                    "Operation mode can only be TDD or FDD");
   NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR",
                    "Unrecognized radio network technology");
+  NS_ABORT_MSG_IF (radioNetwork == "LTE" && operationMode != "FDD",
+                   "Operation mode must be FDD in a 4G LTE network.");
   NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA",
                    "Unrecognized simulator");
   NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
@@ -166,7 +164,6 @@ Parameters::Validate (void) const
       NS_ABORT_MSG_IF (remSector == 0 && freqScenario != 1,
                        "RemSector == 0 makes sense only in a OVERLAPPING scenario");
     }
-  
   
   return true;
 }
@@ -285,19 +282,37 @@ LenaLteComparison (const Parameters &params)
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
-  std::cout << "  hexagonal grid\n";  
+  std::cout << "  hexagonal grid: ";  
   HexagonalGridScenarioHelper gridScenario;
   gridScenario.SetNumRings (params.numOuterRings);
-  gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
+  const auto sectorization = HexagonalGridScenarioHelper::TRIPLE;
+  const uint16_t sectorsNum = static_cast<uint16_t> (sectorization);
+  gridScenario.SetSectorization (sectorization);
   gridScenario.SetScenarioParameters (params.scenario);
+  uint16_t gNbSites = gridScenario.GetNumSites ();
   uint16_t gNbNum = gridScenario.GetNumCells ();
   uint32_t ueNum = params.ueNumPergNb * gNbNum;
   gridScenario.SetUtNumber (ueNum);
+  gridScenario.AssignStreams (RngSeedManager::GetRun ());
   gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
+  
   const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
+  std::cout << gNbSites << " sites, "
+            << sectorsNum << " sectors/site, "
+            << gNbNum   << " cells, "
+            << ueNum    << " UEs\n";
 
   /*
    * Create different gNB NodeContainer for the different sectors.
+   *
+   * Relationships between cellId, sectorId and siteId:
+   *   sector = cellId % sectorsNum
+   *   siteId = cellId / sectorsNum
+   *   cellId = siteId * sectorsNum + sector
+   *
+   * Iterate/index gnbNodes, gnbNetDevs by cellId.
+   * Iterate/index gnbSector<N>Container, gnbNodesBySector[sector],
+   *   gnbSector<N>NetDev, gnbNdBySector[sector] by siteId
    */
   NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
   for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
@@ -319,9 +334,23 @@ LenaLteComparison (const Parameters &params)
           break;
       }
     }
+  std::cout << "    gNb containers: "
+            << gnbSector1Container.GetN () << ", "
+            << gnbSector2Container.GetN () << ", "
+            << gnbSector3Container.GetN ()
+            << std::endl;
 
   /*
    * Create different UE NodeContainer for the different sectors.
+   *
+   * Relationships between ueId, sector and site:
+   *   sector = ueId % sectorsNum
+   *   siteId = (ueId / sectorsNum) % gnbSites
+   *
+   * Multiple UEs per sector!
+   * Iterate/index ueNodes, ueNetDevs, ueIpIfaces by ueId.
+   * Iterate/Index ueSector<N>Container, ueNodesBySector[sector],
+   *   ueSector<N>NetDev, ueNdBySector[sector] with i % gnbSites
    */
   NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
 
@@ -344,6 +373,11 @@ LenaLteComparison (const Parameters &params)
           break;
       }
     }
+  std::cout << "    UE containers: "
+            << ueSector1Container.GetN () << ", "
+            << ueSector2Container.GetN () << ", "
+            << ueSector3Container.GetN ()
+            << std::endl;
 
   /*
    * Setup the LTE or NR module. We create the various helpers needed inside
@@ -358,10 +392,12 @@ LenaLteComparison (const Parameters &params)
   Ptr <LteHelper> lteHelper = nullptr;
   Ptr <NrHelper> nrHelper = nullptr;
 
+  double sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0, sectorization);
+                                                                     
   if (params.simulator == "LENA")
     {
       epcHelper = CreateObject<PointToPointEpcHelper> ();
-      LenaV1Utils::SetLenaV1SimulatorParameters (gridScenario,
+      LenaV1Utils::SetLenaV1SimulatorParameters (sector0AngleRad,
                                   params.scenario,
                                   gnbSector1Container,
                                   gnbSector2Container,
@@ -388,7 +424,7 @@ LenaLteComparison (const Parameters &params)
   else if (params.simulator == "5GLENA")
     {
       epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-      LenaV2Utils::SetLenaV2SimulatorParameters (gridScenario,
+      LenaV2Utils::SetLenaV2SimulatorParameters (sector0AngleRad,
                                     params.scenario,
                                     params.radioNetwork,
                                     params.errorModel,
@@ -421,10 +457,13 @@ LenaLteComparison (const Parameters &params)
                                     params.freqScenario,
                                     params.downtiltAngle);
     }
-  else
+
+  // Check we got one valid helper
+  if ( (lteHelper == nullptr) && (nrHelper == nullptr) )
     {
-      NS_ABORT_MSG ("Unrecognized cellular simulator");
+      NS_ABORT_MSG ("Programming error: no valid helper");
     }
+  
 
   // From here, it is standard NS3. In the future, we will create helpers
   // for this part as well.
@@ -472,11 +511,11 @@ LenaLteComparison (const Parameters &params)
   for (uint32_t u = 0; u < ueNum; ++u)
     {
       uint32_t sector = u % ffr;
-      uint32_t i = u / ffr;
+      uint32_t siteId = (u / ffr) % gridScenario.GetNumSites ();
       if (sector == 0)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get (i % gridScenario.GetNumSites ());
-          Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get (i);
+          Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get (siteId);
+          Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get (siteId);
           if (lteHelper != nullptr)
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -484,10 +523,6 @@ LenaLteComparison (const Parameters &params)
           else if (nrHelper != nullptr)
             {
               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-            }
-          else
-            {
-              NS_ABORT_MSG ("Programming error");
             }
           if (params.logging == true)
             {
@@ -499,8 +534,8 @@ LenaLteComparison (const Parameters &params)
         }
       else if (sector == 1)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get (i % gridScenario.GetNumSites ());
-          Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get (i);
+          Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get (siteId);
+          Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get (siteId);
           if (lteHelper != nullptr)
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -508,10 +543,6 @@ LenaLteComparison (const Parameters &params)
           else if (nrHelper != nullptr)
             {
               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-            }
-          else
-            {
-              NS_ABORT_MSG ("Programming error");
             }
           if (params.logging == true)
             {
@@ -523,8 +554,8 @@ LenaLteComparison (const Parameters &params)
         }
       else if (sector == 2)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get (i % gridScenario.GetNumSites ());
-          Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get (i);
+          Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get (siteId);
+          Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get (siteId);
           if (lteHelper != nullptr)
             {
               lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -533,10 +564,6 @@ LenaLteComparison (const Parameters &params)
             {
               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
             }
-          else
-            {
-              NS_ABORT_MSG ("Programming error");
-            }
           if (params.logging == true)
             {
               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -544,10 +571,6 @@ LenaLteComparison (const Parameters &params)
               double distance = CalculateDistance (gnbpos, uepos);
               std::cout << "Distance = " << distance << " meters" << std::endl;
             }
-        }
-      else
-        {
-          NS_ABORT_MSG("Number of sector cannot be larger than 3");
         }
     }
 
@@ -582,12 +605,18 @@ LenaLteComparison (const Parameters &params)
    *
    * Low-Latency configuration and object creation:
    */
-  std::cout << "  client factory\n";  
+  Time interval = Seconds (1.0/lambda);
+  std::cout << "  client factory:"
+            << "\n    packet size: " << udpPacketSize
+            << "\n    interval:    " << interval
+            << "\n    max packets: " << packetCount
+            << std::endl;
+
   UdpClientHelper dlClientLowLat;
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (packetCount));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
-  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (interval));
 
   /*
    * Let's install the applications!
@@ -602,29 +631,25 @@ LenaLteComparison (const Parameters &params)
   x->SetStream (RngSeedManager::GetRun());
   double maxStartTime = 0.0;
 
-  for (uint32_t userId = 0; userId < gridScenario.GetUserTerminals().GetN (); ++userId)
+  for (uint32_t userId = 0; userId < ueNum; ++userId)
     {
-      for (uint32_t j = 0; j < 3; ++j)
-        {
-          if (nodes.at (j)->GetN () <= userId)
-            {
-              continue;
-            }
-          Ptr<Node> n = nodes.at(j)->Get (userId);
-          Ptr<NetDevice> d = devices.at(j)->Get(userId);
-          Address a = ips.at(j)->GetAddress(userId);
+      uint32_t sector = userId % ffr;
+      uint32_t siteId = (userId / ffr) % gridScenario.GetNumSites ();
+      Ptr<Node> n = nodes.at(sector)->Get (siteId);
+      Ptr<NetDevice> d = devices.at(sector)->Get(siteId);
+      Address a = ips.at(sector)->GetAddress(siteId);
+      
+      std::cout << "app for ue " << userId << " in sector " << sector 
+                << " position " << n->GetObject<MobilityModel>()->GetPosition ()
+                << ":" << std::endl;
 
-          std::cout << "app for ue " << userId << " in sector " << j+1
-                    << " position " << n->GetObject<MobilityModel>()->GetPosition ()
-                    << ":" << std::endl;
-
-          auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
-                                  remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
-                                  x, params.appGenerationTimeMs, lteHelper, nrHelper);
-          maxStartTime = std::max (app.second, maxStartTime);
-          clientApps.Add (app.first);
-        }
+      auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
+                              remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
+                              x, params.appGenerationTimeMs, lteHelper, nrHelper);
+      maxStartTime = std::max (app.second, maxStartTime);
+      clientApps.Add (app.first);
     }
+  std::cout << clientApps.GetN () << " apps\n";
 
   // enable the traces provided by the nr module
   std::cout << "  tracing\n";  
@@ -662,12 +687,6 @@ LenaLteComparison (const Parameters &params)
 
   if (params.dlRem || params.ulRem)
     {
-      NS_ABORT_MSG_IF (params.simulator != "5GLENA",
-                       "Cannot do the REM with the simulator " << params.simulator);
-      NS_ABORT_MSG_IF (params.dlRem && params.ulRem,
-                       "You selected both DL and UL REM, that is not supported");
-      NS_ABORT_MSG_IF (params.remSector == 0 && params.freqScenario != 1,
-                       "RemSector == 0 makes sense only in a OVERLAPPING scenario");
 
       NetDeviceContainer gnbContainerRem;
       Ptr<NetDevice> ueRemDevice;
@@ -771,9 +790,6 @@ LenaLteComparison (const Parameters &params)
               break;
             case 3:
               gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
-              break;
-            default:
-              NS_ABORT_MSG("sector cannot be larger than 3");
               break;
             }
         }

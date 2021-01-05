@@ -191,7 +191,7 @@ main (int argc, char *argv[])
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
   // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
@@ -225,7 +225,7 @@ main (int argc, char *argv[])
    *  Case (i): Attributes valid for all the nodes
    */
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
@@ -262,6 +262,10 @@ main (int argc, char *argv[])
 
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
+
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup

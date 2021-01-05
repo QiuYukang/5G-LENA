@@ -47,6 +47,7 @@
 #include <ns3/beam-manager.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/three-gpp-channel-model.h>
 #include <ns3/buildings-channel-condition-model.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/bwp-manager-algorithm.h>
@@ -1016,7 +1017,7 @@ NrHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
       ueNas->Connect (enbNetDev->GetBwpId (i), enbNetDev->GetEarfcn (i));
     }
 
-  if (m_epcHelper != nullptr)
+  if (m_epcHelper)
     {
       // activate default EPS bearer
       m_epcHelper->ActivateEpsBearer (ueDevice, ueNetDev->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
@@ -1028,9 +1029,9 @@ NrHelper::AttachToEnb (const Ptr<NetDevice> &ueDevice,
   ueNetDev->SetTargetEnb (enbNetDev);
   //}
 
-  if (m_idealBeamformingHelper != nullptr)
+  if (m_beamformingHelper)
     {
-      m_idealBeamformingHelper->AddBeamformingTask (enbNetDev, ueNetDev);
+      m_beamformingHelper->AddBeamformingTask (enbNetDev, ueNetDev);
     }
 }
 
@@ -1230,6 +1231,86 @@ NrHelper::SetDlErrorModel(const std::string &errorModelTypeId)
   SetUeSpectrumAttribute ("ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModelTypeId)));
 }
 
+
+int64_t
+NrHelper::AssignStreams (NetDeviceContainer c, int64_t stream)
+{
+  int64_t currentStream = stream;
+  Ptr<NetDevice> netDevice;
+  for (NetDeviceContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+      netDevice = (*i);
+      Ptr<NrGnbNetDevice> nrGnb = DynamicCast<NrGnbNetDevice> (netDevice);
+      if (nrGnb)
+        {
+          for (uint32_t bwp = 0; bwp < nrGnb->GetCcMapSize (); bwp++)
+            {
+              currentStream += nrGnb->GetPhy (bwp)->GetSpectrumPhy ()->AssignStreams (currentStream);
+              currentStream += nrGnb->GetScheduler (bwp)->AssignStreams (currentStream);
+              currentStream += DoAssignStreamsToChannelObjects (nrGnb->GetPhy (bwp)->GetSpectrumPhy (), currentStream);
+
+            }
+        }
+
+      Ptr<NrUeNetDevice> nrUe = DynamicCast<NrUeNetDevice> (netDevice);
+      if (nrUe)
+        {
+          for (uint32_t bwp = 0; bwp < nrUe->GetCcMapSize (); bwp++)
+            {
+              currentStream += nrUe->GetPhy (bwp)->GetSpectrumPhy ()->AssignStreams (currentStream);
+              currentStream += nrUe->GetMac (bwp)->AssignStreams (currentStream);
+              currentStream += DoAssignStreamsToChannelObjects (nrUe->GetPhy (bwp)->GetSpectrumPhy (), currentStream);
+            }
+        }
+    }
+
+  return (currentStream - stream);
+}
+
+int64_t
+NrHelper::DoAssignStreamsToChannelObjects (Ptr<NrSpectrumPhy> phy, int64_t currentStream)
+{
+  Ptr<ThreeGppPropagationLossModel> propagationLossModel = DynamicCast<ThreeGppPropagationLossModel> (phy->GetSpectrumChannel ()->GetPropagationLossModel ());
+  NS_ASSERT (propagationLossModel != nullptr);
+
+  int64_t initialStream = currentStream;
+
+  if (std::find (m_channelObjectsWithAssignedStreams.begin(),
+                 m_channelObjectsWithAssignedStreams.end (),
+                 propagationLossModel) == m_channelObjectsWithAssignedStreams.end ())
+    {
+      currentStream += propagationLossModel->AssignStreams (currentStream);
+      m_channelObjectsWithAssignedStreams.push_back (propagationLossModel);
+    }
+
+  Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+
+  if (std::find (m_channelObjectsWithAssignedStreams.begin(),
+                 m_channelObjectsWithAssignedStreams.end (),
+                 channelConditionModel) == m_channelObjectsWithAssignedStreams.end ())
+    {
+      currentStream += channelConditionModel->AssignStreams (currentStream);
+      m_channelObjectsWithAssignedStreams.push_back (channelConditionModel);
+    }
+
+  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (phy->GetSpectrumChannel ()->GetSpectrumPropagationLossModel ());
+
+  if (spectrumLossModel)
+    {
+      if (std::find (m_channelObjectsWithAssignedStreams.begin(),
+                     m_channelObjectsWithAssignedStreams.end (),
+                     spectrumLossModel) == m_channelObjectsWithAssignedStreams.end ())
+        {
+          Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
+          currentStream += channel->AssignStreams (currentStream);
+          m_channelObjectsWithAssignedStreams.push_back (channel);
+        }
+    }
+
+  return currentStream - initialStream;
+}
+
+
 void
 NrHelper::SetGnbBwpManagerAlgorithmTypeId (const TypeId &typeId)
 {
@@ -1266,10 +1347,10 @@ NrHelper::SetEpcHelper (Ptr<EpcHelper> epcHelper)
 }
 
 void
-NrHelper::SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper)
+NrHelper::SetBeamformingHelper (Ptr<BeamformingHelperBase> beamformingHelper)
 {
-  m_idealBeamformingHelper = idealBeamformingHelper;
-  m_idealBeamformingHelper->Initialize();
+  m_beamformingHelper = beamformingHelper;
+  m_beamformingHelper->Initialize();
 }
 
 class NrDrbActivator : public SimpleRefCount<NrDrbActivator>

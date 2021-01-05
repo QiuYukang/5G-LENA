@@ -177,29 +177,45 @@ void
 NrUplinkPowerControlTestCase::PuschTxPowerTrace (uint16_t cellId, uint16_t rnti, double txPower)
 {
   NS_LOG_FUNCTION (this);
-  m_puschTxPowerTraceFired = true;
   NS_LOG_DEBUG ("PuschTxPower for CellId: " << cellId << " RNTI: " << rnti << " PuschTxPower: " << txPower);
   //wait because of RSRP filtering
-  if ( (Simulator::Now () - m_movingTime ) < MilliSeconds (100) || (Simulator::Now () - m_movingTime ) > MilliSeconds (110))
+  if ((Simulator::Now () - m_movingTime ) < MilliSeconds (50))
     {
       return;
     }
-  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPuschTxPower, 0.1, "Wrong Pusch Tx Power");
+  else
+    {
+      if (m_puschTxPowerTraceFired == false)
+        {
+          m_puschTxPowerTraceFired = true;
+        }
+    }
+
+  // we allow some tollerance because of layer 3 filtering
+  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPuschTxPower, 1 + abs (m_expectedPuschTxPower * 0.1) , "Wrong Pusch Tx Power");
 }
 
 void
 NrUplinkPowerControlTestCase::PucchTxPowerTrace (uint16_t cellId, uint16_t rnti, double txPower)
 {
   NS_LOG_FUNCTION (this);
-  m_pucchTxPowerTraceFired = true;
   NS_LOG_DEBUG ("PucchTxPower : CellId: " << cellId << " RNTI: " << rnti << " PuschTxPower: " << txPower);
   //wait because of RSRP filtering
   if ( (Simulator::Now () - m_movingTime ) < MilliSeconds (50))
     {
       return;
     }
+  else
+    {
+      if (m_pucchTxPowerTraceFired == false)
+        {
+          m_pucchTxPowerTraceFired = true;
+        }
+    }
 
-  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPucchTxPower, 0.1, "Wrong Pucch Tx Power");
+  // we allow some tollerance because of layer 3 filtering
+  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPucchTxPower, 1 + abs (m_expectedPucchTxPower * 0.1)  , "Wrong Pucch Tx Power");
+
 }
 
 void
@@ -220,21 +236,22 @@ NrUplinkPowerControlTestCase::DoRun (void)
 
   Config::Reset ();
   
-  RngSeedManager::SetSeed(1);
-  RngSeedManager::SetRun(1);
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (1);
 
   Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (true));
   Config::SetDefault ("ns3::NrUePowerControl::ClosedLoop", BooleanValue (m_closedLoop));
   Config::SetDefault ("ns3::NrUePowerControl::AccumulationEnabled", BooleanValue (m_accumulatedMode));
   Config::SetDefault ("ns3::NrUePowerControl::PoNominalPusch", IntegerValue (-90));
+  Config::SetDefault ("ns3::NrUePowerControl::PoNominalPucch", IntegerValue (-80));
   Config::SetDefault ("ns3::NrUePowerControl::PsrsOffset", IntegerValue (9));
+  Config::SetDefault ("ns3::ThreeGppPropagationLossModel::ShadowingEnabled", BooleanValue (false));
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
-  double distance = 0;
 
   // Create Nodes: eNodeB and UE
   NodeContainer gnbNodes;
@@ -246,7 +263,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   // Install Mobility Model
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.1, 0.0, hBS)); // gNB
-  positionAlloc->Add (Vector (distance, 0.0, hUT));  // UE
+  positionAlloc->Add (Vector (0, 0.0, hUT));  // UE
 
   MobilityHelper mobility;
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -266,11 +283,11 @@ NrUplinkPowerControlTestCase::DoRun (void)
   CcBwpCreator ccBwpCreator;
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
   //Initialize channel and pathloss, plus other things inside band.
-  nrHelper->InitializeOperationBand (&band);
+  nrHelper->InitializeOperationBand (&band, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
   BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps ({band});
 
   // Configure ideal beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
@@ -304,9 +321,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
   channelConditionModel->AssignStreams (1);
   Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
-  NS_ASSERT (spectrumLossModel != nullptr);
-  Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
-  channel->AssignStreams (1);
+  NS_ASSERT_MSG (spectrumLossModel == nullptr, "3GPP spectrum model should be disabled in this test to have deterministic behaviour.");
 
   // When all the configuration is done, explicitly call UpdateConfig ()
   for (auto it = gnbDevs.Begin (); it != gnbDevs.End (); ++it)
@@ -408,90 +423,116 @@ NrUplinkPowerControlTestCase::DoRun (void)
   serverApps.Stop (simTime);
   clientApps.Stop (simTime);
 
-  //Changing UE position
 
+  /** Formula for the pathloss can be found in propagation/three-gpp-propagation-loss-model.cc
+   * in ThreeGppIndoorOfficePropagationLossModel::GetLossLos function.
+   * That function computes the pathloss according to 3GPP TR 38.901, Table 7.4.1-1., i.e.,
+   * the formula is the following:
+   * double loss = 32.4 + 17.3 * log10 (distance3D) + 20.0 * log10 (m_frequency / 1e9);
+   * Hence, e.g. for distance of 90 meters we have:
+   * loss = 32.4 + 17.3 * log10 (10) + 20.0 * log10 (2e9/1e9)
+   * loss = 72.229
+   *
+   * So, then the open loop uplink power control for that value can be calculated:
+   *
+   * distance = 10;
+   * rbNum (data) = 24 (4.6 MHz -> 24 RBs)
+   * numerology = 0
+   * pathloss =  32.4 + 17.3 * log10 (distance) + 20.0 * log10 (freq/1e9)
+   * pathloss =  32.4 + 17.3 * log10 (10) + 20.0 * log10 (2e9/1e9)
+   * pathloss = 55.7206
+   *
+   * txPower for PUSCH:
+   * txPower = PoPusch + 10 * log10 (rbNum) + alpha * pathLoss + deltaTF + fc
+   * txPower = -90 + 0 + 10 * log10 (24) + 1 * (55.7206)  + 0 + 0
+   * txPower = -20.4773
+   *
+   * txPower = min (max (Pcmin, txPower), Pcmax)
+   * txPower = min (max (-40, txPower), 23)
+   * txPower = -20.4773
+   */
+
+  //Changing UE position
   if (!m_closedLoop)
     {
       Simulator::Schedule (MilliSeconds (0),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 10, -17.4242, -7.42424 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 10, -21, -11 );
       Simulator::Schedule (MilliSeconds (200),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 100, -4.34003, 5.65997 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 100, -3, 7 );
       Simulator::Schedule (MilliSeconds (400),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 150, -3.70926, 6.29074 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 200, 2, 12);
       Simulator::Schedule (MilliSeconds (600),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 200, -1.32031, 8.67969 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 300, 5, 15 );
       Simulator::Schedule (MilliSeconds (800),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 300, 4.03861, 14.0386 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 400, 7, 17 );
       Simulator::Schedule (MilliSeconds (1000),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 400, 6.98876, 16.9888 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 600, 10, 20 );
       Simulator::Schedule (MilliSeconds (1200),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 600, 8.45221, 18.4522 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 800, 12, 22 );
+      Simulator::Schedule (MilliSeconds (1400),
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 14, 23 );
       Simulator::Schedule (MilliSeconds (1600),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 800, 11.2225, 21.2225 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 10, -20, -10 );
       Simulator::Schedule (MilliSeconds (1800),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 17.4574, 23 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 100, -3, 7 );
       Simulator::Schedule (MilliSeconds (2000),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 5, -34.1675, -24.1675 );
-      Simulator::Schedule (MilliSeconds (2200),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 100, -12.1151, -2.1 );
-      Simulator::Schedule (MilliSeconds (2400),
-                           &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 17, 23 );
+                           &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 14, 23 );
     }
   else
     {
+      /**
+       *  By default the TPC command is 1 which is mapped to 0 for Accumulated mode,
+       *  and to -1 in Absolute mode, TS38.213 Table Table 7.1.1-1
+       */
       if (m_accumulatedMode)
         {
           Simulator::Schedule (MilliSeconds (0),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 10, -17.4242, -7.42424 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 10, -21, -11 );
           Simulator::Schedule (MilliSeconds (200),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -4.34003, 5.65997 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -3, 7 );
           Simulator::Schedule (MilliSeconds (400),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 150, -3.70926, 6.29074 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 200, 2, 12);
           Simulator::Schedule (MilliSeconds (600),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 200, -1.32031, 8.67969 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 300, 5, 15 );
           Simulator::Schedule (MilliSeconds (800),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 300, 4.03861, 14.0386 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 400, 7, 17 );
           Simulator::Schedule (MilliSeconds (1000),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 400, 6.98876, 16.9888 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 600, 10, 20 );
           Simulator::Schedule (MilliSeconds (1200),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 600, 8.45221, 18.4522 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 800, 12, 22 );
+          Simulator::Schedule (MilliSeconds (1400),
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 14, 23 );
           Simulator::Schedule (MilliSeconds (1600),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 800, 11.2225, 21.2225 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 10, -20, -10 );
           Simulator::Schedule (MilliSeconds (1800),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 17.4574, 23 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -3, 7 );
           Simulator::Schedule (MilliSeconds (2000),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 5, -34.1675, -24.1675 );
-          Simulator::Schedule (MilliSeconds (2200),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -12.1151, -2.1 );
-          Simulator::Schedule (MilliSeconds (2400),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 17, 23 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 14, 23 );
         }
       else
         {
           Simulator::Schedule (MilliSeconds (0),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 10, -18.4242, -7.42424 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 10, -22, -12 );
           Simulator::Schedule (MilliSeconds (200),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -5.34003, 5.65997 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -4, 6 );
           Simulator::Schedule (MilliSeconds (400),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 150, -4.70926, 6.29074 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 200, 1, 11);
           Simulator::Schedule (MilliSeconds (600),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 200, -2.32031, 8.67969 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 300, 4, 14 );
           Simulator::Schedule (MilliSeconds (800),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 300, 3.03861, 14.0386 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 400, 6, 16 );
           Simulator::Schedule (MilliSeconds (1000),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 400, 5.98876, 16.9888 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 600, 9, 19 );
           Simulator::Schedule (MilliSeconds (1200),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 600, 7.45221, 18.4522 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 800, 11, 21 );
+          Simulator::Schedule (MilliSeconds (1400),
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 13, 23 );
           Simulator::Schedule (MilliSeconds (1600),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 800, 10.2225, 21.2225 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 10, -21, -11 );
           Simulator::Schedule (MilliSeconds (1800),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 16.4574, 23 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -4, 6 );
           Simulator::Schedule (MilliSeconds (2000),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 5, -35.1675, -24.1675 );
-          Simulator::Schedule (MilliSeconds (2200),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 100, -13.1151, -2.1 );
-          Simulator::Schedule (MilliSeconds (2400),
-                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 18, 23 );
+                               &NrUplinkPowerControlTestCase::MoveUe, this, 1000, 13, 23 );
         }
     }
 

@@ -239,6 +239,16 @@ public:
    */
   virtual uint8_t GetUlCtrlSyms () const = 0;
 
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  virtual int64_t AssignStreams (int64_t stream) = 0;
+
 protected:
   NrMacSchedSapUser* m_macSchedSapUser           {nullptr};  //!< SAP user
   NrMacCschedSapUser* m_macCschedSapUser         {nullptr};  //!< SAP User

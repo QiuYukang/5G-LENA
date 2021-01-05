@@ -300,6 +300,8 @@ main (int argc, char *argv[])
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
+  int64_t randomStream = 1;
+
   GridScenarioHelper gridScenario;
   gridScenario.SetRows (1);
   gridScenario.SetColumns (gNbNum);
@@ -311,6 +313,7 @@ main (int argc, char *argv[])
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
   gridScenario.SetScenarioLength (3); // be distribuited.
+  randomStream += gridScenario.AssignStreams (randomStream);
   gridScenario.CreateScenario ();
 
   // setup the nr simulation
@@ -318,7 +321,7 @@ main (int argc, char *argv[])
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
@@ -333,7 +336,7 @@ main (int argc, char *argv[])
     }
 
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   /*
    * Setup the configuration of the spectrum. One operation band is deployed
@@ -413,6 +416,10 @@ main (int argc, char *argv[])
   //Install and get the pointers to the NetDevices
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+
 
   for (uint32_t i = 0; i < gNbNum; ++i)
     {

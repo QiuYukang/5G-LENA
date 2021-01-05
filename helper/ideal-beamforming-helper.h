@@ -17,8 +17,7 @@
  *
  */
 
-#include <ns3/object-factory.h>
-#include <ns3/ideal-beamforming-algorithm.h>
+#include "beamforming-helper-base.h"
 #include <ns3/nstime.h>
 #include <ns3/vector.h>
 #include <ns3/net-device.h>
@@ -37,7 +36,7 @@ class NrUeNetDevice;
  * \ingroup helper
  * \brief The IdealBeamformingHelper class
  */
-class IdealBeamformingHelper : public ns3::Object
+class IdealBeamformingHelper : public BeamformingHelperBase
 {
 public:
   /**
@@ -60,52 +59,43 @@ public:
    * \param gNbDev
    * \param ueDev
    */
-  void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                           const Ptr<NrUeNetDevice>& ueDev);
+  virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
+                                   const Ptr<NrUeNetDevice>& ueDev) override;
 
   /**
-   * \brief SetIdealBeamformingMethod
+   * \brief SetBeamformingMethod
    * \param beamformingMethod
    */
-  void SetIdealBeamformingMethod (const TypeId &beamformingMethod);
+  virtual void SetBeamformingMethod (const TypeId &beamformingMethod) override;
 
   /**
    * \brief SetIdealBeamformingPeriodicity
    * \param v
    */
-  void SetIdealBeamformingPeriodicity (const Time &v);
+  void SetPeriodicity (const Time &v);
   /**
    * \brief GetIdealBeamformingPeriodicity
    * \return
    */
-  Time GetIdealBeamformingPeriodicity () const;
+  Time GetPeriodicity () const;
 
   /**
-   * Set an attribute for the <> to be created.
-   *
-   * \param n the name of the attribute
-   * \param v the value of the attribute
+   * \brief Run beamforming task
    */
-  void SetIdealBeamFormingAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+  virtual void Run () const;
 
-  /**
-   * \brief Run
-   */
-  void Run () const;
+protected:
 
-private:
-
-  void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev) const;
+  // inherited from Object
+  virtual void DoInitialize (void) override;
 
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.
    *
    */
-  void ExpireBeamformingTimer ();
+  virtual void ExpireBeamformingTimer ();
 
-  std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks;
-  Time m_beamformingPeriodicity;
-  Ptr<IdealBeamformingAlgorithm> m_idealBeamformingAlgorithm;
+  Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming tasks will be executed
   EventId m_beamformingTimer; //!< Beamforming timer
 };
 

@@ -233,6 +233,16 @@ public:
    */
   uint8_t GetNumHarqProcess () const;
 
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -485,18 +495,6 @@ private:
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_macTxedCtrlMsgsTrace;
-
-
-public:
-  /**
-   * \brief Assign a fixed random variable stream number to the random variables
-   * used by this model. Return the number of streams (possibly zero) that
-   * have been assigned.
-   *
-   * \param stream The first stream index to use
-   * \return The number of stream indices assigned by this model
-   */
-  int64_t AssignStreams (int64_t stream);
 
   //NR SL
 public:

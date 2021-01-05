@@ -81,7 +81,7 @@ class BwpManagerUe;
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 \endverbatim
  *
@@ -359,11 +359,10 @@ public:
 
   /**
    * \brief Set an ideal beamforming helper
-   * \param idealBeamformingHelper a pointer to the ideal beamforming helper
+   * \param beamformingHelper a pointer to the beamforming helper
    *
-   * Biljana?
    */
-  void SetIdealBeamformingHelper (Ptr<IdealBeamformingHelper> idealBeamformingHelper);
+  void SetBeamformingHelper (Ptr<BeamformingHelperBase> beamformingHelper);
 
   /**
    * \brief SetHarqEnabled
@@ -687,7 +686,39 @@ public:
    */
   void SetDlErrorModel (const std::string & errorModelTypeId);
 
+  /**
+    * Assign a fixed random variable stream number to the random variables used.
+    *
+    * The InstallGnbDevice() or InstallUeDevice method should have previously
+    * been called by the user on the given devices.
+    *
+    *
+    * \param c NetDeviceContainer of the set of net devices for which the
+    *          LteNetDevice should be modified to use a fixed stream
+    * \param stream first stream index to use
+    * \return the number of stream indices (possibly zero) that have been assigned
+   */
+   int64_t AssignStreams (NetDeviceContainer c, int64_t stream);
+
 private:
+
+   /**
+    * Assign a fixed random variable stream number to the channel and propagation
+    * objects. This function will save the objects to which it has assigned stream
+    * to not overwrite assignment, because these objects are shared by gNB and UE
+    * devices.
+    *
+    * The InstallGnbDevice() or InstallUeDevice method should have previously
+    * been called by the user on the given devices.
+    *
+    *
+    * \param c NetDeviceContainer of the set of net devices for which the
+    *          LteNetDevice should be modified to use a fixed stream
+    * \param stream first stream index to use
+    * \return the number of stream indices (possibly zero) that have been assigned
+    */
+   int64_t DoAssignStreamsToChannelObjects (Ptr<NrSpectrumPhy> phy, int64_t currentStream);
+
   /**
    *  \brief The actual function to trigger a manual bearer de-activation
    *  \param ueDevice the UE on which bearer to be de-activated must be of the type LteUeNetDevice
@@ -762,7 +793,7 @@ private:
   Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
 
   Ptr<EpcHelper> m_epcHelper {nullptr};                           //!< Ptr to the EPC helper (optional)
-  Ptr<IdealBeamformingHelper> m_idealBeamformingHelper {nullptr}; //!< Ptr to the beamforming helper (optional)
+  Ptr<BeamformingHelperBase> m_beamformingHelper {nullptr}; //!< Ptr to the beamforming helper
 
   bool m_harqEnabled {false};
   bool m_snrTest {false};
@@ -771,6 +802,7 @@ private:
   Ptr<NrBearerStatsCalculator> m_pdcpStats; //!< ?
   NrBearerStatsConnector m_radioBearerStatsConnector; //!< ?
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
+  std::vector< Ptr <Object> > m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper has assigned streams in order to avoid double assignments
 
   //NR Sidelink code and additions
 public:

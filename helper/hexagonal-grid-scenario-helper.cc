@@ -19,13 +19,14 @@
 #include "hexagonal-grid-scenario-helper.h"
 #include <ns3/double.h>
 #include <ns3/mobility-helper.h>
-#include <ns3/rng-seed-manager.h>
 #include <cmath>
 
 namespace ns3 {
 
 HexagonalGridScenarioHelper::HexagonalGridScenarioHelper ()
 {
+  m_r = CreateObject<UniformRandomVariable> ();
+  m_theta = CreateObject<UniformRandomVariable> ();
 }
 
 HexagonalGridScenarioHelper::~HexagonalGridScenarioHelper ()
@@ -61,7 +62,8 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
 
   // Try to open a new GNUPLOT file
   std::ofstream topologyOutfile;
-  std::string topologyFileName = "./hexagonal-topology.gnuplot";
+  std::string topologyFileRoot = "./hexagonal-topology";
+  std::string topologyFileName = topologyFileRoot + ".gnuplot";
   topologyOutfile.open (topologyFileName.c_str (), std::ios_base::out | std::ios_base::trunc);
   if (!topologyOutfile.is_open ())
     {
@@ -74,8 +76,8 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
   NS_ASSERT (numSectors > 0);
   uint16_t numUts = utPosVector->GetSize ();
 
-  topologyOutfile << "set term eps" << std::endl;
-  topologyOutfile << "set output \"" << topologyFileName << ".pdf\"" << std::endl;
+  topologyOutfile << "set term pdf" << std::endl;
+  topologyOutfile << "set output \"" << topologyFileRoot << ".pdf\"" << std::endl;
   topologyOutfile << "set style arrow 1 lc \"black\" lt 1 head filled" << std::endl;
 //  topologyOutfile << "set autoscale" << std::endl;
 
@@ -281,6 +283,18 @@ HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId) const
   return cellId / static_cast<uint16_t> (m_siteSectorization);
 }
 
+uint16_t
+HexagonalGridScenarioHelper::GetSectorIndex (uint16_t cellId) const
+{
+  return cellId % static_cast<uint16_t> (m_siteSectorization);
+}
+
+uint16_t
+HexagonalGridScenarioHelper::GetCellIndex (uint16_t ueId) const
+{
+  return ueId % m_numCells;
+}
+
 void
 HexagonalGridScenarioHelper::SetScenarioParameters (const std::string &scenario)
 {
@@ -379,30 +393,32 @@ HexagonalGridScenarioHelper::CreateScenario ()
   Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator> ();
 
   // BS position
-  for (uint16_t cellIndex = 0; cellIndex < m_numCells; cellIndex++)
+  for (uint16_t cellId = 0; cellId < m_numCells; cellId++)
     {
-      uint16_t siteIndex = GetSiteIndex (cellIndex);
+      uint16_t siteIndex = GetSiteIndex (cellId);
       Vector sitePos (m_centralPos);
-      sitePos.x += m_isd * siteDistances.at(siteIndex) * cos(siteAngles.at(siteIndex) * M_PI / 180);
-      sitePos.y += m_isd * siteDistances.at(siteIndex) * sin(siteAngles.at(siteIndex) * M_PI / 180);
+      const double dist = siteDistances.at(siteIndex);
+      const double angleRad = siteAngles.at(siteIndex) * M_PI / 180;
+      sitePos.x += m_isd * dist * cos(angleRad);
+      sitePos.y += m_isd * dist * sin(angleRad);
       sitePos.z = m_bsHeight;
 
-      if (cellIndex % static_cast<uint16_t> (m_siteSectorization) == 0)
+      if (GetSectorIndex (cellId) == 0)
         {
           sitePosVector->Add (sitePos);
         }
 
       // FIXME: Until sites can have more than one antenna array, it is necessary to apply some distance offset from the site center (gNBs cannot have the same location)
       Vector bsPos = GetAntennaPos (sitePos,
-                                  cellIndex,
-                                  m_siteSectorization,
-                                  m_antennaOffset);
+                                    cellId,
+                                    m_siteSectorization,
+                                    m_antennaOffset);
 
       bsPosVector->Add (bsPos);
 
       // Store cell center position for plotting the deployment
       Vector cellCenterPos = GetHexagonalCellCenter (bsPos,
-                                                     cellIndex,
+                                                     cellId,
                                                      m_siteSectorization,
                                                      m_hexagonalRadius);
       bsCenterVector->Add (cellCenterPos);
@@ -411,35 +427,31 @@ HexagonalGridScenarioHelper::CreateScenario ()
     }
 
   // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
-  Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
-  Ptr<UniformRandomVariable> theta = CreateObject<UniformRandomVariable> ();
-  r->SetStream (RngSeedManager::GetRun ());
-  theta->SetStream (RngSeedManager::GetRun () + 1);
 
   NS_ASSERT (m_minBsUtdistance < m_hexagonalRadius * std::sqrt(3) / 2);
 
-  r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
-  r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
-  theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
-  theta->SetAttribute ("Max", DoubleValue (M_PI));
+  m_r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
+  m_r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
+  m_theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
+  m_theta->SetAttribute ("Max", DoubleValue (M_PI));
   // UT position
   if (m_ut.GetN () > 0)
     {
       uint32_t utN = m_ut.GetN ();
 
-      for (uint32_t i = 0; i < utN; ++i)
+      for (uint32_t utId = 0; utId < utN; ++utId)
         {
           // This is the cell center location, same for cells belonging to the same site
           Vector cellPos = bsPosVector->GetNext ();
           // UEs shall be spread over the cell area (hexagonal cell)
-          uint16_t cellId = i % m_numCells;
+          uint16_t cellId = GetCellIndex (utId);
           Vector cellCenterPos = GetHexagonalCellCenter (cellPos,
                                                          cellId,
                                                          m_siteSectorization,
                                                          m_hexagonalRadius);
 
-          double d = r->GetValue ();
-          double t = theta->GetValue ();
+          double d = m_r->GetValue ();
+          double t = m_theta->GetValue ();
 
           Vector utPos (cellCenterPos);
           utPos.x += d * cos (t);
@@ -459,6 +471,14 @@ HexagonalGridScenarioHelper::CreateScenario ()
 
   PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius);
 
+}
+
+int64_t
+HexagonalGridScenarioHelper::AssignStreams (int64_t stream)
+{
+  m_r->SetStream (stream);
+  m_theta->SetStream (stream + 1);
+  return 2;
 }
 
 } // namespace ns3

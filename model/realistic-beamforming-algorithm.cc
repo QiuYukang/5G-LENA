@@ -38,19 +38,26 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
+  m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
+}
 
+int64_t
+RealisticBeamformingAlgorithm::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_normalRandomVariable->SetStream (stream);
+  return 1;
 }
 
 RealisticBeamformingAlgorithm::~RealisticBeamformingAlgorithm()
 {
-
 }
 
 TypeId
 RealisticBeamformingAlgorithm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RealisticBeamformingAlgorithm")
-                     .SetParent<Object> ()
+                     .SetParent<BeamformingAlgorithm> ()
                      .AddConstructor<RealisticBeamformingAlgorithm> ()
                      .AddAttribute ("BeamSearchAngleStep",
                                     "Angle step when searching for the best beam",
@@ -113,7 +120,7 @@ RealisticBeamformingAlgorithm::DoGetBeamformingVectors (const Ptr<const NrGnbNet
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
-  complexVector_t  maxTxW, maxRxW;
+  complexVector_t maxTxW, maxRxW;
 
   UintegerValue uintValue;
   gnbPhy->GetAntennaArray ()->GetAttribute ("NumRows", uintValue);
@@ -212,9 +219,7 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
 
   NS_LOG_DEBUG ("Calculate the estimation of the long term component with sAntenna: " << sAntenna << " uAntenna: " << uAntenna);
   ThreeGppAntennaArrayModel::ComplexVector estimatedlongTerm;
-
   double varError = 1 / (m_lastRerportedSrsSinr); // SINR the SINR from UL SRS reception
-
   uint8_t numCluster = static_cast<uint8_t> (channelMatrix->m_channel[0][0].size ());
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
@@ -225,11 +230,9 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
           std::complex<double> rxSum (0,0);
           for (uint16_t uIndex = 0; uIndex < uAntenna; uIndex++)
             {
-              Ptr<NormalRandomVariable> normalRandomVariable = CreateObject<NormalRandomVariable> ();
               //error is generated from the normal random variable with mean 0 and  variance varError*sqrt(1/2) for real/imaginary parts
-              std::complex<double> error = std::complex <double> (normalRandomVariable->GetValue (0, sqrt (0.5) * varError),
-                                                                  normalRandomVariable->GetValue (0, sqrt (0.5) * varError)) ;
-
+              std::complex<double> error = std::complex <double> (m_normalRandomVariable->GetValue (0, sqrt (0.5) * varError),
+                                                                  m_normalRandomVariable->GetValue (0, sqrt (0.5) * varError)) ;
               std::complex<double> hEstimate = channelMatrix->m_channel [uIndex][sIndex][cIndex] + error;
               rxSum += uW[uIndex] * (hEstimate);
             }
@@ -239,7 +242,6 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
     }
   return estimatedlongTerm;
 }
-
 
 
 void

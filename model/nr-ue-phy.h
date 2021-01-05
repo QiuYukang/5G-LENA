@@ -394,7 +394,6 @@ protected:
    */
   void virtual DoDispose () override;
   uint32_t GetNumRbPerRbg () const override;
-  uint32_t GetChannelBandwidth () const override;
 
 private:
 
@@ -447,7 +446,12 @@ private:
    * \return the time at which the transmission of UL CTRL will end
    */
   Time UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
-
+  /**
+   * \brief Transmit UL SRS and return the time at which the transmission will end
+   * \param dci the current DCI
+   * \return the time at which the transmission of UL SRS will end
+   */
+  Time UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci);
   /**
    * \brief Receive DL data and return the time at which the transmission will end
    * \param dci the current DCI
@@ -573,7 +577,15 @@ private:
    * If equals to 0, no layer 3 filtering is applicable.
    */
   void DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient);
+  /**
+   * \brief Function that is called by RRC SAP.
+   * TODO This function and its name can be updated once NR RRC SAP is implemented
+   */
   void DoSetDlBandwidth (uint16_t ulBandwidth);
+  /**
+   * \brief Function that is called by RRC SAP.
+   * TODO This function and its name can be updated once NR RRC SAP is implemented
+   */
   void DoConfigureUplink (uint16_t ulEarfcn, uint8_t ulBandwidth);
   void DoConfigureReferenceSignalPower (int8_t referenceSignalPower);
   void DoSetRnti (uint16_t rnti);
@@ -675,7 +687,6 @@ private:
   Time m_lbtThresholdForCtrl; //!< Threshold for LBT before the UL CTRL
   bool m_tryToPerformLbt {false}; //!< Boolean value set in DlCtrl() method
   EventId m_lbtEvent;
-  uint16_t m_channelBandwidth {200}; //!< Channel BW in kHz * 100. Updated by RRC. Default to 20 MHz
   uint8_t m_dlCtrlSyms {1}; //!< Number of CTRL symbols in DL
   uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
 

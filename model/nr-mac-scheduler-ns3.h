@@ -341,6 +341,15 @@ public:
   DoSchedDlRachInfoReq (const NrMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
   uint8_t GetDlCtrlSyms () const override;
   uint8_t GetUlCtrlSyms () const override;
+  /**
+   * \brief Assign a fixed random variable stream number to the random variables
+   * used by this model. Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  virtual int64_t AssignStreams (int64_t stream) override;
 
   // to save some typing
   using HarqVectorIterator = NrMacHarqVector::iterator;

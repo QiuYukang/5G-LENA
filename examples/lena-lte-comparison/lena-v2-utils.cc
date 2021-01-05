@@ -22,6 +22,11 @@
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
 #include "rb-output-stats.h"
+
+#include "ns3/log.h"
+
+NS_LOG_COMPONENT_DEFINE ("LenaV2Utils");
+
 namespace ns3 {
 
 void
@@ -74,8 +79,41 @@ LenaV2Utils::ConfigureBwpTo (BandwidthPartInfoPtr & bwp, double centerFreq, doub
   bwp->m_channelBandwidth = bwpBw;
 }
 
+//  unnamed namespace
+namespace {
+
+void ConfigurePhy (Ptr<NrHelper> &nrHelper,
+                   Ptr<NetDevice> gnb,
+                   double orientationRads,
+                   uint16_t numerology,
+                   double txPowerBs,
+                   const std::string & pattern,
+                   uint32_t bwpIndex)
+{
+  // Change the antenna orientation
+  Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
+  Ptr<ThreeGppAntennaArrayModel> antenna0 =
+        ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+      antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+      
+      // configure the beam that points toward the center of hexagonal
+      // In case of beamforming, it will be overwritten.
+      phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
+      
+      // Set numerology
+      nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));  // BWP
+      
+      // Set TX power
+      nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (txPowerBs));
+      
+      // Set TDD pattern
+      nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+}
+
+}  // unnamed namespace
+
 void
-LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gridScenario,
+LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            const std::string &scenario,
                                            const std::string &radioNetwork,
                                            std::string errorModel,
@@ -165,7 +203,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
   if (radioNetwork == "NR" || calibration)
     {
       idealBeamformingHelper = CreateObject<IdealBeamformingHelper> ();
-      nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+      nrHelper->SetBeamformingHelper (idealBeamformingHelper);
     }
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
@@ -237,160 +275,236 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    * a single BWP in FDD is half the size of the corresponding TDD BWP, and the
    * parameter bandwidthMHz refers to the size of the FDD BWP.
    *
-   * TDD scenario 0:
-   *
-   * |----------------Band1--------------|
-   * |----CC1----|----CC2----|----CC3----|   // Sector i will go in BWPi
-   * |----BWP1---|----BWP2---|----BWP3---|
-   *
+   * Scenario 0:  sectors NON_OVERLAPPING in frequency
+   * 
    * FDD scenario 0:
    *
-   * And the configured spectrum division for FDD operation is:
-   * |---------Band1---------|---------Band2---------|---------Band3---------|
-   * |----------CC1----------|----------CC1----------|----------CC1----------| // Sector i will go in Bandi
-   * |----BWP1---|----BWP2---|----BWP1---|----BWP2---|----BWP1---|----BWP2---| // DL in the first, UL in the second
+   * |--------Band0--------|--------Band1--------|--------Band2--------|
+   * |---------CC0---------|---------CC1---------|---------CC2---------|
+   * |---BWP0---|---BWP1---|---BWP2---|---BWP3---|---BWP4---|---BWP5---|
+   *
+   *   Sector i will go in Bandi
+   *   DL in the first BWP, UL in the second BWP
+   *
+   * TDD scenario 0:
+   *
+   * |--------Band0--------|--------Band1--------|--------Band2--------|
+   * |---------CC0---------|---------CC2---------|---------CC2---------|
+   * |---------BWP0--------|---------BWP1--------|---------BWP2--------|
+   *
+   *   Sector i will go in BWPi
    *
    *
-   * TDD scenario 1:
+   * Scenario 1:  sectors in OVERLAPPING bands
    *
-   * |----Band1----|
-   * |-----CC1-----|
-   * |-----BWP1----|
+   * Note that this configuration has 1/3 the total bandwidth of the
+   * NON_OVERLAPPING configuration.
    *
    * FDD scenario 1:
    *
-   * And the configured spectrum division for FDD operation is:
-   * |---------Band1---------|
-   * |----------CC1----------|
-   * |----BWP1---|----BWP2---|
+   * |--------Band0--------|
+   * |---------CC0---------|
+   * |---BWP0---|---BWP1---|
+   *
+   *   Sector i will go in BWPi
+   *
+   * TDD scenario 1:
+   *
+   * |--------Band0--------|
+   * |---------CC0---------|
+   * |---------BWP0--------|
    *
    * This is tightly coupled with what happens in lena-v1-utils.cc
    *
    */
-  OperationBandInfo band1, band2, band3;
-  band1.m_bandId = 0;
-  band2.m_bandId = 1;
-  band3.m_bandId = 2;
+  // \todo: set band 0 start frequency from the command line
+  const double band0Start = 2110e6;
+  double bandwidthBwp = bandwidthMHz * 1e6;
+  
+  OperationBandInfo band0, band1, band2;
+  band0.m_bandId = 0;
+  band1.m_bandId = 1;
+  band2.m_bandId = 2;
 
   if (freqScenario == 0) // NON_OVERLAPPING
     {
-      CcBwpCreator ccBwpCreator;
-
-      double bandwidthBand = operationMode == "FDD" ? bandwidthMHz * 1e6 : bandwidthMHz * 1e6 * 2;
-      uint8_t numCcPerBand = 1; // one for each sector
-
-      CcBwpCreator::SimpleOperationBandConf bandConf1 (2125e6, bandwidthBand, numCcPerBand, scene);
-      bandConf1.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      CcBwpCreator::SimpleOperationBandConf bandConf2 (2145e6, bandwidthBand, numCcPerBand, scene);
-      bandConf2.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      CcBwpCreator::SimpleOperationBandConf bandConf3 (2165e6, bandwidthBand, numCcPerBand, scene);
-      bandConf3.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1); // Create, then configure
-      band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2); // Create, then configure
-      band3 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf3); // Create, then configure
-
+      uint8_t numBwp;
+      
       if (operationMode == "FDD")
         {
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], 2130e6, bandwidthBand);
-
-          ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], 2140e6, bandwidthBand);
-          ConfigureBwpTo (band2.m_cc[0]->m_bwp[1], 2150e6, bandwidthBand);
-
-          ConfigureBwpTo (band3.m_cc[0]->m_bwp[0], 2160e6, bandwidthBand);
-          ConfigureBwpTo (band3.m_cc[0]->m_bwp[1], 1850e6, bandwidthBand);
+          // FDD uses two BWPs per CC, one CC per band
+          numBwp = 2;
         }
-      else
+      else // if (operationMode = "TDD")
         {
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-          ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], 2140e6, bandwidthBand);
-          ConfigureBwpTo (band3.m_cc[0]->m_bwp[0], 2160e6, bandwidthBand);
+          // Use double with BWP, to match total bandwidth for FDD in UL and DL
+          bandwidthBwp *= 2;
+          numBwp = 1;
         }
 
-      std::cout << "BWP Configuration for NON_OVERLAPPING case, mode " << operationMode
-                << std::endl << band1 << std::endl << band2 << std::endl << band3;
-    }
-  else // OVERLAPPING
-    {
-      CcBwpCreator ccBwpCreator;
-
-      double bandwidthBand = operationMode == "FDD" ? bandwidthMHz * 1e6 : bandwidthMHz * 1e6 * 2;
+      double bandwidthCc = numBwp * bandwidthBwp;
       uint8_t numCcPerBand = 1;
-
-      CcBwpCreator::SimpleOperationBandConf bandConf1 (2120e6, bandwidthBand, numCcPerBand, scene);
-      bandConf1.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
-
-      // We use the helper function to create the band, and manually we go
-      // to change what is wrong
+      double bandwidthBand = numCcPerBand * bandwidthCc;
+      double bandCenter = band0Start + bandwidthBand / 2.0;
+      
+      NS_LOG_LOGIC ("NON_OVERLAPPING, " << operationMode << ": "
+                    << bandwidthBand << ":" << bandwidthCc << ":"
+                    << bandwidthBwp << ", "
+                    << (int)numCcPerBand << ", " << (int)numBwp);
+      
+      NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf0.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      NS_LOG_LOGIC ("bandConf1: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf1 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf1.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      NS_LOG_LOGIC ("bandConf2: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf2 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf2.m_numBwp = numBwp;
+      
+      // Create, then configure
+      CcBwpCreator ccBwpCreator;
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0); 
+      band0.m_bandId = 0;
+          
       band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
+      band1.m_bandId = 1;
+      
+      band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
+      band2.m_bandId = 2;
+      
+      bandCenter = band0Start + bandwidthBwp / 2.0;
+      
+      NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
 
       if (operationMode == "FDD")
         {
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], 1930e6, bandwidthBand);
+          NS_LOG_LOGIC ("band0[0][1]: " << bandCenter << " " << bandwidthBwp);
+          ConfigureBwpTo (band0.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+          bandCenter += bandwidthBwp;
         }
-      else
+      
+      NS_LOG_LOGIC ("band1[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+      
+      if (operationMode == "FDD")
         {
-          // TDD here, so use the double of the passed parameter (that is for FDD)
-          // You can see this in the definition of bandwidthBand
-          ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], 2120e6, bandwidthBand);
+          NS_LOG_LOGIC ("band1[0][1]: " << bandCenter << " " << bandwidthBwp);
+          ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+          bandCenter += bandwidthBwp;
         }
+      
+      NS_LOG_LOGIC ("band2[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
 
-      std::cout << "BWP Configuration for OVERLAPPING case, mode " << operationMode
-                << std::endl << band1 << std::endl;
+      if (operationMode == "FDD")
+        {
+          NS_LOG_LOGIC ("band2[0][1]: " << bandCenter << " " << bandwidthBwp);
+          ConfigureBwpTo (band2.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
+        }
+      
+      std::cout << "BWP Configuration for NON_OVERLAPPING case, mode "
+                << operationMode << "\n"
+                << band0 << band1 << band2;
     }
 
-  if (calibration)
+  
+  else if (freqScenario == 1) // OVERLAPPING
     {
-      // LENA-compatibility-bug: Put all the sectors and stuff at the same central frequency
-      // in case of non-overlapping mode and FDD
-      if (operationMode == "FDD" && freqScenario == 0)
+      uint8_t numBwp;
+      
+      if (operationMode == "FDD")
         {
-          band1.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-          band1.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-          band2.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-          band2.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
-          band3.m_cc[0]->m_bwp[0]->m_centralFrequency = 2.16e+09;
-          band3.m_cc[0]->m_bwp[1]->m_centralFrequency = 1.93e+09;
+          // FDD uses two BWPs per CC, one CC per band
+          numBwp = 2;
+        }
+      else // if (operationMode = "TDD")
+        {
+          // Use double with BWP, to match total bandwidth for FDD in UL and DL
+          bandwidthBwp *= 2;
+          numBwp = 1;
+        }
+      
+      double bandwidthCc = numBwp * bandwidthBwp;
+      uint8_t numCcPerBand = 1;
+      double bandwidthBand = numCcPerBand * bandwidthCc;
+      double bandCenter = band0Start + bandwidthBand / 2.0;
+      
+      NS_LOG_LOGIC ("OVERLAPPING, " << operationMode << ": "
+                    << bandwidthBand << ":" << bandwidthCc << ":"
+                    << bandwidthBwp << ", "
+                    << (int)numCcPerBand << ", " << (int)numBwp);
+
+      NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
+      CcBwpCreator::SimpleOperationBandConf
+        bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
+      bandConf0.m_numBwp = numBwp;
+      bandCenter += bandwidthBand;
+      
+      // Create, then configure
+      CcBwpCreator ccBwpCreator;
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0); 
+      band0.m_bandId = 0;
+          
+      bandCenter = band0Start + bandwidthBwp / 2.0;
+      
+      NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
+      ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
+      bandCenter += bandwidthBwp;
+
+      if (operationMode == "FDD")
+        {
+          NS_LOG_LOGIC ("band0[0][1]: " << bandCenter << " " << bandwidthBwp);
+          ConfigureBwpTo (band0.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
         }
 
-      // Do not initialize fading (beamforming gain)
-      nrHelper->InitializeOperationBand (&band1, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-      nrHelper->InitializeOperationBand (&band2, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
-      nrHelper->InitializeOperationBand (&band3, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+      std::cout << "BWP Configuration for OVERLAPPING case, mode "
+                << operationMode << "\n" << band0;
     }
+
   else
     {
-      // Init everything
-      nrHelper->InitializeOperationBand (&band1);
-      nrHelper->InitializeOperationBand (&band2);
-      nrHelper->InitializeOperationBand (&band3);
+      std::cerr << "unknown combination of freqScenario = " << freqScenario
+                << " and operationMode = " << operationMode
+                << std::endl;
+      exit (1);
     }
+      
+
+  auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
+  // Omit fading from calibration mode
+  if (! calibration)
+    {
+      bandMask |= NrHelper::INIT_FADING;
+    }
+  nrHelper->InitializeOperationBand (&band0, bandMask);
+  nrHelper->InitializeOperationBand (&band1, bandMask);
+  nrHelper->InitializeOperationBand (&band2, bandMask);
 
   BandwidthPartInfoPtrVector sector1Bwps, sector2Bwps, sector3Bwps;
   if (freqScenario == 0) // NON_OVERLAPPING
     {
-      sector1Bwps = CcBwpCreator::GetAllBwps ({band1});
-      sector2Bwps = CcBwpCreator::GetAllBwps ({band2});
-      sector3Bwps = CcBwpCreator::GetAllBwps ({band3});
+      sector1Bwps = CcBwpCreator::GetAllBwps ({band0});
+      sector2Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector3Bwps = CcBwpCreator::GetAllBwps ({band2});
     }
   else // OVERLAPPING
     {
-      sector1Bwps = CcBwpCreator::GetAllBwps ({band1});
-      sector2Bwps = CcBwpCreator::GetAllBwps ({band1});
-      sector3Bwps = CcBwpCreator::GetAllBwps ({band1});
+      sector1Bwps = CcBwpCreator::GetAllBwps ({band0});
+      sector2Bwps = CcBwpCreator::GetAllBwps ({band0});
+      sector3Bwps = CcBwpCreator::GetAllBwps ({band0});
     }
-
-  /*
-   * Start to account for the bandwidth used by the example, as well as
-   * the total power that has to be divided among the BWPs. Since we are TDD
-   * or FDD with 2 BWP only, there is no need to divide anything.
-   */
-  double totalTxPower = txPowerBs; //Convert to mW
-  double x = pow (10, totalTxPower / 10);
 
   /*
    * Now, we can setup the attributes. We can have three kind of attributes:
@@ -415,11 +529,11 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
 
   if (radioNetwork == "LTE" && calibration == true)
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
     }
   else if (radioNetwork == "NR")
     {
-      idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
     }
 
   // Scheduler type
@@ -524,11 +638,25 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
 
   //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   gnbSector1NetDev = nrHelper->InstallGnbDevice (gnbSector1Container, sector1Bwps);
+  NetDeviceContainer gnbNetDevs (gnbSector1NetDev);
   gnbSector2NetDev = nrHelper->InstallGnbDevice (gnbSector2Container, sector2Bwps);
+  gnbNetDevs.Add (gnbSector2NetDev);
   gnbSector3NetDev = nrHelper->InstallGnbDevice (gnbSector3Container, sector3Bwps);
+  gnbNetDevs.Add (gnbSector3NetDev);
   ueSector1NetDev = nrHelper->InstallUeDevice (ueSector1Container, sector1Bwps);
+  NetDeviceContainer ueNetDevs (ueSector1NetDev);
   ueSector2NetDev = nrHelper->InstallUeDevice (ueSector2Container, sector2Bwps);
+  ueNetDevs.Add (ueSector2NetDev);
   ueSector3NetDev = nrHelper->InstallUeDevice (ueSector3Container, sector3Bwps);
+  ueNetDevs.Add (ueSector3NetDev);
+
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbSector1NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (gnbSector2NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (gnbSector3NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector1NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector2NetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueSector3NetDev, randomStream);
 
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
@@ -536,303 +664,64 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
    */
 
   // Sectors (cells) of a site are pointing at different directions
-  double orientationRads = gridScenario.GetAntennaOrientationRadians (0, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN (); ++numCell)
+  std::vector<double> sectorOrientationRad {
+      sector0AngleRad,
+      sector0AngleRad + 2.0 * M_PI / 3.0, // + 120 deg
+      sector0AngleRad - 2.0 * M_PI / 3.0 // - 120 deg
+      };
+  
+  for (uint32_t cellId = 0; cellId < gnbNetDevs.GetN (); ++cellId)
     {
-      Ptr<NetDevice> gnb = gnbSector1NetDev.Get (numCell);
+      Ptr<NetDevice> gnb = gnbNetDevs.Get (cellId);
       uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
-      if (numBwps == 1)  // TDD
+      if (numBwps > 2)
         {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-            ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy->GetBeamManager ()->SetPredefinedBeam (3, 30);
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
         }
 
-      else if (numBwps == 2)  //FDD
+      uint32_t sector = cellId % (gnbSector3NetDev.GetN () == 0 ? 1 : 3);
+      double orientation = sectorOrientationRad[sector];
+
+      // First BWP (in case of FDD) or only BWP (in case of TDD)
+      ConfigurePhy (nrHelper, gnb, orientation, numerology, txPowerBs, pattern, 0);
+      
+      if (numBwps == 2)  //FDD
         {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-            ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
-
-          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-            ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy1->GetBeamManager ()->SetPredefinedBeam (3, 30);
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-
+          ConfigurePhy (nrHelper, gnb, orientation, numerology, txPowerBs, pattern, 1);
           // Link the two FDD BWP
           nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
         }
 
-      else
-        {
-          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
-        }
-    }
-
-  orientationRads = gridScenario.GetAntennaOrientationRadians (1, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN (); ++numCell)
-    {
-      Ptr<NetDevice> gnb = gnbSector2NetDev.Get (numCell);
-      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
-      if (numBwps == 1)  // TDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-            ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy->GetBeamManager ()->SetPredefinedBeam (2, 30);
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
-        }
-
-      else if (numBwps == 2)  //FDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-            ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal.
-          // In case of beamforming, it will be overwritten.
-          phy0->GetBeamManager ()->SetPredefinedBeam (2, 30);
-
-          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-            ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy1->GetBeamManager ()->SetPredefinedBeam (2, 30);
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-
-          // Link the two FDD BWP
-          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
-        }
-
-      else
-        {
-          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
-        }
-    }
-
-  orientationRads = gridScenario.GetAntennaOrientationRadians (2, gridScenario.GetNumSectorsPerSite ());
-  for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN (); ++numCell)
-    {
-      Ptr<NetDevice> gnb = gnbSector3NetDev.Get (numCell);
-      uint32_t numBwps = nrHelper->GetNumberBwp (gnb);
-      if (numBwps == 1)  // TDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-            ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy->GetBeamManager ()->SetPredefinedBeam (0, 30);
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
-        }
-
-      else if (numBwps == 2)  //FDD
-        {
-          // Change the antenna orientation
-          Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-            ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy0->GetBeamManager ()->SetPredefinedBeam (0, 30);
-
-          Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-            ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
-          antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-
-          // configure the beam that points toward the center of hexagonal
-          // In case of beamforming, it will be overwritten.
-          phy1->GetBeamManager ()->SetPredefinedBeam (0, 30);
-
-          // Set numerology
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (numerology));
-
-          // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
-
-          // Set TDD pattern
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-          nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-
-          // Link the two FDD BWP
-          nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
-        }
-
-      else
-        {
-          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
-        }
     }
 
 
   // Set the UE routing:
-
-  if (operationMode == "FDD")
+  for (auto nd = ueNetDevs.Begin (); nd != ueNetDevs.End (); ++ nd)
     {
-      for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
-        {
-          nrHelper->GetBwpManagerUe (ueSector1NetDev.Get (i))->SetOutputLink (0, 1);
-        }
-
-      for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
-        {
-          nrHelper->GetBwpManagerUe (ueSector2NetDev.Get (i))->SetOutputLink (0, 1);
-        }
-
-      for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
-        {
-          nrHelper->GetBwpManagerUe (ueSector3NetDev.Get (i))->SetOutputLink (0, 1);
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector1NetDev.GetN (); i++)
-    {
-      auto uePhyFirst = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 0);
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
-                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
-
+      auto uePhyFirst = nrHelper->GetUePhy (*nd, 0);
+      auto uePhySecond {uePhyFirst};
       if (operationMode == "FDD")
         {
-          auto uePhySecond = nrHelper->GetUePhy (ueSector1NetDev.Get (i), 1);
-          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
+          nrHelper->GetBwpManagerUe (*nd)->SetOutputLink (0, 1);
+          uePhySecond = nrHelper->GetUePhy (*nd, 1);
         }
-      else
-        {
-          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
-        }
-    }
-
-  for (uint32_t i = 0; i < ueSector2NetDev.GetN (); i++)
-    {
-      auto uePhyFirst = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 0);
       uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
                                               MakeBoundCallback (&ReportSinrNr, sinrStats));
+      uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
+                                               MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
 
-      if (operationMode == "FDD")
-        {
-          auto uePhySecond = nrHelper->GetUePhy (ueSector2NetDev.Get (i), 1);
-          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
-        }
-      else
-        {
-          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
-        }
     }
 
-  for (uint32_t i = 0; i < ueSector3NetDev.GetN (); i++)
-    {
-      auto uePhyFirst = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 0);
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
-                                              MakeBoundCallback (&ReportSinrNr, sinrStats));
-
-      if (operationMode == "FDD")
-        {
-          auto uePhySecond = nrHelper->GetUePhy (ueSector3NetDev.Get (i), 1);
-          uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                   MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
-        }
-      else
-        {
-          uePhyFirst->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
-                                                  MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));
-        }
-    }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
-
-  for (auto it = gnbSector1NetDev.Begin (); it != gnbSector1NetDev.End (); ++it)
+  for (auto nd = gnbNetDevs.Begin (); nd != gnbNetDevs.End (); ++nd)
     {
       uint32_t bwpId = 0;
       if (operationMode == "FDD" && direction == "UL")
         {
           bwpId = 1;
         }
-      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
+      auto gnbPhy = nrHelper->GetGnbPhy (*nd, bwpId);
       gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
       gnbPhy->TraceConnectWithoutContext ("RBDataStats",
@@ -840,59 +729,14 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const HexagonalGridScenarioHelper &gr
       gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
                                                             MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
 
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrGnbNetDevice> (*nd)->UpdateConfig ();
     }
 
-  for (auto it = gnbSector2NetDev.Begin (); it != gnbSector2NetDev.End (); ++it)
+  for (auto nd = ueNetDevs.Begin (); nd != ueNetDevs.End (); ++nd)
     {
-      uint32_t bwpId = 0;
-      if (operationMode == "FDD" && direction == "UL")
-        {
-          bwpId = 1;
-        }
-      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
-                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
-      gnbPhy->TraceConnectWithoutContext ("RBDataStats",
-                                          MakeBoundCallback (&ReportRbStatsNr, rbStats));
-      gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
-                                                            MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
-
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
+      DynamicCast<NrUeNetDevice> (*nd)->UpdateConfig ();
     }
 
-  for (auto it = gnbSector3NetDev.Begin (); it != gnbSector3NetDev.End (); ++it)
-    {
-      uint32_t bwpId = 0;
-      if (operationMode == "FDD" && direction == "UL")
-        {
-          bwpId = 1;
-        }
-      auto gnbPhy = nrHelper->GetGnbPhy (*it, bwpId);
-      gnbPhy->TraceConnectWithoutContext ("SlotDataStats",
-                                          MakeBoundCallback (&ReportSlotStatsNr, slotStats));
-      gnbPhy->TraceConnectWithoutContext ("RBDataStats",
-                                          MakeBoundCallback (&ReportRbStatsNr, rbStats));
-      gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
-                                                            MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
-
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueSector1NetDev.Begin (); it != ueSector1NetDev.End (); ++it)
-    {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueSector2NetDev.Begin (); it != ueSector2NetDev.End (); ++it)
-    {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
-    }
-
-  for (auto it = ueSector3NetDev.Begin (); it != ueSector3NetDev.End (); ++it)
-    {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
-    }
 }
 
 } // namespace ns3

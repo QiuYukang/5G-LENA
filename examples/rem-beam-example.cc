@@ -138,9 +138,9 @@ main (int argc, char *argv[])
   // Create and configure helpers
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject <IdealBeamformingHelper> ();
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathQuasiOmniBeamforming::GetTypeId ()));
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
@@ -179,6 +179,10 @@ main (int argc, char *argv[])
   // install nr net devices
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbNodes, singleBwp);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, singleBwp);
+
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gnbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   // this is probably not necessary, since we did not update configuration after installation
   DynamicCast<NrGnbNetDevice>(gnbNetDev.Get (0))->UpdateConfig ();

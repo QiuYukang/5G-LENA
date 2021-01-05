@@ -190,13 +190,6 @@ NrGnbPhy::GetNumRbPerRbg () const
   return m_phySapUser->GetNumRbPerRbg();
 }
 
-uint32_t
-NrGnbPhy::GetChannelBandwidth () const
-{
-  // m_channelBandwidth is in kHz * 100
-  return m_channelBandwidth * 1000 * 100;
-}
-
 const SfnSf &
 NrGnbPhy::GetCurrentSfnSf () const
 {
@@ -606,7 +599,7 @@ NrGnbPhy::QueueMib ()
 {
   NS_LOG_FUNCTION (this);
   LteRrcSap::MasterInformationBlock mib;
-  mib.dlBandwidth = m_channelBandwidth;
+  mib.dlBandwidth = GetChannelBandwidth () / (1000 * 100);
   mib.systemFrameNumber = 1;
   Ptr<NrMibMessage> mibMsg = Create<NrMibMessage> ();
   mibMsg->SetSourceBwp (GetBwpId ());
@@ -788,6 +781,12 @@ NrGnbPhy::StartSlot (const SfnSf &startSlot)
                   Time start = GetSymbolPeriod () * alloc.m_dci->m_symStart;
                   NS_LOG_INFO ("Schedule UL CTRL at " << start);
                   Simulator::Schedule (start, &NrGnbPhy::UlCtrl, this, alloc.m_dci);
+                }
+              else if (alloc.m_dci->m_type == DciInfoElementTdma::SRS && alloc.m_dci->m_format == DciInfoElementTdma::UL)
+                {
+                  Time start = GetSymbolPeriod () * alloc.m_dci->m_symStart;
+                  NS_LOG_INFO ("Schedule UL SRS at " << start);
+                  Simulator::Schedule (start, &NrGnbPhy::UlSrs, this, alloc.m_dci);
                 }
             }
         }
@@ -1289,16 +1288,20 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
-                                FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                dci->m_harqProcess, dci->m_rv, false,
-                                dci->m_symStart, dci->m_numSym, m_currentSlot);
+  m_spectrumPhy->AddExpectedSrsRnti (dci->m_rnti);
 
   bool found = false;
+  uint16_t notValidRntiCounter = 0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
+                                    // if yes, and the rnti for the current SRS is not found in the list,
+                                    // the code will not abort
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
       uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (0)))->GetRnti ();
+      if (ueRnti == 0)
+        {
+          notValidRntiCounter++;
+        }
       if (dci->m_rnti == ueRnti)
         {
           NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
@@ -1310,9 +1313,16 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
           break;
         }
     }
-  NS_ASSERT (found);
 
-  NS_LOG_INFO ("GNB RXing UL CTRL/DATA frame " << m_currentSlot <<
+  NS_ABORT_MSG_IF (!found && (notValidRntiCounter == 0), "All RNTIs are already set (all UEs received RAR message), "
+                                                         "but the RNTI for this SRS was not found");
+
+  if (!found)
+    {
+      NS_LOG_WARN ("The UE for which is scheduled this SRS does not have yet initialized RNTI. RAR message was not received yet.");
+    }
+
+  NS_LOG_INFO ("GNB RXing UL SRS frame " << m_currentSlot <<
                 " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
                 "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
                 " start " << Simulator::Now () <<
@@ -1355,10 +1365,8 @@ NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   else if (dci->m_type == DciInfoElementTdma::SRS)
     {
-      if (dci->m_format == DciInfoElementTdma::UL)
-        {
-          varTtiPeriod = UlSrs (dci);
-        }
+      NS_ASSERT (dci->m_format == DciInfoElementTdma::UL);
+      varTtiPeriod = UlSrs (dci);
     }
 
   Simulator::Schedule (varTtiPeriod, &NrGnbPhy::EndVarTti, this, dci);
@@ -1558,8 +1566,13 @@ NrGnbPhy::DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +ulBandwidth << +dlBandwidth);
   NS_ASSERT (ulBandwidth == dlBandwidth);
-  m_channelBandwidth = dlBandwidth;
-  UpdateRbNum ();
+
+  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
+
+  if (GetChannelBandwidth () != dlBandwidthInHz)
+    {
+      SetChannelBandwidth (dlBandwidth);
+    }
 }
 
 void

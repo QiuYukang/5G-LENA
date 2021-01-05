@@ -39,34 +39,14 @@ NS_OBJECT_ENSURE_REGISTERED (DirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (QuasiOmniDirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (OptimalCovMatrixBeamforming);
 
-IdealBeamformingAlgorithm::IdealBeamformingAlgorithm ()
-{
-
-}
-
-IdealBeamformingAlgorithm::~IdealBeamformingAlgorithm()
-{
-
-}
 
 TypeId
 IdealBeamformingAlgorithm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::IdealBeamformingAlgorithm")
-                      .SetParent<Object> ()
+                      .SetParent<BeamformingAlgorithm> ()
   ;
-
   return tid;
-}
-
-void
-IdealBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const NrGnbNetDevice>& gnbDev,
-                                                 const Ptr<const NrUeNetDevice>& ueDev,
-                                                 BeamformingVector* gnbBfv,
-                                                 BeamformingVector* ueBfv,
-                                                 uint16_t ccId) const
-{
-  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
 }
 
 TypeId
@@ -406,8 +386,8 @@ TypeId
 OptimalCovMatrixBeamforming::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::OptimalCovMatrixBeamforming")
-    .SetParent<IdealBeamformingAlgorithm> ()
-    .AddConstructor<OptimalCovMatrixBeamforming>()
+                      .SetParent<IdealBeamformingAlgorithm> ()
+                      .AddConstructor<OptimalCovMatrixBeamforming>()
   ;
 
   return tid;

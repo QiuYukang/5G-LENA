@@ -218,6 +218,7 @@ main (int argc, char *argv[])
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * GridScenarioHelper documentation to see how the nodes will be distributed.
    */
+  int64_t randomStream = 1;
   GridScenarioHelper gridScenario;
   gridScenario.SetRows (1);
   gridScenario.SetColumns (gNbNum);
@@ -229,6 +230,7 @@ main (int argc, char *argv[])
   gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
   gridScenario.SetScenarioLength (3); // be distribuited.
+  randomStream += gridScenario.AssignStreams (randomStream);
   gridScenario.CreateScenario ();
 
   /*
@@ -268,7 +270,7 @@ main (int argc, char *argv[])
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
   // Put the pointers inside nrHelper
-  nrHelper->SetIdealBeamformingHelper (idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   /*
@@ -361,7 +363,7 @@ main (int argc, char *argv[])
    *  Case (i): Attributes valid for all the nodes
    */
   // Beamforming method
-  idealBeamformingHelper->SetAttribute ("IdealBeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
 
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
@@ -414,6 +416,9 @@ main (int argc, char *argv[])
   NetDeviceContainer ueLowLatNetDev = nrHelper->InstallUeDevice (ueLowLatContainer, allBwps);
   NetDeviceContainer ueVoiceNetDev = nrHelper->InstallUeDevice (ueVoiceContainer, allBwps);
 
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueLowLatNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueVoiceNetDev, randomStream);
   /*
    * Case (iii): Go node for node and change the attributes we have to setup
    * per-node.

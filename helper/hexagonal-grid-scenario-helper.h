@@ -21,6 +21,7 @@
 
 #include "node-distribution-scenario-interface.h"
 #include <ns3/vector.h>
+#include <ns3/random-variable-stream.h>
 
 namespace ns3 {
 
@@ -124,6 +125,20 @@ public:
   uint16_t GetSiteIndex (uint16_t cellId) const;
 
   /**
+   * \brief Get the sector index the queried cell id belongs to.
+   * \param cellId Cell index.
+   * \return The sector id.
+   */
+  uint16_t GetSectorIndex (uint16_t cellId) const;
+
+  /**
+   * \brief Get the cell (base station) index the queried UE id belongs to.
+   * \param ueId UE index.
+   * \return The cell id.
+   */
+  uint16_t GetCellIndex (uint16_t ueId) const;
+  
+  /**
    * \brief Returns the position of the cell antenna
    * \param sitePos Site position coordinates in meters
    * \param cell Id Cell id of the antenna
@@ -159,6 +174,16 @@ public:
   // inherited
   virtual void CreateScenario () override;
 
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
 private:
   double m_isd {-1.0};     //!< Inter-site distance (ISD) in meters, constant distance among neighboring sites
   uint8_t m_numRings {0};  //!< Number of outer rings of sites around the central site
@@ -174,6 +199,9 @@ private:
   static std::vector<double> siteDistances;
   static std::vector<double> siteAngles;
   static double MAX_ANTENNA_OFFSET;
+
+  Ptr<UniformRandomVariable> m_r; //!< random variable used for the random generation of the radius
+  Ptr<UniformRandomVariable> m_theta; //!< random variable used for the generation of angle
 };
 
 } // namespace ns3
