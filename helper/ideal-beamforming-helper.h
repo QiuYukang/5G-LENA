@@ -17,7 +17,6 @@
  *
  */
 
-#include <ns3/object-factory.h>
 #include "beamforming-helper-base.h"
 #include <ns3/nstime.h>
 #include <ns3/vector.h>
@@ -48,8 +47,6 @@ public:
    * \brief ~IdealBeamformingHelper
    */
   virtual ~IdealBeamformingHelper ();
-
-  virtual void DoInitialize ();
 
   /**
    * \brief Get the Type ID
@@ -88,6 +85,9 @@ public:
   virtual void Run () const;
 
 protected:
+
+  // inherited from Object
+  virtual void DoInitialize (void) override;
 
   /**
    * \brief The beamforming timer has expired; at the next slot, perform beamforming.

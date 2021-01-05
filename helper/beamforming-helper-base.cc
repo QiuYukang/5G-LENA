@@ -45,11 +45,6 @@ BeamformingHelperBase::~BeamformingHelperBase ()
   NS_LOG_FUNCTION (this);
 }
 
-void
-BeamformingHelperBase::DoInitialize ()
-{
-}
-
 TypeId
 BeamformingHelperBase::GetTypeId (void)
 {

@@ -78,8 +78,6 @@ public:
    */
   static TypeId GetTypeId (void);
 
-  void DoInitialize ();
-
   /**
    * \brief Sets the beamforming update trigger event, trigger event type
    * is one for all the nodes
@@ -141,7 +139,6 @@ public:
 
 private:
 
-  bool m_periodicityMode {true}; //!< When true beamforming will be triggered by using srsCountPeriodicity attribute, when false delay attribute will be used
   uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
   Time m_srsToBeamformingDelay {MilliSeconds (0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
   typedef std::unordered_map <uint16_t, SrsSinrReport > SrsReports; //!< List of SRS reports by RNTI

@@ -17,12 +17,12 @@
  *
  */
 
-#include <ns3/beamforming-algorithm.h>
-#include <ns3/object-factory.h>
+#include <ns3/object.h>
 #include <ns3/nstime.h>
 #include <ns3/vector.h>
 #include <ns3/net-device.h>
 #include <ns3/net-device-container.h>
+#include <ns3/beamforming-algorithm.h>
 #include "ns3/event-id.h"
 
 #ifndef SRC_NR_HELPER_BEAMFORMING_HELPER_BASE_H_
@@ -52,11 +52,6 @@ public:
    * \brief ~BeamformingHelperBase destructor
    */
   virtual ~BeamformingHelperBase ();
-
-  /**
-   * \brief Initialize
-   */
-  virtual void DoInitialize ();
 
   /**
    * \brief Get the Type ID
