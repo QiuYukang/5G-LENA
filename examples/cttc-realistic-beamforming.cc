@@ -322,7 +322,7 @@ CttcRealisticBeamforming::PrepareOutputFiles ()
     }
   std::string fileSinr = BuildFileNameString ( m_resultsDirPath , "sinrs", m_tag);
 
-  m_outSinrFile.open (fileSinr.c_str (), std::_S_app);
+  m_outSinrFile.open (fileSinr.c_str (), std::ios_base::app);
   m_outSinrFile.setf (std::ios_base::fixed);
   NS_ABORT_MSG_IF (!m_outSinrFile.is_open (), "Can't open file " << fileSinr);
 }
