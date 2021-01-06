@@ -170,11 +170,11 @@ void NotifySlRlcPduRx (UeRlcRxOutputStats *stats, uint64_t imsi, uint16_t rnti, 
  * \param numVehiclesPerLane number of vehicles per lane (only odd numbers)
  * \param interVehicleDist The distance between the vehicles in a same lane
  * \param interLaneDist The distance between the lanes, i.e., the distance between the vehicles of two different lanes
- * \param velocity The velocity of the vehicles
+ * \param speed The speed of the vehicles
  * \return A node container containing the vehicle UEs with their mobility model installed
  */
 NodeContainer
-InstallHighwayMobility (uint16_t totalLanes, uint16_t numVehiclesPerLane, uint16_t interVehicleDist, uint16_t interLaneDist, double velocity)
+InstallHighwayMobility (uint16_t totalLanes, uint16_t numVehiclesPerLane, uint16_t interVehicleDist, uint16_t interLaneDist, double speed)
 {
   NS_ABORT_MSG_IF ((numVehiclesPerLane * totalLanes) % totalLanes != 0, "All the lanes must have equal number of UEs");
 
@@ -202,7 +202,7 @@ InstallHighwayMobility (uint16_t totalLanes, uint16_t numVehiclesPerLane, uint16
 
   for (int i = 0; i < totalLanes * numVehiclesPerLane; i++)
     {
-      ueNodes.Get (i)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (velocity, 0.0, 0.0));
+      ueNodes.Get (i)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, 0.0, 0.0));
     }
 
   return ueNodes;
@@ -309,11 +309,11 @@ void RecordMobility (bool FirstWrite, std::string fileName)
  * \brief Write a gnuplot script to generate gif of the vehicle UEs mobility
  * \param MobilityFileName The name of the file, which this script needs to read to plot positions
  * \param simTime The simulation time
- * \param velocity The velocity of the vehicles
+ * \param speed The speed of the vehicles
  * \param firstUeNode The node pointer to the first UE in the simulation
  * \param lastUeNode The node pointer to the last UE in the simulation
  */
-void WriteGifGnuScript (std::string MobilityFileName, Time simTime, double velocity, Ptr<Node> firstUeNode, Ptr<Node> lastUeNode)
+void WriteGifGnuScript (std::string MobilityFileName, Time simTime, double speed, Ptr<Node> firstUeNode, Ptr<Node> lastUeNode)
 {
   std::ofstream outFile;
   std::string fileName = "gif-script-" + MobilityFileName;
@@ -333,7 +333,7 @@ void WriteGifGnuScript (std::string MobilityFileName, Time simTime, double veloc
   Vector firstNodePos = firstUeNode->GetObject<MobilityModel> ()->GetPosition ();
   Vector LastNodePos = lastUeNode->GetObject<MobilityModel> ()->GetPosition ();
   double xRangeLower = firstNodePos.x - 10.0;
-  double xRangeUpper = simTime.GetSeconds () * velocity + LastNodePos.x;
+  double xRangeUpper = simTime.GetSeconds () * speed + LastNodePos.x;
   double yRangeLower = firstNodePos.y - 10.0;
   double yRangeUpper = LastNodePos.y + 10.0;
   outFile << "set xrange [" << xRangeLower << ":" << xRangeUpper << "]" << std::endl;
@@ -381,7 +381,7 @@ main (int argc, char *argv[])
   uint16_t numLanes = 1;
   uint16_t interVehicleDist = 20; //meters
   uint16_t interLaneDist = 4; //meters
-  double velocity = 38.88889; //meter per second, default 140 km/h
+  double speed = 38.88889; //meter per second, default 140 km/h
   bool enableOneTxPerLane = true;
   bool logging = false;
 
@@ -443,9 +443,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("interLaneDist",
                 "inter-lane distance: it is the distance between the antenna position (located in the center) of two vehicles in the adjacent lane",
                 interLaneDist);
-  cmd.AddValue ("velocity",
-                "velocity of the vehicles in m/sec",
-                velocity);
+  cmd.AddValue ("speed",
+                "speed of the vehicles in m/sec",
+                speed);
   cmd.AddValue ("enableOneTxPerLane",
                 "Per lane make one vehicle a transmitter. This option only works"
                 "with odd number of UEs per lane, which makes the middle vehicle"
@@ -588,7 +588,7 @@ main (int argc, char *argv[])
    *  3. Install mobility model
    */
   NS_ABORT_MSG_IF (numVehiclesPerLane % 2 == 0, "We only support odd number of vehicles per lane");
-  allSlUesContainer = InstallHighwayMobility (numLanes, numVehiclesPerLane, interVehicleDist, interLaneDist, velocity);
+  allSlUesContainer = InstallHighwayMobility (numLanes, numVehiclesPerLane, interVehicleDist, interLaneDist, speed);
 
 
   /*
@@ -1113,7 +1113,7 @@ main (int argc, char *argv[])
     {
       std::string mobilityFileName = "mobility-" + exampleName + ".txt";
       RecordMobility (true, mobilityFileName);
-      WriteGifGnuScript (mobilityFileName, simStopTime, velocity, rxSlUes.Get (0), rxSlUes.Get (rxSlUes.GetN () - 1));
+      WriteGifGnuScript (mobilityFileName, simStopTime, speed, rxSlUes.Get (0), rxSlUes.Get (rxSlUes.GetN () - 1));
     }
 
   Simulator::Stop (simStopTime);
