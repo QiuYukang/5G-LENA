@@ -277,12 +277,12 @@ void RecordMobility (bool FirstWrite, std::string fileName)
   std::ofstream outFile;
   if (FirstWrite == true)
     {
-      outFile.open (fileName.c_str (),std::_S_out);
+      outFile.open (fileName.c_str (), std::ios_base::out);
       FirstWrite = false;
     }
   else
     {
-      outFile.open (fileName.c_str (),std::_S_app);
+      outFile.open (fileName.c_str (), std::ios_base::app);
       outFile << std::endl;
       outFile << std::endl;
     }
