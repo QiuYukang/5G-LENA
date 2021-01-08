@@ -155,6 +155,8 @@ main (int argc, char *argv[])
   gridScenario.SetHorizontalBsDistance (5.0);
   gridScenario.SetBsHeight (10.0);
   gridScenario.SetUtHeight (1.5);
+  // must be set before BS number
+  gridScenario.SetSectorization (GridScenarioHelper::SINGLE);
   gridScenario.SetBsNumber (gNbNum);
   gridScenario.SetUtNumber (ueNum);
   gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
