@@ -25,9 +25,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per cell or gNB in multiple-ue topology",
                 params.ueNumPergNb);
-  cmd.AddValue ("appGenerationTimeMs",
-                "Simulation time",
-                params.appGenerationTimeMs);
+  cmd.AddValue ("siteFile",
+                "Path to file of tower coordinates (instead of hexagonal grid)",
+                params.baseStationFile);
+  cmd.AddValue ("appGenerationTime",
+                "Duration applications will generate traffic.",
+                params.appGenerationTime);
   cmd.AddValue ("numerologyBwp",
                 "The numerology to be used (NR only)",
                 params.numerologyBwp);

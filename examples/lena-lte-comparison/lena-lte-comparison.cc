@@ -57,14 +57,16 @@
 NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
 
 namespace ns3 {
+
+const Time appStartWindow = MilliSeconds (50);
   
-static std::pair<ApplicationContainer, double>
+static std::pair<ApplicationContainer, Time>
 InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
              const Address &ueAddress, const std::string &direction,
              UdpClientHelper *dlClientLowLat, const Ptr<Node> &remoteHost,
-             const Ipv4Address &remoteHostAddr, uint32_t udpAppStartTimeMs,
+             const Ipv4Address &remoteHostAddr, Time udpAppStartTime,
              uint16_t dlPortLowLat, const Ptr<UniformRandomVariable> &x,
-             uint32_t appGenerationTimeMs,
+             Time appGenerationTime,
              const Ptr<LteHelper> &lteHelper, const Ptr<NrHelper> &nrHelper)
 {
   ApplicationContainer app;
@@ -102,12 +104,14 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
       app = dlClientLowLat->Install (ue);
     }
 
-  double startTime = x->GetValue (udpAppStartTimeMs, udpAppStartTimeMs + 10);
-  app.Start (MilliSeconds (startTime));
-  app.Stop (MilliSeconds (startTime + appGenerationTimeMs));
+  double start = x->GetValue (udpAppStartTime.GetMilliSeconds (),
+                              (udpAppStartTime + appStartWindow).GetMilliSeconds ());
+  Time startTime = MilliSeconds (start);
+  app.Start (startTime);
+  app.Stop (startTime + appGenerationTime);
 
-  std::cout << "\tStarts at time " << MilliSeconds (startTime).GetMilliSeconds () << " ms and ends at "
-            << (MilliSeconds (startTime + appGenerationTimeMs)).GetMilliSeconds () << " ms" << std::endl;
+  std::cout << "\tStarts at time " << startTime.As (Time::MS) << " and ends at "
+            << (startTime + appGenerationTime).As (Time::MS) << std::endl;
 
   // Activate a dedicated bearer for the traffic type
   if (lteHelper != nullptr)
@@ -282,57 +286,105 @@ LenaLteComparison (const Parameters &params)
    * the gnbs and ue following a pre-defined pattern. Please have a look at the
    * HexagonalGridScenarioHelper documentation to see how the nodes will be distributed.
    */
-  std::cout << "  hexagonal grid: ";  
-  HexagonalGridScenarioHelper gridScenario;
-  gridScenario.SetNumRings (params.numOuterRings);
-  const auto sectorization = HexagonalGridScenarioHelper::TRIPLE;
-  const uint16_t sectorsNum = static_cast<uint16_t> (sectorization);
-  gridScenario.SetSectorization (sectorization);
-  gridScenario.SetScenarioParameters (params.scenario);
-  uint16_t gNbSites = gridScenario.GetNumSites ();
-  uint16_t gNbNum = gridScenario.GetNumCells ();
-  uint32_t ueNum = params.ueNumPergNb * gNbNum;
-  gridScenario.SetUtNumber (ueNum);
-  gridScenario.AssignStreams (RngSeedManager::GetRun ());
-  gridScenario.CreateScenario ();  //!< Creates and plots the network deployment
+
+  ScenarioParameters scenarioParams;
+  scenarioParams.SetScenarioParameters (params.scenario);
+  // Customize parameters here
+  //  scenarioParams.isd = ...
   
-  const uint16_t ffr = 3; // Fractional Frequency Reuse scheme to mitigate intra-site inter-sector interferences
-  std::cout << gNbSites << " sites, "
-            << sectorsNum << " sectors/site, "
-            << gNbNum   << " cells, "
-            << ueNum    << " UEs\n";
+  // The essentials describing a laydown
+  uint32_t gnbSites = 0;
+  NodeContainer gnbNodes;
+  NodeContainer ueNodes;
+  double sector0AngleRad = 0;
+  const uint32_t sectors = 3;
+
+  // 
+  NodeDistributionScenarioInterface * scenario {NULL};
+  FileScenarioHelper fileScenario;
+  HexagonalGridScenarioHelper gridScenario;
+  
+  if (params.baseStationFile != "")
+    {
+      std::cout << "  using tower positions from " << params.baseStationFile
+                << std::endl;
+      std::cout << "    setting sectorization" << std::endl;
+      fileScenario.SetSectorization (sectors);
+      std::cout << "    adding site file" << std::endl;
+      fileScenario.Add (params.baseStationFile);
+      std::cout << "    setting scenario" << std::endl;
+      fileScenario.SetScenarioParameters (params.scenario);
+      std::cout << "    getting number of sites..." << std::flush;
+      gnbSites = fileScenario.GetNumSites ();
+      std::cout << gnbSites << std::endl;
+      std::cout << "    getting number of cells..." << std::flush;
+      uint32_t gnbNum = fileScenario.GetNumCells ();
+      std::cout << gnbNum << std::endl;
+      uint32_t ueNum = params.ueNumPergNb * gnbNum;
+      std::cout << "    setting number of UEs..." << ueNum << std::endl;
+      fileScenario.SetUtNumber (ueNum);
+      std::cout << "    getting sector 0 angle..." << std::flush;
+      sector0AngleRad = fileScenario.GetAntennaOrientationRadians (0);
+      std::cout << sector0AngleRad << std::endl;
+
+      // Creates and plots the network deployment
+      std::cout << "    creating scenario" << std::endl;
+      fileScenario.CreateScenario ();
+      std::cout << "    getting gnbNodes..." << std::flush;
+      gnbNodes = fileScenario.GetBaseStations ();
+      std::cout << gnbNodes.GetN () << std::endl;
+      std::cout << "    getting ueNodes..." << std::flush;
+      ueNodes = fileScenario.GetUserTerminals ();
+      std::cout << ueNodes.GetN () << std::endl;
+      std::cout << "    setting scenario pointer..." << std::flush;
+      scenario = &fileScenario;
+      std::cout << "0x" << std::hex << scenario << std::dec << std::endl;
+    }
+  else
+    {
+      std::cout << "  hexagonal grid: ";
+      gridScenario.SetScenarioParameters (scenarioParams);
+      gridScenario.SetNumRings (params.numOuterRings);
+      gnbSites = gridScenario.GetNumSites ();
+      uint32_t ueNum = params.ueNumPergNb * gnbSites * sectors;
+      gridScenario.SetUtNumber (ueNum);
+      sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0);
+      std::cout << sector0AngleRad << std::endl;
+      
+      // Creates and plots the network deployment
+      gridScenario.CreateScenario ();  
+      gnbNodes = gridScenario.GetBaseStations ();
+      ueNodes = gridScenario.GetUserTerminals ();
+      scenario = &gridScenario;
+    }
+
+  // Log the configuration
+  std::cout << "\n    Topology configuration: " << gnbSites << " sites, "
+            << sectors << " sectors/site, "
+            << gnbNodes.GetN ()   << " cells, "
+            << ueNodes.GetN ()    << " UEs\n";
 
   /*
    * Create different gNB NodeContainer for the different sectors.
    *
-   * Relationships between cellId, sectorId and siteId:
-   *   sector = cellId % sectorsNum
-   *   siteId = cellId / sectorsNum
-   *   cellId = siteId * sectorsNum + sector
+   * Relationships between ueId, cellId, sectorId and siteId:
+   * ~~~{.cc}
+   *   cellId = scenario->GetCellIndex (ueId);
+   *   sector = scenario->GetSectorIndex (cellId);
+   *   siteId = scenario->GetSiteIndex (cellId);
+   * ~~~{.cc}
    *
-   * Iterate/index gnbNodes, gnbNetDevs by cellId.
+   * Iterate/index gnbNodes, gnbNetDevs by `cellId`.
    * Iterate/index gnbSector<N>Container, gnbNodesBySector[sector],
-   *   gnbSector<N>NetDev, gnbNdBySector[sector] by siteId
+   *   gnbSector<N>NetDev, gnbNdBySector[sector] by `siteId`
    */
   NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
-  for (uint32_t j = 0; j < gridScenario.GetBaseStations ().GetN (); ++j)
+  std::vector<NodeContainer*> gnbNodesBySector{&gnbSector1Container, &gnbSector2Container, &gnbSector3Container};
+  for (uint32_t cellId = 0; cellId < gnbNodes.GetN (); ++cellId)
     {
-      Ptr<Node> gnb = gridScenario.GetBaseStations ().Get (j);
-      switch (j % ffr)
-      {
-        case 0:
-          gnbSector1Container.Add (gnb);
-          break;
-        case 1:
-          gnbSector2Container.Add (gnb);
-          break;
-        case 2:
-          gnbSector3Container.Add (gnb);
-          break;
-        default:
-          NS_ABORT_MSG("ffr param cannot be larger than 3");
-          break;
-      }
+      Ptr<Node> gnb = gnbNodes.Get (cellId);
+      auto sector = scenario->GetSectorIndex (cellId);
+      gnbNodesBySector[sector]->Add (gnb);
     }
   std::cout << "    gNb containers: "
             << gnbSector1Container.GetN () << ", "
@@ -343,35 +395,19 @@ LenaLteComparison (const Parameters &params)
   /*
    * Create different UE NodeContainer for the different sectors.
    *
-   * Relationships between ueId, sector and site:
-   *   sector = ueId % sectorsNum
-   *   siteId = (ueId / sectorsNum) % gnbSites
-   *
    * Multiple UEs per sector!
-   * Iterate/index ueNodes, ueNetDevs, ueIpIfaces by ueId.
+   * Iterate/index ueNodes, ueNetDevs, ueIpIfaces by `ueId`.
    * Iterate/Index ueSector<N>Container, ueNodesBySector[sector],
    *   ueSector<N>NetDev, ueNdBySector[sector] with i % gnbSites
    */
   NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
-
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
+  std::vector<NodeContainer*> ueNodesBySector {&ueSector1Container, &ueSector2Container, &ueSector3Container};
+  for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
-      Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (j);
-      switch (j % ffr)
-      {
-        case 0:
-          ueSector1Container.Add (ue);
-          break;
-        case 1:
-          ueSector2Container.Add (ue);
-          break;
-        case 2:
-          ueSector3Container.Add (ue);
-          break;
-        default:
-          NS_ABORT_MSG("ffr param cannot be larger than 3");
-          break;
-      }
+      Ptr<Node> ue = ueNodes.Get (ueId);
+      auto cellId = scenario->GetCellIndex (ueId);
+      auto sector = scenario->GetSectorIndex (cellId);
+      ueNodesBySector[sector]->Add (ue);
     }
   std::cout << "    UE containers: "
             << ueSector1Container.GetN () << ", "
@@ -387,13 +423,13 @@ LenaLteComparison (const Parameters &params)
   Ptr<PointToPointEpcHelper> epcHelper;
 
   NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
+  std::vector<NetDeviceContainer *> gnbNdBySector {&gnbSector1NetDev, &gnbSector2NetDev, &gnbSector3NetDev};
   NetDeviceContainer ueSector1NetDev, ueSector2NetDev,ueSector3NetDev;
+  std::vector<NetDeviceContainer *> ueNdBySector {&ueSector1NetDev, &ueSector2NetDev, &ueSector3NetDev};
 
   Ptr <LteHelper> lteHelper = nullptr;
   Ptr <NrHelper> nrHelper = nullptr;
 
-  double sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0, sectorization);
-                                                                     
   if (params.simulator == "LENA")
     {
       epcHelper = CreateObject<PointToPointEpcHelper> ();
@@ -490,88 +526,55 @@ LenaLteComparison (const Parameters &params)
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
-  internet.Install (gridScenario.GetUserTerminals ());
+  internet.Install (ueNodes);
 
-  Ipv4InterfaceContainer ueSector1IpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueSector1NetDev));
-  Ipv4InterfaceContainer ueSector2IpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueSector2NetDev));
-  Ipv4InterfaceContainer ueSector3IpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueSector3NetDev));
+  NetDeviceContainer gnbNetDevs (gnbSector1NetDev, gnbSector2NetDev);
+  gnbNetDevs.Add (gnbSector3NetDev);
+  NetDeviceContainer ueNetDevs (ueSector1NetDev, ueSector2NetDev);
+  ueNetDevs.Add (ueSector3NetDev);
+  Ipv4InterfaceContainer ueIpIfaces {epcHelper->AssignUeIpv4Address (ueNetDevs)};
 
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Set the default gateway for the UEs
   std::cout << "  default gateway\n";  
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
+  for (auto ue = ueNodes.Begin (); ue != ueNodes.End (); ++ue)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting ((*ue)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
   // attach UEs to their gNB. Try to attach them per cellId order
   std::cout << "  attach UEs to gNBs\n";  
-  for (uint32_t u = 0; u < ueNum; ++u)
+  for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
-      uint32_t sector = u % ffr;
-      uint32_t siteId = (u / ffr) % gridScenario.GetNumSites ();
-      if (sector == 0)
+      auto cellId = scenario->GetCellIndex (ueId);
+      Ptr<NetDevice> gnbNetDev = gnbNetDevs.Get (cellId);
+      Ptr<NetDevice> ueNetDev = ueNetDevs.Get (ueId);
+      if (lteHelper != nullptr)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get (siteId);
-          Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get (siteId);
-          if (lteHelper != nullptr)
-            {
-              lteHelper->Attach (ueNetDev, gnbNetDev);
-            }
-          else if (nrHelper != nullptr)
-            {
-              nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-            }
-          if (params.logging == true)
-            {
-              Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-              Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-              double distance = CalculateDistance (gnbpos, uepos);
-              std::cout << "Distance = " << distance << " meters" << std::endl;
-            }
+          lteHelper->Attach (ueNetDev, gnbNetDev);
         }
-      else if (sector == 1)
+      else if (nrHelper != nullptr)
         {
-          Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get (siteId);
-          Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get (siteId);
-          if (lteHelper != nullptr)
-            {
-              lteHelper->Attach (ueNetDev, gnbNetDev);
-            }
-          else if (nrHelper != nullptr)
-            {
-              nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-            }
-          if (params.logging == true)
-            {
-              Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-              Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-              double distance = CalculateDistance (gnbpos, uepos);
-              std::cout << "Distance = " << distance << " meters" << std::endl;
-            }
+          nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
         }
-      else if (sector == 2)
-        {
-          Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get (siteId);
-          Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get (siteId);
-          if (lteHelper != nullptr)
-            {
-              lteHelper->Attach (ueNetDev, gnbNetDev);
-            }
-          else if (nrHelper != nullptr)
-            {
-              nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-            }
-          if (params.logging == true)
-            {
-              Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-              Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-              double distance = CalculateDistance (gnbpos, uepos);
-              std::cout << "Distance = " << distance << " meters" << std::endl;
-            }
-        }
+
+      // UL phy
+      uint32_t bwp = (params.operationMode == "FDD" ? 1 : 0);
+      auto ueUlPhy {nrHelper->GetUePhy (ueNetDev, bwp)};
+      auto rnti = ueUlPhy->GetRnti ();
+
+      Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+      Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+      double distance = CalculateDistance (gnbpos, uepos);
+      std::cout << "ueId: " << ueId
+                << ", rnti: " << rnti
+                << ", at " << uepos
+                << ", attached to eNB " << cellId
+                << " at " << gnbpos
+                << ", range: " << distance << " meters"
+                << std::endl;
     }
 
   /*
@@ -589,7 +592,7 @@ LenaLteComparison (const Parameters &params)
   // The server, that is the application which is listening, is installed in the UE
   if (params.direction == "DL")
     {
-      serverApps.Add (dlPacketSinkLowLat.Install ({ueSector1Container,ueSector2Container,ueSector3Container}));
+      serverApps.Add (dlPacketSinkLowLat.Install (ueNodes));
     }
   else
     {
@@ -597,7 +600,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   // start UDP server
-  serverApps.Start (MilliSeconds (params.udpAppStartTimeMs));
+  serverApps.Start (params.udpAppStartTime);
 
   /*
    * Configure attributes for the different generators, using user-provided
@@ -623,29 +626,31 @@ LenaLteComparison (const Parameters &params)
    */
   std::cout << "  applications\n";  
   ApplicationContainer clientApps;
-  std::vector<NodeContainer*> nodes = { &ueSector1Container, &ueSector2Container, &ueSector3Container };
-  std::vector<NetDeviceContainer*> devices = { &ueSector1NetDev, &ueSector2NetDev, &ueSector3NetDev };
-  std::vector<Ipv4InterfaceContainer*> ips = { &ueSector1IpIface, &ueSector2IpIface, &ueSector3IpIface };
+  Ptr<UniformRandomVariable> startRng = CreateObject<UniformRandomVariable> ();
+  startRng->SetStream (RngSeedManager::GetRun());
+  Time maxStartTime;
 
-  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
-  x->SetStream (RngSeedManager::GetRun());
-  double maxStartTime = 0.0;
-
-  for (uint32_t userId = 0; userId < ueNum; ++userId)
+  for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
-      uint32_t sector = userId % ffr;
-      uint32_t siteId = (userId / ffr) % gridScenario.GetNumSites ();
-      Ptr<Node> n = nodes.at(sector)->Get (siteId);
-      Ptr<NetDevice> d = devices.at(sector)->Get(siteId);
-      Address a = ips.at(sector)->GetAddress(siteId);
+      auto cellId = scenario->GetCellIndex (ueId);
+      auto sector = scenario->GetSectorIndex (cellId);
+      auto siteId = scenario->GetSiteIndex (cellId);
+      Ptr<Node> node = ueNodes.Get (ueId);
+      Ptr<NetDevice> dev = ueNetDevs.Get(ueId);
+      Address addr = ueIpIfaces.GetAddress (ueId);
       
-      std::cout << "app for ue " << userId << " in sector " << sector 
-                << " position " << n->GetObject<MobilityModel>()->GetPosition ()
+      std::cout << "app for ue " << ueId
+                << ", cellId " << cellId
+                << ", sector " << sector
+                << ", siteId " << siteId
                 << ":" << std::endl;
 
-      auto app = InstallApps (n, d, a, params.direction, &dlClientLowLat, remoteHost,
-                              remoteHostAddr, params.udpAppStartTimeMs, dlPortLowLat,
-                              x, params.appGenerationTimeMs, lteHelper, nrHelper);
+      auto app = InstallApps (node, dev, addr,
+                              params.direction, &dlClientLowLat,
+                              remoteHost, remoteHostAddr,
+                              params.udpAppStartTime, dlPortLowLat,
+                              startRng, params.appGenerationTime,
+                              lteHelper, nrHelper);
       maxStartTime = std::max (app.second, maxStartTime);
       clientApps.Add (app.first);
     }
@@ -670,7 +675,7 @@ LenaLteComparison (const Parameters &params)
   FlowMonitorHelper flowmonHelper;
   NodeContainer endpointNodes;
   endpointNodes.Add (remoteHost);
-  endpointNodes.Add (gridScenario.GetUserTerminals ());
+  endpointNodes.Add (ueNodes);
 
   Ptr<FlowMonitor> monitor = flowmonHelper.Install (endpointNodes);
   monitor->SetAttribute ("DelayBinWidth", DoubleValue (0.001));
@@ -688,78 +693,40 @@ LenaLteComparison (const Parameters &params)
   if (params.dlRem || params.ulRem)
     {
 
-      NetDeviceContainer gnbContainerRem;
-      Ptr<NetDevice> ueRemDevice;
       uint16_t remPhyIndex = 0;
       if (params.operationMode == "FDD" && params.direction == "UL")
       {
         remPhyIndex = 1;
       }
 
-      NetDeviceContainer ueContainerRem;
-      Ptr<NrGnbNetDevice> gnbRemDevice;
+      NetDeviceContainer remNd;
+      Ptr<NetDevice> remDevice;
+
+      // params.ulRem:
+      std::vector<NetDeviceContainer *> & remNdBySector {ueNdBySector};
+      std::vector<NetDeviceContainer *> & remDevBySector {gnbNdBySector};
+
+      if (params.dlRem)
+        {
+          remNdBySector = gnbNdBySector;
+          remDevBySector = ueNdBySector;
+        }
+      
+      // Reverse order so we get sector 1 for the remSector == 0 case
+      for (uint32_t sector = sectors; sector > 0; --sector)
+        {
+          if ( (params.remSector == sector) || (params.remSector == 0) )
+            {
+              remNd.Add (*remNdBySector[sector]);
+            }
+          remDevice = remDevBySector[sector]->Get(0);
+        }
 
       if (params.ulRem)
         {
-          if (params.remSector == 0)
-            {
-              ueContainerRem.Add (ueSector1NetDev);
-              ueContainerRem.Add (ueSector2NetDev);
-              ueContainerRem.Add (ueSector3NetDev);
-              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector1NetDev.Get (0));
-              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
-              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
-            }
-          else if (params.remSector == 1)
-            {
-              ueContainerRem = ueSector1NetDev;
-              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector1NetDev.Get(0));
-              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
-              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
-            }
-          else if (params.remSector == 2)
-            {
-              ueContainerRem = ueSector2NetDev;
-              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector2NetDev.Get(0));
-              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
-              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
-            }
-          else if (params.remSector == 3)
-            {
-              ueContainerRem = ueSector3NetDev;
-              gnbRemDevice = DynamicCast<NrGnbNetDevice> (gnbSector3NetDev.Get(0));
-              Ptr<ThreeGppAntennaArrayModel> antenna = ConstCast<ThreeGppAntennaArrayModel> (gnbRemDevice->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ());
-              antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
-            }
-        }
-      else
-        {
-          if (params.remSector == 0)
-            {
-              gnbContainerRem.Add (gnbSector1NetDev);
-              gnbContainerRem.Add (gnbSector2NetDev);
-              gnbContainerRem.Add (gnbSector3NetDev);
-              ueRemDevice = ueSector1NetDev.Get (0);
-            }
-          else if (params.remSector == 1)
-            {
-              gnbContainerRem = gnbSector1NetDev;
-              ueRemDevice = ueSector1NetDev.Get(0);
-            }
-          else if (params.remSector == 2)
-            {
-              gnbContainerRem = gnbSector2NetDev;
-              ueRemDevice = ueSector2NetDev.Get(0);
-            }
-          else if (params.remSector == 3)
-            {
-              gnbContainerRem = gnbSector3NetDev;
-              ueRemDevice = ueSector3NetDev.Get(0);
-            }
-          else
-            {
-              NS_FATAL_ERROR ("Sector does not exist");
-            }
+          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ();
+          auto antenna = ConstCast<ThreeGppAntennaArrayModel> (antArray);
+          antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
         }
 
       //Radio Environment Map Generation for ccId 0
@@ -772,42 +739,32 @@ LenaLteComparison (const Parameters &params)
       remHelper->SetResY (params.yResRem);
       remHelper->SetZ (params.zRem);
 
-      //save beamforming vectors
-      for (uint32_t j = 0; j < gridScenario.GetNumSites (); ++j)
+      //save beamforming vectors, one per site (?)
+      for (uint32_t sector = sectors; sector > 0; --sector)
         {
-          switch (params.remSector)
+          if ( (params.remSector == sector) || (params.remSector == 0) )
             {
-            case 0:
-              gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
-              gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
-              gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
-              break;
-            case 1:
-              gnbSector1NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector1NetDev.Get(j));
-              break;
-            case 2:
-              gnbSector2NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector2NetDev.Get(j));
-              break;
-            case 3:
-              gnbSector3NetDev.Get(j)->GetObject<NrGnbNetDevice>()->GetPhy(remPhyIndex)->GetBeamManager()->ChangeBeamformingVector(ueSector3NetDev.Get(j));
-              break;
+              for (uint32_t siteId = 0; siteId < gnbSites; ++siteId)
+                {
+                  gnbNdBySector[sector]->Get(siteId)
+                    ->GetObject<NrGnbNetDevice>()
+                    ->GetPhy(remPhyIndex)
+                    ->GetBeamManager()
+                    ->ChangeBeamformingVector(ueNdBySector[sector]->Get(siteId));
+                }
             }
         }
 
-      if (params.ulRem)
-        {
-          remHelper->CreateRem (ueContainerRem, gnbRemDevice, remPhyIndex);
-        }
-      else
-        {
-          remHelper->CreateRem (gnbContainerRem, ueRemDevice, remPhyIndex);
-        }
+      remHelper->CreateRem (remNd, remDevice, remPhyIndex);
     }
 
   std::cout << "\n----------------------------------------\n"
             << "Start simulation"
             << std::endl;
-  Simulator::Stop (MilliSeconds (params.appGenerationTimeMs + maxStartTime));
+  // Add some extra time for the last generated packets to be received
+  const Time appStopWindow = MilliSeconds (50);
+  Time stopTime = maxStartTime + params.appGenerationTime + appStopWindow;
+  Simulator::Stop (stopTime);
   Simulator::Run ();
 
   sinrStats.EmptyCache ();
@@ -879,6 +836,15 @@ operator << (std::ostream & os, const Parameters & parameters)
       MSG ("Operation mode")            << p.operationMode;
     }
 
+  if (p.baseStationFile != "")
+    {
+      MSG ("Base station positions")    << "read from file " << p.baseStationFile;
+    }
+  else
+    {
+      MSG ("Base station positions")    << "regular hexaonal lay down";
+    }
+
   MSG ("");
   MSG ("Channel bandwidth")             << p.bandwidthMHz << " MHz";
   MSG ("Spectrum configuration")
@@ -903,7 +869,10 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       os << "\n  (unknown configuration)";
     }
-  MSG ("Number of outer rings")         << p.numOuterRings;
+  if (p.baseStationFile == "")
+    {
+      MSG ("Number of outer rings")         << p.numOuterRings;
+    }
   MSG ("Number of UEs per sector")      << p.ueNumPergNb;
   MSG ("Antenna down tilt angle (deg)") << p.downtiltAngle;
 
@@ -953,8 +922,8 @@ operator << (std::ostream & os, const Parameters & parameters)
       os << "\n  (Unknown configuration)";
     }
 
-  MSG ("Application start window")      << p.udpAppStartTimeMs << " + 10 ms";
-  MSG ("Application on duration")       << p.appGenerationTimeMs << " ms";
+  MSG ("Application start window")      << p.udpAppStartTime.As (Time::MS) << " + " << appStartWindow.As (Time::MS);
+  MSG ("Application on duration")       << p.appGenerationTime.As (Time::MS);
   MSG ("Traffic direction")             << p.direction;
 
   MSG ("");

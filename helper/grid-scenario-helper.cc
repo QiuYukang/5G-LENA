@@ -84,7 +84,11 @@ GridScenarioHelper::CreateScenario ()
   NS_ASSERT (m_columns > 0);
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);
-  NS_ASSERT (m_bs.GetN () > 0);
+  NS_ASSERT (m_numBs > 0);
+  NS_ASSERT (m_numUt > 0);
+
+  m_bs.Create (m_numBs);
+  m_ut.Create (m_numUt);
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator> ();

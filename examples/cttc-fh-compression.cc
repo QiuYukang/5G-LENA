@@ -635,7 +635,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
     }
 
   // Sectors (cells) of a site are pointing at different directions
-  double orientationRads = gridScenario.GetAntennaOrientationRadians (0, gridScenario.GetNumSectorsPerSite ());
+  double orientationRads = gridScenario.GetAntennaOrientationRadians (0);
   uint32_t globalCellId = 0;
   for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN (); ++numCell)
     {
@@ -705,7 +705,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       globalCellId++;
     }
 
-  orientationRads = gridScenario.GetAntennaOrientationRadians (1, gridScenario.GetNumSectorsPerSite ());
+  orientationRads = gridScenario.GetAntennaOrientationRadians (1);
   for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector2NetDev.Get (numCell);
@@ -775,7 +775,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
       globalCellId++;
     }
 
-  orientationRads = gridScenario.GetAntennaOrientationRadians (2, gridScenario.GetNumSectorsPerSite ());
+  orientationRads = gridScenario.GetAntennaOrientationRadians (2);
   for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN (); ++numCell)
     {
       Ptr<NetDevice> gnb = gnbSector3NetDev.Get (numCell);
@@ -1083,8 +1083,8 @@ main (int argc, char *argv[])
    * GridScenarioHelper documentation to see how the nodes will be distributed.
    */
   HexagonalGridScenarioHelper gridScenario;
-  gridScenario.SetNumRings (numOuterRings);
   gridScenario.SetSectorization (HexagonalGridScenarioHelper::TRIPLE);
+  gridScenario.SetNumRings (numOuterRings);
   gridScenario.SetScenarioParameters (scenario);
   uint16_t gNbNum = gridScenario.GetNumCells ();
   std::cout << "numcells: " << gNbNum << std::endl;
