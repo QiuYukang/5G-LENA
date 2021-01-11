@@ -370,6 +370,14 @@ NrUeMac::GetTypeId (void)
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrUeMac::ConsiderReTxForSensing),
                     MakeBooleanChecker ())
+    .AddAttribute ("Q",
+                   "The number of resource reservation periods for which a"
+                   "sensed slot is considered to be received for sensing based"
+                   "resource allocation",
+                   UintegerValue (10),
+                   MakeUintegerAccessor (&NrUeMac::SetQ,
+                                         &NrUeMac::GetQ),
+                   MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("SlPscchScheduling",
                      "Information regarding NR SL PSCCH UE scheduling",
                      MakeTraceSourceAccessor (&NrUeMac::m_slPscchScheduling),
@@ -1289,6 +1297,8 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
         }
 
+      NS_LOG_DEBUG ("Size of allSensingData " << allSensingData.size ());
+
       //step 5 point 1: We don't need to implement it since we only sense those
       //slots at which this UE does not transmit. This is due to the half
       //duplex nature of the PHY.
@@ -1330,6 +1340,7 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
                                 {
                                   itCandSsResoA = nrCandSsResoA.erase (itCandSsResoA);
                                   erased = true;
+                                  NS_LOG_DEBUG ("Absolute slot number " << itFutureCand.sfn.Normalize () << " erased. Its rsrp : " << itFutureSensTx.slRsrp << " Threshold : " << rsrpThrehold);
                                   //stop traversing over sensing data as we have
                                   //already found the slot to exclude.
                                   break; // break for (const auto &itFutureSensTx:listFutureSensTx)
@@ -1371,6 +1382,9 @@ NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
 {
   NS_LOG_FUNCTION (this);
   std::list<SensingData> listFutureSensTx;
+  //Following lines are commented due to the ambiguity about Q parameter
+  //in TS 38.214 sec 8.1.4
+  /*
   double slotLenMiSec = m_nrSlUePhySapProvider->GetSlotPeriod ().GetSeconds () * 1000.0;
   NS_ABORT_MSG_IF (slotLenMiSec > 1, "Slot length can not exceed 1 ms");
   uint16_t selecWindLen = (m_t2 - m_t1) + 1; //selection window length in physical slots
@@ -1386,12 +1400,13 @@ NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
   else
     {
       q = 1;
-    }
+    }*/
   uint16_t pPrimeRsvpRx = m_slTxPool->GetResvPeriodInSlots (GetBwpId (),
                                                             m_poolId,
                                                             MilliSeconds (sensedData.rsvp),
                                                             m_nrSlUePhySapProvider->GetSlotPeriod ());
-  for (uint16_t i = 1; i <= q; i++)
+
+  for (uint16_t i = 0; i <= m_q; i++)
     {
       auto sensedSlotData = sensedData;
       sensedSlotData.sfn.Add (i * pPrimeRsvpRx);
@@ -2509,6 +2524,19 @@ NrUeMac::ConsiderReTxForSensing (bool reTxSensingFlag)
 {
   NS_LOG_FUNCTION (this);
   m_reTxSensingFlag = reTxSensingFlag;
+}
+
+void
+NrUeMac::SetQ (uint8_t q)
+{
+  NS_LOG_FUNCTION (this);
+  m_q = q;
+}
+
+uint8_t
+NrUeMac::GetQ () const
+{
+  return m_q;
 }
 
 void

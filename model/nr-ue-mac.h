@@ -742,6 +742,20 @@ public:
    */
   void ConsiderReTxForSensing (bool reTxSensingFlag);
 
+  /**
+   * \brief Sets Q
+   * \param q The number of resource reservation periods for which a sensed
+   * slot is considered to be received for sensing based resource allocation.
+   */
+  void SetQ (uint8_t q);
+
+  /**
+   * \brief Get Q
+   * \return  Q, the number of resource reservation periods for which a sensed
+   * slot is considered to be received for sensing based resource allocation.
+   */
+  uint8_t GetQ () const;
+
 protected:
   // forwarded from NR SL UE MAC SAP Provider
   /**
@@ -1129,6 +1143,11 @@ private:
                                        of the sensed slot in sensing
                                        based resource allocation
                                        */
+
+  uint8_t m_q {0}; /**< The number of resource reservation periods for
+                        which a sensed slot is considered to be received
+                        for sensing based resource allocation.
+                        */
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.
