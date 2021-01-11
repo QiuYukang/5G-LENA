@@ -1415,14 +1415,14 @@ NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
         {
           if (sensedSlotData.gapReTx1 != std::numeric_limits <uint8_t>::max ())
             {
-              auto reTx1Slot = sensedData;
-              reTx1Slot.sfn = sensedData.sfn.GetFutureSfnSf (sensedSlotData.gapReTx1);
+              auto reTx1Slot = sensedSlotData;
+              reTx1Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedSlotData.gapReTx1);
               listFutureSensTx.emplace_back (reTx1Slot);
             }
           if (sensedSlotData.gapReTx2 != std::numeric_limits <uint8_t>::max ())
             {
-              auto reTx2Slot = sensedData;
-              reTx2Slot.sfn = sensedData.sfn.GetFutureSfnSf (sensedSlotData.gapReTx2);
+              auto reTx2Slot = sensedSlotData;
+              reTx2Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedSlotData.gapReTx2);
               listFutureSensTx.emplace_back (reTx2Slot);
             }
         }
