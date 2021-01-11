@@ -1653,13 +1653,15 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
               m_cResel = m_reselCounter * 10;
               NS_LOG_DEBUG ("Resel Counter " << +m_reselCounter << " cResel " << m_cResel);
               std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities (sfn);
+              //sensing or not, due to the semi-persistent scheduling, after
+              //calling the GetNrSlTxOpportunities method, and before asking the
+              //scheduler for resources, we need to remove those available slots,
+              //which are already part of the existing grant. When sensing is
+              //activated this step corresponds to step 2 in TS 38.214 sec 8.1.4
               auto filteredReso = FilterTxOpportunities (availbleReso);
-              if (!filteredReso.empty () && filteredReso.size () >= filteredReso.begin ()->slMaxNumPerReserve)
+              if (!filteredReso.empty ())
                 {
-                  //we ask the scheduler for resources only if:
-                  //1. The filtered list is not empty.
-                  //2. The filtered list have enough slots to be allocated for all
-                  //   the possible transmissions.
+                  //we ask the scheduler for resources only if the filtered list is not empty.
                   NS_LOG_INFO ("IMSI " << m_imsi << " scheduling the destination " << itDst.first);
                   m_nrSlUeMacSchedSapProvider->SchedUeNrSlTriggerReq (itDst.first, filteredReso);
                   m_reselCounter = 0;
