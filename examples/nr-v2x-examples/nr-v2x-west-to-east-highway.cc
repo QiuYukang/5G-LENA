@@ -415,6 +415,9 @@ main (int argc, char *argv[])
   bool considerReTxForSensing = false;
   uint16_t t1 = 2;
   uint16_t t2 = 32;
+  uint16_t slQ = 10;
+  int slThresPsschRsrp = -128;
+  bool enableChannelRandomness = false;
 
   //flags to generate gnuplot plotting scripts
   bool generateInitialPosGnuScript = false;
@@ -525,6 +528,17 @@ main (int argc, char *argv[])
   cmd.AddValue ("t2",
                 "The end of the selection window in physical slots",
                 t2);
+  cmd.AddValue ("slQ",
+                "The number of resource reservation periods for which a "
+                "sensed slot is considered to be received for sensing based "
+                "resource allocation",
+                slQ);
+  cmd.AddValue ("slThresPsschRsrp",
+                "A threshold in dBm used for sensing based UE autonomous resource selection",
+                slThresPsschRsrp);
+  cmd.AddValue ("enableChannelRandomness",
+                "Enable shadowing and channel updates",
+                enableChannelRandomness);
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
@@ -628,9 +642,16 @@ main (int argc, char *argv[])
    * ------------CC1----------------
    * ------------BwpSl--------------
    */
-
-  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  if (enableChannelRandomness)
+    {
+      nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (900)));
+      nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (true));
+    }
+  else
+    {
+      nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+      nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+    }
 
   /*
    * Initialize channel and pathloss, plus other things inside bandSl. If needed,
@@ -668,6 +689,8 @@ main (int argc, char *argv[])
   nrHelper->SetUeMacAttribute ("ReservationPeriod", TimeValue (ReservationPeriod));
   nrHelper->SetUeMacAttribute ("NumSidelinkProcess", UintegerValue (4));
   nrHelper->SetUeMacAttribute ("EnableBlindReTx", BooleanValue (true));
+  nrHelper->SetUeMacAttribute ("SlThresPsschRsrp", IntegerValue (slThresPsschRsrp));
+  nrHelper->SetUeMacAttribute ("Q", UintegerValue (static_cast<uint8_t> (slQ)));
 
 
   uint8_t bwpIdForGbrMcptt = 0;
