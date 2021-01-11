@@ -1017,12 +1017,12 @@ main (int argc, char *argv[])
       clientApps.Add (sidelinkClient.Install (txSlUes.Get (i)));
       double jitter = startTimeSeconds->GetValue ();
       Time appStart = slBearersActivationTime + Seconds (jitter);
-      clientApps.Start (appStart);
+      clientApps.Get (i)->SetStartTime (appStart);
       //onoff application will send the first packet at :
       //slBearersActivationTime + random jitter + ((Pkt size in bits) / (Data rate in bits per sec))
       realAppStart =  slBearersActivationTime.GetSeconds () + jitter + ((double)udpPacketSizeBe * 8.0 / (DataRate (dataRateBeString).GetBitRate ()));
       realAppStopTime = realAppStart + simTime.GetSeconds ();
-      clientApps.Stop (Seconds (realAppStopTime));
+      clientApps.Get (i)->SetStopTime (Seconds (realAppStopTime));
       txAppDuration = realAppStopTime - realAppStart;
 
       //Output app start, stop and duration
