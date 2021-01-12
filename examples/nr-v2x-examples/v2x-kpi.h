@@ -95,8 +95,8 @@ private:
       return (this->frame == r.frame
              && this->subFrame == r.subFrame
              && this->slot == r.slot
-             && ((this->symStart <= r.symStart + r.symLen) && (r.symStart <= this->symStart + this->symLen))
-             && ((this->rbStart <= r.rbStart + r.rbLen) && (r.rbStart <= this->rbStart + this->rbLen)));
+             && ((this->symStart <= r.symStart + r.symLen - 1) && (r.symStart <= this->symStart + this->symLen - 1))
+             && ((this->rbStart <= r.rbStart + r.rbLen - 1) && (r.rbStart <= this->rbStart + this->rbLen - 1)));
     }
   };
 
