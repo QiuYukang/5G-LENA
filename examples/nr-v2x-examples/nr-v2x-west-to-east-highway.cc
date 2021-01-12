@@ -378,7 +378,7 @@ main (int argc, char *argv[])
    * command line. Each of them is initialized with a default value.
    */
   uint16_t numVehiclesPerLane = 5;
-  uint16_t numLanes = 1;
+  uint16_t numLanes = 3;
   uint16_t interVehicleDist = 20; //meters
   uint16_t interLaneDist = 4; //meters
   double speed = 38.88889; //meter per second, default 140 km/h
@@ -403,7 +403,7 @@ main (int argc, char *argv[])
   double txPower = 23; //dBm
   std::string tddPattern = "DL|DL|DL|F|UL|UL|UL|UL|UL|UL|";
   std::string slBitMap = "1|1|1|1|1|1|0|0|0|1|1|1";
-  uint16_t numerologyBwpSl = 2;
+  uint16_t numerologyBwpSl = 0;
   uint16_t slSensingWindow = 100; // T0 in ms
   uint16_t slSelectionWindow = 10;
   uint16_t slSubchannelSize = 50;
@@ -696,7 +696,7 @@ main (int argc, char *argv[])
   uint8_t bwpIdForGbrMcptt = 0;
 
   nrHelper->SetBwpManagerTypeId (TypeId::LookupByName ("ns3::NrSlBwpManagerUe"));
-  //following parameters have no impact at the moment because:
+  //following parameter has no impact at the moment because:
   //1. No support for PQI based mapping between the application and the LCs
   //2. No scheduler to consider PQI
   //However, till such time all the NR SL examples should use GBR_MC_PUSH_TO_TALK
