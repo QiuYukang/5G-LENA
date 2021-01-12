@@ -378,7 +378,7 @@ main (int argc, char *argv[])
    * command line. Each of them is initialized with a default value.
    */
   uint16_t numVehiclesPerLane = 5;
-  uint16_t numLanes = 1;
+  uint16_t numLanes = 3;
   uint16_t interVehicleDist = 20; //meters
   uint16_t interLaneDist = 4; //meters
   double speed = 38.88889; //meter per second, default 140 km/h
@@ -403,7 +403,7 @@ main (int argc, char *argv[])
   double txPower = 23; //dBm
   std::string tddPattern = "DL|DL|DL|F|UL|UL|UL|UL|UL|UL|";
   std::string slBitMap = "1|1|1|1|1|1|0|0|0|1|1|1";
-  uint16_t numerologyBwpSl = 2;
+  uint16_t numerologyBwpSl = 0;
   uint16_t slSensingWindow = 100; // T0 in ms
   uint16_t slSelectionWindow = 10;
   uint16_t slSubchannelSize = 50;
@@ -415,6 +415,9 @@ main (int argc, char *argv[])
   bool considerReTxForSensing = false;
   uint16_t t1 = 2;
   uint16_t t2 = 32;
+  uint16_t slQ = 10;
+  int slThresPsschRsrp = -128;
+  bool enableChannelRandomness = false;
 
   //flags to generate gnuplot plotting scripts
   bool generateInitialPosGnuScript = false;
@@ -525,6 +528,17 @@ main (int argc, char *argv[])
   cmd.AddValue ("t2",
                 "The end of the selection window in physical slots",
                 t2);
+  cmd.AddValue ("slQ",
+                "The number of resource reservation periods for which a "
+                "sensed slot is considered to be received for sensing based "
+                "resource allocation",
+                slQ);
+  cmd.AddValue ("slThresPsschRsrp",
+                "A threshold in dBm used for sensing based UE autonomous resource selection",
+                slThresPsschRsrp);
+  cmd.AddValue ("enableChannelRandomness",
+                "Enable shadowing and channel updates",
+                enableChannelRandomness);
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
@@ -628,9 +642,16 @@ main (int argc, char *argv[])
    * ------------CC1----------------
    * ------------BwpSl--------------
    */
-
-  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+  if (enableChannelRandomness)
+    {
+      nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (900)));
+      nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (true));
+    }
+  else
+    {
+      nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+      nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+    }
 
   /*
    * Initialize channel and pathloss, plus other things inside bandSl. If needed,
@@ -668,12 +689,14 @@ main (int argc, char *argv[])
   nrHelper->SetUeMacAttribute ("ReservationPeriod", TimeValue (ReservationPeriod));
   nrHelper->SetUeMacAttribute ("NumSidelinkProcess", UintegerValue (4));
   nrHelper->SetUeMacAttribute ("EnableBlindReTx", BooleanValue (true));
+  nrHelper->SetUeMacAttribute ("SlThresPsschRsrp", IntegerValue (slThresPsschRsrp));
+  nrHelper->SetUeMacAttribute ("Q", UintegerValue (static_cast<uint8_t> (slQ)));
 
 
   uint8_t bwpIdForGbrMcptt = 0;
 
   nrHelper->SetBwpManagerTypeId (TypeId::LookupByName ("ns3::NrSlBwpManagerUe"));
-  //following parameters have no impact at the moment because:
+  //following parameter has no impact at the moment because:
   //1. No support for PQI based mapping between the application and the LCs
   //2. No scheduler to consider PQI
   //However, till such time all the NR SL examples should use GBR_MC_PUSH_TO_TALK
@@ -994,12 +1017,12 @@ main (int argc, char *argv[])
       clientApps.Add (sidelinkClient.Install (txSlUes.Get (i)));
       double jitter = startTimeSeconds->GetValue ();
       Time appStart = slBearersActivationTime + Seconds (jitter);
-      clientApps.Start (appStart);
+      clientApps.Get (i)->SetStartTime (appStart);
       //onoff application will send the first packet at :
       //slBearersActivationTime + random jitter + ((Pkt size in bits) / (Data rate in bits per sec))
       realAppStart =  slBearersActivationTime.GetSeconds () + jitter + ((double)udpPacketSizeBe * 8.0 / (DataRate (dataRateBeString).GetBitRate ()));
       realAppStopTime = realAppStart + simTime.GetSeconds ();
-      clientApps.Stop (Seconds (realAppStopTime));
+      clientApps.Get (i)->SetStopTime (Seconds (realAppStopTime));
       txAppDuration = realAppStopTime - realAppStart;
 
       //Output app start, stop and duration

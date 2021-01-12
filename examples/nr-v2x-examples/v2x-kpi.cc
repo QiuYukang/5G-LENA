@@ -70,6 +70,7 @@ V2xKpi::WriteKpis ()
   SavePktRxData ();
   SaveAvrgPir ();
   SaveThput ();
+  ComputePsschTxStats ();
 }
 
 void
@@ -352,6 +353,108 @@ V2xKpi::GetTotalTxPkts (std::string srcIpAddrs)
     }
 
   return totalTxPkts;
+}
+
+void
+V2xKpi::ComputePsschTxStats ()
+{
+  int rc;
+  rc = sqlite3_open (m_dbPath.c_str (), &m_db);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error open DB. Db error: " << sqlite3_errmsg (m_db));
+
+  sqlite3_stmt *stmt;
+  std::string sql ("SELECT * FROM psschTxUeMac WHERE SEED = ? AND RUN = ?;");
+  rc = sqlite3_prepare_v2 (m_db, sql.c_str (), static_cast<int> (sql.size ()), &stmt, nullptr);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error SELECT. Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 1, RngSeedManager::GetSeed ()) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 2, RngSeedManager::GetRun ()) == SQLITE_OK);
+  uint32_t rowCount = 0;
+  std::vector <PsschTxData> nonOverLapPsschTx;
+  std::vector <PsschTxData> overLapPsschTx;
+  while ((rc = sqlite3_step (stmt)) == SQLITE_ROW)
+    {
+      rowCount++;
+      PsschTxData result (sqlite3_column_int (stmt, 5),
+                          sqlite3_column_int (stmt, 6),
+                          sqlite3_column_int (stmt, 7),
+                          sqlite3_column_int (stmt, 8),
+                          sqlite3_column_int (stmt, 9),
+                          sqlite3_column_int (stmt, 11),
+                          sqlite3_column_int (stmt, 12));
+
+      if (nonOverLapPsschTx.size () == 0 && nonOverLapPsschTx.size () == 0)
+        {
+          nonOverLapPsschTx.push_back (result);
+        }
+      else
+        {
+          auto it = std::find (nonOverLapPsschTx.begin (), nonOverLapPsschTx.end (), result);
+          if (it != nonOverLapPsschTx.end ())
+            {
+              overLapPsschTx.push_back (result);
+              overLapPsschTx.push_back (*it);
+              nonOverLapPsschTx.erase (it);
+            }
+          else
+            {
+              auto it = std::find (overLapPsschTx.begin (), overLapPsschTx.end (), result);
+              if (it != overLapPsschTx.end ())
+                {
+                  overLapPsschTx.push_back (result);
+                }
+              else
+                {
+                  nonOverLapPsschTx.push_back (result);
+                }
+            }
+        }
+    }
+
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_DONE, "Error not DONE. Db error: " << sqlite3_errmsg (m_db));
+
+  rc = sqlite3_finalize (stmt);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
+
+
+  //NS_LOG_UNCOND ("Non-overlapping Tx " << nonOverLapPsschTx.size ());
+  //NS_LOG_UNCOND ("overlapping Tx " << overLapPsschTx.size ());
+  //NS_LOG_UNCOND ("Total rows " << rowCount);
+  SaveSimultPsschTxStats (rowCount, nonOverLapPsschTx.size (), overLapPsschTx.size ());
+}
+
+void
+V2xKpi::SaveSimultPsschTxStats (uint32_t totalPsschTx, uint32_t numNonOverLapPsschTx, uint32_t numOverLapPsschTx)
+{
+  std::string tableName = "simulPsschTx";
+  std::string cmd =  ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
+                      "totalTx INTEGER NOT NULL,"
+                      "numNonOverlapping INTEGER NOT NULL,"
+                      "numOverlapping INTEGER NOT NULL,"
+                      "SEED INTEGER NOT NULL,"
+                      "RUN INTEGER NOT NULL"
+                      ");");
+  int rc = sqlite3_exec (m_db, cmd.c_str (), NULL, NULL, NULL);
+
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error creating table. Db error: " << sqlite3_errmsg (m_db));
+
+  DeleteWhere (RngSeedManager::GetSeed (), RngSeedManager::GetRun (), tableName);
+
+
+  sqlite3_stmt *stmt;
+  std::string sql = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?);";
+  rc = sqlite3_prepare_v2 (m_db, sql.c_str (), static_cast<int> (sql.size ()), &stmt, nullptr);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error INSERT. Db error: " << sqlite3_errmsg (m_db));
+
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 1, totalPsschTx) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 2, numNonOverLapPsschTx) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 3, numOverLapPsschTx) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 4, RngSeedManager::GetSeed ()) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 5, RngSeedManager::GetRun ()) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+
+  rc = sqlite3_step (stmt);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));
+  rc = sqlite3_finalize (stmt);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
 }
 
 

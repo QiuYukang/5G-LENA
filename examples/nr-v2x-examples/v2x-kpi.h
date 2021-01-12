@@ -76,6 +76,30 @@ private:
     uint32_t pktSize; //!< packet size
     std::string ipAddrs; //!< The ip address of the node.
   };
+  struct PsschTxData
+  {
+    PsschTxData (uint32_t frame, uint32_t subFrame, uint16_t slot, uint16_t symStart, uint16_t symLen, uint16_t rbStart, uint16_t rbLen)
+      : frame (frame), subFrame (subFrame), slot (slot),symStart (symStart), symLen (symLen), rbStart (rbStart), rbLen (rbLen)
+    {}
+
+    uint32_t frame {std::numeric_limits<uint32_t>::max ()}; //!< The frame number;
+    uint32_t subFrame {std::numeric_limits<uint32_t>::max ()}; //!< The subframe number;
+    uint16_t slot {std::numeric_limits<uint16_t>::max ()}; //!< The slot number;
+    uint16_t symStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting symbol used for sidelink PSSCH in a slot;
+    uint16_t symLen {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of symbols allocated for sidelink PSSCH;
+    uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting resource block
+    uint16_t rbLen {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous resource block
+
+    bool operator == (const PsschTxData &r)
+    {
+      return (this->frame == r.frame
+             && this->subFrame == r.subFrame
+             && this->slot == r.slot
+             && ((this->symStart <= r.symStart + r.symLen) && (r.symStart <= this->symStart + this->symLen))
+             && ((this->rbStart <= r.rbStart + r.rbLen) && (r.rbStart <= this->rbStart + this->rbLen)));
+    }
+  };
+
   /**
    * \brief Delete the table if it already exists with same seed and run number
    * \param seed The seed index
@@ -138,6 +162,23 @@ private:
    * \return The total transmitted packets
    */
   uint64_t GetTotalTxPkts (std::string srcIpAddrs);
+  /**
+   * \brief Compute PSSCH TX stats
+   *
+   * This method for a simulation will count the total PSSCH transmission,
+   * the number of non-overlapping PSSCH transmission, and the number of
+   * overlapping PSSCH transmissions. An overlap means if the two transmissions
+   * occurred on the same frame, subframe, slot, and there is a full or partial
+   * overlap in frequency, i.e. RBs and in time, i.e., symbols.
+   */
+  void ComputePsschTxStats ();
+  /**
+   * \brief Save Simultaneous Pssch Tx Stats to sqlite table in the DB
+   * \param totalPsschTx The total PSSCH transmissions in a simulation
+   * \param numNonOverLapPsschTx The number of non-overlapping PSSCH TX
+   * \param numOverLapPsschTx The number of overlapping PSSCH TX
+   */
+  void SaveSimultPsschTxStats (uint32_t totalPsschTx, uint32_t numNonOverLapPsschTx, uint32_t numOverLapPsschTx);
 
   /*
    * Key 1 = Rx node id
