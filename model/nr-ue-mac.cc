@@ -2260,10 +2260,10 @@ NrUeMac::DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool)
 }
 
 void
-NrUeMac::DoSetSlProbResoKeep (uint8_t prob)
+NrUeMac::DoSetSlProbResoKeep (double prob)
 {
-  NS_LOG_FUNCTION (this << +prob);
-  NS_ASSERT_MSG (prob <= 1, "Probability value must be between 0 and 1");
+  NS_LOG_FUNCTION (this << prob);
+  NS_ASSERT_MSG (prob <= 1.0, "Probability value must be between 0 and 1");
   m_slProbResourceKeep = prob;
 }
 

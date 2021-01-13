@@ -408,7 +408,7 @@ main (int argc, char *argv[])
   uint16_t slSelectionWindow = 10;
   uint16_t slSubchannelSize = 50;
   uint16_t slMaxNumPerReserve = 3;
-  uint16_t slProbResourceKeep = 0;
+  double slProbResourceKeep = 0.0;
   uint16_t slMaxTxTransNumPssch = 5;
   Time ReservationPeriod = MilliSeconds (100);
   bool enableSensing = false;
@@ -838,7 +838,8 @@ main (int argc, char *argv[])
 
   //Configure the SlUeSelectedConfig IE
   LteRrcSap::SlUeSelectedConfig slUeSelectedPreConfig;
-  slUeSelectedPreConfig.slProbResourceKeep = static_cast<uint8_t> (slProbResourceKeep);
+  NS_ABORT_MSG_UNLESS (slProbResourceKeep <= 1.0, "slProbResourceKeep value must be between 0 and 1");
+  slUeSelectedPreConfig.slProbResourceKeep = slProbResourceKeep;
   //Configure the SlPsschTxParameters IE
   LteRrcSap::SlPsschTxParameters psschParams;
   psschParams.slMaxTxTransNumPssch = static_cast<uint8_t> (slMaxTxTransNumPssch);

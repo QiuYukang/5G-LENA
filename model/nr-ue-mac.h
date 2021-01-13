@@ -823,7 +823,7 @@ protected:
    *        current resource when the resource reselection counter reaches zero
    *        for sensing based UE autonomous resource selection (see TS 38.321)
    */
-  void DoSetSlProbResoKeep (uint8_t prob);
+  void DoSetSlProbResoKeep (double prob);
   /**
    * \brief Set the maximum transmission number (including new transmission and
    *        retransmission) for PSSCH.
@@ -1121,7 +1121,7 @@ private:
   typedef std::unordered_map <uint32_t, struct NrSlGrantInfo> GrantInfo_t; //!< The typedef for the map of grant info per destination layer 2 id
   typedef std::unordered_map <uint32_t, struct NrSlGrantInfo>::iterator GrantInfoIt_t; //!< The typedef for the iterator of the grant info map
   GrantInfo_t m_grantInfo; //!< The map of grant info per destination layer 2 id
-  uint8_t m_slProbResourceKeep {0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
+  double m_slProbResourceKeep {0.0}; //!< Sidelink probability of keeping a resource after resource re-selection counter reaches zero
   uint8_t m_slMaxTxTransNumPssch {0}; /**< Indicates the maximum transmission number
                                      (including new transmission and
                                      retransmission) for PSSCH.
