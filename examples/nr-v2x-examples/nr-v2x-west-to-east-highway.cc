@@ -418,6 +418,7 @@ main (int argc, char *argv[])
   uint16_t slQ = 10;
   int slThresPsschRsrp = -128;
   bool enableChannelRandomness = false;
+  uint16_t channelUpdatePeriod = 500; //ms
 
   //flags to generate gnuplot plotting scripts
   bool generateInitialPosGnuScript = false;
@@ -539,6 +540,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableChannelRandomness",
                 "Enable shadowing and channel updates",
                 enableChannelRandomness);
+  cmd.AddValue ("channelUpdatePeriod",
+                "The channel update period in ms",
+                channelUpdatePeriod);
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
@@ -644,7 +648,7 @@ main (int argc, char *argv[])
    */
   if (enableChannelRandomness)
     {
-      nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (900)));
+      nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (channelUpdatePeriod)));
       nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (true));
     }
   else
