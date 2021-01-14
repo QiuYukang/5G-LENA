@@ -54,6 +54,8 @@ NrUePhy::NrUePhy ()
   m_wbCqiLast = Simulator::Now ();
   m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy> (this);
   m_powerControl = CreateObject <NrUePowerControl> (this);
+
+  Simulator::Schedule (m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);
 }
 
 NrUePhy::~NrUePhy ()
@@ -166,6 +168,16 @@ NrUePhy::GetTypeId (void)
                      "Report the SINR computed for DL CTRL",
                      MakeTraceSourceAccessor (&NrUePhy::m_dlCtrlSinrTrace),
                      "ns3::NrUePhy::DlCtrlSinrTracedCallback")
+    .AddAttribute ("UeMeasurementsFilterPeriod",
+                   "Time period for reporting UE measurements, i.e., the"
+                   "length of layer-1 filtering.",
+                   TimeValue (MilliSeconds (200)),
+                   MakeTimeAccessor (&NrUePhy::m_ueMeasurementsFilterPeriod),
+                   MakeTimeChecker ())
+    .AddTraceSource ("ReportCurrentCellRsrpSinr",
+                     "RSRP and SINR statistics.",
+                     MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
+                     "ns3::CurrentCellRsrpSinr::TracedCallback")
     .AddAttribute ("NrSpectrumPhyList", "List of all SpectrumPhy instances of this NrUePhy.",
                     ObjectVectorValue (),
                     MakeObjectVectorAccessor (&NrUePhy::m_spectrumPhys),
@@ -1375,12 +1387,80 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t st
   // TODO use streamIndex
 
   m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
-  NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
+  NS_LOG_DEBUG ("RSRP value updated: " << m_rsrp << "dBm");
+
   if (m_enableUplinkPowerControl)
     {
       m_powerControl->SetLoggingInfo (GetCellId(), m_rnti);
       m_powerControl->SetRsrp (m_rsrp);
     }
+
+  // store RSRP measurements
+  std::map <uint16_t, UeMeasurementsElement>::iterator itMeasMap = m_ueMeasurementsMap.find (GetCellId ());
+  if (itMeasMap == m_ueMeasurementsMap.end ())
+    {
+      // insert new entry
+      UeMeasurementsElement newEl;
+      newEl.rsrpSum = m_rsrp;
+      newEl.rsrpNum = 1;
+      newEl.rsrqSum = 0;
+      newEl.rsrqNum = 0;
+      NS_LOG_DEBUG ("New RSRP entry for Cell Id: " << GetCellId () <<
+                    " RNTI: " << m_rnti << " RSRP: " << newEl.rsrpSum << " dBm" <<
+                    " number of entries: " << +newEl.rsrpNum);
+
+      m_ueMeasurementsMap.insert (std::pair <uint16_t, UeMeasurementsElement> (GetCellId (), newEl));
+    }
+  else
+    {
+      (*itMeasMap).second.rsrpSum += m_rsrp;
+      (*itMeasMap).second.rsrpNum++;
+      NS_LOG_DEBUG ("Update RSRP entry for Cell Id: " << GetCellId () <<
+                    " RNTI: " << m_rnti << " RSRP: " << (*itMeasMap).second.rsrpSum <<
+                    " dBm" << " number of entries: " << +((*itMeasMap).second.rsrpNum));
+    }
+}
+
+void
+NrUePhy::ReportUeMeasurements ()
+{
+  NS_LOG_FUNCTION (this);
+
+  LteUeCphySapUser::UeMeasurementsParameters ret;
+
+  std::map <uint16_t, UeMeasurementsElement>::iterator it;
+  for (it = m_ueMeasurementsMap.begin (); it != m_ueMeasurementsMap.end (); it++)
+    {
+      double avg_rsrp;
+      double avg_rsrq = 0;
+      if ((*it).second.rsrpNum != 0)
+      {
+        avg_rsrp = (*it).second.rsrpSum / static_cast<double>((*it).second.rsrpNum);
+      }
+      else
+      {
+        NS_LOG_WARN (" RSRP nSamples is zero!");
+        avg_rsrp = 0;
+      }
+
+      NS_LOG_DEBUG (" Report UE Measurements with CellId " << (*it).first <<
+                    " RSRP " << avg_rsrp <<
+                    " (nSamples " << +((*it).second.rsrpNum) << ")" <<
+                    " BwpID " << GetBwpId ());
+
+      LteUeCphySapUser::UeMeasurementsElement newEl;
+      newEl.m_cellId = (*it).first;
+      newEl.m_rsrp = avg_rsrp;
+      newEl.m_rsrq = avg_rsrq;  //LEAVE IT 0 FOR THE MOMENT
+      ret.m_ueMeasurementsList.push_back (newEl);
+      ret.m_componentCarrierId = GetBwpId ();
+    }
+
+  // report to RRC
+  m_ueCphySapUser->ReportUeMeasurements (ret);
+
+  m_ueMeasurementsMap.clear ();
+  Simulator::Schedule (m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);
 }
 
 void

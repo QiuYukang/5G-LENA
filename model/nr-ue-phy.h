@@ -504,6 +504,14 @@ protected:
 private:
 
   /**
+   * \brief Layer-1 filtering of RSRP measurements and reporting to the RRC entity.
+   *
+   * Initially executed at +0.200s, and then repeatedly executed with
+   * periodicity as indicated by the *UeMeasFilterPeriod* attribute.
+   */
+  void ReportUeMeasurements ();
+
+  /**
    * \brief Compute the AvgSinr (copied from LteUePhy)
    * \param sinr the SINR
    * \return the average on all the RB
@@ -826,6 +834,28 @@ private:
   uint8_t m_ulCtrlSyms {1}; //!< Number of CTRL symbols in UL
 
   double m_rsrp {0}; //!< The latest measured RSRP value
+
+
+  /// Summary results of measuring a specific cell. Used for layer-1 filtering.
+  struct UeMeasurementsElement
+  {
+    double rsrpSum;   //!< Sum of RSRP sample values in linear unit.
+    uint8_t rsrpNum;  //!< Number of RSRP samples.
+    //For the moment rsrq is not supported so set to 0
+    double rsrqSum;   //!< Sum of RSRQ sample values in linear unit.
+    uint8_t rsrqNum;  //!< Number of RSRQ samples.
+  };
+
+  /**
+   * Store measurement results during the last layer-1 filtering period.
+   * Indexed by the physical cell ID where the measurements come from.
+   */
+  std::map <uint16_t, UeMeasurementsElement> m_ueMeasurementsMap;
+  /**
+   * The `UeMeasurementsFilterPeriod` attribute. Time period for reporting UE
+   * measurements, i.e., the length of layer-1 filtering (default 200 ms).
+   */
+  Time m_ueMeasurementsFilterPeriod;
 
   /**
    * The `DlDataSinr` trace source. Trace information regarding
