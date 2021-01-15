@@ -71,6 +71,7 @@ V2xKpi::WriteKpis ()
   SaveAvrgPir ();
   SaveThput ();
   ComputePsschTxStats ();
+  ComputePsschTbCorruptionStats ();
 }
 
 void
@@ -450,6 +451,92 @@ V2xKpi::SaveSimultPsschTxStats (uint32_t totalPsschTx, uint32_t numNonOverLapPss
   NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 3, numOverLapPsschTx) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
   NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 4, RngSeedManager::GetSeed ()) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
   NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 5, RngSeedManager::GetRun ()) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+
+  rc = sqlite3_step (stmt);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));
+  rc = sqlite3_finalize (stmt);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
+}
+
+void
+V2xKpi::ComputePsschTbCorruptionStats ()
+{
+  int rc;
+  rc = sqlite3_open (m_dbPath.c_str (), &m_db);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error open DB. Db error: " << sqlite3_errmsg (m_db));
+
+  sqlite3_stmt *stmt;
+  std::string sql ("SELECT * FROM psschRxUePhy WHERE SEED = ? AND RUN = ?;");
+  rc = sqlite3_prepare_v2 (m_db, sql.c_str (), static_cast<int> (sql.size ()), &stmt, nullptr);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error SELECT. Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 1, RngSeedManager::GetSeed ()) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 2, RngSeedManager::GetRun ()) == SQLITE_OK);
+  uint32_t rowCount = 0;
+  uint32_t psschSuccessCount = 0;
+  uint32_t sci2SuccessCount = 0;
+
+
+  while ((rc = sqlite3_step (stmt)) == SQLITE_ROW)
+    {
+      rowCount++;
+      uint8_t psschcorrupt = sqlite3_column_int (stmt, 21);
+      uint8_t sci2corrupt = sqlite3_column_int (stmt, 23);
+
+      if (!psschcorrupt)
+        {
+          ++psschSuccessCount;
+        }
+
+      if (!sci2corrupt)
+        {
+          ++sci2SuccessCount;
+        }
+    }
+
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_DONE, "Error not DONE. Db error: " << sqlite3_errmsg (m_db));
+
+  rc = sqlite3_finalize (stmt);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
+
+
+  //NS_LOG_UNCOND ("psschSuccessCount " << psschSuccessCount);
+  //NS_LOG_UNCOND ("sci2SuccessCount " << sci2SuccessCount);
+  //NS_LOG_UNCOND ("Total rows " << rowCount);
+  SavePsschTbCorruptionStats (rowCount, psschSuccessCount, sci2SuccessCount);
+}
+
+void
+V2xKpi::SavePsschTbCorruptionStats (uint32_t totalTbRx, uint32_t psschSuccessCount, uint32_t sci2SuccessCount)
+{
+  std::string tableName = "PsschTbRx";
+  std::string cmd =  ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
+                      "totalTx INTEGER NOT NULL,"
+                      "psschSuccessCount INTEGER NOT NULL,"
+                      "psschFailCount INTEGER NOT NULL,"
+                      "sci2SuccessCount INTEGER NOT NULL,"
+                      "sci2FailCount INTEGER NOT NULL,"
+                      "SEED INTEGER NOT NULL,"
+                      "RUN INTEGER NOT NULL"
+                      ");");
+  int rc = sqlite3_exec (m_db, cmd.c_str (), NULL, NULL, NULL);
+
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error creating table. Db error: " << sqlite3_errmsg (m_db));
+
+  DeleteWhere (RngSeedManager::GetSeed (), RngSeedManager::GetRun (), tableName);
+
+
+  sqlite3_stmt *stmt;
+  std::string sql = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?);";
+  rc = sqlite3_prepare_v2 (m_db, sql.c_str (), static_cast<int> (sql.size ()), &stmt, nullptr);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error INSERT. Db error: " << sqlite3_errmsg (m_db));
+
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 1, totalTbRx) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 2, psschSuccessCount) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 3, (totalTbRx - psschSuccessCount)) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 4, sci2SuccessCount) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 5, (totalTbRx - sci2SuccessCount)) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 6, RngSeedManager::GetSeed ()) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
+  NS_ABORT_MSG_UNLESS (sqlite3_bind_int (stmt, 7, RngSeedManager::GetRun ()) == SQLITE_OK, "Db error: " << sqlite3_errmsg (m_db));
 
   rc = sqlite3_step (stmt);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));

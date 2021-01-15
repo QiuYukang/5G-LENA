@@ -179,6 +179,17 @@ private:
    * \param numOverLapPsschTx The number of overlapping PSSCH TX
    */
   void SaveSimultPsschTxStats (uint32_t totalPsschTx, uint32_t numNonOverLapPsschTx, uint32_t numOverLapPsschTx);
+  /**
+   * \brief Compute PSSCH TB corruption stats
+   */
+  void ComputePsschTbCorruptionStats ();
+  /**
+   * \brief Save PSSCH TB corruption stats
+   * \param totalTbRx The total received TBs
+   * \param psschSuccessCount The count of successfully decoded PSSCH
+   * \param sci2SuccessCount The count of successfully decoded SCI 2
+   */
+  void SavePsschTbCorruptionStats (uint32_t totalTbRx, uint32_t psschSuccessCount, uint32_t sci2SuccessCount);
 
   /*
    * Key 1 = Rx node id
