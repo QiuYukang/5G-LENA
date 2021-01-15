@@ -510,7 +510,7 @@ V2xKpi::SavePsschTbCorruptionStats (uint32_t totalTbRx, uint32_t psschSuccessCou
 {
   std::string tableName = "PsschTbRx";
   std::string cmd =  ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
-                      "totalTx INTEGER NOT NULL,"
+                      "totalRx INTEGER NOT NULL,"
                       "psschSuccessCount INTEGER NOT NULL,"
                       "psschFailCount INTEGER NOT NULL,"
                       "sci2SuccessCount INTEGER NOT NULL,"
