@@ -648,11 +648,13 @@ main (int argc, char *argv[])
    */
   if (enableChannelRandomness)
     {
+      Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue (MilliSeconds (channelUpdatePeriod)));
       nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (channelUpdatePeriod)));
       nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (true));
     }
   else
     {
+      Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue (MilliSeconds (0)));
       nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
       nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
     }
