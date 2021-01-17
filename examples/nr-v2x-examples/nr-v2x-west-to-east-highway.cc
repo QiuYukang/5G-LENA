@@ -405,7 +405,7 @@ main (int argc, char *argv[])
   std::string slBitMap = "1|1|1|1|1|1|0|0|0|1|1|1";
   uint16_t numerologyBwpSl = 0;
   uint16_t slSensingWindow = 100; // T0 in ms
-  uint16_t slSelectionWindow = 10;
+  uint16_t slSelectionWindow = 5;
   uint16_t slSubchannelSize = 50;
   uint16_t slMaxNumPerReserve = 3;
   double slProbResourceKeep = 0.0;

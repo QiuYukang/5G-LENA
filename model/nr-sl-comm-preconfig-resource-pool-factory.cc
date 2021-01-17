@@ -32,7 +32,7 @@ NrSlCommPreconfigResourcePoolFactory::NrSlCommPreconfigResourcePoolFactory ()
   m_slFreqResourcePscch = 10;
   m_slSubchannelSize = 50;
   m_slSensingWindow = 100;
-  m_slSelectionWindow = 10;
+  m_slSelectionWindow = 5;
   m_slResourceReservePeriodList = {0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 750, 1000};
   m_slTimeResource = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
   m_slMaxNumPerReserve = 2;

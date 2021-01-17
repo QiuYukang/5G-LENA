@@ -573,7 +573,7 @@ main (int argc, char *argv[])
   std::vector <std::bitset<1> > slBitmap = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
   ptrFactory->SetSlTimeResources (slBitmap);
   ptrFactory->SetSlSensingWindow (100); // T0 in ms
-  ptrFactory->SetSlSelectionWindow (10);
+  ptrFactory->SetSlSelectionWindow (5);
   ptrFactory->SetSlFreqResourcePscch (10); // PSCCH RBs
   ptrFactory->SetSlSubchannelSize (50);
   ptrFactory->SetSlMaxNumPerReserve (3);
