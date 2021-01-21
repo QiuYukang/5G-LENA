@@ -266,6 +266,24 @@ caused other part of the code to fail. This script can be run from the
 ./test.py
 ```
 
+Please note that if your branch contains some newly added examples, 
+these examples should be added to the list of examples in 
+"nr/test/examples-to-run.py" script. 
+If an example has very different modes of executions, 
+it is recommended to provide different configurations that would configure 
+the example for these different cases. See, for example, configurations for 
+"cttc-nr-cc-bwp-demo":
+
+```
+("cttc-nr-cc-bwp-demo --tddPattern=\"DL|S|UL|UL|DL|DL|S|UL|UL|DL|\"", "True", "True"),
+("cttc-nr-cc-bwp-demo --tddPattern=\"F|F|F|F|F|F|F|F|F|F|\"", "True", "True"),
+```
+
+It is important to add all examples to "examples-to-run.py" script because this 
+script is used by "test.py" to fetch the list of examples for each module that will 
+be run along with the tests (when running test.py) in order to check the correct 
+functioning of each module.
+
 ### 2. Fix code style
 
 **Note: check-style.py script should be run to fix the code style format of new files
