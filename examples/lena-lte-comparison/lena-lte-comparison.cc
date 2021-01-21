@@ -558,23 +558,21 @@ LenaLteComparison (const Parameters &params)
       else if (nrHelper != nullptr)
         {
           nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
+          // UL phy
+          uint32_t bwp = (params.operationMode == "FDD" ? 1 : 0);
+          auto ueUlPhy {nrHelper->GetUePhy (ueNetDev, bwp)};
+          auto rnti = ueUlPhy->GetRnti ();
+          Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+          Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+          double distance = CalculateDistance (gnbpos, uepos);
+          std::cout << "ueId: " << ueId
+                    << ", rnti: " << rnti
+                    << ", at " << uepos
+                    << ", attached to eNB " << cellId
+                    << " at " << gnbpos
+                    << ", range: " << distance << " meters"
+                    << std::endl;
         }
-
-      // UL phy
-      uint32_t bwp = (params.operationMode == "FDD" ? 1 : 0);
-      auto ueUlPhy {nrHelper->GetUePhy (ueNetDev, bwp)};
-      auto rnti = ueUlPhy->GetRnti ();
-
-      Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-      Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-      double distance = CalculateDistance (gnbpos, uepos);
-      std::cout << "ueId: " << ueId
-                << ", rnti: " << rnti
-                << ", at " << uepos
-                << ", attached to eNB " << cellId
-                << " at " << gnbpos
-                << ", range: " << distance << " meters"
-                << std::endl;
     }
 
   /*
@@ -783,6 +781,10 @@ LenaLteComparison (const Parameters &params)
   FlowMonitorOutputStats flowMonStats;
   flowMonStats.SetDb (&db, tableName);
   flowMonStats.Save (monitor, flowmonHelper, params.outputDir + "/" + params.simTag);
+
+  std::cout << "\n----------------------------------------\n"
+            << "End simulation"
+            << std::endl;
 
   Simulator::Destroy ();
 }
