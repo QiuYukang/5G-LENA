@@ -205,7 +205,8 @@ void
 RealisticBeamformingHelper::SetBeamformingMethod (const TypeId &beamformingMethod)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (beamformingMethod.IsChildOf (RealisticBeamformingAlgorithm::GetTypeId ()));
+  NS_ASSERT (beamformingMethod == RealisticBeamformingAlgorithm::GetTypeId () ||
+             beamformingMethod.IsChildOf (RealisticBeamformingAlgorithm::GetTypeId ()));
 
   ObjectFactory objectFactory;
   objectFactory.SetTypeId (beamformingMethod);
