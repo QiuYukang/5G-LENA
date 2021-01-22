@@ -121,7 +121,7 @@ NrUePhy::GetTypeId (void)
                    MakeTimeChecker ())
     .AddAttribute ("EnableUplinkPowerControl",
                    "If true, Uplink Power Control will be enabled.",
-                    BooleanValue (true),
+                    BooleanValue (false),
                     MakeBooleanAccessor (&NrUePhy::SetEnableUplinkPowerControl),
                     MakeBooleanChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
