@@ -1287,11 +1287,34 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           nrCandSsResoA = GetNrSupportedList (sfn, candSsResoA);
           return nrCandSsResoA;
         }
+
+      //Copy the buffer so we can trim the buffer as per Tproc0.
+      //Note, we do not need to delete the latest measurement
+      //from the original buffer because it will be deleted
+      //by UpdateSensingWindow method once it is outdated.
+
+      auto sensedData = m_sensingData;
+
+      //latest sensing data is at the end of the list
+      //now remove the latest sensing data as per the value of Tproc0. This would
+      //keep the size of the buffer equal to [n – T0 , n – Tproc0)
+
+      auto rvIt = sensedData.crbegin ();
+      if (rvIt != sensedData.crend ())
+        {
+          while (sfn.Normalize () - rvIt->sfn.Normalize () <= GetTproc0 ())
+            {
+              NS_LOG_DEBUG ("IMSI " << m_imsi << " ignoring sensed SCI at sfn " << sfn << " received at " << rvIt->sfn);
+              sensedData.pop_back ();
+              rvIt = sensedData.crbegin ();
+            }
+        }
+
       // calculate all possible transmissions of sensed data
       //using unordered map, since we need to check all the sensed slots
       //anyway, thus, the order does not matter.
       std::unordered_map<uint64_t, std::list<SensingData>> allSensingData;
-      for (const auto &itSensedSlot:m_sensingData)
+      for (const auto &itSensedSlot:sensedData)
         {
           std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot);
           allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
@@ -1488,6 +1511,7 @@ NrUeMac::UpdateSensingWindow (const SfnSf& sfn)
     {
       if (it->sfn.Normalize () < sfn.Normalize () - sensWindLen)
         {
+          NS_LOG_DEBUG ("IMSI " << m_imsi << " erasing SCI at sfn " << sfn << " received at " << it->sfn);
           it = m_sensingData.erase (it);
         }
       else
@@ -1500,18 +1524,8 @@ NrUeMac::UpdateSensingWindow (const SfnSf& sfn)
       ++it;
     }
 
-  //latest sensing data is at the end of the list
-  //now remove the latest sensing data as per the value of Tproc0. This would
-  //keep the size of the buffer equal to [n – T0 , n – Tproc0)
-  auto rvIt = m_sensingData.crbegin ();
-  if (rvIt != m_sensingData.crend ())
-    {
-      while (sfn.Normalize () - rvIt->sfn.Normalize () <= GetTproc0 ())
-        {
-          m_sensingData.pop_back ();
-          rvIt = m_sensingData.crbegin ();
-        }
-    }
+  //To keep the size of the buffer equal to [n – T0 , n – Tproc0)
+  //the other end of sensing buffer is trimmed in GetNrSlTxOpportunities.
 
   NS_ABORT_MSG_IF (m_sensingData.size () > sensWindLen,
                    "Buffer size of sensing data " << m_sensingData.size ()
