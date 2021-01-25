@@ -415,7 +415,6 @@ main (int argc, char *argv[])
   bool considerReTxForSensing = false;
   uint16_t t1 = 2;
   uint16_t t2 = 32;
-  uint16_t slQ = 10;
   int slThresPsschRsrp = -128;
   bool enableChannelRandomness = false;
   uint16_t channelUpdatePeriod = 500; //ms
@@ -529,11 +528,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("t2",
                 "The end of the selection window in physical slots",
                 t2);
-  cmd.AddValue ("slQ",
-                "The number of resource reservation periods for which a "
-                "sensed slot is considered to be received for sensing based "
-                "resource allocation",
-                slQ);
   cmd.AddValue ("slThresPsschRsrp",
                 "A threshold in dBm used for sensing based UE autonomous resource selection",
                 slThresPsschRsrp);
@@ -696,8 +690,6 @@ main (int argc, char *argv[])
   nrHelper->SetUeMacAttribute ("NumSidelinkProcess", UintegerValue (4));
   nrHelper->SetUeMacAttribute ("EnableBlindReTx", BooleanValue (true));
   nrHelper->SetUeMacAttribute ("SlThresPsschRsrp", IntegerValue (slThresPsschRsrp));
-  nrHelper->SetUeMacAttribute ("Q", UintegerValue (static_cast<uint8_t> (slQ)));
-
 
   uint8_t bwpIdForGbrMcptt = 0;
 
