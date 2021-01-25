@@ -104,7 +104,14 @@ CellScanBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& g
 
   NS_ASSERT_MSG (txThreeGppSpectrumPropModel == rxThreeGppSpectrumPropModel, "Devices should be connected on the same spectrum channel");
 
-  Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, txSpectrumPhy->GetRxSpectrumModel ());
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < txSpectrumPhy->GetRxSpectrumModel ()->GetNumBands(); rbId++)
+    {
+      activeRbs.push_back(rbId);
+    }
+
+  Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, activeRbs, txSpectrumPhy->GetRxSpectrumModel (),
+                                                                                          NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
@@ -219,7 +226,15 @@ CellScanQuasiOmniBeamforming::DoGetBeamformingVectors (const Ptr<const NrGnbNetD
   Ptr<const SpectrumPropagationLossModel> txThreeGppSpectrumPropModel = txPhy->GetSpectrumPhy ()->GetSpectrumChannel ()->GetSpectrumPropagationLossModel ();
   Ptr<const SpectrumPropagationLossModel> rxThreeGppSpectrumPropModel = rxPhy->GetSpectrumPhy ()->GetSpectrumChannel ()->GetSpectrumPropagationLossModel ();
   NS_ASSERT_MSG (txThreeGppSpectrumPropModel == rxThreeGppSpectrumPropModel, "Devices should be connected to the same spectrum channel");
-  Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, txPhy->GetSpectrumPhy ()->GetRxSpectrumModel ());
+
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < txPhy->GetSpectrumPhy ()->GetRxSpectrumModel ()->GetNumBands(); rbId++)
+    {
+      activeRbs.push_back(rbId);
+    }
+
+  Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, activeRbs, txPhy->GetSpectrumPhy ()->GetRxSpectrumModel (),
+                                                                                          NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
 
   double max = 0, maxTxTheta = 0;
   uint16_t maxTxSector = 0;

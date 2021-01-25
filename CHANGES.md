@@ -78,6 +78,10 @@ us a note on ns-developers mailing list.
   include: `NrUeMac`, `NrSpectrumPhy`, `NrMacSchedulerSrsDefault` (also parent classes
   `NrMacSchedulerNs3` and `NrMacScheduler`), `RealisticBeamformingAlgorithm`, `NrHelper`, 
   `GridScenarioHelper`, `HexagonalGridScenarioHelper`.
+  
+  - Added attribute `PowerAllocationType` to NrGnbPhy and NrUePhy which allows to configure 
+  power allocation type. Currently are supported two types of power allocation: uniformly over all 
+  bandwidth (all RBs) or uniformly over active (used) RBs.
 
 ### Changes to existing API:
 
@@ -100,7 +104,9 @@ us a note on ns-developers mailing list.
   was being assigned previously in NR examples. 
   All examples are updated to use `NrHelper::AssignStreams`
   to fix random streams in NR module.
-  
+- By default is configured power allocation over active RBs. Before this release, by 
+  default was uniform power allocation over all RBs. Power allocation type can be 
+  configured by using `PowerAllocationType` attribute of NrGnbPhy and NrUePhy.
 ---
 
 ## Changes from NR-v0.4 to v1.0

@@ -104,6 +104,18 @@ NrGnbPhy::GetTypeId (void)
                    MakeDoubleAccessor (&NrPhy::SetNoiseFigure,
                                        &NrPhy::GetNoiseFigure),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("PowerAllocationType",
+                   "Defines the type of the power allocation. Currently are supported "
+                   "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
+                   "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
+                   "power allocation over used (active) RBs. By default is set a uniform power "
+                   "allocation over used RBs .",
+                   EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED),
+                   MakeEnumAccessor (&NrPhy::SetPowerAllocationType,
+                                     &NrPhy::GetPowerAllocationType),
+                   MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
+                                     NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
+                                   ))
     .AddAttribute ("SpectrumPhy",
                    "The downlink NrSpectrumPhy associated to this NrPhy",
                    TypeId::ATTR_GET,

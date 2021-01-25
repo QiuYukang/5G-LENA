@@ -22,7 +22,7 @@
 
 #include "nr-phy-sap.h"
 #include "nr-phy-mac-common.h"
-#include <ns3/spectrum-value.h>
+#include <ns3/nr-spectrum-value-helper.h>
 
 namespace ns3 {
 
@@ -343,7 +343,7 @@ public:
   /**
    * \brief Retrieve the subcarrier spacing in Hz. Subcarrier spacing
    * is updated when the numerology is being updated.
-   * \return the channel bandwidth in Hz
+   * \return the sucarrier spacing in Hz
    */
   uint32_t GetSubcarrierSpacing () const;
 
@@ -421,6 +421,19 @@ public:
    * \return a string representation of the pattern, such as "F|F|F|F|..."
    */
   static std::string GetPattern (const std::vector<LteNrTddSlotType> &pattern);
+
+  /**
+   * \brief Set power allocation type. There are currently supported two types:
+   * one that distributes uniformly energy among all bandwidth (all RBs),
+   * and another only over used or active RBs
+   * \param powerAlocationType a type of power allocation to be used
+   */
+  void SetPowerAllocationType (enum NrSpectrumValueHelper::PowerAllocationType powerAllocationType);
+
+  /**
+   * \brief Get the power allocation type
+   */
+  enum NrSpectrumValueHelper::PowerAllocationType GetPowerAllocationType () const;
 
 protected:
   /**
@@ -607,6 +620,7 @@ private:
   uint32_t m_subcarrierSpacing {15000};         //!< subcarrier spacing (it is determined by the numerology)
   uint32_t m_rbNum {0};                         //!< number of resource blocks within the channel bandwidth
   double m_rbOh {0.04};                         //!< Overhead for the RB calculation
+  enum NrSpectrumValueHelper::PowerAllocationType m_powerAllocationType {NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED}; //!< The type of power allocation, supported modes to distribute power uniformly over all RBs, or only used RBs
 };
 
 } // namespace ns3
