@@ -42,7 +42,9 @@ PowerOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
                         "Imsi INTEGER NOT NULL,"
                         "BwpId INTEGER NOT NULL,"
                         "CellId INTEGER NOT NULL,"
-                        "txPsdSum DOUBLE NOT NULL,"
+                        "txPowerRb DOUBLE NOT NULL,"
+                        "rbNumActive INTEGER NOT NULL,"
+                        "rbNumTotal INTEGER NOT NULL,"
                         "Seed INTEGER NOT NULL,"
                         "Run INTEGER NOT NULL);");
   NS_ASSERT (ret);
@@ -65,7 +67,21 @@ void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> tx
   c.imsi = imsi;
   c.bwpId = bwpId;
   c.cellId = cellId;
-  c.txPsdSum = Sum (*txPsd);
+
+  uint32_t rbNumTotal = txPsd->GetValuesN();
+  uint32_t rbNumActive = 0;
+
+  for (uint32_t rbIndex = 0; rbIndex < rbNumTotal; rbIndex++)
+    {
+      if ((*txPsd)[rbIndex]!=0)
+        {
+          rbNumActive++;
+        }
+    }
+
+  c.txPowerRb = Integral (*txPsd)/rbNumActive;
+  c.rbNumActive = rbNumActive;
+  c.rbNumTotal = rbNumTotal;
 
   m_powerCache.emplace_back (c);
 
@@ -120,11 +136,15 @@ void PowerOutputStats::WriteCache ()
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 7, v.cellId);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 8, v.txPsdSum);
+      ret = m_db->Bind (stmt, 8, v.txPowerRb);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 9, RngSeedManager::GetSeed ());
+      ret = m_db->Bind (stmt, 9, v.rbNumActive);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 10, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      ret = m_db->Bind (stmt, 10, v.rbNumTotal);
+      NS_ASSERT (ret);
+      ret = m_db->Bind (stmt, 11, RngSeedManager::GetSeed ());
+      NS_ASSERT (ret);
+      ret = m_db->Bind (stmt, 12, static_cast<uint32_t> (RngSeedManager::GetRun ()));
       NS_ASSERT (ret);
 
       ret = m_db->SpinExec (stmt);

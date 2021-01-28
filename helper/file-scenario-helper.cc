@@ -179,8 +179,8 @@ FileScenarioHelper::CreateScenario ()
   NS_ASSERT_MSG (m_bsPositioner,
                  "Must Add() a position file before CreateScenario()");
   
-  NS_ASSERT_MSG (m_numSites > 0,
-                 "Must have at least one site location in the position file.");
+  //NS_ASSERT_MSG (m_numSites > 0,
+      //           "Must have at least one site location in the position file.");
   
   NS_ASSERT_MSG (m_sectorization != NONE,
                  "Must SetSectorization() before CreateScenario()");
