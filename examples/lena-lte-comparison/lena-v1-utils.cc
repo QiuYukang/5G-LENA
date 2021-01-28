@@ -39,6 +39,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                            NetDeviceContainer &ueSector2NetDev,
                                            NetDeviceContainer &ueSector3NetDev,
                                            bool calibration,
+                                           bool enableUlPc,
                                            SinrOutputStats *sinrStats,
                                            PowerOutputStats *powerStats,
                                            const std::string &scheduler,
@@ -181,10 +182,11 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
       lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
     }
 
+  Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (enableUlPc));
+
   if (calibration)
     {
       lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
-      Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
     }
   else
     {

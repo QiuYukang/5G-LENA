@@ -110,7 +110,14 @@ SetNoisePsdTestCase::DoRun (void)
   phy->DoSetCellId(99);
   rxPhy->InstallPhy(phy);
   Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (m_bandwidth, centerFrequency, m_numerology);
-  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, sm);
+
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < sm->GetNumBands(); rbId++)
+    {
+      activeRbs.push_back(rbId);
+    }
+
+  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
   Ptr<const SpectrumValue> nsv0first = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigureFirst, sm);
   Ptr<const SpectrumValue> nsv0second = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigureSecond, sm);
 
@@ -137,7 +144,6 @@ SetNoisePsdTestCase::DoRun (void)
 
   Simulator::Run();
   Simulator::Destroy();
-
 
 }
 

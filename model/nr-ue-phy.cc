@@ -28,10 +28,6 @@
   while (false);
 
 #include "nr-ue-phy.h"
-#include "nr-ue-net-device.h"
-#include <ns3/nr-spectrum-value-helper.h>
-#include "nr-ch-access-manager.h"
-
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -42,6 +38,8 @@
 #include <ns3/boolean.h>
 #include <ns3/pointer.h>
 #include "beam-manager.h"
+#include "nr-ue-net-device.h"
+#include "nr-ch-access-manager.h"
 #include "nr-ue-power-control.h"
 
 namespace ns3 {
@@ -92,6 +90,18 @@ NrUePhy::GetTypeId (void)
                    DoubleValue (5.0), // nr code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
                    MakeDoubleAccessor (&NrUePhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
+     .AddAttribute ("PowerAllocationType",
+                    "Defines the type of the power allocation. Currently are supported "
+                    "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
+                    "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
+                    "power allocation over used (active) RBs. By default is set a uniform power "
+                    "allocation over used RBs .",
+                    EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED),
+                    MakeEnumAccessor (&NrPhy::SetPowerAllocationType,
+                                      &NrPhy::GetPowerAllocationType),
+                    MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
+                                      NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
+                                    ))
     .AddAttribute ("SpectrumPhy",
                    "The SpectrumPhy associated to this NrPhy",
                    TypeId::ATTR_GET,

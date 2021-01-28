@@ -76,6 +76,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("downtiltAngle",
                 "Base station antenna down tilt angle (deg)",
                 params.downtiltAngle);
+  cmd.AddValue ("enableUlPc",
+                "Whether to enable or disable UL power control",
+                params.enableUlPc);
+  cmd.AddValue ("powerAllocation",
+                "Power allocation can be a)UniformPowerAllocBw or b)UniformPowerAllocUsed.",
+                params.powerAllocation);
 
   // Parse the command line
   cmd.Parse (argc, argv);

@@ -683,7 +683,15 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
   tempPropModels.remSpectrumLossModelCopy->AddDevice (device.dev, device.antenna);
   tempPropModels.remSpectrumLossModelCopy->AddDevice (otherDevice.dev, otherDevice.antenna);
-  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (device.txPower, device.spectrumModel);
+
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < device.spectrumModel->GetNumBands(); rbId++)
+    {
+      activeRbs.push_back(rbId);
+    }
+
+  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (device.txPower, activeRbs,
+                                                                                        device.spectrumModel, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
 
   // check if RTD has the same spectrum model as RRD
   // if they have do nothing, if they dont, then convert txPsd of RTD device so to be according to spectrum model of RRD

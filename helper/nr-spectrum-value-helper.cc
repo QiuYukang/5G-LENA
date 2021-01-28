@@ -153,15 +153,25 @@ NrSpectrumValueHelper::CreateTxPsdOverAllRbs (double powerTx, const std::vector 
   return txPsd;
 }
 
-Ptr<const SpectrumValue>
-NrSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, const Ptr<const SpectrumModel>& txSm)
+Ptr<SpectrumValue>
+NrSpectrumValueHelper::CreateTxPowerSpectralDensity (double powerTx, const std::vector<int> &rbIndexVector,
+                                                     const Ptr<const SpectrumModel>& txSm, enum PowerAllocationType allocationType)
 {
-  std::vector<int> activeRbs;
-  for (size_t rbId = 0; rbId < txSm->GetNumBands(); rbId++)
-    {
-      activeRbs.push_back(rbId);
-    }
-  return CreateTxPsdOverAllRbs (powerTx, activeRbs, txSm);
+  switch (allocationType)
+  {
+    case UNIFORM_POWER_ALLOCATION_BW:
+      {
+        return CreateTxPsdOverAllRbs (powerTx, rbIndexVector, txSm);
+      }
+    case UNIFORM_POWER_ALLOCATION_USED:
+      {
+        return CreateTxPsdOverActiveRbs (powerTx, rbIndexVector, txSm);
+      }
+    default:
+      {
+        NS_FATAL_ERROR ("Unknown power allocation type.");
+      }
+  }
 }
 
 

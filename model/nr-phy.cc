@@ -26,7 +26,6 @@
   while (false);
 
 #include "nr-phy.h"
-#include <ns3/nr-spectrum-value-helper.h>
 #include "nr-spectrum-phy.h"
 #include "nr-net-device.h"
 #include "nr-ue-net-device.h"
@@ -390,7 +389,7 @@ NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector)
 {
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
 
-  return NrSpectrumValueHelper::CreateTxPsdOverActiveRbs  (m_txPower, rbIndexVector, sm );
+  return NrSpectrumValueHelper::CreateTxPowerSpectralDensity (m_txPower, rbIndexVector, sm, m_powerAllocationType );
 }
 
 double
@@ -420,6 +419,19 @@ NrPhy::GetPattern (const std::vector<LteNrTddSlotType> &pattern)
     }
 
   return ss.str ();
+}
+
+
+void
+NrPhy::SetPowerAllocationType (enum NrSpectrumValueHelper::PowerAllocationType powerAllocationType)
+{
+  m_powerAllocationType = powerAllocationType;
+}
+
+enum NrSpectrumValueHelper::PowerAllocationType
+NrPhy::GetPowerAllocationType () const
+{
+  return m_powerAllocationType;
 }
 
 void

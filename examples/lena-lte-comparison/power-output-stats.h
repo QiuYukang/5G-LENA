@@ -106,7 +106,10 @@ private:
     uint64_t imsi;
     uint16_t bwpId;
     uint16_t cellId;
-    double txPsdSum;
+    double txPowerRb;
+    double txPowerTotal;
+    uint32_t rbNumActive;
+    uint32_t rbNumTotal;
   };
 
   static void
