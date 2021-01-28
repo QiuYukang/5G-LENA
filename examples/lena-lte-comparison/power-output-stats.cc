@@ -79,7 +79,11 @@ void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> tx
         }
     }
 
-  c.txPowerRb = Integral (*txPsd)/rbNumActive;
+  if (rbNumActive == 0)
+    {
+       return; //ignore this entry
+    }
+  c.txPowerRb = (Integral (*txPsd))/rbNumActive;
   c.rbNumActive = rbNumActive;
   c.rbNumTotal = rbNumTotal;
 
@@ -120,7 +124,7 @@ void PowerOutputStats::WriteCache ()
   for (const auto & v : m_powerCache)
     {
       sqlite3_stmt *stmt;
-      ret = m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?);");
+      ret = m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 1, v.frame);
       NS_ASSERT (ret);
