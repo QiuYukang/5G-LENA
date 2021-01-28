@@ -43,6 +43,7 @@ PowerOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
                         "BwpId INTEGER NOT NULL,"
                         "CellId INTEGER NOT NULL,"
                         "txPowerRb DOUBLE NOT NULL,"
+                        "txPowerTotal DOUBLE NOT NULL,"
                         "rbNumActive INTEGER NOT NULL,"
                         "rbNumTotal INTEGER NOT NULL,"
                         "Seed INTEGER NOT NULL,"
@@ -83,7 +84,9 @@ void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> tx
     {
        return; //ignore this entry
     }
-  c.txPowerRb = (Integral (*txPsd))/rbNumActive;
+
+  c.txPowerTotal = (Integral (*txPsd));
+  c.txPowerRb = c.txPowerTotal/rbNumActive;
   c.rbNumActive = rbNumActive;
   c.rbNumTotal = rbNumTotal;
 
@@ -124,7 +127,7 @@ void PowerOutputStats::WriteCache ()
   for (const auto & v : m_powerCache)
     {
       sqlite3_stmt *stmt;
-      ret = m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
+      ret = m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);");
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 1, v.frame);
       NS_ASSERT (ret);
@@ -142,13 +145,15 @@ void PowerOutputStats::WriteCache ()
       NS_ASSERT (ret);
       ret = m_db->Bind (stmt, 8, v.txPowerRb);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 9, v.rbNumActive);
+      ret = m_db->Bind (stmt, 9, v.txPowerTotal);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 10, v.rbNumTotal);
+      ret = m_db->Bind (stmt, 10, v.rbNumActive);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 11, RngSeedManager::GetSeed ());
+      ret = m_db->Bind (stmt, 11, v.rbNumTotal);
       NS_ASSERT (ret);
-      ret = m_db->Bind (stmt, 12, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      ret = m_db->Bind (stmt, 12, RngSeedManager::GetSeed ());
+      NS_ASSERT (ret);
+      ret = m_db->Bind (stmt, 13, static_cast<uint32_t> (RngSeedManager::GetRun ()));
       NS_ASSERT (ret);
 
       ret = m_db->SpinExec (stmt);

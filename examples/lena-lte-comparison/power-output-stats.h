@@ -107,6 +107,7 @@ private:
     uint16_t bwpId;
     uint16_t cellId;
     double txPowerRb;
+    double txPowerTotal;
     uint32_t rbNumActive;
     uint32_t rbNumTotal;
   };
