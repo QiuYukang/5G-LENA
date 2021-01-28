@@ -65,6 +65,7 @@ struct Parameters
 
   bool calibration = true;
   bool enableUlPc = false;
+  std::string powerAllocation = "UniformPowerAllocUsed";
 
   uint32_t trafficScenario = 0;
 

@@ -60,6 +60,7 @@ public:
                                        NetDeviceContainer &ueSector3NetDev,
                                        bool calibration,
                                        bool enableUlPc,
+                                       std::string powerAllocation,
                                        SinrOutputStats *sinrStats,
                                        PowerOutputStats *ueTxPowerStats,
                                        PowerOutputStats *gnbRxPowerStats,

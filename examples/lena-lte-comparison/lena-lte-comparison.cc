@@ -485,6 +485,7 @@ LenaLteComparison (const Parameters &params)
                                     ueSector3NetDev,
                                     params.calibration,
                                     params.enableUlPc,
+                                    params.powerAllocation,
                                     &sinrStats,
                                     &ueTxPowerStats,
                                     &gnbRxPowerStats,
