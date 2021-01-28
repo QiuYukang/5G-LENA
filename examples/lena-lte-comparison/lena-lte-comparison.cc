@@ -450,6 +450,7 @@ LenaLteComparison (const Parameters &params)
                                   ueSector2NetDev,
                                   ueSector3NetDev,
                                   params.calibration,
+                                  params.enableUlPc,
                                   &sinrStats,
                                   &ueTxPowerStats,
                                   params.scheduler,
@@ -483,6 +484,7 @@ LenaLteComparison (const Parameters &params)
                                     ueSector2NetDev,
                                     ueSector3NetDev,
                                     params.calibration,
+                                    params.enableUlPc,
                                     &sinrStats,
                                     &ueTxPowerStats,
                                     &gnbRxPowerStats,
@@ -809,6 +811,7 @@ operator << (std::ostream & os, const Parameters & parameters)
       MSG ("LTE Standard")
         << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
       MSG ("4G-NR calibration mode")    << (p.calibration ? "ON" : "off");
+      MSG ("4G-NR ULPC mode")    << (p.enableUlPc ? "Enabled" : "Disabled");
       MSG ("Operation mode")            << p.operationMode;
       if (p.operationMode == "TDD")
         {
@@ -835,6 +838,7 @@ operator << (std::ostream & os, const Parameters & parameters)
       p.operationMode = "FDD";
       MSG ("LTE Standard")              << "4G";
       MSG ("Calibration mode")          << (p.calibration ? "ON" : "off");
+      MSG ("LTE ULPC mode")           << (p.enableUlPc ? "Enabled" : "Disabled");
       MSG ("Operation mode")            << p.operationMode;
     }
 

@@ -136,6 +136,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            NetDeviceContainer &ueSector2NetDev,
                                            NetDeviceContainer &ueSector3NetDev,
                                            bool calibration,
+                                           bool enableUlPc,
                                            SinrOutputStats *sinrStats,
                                            PowerOutputStats *ueTxPowerStats,
                                            PowerOutputStats *gnbRxPowerStats,
@@ -244,6 +245,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   // Noise figure for the UE
   nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (9.0));
+  nrHelper->SetUePhyAttribute ("EnableUplinkPowerControl", BooleanValue (enableUlPc));
 
   // Error Model: UE and GNB with same spectrum error model.
   nrHelper->SetUlErrorModel (errorModel);

@@ -59,6 +59,7 @@ public:
                                        NetDeviceContainer &ueSector2NetDev,
                                        NetDeviceContainer &ueSector3NetDev,
                                        bool calibration,
+                                       bool enableUlPc,
                                        SinrOutputStats *sinrStats,
                                        PowerOutputStats *ueTxPowerStats,
                                        PowerOutputStats *gnbRxPowerStats,

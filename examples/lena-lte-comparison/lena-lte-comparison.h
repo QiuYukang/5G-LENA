@@ -64,6 +64,7 @@ struct Parameters
   std::string errorModel = "";
 
   bool calibration = true;
+  bool enableUlPc = false;
 
   uint32_t trafficScenario = 0;
 
