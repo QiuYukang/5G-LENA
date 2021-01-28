@@ -89,7 +89,7 @@ NrUePhy::GetTypeId (void)
                   "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0), // nr code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
                    MakeDoubleAccessor (&NrUePhy::m_noiseFigure),
-                   MakeDoubleChecker<double> ())/*
+                   MakeDoubleChecker<double> ())
      .AddAttribute ("PowerAllocationType",
                     "Defines the type of the power allocation. Currently are supported "
                     "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
@@ -101,7 +101,7 @@ NrUePhy::GetTypeId (void)
                                       &NrPhy::GetPowerAllocationType),
                     MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
                                       NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
-                                    ))*/
+                                    ))
     .AddAttribute ("SpectrumPhy",
                    "The SpectrumPhy associated to this NrPhy",
                    TypeId::ATTR_GET,
