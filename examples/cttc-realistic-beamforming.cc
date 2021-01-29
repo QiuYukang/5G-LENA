@@ -742,6 +742,8 @@ CttcRealisticBeamforming::RunSimulation ()
   nrHelper->SetBeamformingHelper (beamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
+  Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (false));
+
   /*
    * Configure the spectrum division: single operational band, containing single
    * component carrier, which contains a single bandwidth part.
@@ -772,9 +774,16 @@ CttcRealisticBeamforming::RunSimulation ()
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
   nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue ((m_ueAntennaModel == "Iso")? true:false));
 
+  // configure schedulers
+  nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
+
   // Install nr net devices
   NetDeviceContainer gNbDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
+
+  int64_t randomStream = m_rngRun;
+  randomStream += nrHelper->AssignStreams (gNbDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   for (uint32_t i = 0 ; i < gNbDev.GetN (); i ++)
     {
@@ -859,7 +868,7 @@ main (int argc, char *argv[])
   double deltaY = 10.0;
   std::string algType = "Real";
   std::string realTriggerEvent = "SrsCount"; // what will be the trigger event to update the beamforming vectors, only used when --algType="Real"
-  uint32_t idealPeriodicity = 10 ; // how often will be updated the beamforming vectors, only used when --algType="Real", in [ms]
+  uint32_t idealPeriodicity = 10; // how often will be updated the beamforming vectors, only used when --algType="Ideal", in [ms]
   uint64_t rngRun = 1;
   uint16_t numerology = 2;
   std::string gnbAntenna = "Iso";
