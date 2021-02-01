@@ -222,6 +222,12 @@ NrUePhy::GetUplinkPowerControl () const
 }
 
 void
+NrUePhy::SetUplinkPowerControl (Ptr<NrUePowerControl> pc)
+{
+  m_powerControl = pc;
+}
+
+void
 NrUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
 {
   m_amc = amc;
@@ -1185,6 +1191,7 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
   NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
   if (m_enableUplinkPowerControl)
     {
+      m_powerControl->SetLoggingInfo (GetCellId(), m_rnti);
       m_powerControl->SetRsrp (m_rsrp);
     }
 }
