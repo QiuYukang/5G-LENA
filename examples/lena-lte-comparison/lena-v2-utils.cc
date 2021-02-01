@@ -265,7 +265,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
     }
 
   nrHelper->SetUePhyAttribute ("PowerAllocationType", EnumValue (powerAllocationEnum));
-  nrHelper->SetGnbPhyAttribute ("PowerAllocationType", EnumValue (powerAllocationEnum));
+  // to match LENA default settings
+  nrHelper->SetGnbPhyAttribute ("PowerAllocationType", EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW));
 
   // Error Model: UE and GNB with same spectrum error model.
   nrHelper->SetUlErrorModel (errorModel);
@@ -726,6 +727,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         {
           nrHelper->GetBwpManagerUe (*nd)->SetOutputLink (0, 1);
           uePhySecond = nrHelper->GetUePhy (*nd, 1);
+          uePhySecond->SetUplinkPowerControl (uePhyFirst->GetUplinkPowerControl());
         }
       uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
                                               MakeBoundCallback (&ReportSinrNr, sinrStats));
