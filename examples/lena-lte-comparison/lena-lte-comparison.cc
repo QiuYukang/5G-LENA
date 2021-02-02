@@ -304,7 +304,7 @@ LenaLteComparison (const Parameters &params)
   FileScenarioHelper fileScenario;
   HexagonalGridScenarioHelper gridScenario;
   
-  if (params.baseStationFile != "")
+  if (params.baseStationFile != "" and params.useSiteFile)
     {
       std::cout << "  using tower positions from " << params.baseStationFile
                 << std::endl;
@@ -843,7 +843,7 @@ operator << (std::ostream & os, const Parameters & parameters)
       MSG ("Operation mode")            << p.operationMode;
     }
 
-  if (p.baseStationFile != "")
+  if (p.baseStationFile != "" and p.useSiteFile)
     {
       MSG ("Base station positions")    << "read from file " << p.baseStationFile;
     }
@@ -876,7 +876,7 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       os << "\n  (unknown configuration)";
     }
-  if (p.baseStationFile == "")
+  if (p.baseStationFile == "" and p.useSiteFile)
     {
       MSG ("Number of outer rings")         << p.numOuterRings;
     }

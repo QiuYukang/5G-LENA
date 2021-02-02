@@ -28,6 +28,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("siteFile",
                 "Path to file of tower coordinates (instead of hexagonal grid)",
                 params.baseStationFile);
+  cmd.AddValue ("useSiteFile",
+                "If true, it will be used site file, otherwise it will be used "
+                "numRings parameter to create scenario.",
+                params.useSiteFile);
   cmd.AddValue ("appGenerationTime",
                 "Duration applications will generate traffic.",
                 params.appGenerationTime);
