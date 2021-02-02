@@ -69,6 +69,7 @@ NrSpectrumPhy::NrSpectrumPhy ()
   : SpectrumPhy ()
 {
   m_interferenceData = CreateObject<NrInterference> ();
+  m_interferenceCtrl = CreateObject<NrInterference> ();
   m_random = CreateObject<UniformRandomVariable> ();
   m_random->SetAttribute ("Min", DoubleValue (0.0));
   m_random->SetAttribute ("Max", DoubleValue (1.0));
@@ -94,6 +95,11 @@ NrSpectrumPhy::DoDispose ()
       m_interferenceData->Dispose ();
     }
 
+  if (m_interferenceCtrl)
+    {
+      m_interferenceCtrl->Dispose ();
+    }
+
   if (m_interferenceSrs)
     {
       m_interferenceSrs->Dispose ();
@@ -101,6 +107,7 @@ NrSpectrumPhy::DoDispose ()
     }
 
   m_interferenceData = nullptr;
+  m_interferenceCtrl = nullptr;
   m_mobility = nullptr;
   m_phy = nullptr;
 
@@ -309,6 +316,7 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noi
   NS_ASSERT (noisePsd);
   m_rxSpectrumModel = noisePsd->GetSpectrumModel ();
   m_interferenceData->SetNoisePowerSpectralDensity (noisePsd);
+  m_interferenceCtrl->SetNoisePowerSpectralDensity (noisePsd);
   if (m_interferenceSrs)
     {
       m_interferenceSrs->SetNoisePowerSpectralDensity (noisePsd);
@@ -369,10 +377,13 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (dlCtrlRxParams != nullptr)
     {
+      m_interferenceCtrl->AddSignal (rxPsd, duration);
+
       if (!IsEnb ())
         {
           if (dlCtrlRxParams->cellId == GetCellId ())
             {
+              m_interferenceCtrl->StartRx(rxPsd);
               StartRxDlCtrl (dlCtrlRxParams);
             }
           else
@@ -631,7 +642,7 @@ void
 NrSpectrumPhy::AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
-  m_interferenceData->AddRsPowerChunkProcessor(p);
+  m_interferenceCtrl->AddRsPowerChunkProcessor(p);
 }
 
 void
@@ -827,7 +838,6 @@ NrSpectrumPhy::StartRxDlCtrl (const Ptr<NrSpectrumSignalParametersDlCtrlFrame>& 
         NS_ASSERT (m_rxControlMessageList.empty ());
         NS_LOG_LOGIC (this << "receiving DL CTRL from cellId:"<<params->cellId<< "and scheduling EndRx with delay " << params->duration);
         // store the DCIs
-        m_interferenceData->StartRx(params->psd);
         m_rxControlMessageList = params->ctrlMsgList;
         Simulator::Schedule (params->duration, &NrSpectrumPhy::EndRxCtrl, this);
         ChangeState (RX_DL_CTRL, params->duration);
@@ -1263,7 +1273,9 @@ NrSpectrumPhy::EndRxCtrl ()
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_state == RX_DL_CTRL || m_state == RX_UL_CTRL);
-  m_interferenceData->EndRx();
+
+  m_interferenceCtrl->EndRx ();
+
   // control error model not supported
   // forward control messages of this frame to LtePhy
   if (!m_rxControlMessageList.empty ())

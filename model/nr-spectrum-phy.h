@@ -494,6 +494,7 @@ private:
   Ptr<const NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
   Ptr<NrHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
   Ptr<NrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
+  Ptr<NrInterference> m_interferenceCtrl {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
   Ptr<NrInterference> m_interferenceSrs {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy, exists only at gNB phy
   Ptr<SpectrumValue> m_txPsd {nullptr}; //!< tx power spectral density
   Ptr<UniformRandomVariable> m_random {nullptr}; //!< the random variable used for TB decoding
