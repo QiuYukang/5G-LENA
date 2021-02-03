@@ -134,8 +134,8 @@ Parameters::Validate (void) const
   NS_ABORT_MSG_IF (bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
                    "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
 
-  NS_ABORT_MSG_IF (trafficScenario > 2,
-                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
+  NS_ABORT_MSG_IF (trafficScenario > 3,
+                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2 3");
 
   NS_ABORT_MSG_IF (numerologyBwp > 4,
                    "At most 4 bandwidth parts supported.");
@@ -152,9 +152,6 @@ Parameters::Validate (void) const
                    "Unrecognized simulator");
   NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
                    "Unrecognized scheduler");
-  
-  NS_ABORT_MSG_IF (trafficScenario > 2,
-                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2");
 
   if (dlRem || ulRem)
     {
@@ -231,8 +228,26 @@ LenaLteComparison (const Parameters &params)
         }
       lambda = 1000 / params.ueNumPergNb;
       break;
+    case 3: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
+      packetCount = 0xFFFFFFFF;
+      switch (params.bandwidthMHz)
+        {
+        case 20:
+          udpPacketSize = 250;
+          break;
+        case 10:
+          udpPacketSize = 125;
+          break;
+        case 5:
+          udpPacketSize = 75;
+          break;
+        default:
+          udpPacketSize = 250;
+        }
+      lambda = 10000 / params.ueNumPergNb;
+      break;
     default:
-      NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2");
+      NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2 3");
     }
 
   std::cout << "  statistics\n";
@@ -921,10 +936,25 @@ operator << (std::ostream & os, const Parameters & parameters)
         default:  os << "125 bytes";
         }
       // 1 s / (1000 / nUes)
-      MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb << " ms";
+      MSG ("  Inter-packet interval (per UE)") << 1 / (1000/p.ueNumPergNb) << " s";
   
       break ;
 
+    case 3:
+      MSG ("  Moderate-high loading");
+      MSG ("  Number of packets")              << "infinite";
+      MSG ("  Packet size");
+      switch (p.bandwidthMHz)
+        {
+          case 20:  os << "250 bytes";    break;
+          case 10:  os << "125 bytes";     break;
+          case 5:   os << "75 bytes";     break;
+          default:  os << "250 bytes";
+         }
+      // 1 s / (10000 / nUes)
+      MSG ("  Inter-packet interval (per UE)") << 1 / (10000.0 / p.ueNumPergNb) << " s";
+
+      break;
     default:
       os << "\n  (Unknown configuration)";
     }

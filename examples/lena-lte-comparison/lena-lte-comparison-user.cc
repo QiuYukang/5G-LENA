@@ -95,7 +95,7 @@ main (int argc, char *argv[])
                 "disable a bunch of things to make LENA and NR_LTE comparable",
                 params.calibration);
   cmd.AddValue ("trafficScenario",
-                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps)",
+                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps), 3: medium-load (20Mbps)",
                 params.trafficScenario);
   cmd.AddValue ("scheduler",
                 "PF: Proportional Fair, RR: Round-Robin",
