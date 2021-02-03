@@ -142,6 +142,19 @@ public:
   Ptr<NrUePowerControl> GetUplinkPowerControl () const;
 
   /**
+   * \brief Allow configuration of uplink power control algorithm.
+   * E.g. necessary in FDD, when measurements are received in 
+   * downlink BWP, but they are used in uplink BWP
+   * NOTE: This way of configuring is a temporal solution until 
+   * BWP manager has this function implemented for UL PC, FFR, 
+   * algorithm and simillar algorithms, in which is needed to have 
+   * a pair of DL and UL BWPs. In future this function will be called 
+   * only by a friend class.
+   * \param pc Pointer to NrUePowerControl
+   */
+  void SetUplinkPowerControl (Ptr<NrUePowerControl> pc);
+
+  /**
    * \brief Register the UE to a certain Enb
    *
    * Install the configuration parameters in the UE.

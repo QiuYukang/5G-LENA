@@ -43,6 +43,8 @@ struct Parameters
   std::string radioNetwork = "NR";  // LTE or NR
   std::string operationMode = "TDD";  // TDD or FDD
   std::string baseStationFile = ""; // path to file of tower/site coordinates
+  bool useSiteFile = false; // whether to use baseStationFile parameter,
+                            //or to use numOuterRings parameter to create a scenario
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
