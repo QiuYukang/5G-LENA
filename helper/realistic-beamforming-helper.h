@@ -57,58 +57,11 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
 {
 public:
 
-  struct SrsSinrReport
-  {
-    Time time {0}; // srs report time
-    double srsSinr {0}; // srs SINR in watts
-    double counter {0}; // counter of SRS reports between consecutive beamforming updates
-    SrsSinrReport (){}
-    SrsSinrReport (Time rTime, double sValue, double c):time (rTime), srsSinr (sValue), counter (c) {};
-  };
-
-  enum TriggerEvent
-  {
-    SRS_COUNT,
-    DELAYED_UPDATE
-  };
-
   /**
    * \brief Get the Type ID
    * \return the TypeId of the instance
    */
   static TypeId GetTypeId (void);
-
-  /**
-   * \brief Sets the beamforming update trigger event, trigger event type
-   * is one for all the nodes
-   * \param triggerEvent triggerEvent type
-   */
-  void SetTriggerEvent (RealisticBeamformingHelper::TriggerEvent triggerEvent);
-  /**
-   * \return Returns the trigger event type
-   */
-  RealisticBeamformingHelper::TriggerEvent GetTriggerEvent () const;
-
-  /**
-   * \brief Sets the periodicity of the beamforming update in the number of the
-   * SRS SINR reports
-   */
-  void SetSrsCountPeriodicity (uint16_t periodicity);
-
-  /**
-   * \returns Gets the periodicity in the number of SRS SINR reports
-   */
-  uint16_t GetSrsCountPeriodicity () const;
-  /**
-   * \brief Sets the delay after the SRS SINR report reception and triggering of the
-   * beamforming update
-   * \param delay the delay after reception of SRS SINR
-   */
-  void SetSrsToBeamformingDelay (Time delay);
-  /**
-   * \return returns the delay after sSRS SINR report and beamforming
-   */
-  Time GetSrsToBeamformingDelay () const;
   /**
    * \brief Adds the beamforming task to the list of tasks
    * \gnbDev gNbDev pointer to gNB device
@@ -116,8 +69,9 @@ public:
    */
   virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                    const Ptr<NrUeNetDevice>& ueDev) override;
+
   /**
-   * \brief Saves SRS sinr report for this RNTI
+   * \brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
    * \param srsSinr
    * \param rnti
    */
@@ -139,12 +93,9 @@ public:
 
 private:
 
-  uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
-  Time m_srsToBeamformingDelay {MilliSeconds (0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
-  typedef std::unordered_map <uint16_t, SrsSinrReport > SrsReports; //!< List of SRS reports by RNTI
-  std::unordered_map< uint16_t, SrsReports > m_srsSinrReportsListsPerCellId; //!< SRS reports per cellId
-  TriggerEvent m_triggerEvent; //!< Defines what will be the trigger event for the update of the beamforming vectors
-
+  typedef std::unordered_map <uint16_t, Ptr<RealisticBeamformingAlgorithm> > CcIdToBeamformingAlgorithm;
+  typedef std::unordered_map <std::pair< Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice>>, CcIdToBeamformingAlgorithm  > DevicePairToAlgorithmsPerCcId;
+  DevicePairToAlgorithmsPerCcId m_devicePairToAlgorithmsPerCcId;
 };
 
 }; //ns3 namespace

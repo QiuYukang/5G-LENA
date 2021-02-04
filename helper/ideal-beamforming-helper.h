@@ -95,8 +95,16 @@ protected:
    */
   virtual void ExpireBeamformingTimer ();
 
+
+  virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
+                                      const Ptr<NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const;
+
   Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming tasks will be executed
   EventId m_beamformingTimer; //!< Beamforming timer
+  Ptr<BeamformingAlgorithm> m_beamformingAlgorithm; //!< The beamforming algorithm
 };
 
 }; //ns3 namespace

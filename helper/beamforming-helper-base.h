@@ -92,8 +92,12 @@ protected:
    */
   virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const;
 
+  virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev, const Ptr<NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const = 0;
+
   std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks; //!< The list of beamforming tasks to be executed
-  Ptr<BeamformingAlgorithm> m_beamformingAlgorithm; //!< The beamforming algorithm
+
+  ObjectFactory m_algorithmFactory;
 };
 
 }; //ns3 namespace

@@ -36,7 +36,7 @@ class SpectrumModel;
 class SpectrumValue;
 class NrGnbNetDevice;
 class NrUeNetDevice;
-
+class RealisticBeamformingHelper;
 
 /**
  * \ingroup gnb-phy
@@ -61,12 +61,27 @@ class NrUeNetDevice;
  */
 class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
 {
+
+  friend RealisticBeamformingHelper;
+
 public:
+
+  enum TriggerEvent
+  {
+    SRS_COUNT,
+    DELAYED_UPDATE
+  };
+
 
   /**
    * \brief constructor
    */
   RealisticBeamformingAlgorithm ();
+
+  /**
+   * \brief constructor
+   */
+  RealisticBeamformingAlgorithm (Ptr<NrGnbNetDevice>& gNbDevice, Ptr<NrUeNetDevice>& ueDevice, uint8_t);
 
   /**
    * \brief destructor
@@ -106,11 +121,61 @@ public:
   void SetBeamSearchAngleStep (double beamSearchAngleStep);
 
   /**
-   * \brief Sets the sirn SRS value to be used. In lineal unit.
+   * \brief Sets the beamforming update trigger event, trigger event type
+   * is one for all the nodes
+   * \param triggerEvent triggerEvent type
    */
-  virtual void SetSrsSinr (double sinrSrs);
+  void SetTriggerEvent (RealisticBeamformingAlgorithm::TriggerEvent triggerEvent);
+  /**
+   * \return Returns the trigger event type
+   */
+  RealisticBeamformingAlgorithm::TriggerEvent GetTriggerEvent () const;
+
+  /**
+   * \brief Sets the periodicity of the beamforming update in the number of the
+   * SRS SINR reports
+   */
+  void SetSrsCountPeriodicity (uint16_t periodicity);
+
+  /**
+   * \returns Gets the periodicity in the number of SRS SINR reports
+   */
+  uint16_t GetSrsCountPeriodicity () const;
+  /**
+   * \brief Sets the delay after the SRS SINR report reception and triggering of the
+   * beamforming update
+   * \param delay the delay after reception of SRS SINR
+   */
+  void SetSrsToBeamformingDelay (Time delay);
+  /**
+   * \return returns the delay after sSRS SINR report and beamforming
+   */
+  Time GetSrsToBeamformingDelay () const;
+  /**
+   * \brief Saves SRS SINR report for
+   * \param srsSinr
+   * \param rnti
+   */
+  void SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr);
+
+  /**
+   * \brief RunTask callback will be triggered when the event for updating the beamforming vectors occurs
+   */
+  typedef Callback<void, const Ptr<NrGnbNetDevice>&, Ptr<NrUeNetDevice>&, uint8_t> RealisticBfHelperCallback;
+
 
 private:
+
+  /*
+   * \brief Sets RealisticBeamformingHelperCallback that will be notified when it is necessary to update
+   * the beamforming vectors. Function RunTask will then call back RealisticBeamformingAlgorithm that
+   * notified it about the necessity to update the beamforming vectors. It is done in this way, in order
+   * to split functionalities and responsibilities of the BF helper class, and BF algorithm class.
+   * BF helper class takes care of necessary BF vector updates, and necessary calls of BeamManager class.
+   * While BF algorithm class takes care of trigger event, paramters, and algorithm, but it is not
+   * responsible to update the beamforming vector of devices.
+   */
+  void SetTriggerCallback (RealisticBfHelperCallback callback);
 
   virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                         const Ptr<const NrUeNetDevice>& ueDev,
@@ -135,11 +200,34 @@ private:
    */
   double CalculateTheEstimatedLongTermMetric (const ThreeGppAntennaArrayModel::ComplexVector& longTermComponent) const;
 
-
+  // attribute members, configuration variables
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
+  uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
+  Time m_srsToBeamformingDelay {Seconds (0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
+  TriggerEvent m_triggerEvent; //!< Defines what will be the trigger event for the update of the beamforming vectors
+  uint8_t m_srsSymbolsPerSlot {0}; //!< Number of SRS symbols per slot configured for UE
 
-  double m_lastRerportedSrsSinr {0}; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
+  //variable members, counters, and saving values
+  Time m_lastTimeUpdated {0}; //!< last SRS report time
+  double m_maxSrsSinrPerSlot {0}; //!< maximum SRS SINR per slot in Watts, e.g. if there are 4 SRS symbols per UE, this value will represent the maximum
+  double m_lastSrsSinrPerSlot {0}; //!< value that is being updated upon reaching the last SRS symbol
+  uint8_t m_srsSymbolsPerSlotCounter {0}; //!< counter that gets reset after reacing the number of symbols per SRS transmission
+  uint16_t m_srsPeriodicityCounter {0}; // counter of SRS reports between consecutive beamforming updates, this counter is incremented once the counter m_srsSymbolsPerSlotCounter
+
+  // random member variable, needed for algorithm calculation
   Ptr<NormalRandomVariable> m_normalRandomVariable; //!< The random variable used for the estimation of the error
+
+  RealisticBfHelperCallback m_helperCallback; //!< When it is necessary to update the beamforming vectors for this pair of devices, \
+                                                   the helper will be notified through this callback
+
+  /*
+   * \brief Parameters needed to pass to helper once that the helpers callback functions is being called
+   */
+
+  Ptr<NrGnbNetDevice>& m_gNbDevice; //!< pointer to gNB device
+  Ptr<NrUeNetDevice>& m_ueDevice;  //!< pointer to UE device
+  uint8_t m_ccId; //!< ccID index
+
 };
 
 } // end of namespace ns-3

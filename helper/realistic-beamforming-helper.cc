@@ -40,64 +40,10 @@ RealisticBeamformingHelper::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::RealisticBeamformingHelper")
                       .SetParent<BeamformingHelperBase> ()
                       .AddConstructor<RealisticBeamformingHelper> ()
-                      .AddAttribute ("TriggerEvent",
-                                     "Defines a beamforming trigger event",
-                                     EnumValue (RealisticBeamformingHelper::SRS_COUNT),
-                                     MakeEnumAccessor (&RealisticBeamformingHelper::SetTriggerEvent,
-                                                       &RealisticBeamformingHelper::GetTriggerEvent),
-                                     MakeEnumChecker (RealisticBeamformingHelper::SRS_COUNT, "SrsCount",
-                                                      RealisticBeamformingHelper::DELAYED_UPDATE, "DelayedUpdate"))
-                      .AddAttribute ("SrsCountPeriodicity",
-                                     "Interval between consecutive beamforming update method executions expressed in the number of SRS SINR reports"
-                                     "to wait before triggering the next beamforming update method execution.",
-                                     UintegerValue (1),
-                                     MakeUintegerAccessor (&RealisticBeamformingHelper::SetSrsCountPeriodicity,
-                                                           &RealisticBeamformingHelper::GetSrsCountPeriodicity),
-                                     MakeUintegerChecker <uint16_t>())
-                      .AddAttribute ("SrsToBeamformingDelay",
-                                     "Delay between SRS SINR report and the beamforming vectors update. ",
-                                     TimeValue (MilliSeconds (10)),
-                                     MakeTimeAccessor (&RealisticBeamformingHelper::SetSrsToBeamformingDelay,
-                                                       &RealisticBeamformingHelper::GetSrsToBeamformingDelay),
-                                     MakeTimeChecker());
-    return tid;
+  return tid;
 }
 
-void
-RealisticBeamformingHelper::SetTriggerEvent (RealisticBeamformingHelper::TriggerEvent triggerEvent)
-{
-  m_triggerEvent = triggerEvent;
-}
 
-RealisticBeamformingHelper::TriggerEvent
-RealisticBeamformingHelper::GetTriggerEvent () const
-{
-  return m_triggerEvent;
-}
-
-void
-RealisticBeamformingHelper::SetSrsCountPeriodicity (uint16_t periodicity)
-{
-  m_srsSinrPeriodicity = periodicity;
-}
-
-uint16_t
-RealisticBeamformingHelper::GetSrsCountPeriodicity () const
-{
-  return m_srsSinrPeriodicity;
-}
-
-void
-RealisticBeamformingHelper::SetSrsToBeamformingDelay (Time delay)
-{
-  m_srsToBeamformingDelay = delay;
-}
-
-Time
-RealisticBeamformingHelper::GetSrsToBeamformingDelay () const
-{
-  return m_srsToBeamformingDelay;
-}
 
 void
 RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
@@ -105,100 +51,40 @@ RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDe
 {
   NS_LOG_FUNCTION (this);
 
+  auto itAlgorithms = m_devicePairToAlgorithmsPerCcId.find(std::make_pair(gNbDev, ueDev));
+  NS_ABORT_IF_MSG ( itAlgorithms != m_devicePairToAlgorithmsPerCcId.end(), "Realistic beamforming task already created for the provided devices");
+
+  // create new element in the map that
+  itAlgorithms = (m_devicePairToAlgorithmsPerCcId [std::make_pair(gNbDev, ueDev)] = CcIdToBeamformingAlgorithm ());
+
   BeamformingHelperBase ::AddBeamformingTask (gNbDev, ueDev);
 
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
-      gNbDev->GetPhy (ccId)->GetSpectrumPhy()->SetSrsSinrReportCallback (MakeCallback (&RealisticBeamformingHelper::SaveSrsSinrReport, this));
-      auto cellId = gNbDev->GetPhy (ccId)->GetCellId ();
-      if (m_srsSinrReportsListsPerCellId.find (cellId) == m_srsSinrReportsListsPerCellId.end())
-        {
-          m_srsSinrReportsListsPerCellId [cellId] = SrsReports ();
-        }
+      Ptr<RealisticBeamformingAlgorithm> beamformingAlgorithm = m_algorithmFactory.Create<RealisticBeamformingAlgorithm> ();
+      GetSecond (itAlgorithms) [ccId] = beamformingAlgorithm;
+      //connect trace of the corresponding gNB PHY to the RealisticBeamformingAlgorithm funcition
+      gNbDev->GetPhy (ccId)->GetSpectrumPhy()->SetSrsSinrReportCallback (MakeCallback (&RealisticBeamformingAlgorithm::SaveSrsSinrReport, beamformingAlgorithm));
+      beamformingAltorithm->SetTriggerCallback (MakeCallback (&RealisticBeamformingHelper::RunTask, this));
     }
 }
 
-void
-RealisticBeamformingHelper::SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not set");
-
-  GetSecond srsList;
-  GetSecond srs;
-  auto itCell = m_srsSinrReportsListsPerCellId.find (cellId);
-  auto itRnti = srsList (*itCell).find (rnti);
-
-  NS_ASSERT_MSG (itCell != m_srsSinrReportsListsPerCellId.end (),
-                 "SRS report map for this cellId not initialized in AddBeaformingTask");
-
-  if (itRnti != srsList (*itCell).end ())
-    {
-      srs (*itRnti).time = Simulator::Now ();
-      srs (*itRnti).srsSinr = srsSinr;
-
-      if (m_triggerEvent == SRS_COUNT)
-        {
-          srs (*itRnti).counter++;
-        }
-    }
-  else
-    {
-      srsList (*itCell)[rnti] = SrsSinrReport (Simulator::Now (), srsSinr, 0); // insert a new element
-    }
-
-  // update the pointer to point to the newly added element
-  itRnti = srsList (*itCell).find (rnti);
-
-  switch (m_triggerEvent)
-  {
-    case SRS_COUNT:
-      {
-        if (srs (*itRnti).counter == m_srsSinrPeriodicity)
-          {
-            srs (*itRnti).counter = 0;
-            TriggerBeamformingAlgorithm (cellId, rnti, srsSinr);
-          }
-        break;
-      }
-    case DELAYED_UPDATE:
-      {
-        Simulator::Schedule (GetSrsToBeamformingDelay (),
-                             &RealisticBeamformingHelper::TriggerBeamformingAlgorithm, this,
-                             cellId, rnti, srsSinr);
-        break;
-      }
-    default:
-      {
-        NS_FATAL_ERROR ("Unknown trigger event type.");
-      }
-  }
-}
 
 void
-RealisticBeamformingHelper::TriggerBeamformingAlgorithm (uint16_t cellId, uint16_t rnti, double srsSinr)
+RealisticBeamformingHelper::GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                                   const Ptr<const NrUeNetDevice>& ueDev,
+                                                   BeamformingVector* gnbBfv,
+                                                   BeamformingVector* ueBfv,
+                                                   uint16_t ccId) const
 {
-  NS_LOG_FUNCTION (this);
-  Ptr<RealisticBeamformingAlgorithm> realBeamforming = DynamicCast <RealisticBeamformingAlgorithm> (m_beamformingAlgorithm);
-  NS_ASSERT_MSG (m_beamformingAlgorithm, "Beamforming algorithm not initialized yet or is of the wrong type. Should be RealisticBeamformingHelper." );
 
-  for (const auto& task:m_beamformingTasks)
-    {
-      for (uint8_t ccId = 0; ccId < task.first->GetCcMapSize () ; ccId++)
-        {
-          auto currentCellId = task.first->GetPhy (ccId)->GetCellId ();
-          auto currentRnti = task.second->GetRrc ()->GetRnti ();
+  auto itDevPair = m_devicePairToAlgorithmsPerCcId.find(std::make_pair(gnbDev, ueDev));
+  NS_ABORT_MSG_IF (itDevPair == m_devicePairToAlgorithmsPerCcId.end(), "There is no task for the specified pair of devices.");
 
-          if (currentCellId == cellId && currentRnti == rnti)
-            {
-              realBeamforming->SetSrsSinr (srsSinr);
-              RunTask (task.first, task.second, ccId);
-              return;
-            }
-        }
-    }
+  auto itAlgorithm = (GetSecond (itDevPair)).find (ccId);
+  NS_ABORT_MSG_IF (itAlgorithm == (GetSecond (itDevPair)).end (), "There is no BF task for the specified component carrier ID.");
 
-  NS_FATAL_ERROR ("Beamforming task not found for cellId and rnti: "<< cellId << "," << rnti);
+  GetSecond (itAlgorithm)->GetBeamformingVectors (gnbDev, ueDev, &gnbBfv, &ueBfv, ccId);
 }
 
 void
@@ -208,9 +94,7 @@ RealisticBeamformingHelper::SetBeamformingMethod (const TypeId &beamformingMetho
   NS_ASSERT (beamformingMethod == RealisticBeamformingAlgorithm::GetTypeId () ||
              beamformingMethod.IsChildOf (RealisticBeamformingAlgorithm::GetTypeId ()));
 
-  ObjectFactory objectFactory;
-  objectFactory.SetTypeId (beamformingMethod);
-  m_beamformingAlgorithm = objectFactory.Create<RealisticBeamformingAlgorithm> ();
+  m_algorithmFactory.SetTypeId (beamformingMethod);
 }
 
 
