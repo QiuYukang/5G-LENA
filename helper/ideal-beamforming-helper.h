@@ -100,7 +100,7 @@ protected:
                                       const Ptr<NrUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv,
                                       BeamformingVector* ueBfv,
-                                      uint16_t ccId) const;
+                                      uint16_t ccId) const override;
 
   Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming tasks will be executed
   EventId m_beamformingTimer; //!< Beamforming timer

@@ -26,10 +26,11 @@
 #include "nr-gnb-phy.h"
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
-#include "beam-manager.h"
 #include <ns3/nr-spectrum-value-helper.h>
-#include "ns3/random-variable-stream.h"
-#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include <ns3/nr-mac-scheduler-ns3.h>
+#include <ns3/random-variable-stream.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/lte-ue-rrc.h>
 
 namespace ns3{
 
@@ -39,14 +40,22 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
   NS_UNUSED(this);
+  m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
+  m_gNbDevice = nullptr;
+  m_ueDevice = nullptr;
+  m_ccId = UINT8_MAX;
 }
 
 /**
  * \brief constructor
  */
-RealisticBeamformingAlgorithm:: RealisticBeamformingAlgorithm (Ptr<NrGnbNetDevice>& gNbDevice, Ptr<NrUeNetDevice>& ueDevice, uint8_t)
+RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm (Ptr<NrGnbNetDevice>& gNbDevice, Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId)
 {
   m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
+  m_gNbDevice = gNbDevice;
+  m_ueDevice = ueDevice;
+  m_ccId = ccId;
+  m_rnti = m_ueDevice->GetRrc()->GetRnti();
 }
 
 int64_t
@@ -70,32 +79,39 @@ RealisticBeamformingAlgorithm::GetTypeId (void)
                      .AddAttribute ("BeamSearchAngleStep",
                                     "Angle step when searching for the best beam",
                                     DoubleValue (30),
-                                    MakeDoubleAccessor (&CellScanBeamforming::SetBeamSearchAngleStep,
-                                                        &CellScanBeamforming::GetBeamSearchAngleStep),
-                                    MakeDoubleChecker<double> ())
-                     .AddAttribute ("TriggerEvent",
-                                    "Defines a beamforming trigger event",
-                                    EnumValue (RealisticBeamformingAlgorithm::SRS_COUNT),
-                                    MakeEnumAccessor (&RealisticBeamformingAlgorithm::SetTriggerEvent,
-                                                      &RealisticBeamformingAlgorithm::GetTriggerEvent),
-                                    MakeEnumChecker (RealisticBeamformingAlgorithm::SRS_COUNT, "SrsCount",
-                                                     RealisticBeamformingAlgorithm::DELAYED_UPDATE, "DelayedUpdate"))
-                      .AddAttribute ("SrsCountPeriodicity",
-                                     "Interval between consecutive beamforming update method executions expressed in the number of SRS SINR reports"
-                                     "to wait before triggering the next beamforming update method execution.",
-                                     UintegerValue (1),
-                                     MakeUintegerAccessor (&RealisticBeamformingAlgorithm::SetSrsCountPeriodicity,
-                                                           &RealisticBeamformingAlgorithm::GetSrsCountPeriodicity),
-                                     MakeUintegerChecker <uint16_t>())
-                      .AddAttribute ("SrsToBeamformingDelay",
-                                     "Delay between SRS SINR report and the beamforming vectors update. ",
-                                     TimeValue (MilliSeconds (10)),
-                                     MakeTimeAccessor (&RealisticBeamformingAlgorithm::SetSrsToBeamformingDelay,
-                                                       &RealisticBeamformingAlgorithm::GetSrsToBeamformingDelay),
-                                     MakeTimeChecker());
-
+                                    MakeDoubleAccessor (&RealisticBeamformingAlgorithm::SetBeamSearchAngleStep,
+                                                        &RealisticBeamformingAlgorithm::GetBeamSearchAngleStep),
+                                    MakeDoubleChecker<double> ());
   return tid;
 }
+
+uint8_t
+RealisticBeamformingAlgorithm::GetSymbolsPerSlot ()
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<NrMacScheduler> sched = m_gNbDevice ->GetScheduler (m_ccId);
+  NS_ABORT_MSG_UNLESS (sched, "Scheduler for the given ccId does not exist!");
+  return (DynamicCast<NrMacSchedulerNs3>(sched))->GetSrsCtrlSyms();
+}
+
+RealisticBeamformingAlgorithm::TriggerEventConf
+RealisticBeamformingAlgorithm::GetTriggerEventConf ()
+{
+
+  NS_LOG_FUNCTION (this);
+  Ptr<NrGnbPhy> phy = m_gNbDevice ->GetPhy(m_ccId);
+  NS_ABORT_MSG_UNLESS (phy, "PHY for the given ccId does not exist!");
+  Ptr<RealisticBfManager> realBf = DynamicCast<RealisticBfManager> (phy->GetBeamManager());
+  NS_ABORT_MSG_UNLESS (realBf, "Realistic BF manager at gNB does not exist. Realistic BF manager at gNB should "
+                      "be installed when using realistic BF algorithm.");
+
+  TriggerEventConf conf;
+  conf.event = realBf->GetTriggerEvent ();
+  conf.updatePeriodicity = realBf->GetUpdatePeriodicity ();
+  conf.updateDelay = realBf->GetUpdateDelay ();
+  return conf;
+}
+
 
 void
 RealisticBeamformingAlgorithm::SetBeamSearchAngleStep (double beamSearchAngleStep)
@@ -110,42 +126,6 @@ RealisticBeamformingAlgorithm::GetBeamSearchAngleStep () const
 }
 
 void
-RealisticBeamformingAlgorithm::SetTriggerEvent (RealisticBeamformingAlgorithm::TriggerEvent triggerEvent)
-{
-  m_triggerEvent = triggerEvent;
-}
-
-RealisticBeamformingAlgorithm::TriggerEvent
-RealisticBeamformingAlgorithm::GetTriggerEvent () const
-{
-  return m_triggerEvent;
-}
-
-void
-RealisticBeamformingAlgorithm::SetSrsCountPeriodicity (uint16_t periodicity)
-{
-  m_srsSinrPeriodicity = periodicity;
-}
-
-uint16_t
-RealisticBeamformingAlgorithm::GetSrsCountPeriodicity () const
-{
-  return m_srsSinrPeriodicity;
-}
-
-void
-RealisticBeamformingAlgorithm::SetSrsToBeamformingDelay (Time delay)
-{
-  m_srsToBeamformingDelay = delay;
-}
-
-Time
-RealisticBeamformingAlgorithm::GetSrsToBeamformingDelay () const
-{
-  return m_srsToBeamformingDelay;
-}
-
-void
 RealisticBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const NrGnbNetDevice>& gnbDev,
                                                  const Ptr<const NrUeNetDevice>& ueDev,
                                                  BeamformingVector* gnbBfv,
@@ -157,64 +137,61 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const NrGnbNetDev
 
 
 void
-RealisticBeamformingAlgorithm::SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr)
+RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
 
   //before anything check if RNTI corresponds to RNTI of UE of this algorithm instance
-
-  if (m_ueDevice->GetRrc ()->GetRnti () != rnti)
+  if (m_rnti != rnti)
     {
       NS_LOG_INFO ("Ignoring SRS report. Not for me. Report for RNTI:"<< rnti << ", and my RNTI is:"<< m_ueDevice->GetRrc ()->GetRnti ());
       return;
     }
 
-  m_lastTimeUpdated = Simulator::Now ();
-  m_maxSrsSinrPerSlot = srsSinr;
-  m_srsSymbolsPerSlotCounter++;
+  // update SRS symbols counter
+  m_srsSymbolsCounter++;
 
-  NS_ABORT_MSG_IF ( m_srsSymbolsPerSlot == 0, "SRS symbols per slot not set! Aborting.");
+  // update max SRS SINR, i.e., reset when m_srsSymbolsCounter == 1, otherwise do max
+  m_maxSrsSinrPerSlot = (m_srsSymbolsCounter > 1) ? std::max(srsSinr, m_maxSrsSinrPerSlot):srsSinr;
 
-  if (m_srsSymbolsPerSlotCounter == m_srsSymbolsPerSlot)
+  // if we reached the last SRS symbol, check whether some event should be triggered
+  if (m_srsSymbolsCounter == GetSymbolsPerSlot ())
     {
       // reset symbols per slot counter
-      m_srsSymbolsPerSlotCounter = 0;
-      m_maxSrsSinrPerSlot = 0;
+      m_srsSymbolsCounter = 0;
+      TriggerEventConf conf = GetTriggerEventConf();
 
-      if (m_triggerEvent == SRS_COUNT)
+      if ( conf.event == RealisticBfManager::SRS_COUNT)
         {
-          // increase or reset SRS periodicity counter
-
-          if (m_srsPeriodicityCounter == m_srsSinrPeriodicity )
+          // reset or increase SRS periodicity counter
+          if (m_srsPeriodicityCounter == conf.updatePeriodicity )
             {
               m_srsPeriodicityCounter = 0;
               // it is time to trigger helpers callback
-              m_helperCallback (m_gNbDevice, m_ueDevice, m_ccId);
+              Simulator::ScheduleNow (&RealisticBeamformingAlgorithm::NotifyHelper, this);
             }
           else
             {
               m_srsPeriodicityCounter ++;
             }
-
         }
-      else if (m_triggerEvent ==  DELAYED_UPDATE)
+      else if ( conf.event == RealisticBfManager::DELAYED_UPDATE)
         {
           // schedule delayed update
-          Simulator::Schedule (GetSrsToBeamformingDelay (),
-                               &m_helperCallback, this,
-                               m_gNbDevice, m_ueDevice, m_ccId);
+          Simulator::Schedule (conf.updateDelay, &RealisticBeamformingAlgorithm::NotifyHelper , this);
         }
       else
         {
-          NS_FATAL_ERROR ("Unknown trigger event type.");
+          NS_ABORT_MSG ("Unknown trigger event type.");
         }
     }
-  else
-    {
-      // reset symbols per slot counter
-      m_srsSymbolsPerSlotCounter ++;
-      m_maxSrsSinrPerSlot = std::max (srsSinr, m_maxSrsSinrPerSlot);
-    }
+}
+
+void
+RealisticBeamformingAlgorithm::NotifyHelper ()
+{
+  NS_LOG_FUNCTION (this);
+  m_helperCallback (m_gNbDevice, m_ueDevice, m_ccId);
 }
 
 void
@@ -352,9 +329,9 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
   NS_LOG_DEBUG ("Calculate the estimation of the long term component with sAntenna: " << sAntenna << " uAntenna: " << uAntenna);
   ThreeGppAntennaArrayModel::ComplexVector estimatedlongTerm;
 
-  NS_ABORT_IF (m_lastSrsSinrPerSlot == 0);
+  NS_ABORT_IF (m_maxSrsSinrPerSlot == 0);
 
-  double varError = 1 / (m_lastSrsSinrPerSlot); // SINR the SINR from UL SRS reception
+  double varError = 1 / (m_maxSrsSinrPerSlot); // SINR the SINR from UL SRS reception
   uint8_t numCluster = static_cast<uint8_t> (channelMatrix->m_channel[0][0].size ());
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
@@ -377,13 +354,5 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
     }
   return estimatedlongTerm;
 }
-
-
-void
-RealisticBeamformingAlgorithm::SetSrsSinr (double sinrSrs)
-{
-  m_lastRerportedSrsSinr = sinrSrs;
-}
-
 
 } // end of namespace ns-3

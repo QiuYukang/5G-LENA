@@ -96,6 +96,7 @@ def build(bld):
         'model/lena-error-model.cc',
         'model/nr-mac-scheduler-srs-default.cc',
         'model/nr-ue-power-control.cc',
+        'model/realistic-bf-manager.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('nr')
@@ -221,6 +222,7 @@ def build(bld):
         'model/nr-mac-scheduler-srs.h',
         'model/nr-mac-scheduler-srs-default.h',
         'model/nr-ue-power-control.h',
+        'model/realistic-bf-manager.h'
         ]
 
     if bld.env.ENABLE_EXAMPLES:

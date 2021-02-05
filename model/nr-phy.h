@@ -165,11 +165,12 @@ public:
 
   /**
    * \brief Install the antenna in the PHY
+   * \param beamManager BeamManager instance of this PHY
    * \param antenna pointer to the antenna model
    *
    * Usually called by the helper. It will install a new BeamManager object.
    */
-  void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
+  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<ThreeGppAntennaArrayModel> &antenna);
 
   // Note: Returning a BeamManger, it means that someone outside this class
   // can change the beamforming vector, BUT the phy will not learn it.
@@ -596,6 +597,7 @@ protected:
 
   uint32_t m_raPreambleId {0}; //!< Preamble ID
   Ptr<BeamManager> m_beamManager; //!< Pointer to the beam manager object
+  ObjectFactory m_beamManagerFactory; //!< Beam manager factory
 
   std::list <Ptr<NrControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 

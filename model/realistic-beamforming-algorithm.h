@@ -29,14 +29,17 @@
 #include <ns3/multi-model-spectrum-channel.h>
 #include "nr-spectrum-phy.h"
 #include "ns3/three-gpp-channel-model.h"
+#include "realistic-bf-manager.h"
+#include "nr-ue-net-device.h"
+#include "nr-gnb-net-device.h"
+//#include <ns3/nr-realistic-beamforming-test.h>
 
 namespace ns3 {
 
 class SpectrumModel;
 class SpectrumValue;
-class NrGnbNetDevice;
-class NrUeNetDevice;
 class RealisticBeamformingHelper;
+class NrRealisticBeamformingTestCase;
 
 /**
  * \ingroup gnb-phy
@@ -63,15 +66,16 @@ class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
 {
 
   friend RealisticBeamformingHelper;
+  friend NrRealisticBeamformingTestCase;
 
 public:
 
-  enum TriggerEvent
+  struct TriggerEventConf
   {
-    SRS_COUNT,
-    DELAYED_UPDATE
+    RealisticBfManager::TriggerEvent event;
+    uint16_t updatePeriodicity;
+    Time updateDelay;
   };
-
 
   /**
    * \brief constructor
@@ -121,42 +125,11 @@ public:
   void SetBeamSearchAngleStep (double beamSearchAngleStep);
 
   /**
-   * \brief Sets the beamforming update trigger event, trigger event type
-   * is one for all the nodes
-   * \param triggerEvent triggerEvent type
-   */
-  void SetTriggerEvent (RealisticBeamformingAlgorithm::TriggerEvent triggerEvent);
-  /**
-   * \return Returns the trigger event type
-   */
-  RealisticBeamformingAlgorithm::TriggerEvent GetTriggerEvent () const;
-
-  /**
-   * \brief Sets the periodicity of the beamforming update in the number of the
-   * SRS SINR reports
-   */
-  void SetSrsCountPeriodicity (uint16_t periodicity);
-
-  /**
-   * \returns Gets the periodicity in the number of SRS SINR reports
-   */
-  uint16_t GetSrsCountPeriodicity () const;
-  /**
-   * \brief Sets the delay after the SRS SINR report reception and triggering of the
-   * beamforming update
-   * \param delay the delay after reception of SRS SINR
-   */
-  void SetSrsToBeamformingDelay (Time delay);
-  /**
-   * \return returns the delay after sSRS SINR report and beamforming
-   */
-  Time GetSrsToBeamformingDelay () const;
-  /**
    * \brief Saves SRS SINR report for
    * \param srsSinr
    * \param rnti
    */
-  void SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr);
+  void NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr);
 
   /**
    * \brief RunTask callback will be triggered when the event for updating the beamforming vectors occurs
@@ -165,6 +138,12 @@ public:
 
 
 private:
+
+  uint8_t GetSymbolsPerSlot ();
+
+  RealisticBeamformingAlgorithm::TriggerEventConf GetTriggerEventConf ();
+
+  void NotifyHelper ();
 
   /*
    * \brief Sets RealisticBeamformingHelperCallback that will be notified when it is necessary to update
@@ -202,31 +181,25 @@ private:
 
   // attribute members, configuration variables
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
-  uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
-  Time m_srsToBeamformingDelay {Seconds (0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
-  TriggerEvent m_triggerEvent; //!< Defines what will be the trigger event for the update of the beamforming vectors
-  uint8_t m_srsSymbolsPerSlot {0}; //!< Number of SRS symbols per slot configured for UE
 
   //variable members, counters, and saving values
-  Time m_lastTimeUpdated {0}; //!< last SRS report time
   double m_maxSrsSinrPerSlot {0}; //!< maximum SRS SINR per slot in Watts, e.g. if there are 4 SRS symbols per UE, this value will represent the maximum
-  double m_lastSrsSinrPerSlot {0}; //!< value that is being updated upon reaching the last SRS symbol
-  uint8_t m_srsSymbolsPerSlotCounter {0}; //!< counter that gets reset after reacing the number of symbols per SRS transmission
+  uint8_t m_srsSymbolsCounter {0}; //!< counter that gets reset after reacing the number of symbols per SRS transmission
   uint16_t m_srsPeriodicityCounter {0}; // counter of SRS reports between consecutive beamforming updates, this counter is incremented once the counter m_srsSymbolsPerSlotCounter
 
   // random member variable, needed for algorithm calculation
   Ptr<NormalRandomVariable> m_normalRandomVariable; //!< The random variable used for the estimation of the error
 
-  RealisticBfHelperCallback m_helperCallback; //!< When it is necessary to update the beamforming vectors for this pair of devices, \
-                                                   the helper will be notified through this callback
+  RealisticBfHelperCallback m_helperCallback; //!< When it is necessary to update the beamforming vectors for this pair of devices,
+                                                   //the helper will be notified through this callback
 
   /*
    * \brief Parameters needed to pass to helper once that the helpers callback functions is being called
    */
-
-  Ptr<NrGnbNetDevice>& m_gNbDevice; //!< pointer to gNB device
-  Ptr<NrUeNetDevice>& m_ueDevice;  //!< pointer to UE device
+  Ptr<NrGnbNetDevice> m_gNbDevice; //!< pointer to gNB device
+  Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device
   uint8_t m_ccId; //!< ccID index
+  uint16_t m_rnti; //!< UE RNTI for which will be used this algorithm instance
 
 };
 

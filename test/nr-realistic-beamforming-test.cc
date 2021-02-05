@@ -26,7 +26,7 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 
-using namespace ns3;
+namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("NrRealisticBeamformingTest");
 
@@ -205,7 +205,10 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   Ptr<RealisticBeamformingAlgorithm> realisticBeamforming = CreateObject<RealisticBeamformingAlgorithm>();
                   BeamformingVector realisticGnbBfv1;
                   BeamformingVector realisticUeBfv1;
-                  realisticBeamforming->SetSrsSinr (sinrSrsHighLineal); //update SINR SRS to a high value
+
+                  // directly update max SINR SRS to a high value, skipping other set functions of the algorithm
+                  realisticBeamforming->m_maxSrsSinrPerSlot = sinrSrsHighLineal;
+
                   realisticBeamforming->GetBeamformingVectors(DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0)),
                                                               DynamicCast<NrUeNetDevice> (ueDevs.Get(0)),
                                                               &realisticGnbBfv1,
@@ -214,7 +217,9 @@ NrRealisticBeamformingTestCase::DoRun (void)
 
                   BeamformingVector realisticGnbBfv2;
                   BeamformingVector realisticUeBfv2;
-                  realisticBeamforming->SetSrsSinr (sinrSrsLowLineal); // update SINR SRS to a new lower value
+                  // directly update max SINR SRS to a new lower value, skipping other set functions of the algorithm,
+                  realisticBeamforming->m_maxSrsSinrPerSlot = sinrSrsLowLineal;
+
                   realisticBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0)),
                                                                DynamicCast<NrUeNetDevice> (ueDevs.Get(0)),
                                                                &realisticGnbBfv2,
@@ -261,3 +266,5 @@ NrRealisticBeamformingTestCase::DoRun (void)
 
 // Do not forget to allocate an instance of this TestSuite
 static NrRealisticBeamformingTestSuite nrTestSuite;
+
+}//namespace ns-3

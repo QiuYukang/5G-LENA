@@ -53,6 +53,20 @@ class NrUePhy;
  * component carrier identified by cellId.
  *
  */
+
+/**
+ * \brief Calculate the Cantor function for two unsigned int
+ * \param x1 first value max value 65535
+ * \param x2 second value max value 65535
+ * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
+ */
+static constexpr uint32_t Cantor (uint32_t x1, uint32_t x2)
+{
+  return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
+}
+
+
+
 class RealisticBeamformingHelper : public BeamformingHelperBase
 {
 public:
@@ -93,8 +107,23 @@ public:
 
 private:
 
+
+  virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
+                                      const Ptr<NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
+
+  typedef std::pair< Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > BfDevicePair;
+
+  struct NodePairHash{
+    size_t operator() (const BfDevicePair &x) const
+    {
+      return std::hash<uint32_t>()(Cantor (x.first->GetNode()->GetId (), x.second->GetNode()->GetId()));
+    }
+  };
   typedef std::unordered_map <uint16_t, Ptr<RealisticBeamformingAlgorithm> > CcIdToBeamformingAlgorithm;
-  typedef std::unordered_map <std::pair< Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice>>, CcIdToBeamformingAlgorithm  > DevicePairToAlgorithmsPerCcId;
+  typedef std::unordered_map <BfDevicePair, CcIdToBeamformingAlgorithm, NodePairHash > DevicePairToAlgorithmsPerCcId;
   DevicePairToAlgorithmsPerCcId m_devicePairToAlgorithmsPerCcId;
 };
 

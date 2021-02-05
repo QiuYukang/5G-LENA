@@ -148,7 +148,7 @@ public:
    * parameters configuration
    */
   void Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
-                  RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
+                  RealisticBfManager::TriggerEvent realTriggerEvent,
                   uint32_t idealPeriodicity, uint64_t rngRun, uint16_t numerology,
                   std::string gnbAntenna, std::string ueAntenna,
                   std::string scenario, double uePower,
@@ -244,7 +244,7 @@ private:
   double m_deltaY {1};
   BeamformingMethod m_beamforming {IDEAL};
   uint32_t m_rngRun {1};
-  RealisticBeamformingHelper::TriggerEvent m_realTriggerEvent {RealisticBeamformingHelper::SRS_COUNT};
+  RealisticBfManager::TriggerEvent m_realTriggerEvent {RealisticBfManager::SRS_COUNT};
   uint32_t m_idealPeriodicity {0}; // ideal beamforming periodicity in the number of milli seconds
   uint16_t m_numerology {0};
   std::string m_gnbAntennaModel {"Iso"};
@@ -590,7 +590,7 @@ CttcRealisticBeamforming::PrintResultsToFiles ()
 
 void
 CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
-                                     RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
+                                     RealisticBfManager::TriggerEvent realTriggerEvent,
                                      uint32_t idealPeriodicity, uint64_t rngRun,
                                      uint16_t numerology,
                                      std::string gNbAntennaModel, std::string ueAntennaModel,
@@ -732,8 +732,11 @@ CttcRealisticBeamforming::RunSimulation ()
   else if (m_beamforming == CttcRealisticBeamforming::REALISTIC)
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
-      beamformingHelper->SetAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
       beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId());
+      // when realistic beamforming used, also realistic beam manager should be set
+      // TODO, move this to NrHelper, so user sets BeamformingMethod calling NrHelper
+      nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId());
+      nrHelper->SetGnbBeamManagerAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
     }
   else
     {
@@ -883,7 +886,7 @@ main (int argc, char *argv[])
   std::string tableName = "results";
 
   CttcRealisticBeamforming::BeamformingMethod beamformingType;
-  RealisticBeamformingHelper::TriggerEvent triggerEventEnum = RealisticBeamformingHelper::SRS_COUNT;
+  RealisticBfManager::TriggerEvent triggerEventEnum = RealisticBfManager::SRS_COUNT;
   CommandLine cmd;
 
   cmd.AddValue ("deltaX",
@@ -949,11 +952,11 @@ main (int argc, char *argv[])
 
       if (realTriggerEvent == "SrsCount")
         {
-          triggerEventEnum = RealisticBeamformingHelper::SRS_COUNT;
+          triggerEventEnum = RealisticBfManager::SRS_COUNT;
         }
       else if (realTriggerEvent == "DelayedUpdate")
         {
-          triggerEventEnum = RealisticBeamformingHelper::DELAYED_UPDATE;
+          triggerEventEnum = RealisticBfManager::DELAYED_UPDATE;
         }
       else
         {
