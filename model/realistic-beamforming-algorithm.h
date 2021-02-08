@@ -82,10 +82,15 @@ public:
    */
   RealisticBeamformingAlgorithm ();
 
-  /**
-   * \brief constructor
+  /*
+   * \brief It is necessary to call this function in order to have
+   * initialized a pair of gNB and UE devices for which will be
+   * called this algorithm. And also the ccId.
+   * \param gNbDevice gNB instance of devicePair for which will work this algorithm
+   * \param ueDevice UE instance of devicePair for which will work this algorithm
+   * \param ccId CC ID of the PHY of gNB/UE for which will work this algorithm
    */
-  RealisticBeamformingAlgorithm (Ptr<NrGnbNetDevice>& gNbDevice, Ptr<NrUeNetDevice>& ueDevice, uint8_t);
+  void Install (const Ptr<NrGnbNetDevice>& gNbDevice, const Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId);
 
   /**
    * \brief destructor
@@ -134,7 +139,7 @@ public:
   /**
    * \brief RunTask callback will be triggered when the event for updating the beamforming vectors occurs
    */
-  typedef Callback<void, const Ptr<NrGnbNetDevice>&, Ptr<NrUeNetDevice>&, uint8_t> RealisticBfHelperCallback;
+  typedef Callback<void, const Ptr<NrGnbNetDevice>&, const Ptr<NrUeNetDevice>&, uint8_t> RealisticBfHelperCallback;
 
 
 private:
@@ -199,7 +204,6 @@ private:
   Ptr<NrGnbNetDevice> m_gNbDevice; //!< pointer to gNB device
   Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device
   uint8_t m_ccId; //!< ccID index
-  uint16_t m_rnti; //!< UE RNTI for which will be used this algorithm instance
 
 };
 

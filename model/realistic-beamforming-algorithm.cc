@@ -46,16 +46,13 @@ RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
   m_ccId = UINT8_MAX;
 }
 
-/**
- * \brief constructor
- */
-RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm (Ptr<NrGnbNetDevice>& gNbDevice, Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId)
+void
+RealisticBeamformingAlgorithm::Install (const Ptr<NrGnbNetDevice>& gNbDevice, const Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId)
 {
-  m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
+  NS_LOG_FUNCTION (this);
   m_gNbDevice = gNbDevice;
   m_ueDevice = ueDevice;
   m_ccId = ccId;
-  m_rnti = m_ueDevice->GetRrc()->GetRnti();
 }
 
 int64_t
@@ -140,9 +137,10 @@ void
 RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_UNLESS (m_ueDevice && m_gNbDevice, "Function install must be called to install gNB and UE pair, and set ccId.");
 
   //before anything check if RNTI corresponds to RNTI of UE of this algorithm instance
-  if (m_rnti != rnti)
+  if (m_ueDevice->GetRrc ()->GetRnti () != rnti)
     {
       NS_LOG_INFO ("Ignoring SRS report. Not for me. Report for RNTI:"<< rnti << ", and my RNTI is:"<< m_ueDevice->GetRrc ()->GetRnti ());
       return;
@@ -159,24 +157,26 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
     {
       // reset symbols per slot counter
       m_srsSymbolsCounter = 0;
+
       TriggerEventConf conf = GetTriggerEventConf();
 
       if ( conf.event == RealisticBfManager::SRS_COUNT)
         {
+          // it is time to update SRS periodicity counter
+          m_srsPeriodicityCounter++;
           // reset or increase SRS periodicity counter
           if (m_srsPeriodicityCounter == conf.updatePeriodicity )
             {
-              m_srsPeriodicityCounter = 0;
+              NS_LOG_INFO ("Update periodicity for updating BF reached. Time to trigger realistic BF helper callback.");
               // it is time to trigger helpers callback
               Simulator::ScheduleNow (&RealisticBeamformingAlgorithm::NotifyHelper, this);
-            }
-          else
-            {
-              m_srsPeriodicityCounter ++;
+              // and reset the counter
+              m_srsPeriodicityCounter = 0;
             }
         }
       else if ( conf.event == RealisticBfManager::DELAYED_UPDATE)
         {
+          NS_LOG_INFO ("Received all SRS symbols per current slot. Scheduler realistic BF helper callback");
           // schedule delayed update
           Simulator::Schedule (conf.updateDelay, &RealisticBeamformingAlgorithm::NotifyHelper , this);
         }
