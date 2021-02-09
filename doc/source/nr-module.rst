@@ -433,19 +433,19 @@ All methods are, as of today, ideal in the sense that no physical resources are 
 Uplink power control
 ====================
 
-Closed Loop Uplink Power Control (CLPC) allows an eNB to adjust the transmission power 
+Uplink Power Control (ULPC) allows an eNB to adjust the transmission power 
 of an UE, and as such it plays a critical role in reducing inter-cell Interference. 
-In LTE and NR, the standardized  procedure can have two forms: open and closed loop, 
+In LTE and NR, the standardized procedure can have two forms: open and closed loop, 
 where closed loop relies on open loop functionality, and extends it with control 
-coming from eNB. Open loop can be entirely be implemented at UE side, while the 
-closed loop depends on the algorithm and logic implemented at eNB. 
+coming from eNB. Open loop can be entirely implemented at UE side, while the 
+closed loop depends on the algorithm and the logic implemented at eNB. 
 Open loop in general is aimed to compensate the slow variations of the received 
 signal (i.e., path loss and shadowing), while CLPC is used to further adjust 
 the UEs’ transmission power so as to optimize the overall system performance. 
-CLCP determines a power for different types of transmissions, such as, PUSCH, 
+ULPC determines a power for different types of transmissions, such as, PUSCH, 
 PUCCH, and SRS.
 
-As a starting point for the development of CLPC feature for LTE/NR we have used 
+As a starting point for the development of ULPC feature for LTE/NR we have used 
 implementation that was already available in ns-3 simulator in LTE module 
 (see the full description here: ns-3 LTE Uplink Power Control Design [lte-ulpc]_. 
 However, this class only supports PUSCH and SRS power control, while there is 
@@ -454,49 +454,250 @@ with realistic uplink transmissions, including PUCCH, CLPC for PUCCH is a
 mandatory feature. Whatsoever in ns-3 LTE module, this was not considered 
 important since in ns-3 LTE models all uplink control messages are modeled 
 as ideal (do not consume resources, and hence no error model). Moreover, 
-ns-3 LTE CLPC implements only TS 36.213, which is limited only to a specific 
+ns-3 LTE ULPC implements only TS 36.213, which is limited only to a specific 
 set of frequencies. A newer TS 38.213 extends TS 36.213 and allows its 
-application in a wide range of frequencies. In our extended model, 
+application in a wider range of frequencies. In our extended model, 
 we have added support for an independent reporting of Transmit Power Command 
 (TPC) for PUSCH/SRS and PUCCH.
 
-ns-3 LTE power control feature is implemented in LteUePowerControl class 
-which computes and updates the power levels for PUSCH and Sounding Reference 
-Signals (SRS) transmissions. It implements open and closed loop mode. 
+ULPC is implemented in NrUePowerControl class which computes and updates 
+the power levels for PUSCH, Sounding Reference 
+Signals (SRS) transmissions and PUCCH. It supports open and closed loop modes. 
 According the open loop the UE transmission power depends on the estimation 
 of the downlink path loss and channel configuration. On the other hand, 
-closed loop, additionally allows the eNB to control the UE transmission 
+closed loop, additionally allows the gNB to control the UE transmission 
 power by means of explicit TPC included in the Downlink Control Information 
-(DCI). In closed Loop,  two modes are available: the absolute mode, according 
+(DCI). In closed Loop, two modes are available: the absolute mode, according 
 to which the txPower is computed with absolute TPC values, and the accumulation 
 mode, which instead computes the txPower using accumulated TPC values. When 
 the MAC scheduler creates DCI messages, it calls the GetTpc function to ask 
 for TPC values that should be sent to each UE. 
 
-Regarding design decisions, we have started from LteUePowerControl in order 
-to maximize possible re-utilization of the code, but the most of the parts 
-had to be rewritten. It is finally observed that NrUePowerControl should not 
-inherit ns-3 LteUePowerControl class since it needs to redefine and extend 
-all of its functionalities. For example, comparing to LTE power control it 
-needs to support the following:
+NrUePowerControl is inspired by LteUePowerControl, but most of the parts 
+had to be extended or redefined. Comparing to LteUePowerControl, the 
+following featureas are added:
 
 - PUCCH power control,
 - low bandwidth and enhanced coverage BL/EC devices,
 - independent TPC reporting for PUSCH and PUCCH,
 - TS 38.213 technical specification for NR uplink power control (PUSCH, PUCCH, SRS power control)
-- upgrade the API to reduce time/memory footprint that could affect significantly 
-large scale simulations. 
+- upgrade the API to reduce time/memory footprint that could affect significantly large scale simulations.
+ 
 
 Moreover, NrUePowerControl includes a full implementation of LTE and NR 
 uplink power control functionalities, by allowing a user to specify in 
 which mode the power control will execute: LTE/LAA (TS 36.213) or NR (and TS 38.213) 
-uplink power control (i.e. by using TSpec attribute of NrUePowerControl). 
+uplink power control (i.e., by using TSpec attribute of NrUePowerControl). 
 As a results, NrUePowerControl supports the following:
 
 - PUSCH power control implementation for LTE and NR
 - PUCCH power control implementation for LTE and NR
 - SRS power control implementation for LTE and NR
 - CLPC implementation (accumulation and absolute modes)
+
+
+
+
+
+**LTE PUSCH power control**
+
+Formula for LTE PUSCH is provided in Section 5.1.1.1 of TS 36.213. 
+There are two types of formulas, for simultaneous transmission of PUSCH and PUCCH, 
+and separated. Currently we have implemented the option when the 
+transmissions of PUCCH and PUSCH are not simultaneous, since this is 
+the current model design of both LTE (LENA v1) and NR (LENA v2) modules. 
+The following formula defines the LTE PUSCH power control that we implemented 
+in NrUePowerControl class:
+
+.. _fig-uplc-1:
+
+.. figure:: figures/ulpc/pusch-1.*
+   :align: center
+   :scale: 35 %
+
+
+* :math:`P_{CMAX,c}(i)` is the UE configured maximum output transmit power defined as defined in 3GPP 36.101. (Table 6.2.2-1) 
+in a subframe :math:`i` for the serving cell :math:`c`, and  default value for :math:`P_{CMAX,c}(i)` is 23 dBm. 
+ 
+* :math:`M_{PUSCH,c}(i)` is the bandwidth of the PUSCH resource assignment expressed in number 
+   of resource blocks used in a subframe :math:`i` and serving cell :math:`c`.
+
+* :math:`P_{O\_PUSCH,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,c}(j)`
+   provided from higher layers for :math:`j={0,1}` and a component :math:`P_{O\_UE\_PUSCH,c}(j)` provided by higher 
+   layers for :math:`j={0,1}` for serving cell :math:`c`. SIB2 message needs to be extended to carry these two 
+   components, but currently they can be set via attribute system::
+   
+      Config::SetDefault ("ns3::NrUePowerControl::PoNominalPusch", IntegerValue (-90));
+      Config::SetDefault ("ns3::NrUePowerControl::PoUePusch", IntegerValue (7));
+   
+* :math:`\alpha_{c} (j)` is a 3-bit parameter provided by higher layers for serving cell :math:`c`. 
+   For :math:`j=0,1`, :math:`\alpha_c \in \left \{ 0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 \right \}` 
+   For :math:`j=2`, :math:`\alpha_{c} (j) = 1`. This parameter is configurable by attribute system::
+
+      Config::SetDefault ("ns3::NrUePowerControl::Alpha", DoubleValue (0.8));
+
+
+* :math:`PL_{c}` is the downlink pathloss estimate calculated at the UE for the serving cell :math:`c` in dB 
+   and :math:`PL_{c} = P_{RS} – P_{RSRP}`, where :math:`P_{RS}` is provided by higher layers. 
+   P_{RSRP} is filtered by higher layers. :math:`P_{RS}` is provided in SIB2 message.
+
+* :math:`\Delta_{TF,c}(i)` is calculated based on :math:`K_{s}` which is provided by the 
+   higher layers for each serving cell. When :math:`K_{s} = 1.25` then :math:`\Delta_{TF,c}(i)` 
+   is calculated by using the following formula:
+    
+    .. :math::
+    
+        \Delta_{TF,c}(i) = 10\log_{10}((2^{BPRE\cdot K_s}-1)\cdot\beta_{offset}^{PUSCH} ) 
+  
+  On the other hand, when :math:`K_{s} = 0`, :math:`\Delta_{TF,c}(i) = 0`. 
+  Currently, the latter option is set by default, and alternatively, the value could be dynamically 
+  set through set function according to the previously mentioned formula and attribute settings.
+
+* :math:`f_{c}(i)` is component of Closed Loop Power Control. It is the current PUSCH power control
+   adjustment state for serving cell :math:`c`. 
+
+
+   If Accumulation Mode is enabled :math:`f_{c}(i)` is given by:
+
+      .. math::
+
+         f_{c}(i) = f_{c}(i-1) + \delta_{PUSCH,c}(i - K_{PUSCH})
+
+   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included 
+   in PDCCH with DCI; :math:`\delta_{PUSCH,c}(i - K_{PUSCH})` was signalled on PDCCH/EPDCCH with DCI for
+   serving cell :math:`c` on subframe :math:`(i - K_{PUSCH})`; :math:`K_{PUSCH} = 4` for FDD.
+
+   If UE has reached :math:`P_{CMAX,c}(i)` for serving cell :math:`c`, positive TPC commands for serving cell
+   :math:`c` are not accumulated. If UE has reached minimum power, negative TPC commands are not accumulated.
+   Minimum UE power is defined in TS36.101 section 6.2.3. Default value is -40 dBm.
+
+   If Accumulation Mode is not enabled :math:`f_{c}(i)` is given by:
+      
+      .. math::
+
+         f_{c}(i) = \delta_{PUSCH,c}(i - K_{PUSCH})
+
+   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included 
+   in PDCCH with DCI; :math:`\delta_{PUSCH,c}(i - K_{PUSCH})` was signalled on PDCCH/EPDCCH with DCI for
+   serving cell :math:`c` on subframe :math:`(i - K_{PUSCH})`; :math:`K_{PUSCH} = 4` for FDD.
+
+   Mapping of TPC Command Field in DCI format 0/3/4 to absolute and accumulated :math:`\delta_{PUSCH,c}`
+   values is defined in TS36.231 section 5.1.1.1 Table 5.1.1.1-2.
+
+
+
+
+
+**NR PUSCH power control**
+
+NR PUSCH formula is provided in Section 7.1.1 of TS 38.213. This formula is analog to the LTE PUSCH 
+power control, except that is more generic and that the TPC accumulation state is calculated differently. 
+NR PUSCH formula depends of the numerology (0 - 4, 0 for LTE) and this makes the formula more generic, 
+and flexible for different subcarrier spacing configurations:
+
+.. _fig-uplc-2:
+
+.. figure:: figures/ulpc/pusch_38213.*
+   :align: center
+   :scale: 35 %
+   
+   
+*  :math:`P_{CMAX,f,c}(i)` is the UE configured maximum output transmit power defined in [8-1, TS 38.101-1], [8-2, TS38.101-2] and 
+   [TS38.101-3] for carrier :math:`f` for serving cell :math:`c` in PUSCH transmission occasion :math:`i`. 
+   Default value for :math:`P_{CMAX,f,c}(i)` is 23 dBm.
+   
+*  :math:`P_{O\_PUSCH,b,f,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,f,c}(j)` provided 
+   from higher layers and a component :math:`P_{O\_UE\_PUSCH,b,f,c}(j)` provided by higher layers for serving cell math:`C` where 
+   :math:j \in \left \{ 0, 1, ..., J-1 \right \}`. 
+   These attributes can be set in the same way as for TS 36.213 PUSCH per each bandwidth part independently.
+   
+*  :math:`M_{RB,b,f,c}^{PUSCH}(i)` is the bandwidth of the PUSCH resource assignment expressed in number 
+   of resource blocks for PUSCH transmission occasion :math:`i` on active UL BWP :math:`b` of carrier :math:`f` and 
+   serving cell :math:`c`. :math:`\mu` is numerology used for SCS configuration defined in [TS 38.211].
+   
+*  :math:`\alpha_{b,f,c} (j)` is a 3-bit parameter provided by higher layers. Currently, allowed values 
+   for this parameters are the same as for TS 36.213 :math:`\alpha_{c} (j)`, and can be configured in 
+   the same way (See previous section).
+   
+*  :math:`PL_{b,f,c}` is the downlink pathloss estimate in dB that is calculated at the UE for the active DL BWP :math:`b` if 
+   carrier :math:`f` and serving cell :math:`c`. The calculation of pathloss is the same as explained in the previous section.
+   
+*  :math:`\Delta_{TF,b,f,c}(i)` is calculated in the same way as in previous section, i.e., 
+   :math:`K_{s} = 1.25` then :math:`\Delta_{TF,b,f, c}(i)` is calculated in the following way:  
+
+    .. :math::
+    
+        \Delta_{TF,b,f,c}(i) = 10\log_{10}((2^{BPRE\cdot K_s}-1)\cdot\beta_{offset}^{PUSCH})
+         
+   Otherwise, when :math:`\Delta_{TF,b,f,c}(i)`, then :math:`\Delta_{TF,b,f, c}(i) = 0`. :math:`\Delta_{TF,b,f,c}(i)` 
+   can be dynamically set through the set functio of NrUePowerControl.
+   
+
+*  :math:`f_{b,f,c}(i,l)` is component of Closed Loop Power Control. It is the PUSCH power control adjustment state 
+   :math:`l` for active UL BWP :math:`b` of carrier :math:`f` of serving cell :math:`c` and PUSCH transmission 
+   occasion :math:`i`. 
+
+
+   If Accumulation Mode is enabled :math:`f_{b,f,c}(i,l)` is given by:
+
+      .. math::
+
+         f_{b,f,c}(i,l) = f_{b,f,c}(i-i_0,l) + \delta_{PUSCH,c}(i - K_{PUSCH})
+
+   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included 
+   in PDCCH with DCI; :math:`\delta_{PUSCH,c}(i - K_{PUSCH})` was signalled on PDCCH/EPDCCH with DCI for
+   serving cell :math:`c` on subframe :math:`(i - K_{PUSCH})`; :math:`K_{PUSCH} = 4` for FDD.
+
+   If UE has reached :math:`P_{CMAX,c}(i)` for serving cell :math:`c`, positive TPC commands for serving cell
+   :math:`c` are not accumulated. If UE has reached minimum power, negative TPC commands are not accumulated.
+   Minimum UE power is defined in TS36.101 section 6.2.3. Default value is -40 dBm.
+
+   If Accumulation Mode is not enabled :math:`f_{c}(i)` is given by:
+      
+   .. _fig-ulpc-3:
+
+   .. figure:: figures/ulpc/fc_38213.*
+      :align: center
+      :scale: 35 %
+   
+   :math:`\sum_{m=0}^{C(D_i)-1} \delta_{PUSCH,b,f,c}` is a sum of TPC command values in a set D_i of TPC 
+   command values with cardinality math:`C(D_i)` that the UE receives between :math:`K_{PUSCH}(i-i_0) -1 ` 
+   symbols before PUSCH transmission occasion :math:`i-i_0` and :math:`K_{PUSCH}(i)` symbols before PUSCH 
+   transmission occasion :math:`i` on active UL BWP :math:`b` of carrier :math:`f` and serving cell :math:`c` 
+   for PUSCH power control adjustment state :math:`l`, where :math:`i_0` is the smallest integer for which 
+   :math:`K_{PUSCH}(i-i_0)` symbols before PUSCH transmission occasion :math:`i-i_0` is earlier than 
+   :math:`K_{PUSCH}(i)` symbols before PUSCH transmission occasion :math:`i`. 
+   This definition is quite different from the one that we have seen in TS 36.213 PUSCH, 
+   hence this is probably the component in formula that could make an important difference in power adjustment 
+   when choosing among TS 36.213 and TS 38.213 formula in NrUePowerControl class. 
+   The different wrt to TS 36.213 formula for accumulation is that this formula is being calculated per 
+   transmission occasion, while accumulation component in TS 38.213 is being constantly updated as 
+   TPC commands arrive regardless when the transmission occasion event happens.
+   
+   On the other hand, if accumulation mode is not enabled :math:`f_{b,f,c}` is given by the following 
+   expression:
+   
+   .. math::
+
+      f_{b,f,c}(i,l) = \delta_{PUSCH,b,f,c}(i,l), 
+      
+   where :math:`\delta_{PUSCH,b,f,c}(i,l)` is the absolute values that is given in Table 7.1.1-1 of TS 38.213. 
+   The following table illustrates which absolute and accumulated :math:`\delta_{PUSCH,b,f,c}` corresponds to 
+   each TPC command.
+  
+.. table:: TPC commands
+
+   +---------------+-------------------------------------------+---------------------------------------+
+   | TPC command   |  Accumulated :math:`\delta_{PUSCH,b,f,c}` | Absolute :math:`\delta_{PUSCH,b,f,c}` |
+   +===============+===========================================+=======================================+
+   |       0       |                   -1                      |                 -4                    |
+   +---------------+-------------------------------------------+---------------------------------------+
+   |       1       |                    0                      |                 -1                    |
+   +---------------+-------------------------------------------+---------------------------------------+
+   |       2       |                    1                      |                  1                    |
+   +---------------+-------------------------------------------+---------------------------------------+
+   |       3       |                    3                      |                  4                    | 
+   +---------------+-------------------------------------------+---------------------------------------+
 
 
 HARQ
