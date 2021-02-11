@@ -20,7 +20,6 @@
 #ifndef NR_RADIO_ENVIRONMENT_MAP_HELPER_H
 #define NR_RADIO_ENVIRONMENT_MAP_HELPER_H
 
-#include <ns3/object.h>
 #include <ns3/object-factory.h>
 #include "ns3/simple-net-device.h"
 #include "ns3/net-device-container.h"
@@ -30,6 +29,7 @@
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-channel-model.h>
 #include <fstream>
+#include <ns3/mobility-helper.h>
 
 namespace ns3 {
 
@@ -37,6 +37,7 @@ class Node;
 class NetDevice;
 class SpectrumChannel;
 class MobilityModel;
+class MobilityHelper;
 class ChannelConditionModel;
 class ThreeGppAntennaArrayModel;
 

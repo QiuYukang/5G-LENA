@@ -21,16 +21,17 @@
 #include <ns3/double.h>
 #include <ns3/angles.h>
 #include <ns3/uinteger.h>
-#include <ns3/node.h>
+#include <ns3/mobility-model.h>
 #include "nr-ue-phy.h"
 #include "nr-gnb-phy.h"
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
 #include <ns3/nr-spectrum-value-helper.h>
-#include <ns3/nr-mac-scheduler-ns3.h>
+#include "nr-mac-scheduler-ns3.h"
 #include <ns3/random-variable-stream.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/lte-ue-rrc.h>
+#include <ns3/node.h>
 
 namespace ns3{
 
@@ -83,7 +84,7 @@ RealisticBeamformingAlgorithm::GetTypeId (void)
 }
 
 uint8_t
-RealisticBeamformingAlgorithm::GetSymbolsPerSlot ()
+RealisticBeamformingAlgorithm::GetSrsSymbolsPerSlot ()
 {
   NS_LOG_FUNCTION (this);
   Ptr<NrMacScheduler> sched = m_gNbDevice ->GetScheduler (m_ccId);
@@ -123,17 +124,6 @@ RealisticBeamformingAlgorithm::GetBeamSearchAngleStep () const
 }
 
 void
-RealisticBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const NrGnbNetDevice>& gnbDev,
-                                                 const Ptr<const NrUeNetDevice>& ueDev,
-                                                 BeamformingVector* gnbBfv,
-                                                 BeamformingVector* ueBfv,
-                                                 uint16_t ccId) const
-{
-  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
-}
-
-
-void
 RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
@@ -153,7 +143,7 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
   m_maxSrsSinrPerSlot = (m_srsSymbolsCounter > 1) ? std::max(srsSinr, m_maxSrsSinrPerSlot):srsSinr;
 
   // if we reached the last SRS symbol, check whether some event should be triggered
-  if (m_srsSymbolsCounter == GetSymbolsPerSlot ())
+  if (m_srsSymbolsCounter == GetSrsSymbolsPerSlot ())
     {
       // reset symbols per slot counter
       m_srsSymbolsCounter = 0;
@@ -201,11 +191,11 @@ RealisticBeamformingAlgorithm::SetTriggerCallback (RealisticBfHelperCallback cal
 }
 
 void
-RealisticBeamformingAlgorithm::DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                              const Ptr<const NrUeNetDevice>& ueDev,
-                                              BeamformingVector* gnbBfv,
-                                              BeamformingVector* ueBfv,
-                                              uint16_t ccId) const
+RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                                      BeamformingVector* gnbBfv,
+                                                      BeamformingVector* ueBfv,
+                                                      uint16_t ccId) const
 {
   NS_ABORT_MSG_IF (gnbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
   double distance = gnbDev->GetNode ()->GetObject<MobilityModel> ()->GetDistanceFrom (ueDev->GetNode ()->GetObject<MobilityModel> ());

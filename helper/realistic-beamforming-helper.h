@@ -20,6 +20,7 @@
 #include <ns3/object-factory.h>
 #include "beamforming-helper-base.h"
 #include <ns3/realistic-beamforming-algorithm.h>
+#include <ns3/node.h>
 
 #ifndef SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_

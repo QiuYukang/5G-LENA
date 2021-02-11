@@ -111,11 +111,6 @@ public:
   NrGnbPhy ();
 
   /**
-   * \brief NrGnbPhy real constructor. Start the event loop for the gnb.
-   */
-  NrGnbPhy (Ptr<NrSpectrumPhy>, const Ptr<Node> &);
-
-  /**
    * \brief ~NrGnbPhy
    */
   virtual ~NrGnbPhy () override;

@@ -22,9 +22,7 @@
 
 #include <ns3/object.h>
 #include "beam-manager.h"
-#include "ns3/event-id.h"
 #include <ns3/nstime.h>
-#include <ns3/net-device.h>
 
 namespace ns3 {
 

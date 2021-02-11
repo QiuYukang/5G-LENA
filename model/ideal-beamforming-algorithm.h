@@ -24,8 +24,6 @@
 #include "beam-id.h"
 #include "beamforming-vector.h"
 #include "beamforming-algorithm.h"
-#include <ns3/three-gpp-antenna-array-model.h>
-#include <ns3/mobility-module.h>
 
 namespace ns3 {
 
@@ -89,8 +87,6 @@ public:
    */
   virtual ~CellScanBeamforming () override = default;
 
-protected:
-
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using cell scan method
@@ -99,11 +95,13 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
+
+private:
 
   double m_beamSearchAngleStep {30};
 
@@ -143,8 +141,6 @@ public:
    */
   virtual ~CellScanQuasiOmniBeamforming () override = default;
 
-protected:
-
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using cell scan method at gnbDev and a fixed quasi-omni beamforming vector at UE
@@ -153,11 +149,13 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
+
+private:
 
   double m_beamSearchAngleStep {30};
 
@@ -177,9 +175,6 @@ public:
    */
   static TypeId GetTypeId (void);
 
-
-protected:
-
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the direct path direction
@@ -188,11 +183,11 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
 };
 
 /**
@@ -209,9 +204,6 @@ public:
    */
   static TypeId GetTypeId (void);
 
-
-protected:
-
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the quasi omni beamforming vector for gNB
@@ -221,11 +213,11 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
 
 };
 
@@ -244,9 +236,6 @@ public:
    */
   static TypeId GetTypeId (void);
 
-
-protected:
-
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the direct-path beamforming vector for gNB
@@ -256,18 +245,21 @@ protected:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
 
 };
 
 
 /**
  * \ingroup gnb-phy
- * \brief The OptimalCovMatrixBeamforming class
+ * \brief The OptimalCovMatrixBeamforming class not implemented yet.
+ * TODO The idea was to port one of the initial beamforming methods that
+ * were implemented in NYU/University of Padova mmwave module.
+ * Method is based on a long term covariation matrix.
  */
 class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm
 {
@@ -280,14 +272,20 @@ public:
    */
   static TypeId GetTypeId (void);
 
-
-protected:
-
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using the direct-path beamforming vector for gNB
+   * and quasi-omni beamforming vector for UEs
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
 };
 
 

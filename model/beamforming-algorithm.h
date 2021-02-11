@@ -21,10 +21,7 @@
 #define SRC_NR_MODEL_BEAMFORMING_ALGORITHM_H_
 
 #include <ns3/object.h>
-#include "beam-id.h"
 #include "beamforming-vector.h"
-#include <ns3/three-gpp-antenna-array-model.h>
-#include <ns3/mobility-module.h>
 
 namespace ns3 {
 
@@ -60,29 +57,18 @@ public:
    */
   virtual ~BeamformingAlgorithm ();
 
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const;
-
-private:
-
   /**
-   * \brief Function that generates the beamforming vectors for a pair of
-   * communicating devices
+   * \brief Function that generates the beamforming vectors for a pair of communicating devices
    * \param [in] gnbDev gNb beamforming device
    * \param [in] ueDev UE beamforming device
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const = 0;
-
-
+  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const = 0;
 };
 
 

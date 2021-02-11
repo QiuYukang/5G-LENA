@@ -18,12 +18,9 @@
  */
 
 #include <ns3/object.h>
-#include <ns3/nstime.h>
 #include <ns3/vector.h>
-#include <ns3/net-device.h>
-#include <ns3/net-device-container.h>
-#include <ns3/beamforming-algorithm.h>
-#include "ns3/event-id.h"
+#include <ns3/object-factory.h>
+#include <ns3/beamforming-vector.h>
 
 #ifndef SRC_NR_HELPER_BEAMFORMING_HELPER_BASE_H_
 #define SRC_NR_HELPER_BEAMFORMING_HELPER_BASE_H_
@@ -39,7 +36,7 @@ class NrUeNetDevice;
  * used as the general interface for beamforming helper
  * classes. Currently, there are two beamforming helper classes:
  * `IdealBeamformingHelper` and `RealisticBeamformingHelper`
- * that inherit this base beamforming helper class.s
+ * that inherit this base beamforming helper class
  */
 class BeamformingHelperBase : public Object
 {
@@ -60,22 +57,25 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \brief AddBeamformingTask
-   * \param gNbDev
-   * \param ueDev
+   * \brief Creates a new beamforming task, which means the pair of
+   * devices for which the configured algorithm for updating the
+   * beamforming vectors will be run either periodically or
+   * as specified by the algorithm.
+   * \param gNbDev gNb device
+   * \param ueDev UE device
    */
   virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                    const Ptr<NrUeNetDevice>& ueDev);
 
   /**
-   * \brief SetBeamformingMethod
+   * \brief Set the beamforming method that will be executed each
+   * time when is necessary to update the beamforming algorithms
    * \param beamformingMethod
    */
   virtual void SetBeamformingMethod (const TypeId &beamformingMethod) = 0;
 
   /**
-   * Set an attribute for the <> to be created.
-   *
+   * \brief Set an attribute for the beafmorming algorithm that will be created.
    * \param n the name of the attribute
    * \param v the value of the attribute
    */
@@ -84,7 +84,7 @@ public:
 protected:
 
   /**
-   * \brief The function that runs the beamforming algorithm among the provided gNB and UE
+   * \brief This function runs the beamforming algorithm among the provided gNB and UE
    * device, and for a specified bwp index
    * \param gNbDev a pointer to a gNB device
    * \param ueDev a pointer to a UE device
@@ -92,12 +92,21 @@ protected:
    */
   virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev, const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const;
 
+  /**
+   * \brief Function that will call the configured algorithm for the specified devices and obtain
+   * the beamforming vectors for each of them.
+   * \param gnbDev gNB device
+   * \param ueDev UE device
+   * \param gnbBfv gNB beamforming vector
+   * \param ueBfv UE beamforming vector
+   * \param ccId CC ID
+   */
   virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev, const Ptr<NrUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv, BeamformingVector* ueBfv, uint16_t ccId) const = 0;
 
   std::vector<std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > > m_beamformingTasks; //!< The list of beamforming tasks to be executed
 
-  ObjectFactory m_algorithmFactory;
+  ObjectFactory m_algorithmFactory; //!< Object factory that will be used to create beamforming algorithms
 };
 
 }; //ns3 namespace
