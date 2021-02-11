@@ -649,6 +649,20 @@ public:
    */
   void SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v);
 
+  /*
+   * \brief Sets beam managers attribute.
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetGnbBeamManagerAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set the TypeId of the beam manager
+   * \param typeId the type of the object
+   *
+   */
+  void SetGnbBeamManagerTypeId (const TypeId &typeId);
+
   /**
    * \brief Set the ErrorModel for UL AMC and UE spectrum at the same time
    * \param errorModelTypeId The TypeId of the error model
@@ -784,7 +798,8 @@ private:
   ObjectFactory m_pathlossModelFactory;  //!< Pathloss factory
   ObjectFactory m_gnbDlAmcFactory;       //!< DL AMC factory
   ObjectFactory m_gnbUlAmcFactory;       //!< UL AMC factory
-
+  ObjectFactory m_gnbBeamManagerFactory; //!< gNb Beam manager factory
+  ObjectFactory m_ueBeamManagerFactory;  //!< UE beam manager factory
 
   uint64_t m_imsiCounter {0};    //!< Imsi counter
   uint16_t m_cellIdCounter {1};  //!< CellId Counter

@@ -22,21 +22,18 @@
 
 #include <ns3/object.h>
 #include "beam-id.h"
-#include "beamforming-vector.h"
-#include "beamforming-algorithm.h"
-#include <ns3/three-gpp-antenna-array-model.h>
-#include <ns3/mobility-module.h>
-#include <ns3/multi-model-spectrum-channel.h>
 #include "nr-spectrum-phy.h"
 #include "ns3/three-gpp-channel-model.h"
+#include "realistic-bf-manager.h"
+#include "nr-ue-net-device.h"
+#include "nr-gnb-net-device.h"
 
 namespace ns3 {
 
 class SpectrumModel;
 class SpectrumValue;
-class NrGnbNetDevice;
-class NrUeNetDevice;
-
+class RealisticBeamformingHelper;
+class NrRealisticBeamformingTestCase;
 
 /**
  * \ingroup gnb-phy
@@ -61,12 +58,33 @@ class NrUeNetDevice;
  */
 class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
 {
+
+  friend RealisticBeamformingHelper;
+  friend NrRealisticBeamformingTestCase;
+
 public:
+
+  struct TriggerEventConf
+  {
+    RealisticBfManager::TriggerEvent event;
+    uint16_t updatePeriodicity;
+    Time updateDelay;
+  };
 
   /**
    * \brief constructor
    */
   RealisticBeamformingAlgorithm ();
+
+  /*
+   * \brief It is necessary to call this function in order to have
+   * initialized a pair of gNB and UE devices for which will be
+   * called this algorithm. And also the ccId.
+   * \param gNbDevice gNB instance of devicePair for which will work this algorithm
+   * \param ueDevice UE instance of devicePair for which will work this algorithm
+   * \param ccId CC ID of the PHY of gNB/UE for which will work this algorithm
+   */
+  void Install (const Ptr<NrGnbNetDevice>& gNbDevice, const Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId);
 
   /**
    * \brief destructor
@@ -89,7 +107,15 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
-
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of
+   * communicating devices by using the direct-path beamforming vector for gNB
+   * and quasi-omni beamforming vector for UEs
+   * \param [in] gnbDev gNb beamforming device
+   * \param [in] ueDev UE beamforming device
+   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
+   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   */
   virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
                                       const Ptr<const NrUeNetDevice>& ueDev,
                                       BeamformingVector* gnbBfv,
@@ -106,17 +132,55 @@ public:
   void SetBeamSearchAngleStep (double beamSearchAngleStep);
 
   /**
-   * \brief Sets the sirn SRS value to be used. In lineal unit.
+   * \brief Saves SRS SINR report for
+   * \param srsSinr
+   * \param rnti
    */
-  virtual void SetSrsSinr (double sinrSrs);
+  void NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr);
+
+  /**
+   * \brief RunTask callback will be triggered when the event for updating the beamforming vectors occurs
+   */
+  typedef Callback<void, const Ptr<NrGnbNetDevice>&, const Ptr<NrUeNetDevice>&, uint8_t> RealisticBfHelperCallback;
+
 
 private:
 
-  virtual void DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                        const Ptr<const NrUeNetDevice>& ueDev,
-                                        BeamformingVector* gnbBfv,
-                                        BeamformingVector* ueBfv,
-                                        uint16_t ccId) const override;
+  /**
+   * \brief Private function that is used to obtain the number of SRS symbols per slot
+   * \return number of SRS symbols per slot
+   */
+  uint8_t GetSrsSymbolsPerSlot ();
+
+  /**
+   * \brief Private function that is used to obtain the realistic beamforming configuration from the
+   * realistic beamforming manager
+   * \return returns the realistic beamforming configuration
+   */
+  RealisticBeamformingAlgorithm::TriggerEventConf GetTriggerEventConf ();
+
+  /**
+   * \brief Private function that is used to notify its the helper that is time
+   * to update beamforming vectors.
+   * Basically, with this function realistic algoritm pass control to the
+   * realistic beamforming helper in the sense of calling necessary BF updates, e.g.
+   * calling BeamManager's function, etc. because we are trying to decouple responsabilities
+   * of the algorithm, which should be only to provide the best beamforming vector pair for
+   * two communicating devices, and beamforming helper to take care of managing the necessary
+   * updates.
+   */
+  void NotifyHelper ();
+
+  /*
+   * \brief Sets RealisticBeamformingHelperCallback that will be notified when it is necessary to update
+   * the beamforming vectors. Function RunTask will then call back RealisticBeamformingAlgorithm that
+   * notified it about the necessity to update the beamforming vectors. It is done in this way, in order
+   * to split functionalities and responsibilities of the BF helper class, and BF algorithm class.
+   * BF helper class takes care of necessary BF vector updates, and necessary calls of BeamManager class.
+   * While BF algorithm class takes care of trigger event, parameters, and algorithm, but it is not
+   * responsible to update the beamforming vector of devices.
+   */
+  void SetTriggerCallback (RealisticBfHelperCallback callback);
 
   /**
    * \brief Calculates an estimation of the long term component based on the channel measurements
@@ -135,11 +199,24 @@ private:
    */
   double CalculateTheEstimatedLongTermMetric (const ThreeGppAntennaArrayModel::ComplexVector& longTermComponent) const;
 
-
+  // attribute members, configuration variables
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
-
-  double m_lastRerportedSrsSinr {0}; //!< The last reported SRS sinr notified by gNB PHY to its beam manager and beamforming algorithm
+  //variable members, counters, and saving values
+  double m_maxSrsSinrPerSlot {0}; //!< the maximum SRS SINR per slot in Watts, e.g. if there are 4 SRS symbols per UE, this value will represent the maximum
+  uint8_t m_srsSymbolsCounter {0}; //!< the counter that gets reset after reaching the number of symbols per SRS transmission
+  uint16_t m_srsPeriodicityCounter {0}; //!< the counter of SRS reports between consecutive beamforming updates, this counter is incremented once the counter
+                                        //   m_srsSymbolsPerSlotCounter reaches the number of symbols per SRS transmission, i.e., when SRS transmissions in the
+                                        //   current slot have finished*/
   Ptr<NormalRandomVariable> m_normalRandomVariable; //!< The random variable used for the estimation of the error
+  RealisticBfHelperCallback m_helperCallback; //!< When it is necessary to update the beamforming vectors for this pair of devices,
+                                              //the helper will be notified through this callback
+  /*
+   * \brief Parameters needed to pass to helper once that the helpers callback functions is being called
+   */
+  Ptr<NrGnbNetDevice> m_gNbDevice; //!< pointer to gNB device
+  Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device
+  uint8_t m_ccId; //!< ccID index of PHY of gNB and UE for which this algorithm applies
+
 };
 
 } // end of namespace ns-3

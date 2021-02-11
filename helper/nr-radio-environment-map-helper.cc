@@ -18,7 +18,6 @@
  */
 
 #include "nr-radio-environment-map-helper.h"
-
 #include <ns3/abort.h>
 #include <ns3/log.h>
 #include <ns3/double.h>
@@ -26,22 +25,18 @@
 #include <ns3/uinteger.h>
 #include <ns3/string.h>
 #include <ns3/boolean.h>
-#include "ns3/pointer.h"
+#include <ns3/pointer.h>
 #include <ns3/config.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
-#include "ns3/mobility-module.h"
-#include <ns3/constant-position-mobility-model.h>
-#include <ns3/spectrum-model.h>
-#include "ns3/nr-spectrum-value-helper.h"
-#include "ns3/beamforming-vector.h"
-#include "ns3/nr-gnb-net-device.h"
-#include "ns3/nr-ue-net-device.h"
-#include <ns3/nr-spectrum-phy.h>
+#include <ns3/mobility-model.h>
 #include <ns3/spectrum-converter.h>
 #include <ns3/buildings-module.h>
-#include <ns3/mobility-building-info.h>
-#include <ns3/beam-manager.h>
+#include <ns3/nr-gnb-net-device.h>
+#include <ns3/nr-ue-net-device.h>
+#include <ns3/nr-spectrum-phy.h>
+#include "nr-spectrum-value-helper.h"
+#include <ns3/beamforming-vector.h>
 
 #include <chrono>
 #include <ctime>

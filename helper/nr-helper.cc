@@ -84,7 +84,8 @@ NrHelper::NrHelper (void)
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_gnbUlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
   m_gnbDlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
-
+  m_gnbBeamManagerFactory.SetTypeId (BeamManager::GetTypeId());
+  m_ueBeamManagerFactory.SetTypeId (BeamManager::GetTypeId());
   m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
 
   // Initialization that is there just because the user can configure attribute
@@ -548,7 +549,9 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
   phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
+
+  Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
+  phy->InstallAntenna (beamManager,antenna);
 
   // TODO: If antenna changes, this will be broken
   auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
@@ -745,7 +748,9 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&NrGnbPhy::ReportUlHarqFeedback, phy));
 
   phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
+
+  Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
+  phy->InstallAntenna (beamManager, antenna);
 
   bwp->m_channel->AddRx (channelPhy);
   auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
@@ -1210,6 +1215,20 @@ NrHelper::SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
   m_gnbUlAmcFactory.Set (n, v);
+}
+
+void
+NrHelper::SetGnbBeamManagerAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBeamManagerFactory.Set (n, v);
+}
+
+void
+NrHelper::SetGnbBeamManagerTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBeamManagerFactory.SetTypeId (typeId);
 }
 
 void

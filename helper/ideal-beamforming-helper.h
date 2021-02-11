@@ -19,9 +19,6 @@
 
 #include "beamforming-helper-base.h"
 #include <ns3/nstime.h>
-#include <ns3/vector.h>
-#include <ns3/net-device.h>
-#include <ns3/net-device-container.h>
 #include "ns3/event-id.h"
 
 #ifndef SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
@@ -31,6 +28,7 @@ namespace ns3 {
 
 class NrGnbNetDevice;
 class NrUeNetDevice;
+class BeamformingAlgorithm;
 
 /**
  * \ingroup helper
@@ -95,8 +93,16 @@ protected:
    */
   virtual void ExpireBeamformingTimer ();
 
+
+  virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
+                                      const Ptr<NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
+
   Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming tasks will be executed
-  EventId m_beamformingTimer; //!< Beamforming timer
+  EventId m_beamformingTimer; //!< Beamforming timer that is used to schedule periodical beamforming vector updates
+  Ptr<BeamformingAlgorithm> m_beamformingAlgorithm; //!< The beamforming algorithm that will be used
 };
 
 }; //ns3 namespace

@@ -221,12 +221,11 @@ NrPhy::DoDispose ()
 }
 
 void
-NrPhy::InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna)
+NrPhy::InstallAntenna (const Ptr<BeamManager> beamManager, const Ptr<ThreeGppAntennaArrayModel> &antenna)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_spectrumPhy != nullptr);
-
-  m_beamManager = CreateObject<BeamManager>();
+  m_beamManager = beamManager;
   m_beamManager->Configure(antenna);
 }
 

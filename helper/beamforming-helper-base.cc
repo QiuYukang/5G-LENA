@@ -57,19 +57,20 @@ BeamformingHelperBase::GetTypeId (void)
 
 void
 BeamformingHelperBase::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                            const Ptr<NrUeNetDevice>& ueDev)
+                                           const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
   m_beamformingTasks.push_back(std::make_pair(gNbDev, ueDev));
 }
 
+
 void
 BeamformingHelperBase::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                 const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const
+                                const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const
 {
   NS_LOG_FUNCTION (this);
   BeamformingVector gnbBfv, ueBfv;
-  m_beamformingAlgorithm->GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
+  GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
   Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
   Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
   NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
@@ -82,8 +83,7 @@ void
 BeamformingHelperBase::SetBeamformingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_beamformingAlgorithm != nullptr, "Call SetBeamformingMethod before this function");
-  m_beamformingAlgorithm->SetAttribute (n, v);
+  m_algorithmFactory.Set (n, v);
 }
 
 

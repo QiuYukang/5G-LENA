@@ -18,11 +18,6 @@
 */
 
 #include "beamforming-algorithm.h"
-#include <ns3/node.h>
-#include "nr-ue-phy.h"
-#include "nr-gnb-phy.h"
-#include "nr-gnb-net-device.h"
-#include "nr-ue-net-device.h"
 
 namespace ns3{
 
@@ -45,16 +40,6 @@ BeamformingAlgorithm::GetTypeId (void)
   ;
 
   return tid;
-}
-
-void
-BeamformingAlgorithm::GetBeamformingVectors(const Ptr<const NrGnbNetDevice>& gnbDev,
-                                                 const Ptr<const NrUeNetDevice>& ueDev,
-                                                 BeamformingVector* gnbBfv,
-                                                 BeamformingVector* ueBfv,
-                                                 uint16_t ccId) const
-{
-  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
 }
 
 } // end of ns3 namespace
