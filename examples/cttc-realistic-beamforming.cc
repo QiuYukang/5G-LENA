@@ -337,6 +337,7 @@ CttcRealisticBeamforming::PrepareDatabase ()
 
   std::string cmd = "CREATE TABLE IF NOT EXISTS " + m_tableName + " ("
                     "SINR DOUBLE NOT NULL, "
+                    "SINR_DB DOUBLE NOT NULL, "
                     "Distance DOUBLE NOT NULL,"
                     "DeltaX DOUBLE NOT NULL,"
                     "DeltaY DOUBLE NOT NULL,"
@@ -399,7 +400,7 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
   DeleteFromDatabaseIfAlreadyExist ();
 
   sqlite3_stmt *stmt;
-  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
   std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
   int rc;
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
@@ -420,16 +421,17 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
 
   // add all parameters to the command
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_sinrStats.getMean()) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, distance2D) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 3, m_deltaX) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 4, m_deltaY) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 5, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 6, m_rngRun) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_numerology) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 10, m_ueTxPower) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 11, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, 10.0 * log10 (m_sinrStats.getMean())) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 3, distance2D) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 4, m_deltaX) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 5, m_deltaY) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 6, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_rngRun) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, m_numerology) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 10, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 11, m_ueTxPower) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 12, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
 
 
   // finalize the command
