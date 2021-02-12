@@ -86,6 +86,8 @@ struct Parameters
   bool dlRem = false;
   bool ulRem = false;
   uint32_t remSector = 0;
+
+  Time progressInterval = Seconds (1);
 };
 
 extern void LenaLteComparison (const Parameters &params);
