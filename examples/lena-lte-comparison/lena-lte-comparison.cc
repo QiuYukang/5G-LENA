@@ -701,13 +701,13 @@ LenaLteComparison (const Parameters &params)
   std::string tableName = "e2e";
 
 
-  std::cout << "  rem helper\n";  
   Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
                                               // and when simulation starts the object does not exist anymore, but the scheduled REM events do (exist).
                                               // So, REM events would be called with invalid pointer to remHelper ...
 
   if (params.dlRem || params.ulRem)
     {
+      std::cout << "  rem helper\n";  
 
       uint16_t remPhyIndex = 0;
       if (params.operationMode == "FDD" && params.direction == "UL")
