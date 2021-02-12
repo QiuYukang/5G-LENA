@@ -1,6 +1,8 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 
 #include <ns3/command-line.h>
+#include <ns3/show-progress.h>
+
 #include "lena-lte-comparison.h"
 
 using namespace ns3;
@@ -92,6 +94,9 @@ main (int argc, char *argv[])
   params.Validate ();
 
   std::cout << params;
+
+  ShowProgress spinner (Seconds (100));
+  
   LenaLteComparison (params);
 
   return 0;
