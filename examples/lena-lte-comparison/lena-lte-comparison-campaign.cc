@@ -48,7 +48,7 @@ main (int argc, char *argv[])
                 "The cellular network simulator to use: LENA or 5GLENA",
                 params.simulator);
   cmd.AddValue ("technology",
-                "The radio access network technology",
+                "The radio access network technology (LTE or NR)",
                 params.radioNetwork);
   cmd.AddValue ("operationMode",
                 "The network operation mode can be TDD or FDD",
