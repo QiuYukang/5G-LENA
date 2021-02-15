@@ -157,7 +157,7 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerAccessor (&NrMacSchedulerNs3::SetSrsCtrlSyms,
                                          &NrMacSchedulerNs3::GetSrsCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("enableSrsInUlSlots",
+    .AddAttribute ("EnableSrsInUlSlots",
                    "Denotes whether the SRSs will be transmitted only in F slots"
                    "or both in F and UL slots. If False, SRS is transmitted only"
                    "in F slots, if True in both (F/UL)",
