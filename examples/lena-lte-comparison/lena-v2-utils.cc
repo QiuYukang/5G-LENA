@@ -570,6 +570,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
     }
 
+  // configure SRS symbols
+  nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
+  // configure CTRL symbols
   nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
 
   // Core latency
