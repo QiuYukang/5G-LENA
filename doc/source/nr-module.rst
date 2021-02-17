@@ -496,9 +496,6 @@ As a results, NrUePowerControl supports the following:
 - CLPC implementation (accumulation and absolute modes)
 
 
-
-
-
 **LTE PUSCH power control**
 
 Formula for LTE PUSCH is provided in Section 5.1.1.1 of TS 36.213. 
@@ -517,7 +514,7 @@ in NrUePowerControl class:
 
 
 * :math:`P_{CMAX,c}(i)` is the UE configured maximum output transmit power defined as defined in 3GPP 36.101. (Table 6.2.2-1) 
-in a subframe :math:`i` for the serving cell :math:`c`, and  default value for :math:`P_{CMAX,c}(i)` is 23 dBm. 
+  in a subframe :math:`i` for the serving cell :math:`c`, and  default value for :math:`P_{CMAX,c}(i)` is 23 dBm. 
  
 * :math:`M_{PUSCH,c}(i)` is the bandwidth of the PUSCH resource assignment expressed in number 
    of resource blocks used in a subframe :math:`i` and serving cell :math:`c`.
@@ -583,8 +580,6 @@ in a subframe :math:`i` for the serving cell :math:`c`, and  default value for :
 
    Mapping of TPC Command Field in DCI format 0/3/4 to absolute and accumulated :math:`\delta_{PUSCH,c}`
    values is defined in TS36.231 section 5.1.1.1 Table 5.1.1.1-2.
-
-
 
 
 
@@ -705,14 +700,15 @@ and flexible for different subcarrier spacing configurations:
 Similarly to PUSCH power calculation there is a lot of similarities in the formulas for PUCCH between 
 TS 36.213 and TS 38.213. Hence, we will not enter in the details to explain each of the components since 
 their equivalents were already explained in the previous sections, such as :math:`P_{CMAX,c}(i)` and :math:`P_{CMAX,f,c}(i)`, 
-:math:`P_{O\_PUCCH,c}(j)` or :math:`P_{O\_PUCCH,b,f,c}(j)`, which are, for example, equivalent to P_{O\_PUSCH,c}(j) or PO_PUSCH,b,f,c(j), 
-respectively. Also, an interested reader is referred to technical specifications (TS 36.213 and TS 38.213) 
+:math:`P_{O\_PUCCH,c}(j)` or :math:`P_{O\_PUCCH,b,f,c}(j)`, which are, for example, equivalent to 
+:math:`P_{O\_PUSCH,c}(j) or PO_PUSCH,b,f,c(j)`, respectively. 
+Also, an interested reader is referred to technical specifications (TS 36.213 and TS 38.213) 
 for more detailed explanations. Formula for TS 36.213 PUCCH is provided in Section 5.1.2.1 of TS 36.213,
 while formula for NR PUCCH power control is provided in Section 7.1.2. of TS 38.213.
- Both of these are shown in continuation, and as such are implemented in NrUePowerControl class. 
- Note that with respect to PUSCH there is no absolute mode of TPC feedback for PUCCH, hence, accordingly, 
- only accumulation mode is implemented. Similarly to PUSCH implementation, 
- the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or 
+Both of these are shown in continuation, and as such are implemented in NrUePowerControl class. 
+Note that with respect to PUSCH there is no absolute mode of TPC feedback for PUCCH, hence, accordingly, 
+only accumulation mode is implemented. Similarly to PUSCH implementation, 
+the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or 
 could be dynamically set through set function according to corresponding formula.
 
 .. _fig-uplc-3:
@@ -786,15 +782,15 @@ For K_{s} = 0 P_Srs_Offset_Value is computed with equation:
    the value and it updates it only at the next transmission occasion. 
 
 
-.. _fig-uplc-7:
+.. _fig-ulpc-7:
 
-.. figure:: figures/ulpc/nr-clpc-dia.*
+.. figure:: figures/ulpc/nr-clpc.*
    :align: center
    :scale: 35 %
    
-    LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI, 
-    and the TPC command reception, reporting to NrUePowerControl and applying for 
-    the next transmission occasion
+   LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI, 
+   and the TPC command reception, reporting to NrUePowerControl and applying for 
+   the next transmission occasion
     
     
 User interaction and design
@@ -1823,7 +1819,7 @@ https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
 Open issues and future work
 ---------------------------
 
-.. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
+#.. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
 
 .. [mmwave-module] NYU WIRELESS, University of Padova, "ns-3 module for simulating mmwave-based cellular systems," Available at https://github.com/nyuwireless/ns3-mmwave.
 
@@ -1835,7 +1831,7 @@ Open issues and future work
 
 .. [CAMAD2018-NR] N. Patriciello, S. Lagen, L. Giupponi, B. Bojovic, 5G New Radio Numerologies and their Impact on the End-To-End Latency , in Proceedings of IEEE International Workshop on Computer-Aided Modeling Analysis and Design of Communication Links and Networks (IEEE CAMAD), 17-19 September 2018, Barcelona (Spain).
 
-.. [3GPPTSGSSA] 3GPP TS 23.501 V15.0.0, System Architecture for the 5G System; Stage 2 (Release 15), Dec. 2017
+#.. [3GPPTSGSSA] 3GPP TS 23.501 V15.0.0, System Architecture for the 5G System; Stage 2 (Release 15), Dec. 2017
 
 .. [CA-WNS32017] B. Bojovic, D. Abrignani Melchiorre, M. Miozzo, L. Giupponi, N. Baldo, Towards LTE-Advanced and LTE-A Pro Network Simulations: Implementing Carrier Aggregation in LTE Module of ns-3, in Proceedings of the Workshop on ns-3, Porto, Portugal, June 2017.
 
