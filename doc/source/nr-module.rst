@@ -506,7 +506,8 @@ the current model design of both LTE (LENA v1) and NR (LENA v2) modules.
 The following formula defines the LTE PUSCH power control that we implemented 
 in NrUePowerControl class:
 
-.. _fig-uplc-1:
+
+.. _fig-ulpc-pusch-36213:
 
 .. figure:: figures/ulpc/pusch-1.*
    :align: center
@@ -590,13 +591,14 @@ power control, except that is more generic and that the TPC accumulation state i
 NR PUSCH formula depends of the numerology (0 - 4, 0 for LTE) and this makes the formula more generic, 
 and flexible for different subcarrier spacing configurations:
 
-.. _fig-uplc-2:
+
+.. _fig-ulpc-pusch-38213:
 
 .. figure:: figures/ulpc/pusch_38213.*
    :align: center
    :scale: 35 %
-   
-   
+
+
 *  :math:`P_{CMAX,f,c}(i)` is the UE configured maximum output transmit power defined in [8-1, TS 38.101-1], [8-2, TS38.101-2] and 
    [TS38.101-3] for carrier :math:`f` for serving cell :math:`c` in PUSCH transmission occasion :math:`i`. 
    Default value for :math:`P_{CMAX,f,c}(i)` is 23 dBm.
@@ -648,13 +650,15 @@ and flexible for different subcarrier spacing configurations:
    Minimum UE power is defined in TS36.101 section 6.2.3. Default value is -40 dBm.
 
    If Accumulation Mode is not enabled :math:`f_{c}(i)` is given by:
-      
-   .. _fig-ulpc-3:
 
-   .. figure:: figures/ulpc/fc_38213.*
-      :align: center
-      :scale: 35 %
-   
+
+.. _fig-ulpc-fc-38213:
+
+.. figure:: figures/ulpc/fc_38213.*
+   :align: center
+   :scale: 35 %
+
+
    :math:`\sum_{m=0}^{C(D_i)-1} \delta_{PUSCH,b,f,c}` is a sum of TPC command values in a set D_i of TPC 
    command values with cardinality math:`C(D_i)` that the UE receives between :math:`K_{PUSCH}(i-i_0) -1 ` 
    symbols before PUSCH transmission occasion :math:`i-i_0` and :math:`K_{PUSCH}(i)` symbols before PUSCH 
@@ -711,15 +715,16 @@ only accumulation mode is implemented. Similarly to PUSCH implementation,
 the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or 
 could be dynamically set through set function according to corresponding formula.
 
-.. _fig-uplc-3:
+.. _fig-ulpc-pucch-36213:
 
 .. figure:: figures/ulpc/pucch_36.213.*
    :align: center
    :scale: 35 %
    
    PUCCH ULPC formula according to 36.213
-   
-.. _fig-uplc-4:
+
+
+.. _fig-uplc-pucch-38213:
 
 .. figure:: figures/ulpc/pucch_38213.*
    :align: center
@@ -738,7 +743,7 @@ formulas rely on PUSCH power control, e.g., LTE SRS power control relies on PO_P
 and fc(i). In the following we provide formulas that are implemented in NrUePoweControl 
 for LTE and NR SRS transmissions.
 
-.. _fig-uplc-5:
+.. _fig-ulpc-srs-36213:
 
 .. figure:: figures/ulpc/srs_ts36213.*
    :align: center
@@ -757,7 +762,7 @@ For K_{s} = 0 P_Srs_Offset_Value is computed with equation:
       P_{SRS\_OFFSET,c}(m)value = -10.5 + P_{SRS\_OFFSET,c}(m) * 1.5 [dBm]
    
 
-.. _fig-uplc-6:
+.. _fig-uplc-srs-38213:
 
 .. figure:: figures/ulpc/srs_ts38213.*
    :align: center
@@ -797,30 +802,32 @@ User interaction and design
 
 The ULPC functionality is disabled by default and can be configured via the attribute system; 
 in particular, it can be disabled by setting the boolean attribute NrUePhy::EnableUplinkPowerControl 
-to false to disable or to true to enabled, i.e: 
+to false to disable or to true to enabled, i.e.,::
 
 
    Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (false));
 
-User can configure open or closed loop mode by setting the boolean attribute LteUePowerControl::ClosedLoop.
+User can configure open or closed loop mode by setting the boolean attribute LteUePowerControl::ClosedLoop::
 
    Config::SetDefault ("ns3::LteUePowerControl::ClosedLoop", BooleanValue (true));
 
 Note that a large number of parameters still sits in LteUePowerControl in order to avoid redundance 
 of attributes in NrUePowerControl. To change the operational mode of closed loop (absolute or accumulation) 
-user should configure the attribute LteUePowerControl::AccumulationEnabled which is by default set to true so the accumulation mode is the default mode.
+user should configure the attribute LteUePowerControl::AccumulationEnabled which is by default set to 
+true so the accumulation mode is the default mode::
 
    Config::SetDefault ("ns3::LteUePowerControl::AccumulationEnabled", BooleanValue (true));
 
 Probably the most important parameter that is added to NrUePowerControl is TSpec. Determines technical 
 specification TS 36.213 or TS 38.213 according to which will run NrUePowerControl. By default is set 
-TS to 36.213. To configure TS 36.213 set the value TS36.213, while for TS 38.213 should be configured TS28.213. For example:
+TS to 36.213. To configure TS 36.213 set the value TS36.213, while for TS 38.213 should be configured TS28.213. 
+For example::
 
    Config::SetDefault ("ns3::NrUePowerControl::EnumValue (NrUePowerControl::TS_36_213));
 
 Additional parameters that were added wrt to those that were already existing in LteUePowerControl 
 we highlight the KPUSCH which was previously always fixed to 4 without possibility to modify it. 
-It could be set in the following way:
+It could be set in the following way::
 
    Config::SetDefault ("ns3::NrUePowerControl::KPusch",  UintegerValue (4)); 
 
@@ -828,7 +835,7 @@ Another that could be useful when simulating bandwidth limited low complexity an
 devices is BL_CE parameter. When set to true means that this power control is applied to bandwidth 
 reduced, low complexity or coverage enhanced (BL/CE) device.
 By default this attribute is set to false. Default BL_CE mode is CEModeB. This option can be used 
-only in conjunction with attribute TSpec being set to TS 36.213. 
+only in conjunction with attribute TSpec being set to TS 36.213:: 
 
    Config::SetDefault ("ns3::NrUePowerControl::BL_CE",  BooleanValue (true)); 
 
@@ -1819,8 +1826,6 @@ https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
 Open issues and future work
 ---------------------------
 
-#.. [TR38912] 3GPP TR 38.912 "Study on New Radio (NR) access technology", (Release 14) TR 38.912v14.0.0 (2017-03), 3rd Generation Partnership Project, 2017.
-
 .. [mmwave-module] NYU WIRELESS, University of Padova, "ns-3 module for simulating mmwave-based cellular systems," Available at https://github.com/nyuwireless/ns3-mmwave.
 
 .. [TR38900] 3GPP TR 38.900 "Study on channel model for frequency above 6GHz", (Release 14) TR 38.912v14.0.0 (2016-12), 3rd Generation Partnership Project, 2016.
@@ -1830,8 +1835,6 @@ Open issues and future work
 .. [WNS32018-NR]  B. Bojovic, S. Lagen, L. Giupponi, Implementation and Evaluation of Frequency Division Multiplexing of Numerologies for 5G New Radio in ns-3 , in Workshop on ns-3, June 2018, Mangalore, India.
 
 .. [CAMAD2018-NR] N. Patriciello, S. Lagen, L. Giupponi, B. Bojovic, 5G New Radio Numerologies and their Impact on the End-To-End Latency , in Proceedings of IEEE International Workshop on Computer-Aided Modeling Analysis and Design of Communication Links and Networks (IEEE CAMAD), 17-19 September 2018, Barcelona (Spain).
-
-#.. [3GPPTSGSSA] 3GPP TS 23.501 V15.0.0, System Architecture for the 5G System; Stage 2 (Release 15), Dec. 2017
 
 .. [CA-WNS32017] B. Bojovic, D. Abrignani Melchiorre, M. Miozzo, L. Giupponi, N. Baldo, Towards LTE-Advanced and LTE-A Pro Network Simulations: Implementing Carrier Aggregation in LTE Module of ns-3, in Proceedings of the Workshop on ns-3, Porto, Portugal, June 2017.
 
