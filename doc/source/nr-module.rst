@@ -424,9 +424,182 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports different methods: long-term covariance matrix (OptimalCovMatrixBeamforming), beam-search (CellScanBeamforming), LOS path (DirectPathBeamforming), and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming). OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce the optimal transmit and receive beam. In CellScanBeamforming, a set of predefined beams is tested, and the beam-pair providing a highest average SNR is selected. For the beam-search method, our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). A new interface allows you to have the beam ID available at MAC layer for scheduling purposes. DirectPathBeamforming assumes knowledge of the pointing angle in between devices, and configures transmit/receive beams pointing into the LOS path direction. QuasiOmniDirectPathBeamforming uses the LOS path for configuring gNB beams, while configures quasi-omnidirectional beamforming vectors at UEs for transmission and reception.
+The 'NR' module supports different methods: long-term covariance matrix (OptimalCovMatrixBeamforming), 
+beam-search (CellScanBeamforming), LOS path (DirectPathBeamforming), 
+and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming). 
+OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce the optimal 
+transmit and receive beam. In CellScanBeamforming, a set of predefined beams is tested, 
+and the beam-pair providing a highest average SNR is selected. For the beam-search method, 
+our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). 
+A new interface allows you to have the beam ID available at MAC layer for scheduling purposes. 
+DirectPathBeamforming assumes knowledge of the pointing angle in between devices, 
+and configures transmit/receive beams pointing into the LOS path direction. 
+QuasiOmniDirectPathBeamforming uses the LOS path for configuring gNB beams, 
+while configures quasi-omnidirectional beamforming vectors at UEs for transmission and reception.
+All ideal BF algorithms inherit `IdealBeamformingAlgorithm` class.
+implement `BeamformingAlgorithm` interface and thus both must have the function 
+`GetBeamformingVectors` which determines BF vectors to be used on a pair of devices, 
+i.e., gNB and UE. 
+For example, `CellScanBeamforming` implements a type of ideal BF algorithm that 
+searches for the best pair of BF vectors from the set of pre-defined BF vectors assuming 
+the perfect knowledge of the channel.
+When UE is attached to gNB, a BF task is created. The BF task is composed of a pair of connected devices 
+for which the BF helper will manage the update of the BF vectors by calling `GetBeamformingVectors` 
+of configured BF algorithm. 
 
-All methods are, as of today, ideal in the sense that no physical resources are employed to do the beam selection procedure, and as such no errors in the selection are taken into account.
+**Realistic beamforming**
+
+While ideal BF algorithms explained in previous section 
+decide the beams based on either the assumptions of perfect knowledge of the 
+channel (e.g., cell scan method) or the exact positions of the devices (e.g., DoA method), 
+the realistic BF algorithms are expected to select the best beam based on some measurements, 
+and this is the main difference between these two types of algorithm implementations in 5G-LENA. 
+
+To implement a new realistic BF algorithm, we have created a separate class called 
+`RealisticBeamformingAlgorithm` which relies on SRS SINR measurements to determine BF vectors. 
+Similarly to previously mentioned `CellScanBeamforming` there is a set of 
+pre-defined BF vectors, but the knowledge of the channel is not perfect, 
+and depends on the quality of reported SRS measurement. 
+Important difference wrt ideal BF algorithm implementations, 
+is that ideal BF vectors of all devices are updated at the same time based on 
+the configured periodicity through `BeamformingPeriodicity` attribute 
+of `IdealBeamformingHelper`. 
+On the other hand, when `RealisticBeamformingAlgorithm` is used, 
+the BF vectors are updated when the configured trigger event occurs, and 
+only the BF vectors of the pair of devices for which SRS measurement has been 
+reported (pair of gNB and UE) are updated.
+The BF vector trigger update event can be either SRS count event 
+(e.g., after every N SRSs are received, the BF vectors are updated), 
+or based on the delay event after SRS reception (e.g., :math:`\delta` 
+time after each SRS reception). 
+The type of event and its parameters can be configured through `RealisticBfManager` class. 
+Hence, in order to use realistic BF functionality it is necessary to install 
+`RealisticBfManager` at gNBs PHY instead of the default `BeamManager` class. 
+The configuration of trigger event and its parameters can be done per 
+gNB instance granularity, but can be easily extended to be done per UE.
+
+For each BF task is created an instance of realistic BF algorithm, 
+which is then connected to `NrSpectrumPhy` SRS SINR trace to receive SRS reports. 
+Realistic BF algorithm is also connected to its helper through callback to 
+notify it when BF vectors of device pair needs to be updated 
+(based on configuration and SRS reports). 
+When BF vectors need to be updated, the function `GetBeamformingVector` 
+or realistic BF algorithm is called, which calls `GetEstimatedLongTermComponent` 
+for each pair of pre-defined beams of the receiver and transmitter in order to 
+estimate the channel quality of each of them based on the SRS reports. 
+The estimation of the channel is done based on the abstraction model explained in the following 
+section. 
+Finally, `CalculateTheEstimatedLongTermMetric` calculates the metric that is used to select the 
+best BF pair.
+
+In Figure :ref:`fig-rbf-impl`, we show the diagram of the classes that are used for realistic 
+BF based on SRS measurements, the dependencies among classes, and the most important 
+methods. E.g., we can see that `RealisticBeamformingAlgorithm` 
+needs to access to `ThreeGppChannelModel` to obtain the channel matrix in order to perform the estimation of the channel based on SRS report.
+
+
+.. _fig-rbf-impl:
+
+.. figure:: figures/rbf-impl.*
+   :align: center
+   :scale: 50 %
+   
+   Diagram of realistic/ideal BF, dependencies on 3GPP channel related classes, and `NrGnbPhy`.
+
+
+**Abstraction model for SRS-based channel estimation**
+
+Assume a single-antenna system. Let 
+:math:`h` denote the (complex-valued) small-scale fading channel 
+between a UE and a gNB. Then, the estimation of the small-scale fading channel 
+at the gNB can be modeled as in [SigProc5G]_ :
+
+:math:`\hat{h} = \alpha (h+e)`,
+
+where :math:`\alpha` is a scaling factor to maintain normalization of 
+the estimated channel, and math:`e` is the white complex Gaussian 
+channel estimation error. 
+The estimation error is assumed to be characterized by zero-mean and variance 
+:math:`\sigma_e^2`. 
+
+The variance of the error is given by:
+
+:math:`\sigma_e^2 = \frac{1}{(SINR+\Delta)}`,
+
+where SINR is the received SINR of SRS at the gNB and :math:`\Delta` 
+is the gain obtained from time-domain filtering during the channel estimation. 
+According to 3GPP analysis of SRS transmission, math:`\Delta` 
+is set to 9 dB [SigProc5G]_. The scaling factor is given by: 
+
+:math:`\alpha = \sqrt{\frac{1}{(1+\sigma_e^2)}}`.
+
+Then, the channel matrix estimate can be used to compute transmit/receive BF 
+vectors, as part of the beam management.
+
+
+SRS transmission and reception
+==============================
+
+SRS transmission typically spans over 1, 2 or 4 consecutive OFDM symbols at the end 
+of the NR slot. 5G-LENA implements such behaviour in the time domain by allowing 
+different configurations. In the frequency domain, in order to allow frequency multiplexing, 
+SRS is typically transmitted over only a subset of subcarriers, defined by the 
+configuration, e.g., each 2nd or each 4th subcarrier is used for SRS transmission. 
+However, since the minimum transmission granularity in 5G-LENA module is a RB in frequency domain, 
+all subcarriers are used for SRS transmission.
+Figure :ref:`fig-srs-5glena` shows the slot structure and the symbols over which the 
+SRS transmission spans, assuming a repeated TDD pattern structure of
+[DL F UL UL UL] (i.e., one DL slot, followed by one flexible slot and three UL 
+slots\footnote{In 5G-LENA, flexible slots consist of DL/UL control symbols and 
+a variable number of DL and UL symbols for data; DL slots carry only DL control 
+and DL data; and UL slots consist of UL data and UL control parts.}) and that SRS 
+transmissions occur in F slots (i.e., slots number 1 and 6 in the figure). 
+
+.. _fig-srs-5glena:
+
+.. figure:: figures/srs-ext3.*
+   :align: center
+   :scale: 50 %
+    
+   Example of SRS transmissions of 4 different UEs (maximum 1 UE SRS transmission per slot, as per 5G-LENA design), considering SRS periodicity equal to 20 slots. Numerology considered is :math:`\mu=0`. F stands for frame and SF for subframe.
+    
+
+In 5G NR, SRS parameters, such as periodicity and offset, are typically configured 
+by RRC and notified to UE [TS38331]_. Another option is to have gNB MAC scheduler to 
+determine the SRS periodicity/offset and then to notify UE through DCI format 2\_3 on 
+which resources SRS should be transmitted [TS38212]_. The latter option, scheduling-based SRS, 
+is a more dynamic approach and allows more flexible SRS parameter and periodicity assignment, 
+e.g., when there are less UEs, a lower periodicity value can be used, while when there 
+are more UEs, the gNB MAC scheduler can dynamically increase the periodicity and then 
+update the offsets accordingly. We have implemented scheduling-based SRS.
+
+To allow dynamic SRS scheduling and adjustment of SRS periodicity/offset of all UEs, 
+we introduced `NrMacSchedulerSrs` and `NrMacSchedulerSrsDefault` into 5G-LENA model. 
+
+`NrMacSchedulerSrs` is an interface that is used by the NR gNB MAC scheduler to obtain 
+the SRS offset/periodicity for a UE. There can be various implementations 
+of this interface that would simulate different algorithms for SRS 
+offset/periodicity generation. 
+In `NrMacSchedulerSrsDefault`, we provide one of possible implementations. 
+Each time a new UE is attached it is called the function `AddUe` 
+that returns the offset/periodicity configuration. When scheduler detects 
+that the SRS periodicity is too small for the number of UEs it calls function 
+`IncreasePeriodicity`, which picks up the next periodicity value from the list 
+of standard  values, i.e., 2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 
+1280, 2560 slots [TS38331]_. 
+Scheduling-based SRS is more flexible approach than SRS configuration through 
+RRC. E.g., in 4G-LENA SRS configuration is through RRC and static, which requires 
+that a user needs to  configure SRS periodicity based on the maximum expected number 
+of UEs in the simulation scenario. To allow dynamic SRS periodicity adaptation in 
+5G-LENA, it was necessary to set a constraint which is that at most 1 UE can send 
+the SRS in a single slot.
+
+Configuration parameters related to SRS transmissions are specified in `NrMacSchedulerNs3` 
+class. The user can configure the number of SRS symbols that will be allocated 
+for SRS transmission through the attribute `SrsSymbols`. Additionally, 
+the user can configure whether SRS will be transmitted only in flexible slots, 
+or in both flexible and UL slots by setting the attribute `EnableSrsInUlSlots`.
+
 
 .. _UplinkPowerControl:
 
@@ -1648,6 +1821,23 @@ The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/cttc-nr-notching_8cc.html
 
 
+.. _realisticBeamforming:
+
+cttc-realistic-beamforming.cc
+=============================
+The example `cttc-realistic-beamforming.cc` included in the `nr` 
+module demonstrates the usage of the proposed framework. 
+It is a simulation script for the realistic BF evaluation. 
+The topology is very simple: it consists of a single gNB and single UE, 
+placed at a certain distance from each other and communicating over a wireless channel.
+Simulation allows to configure various parameters out of which the most important are:
+the distance (by configuring deltaX and deltaY parameters, which 
+basically determine the position of the UE), the type of the BF method (ideal or real), 
+the random run number (which will allow us to run many simulations and to average the results), 
+the UE power, 3GPP scenario (Urban Macro, Urban Micro, Indoor Hotspot, etc). 
+The output is saved in database (simulation configuration and average SINR). 
+The database is created in the root project directory if not configured differently.
+
 .. _Validation:
 
 Validation
@@ -1823,6 +2013,42 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
 
 
+.. _uplinkPowerControl:
+
+Uplink power control tests
+==========================
+Test case called `nr-uplink-power-control-test.cc` validates that 
+uplin power control functionality works properly. 
+Test checks PUSCH and PUCCH power control adaptation. 
+According to test UE is being moved during the test to different 
+positions and then it is checked whether the UE transmission 
+power is adjusted as expected for different cases open loop, closed loop, 
+and absolute/accumulated mode. Shadowing is disabled to allow 
+deterministic pathloss values. And PoNominalPusch are configured 
+in a different way to test that the maximum power levels are reached
+for the different distances for PUSCH and PUCCH::
+
+    Config::SetDefault ("ns3::NrUePowerControl::PoNominalPusch", IntegerValue (-90));
+    Config::SetDefault ("ns3::NrUePowerControl::PoNominalPucch", IntegerValue (-80));
+
+.. _realisticBeamforming:
+
+Realistic beamforming test
+==========================
+The test `nr-realistic-beamforming-test.cc` included in the 
+`nr` module tests the realistic BF implementation.
+It involves two devices, a transmitter and a receiver, placed at a certain 
+distance from each other and communicating over a wireless channel at 28 GHz carrier frequency. 
+The test compares the performance of two different BF methods: 1) the proposed realistic BF algorithm, 
+which uses SRS reception to estimate the channel and computes BF weights based on such channel estimate, 
+and 2) an ideal BF algorithm, which selects the BF weights assuming perfect knowledge of the 
+channel matrix coefficients. 
+The test checks that with low SINR from SRS, realistic BF algorithm makes more mistakes in 
+channel estimation than ideal BF algorithm. Also, the test checks that with high SINR from SRS, 
+realistic BF algorithm generates almost always the same decision as that of the ideal BF method, 
+and so, the same pair of beams are selected for the two communicating devices.
+
+
 Open issues and future work
 ---------------------------
 
@@ -1859,3 +2085,9 @@ Open issues and future work
 .. [notching2] H. McDonald et al., "AWS-3 Interference Mitigation: Improving Spectrum Sharing with LTE & 5G Uplink Spectrum Control," MILCOM 2019 - 2019 IEEE Military Communications Conference (MILCOM), Norfolk, VA, USA, 2019, pp. 102-107, doi: 10.1109/MILCOM47813.2019.9020877
 
 .. [lte-ulpc] LTE ns-3 implementation of uplink power control: https://www.nsnam.org/docs/models/html/lte-design.html#power-control
+
+.. [SigProc5G] F.-L. Luo and C. J. Zhang. 2016. "Signal Processing for 5G: Algorithms andImplementations", John Wiley & Sons., Aug. 2016
+
+.. [TS38331]  3GPP  TS  38.331, Radio Resource Control (RRC). (Rel. 15). 2018.
+
+
