@@ -810,160 +810,36 @@ User can configure open or closed loop mode by setting the boolean attribute Lte
 
    Config::SetDefault ("ns3::LteUePowerControl::ClosedLoop", BooleanValue (true));
 
-Note that a large number of parameters still sits in LteUePowerControl in order to avoid redundance of attributes in NrUePowerControl. To change the operational mode of closed loop (absolute or accumulation) user should configure the attribute LteUePowerControl::AccumulationEnabled which is by default set to true so the accumulation mode is the default mode.
+Note that a large number of parameters still sits in LteUePowerControl in order to avoid redundance 
+of attributes in NrUePowerControl. To change the operational mode of closed loop (absolute or accumulation) 
+user should configure the attribute LteUePowerControl::AccumulationEnabled which is by default set to true so the accumulation mode is the default mode.
 
    Config::SetDefault ("ns3::LteUePowerControl::AccumulationEnabled", BooleanValue (true));
 
-Probably the most important parameter that is added to NrUePowerControl is TSpec. Determines technical specification TS 36.213 or TS 38.213 according to which will run NrUePowerControl. By default is set TS to 36.213. To configure TS 36.213 set the value TS36.213, while for TS 38.213 should be configured TS28.213. For example:
+Probably the most important parameter that is added to NrUePowerControl is TSpec. Determines technical 
+specification TS 36.213 or TS 38.213 according to which will run NrUePowerControl. By default is set 
+TS to 36.213. To configure TS 36.213 set the value TS36.213, while for TS 38.213 should be configured TS28.213. For example:
 
    Config::SetDefault ("ns3::NrUePowerControl::EnumValue (NrUePowerControl::TS_36_213));
 
-Additional parameters that were added wrt to those that were already existing in LteUePowerControl we highlight the KPUSCH which was previously always fixed to 4 without possibility to modify it. It could be set in the following way:
+Additional parameters that were added wrt to those that were already existing in LteUePowerControl 
+we highlight the KPUSCH which was previously always fixed to 4 without possibility to modify it. 
+It could be set in the following way:
 
    Config::SetDefault ("ns3::NrUePowerControl::KPusch",  UintegerValue (4)); 
 
-Another that could be useful when simulating bandwidth limited low complexity and coverage enhanced devices is BL_CE parameter. When set to true means that this power control is applied to bandwidth reduced, low complexity or coverage enhanced (BL/CE) device.
-By default this attribute is set to false. Default BL_CE mode is CEModeB. This option can be used only in conjunction with attribute TSpec being set to TS 36.213. 
+Another that could be useful when simulating bandwidth limited low complexity and coverage enhanced 
+devices is BL_CE parameter. When set to true means that this power control is applied to bandwidth 
+reduced, low complexity or coverage enhanced (BL/CE) device.
+By default this attribute is set to false. Default BL_CE mode is CEModeB. This option can be used 
+only in conjunction with attribute TSpec being set to TS 36.213. 
 
    Config::SetDefault ("ns3::NrUePowerControl::BL_CE",  BooleanValue (true)); 
 
-Additionally, as mentioned earlier, when DCI message is being created, it is called the GetTpc function. Hence, if user would like to implement or try its own CLCP scheme, based on some different TPC algorithm it should add its algorithm that will generate TPC commands and add hook it with GetTpc function call. 
+Additionally, as mentioned earlier, when DCI message is being created, it is called the GetTpc 
+function. Hence, if user would like to implement or try its own CLCP scheme, based on some different 
+TPC algorithm it should add its algorithm that will generate TPC commands and add hook it with GetTpc function call. 
 
-
-ULPC validation
-
-
-We present and discuss here results of power control for different configurations.
-
-The scenario considers ring 0, and 1 UE , and 1 Mbps per UE of injected traffic, 
-and a band of 20 MHz (100 RB). The maximum UE transmitted power is 23 dBm.
-
-It is possible to configure the following options:
-
-- Power control: active
-- Power control: inactive
-
-When the power has to be distributed through the allocated Resource Blocks (RB), two options can be selected:
-
-- UniformpowerAllocBw: the power is uniformly distributed over the 100 RBs, so per RBs we have a fixed amount of power. 
-The total transmitted power is equal to that fixed value multiplied by the number of used RBs
-- UniformpowerAllocUsed: the power is uniformly distributed over the allocated RBs.
-For each configuration, we can represent the total transmitted power per UE and the transmitted power per RB.
-
-Another important aspect to understand the results is the difference between the Round Robin 
-scheduling policy in 5G LENA and in 4G LENA. 4G LENA uniformly distributes the RBs among the 
-UEs to serve, independently of the traffic demand and on the actually needed RBs. Differently,
- 5G LENA only allocates the needed RBs, as a function of the traffic demand.
-
-**Power control inactive. UniformpowerAllocBw**
-
-LENA allocates 100 RBs and so its total transmitted power is 23 dBm. 5G LENA instead allocates a 
-number of RBs which varies depending on the traffic demand. For each RB the transmitted power is 
-constant and equal to the total UE power distributed uniformly through the band, and consequently 
-the total transmitted power of the UE varies, based on the number of allocated RBs. 
-The more RBs, the higher the transmitted power.
-
-
-.. _fig-uplc-val-1:
-
-.. figure:: figures/ulpc/ulpc-val-1.*
-   :align: center
-   :scale: 35 %
-   
-The transmitted power per RB is constant in this case and equal to 3 dB, for both 4G LENA and 5G LENA.
-
-
-.. _fig-uplc-val-2:
-
-.. figure:: figures/ulpc/ulpc-val-2.*
-   :align: center
-   :scale: 35 %
-
-
-**Power control inactive. UniformpowerAllocUsed**
-
-For both 4G LENA and 5G LENA the total transmitted power per UE in this case is 23 dBm.
-
-The UE transmitted power per RB in 4G LENA is again 3 dBm, because 4G LENA 
-always allocates the total bandwidth based on the RR policy. In turn, 5G LENA 
-allocates the 23 dBm power across the used RBs, which are normally less than in 4G LENA; 
-since the RR policy accounts for the traffic demand.
-
-
-.. _fig-uplc-val-3:
-
-.. figure:: figures/ulpc/ulpc-val-3.*
-   :align: center
-   :scale: 35 %
-   
-
-**Power control active. UniformpowerAllocBw**
-
-With power control, and uniform Distribution of the power over the whole bandwidth, 
-the results are similar to the case of inactive power control. 5G LENA allocates 
-less RBs and consequently emits less power, because it emits only on thos RBS, and 
-because the power decided by the UL power control depends on the number of allocated UEs, 
-according to the following formula:
-
-
-    .. :math::
-    
-        double txPower = PoPusch + puschComponent + m_alpha * m_pathLoss + m_deltaTF + m_fc;
-        
-
-where 
-
-    .. :math::
-        
-       puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
-
-
-.. _fig-uplc-val-4:
-
-.. figure:: figures/ulpc/ulpc-val-4.*
-   :align: center
-   :scale: 35 %
-   
-The transmitted power per RB is around 3dBm for LENA, which allocates 100 RBs, 
-and for the case of 5G LENA is lower, because
-
-In case of 5G LENA, due to the scheduler policy, the number of allocated RBs 
-is generally lower than in LENA, and this results in a lower emitted power, 
-and consequently in a lower power per RBs.
-
-.. _fig-uplc-val-5:
-
-.. figure:: figures/ulpc/ulpc-val-5.*
-   :align: center
-   :scale: 35 %
-   
-   
-**Power control active. UniformpowerAllocUsed**
-
-Similarly to before, since 5G LENA allocates less RBs, its total emission power 
-is lower than LENA, which always allocated 100 RBs.
-
-    .. :math::
-    
-        puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
-
-
-.. _fig-uplc-val-6:
-
-.. figure:: figures/ulpc/ulpc-val-6.*
-   :align: center
-   :scale: 35 %
-
-.. _fig-uplc-val-7:
-
-.. figure:: figures/ulpc/ulpc-val-7.*
-   :align: center
-   :scale: 35 %
-
-
-Also it is worth mentioning that there are cases in which 5G LENA transmits over 100 RBs, 
-and this happens for example for the control signal, to which power control in 5G LENA 
-is applied.
 
 HARQ
 ****
