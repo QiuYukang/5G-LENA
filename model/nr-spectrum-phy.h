@@ -123,6 +123,12 @@ public:
   typedef std::function<void (const std::list<Ptr<NrControlMessage> > &, uint8_t)> NrPhyRxCtrlEndOkCallback;
 
   /**
+  * This method is used by the NrSpectrumPhy to notify the UE PHY that a
+  * PSS has been received
+  */
+  typedef Callback< void, uint16_t, const Ptr<SpectrumValue> & > NrPhyRxPssCallback;
+
+  /**
    * This callback method type is used by the NrSpectrumPhy to notify the PHY about
    * the status of a UL HARQ feedback
    */
@@ -138,6 +144,14 @@ public:
    * \param c the callback function
    */
   void SetPhyRxCtrlEndOkCallback (const NrPhyRxCtrlEndOkCallback& c);
+
+  /**
+  * set the callback for the reception of the PSS as part
+  * of the interconnections between the NrSpectrumPhy and the UE PHY
+  *
+  * @param c the callback
+  */
+  void SetPhyRxPssCallback (const NrPhyRxPssCallback &c);
 
   /**
    * \brief Sets the callback to be called when UL HARQ feedback is generated
@@ -661,6 +675,7 @@ private:
   //callbacks for CTRL and DATA, and UL/DL HARQ
   NrPhyRxCtrlEndOkCallback m_phyRxCtrlEndOkCallback; //!< callback that is notified when the CTRL is received
   NrPhyRxDataEndOkCallback m_phyRxDataEndOkCallback; //!< callback that is notified when the DATA is received
+  NrPhyRxPssCallback m_phyRxPssCallback; ///< the phy receive PSS callback
   NrPhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is being generated
 
   //traces

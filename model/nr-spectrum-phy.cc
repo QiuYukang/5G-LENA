@@ -221,6 +221,13 @@ NrSpectrumPhy::SetPhyRxCtrlEndOkCallback (const NrPhyRxCtrlEndOkCallback &c)
 }
 
 void
+NrSpectrumPhy::SetPhyRxPssCallback (const NrPhyRxPssCallback &c)
+{
+  NS_LOG_FUNCTION (this);
+  m_phyRxPssCallback = c;
+}
+
+void
 NrSpectrumPhy::SetPhyUlHarqFeedbackCallback (const NrPhyUlHarqFeedbackCallback& c)
 {
   NS_LOG_FUNCTION (this);
@@ -467,6 +474,25 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
       if (!m_isEnb)
         {
+          if (dlCtrlRxParams->pss == true)
+            {
+              if (dlCtrlRxParams->cellId == GetCellId ())
+               {
+                 NS_LOG_DEBUG ("Receiving PSS from Serving Cell with Id: " <<
+                               dlCtrlRxParams->cellId);
+               }
+              else
+               {
+                 NS_LOG_DEBUG ("Receiving PSS from Neighbor Cell with Id: " <<
+                               dlCtrlRxParams->cellId);
+               }
+
+              if (!m_phyRxPssCallback.IsNull ())
+                {
+                  m_phyRxPssCallback (dlCtrlRxParams->cellId, dlCtrlRxParams->psd);
+                }
+            }
+
           if (dlCtrlRxParams->cellId == GetCellId () && dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {
               m_interferenceCtrl->StartRx(rxPsd);

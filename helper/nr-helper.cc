@@ -563,6 +563,7 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
       channelPhy->SetMobility (mm);
       channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&NrUePhy::PhyDataPacketReceived, phy));
       channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
+      channelPhy->SetPhyRxPssCallback (MakeCallback (&NrUePhy::ReceivePss, phy));
 
       Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
       beamManager->Configure (antenna);

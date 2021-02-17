@@ -476,6 +476,13 @@ public:
    */
   uint8_t ComputeCqi (const SpectrumValue& sinr);
 
+   * \brief Receive PSS and calculate RSRQ in dBm
+   *
+   * \param cellId the cell ID
+   * \param p PSS list
+   */
+  void ReceivePss (uint16_t cellId, const Ptr<SpectrumValue> &p);
+
   /**
    * \brief TracedCallback signature for power trace source
    *

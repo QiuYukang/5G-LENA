@@ -1387,37 +1387,69 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t st
   // TODO use streamIndex
 
   m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
-  NS_LOG_DEBUG ("RSRP value updated: " << m_rsrp << "dBm");
+  NS_LOG_DEBUG ("RSRP value updated: " << m_rsrp << " dBm");
 
   if (m_enableUplinkPowerControl)
     {
       m_powerControl->SetLoggingInfo (GetCellId(), m_rnti);
       m_powerControl->SetRsrp (m_rsrp);
     }
+}
+
+void
+NrUePhy::ReceivePss (uint16_t cellId, const Ptr<SpectrumValue> &p)
+{
+  NS_LOG_FUNCTION (this);
+
+  double sum = 0.0;
+  uint16_t nRB = 0;
+
+  uint32_t subcarrierSpacing;
+  subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, GetNumerology ()));
+
+  Values::const_iterator itPi;
+  for (itPi = p->ConstValuesBegin (); itPi != p->ConstValuesEnd (); itPi++)
+    {
+      // convert PSD [W/Hz] to linear power [W] for the single RE
+      double powerTxW = (*itPi) * subcarrierSpacing;
+      sum += powerTxW;
+      nRB++;
+    }
+
+  // measure instantaneous RSRP now (in dBm)
+  double rsrp = 10 * log10 (1000 * (sum / static_cast<double> (nRB)));
+
+  NS_LOG_DEBUG ("RSRP value updated: " << rsrp << " dBm" <<
+                " for Cell Id: " << cellId << " RNTI: " << m_rnti <<
+                " physical Cell Id: " << GetPhysCellId ());
 
   // store RSRP measurements
-  std::map <uint16_t, UeMeasurementsElement>::iterator itMeasMap = m_ueMeasurementsMap.find (GetCellId ());
+  std::map <uint16_t, UeMeasurementsElement>::iterator itMeasMap = m_ueMeasurementsMap.find (cellId);
   if (itMeasMap == m_ueMeasurementsMap.end ())
     {
       // insert new entry
       UeMeasurementsElement newEl;
-      newEl.rsrpSum = m_rsrp;
+      newEl.rsrpSum = rsrp;
       newEl.rsrpNum = 1;
       newEl.rsrqSum = 0;
       newEl.rsrqNum = 0;
-      NS_LOG_DEBUG ("New RSRP entry for Cell Id: " << GetCellId () <<
-                    " RNTI: " << m_rnti << " RSRP: " << newEl.rsrpSum << " dBm" <<
+
+      NS_LOG_DEBUG ("New RSRP entry for Cell Id: " << cellId <<
+                    " RNTI: " << m_rnti <<
+                    " RSRP: " << newEl.rsrpSum << " dBm" <<
                     " number of entries: " << +newEl.rsrpNum);
 
-      m_ueMeasurementsMap.insert (std::pair <uint16_t, UeMeasurementsElement> (GetCellId (), newEl));
+      m_ueMeasurementsMap.insert (std::pair <uint16_t, UeMeasurementsElement> (cellId, newEl));
     }
   else
     {
-      (*itMeasMap).second.rsrpSum += m_rsrp;
+      (*itMeasMap).second.rsrpSum += rsrp;
       (*itMeasMap).second.rsrpNum++;
-      NS_LOG_DEBUG ("Update RSRP entry for Cell Id: " << GetCellId () <<
-                    " RNTI: " << m_rnti << " RSRP: " << (*itMeasMap).second.rsrpSum <<
-                    " dBm" << " number of entries: " << +((*itMeasMap).second.rsrpNum));
+
+      NS_LOG_DEBUG ("Update RSRP entry for Cell Id: " << cellId <<
+                    " RNTI: " << m_rnti <<
+                    " RSRP Sum: " << (*itMeasMap).second.rsrpSum << " dBm" <<
+                    " number of entries: " << +((*itMeasMap).second.rsrpNum));
     }
 }
 
@@ -1443,8 +1475,9 @@ NrUePhy::ReportUeMeasurements ()
         avg_rsrp = 0;
       }
 
-      NS_LOG_DEBUG (" Report UE Measurements with CellId " << (*it).first <<
-                    " RSRP " << avg_rsrp <<
+      NS_LOG_DEBUG (" Report UE Measurements for CellId " << (*it).first <<
+                    " Reporting UE " << m_rnti <<
+                    " Av. RSRP " << avg_rsrp <<
                     " (nSamples " << +((*it).second.rsrpNum) << ")" <<
                     " BwpID " << GetBwpId ());
 
