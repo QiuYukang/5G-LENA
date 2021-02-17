@@ -700,6 +700,271 @@ and flexible for different subcarrier spacing configurations:
    +---------------+-------------------------------------------+---------------------------------------+
 
 
+**PUCCH power control**
+
+Similarly to PUSCH power calculation there is a lot of similarities in the formulas for PUCCH between 
+TS 36.213 and TS 38.213. Hence, we will not enter in the details to explain each of the components since 
+their equivalents were already explained in the previous sections, such as :math:`P_{CMAX,c}(i)` and :math:`P_{CMAX,f,c}(i)`, 
+:math:`P_{O\_PUCCH,c}(j)` or :math:`P_{O\_PUCCH,b,f,c}(j)`, which are, for example, equivalent to P_{O\_PUSCH,c}(j) or PO_PUSCH,b,f,c(j), 
+respectively. Also, an interested reader is referred to technical specifications (TS 36.213 and TS 38.213) 
+for more detailed explanations. Formula for TS 36.213 PUCCH is provided in Section 5.1.2.1 of TS 36.213,
+while formula for NR PUCCH power control is provided in Section 7.1.2. of TS 38.213.
+ Both of these are shown in continuation, and as such are implemented in NrUePowerControl class. 
+ Note that with respect to PUSCH there is no absolute mode of TPC feedback for PUCCH, hence, accordingly, 
+ only accumulation mode is implemented. Similarly to PUSCH implementation, 
+ the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or 
+could be dynamically set through set function according to corresponding formula.
+
+.. _fig-uplc-3:
+
+.. figure:: figures/ulpc/pucch_36.213.*
+   :align: center
+   :scale: 35 %
+   
+   PUCCH ULPC formula according to 36.213
+   
+.. _fig-uplc-4:
+
+.. figure:: figures/ulpc/pucch_38213.*
+   :align: center
+   :scale: 35 %
+   
+   PUCCH ULPC formula according to 38.213
+
+
+**SRS power control**
+
+LTE SRS power control formula is provided in Section 5.1.3.1 of TS 36.213, 
+while  NR SRS power control formula is provided in Section 7.1.3 of TS 38.213. 
+We will again skip repeating the explanation of each of the component of formula 
+as the equivalents were already explained before. Reader should note that these 
+formulas rely on PUSCH power control, e.g., LTE SRS power control relies on PO_PUSCH,c(j) 
+and fc(i). In the following we provide formulas that are implemented in NrUePoweControl 
+for LTE and NR SRS transmissions.
+
+.. _fig-uplc-5:
+
+.. figure:: figures/ulpc/srs_ts36213.*
+   :align: center
+   :scale: 35 %
+   
+   SRS ULPC formula according to 36.213
+   
+
+P_{SRS\_OFFSET,c}(m) is semi-statically configured by higher layers for m=0,1 for
+serving cell c . For SRS transmission given trigger type 0 then m=0,1 and for SRS
+transmission given trigger type 1 then m=1.
+For K_{s} = 0 P_Srs_Offset_Value is computed with equation:
+
+   .. math::
+
+      P_{SRS\_OFFSET,c}(m)value = -10.5 + P_{SRS\_OFFSET,c}(m) * 1.5 [dBm]
+   
+
+.. _fig-uplc-6:
+
+.. figure:: figures/ulpc/srs_ts38213.*
+   :align: center
+   :scale: 35 %
+   
+   SRS ULPC formula according to 38.213
+   
+
+
+**Closed loop power control**
+
+
+   As we could see in previous formulas there is the difference in the way the accumulation 
+   of TPC commands is performed in LTE and NR. In LTE it happens synchronously, always considering 
+   TPC command that was received in (i−KPUSCH) subframe, while for NR it is necessary to take 
+   into account different TPC commands depending on the transmission occasion i−i0 and how many 
+   symbols have passed since last PDCCH and the first symbol of the current transmission occasion. 
+   In :ref:`fig-ulpc-7` we illustrate a sequence diagram of how LTE and NR CLPC are 
+   implemented and at which point the accumulation state is being updated for each of them. 
+   From the sequence diagram we can see that once the NrUePowerControl receives 
+   TPC command LTE CLPC updates the accumulation state, while NR CLPC only saves 
+   the value and it updates it only at the next transmission occasion. 
+
+
+.. _fig-uplc-7:
+
+.. figure:: figures/ulpc/nr-clpc-dia.*
+   :align: center
+   :scale: 35 %
+   
+    LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI, 
+    and the TPC command reception, reporting to NrUePowerControl and applying for 
+    the next transmission occasion
+    
+    
+User interaction and design
+
+The ULPC functionality is disabled by default and can be configured via the attribute system; 
+in particular, it can be disabled by setting the boolean attribute NrUePhy::EnableUplinkPowerControl 
+to false to disable or to true to enabled, i.e: 
+
+
+   Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (false));
+
+User can configure open or closed loop mode by setting the boolean attribute LteUePowerControl::ClosedLoop.
+
+   Config::SetDefault ("ns3::LteUePowerControl::ClosedLoop", BooleanValue (true));
+
+Note that a large number of parameters still sits in LteUePowerControl in order to avoid redundance of attributes in NrUePowerControl. To change the operational mode of closed loop (absolute or accumulation) user should configure the attribute LteUePowerControl::AccumulationEnabled which is by default set to true so the accumulation mode is the default mode.
+
+   Config::SetDefault ("ns3::LteUePowerControl::AccumulationEnabled", BooleanValue (true));
+
+Probably the most important parameter that is added to NrUePowerControl is TSpec. Determines technical specification TS 36.213 or TS 38.213 according to which will run NrUePowerControl. By default is set TS to 36.213. To configure TS 36.213 set the value TS36.213, while for TS 38.213 should be configured TS28.213. For example:
+
+   Config::SetDefault ("ns3::NrUePowerControl::EnumValue (NrUePowerControl::TS_36_213));
+
+Additional parameters that were added wrt to those that were already existing in LteUePowerControl we highlight the KPUSCH which was previously always fixed to 4 without possibility to modify it. It could be set in the following way:
+
+   Config::SetDefault ("ns3::NrUePowerControl::KPusch",  UintegerValue (4)); 
+
+Another that could be useful when simulating bandwidth limited low complexity and coverage enhanced devices is BL_CE parameter. When set to true means that this power control is applied to bandwidth reduced, low complexity or coverage enhanced (BL/CE) device.
+By default this attribute is set to false. Default BL_CE mode is CEModeB. This option can be used only in conjunction with attribute TSpec being set to TS 36.213. 
+
+   Config::SetDefault ("ns3::NrUePowerControl::BL_CE",  BooleanValue (true)); 
+
+Additionally, as mentioned earlier, when DCI message is being created, it is called the GetTpc function. Hence, if user would like to implement or try its own CLCP scheme, based on some different TPC algorithm it should add its algorithm that will generate TPC commands and add hook it with GetTpc function call. 
+
+
+ULPC validation
+
+
+We present and discuss here results of power control for different configurations.
+
+The scenario considers ring 0, and 1 UE , and 1 Mbps per UE of injected traffic, 
+and a band of 20 MHz (100 RB). The maximum UE transmitted power is 23 dBm.
+
+It is possible to configure the following options:
+
+- Power control: active
+- Power control: inactive
+
+When the power has to be distributed through the allocated Resource Blocks (RB), two options can be selected:
+
+- UniformpowerAllocBw: the power is uniformly distributed over the 100 RBs, so per RBs we have a fixed amount of power. 
+The total transmitted power is equal to that fixed value multiplied by the number of used RBs
+- UniformpowerAllocUsed: the power is uniformly distributed over the allocated RBs.
+For each configuration, we can represent the total transmitted power per UE and the transmitted power per RB.
+
+Another important aspect to understand the results is the difference between the Round Robin 
+scheduling policy in 5G LENA and in 4G LENA. 4G LENA uniformly distributes the RBs among the 
+UEs to serve, independently of the traffic demand and on the actually needed RBs. Differently,
+ 5G LENA only allocates the needed RBs, as a function of the traffic demand.
+
+**Power control inactive. UniformpowerAllocBw**
+
+LENA allocates 100 RBs and so its total transmitted power is 23 dBm. 5G LENA instead allocates a 
+number of RBs which varies depending on the traffic demand. For each RB the transmitted power is 
+constant and equal to the total UE power distributed uniformly through the band, and consequently 
+the total transmitted power of the UE varies, based on the number of allocated RBs. 
+The more RBs, the higher the transmitted power.
+
+
+.. _fig-uplc-val-1:
+
+.. figure:: figures/ulpc/ulpc-val-1.*
+   :align: center
+   :scale: 35 %
+   
+The transmitted power per RB is constant in this case and equal to 3 dB, for both 4G LENA and 5G LENA.
+
+
+.. _fig-uplc-val-2:
+
+.. figure:: figures/ulpc/ulpc-val-2.*
+   :align: center
+   :scale: 35 %
+
+
+**Power control inactive. UniformpowerAllocUsed**
+
+For both 4G LENA and 5G LENA the total transmitted power per UE in this case is 23 dBm.
+
+The UE transmitted power per RB in 4G LENA is again 3 dBm, because 4G LENA 
+always allocates the total bandwidth based on the RR policy. In turn, 5G LENA 
+allocates the 23 dBm power across the used RBs, which are normally less than in 4G LENA; 
+since the RR policy accounts for the traffic demand.
+
+
+.. _fig-uplc-val-3:
+
+.. figure:: figures/ulpc/ulpc-val-3.*
+   :align: center
+   :scale: 35 %
+   
+
+**Power control active. UniformpowerAllocBw**
+
+With power control, and uniform Distribution of the power over the whole bandwidth, 
+the results are similar to the case of inactive power control. 5G LENA allocates 
+less RBs and consequently emits less power, because it emits only on thos RBS, and 
+because the power decided by the UL power control depends on the number of allocated UEs, 
+according to the following formula:
+
+
+    .. :math::
+    
+        double txPower = PoPusch + puschComponent + m_alpha * m_pathLoss + m_deltaTF + m_fc;
+        
+
+where 
+
+    .. :math::
+        
+       puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
+
+
+.. _fig-uplc-val-4:
+
+.. figure:: figures/ulpc/ulpc-val-4.*
+   :align: center
+   :scale: 35 %
+   
+The transmitted power per RB is around 3dBm for LENA, which allocates 100 RBs, 
+and for the case of 5G LENA is lower, because
+
+In case of 5G LENA, due to the scheduler policy, the number of allocated RBs 
+is generally lower than in LENA, and this results in a lower emitted power, 
+and consequently in a lower power per RBs.
+
+.. _fig-uplc-val-5:
+
+.. figure:: figures/ulpc/ulpc-val-5.*
+   :align: center
+   :scale: 35 %
+   
+   
+**Power control active. UniformpowerAllocUsed**
+
+Similarly to before, since 5G LENA allocates less RBs, its total emission power 
+is lower than LENA, which always allocated 100 RBs.
+
+    .. :math::
+    
+        puschComponent = 10 * log10 ( std::pow (2, m_nrUePhy->GetNumerology ()) * rbNum);
+
+
+.. _fig-uplc-val-6:
+
+.. figure:: figures/ulpc/ulpc-val-6.*
+   :align: center
+   :scale: 35 %
+
+.. _fig-uplc-val-7:
+
+.. figure:: figures/ulpc/ulpc-val-7.*
+   :align: center
+   :scale: 35 %
+
+
+Also it is worth mentioning that there are cases in which 5G LENA transmits over 100 RBs, 
+and this happens for example for the control signal, to which power control in 5G LENA 
+is applied.
+
 HARQ
 ****
 The NR scheduler works on a slot basis and has a dynamic nature [TS38300]_.
@@ -958,7 +1223,7 @@ Note there are not limitations in the implementation and every N value can be eq
 
 For the scheduling timings let us note that each K cannot take a value smaller than
 the corresponding N value (e.g., K2 cannot be less than N2).
-The proceedure followed for the calculation of the scheduling and DL HARQ Feedback
+The procedure followed for the calculation of the scheduling and DL HARQ Feedback
 timings at the gNB side is briefly described below.
 
 For K0, the gNB calculates (based on the TDD pattern) which is the next DL (or F)
