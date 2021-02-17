@@ -100,7 +100,7 @@ GridScenarioHelper::CreateScenario ()
       uint32_t bsN = m_bs.GetN ();
       for (uint32_t i = 0; i < m_rows; ++i)
         {
-          for (uint32_t j = 0; i < m_columns; ++j)
+          for (uint32_t j = 0; j < m_columns; ++j)
             {
               if (bsN == 0)
                 {
@@ -110,8 +110,8 @@ GridScenarioHelper::CreateScenario ()
               Vector pos (m_initialPos);
               pos.z = m_bsHeight;
 
-              pos.x = m_initialPos.x + (i * m_horizontalBsDistance);
-              pos.y = m_initialPos.y + (j * m_verticalBsDistance);
+              pos.x = m_initialPos.x + (j * m_horizontalBsDistance);
+              pos.y = m_initialPos.y + (i * m_verticalBsDistance);
 
               NS_LOG_DEBUG ("GNB Position: " << pos);
               bsPos->Add (pos);
@@ -123,9 +123,9 @@ GridScenarioHelper::CreateScenario ()
 
 
   m_x->SetAttribute ("Min", DoubleValue (0.0));
-  m_x->SetAttribute ("Max", DoubleValue (m_height));
+  m_x->SetAttribute ("Max", DoubleValue (m_length));
   m_y->SetAttribute ("Min", DoubleValue (0.0));
-  m_y->SetAttribute ("Max", DoubleValue (m_length));
+  m_y->SetAttribute ("Max", DoubleValue (m_height));
   // UT position
   if (m_ut.GetN () > 0)
     {
