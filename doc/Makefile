@@ -11,7 +11,8 @@ FIGURES = $(SOURCE)/figures
 # specify dia figures from which .png and .pdf figures need to be built
 
 IMAGES_DIA = \
-#	$(FIGURES)/*.dia \
+	$(FIGURES)/ulpc/nr-clpc.dia \
+	$(FIGURES)/rbf-impl.dia \
 #	$(FIGURES)/*.dia
 
 
