@@ -12,6 +12,7 @@ FIGURES = $(SOURCE)/figures
 
 IMAGES_DIA = \
 	$(FIGURES)/ulpc/nr-clpc.dia \
+	$(FIGURES)/rbf-impl.dia \
 #	$(FIGURES)/*.dia
 
 
