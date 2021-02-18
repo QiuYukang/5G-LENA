@@ -321,14 +321,6 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noi
     {
       m_interferenceSrs->SetNoisePowerSpectralDensity (noisePsd);
     }
-  if (m_channel)
-    {
-      m_channel->AddRx (this);
-    }
-  else
-    {
-      NS_LOG_WARN ("Working without channel (i.e., under test)");
-    }
 }
 
 void

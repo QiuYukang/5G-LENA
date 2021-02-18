@@ -447,8 +447,12 @@ protected:
   void DoUpdateRbNum ();
 
   /**
-   * \brief Protected function to set the channel bandwidth, used also by child classes.
-   * This function also updates the rbNum and spectrum model for noise PSD.
+   * \brief Function to set the channel bandwidth, used also by child classes, i.e.,
+   * see functions DoSetDlBanwidth in NrUePhy and DoSetBandwidth in NrGnbPhy.
+   * This function is also called by NrHelper when creating gNB and UE devices.
+   * See CreateGnbPhy and CreateUePhy in NrHelper.
+   * This function updates the number of RBs and thus the spectrum model, i.e.,
+   * for noise PSD and for future transmissions.
    * \param bandwidth channel bandwidth in kHz * 100
    */
   void SetChannelBandwidth (uint16_t bandwidth);
@@ -609,7 +613,8 @@ private:
 
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0};             //!< Channel central frequency -- set by the helper
-  uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
+  uint16_t m_channelBandwidth {0};  //!< Value in kHz * 100. Set by RRC. 
+                                    // E.g. if set to 200, the bandwidth will be 20 MHz (= 200 * 100 KHz)
 
   uint16_t m_cellId {0};             //!< Cell ID which identify this BWP.
   uint16_t m_bwpId {UINT16_MAX};     //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper

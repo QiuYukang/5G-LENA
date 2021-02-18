@@ -248,17 +248,22 @@ void
 NrPhy::SetChannelBandwidth (uint16_t channelBandwidth)
 {
   NS_LOG_FUNCTION (this);
-  m_channelBandwidth = channelBandwidth;
 
-  // number of RB and noise PSD must be updated when bandwidth or numerology gets changed
-  DoUpdateRbNum ();
+  NS_LOG_DEBUG ("SetChannelBandwidth called with channel bandwidth value: "<< channelBandwidth * 100 * 1000 << "Hz, "
+                "and the previous value of channel bandwidth was: " << GetChannelBandwidth () << " Hz");
+
+  if (m_channelBandwidth != channelBandwidth)
+    {
+      m_channelBandwidth = channelBandwidth;
+      // number of RB and noise PSD must be updated when bandwidth or numerology gets changed
+      DoUpdateRbNum ();
+    }
 }
 
 void
 NrPhy::SetNumerology (uint16_t numerology)
 {
   NS_LOG_FUNCTION (this);
-
   m_numerology = numerology;
   m_slotsPerSubframe  = static_cast<uint16_t> (std::pow (2, numerology));
   m_slotPeriod = Seconds (0.001 / m_slotsPerSubframe);
@@ -266,14 +271,21 @@ NrPhy::SetNumerology (uint16_t numerology)
   m_symbolPeriod = (m_slotPeriod / m_symbolsPerSlot);
 
   // number of RB and noise PSD must be updated when bandwidth or numerology gets changed
-  DoUpdateRbNum ();
+  if (m_channelBandwidth != 0)
+    {
+      DoUpdateRbNum ();
 
-  NS_LOG_INFO (" Numerology configured:" << GetNumerology () <<
-               " slots per subframe: " << m_slotsPerSubframe <<
-               " slot period:" << GetSlotPeriod () <<
-               " symbol period:" << GetSymbolPeriod () <<
-               " subcarrier spacing: " << GetSubcarrierSpacing () <<
-               " number of RBs: " << GetRbNum () );
+      NS_LOG_INFO (" Numerology configured:" << GetNumerology () <<
+                   " slots per subframe: " << m_slotsPerSubframe <<
+                   " slot period:" << GetSlotPeriod () <<
+                   " symbol period:" << GetSymbolPeriod () <<
+                   " subcarrier spacing: " << GetSubcarrierSpacing () <<
+                   " number of RBs: " << GetRbNum () );
+    }
+  else
+    {
+      NS_LOG_INFO ("Numerology is set, but the channel bandwidth not yet, so the number of RBs cannot be updated now.");
+    }
 }
 
 uint16_t
@@ -539,6 +551,18 @@ NrPhy::DoUpdateRbNum ()
     {
       // Update the noisePowerSpectralDensity, as it depends on m_rbNum
       m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+
+      // once we have set noise power spectral density which will
+      // initialize SpectrumModel of our SpectrumPhy, we can
+      // call AddRx function of the SpectrumChannel
+      if (m_spectrumPhy->GetSpectrumChannel())
+        {
+          m_spectrumPhy->GetSpectrumChannel()->AddRx (m_spectrumPhy);
+        }
+      else
+        {
+          NS_LOG_WARN ("Working without channel (i.e., under test)");
+        }
       NS_LOG_INFO ("Noise Power Spectral Density updated");
     }
 }
@@ -617,7 +641,6 @@ NrPhy::InstallSpectrumPhy (const Ptr<NrSpectrumPhy> &spectrumPhy)
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (m_spectrumPhy != nullptr);
   m_spectrumPhy = spectrumPhy;
-  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 }
 
 void NrPhy::SetBwpId (uint16_t bwpId)
@@ -828,10 +851,7 @@ NrPhy::GetSpectrumModel ()
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_MSG_IF (GetSubcarrierSpacing () < 0.0, "Set a valid numerology");
-  if (GetRbNum() == 0)
-    {
-       DoUpdateRbNum ();
-    }
+  NS_ABORT_MSG_IF (m_channelBandwidth == 0, "Channel bandwidth not set.");
   return NrSpectrumValueHelper::GetSpectrumModel (GetRbNum (),
                                                   GetCentralFrequency (),
                                                   GetSubcarrierSpacing ());

@@ -303,10 +303,6 @@ NrUePhy::RegisterToEnb (uint16_t bwpId)
   NS_LOG_FUNCTION (this);
 
   InitializeMessageList ();
-
-  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-
   DoSetCellId (bwpId);
 }
 
@@ -1137,6 +1133,7 @@ void
 NrUePhy::DoStartCellSearch (uint16_t dlEarfcn)
 {
   NS_LOG_FUNCTION (this << dlEarfcn);
+  DoSetDlBandwidth (14); // configure initial bandwidth for receiving control, 14 * 100KHz, 1.4KHz, corresponds to 6 RBs
 }
 
 void
@@ -1163,7 +1160,7 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
   DoSetCellId (cellId);
-  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity ());
+  DoSetDlBandwidth (14); // configure initial DL bandwidth for receiving control, 14 * 100KHz, 1.4KHz, corresponds to 6 RBs
 }
 
 BeamId
@@ -1220,27 +1217,19 @@ NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
 
-  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
+  SetChannelBandwidth (dlBandwidth);
 
-  if (GetChannelBandwidth () != dlBandwidthInHz)
-    {
-      NS_LOG_DEBUG ("Channel bandwidth changed from " << GetChannelBandwidth () << " to " <<
-                    dlBandwidth * 100 * 1000 << " Hz.");
-
-      SetChannelBandwidth (dlBandwidth);
-
-      NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
-                    "\t TxPower: " << m_txPower << " dB" << std::endl <<
-                    "\t NoiseFigure: " << m_noiseFigure << std::endl <<
-                    "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
-                    "\t Numerology: " << GetNumerology () << std::endl <<
-                    "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
-                    "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
-                    "Attached to physical channel: " << std::endl <<
-                    "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
-                    "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
-                    "\t Num. RB: " << GetRbNum ());
-    }
+  NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
+                "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                "\t Numerology: " << GetNumerology () << std::endl <<
+                "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                "Attached to physical channel: " << std::endl <<
+                "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                "\t Num. RB: " << GetRbNum ());
 }
 
 
