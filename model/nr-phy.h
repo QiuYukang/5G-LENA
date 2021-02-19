@@ -621,10 +621,10 @@ private:
   uint16_t m_numerology {0};         //!< Numerology: defines the scs, RB width, slot length, slots per subframe
   uint16_t m_symbolsPerSlot {14};    //!< number of OFDM symbols per slot
 
-  uint16_t m_slotsPerSubframe {1};              //!< Number of slots per subframe, changes with numerology
-  Time m_slotPeriod {MilliSeconds (1)};         //!< NR slot length (changes with numerology and symbolsPerSlot)
-  Time m_symbolPeriod {MilliSeconds (1) / 14};  //!< OFDM symbol length (changes with numerology)
-  uint32_t m_subcarrierSpacing {15000};         //!< subcarrier spacing (it is determined by the numerology)
+  uint16_t m_slotsPerSubframe {0};              //!< Number of slots per subframe, changes with numerology
+  Time m_slotPeriod {0};                        //!< NR slot length (changes with numerology and symbolsPerSlot)
+  Time m_symbolPeriod {0};                      //!< OFDM symbol length (changes with numerology)
+  uint32_t m_subcarrierSpacing {0};             //!< subcarrier spacing (it is determined by the numerology), can be 15KHz, 30KHz, 60KHz, 120KHz, ...
   uint32_t m_rbNum {0};                         //!< number of resource blocks within the channel bandwidth
   double m_rbOh {0.04};                         //!< Overhead for the RB calculation
   enum NrSpectrumValueHelper::PowerAllocationType m_powerAllocationType {NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED}; //!< The type of power allocation, supported modes to distribute power uniformly over all RBs, or only used RBs
