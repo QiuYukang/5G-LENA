@@ -185,13 +185,17 @@ private:
   /**
    * \brief Calculates an estimation of the long term component based on the channel measurements
    * \param channelMatrix the channel matrix H
-   * \param sW the beamforming vector of the s device
-   * \param uW the beamforming vector of the u device
+   * \param sW the beamforming vector of the first device
+   * \param uW the beamforming vector of the second device
+   * \param a the first node mobility model
+   * \param b the second node mobility model
    * \return the estimated long term component
    */
   ThreeGppAntennaArrayModel::ComplexVector GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
-                                                                          const ThreeGppAntennaArrayModel::ComplexVector &sW,
-                                                                          const ThreeGppAntennaArrayModel::ComplexVector &uW) const;
+                                                                          const ThreeGppAntennaArrayModel::ComplexVector &aW,
+                                                                          const ThreeGppAntennaArrayModel::ComplexVector &bW,
+                                                                          Ptr<const MobilityModel> a,
+                                                                          Ptr<const MobilityModel> b) const;
 
   /*
    * \brief Calculates the total metric based on the each element of the long term component

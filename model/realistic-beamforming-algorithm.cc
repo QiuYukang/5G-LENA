@@ -251,12 +251,14 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
                   Ptr<ThreeGppChannelModel> channelModel = DynamicCast<ThreeGppChannelModel>(matrixBasedChannelModel);
                   NS_ASSERT (channelModel!=nullptr);
 
-                  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = channelModel -> GetChannel (gnbDev->GetNode ()->GetObject<MobilityModel>(),
+                  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = channelModel -> GetChannel (gnbDev->GetNode()->GetObject<MobilityModel>(),
                                                                                                                 ueDev->GetNode()->GetObject<MobilityModel>(),
                                                                                                                 gnbPhy->GetAntennaArray (),
                                                                                                                 uePhy->GetAntennaArray ());
 
-                  const ThreeGppAntennaArrayModel::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW);
+                  const ThreeGppAntennaArrayModel::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
+                                                                                                                             gnbDev->GetNode()->GetObject<MobilityModel>(),
+                                                                                                                             ueDev->GetNode()->GetObject<MobilityModel>());
 
                   double estimatedLongTermMetric = CalculateTheEstimatedLongTermMetric (estimatedLongTermComponent);
 
@@ -308,10 +310,29 @@ RealisticBeamformingAlgorithm::CalculateTheEstimatedLongTermMetric (const ThreeG
 
 ThreeGppAntennaArrayModel::ComplexVector
 RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
-                                                              const ThreeGppAntennaArrayModel::ComplexVector &sW,
-                                                              const ThreeGppAntennaArrayModel::ComplexVector &uW) const
+                                                              const ThreeGppAntennaArrayModel::ComplexVector &aW,
+                                                              const ThreeGppAntennaArrayModel::ComplexVector &bW,
+                                                              Ptr<const MobilityModel> a,
+                                                              Ptr<const MobilityModel> b) const
 {
   NS_LOG_FUNCTION (this);
+
+  uint32_t aId = a->GetObject<Node> ()->GetId (); // id of the node a
+  uint32_t bId = b->GetObject<Node> ()->GetId (); // id of the node b
+
+  // check if the channel matrix was generated considering a as the s-node and
+  // b as the u-node or viceversa
+  ThreeGppAntennaArrayModel::ComplexVector sW, uW;
+  if (!channelMatrix->IsReverse (aId, bId))
+    {
+      sW = aW;
+      uW = bW;
+    }
+  else
+    {
+      sW = bW;
+      uW = aW;
+    }
 
   uint16_t sAntenna = static_cast<uint16_t> (sW.size ());
   uint16_t uAntenna = static_cast<uint16_t> (uW.size ());
