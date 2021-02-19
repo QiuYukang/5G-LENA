@@ -424,11 +424,11 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports different methods: long-term covariance matrix (OptimalCovMatrixBeamforming), 
-beam-search (CellScanBeamforming), LOS path (DirectPathBeamforming), 
-and LOS path at gNB and quasi-omni at UE (QuasiOmniDirectPathBeamforming). 
+The 'NR' module supports different methods: long-term covariance matrix (``OptimalCovMatrixBeamforming``), 
+beam-search (``CellScanBeamforming``), LOS path (``DirectPathBeamforming``), 
+and LOS path at gNB and quasi-omni at UE (``QuasiOmniDirectPathBeamforming``). 
 OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce the optimal 
-transmit and receive beam. In CellScanBeamforming, a set of predefined beams is tested, 
+transmit and receive beam. In ``CellScanBeamforming``, a set of predefined beams is tested, 
 and the beam-pair providing a highest average SNR is selected. For the beam-search method, 
 our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). 
 A new interface allows you to have the beam ID available at MAC layer for scheduling purposes. 
@@ -440,11 +440,11 @@ All ideal BF algorithms inherit `IdealBeamformingAlgorithm` class.
 implement `BeamformingAlgorithm` interface and thus both must have the function 
 `GetBeamformingVectors` which determines BF vectors to be used on a pair of devices, 
 i.e., gNB and UE. 
-For example, `CellScanBeamforming` implements a type of ideal BF algorithm that 
+For example, ``CellScanBeamforming`` implements a type of ideal BF algorithm that 
 searches for the best pair of BF vectors from the set of pre-defined BF vectors assuming 
 the perfect knowledge of the channel.
 When UE is attached to gNB, a BF task is created. The BF task is composed of a pair of connected devices 
-for which the BF helper will manage the update of the BF vectors by calling `GetBeamformingVectors` 
+for which the BF helper will manage the update of the BF vectors by calling ``GetBeamformingVectors`` 
 of configured BF algorithm. 
 
 **Realistic beamforming**
@@ -456,15 +456,15 @@ the realistic BF algorithms are expected to select the best beam based on some m
 and this is the main difference between these two types of algorithm implementations in 5G-LENA. 
 
 To implement a new realistic BF algorithm, we have created a separate class called 
-`RealisticBeamformingAlgorithm` which relies on SRS SINR measurements to determine BF vectors. 
-Similarly to previously mentioned `CellScanBeamforming` there is a set of 
+``RealisticBeamformingAlgorithm`` which relies on SRS SINR measurements to determine BF vectors. 
+Similarly to previously mentioned ``CellScanBeamforming`` there is a set of 
 pre-defined BF vectors, but the knowledge of the channel is not perfect, 
 and depends on the quality of reported SRS measurement. 
 Important difference wrt ideal BF algorithm implementations, 
 is that ideal BF vectors of all devices are updated at the same time based on 
 the configured periodicity through `BeamformingPeriodicity` attribute 
-of `IdealBeamformingHelper`. 
-On the other hand, when `RealisticBeamformingAlgorithm` is used, 
+of ``IdealBeamformingHelper``. 
+On the other hand, when ``RealisticBeamformingAlgorithm`` is used, 
 the BF vectors are updated when the configured trigger event occurs, and 
 only the BF vectors of the pair of devices for which SRS measurement has been 
 reported (pair of gNB and UE) are updated.
@@ -472,24 +472,24 @@ The BF vector trigger update event can be either SRS count event
 (e.g., after every N SRSs are received, the BF vectors are updated), 
 or based on the delay event after SRS reception (e.g., :math:`\delta` 
 time after each SRS reception). 
-The type of event and its parameters can be configured through `RealisticBfManager` class. 
+The type of event and its parameters can be configured through ``RealisticBfManager`` class. 
 Hence, in order to use realistic BF functionality it is necessary to install 
-`RealisticBfManager` at gNBs PHY instead of the default `BeamManager` class. 
+``RealisticBfManager`` at gNBs PHY instead of the default ``BeamManager`` class. 
 The configuration of trigger event and its parameters can be done per 
 gNB instance granularity, but can be easily extended to be done per UE.
 
-For each BF task is created an instance of realistic BF algorithm, 
-which is then connected to `NrSpectrumPhy` SRS SINR trace to receive SRS reports. 
-Realistic BF algorithm is also connected to its helper through callback to 
-notify it when BF vectors of device pair needs to be updated 
+For each BF task an instance of realistic BF algorithm is created, 
+which is then connected to ``NrSpectrumPhy`` SRS SINR trace to receive SRS reports. 
+Realistic BF algorithm is also connected to its helper through a callback to 
+notify it when BF vectors of a device pair need to be updated 
 (based on configuration and SRS reports). 
-When BF vectors need to be updated, the function `GetBeamformingVector` 
-or realistic BF algorithm is called, which calls `GetEstimatedLongTermComponent` 
+When BF vectors need to be updated, the function ``GetBeamformingVector`` 
+or realistic BF algorithm is called, which calls ``GetEstimatedLongTermComponent`` 
 for each pair of pre-defined beams of the receiver and transmitter in order to 
 estimate the channel quality of each of them based on the SRS reports. 
 The estimation of the channel is done based on the abstraction model explained in the following 
 section. 
-Finally, `CalculateTheEstimatedLongTermMetric` calculates the metric that is used to select the 
+Finally, ``CalculateTheEstimatedLongTermMetric`` calculates the metric that is used to select the 
 best BF pair.
 
 In Figure :ref:`fig-rbf-impl`, we show the diagram of the classes that are used for realistic 
@@ -504,7 +504,7 @@ needs to access to `ThreeGppChannelModel` to obtain the channel matrix in order 
    :align: center
    :scale: 50 %
    
-   Diagram of realistic/ideal BF, dependencies on 3GPP channel related classes, and `NrGnbPhy`.
+   Diagram of realistic/ideal BF, dependencies on 3GPP channel related classes, and ``NrGnbPhy``.
 
 
 **Abstraction model for SRS-based channel estimation**
@@ -517,7 +517,7 @@ at the gNB can be modeled as in [SigProc5G]_ :
 :math:`\hat{h} = \alpha (h+e)`,
 
 where :math:`\alpha` is a scaling factor to maintain normalization of 
-the estimated channel, and math:`e` is the white complex Gaussian 
+the estimated channel, and :math:`e` is the white complex Gaussian 
 channel estimation error. 
 The estimation error is assumed to be characterized by zero-mean and variance 
 :math:`\sigma_e^2`. 
@@ -528,7 +528,7 @@ The variance of the error is given by:
 
 where SINR is the received SINR of SRS at the gNB and :math:`\Delta` 
 is the gain obtained from time-domain filtering during the channel estimation. 
-According to 3GPP analysis of SRS transmission, math:`\Delta` 
+According to 3GPP analysis of SRS transmission, :math:`\Delta` 
 is set to 9 dB [SigProc5G]_. The scaling factor is given by: 
 
 :math:`\alpha = \sqrt{\frac{1}{(1+\sigma_e^2)}}`.
@@ -550,10 +550,10 @@ all subcarriers are used for SRS transmission.
 Figure :ref:`fig-srs-5glena` shows the slot structure and the symbols over which the 
 SRS transmission spans, assuming a repeated TDD pattern structure of
 [DL F UL UL UL] (i.e., one DL slot, followed by one flexible slot and three UL 
-slots\footnote{In 5G-LENA, flexible slots consist of DL/UL control symbols and 
+slots and that SRS transmissions occur in F slots (i.e., slots number 1 and 6 in the figure).
+In 5G-LENA, flexible slots consist of DL/UL control symbols and 
 a variable number of DL and UL symbols for data; DL slots carry only DL control 
-and DL data; and UL slots consist of UL data and UL control parts.}) and that SRS 
-transmissions occur in F slots (i.e., slots number 1 and 6 in the figure). 
+and DL data; and UL slots consist of UL data and UL control parts.
 
 .. _fig-srs-5glena:
 
@@ -574,17 +574,17 @@ are more UEs, the gNB MAC scheduler can dynamically increase the periodicity and
 update the offsets accordingly. We have implemented scheduling-based SRS.
 
 To allow dynamic SRS scheduling and adjustment of SRS periodicity/offset of all UEs, 
-we introduced `NrMacSchedulerSrs` and `NrMacSchedulerSrsDefault` into 5G-LENA model. 
+we introduced ``NrMacSchedulerSrs`` and ``NrMacSchedulerSrsDefault`` into 5G-LENA model. 
 
-`NrMacSchedulerSrs` is an interface that is used by the NR gNB MAC scheduler to obtain 
+``NrMacSchedulerSrs`` is an interface that is used by the NR gNB MAC scheduler to obtain 
 the SRS offset/periodicity for a UE. There can be various implementations 
 of this interface that would simulate different algorithms for SRS 
 offset/periodicity generation. 
-In `NrMacSchedulerSrsDefault`, we provide one of possible implementations. 
-Each time a new UE is attached it is called the function `AddUe` 
+In ``NrMacSchedulerSrsDefault``, we provide one possible implementation. 
+Each time a new UE is attached it is called the function ``AddUe`` 
 that returns the offset/periodicity configuration. When scheduler detects 
-that the SRS periodicity is too small for the number of UEs it calls function 
-`IncreasePeriodicity`, which picks up the next periodicity value from the list 
+that the SRS periodicity is too small for the number of UEs it calls the 
+``IncreasePeriodicity``, which picks up the next periodicity value from the list 
 of standard  values, i.e., 2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 
 1280, 2560 slots [TS38331]_. 
 Scheduling-based SRS is more flexible approach than SRS configuration through 
@@ -594,11 +594,11 @@ of UEs in the simulation scenario. To allow dynamic SRS periodicity adaptation i
 5G-LENA, it was necessary to set a constraint which is that at most 1 UE can send 
 the SRS in a single slot.
 
-Configuration parameters related to SRS transmissions are specified in `NrMacSchedulerNs3` 
+Configuration parameters related to SRS transmissions are specified in ``NrMacSchedulerNs3`` 
 class. The user can configure the number of SRS symbols that will be allocated 
-for SRS transmission through the attribute `SrsSymbols`. Additionally, 
+for SRS transmission through the attribute ``SrsSymbols``. Additionally, 
 the user can configure whether SRS will be transmitted only in flexible slots, 
-or in both flexible and UL slots by setting the attribute `EnableSrsInUlSlots`.
+or in both flexible and UL slots by setting the attribute ``EnableSrsInUlSlots``.
 
 
 .. _UplinkPowerControl:
@@ -633,7 +633,7 @@ application in a wider range of frequencies. In our extended model,
 we have added support for an independent reporting of Transmit Power Command 
 (TPC) for PUSCH/SRS and PUCCH.
 
-ULPC is implemented in NrUePowerControl class which computes and updates 
+ULPC is implemented in ``NrUePowerControl`` class which computes and updates 
 the power levels for PUSCH, Sounding Reference 
 Signals (SRS) transmissions and PUCCH. It supports open and closed loop modes. 
 According the open loop the UE transmission power depends on the estimation 
@@ -671,7 +671,7 @@ As a results, NrUePowerControl supports the following:
 
 **LTE PUSCH power control**
 
-Formula for LTE PUSCH is provided in Section 5.1.1.1 of TS 36.213. 
+The formula for LTE PUSCH is provided in Section 5.1.1.1 of TS 36.213. 
 There are two types of formulas, for simultaneous transmission of PUSCH and PUCCH, 
 and separated. Currently we have implemented the option when the 
 transmissions of PUCCH and PUSCH are not simultaneous, since this is 
@@ -694,18 +694,15 @@ in NrUePowerControl class:
    of resource blocks used in a subframe :math:`i` and serving cell :math:`c`.
 
 * :math:`P_{O\_PUSCH,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,c}(j)`
-   provided from higher layers for :math:`j={0,1}` and a component :math:`P_{O\_UE\_PUSCH,c}(j)` provided by higher 
-   layers for :math:`j={0,1}` for serving cell :math:`c`. SIB2 message needs to be extended to carry these two 
-   components, but currently they can be set via attribute system::
-   
-      Config::SetDefault ("ns3::NrUePowerControl::PoNominalPusch", IntegerValue (-90));
-      Config::SetDefault ("ns3::NrUePowerControl::PoUePusch", IntegerValue (7));
+   provided from higher layers :math:`j={0,1}` and a component :math:`P_{O\_UE\_PUSCH,c}(j)` provided by higher 
+   layers for :math:`j={0,1}` for serving cell :math:`C`. SIB2 message needs to be extended to carry these two 
+   components, but currently they can be set via attribute system using `NrUePowerControl` class attributes: `PoNominalPusch` 
+   and `PoUePusch`.
    
 * :math:`\alpha_{c} (j)` is a 3-bit parameter provided by higher layers for serving cell :math:`c`. 
    For :math:`j=0,1`, :math:`\alpha_c \in \left \{ 0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 \right \}` 
-   For :math:`j=2`, :math:`\alpha_{c} (j) = 1`. This parameter is configurable by attribute system::
-
-      Config::SetDefault ("ns3::NrUePowerControl::Alpha", DoubleValue (0.8));
+   For :math:`j=2`, :math:`\alpha_{c} (j) = 1`. This parameter is configurable by attribute system 
+   by setting ``Alpha`` attribute of ``NrUePowerControl`` class.
 
 
 * :math:`PL_{c}` is the downlink pathloss estimate calculated at the UE for the serving cell :math:`c` in dB 
@@ -886,7 +883,8 @@ Both of these are shown in continuation, and as such are implemented in NrUePowe
 Note that with respect to PUSCH there is no absolute mode of TPC feedback for PUCCH, hence, accordingly, 
 only accumulation mode is implemented. Similarly to PUSCH implementation, 
 the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or 
-could be dynamically set through set function according to corresponding formula.
+could be dynamically set through set function according to corresponding formula. 
+PUCCH ULPC formula according to 36.213 is calculated by the following formula:
 
 .. _fig-ulpc-pucch-36213:
 
@@ -894,36 +892,30 @@ could be dynamically set through set function according to corresponding formula
    :align: center
    :scale: 35 %
    
-   PUCCH ULPC formula according to 36.213
-
+PUCCH ULPC formula according to 38.213 is given in the following:
 
 .. _fig-uplc-pucch-38213:
 
 .. figure:: figures/ulpc/pucch_38213.*
    :align: center
    :scale: 35 %
-   
-   PUCCH ULPC formula according to 38.213
 
 
 **SRS power control**
 
 LTE SRS power control formula is provided in Section 5.1.3.1 of TS 36.213, 
 while  NR SRS power control formula is provided in Section 7.1.3 of TS 38.213. 
-We will again skip repeating the explanation of each of the component of formula 
+We will again skip repeating the explanation of each of the components of the formula 
 as the equivalents were already explained before. Reader should note that these 
 formulas rely on PUSCH power control, e.g., LTE SRS power control relies on PO_PUSCH,c(j) 
 and fc(i). In the following we provide formulas that are implemented in NrUePoweControl 
-for LTE and NR SRS transmissions.
+for LTE and NR SRS transmissions. SRS ULPC formula according to 36.213 is given by:
 
 .. _fig-ulpc-srs-36213:
 
 .. figure:: figures/ulpc/srs_ts36213.*
    :align: center
    :scale: 35 %
-   
-   SRS ULPC formula according to 36.213
-   
 
 P_{SRS\_OFFSET,c}(m) is semi-statically configured by higher layers for m=0,1 for
 serving cell c . For SRS transmission given trigger type 0 then m=0,1 and for SRS
@@ -934,6 +926,8 @@ For K_{s} = 0 P_Srs_Offset_Value is computed with equation:
 
       P_{SRS\_OFFSET,c}(m)value = -10.5 + P_{SRS\_OFFSET,c}(m) * 1.5 [dBm]
    
+   
+SRS ULPC formula according to 38.213 is as follows::
 
 .. _fig-uplc-srs-38213:
 
@@ -941,14 +935,10 @@ For K_{s} = 0 P_Srs_Offset_Value is computed with equation:
    :align: center
    :scale: 35 %
    
-   SRS ULPC formula according to 38.213
-   
 
+**Closed loop power control (CLPC)**
 
-**Closed loop power control**
-
-
-   As we could see in previous formulas there is the difference in the way the accumulation 
+   As we could see in previous formulas there is a difference in the way the accumulation 
    of TPC commands is performed in LTE and NR. In LTE it happens synchronously, always considering 
    TPC command that was received in (i−KPUSCH) subframe, while for NR it is necessary to take 
    into account different TPC commands depending on the transmission occasion i−i0 and how many 
@@ -970,52 +960,6 @@ For K_{s} = 0 P_Srs_Offset_Value is computed with equation:
    and the TPC command reception, reporting to NrUePowerControl and applying for 
    the next transmission occasion
     
-    
-User interaction and design
-
-The ULPC functionality is disabled by default and can be configured via the attribute system; 
-in particular, it can be disabled by setting the boolean attribute NrUePhy::EnableUplinkPowerControl 
-to false to disable or to true to enabled, i.e.,::
-
-
-   Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (false));
-
-User can configure open or closed loop mode by setting the boolean attribute LteUePowerControl::ClosedLoop::
-
-   Config::SetDefault ("ns3::LteUePowerControl::ClosedLoop", BooleanValue (true));
-
-Note that a large number of parameters still sits in LteUePowerControl in order to avoid redundance 
-of attributes in NrUePowerControl. To change the operational mode of closed loop (absolute or accumulation) 
-user should configure the attribute LteUePowerControl::AccumulationEnabled which is by default set to 
-true so the accumulation mode is the default mode::
-
-   Config::SetDefault ("ns3::LteUePowerControl::AccumulationEnabled", BooleanValue (true));
-
-Probably the most important parameter that is added to NrUePowerControl is TSpec. Determines technical 
-specification TS 36.213 or TS 38.213 according to which will run NrUePowerControl. By default is set 
-TS to 36.213. To configure TS 36.213 set the value TS36.213, while for TS 38.213 should be configured TS28.213. 
-For example::
-
-   Config::SetDefault ("ns3::NrUePowerControl::EnumValue (NrUePowerControl::TS_36_213));
-
-Additional parameters that were added wrt to those that were already existing in LteUePowerControl 
-we highlight the KPUSCH which was previously always fixed to 4 without possibility to modify it. 
-It could be set in the following way::
-
-   Config::SetDefault ("ns3::NrUePowerControl::KPusch",  UintegerValue (4)); 
-
-Another that could be useful when simulating bandwidth limited low complexity and coverage enhanced 
-devices is BL_CE parameter. When set to true means that this power control is applied to bandwidth 
-reduced, low complexity or coverage enhanced (BL/CE) device.
-By default this attribute is set to false. Default BL_CE mode is CEModeB. This option can be used 
-only in conjunction with attribute TSpec being set to TS 36.213:: 
-
-   Config::SetDefault ("ns3::NrUePowerControl::BL_CE",  BooleanValue (true)); 
-
-Additionally, as mentioned earlier, when DCI message is being created, it is called the GetTpc 
-function. Hence, if user would like to implement or try its own CLCP scheme, based on some different 
-TPC algorithm it should add its algorithm that will generate TPC commands and add hook it with GetTpc function call. 
-
 
 HARQ
 ****
@@ -1825,7 +1769,7 @@ https://cttc-lena.gitlab.io/nr/cttc-nr-notching_8cc.html
 
 cttc-realistic-beamforming.cc
 =============================
-The example `cttc-realistic-beamforming.cc` included in the `nr` 
+The example ``cttc-realistic-beamforming.cc`` included in the ``nr`` 
 module demonstrates the usage of the proposed framework. 
 It is a simulation script for the realistic BF evaluation. 
 The topology is very simple: it consists of a single gNB and single UE, 
@@ -1837,6 +1781,8 @@ the random run number (which will allow us to run many simulations and to averag
 the UE power, 3GPP scenario (Urban Macro, Urban Micro, Indoor Hotspot, etc). 
 The output is saved in database (simulation configuration and average SINR). 
 The database is created in the root project directory if not configured differently.
+The complete details of the simulation script are provided in 
+https://cttc-lena.gitlab.io/nr/cttc-realistic-beamforming_8cc.html. 
 
 .. _Validation:
 
@@ -2017,7 +1963,7 @@ https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
 
 Uplink power control tests
 ==========================
-Test case called `nr-uplink-power-control-test.cc` validates that 
+Test case called ``nr-uplink-power-control-test.cc`` validates that 
 uplin power control functionality works properly. 
 Test checks PUSCH and PUCCH power control adaptation. 
 According to test UE is being moved during the test to different 
@@ -2035,7 +1981,7 @@ for the different distances for PUSCH and PUCCH::
 
 Realistic beamforming test
 ==========================
-The test `nr-realistic-beamforming-test.cc` included in the 
+The test ``nr-realistic-beamforming-test.cc`` included in the 
 `nr` module tests the realistic BF implementation.
 It involves two devices, a transmitter and a receiver, placed at a certain 
 distance from each other and communicating over a wireless channel at 28 GHz carrier frequency. 
@@ -2046,7 +1992,7 @@ channel matrix coefficients.
 The test checks that with low SINR from SRS, realistic BF algorithm makes more mistakes in 
 channel estimation than ideal BF algorithm. Also, the test checks that with high SINR from SRS, 
 realistic BF algorithm generates almost always the same decision as that of the ideal BF method, 
-and so, the same pair of beams are selected for the two communicating devices.
+and so, the same pair of beams are selected for the two communicating devices. 
 
 
 Open issues and future work
