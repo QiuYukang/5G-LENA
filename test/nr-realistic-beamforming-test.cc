@@ -176,6 +176,16 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   gnbDevs = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
                   ueDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
+                  for (auto it = gnbDevs.Begin (); it != gnbDevs.End (); ++it)
+                    {
+                      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
+                    }
+
+                  for (auto it = ueDevs.Begin (); it != ueDevs.End (); ++it)
+                    {
+                      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
+                    }
+
                   Ptr<NrUePhy> uePhy = nrHelper->GetUePhy (ueDevs.Get(0), 0);
 
                   Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetGnbPhy (gnbDevs.Get (0), 0)->GetSpectrumPhy ();
