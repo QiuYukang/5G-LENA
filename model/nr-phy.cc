@@ -538,9 +538,13 @@ void
 NrPhy::DoUpdateRbNum ()
 {
   NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_IF (m_channelBandwidth == 0, "Channel bandwidth not set");
 
   double realBw = GetChannelBandwidth () * (1 - m_rbOh);
   uint32_t rbWidth = m_subcarrierSpacing * NrSpectrumValueHelper::SUBCARRIERS_PER_RB;
+
+  NS_ABORT_MSG_IF (rbWidth > realBw, "Bandwidth and numerology not correctly set. Bandwidth after reduction of overhead is :" << realBw <<
+                   ", while RB width is: "<< rbWidth);
 
   m_rbNum = static_cast<uint32_t> (realBw / rbWidth);
   NS_ASSERT (GetRbNum () > 0);
