@@ -879,7 +879,7 @@ NrPhy::SetNoiseFigure (double d)
 {
   m_noiseFigure = d;
 
-  if (m_spectrumPhy)
+  if (m_spectrumPhy && GetRbNum()!=0)
     {
       m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
     }
