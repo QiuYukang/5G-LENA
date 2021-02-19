@@ -133,6 +133,9 @@ SetNoisePsdTestCase::DoRun (void)
                                                               MakeBoundCallback (&TestSaveSnr, this));
 
   Simulator::Schedule (MilliSeconds(0), &NrSpectrumPhy::SetNoisePowerSpectralDensity, rxPhy, nsv0first);
+  // spectrum phy can be attached to spectrum channel only once that the spectrum model of the spectrum phy is being set
+  // spectrum model is being set when noise power spectral density is set for the first time
+  Simulator::Schedule (MilliSeconds(0), &MultiModelSpectrumChannel::AddRx, spectrumChannel, rxPhy);
   Simulator::Schedule (MilliSeconds(1), &MultiModelSpectrumChannel::StartTx, spectrumChannel, params1);
   Simulator::Schedule (MilliSeconds(3), &NrInterference::EndRx, rxPhy->GetNrInterference());
 
