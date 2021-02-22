@@ -582,7 +582,6 @@ private:
   void DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi);
   void DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib);
   void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
-  void DoSetBandwidth (uint16_t Bandwidth );
   void DoSetEarfcn (uint16_t Earfcn );
 
   /**

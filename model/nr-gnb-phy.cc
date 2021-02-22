@@ -1578,13 +1578,7 @@ NrGnbPhy::DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +ulBandwidth << +dlBandwidth);
   NS_ASSERT (ulBandwidth == dlBandwidth);
-
-  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
-
-  if (GetChannelBandwidth () != dlBandwidthInHz)
-    {
-      SetChannelBandwidth (dlBandwidth);
-    }
+  SetChannelBandwidth (dlBandwidth);
 }
 
 void

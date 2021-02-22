@@ -752,7 +752,6 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
   Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
   phy->InstallAntenna (beamManager, antenna);
 
-  bwp->m_channel->AddRx (channelPhy);
   auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
   // TODO: NOTE: if changing the Antenna Array, this will broke
   if (channel)

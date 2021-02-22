@@ -131,6 +131,16 @@ NrSystemTestConfigurationsTestCase1::DoRun (void)
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (enbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
 
+  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    {
+      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
+    }
+
+  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    {
+      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
+    }
+
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost
   Ptr<Node> pgw = epcHelper->GetPgwNode ();

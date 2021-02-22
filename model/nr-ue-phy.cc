@@ -303,10 +303,6 @@ NrUePhy::RegisterToEnb (uint16_t bwpId)
   NS_LOG_FUNCTION (this);
 
   InitializeMessageList ();
-
-  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-
   DoSetCellId (bwpId);
 }
 
@@ -1137,6 +1133,17 @@ void
 NrUePhy::DoStartCellSearch (uint16_t dlEarfcn)
 {
   NS_LOG_FUNCTION (this << dlEarfcn);
+
+  // configure initial bandwidth for receiving control, 6 RBs, actuall bandwidth will depend on numerology
+  uint16_t initialBandwidth = (6 * GetSubcarrierSpacing() * NrSpectrumValueHelper::SUBCARRIERS_PER_RB) * (1 + GetRbOverhead());
+
+  NS_ABORT_MSG_IF (initialBandwidth == 0, " Initial bandwidth could not be set. Parameters provided are: "
+                   "\n dlBandwidthInRBNum = " << 6 <<
+                   "\n m_subcarrierSpacing = " << GetSubcarrierSpacing() <<
+                   "\n NrSpectrumValueHelper::SUBCARRIERS_PER_RB  = " << NrSpectrumValueHelper::SUBCARRIERS_PER_RB <<
+                   "\n m_rbOh = " << GetRbOverhead() );
+
+  DoSetDlBandwidth (initialBandwidth);
 }
 
 void
@@ -1163,7 +1170,17 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
   DoSetCellId (cellId);
-  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity ());
+
+  // configure initial bandwidth for receiving control, 6 RBs, actuall bandwidth will depend on numerology
+  uint16_t initialBandwidth = (6 * GetSubcarrierSpacing() * NrSpectrumValueHelper::SUBCARRIERS_PER_RB) * (1 + GetRbOverhead());
+
+  NS_ABORT_MSG_IF (initialBandwidth == 0, " Initial bandwidth could not be set. Parameters provided are: "
+                   "\n dlBandwidthInRBNum = " << 6 <<
+                   "\n m_subcarrierSpacing = " << GetSubcarrierSpacing() <<
+                   "\n NrSpectrumValueHelper::SUBCARRIERS_PER_RB  = " << NrSpectrumValueHelper::SUBCARRIERS_PER_RB <<
+                   "\n m_rbOh = " << GetRbOverhead() );
+
+  DoSetDlBandwidth (initialBandwidth);
 }
 
 BeamId
@@ -1220,27 +1237,19 @@ NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
 
-  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
+  SetChannelBandwidth (dlBandwidth);
 
-  if (GetChannelBandwidth () != dlBandwidthInHz)
-    {
-      NS_LOG_DEBUG ("Channel bandwidth changed from " << GetChannelBandwidth () << " to " <<
-                    dlBandwidth * 100 * 1000 << " Hz.");
-
-      SetChannelBandwidth (dlBandwidth);
-
-      NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
-                    "\t TxPower: " << m_txPower << " dB" << std::endl <<
-                    "\t NoiseFigure: " << m_noiseFigure << std::endl <<
-                    "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
-                    "\t Numerology: " << GetNumerology () << std::endl <<
-                    "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
-                    "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
-                    "Attached to physical channel: " << std::endl <<
-                    "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
-                    "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
-                    "\t Num. RB: " << GetRbNum ());
-    }
+  NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
+                "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                "\t Numerology: " << GetNumerology () << std::endl <<
+                "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                "Attached to physical channel: " << std::endl <<
+                "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                "\t Num. RB: " << GetRbNum ());
 }
 
 
