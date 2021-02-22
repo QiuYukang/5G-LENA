@@ -263,7 +263,14 @@ public:
    */
   virtual void UpdateUlMetric (const Ptr<const NrAmc> &amc)
   {
-    m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * GetNumRbPerRbg ());
+    if (m_ulRBG == 0)
+      {
+        m_ulTbSize = 0;
+      }
+    else
+      {
+        m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * GetNumRbPerRbg ());
+      }
   }
 
   /**
