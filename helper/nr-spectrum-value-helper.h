@@ -46,16 +46,6 @@ public:
   static const uint8_t SUBCARRIERS_PER_RB = 12; //!< subcarriers per resource block
 
   /**
-   * \brief Creates or obtains from a global map a spectrum model for a given bandwidth,
-   * center frequency and numerology.
-   * \param bandwidth of this band in Hz
-   * \param centerFrequency the center frequency of this band
-   * \param numerology the NR numerology with which will be compatible this spectrum model
-   * \return pointer to a spectrum model with defined characteristics
-   */
-  static Ptr<const SpectrumModel> GetSpectrumModel (double bandwidth, double centerFrequency, uint8_t numerology);
-
-  /**
    * \brief Creates or obtains from a global map a spectrum model with a given number of RBs,
    * center frequency and subcarrier spacing.
    * \param numRbs bandwidth in number of RBs

@@ -58,7 +58,7 @@ PowerAllocationTestCase::~PowerAllocationTestCase ()
 void
 PowerAllocationTestCase::DoRun (void)
 {
-  Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (40e6, 2e9, 0);
+  Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (200, 2e9, 15000);
 
   std::vector<int> activeRbs;
   double totalPower = 30;
