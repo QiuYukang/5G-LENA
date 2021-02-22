@@ -1553,7 +1553,7 @@ Figure ::`fig-scenario-simple`.
 
 The output of the example is printed on the screen and it shows the PDCP and RLC delays.
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-simple-ran_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-channel-simple-ran_8cc.html
 
 
 cttc-3gpp-channel-nums.cc
@@ -1572,7 +1572,7 @@ UDP packet interval.
    NR end-to-end system performance evaluation
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-nums_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-channel-nums_8cc.html
 
 
 cttc-3gpp-channel-simple-fdm.cc
@@ -1585,7 +1585,7 @@ can be used only for simulation of the RAN part.
 This program allows the user to configure 2 BWPs.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-simple-fdm_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-channel-simple-fdm_8cc.html
 
 cttc-3gpp-channel-nums-fdm.cc
 =============================
@@ -1602,7 +1602,7 @@ The user can run this example with UDP full buffer traffic or can specify the
 UDP packet interval and UDP packet size per type of traffic.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-nums-fdm_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-channel-nums-fdm_8cc.html
 
 
 cttc-3gpp-indoor-calibration.cc
@@ -1617,7 +1617,7 @@ the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
 and which are summarised in R1-1703534 Table 1.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-3gpp-indoor-calibration_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-indoor-calibration_8cc.html
 
 
 cttc-error-model.cc
@@ -1627,7 +1627,7 @@ performance with the new NR PHY abstraction model for error modeling by using a 
 It allows the user to set the MCS, the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-error-model_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-error-model_8cc.html
 
 cttc-error-model-comparison.cc
 ==============================
@@ -1637,7 +1637,7 @@ and different MCS Tables. It allows the user to configure the MCS Table and the
 error model type.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-error-model-comparison_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-error-model-comparison_8cc.html
 
 
 cttc-error-model-amc.cc
@@ -1649,7 +1649,7 @@ It allows the user to set the AMC approach (error model-based or Shannon-based),
 the MCS table, the error model type, the gNB-UE distance, and the HARQ method.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-error-model-amc_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-error-model-amc_8cc.html
 
 
 cttc-3gpp-channel-example.cc
@@ -1663,7 +1663,7 @@ Hotspot (InH) in two variants: 'InH-OfficeMixed' and 'InH-OfficeOpen'. The
 example also supports either mobile or static UEs.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-3gpp-channel-example_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-channel-example_8cc.html
 
 cttc-lte-ca-demo.cc
 ===================
@@ -1679,7 +1679,7 @@ configure to transmit different traffic flows simultaneously. Each flow is mappe
 to a unique CC, so the total UE traffic can be aggregated.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-lte-ca-demo_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-lte-ca-demo_8cc.html
 
 cttc-nr-cc-bwp-demo.cc
 ======================
@@ -1703,7 +1703,7 @@ same time. UE data transmissions will occur in the right DL or UL slot according
 to the configured TDD pattern.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-nr-cc-bwp-demo_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-cc-bwp-demo_8cc.html
 
 cttc-nr-demo.cc
 ===============
@@ -1729,7 +1729,7 @@ The UE can be configure to transmit two traffic flows simultaneously. Each flow
 is mapped to a single CC, so the total UE traffic can be aggregated.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-nr-demo_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-demo_8cc.html
 
 s3-scenario.cc
 ===============
@@ -1740,7 +1740,7 @@ The deployment follows the typical hexagonal grid topology and it is composed of
 The list of simulation parameters that can be provided as input parameters in the simulation run command are defined in the example script. They include, among others, the scenario (UMa or UMi), the number of rings (0, 1, 2, 3), the number of UEs per sector, the packet size, the numerology, the TDD pattern, and the direction (DL or UL).
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/s3-scenario_8cc.html
+https://cttc-lena.gitlab.io/nr/html/s3-scenario_8cc.html
 
 
 .. _notchingExample:
@@ -1763,7 +1763,7 @@ Moreover, the user can study the variations in the throughput (e.g. when increas
 the number of notched RBGs, the throughput gets decreased), as well in the SINR.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/cttc-nr-notching_8cc.html
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-notching_8cc.html
 
 
 .. _realisticBeamforming:
@@ -1782,8 +1782,9 @@ the random run number (which will allow us to run many simulations and to averag
 the UE power, 3GPP scenario (Urban Macro, Urban Micro, Indoor Hotspot, etc). 
 The output is saved in database (simulation configuration and average SINR). 
 The database is created in the root project directory if not configured differently.
+
 The complete details of the simulation script are provided in 
-https://cttc-lena.gitlab.io/nr/cttc-realistic-beamforming_8cc.html. 
+https://cttc-lena.gitlab.io/nr/html/cttc-realistic-beamforming_8cc.html. 
 
 .. _Validation:
 
@@ -1807,7 +1808,7 @@ and that serialization and deserialization of the frame, subframe, slot and TTI 
 performs correctly for the new NR frame structure.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-system-test-configurations_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-configurations_8cc.html
 
 
 Test of packet delay in NR protocol stack
@@ -1833,7 +1834,7 @@ timings related to a specific numerology. The test is run for different
 numerologies.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-numerology-delay_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-numerology-delay_8cc.html
 
 
 Test for CC/BWP
@@ -1841,7 +1842,7 @@ Test for CC/BWP
 Test case called ``nr-lte-cc-bwp-configuration`` validates that the creation of operation bands, CCs and BWPs is correct within the limitations of the NR implementation. The main limitation of BWPs is that they do not overlap, because in such case, the interference calculation would be erroneous. This test also proves that the creation of BWP information with the CcBwpHelper is correct.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-lte-cc-bwp-configuration_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-lte-cc-bwp-configuration_8cc.html
 
 
 Test of numerology FDM
@@ -1849,7 +1850,7 @@ Test of numerology FDM
 To test the FDM of numerologies, we have implemented the ``nr-test-fdm-of-numerologies``, in which the gNB is configured to operate with 2 BWPs. The test checks if the achieved throughput of a flow over a specific BWP is proportional to the bandwidth of the BWP through which it is multiplexed. The scenario consists of two UEs that are attached to a gNB but served through different BWPs, with UDP full buffer downlink traffic. Since the traffic is full buffer traffic, it is expected that when more bandwidth is provided, more throughput will be achieved and vice versa.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-fdm-of-numerologies_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-fdm-of-numerologies_8cc.html
 
 
 Test for NR schedulers
@@ -1867,13 +1868,15 @@ different number of UEs, number of beams, numerology, traffic direction (DL, UL,
 DL and UL).
 
 The complete details of the validation scripts are provided in
-https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-mr_8cc.html,
-https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-pf_8cc.html,
-https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-ofdma-rr_8cc.html,
-https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-mr_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-pf_8cc.html, https://cttc-lena.gitlab.io/nr/nr-system-test-schedulers-tdma-rr_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-ofdma-mr_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-ofdma-pf_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-ofdma-rr_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-mr_8cc.html, 
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-pf_8cc.html, 
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-rr_8cc.html
 
 The base class for all the scheduler tests is
-https://cttc-lena.gitlab.io/nr/system-scheduler-test_8h.html
+https://cttc-lena.gitlab.io/nr/html/system-scheduler-test_8h.html
 
 
 Test for NR error model
@@ -1885,7 +1888,7 @@ BLER values are properly obtained from the BLER-SINR look up tables for differen
 block sizes, MCS Tables, BG types, and SINR values.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-l2sm-eesm_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-l2sm-eesm_8cc.html
 
 
 Test for 3GPP antenna model
@@ -1896,7 +1899,7 @@ expected. The test scenario consists of one gNB and a single UE attached to the
 gNB. Different positions of the UE are evaluated.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-antenna-3gpp-model-conf_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-antenna-3gpp-model-conf_8cc.html
 
 
 Test for TDD patterns
@@ -1910,7 +1913,7 @@ The test calls ``NrGnbPhy::GenerateStructuresFromPattern`` for a number of possi
 TDD patterns and compares the output with a predefined set of the expected results.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-lte-pattern-generation_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-lte-pattern-generation_8cc.html
 
 Test case called ``nr-phy-patterns`` creates a fake MAC that checks if, that
 when PHY calls the DL/UL slot allocations, it does it for the right slot in pattern.
@@ -1918,7 +1921,7 @@ In other words, if the PHY calls the UL slot allocation for a slot that should b
 the test will fail.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-phy-patterns_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-phy-patterns_8cc.html
 
 
 Test for spectrum phy
@@ -1926,7 +1929,7 @@ Test for spectrum phy
 Test case called ``nr-spectrum-phy-test`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-spectrum-phy-test_8h.html
+https://cttc-lena.gitlab.io/nr/html/nr-spectrum-phy-test_8h.html
 
 
 Test for frame/subframe/slot number
@@ -1934,7 +1937,7 @@ Test for frame/subframe/slot number
 Test case called ``nr-test-sfnsf`` is a unit-test for the frame/subframe/slot numbering, along with the numerology. The test checks that the normalized slot number equals a monotonically-increased integer, for every numerology.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-sfnsf_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-sfnsf_8cc.html
 
 
 Test for NR timings
@@ -1942,7 +1945,7 @@ Test for NR timings
 Test case called ``nr-test-timings`` checks the NR timings for different numerologies. The test is run for every numerology, and validates that the slot number of certain events is the same as the one pre-recorded in manually computed tables. We currently check only RAR and DL DCI messages, improvements are more than welcome.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-timings_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-timings_8cc.html
 
 .. _notchingTest:
 
@@ -1957,7 +1960,7 @@ In particular, the test creates a fake MAC and checks in the method
 is constructed in accordance with the (tested) notching mask.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-notching_8cc.html
 
 
 .. _uplinkPowerControl:
@@ -1965,7 +1968,7 @@ https://cttc-lena.gitlab.io/nr/nr-test-notching_8cc.html
 Uplink power control tests
 ==========================
 Test case called ``nr-uplink-power-control-test.cc`` validates that 
-uplin power control functionality works properly. 
+uplink power control functionality works properly. 
 Test checks PUSCH and PUCCH power control adaptation. 
 According to test UE is being moved during the test to different 
 positions and then it is checked whether the UE transmission 
@@ -1977,6 +1980,9 @@ for the different distances for PUSCH and PUCCH::
 
     Config::SetDefault ("ns3::NrUePowerControl::PoNominalPusch", IntegerValue (-90));
     Config::SetDefault ("ns3::NrUePowerControl::PoNominalPucch", IntegerValue (-80));
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/html/nr-uplink-power-control-test_8cc.html
 
 .. _realisticBeamforming:
 
@@ -1995,6 +2001,8 @@ channel estimation than ideal BF algorithm. Also, the test checks that with high
 realistic BF algorithm generates almost always the same decision as that of the ideal BF method, 
 and so, the same pair of beams are selected for the two communicating devices. 
 
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/html/nr-realistic-beamforming-test_8cc.html
 
 Open issues and future work
 ---------------------------
