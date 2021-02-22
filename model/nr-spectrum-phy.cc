@@ -431,7 +431,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
 void
 NrSpectrumPhy::StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<NrControlMessage> >& ctrlMsgList,
-                                      Time duration, uint8_t slotInd)
+                                      Time duration)
 {
   NS_LOG_FUNCTION (this);
   switch (m_state)
@@ -464,7 +464,6 @@ NrSpectrumPhy::StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Pt
         txParams->packetBurst = pb;
         txParams->cellId = GetCellId ();
         txParams->ctrlMsgList = ctrlMsgList;
-        txParams->slotInd = slotInd;
 
         /* This section is used for trace */
         if (IsEnb ())

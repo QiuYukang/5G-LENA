@@ -58,7 +58,6 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
   Ptr<PacketBurst> packetBurst;                       //!< Packet burst
   std::list<Ptr<NrControlMessage> > ctrlMsgList;  //!< List of contrl messages
   uint16_t cellId;                                    //!< CellId
-  uint8_t slotInd;                                    //!< Slot indication (?)
 };
 
 /**
