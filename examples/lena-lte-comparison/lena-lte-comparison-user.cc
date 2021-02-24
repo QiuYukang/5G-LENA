@@ -30,7 +30,7 @@ using namespace ns3;
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "lena-lte-comparison --Help"
+$ ./waf --run "lena-lte-comparison-user --Help"
     \endcode
  *
  */
@@ -77,7 +77,7 @@ main (int argc, char *argv[])
                 "The cellular network simulator to use: LENA or 5GLENA",
                 params.simulator);
   cmd.AddValue ("technology",
-                "The radio access network technology",
+                "The radio access network technology (LTE or NR)",
                 params.radioNetwork);
   cmd.AddValue ("operationMode",
                 "The network operation mode can be TDD or FDD",
@@ -88,7 +88,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 params.outputDir);
-  cmd.AddValue("errorModelType",
+  cmd.AddValue ("errorModelType",
                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                params.errorModel);
   cmd.AddValue ("calibration",
@@ -109,6 +109,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("downtiltAngle",
                 "Base station antenna down tilt angle (deg)",
                 params.downtiltAngle);
+  cmd.AddValue ("enableUlPc",
+                "Whether to enable or disable UL power control",
+                params.enableUlPc);
+  cmd.AddValue ("powerAllocation",
+                "Power allocation can be a)UniformPowerAllocBw or b)UniformPowerAllocUsed.",
+                params.powerAllocation);
   cmd.AddValue ("xMin",
                 "The min x coordinate of the rem map",
                 params.xMinRem);
@@ -139,6 +145,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("remSector",
                 "For which sector to generate the rem",
                  params.remSector);
+  cmd.AddValue ("progressInterval",
+                "Progress reporting interval",
+                params.progressInterval);
 
 
   // Parse the command line
@@ -147,7 +156,7 @@ main (int argc, char *argv[])
   
   std::cout << params;
 
-  ShowProgress spinner;
+  ShowProgress spinner (params.progressInterval);
   
   LenaLteComparison (params);
 

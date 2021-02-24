@@ -141,17 +141,17 @@ Parameters::Validate (void) const
                    "At most 4 bandwidth parts supported.");
   
   NS_ABORT_MSG_IF (direction != "DL" && direction != "UL",
-                   "Flow direction can only be DL or UL");
+                   "Flow direction can only be DL or UL: " << direction);
   NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD",
-                   "Operation mode can only be TDD or FDD");
+                   "Operation mode can only be TDD or FDD: " << operationMode);
   NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR",
-                   "Unrecognized radio network technology");
+                   "Unrecognized radio network technology: " << radioNetwork);
   NS_ABORT_MSG_IF (radioNetwork == "LTE" && operationMode != "FDD",
-                   "Operation mode must be FDD in a 4G LTE network.");
+                   "Operation mode must be FDD in a 4G LTE network: " << operationMode);
   NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA",
-                   "Unrecognized simulator");
+                   "Unrecognized simulator: " << simulator);
   NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
-                   "Unrecognized scheduler");
+                   "Unrecognized scheduler: " << scheduler);
 
   if (dlRem || ulRem)
     {
@@ -658,8 +658,8 @@ LenaLteComparison (const Parameters &params)
       std::cout << "app for ue " << ueId
                 << ", cellId " << cellId
                 << ", sector " << sector
-                << ", siteId " << siteId
-                << ":" << std::endl;
+                << ", siteId " << siteId;
+      // << ":" << std::endl;
 
       auto app = InstallApps (node, dev, addr,
                               params.direction, &dlClientLowLat,
@@ -701,13 +701,13 @@ LenaLteComparison (const Parameters &params)
   std::string tableName = "e2e";
 
 
-  std::cout << "  rem helper\n";  
   Ptr<NrRadioEnvironmentMapHelper> remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets destroyed,
                                               // and when simulation starts the object does not exist anymore, but the scheduled REM events do (exist).
                                               // So, REM events would be called with invalid pointer to remHelper ...
 
   if (params.dlRem || params.ulRem)
     {
+      std::cout << "  rem helper\n";  
 
       uint16_t remPhyIndex = 0;
       if (params.operationMode == "FDD" && params.direction == "UL")
@@ -865,6 +865,7 @@ operator << (std::ostream & os, const Parameters & parameters)
   else
     {
       MSG ("Base station positions")    << "regular hexaonal lay down";
+      MSG ("Number of rings")           << p.numOuterRings;
     }
 
   MSG ("");

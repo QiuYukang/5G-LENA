@@ -35,7 +35,7 @@ NrMacSchedulerTdmaPF::GetTypeId (void)
     .AddConstructor<NrMacSchedulerTdmaPF> ()
     .AddAttribute ("FairnessIndex",
                    "Value (between 0 and 1) that defines the PF metric (1 is the traditional 3GPP PF, 0 is RR in throughput",
-                   DoubleValue (0),
+                   DoubleValue (1),
                    MakeDoubleAccessor (&NrMacSchedulerTdmaPF::SetFairnessIndex,
                                        &NrMacSchedulerTdmaPF::GetFairnessIndex),
                    MakeDoubleChecker<double> (0, 1))
