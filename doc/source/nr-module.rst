@@ -1362,31 +1362,31 @@ SDAP layer is not present yet in the 'NR' module.
 RRC layer
 *********
 The simulator currently reuses the RRC layer available in LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#rrc
+https://www.nsnam.org/docs/models/html/lte-design.html#rrc
 
 
 NAS layer
 *********
 The simulator currently reuses the NAS layer available in LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#nas
+https://www.nsnam.org/docs/models/html/lte-design.html#nas
 
 
 EPC model
 *********
 The simulator currently reuses the core network (EPC) of LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#epc-model
+https://www.nsnam.org/docs/models/html/lte-design.html#epc-model
 
 
 S1, S5, S11 interfaces
 **********************
 The simulator currently reuses the S1, S5, and S11 interfaces of LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#s1-s5-and-s11
+https://www.nsnam.org/docs/models/html/lte-design.html#s1-s5-and-s11
 
 
 X2 interface
 ************
 The simulator currently reuses the X2 interfaces of LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#x2
+https://www.nsnam.org/docs/models/html/lte-design.html#x2
 
 
 NR REM Helper
