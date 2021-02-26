@@ -560,6 +560,12 @@ private:
    * If equals to 0, no layer 3 filtering is applicable.
    */
   void DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient);
+
+  /**
+   * \brief It is called to set an initial bandwidth
+   * that will be used until bandwidth is being configured
+   */
+  void DoSetInitialBandwidth ();
   /**
    * \brief Function that is called by RRC SAP.
    * TODO This function and its name can be updated once NR RRC SAP is implemented

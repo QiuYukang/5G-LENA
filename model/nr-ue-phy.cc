@@ -1133,17 +1133,7 @@ void
 NrUePhy::DoStartCellSearch (uint16_t dlEarfcn)
 {
   NS_LOG_FUNCTION (this << dlEarfcn);
-
-  // configure initial bandwidth for receiving control, 6 RBs, actuall bandwidth will depend on numerology
-  uint16_t initialBandwidth = (6 * GetSubcarrierSpacing() * NrSpectrumValueHelper::SUBCARRIERS_PER_RB) * (1 + GetRbOverhead());
-
-  NS_ABORT_MSG_IF (initialBandwidth == 0, " Initial bandwidth could not be set. Parameters provided are: "
-                   "\n dlBandwidthInRBNum = " << 6 <<
-                   "\n m_subcarrierSpacing = " << GetSubcarrierSpacing() <<
-                   "\n NrSpectrumValueHelper::SUBCARRIERS_PER_RB  = " << NrSpectrumValueHelper::SUBCARRIERS_PER_RB <<
-                   "\n m_rbOh = " << GetRbOverhead() );
-
-  DoSetDlBandwidth (initialBandwidth);
+  DoSetInitialBandwidth ();
 }
 
 void
@@ -1170,17 +1160,7 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
   DoSetCellId (cellId);
-
-  // configure initial bandwidth for receiving control, 6 RBs, actuall bandwidth will depend on numerology
-  uint16_t initialBandwidth = (6 * GetSubcarrierSpacing() * NrSpectrumValueHelper::SUBCARRIERS_PER_RB) * (1 + GetRbOverhead());
-
-  NS_ABORT_MSG_IF (initialBandwidth == 0, " Initial bandwidth could not be set. Parameters provided are: "
-                   "\n dlBandwidthInRBNum = " << 6 <<
-                   "\n m_subcarrierSpacing = " << GetSubcarrierSpacing() <<
-                   "\n NrSpectrumValueHelper::SUBCARRIERS_PER_RB  = " << NrSpectrumValueHelper::SUBCARRIERS_PER_RB <<
-                   "\n m_rbOh = " << GetRbOverhead() );
-
-  DoSetDlBandwidth (initialBandwidth);
+  DoSetInitialBandwidth ();
 }
 
 BeamId
@@ -1230,6 +1210,26 @@ NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
                 "\t Num. RB: " << GetRbNum ());
   SfnSf startSlot (frame, subframe, slot, GetNumerology ());
   StartSlot (startSlot);
+}
+
+void
+NrUePhy::DoSetInitialBandwidth ()
+{
+  NS_LOG_FUNCTION (this);
+  // configure initial bandwidth to 6 RBs
+  double initialBandwidthHz = 6 * GetSubcarrierSpacing () * NrSpectrumValueHelper::SUBCARRIERS_PER_RB;
+  // divided by 100*1000 because the parameter should be in 100KHz
+  uint16_t initialBandwidthIn100KHz = ceil (initialBandwidthHz / (100 * 1000));
+  // account for overhead that will be reduced when determining real BW
+  uint16_t initialBandwidthWithOverhead = initialBandwidthIn100KHz / (1 - GetRbOverhead ());
+
+  NS_ABORT_MSG_IF (initialBandwidthWithOverhead == 0, " Initial bandwidth could not be set. Parameters provided are: "
+                   "\n dlBandwidthInRBNum = " << 6 <<
+                   "\n m_subcarrierSpacing = " << GetSubcarrierSpacing() <<
+                   "\n NrSpectrumValueHelper::SUBCARRIERS_PER_RB  = " << (unsigned) NrSpectrumValueHelper::SUBCARRIERS_PER_RB <<
+                   "\n m_rbOh = " << GetRbOverhead() );
+
+  DoSetDlBandwidth (initialBandwidthWithOverhead);
 }
 
 void
