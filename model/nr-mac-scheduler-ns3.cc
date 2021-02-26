@@ -165,6 +165,14 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeBooleanAccessor (&NrMacSchedulerNs3::SetSrsInUlSlots,
                                         &NrMacSchedulerNs3::IsSrsInUlSlots),
                    MakeBooleanChecker ())
+    .AddAttribute ("EnableSrsInFSlots",
+                   "Denotes whether the SRSs will be transmitted in F slots"
+                   "If true, it can be transmitted in F slots, otherwise "
+                   "it cannot.",
+                    BooleanValue (true),
+                    MakeBooleanAccessor (&NrMacSchedulerNs3::SetSrsInFSlots,
+                                         &NrMacSchedulerNs3::IsSrsInFSlots),
+                    MakeBooleanChecker ())
     .AddAttribute ("DlAmc",
                    "The DL AMC of this scheduler",
                    PointerValue (),
@@ -376,6 +384,19 @@ bool
 NrMacSchedulerNs3::IsSrsInUlSlots () const
 {
   return m_enableSrsInUlSlots;
+}
+
+
+void
+NrMacSchedulerNs3::SetSrsInFSlots (bool v)
+{
+  m_enableSrsInFSlots = v;
+}
+
+bool
+NrMacSchedulerNs3::IsSrsInFSlots () const
+{
+  return m_enableSrsInFSlots;
 }
 
 uint8_t
@@ -1851,7 +1872,7 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
   // Create the UL allocation map entry
   m_ulAllocationMap.emplace (ulSfn.GetEncoding (), SlotElem (0));
 
-  if (type == LteNrTddSlotType::F || (m_enableSrsInUlSlots == true && type == LteNrTddSlotType::UL))
+  if ((m_enableSrsInFSlots == true && type == LteNrTddSlotType::F) || (m_enableSrsInUlSlots == true && type == LteNrTddSlotType::UL))
     { // SRS are included in F slots, and in UL slots if m_enableSrsInUlSlots=true
       m_srsSlotCounter++; // It's an uint, don't worry about wrap around
       NS_ASSERT (m_srsCtrlSymbols <= ulSymAvail);
