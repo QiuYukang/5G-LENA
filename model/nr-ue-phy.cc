@@ -1197,6 +1197,13 @@ void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);
+
+  if (GetChannelBandwidth() == 0)
+    {
+      NS_LOG_INFO ("Initial bandwidth not set, configuring the default one for Cell ID:"<< GetCellId () << ", RNTI"<< GetRnti () <<", BWP ID:"<< GetBwpId ());
+      DoSetInitialBandwidth ();
+    }
+
   NS_LOG_DEBUG ("PHY starting. Configuration: "  << std::endl <<
                 "\t TxPower: " << m_txPower << " dB" << std::endl <<
                 "\t NoiseFigure: " << m_noiseFigure << std::endl <<
