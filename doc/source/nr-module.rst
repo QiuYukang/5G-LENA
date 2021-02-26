@@ -424,50 +424,96 @@ holds because code block segmentation in NR generates code blocks of roughly equ
 
 Beamforming model
 =================
-The 'NR' module supports different methods: long-term covariance matrix (``OptimalCovMatrixBeamforming``), 
-beam-search (``CellScanBeamforming``), LOS path (``DirectPathBeamforming``), 
-and LOS path at gNB and quasi-omni at UE (``QuasiOmniDirectPathBeamforming``). 
-OptimalCovMatrixBeamforming assumes knowledge of the channel matrix to produce the optimal 
-transmit and receive beam. In ``CellScanBeamforming``, a set of predefined beams is tested, 
-and the beam-pair providing a highest average SNR is selected. For the beam-search method, 
-our simulator supports abstraction of the beam ID through two angles (azimuth and elevation). 
-A new interface allows you to have the beam ID available at MAC layer for scheduling purposes. 
-DirectPathBeamforming assumes knowledge of the pointing angle in between devices, 
-and configures transmit/receive beams pointing into the LOS path direction. 
-QuasiOmniDirectPathBeamforming uses the LOS path for configuring gNB beams, 
-while configures quasi-omnidirectional beamforming vectors at UEs for transmission and reception.
-All ideal BF algorithms inherit `IdealBeamformingAlgorithm` class.
-implement `BeamformingAlgorithm` interface and thus both must have the function 
-`GetBeamformingVectors` which determines BF vectors to be used on a pair of devices, 
-i.e., gNB and UE. 
-For example, ``CellScanBeamforming`` implements a type of ideal BF algorithm that 
-searches for the best pair of BF vectors from the set of pre-defined BF vectors assuming 
-the perfect knowledge of the channel.
-When UE is attached to gNB, a BF task is created. The BF task is composed of a pair of connected devices 
-for which the BF helper will manage the update of the BF vectors by calling ``GetBeamformingVectors`` 
-of configured BF algorithm. 
+
+Beamforming model supports two types of beamforming algorithms: ideal and realistic.
+Ideal BF methods determine the BF vectors based on either the 
+assumption of the perfect knowledge of the channel (e.g., cell scan method), 
+or the exact positions of the devices (e.g., DoA method), and they do not consume 
+any time/frequency overhead to design the BF vectors. 
+On the other hand, realistic BF methods, are expected to select the best BF 
+based on some real measurements, e.g., estimate the channel based SRS SINR.
+
+For each type of beamforming methods, there is a beamforming helper, that helps 
+user create BF tasks. For this purpose are created ``IdealBeamformingHelper`` and 
+``RealisticBeamformingHelper`` which implement 
+``BeamformingHelperBase`` interface. 
+When UE is attached to gNB, beamforming helper creates a BF task. 
+The BF task is composed of a pair of connected gNB and UE devices for which 
+the BF helper will manage the update of the BF vectors by calling 
+``GetBeamformingVectors`` of configured BF algorithm. 
+
+In Figure :ref:`fig-rbf-impl`, we show the class diagram of the beamforming model.
+
+.. _fig-rbf-impl:
+
+.. figure:: figures/rbf-impl.*
+   :align: center
+   :scale: 50 %
+   
+   Diagram of beamforming model, dependencies on 3GPP channel related classes, and ``NrGnbPhy``.
+
+
+The main difference between ``IdealBeamformingHelper`` and 
+``RealisticBeamformingHelper`` is that ideal helper triggers the update of 
+BF vectors of all devices at the same time based on 
+the configured periodicity through the ``BeamformingPeriodicity`` attribute 
+of the ``IdealBeamformingHelper`` class. 
+On the other hand, ``RealisticBeamformingAlgorithm`` triggers the update of 
+the BF vectors when the configured trigger event occurs, and then
+only the BF vectors of the pair of devices for which SRS measurement has been 
+reported (pair of gNB and UE) are being updated. 
+
+
+**Ideal beamforming**
+
+All ideal BF algorithms inherit ``IdealBeamformingAlgorithm`` class which 
+implements the ``BeamformingAlgorithm`` interface and thus must override the function 
+``GetBeamformingVectors`` which determines BF vectors to be used on a pair of devices, i.e., gNB and UE. 
+
+The 'NR' module supports different ideal methods: 
+beam-search or cell-scan method (``CellScanBeamforming``), 
+LOS path or DoA method (``DirectPathBeamforming``), 
+LOS path at gNB and quasi-omni at UE (``DirectPathQuasiOmniBeamforming``),
+beam-search at gNB and quasi-omni at UE (``CellScanQuasiOmniBeamforming``), and
+quasi-omni at gNB and LOS path at UE (``QuasiOmniDirectPathBeamforming``).
+
+*  ``CellScanBeamforming`` implements a type of ideal BF algorithm that 
+   searches for the best pair of BF vectors (providing a highes average SNR) 
+   from the set of pre-defined BF vectors assuming 
+   the perfect knowledge of the channel. 
+   For the beam-search method, our simulator supports abstraction of the 
+   beam ID through two angles (azimuth and elevation). 
+   A new interface allows you to have the beam ID available at MAC layer for 
+   scheduling purposes. 
+
+*  ``DirectPathBeamforming`` assumes knowledge of the pointing angle in between devices, 
+   and configures transmit/receive beams pointing into the LOS path direction. 
+
+*  ``DirectPathQuasiOmniBeamforming`` uses the LOS path for configuring gNB beams, 
+   while configures quasi-omnidirectional beamforming vectors at UEs (for transmission and reception).
+
+*  ``QuasiOmniDirectPathBeamforming`` configures quasi-omnidirectional BF vectors at gNB, 
+   while uses the LOS path for configuring UE beams (for transmission and reception).
+
+*  ``CellScanQuasiOmniBeamforming`` configures cell-scan BF vectors at gNB and 
+   quasi-omni BF vectors at UE. 
+
+Previously models was supporting also long-term covariance matrix based method 
+(``OptimalCovMatrixBeamforming``) which is currently not available due to 
+incompatiblity with the latest ns-3 3gpp channel model. 
+Modifications are needed in order to port this method from the 
+old 5G-LENA code-base and adapt it to the latest ns-3 3gpp channel model 
+(Contributions are welcome!). ``OptimalCovMatrixBeamforming`` determines 
+the optimal transmit and receive beam based on the perfect knowledge 
+of the channel matrix.
 
 **Realistic beamforming**
-
-While ideal BF algorithms explained in previous section 
-decide the beams based on either the assumptions of perfect knowledge of the 
-channel (e.g., cell scan method) or the exact positions of the devices (e.g., DoA method), 
-the realistic BF algorithms are expected to select the best beam based on some measurements, 
-and this is the main difference between these two types of algorithm implementations in 5G-LENA. 
 
 To implement a new realistic BF algorithm, we have created a separate class called 
 ``RealisticBeamformingAlgorithm`` which relies on SRS SINR measurements to determine BF vectors. 
 Similarly to previously mentioned ``CellScanBeamforming`` there is a set of 
 pre-defined BF vectors, but the knowledge of the channel is not perfect, 
 and depends on the quality of reported SRS measurement. 
-Important difference wrt ideal BF algorithm implementations, 
-is that ideal BF vectors of all devices are updated at the same time based on 
-the configured periodicity through `BeamformingPeriodicity` attribute 
-of ``IdealBeamformingHelper``. 
-On the other hand, when ``RealisticBeamformingAlgorithm`` is used, 
-the BF vectors are updated when the configured trigger event occurs, and 
-only the BF vectors of the pair of devices for which SRS measurement has been 
-reported (pair of gNB and UE) are updated.
 The BF vector trigger update event can be either SRS count event 
 (e.g., after every N SRSs are received, the BF vectors are updated), 
 or based on the delay event after SRS reception (e.g., :math:`\delta` 
@@ -496,15 +542,6 @@ In Figure :ref:`fig-rbf-impl`, we show the diagram of the classes that are used 
 BF based on SRS measurements, the dependencies among classes, and the most important 
 methods. E.g., we can see that `RealisticBeamformingAlgorithm` 
 needs to access to `ThreeGppChannelModel` to obtain the channel matrix in order to perform the estimation of the channel based on SRS report.
-
-
-.. _fig-rbf-impl:
-
-.. figure:: figures/rbf-impl.*
-   :align: center
-   :scale: 50 %
-   
-   Diagram of realistic/ideal BF, dependencies on 3GPP channel related classes, and ``NrGnbPhy``.
 
 
 **Abstraction model for SRS-based channel estimation**
@@ -1731,17 +1768,139 @@ is mapped to a single CC, so the total UE traffic can be aggregated.
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-nr-demo_8cc.html
 
-s3-scenario.cc
-===============
-The program ``examples/s3-scenario`` allows the user to run a multi-cell network deployment with site sectorization.
+lena-lte-comparison (initially s3-scenario.cc)
+================================================================
 
-The deployment follows the typical hexagonal grid topology and it is composed of 21 sectorized sites. Each site has 3 sectors, with 3 antennas pointing in different directions. Sectors are equally sized, meaning that each sector covers 120º in azimuth. The deployment assumes a frequency reuse of 3, which is typical in cellular networks. This means that each sector of a site transmits in a separate frequency bands called sub-bands, so sectors of the same site do not interfere. Sub-bands are centered in different frequencies but they all have the same bandwidth. Sub-band utilization is repeated for all sites. The Inter-Site Distance (ISD) is configurable. Although, we use two possible values, one for each of the target scenarios. The two scenarios in consideration are: Urban Macro (UMa), where ISD = 500 metres; and Urban Micro (UMi), where ISD = 200 metres The choice of UMa or UMi determines the value of scenario-specific parameters, such as the height of the gNB, the transmit power, and the propagation model.
+``lena-lte-comparison`` directory contains the program that can be run through 
+``lena-lte-comparison-user.cc`` or ``lena-lte-comparison-campaign.cc``. 
+Users can use any of these two scripts. The two scripts run exactly the same program. 
 
-The list of simulation parameters that can be provided as input parameters in the simulation run command are defined in the example script. They include, among others, the scenario (UMa or UMi), the number of rings (0, 1, 2, 3), the number of UEs per sector, the packet size, the numerology, the TDD pattern, and the direction (DL or UL).
+The original idea was to use ``lena-lte-comparison-user.cc`` as any other 
+NR example, i.e., by running it from the command line, and to use 
+``lena-lte-comparison-campaign.cc`` for simulation 
+campaigns, i.e., to run it from the simulation campaign tool (e.g., SEM tool). 
+Because of this, ``lena-lte-comparison-campaign.cc`` script should have a minimal set of 
+parameters that are relevant for the simulation campaign, 
+and its input parameter list should not be changed often to not 
+loose compatibility with the simulation campaign script (e.g., SEM script). 
+Hence, when it is needed to add some new input parameters, these can be added to 
+``lena-lte-comparison-user.cc``.
 
-The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/html/s3-scenario_8cc.html
+``lena-lte-comparison`` provides a complex multi-cell hexagonal network 
+deployment with site sectorization. The program provides two options for 
+the topology configuration: hexagonal grid topology and user-defined topology. 
+Hexagonal grid deployment is the default deployment, which follows the typical 
+hexagonal grid topology where the structure of the network is 
+organized into rings, and each ring is composed of sectorized sites. 
+Each site has 3 sectors. The antenna of each sector has its antenna oriented toward its sector area.
+Sector areas are equally sized, meaning that each sector covers 120º in azimuth.
 
+.. _fig-hex-grid:
+
+.. figure:: figures/hex-grid.*
+   :align: center
+   :scale: 80 %
+
+   Hexagonal grid deployment with different rings (when 0 rings 
+   configured, only one site is created and this site is shown in blue color, 
+   the 1st ring is shown in red color, the third ring in orange and 
+   the fourth in green. Each ring is composed of 6 sites.) 
+
+User-defined topology can be provided through the ``.csv`` file which should  
+contain the tower coordinates (instead of hexagonal grid).
+``lena-lte-comparison`` folder already contains 4 examples of ``.csv`` files for different number 
+of sites, e.g., see ``examples-sites.2.csv``. 
+
+The deployment supports two frequency configurations. It can be set to a full frequency reuse of 1 
+(in example referred to as overlapping frequency scenario), 
+or a frequency reuse of 3 (in example referred to as non overlapping frequency scenario), 
+which is typical in cellular networks. 
+In non-overlapping scenario each sector of a site transmits in a separate frequency band. 
+These separate frequency bands are typically called sub-bands. 
+In this deployment, the sectors of the same site do not interfere. 
+Sub-bands are centered in different frequencies having equal bandwidths. 
+Sub-band utilization is repeated for all sites. 
+
+Scenario supports various propagation scenarios: 
+Urban Macro (UMa), Urban Micro (UMi) and Rural Macro (RMa). 
+The choice of the scenario determines the values of scenario-specific parameters, 
+such as the height of the gNB, the transmit power, and the propagation model, 
+the Inter-Site Distance (ISD), etc. These scenario-specific parameters and 
+their values for a specific scenario configurations 
+are listed in Table :ref:`tab-lena-lte-comparison-scenarios`.
+ 
+.. _tab-lena-lte-comparison-scenarios:
+
+.. table:: lena-lte-comparison scenarios and configurations 
+
+   +--------------+------------+---------------+---------------+--------------------+-----------------+
+   |  scenario    |  ISD (km)  | BS height (m) | UE height (m) | UE-BS min distance |  Tx power (dBm) |
+   +--------------+------------+---------------+---------------+--------------------+-----------------+
+   |   UMa        |    1.7     |       30      |      1.5      |        30.2        |       43        |
+   +--------------+------------+---------------+---------------+--------------------+-----------------+
+   |   UMi        |    0.5     |       10      |      1.5      |         10         |       30        |
+   +--------------+------------+---------------+---------------+--------------------+-----------------+
+   |   RMa        |     7      |       45      |      1.5      |        44.6        |       43        |
+   +--------------+------------+---------------+---------------+--------------------+-----------------+
+
+
+``lena-lte-comparison`` can be used to perform LENA vs 5G-LENA comparison, 
+validation and calibration campaigns. 
+E.g., LTE can be simulated either using the LENA module or the 5G-LENA module. 
+To simulate LTE using LENA module it is needed to set parameter ``technology`` to 
+LTE and ``simulator`` to LENA.  
+To simulate LTE scenario using 5G-LENA, it is needed to set parameter ``technology`` to LTE and 
+``simulator`` to 5GLENA. 
+When configured to simulated LTE using 5G-LENA, 
+then NR devices and protocol stack will be configured to use LTE settings, 
+e.g., the numerology will be set to match the LTE slot duration and subcarrier spacing, 
+MAC-PHY processing delays will be set to typical LTE values, etc.
+To simulate NR it is needed to set ``technology`` to  
+NR and ``simulator`` to 5GLENA.  
+With this configuration, default NR settings will be used to create the scenario.
+
+Several traffic types are supported by the script: saturation, single packet, low-load and medium-load. 
+Saturation traffic mode generates traffic of 80 Mbps for bandwidth of 20 MHz, 
+and it scales depending on the selected bandwidth. Single packet traffic sends only a single packet of 
+12 bytes, and is normally used just to measure the latencies.
+Low-load traffic mode generates traffic of 1 Mbps for bandwidth of 20 MHz, 
+and medium-load generates traffic of 20 Mbps for bandwidth of 20 MHz. 
+These traffic types also scale with bandwidth.
+
+In addition to the parameters discussed above, this example also allows configuring parameters, such as: 
+the number of UEs per sector, the duration of the applications, 
+the bandwidth (typical values used in this scenario are 20, 10, or 5 MHz per carrier), 
+the numerology, the traffic direction (DL or UL), operation mode (TDD or FDD), 
+the TDD pattern,  the error model type, calibration, traffic scenario, scheduler 
+(proportional fair, round robin, etc,), enable/disable uplink power control,
+configure power allocation mode for NR LTE ( uniform per RB used or uniform per bandwidth), 
+base station antenna down tilt angle (deg).
+Parameter ``calibration`` can be used to configure the simulation 
+in such a way that it is possible to compare LENA and 5GLENA simulators. 
+ 
+The simulation saves the results in the database, which will be generated in root ns-3 
+directory by default (if not configured differently). Database contains several tables:
+``e2e``, ``gnbRxPower``, ``rbStats``, ``sinr``, ``slotStats`` and ``ueTxPower``. 
+e2e table contains end-to-end metrics, such as the number of transmitted and received 
+packets, offered and achieved throughput, delay and jitter. ``gnbRxPower`` contains, 
+among others, traces related to the power corresponding to each reception. 
+``rbStats`` table contains traces related to RB usage. ``sinr`` contains SINR traces.
+``slotStats`` contains traces per slot, e.g., the number of scheduled UEs, symbols used,
+RBs used, etc. ``ueTxPower`` contains the traces related to UE transmissions,
+i.e., the power and the RB used.
+
+This example script also generates a gnuplot script that can be used to plot the 
+topology. 
+The gnuplot script is generated by default in the root ns-3 folder, 
+if not configured differently, and can be used to plot the topology 
+e.g., by running in the command line ``gnuplot hexagonal-topology.gnuplot``. 
+ 
+The complete details of the simulation script are provided in:
+https://cttc-lena.gitlab.io/nr/html/lena-lte-comparison-campaign_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/lena-lte-comparison-user_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/lena-lte-comparison_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/lena-v1-utils_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/lena-v2-utils_8cc.html.
 
 .. _notchingExample:
 
