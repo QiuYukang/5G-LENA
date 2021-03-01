@@ -572,6 +572,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   // configure SRS symbols
   nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
+  nrHelper->SetSchedulerAttribute ("EnableSrsInUlSlots", BooleanValue (false));
+  nrHelper->SetSchedulerAttribute ("EnableSrsInFSlots", BooleanValue (false));
+
   // configure CTRL symbols
   nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
 

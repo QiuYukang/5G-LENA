@@ -502,6 +502,18 @@ public:
    */
   bool IsSrsInUlSlots () const;
 
+  /**
+   * \brief Set if the F slots are allowed for SRS transmission
+   * \param v the value
+   */
+  void SetSrsInFSlots (bool v);
+
+  /**
+   * \brief Check if the F slots are allowed for SRS transmission
+   * \return true if F slots are available for SRS, false otherwise
+   */
+  bool IsSrsInFSlots () const;
+
 protected:
   /**
    * \brief Create an UE representation for the scheduler.
@@ -878,6 +890,7 @@ private:
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
   uint8_t m_srsCtrlSymbols {0}; //!< SRS symbols (attribute)
   bool m_enableSrsInUlSlots  {true}; //!< SRS allowed in UL slots (attribute)
+  bool m_enableSrsInFSlots  {true}; //!< SRS allowed in F slots (attribute)
 
   std::vector<uint8_t> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
   std::vector<uint8_t> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
