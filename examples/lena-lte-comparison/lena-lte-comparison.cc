@@ -734,8 +734,8 @@ LenaLteComparison (const Parameters &params)
           if ( (params.remSector == sector) || (params.remSector == 0) )
             {
               remNd.Add (*remNdBySector[sector]);
+              remDevice = remDevBySector[sector]->Get (0);
             }
-          remDevice = remDevBySector[sector]->Get(0);
         }
 
       if (params.ulRem)
