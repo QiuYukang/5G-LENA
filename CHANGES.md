@@ -48,65 +48,91 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+- Added attribute "SrsSymbols" in `NrMacSchedulerNs3`, to indicate how many
+  symbols are available to the SRS message.
+- Added attribute "EnableSrsInUlSlots" in `NrMacSchedulerNs3` to allow SRS only
+  in F slots, or both in F and UL slots.
+- Added new beamforming algorithm called `RealisticBeamformingAlgorithm`
+  which determines the beamforming vector of the transmitter and receiver based
+  on the SINR of SRS.
+- Added `RealisticBeamformingHelper` that needs to be used when
+  `RealisticBeamformingAlgorithm` is being configured in order to
+  schedule beamforming updates and to collect the information of SRS SINR
+  reports that are necessary for the `RealisticBeamformingAlgorithm`
+  execution.
+- Added attribute `PowerAllocationType` to `NrGnbPhy` and `NrUePhy`, which allows
+  configuring the power allocation type. Currently, two types of power allocation
+  are supported: uniformly over all bandwidth (all RBs) or uniformly over active
+  (used) RBs.
+- Added `NrUePowerControl` class that implements NR UL PC power control
+  functionality. Support UL PC power control for PUSCH, PUCCH and SRS, and can
+  operate in two different modes: TS 36.213 and TS 38.213 modes. Uplink power
+  control is disabled by default.
+- Proportional Fair scheduler in UL direction is added.
+- New examples: cttc-nr-notching.cc and cttc-realistic-beamforming.cc
+- New tests: nr-test-notching.cc, nr-uplink-power-control-test.cc, and
+  nr-realistic-beamforming-test.cc
+
+
+### Changes to existing API:
+
+- Added `NrHelper::AssignStreams` function that is a central function in NR module for
+  assigning streams. The exceptions are:
+  `HexagonalGridScenarioHelper` and `GridScenarioHelper` whose randomness is not
+  controlled from NrHelper::AssignStreams function, but instead it needs to be called
+  separately if one wants to assign streams for scenarios. Also, class `RealisticBeamformingAlgorithm`
+  is not controlled from `NrHelper::AssignStreams`, but it should be from future upgrades.
+  To allow assigning streams and control randomness in NR module all functions that have
+  some random variables are extended with `AssignStreams` function. Classes that are extended
+  include: `NrUeMac`, `NrSpectrumPhy`, `NrMacSchedulerSrsDefault` (also parent classes
+  `NrMacSchedulerNs3` and `NrMacScheduler`), `RealisticBeamformingAlgorithm`, `NrHelper`,
+  `GridScenarioHelper`, `HexagonalGridScenarioHelper`.
+- Added functions InH_OfficeOpen_nLos, InH_OfficeOpen_Los, InH_OfficeMixed_nLoS,
+  InH_OfficeMixed_LoS, InitUmaBuildings, InitUmiBuildings, InitV2VHighway,
+  InitV2VUrban channel modeling in cc-bwp-helper.h/cc and nr-helper.cc
+- Attribute `IdealBeamformingMethod` of `IdealBeamformingHelper` class
+  is renamed to `BeamformingMethod`
 - The scheduler now support the setting of the notched mask, through
   void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
   for the DL and
   void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
   for the UL
-- Added InH_OfficeOpen_{n,}Los and InH_OfficeMixed_{n,}LoS channel modeling
-  in cc-bwp-helper.h
-
-* Added attribute "SrsSymbols" in NrMacSchedulerNs3, to indicate how many symbols are
-  available to the SRS message.
- 
-- Added new beamforming algorithm called `RealisticBeamformingAlgorithm` 
-  which determines the beamforming vector of the transmitter and receiver based on 
-  the SINR of SRS.
-
 - Added != operator function to `BeamId` class.
+- IPV6 is now supported. That is, the end-to-end connections between
+  the UEs and the remote hosts can be IPv4 or IPv6. The classes,
+  `NrNetDevice`, `NrGnbNetDevice`, and `NrUeNetDevice` are updated accordingly.
+- Previously we had two overloaded functions `GetSpectrumModel` one was with
+  the parameters: double bandwidth, double centerFrequency, uint8_t numerology
+  and another with parameters: uint32_t numRbs, double centerFrequency,
+  double subcarrierSpacing. These two functions are unified, and only the latter
+  one is left.
+- `nr-phy.h` does not contain any more default configurations related to the
+  bandwidth. Default configurations is now set for UE by `DoSetInitialBandwidth`,
+  and for gNB it should be set with UpdateConfig call.
+- Initial bandwidth at UE depends on the numerology and it will be set to 6 RBs until
+  configured through RRC.
+- The example lte-lena-comparison.cc has been extended with more command line
+  parameters.
+- Some tests are renamed so that all tests start with prefix `nr-`.
 
-- New PF UL functions
-
-- Added `NrHelper::AssignStreams` function that is a central function in NR module for
-  assigning streams. The exceptions are: 
-  `HexagonalGridScenarioHelper` and `GridScenarioHelper` whose randomness is not 
-  controlled from NrHelper::AssignStreams function, but instead it needs to be called 
-  separately if one wants to assign streams for scenarios. Also, class `RealisticBeamformingAlgorithm` 
-  is not controlled from `NrHelper::AssignStreams`, but it should be from future upgrades.
-  To allow assigning streams and control randomness in NR module all functions that have 
-  some random variables are extended with `AssignStreams` function. Classes that are extended 
-  include: `NrUeMac`, `NrSpectrumPhy`, `NrMacSchedulerSrsDefault` (also parent classes
-  `NrMacSchedulerNs3` and `NrMacScheduler`), `RealisticBeamformingAlgorithm`, `NrHelper`, 
-  `GridScenarioHelper`, `HexagonalGridScenarioHelper`.
-  
-  - Added attribute `PowerAllocationType` to NrGnbPhy and NrUePhy which allows to configure 
-  power allocation type. Currently are supported two types of power allocation: uniformly over all 
-  bandwidth (all RBs) or uniformly over active (used) RBs.
-
-### Changes to existing API:
-
-- PF in UL direction is added
-
-- Added `RealisticBeamformingHelper` that needs to be used when 
-  `RealisticBeamformingAlgorithm` is being configured in order to 
-  schedule beamforming updates and to collect the information of SRS SINR 
-  reports that are necessary for the `RealisticBeamformingAlgorithm` 
-  execution. 
-
-- Attribute `IdealBeamformingMethod` of `IdealBeamformingHelper` class 
-  is renamed to `BeamformingMethod`
 
 ### Changed behavior:
+
 - If a notching mask is set, the scheduler will avoid to allocate the RBG in
   which the mask (a vector of integers) is set to zero.
 - When PF scheduler is configured, UL is also PF (previously RR UL was considered)
-- Newly added `NrHelper::AssignStreams` function may change default stream assignment that 
-  was being assigned previously in NR examples. 
-  All examples are updated to use `NrHelper::AssignStreams`
-  to fix random streams in NR module.
+- Newly added `NrHelper::AssignStreams` function may change default stream
+  assignment that was being assigned previously in NR examples. All examples
+  are updated to use `NrHelper::AssignStreams` to fix random streams in NR module.
 - By default is configured power allocation over active RBs. Before this release, by 
   default was uniform power allocation over all RBs. Power allocation type can be 
-  configured by using `PowerAllocationType` attribute of NrGnbPhy and NrUePhy.
+  configured by using `PowerAllocationType` attribute of `NrGnbPhy` and `NrUePhy`.
+- Newly added SRS allocation, transmission and reception will occupy periodically
+  4 symbols in a slot over a certain periodicity, in UL or F slots.
+- If real beamforming is configured, then the beamforming update will be based
+  on SRS SINR reports, instead of with a given periodicity (as it was before
+  in the case of ideal beamforming).
+
 ---
 
 ## Changes from NR-v0.4 to v1.0
