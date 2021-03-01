@@ -222,7 +222,7 @@ def build(bld):
         'model/nr-mac-scheduler-srs.h',
         'model/nr-mac-scheduler-srs-default.h',
         'model/nr-ue-power-control.h',
-        'model/realistic-bf-manager.h'
+        'model/realistic-bf-manager.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
