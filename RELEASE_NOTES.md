@@ -14,7 +14,7 @@ Release NR-v1.1
 
 Availability
 ------------
-Not yet released
+Available since March 2, 2021.
 
 Supported platforms
 -------------------
