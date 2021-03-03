@@ -152,7 +152,7 @@ public:
   void SetDevice (Ptr<NetDevice> d) override;
   Ptr<NetDevice> GetDevice () const override;
   void SetMobility (Ptr<MobilityModel> m) override;
-  Ptr<MobilityModel> GetMobility () override;
+  Ptr<MobilityModel> GetMobility () const override;
   void SetChannel (Ptr<SpectrumChannel> c) override;
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
   /**
@@ -163,7 +163,7 @@ public:
    * supports ThreeGppAntennaArrayModel antenna type.
    * \return should not return anything
    */
-  virtual Ptr<AntennaModel> GetRxAntenna () override;
+  virtual Ptr<AntennaModel> GetRxAntenna () const override;
   /**
    * \brief Inherited from SpectrumPhy. When this function is called
    * this spectrum phy starts receiving a signal from its spectrum channel.
