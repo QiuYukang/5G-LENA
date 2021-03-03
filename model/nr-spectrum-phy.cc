@@ -245,7 +245,7 @@ NrSpectrumPhy::SetMobility (Ptr<MobilityModel> m)
 }
 
 Ptr<MobilityModel>
-NrSpectrumPhy::GetMobility ()
+NrSpectrumPhy::GetMobility () const
 {
   return m_mobility;
 }
@@ -263,7 +263,7 @@ NrSpectrumPhy::GetRxSpectrumModel () const
 }
 
 Ptr<AntennaModel>
-NrSpectrumPhy::GetRxAntenna ()
+NrSpectrumPhy::GetRxAntenna () const
 {
    NS_LOG_INFO ("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
    return nullptr;
