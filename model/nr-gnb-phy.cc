@@ -104,6 +104,18 @@ NrGnbPhy::GetTypeId (void)
                    MakeDoubleAccessor (&NrPhy::SetNoiseFigure,
                                        &NrPhy::GetNoiseFigure),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("PowerAllocationType",
+                   "Defines the type of the power allocation. Currently are supported "
+                   "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
+                   "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
+                   "power allocation over used (active) RBs. By default is set a uniform power "
+                   "allocation over used RBs .",
+                   EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED),
+                   MakeEnumAccessor (&NrPhy::SetPowerAllocationType,
+                                     &NrPhy::GetPowerAllocationType),
+                   MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
+                                     NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
+                                   ))
     .AddAttribute ("SpectrumPhy",
                    "The downlink NrSpectrumPhy associated to this NrPhy",
                    TypeId::ATTR_GET,
@@ -1432,7 +1444,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)));
 
   std::list<Ptr<NrControlMessage> > ctrlMsgs;
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod, dci->m_symStart);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
 }
 
 void
@@ -1566,13 +1578,7 @@ NrGnbPhy::DoSetBandwidth (uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +ulBandwidth << +dlBandwidth);
   NS_ASSERT (ulBandwidth == dlBandwidth);
-
-  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
-
-  if (GetChannelBandwidth () != dlBandwidthInHz)
-    {
-      SetChannelBandwidth (dlBandwidth);
-    }
+  SetChannelBandwidth (dlBandwidth);
 }
 
 void

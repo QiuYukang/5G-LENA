@@ -20,6 +20,7 @@
 #include <ns3/object-factory.h>
 #include "beamforming-helper-base.h"
 #include <ns3/realistic-beamforming-algorithm.h>
+#include <ns3/node.h>
 
 #ifndef SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
@@ -53,62 +54,29 @@ class NrUePhy;
  * component carrier identified by cellId.
  *
  */
+
+/**
+ * \brief Calculate the Cantor function for two unsigned int
+ * \param x1 first value max value 65535
+ * \param x2 second value max value 65535
+ * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
+ */
+static constexpr uint32_t Cantor (uint32_t x1, uint32_t x2)
+{
+  return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
+}
+
+
+
 class RealisticBeamformingHelper : public BeamformingHelperBase
 {
 public:
-
-  struct SrsSinrReport
-  {
-    Time time {0}; // srs report time
-    double srsSinr {0}; // srs SINR in watts
-    double counter {0}; // counter of SRS reports between consecutive beamforming updates
-    SrsSinrReport (){}
-    SrsSinrReport (Time rTime, double sValue, double c):time (rTime), srsSinr (sValue), counter (c) {};
-  };
-
-  enum TriggerEvent
-  {
-    SRS_COUNT,
-    DELAYED_UPDATE
-  };
 
   /**
    * \brief Get the Type ID
    * \return the TypeId of the instance
    */
   static TypeId GetTypeId (void);
-
-  /**
-   * \brief Sets the beamforming update trigger event, trigger event type
-   * is one for all the nodes
-   * \param triggerEvent triggerEvent type
-   */
-  void SetTriggerEvent (RealisticBeamformingHelper::TriggerEvent triggerEvent);
-  /**
-   * \return Returns the trigger event type
-   */
-  RealisticBeamformingHelper::TriggerEvent GetTriggerEvent () const;
-
-  /**
-   * \brief Sets the periodicity of the beamforming update in the number of the
-   * SRS SINR reports
-   */
-  void SetSrsCountPeriodicity (uint16_t periodicity);
-
-  /**
-   * \returns Gets the periodicity in the number of SRS SINR reports
-   */
-  uint16_t GetSrsCountPeriodicity () const;
-  /**
-   * \brief Sets the delay after the SRS SINR report reception and triggering of the
-   * beamforming update
-   * \param delay the delay after reception of SRS SINR
-   */
-  void SetSrsToBeamformingDelay (Time delay);
-  /**
-   * \return returns the delay after sSRS SINR report and beamforming
-   */
-  Time GetSrsToBeamformingDelay () const;
   /**
    * \brief Adds the beamforming task to the list of tasks
    * \gnbDev gNbDev pointer to gNB device
@@ -116,8 +84,9 @@ public:
    */
   virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                    const Ptr<NrUeNetDevice>& ueDev) override;
+
   /**
-   * \brief Saves SRS sinr report for this RNTI
+   * \brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
    * \param srsSinr
    * \param rnti
    */
@@ -139,12 +108,24 @@ public:
 
 private:
 
-  uint16_t m_srsSinrPeriodicity {3}; //!< Periodicity of beamforming update in number of SRS SINR reports
-  Time m_srsToBeamformingDelay {MilliSeconds (0)}; //!< How much time to wait after the last SRS to update the beamforming vectors
-  typedef std::unordered_map <uint16_t, SrsSinrReport > SrsReports; //!< List of SRS reports by RNTI
-  std::unordered_map< uint16_t, SrsReports > m_srsSinrReportsListsPerCellId; //!< SRS reports per cellId
-  TriggerEvent m_triggerEvent; //!< Defines what will be the trigger event for the update of the beamforming vectors
 
+  virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
+                                      const Ptr<NrUeNetDevice>& ueDev,
+                                      BeamformingVector* gnbBfv,
+                                      BeamformingVector* ueBfv,
+                                      uint16_t ccId) const override;
+
+  typedef std::pair< Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > BfDevicePair;
+
+  struct NodePairHash{
+    size_t operator() (const BfDevicePair &x) const
+    {
+      return std::hash<uint32_t>()(Cantor (x.first->GetNode()->GetId (), x.second->GetNode()->GetId()));
+    }
+  };
+  typedef std::unordered_map <uint16_t, Ptr<RealisticBeamformingAlgorithm> > CcIdToBeamformingAlgorithm;
+  typedef std::unordered_map <BfDevicePair, CcIdToBeamformingAlgorithm, NodePairHash > DevicePairToAlgorithmsPerCcId;
+  DevicePairToAlgorithmsPerCcId m_devicePairToAlgorithmsPerCcId;
 };
 
 }; //ns3 namespace

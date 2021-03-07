@@ -22,7 +22,7 @@
 
 #include "nr-phy-sap.h"
 #include "nr-phy-mac-common.h"
-#include <ns3/spectrum-value.h>
+#include <ns3/nr-spectrum-value-helper.h>
 #include "nr-sl-ue-phy-sap.h"
 #include "nr-sl-phy-mac-common.h"
 
@@ -167,11 +167,12 @@ public:
 
   /**
    * \brief Install the antenna in the PHY
+   * \param beamManager BeamManager instance of this PHY
    * \param antenna pointer to the antenna model
    *
    * Usually called by the helper. It will install a new BeamManager object.
    */
-  void InstallAntenna (const Ptr<ThreeGppAntennaArrayModel> &antenna);
+  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<ThreeGppAntennaArrayModel> &antenna);
 
   // Note: Returning a BeamManger, it means that someone outside this class
   // can change the beamforming vector, BUT the phy will not learn it.
@@ -345,7 +346,7 @@ public:
   /**
    * \brief Retrieve the subcarrier spacing in Hz. Subcarrier spacing
    * is updated when the numerology is being updated.
-   * \return the channel bandwidth in Hz
+   * \return the sucarrier spacing in Hz
    */
   uint32_t GetSubcarrierSpacing () const;
 
@@ -424,6 +425,19 @@ public:
    */
   static std::string GetPattern (const std::vector<LteNrTddSlotType> &pattern);
 
+  /**
+   * \brief Set power allocation type. There are currently supported two types:
+   * one that distributes uniformly energy among all bandwidth (all RBs),
+   * and another only over used or active RBs
+   * \param powerAlocationType a type of power allocation to be used
+   */
+  void SetPowerAllocationType (enum NrSpectrumValueHelper::PowerAllocationType powerAllocationType);
+
+  /**
+   * \brief Get the power allocation type
+   */
+  enum NrSpectrumValueHelper::PowerAllocationType GetPowerAllocationType () const;
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -435,8 +449,12 @@ protected:
   void DoUpdateRbNum ();
 
   /**
-   * \brief Protected function to set the channel bandwidth, used also by child classes.
-   * This function also updates the rbNum and spectrum model for noise PSD.
+   * \brief Function to set the channel bandwidth, used also by child classes, i.e.,
+   * see functions DoSetDlBanwidth in NrUePhy and DoSetBandwidth in NrGnbPhy.
+   * This function is also called by NrHelper when creating gNB and UE devices.
+   * See CreateGnbPhy and CreateUePhy in NrHelper.
+   * This function updates the number of RBs and thus the spectrum model, i.e.,
+   * for noise PSD and for future transmissions.
    * \param bandwidth channel bandwidth in kHz * 100
    */
   void SetChannelBandwidth (uint16_t bandwidth);
@@ -585,6 +603,7 @@ protected:
 
   uint32_t m_raPreambleId {0}; //!< Preamble ID
   Ptr<BeamManager> m_beamManager; //!< Pointer to the beam manager object
+  ObjectFactory m_beamManagerFactory; //!< Beam manager factory
 
   std::list <Ptr<NrControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 
@@ -596,19 +615,21 @@ private:
 
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0};             //!< Channel central frequency -- set by the helper
-  uint16_t m_channelBandwidth {200};  //!< Value in kHz * 100. Set by RRC. Default to 20 MHz
+  uint16_t m_channelBandwidth {0};  //!< Value in kHz * 100. Set by RRC. 
+                                    // E.g. if set to 200, the bandwidth will be 20 MHz (= 200 * 100 KHz)
 
   uint16_t m_cellId {0};             //!< Cell ID which identify this BWP.
   uint16_t m_bwpId {UINT16_MAX};     //!< Bwp ID -- in the GNB, it is set by RRC, in the UE, by the helper
   uint16_t m_numerology {0};         //!< Numerology: defines the scs, RB width, slot length, slots per subframe
   uint16_t m_symbolsPerSlot {14};    //!< number of OFDM symbols per slot
 
-  uint16_t m_slotsPerSubframe {1};              //!< Number of slots per subframe, changes with numerology
-  Time m_slotPeriod {MilliSeconds (1)};         //!< NR slot length (changes with numerology and symbolsPerSlot)
-  Time m_symbolPeriod {MilliSeconds (1) / 14};  //!< OFDM symbol length (changes with numerology)
-  uint32_t m_subcarrierSpacing {15000};         //!< subcarrier spacing (it is determined by the numerology)
+  uint16_t m_slotsPerSubframe {0};              //!< Number of slots per subframe, changes with numerology
+  Time m_slotPeriod {0};                        //!< NR slot length (changes with numerology and symbolsPerSlot)
+  Time m_symbolPeriod {0};                      //!< OFDM symbol length (changes with numerology)
+  uint32_t m_subcarrierSpacing {0};             //!< subcarrier spacing (it is determined by the numerology), can be 15KHz, 30KHz, 60KHz, 120KHz, ...
   uint32_t m_rbNum {0};                         //!< number of resource blocks within the channel bandwidth
   double m_rbOh {0.04};                         //!< Overhead for the RB calculation
+  enum NrSpectrumValueHelper::PowerAllocationType m_powerAllocationType {NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED}; //!< The type of power allocation, supported modes to distribute power uniformly over all RBs, or only used RBs
 
 //NR Sidelink
 

@@ -151,6 +151,19 @@ public:
   Ptr<NrUePowerControl> GetUplinkPowerControl () const;
 
   /**
+   * \brief Allow configuration of uplink power control algorithm.
+   * E.g. necessary in FDD, when measurements are received in 
+   * downlink BWP, but they are used in uplink BWP
+   * NOTE: This way of configuring is a temporal solution until 
+   * BWP manager has this function implemented for UL PC, FFR, 
+   * algorithm and simillar algorithms, in which is needed to have 
+   * a pair of DL and UL BWPs. In future this function will be called 
+   * only by a friend class.
+   * \param pc Pointer to NrUePowerControl
+   */
+  void SetUplinkPowerControl (Ptr<NrUePowerControl> pc);
+
+  /**
    * \brief Register the UE to a certain Enb
    *
    * Install the configuration parameters in the UE.
@@ -550,11 +563,10 @@ private:
    * \param pb Data to transmit
    * \param duration period of transmission
    * \param ctrlMsg Control messages
-   * \param slotInd slot indication (?)
    */
   void SendDataChannels (const Ptr<PacketBurst> &pb,
                          const std::list<Ptr<NrControlMessage> > &ctrlMsg,
-                         const Time &duration, uint8_t slotInd);
+                         const Time &duration);
   /**
    * \brief Transmit the control channel
    *
@@ -577,6 +589,12 @@ private:
    * If equals to 0, no layer 3 filtering is applicable.
    */
   void DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient);
+
+  /**
+   * \brief It is called to set an initial bandwidth
+   * that will be used until bandwidth is being configured
+   */
+  void DoSetInitialBandwidth ();
   /**
    * \brief Function that is called by RRC SAP.
    * TODO This function and its name can be updated once NR RRC SAP is implemented

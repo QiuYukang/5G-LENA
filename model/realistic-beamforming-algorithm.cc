@@ -21,15 +21,17 @@
 #include <ns3/double.h>
 #include <ns3/angles.h>
 #include <ns3/uinteger.h>
-#include <ns3/node.h>
+#include <ns3/mobility-model.h>
 #include "nr-ue-phy.h"
 #include "nr-gnb-phy.h"
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
-#include "beam-manager.h"
 #include <ns3/nr-spectrum-value-helper.h>
-#include "ns3/random-variable-stream.h"
-#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include "nr-mac-scheduler-ns3.h"
+#include <ns3/random-variable-stream.h>
+#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/lte-ue-rrc.h>
+#include <ns3/node.h>
 
 namespace ns3{
 
@@ -38,7 +40,20 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
+  NS_UNUSED(this);
   m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
+  m_gNbDevice = nullptr;
+  m_ueDevice = nullptr;
+  m_ccId = UINT8_MAX;
+}
+
+void
+RealisticBeamformingAlgorithm::Install (const Ptr<NrGnbNetDevice>& gNbDevice, const Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId)
+{
+  NS_LOG_FUNCTION (this);
+  m_gNbDevice = gNbDevice;
+  m_ueDevice = ueDevice;
+  m_ccId = ccId;
 }
 
 int64_t
@@ -62,12 +77,39 @@ RealisticBeamformingAlgorithm::GetTypeId (void)
                      .AddAttribute ("BeamSearchAngleStep",
                                     "Angle step when searching for the best beam",
                                     DoubleValue (30),
-                                    MakeDoubleAccessor (&CellScanBeamforming::SetBeamSearchAngleStep,
-                                                        &CellScanBeamforming::GetBeamSearchAngleStep),
+                                    MakeDoubleAccessor (&RealisticBeamformingAlgorithm::SetBeamSearchAngleStep,
+                                                        &RealisticBeamformingAlgorithm::GetBeamSearchAngleStep),
                                     MakeDoubleChecker<double> ());
-
   return tid;
 }
+
+uint8_t
+RealisticBeamformingAlgorithm::GetSrsSymbolsPerSlot ()
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<NrMacScheduler> sched = m_gNbDevice ->GetScheduler (m_ccId);
+  NS_ABORT_MSG_UNLESS (sched, "Scheduler for the given ccId does not exist!");
+  return (DynamicCast<NrMacSchedulerNs3>(sched))->GetSrsCtrlSyms();
+}
+
+RealisticBeamformingAlgorithm::TriggerEventConf
+RealisticBeamformingAlgorithm::GetTriggerEventConf ()
+{
+
+  NS_LOG_FUNCTION (this);
+  Ptr<NrGnbPhy> phy = m_gNbDevice ->GetPhy(m_ccId);
+  NS_ABORT_MSG_UNLESS (phy, "PHY for the given ccId does not exist!");
+  Ptr<RealisticBfManager> realBf = DynamicCast<RealisticBfManager> (phy->GetBeamManager());
+  NS_ABORT_MSG_UNLESS (realBf, "Realistic BF manager at gNB does not exist. Realistic BF manager at gNB should "
+                      "be installed when using realistic BF algorithm.");
+
+  TriggerEventConf conf;
+  conf.event = realBf->GetTriggerEvent ();
+  conf.updatePeriodicity = realBf->GetUpdatePeriodicity ();
+  conf.updateDelay = realBf->GetUpdateDelay ();
+  return conf;
+}
+
 
 void
 RealisticBeamformingAlgorithm::SetBeamSearchAngleStep (double beamSearchAngleStep)
@@ -82,21 +124,78 @@ RealisticBeamformingAlgorithm::GetBeamSearchAngleStep () const
 }
 
 void
-RealisticBeamformingAlgorithm::GetBeamformingVectors(const Ptr<const NrGnbNetDevice>& gnbDev,
-                                                 const Ptr<const NrUeNetDevice>& ueDev,
-                                                 BeamformingVector* gnbBfv,
-                                                 BeamformingVector* ueBfv,
-                                                 uint16_t ccId) const
+RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
-  DoGetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
+  NS_LOG_FUNCTION (this);
+  NS_ABORT_MSG_UNLESS (m_ueDevice && m_gNbDevice, "Function install must be called to install gNB and UE pair, and set ccId.");
+
+  //before anything check if RNTI corresponds to RNTI of UE of this algorithm instance
+  if (m_ueDevice->GetRrc ()->GetRnti () != rnti)
+    {
+      NS_LOG_INFO ("Ignoring SRS report. Not for me. Report for RNTI:"<< rnti << ", and my RNTI is:"<< m_ueDevice->GetRrc ()->GetRnti ());
+      return;
+    }
+
+  // update SRS symbols counter
+  m_srsSymbolsCounter++;
+
+  // update max SRS SINR, i.e., reset when m_srsSymbolsCounter == 1, otherwise do max
+  m_maxSrsSinrPerSlot = (m_srsSymbolsCounter > 1) ? std::max(srsSinr, m_maxSrsSinrPerSlot):srsSinr;
+
+  // if we reached the last SRS symbol, check whether some event should be triggered
+  if (m_srsSymbolsCounter == GetSrsSymbolsPerSlot ())
+    {
+      // reset symbols per slot counter
+      m_srsSymbolsCounter = 0;
+
+      TriggerEventConf conf = GetTriggerEventConf();
+
+      if ( conf.event == RealisticBfManager::SRS_COUNT)
+        {
+          // it is time to update SRS periodicity counter
+          m_srsPeriodicityCounter++;
+          // reset or increase SRS periodicity counter
+          if (m_srsPeriodicityCounter == conf.updatePeriodicity )
+            {
+              NS_LOG_INFO ("Update periodicity for updating BF reached. Time to trigger realistic BF helper callback.");
+              // it is time to trigger helpers callback
+              Simulator::ScheduleNow (&RealisticBeamformingAlgorithm::NotifyHelper, this);
+              // and reset the counter
+              m_srsPeriodicityCounter = 0;
+            }
+        }
+      else if ( conf.event == RealisticBfManager::DELAYED_UPDATE)
+        {
+          NS_LOG_INFO ("Received all SRS symbols per current slot. Scheduler realistic BF helper callback");
+          // schedule delayed update
+          Simulator::Schedule (conf.updateDelay, &RealisticBeamformingAlgorithm::NotifyHelper , this);
+        }
+      else
+        {
+          NS_ABORT_MSG ("Unknown trigger event type.");
+        }
+    }
 }
 
 void
-RealisticBeamformingAlgorithm::DoGetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                              const Ptr<const NrUeNetDevice>& ueDev,
-                                              BeamformingVector* gnbBfv,
-                                              BeamformingVector* ueBfv,
-                                              uint16_t ccId) const
+RealisticBeamformingAlgorithm::NotifyHelper ()
+{
+  NS_LOG_FUNCTION (this);
+  m_helperCallback (m_gNbDevice, m_ueDevice, m_ccId);
+}
+
+void
+RealisticBeamformingAlgorithm::SetTriggerCallback (RealisticBfHelperCallback callback)
+{
+  m_helperCallback = callback;
+}
+
+void
+RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
+                                                      const Ptr<const NrUeNetDevice>& ueDev,
+                                                      BeamformingVector* gnbBfv,
+                                                      BeamformingVector* ueBfv,
+                                                      uint16_t ccId) const
 {
   NS_ABORT_MSG_IF (gnbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
   double distance = gnbDev->GetNode ()->GetObject<MobilityModel> ()->GetDistanceFrom (ueDev->GetNode ()->GetObject<MobilityModel> ());
@@ -152,12 +251,14 @@ RealisticBeamformingAlgorithm::DoGetBeamformingVectors (const Ptr<const NrGnbNet
                   Ptr<ThreeGppChannelModel> channelModel = DynamicCast<ThreeGppChannelModel>(matrixBasedChannelModel);
                   NS_ASSERT (channelModel!=nullptr);
 
-                  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = channelModel -> GetChannel (gnbDev->GetNode ()->GetObject<MobilityModel>(),
+                  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = channelModel -> GetChannel (gnbDev->GetNode()->GetObject<MobilityModel>(),
                                                                                                                 ueDev->GetNode()->GetObject<MobilityModel>(),
                                                                                                                 gnbPhy->GetAntennaArray (),
                                                                                                                 uePhy->GetAntennaArray ());
 
-                  const ThreeGppAntennaArrayModel::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW);
+                  const ThreeGppAntennaArrayModel::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
+                                                                                                                             gnbDev->GetNode()->GetObject<MobilityModel>(),
+                                                                                                                             ueDev->GetNode()->GetObject<MobilityModel>());
 
                   double estimatedLongTermMetric = CalculateTheEstimatedLongTermMetric (estimatedLongTermComponent);
 
@@ -209,17 +310,39 @@ RealisticBeamformingAlgorithm::CalculateTheEstimatedLongTermMetric (const ThreeG
 
 ThreeGppAntennaArrayModel::ComplexVector
 RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
-                                                              const ThreeGppAntennaArrayModel::ComplexVector &sW,
-                                                              const ThreeGppAntennaArrayModel::ComplexVector &uW) const
+                                                              const ThreeGppAntennaArrayModel::ComplexVector &aW,
+                                                              const ThreeGppAntennaArrayModel::ComplexVector &bW,
+                                                              Ptr<const MobilityModel> a,
+                                                              Ptr<const MobilityModel> b) const
 {
   NS_LOG_FUNCTION (this);
+
+  uint32_t aId = a->GetObject<Node> ()->GetId (); // id of the node a
+  uint32_t bId = b->GetObject<Node> ()->GetId (); // id of the node b
+
+  // check if the channel matrix was generated considering a as the s-node and
+  // b as the u-node or viceversa
+  ThreeGppAntennaArrayModel::ComplexVector sW, uW;
+  if (!channelMatrix->IsReverse (aId, bId))
+    {
+      sW = aW;
+      uW = bW;
+    }
+  else
+    {
+      sW = bW;
+      uW = aW;
+    }
 
   uint16_t sAntenna = static_cast<uint16_t> (sW.size ());
   uint16_t uAntenna = static_cast<uint16_t> (uW.size ());
 
   NS_LOG_DEBUG ("Calculate the estimation of the long term component with sAntenna: " << sAntenna << " uAntenna: " << uAntenna);
   ThreeGppAntennaArrayModel::ComplexVector estimatedlongTerm;
-  double varError = 1 / (m_lastRerportedSrsSinr); // SINR the SINR from UL SRS reception
+
+  NS_ABORT_IF (m_maxSrsSinrPerSlot == 0);
+
+  double varError = 1 / (m_maxSrsSinrPerSlot); // SINR the SINR from UL SRS reception
   uint8_t numCluster = static_cast<uint8_t> (channelMatrix->m_channel[0][0].size ());
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
@@ -242,13 +365,5 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
     }
   return estimatedlongTerm;
 }
-
-
-void
-RealisticBeamformingAlgorithm::SetSrsSinr (double sinrSrs)
-{
-  m_lastRerportedSrsSinr = sinrSrs;
-}
-
 
 } // end of namespace ns-3

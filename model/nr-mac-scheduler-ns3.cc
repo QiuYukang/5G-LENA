@@ -157,6 +157,22 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerAccessor (&NrMacSchedulerNs3::SetSrsCtrlSyms,
                                          &NrMacSchedulerNs3::GetSrsCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("EnableSrsInUlSlots",
+                   "Denotes whether the SRSs will be transmitted only in F slots"
+                   "or both in F and UL slots. If False, SRS is transmitted only"
+                   "in F slots, if True in both (F/UL)",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrMacSchedulerNs3::SetSrsInUlSlots,
+                                        &NrMacSchedulerNs3::IsSrsInUlSlots),
+                   MakeBooleanChecker ())
+    .AddAttribute ("EnableSrsInFSlots",
+                   "Denotes whether the SRSs will be transmitted in F slots"
+                   "If true, it can be transmitted in F slots, otherwise "
+                   "it cannot.",
+                    BooleanValue (true),
+                    MakeBooleanAccessor (&NrMacSchedulerNs3::SetSrsInFSlots,
+                                         &NrMacSchedulerNs3::IsSrsInFSlots),
+                    MakeBooleanChecker ())
     .AddAttribute ("DlAmc",
                    "The DL AMC of this scheduler",
                    PointerValue (),
@@ -356,6 +372,31 @@ uint8_t
 NrMacSchedulerNs3::GetSrsCtrlSyms () const
 {
   return m_srsCtrlSymbols;
+}
+
+void
+NrMacSchedulerNs3::SetSrsInUlSlots (bool v)
+{
+  m_enableSrsInUlSlots = v;
+}
+
+bool
+NrMacSchedulerNs3::IsSrsInUlSlots () const
+{
+  return m_enableSrsInUlSlots;
+}
+
+
+void
+NrMacSchedulerNs3::SetSrsInFSlots (bool v)
+{
+  m_enableSrsInFSlots = v;
+}
+
+bool
+NrMacSchedulerNs3::IsSrsInFSlots () const
+{
+  return m_enableSrsInFSlots;
 }
 
 uint8_t
@@ -1819,8 +1860,6 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
       dataSymPerSlot -= m_dlCtrlSymbols;
     }
 
-  m_ulSlotCounter++; // It's an uint, don't worry about wrap around
-
   ActiveHarqMap activeUlHarq;
   ComputeActiveHarq (&activeUlHarq, ulHarqFeedback);
 
@@ -1833,9 +1872,13 @@ NrMacSchedulerNs3::DoScheduleUl (const std::vector <UlHarqInfo> &ulHarqFeedback,
   // Create the UL allocation map entry
   m_ulAllocationMap.emplace (ulSfn.GetEncoding (), SlotElem (0));
 
-  NS_ASSERT (m_srsCtrlSymbols <= ulSymAvail);
-  uint8_t srsSym = DoScheduleSrs (&ulAssignationStartPoint, allocInfo);
-  ulSymAvail -= srsSym;
+  if ((m_enableSrsInFSlots == true && type == LteNrTddSlotType::F) || (m_enableSrsInUlSlots == true && type == LteNrTddSlotType::UL))
+    { // SRS are included in F slots, and in UL slots if m_enableSrsInUlSlots=true
+      m_srsSlotCounter++; // It's an uint, don't worry about wrap around
+      NS_ASSERT (m_srsCtrlSymbols <= ulSymAvail);
+      uint8_t srsSym = DoScheduleSrs (&ulAssignationStartPoint, allocInfo);
+      ulSymAvail -= srsSym;
+    }
 
   NS_LOG_DEBUG ("Scheduling UL " << ulSfn <<
                 " UL HARQ to retransmit: " << ulHarqFeedback.size () <<
@@ -1968,7 +2011,7 @@ NrMacSchedulerNs3::DoScheduleSrs (PointInFTPlane *spoint, SlotAllocInfo *allocIn
   // absolute_slot_number % periodicity = offset_UEx
   // Assuming that all UEs share the same periodicity.
 
-  uint32_t offset_UEx = m_ulSlotCounter % m_ueMap.begin()->second->m_srsPeriodicity;
+  uint32_t offset_UEx = m_srsSlotCounter % m_ueMap.begin()->second->m_srsPeriodicity;
   uint16_t rnti = 0;
 
   for (const auto & ue : m_ueMap)

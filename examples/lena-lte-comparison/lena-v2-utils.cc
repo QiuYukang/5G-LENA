@@ -17,11 +17,12 @@
  *
  */
 #include "lena-v2-utils.h"
-
+#include <ns3/enum.h>
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
 #include "rb-output-stats.h"
+#include <ns3/nr-spectrum-value-helper.h>
 
 #include "ns3/log.h"
 
@@ -136,6 +137,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            NetDeviceContainer &ueSector2NetDev,
                                            NetDeviceContainer &ueSector3NetDev,
                                            bool calibration,
+                                           bool enableUlPc,
+                                           std::string powerAllocation,
                                            SinrOutputStats *sinrStats,
                                            PowerOutputStats *ueTxPowerStats,
                                            PowerOutputStats *gnbRxPowerStats,
@@ -244,6 +247,26 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   // Noise figure for the UE
   nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (9.0));
+  nrHelper->SetUePhyAttribute ("EnableUplinkPowerControl", BooleanValue (enableUlPc));
+
+  NrSpectrumValueHelper::PowerAllocationType powerAllocationEnum;
+  if (powerAllocation == "UniformPowerAllocBw")
+    {
+      powerAllocationEnum = NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW;
+    }
+  else if (powerAllocation == "UniformPowerAllocUsed")
+    {
+      powerAllocationEnum = NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED;
+    }
+  else
+    {
+      NS_ABORT_MSG ("Unsupported power allocation type " << scenario << ". Supported values: "
+          "UniformPowerAllocBw and UniformPowerAllocUsed.");
+    }
+
+  nrHelper->SetUePhyAttribute ("PowerAllocationType", EnumValue (powerAllocationEnum));
+  // to match LENA default settings
+  nrHelper->SetGnbPhyAttribute ("PowerAllocationType", EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW));
 
   // Error Model: UE and GNB with same spectrum error model.
   nrHelper->SetUlErrorModel (errorModel);
@@ -547,6 +570,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
     }
 
+  // configure SRS symbols
+  nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
+  nrHelper->SetSchedulerAttribute ("EnableSrsInUlSlots", BooleanValue (false));
+  nrHelper->SetSchedulerAttribute ("EnableSrsInFSlots", BooleanValue (false));
+
+  // configure CTRL symbols
   nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
 
   // Core latency
@@ -704,6 +733,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         {
           nrHelper->GetBwpManagerUe (*nd)->SetOutputLink (0, 1);
           uePhySecond = nrHelper->GetUePhy (*nd, 1);
+          uePhySecond->SetUplinkPowerControl (uePhyFirst->GetUplinkPowerControl());
         }
       uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
                                               MakeBoundCallback (&ReportSinrNr, sinrStats));

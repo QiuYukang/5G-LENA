@@ -37,9 +37,13 @@ def build(bld):
     obj.source = 'cttc-nr-notching.cc'
     obj = bld.create_ns3_program('cttc-realistic-beamforming', ['nr', 'stats'])
     obj.source = 'cttc-realistic-beamforming.cc'
+    obj = bld.create_ns3_program('lena-lte-comparison-user', ['nr','flow-monitor'])
+    obj.source = 'lena-lte-comparison/lena-lte-comparison.cc lena-lte-comparison/lena-lte-comparison-user.cc lena-lte-comparison/sinr-output-stats.cc lena-lte-comparison/flow-monitor-output-stats.cc lena-lte-comparison/power-output-stats.cc lena-lte-comparison/slot-output-stats.cc lena-lte-comparison/lena-v1-utils.cc lena-lte-comparison/lena-v2-utils.cc lena-lte-comparison/rb-output-stats.cc'
+    obj = bld.create_ns3_program('lena-lte-comparison-campaign', ['nr','flow-monitor'])
+    obj.source = 'lena-lte-comparison/lena-lte-comparison.cc lena-lte-comparison/lena-lte-comparison-campaign.cc lena-lte-comparison/sinr-output-stats.cc lena-lte-comparison/flow-monitor-output-stats.cc lena-lte-comparison/power-output-stats.cc lena-lte-comparison/slot-output-stats.cc lena-lte-comparison/lena-v1-utils.cc lena-lte-comparison/lena-v2-utils.cc lena-lte-comparison/rb-output-stats.cc'
 
 
-    bld.recurse('lena-lte-comparison')
+    
     bld.recurse('nr-v2x-examples')
 
 

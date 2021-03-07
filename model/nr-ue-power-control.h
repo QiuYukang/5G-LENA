@@ -267,6 +267,12 @@ public:
   typedef void (* TxPowerTracedCallback)
     (uint16_t cellId, uint16_t rnti, double power);
 
+  /**
+   * \brief Sets some information for easier logging
+   * \param cellId cell ID
+   * \param rnti UE RNTI
+   */
+  void SetLoggingInfo (uint16_t cellId, uint16_t rnti);
 
 private:
 
@@ -369,6 +375,11 @@ private:
   * If equals to 0, no layer 3 filtering is applicable.
   */
   uint8_t m_pcRsrpFilterCoefficient {4};
+  
+  uint16_t m_cellId = 0; //!< cell ID that will be used for logging purposes
+  uint16_t m_rnti = 0; //!< RNTI that will be used for logging purposes
+  
+  
   /**
    * Trace information regarding Uplink TxPower
    * uint16_t cellId, uint16_t rnti, double txPower

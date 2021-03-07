@@ -23,6 +23,7 @@
 #include <ns3/nr-ch-access-manager.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/multi-model-spectrum-channel.h>
+#include <ns3/beam-manager.h>
 
 /**
  * \file nr-phy-patterns.cc
@@ -248,7 +249,8 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<NrGnbMac> &mac) const
   channelPhy->InstallPhy (phy);
 
   phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
+  Ptr<BeamManager> beamManager = CreateObject<BeamManager>();
+  phy->InstallAntenna (beamManager, antenna);
 
   return phy;
 }

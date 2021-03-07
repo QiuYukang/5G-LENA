@@ -109,8 +109,17 @@ SetNoisePsdTestCase::DoRun (void)
   Ptr<NrGnbPhy> phy = CreateObject<NrGnbPhy>();
   phy->DoSetCellId(99);
   rxPhy->InstallPhy(phy);
-  Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (m_bandwidth, centerFrequency, m_numerology);
-  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, sm);
+  double subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, m_numerology));
+  uint32_t rbNum = m_bandwidth / (12 * subcarrierSpacing);
+  Ptr<const SpectrumModel> sm =  NrSpectrumValueHelper::GetSpectrumModel (rbNum, centerFrequency, subcarrierSpacing);
+
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < sm->GetNumBands(); rbId++)
+    {
+      activeRbs.push_back(rbId);
+    }
+
+  Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (m_txPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
   Ptr<const SpectrumValue> nsv0first = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigureFirst, sm);
   Ptr<const SpectrumValue> nsv0second = NrSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_noiseFigureSecond, sm);
 
@@ -126,6 +135,9 @@ SetNoisePsdTestCase::DoRun (void)
                                                               MakeBoundCallback (&TestSaveSnr, this));
 
   Simulator::Schedule (MilliSeconds(0), &NrSpectrumPhy::SetNoisePowerSpectralDensity, rxPhy, nsv0first);
+  // spectrum phy can be attached to spectrum channel only once that the spectrum model of the spectrum phy is being set
+  // spectrum model is being set when noise power spectral density is set for the first time
+  Simulator::Schedule (MilliSeconds(0), &MultiModelSpectrumChannel::AddRx, spectrumChannel, rxPhy);
   Simulator::Schedule (MilliSeconds(1), &MultiModelSpectrumChannel::StartTx, spectrumChannel, params1);
   Simulator::Schedule (MilliSeconds(3), &NrInterference::EndRx, rxPhy->GetNrInterference());
 
@@ -137,7 +149,6 @@ SetNoisePsdTestCase::DoRun (void)
 
   Simulator::Run();
   Simulator::Destroy();
-
 
 }
 

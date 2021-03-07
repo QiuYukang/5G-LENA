@@ -14,7 +14,7 @@ Release NR-v1.1
 
 Availability
 ------------
-Not yet released
+Available since March 2, 2021.
 
 Supported platforms
 -------------------
@@ -44,21 +44,28 @@ command. We hope you will have fun and good times in using our module!
 New user-visible features (old first)
 -------------------------
 - The scheduler can selectively leave particular RBG empty. This feature is
-  called notching, and is used when multiple GNBs are collaborating to avoid
+  called notching, and is used when multiple gNBs are collaborating to avoid
   interferences over a spectrum part.
-
-- Added a SRS message that takes 4 symbols (in the default configuration) within some
-  periodicity (default at 80 slots). This will be used by the UE in a future update.
-
-- `RealisticBeamformingAlgorithm` class is added that implements a 
+- Added SRS allocation, transmission, and reception. Added an SRS message that
+  takes 4 symbols (in the default configuration) within some periodicity (default
+  at 80 slots). SRS are dynamically scheduled by the gNB (with an interface and
+  an example specialized scheduler for it, `NrMacSchedulerSrsDefault`), and its
+  allocation is signaled to the UE through a DCI. This is used by the UE to
+  transmit SRS.
+- `RealisticBeamformingAlgorithm` class is added. It implements a
   beamforming algorithm that determines the beamforming vectors of the transmitter 
-  and the receiver based on the SINR SRS.
+  and the receiver based on the SINR SRS. 
+- Uplink power control functionality implemented through the `NrUePowerControl`
+  class, supporting UL power control for PUSCH, PUCCH, and SRS.
+- IPV6 is now supported. That is, the end-to-end connections between the UEs
+  and the remote hosts can be IPv4 or IPv6.
 
 Bugs fixed
 ----------
 - BeamManager called the function with the name "ChangeToOmniTx" of 3gpp
   antenna. This was causing that the CTRL was not being passed through 3gpp
   spectrum propagation model, but only through the propagation loss model.
+- `GridScenarioHelper` fixes to correctly place nodes.
 
 Known issues
 ------------

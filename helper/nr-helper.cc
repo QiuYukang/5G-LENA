@@ -84,9 +84,10 @@ NrHelper::NrHelper (void)
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_gnbUlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
   m_gnbDlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
-  m_bwpManagerFactory.SetTypeId (BwpManagerUe::GetTypeId ());
-
+  m_gnbBeamManagerFactory.SetTypeId (BeamManager::GetTypeId());
+  m_ueBeamManagerFactory.SetTypeId (BeamManager::GetTypeId());
   m_spectrumPropagationFactory.SetTypeId (ThreeGppSpectrumPropagationLossModel::GetTypeId ());
+  m_bwpManagerFactory.SetTypeId (BwpManagerUe::GetTypeId ());
 
   // Initialization that is there just because the user can configure attribute
   // through the helper methods without making it sad that no TypeId is set.
@@ -549,7 +550,9 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
   phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
+
+  Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
+  phy->InstallAntenna (beamManager,antenna);
 
   // TODO: If antenna changes, this will be broken
   auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
@@ -746,9 +749,10 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
   channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&NrGnbPhy::ReportUlHarqFeedback, phy));
 
   phy->InstallSpectrumPhy (channelPhy);
-  phy->InstallAntenna (antenna);
 
-  bwp->m_channel->AddRx (channelPhy);
+  Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
+  phy->InstallAntenna (beamManager, antenna);
+
   auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
   // TODO: NOTE: if changing the Antenna Array, this will broke
   if (channel)
@@ -1211,6 +1215,20 @@ NrHelper::SetGnbUlAmcAttribute (const std::string &n, const AttributeValue &v)
 {
   NS_LOG_FUNCTION (this);
   m_gnbUlAmcFactory.Set (n, v);
+}
+
+void
+NrHelper::SetGnbBeamManagerAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBeamManagerFactory.Set (n, v);
+}
+
+void
+NrHelper::SetGnbBeamManagerTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_gnbBeamManagerFactory.SetTypeId (typeId);
 }
 
 void

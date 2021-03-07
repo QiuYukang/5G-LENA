@@ -16,6 +16,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+
+#include <ns3/nstime.h>
 #include <string>
 #include <ostream>
 
@@ -40,11 +42,14 @@ struct Parameters
   std::string scenario = "UMa";
   std::string radioNetwork = "NR";  // LTE or NR
   std::string operationMode = "TDD";  // TDD or FDD
+  std::string baseStationFile = ""; // path to file of tower/site coordinates
+  bool useSiteFile = false; // whether to use baseStationFile parameter,
+                            //or to use numOuterRings parameter to create a scenario
 
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
-  uint32_t appGenerationTimeMs = 1000;
-  uint32_t udpAppStartTimeMs = 400;
+  Time appGenerationTime = MilliSeconds (1000);
+  Time udpAppStartTime = MilliSeconds (400);
   std::string direction = "DL";
 
   // Spectrum parameters. We will take the input from the command line, and then
@@ -61,6 +66,8 @@ struct Parameters
   std::string errorModel = "";
 
   bool calibration = true;
+  bool enableUlPc = false;
+  std::string powerAllocation = "UniformPowerAllocUsed";
 
   uint32_t trafficScenario = 0;
 
@@ -79,6 +86,8 @@ struct Parameters
   bool dlRem = false;
   bool ulRem = false;
   uint32_t remSector = 0;
+
+  Time progressInterval = Seconds (1);
 };
 
 extern void LenaLteComparison (const Parameters &params);

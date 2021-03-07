@@ -155,7 +155,7 @@ public:
   void SetDevice (Ptr<NetDevice> d) override;
   Ptr<NetDevice> GetDevice () const override;
   void SetMobility (Ptr<MobilityModel> m) override;
-  Ptr<MobilityModel> GetMobility () override;
+  Ptr<MobilityModel> GetMobility () const override;
   void SetChannel (Ptr<SpectrumChannel> c) override;
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
   /**
@@ -166,7 +166,7 @@ public:
    * supports ThreeGppAntennaArrayModel antenna type.
    * \return should not return anything
    */
-  virtual Ptr<AntennaModel> GetRxAntenna () override;
+  virtual Ptr<AntennaModel> GetRxAntenna () const override;
   /**
    * \brief Inherited from SpectrumPhy. When this function is called
    * this spectrum phy starts receiving a signal from its spectrum channel.
@@ -214,11 +214,10 @@ public:
   /**
    * \brief Starts transmission of data frames on connected spectrum channel object
    * \param pb packet burst to be transmitted
-   * \param ctrlMsgList conrol message list
+   * \param ctrlMsgList control message list
    * \param duration the duration of transmission
-   * \param slotInd the slot indication
    */
-  void StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<NrControlMessage> >& ctrlMsgList, Time duration, uint8_t slotInd);
+ void StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<NrControlMessage> >& ctrlMsgList, Time duration);
   /**
    * \brief Starts transmission of DL CTRL
    * \param duration the duration of this transmission
@@ -497,6 +496,7 @@ private:
   Ptr<const NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
   Ptr<NrHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
   Ptr<NrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
+  Ptr<NrInterference> m_interferenceCtrl {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
   Ptr<NrInterference> m_interferenceSrs {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy, exists only at gNB phy
   Ptr<SpectrumValue> m_txPsd {nullptr}; //!< tx power spectral density
   Ptr<UniformRandomVariable> m_random {nullptr}; //!< the random variable used for TB decoding

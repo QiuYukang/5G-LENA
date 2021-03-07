@@ -148,7 +148,7 @@ public:
    * parameters configuration
    */
   void Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
-                  RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
+                  RealisticBfManager::TriggerEvent realTriggerEvent,
                   uint32_t idealPeriodicity, uint64_t rngRun, uint16_t numerology,
                   std::string gnbAntenna, std::string ueAntenna,
                   std::string scenario, double uePower,
@@ -244,7 +244,7 @@ private:
   double m_deltaY {1};
   BeamformingMethod m_beamforming {IDEAL};
   uint32_t m_rngRun {1};
-  RealisticBeamformingHelper::TriggerEvent m_realTriggerEvent {RealisticBeamformingHelper::SRS_COUNT};
+  RealisticBfManager::TriggerEvent m_realTriggerEvent {RealisticBfManager::SRS_COUNT};
   uint32_t m_idealPeriodicity {0}; // ideal beamforming periodicity in the number of milli seconds
   uint16_t m_numerology {0};
   std::string m_gnbAntennaModel {"Iso"};
@@ -337,6 +337,7 @@ CttcRealisticBeamforming::PrepareDatabase ()
 
   std::string cmd = "CREATE TABLE IF NOT EXISTS " + m_tableName + " ("
                     "SINR DOUBLE NOT NULL, "
+                    "SINR_DB DOUBLE NOT NULL, "
                     "Distance DOUBLE NOT NULL,"
                     "DeltaX DOUBLE NOT NULL,"
                     "DeltaY DOUBLE NOT NULL,"
@@ -399,7 +400,7 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
   DeleteFromDatabaseIfAlreadyExist ();
 
   sqlite3_stmt *stmt;
-  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+  std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
   std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
   int rc;
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
@@ -420,16 +421,17 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
 
   // add all parameters to the command
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_sinrStats.getMean()) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, distance2D) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 3, m_deltaX) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 4, m_deltaY) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 5, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 6, m_rngRun) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_numerology) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 8, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 10, m_ueTxPower) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 11, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, 10.0 * log10 (m_sinrStats.getMean())) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 3, distance2D) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 4, m_deltaX) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 5, m_deltaY) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 6, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_rngRun) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, m_numerology) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 10, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 11, m_ueTxPower) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 12, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
 
 
   // finalize the command
@@ -590,7 +592,7 @@ CttcRealisticBeamforming::PrintResultsToFiles ()
 
 void
 CttcRealisticBeamforming::Configure (double deltaX, double deltaY, BeamformingMethod beamforming,
-                                     RealisticBeamformingHelper::TriggerEvent realTriggerEvent,
+                                     RealisticBfManager::TriggerEvent realTriggerEvent,
                                      uint32_t idealPeriodicity, uint64_t rngRun,
                                      uint16_t numerology,
                                      std::string gNbAntennaModel, std::string ueAntennaModel,
@@ -732,8 +734,11 @@ CttcRealisticBeamforming::RunSimulation ()
   else if (m_beamforming == CttcRealisticBeamforming::REALISTIC)
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
-      beamformingHelper->SetAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
       beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId());
+      // when realistic beamforming used, also realistic beam manager should be set
+      // TODO, move this to NrHelper, so user sets BeamformingMethod calling NrHelper
+      nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId());
+      nrHelper->SetGnbBeamManagerAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
     }
   else
     {
@@ -741,6 +746,8 @@ CttcRealisticBeamforming::RunSimulation ()
     }
   nrHelper->SetBeamformingHelper (beamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
+
+  Config::SetDefault ("ns3::NrUePhy::EnableUplinkPowerControl", BooleanValue (false));
 
   /*
    * Configure the spectrum division: single operational band, containing single
@@ -772,9 +779,16 @@ CttcRealisticBeamforming::RunSimulation ()
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
   nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue ((m_ueAntennaModel == "Iso")? true:false));
 
+  // configure schedulers
+  nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
+
   // Install nr net devices
   NetDeviceContainer gNbDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
+
+  int64_t randomStream = m_rngRun;
+  randomStream += nrHelper->AssignStreams (gNbDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   for (uint32_t i = 0 ; i < gNbDev.GetN (); i ++)
     {
@@ -859,7 +873,7 @@ main (int argc, char *argv[])
   double deltaY = 10.0;
   std::string algType = "Real";
   std::string realTriggerEvent = "SrsCount"; // what will be the trigger event to update the beamforming vectors, only used when --algType="Real"
-  uint32_t idealPeriodicity = 10 ; // how often will be updated the beamforming vectors, only used when --algType="Real", in [ms]
+  uint32_t idealPeriodicity = 10; // how often will be updated the beamforming vectors, only used when --algType="Ideal", in [ms]
   uint64_t rngRun = 1;
   uint16_t numerology = 2;
   std::string gnbAntenna = "Iso";
@@ -874,7 +888,7 @@ main (int argc, char *argv[])
   std::string tableName = "results";
 
   CttcRealisticBeamforming::BeamformingMethod beamformingType;
-  RealisticBeamformingHelper::TriggerEvent triggerEventEnum = RealisticBeamformingHelper::SRS_COUNT;
+  RealisticBfManager::TriggerEvent triggerEventEnum = RealisticBfManager::SRS_COUNT;
   CommandLine cmd;
 
   cmd.AddValue ("deltaX",
@@ -940,11 +954,11 @@ main (int argc, char *argv[])
 
       if (realTriggerEvent == "SrsCount")
         {
-          triggerEventEnum = RealisticBeamformingHelper::SRS_COUNT;
+          triggerEventEnum = RealisticBfManager::SRS_COUNT;
         }
       else if (realTriggerEvent == "DelayedUpdate")
         {
-          triggerEventEnum = RealisticBeamformingHelper::DELAYED_UPDATE;
+          triggerEventEnum = RealisticBfManager::DELAYED_UPDATE;
         }
       else
         {

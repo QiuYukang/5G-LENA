@@ -75,6 +75,7 @@ NrSpectrumPhy::NrSpectrumPhy ()
   : SpectrumPhy ()
 {
   m_interferenceData = CreateObject<NrInterference> ();
+  m_interferenceCtrl = CreateObject<NrInterference> ();
   m_random = CreateObject<UniformRandomVariable> ();
   m_random->SetAttribute ("Min", DoubleValue (0.0));
   m_random->SetAttribute ("Max", DoubleValue (1.0));
@@ -101,6 +102,11 @@ NrSpectrumPhy::DoDispose ()
       m_interferenceData->Dispose ();
     }
 
+  if (m_interferenceCtrl)
+    {
+      m_interferenceCtrl->Dispose ();
+    }
+
   if (m_interferenceSrs)
     {
       m_interferenceSrs->Dispose ();
@@ -108,6 +114,7 @@ NrSpectrumPhy::DoDispose ()
     }
 
   m_interferenceData = nullptr;
+  m_interferenceCtrl = nullptr;
   m_mobility = nullptr;
   m_phy = nullptr;
 
@@ -281,7 +288,7 @@ NrSpectrumPhy::SetMobility (Ptr<MobilityModel> m)
 }
 
 Ptr<MobilityModel>
-NrSpectrumPhy::GetMobility ()
+NrSpectrumPhy::GetMobility () const
 {
   return m_mobility;
 }
@@ -299,7 +306,7 @@ NrSpectrumPhy::GetRxSpectrumModel () const
 }
 
 Ptr<AntennaModel>
-NrSpectrumPhy::GetRxAntenna ()
+NrSpectrumPhy::GetRxAntenna () const
 {
    NS_LOG_INFO ("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
    return nullptr;
@@ -352,6 +359,7 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noi
   NS_ASSERT (noisePsd);
   m_rxSpectrumModel = noisePsd->GetSpectrumModel ();
   m_interferenceData->SetNoisePowerSpectralDensity (noisePsd);
+  m_interferenceCtrl->SetNoisePowerSpectralDensity (noisePsd);
   if (m_interferenceSrs)
     {
       m_interferenceSrs->SetNoisePowerSpectralDensity (noisePsd);
@@ -359,14 +367,6 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity (const Ptr<const SpectrumValue>& noi
     
   m_slInterference->SetNoisePowerSpectralDensity (noisePsd);
   
-  if (m_channel)
-    {
-      m_channel->AddRx (this);
-    }
-  else
-    {
-      NS_LOG_WARN ("Working without channel (i.e., under test)");
-    }
 }
 
 void
@@ -420,10 +420,13 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (dlCtrlRxParams != nullptr)
     {
+      m_interferenceCtrl->AddSignal (rxPsd, duration);
+
       if (!IsEnb ())
         {
           if (dlCtrlRxParams->cellId == GetCellId ())
             {
+              m_interferenceCtrl->StartRx(rxPsd);
               StartRxDlCtrl (dlCtrlRxParams);
             }
           else
@@ -491,7 +494,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
 void
 NrSpectrumPhy::StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Ptr<NrControlMessage> >& ctrlMsgList,
-                                      Time duration, uint8_t slotInd)
+                                      Time duration)
 {
   NS_LOG_FUNCTION (this);
   switch (m_state)
@@ -524,7 +527,6 @@ NrSpectrumPhy::StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Pt
         txParams->packetBurst = pb;
         txParams->cellId = GetCellId ();
         txParams->ctrlMsgList = ctrlMsgList;
-        txParams->slotInd = slotInd;
 
         /* This section is used for trace */
         if (IsEnb ())
@@ -694,7 +696,7 @@ void
 NrSpectrumPhy::AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
-  m_interferenceData->AddRsPowerChunkProcessor(p);
+  m_interferenceCtrl->AddRsPowerChunkProcessor(p);
 }
 
 void
@@ -890,7 +892,6 @@ NrSpectrumPhy::StartRxDlCtrl (const Ptr<NrSpectrumSignalParametersDlCtrlFrame>& 
         NS_ASSERT (m_rxControlMessageList.empty ());
         NS_LOG_LOGIC (this << "receiving DL CTRL from cellId:"<<params->cellId<< "and scheduling EndRx with delay " << params->duration);
         // store the DCIs
-        m_interferenceData->StartRx(params->psd);
         m_rxControlMessageList = params->ctrlMsgList;
         Simulator::Schedule (params->duration, &NrSpectrumPhy::EndRxCtrl, this);
         ChangeState (RX_DL_CTRL, params->duration);
@@ -1326,7 +1327,9 @@ NrSpectrumPhy::EndRxCtrl ()
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_state == RX_DL_CTRL || m_state == RX_UL_CTRL);
-  m_interferenceData->EndRx();
+
+  m_interferenceCtrl->EndRx ();
+
   // control error model not supported
   // forward control messages of this frame to LtePhy
   if (!m_rxControlMessageList.empty ())

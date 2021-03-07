@@ -225,7 +225,9 @@ NrUePowerControl::SetRsrp (double value)
   double alphaRsrp = std::pow (0.5, m_pcRsrpFilterCoefficient / 4.0);
   m_rsrp = (1 - alphaRsrp) * m_rsrp + alphaRsrp * value;
   m_pathLoss = m_referenceSignalPower - m_rsrp;
-  NS_LOG_INFO ("Pathloss updated to: " << m_pathLoss << " , rsrp updated to:" << m_rsrp);
+  NS_LOG_INFO ("Pathloss updated to: " << m_pathLoss <<
+               " , rsrp updated to:" << m_rsrp << 
+               " for cellId/rnti: " << m_cellId << "," << m_rnti);
 }
 
 void
@@ -537,6 +539,13 @@ NrUePowerControl::ReportTpcPucch (uint8_t tpc)
 }
 
 void
+NrUePowerControl::SetLoggingInfo (uint16_t cellId, uint16_t rnti)
+{
+  m_cellId = cellId;
+  m_rnti = rnti;
+}
+
+void
 NrUePowerControl::UpdateFc ()
 {
   NS_LOG_FUNCTION (this);
@@ -644,7 +653,7 @@ NrUePowerControl::CalculatePuschTxPowerNr (std::size_t rbNum)
 
   txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("PUSCH TxPower after min/max constraints: " << txPower);
+  NS_LOG_INFO ("PUSCH TxPower after min/max constraints: " << txPower << " for cellId/rnti: " << m_cellId << "," << m_rnti);
 
   return txPower;
 }
@@ -715,7 +724,7 @@ NrUePowerControl::CalculatePucchTxPowerNr (std::size_t rbNum)
 
   txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("PUCCH TxPower after min/max constraints: " << txPower);
+  NS_LOG_INFO ("PUCCH TxPower after min/max constraints: " << txPower << " for cellId/rnti: " << m_cellId << "," << m_rnti);
 
   return txPower;
 }
@@ -770,7 +779,7 @@ NrUePowerControl::CalculateSrsTxPowerNr (std::size_t rbNum)
 
   txPower = std::min (std::max (m_Pcmin, txPower), m_Pcmax);
 
-  NS_LOG_INFO ("SrsTxPower after min/max constraints: " << m_curSrsTxPower);
+  NS_LOG_INFO ("SrsTxPower after min/max constraints: " << m_curSrsTxPower << " for cellId/rnti: "<< m_cellId << "," << m_rnti);
 
   return txPower;
 }

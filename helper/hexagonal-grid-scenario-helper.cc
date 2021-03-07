@@ -37,8 +37,6 @@ HexagonalGridScenarioHelper::~HexagonalGridScenarioHelper ()
 std::vector<double> HexagonalGridScenarioHelper::siteDistances {0,1,1,1,1,1,1,std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),2,2,2,2,2,2};
 std::vector<double> HexagonalGridScenarioHelper::siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
 
-double HexagonalGridScenarioHelper::MAX_ANTENNA_OFFSET = 1;  //!< Maximum distance between a sector antenna panel and the site it belongs to
-
 /**
  * \brief Creates a GNUPLOT with the hexagonal deployment including base stations
  * (BS), their hexagonal cell areas and user terminals (UT). Positions and cell
@@ -55,10 +53,13 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
                          const Ptr<const ListPositionAllocator> &utPosVector,
                          double cellRadius)
 {
-
-  NS_ASSERT (sitePosVector->GetSize() > 0);
-  NS_ASSERT (cellCenterVector->GetSize() > 0);
-  NS_ASSERT (utPosVector->GetSize() > 0);
+  uint16_t numCells = cellCenterVector->GetSize ();
+  uint16_t numSites = sitePosVector->GetSize ();
+  uint16_t numSectors = numCells / numSites;
+  uint16_t numUts = utPosVector->GetSize ();
+  NS_ASSERT_MSG (numCells > 0, "no cells");
+  NS_ASSERT_MSG (numSites > 0, "no sites");
+  NS_ASSERT_MSG (numUts > 0,   "no uts");
 
   // Try to open a new GNUPLOT file
   std::ofstream topologyOutfile;
@@ -69,12 +70,6 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
     {
       NS_ABORT_MSG ("Can't open " << topologyFileName);
     }
-
-  uint16_t numCells = cellCenterVector->GetSize ();
-  uint16_t numSites = sitePosVector->GetSize ();
-  uint16_t numSectors = numCells / numSites;
-  NS_ASSERT (numSectors > 0);
-  uint16_t numUts = utPosVector->GetSize ();
 
   topologyOutfile << "set term pdf" << std::endl;
   topologyOutfile << "set output \"" << topologyFileRoot << ".pdf\"" << std::endl;
@@ -165,36 +160,7 @@ HexagonalGridScenarioHelper::SetNumRings (uint8_t numRings)
       m_numSites = 19;
       break;
   }
-
-  m_numCells = m_numSites * static_cast<uint16_t> (m_siteSectorization);
-  m_bs.Create (m_numCells);
-}
-
-void
-HexagonalGridScenarioHelper::SetSectorization (SiteSectorizationType numSectors)
-{
-  m_siteSectorization = numSectors;
-
-  m_numCells = m_numSites * static_cast<uint16_t> (m_siteSectorization);
-  m_bs.Create (m_numCells);
-}
-
-uint8_t
-HexagonalGridScenarioHelper::GetNumSites () const
-{
-  return m_numSites;
-}
-
-uint16_t
-HexagonalGridScenarioHelper::GetNumCells () const
-{
-  return m_numCells;
-}
-
-HexagonalGridScenarioHelper::SiteSectorizationType
-HexagonalGridScenarioHelper::GetNumSectorsPerSite () const
-{
-  return m_siteSectorization;
+  SetSitesNumber (m_numSites);
 }
 
 double
@@ -203,68 +169,41 @@ HexagonalGridScenarioHelper::GetHexagonalCellRadius () const
   return m_hexagonalRadius;
 }
 
-double
-HexagonalGridScenarioHelper::GetAntennaOrientationDegrees (uint16_t cellId,
-                                                           SiteSectorizationType numSectors) const
-{
-  NS_ABORT_MSG_IF (numSectors != SINGLE && numSectors != TRIPLE, "Unsupported number of site sectors");
-
-  double orientation = 0.0;
-  if (numSectors == TRIPLE)
-    {
-      uint16_t sector = cellId % static_cast<uint16_t> (numSectors);
-      double sectorSize = 360 / numSectors;
-      orientation = 30 + sectorSize*sector;
-    }
-  return orientation;
-}
-
-double
-HexagonalGridScenarioHelper::GetAntennaOrientationRadians (uint16_t cellId,
-                                                           SiteSectorizationType numSectors) const
-{
-  double orientationRads = GetAntennaOrientationDegrees (cellId, numSectors) * M_PI / 180;
-  if (orientationRads > M_PI)
-    {
-      orientationRads -= 2 * M_PI;
-    }
-
-  return orientationRads;
-}
-
 Vector
 HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
-                                                     uint16_t cellId,
-                                                     SiteSectorizationType numSectors,
-                                                     double hexagonRadius) const
+                                                     uint16_t cellId) const
 {
   Vector center (sitePos);
-  uint16_t siteNum = cellId;
 
-  switch (numSectors)
+  auto sectors = GetNumSectorsPerSite ();
+  switch (sectors)
   {
-    case SiteSectorizationType::NONE:
+  case 0:
       NS_ABORT_MSG ("Number of sectors has not been defined");
       break;
 
-    case SiteSectorizationType::SINGLE:
+  case 1:
       break;
 
-    case SiteSectorizationType::TRIPLE:
-      siteNum = cellId % (static_cast<uint16_t> (numSectors));
-      if (siteNum == 0)
+  case 3:
+      switch (GetSectorIndex (cellId))
         {
-          center.x += hexagonRadius * std::sqrt (0.75);
-          center.y += hexagonRadius / 2;
-        }
-      else if (siteNum == 1)
-        {
-          center.x -= hexagonRadius * std::sqrt (0.75);
-          center.y += hexagonRadius / 2;
-        }
-      else
-        {
-          center.y -= hexagonRadius;
+        case 0:
+          center.x += m_hexagonalRadius * std::sqrt (0.75);
+          center.y += m_hexagonalRadius / 2;
+          break;
+          
+        case 1:
+          center.x -= m_hexagonalRadius * std::sqrt (0.75);
+          center.y += m_hexagonalRadius / 2;
+          break;
+
+        case 2:
+          center.y -= m_hexagonalRadius;
+          break;
+
+        default:
+          NS_ABORT_MSG ("Unknown sector number: " << GetSectorIndex (cellId));
         }
       break;
 
@@ -277,109 +216,16 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
 }
 
 
-uint16_t
-HexagonalGridScenarioHelper::GetSiteIndex (uint16_t cellId) const
-{
-  return cellId / static_cast<uint16_t> (m_siteSectorization);
-}
-
-uint16_t
-HexagonalGridScenarioHelper::GetSectorIndex (uint16_t cellId) const
-{
-  return cellId % static_cast<uint16_t> (m_siteSectorization);
-}
-
-uint16_t
-HexagonalGridScenarioHelper::GetCellIndex (uint16_t ueId) const
-{
-  return ueId % m_numCells;
-}
-
-void
-HexagonalGridScenarioHelper::SetScenarioParameters (const std::string &scenario)
-{
-  NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi" && scenario !="RMa",
-                  "Unrecognized scenario");
-
-  if (scenario == "UMa")
-    {
-      SetUMaParameters ();
-    }
-  else if (scenario == "UMi")
-    {
-      SetUMiParameters ();
-    }
-  else if (scenario == "RMa")
-    {
-      SetRMaParameters();
-    }
-  else
-    {
-      NS_ABORT_MSG ("Should never be here");
-    }
-
-}
-
-void
-HexagonalGridScenarioHelper::SetUMaParameters ()
-{
-  m_isd = 1732;
-  m_bsHeight = 30.0;
-  m_utHeight = 1.5;
-  m_siteSectorization = SiteSectorizationType::TRIPLE;
-  m_hexagonalRadius = m_isd / 3;
-  m_minBsUtdistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
-  m_antennaOffset = 1.0;
-}
-
-void
-HexagonalGridScenarioHelper::SetUMiParameters ()
-{
-  m_isd = 500;
-  m_bsHeight = 10.0;
-  m_utHeight = 1.5;
-  m_siteSectorization = SiteSectorizationType::TRIPLE;
-  m_hexagonalRadius = m_isd / 3;
-  m_minBsUtdistance = 10;
-  m_antennaOffset = 1.0;
-}
-
-void
-HexagonalGridScenarioHelper::SetRMaParameters ()
-{
-  m_isd = 7000;
-  m_bsHeight = 45.0;
-  m_utHeight = 1.5;
-  m_siteSectorization = SiteSectorizationType::TRIPLE;
-  m_hexagonalRadius = m_isd / 3;
-  m_minBsUtdistance = 44.63; // minimum 2D distace is 10 meters considering UE height of 1.5 m
-  m_antennaOffset = 1.0;
-}
-
-Vector
-HexagonalGridScenarioHelper::GetAntennaPos (const Vector &sitePos,
-                                            uint16_t cellId,
-                                            SiteSectorizationType numSectors,
-                                            double antennaOffset) const
-{
-
-  NS_ABORT_MSG_IF (antennaOffset > MAX_ANTENNA_OFFSET, "Antenna offset is too large");
-
-  Vector pos (sitePos);
-
-  double angle = GetAntennaOrientationDegrees(cellId, numSectors);
-  pos.x += antennaOffset * cos (angle * M_PI / 180);
-  pos.y += antennaOffset * sin (angle * M_PI / 180);
-  return pos;
-}
-
 void
 HexagonalGridScenarioHelper::CreateScenario ()
 {
+  m_hexagonalRadius = m_isd / 3;
+  
+  m_bs.Create (m_numBs);
+  m_ut.Create (m_numUt);
+
   NS_ASSERT (m_isd > 0);
   NS_ASSERT (m_numRings < 4);
-  NS_ASSERT (m_numCells > 0);
-  NS_ASSERT (m_siteSectorization > 0);
   NS_ASSERT (m_hexagonalRadius > 0);
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);
@@ -393,7 +239,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator> ();
 
   // BS position
-  for (uint16_t cellId = 0; cellId < m_numCells; cellId++)
+  for (uint16_t cellId = 0; cellId < m_numBs; cellId++)
     {
       uint16_t siteIndex = GetSiteIndex (cellId);
       Vector sitePos (m_centralPos);
@@ -409,57 +255,48 @@ HexagonalGridScenarioHelper::CreateScenario ()
         }
 
       // FIXME: Until sites can have more than one antenna array, it is necessary to apply some distance offset from the site center (gNBs cannot have the same location)
-      Vector bsPos = GetAntennaPos (sitePos,
-                                    cellId,
-                                    m_siteSectorization,
-                                    m_antennaOffset);
+      Vector bsPos = GetAntennaPosition (sitePos, cellId);
 
       bsPosVector->Add (bsPos);
 
       // Store cell center position for plotting the deployment
-      Vector cellCenterPos = GetHexagonalCellCenter (bsPos,
-                                                     cellId,
-                                                     m_siteSectorization,
-                                                     m_hexagonalRadius);
+      Vector cellCenterPos = GetHexagonalCellCenter (bsPos, cellId);
       bsCenterVector->Add (cellCenterPos);
 
       //What about the antenna orientation? It should be dealt with when installing the gNB
     }
 
-  // To allocate UEs, I need the center of the hexagonal cell. Allocate UE around the disk of radius isd/3
-
-  NS_ASSERT (m_minBsUtdistance < m_hexagonalRadius * std::sqrt(3) / 2);
-
-  m_r->SetAttribute ("Min", DoubleValue (m_minBsUtdistance));
-  m_r->SetAttribute ("Max", DoubleValue (m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtdistance));  //Spread UEs inside the inner hexagonal radius
+  // To allocate UEs, I need the center of the hexagonal cell.
+  // Allocate UE around the disk of radius isd/3, the diameter of a the
+  // hexagon representing the footprint of a single sector.
+  // Reduce this radius by the min BS-UT distance, to respect that standoff
+  // at the one corner of the sector hexagon where the sector antenna lies.
+  // This results in UTs uniformly distributed in a disc centered on
+  // the sector hexagon; there are no UTs near the vertices of the hexagon.
+  // Spread UEs inside the inner hexagonal radius
+  // Need to weight r to get uniform in the sector hexagon
+  // See https://stackoverflow.com/questions/5837572
+  // Set max = radius^2 here, then take sqrt below
+  const double outerR = m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtDistance;
+  m_r->SetAttribute ("Min", DoubleValue (0));
+  m_r->SetAttribute ("Max", DoubleValue (outerR * outerR));
   m_theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
   m_theta->SetAttribute ("Max", DoubleValue (M_PI));
+
   // UT position
-  if (m_ut.GetN () > 0)
+  
+  for (uint32_t utId = 0; utId < m_ut.GetN(); ++utId)
     {
-      uint32_t utN = m_ut.GetN ();
+      double d = std::sqrt (m_r->GetValue ());
+      double t = m_theta->GetValue ();
 
-      for (uint32_t utId = 0; utId < utN; ++utId)
-        {
-          // This is the cell center location, same for cells belonging to the same site
-          Vector cellPos = bsPosVector->GetNext ();
-          // UEs shall be spread over the cell area (hexagonal cell)
-          uint16_t cellId = GetCellIndex (utId);
-          Vector cellCenterPos = GetHexagonalCellCenter (cellPos,
-                                                         cellId,
-                                                         m_siteSectorization,
-                                                         m_hexagonalRadius);
-
-          double d = m_r->GetValue ();
-          double t = m_theta->GetValue ();
-
-          Vector utPos (cellCenterPos);
-          utPos.x += d * cos (t);
-          utPos.y += d * sin (t);
-          utPos.z = m_utHeight;
-
-          utPosVector->Add (utPos);
-        }
+      // Vector utPos (cellCenterPos);
+      Vector utPos (bsCenterVector->GetNext ());
+      utPos.x += d * cos (t);
+      utPos.y += d * sin (t);
+      utPos.z = m_utHeight;
+      
+      utPosVector->Add (utPos);
     }
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");

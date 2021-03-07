@@ -80,6 +80,12 @@ IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                             const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
+
+  if (!m_beamformingAlgorithm)
+    {
+      m_beamformingAlgorithm = m_algorithmFactory.Create<IdealBeamformingAlgorithm> ();
+    }
+
   BeamformingHelperBase::AddBeamformingTask (gNbDev, ueDev);
 
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
@@ -108,15 +114,24 @@ IdealBeamformingHelper::Run () const
     }
 }
 
+
+void
+IdealBeamformingHelper::GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
+                                              const Ptr<NrUeNetDevice>& ueDev,
+                                              BeamformingVector* gnbBfv,
+                                              BeamformingVector* ueBfv,
+                                              uint16_t ccId) const
+{
+  NS_LOG_FUNCTION (this);
+  m_beamformingAlgorithm->GetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
+}
+
 void
 IdealBeamformingHelper::SetBeamformingMethod (const TypeId &beamformingMethod)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (beamformingMethod.IsChildOf (IdealBeamformingAlgorithm::GetTypeId ()));
-
-  ObjectFactory objectFactory;
-  objectFactory.SetTypeId (beamformingMethod);
-  m_beamformingAlgorithm = objectFactory.Create<IdealBeamformingAlgorithm> ();
+  m_algorithmFactory.SetTypeId (beamformingMethod);
 }
 
 void

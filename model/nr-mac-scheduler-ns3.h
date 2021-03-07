@@ -488,6 +488,32 @@ public:
    */
   uint8_t GetSrsCtrlSyms () const;
 
+  /**
+   * \brief Set if the UL slots are allowed for SRS transmission (if True, UL
+   * and F slots may carry SRS, if False, SRS are transmitted only in F slots)
+   * \param v the value
+   */
+  void SetSrsInUlSlots (bool v);
+
+  /**
+   * \brief Check if the UL slots are allowed for SRS transmission
+   * \return true if UL slots are available for SRS (UL and F slots available
+   * for SRS), false otherwise (only F slots available for SRS)
+   */
+  bool IsSrsInUlSlots () const;
+
+  /**
+   * \brief Set if the F slots are allowed for SRS transmission
+   * \param v the value
+   */
+  void SetSrsInFSlots (bool v);
+
+  /**
+   * \brief Check if the F slots are allowed for SRS transmission
+   * \return true if F slots are available for SRS, false otherwise
+   */
+  bool IsSrsInFSlots () const;
+
 protected:
   /**
    * \brief Create an UE representation for the scheduler.
@@ -863,6 +889,8 @@ private:
   uint8_t m_dlCtrlSymbols {0}; //!< DL ctrl symbols (attribute)
   uint8_t m_ulCtrlSymbols {0}; //!< UL ctrl symbols (attribute)
   uint8_t m_srsCtrlSymbols {0}; //!< SRS symbols (attribute)
+  bool m_enableSrsInUlSlots  {true}; //!< SRS allowed in UL slots (attribute)
+  bool m_enableSrsInFSlots  {true}; //!< SRS allowed in F slots (attribute)
 
   std::vector<uint8_t> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
   std::vector<uint8_t> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
@@ -871,7 +899,7 @@ private:
 
   Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
 
-  uint32_t m_ulSlotCounter {0}; //!< Counter for UL slots
+  uint32_t m_srsSlotCounter {0}; //!< Counter for UL slots
 
   friend NrSchedGeneralTestCase;
 };

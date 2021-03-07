@@ -30,7 +30,7 @@ using namespace ns3;
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "lena-lte-comparison --Help"
+$ ./waf --run "lena-lte-comparison-user --Help"
     \endcode
  *
  */
@@ -54,9 +54,16 @@ main (int argc, char *argv[])
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per cell or gNB in multiple-ue topology",
                 params.ueNumPergNb);
-  cmd.AddValue ("appGenerationTimeMs",
-                "Simulation time",
-                params.appGenerationTimeMs);
+  cmd.AddValue ("siteFile",
+                "Path to file of tower coordinates (instead of hexagonal grid)",
+                params.baseStationFile);
+  cmd.AddValue ("useSiteFile",
+                "If true, it will be used site file, otherwise it will be used "
+                "numRings parameter to create scenario.",
+                params.useSiteFile);
+  cmd.AddValue ("appGenerationTime",
+                "Duration applications will generate traffic.",
+                params.appGenerationTime);
   cmd.AddValue ("numerologyBwp",
                 "The numerology to be used (NR only)",
                 params.numerologyBwp);
@@ -70,7 +77,7 @@ main (int argc, char *argv[])
                 "The cellular network simulator to use: LENA or 5GLENA",
                 params.simulator);
   cmd.AddValue ("technology",
-                "The radio access network technology",
+                "The radio access network technology (LTE or NR)",
                 params.radioNetwork);
   cmd.AddValue ("operationMode",
                 "The network operation mode can be TDD or FDD",
@@ -81,14 +88,14 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 params.outputDir);
-  cmd.AddValue("errorModelType",
+  cmd.AddValue ("errorModelType",
                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                params.errorModel);
   cmd.AddValue ("calibration",
                 "disable a bunch of things to make LENA and NR_LTE comparable",
                 params.calibration);
   cmd.AddValue ("trafficScenario",
-                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps)",
+                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps), 3: medium-load (20Mbps)",
                 params.trafficScenario);
   cmd.AddValue ("scheduler",
                 "PF: Proportional Fair, RR: Round-Robin",
@@ -102,6 +109,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("downtiltAngle",
                 "Base station antenna down tilt angle (deg)",
                 params.downtiltAngle);
+  cmd.AddValue ("enableUlPc",
+                "Whether to enable or disable UL power control",
+                params.enableUlPc);
+  cmd.AddValue ("powerAllocation",
+                "Power allocation can be a)UniformPowerAllocBw or b)UniformPowerAllocUsed.",
+                params.powerAllocation);
   cmd.AddValue ("xMin",
                 "The min x coordinate of the rem map",
                 params.xMinRem);
@@ -132,6 +145,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("remSector",
                 "For which sector to generate the rem",
                  params.remSector);
+  cmd.AddValue ("progressInterval",
+                "Progress reporting interval",
+                params.progressInterval);
 
 
   // Parse the command line
@@ -140,7 +156,7 @@ main (int argc, char *argv[])
   
   std::cout << params;
 
-  ShowProgress spinner;
+  ShowProgress spinner (params.progressInterval);
   
   LenaLteComparison (params);
 

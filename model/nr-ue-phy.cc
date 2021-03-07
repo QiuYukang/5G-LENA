@@ -28,10 +28,6 @@
   while (false);
 
 #include "nr-ue-phy.h"
-#include "nr-ue-net-device.h"
-#include <ns3/nr-spectrum-value-helper.h>
-#include "nr-ch-access-manager.h"
-
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 #include <ns3/node.h>
@@ -43,6 +39,8 @@
 #include <ns3/boolean.h>
 #include <ns3/pointer.h>
 #include "beam-manager.h"
+#include "nr-ue-net-device.h"
+#include "nr-ch-access-manager.h"
 #include "nr-ue-power-control.h"
 
 namespace ns3 {
@@ -98,6 +96,18 @@ NrUePhy::GetTypeId (void)
                    DoubleValue (5.0), // nr code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
                    MakeDoubleAccessor (&NrUePhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
+     .AddAttribute ("PowerAllocationType",
+                    "Defines the type of the power allocation. Currently are supported "
+                    "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
+                    "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
+                    "power allocation over used (active) RBs. By default is set a uniform power "
+                    "allocation over used RBs .",
+                    EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED),
+                    MakeEnumAccessor (&NrPhy::SetPowerAllocationType,
+                                      &NrPhy::GetPowerAllocationType),
+                    MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
+                                      NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
+                                    ))
     .AddAttribute ("SpectrumPhy",
                    "The SpectrumPhy associated to this NrPhy",
                    TypeId::ATTR_GET,
@@ -117,7 +127,7 @@ NrUePhy::GetTypeId (void)
                    MakeTimeChecker ())
     .AddAttribute ("EnableUplinkPowerControl",
                    "If true, Uplink Power Control will be enabled.",
-                    BooleanValue (true),
+                    BooleanValue (false),
                     MakeBooleanAccessor (&NrUePhy::SetEnableUplinkPowerControl),
                     MakeBooleanChecker ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
@@ -218,6 +228,12 @@ NrUePhy::GetUplinkPowerControl () const
 }
 
 void
+NrUePhy::SetUplinkPowerControl (Ptr<NrUePowerControl> pc)
+{
+  m_powerControl = pc;
+}
+
+void
 NrUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
 {
   m_amc = amc;
@@ -293,10 +309,6 @@ NrUePhy::RegisterToEnb (uint16_t bwpId)
   NS_LOG_FUNCTION (this);
 
   InitializeMessageList ();
-
-  Ptr<SpectrumValue> noisePsd = GetNoisePowerSpectralDensity ();
-  m_spectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
-
   DoSetCellId (bwpId);
 }
 
@@ -928,7 +940,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
                 " end " << (Simulator::Now () + varTtiPeriod));
 
   Simulator::Schedule (NanoSeconds (1.0), &NrUePhy::SendDataChannels, this,
-                       pktBurst, ctrlMsg, varTtiPeriod - NanoSeconds (2.0), dci->m_symStart);
+                       pktBurst, ctrlMsg, varTtiPeriod - NanoSeconds (2.0));
   return varTtiPeriod;
 }
 
@@ -1015,8 +1027,8 @@ NrUePhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 
 void
 NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
-                               const std::list<Ptr<NrControlMessage> > &ctrlMsg,
-                               const Time &duration, uint8_t slotInd)
+                           const std::list<Ptr<NrControlMessage> > &ctrlMsg,
+                           const Time &duration)
 {
   if (pb->GetNPackets () > 0)
     {
@@ -1027,7 +1039,7 @@ NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
         }
     }
 
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration, slotInd);
+  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration);
 }
 
 void
@@ -1148,6 +1160,7 @@ void
 NrUePhy::DoStartCellSearch (uint16_t dlEarfcn)
 {
   NS_LOG_FUNCTION (this << dlEarfcn);
+  DoSetInitialBandwidth ();
 }
 
 void
@@ -1174,7 +1187,7 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
 {
   NS_LOG_FUNCTION (this << cellId);
   DoSetCellId (cellId);
-  m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity ());
+  DoSetInitialBandwidth ();
 }
 
 BeamId
@@ -1202,6 +1215,7 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
   NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
   if (m_enableUplinkPowerControl)
     {
+      m_powerControl->SetLoggingInfo (GetCellId(), m_rnti);
       m_powerControl->SetRsrp (m_rsrp);
     }
 }
@@ -1210,6 +1224,13 @@ void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);
+
+  if (GetChannelBandwidth() == 0)
+    {
+      NS_LOG_INFO ("Initial bandwidth not set, configuring the default one for Cell ID:"<< GetCellId () << ", RNTI"<< GetRnti () <<", BWP ID:"<< GetBwpId ());
+      DoSetInitialBandwidth ();
+    }
+
   NS_LOG_DEBUG ("PHY starting. Configuration: "  << std::endl <<
                 "\t TxPower: " << m_txPower << " dB" << std::endl <<
                 "\t NoiseFigure: " << m_noiseFigure << std::endl <<
@@ -1226,31 +1247,43 @@ NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 }
 
 void
+NrUePhy::DoSetInitialBandwidth ()
+{
+  NS_LOG_FUNCTION (this);
+  // configure initial bandwidth to 6 RBs
+  double initialBandwidthHz = 6 * GetSubcarrierSpacing () * NrSpectrumValueHelper::SUBCARRIERS_PER_RB;
+  // divided by 100*1000 because the parameter should be in 100KHz
+  uint16_t initialBandwidthIn100KHz = ceil (initialBandwidthHz / (100 * 1000));
+  // account for overhead that will be reduced when determining real BW
+  uint16_t initialBandwidthWithOverhead = initialBandwidthIn100KHz / (1 - GetRbOverhead ());
+
+  NS_ABORT_MSG_IF (initialBandwidthWithOverhead == 0, " Initial bandwidth could not be set. Parameters provided are: "
+                   "\n dlBandwidthInRBNum = " << 6 <<
+                   "\n m_subcarrierSpacing = " << GetSubcarrierSpacing() <<
+                   "\n NrSpectrumValueHelper::SUBCARRIERS_PER_RB  = " << (unsigned) NrSpectrumValueHelper::SUBCARRIERS_PER_RB <<
+                   "\n m_rbOh = " << GetRbOverhead() );
+
+  DoSetDlBandwidth (initialBandwidthWithOverhead);
+}
+
+void
 NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)
 {
   NS_LOG_FUNCTION (this << +dlBandwidth);
 
-  uint32_t dlBandwidthInHz = dlBandwidth * 100 * 1000;
+  SetChannelBandwidth (dlBandwidth);
 
-  if (GetChannelBandwidth () != dlBandwidthInHz)
-    {
-      NS_LOG_DEBUG ("Channel bandwidth changed from " << GetChannelBandwidth () << " to " <<
-                    dlBandwidth * 100 * 1000 << " Hz.");
-
-      SetChannelBandwidth (dlBandwidth);
-
-      NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
-                    "\t TxPower: " << m_txPower << " dB" << std::endl <<
-                    "\t NoiseFigure: " << m_noiseFigure << std::endl <<
-                    "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
-                    "\t Numerology: " << GetNumerology () << std::endl <<
-                    "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
-                    "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
-                    "Attached to physical channel: " << std::endl <<
-                    "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
-                    "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
-                    "\t Num. RB: " << GetRbNum ());
-    }
+  NS_LOG_DEBUG ("PHY reconfiguring. Result: "  << std::endl <<
+                "\t TxPower: " << m_txPower << " dB" << std::endl <<
+                "\t NoiseFigure: " << m_noiseFigure << std::endl <<
+                "\t TbDecodeLatency: " << GetTbDecodeLatency ().GetMicroSeconds () << " us " << std::endl <<
+                "\t Numerology: " << GetNumerology () << std::endl <<
+                "\t SymbolsPerSlot: " << GetSymbolsPerSlot () << std::endl <<
+                "\t Pattern: " << NrPhy::GetPattern (m_tddPattern) << std::endl <<
+                "Attached to physical channel: " << std::endl <<
+                "\t Channel bandwidth: " << GetChannelBandwidth () << " Hz" << std::endl <<
+                "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl <<
+                "\t Num. RB: " << GetRbNum ());
 }
 
 

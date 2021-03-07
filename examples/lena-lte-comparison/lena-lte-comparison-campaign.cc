@@ -1,6 +1,8 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 
 #include <ns3/command-line.h>
+#include <ns3/show-progress.h>
+
 #include "lena-lte-comparison.h"
 
 using namespace ns3;
@@ -25,9 +27,16 @@ main (int argc, char *argv[])
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per cell or gNB in multiple-ue topology",
                 params.ueNumPergNb);
-  cmd.AddValue ("appGenerationTimeMs",
-                "Simulation time",
-                params.appGenerationTimeMs);
+  cmd.AddValue ("siteFile",
+                "Path to file of tower coordinates (instead of hexagonal grid)",
+                params.baseStationFile);
+  cmd.AddValue ("useSiteFile",
+                "If true, it will be used site file, otherwise it will be used "
+                "numRings parameter to create scenario.",
+                params.useSiteFile);
+  cmd.AddValue ("appGenerationTime",
+                "Duration applications will generate traffic.",
+                params.appGenerationTime);
   cmd.AddValue ("numerologyBwp",
                 "The numerology to be used (NR only)",
                 params.numerologyBwp);
@@ -41,7 +50,7 @@ main (int argc, char *argv[])
                 "The cellular network simulator to use: LENA or 5GLENA",
                 params.simulator);
   cmd.AddValue ("technology",
-                "The radio access network technology",
+                "The radio access network technology (LTE or NR)",
                 params.radioNetwork);
   cmd.AddValue ("operationMode",
                 "The network operation mode can be TDD or FDD",
@@ -59,7 +68,7 @@ main (int argc, char *argv[])
                 "disable a bunch of things to make LENA and NR_LTE comparable",
                 params.calibration);
   cmd.AddValue ("trafficScenario",
-                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps)",
+                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps), 3: medium-load (20Mbps)",
                 params.trafficScenario);
   cmd.AddValue ("scheduler",
                 "PF: Proportional Fair, RR: Round-Robin",
@@ -73,10 +82,21 @@ main (int argc, char *argv[])
   cmd.AddValue ("downtiltAngle",
                 "Base station antenna down tilt angle (deg)",
                 params.downtiltAngle);
+  cmd.AddValue ("enableUlPc",
+                "Whether to enable or disable UL power control",
+                params.enableUlPc);
+  cmd.AddValue ("powerAllocation",
+                "Power allocation can be a)UniformPowerAllocBw or b)UniformPowerAllocUsed.",
+                params.powerAllocation);
 
   // Parse the command line
   cmd.Parse (argc, argv);
+  params.Validate ();
 
+  std::cout << params;
+
+  ShowProgress spinner (Seconds (100));
+  
   LenaLteComparison (params);
 
   return 0;
