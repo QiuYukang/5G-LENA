@@ -410,7 +410,7 @@ main (int argc, char *argv[])
   uint16_t slMaxNumPerReserve = 3;
   double slProbResourceKeep = 0.0;
   uint16_t slMaxTxTransNumPssch = 5;
-  Time ReservationPeriod = MilliSeconds (100);
+  uint16_t reservationPeriod = 100; // in ms
   bool enableSensing = false;
   bool considerReTxForSensing = false;
   uint16_t t1 = 2;
@@ -512,7 +512,7 @@ main (int argc, char *argv[])
                 slMaxTxTransNumPssch);
   cmd.AddValue ("ReservationPeriod",
                 "The resource reservation period in ms",
-                ReservationPeriod);
+                reservationPeriod);
   cmd.AddValue ("enableSensing",
                 "If true, it enables the sensing based resource selection for "
                 "SL, otherwise, no sensing is applied",
@@ -686,7 +686,7 @@ main (int argc, char *argv[])
   nrHelper->SetUeMacAttribute ("T1", UintegerValue (static_cast<uint8_t> (t1)));
   nrHelper->SetUeMacAttribute ("T2", UintegerValue (t2));
   nrHelper->SetUeMacAttribute ("ActivePoolId", UintegerValue (0));
-  nrHelper->SetUeMacAttribute ("ReservationPeriod", TimeValue (ReservationPeriod));
+  nrHelper->SetUeMacAttribute ("ReservationPeriod", TimeValue (MilliSeconds (reservationPeriod)));
   nrHelper->SetUeMacAttribute ("NumSidelinkProcess", UintegerValue (4));
   nrHelper->SetUeMacAttribute ("EnableBlindReTx", BooleanValue (true));
   nrHelper->SetUeMacAttribute ("SlThresPsschRsrp", IntegerValue (slThresPsschRsrp));
