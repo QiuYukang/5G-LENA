@@ -2426,15 +2426,12 @@ NrUeMac::GetReservationPeriod () const
 uint8_t
 NrUeMac::GetRndmReselectionCounter () const
 {
-  uint8_t min, max;
+  uint8_t min;
+  uint8_t max;
   uint16_t periodInt = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ());
 
   switch(periodInt)
   {
-    case 50:
-      min = GetLoBoundReselCounter (periodInt);
-      max = GetUpBoundReselCounter (periodInt);
-      break;
     case 100:
     case 150:
     case 200:
@@ -2457,9 +2454,19 @@ NrUeMac::GetRndmReselectionCounter () const
       max = 15;
       break;
     default:
-      NS_FATAL_ERROR ("VALUE NOT SUPPORTED!");
+      if (periodInt < 100)
+        {
+          min = GetLoBoundReselCounter (periodInt);
+          max = GetUpBoundReselCounter (periodInt);
+        }
+      else
+        {
+          NS_FATAL_ERROR ("VALUE NOT SUPPORTED!");
+        }
       break;
   }
+
+  NS_LOG_DEBUG ("Range to choose random reselection counter. min: " << +min << " max: " << +max);
   return m_ueSelectedUniformVariable->GetInteger (min, max);
 }
 
