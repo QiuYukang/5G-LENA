@@ -93,9 +93,8 @@ RealisticBeamformingAlgorithm::GetSrsSymbolsPerSlot ()
 }
 
 RealisticBeamformingAlgorithm::TriggerEventConf
-RealisticBeamformingAlgorithm::GetTriggerEventConf ()
+RealisticBeamformingAlgorithm::GetTriggerEventConf () const
 {
-
   NS_LOG_FUNCTION (this);
   Ptr<NrGnbPhy> phy = m_gNbDevice ->GetPhy(m_ccId);
   NS_ABORT_MSG_UNLESS (phy, "PHY for the given ccId does not exist!");
@@ -148,7 +147,7 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
       // reset symbols per slot counter
       m_srsSymbolsCounter = 0;
 
-      TriggerEventConf conf = GetTriggerEventConf();
+      TriggerEventConf conf = GetTriggerEventConf ();
 
       if ( conf.event == RealisticBfManager::SRS_COUNT)
         {
@@ -167,14 +166,29 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
       else if ( conf.event == RealisticBfManager::DELAYED_UPDATE)
         {
           NS_LOG_INFO ("Received all SRS symbols per current slot. Scheduler realistic BF helper callback");
+          DelayedUpdateInfo dui;
+          dui.updateTime = Simulator::Now () + conf.updateDelay;
+          dui.srsSinr = m_maxSrsSinrPerSlot;
+          dui.channelMatrix = GetChannelMatrix ();
+          m_delayedUpdateInfo.push (dui);
           // schedule delayed update
           Simulator::Schedule (conf.updateDelay, &RealisticBeamformingAlgorithm::NotifyHelper , this);
+          Simulator::Schedule (conf.updateDelay + NanoSeconds (1), &RealisticBeamformingAlgorithm::RemoveUsedDelayedUpdateInfo , this);
+          // we add 1 second just to be sure that will be removed after NotifyHelper, even if it is added into event sequence after, should be called after
         }
       else
         {
           NS_ABORT_MSG ("Unknown trigger event type.");
         }
     }
+}
+
+void
+RealisticBeamformingAlgorithm::RemoveUsedDelayedUpdateInfo ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_delayedUpdateInfo.size(), " No elements in m_delayedUpdateInfo queue.");
+  m_delayedUpdateInfo.pop (); // we can now delete this first element
 }
 
 void
@@ -188,6 +202,38 @@ void
 RealisticBeamformingAlgorithm::SetTriggerCallback (RealisticBfHelperCallback callback)
 {
   m_helperCallback = callback;
+}
+
+Ptr<const MatrixBasedChannelModel::ChannelMatrix>
+RealisticBeamformingAlgorithm::GetChannelMatrix () const
+{
+  NS_LOG_FUNCTION (this);
+  // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
+  Ptr<const NrGnbPhy> gnbPhy = m_gNbDevice->GetPhy (m_ccId);
+  Ptr<const NrUePhy> uePhy = m_ueDevice->GetPhy (m_ccId);
+
+  Ptr<const NrSpectrumPhy> gnbSpectrumPhy = gnbPhy->GetSpectrumPhy ();
+  Ptr<const NrSpectrumPhy> ueSpectrumPhy = uePhy->GetSpectrumPhy ();
+
+  Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel (); // SpectrumChannel should be const.. but need to change ns-3-dev
+  Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel ();
+
+  Ptr<SpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetSpectrumPropagationLossModel ();
+  Ptr<SpectrumPropagationLossModel> ueThreeGppSpectrumPropModel = ueSpectrumChannel->GetSpectrumPropagationLossModel ();
+
+  Ptr<ThreeGppSpectrumPropagationLossModel> threeGppSplm = DynamicCast<ThreeGppSpectrumPropagationLossModel>(gnbThreeGppSpectrumPropModel);
+  Ptr<MatrixBasedChannelModel> matrixBasedChannelModel = threeGppSplm -> GetChannelModel();
+  Ptr<ThreeGppChannelModel> channelModel = DynamicCast<ThreeGppChannelModel>(matrixBasedChannelModel);
+
+  NS_ASSERT (channelModel!=nullptr);
+
+  Ptr<const MatrixBasedChannelModel::ChannelMatrix> originalChannelMatrix = channelModel-> GetChannel (m_gNbDevice->GetNode()->GetObject<MobilityModel>(),
+                                                                                                       m_ueDevice->GetNode()->GetObject<MobilityModel>(),
+                                                                                                       gnbPhy->GetAntennaArray (),
+                                                                                                       uePhy->GetAntennaArray ());
+
+  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrixCopy = Copy <const MatrixBasedChannelModel::ChannelMatrix> (originalChannelMatrix);
+  return channelMatrixCopy;
 }
 
 void
@@ -204,19 +250,6 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
   // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
   Ptr<const NrGnbPhy> gnbPhy = gnbDev->GetPhy (ccId);
   Ptr<const NrUePhy> uePhy = ueDev->GetPhy (ccId);
-
-  Ptr<const NrSpectrumPhy> gnbSpectrumPhy = gnbPhy->GetSpectrumPhy ();
-  Ptr<const NrSpectrumPhy> ueSpectrumPhy = uePhy->GetSpectrumPhy ();
-
-  Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel (); // SpectrumChannel should be const.. but need to change ns-3-dev
-  Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel ();
-
-  Ptr<SpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetSpectrumPropagationLossModel ();
-  Ptr<SpectrumPropagationLossModel> ueThreeGppSpectrumPropModel = ueSpectrumChannel->GetSpectrumPropagationLossModel ();
-
-  NS_ASSERT_MSG (gnbThreeGppSpectrumPropModel == ueThreeGppSpectrumPropModel,
-                 "Devices should be connected to the same spectrum channel");
-
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
   complexVector_t maxTxW, maxRxW;
@@ -226,6 +259,24 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
   uint32_t gnbNumRows = static_cast<uint32_t> (uintValue.Get ());
   uePhy->GetAntennaArray ()->GetAttribute ("NumRows", uintValue);
   uint32_t ueNumRows = static_cast<uint32_t> (uintValue.Get ());
+
+  TriggerEventConf conf = GetTriggerEventConf ();
+  double srsSinr = 0;
+  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = nullptr;
+
+  if (conf.event == RealisticBfManager::DELAYED_UPDATE)
+    {
+      NS_ASSERT (m_delayedUpdateInfo.size ());
+      DelayedUpdateInfo dui = m_delayedUpdateInfo.front ();
+      NS_ABORT_MSG_UNLESS (dui.updateTime == Simulator::Now (), "Current time should be equal to the updateTime from the DelayedUpdateInfo structure."); // sanity check that we are using correct dui
+      srsSinr = dui.srsSinr;
+      channelMatrix = dui.channelMatrix;
+    }
+  else
+    {
+      srsSinr = m_maxSrsSinrPerSlot;
+      channelMatrix = GetChannelMatrix ();
+    }
 
   for (double gnbTheta = 60; gnbTheta < 121; gnbTheta = gnbTheta + m_beamSearchAngleStep)
     {
@@ -246,19 +297,10 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
                   NS_ABORT_MSG_IF (gnbW.size()==0 || ueW.size()==0,
                                    "Beamforming vectors must be initialized in order to calculate the long term matrix.");
 
-                  Ptr<ThreeGppSpectrumPropagationLossModel> threeGppSplm = DynamicCast<ThreeGppSpectrumPropagationLossModel>(gnbThreeGppSpectrumPropModel);
-                  Ptr<MatrixBasedChannelModel> matrixBasedChannelModel = threeGppSplm -> GetChannelModel();
-                  Ptr<ThreeGppChannelModel> channelModel = DynamicCast<ThreeGppChannelModel>(matrixBasedChannelModel);
-                  NS_ASSERT (channelModel!=nullptr);
-
-                  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = channelModel -> GetChannel (gnbDev->GetNode()->GetObject<MobilityModel>(),
-                                                                                                                ueDev->GetNode()->GetObject<MobilityModel>(),
-                                                                                                                gnbPhy->GetAntennaArray (),
-                                                                                                                uePhy->GetAntennaArray ());
-
                   const ThreeGppAntennaArrayModel::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
                                                                                                                              gnbDev->GetNode()->GetObject<MobilityModel>(),
-                                                                                                                             ueDev->GetNode()->GetObject<MobilityModel>());
+                                                                                                                             ueDev->GetNode()->GetObject<MobilityModel>(),
+                                                                                                                             srsSinr);
 
                   double estimatedLongTermMetric = CalculateTheEstimatedLongTermMetric (estimatedLongTermComponent);
 
@@ -313,7 +355,8 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
                                                               const ThreeGppAntennaArrayModel::ComplexVector &aW,
                                                               const ThreeGppAntennaArrayModel::ComplexVector &bW,
                                                               Ptr<const MobilityModel> a,
-                                                              Ptr<const MobilityModel> b) const
+                                                              Ptr<const MobilityModel> b,
+                                                              double srsSinr) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -340,9 +383,9 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
   NS_LOG_DEBUG ("Calculate the estimation of the long term component with sAntenna: " << sAntenna << " uAntenna: " << uAntenna);
   ThreeGppAntennaArrayModel::ComplexVector estimatedlongTerm;
 
-  NS_ABORT_IF (m_maxSrsSinrPerSlot == 0);
+  NS_ABORT_IF (srsSinr == 0);
 
-  double varError = 1 / (m_maxSrsSinrPerSlot); // SINR the SINR from UL SRS reception
+  double varError = 1 / (srsSinr); // SINR the SINR from UL SRS reception
   uint8_t numCluster = static_cast<uint8_t> (channelMatrix->m_channel[0][0].size ());
 
   for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
