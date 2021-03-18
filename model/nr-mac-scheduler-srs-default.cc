@@ -151,7 +151,7 @@ NrMacSchedulerSrsDefault::SetStartingPeriodicity (uint32_t start)
   // Fill the available values
   for (uint32_t i = 0; i < m_periodicity; ++i)
     {
-      m_availableOffsetValues.push_back (i);
+      m_availableOffsetValues[i] = i;
     }
 
   // Shuffle the available values, so it contains the element in a random order
