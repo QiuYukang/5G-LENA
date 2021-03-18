@@ -26,6 +26,7 @@
 #include <ns3/beam-manager.h>
 #include <ns3/beamforming-algorithm.h>
 #include <ns3/vector.h>
+#include <ns3/node.h>
 
 namespace ns3{
 
@@ -69,6 +70,8 @@ BeamformingHelperBase::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
                                 const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_INFO (" Run beamforming task for gNB:" << gNbDev->GetNode() -> GetId() <<
+                 " and UE:"<< ueDev->GetNode()->GetId () );
   BeamformingVector gnbBfv, ueBfv;
   GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
   Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);

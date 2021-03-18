@@ -332,10 +332,17 @@ public:
 
   void AddExpectedSrsRnti (uint16_t rnti);
 
-  // SRS SINR callback
+  /*
+   * \brief SRS SINR callback whose input parameters are cellid, rnti, SRS SINR value
+   */
   typedef Callback < void, uint16_t, uint16_t, double> SrsSinrReportCallback;
 
-  void SetSrsSinrReportCallback (SrsSinrReportCallback callback);
+  /**
+   * \brief It adds callback to the list of callbacks that will be notified
+   * once SRS is being received
+   * \param callback callback to be added to the list of callbacks
+   */
+  void AddSrsSinrReportCallback (SrsSinrReportCallback callback);
 
 protected:
   /**
@@ -506,7 +513,7 @@ private:
   Time m_firstRxDuration {Seconds (0)}; //!< the duration of the current reception
   State m_state {IDLE}; //!<spectrum phy state
   SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
-  SrsSinrReportCallback m_srsSinrReportCallback;
+  std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
   uint16_t m_currentSrsRnti {0};
   EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY to IDLE.
   Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time
