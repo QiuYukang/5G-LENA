@@ -623,12 +623,9 @@ NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
   NS_LOG_FUNCTION (this << srsSinr);
   NS_LOG_INFO ("Update SRS SINR perceived with this value: " << srsSinr);
 
-  if (m_srsSinrReportCallback.size())
+  for (auto& srsCallback:m_srsSinrReportCallback)
     {
-      for (auto& srsCallback:m_srsSinrReportCallback)
-        {
-          srsCallback (GetCellId(), m_currentSrsRnti, Integral (srsSinr));
-        }
+      srsCallback (GetCellId(), m_currentSrsRnti, Integral (srsSinr));
     }
 }
 
