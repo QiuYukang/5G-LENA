@@ -173,6 +173,8 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (antennaConf));
                   nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (iso));
 
+                  nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId());
+
                   gnbDevs = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
                   ueDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
@@ -213,6 +215,7 @@ NrRealisticBeamformingTestCase::DoRun (void)
                                                               0);
 
                   Ptr<RealisticBeamformingAlgorithm> realisticBeamforming = CreateObject<RealisticBeamformingAlgorithm>();
+                  realisticBeamforming->Install (DynamicCast<NrGnbNetDevice>(gnbDevs.Get (0)), DynamicCast<NrUeNetDevice> (ueDevs.Get (0)), 0);
                   BeamformingVector realisticGnbBfv1;
                   BeamformingVector realisticUeBfv1;
 
