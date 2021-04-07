@@ -686,9 +686,9 @@ NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
   NS_LOG_FUNCTION (this << srsSinr);
   NS_LOG_INFO ("Update SRS SINR perceived with this value: " << srsSinr);
 
-  if (!m_srsSinrReportCallback.IsNull())
+  for (auto& srsCallback:m_srsSinrReportCallback)
     {
-      m_srsSinrReportCallback (GetCellId(), m_currentSrsRnti, Integral (srsSinr));
+      srsCallback (GetCellId(), m_currentSrsRnti, Integral (srsSinr));
     }
 }
 
@@ -775,9 +775,9 @@ NrSpectrumPhy::AddExpectedSrsRnti (uint16_t rnti)
 }
 
 void
-NrSpectrumPhy::SetSrsSinrReportCallback (SrsSinrReportCallback callback)
+NrSpectrumPhy::AddSrsSinrReportCallback (SrsSinrReportCallback callback)
 {
-  m_srsSinrReportCallback = callback;
+  m_srsSinrReportCallback.push_back (callback);
 }
 
 // private

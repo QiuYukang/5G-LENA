@@ -46,7 +46,7 @@ In this section, we present the design of the different features and procedures 
 
 Architecture
 ************
-The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure:ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an SGW/PGW (Service Gateway and Packet Gateway), through a link. Such a connection can be of any technology that is currently available in ns-3. It is showed through a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NRGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but on the contrary direction.
+The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure :ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an PGW/SGW (Packet Gateway and Service Gateway), through a link. Such a connection can be defined with any technology that is currently available in ns-3.  The diagram illustrates a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NRGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but in the opposite direction.
 
 .. _fig-e2e:
 
@@ -56,7 +56,7 @@ The 'NR' module has been designed to perform end-to-end simulations of 3GPP-orie
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module SAP provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module Service Access Point (SAP) provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -66,25 +66,25 @@ Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and `
 
    RAN class overview
 
-Interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. Component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and so improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+Two interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. The component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and thereby improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its own PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
 
-Note: The 3GPP definition for "Bandwidth Part" (BWP) is made for energy-saving purposes at the UE nodes. As per the 3GPP standard, the active 3GPP BWP at a UE can vary semi-statically, and multiple 3GPP BWPs can span over the same frequency spectrum region. In this text, and through the code, we use the word BWP to refer to various things that are not in line with the 3GPP definition.
+Note: The 3GPP definition for "Bandwidth Part" (BWP) is made for energy-saving purposes at the UE nodes. As per the 3GPP standard, the active 3GPP BWP at a UE can vary semi-statically, and multiple 3GPP BWPs can span over the same frequency spectrum region. In this text, and through the code, we use the word BWP to refer to various things that are not always in line with the 3GPP definition.
 
-First of all, we use it to indicate the minimum piece of spectrum that can be modeled. In this regard, a BWP has a center frequency and a bandwidth, plus some characteristics for the 3GPP channel model (e.g., the scenario). Each device can handle multiple BWPs, but such BWPs must be orthogonal in frequency (i.e., they must span over different frequency spectrum regions, that can be contiguous or not, depending on the user-made configuration).
+First of all, we use it to indicate the minimum piece of spectrum that can be modeled. In this regard, a BWP has a center frequency and a bandwidth, plus some characteristics for the 3GPP channel model (e.g., the scenario). Each device can handle multiple BWPs, but such BWPs must be orthogonal in frequency (i.e., they must span over different frequency spectrum regions, that can be contiguous or not, depending on the user-defined configuration).
 
 Secondly, the 'NR' module is communicating through each BWP with a PHY and a MAC entity, as well as with one spectrum channel and one antenna instance. In other words, for every spectrum bandwidth part, the module will create a PHY, a MAC, a Spectrum channel, and an antenna. We consider, in the code, that this set of components form a BWP. Moreover, we have a router between the RLC queues and the different MAC entities, which is called the BWP manager.
 
-Summarizing, our BWP terminology can refer to orthogonal 3GPP BWPs, as well as to orthogonal 3GPP Component Carriers, and it is up to the BWP manager to route the flows accordingly based on the behavior the user wants to implement. Our primary use case for bandwidth part is to avoid interferences, as well as to send different flow types through different BWPs, to achieve a dedicated-resource RAN slicing.
+Summarizing, our BWP terminology can refer to orthogonal 3GPP BWPs, as well as to orthogonal 3GPP Component Carriers, and it is up to the BWP manager to route the flows accordingly based on the behavior the user wants to implement. Our primary use case for BWPs is to avoid interference, as well as to send different flow types through different BWPs, to achieve a dedicated-resource RAN slicing.
 
 Identifying components
 **********************
 
-Often, you will need to identify the part from which some messages come from, or to be able to read the output traces correctly. Each message will be associated with one couple -- ccId and bwpId. The meaning of these names does not reflect the natural sense that we could give to these words. In particular, the definition is the following:
+Often, a simulation user will need to identify the object from which some messages come from, or to be able to read the output traces correctly. Each message will be associated with one tuple -- ccId and bwpId. The meaning of these names does not reflect the natural sense that we could give to these words. In particular, the definition is the following:
 
-* the bwpId is the index of an imaginary vector that holds all the instances of BWP (as a pair MAC/PHY) in the node. It is assigned at the creation time by the helper, and the BWP with ID 0 will be the primary carrier;
-* the ccId is a number that identifies the pair MAC/PHY uniquely in the entire simulation.
+* the bwpId is the index of an imaginary vector that holds all the instances of BWP (as a paired MAC/PHY) in the node. It is assigned at the creation time by the helper, and the BWP with ID 0 will be the primary carrier;
+* the ccId is a number that identifies the MAC/PHY pair uniquely in the entire simulation.
 
-All the nodes in the simulation will have the same BWP amount. Each one will be numbered from 0 to n-1, where n is the total number of spectrum parts. For example:
+All the nodes in the simulation will have the same number of BWPs. Each one will be numbered from 0 to n-1, where n is the total number of spectrum parts. For example:
 
 .. _tab-example-spectrum:
 
@@ -93,7 +93,7 @@ All the nodes in the simulation will have the same BWP amount. Each one will be 
    +------------+------------+---------------+---------------+---------------+
    |                                Band 1                                   |
    +------------+------------+---------------+---------------+---------------+
-   |   CC 0                  |       CC 1                    |      CC2      |
+   |   CC 0                  |       CC 1                    |     CC 2      |
    +------------+------------+---------------+---------------+---------------+
    |          BWP0           |              BWP1             |      BWP2     |
    +------------+------------+---------------+---------------+---------------+
@@ -117,11 +117,11 @@ The ccId numbering is, for some untrained eyes, weird. But that is because some 
    |   GNB 3    |      13    |       14      |       15      |      16       |
    +------------+------------+---------------+---------------+---------------+
 
-If we would use this as a simulation scenario, the messages that come from the CcId 2, 6, 10, 14, would refer to the same portion of the spectrum. These IDs, internally at the GNB, would be translated into the BWP 0 in all the cases. The BWP 1 will be associated with the CcId 3, 7, 11, 15 (respectively), and everything else comes easily.
+If we would use this as a simulation scenario, the messages that come from the CcId 2, 6, 10, 14, would refer to the same portion of the spectrum. These IDs, internally at the GNB, would be translated into the BWP 0 in all the cases. The BWP 1 will be associated with the CcId 3, 7, 11, 15 (respectively), and everything else follows.
 
 PHY layer
 *********
-This section describes in details the different models supported and developed at PHY layer.
+This section describes in detail the different models supported and developed at PHY layer.
 
 
 Frame structure model
@@ -154,9 +154,9 @@ Figure :ref:`fig-frame` shows the NR frame structure in time- and frequency- dom
    :align: center
    :scale: 35 %
 
-   NR frame structure example
+   NR frame structure example for numerology 3, normal CP, and 400 MHz bandwidth
 
-The implementation in the 'NR' module currently supports the NR frame structures and numerologies shown in Table :ref:`tab-numerologies`. Once the numerology is configured, the lengths of the symbol, the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe, are dynamically determined in a runtime, based on Table :ref:`tab-numerologies`.
+The implementation in the 'NR' module currently supports the NR frame structures and numerologies shown in Table :ref:`tab-numerologies`. Once the numerology is configured, the lengths of the symbol, the slot, the SCS, the number of PRBs within the bandwidth, and the number of slots per subframe, are dynamically determined at runtime, based on Table :ref:`tab-numerologies`.
 
 .. _tab-numerologies:
 
@@ -192,12 +192,12 @@ An additional level of flexibility in the NR system can be achieved by implement
 
    FDM of numerologies example
 
-In the 'NR' module, the user can configure FDM bands statically before the simulation starts. This is a critical design assumption based on two main reasons. First, the 'NR' module relies on the channel and the propagation loss model that is not able to allow runtime modifications of the physical configuration parameters related to time/frequency configuration (such as the system bandwidth, the central carrier frequency, and the symbol length). Thus, until the current channel model is not modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs. The second reason is that in the simulator, the RRC messaging to configure the default BWP, as well as the BWP reconfiguration, are not supported yet. See implementation details and evaluations in [WNS32018-NR]_, which is inspired in [CA-WNS32017]_.
+In the 'NR' module, the user can configure FDM bands statically before the simulation starts. This is a critical design assumption based on two main reasons. First, the 'NR' module relies on the channel and the propagation loss model that is not able to allow runtime modifications of the physical configuration parameters related to time/frequency configuration (such as the system bandwidth, the central carrier frequency, and the symbol length). Thus, until the current channel model is modified to allow these runtime configuration changes, it will not be possible to perform semi-static reconfiguration of BWPs. The second reason is that in the simulator, the RRC messaging to configure the default BWP, as well as the BWP reconfiguration, are not supported yet. See implementation details and evaluations in [WNS32018-NR]_, which is inspired by [CA-WNS32017]_.
 
 
 Duplexing schemes
 =================
-The 'NR' simulator supports both TDD and FDD duplexing modes in a flexible manner. Indeed a gNB can be configured with multiple carriers, some of them being paired (for FDD), and others being TDD. Each carrier can be further split into various BWPs, under the assumption that all the BWPs are orthogonal in frequency, to enable compatibility with the channel instances. The gNB can simultaneously transmit and receive from multiple BWPs. However, from the UE side, we assume the UE is active in a single BWP at a time.
+The 'NR' simulator supports both TDD and FDD duplexing modes in a flexible manner. Indeed, a gNB can be configured with multiple carriers, some of them being paired (for FDD), and others being TDD. Each carrier can be further split into various BWPs, under the assumption that all the BWPs are orthogonal in frequency, to enable compatibility with the channel instances. The gNB can simultaneously transmit and receive from multiple BWPs. However, from the UE side, we assume the UE is active in a single BWP at a time.
 
 
 TDD model
@@ -213,15 +213,15 @@ Note there are not limitations in the implementation of the TDD pattern size and
 
 FDD model
 #########
-In the 'NR' module, FDD duplexing is modeled through the usage of two paired bandwidth parts, where one is dedicated to transmitting DL data and contrl, and the other for the transmission of the UL data and control. The user would configure each bandwidth part with a DL-only (or UL-only) pattern, and then configure a linking between the two bandwidth parts for the correct routing of the control messages. As an example, the HARQ feedback for a DL transmission will be uploaded through the UL-only bandwidth part, but it applies to the DL-only bandwidth part: the configuration is needed for correctly routing that message from one bandwidth part to the other.
+In the 'NR' module, FDD duplexing is modeled through the usage of two paired bandwidth parts, where one is dedicated to transmitting DL data and control, and the other for the transmission of the UL data and control. The user would configure each bandwidth part with a DL-only (or UL-only) pattern, and then configure a linking between the two bandwidth parts for the correct routing of the control messages. As an example, the HARQ feedback for a DL transmission will be uploaded through the UL-only bandwidth part, but it applies to the DL-only bandwidth part: the configuration is needed for correctly routing that message from one bandwidth part to the other.
 
 This FDD model supports the pairing only between bandwidth parts configured with the same numerology.
 
 How the time looks like in both schemes
 #######################################
-In both schemes, the time starts at the beginning of the slot. The GNB PHY retrieves the allocations made by MAC for the specific slot, and extract them one by one. Depending on the allocation type, the PHY schedules the variable TTI type. For instance, most probably in DL or F slot, the first symbol is allocated to the CTRL, so the GNB starts transmitting the CTRL symbol(s). The UE begins as well receiving these CTRLs, thanks to the fact that it (i) knows the type of the slot, and (ii) at the registration time it discovers how many symbols are reserved for the DL CTRL. In this (these) symbol(s), the UE receives the DCI. Based on the received DCIs, it can schedule multiple variable TTI to (i) receive data if it received DL DCI or (ii) send data if it received UL DCI. In UL or F slots, at the end of the slot, there will be a time in which the UE will be able to transmit its UL CTRL data. The GNB specifies this time at the registration time, and it is considered that it will be the last operation in the slot.
+In both schemes, the time starts at the beginning of the slot. The GNB PHY retrieves the allocations made by MAC for the specific slot, and extracts them one by one. Depending on the allocation type, the PHY schedules the variable TTI type. For instance, most probably in DL or F slot, the first symbol is allocated to the CTRL, so the GNB starts transmitting the CTRL symbol(s). The UE begins as well receiving these CTRLs, thanks to the fact that it (i) knows the type of the slot, and (ii) at the registration time it discovers how many symbols are reserved for the DL CTRL. In this (these) symbol(s), the UE receives the DCI. Based on the received DCIs, it can schedule multiple variable TTI to (i) receive data if it received DL DCI or (ii) send data if it received UL DCI. In UL or F slots, at the end of the slot, there will be a time in which the UE will be able to transmit its UL CTRL data. The GNB specifies this time at the registration time, and it is considered that it will be the last operation in the slot.
 
-When the slot finishes, another one will be scheduled, which will be like what we described before.
+When the slot finishes, another one will be scheduled in a similar fashion.
 
 
 CQI feedback
@@ -240,8 +240,7 @@ Power allocation
 In the simulator, we have two types/models for power allocation.
 The first model assumes a uniform power allocation over the whole set of RBs
 that conform the bandwidth of the BWP. That is, power per RB is fixed. However,
-if a RB is not allocated to any data transmission, the transmitted power there
-is 0, and no interference is generated in that RB.
+if a RB is not allocated to any data transmission, the transmitted power is null, and no interference is generated in that RB.
 The second model assumes a uniform power allocation over the active set of RBs,
 i.e., over the set of RBs used by the transmitter (e.g., gNB in DL or UE in UL). In this case,
 the power per RB is the same over the active RBs, but it is not fixed over different
@@ -259,7 +258,7 @@ Also, such powers are used to determine if the channel is busy or empty. For tha
 
 Spectrum model
 ==============
-In the simulator, radio spectrum usage follows the usual way to represent radio transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents the channel characteristic, including the propagation, following the 3GPP specifications [gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs, remembering that two (or more) channel models cannot overlap over the spectrum frequencies. In the NR nodes, there will be as many physical layers as the number of channel models; each physical layer communicates to its channel model through a spectrum model instance that owns a model of the physical layer antenna. The combination of the sender's and receiver's antenna gain (given by the configured beam and the antenna element radiation pattern), the propagation loss, and the channel characteristics, provide the value of the received power spectral density for each transmitted signal. The interference among different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_. In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering downlink-to-uplink and uplink-to-downlink interferences.
+In the simulator, radio spectrum usage follows the usual way to represent radio transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents the channel characteristic, including the propagation, following the 3GPP specifications [gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs, remembering that two (or more) channel models cannot overlap over the spectrum frequencies. In the NR nodes, there will be as many physical layers as the number of channel models; each physical layer communicates to its channel model through a spectrum model instance that owns a model of the physical layer antenna. The combination of the sender's and receiver's antenna gain (given by the configured beam and the antenna element radiation pattern), the propagation loss, and the channel characteristics, provide the value of the received power spectral density for each transmitted signal. The interference among different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_. In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering downlink-to-uplink and uplink-to-downlink interference.
 
 
 Data PHY error model
@@ -295,7 +294,7 @@ In particular a link-level simulator is used for generating the performance
 of a single link from a PHY layer perspective, in terms of code block
 error rate (BLER), under specific conditions. L2SM allows the usage
 of these parameters in more complex scenarios, typical of system/network-level
-simulators, where we have more links, interferences and frequency-selective fading.
+simulators, where we have more links, interference and frequency-selective fading.
 
 To do this, a proprietary simulator of InterDigital Inc., compliant with NR specifications,
 has been used for what concerns the extraction of link-level performance
@@ -488,7 +487,7 @@ beam-search at gNB and quasi-omni at UE (``CellScanQuasiOmniBeamforming``), and
 quasi-omni at gNB and LOS path at UE (``QuasiOmniDirectPathBeamforming``).
 
 *  ``CellScanBeamforming`` implements a type of ideal BF algorithm that 
-   searches for the best pair of BF vectors (providing a highes average SNR) 
+   searches for the best pair of BF vectors (providing a highest average SNR) 
    from the set of pre-defined BF vectors assuming 
    the perfect knowledge of the channel. 
    For the beam-search method, our simulator supports abstraction of the 
@@ -510,7 +509,7 @@ quasi-omni at gNB and LOS path at UE (``QuasiOmniDirectPathBeamforming``).
 
 Previous models were supporting also long-term covariance matrix based method
 (``OptimalCovMatrixBeamforming``) which is currently not available due to 
-incompatiblity with the latest ns-3 3GPP channel model.
+incompatibility with the latest ns-3 3GPP channel model.
 Modifications are needed in order to port this method from the 
 old 5G-LENA code-base and adapt it to the latest ns-3 3gpp channel model 
 (Contributions are welcome!). ``OptimalCovMatrixBeamforming`` determines 
@@ -693,7 +692,7 @@ for TPC values that should be sent to each UE.
 
 NrUePowerControl is inspired by LteUePowerControl, but most of the parts 
 had to be extended or redefined. Comparing to LteUePowerControl, the 
-following featureas are added:
+following features are added:
 
 - PUCCH power control,
 - low bandwidth and enhanced coverage BL/EC devices,
@@ -875,9 +874,9 @@ and flexible for different subcarrier spacing configurations:
    This definition is quite different from the one that we have seen in TS 36.213 PUSCH, 
    hence this is probably the component in formula that could make an important difference in power adjustment 
    when choosing among TS 36.213 and TS 38.213 formula in NrUePowerControl class. 
-   The different wrt to TS 36.213 formula for accumulation is that this formula is being calculated per 
+   The difference with respect to the TS 36.213 formula for accumulation is that this formula is being calculated per 
    transmission occasion, while accumulation component in TS 38.213 is being constantly updated as 
-   TPC commands arrive regardless when the transmission occasion event happens.
+   TPC commands arrive regardless when of the transmission occasion event happens.
    
    On the other hand, if accumulation mode is not enabled :math:`f_{b,f,c}` is given by the following 
    expression:
@@ -1004,8 +1003,8 @@ HARQ
 The NR scheduler works on a slot basis and has a dynamic nature [TS38300]_.
 For example, it may assign different sets of OFDM symbols in time and RBs
 in frequency for transmissions and the corresponding redundancy versions.
-However, it always assigns an integer multiple of the RB consisting of 12
-resource elements in frequency domain and 1 OFDM symbol in time domain.
+However, it always assigns an integer multiple of RBs consisting of 12
+resource elements in the frequency domain and 1 OFDM symbol in the time domain.
 In our module, for simplicity, we assume that retransmissions
 (including the first transmission and the corresponding redundancy versions)
 of the same HARQ process use the same MCS and the same number of RBs,
@@ -1072,7 +1071,7 @@ the specification of the rate matcher in the 3GPP standard [TS38212]_, where
 the algorithm fixes the modulation order for generating the different blocks
 of the redundancy versions.
 
-The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedbacks, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
+The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedback, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
 
 
 MAC layer
@@ -1195,10 +1194,10 @@ beam, and 2) the scheduling of RBGs per UE in a beam, where the scheduler
 determines the allocation of RBGs for the OFDM symbols of the corresponding
 beam (frequency-domain level).
 The scheduling of the symbols per beam can be performed in a load-based or
-round robin fasion. The calculation of load is based on the BSRs and the
+round robin fashion. The calculation of load is based on the BSRs and the
 assignment of symbols per beam is proportional to the load. In the following
 level, the specific scheduling algorithm (round robin, proportional fair,
-max rate) decides how RBGs are allocated among different UEs asociated to the same beam.
+max rate) decides how RBGs are allocated among different UEs associated to the same beam.
 Multiple fairness checks can be ensured in between each level of scheduling -
 the time domain and the frequency domain. For instance, a UE that already has
 its needs covered by a portion of the assigned resources can free these
@@ -1337,7 +1336,7 @@ The model of the MAC Transport Blocks (TBs) provided by the simulator is simplif
 
 where :math:`R` is the ECR of the selected MCS, :math:`Q` is the modulation order of the selected MCS, :math:`n_s` is the number of allocated OFDM symbols, :math:`n_{rb}` is the number of allocated RBs, and :math:`n_{refSc}` is the number of reference subcarriers carrying DMRS per RB.
 
-After this computation, we substract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are substracted, to get the final TB size.
+After this computation, we subtract the CRC attachment to the TB (24 bits), and if code block segmentation occurs, also the code block CRC attachments are subtracted, to get the final TB size.
 
 .. _Notching:
 
@@ -1651,7 +1650,7 @@ the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
 "Layout of indoor office scenarios".
 The simulation assumptions and the configuration parameters follow
 the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
-and which are summarised in R1-1703534 Table 1.
+and which are summarized in R1-1703534 Table 1.
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-3gpp-indoor-calibration_8cc.html
@@ -1692,7 +1691,7 @@ https://cttc-lena.gitlab.io/nr/html/cttc-error-model-amc_8cc.html
 cttc-3gpp-channel-example.cc
 ============================
 The program ``examples/cttc-3gpp-channel-example`` allows the user to setup a
-simulation using the implementation of the 3GPP channel model decribed in TR 38.900.
+simulation using the implementation of the 3GPP channel model described in TR 38.900.
 The network topology consists, by default, of 2 UEs and 2 gNbs. The user can
 select any of the typical scenarios in TR 38.900 such as Urban Macro (UMa),
 Urban Micro Street-Canyon (UMi-Street-Canyon), Rural Macro (RMa) or Indoor
@@ -1722,7 +1721,7 @@ cttc-nr-cc-bwp-demo.cc
 ======================
 The program ``examples/cttc-nr-cc-bwp-demo`` allows the user to setup a simulation
 to test the configuration of intra-band Carrier Aggregation (CA) in an NR deployment.
-The example shows how to configure the operation spectrum by definining all the
+The example shows how to configure the operation spectrum by defining all the
 operation bands, CCs and BWPs that will
 be used in the simulation. The user can select whether the creation of the spectrum
 structures is automated with the CcBwpCreator helper; or if the user wants to
@@ -1730,7 +1729,7 @@ manually provide a more complex spectrum configuration.
 
 In this example, the NR deployment consists of one gNB and one UE. The operation
 mode is set to TDD. The user can provide a TDD pattern as input to the simulation;
-otherwise the simulation will assume by default that dowlink and uplink
+otherwise the simulation will assume by default that downlink and uplink
 transmissions can occur in the same slot.
 
 The UE can be configured to transmit three different traffic flows simultaneously.
@@ -1748,12 +1747,12 @@ The program ``examples/cttc-nr-demo`` is recommended as a tutorial to the use of
 the ns-3 NR module. In this example, the user can understand the basics to
 successfully configure a full NR simulation with end-to-end data transmission.
 
-Firtly, the example creates the network deployment using the GridScenario helper.
+Firstly, the example creates the network deployment using the GridScenario helper.
 By default, the deployment consists of a single gNB and two UEs, but the user
 can provide a different number of gNBs and UEs per gNB.
 
 The operation mode is set to TDD. The user can provide a TDD pattern as input to
-the simulation; otherwise the simulation will assume by default that dowlink and
+the simulation; otherwise the simulation will assume by default that downlink and
 uplink transmissions can occur in the same slot.
 
 The example performs inter-band Carrier Aggregation of two CC, and each CC has one BWP occupying the whole CC bandwidth.
@@ -2085,7 +2084,7 @@ https://cttc-lena.gitlab.io/nr/html/nr-phy-patterns_8cc.html
 
 Test for spectrum phy
 =====================
-Test case called ``nr-spectrum-phy-test`` sets two times noise figure and validetes that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
+Test case called ``nr-spectrum-phy-test`` sets two times noise figure and validates that such a setting is applied correctly to connected classes of SpectrumPhy, i.e., SpectrumModel, SpectrumValue, SpectrumChannel, etc.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-spectrum-phy-test_8h.html
@@ -2197,7 +2196,7 @@ Open issues and future work
 
 .. [lte-ulpc] LTE ns-3 implementation of uplink power control: https://www.nsnam.org/docs/models/html/lte-design.html#power-control
 
-.. [SigProc5G] F.-L. Luo and C. J. Zhang. 2016. "Signal Processing for 5G: Algorithms andImplementations", John Wiley & Sons., Aug. 2016
+.. [SigProc5G] F.-L. Luo and C. J. Zhang. 2016. "Signal Processing for 5G: Algorithms and Implementations", John Wiley & Sons., Aug. 2016
 
 .. [TS38331]  3GPP  TS  38.331, Radio Resource Control (RRC). (Rel. 15). 2018.
 

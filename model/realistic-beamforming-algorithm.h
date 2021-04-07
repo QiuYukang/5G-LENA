@@ -27,6 +27,7 @@
 #include "realistic-bf-manager.h"
 #include "nr-ue-net-device.h"
 #include "nr-gnb-net-device.h"
+#include <queue>
 
 namespace ns3 {
 
@@ -63,6 +64,14 @@ class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
   friend NrRealisticBeamformingTestCase;
 
 public:
+
+  struct DelayedUpdateInfo
+  {
+    Time updateTime; //!< time that will be used to check if the event is using correct SRS measurement and channel
+    double srsSinr;  //!< SRS SINR value
+    Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix; //!< saved copy of channel matrix at the time instant when the SRS is received
+  };
+
 
   struct TriggerEventConf
   {
@@ -157,7 +166,7 @@ private:
    * realistic beamforming manager
    * \return returns the realistic beamforming configuration
    */
-  RealisticBeamformingAlgorithm::TriggerEventConf GetTriggerEventConf ();
+  RealisticBeamformingAlgorithm::TriggerEventConf GetTriggerEventConf () const;
 
   /**
    * \brief Private function that is used to notify its the helper that is time
@@ -183,6 +192,16 @@ private:
   void SetTriggerCallback (RealisticBfHelperCallback callback);
 
   /**
+   * \brief Gets the channel matrix between gNb and UE device of this algorithm
+   * This is needed when delayed trigger event is used and delay is larger then SRS periodicity,
+   * so there can be various SRS reports and corresponding channel matrices for which
+   * will be nececessary to perform bemaforming update using channel matrix corresponding to
+   * the time of the reception of SRS.
+   * \return returns a deep copy of the current channel matrix
+   */
+  Ptr<const MatrixBasedChannelModel::ChannelMatrix> GetChannelMatrix () const;
+
+  /**
    * \brief Calculates an estimation of the long term component based on the channel measurements
    * \param channelMatrix the channel matrix H
    * \param sW the beamforming vector of the first device
@@ -195,7 +214,8 @@ private:
                                                                           const ThreeGppAntennaArrayModel::ComplexVector &aW,
                                                                           const ThreeGppAntennaArrayModel::ComplexVector &bW,
                                                                           Ptr<const MobilityModel> a,
-                                                                          Ptr<const MobilityModel> b) const;
+                                                                          Ptr<const MobilityModel> b,
+                                                                          double srsSinr) const;
 
   /*
    * \brief Calculates the total metric based on the each element of the long term component
@@ -203,10 +223,16 @@ private:
    */
   double CalculateTheEstimatedLongTermMetric (const ThreeGppAntennaArrayModel::ComplexVector& longTermComponent) const;
 
+  /**
+   * \brief Removes the "oldest" delayed update info - from the beggining of the queue
+   */
+  void RemoveUsedDelayedUpdateInfo () ;
+
   // attribute members, configuration variables
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
   //variable members, counters, and saving values
   double m_maxSrsSinrPerSlot {0}; //!< the maximum SRS SINR per slot in Watts, e.g. if there are 4 SRS symbols per UE, this value will represent the maximum
+  std::queue <DelayedUpdateInfo> m_delayedUpdateInfo; //!< the vector of SRS SINRs and saved channel matrices, needed for when trigger event update is based on delay
   uint8_t m_srsSymbolsCounter {0}; //!< the counter that gets reset after reaching the number of symbols per SRS transmission
   uint16_t m_srsPeriodicityCounter {0}; //!< the counter of SRS reports between consecutive beamforming updates, this counter is incremented once the counter
                                         //   m_srsSymbolsPerSlotCounter reaches the number of symbols per SRS transmission, i.e., when SRS transmissions in the
