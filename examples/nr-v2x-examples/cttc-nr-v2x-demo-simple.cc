@@ -247,7 +247,7 @@ main (int argc, char *argv[])
   // NR parameters. We will take the input from the command line, and then we
   // will pass them inside the NR module.
   uint16_t numerologyBwpSl = 2;
-  double centralFrequencyBandSl = 2.59e9; // band n38  TDD //Here band is analogous to channel
+  double centralFrequencyBandSl = 5.89e9; // band n47  TDD //Here band is analogous to channel
   uint16_t bandwidthBandSl = 400; //Multiple of 100 KHz; 400 = 40 MHz
   double txPower = 23; //dBm
 
