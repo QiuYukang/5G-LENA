@@ -414,7 +414,7 @@ main (int argc, char *argv[])
   bool enableSensing = false;
   bool considerReTxForSensing = false;
   uint16_t t1 = 2;
-  uint16_t t2 = 32;
+  uint16_t t2 = 33;
   int slThresPsschRsrp = -128;
   bool enableChannelRandomness = false;
   uint16_t channelUpdatePeriod = 500; //ms

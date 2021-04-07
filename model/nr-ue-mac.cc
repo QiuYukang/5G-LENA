@@ -322,7 +322,7 @@ NrUeMac::GetTypeId (void)
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("T2",
                    "The end of the selection window in physical slots",
-                   UintegerValue (32),
+                   UintegerValue (33),
                    MakeUintegerAccessor (&NrUeMac::SetT2,
                                          &NrUeMac::GetT2),
                    MakeUintegerChecker<uint16_t> ())

@@ -475,7 +475,7 @@ main (int argc, char *argv[])
   //NR Sidelink attribute of UE MAC, which are would be common for all the UEs
   nrHelper->SetUeMacAttribute ("EnableSensing", BooleanValue (false));
   nrHelper->SetUeMacAttribute ("T1", UintegerValue (2));
-  nrHelper->SetUeMacAttribute ("T2", UintegerValue (32));
+  nrHelper->SetUeMacAttribute ("T2", UintegerValue (33));
   nrHelper->SetUeMacAttribute ("ActivePoolId", UintegerValue (0));
   nrHelper->SetUeMacAttribute ("ReservationPeriod", TimeValue (MilliSeconds(100)));
   nrHelper->SetUeMacAttribute ("NumSidelinkProcess", UintegerValue (4));
