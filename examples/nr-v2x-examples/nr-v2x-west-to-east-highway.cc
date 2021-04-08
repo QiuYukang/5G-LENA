@@ -919,6 +919,8 @@ main (int argc, char *argv[])
     {
       txSlUes.Add (allSlUesContainer);
       rxSlUes.Add (allSlUesContainer);
+      txSlUesNetDevice.Add (allSlUesNetDeviceContainer);
+      rxSlUesNetDevice.Add (allSlUesNetDeviceContainer);
     }
 
   /*
