@@ -282,7 +282,7 @@ main (int argc, char *argv[])
       std::cout << x << " ";
     }
   std::cout << std::endl;
-  std::cout << "Warning: Please be sure that the number of 'normal' RBs is" <<
+  std::cout << "Warning: Please be sure that the number of 'normal' RBs is " <<
                "sufficient to perform transmissions of the UEs.\n If an error " <<
                "occurs, please try to reduce either the number of notched RBs " <<
                "or the number of UEs." << std::endl;
@@ -290,12 +290,16 @@ main (int argc, char *argv[])
   // enable logging or not
   if (logging)
     {
-      LogComponentEnable ("NrMacSchedulerNs3", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerTdma", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerTdmaRR", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerOfdma", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerOfdmaRR", LOG_LEVEL_ALL);
-      LogComponentEnable ("CcBwpHelper", LOG_LEVEL_ALL);
+      LogLevel logLevel1 = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME |
+                                      LOG_PREFIX_NODE | LOG_LEVEL_INFO);
+      LogLevel logLevel2 = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME |
+                                      LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
+      LogComponentEnable ("NrMacSchedulerNs3", logLevel1);
+      LogComponentEnable ("NrMacSchedulerTdma", logLevel1);
+      //LogComponentEnable ("NrMacSchedulerTdmaRR", logLevel1);
+      LogComponentEnable ("NrMacSchedulerOfdma", logLevel1);
+      //LogComponentEnable ("NrMacSchedulerOfdmaRR", logLevel1);
+      LogComponentEnable ("CcBwpHelper", logLevel2);
     }
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
