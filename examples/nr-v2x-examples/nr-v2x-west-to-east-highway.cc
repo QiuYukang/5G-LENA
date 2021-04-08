@@ -599,7 +599,7 @@ main (int argc, char *argv[])
    *  2. Assign position to the UEs
    *  3. Install mobility model
    */
-  NS_ABORT_MSG_IF (numVehiclesPerLane % 2 == 0, "We only support odd number of vehicles per lane");
+  NS_ABORT_MSG_IF (numVehiclesPerLane % 2 == 0 && enableOneTxPerLane == true, "We only support odd number of vehicles per lane if enableOneTxPerLane is true");
   allSlUesContainer = InstallHighwayMobility (numLanes, numVehiclesPerLane, interVehicleDist, interLaneDist, speed);
 
 
