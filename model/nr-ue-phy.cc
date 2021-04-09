@@ -681,6 +681,21 @@ NrUePhy::StartSlot (const SfnSf &s)
   bool nrAllocExists = SlotAllocInfoExists (m_currentSlot);
   bool slAllocExists = NrSlSlotAllocInfoExists (m_currentSlot);
 
+  /*
+   * Clear SL expected TB not received in previous slot.
+   * It may happen that a UE is expecting to receive a TB in a slot, however,
+   * in the same slot it decided to transmit. In this case, due to the half-duplex
+   * nature of the Sidelink it will not receive that TB. Thus, the information
+   * inserted in the m_slTransportBlocks buffer will be out-dated in the next slot,
+   * hence, must be removed at the beginning of the next slot. This is also due
+   * to the fact that in current implementation we always prioritize transmission
+   * over reception without looking at the priority of the two TBs, i.e, the one
+   * which needs to be transmitted and the one which need to be received.
+   * As per the 3GPP standard, a device might prioritize RX over TX as per
+   * the priority or vice versa.
+   */
+  m_spectrumPhy->ClearExpectedSlTb ();
+
   SendSlExpectedTbInfo (s);
 
   if (slAllocExists)

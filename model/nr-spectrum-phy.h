@@ -749,19 +749,24 @@ public:
    */
   void SetNrPhyRxPsschEndErrorCallback (NrPhyRxPsschEndErrorCallback c);
   /**
-   * \brief
-   * \param rnti
-   * \param dstId
-   * \param tbSize
-   * \param mcs
-   * \param rbMap
-   * \param symStart
-   * \param numSym
-   * \param sfn
+   * \brief Add sidelink expected Transport Block (TB)
+   * \param rnti The RNTI of the UE from whom to expect the TB
+   * \param dstId The destination L2 id
+   * \param tbSize The TB size
+   * \param mcs The MCS
+   * \param rbMap Bitmap indicating the RBs used to tx the TB
+   * \param symStart The index of the starting symbol
+   * \param numSym The total number of symbols used
+   * \param sfn The sfn
    */
   void AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize,
                         uint8_t mcs, const std::vector<int> &rbMap,
                         uint8_t symStart, uint8_t numSym,const SfnSf &sfn);
+
+  /**
+   * \brief Clear the buffer of NR SL expected transport block
+   */
+  void ClearExpectedSlTb ();
 
 private:
   struct SinrStats

@@ -2354,6 +2354,13 @@ NrSpectrumPhy::AddSlExpectedTb (uint16_t rnti, uint32_t dstId, uint32_t tbSize, 
                 << " numSym = " << static_cast<uint32_t> (numSym));
 }
 
+void
+NrSpectrumPhy::ClearExpectedSlTb ()
+{
+  NS_LOG_FUNCTION (this);
+  m_slTransportBlocks.clear ();
+}
+
 bool
 operator == (const NrSpectrumPhy::SlCtrlSigParamInfo &a, const NrSpectrumPhy::SlCtrlSigParamInfo &b)
 {
