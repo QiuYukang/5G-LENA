@@ -171,6 +171,13 @@ V2xKpi::SaveAvrgPir ()
       for (const auto &it2:it.second)
         {
           double avrgPir = ComputeAvrgPir (it2.second);
+          if (avrgPir == -1.0)
+            {
+              //It may happen that a node would rxed only one pkt from a
+              //particular tx node. In that case, PIR can not be computed.
+              //Therefore, we do not log the PIR.
+              continue;
+            }
           //NS_LOG_UNCOND ("Avrg PIR " << avrgPir);
           PktTxRxData data = it2.second.at (0);
           sqlite3_stmt *stmt;
@@ -217,7 +224,17 @@ V2xKpi::ComputeAvrgPir (std::vector <PktTxRxData> data)
       lastPktRxTime = it.time;
       pirCounter++;
     }
-  double avrgPir = pir / pirCounter;
+  double avrgPir = 0.0;
+  if (pirCounter == 0)
+    {
+      //It may happen that a node would rxed only one pkt from a
+      //particular tx node. In that case, PIR can not be computed.
+      avrgPir = -1.0;
+    }
+  else
+    {
+      avrgPir = pir / pirCounter;
+    }
   return avrgPir;
 }
 
