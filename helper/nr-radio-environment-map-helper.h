@@ -39,7 +39,7 @@ class SpectrumChannel;
 class MobilityModel;
 class MobilityHelper;
 class ChannelConditionModel;
-class ThreeGppAntennaArrayModel;
+class UniformPlanarArray;
 
 /**
  * \brief Generate a radio environment map
@@ -305,7 +305,7 @@ private:
     Ptr<Node> node;
     Ptr<SimpleNetDevice> dev;
     Ptr<MobilityModel> mob;
-    Ptr<ThreeGppAntennaArrayModel> antenna;
+    Ptr<UniformPlanarArray> antenna;
     double txPower {0};
     double bandwidth {0};
     double frequency {0};
@@ -525,7 +525,7 @@ private:
    * \param antenna of the first device
    */
   void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice,
-                               const Ptr<const ThreeGppAntennaArrayModel>& antenna);
+                               const Ptr<const UniformPlanarArray>& antenna);
 
   std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
   std::list<RemPoint> m_rem; ///< List of REM points.
@@ -550,7 +550,7 @@ private:
 
   Ptr<NrPhy> m_rrdPhy;  ///< Pointer to the phy of the RRD
   std::map <const Ptr<NetDevice>, Ptr<NrPhy>> m_rtdDeviceToPhy;     ///< Map for storing the phy of each RTD device
-  std::map <const Ptr<NetDevice>, Ptr<ThreeGppAntennaArrayModel>> m_deviceToAntenna;
+  std::map <const Ptr<NetDevice>, Ptr<UniformPlanarArray>> m_deviceToAntenna;
 
   Ptr<PropagationLossModel> m_propagationLossModel;
   Ptr<SpectrumPropagationLossModel> m_spectrumLossModel;

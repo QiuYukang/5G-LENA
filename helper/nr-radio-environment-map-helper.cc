@@ -664,7 +664,7 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 void
 NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device,
                                                      const RemDevice& otherDevice,
-                                                     const Ptr<const ThreeGppAntennaArrayModel>& antenna)
+                                                     const Ptr<const UniformPlanarArray>& antenna)
 {
   NS_LOG_FUNCTION (this);
   device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, antenna));

@@ -45,6 +45,7 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/nr-mac-scheduler-tdma-rr.h"
 #include "ns3/nr-module.h"
+#include <ns3/antenna-module.h>
 
 using namespace ns3;
 
@@ -207,12 +208,12 @@ main (int argc, char *argv[])
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (8));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // install nr net devices
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNodes, allBwps);

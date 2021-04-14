@@ -21,7 +21,7 @@
 #define SRC_NR_MODEL_BEAMFORMING_VECTOR_H_
 
 #include "beam-id.h"
-#include <ns3/three-gpp-antenna-array-model.h>
+#include <ns3/uniform-planar-array.h>
 #include <ns3/mobility-model.h>
 
 namespace ns3{
@@ -59,7 +59,7 @@ complexVector_t CreateQuasiOmniBfv (uint32_t antennaRows, uint32_t antennaColumn
  * \param elevation elevation to be used
  * \return the beamforming vector
  */
-complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>& antenna,
+complexVector_t CreateDirectionalBfv (const Ptr<const UniformPlanarArray>& antenna,
                                       uint16_t sector, double elevation);
 
 /**
@@ -72,7 +72,7 @@ complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>
  */
 complexVector_t CreateDirectPathBfv(const Ptr<MobilityModel>& a,
                                     const Ptr<MobilityModel>& b,
-                                    const Ptr<const ThreeGppAntennaArrayModel>& antenna);
+                                    const Ptr<const UniformPlanarArray>& antenna);
 
 }
 

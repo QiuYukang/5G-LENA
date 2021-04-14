@@ -20,12 +20,12 @@
 #include "nr-spectrum-phy.h"
 #include <ns3/boolean.h>
 #include <ns3/double.h>
-#include <ns3/three-gpp-antenna-array-model.h>
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/trace-source-accessor.h>
 #include "nr-gnb-net-device.h"
 #include "nr-ue-net-device.h"
 #include "nr-lte-mi-error-model.h"
+#include "ns3/uniform-planar-array.h"
 
 
 namespace ns3 {
@@ -265,7 +265,7 @@ NrSpectrumPhy::GetRxSpectrumModel () const
 Ptr<AntennaModel>
 NrSpectrumPhy::GetRxAntenna () const
 {
-   NS_LOG_INFO ("In NR module can be used only ThreeGppAntennaArrayModel antenna type.");
+   NS_LOG_INFO ("In NR module can be used only UniformPlanarArray antenna type.");
    return nullptr;
 }
 
@@ -657,7 +657,7 @@ NrSpectrumPhy::InstallPhy (const Ptr<const NrPhy> &phyModel)
   m_phy = phyModel;
 }
 
-Ptr<const ThreeGppAntennaArrayModel>
+Ptr<const UniformPlanarArray>
 NrSpectrumPhy::GetAntennaArray (void) const
 {
   return m_phy->GetAntennaArray ();

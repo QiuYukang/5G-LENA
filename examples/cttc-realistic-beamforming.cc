@@ -28,6 +28,7 @@
 #include "ns3/nr-module.h"
 #include "ns3/stats-module.h"
 #include <ns3/sqlite-output.h>
+#include "ns3/antenna-module.h"
 
 const uint32_t DB_ATTEMPT_LIMIT = 20; // how many times to try to perform DB query before giving up, we dont want to enter to a infinite loop
 
@@ -772,13 +773,28 @@ CttcRealisticBeamforming::RunSimulation ()
   // Configure antenna of gNb
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue ((m_gnbAntennaModel == "Iso")? true:false));
+  //Antenna element type for gNBs
+  if (m_gnbAntennaModel == "Iso")
+    {
+      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    }
+  else
+    {
+      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+    }
 
   // Configure antenna of UE
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue ((m_ueAntennaModel == "Iso")? true:false));
-
+  //Antenna element type for UEs
+  if (m_ueAntennaModel == "Iso")
+    {
+      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    }
+  else
+    {
+      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+    }
   // configure schedulers
   nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
 

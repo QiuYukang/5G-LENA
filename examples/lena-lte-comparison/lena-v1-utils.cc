@@ -191,7 +191,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
   else
     {
       lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (130));
+      lteHelper->SetEnbAntennaModelAttribute ("HorizontalBeamwidth", DoubleValue (130));
       lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
     }
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDlRB));

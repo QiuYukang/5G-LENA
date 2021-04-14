@@ -25,6 +25,7 @@
 #include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include <ns3/antenna-module.h>
 
 namespace ns3 {
 
@@ -166,12 +167,22 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   // Antennas for the gNbs
                   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (antennaConf));
                   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (antennaConf));
-                  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (iso));
 
                   // Antennas for the UEs
                   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (antennaConf));
                   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (antennaConf));
-                  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (iso));
+
+                  //Antenna element type for both gNB and UE
+                  if (iso)
+                    {
+                      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+                      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+                    }
+                  else
+                    {
+                      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+                      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+                    }
 
                   nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId());
 

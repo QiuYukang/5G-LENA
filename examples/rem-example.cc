@@ -78,6 +78,7 @@
 #include "ns3/nr-mac-scheduler-tdma-rr.h"
 #include "ns3/nr-module.h"
 #include <ns3/buildings-module.h>
+#include "ns3/antenna-module.h"
 
 using namespace ns3;
 
@@ -490,12 +491,28 @@ main (int argc, char *argv[])
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (numRowsUe));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (numColumnsUe));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (isoUe));
+  //Antenna element type for UEs
+  if (isoUe)
+    {
+      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    }
+  else
+    {
+      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+    }
 
   // Antennas for the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (numRowsGnb));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (numColumnsGnb));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (isoGnb));
+  //Antenna element type for gNBs
+  if (isoGnb)
+    {
+      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    }
+  else
+    {
+      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+    }
 
 
   // install nr net devices

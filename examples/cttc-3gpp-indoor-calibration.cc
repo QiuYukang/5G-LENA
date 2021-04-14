@@ -26,6 +26,7 @@
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/config-store-module.h"
 #include "ns3/nr-module.h"
+#include "ns3/antenna-module.h"
 
 using namespace ns3;
 
@@ -594,12 +595,27 @@ Nr3gppIndoorCalibration::Run (double centralFrequencyBand, double bandwidthBand,
     // Antennas for all the UEs - Should be 2x4 = 8 antenna elements
     nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
     nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-    nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (ueAntennaModel));
-
+    //Antenna element type for UEs
+    if (ueAntennaModel)
+      {
+        nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+      }
+    else
+      {
+        nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+      }
     // Antennas for all the gNbs - Should be 4x8 = 32 antenna elements
     nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
     nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-    nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (gNbAntennaModel));
+    //Antenna element type for gNBs
+    if (gNbAntennaModel)
+      {
+        nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+      }
+    else
+      {
+        nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+      }
 
 
     //mobility.SetPositionAllocator (ueRandomRectPosAlloc);

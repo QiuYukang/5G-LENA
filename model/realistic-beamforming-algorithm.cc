@@ -297,7 +297,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
                   NS_ABORT_MSG_IF (gnbW.size()==0 || ueW.size()==0,
                                    "Beamforming vectors must be initialized in order to calculate the long term matrix.");
 
-                  const ThreeGppAntennaArrayModel::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
+                  const UniformPlanarArray::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
                                                                                                                              gnbDev->GetNode()->GetObject<MobilityModel>(),
                                                                                                                              ueDev->GetNode()->GetObject<MobilityModel>(),
                                                                                                                              srsSinr);
@@ -337,7 +337,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
 }
 
 double
-RealisticBeamformingAlgorithm::CalculateTheEstimatedLongTermMetric (const ThreeGppAntennaArrayModel::ComplexVector& longTermComponent) const
+RealisticBeamformingAlgorithm::CalculateTheEstimatedLongTermMetric (const UniformPlanarArray::ComplexVector& longTermComponent) const
 {
   NS_LOG_FUNCTION (this);
 
@@ -350,10 +350,10 @@ RealisticBeamformingAlgorithm::CalculateTheEstimatedLongTermMetric (const ThreeG
 }
 
 
-ThreeGppAntennaArrayModel::ComplexVector
+UniformPlanarArray::ComplexVector
 RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
-                                                              const ThreeGppAntennaArrayModel::ComplexVector &aW,
-                                                              const ThreeGppAntennaArrayModel::ComplexVector &bW,
+                                                              const UniformPlanarArray::ComplexVector &aW,
+                                                              const UniformPlanarArray::ComplexVector &bW,
                                                               Ptr<const MobilityModel> a,
                                                               Ptr<const MobilityModel> b,
                                                               double srsSinr) const
@@ -365,7 +365,7 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
 
   // check if the channel matrix was generated considering a as the s-node and
   // b as the u-node or viceversa
-  ThreeGppAntennaArrayModel::ComplexVector sW, uW;
+  UniformPlanarArray::ComplexVector sW, uW;
   if (!channelMatrix->IsReverse (aId, bId))
     {
       sW = aW;
@@ -381,7 +381,7 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const Ma
   uint16_t uAntenna = static_cast<uint16_t> (uW.size ());
 
   NS_LOG_DEBUG ("Calculate the estimation of the long term component with sAntenna: " << sAntenna << " uAntenna: " << uAntenna);
-  ThreeGppAntennaArrayModel::ComplexVector estimatedlongTerm;
+  UniformPlanarArray::ComplexVector estimatedlongTerm;
 
   NS_ABORT_IF (srsSinr == 0);
 
