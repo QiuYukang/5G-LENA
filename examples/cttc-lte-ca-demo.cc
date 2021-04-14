@@ -69,7 +69,7 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("3gppChannelFdmLteComponentCarriersExample");
 
 
-int 
+int
 main (int argc, char *argv[])
 {
   uint16_t gNbNum = 1;
@@ -209,14 +209,14 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   NS_ABORT_IF (numBands < 1);
-  NS_ABORT_MSG_IF (enableLowLat==false && enableVideo==false && enableVoice==false
-                   && enableGaming==false && operationMode=="TDD", "For TDD enable one of the flows");
+  NS_ABORT_MSG_IF (enableLowLat == false && enableVideo == false && enableVoice == false
+                   && enableGaming == false && operationMode == "TDD", "For TDD enable one of the flows");
 
   //ConfigStore inputConfig;
   //inputConfig.ConfigureDefaults ();
 
   // enable logging or not
-  if(logging)
+  if (logging)
     {
 //      LogComponentEnable ("Nr3gppPropagationLossModel", LOG_LEVEL_ALL);
 //      LogComponentEnable ("Nr3gppBuildingsPropagationLossModel", LOG_LEVEL_ALL);
@@ -247,12 +247,12 @@ main (int argc, char *argv[])
   Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator> ();
   int32_t yValue = 0.0;
 
-  for (uint32_t i = 1; i <= gNbNodes.GetN(); ++i)
+  for (uint32_t i = 1; i <= gNbNodes.GetN (); ++i)
     {
       // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
       if (i % 2 != 0)
         {
-          yValue = static_cast<int>(i) * 30;
+          yValue = static_cast<int> (i) * 30;
         }
       else
         {
@@ -304,20 +304,20 @@ main (int argc, char *argv[])
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
   if (cellScan)
-  {
-    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
-    idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
-  }
+    {
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (CellScanBeamforming::GetTypeId ()));
+      idealBeamformingHelper->SetBeamformingAlgorithmAttribute ("BeamSearchAngleStep", DoubleValue (beamSearchAngleStep));
+    }
   else
-  {
-    idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
-  }
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    {
+      idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
+    }
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   std::string errorModel = "ns3::NrLteMiErrorModel";
   // Scheduler
-  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(false));
-  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(false));
+  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue (false));
+  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue (false));
 
   // Error Model: UE and GNB with same spectrum error model.
   nrHelper->SetUlErrorModel (errorModel);
@@ -333,7 +333,7 @@ main (int argc, char *argv[])
    */
   nrHelper->SetGnbDlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
   nrHelper->SetGnbUlAmcAttribute ("NumRefScPerRb", UintegerValue (2));
-  nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+  nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (4));
   nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
   nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
 
@@ -397,9 +397,9 @@ main (int argc, char *argv[])
   bwp0->m_lowerFrequency = cc0->m_lowerFrequency;
   bwp0->m_higherFrequency = cc0->m_higherFrequency;
 
-  cc0->AddBwp (std::move(bwp0));
+  cc0->AddBwp (std::move (bwp0));
 
-  band40.AddCc (std::move(cc0));
+  band40.AddCc (std::move (cc0));
 
 
   // Create the configuration for band38
@@ -427,7 +427,7 @@ main (int argc, char *argv[])
   bwp1->m_lowerFrequency = cc1->m_lowerFrequency;
   bwp1->m_higherFrequency = cc1->m_higherFrequency;
 
-  cc1->AddBwp (std::move(bwp1));
+  cc1->AddBwp (std::move (bwp1));
 
   std::unique_ptr<ComponentCarrierInfo> cc2 (new ComponentCarrierInfo ());
   std::unique_ptr<BandwidthPartInfo> bwp2 (new BandwidthPartInfo ());
@@ -442,17 +442,17 @@ main (int argc, char *argv[])
   cc2->m_higherFrequency = cc2->m_centralFrequency + cc2->m_channelBandwidth / 2;
 
   if (operationMode == "TDD") //(CC2 - BWP2)
-  {
+    {
       bwp2->m_bwpId = 1;
       bwp2->m_centralFrequency = cc2->m_centralFrequency;
       bwp2->m_channelBandwidth = cc2->m_channelBandwidth;
       bwp2->m_lowerFrequency = cc2->m_lowerFrequency;
       bwp2->m_higherFrequency = cc2->m_higherFrequency;
 
-      cc2->AddBwp (std::move(bwp2));
-  }
+      cc2->AddBwp (std::move (bwp2));
+    }
   else  //FDD case  (CC2 - BWPdl & BWPul)
-  {
+    {
       // BWP DL
       bwpdl->m_bwpId = 2;
       bwpdl->m_channelBandwidth = cc2->m_channelBandwidth / 2;
@@ -460,7 +460,7 @@ main (int argc, char *argv[])
       bwpdl->m_higherFrequency = bwpdl->m_lowerFrequency + bwpdl->m_channelBandwidth;
       bwpdl->m_centralFrequency = bwpdl->m_lowerFrequency + bwpdl->m_channelBandwidth / 2;
 
-      cc2->AddBwp (std::move(bwpdl));
+      cc2->AddBwp (std::move (bwpdl));
 
       // BWP UL
       bwpul->m_bwpId = 3;
@@ -469,11 +469,11 @@ main (int argc, char *argv[])
       bwpul->m_higherFrequency = cc2->m_higherFrequency;
       bwpul->m_centralFrequency = bwpul->m_lowerFrequency + bwpul->m_channelBandwidth / 2;
 
-      cc2->AddBwp (std::move(bwpul));
-  }
+      cc2->AddBwp (std::move (bwpul));
+    }
 
-  band38.AddCc (std::move(cc1));
-  band38.AddCc (std::move(cc2));
+  band38.AddCc (std::move (cc1));
+  band38.AddCc (std::move (cc2));
 
   nrHelper->InitializeOperationBand (&band40);
   nrHelper->InitializeOperationBand (&band38);
@@ -517,20 +517,20 @@ main (int argc, char *argv[])
   randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   // Share the total transmission power among CCs proportionally with the BW
-  double x = pow(10, totalTxPower/10);
+  double x = pow (10, totalTxPower / 10);
   double totalBandwidth = numCcs * bandwidth;
 
   // Band40: CC0 - BWP0 & Band38: CC1 - BWP1
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp0));
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower",
-                             DoubleValue (10 * log10 ((band40.GetBwpAt (0, 0)->m_channelBandwidth/totalBandwidth) * x)));
+                                                            DoubleValue (10 * log10 ((band40.GetBwpAt (0, 0)->m_channelBandwidth / totalBandwidth) * x)));
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Pattern", StringValue (pattern));
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
 
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("TxPower",
-                             DoubleValue (10 * log10 ((band38.GetBwpAt (0, 0)->m_channelBandwidth/totalBandwidth) * x)));
+                                                            DoubleValue (10 * log10 ((band38.GetBwpAt (0, 0)->m_channelBandwidth / totalBandwidth) * x)));
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Pattern", StringValue (pattern));
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
@@ -540,7 +540,7 @@ main (int argc, char *argv[])
     {
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
-                                 DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth/totalBandwidth) * x)));
+                                                                DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth / totalBandwidth) * x)));
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (pattern));
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
     }
@@ -548,7 +548,7 @@ main (int argc, char *argv[])
     {
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Numerology", UintegerValue (numerologyBwpDl));
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("TxPower",
-                                 DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth/totalBandwidth) * x)));
+                                                                DoubleValue (10 * log10 ((band38.GetBwpAt (1, 0)->m_channelBandwidth / totalBandwidth) * x)));
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("Pattern", StringValue (patternDL));
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 2)->SetAttribute ("RbOverhead", DoubleValue (0.1));
 
@@ -607,9 +607,9 @@ main (int argc, char *argv[])
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -648,7 +648,7 @@ main (int argc, char *argv[])
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaBe)));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaBe)));
 
   // The bearer that will carry low latency traffic
   EpsBearer lowLatBearer (EpsBearer::NGBR_LOW_LAT_EMBB);
@@ -665,7 +665,7 @@ main (int argc, char *argv[])
   ulClientVoice.SetAttribute ("RemotePort", UintegerValue (ulPortVoice));
   ulClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   ulClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  ulClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+  ulClientVoice.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaBe)));
 
   // The bearer that will carry voice traffic
   EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
@@ -683,7 +683,7 @@ main (int argc, char *argv[])
   dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
   dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
-  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaUll)));
+  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaUll)));
 
   // The bearer that will carry video traffic
   EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
@@ -700,7 +700,7 @@ main (int argc, char *argv[])
   ulClientGaming.SetAttribute ("RemotePort", UintegerValue (ulPortGaming));
   ulClientGaming.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   ulClientGaming.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeUll));
-  ulClientGaming.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaUll)));
+  ulClientGaming.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaUll)));
 
   // The bearer that will carry gaming traffic
   EpsBearer gamingBearer (EpsBearer::NGBR_VOICE_VIDEO_GAMING);
@@ -720,7 +720,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < ueNodes.GetN (); ++i)
     {
       Ptr<Node> ue = ueNodes.Get (i);
-      Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueNetDev.Get (i);
       Address ueAddress = ueIpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -761,13 +761,13 @@ main (int argc, char *argv[])
     }
 
   // start UDP server and client apps
-  serverApps.Start(Seconds(udpAppStartTime));
-  clientApps.Start(Seconds(udpAppStartTime));
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime));
+  serverApps.Start (Seconds (udpAppStartTime));
+  clientApps.Start (Seconds (udpAppStartTime));
+  serverApps.Stop (Seconds (simTime));
+  clientApps.Stop (Seconds (simTime));
 
   // enable the traces provided by the nr module
-  nrHelper->EnableTraces();
+  nrHelper->EnableTraces ();
 
 
   FlowMonitorHelper flowmonHelper;
@@ -851,16 +851,16 @@ main (int argc, char *argv[])
     }
 
   outFile << "\n\n  Aggregated throughput: " << averageFlowThroughput << "\n";
-  outFile << "  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
+  outFile << "  Mean flow throughput: " << averageFlowThroughput / stats.size () << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
 
   outFile.close ();
 
   std::ifstream f (filename.c_str ());
 
-  if (f.is_open())
+  if (f.is_open ())
     {
-      std::cout << f.rdbuf();
+      std::cout << f.rdbuf ();
     }
 
   Simulator::Destroy ();

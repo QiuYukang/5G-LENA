@@ -137,7 +137,7 @@ public:
    * \brief Converts the maxMcsVectorInput (string) into an std::vector of maximum MCS used per cell
    * \return maxMcsVector
    */
-  std::vector<int16_t> GetMcsVectorFromInput();
+  std::vector<int16_t> GetMcsVectorFromInput ();
 
 private:
   double m_txPower {-1.0};            //!< Transmit power in dBm
@@ -187,21 +187,21 @@ GetMcsVectorFromInput (const std::string &pattern)
   std::string token;
   std::vector<std::string> extracted;
 
-   while (std::getline(ss, token, '|'))
-     {
-       extracted.push_back(token);
-     }
+  while (std::getline (ss, token, '|'))
+    {
+      extracted.push_back (token);
+    }
 
-   for (const auto & v : extracted)
-     {
-       if (lookupTable.find (v) == lookupTable.end())
-         {
-           NS_FATAL_ERROR ("Not valid MCS input");
-         }
-       vector.push_back (lookupTable[v]);
-     }
+  for (const auto & v : extracted)
+    {
+      if (lookupTable.find (v) == lookupTable.end ())
+        {
+          NS_FATAL_ERROR ("Not valid MCS input");
+        }
+      vector.push_back (lookupTable[v]);
+    }
 
-   return vector;
+  return vector;
 }
 
 void
@@ -252,7 +252,7 @@ RadioNetworkParametersHelper::SetNetworkToNr (const std::string scenario,
   else
     {
       m_txPower = 30;
-    };
+    }
 }
 
 double
@@ -393,7 +393,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
    * TODO: Coordinate with Tommaso
    */
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0))); //100ms
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0))); //100ms
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -470,7 +470,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
    * power among BWPs.
    */
   double totalTxPower = ranHelper.GetTxPower (); //Convert to mW
-  double x = pow (10, totalTxPower/10);
+  double x = pow (10, totalTxPower / 10);
 
   /*
    * allBwps contains all the spectrum configuration needed for the nrHelper.
@@ -509,14 +509,14 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   //
 
   // Scheduler type
-    if (radioNetwork == "LTE")
-      {
-        nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
-        nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
-      }
+  if (radioNetwork == "LTE")
+    {
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
+      nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+    }
   //nrHelper->SetSchedulerAttribute ("MaxDlMcs", UintegerValue (maxMcsDl1));
   //nrHelper->SetSchedulerAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
-                                                                    // 28, 16, 9 for mcsT1
+  // 28, 16, 9 for mcsT1
 
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));
@@ -537,7 +537,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   // Set LTE RBG size
   if (radioNetwork == "LTE")
     {
-      nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue(4));
+      nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (4));
     }
 
   // We assume a common traffic pattern for all UEs
@@ -624,15 +624,15 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
                 }
               std::cout << "Cell: " << i << " mcs (diff tdd): " << maxMcsPerCell[i] << std::endl;
             }
-         }
+        }
       else if (uniformPattern && !uniformLambda) // case of using different lambda (per cell)
-      {
+        {
           for (uint32_t i = 0; i < gridScenario.GetNumCells (); ++i)
             {
-              maxMcsPerCell[i]=maxMcsVector[i];
+              maxMcsPerCell[i] = maxMcsVector[i];
               std::cout << "Cell: " << i << " mcs (diff lambda): " << maxMcsPerCell[i] << std::endl;
             }
-      }
+        }
     }
 
   // Sectors (cells) of a site are pointing at different directions
@@ -647,14 +647,14 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna =
-              ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray());
+            ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
 
           // Set TDD pattern
           if (uniformPattern || (globalCellId % 2 == 1))
@@ -669,7 +669,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Set max MCS
           nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", IntegerValue (maxMcsPerCell[globalCellId]));
           //nrHelper->GetGnbMac (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
-                                                                            // 28, 16, 9 for mcsT1
+          // 28, 16, 9 for mcsT1
         }
 
       else if (numBwps == 2)  //FDD
@@ -677,11 +677,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna0 =
-              ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+            ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<UniformPlanarArray> antenna1 =
-              ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+            ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -689,7 +689,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
           nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
           // Set TDD pattern
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue ("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
@@ -701,7 +701,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
       else
         {
-          NS_ABORT_MSG("Incorrect number of BWPs per CC");
+          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
         }
       globalCellId++;
     }
@@ -716,14 +716,14 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna =
-              ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
+            ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
 
           // Set TDD pattern
           if (uniformPattern || (globalCellId % 2 == 1))
@@ -738,7 +738,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Set max MCS
           nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", IntegerValue (maxMcsPerCell[globalCellId]));
           //nrHelper->GetGnbMac (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
-                                                                            // 28, 16, 9 for mcsT1
+          // 28, 16, 9 for mcsT1
         }
 
       else if (numBwps == 2)  //FDD
@@ -746,11 +746,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna0 =
-              ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+            ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<UniformPlanarArray> antenna1 =
-              ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
+            ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -758,7 +758,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
           nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
 
           // Set TDD pattern
@@ -771,7 +771,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
       else
         {
-          NS_ABORT_MSG("Incorrect number of BWPs per CC");
+          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
         }
       globalCellId++;
     }
@@ -786,14 +786,14 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna =
-              ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
+            ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
           nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
 
           // Set TDD pattern
           if (uniformPattern || (globalCellId % 2 == 1))
@@ -808,7 +808,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Set max MCS
           nrHelper->GetScheduler (gnb, 0)->SetAttribute ("MaxDlMcs", IntegerValue (maxMcsPerCell[globalCellId]));
           //nrHelper->GetGnbMac (gnb, 0)->SetAttribute ("MaxDlMcs", UintegerValue (10));  // 27, 19, 10, 4 for mcsT2,
-                                                                            // 28, 16, 9 for mcsT1
+          // 28, 16, 9 for mcsT1
         }
 
       else if (numBwps == 2)  //FDD
@@ -816,11 +816,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna0 =
-              ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+            ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<UniformPlanarArray> antenna1 =
-              ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
+            ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -828,7 +828,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("Numerology", UintegerValue (ranHelper.GetNumerology ()));
 
           // Set TX power
-          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+          nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
           nrHelper->GetGnbPhy (gnb, 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
 
           // Set TDD pattern
@@ -841,7 +841,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
 
       else
         {
-          NS_ABORT_MSG("Incorrect number of BWPs per CC");
+          NS_ABORT_MSG ("Incorrect number of BWPs per CC");
         }
       globalCellId++;
     }
@@ -987,9 +987,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("lambda",
                 "Number of UDP packets generated in one second per UE",
                 lambda);
-  cmd.AddValue("uniformLambda",
-               "1: Use same lambda (packets/s) for all UEs and cells (equal to 'lambda' input), 0: use different packet arrival rates (lambdas) among cells",
-               uniformLambda);
+  cmd.AddValue ("uniformLambda",
+                "1: Use same lambda (packets/s) for all UEs and cells (equal to 'lambda' input), 0: use different packet arrival rates (lambdas) among cells",
+                uniformLambda);
   cmd.AddValue ("simTimeMs",
                 "Simulation time",
                 simTimeMs);
@@ -1026,21 +1026,21 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
-  cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-               errorModel);
-  cmd.AddValue("maxMcs1",
-               "Maximum MCS index for DL",
-               maxMcs1);
-  cmd.AddValue("maxMcs2",
-               "Maximum MCS index for DL",
-               maxMcs2);
-  cmd.AddValue("uniformMcs",
-               "1: Use same Maximum MCS index for all cells, 0: use different maximum MCS indexes among cells",
-               uniformMcs);
-  cmd.AddValue("maxMcsVector",
-               "max MCS for each cell: 1|4|28",
-               maxMcsVectorInput);
+  cmd.AddValue ("errorModelType",
+                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
+                errorModel);
+  cmd.AddValue ("maxMcs1",
+                "Maximum MCS index for DL",
+                maxMcs1);
+  cmd.AddValue ("maxMcs2",
+                "Maximum MCS index for DL",
+                maxMcs2);
+  cmd.AddValue ("uniformMcs",
+                "1: Use same Maximum MCS index for all cells, 0: use different maximum MCS indexes among cells",
+                uniformMcs);
+  cmd.AddValue ("maxMcsVector",
+                "max MCS for each cell: 1|4|28",
+                maxMcsVectorInput);
 
   // Parse the command line
   cmd.Parse (argc, argv);
@@ -1076,7 +1076,7 @@ main (int argc, char *argv[])
    * Default values for the simulation. We are progressively removing all
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   /*
    * Create the scenario. In our examples, we heavily use helpers that setup
@@ -1104,20 +1104,20 @@ main (int argc, char *argv[])
     {
       Ptr<Node> gnb = gridScenario.GetBaseStations ().Get (j);
       switch (j % ffr)
-      {
-        case 0:
-          gnbSector1Container.Add (gnb);
-          break;
-        case 1:
-          gnbSector2Container.Add (gnb);
-          break;
-        case 2:
-          gnbSector3Container.Add (gnb);
-          break;
-        default:
-          NS_ABORT_MSG("ffr param cannot be larger than 3");
-          break;
-      }
+        {
+          case 0:
+            gnbSector1Container.Add (gnb);
+            break;
+          case 1:
+            gnbSector2Container.Add (gnb);
+            break;
+          case 2:
+            gnbSector3Container.Add (gnb);
+            break;
+          default:
+            NS_ABORT_MSG ("ffr param cannot be larger than 3");
+            break;
+        }
     }
 
   /*
@@ -1129,20 +1129,20 @@ main (int argc, char *argv[])
     {
       Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (j);
       switch (j % ffr)
-      {
-        case 0:
-          ueSector1Container.Add (ue);
-          break;
-        case 1:
-          ueSector2Container.Add (ue);
-          break;
-        case 2:
-          ueSector3Container.Add (ue);
-          break;
-        default:
-          NS_ABORT_MSG("ffr param cannot be larger than 3");
-          break;
-      }
+        {
+          case 0:
+            ueSector1Container.Add (ue);
+            break;
+          case 1:
+            ueSector2Container.Add (ue);
+            break;
+          case 2:
+            ueSector3Container.Add (ue);
+            break;
+          default:
+            NS_ABORT_MSG ("ffr param cannot be larger than 3");
+            break;
+        }
     }
 
   /*
@@ -1222,9 +1222,9 @@ main (int argc, char *argv[])
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -1307,7 +1307,7 @@ main (int argc, char *argv[])
         }
       else
         {
-          NS_ABORT_MSG("Number of sector cannot be larger than 3");
+          NS_ABORT_MSG ("Number of sector cannot be larger than 3");
         }
     }
 
@@ -1361,7 +1361,7 @@ main (int argc, char *argv[])
       dlpfLowLat.remotePortStart = dlPortLowLat;
       dlpfLowLat.remotePortEnd = dlPortLowLat;
       dlpfLowLat.direction = EpcTft::UPLINK;
-      }
+    }
   lowLatTft->Add (dlpfLowLat);
 
   uint32_t lambdaPerCell[gridScenario.GetNumCells ()];
@@ -1369,7 +1369,7 @@ main (int argc, char *argv[])
     {
       for (uint32_t bs = 0; bs < gridScenario.GetNumCells (); ++bs)
         {
-          lambdaPerCell[bs] =lambda;
+          lambdaPerCell[bs] = lambda;
           std::cout << "Cell: " << bs << " lambda (same lambda): " << lambdaPerCell [bs] << std::endl;
         }
     }
@@ -1377,7 +1377,7 @@ main (int argc, char *argv[])
     {
       for (uint32_t bs = 0; bs < gridScenario.GetNumCells (); ++bs)
         {
-          lambdaPerCell[bs] = 1000 + bs*2000;
+          lambdaPerCell[bs] = 1000 + bs * 2000;
           std::cout << "Cell: " << bs << " lambda (diff lambda): " << lambdaPerCell [bs] << std::endl;
         }
     }
@@ -1389,10 +1389,10 @@ main (int argc, char *argv[])
 
   for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
     {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()])));
-      std::cout << "ue (sector1): " << i << " index: " << (i%gridScenario.GetNumSites ())*gridScenario.GetNumSectorsPerSite () << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()] << std::endl;
+      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite ()])));
+      std::cout << "ue (sector1): " << i << " index: " << (i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () << " lambda: " << lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite ()] << std::endl;
       Ptr<Node> ue = ueSector1Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector1NetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueSector1NetDev.Get (i);
       Address ueAddress = ueSector1IpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -1424,10 +1424,10 @@ main (int argc, char *argv[])
 
   for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
     {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites ())*gridScenario.GetNumSectorsPerSite ()+1])));
-      std::cout << "ue (sector2): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite () +1 << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+1] << std::endl;
+      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 1])));
+      std::cout << "ue (sector2): " << i << " index: " << (i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 1 << " lambda: " << lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 1] << std::endl;
       Ptr<Node> ue = ueSector2Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector2NetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueSector2NetDev.Get (i);
       Address ueAddress = ueSector2IpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -1459,10 +1459,10 @@ main (int argc, char *argv[])
 
   for (uint32_t i = 0; i < ueSector3Container.GetN (); ++i)
     {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+2])));
-      std::cout << "ue (sector3): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+2 << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+2] << std::endl;
+      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 2])));
+      std::cout << "ue (sector3): " << i << " index: " << (i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 2 << " lambda: " << lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 2] << std::endl;
       Ptr<Node> ue = ueSector3Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector3NetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueSector3NetDev.Get (i);
       Address ueAddress = ueSector3IpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -1493,10 +1493,10 @@ main (int argc, char *argv[])
     }
 
   // start UDP server and client apps
-  serverApps.Start(MilliSeconds(udpAppStartTimeMs));
-  clientApps.Start(MilliSeconds(udpAppStartTimeMs));
-  serverApps.Stop(MilliSeconds(simTimeMs));
-  clientApps.Stop(MilliSeconds(simTimeMs));
+  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+  clientApps.Start (MilliSeconds (udpAppStartTimeMs));
+  serverApps.Stop (MilliSeconds (simTimeMs));
+  clientApps.Stop (MilliSeconds (simTimeMs));
 
   // enable the traces provided by the nr module
   if (traces == true)
@@ -1542,7 +1542,7 @@ main (int argc, char *argv[])
 
   std::ofstream outFile;
   std::string filename = outputDir + "/" + simTag;
-  double delayValues [stats.size()];
+  double delayValues [stats.size ()];
   uint64_t cont = 0;
 
   outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
@@ -1596,15 +1596,15 @@ main (int argc, char *argv[])
         }
       //outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
-  std::sort(delayValues, delayValues + stats.size());
+  std::sort (delayValues, delayValues + stats.size ());
   //for (uint32_t i = 0; i < stats.size(); i++)
   //  {
   //    std::cout << delayValues[i] << " ";
   //  }
   //double FiftyTileFlowDelay = (delayValues[stats.size()/2] + delayValues[stats.size()/2 -1])/2;
-  double FiftyTileFlowDelay = delayValues[stats.size()/2];
+  double FiftyTileFlowDelay = delayValues[stats.size () / 2];
 
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
+  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size () << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
   outFile << "  Median flow delay: " << FiftyTileFlowDelay << "\n";
 
@@ -1613,9 +1613,9 @@ main (int argc, char *argv[])
 
   std::ifstream f (filename.c_str ());
 
-  if (f.is_open())
+  if (f.is_open ())
     {
-      std::cout << f.rdbuf();
+      std::cout << f.rdbuf ();
     }
 
   Simulator::Destroy ();

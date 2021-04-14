@@ -60,7 +60,7 @@ NS_LOG_COMPONENT_DEFINE ("LenaLteComparison");
 namespace ns3 {
 
 const Time appStartWindow = MilliSeconds (50);
-  
+
 static std::pair<ApplicationContainer, Time>
 InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
              const Address &ueAddress, const std::string &direction,
@@ -124,14 +124,14 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
       nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
     }
 
-  return std::make_pair(app, startTime);
+  return std::make_pair (app, startTime);
 }
 
 
 bool
 Parameters::Validate (void) const
 {
-  
+
   NS_ABORT_MSG_IF (bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
                    "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
 
@@ -140,7 +140,7 @@ Parameters::Validate (void) const
 
   NS_ABORT_MSG_IF (numerologyBwp > 4,
                    "At most 4 bandwidth parts supported.");
-  
+
   NS_ABORT_MSG_IF (direction != "DL" && direction != "UL",
                    "Flow direction can only be DL or UL: " << direction);
   NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD",
@@ -157,25 +157,25 @@ Parameters::Validate (void) const
   if (dlRem || ulRem)
     {
       NS_ABORT_MSG_IF (simulator != "5GLENA",
-                   "Cannot do the REM with the simulator " << simulator);
+                       "Cannot do the REM with the simulator " << simulator);
       NS_ABORT_MSG_IF (dlRem && ulRem,
                        "You selected both DL and UL REM, that is not supported");
       NS_ABORT_MSG_IF (remSector > 3,
                        "Only three sectors supported for REM");
-      
+
       NS_ABORT_MSG_IF (remSector == 0 && freqScenario != 1,
                        "RemSector == 0 makes sense only in a OVERLAPPING scenario");
     }
-  
+
   return true;
 }
 
-  
+
 void
 LenaLteComparison (const Parameters &params)
 {
   params.Validate ();
-      
+
   // Traffic parameters (that we will use inside this script:)
   uint32_t udpPacketSize = 1000;
   uint32_t lambda;
@@ -188,67 +188,67 @@ LenaLteComparison (const Parameters &params)
   std::cout << "  traffic parameters\n";
   switch (params.trafficScenario)
     {
-    case 0: // let's put 80 Mbps with 20 MHz of bandwidth. Everything else is scaled
-      packetCount = 0xFFFFFFFF;
-      switch (params.bandwidthMHz)
-        {
-        case 20:
-          udpPacketSize = 1000;
-          break;
-        case 10:
-          udpPacketSize = 500;
-          break;
-        case 5:
-          udpPacketSize = 250;
-          break;
-        default:
-          udpPacketSize = 1000;
-        }
-      lambda = 10000 / params.ueNumPergNb;
-      break;
-    case 1:
-      packetCount = 1;
-      udpPacketSize = 12;
-      lambda = 1;
-      break;
-    case 2: // 1 Mbps == 0.125 MB/s in case of 20 MHz, everything else is scaled
-      packetCount = 0xFFFFFFFF;
-      switch (params.bandwidthMHz)
-        {
-        case 20:
-          udpPacketSize = 125;
-          break;
-        case 10:
-          udpPacketSize = 63;
-          break;
-        case 5:
-          udpPacketSize = 32;
-          break;
-        default:
-          udpPacketSize = 125;
-        }
-      lambda = 1000 / params.ueNumPergNb;
-      break;
-    case 3: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
-      packetCount = 0xFFFFFFFF;
-      switch (params.bandwidthMHz)
-        {
-        case 20:
-          udpPacketSize = 250;
-          break;
-        case 10:
-          udpPacketSize = 125;
-          break;
-        case 5:
-          udpPacketSize = 75;
-          break;
-        default:
-          udpPacketSize = 250;
-        }
-      lambda = 10000 / params.ueNumPergNb;
-      break;
-    default:
-      NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2 3");
+      case 0: // let's put 80 Mbps with 20 MHz of bandwidth. Everything else is scaled
+        packetCount = 0xFFFFFFFF;
+        switch (params.bandwidthMHz)
+          {
+            case 20:
+              udpPacketSize = 1000;
+              break;
+            case 10:
+              udpPacketSize = 500;
+              break;
+            case 5:
+              udpPacketSize = 250;
+              break;
+            default:
+              udpPacketSize = 1000;
+          }
+        lambda = 10000 / params.ueNumPergNb;
+        break;
+      case 1:
+        packetCount = 1;
+        udpPacketSize = 12;
+        lambda = 1;
+        break;
+      case 2: // 1 Mbps == 0.125 MB/s in case of 20 MHz, everything else is scaled
+        packetCount = 0xFFFFFFFF;
+        switch (params.bandwidthMHz)
+          {
+            case 20:
+              udpPacketSize = 125;
+              break;
+            case 10:
+              udpPacketSize = 63;
+              break;
+            case 5:
+              udpPacketSize = 32;
+              break;
+            default:
+              udpPacketSize = 125;
+          }
+        lambda = 1000 / params.ueNumPergNb;
+        break;
+      case 3: // 20 Mbps == 2.5 MB/s in case of 20 MHz, everything else is scaled
+        packetCount = 0xFFFFFFFF;
+        switch (params.bandwidthMHz)
+          {
+            case 20:
+              udpPacketSize = 250;
+              break;
+            case 10:
+              udpPacketSize = 125;
+              break;
+            case 5:
+              udpPacketSize = 75;
+              break;
+            default:
+              udpPacketSize = 250;
+          }
+        lambda = 10000 / params.ueNumPergNb;
+        break;
+      default:
+        NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2 3");
     }
 
   std::cout << "  statistics\n";
@@ -270,7 +270,7 @@ LenaLteComparison (const Parameters &params)
    * If you need to add other checks, here is the best position to put them.
    */
   std::cout << "  checking frequency and numerology\n";
-  
+
   /*
    * If the logging variable is set to true, enable the log of some components
    * through the code. The same effect can be obtained through the use
@@ -294,8 +294,8 @@ LenaLteComparison (const Parameters &params)
    * Default values for the simulation. We are progressively removing all
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
-  std::cout << "  max tx buffer size\n";  
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  std::cout << "  max tx buffer size\n";
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   /*
    * Create the scenario. In our examples, we heavily use helpers that setup
@@ -307,7 +307,7 @@ LenaLteComparison (const Parameters &params)
   scenarioParams.SetScenarioParameters (params.scenario);
   // Customize parameters here
   //  scenarioParams.isd = ...
-  
+
   // The essentials describing a laydown
   uint32_t gnbSites = 0;
   NodeContainer gnbNodes;
@@ -315,11 +315,11 @@ LenaLteComparison (const Parameters &params)
   double sector0AngleRad = 0;
   const uint32_t sectors = 3;
 
-  // 
+  //
   NodeDistributionScenarioInterface * scenario {NULL};
   FileScenarioHelper fileScenario;
   HexagonalGridScenarioHelper gridScenario;
-  
+
   if (params.baseStationFile != "" and params.useSiteFile)
     {
       std::cout << "  using tower positions from " << params.baseStationFile
@@ -366,9 +366,9 @@ LenaLteComparison (const Parameters &params)
       gridScenario.SetUtNumber (ueNum);
       sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0);
       std::cout << sector0AngleRad << std::endl;
-      
+
       // Creates and plots the network deployment
-      gridScenario.CreateScenario ();  
+      gridScenario.CreateScenario ();
       gnbNodes = gridScenario.GetBaseStations ();
       ueNodes = gridScenario.GetUserTerminals ();
       scenario = &gridScenario;
@@ -435,7 +435,7 @@ LenaLteComparison (const Parameters &params)
    * Setup the LTE or NR module. We create the various helpers needed inside
    * their respective configuration functions
    */
-  std::cout << "  helpers\n";  
+  std::cout << "  helpers\n";
   Ptr<PointToPointEpcHelper> epcHelper;
 
   NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
@@ -450,67 +450,67 @@ LenaLteComparison (const Parameters &params)
     {
       epcHelper = CreateObject<PointToPointEpcHelper> ();
       LenaV1Utils::SetLenaV1SimulatorParameters (sector0AngleRad,
-                                  params.scenario,
-                                  gnbSector1Container,
-                                  gnbSector2Container,
-                                  gnbSector3Container,
-                                  ueSector1Container,
-                                  ueSector2Container,
-                                  ueSector3Container,
-                                  epcHelper,
-                                  lteHelper,
-                                  gnbSector1NetDev,
-                                  gnbSector2NetDev,
-                                  gnbSector3NetDev,
-                                  ueSector1NetDev,
-                                  ueSector2NetDev,
-                                  ueSector3NetDev,
-                                  params.calibration,
-                                  params.enableUlPc,
-                                  &sinrStats,
-                                  &ueTxPowerStats,
-                                  params.scheduler,
-                                  params.bandwidthMHz,
-                                  params.freqScenario,
-                                  params.downtiltAngle);
+                                                 params.scenario,
+                                                 gnbSector1Container,
+                                                 gnbSector2Container,
+                                                 gnbSector3Container,
+                                                 ueSector1Container,
+                                                 ueSector2Container,
+                                                 ueSector3Container,
+                                                 epcHelper,
+                                                 lteHelper,
+                                                 gnbSector1NetDev,
+                                                 gnbSector2NetDev,
+                                                 gnbSector3NetDev,
+                                                 ueSector1NetDev,
+                                                 ueSector2NetDev,
+                                                 ueSector3NetDev,
+                                                 params.calibration,
+                                                 params.enableUlPc,
+                                                 &sinrStats,
+                                                 &ueTxPowerStats,
+                                                 params.scheduler,
+                                                 params.bandwidthMHz,
+                                                 params.freqScenario,
+                                                 params.downtiltAngle);
     }
   else if (params.simulator == "5GLENA")
     {
       epcHelper = CreateObject<NrPointToPointEpcHelper> ();
       LenaV2Utils::SetLenaV2SimulatorParameters (sector0AngleRad,
-                                    params.scenario,
-                                    params.radioNetwork,
-                                    params.errorModel,
-                                    params.operationMode,
-                                    params.direction,
-                                    params.numerologyBwp,
-                                    params.pattern,
-                                    gnbSector1Container,
-                                    gnbSector2Container,
-                                    gnbSector3Container,
-                                    ueSector1Container,
-                                    ueSector2Container,
-                                    ueSector3Container,
-                                    epcHelper,
-                                    nrHelper,
-                                    gnbSector1NetDev,
-                                    gnbSector2NetDev,
-                                    gnbSector3NetDev,
-                                    ueSector1NetDev,
-                                    ueSector2NetDev,
-                                    ueSector3NetDev,
-                                    params.calibration,
-                                    params.enableUlPc,
-                                    params.powerAllocation,
-                                    &sinrStats,
-                                    &ueTxPowerStats,
-                                    &gnbRxPowerStats,
-                                    &slotStats,
-                                    &rbStats,
-                                    params.scheduler,
-                                    params.bandwidthMHz,
-                                    params.freqScenario,
-                                    params.downtiltAngle);
+                                                 params.scenario,
+                                                 params.radioNetwork,
+                                                 params.errorModel,
+                                                 params.operationMode,
+                                                 params.direction,
+                                                 params.numerologyBwp,
+                                                 params.pattern,
+                                                 gnbSector1Container,
+                                                 gnbSector2Container,
+                                                 gnbSector3Container,
+                                                 ueSector1Container,
+                                                 ueSector2Container,
+                                                 ueSector3Container,
+                                                 epcHelper,
+                                                 nrHelper,
+                                                 gnbSector1NetDev,
+                                                 gnbSector2NetDev,
+                                                 gnbSector3NetDev,
+                                                 ueSector1NetDev,
+                                                 ueSector2NetDev,
+                                                 ueSector3NetDev,
+                                                 params.calibration,
+                                                 params.enableUlPc,
+                                                 params.powerAllocation,
+                                                 &sinrStats,
+                                                 &ueTxPowerStats,
+                                                 &gnbRxPowerStats,
+                                                 &slotStats,
+                                                 &rbStats,
+                                                 params.scheduler,
+                                                 params.bandwidthMHz,
+                                                 params.freqScenario,
+                                                 params.downtiltAngle);
     }
 
   // Check we got one valid helper
@@ -518,14 +518,14 @@ LenaLteComparison (const Parameters &params)
     {
       NS_ABORT_MSG ("Programming error: no valid helper");
     }
-  
+
 
   // From here, it is standard NS3. In the future, we will create helpers
   // for this part as well.
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost
-  std::cout << "  pgw and internet\n";  
+  std::cout << "  pgw and internet\n";
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
@@ -556,7 +556,7 @@ LenaLteComparison (const Parameters &params)
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   // Set the default gateway for the UEs
-  std::cout << "  default gateway\n";  
+  std::cout << "  default gateway\n";
   for (auto ue = ueNodes.Begin (); ue != ueNodes.End (); ++ue)
     {
       Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting ((*ue)->GetObject<Ipv4> ());
@@ -564,7 +564,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   // attach UEs to their gNB. Try to attach them per cellId order
-  std::cout << "  attach UEs to gNBs\n";  
+  std::cout << "  attach UEs to gNBs\n";
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
       auto cellId = scenario->GetCellIndex (ueId);
@@ -598,7 +598,7 @@ LenaLteComparison (const Parameters &params)
    * Traffic part. Install two kind of traffic: low-latency and voice, each
    * identified by a particular source port.
    */
-  std::cout << "  server factory\n";  
+  std::cout << "  server factory\n";
   uint16_t dlPortLowLat = 1234;
 
   ApplicationContainer serverApps;
@@ -625,7 +625,7 @@ LenaLteComparison (const Parameters &params)
    *
    * Low-Latency configuration and object creation:
    */
-  Time interval = Seconds (1.0/lambda);
+  Time interval = Seconds (1.0 / lambda);
   std::cout << "  client factory:"
             << "\n    packet size: " << udpPacketSize
             << "\n    interval:    " << interval
@@ -641,10 +641,10 @@ LenaLteComparison (const Parameters &params)
   /*
    * Let's install the applications!
    */
-  std::cout << "  applications\n";  
+  std::cout << "  applications\n";
   ApplicationContainer clientApps;
   Ptr<UniformRandomVariable> startRng = CreateObject<UniformRandomVariable> ();
-  startRng->SetStream (RngSeedManager::GetRun());
+  startRng->SetStream (RngSeedManager::GetRun ());
   Time maxStartTime;
 
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
@@ -653,9 +653,9 @@ LenaLteComparison (const Parameters &params)
       auto sector = scenario->GetSectorIndex (cellId);
       auto siteId = scenario->GetSiteIndex (cellId);
       Ptr<Node> node = ueNodes.Get (ueId);
-      Ptr<NetDevice> dev = ueNetDevs.Get(ueId);
+      Ptr<NetDevice> dev = ueNetDevs.Get (ueId);
       Address addr = ueIpIfaces.GetAddress (ueId);
-      
+
       std::cout << "app for ue " << ueId
                 << ", cellId " << cellId
                 << ", sector " << sector
@@ -674,7 +674,7 @@ LenaLteComparison (const Parameters &params)
   std::cout << clientApps.GetN () << " apps\n";
 
   // enable the traces provided by the nr module
-  std::cout << "  tracing\n";  
+  std::cout << "  tracing\n";
   if (params.traces == true)
     {
       if (lteHelper != nullptr)
@@ -688,7 +688,7 @@ LenaLteComparison (const Parameters &params)
     }
 
 
-  std::cout << "  flowmon\n";  
+  std::cout << "  flowmon\n";
   FlowMonitorHelper flowmonHelper;
   NodeContainer endpointNodes;
   endpointNodes.Add (remoteHost);
@@ -708,13 +708,13 @@ LenaLteComparison (const Parameters &params)
 
   if (params.dlRem || params.ulRem)
     {
-      std::cout << "  rem helper\n";  
+      std::cout << "  rem helper\n";
 
       uint16_t remPhyIndex = 0;
       if (params.operationMode == "FDD" && params.direction == "UL")
-      {
-        remPhyIndex = 1;
-      }
+        {
+          remPhyIndex = 1;
+        }
 
       NetDeviceContainer remNd;
       Ptr<NetDevice> remDevice;
@@ -728,7 +728,7 @@ LenaLteComparison (const Parameters &params)
           remNdBySector = gnbNdBySector;
           remDevBySector = ueNdBySector;
         }
-      
+
       // Reverse order so we get sector 1 for the remSector == 0 case
       for (uint32_t sector = sectors; sector > 0; --sector)
         {
@@ -741,7 +741,7 @@ LenaLteComparison (const Parameters &params)
 
       if (params.ulRem)
         {
-          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ();
+          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy ()->GetAntennaArray ();
           auto antenna = ConstCast<UniformPlanarArray> (antArray);
           antenna->SetAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
         }
@@ -763,11 +763,11 @@ LenaLteComparison (const Parameters &params)
             {
               for (uint32_t siteId = 0; siteId < gnbSites; ++siteId)
                 {
-                  gnbNdBySector[sector]->Get(siteId)
-                    ->GetObject<NrGnbNetDevice>()
-                    ->GetPhy(remPhyIndex)
-                    ->GetBeamManager()
-                    ->ChangeBeamformingVector(ueNdBySector[sector]->Get(siteId));
+                  gnbNdBySector[sector]->Get (siteId)
+                  ->GetObject<NrGnbNetDevice>()
+                  ->GetPhy (remPhyIndex)
+                  ->GetBeamManager ()
+                  ->ChangeBeamformingVector (ueNdBySector[sector]->Get (siteId));
                 }
             }
         }
@@ -815,10 +815,10 @@ operator << (std::ostream & os, const Parameters & parameters)
   auto p {parameters};
 
 #define MSG(m) \
-    os << "\n" << m << std::left \
-       << std::setw (40 - strlen (m)) << (strlen (m) > 0 ? ":" : "")
+  os << "\n" << m << std::left \
+     << std::setw (40 - strlen (m)) << (strlen (m) > 0 ? ":" : "")
 
-  
+
   MSG ("LENA LTE Scenario Parameters");
   MSG ("");
   MSG ("Model version")
@@ -827,56 +827,56 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       MSG ("LTE Standard")
         << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
-      MSG ("4G-NR calibration mode")    << (p.calibration ? "ON" : "off");
-      MSG ("4G-NR ULPC mode")    << (p.enableUlPc ? "Enabled" : "Disabled");
-      MSG ("Operation mode")            << p.operationMode;
+      MSG ("4G-NR calibration mode") << (p.calibration ? "ON" : "off");
+      MSG ("4G-NR ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
+      MSG ("Operation mode") << p.operationMode;
       if (p.operationMode == "TDD")
         {
-          MSG ("Numerology")            << p.numerologyBwp;
-          MSG ("TDD pattern")           << p.pattern;
+          MSG ("Numerology") << p.numerologyBwp;
+          MSG ("TDD pattern") << p.pattern;
         }
       if (p.errorModel != "")
         {
-          MSG ("Error model")           << p.errorModel;
+          MSG ("Error model") << p.errorModel;
         }
       else if (p.radioNetwork == "LTE")
         {
-          MSG ("Error model")           << "ns3::LenaErrorModel";
+          MSG ("Error model") << "ns3::LenaErrorModel";
         }
       else if (p.radioNetwork == "NR")
         {
-          MSG ("Error model")           << "ns3::NrEesmCcT2";
+          MSG ("Error model") << "ns3::NrEesmCcT2";
         }
-        
+
     }
   else
     {
       // LENA v1
       p.operationMode = "FDD";
-      MSG ("LTE Standard")              << "4G";
-      MSG ("Calibration mode")          << (p.calibration ? "ON" : "off");
-      MSG ("LTE ULPC mode")           << (p.enableUlPc ? "Enabled" : "Disabled");
-      MSG ("Operation mode")            << p.operationMode;
+      MSG ("LTE Standard") << "4G";
+      MSG ("Calibration mode") << (p.calibration ? "ON" : "off");
+      MSG ("LTE ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
+      MSG ("Operation mode") << p.operationMode;
     }
 
   if (p.baseStationFile != "" and p.useSiteFile)
     {
-      MSG ("Base station positions")    << "read from file " << p.baseStationFile;
+      MSG ("Base station positions") << "read from file " << p.baseStationFile;
     }
   else
     {
-      MSG ("Base station positions")    << "regular hexaonal lay down";
-      MSG ("Number of rings")           << p.numOuterRings;
+      MSG ("Base station positions") << "regular hexaonal lay down";
+      MSG ("Number of rings") << p.numOuterRings;
     }
 
   MSG ("");
-  MSG ("Channel bandwidth")             << p.bandwidthMHz << " MHz";
+  MSG ("Channel bandwidth") << p.bandwidthMHz << " MHz";
   MSG ("Spectrum configuration")
     <<    (p.freqScenario == 0 ? "non-" : "") << "overlapping";
-  MSG ("LTE Scheduler")                 << p.scheduler;
+  MSG ("LTE Scheduler") << p.scheduler;
 
   MSG ("");
-  MSG ("Basic scenario")                << p.scenario;
+  MSG ("Basic scenario") << p.scenario;
   if (p.scenario == "UMa")
     {
       os << "\n  (ISD: 1.7 km, BS: 30 m, UE: 1.5 m, UE-BS min: 30.2 m)";
@@ -889,89 +889,110 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       os << "\n  (ISD: 7.0 km, BS: 45 m, UE: 1.5 m, UE-BS min: 44.6 m)";
     }
-  else 
+  else
     {
       os << "\n  (unknown configuration)";
     }
   if (p.baseStationFile == "" and p.useSiteFile)
     {
-      MSG ("Number of outer rings")         << p.numOuterRings;
+      MSG ("Number of outer rings") << p.numOuterRings;
     }
-  MSG ("Number of UEs per sector")      << p.ueNumPergNb;
+  MSG ("Number of UEs per sector") << p.ueNumPergNb;
   MSG ("Antenna down tilt angle (deg)") << p.downtiltAngle;
 
   MSG ("");
-  MSG ("Network loading")               << p.trafficScenario;
+  MSG ("Network loading") << p.trafficScenario;
   switch (p.trafficScenario)
     {
-    case 0:
-      MSG ("  Max loading (80 Mbps/20 MHz)");
-      MSG ("  Number of packets")       << "infinite";
-      MSG ("  Packet size");
-      switch (p.bandwidthMHz)
-        {
-        case 20:  os << "1000 bytes";    break;
-        case 10:  os << "500 bytes";     break;
-        case 5:   os << "250 bytes";     break;
-        default:  os << "1000 bytes";
-        }
-      // 1 s / (10000 / nUes)
-      MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb / 10.0 << " ms";
-      break ;
-      
-    case 1:
-      MSG ("  Latency");
-      MSG ("  Number of packets")              << 1;
-      MSG ("  Packet size")                    << "12 bytes";
-      MSG ("  Inter-packet interval (per UE)") << "1 s"; 
-      break ;
+      case 0:
+        MSG ("  Max loading (80 Mbps/20 MHz)");
+        MSG ("  Number of packets") << "infinite";
+        MSG ("  Packet size");
+        switch (p.bandwidthMHz)
+          {
+            case 20:
+              os << "1000 bytes";
+              break;
+            case 10:
+              os << "500 bytes";
+              break;
+            case 5:
+              os << "250 bytes";
+              break;
+            default:
+              os << "1000 bytes";
+          }
+        // 1 s / (10000 / nUes)
+        MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb / 10.0 << " ms";
+        break;
 
-    case 2:
-      MSG ("  Moderate loading");
-      MSG ("  Number of packets")              << "infinite";
-      MSG ("  Packet size");
-      switch (p.bandwidthMHz)
-        {
-        case 20:  os << "125 bytes";    break;
-        case 10:  os << "63 bytes";     break;
-        case 5:   os << "32 bytes";     break;
-        default:  os << "125 bytes";
-        }
-      // 1 s / (1000 / nUes)
-      MSG ("  Inter-packet interval (per UE)") << 1 / (1000/p.ueNumPergNb) << " s";
-  
-      break ;
+      case 1:
+        MSG ("  Latency");
+        MSG ("  Number of packets") << 1;
+        MSG ("  Packet size") << "12 bytes";
+        MSG ("  Inter-packet interval (per UE)") << "1 s";
+        break;
 
-    case 3:
-      MSG ("  Moderate-high loading");
-      MSG ("  Number of packets")              << "infinite";
-      MSG ("  Packet size");
-      switch (p.bandwidthMHz)
-        {
-          case 20:  os << "250 bytes";    break;
-          case 10:  os << "125 bytes";     break;
-          case 5:   os << "75 bytes";     break;
-          default:  os << "250 bytes";
-         }
-      // 1 s / (10000 / nUes)
-      MSG ("  Inter-packet interval (per UE)") << 1 / (10000.0 / p.ueNumPergNb) << " s";
+      case 2:
+        MSG ("  Moderate loading");
+        MSG ("  Number of packets") << "infinite";
+        MSG ("  Packet size");
+        switch (p.bandwidthMHz)
+          {
+            case 20:
+              os << "125 bytes";
+              break;
+            case 10:
+              os << "63 bytes";
+              break;
+            case 5:
+              os << "32 bytes";
+              break;
+            default:
+              os << "125 bytes";
+          }
+        // 1 s / (1000 / nUes)
+        MSG ("  Inter-packet interval (per UE)") << 1 / (1000 / p.ueNumPergNb) << " s";
 
-      break;
-    default:
-      os << "\n  (Unknown configuration)";
+        break;
+
+      case 3:
+        MSG ("  Moderate-high loading");
+        MSG ("  Number of packets") << "infinite";
+        MSG ("  Packet size");
+        switch (p.bandwidthMHz)
+          {
+            case 20:
+              os << "250 bytes";
+              break;
+            case 10:
+              os << "125 bytes";
+              break;
+            case 5:
+              os << "75 bytes";
+              break;
+            default:
+              os << "250 bytes";
+          }
+        // 1 s / (10000 / nUes)
+        MSG ("  Inter-packet interval (per UE)") << 1 / (10000.0 / p.ueNumPergNb) << " s";
+
+        break;
+      default:
+        os << "\n  (Unknown configuration)";
     }
 
-  MSG ("Application start window")      << p.udpAppStartTime.As (Time::MS) << " + " << appStartWindow.As (Time::MS);
-  MSG ("Application on duration")       << p.appGenerationTime.As (Time::MS);
-  MSG ("Traffic direction")             << p.direction;
+  MSG ("Application start window") << p.udpAppStartTime.As (Time::MS) << " + " << appStartWindow.As (Time::MS);
+  MSG ("Application on duration") << p.appGenerationTime.As (Time::MS);
+  MSG ("Traffic direction") << p.direction;
 
   MSG ("");
-  MSG ("Output file name")              << p.simTag;
-  MSG ("Output directory")              << p.outputDir;
-  MSG ("Logging")                       << (p.logging ? "ON" : "off");
-  MSG ("Trace file generation")         << (p.traces ? "ON" : "off");
+  MSG ("Output file name") << p.simTag;
+  MSG ("Output directory") << p.outputDir;
+  MSG ("Logging") << (p.logging ? "ON" : "off");
+  MSG ("Trace file generation") << (p.traces ? "ON" : "off");
   MSG ("");
-  MSG ("Radio environment map")         << (p.dlRem ? "DL" : (p.ulRem ? "UL" : "off"));
+  MSG ("Radio environment map") << (p.dlRem ? "DL" : (p.ulRem ? "UL" : "off"));
   if (p.dlRem || p.ulRem)
     {
       MSG ("  Sector to sample");
@@ -985,13 +1006,13 @@ operator << (std::ostream & os, const Parameters & parameters)
         }
       MSG ("  X range") << p.xMinRem << " - " << p.xMaxRem << ", in " << p.xResRem << " m steps";
       MSG ("  Y range") << p.yMinRem << " - " << p.yMaxRem << ", in " << p.yResRem << " m steps";
-      MSG ("  Altitude (Z)")             << p.zRem << " m";
+      MSG ("  Altitude (Z)") << p.zRem << " m";
     }
 
   os << std::endl;
   return os;
 }
-  
+
 
 } // namespace ns3
 

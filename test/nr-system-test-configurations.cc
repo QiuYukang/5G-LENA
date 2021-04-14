@@ -41,7 +41,7 @@ class NrSystemTestConfigurationsTestCase1 : public TestCase
 {
 public:
   NrSystemTestConfigurationsTestCase1 (std::string name, uint32_t numerology,
-                                           std::string scheduler);
+                                       std::string scheduler);
   virtual ~NrSystemTestConfigurationsTestCase1 ();
 
 private:
@@ -53,8 +53,8 @@ private:
 
 
 NrSystemTestConfigurationsTestCase1::NrSystemTestConfigurationsTestCase1 (std::string name, uint32_t numerology,
-                                                                                  std::string scheduler)
-: TestCase (name)
+                                                                          std::string scheduler)
+  : TestCase (name)
 {
   m_numerology = numerology;
   m_scheduler = scheduler;
@@ -62,12 +62,11 @@ NrSystemTestConfigurationsTestCase1::NrSystemTestConfigurationsTestCase1 (std::s
 
 
 NrSystemTestConfigurationsTestCase1::~NrSystemTestConfigurationsTestCase1 ()
-{
-}
+{}
 
 void
 NrSystemTestConfigurationsTestCase1::DoRun (void)
-{  
+{
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
   double hBS = 35.0; //base station antenna height in meters;
   double hUT = 1.5; //user antenna height in meters;
@@ -84,7 +83,7 @@ NrSystemTestConfigurationsTestCase1::DoRun (void)
 
   MobilityHelper enbmobility;
   enbmobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  enbmobility.SetPositionAllocator(enbPositionAlloc);
+  enbmobility.SetPositionAllocator (enbPositionAlloc);
   enbmobility.Install (enbNode);
 
   // position the mobile terminals and enable the mobility
@@ -115,7 +114,7 @@ NrSystemTestConfigurationsTestCase1::DoRun (void)
   // By using the configuration created, it is time to make the operation bands
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(100)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (100)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (100)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -176,18 +175,18 @@ NrSystemTestConfigurationsTestCase1::DoRun (void)
   ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
 
   UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (ueNode.Get(0)));
+  serverApps.Add (dlPacketSinkHelper.Install (ueNode.Get (0)));
 
   UdpClientHelper dlClient (ueIpIface.GetAddress (0), dlPort);
-  dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds(10000)));
-  dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+  dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds (10000)));
+  dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   clientApps.Add (dlClient.Install (remoteHost));
 
   // start server and client apps
-  serverApps.Start(Seconds(0.4));
-  clientApps.Start(Seconds(0.4));
-  serverApps.Stop(Seconds(1));
-  clientApps.Stop(Seconds(1));
+  serverApps.Start (Seconds (0.4));
+  clientApps.Start (Seconds (0.4));
+  serverApps.Stop (Seconds (1));
+  clientApps.Stop (Seconds (1));
 
   // attach UEs to the closest eNB
   nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
@@ -211,7 +210,7 @@ public:
 };
 
 NrSystemTestConfigurationsTestSuite::NrSystemTestConfigurationsTestSuite ()
-: TestSuite ("nr-system-test-configurations", SYSTEM)
+  : TestSuite ("nr-system-test-configurations", SYSTEM)
 {
   AddTestCase (new NrSystemTestConfigurationsTestCase1 ("num=0, scheduler=rr", 0, "ns3::NrMacSchedulerTdmaRR"), QUICK);
   AddTestCase (new NrSystemTestConfigurationsTestCase1 ("num=2, scheduler=rr", 2, "ns3::NrMacSchedulerTdmaRR"), QUICK);

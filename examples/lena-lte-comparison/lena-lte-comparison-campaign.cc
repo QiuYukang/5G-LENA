@@ -62,8 +62,8 @@ main (int argc, char *argv[])
                 "directory where to store simulation results",
                 params.outputDir);
   cmd.AddValue ("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-               params.errorModel);
+                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
+                params.errorModel);
   cmd.AddValue ("calibration",
                 "disable a bunch of things to make LENA and NR_LTE comparable",
                 params.calibration);
@@ -96,7 +96,7 @@ main (int argc, char *argv[])
   std::cout << params;
 
   ShowProgress spinner (Seconds (100));
-  
+
   LenaLteComparison (params);
 
   return 0;

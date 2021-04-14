@@ -92,8 +92,8 @@ private:
 
 void UETraceReception (TestAntenna3gppModelConf* test, RxPacketTraceParams params)
 {
-  test->UeReception(params);
- }
+  test->UeReception (params);
+}
 
 
 
@@ -102,7 +102,7 @@ TestAntenna3gppModelConf::UeReception (RxPacketTraceParams params)
 {
   if (params.m_cellId == 1)
     {
-      m_sinrCell1-> Update (params.m_sinr);
+      m_sinrCell1->Update (params.m_sinr);
       m_mcsCell1->Update (params.m_mcs);
       m_rbNumCell1->Update (params.m_rbAssignedNum);
     }
@@ -114,7 +114,7 @@ TestAntenna3gppModelConf::UeReception (RxPacketTraceParams params)
     }
   else
     {
-      NS_ABORT_MSG("Cell does not exist ... ");
+      NS_ABORT_MSG ("Cell does not exist ... ");
     }
 }
 
@@ -124,7 +124,7 @@ TestAntenna3gppModelConf::TestAntenna3gppModelConf (const std::string & name,
                                                     bool ueOmniAntennaElem,
                                                     uint8_t ueNoOfAntennas,
                                                     std::string losCondition)
-: TestCase (name)
+  : TestCase (name)
 {
   m_name = name;
   m_conf = conf;
@@ -143,13 +143,12 @@ TestAntenna3gppModelConf::TestAntenna3gppModelConf (const std::string & name,
 // This destructor does nothing but we include it as a reminder that
 // the test case should clean up after itself
 TestAntenna3gppModelConf::~TestAntenna3gppModelConf ()
-{
-}
+{}
 
 void
 TestAntenna3gppModelConf::DoRun (void)
 {
-  std::cout<<"\n\n\n"<<m_name<<std::endl;
+  std::cout << "\n\n\n" << m_name << std::endl;
   // set simulation time and mobility
   Time simTime = MilliSeconds (1000);
   Time udpAppStartTimeDl = MilliSeconds (400);
@@ -157,7 +156,7 @@ TestAntenna3gppModelConf::DoRun (void)
   uint32_t packetSize = 1000;
   DataRate udpRate = DataRate ("2Mbps");
 
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
 
@@ -175,39 +174,40 @@ TestAntenna3gppModelConf::DoRun (void)
   Ptr<ListPositionAllocator> uePositionAlloc = CreateObject<ListPositionAllocator> ();
 
 
-  gNbPositionAlloc->Add(Vector(0,0,gNbHeight));
+  gNbPositionAlloc->Add (Vector (0,0,gNbHeight));
 
   if (m_conf == DirectionGnbUe_45)
     {
-      uePositionAlloc->Add(Vector(20,20,ueHeight));
+      uePositionAlloc->Add (Vector (20,20,ueHeight));
     }
   else if (m_conf == DirectionGnbUe_135)
     {
-      uePositionAlloc->Add(Vector(-20,20,ueHeight));
+      uePositionAlloc->Add (Vector (-20,20,ueHeight));
     }
   else if (m_conf == DirectionGnbUe_225)
     {
-      uePositionAlloc->Add(Vector(-20,-20,ueHeight));
+      uePositionAlloc->Add (Vector (-20,-20,ueHeight));
     }
   else if (m_conf == DirectionGnbUe_315)
     {
-      uePositionAlloc->Add(Vector(20,-20,ueHeight));
-    } else   if (m_conf == DirectionGnbUe_0)
-      {
-        uePositionAlloc->Add(Vector(20,0,ueHeight));
-      }
-    else if (m_conf == DirectionGnbUe_90)
-      {
-        uePositionAlloc->Add(Vector(0,20,ueHeight));
-      }
-    else if (m_conf == DirectionGnbUe_180)
-      {
-        uePositionAlloc->Add(Vector(-20, 0,ueHeight));
-      }
-    else if (m_conf == DirectionGnbUe_270)
-      {
-        uePositionAlloc->Add(Vector(0,-20,ueHeight));
-      }
+      uePositionAlloc->Add (Vector (20,-20,ueHeight));
+    }
+  else if (m_conf == DirectionGnbUe_0)
+    {
+      uePositionAlloc->Add (Vector (20,0,ueHeight));
+    }
+  else if (m_conf == DirectionGnbUe_90)
+    {
+      uePositionAlloc->Add (Vector (0,20,ueHeight));
+    }
+  else if (m_conf == DirectionGnbUe_180)
+    {
+      uePositionAlloc->Add (Vector (-20, 0,ueHeight));
+    }
+  else if (m_conf == DirectionGnbUe_270)
+    {
+      uePositionAlloc->Add (Vector (0,-20,ueHeight));
+    }
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (gNbPositionAlloc);
@@ -229,8 +229,8 @@ TestAntenna3gppModelConf::DoRun (void)
 
 
   // set the number of antenna elements of UE
-  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (sqrt(m_ueNoOfAntennas)));
-  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (sqrt(m_ueNoOfAntennas)));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (sqrt (m_ueNoOfAntennas)));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (sqrt (m_ueNoOfAntennas)));
   if (m_ueOmniAntennaElem)
     {
       nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
@@ -255,7 +255,7 @@ TestAntenna3gppModelConf::DoRun (void)
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
 
   // gNB transmit power
-  nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue (44.0));
+  nrHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (44.0));
 
   nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (3.0));
 
@@ -358,9 +358,9 @@ TestAntenna3gppModelConf::DoRun (void)
 
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -372,7 +372,7 @@ TestAntenna3gppModelConf::DoRun (void)
   ApplicationContainer clientAppsDl;
   ApplicationContainer serverAppsDl;
 
-  Time udpInterval = Time::FromDouble((packetSize * 8) / static_cast<double> (udpRate.GetBitRate ()), Time::S);
+  Time udpInterval = Time::FromDouble ((packetSize * 8) / static_cast<double> (udpRate.GetBitRate ()), Time::S);
 
 
   UdpServerHelper dlPacketSinkHelper (dlPort);
@@ -380,9 +380,9 @@ TestAntenna3gppModelConf::DoRun (void)
 
 
   UdpClientHelper dlClient (ueIpIface.GetAddress (0), dlPort);
-  dlClient.SetAttribute("PacketSize", UintegerValue(packetSize));
+  dlClient.SetAttribute ("PacketSize", UintegerValue (packetSize));
   dlClient.SetAttribute ("Interval", TimeValue (udpInterval));
-  dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+  dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   clientAppsDl.Add (dlClient.Install (remoteHost));
 
   Ptr<EpcTft> tft = Create<EpcTft> ();
@@ -392,7 +392,7 @@ TestAntenna3gppModelConf::DoRun (void)
   tft->Add (dlpf);
 
   EpsBearer bearer (EpsBearer::NGBR_LOW_LAT_EMBB);
-  nrHelper->ActivateDedicatedEpsBearer (ueNetDevs.Get(0), bearer, tft);
+  nrHelper->ActivateDedicatedEpsBearer (ueNetDevs.Get (0), bearer, tft);
 
 
   // start UDP server and client apps
@@ -414,10 +414,10 @@ TestAntenna3gppModelConf::DoRun (void)
 //  double throughput1 = (serverApp1->GetReceived () * packetSize * 8)/(udpAppStopTimeDl-udpAppStartTimeDl).GetSeconds ();
   double throughput1 = (serverApp1->GetReceived () * (packetSize + 28) * 8) / (udpAppStopTimeDl - udpAppStartTimeDl).GetSeconds ();
 
-  std::cout<<"\n UE:  "<< throughput1 / 1e6 << " Mbps" <<
-      "\t Avg.SINR:"<< 10*log10(m_sinrCell1->getMean ()) <<
-      "\t Avg.MCS:"<< m_mcsCell1->getMean ()<<"\t Avg. RB Num:" <<
-      m_rbNumCell1->getMean ();
+  std::cout << "\n UE:  " << throughput1 / 1e6 << " Mbps" <<
+    "\t Avg.SINR:" << 10 * log10 (m_sinrCell1->getMean ()) <<
+    "\t Avg.MCS:" << m_mcsCell1->getMean () << "\t Avg. RB Num:" <<
+    m_rbNumCell1->getMean ();
 
 
   Simulator::Destroy ();
@@ -435,19 +435,18 @@ public:
 };
 
 Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite ()
-: TestSuite ("nr-antenna-3gpp-model-conf", SYSTEM)
+  : TestSuite ("nr-antenna-3gpp-model-conf", SYSTEM)
 {
 
 
   std::list<TestAntenna3gppModelConf::DirectionGnbUeXYAngle> conf = { TestAntenna3gppModelConf::DirectionGnbUe_45,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_135,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_225,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_315,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_0,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_90,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_180,
-                                                    TestAntenna3gppModelConf::DirectionGnbUe_270
-  };
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_135,
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_225,
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_315,
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_0,
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_90,
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_180,
+                                                                      TestAntenna3gppModelConf::DirectionGnbUe_270};
 
   std::list<uint8_t> ueNoOfAntennas = {16};
 
@@ -470,7 +469,7 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite ()
                   for (const auto & n : ueNoOfAntennas)
                     {
                       std::stringstream ss;
-                      ss <<" Test: ";
+                      ss << " Test: ";
 
                       if (c == TestAntenna3gppModelConf::DirectionGnbUe_45)
                         {
@@ -505,29 +504,29 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite ()
                           ss << "DirectionGnbUe_270";
                         }
 
-                      ss <<" , channelCondition: "<<losCondition;
+                      ss << " , channelCondition: " << losCondition;
 
-                      ss <<" , UE number of antennas:" << (unsigned)n;
+                      ss << " , UE number of antennas:" << (unsigned)n;
 
                       if (oaaGnb == true)
                         {
-                          ss <<" , gNB antenna element type: omni";
+                          ss << " , gNB antenna element type: omni";
                         }
                       else
                         {
-                          ss <<" , gNB antenna element type: 3gpp";
+                          ss << " , gNB antenna element type: 3gpp";
                         }
 
                       if (oaaUe == true)
                         {
-                          ss <<" , UE antenna element type: omni";
+                          ss << " , UE antenna element type: omni";
                         }
                       else
                         {
-                          ss <<" , UE antenna element type: 3gpp";
+                          ss << " , UE antenna element type: 3gpp";
                         }
 
-                      AddTestCase (new TestAntenna3gppModelConf (ss.str(), c, oaaGnb, oaaUe, n, losCondition), TestDuration::QUICK);
+                      AddTestCase (new TestAntenna3gppModelConf (ss.str (), c, oaaGnb, oaaUe, n, losCondition), TestDuration::QUICK);
                     }
                 }
             }

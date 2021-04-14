@@ -78,7 +78,7 @@ using namespace ns3;
  */
 NS_LOG_COMPONENT_DEFINE ("CttcNrDemo");
 
-int 
+int
 main (int argc, char *argv[])
 {
   /*
@@ -212,7 +212,7 @@ main (int argc, char *argv[])
    * Default values for the simulation. We are progressively removing all
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   /*
    * Create the scenario. In our examples, we heavily use helpers that setup
@@ -307,7 +307,7 @@ main (int argc, char *argv[])
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
    * TODO: Coordinate with Tommaso
    */
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -323,7 +323,7 @@ main (int argc, char *argv[])
    * Start to account for the bandwidth used by the example, as well as
    * the total power that has to be divided among the BWPs.
    */
-  double x = pow (10, totalTxPower/10);
+  double x = pow (10, totalTxPower / 10);
   double totalBandwidth = bandwidthBand1;
 
   /*
@@ -430,14 +430,14 @@ main (int argc, char *argv[])
   // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
   // and set the attribute.
   nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 ((bandwidthBand1/totalBandwidth) * x)));
+  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 ((bandwidthBand1 / totalBandwidth) * x)));
 
   if (doubleOperationalBand)
     {
       // Get the first netdevice (enbNetDev.Get (0)) and the second bandwidth part (1)
       // and set the attribute.
       nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10*log10 ((bandwidthBand2/totalBandwidth) * x));
+      nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetTxPower (10 * log10 ((bandwidthBand2 / totalBandwidth) * x));
     }
 
   // When all the configuration is done, explicitly call UpdateConfig ()
@@ -488,9 +488,9 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer ueVoiceIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueVoiceNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -526,7 +526,7 @@ main (int argc, char *argv[])
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeULL));
-  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaULL)));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaULL)));
 
   // The bearer that will carry low latency traffic
   EpsBearer lowLatBearer (EpsBearer::NGBR_LOW_LAT_EMBB);
@@ -544,7 +544,7 @@ main (int argc, char *argv[])
   dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
   dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaBe)));
 
   // The bearer that will carry voice traffic
   EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
@@ -564,7 +564,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < ueLowLatContainer.GetN (); ++i)
     {
       Ptr<Node> ue = ueLowLatContainer.Get (i);
-      Ptr<NetDevice> ueDevice = ueLowLatNetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueLowLatNetDev.Get (i);
       Address ueAddress = ueLowLatIpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -579,7 +579,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < ueVoiceContainer.GetN (); ++i)
     {
       Ptr<Node> ue = ueVoiceContainer.Get (i);
-      Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get (i);
       Address ueAddress = ueVoiceIpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -592,10 +592,10 @@ main (int argc, char *argv[])
     }
 
   // start UDP server and client apps
-  serverApps.Start(MilliSeconds(udpAppStartTimeMs));
-  clientApps.Start(MilliSeconds(udpAppStartTimeMs));
-  serverApps.Stop(MilliSeconds(simTimeMs));
-  clientApps.Stop(MilliSeconds(simTimeMs));
+  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
+  clientApps.Start (MilliSeconds (udpAppStartTimeMs));
+  serverApps.Stop (MilliSeconds (simTimeMs));
+  clientApps.Stop (MilliSeconds (simTimeMs));
 
   // enable the traces provided by the nr module
   //nrHelper->EnableTraces();
@@ -681,16 +681,16 @@ main (int argc, char *argv[])
       outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
+  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size () << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
 
   outFile.close ();
 
   std::ifstream f (filename.c_str ());
 
-  if (f.is_open())
+  if (f.is_open ())
     {
-      std::cout << f.rdbuf();
+      std::cout << f.rdbuf ();
     }
 
   Simulator::Destroy ();

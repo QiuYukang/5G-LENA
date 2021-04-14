@@ -49,7 +49,7 @@
 
 using namespace ns3;
 
-int 
+int
 main (int argc, char *argv[])
 {
   std::string scenario = "UMa"; //scenario
@@ -77,7 +77,7 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   // enable logging
-  if(logging)
+  if (logging)
     {
       //LogComponentEnable ("ThreeGppSpectrumPropagationLossModel", LOG_LEVEL_ALL);
       LogComponentEnable ("ThreeGppPropagationLossModel", LOG_LEVEL_ALL);
@@ -93,34 +93,34 @@ main (int argc, char *argv[])
    * Default values for the simulation. We are progressively removing all
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
-  if(scenario.compare("RMa") == 0)
+  if (scenario.compare ("RMa") == 0)
     {
       hBS = 35;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::RMa;
     }
-  else if(scenario.compare("UMa") == 0)
+  else if (scenario.compare ("UMa") == 0)
     {
       hBS = 25;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMa;
     }
-  else if (scenario.compare("UMi-StreetCanyon") == 0)
+  else if (scenario.compare ("UMi-StreetCanyon") == 0)
     {
       hBS = 10;
       hUT = 1.5;
       scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-  else if (scenario.compare("InH-OfficeMixed") == 0)
+  else if (scenario.compare ("InH-OfficeMixed") == 0)
     {
       hBS = 3;
       hUT = 1;
       scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
     }
-  else if (scenario.compare("InH-OfficeOpen") == 0)
+  else if (scenario.compare ("InH-OfficeOpen") == 0)
     {
       hBS = 3;
       hUT = 1;
@@ -128,7 +128,7 @@ main (int argc, char *argv[])
     }
   else
     {
-      NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', and 'InH-OfficeOpen'.");
+      NS_ABORT_MSG ("Scenario not supported. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', and 'InH-OfficeOpen'.");
     }
 
   // create base stations and mobile terminals
@@ -143,7 +143,7 @@ main (int argc, char *argv[])
   enbPositionAlloc->Add (Vector (0.0, 80.0, hBS));
   MobilityHelper enbmobility;
   enbmobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  enbmobility.SetPositionAllocator(enbPositionAlloc);
+  enbmobility.SetPositionAllocator (enbPositionAlloc);
   enbmobility.Install (enbNodes);
 
   // position the mobile terminals and enable the mobility
@@ -151,7 +151,7 @@ main (int argc, char *argv[])
   uemobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   uemobility.Install (ueNodes);
 
-  if(mobility)
+  if (mobility)
     {
       ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (90, 15, hUT)); // (x, y, z) in m
       ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, speed, 0)); // move UE1 along the y axis
@@ -216,7 +216,7 @@ main (int argc, char *argv[])
   nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // install nr net devices
-  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNodes, allBwps);
+  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (enbNodes, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
   int64_t randomStream = 1;
@@ -238,7 +238,7 @@ main (int argc, char *argv[])
     }
 
   // create the internet and install the IP stack on the UEs
-  // get SGW/PGW and create a single RemoteHost 
+  // get SGW/PGW and create a single RemoteHost
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
@@ -277,12 +277,12 @@ main (int argc, char *argv[])
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
 
       UdpServerHelper dlPacketSinkHelper (dlPort);
-      serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get(u)));
+      serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get (u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds(1)));
+      dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds (1)));
       //dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue (10));
       dlClient.SetAttribute ("PacketSize", UintegerValue (1500));
       clientApps.Add (dlClient.Install (remoteHost));
     }
@@ -291,13 +291,13 @@ main (int argc, char *argv[])
   nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // start server and client apps
-  serverApps.Start(Seconds(0.4));
-  clientApps.Start(Seconds(0.4));
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime-0.2));
+  serverApps.Start (Seconds (0.4));
+  clientApps.Start (Seconds (0.4));
+  serverApps.Stop (Seconds (simTime));
+  clientApps.Stop (Seconds (simTime - 0.2));
 
   // enable the traces provided by the nr module
-  nrHelper->EnableTraces();
+  nrHelper->EnableTraces ();
 
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();

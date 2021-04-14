@@ -65,12 +65,12 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelNumerologiesExample");
 
-int 
+int
 main (int argc, char *argv[])
 {
   // enable logging or not
   bool logging = false;
-  if(logging)
+  if (logging)
     {
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
@@ -82,7 +82,7 @@ main (int argc, char *argv[])
   double udpAppStartTime = 0.4; //seconds
 
   //other simulation parameters default values
-  uint16_t numerology = 0 ;
+  uint16_t numerology = 0;
 
   uint16_t gNbNum = 1;
   uint16_t ueNumPergNb = 1;
@@ -199,16 +199,16 @@ main (int argc, char *argv[])
 
   // Scheduler
   nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaRR"));
-  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(useFixedMcs));
-  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(useFixedMcs));
+  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue (useFixedMcs));
+  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue (useFixedMcs));
 
   if (useFixedMcs == true)
     {
-      nrHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue(fixedMcs));
-      nrHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue(fixedMcs));
+      nrHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (fixedMcs));
+      nrHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (fixedMcs));
     }
 
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
@@ -249,7 +249,7 @@ main (int argc, char *argv[])
   nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForBearer));
 
   // Initialize nrHelper
-  nrHelper->Initialize();
+  nrHelper->Initialize ();
 
 
   /*
@@ -283,12 +283,12 @@ main (int argc, char *argv[])
       ueNodes.Create (ueNumPergNb * gNbNum);
 
       int32_t yValue = 0.0;
-      for (uint32_t i = 1; i <= gNbNodes.GetN(); ++i)
+      for (uint32_t i = 1; i <= gNbNodes.GetN (); ++i)
         {
           // 2.0, -2.0, 6.0, -6.0, 10.0, -10.0, ....
           if (i % 2 != 0)
             {
-              yValue = static_cast<int>(i) * 30;
+              yValue = static_cast<int> (i) * 30;
             }
           else
             {
@@ -330,10 +330,10 @@ main (int argc, char *argv[])
 
   // Install nr net devices
   NetDeviceContainer gNbNetDev = nrHelper->InstallGnbDevice (gNbNodes,
-                                                                 allBwps);
+                                                             allBwps);
 
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNodes,
-                                                               allBwps);
+                                                           allBwps);
 
   int64_t randomStream = 1;
   randomStream += nrHelper->AssignStreams (gNbNetDev, randomStream);
@@ -354,7 +354,7 @@ main (int argc, char *argv[])
 
 
   // create the internet and install the IP stack on the UEs
-  // get SGW/PGW and create a single RemoteHost 
+  // get SGW/PGW and create a single RemoteHost
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
@@ -382,7 +382,7 @@ main (int argc, char *argv[])
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -396,12 +396,12 @@ main (int argc, char *argv[])
 
   // The sink will always listen to the specified ports
   UdpServerHelper dlPacketSinkHelper (dlPort);
-  serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get(0)));
+  serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get (0)));
 
   UdpClientHelper dlClient;
   dlClient.SetAttribute ("RemotePort", UintegerValue (dlPort));
-  dlClient.SetAttribute ("PacketSize", UintegerValue(udpPacketSize));
-  dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
+  dlClient.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
+  dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   if (udpFullBuffer)
     {
       double bitRate = 75000000; // 75 Mbps will saturate the NR system of 20 MHz with the NrEesmIrT1 error model
@@ -444,10 +444,10 @@ main (int argc, char *argv[])
     }
 
   // start server and client apps
-  serverApps.Start(Seconds(udpAppStartTime));
-  clientApps.Start(Seconds(udpAppStartTime));
-  serverApps.Stop(Seconds(simTime));
-  clientApps.Stop(Seconds(simTime));
+  serverApps.Start (Seconds (udpAppStartTime));
+  clientApps.Start (Seconds (udpAppStartTime));
+  serverApps.Stop (Seconds (simTime));
+  clientApps.Stop (Seconds (simTime));
 
 
   // enable the traces provided by the nr module
@@ -488,7 +488,7 @@ main (int argc, char *argv[])
     }
   outFile.setf (std::ios_base::fixed);
 
- for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
       std::stringstream protoStream;
@@ -529,14 +529,14 @@ main (int argc, char *argv[])
       outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
+  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size () << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
   outFile.close ();
 
   Ptr<UdpClient> clientApp = clientApps.Get (0)->GetObject<UdpClient> ();
   Ptr<UdpServer> serverApp = serverApps.Get (0)->GetObject<UdpServer> ();
   std::cout << "\n Total UDP throughput (bps):" <<
-      (serverApp->GetReceived ()*udpPacketSize*8) / (simTime-udpAppStartTime) << std::endl;
+  (serverApp->GetReceived () * udpPacketSize * 8) / (simTime - udpAppStartTime) << std::endl;
 
   Simulator::Destroy ();
   return 0;

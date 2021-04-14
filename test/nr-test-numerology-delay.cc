@@ -81,27 +81,25 @@ private:
 NrTestNumerologyDelayCase1::NrTestNumerologyDelayCase1 (std::string name, uint32_t numerology)
   : TestCase (name),
     m_numerology (numerology)
-{
-}
+{}
 
 // This destructor does nothing but we include it as a reminder that
 // the test case should clean up after itself
 NrTestNumerologyDelayCase1::~NrTestNumerologyDelayCase1 ()
-{
-}
+{}
 
 
 void
 LteTestDlSchedCallback (NrTestNumerologyDelayCase1 *testcase, std::string path,
-                                uint32_t frameNo, uint32_t subframeNo,
-                                uint32_t slotNum, uint32_t tbSize, uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId)
+                        uint32_t frameNo, uint32_t subframeNo,
+                        uint32_t slotNum, uint32_t tbSize, uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId)
 {
   testcase->DlScheduling (frameNo, subframeNo, slotNum, tbSize, mcs, rnti, componentCarrierId);
 }
 
 void
 LteTestRxPacketUeCallback (NrTestNumerologyDelayCase1 *testcase, std::string path,
-                                   RxPacketTraceParams rxParams)
+                           RxPacketTraceParams rxParams)
 {
 
   testcase->DlSpectrumUeEndRx (rxParams);
@@ -109,7 +107,7 @@ LteTestRxPacketUeCallback (NrTestNumerologyDelayCase1 *testcase, std::string pat
 
 void
 LteTestTxPacketEnbCallback (NrTestNumerologyDelayCase1 *testcase, std::string path,
-                                    GnbPhyPacketCountParameter params)
+                            GnbPhyPacketCountParameter params)
 {
 
   testcase->DlSpectrumEnbStartTx (params);
@@ -125,7 +123,7 @@ LteTestTxRlcPDUCallback (NrTestNumerologyDelayCase1 *testcase, std::string path,
 
 void
 LteTestTxPdcpPDUCallback (NrTestNumerologyDelayCase1 *testcase, std::string path,
-                         uint16_t rnti, uint8_t lcid, uint32_t bytes)
+                          uint16_t rnti, uint8_t lcid, uint32_t bytes)
 {
   testcase->TxPdcpPDU (rnti, lcid, bytes);
 }
@@ -152,16 +150,16 @@ ConnectRlcPdcpTraces (NrTestNumerologyDelayCase1 *testcase)
 {
 
   Config::Connect ("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LteRlc/TxPDU",
-                       MakeBoundCallback (&LteTestTxRlcPDUCallback, testcase));
+                   MakeBoundCallback (&LteTestTxRlcPDUCallback, testcase));
 
   Config::Connect ("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LtePdcp/TxPDU",
-                       MakeBoundCallback (&LteTestTxPdcpPDUCallback, testcase));
+                   MakeBoundCallback (&LteTestTxPdcpPDUCallback, testcase));
 
   Config::Connect ("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
-                         MakeBoundCallback (&LteTestRxRlcPDUCallback, testcase));
+                   MakeBoundCallback (&LteTestRxRlcPDUCallback, testcase));
 
   Config::Connect ("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
-                       MakeBoundCallback (&LteTestRxPdcpPDUCallback, testcase));
+                   MakeBoundCallback (&LteTestRxPdcpPDUCallback, testcase));
 }
 
 static void SendPacket (Ptr<NetDevice> device, Address& addr)
@@ -188,10 +186,10 @@ NrTestNumerologyDelayCase1::DoRun (void)
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (gNbNode);
   mobility.Install (ueNode);
-  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
+  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector (0.0, 0.0, 10));
+  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10, 1.5));
 
-  m_sendPacketTime = MilliSeconds(400);
+  m_sendPacketTime = MilliSeconds (400);
 
   ns3::SeedManager::SetRun (5);
 
@@ -212,7 +210,7 @@ NrTestNumerologyDelayCase1::DoRun (void)
   CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 400e6, numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon);
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -220,7 +218,7 @@ NrTestNumerologyDelayCase1::DoRun (void)
   nrHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (1));
 
   nrHelper->SetGnbPhyAttribute ("SymbolsPerSlot", UintegerValue (14));
-  nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue(m_numerology));
+  nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (m_numerology));
   nrHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (10));
 
   // Antennas for all the UEs
@@ -247,8 +245,8 @@ NrTestNumerologyDelayCase1::DoRun (void)
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
 
-  m_l1l2 = nrHelper->GetGnbPhy (enbNetDev.Get(0), 0)->GetL1L2CtrlLatency ();
-  m_tbDecodeLatency = nrHelper->GetGnbPhy (enbNetDev.Get(0), 0)->GetTbDecodeLatency ();
+  m_l1l2 = nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->GetL1L2CtrlLatency ();
+  m_tbDecodeLatency = nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->GetTbDecodeLatency ();
 
 
   for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
@@ -266,23 +264,23 @@ NrTestNumerologyDelayCase1::DoRun (void)
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
-  Simulator::Schedule (m_sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress());
+  Simulator::Schedule (m_sendPacketTime, &SendPacket, enbNetDev.Get (0), ueNetDev.Get (0)->GetAddress ());
 
   // attach UEs to the closest eNB
   nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
-                      MakeBoundCallback (&LteTestDlSchedCallback, this));
+                   MakeBoundCallback (&LteTestDlSchedCallback, this));
 
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
-                       MakeBoundCallback (&LteTestRxPacketUeCallback, this));
+                   MakeBoundCallback (&LteTestRxPacketUeCallback, this));
 
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/TxPacketTraceEnb",
-                       MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
+                   MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
 
-  Simulator::Schedule(MilliSeconds(200), &ConnectRlcPdcpTraces, this);
+  Simulator::Schedule (MilliSeconds (200), &ConnectRlcPdcpTraces, this);
 
-  nrHelper->EnableTraces();
+  nrHelper->EnableTraces ();
 
   Simulator::Stop (MilliSeconds (1000));
   Simulator::Run ();
@@ -299,7 +297,7 @@ NrTestNumerologyDelayCase1::GetSlotTime (uint32_t numerology)
 Time
 NrTestNumerologyDelayCase1::GetSymbolPeriod (uint32_t numerology)
 {
-  return GetSlotTime(numerology) / 14; // Fix number of symbols to 14 in this test
+  return GetSlotTime (numerology) / 14; // Fix number of symbols to 14 in this test
 }
 
 void
@@ -310,7 +308,7 @@ NrTestNumerologyDelayCase1::TxPdcpPDU (uint16_t rnti, uint8_t lcid, uint32_t byt
   std::cout<<"\n lcid :"<<(unsigned) lcid<<std::endl;
   std::cout<<"\n bytes :"<<bytes<<std::endl;*/
 
-  NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime, "There should not be delay between packet being sent and being scheduled by the gNb PDCP.");
+  NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_sendPacketTime, "There should not be delay between packet being sent and being scheduled by the gNb PDCP.");
 }
 
 void
@@ -323,15 +321,15 @@ NrTestNumerologyDelayCase1::TxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t byte
 
   if (m_firstRlcPdu)
     {
-      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime, "There should not be delay between packet being sent and being transmitted by the gNb RLC.");
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_sendPacketTime, "There should not be delay between packet being sent and being transmitted by the gNb RLC.");
       m_firstRlcPdu = false;
     }
 }
 
 void
 NrTestNumerologyDelayCase1::DlScheduling (uint32_t frameNo, uint32_t subframeNo,
-                                              uint32_t slotNum, uint32_t tbSize,
-                                              uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId)
+                                          uint32_t slotNum, uint32_t tbSize,
+                                          uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId)
 {
 /*  std::cout<<"\n\n\n MAC sends PDU to PHY at:"<<Simulator::Now()<<std::endl;
   std::cout<<"\n MCS :"<<mcs<<std::endl;
@@ -342,7 +340,7 @@ NrTestNumerologyDelayCase1::DlScheduling (uint32_t frameNo, uint32_t subframeNo,
 
   if (m_firstMacPdu)
     {
-      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime, "There should not be delay between packet being sent and being scheduled by the MAC.");
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_sendPacketTime, "There should not be delay between packet being sent and being scheduled by the MAC.");
       m_firstMacPdu = false;
       m_firstMacPduMcs = mcs;
     }
@@ -364,8 +362,8 @@ NrTestNumerologyDelayCase1::DlSpectrumEnbStartTx (GnbPhyPacketCountParameter par
 
   if (m_firstDlTransmission)
     {
-      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime + delay + ctrlDuration + NanoSeconds(1),
-                         "The delay between packet scheduled by the MAC and being transmitted should be L1L2 delay, plus the duration of the control.");
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_sendPacketTime + delay + ctrlDuration + NanoSeconds (1),
+                             "The delay between packet scheduled by the MAC and being transmitted should be L1L2 delay, plus the duration of the control.");
       m_firstDlTransmission = false;
     }
 }
@@ -388,13 +386,13 @@ NrTestNumerologyDelayCase1::DlSpectrumUeEndRx (RxPacketTraceParams params)
 
   if (m_firstDlReception)
     {
-       NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime + delay + ctrlDuration + dataDuration,
-                           "The duration of the transmission of the packet is not correct");
-       m_firstDlReception = false;
-       m_numSym = params.m_numSym;
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_sendPacketTime + delay + ctrlDuration + dataDuration,
+                             "The duration of the transmission of the packet is not correct");
+      m_firstDlReception = false;
+      m_numSym = params.m_numSym;
     }
 
-  m_lastDlReceptionFinished = Simulator::Now();
+  m_lastDlReceptionFinished = Simulator::Now ();
   m_totalNumberOfSymbols += params.m_numSym;
 }
 
@@ -409,12 +407,12 @@ NrTestNumerologyDelayCase1::RxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t byte
 
   Time delay = m_l1l2 * GetSlotTime (m_numerology);
   Time ctrlDuration = GetSymbolPeriod (m_numerology);
-  Time dataDuration = (GetSymbolPeriod(m_numerology) * m_numSym) - NanoSeconds(1);
+  Time dataDuration = (GetSymbolPeriod (m_numerology) * m_numSym) - NanoSeconds (1);
 
   if (m_firstRxPlcPDU)
     {
-      NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_sendPacketTime + delay + ctrlDuration + dataDuration + m_tbDecodeLatency,
-                           "The duration of the reception by RLC is not correct.");
+      NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_sendPacketTime + delay + ctrlDuration + dataDuration + m_tbDecodeLatency,
+                             "The duration of the reception by RLC is not correct.");
       m_firstRxPlcPDU = false;
     }
 }
@@ -430,15 +428,15 @@ NrTestNumerologyDelayCase1::RxPdcpPDU (uint16_t rnti, uint8_t lcid, uint32_t byt
 
   Time delay = m_l1l2 * GetSlotTime (m_numerology);
   Time ctrlDuration = GetSymbolPeriod (m_numerology);
-  Time dataDuration = (GetSymbolPeriod (m_numerology) * m_numSym) - NanoSeconds(1);
+  Time dataDuration = (GetSymbolPeriod (m_numerology) * m_numSym) - NanoSeconds (1);
 
-  NS_TEST_ASSERT_MSG_EQ (Simulator::Now(), m_lastDlReceptionFinished + m_tbDecodeLatency,
-                           "The duration of the reception by PDCP is not correct.");
+  NS_TEST_ASSERT_MSG_EQ (Simulator::Now (), m_lastDlReceptionFinished + m_tbDecodeLatency,
+                         "The duration of the reception by PDCP is not correct.");
 
-  std::cout<<"\n Numerology:"<<m_numerology<<"\t Packet of :" <<packetSize<<" bytes\t#Slots:"
-      <<m_slotsCounter <<"\t#Symbols:"<<m_totalNumberOfSymbols<<"\tPacket PDCP delay:"<<pdcpDelay
-      <<"\tRLC delay of first PDU:"<<delay + ctrlDuration + dataDuration + m_tbDecodeLatency
-      <<"\tMCS of the first PDU:"<<m_firstMacPduMcs;
+  std::cout << "\n Numerology:" << m_numerology << "\t Packet of :" << packetSize << " bytes\t#Slots:"
+            << m_slotsCounter << "\t#Symbols:" << m_totalNumberOfSymbols << "\tPacket PDCP delay:" << pdcpDelay
+            << "\tRLC delay of first PDU:" << delay + ctrlDuration + dataDuration + m_tbDecodeLatency
+            << "\tMCS of the first PDU:" << m_firstMacPduMcs;
 }
 
 
@@ -453,14 +451,14 @@ public:
 };
 
 NrTestNumerologyDelayTestSuite::NrTestNumerologyDelayTestSuite ()
-: TestSuite ("nr-test-numerology-delay", SYSTEM)
+  : TestSuite ("nr-test-numerology-delay", SYSTEM)
 {
-   AddTestCase (new NrTestNumerologyDelayCase1 ("num=0", 0), TestCase::QUICK);
-   AddTestCase (new NrTestNumerologyDelayCase1 ("num=1", 1), TestCase::QUICK);
-   AddTestCase (new NrTestNumerologyDelayCase1 ("num=2", 2), TestCase::QUICK);
-   AddTestCase (new NrTestNumerologyDelayCase1 ("num=3", 3), TestCase::QUICK);
-   AddTestCase (new NrTestNumerologyDelayCase1 ("num=4", 4), TestCase::QUICK);
-   AddTestCase (new NrTestNumerologyDelayCase1 ("num=5", 5), TestCase::QUICK);
+  AddTestCase (new NrTestNumerologyDelayCase1 ("num=0", 0), TestCase::QUICK);
+  AddTestCase (new NrTestNumerologyDelayCase1 ("num=1", 1), TestCase::QUICK);
+  AddTestCase (new NrTestNumerologyDelayCase1 ("num=2", 2), TestCase::QUICK);
+  AddTestCase (new NrTestNumerologyDelayCase1 ("num=3", 3), TestCase::QUICK);
+  AddTestCase (new NrTestNumerologyDelayCase1 ("num=4", 4), TestCase::QUICK);
+  AddTestCase (new NrTestNumerologyDelayCase1 ("num=5", 5), TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite

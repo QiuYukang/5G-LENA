@@ -172,7 +172,7 @@ main (int argc, char *argv[])
 
   // Configuration of phy and antenna for the gNbs
   nrHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (10));
-  nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue(0));
+  nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue (0));
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (numRowsGnb));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (numColumnsGnb));
   nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
@@ -186,8 +186,8 @@ main (int argc, char *argv[])
   randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   // this is probably not necessary, since we did not update configuration after installation
-  DynamicCast<NrGnbNetDevice>(gnbNetDev.Get (0))->UpdateConfig ();
-  DynamicCast<NrUeNetDevice>(ueNetDev.Get (0))->UpdateConfig ();
+  DynamicCast<NrGnbNetDevice> (gnbNetDev.Get (0))->UpdateConfig ();
+  DynamicCast<NrUeNetDevice> (ueNetDev.Get (0))->UpdateConfig ();
 
   // install the IP stack on the UEs, this is needed to allow attachment
   InternetStackHelper internet;
@@ -195,7 +195,7 @@ main (int argc, char *argv[])
   epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // we need to attach UEs to gNB so that they obtain the same configuration of channel as gNB
-  nrHelper->AttachToEnb (ueNetDev.Get(0), gnbNetDev.Get(0));
+  nrHelper->AttachToEnb (ueNetDev.Get (0), gnbNetDev.Get (0));
 
   // configure REM parameters
   Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
@@ -209,9 +209,9 @@ main (int argc, char *argv[])
   remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
 
   //configure beam that will be shown in REM map
-  DynamicCast<NrGnbNetDevice>(gnbNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->SetSector (sector, theta);
-  DynamicCast<NrUeNetDevice>(ueNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
-  remHelper->CreateRem (gnbNetDev, ueNetDev.Get(0), 0);
+  DynamicCast<NrGnbNetDevice> (gnbNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->SetSector (sector, theta);
+  DynamicCast<NrUeNetDevice> (ueNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
+  remHelper->CreateRem (gnbNetDev, ueNetDev.Get (0), 0);
 
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();

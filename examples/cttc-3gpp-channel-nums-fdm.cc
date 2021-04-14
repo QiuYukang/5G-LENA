@@ -59,7 +59,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("3gppChannelNumsFdm");
 
-int 
+int
 main (int argc, char *argv[])
 {
   uint16_t gNbNum = 4;
@@ -146,7 +146,7 @@ main (int argc, char *argv[])
   NS_ABORT_IF (centralFrequencyBand1 > 100e9);
   NS_ABORT_IF (centralFrequencyBand2 > 100e9);
 
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   int64_t randomStream = 1;
 
@@ -203,7 +203,7 @@ main (int argc, char *argv[])
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
    * TODO: Coordinate with Tommaso
    */
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -378,14 +378,14 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN(); ++j)
+  for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
   // Fix the attachment of the UEs: UE_i attached to GNB_i
-  for (uint32_t i = 0; i < ueNetDev.GetN(); ++i)
+  for (uint32_t i = 0; i < ueNetDev.GetN (); ++i)
     {
       auto enbDev = DynamicCast<NrGnbNetDevice> (enbNetDev.Get (i));
       auto ueDev = DynamicCast<NrUeNetDevice> (ueNetDev.Get (i));
@@ -426,7 +426,7 @@ main (int argc, char *argv[])
   dlClientVideo.SetAttribute ("RemotePort", UintegerValue (dlPortVideo));
   dlClientVideo.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientVideo.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeVideo));
-  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaVideo)));
+  dlClientVideo.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaVideo)));
 
   // The bearer that will carry low latency traffic
   EpsBearer videoBearer (EpsBearer::GBR_CONV_VIDEO);
@@ -443,7 +443,7 @@ main (int argc, char *argv[])
   dlClientVoice.SetAttribute ("RemotePort", UintegerValue (dlPortVoice));
   dlClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeVoice));
-  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaVoice)));
+  dlClientVoice.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaVoice)));
 
   // The bearer that will carry voice traffic
   EpsBearer voiceBearer (EpsBearer::GBR_CONV_VOICE);
@@ -460,7 +460,7 @@ main (int argc, char *argv[])
   ulClientGaming.SetAttribute ("RemotePort", UintegerValue (ulPortGaming));
   ulClientGaming.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   ulClientGaming.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeGaming));
-  ulClientGaming.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaGaming)));
+  ulClientGaming.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaGaming)));
 
   // The bearer that will carry gaming traffic
   EpsBearer gamingBearer (EpsBearer::GBR_GAMING);
@@ -481,7 +481,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < gridScenario.GetUserTerminals ().GetN (); ++i)
     {
       Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (i);
-      Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueNetDev.Get (i);
       Address ueAddress = ueIpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -604,16 +604,16 @@ main (int argc, char *argv[])
       outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
+  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size () << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / stats.size () << "\n";
 
   outFile.close ();
 
   std::ifstream f (filename.c_str ());
 
-  if (f.is_open())
+  if (f.is_open ())
     {
-      std::cout << f.rdbuf();
+      std::cout << f.rdbuf ();
     }
 
   Simulator::Destroy ();

@@ -94,7 +94,7 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSiz
   Ipv4Header ipHeader;
   pkt->AddHeader (ipHeader);
 
-  // the dedicated bearer that we activate in the simulation 
+  // the dedicated bearer that we activate in the simulation
   // will have bearerId = 2
   EpsBearerTag tag (1, 2);
   pkt->AddPacketTag (tag);
@@ -113,7 +113,7 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSiz
 void
 RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
 {
-  std::cout<<"\n Packet PDCP delay:"<<pdcpDelay<<"\n";
+  std::cout << "\n Packet PDCP delay:" << pdcpDelay << "\n";
   g_pdcpTraceCallbackCalled = true;
 }
 
@@ -130,11 +130,11 @@ RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64
 void
 RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t rlcDelay)
 {
-  std::cout<<"\n\n Data received by UE RLC at:"<<Simulator::Now()<<std::endl;
-  std::cout<<"\n rnti:"<<rnti<<std::endl;
-  std::cout<<"\n lcid:"<<(unsigned)lcid<<std::endl;
-  std::cout<<"\n bytes :"<< bytes<<std::endl;
-  std::cout<<"\n delay :"<< rlcDelay<<std::endl;
+  std::cout << "\n\n Data received by UE RLC at:" << Simulator::Now () << std::endl;
+  std::cout << "\n rnti:" << rnti << std::endl;
+  std::cout << "\n lcid:" << (unsigned)lcid << std::endl;
+  std::cout << "\n bytes :" << bytes << std::endl;
+  std::cout << "\n delay :" << rlcDelay << std::endl;
   g_rlcTraceCallbackCalled = true;
 }
 
@@ -147,15 +147,15 @@ ConnectPdcpRlcTraces ()
   // after recent changes in the EPC UE node ID has changed to 3
   // dedicated bearer that we have activated has bearer id 2
   Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LtePdcp/RxPDU",
-                      MakeCallback (&RxPdcpPDU));
+                   MakeCallback (&RxPdcpPDU));
   // after recent changes in the EPC UE node ID has changed to 3
   // dedicated bearer that we have activated has bearer id 2
   Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LteRlc/RxPDU",
-                      MakeCallback (&RxRlcPDU));
+                   MakeCallback (&RxRlcPDU));
 
 }
 
-int 
+int
 main (int argc, char *argv[])
 {
   uint16_t gNbNum = 1;
@@ -168,7 +168,7 @@ main (int argc, char *argv[])
   uint32_t packetSize = 1000;
   bool isUll = true;           // Whether the flow is a low latency type of traffic.
 
-  Time sendPacketTime = Seconds(0.4);
+  Time sendPacketTime = Seconds (0.4);
 
 
   CommandLine cmd;
@@ -192,7 +192,7 @@ main (int argc, char *argv[])
                 bandwidthBand);
   cmd.AddValue ("packetSize",
                 "packet size in bytes",
-                 packetSize);
+                packetSize);
   cmd.AddValue ("isUll",
                 "Enable Uplink",
                 isUll);
@@ -221,7 +221,7 @@ main (int argc, char *argv[])
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
-  nrHelper->SetBeamformingHelper(idealBeamformingHelper);
+  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (epcHelper);
 
   // Create one operational band containing one CC with 2 bandwidth parts
@@ -294,7 +294,7 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
-  Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress(), packetSize);
+  Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get (0), ueNetDev.Get (0)->GetAddress (), packetSize);
 
   // attach UEs to the closest eNB
   nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
@@ -318,9 +318,9 @@ main (int argc, char *argv[])
   EpsBearer bearer (q);
   nrHelper->ActivateDedicatedEpsBearer (ueNetDev, bearer, tft);
 
-  Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
+  Simulator::Schedule (Seconds (0.2), &ConnectPdcpRlcTraces);
 
-  nrHelper->EnableTraces();
+  nrHelper->EnableTraces ();
 
   Simulator::Stop (Seconds (1));
   Simulator::Run ();

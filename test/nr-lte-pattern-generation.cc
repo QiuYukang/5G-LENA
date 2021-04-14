@@ -81,7 +81,7 @@ public:
    * \param b second map
    */
   void CheckHarqMap (const std::map<uint32_t, uint32_t> &a,
-                 const std::map<uint32_t, uint32_t> &b);
+                     const std::map<uint32_t, uint32_t> &b);
 
   /**
    * \brief Check if two vectors are equal
@@ -90,6 +90,7 @@ public:
    */
   void CheckVector (const std::vector<uint32_t> &a,
                     const std::vector<uint32_t> &b);
+
 private:
   virtual void DoRun (void) override;
   /**
@@ -116,7 +117,7 @@ private:
 
 
 void
-LtePatternTestCase::DoRun()
+LtePatternTestCase::DoRun ()
 {
   auto one = {LteNrTddSlotType::DL,
               LteNrTddSlotType::S,
@@ -127,8 +128,7 @@ LtePatternTestCase::DoRun()
               LteNrTddSlotType::S,
               LteNrTddSlotType::UL,
               LteNrTddSlotType::UL,
-              LteNrTddSlotType::DL,
-             };
+              LteNrTddSlotType::DL,};
 
   Result a = { {
                  { 0, {0, } },
@@ -159,14 +159,13 @@ LtePatternTestCase::DoRun()
                  { 9, {4, } },
                },
                {
-                  {0, 7},
-                  {1, 6},
-                  {4, 4},
-                  {5, 7},
-                  {6, 6},
-                  {9, 4},
-               }
-             };
+                 {0, 7},
+                 {1, 6},
+                 {4, 4},
+                 {5, 7},
+                 {6, 6},
+                 {9, 4},
+               }};
 
   TestPattern (one, a);
 
@@ -219,8 +218,7 @@ LtePatternTestCase::DoRun()
               LteNrTddSlotType::S,
               LteNrTddSlotType::UL,
               LteNrTddSlotType::DL,
-              LteNrTddSlotType::DL,
-             };
+              LteNrTddSlotType::DL,};
 
   TestPattern (two, b);
 
@@ -270,8 +268,7 @@ LtePatternTestCase::DoRun()
                 LteNrTddSlotType::DL,
                 LteNrTddSlotType::DL,
                 LteNrTddSlotType::DL,
-                LteNrTddSlotType::DL,
-               };
+                LteNrTddSlotType::DL,};
 
   TestPattern (three, c);
 
@@ -324,8 +321,7 @@ LtePatternTestCase::DoRun()
                LteNrTddSlotType::DL,
                LteNrTddSlotType::DL,
                LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-              };
+               LteNrTddSlotType::DL,};
 
   TestPattern (four, d);
 
@@ -379,8 +375,7 @@ LtePatternTestCase::DoRun()
                LteNrTddSlotType::DL,
                LteNrTddSlotType::DL,
                LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-              };
+               LteNrTddSlotType::DL,};
 
   TestPattern (five, e);
 
@@ -428,9 +423,8 @@ LtePatternTestCase::DoRun()
               LteNrTddSlotType::S,
               LteNrTddSlotType::UL,
               LteNrTddSlotType::UL,
-              LteNrTddSlotType::DL,
-             };
-  TestPattern(six, f);
+              LteNrTddSlotType::DL,};
+  TestPattern (six, f);
 
   Result g = {
     {
@@ -473,8 +467,7 @@ LtePatternTestCase::DoRun()
                LteNrTddSlotType::S,
                LteNrTddSlotType::UL,
                LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-              };
+               LteNrTddSlotType::UL,};
 
   TestPattern (zero, g);
 
@@ -501,11 +494,10 @@ LtePatternTestCase::DoRun()
     }
   };
   auto seven = {LteNrTddSlotType::DL,
-               LteNrTddSlotType::F,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL
-              };
+                LteNrTddSlotType::F,
+                LteNrTddSlotType::UL,
+                LteNrTddSlotType::UL,
+                LteNrTddSlotType::UL};
 
   TestPattern (seven, k);
 
@@ -568,8 +560,7 @@ LtePatternTestCase::DoRun()
                  {7, 4},
                  {8, 4},
                  {9, 4}
-               }
-             };
+               }};
 
   auto nr = {LteNrTddSlotType::F,
              LteNrTddSlotType::F,
@@ -580,8 +571,7 @@ LtePatternTestCase::DoRun()
              LteNrTddSlotType::F,
              LteNrTddSlotType::F,
              LteNrTddSlotType::F,
-             LteNrTddSlotType::F,
-            };
+             LteNrTddSlotType::F,};
 
   TestPattern (nr, h);
 
@@ -620,22 +610,20 @@ LtePatternTestCase::DoRun()
                  {2, 4},
                  {3, 4},
                  {4, 4},
-               }
-             };
+               }};
 
   auto twelve = {LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::F,
-               LteNrTddSlotType::F,
-               LteNrTddSlotType::F,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-               LteNrTddSlotType::UL,
-            };
+                 LteNrTddSlotType::DL,
+                 LteNrTddSlotType::F,
+                 LteNrTddSlotType::F,
+                 LteNrTddSlotType::F,
+                 LteNrTddSlotType::UL,
+                 LteNrTddSlotType::UL,
+                 LteNrTddSlotType::UL,
+                 LteNrTddSlotType::UL,
+                 LteNrTddSlotType::UL,
+                 LteNrTddSlotType::UL,
+                 LteNrTddSlotType::UL,};
 
   TestPattern (twelve,l);
 
@@ -675,8 +663,7 @@ LtePatternTestCase::DoRun()
                  { 8, {2, } },
                  { 9, {2, } },
                },
-               {
-               },
+               {},
                {
                  {0, 4},
                  {1, 4},
@@ -688,27 +675,26 @@ LtePatternTestCase::DoRun()
                  {7, 4},
                  {8, 4},
                  {9, 4},
-               }
-             };
+               }};
 
   auto thirtheen = {
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-               LteNrTddSlotType::DL,
-            };
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+    LteNrTddSlotType::DL,
+  };
 
   TestPattern (thirtheen, m);
 }
 
 void
-LtePatternTestCase::Print(const std::map<uint32_t, std::vector<uint32_t> > &str)
+LtePatternTestCase::Print (const std::map<uint32_t, std::vector<uint32_t> > &str)
 {
   std::cout << "{" << std::endl;
   for (const auto & v : str)
@@ -727,12 +713,12 @@ void
 LtePatternTestCase::PrintHarq (const std::map<uint32_t, uint32_t> &str)
 {
   std::cout << "{" << std::endl;
-    for (const auto & v : str)
-      {
-        std::cout << " { " << v.first << ", ";
-        std::cout << v.second;
-        std::cout << "}" << std::endl;
-      }
+  for (const auto & v : str)
+    {
+      std::cout << " { " << v.first << ", ";
+      std::cout << v.second;
+      std::cout << "}" << std::endl;
+    }
   std::cout << "}" << std::endl;
 }
 
@@ -754,9 +740,9 @@ LtePatternTestCase::CheckMap (const std::map<uint32_t, std::vector<uint32_t> > &
 {
   NS_TEST_ASSERT_MSG_EQ (a.size (), b.size (), "Two maps have different length");
 
-  for (const std::pair<const uint32_t, std::vector<uint32_t>> & v : a)
+  for (const std::pair<const uint32_t, std::vector<uint32_t> > & v : a)
     {
-      CheckVector (a.at(v.first), b.at(v.first));
+      CheckVector (a.at (v.first), b.at (v.first));
     }
 }
 
@@ -854,10 +840,10 @@ class NrLtePatternTestSuite : public TestSuite
 public:
   NrLtePatternTestSuite () : TestSuite ("nr-lte-pattern-generation", UNIT)
   {
-    AddTestCase(new LtePatternTestCase ("LTE TDD Pattern test"), QUICK);
+    AddTestCase (new LtePatternTestCase ("LTE TDD Pattern test"), QUICK);
   }
 };
 
 static NrLtePatternTestSuite nrLtePatternTestSuite; //!< Pattern test suite
 
-}; // namespace ns3
+}  // namespace ns3

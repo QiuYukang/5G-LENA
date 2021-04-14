@@ -99,28 +99,26 @@ NrRealisticBeamformingTestCase::NrRealisticBeamformingTestCase (std::string name
 }
 
 NrRealisticBeamformingTestCase::~NrRealisticBeamformingTestCase ()
-{
-}
+{}
 
 void
 NrRealisticBeamformingTestCase::DoRun (void)
 {
-  RngSeedManager::SetSeed(1);
+  RngSeedManager::SetSeed (1);
 
   std::list<Vector> uePositionsExtensive = { Vector ( 10,-10, 1.5),
                                              Vector (  0, 10, 1.5),
-                                             Vector (  0,-10, 1.5)
-  };
+                                             Vector (  0,-10, 1.5)};
 
 
   uint16_t totalCounter = 0, highSinrCounter = 0, lowSinrCounter = 0;
 
-  std::list <uint16_t> rngList = (m_duration == TestCase::EXTENSIVE) ? std::list<uint16_t>({2,3}) : std::list<uint16_t>({1});
+  std::list <uint16_t> rngList = (m_duration == TestCase::EXTENSIVE) ? std::list<uint16_t> ({2,3}) : std::list<uint16_t> ({1});
 
-  std::list <Vector> uePositions = (m_duration == TestCase::EXTENSIVE) ? uePositionsExtensive : std::list<Vector>( { Vector ( 10, 10, 1.5),
-                                                                                                                     Vector (-10, 10, 1.5)});
+  std::list <Vector> uePositions = (m_duration == TestCase::EXTENSIVE) ? uePositionsExtensive : std::list<Vector> ( { Vector ( 10, 10, 1.5),
+                                                                                                                      Vector (-10, 10, 1.5)});
 
-  std::list<uint16_t> antennaConfList = (m_duration == TestCase::EXTENSIVE) ? std::list<uint16_t>({3, 4}) : std::list<uint16_t>({2});
+  std::list<uint16_t> antennaConfList = (m_duration == TestCase::EXTENSIVE) ? std::list<uint16_t> ({3, 4}) : std::list<uint16_t> ({2});
 
   for (auto rng:rngList)
     {
@@ -184,7 +182,7 @@ NrRealisticBeamformingTestCase::DoRun (void)
                       nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
                     }
 
-                  nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId());
+                  nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId ());
 
                   gnbDevs = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
                   ueDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
@@ -199,18 +197,18 @@ NrRealisticBeamformingTestCase::DoRun (void)
                       DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
                     }
 
-                  Ptr<NrUePhy> uePhy = nrHelper->GetUePhy (ueDevs.Get(0), 0);
+                  Ptr<NrUePhy> uePhy = nrHelper->GetUePhy (ueDevs.Get (0), 0);
 
                   Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetGnbPhy (gnbDevs.Get (0), 0)->GetSpectrumPhy ();
                   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
                   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
                   NS_ASSERT (propagationLossModel != nullptr);
                   propagationLossModel->AssignStreams (1);
-                  Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+                  Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
                   channelConditionModel->AssignStreams (1);
                   Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
                   NS_ASSERT (spectrumLossModel != nullptr);
-                  Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
+                  Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel ());
                   channel->AssignStreams (1);
 
                   double sinrSrsHighLineal = std::pow (10.0, 0.1 * 40);
@@ -219,33 +217,33 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   Ptr<CellScanBeamforming> cellScanBeamforming = CreateObject<CellScanBeamforming>();
                   BeamformingVector idealGnbBfv;
                   BeamformingVector idealUeBfv;
-                  cellScanBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0)),
-                                                              DynamicCast<NrUeNetDevice> (ueDevs.Get(0)),
+                  cellScanBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
+                                                              DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
                                                               &idealGnbBfv,
                                                               &idealUeBfv,
                                                               0);
 
                   Ptr<RealisticBeamformingAlgorithm> realisticBeamforming = CreateObject<RealisticBeamformingAlgorithm>();
-                  realisticBeamforming->Install (DynamicCast<NrGnbNetDevice>(gnbDevs.Get (0)), DynamicCast<NrUeNetDevice> (ueDevs.Get (0)), 0);
+                  realisticBeamforming->Install (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)), DynamicCast<NrUeNetDevice> (ueDevs.Get (0)), 0);
                   BeamformingVector realisticGnbBfv1;
                   BeamformingVector realisticUeBfv1;
 
                   // directly update max SINR SRS to a high value, skipping other set functions of the algorithm
                   realisticBeamforming->m_maxSrsSinrPerSlot = sinrSrsHighLineal;
 
-                  realisticBeamforming->GetBeamformingVectors(DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0)),
-                                                              DynamicCast<NrUeNetDevice> (ueDevs.Get(0)),
-                                                              &realisticGnbBfv1,
-                                                              &realisticUeBfv1,
-                                                              0 );
+                  realisticBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
+                                                               DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
+                                                               &realisticGnbBfv1,
+                                                               &realisticUeBfv1,
+                                                               0 );
 
                   BeamformingVector realisticGnbBfv2;
                   BeamformingVector realisticUeBfv2;
                   // directly update max SINR SRS to a new lower value, skipping other set functions of the algorithm,
                   realisticBeamforming->m_maxSrsSinrPerSlot = sinrSrsLowLineal;
 
-                  realisticBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0)),
-                                                               DynamicCast<NrUeNetDevice> (ueDevs.Get(0)),
+                  realisticBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
+                                                               DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
                                                                &realisticGnbBfv2,
                                                                &realisticUeBfv2,
                                                                0 );
@@ -275,15 +273,15 @@ NrRealisticBeamformingTestCase::DoRun (void)
                         // it needs larger tolerance than 0.2 which is fine for EXTENSIVE mode
     }
 
-    NS_TEST_ASSERT_MSG_EQ_TOL (highSinrCounter / (double) totalCounter, 1, tolerance,
-                               "The pair of beamforming vectors should be equal in most of the cases when SINR is high, and they are not");
-    NS_TEST_ASSERT_MSG_EQ_TOL (lowSinrCounter / (double) totalCounter, 1, tolerance ,
-                               "The pair of beamforming vectors should not be equal in most of the cases when SINR is low, and they are");
+  NS_TEST_ASSERT_MSG_EQ_TOL (highSinrCounter / (double) totalCounter, 1, tolerance,
+                             "The pair of beamforming vectors should be equal in most of the cases when SINR is high, and they are not");
+  NS_TEST_ASSERT_MSG_EQ_TOL (lowSinrCounter / (double) totalCounter, 1, tolerance,
+                             "The pair of beamforming vectors should not be equal in most of the cases when SINR is low, and they are");
 
 
 
-  NS_LOG_INFO ("The result is as expected when high SINR in " << highSinrCounter << " out of "<< totalCounter <<" total cases.");
-  NS_LOG_INFO ("The result is as expected when low SINR in " << lowSinrCounter << " out of " << totalCounter <<" total cases.");
+  NS_LOG_INFO ("The result is as expected when high SINR in " << highSinrCounter << " out of " << totalCounter << " total cases.");
+  NS_LOG_INFO ("The result is as expected when low SINR in " << lowSinrCounter << " out of " << totalCounter << " total cases.");
 
   Simulator::Destroy ();
 }

@@ -55,7 +55,7 @@ private:
 NS_OBJECT_ENSURE_REGISTERED (TestGnbMac);
 
 TypeId
-TestGnbMac::GetTypeId()
+TestGnbMac::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::TestGnbMac")
     .SetParent<NrGnbMac> ()
@@ -78,36 +78,37 @@ TestGnbMac::TestGnbMac (const std::string &pattern)
   std::string token;
   std::vector<std::string> extracted;
 
-   while (std::getline(ss, token, '|'))
-     {
-       extracted.push_back(token);
-     }
+  while (std::getline (ss, token, '|'))
+    {
+      extracted.push_back (token);
+    }
 
-   for (const auto & v : extracted)
-     {
-       if (lookupTable.find (v) == lookupTable.end())
-         {
-           NS_FATAL_ERROR ("Pattern type " << v << " not valid. Valid values are: DL UL F S");
-         }
-       m_pattern.push_back (lookupTable[v]);
-     }
+  for (const auto & v : extracted)
+    {
+      if (lookupTable.find (v) == lookupTable.end ())
+        {
+          NS_FATAL_ERROR ("Pattern type " << v << " not valid. Valid values are: DL UL F S");
+        }
+      m_pattern.push_back (lookupTable[v]);
+    }
 
   for (const auto & v : m_pattern)
     {
-      switch (v) {
-        case LteNrTddSlotType::F:
-          m_totalSlotToCreate += 2; // But since we are using std::set,
-                                    // duplicated slots will not be counted
-         break;
-         case LteNrTddSlotType::DL:
-          m_totalSlotToCreate += 1;
-         break;
-         case LteNrTddSlotType::UL:
-          m_totalSlotToCreate += 1;
-         break;
-         case LteNrTddSlotType::S:
-          m_totalSlotToCreate += 1;
-         break;
+      switch (v)
+        {
+          case LteNrTddSlotType::F:
+            m_totalSlotToCreate += 2; // But since we are using std::set,
+                                      // duplicated slots will not be counted
+            break;
+          case LteNrTddSlotType::DL:
+            m_totalSlotToCreate += 1;
+            break;
+          case LteNrTddSlotType::UL:
+            m_totalSlotToCreate += 1;
+            break;
+          case LteNrTddSlotType::S:
+            m_totalSlotToCreate += 1;
+            break;
         }
     }
 }
@@ -127,9 +128,9 @@ TestGnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
   pos = pos % m_pattern.size ();
 
   NS_ASSERT (type == LteNrTddSlotType::DL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
-  NS_ASSERT_MSG (m_pattern[pos] == LteNrTddSlotType::DL ||
-                 m_pattern[pos] == LteNrTddSlotType::S  ||
-                 m_pattern[pos] == LteNrTddSlotType::F,
+  NS_ASSERT_MSG (m_pattern[pos] == LteNrTddSlotType::DL
+                 || m_pattern[pos] == LteNrTddSlotType::S
+                 || m_pattern[pos] == LteNrTddSlotType::F,
                  "MAC called to generate a DL slot, but in the pattern there is " << m_pattern[pos]);
 
   m_slotCreated.insert (pos);
@@ -144,8 +145,8 @@ TestGnbMac::DoSlotUlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
   pos = pos % m_pattern.size ();
 
   NS_ASSERT (type == LteNrTddSlotType::UL || type == LteNrTddSlotType::S || type == LteNrTddSlotType::F);
-  NS_ASSERT_MSG (m_pattern[pos] == LteNrTddSlotType::UL ||
-                 m_pattern[pos] == LteNrTddSlotType::F,
+  NS_ASSERT_MSG (m_pattern[pos] == LteNrTddSlotType::UL
+                 || m_pattern[pos] == LteNrTddSlotType::F,
                  "MAC called to generate a UL slot, but in the pattern there is " << m_pattern[pos]);
 
   m_slotCreated.insert (pos);
@@ -186,7 +187,7 @@ private:
   std::string m_pattern;
 };
 
-LtePhyPatternTestCase::~LtePhyPatternTestCase()
+LtePhyPatternTestCase::~LtePhyPatternTestCase ()
 {
   if (m_phy)
     {
@@ -208,16 +209,16 @@ LtePhyPatternTestCase::DoRun ()
   m_phy->SetPattern (m_pattern);
 
   // Finishing initialization
-  m_phy->SetPhySapUser (mac->GetPhySapUser());
+  m_phy->SetPhySapUser (mac->GetPhySapUser ());
   m_phy->Initialize ();
-  mac->SetPhySapProvider (m_phy->GetPhySapProvider());
+  mac->SetPhySapProvider (m_phy->GetPhySapProvider ());
   mac->Initialize ();
 
   StartSimu ();
 }
 
 void
-LtePhyPatternTestCase::StartSimu()
+LtePhyPatternTestCase::StartSimu ()
 {
   Simulator::Stop (MilliSeconds (200));
   Simulator::Run ();
@@ -264,15 +265,15 @@ LtePhyPatternTestCase::CreateMac (const Ptr<NrMacScheduler> &sched) const
   sched->SetMacSchedSapUser (mac->GetNrMacSchedSapUser ());
   sched->SetMacCschedSapUser (mac->GetNrMacCschedSapUser ());
 
-  mac->SetNrMacSchedSapProvider(sched->GetMacSchedSapProvider ());
-  mac->SetNrMacCschedSapProvider(sched->GetMacCschedSapProvider ());
+  mac->SetNrMacSchedSapProvider (sched->GetMacSchedSapProvider ());
+  mac->SetNrMacCschedSapProvider (sched->GetMacCschedSapProvider ());
 
   return mac;
 }
 
 void
-LtePhyPatternTestCase::Print(const std::string &msg1, const std::string& msg2,
-                          const std::map<uint32_t, std::vector<uint32_t> > &str)
+LtePhyPatternTestCase::Print (const std::string &msg1, const std::string& msg2,
+                              const std::map<uint32_t, std::vector<uint32_t> > &str)
 {
   for (const auto & v : str)
     {
@@ -289,37 +290,37 @@ class NrLtePatternsTestSuite : public TestSuite
 {
 public:
   NrLtePatternsTestSuite () : TestSuite ("nr-phy-patterns", UNIT)
-    {
+  {
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|DL|DL|S|UL|UL|DL|",
-                                             "LTE TDD Pattern 1 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|UL|DL|DL|S|UL|UL|DL|",
+                                            "LTE TDD Pattern 1 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|DL|DL|DL|S|UL|DL|DL|",
-                                             "LTE TDD Pattern 2 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|DL|DL|DL|S|UL|DL|DL|",
+                                            "LTE TDD Pattern 2 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|DL|DL|DL|DL|",
-                                             "LTE TDD Pattern 3 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|DL|DL|DL|DL|",
+                                            "LTE TDD Pattern 3 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|DL|DL|DL|DL|DL|DL|",
-                                             "LTE TDD Pattern 4 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|UL|DL|DL|DL|DL|DL|DL|",
+                                            "LTE TDD Pattern 4 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|DL|DL|DL|DL|DL|DL|DL|",
-                                             "LTE TDD Pattern 5 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|DL|DL|DL|DL|DL|DL|DL|",
+                                            "LTE TDD Pattern 5 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|S|UL|UL|DL|",
-                                             "LTE TDD Pattern 6 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|S|UL|UL|DL|",
+                                            "LTE TDD Pattern 6 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|S|UL|UL|UL|",
-                                             "LTE TDD Pattern 0 test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("DL|S|UL|UL|UL|DL|S|UL|UL|UL|",
+                                            "LTE TDD Pattern 0 test"), QUICK);
 
-      AddTestCase(new LtePhyPatternTestCase ("F|F|F|F|F|F|F|F|F|F|",
-                                             "LTE TDD Pattern NR test"), QUICK);
+    AddTestCase (new LtePhyPatternTestCase ("F|F|F|F|F|F|F|F|F|F|",
+                                            "LTE TDD Pattern NR test"), QUICK);
 
-    }
+  }
 };
 
 static NrLtePatternsTestSuite nrLtePatternsTestSuite;
 
 //!< Pattern test suite
 
-}; // namespace ns3
+}  // namespace ns3

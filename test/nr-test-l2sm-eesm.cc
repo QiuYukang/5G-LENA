@@ -131,7 +131,7 @@ static std::vector<MappingTable> resultTable1 = {
 
 };
 static std::vector<MappingTable> resultTable2 = {
-  // sinr (lineal), mcs, cbsize, result 
+  // sinr (lineal), mcs, cbsize, result
 
   // MCS 11, all CBS in continuation use BGtype2
   // CBS=3200, in table corresponds to 3104
@@ -160,10 +160,10 @@ NrL2smEesmTestCase::TestMappingSinrBler1 (const Ptr<NrEesmErrorModel> &em)
 {
   for (auto result : resultTable1)
     {
-      NS_TEST_ASSERT_MSG_EQ (em->MappingSinrBler(std::get<0> (result),
-                                                 std::get<1> (result),
-                                                 std::get<2> (result)),
-                                                 std::get<3> (result),
+      NS_TEST_ASSERT_MSG_EQ (em->MappingSinrBler (std::get<0> (result),
+                                                  std::get<1> (result),
+                                                  std::get<2> (result)),
+                             std::get<3> (result),
                              "TestMappingSinrBler1: The calculated value differs from "
                              " the SINR-BLER table. SINR=" << std::get<0> (result) <<
                              " MCS " << static_cast<uint32_t> (std::get<1> (result)) <<
@@ -176,10 +176,10 @@ NrL2smEesmTestCase::TestMappingSinrBler2 (const Ptr<NrEesmErrorModel> &em)
 {
   for (auto result : resultTable2)
     {
-      NS_TEST_ASSERT_MSG_EQ (em->MappingSinrBler(std::get<0> (result),
-                                                 std::get<1> (result),
-                                                 std::get<2> (result)),
-                                                 std::get<3> (result),
+      NS_TEST_ASSERT_MSG_EQ (em->MappingSinrBler (std::get<0> (result),
+                                                  std::get<1> (result),
+                                                  std::get<2> (result)),
+                             std::get<3> (result),
                              "TestMappingSinrBler2: The calculated value differs from "
                              " the SINR-BLER table. SINR=" << std::get<0> (result) <<
                              " MCS " << static_cast<uint32_t> (std::get<1> (result)) <<
@@ -260,11 +260,11 @@ class NrTestL2smEesm : public TestSuite
 {
 public:
   NrTestL2smEesm () : TestSuite ("nr-test-l2sm-eesm", UNIT)
-    {
-      AddTestCase(new NrL2smEesmTestCase ("First test"), QUICK);
-    }
+  {
+    AddTestCase (new NrL2smEesmTestCase ("First test"), QUICK);
+  }
 };
 
 static NrTestL2smEesm NrTestL2smEesmTestSuite; //!< Nr test suite
 
-}; // namespace ns3
+}  // namespace ns3

@@ -60,15 +60,15 @@ class TestSfnSf : public TestSuite
 {
 public:
   TestSfnSf () : TestSuite ("nr-test-sfnsf", UNIT)
-    {
-      AddTestCase (new TestSfnSfTestCase (0, "SfnSf TestAdd with num 2"), QUICK);
-      AddTestCase (new TestSfnSfTestCase (1, "SfnSf TestAdd with num 2"), QUICK);
-      AddTestCase (new TestSfnSfTestCase (2, "SfnSf TestAdd with num 2"), QUICK);
-      AddTestCase (new TestSfnSfTestCase (3, "SfnSf TestAdd with num 2"), QUICK);
-      AddTestCase (new TestSfnSfTestCase (4, "SfnSf TestAdd with num 2"), QUICK);
-    }
+  {
+    AddTestCase (new TestSfnSfTestCase (0, "SfnSf TestAdd with num 2"), QUICK);
+    AddTestCase (new TestSfnSfTestCase (1, "SfnSf TestAdd with num 2"), QUICK);
+    AddTestCase (new TestSfnSfTestCase (2, "SfnSf TestAdd with num 2"), QUICK);
+    AddTestCase (new TestSfnSfTestCase (3, "SfnSf TestAdd with num 2"), QUICK);
+    AddTestCase (new TestSfnSfTestCase (4, "SfnSf TestAdd with num 2"), QUICK);
+  }
 };
 
 static TestSfnSf testSfnSf; //!< SfnSf test
 
-}; // namespace ns3
+}  // namespace ns3

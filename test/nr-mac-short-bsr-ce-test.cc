@@ -52,7 +52,7 @@ NrMacShortBsrCeTest::DoRun ()
   Ptr<Packet> applicationData = Create<Packet> ();
 
   Packet::EnablePrinting ();
-  Packet::EnableChecking();
+  Packet::EnableChecking ();
 
   Ptr<Packet> pdu = Create<Packet> ();
 
@@ -97,11 +97,11 @@ class NrMacShortBsrCeTestSuite : public TestSuite
 {
 public:
   NrMacShortBsrCeTestSuite () : TestSuite ("nr-mac-short-bsr-ce-test", UNIT)
-    {
-      AddTestCase (new NrMacShortBsrCeTest ("Short BSR CE test"), QUICK);
-    }
+  {
+    AddTestCase (new NrMacShortBsrCeTest ("Short BSR CE test"), QUICK);
+  }
 };
 
 static NrMacShortBsrCeTestSuite nrMacShortBsrCeTestSuite;
 
-}; // namespace ns3
+}  // namespace ns3

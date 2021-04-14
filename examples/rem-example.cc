@@ -82,7 +82,7 @@
 
 using namespace ns3;
 
-int 
+int
 main (int argc, char *argv[])
 {
   std::string remMode = "CoverageArea";
@@ -151,10 +151,10 @@ main (int argc, char *argv[])
                 "gNBs in the case of worst-case SINR."
                 "UeCoverage is similar to the previous, just that it is showing the "
                 "uplink coverage.",
-                 remMode);
+                remMode);
   cmd.AddValue ("simTag",
                 "Simulation string tag that will be concatenated to output file names",
-                 simTag);
+                simTag);
   cmd.AddValue ("scenario",
                 "The scenario for the simulation. Choose among 'RMa', 'UMa', "
                 "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'"
@@ -272,7 +272,7 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   // enable logging
-  if(logging)
+  if (logging)
     {
       //LogComponentEnable ("ThreeGppSpectrumPropagationLossModel", LOG_LEVEL_ALL);
       LogComponentEnable ("ThreeGppPropagationLossModel", LOG_LEVEL_ALL);
@@ -288,7 +288,7 @@ main (int argc, char *argv[])
    * Default values for the simulation. We are progressively removing all
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
-  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+  Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
 
   // set mobile device and base station antenna heights in meters, according to the chosen scenario
   if (scenario.compare ("RMa") == 0)
@@ -376,15 +376,15 @@ main (int argc, char *argv[])
   Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator> ();
   gnbPositionAlloc->Add (Vector (gNB1x, gNB1y, hBS));
   if (deploymentScenario.compare ("TwoGnbs") == 0)
-  {
-    gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
-  }
+    {
+      gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
+    }
   if (deploymentScenario.compare ("FourGnbs") == 0)
-  {
-    gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
-    gnbPositionAlloc->Add (Vector (gNB1x + offset, gNB1y, hBS));
-    gnbPositionAlloc->Add (Vector (gNB2x + offset, gNB2y, hBS));
-  }
+    {
+      gnbPositionAlloc->Add (Vector (gNB2x, gNB2y, hBS));
+      gnbPositionAlloc->Add (Vector (gNB1x + offset, gNB1y, hBS));
+      gnbPositionAlloc->Add (Vector (gNB2x + offset, gNB2y, hBS));
+    }
 
   MobilityHelper gnbMobility;
   gnbMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -398,16 +398,16 @@ main (int argc, char *argv[])
 
   ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x, ue1y, hUT));
   if (deploymentScenario.compare ("TwoGnbs") == 0)
-  {
-    ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
-  }
+    {
+      ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
+    }
 
   if (deploymentScenario.compare ("FourGnbs") == 0)
-  {
+    {
       ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x, ue2y, hUT));
       ueNodes.Get (2)->GetObject<MobilityModel> ()->SetPosition (Vector (ue1x + offset, ue1y, hUT));
       ueNodes.Get (3)->GetObject<MobilityModel> ()->SetPosition (Vector (ue2x + offset, ue2y, hUT));
-  }
+    }
 
   if (enableBuildings)
     {
@@ -457,7 +457,7 @@ main (int argc, char *argv[])
   OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
 
   //Initialize channel and pathloss, plus other things inside band.
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -541,7 +541,7 @@ main (int argc, char *argv[])
     }
 
   // create the internet and install the IP stack on the UEs
-  // get SGW/PGW and create a single RemoteHost 
+  // get SGW/PGW and create a single RemoteHost
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
@@ -580,25 +580,25 @@ main (int argc, char *argv[])
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
 
       UdpServerHelper dlPacketSinkHelper (dlPort);
-      serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get(u)));
+      serverApps.Add (dlPacketSinkHelper.Install (ueNodes.Get (u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds(1)));
+      dlClient.SetAttribute ("Interval", TimeValue (MicroSeconds (1)));
       //dlClient.SetAttribute ("MaxPackets", UintegerValue(0xFFFFFFFF));
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(10));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue (10));
       dlClient.SetAttribute ("PacketSize", UintegerValue (1500));
       clientApps.Add (dlClient.Install (remoteHost));
     }
 
   // attach UEs to the closest gNB
-  nrHelper->AttachToEnb (ueNetDev.Get(0), gnbNetDev.Get(0));
-  
-  if (deploymentScenario.compare("TwoGnbs") == 0)
+  nrHelper->AttachToEnb (ueNetDev.Get (0), gnbNetDev.Get (0));
+
+  if (deploymentScenario.compare ("TwoGnbs") == 0)
     {
-      nrHelper->AttachToEnb (ueNetDev.Get(1), gnbNetDev.Get(1));
+      nrHelper->AttachToEnb (ueNetDev.Get (1), gnbNetDev.Get (1));
     }
 
-  if (deploymentScenario.compare("FourGnbs") == 0)
+  if (deploymentScenario.compare ("FourGnbs") == 0)
     {
       nrHelper->AttachToEnb (ueNetDev.Get (1), gnbNetDev.Get (1));
       nrHelper->AttachToEnb (ueNetDev.Get (2), gnbNetDev.Get (2));
@@ -610,7 +610,7 @@ main (int argc, char *argv[])
   serverApps.Start (Seconds (0.4));
   clientApps.Start (Seconds (0.4));
   serverApps.Stop (Seconds (simTime));
-  clientApps.Stop (Seconds (simTime-0.2));
+  clientApps.Stop (Seconds (simTime - 0.2));
 
   // enable the traces provided by the nr module
   if (enableTraces)
@@ -630,25 +630,25 @@ main (int argc, char *argv[])
   remHelper->SetZ (z);
   remHelper->SetSimTag (simTag);
 
-  gnbNetDev.Get(0)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (0));
+  gnbNetDev.Get (0)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (0));
 
-  if (deploymentScenario.compare("TwoGnbs") == 0)
+  if (deploymentScenario.compare ("TwoGnbs") == 0)
     {
-      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
+      gnbNetDev.Get (1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
     }
 
-  if (deploymentScenario.compare("FourGnbs") == 0)
+  if (deploymentScenario.compare ("FourGnbs") == 0)
     {
-      gnbNetDev.Get(1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
-      gnbNetDev.Get(2)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (2));
-      gnbNetDev.Get(3)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (3));
+      gnbNetDev.Get (1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
+      gnbNetDev.Get (2)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (2));
+      gnbNetDev.Get (3)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (3));
     }
 
   if (remMode == "BeamShape")
     {
       remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
 
-      if(typeOfRem.compare ("DlRem") == 0)
+      if (typeOfRem.compare ("DlRem") == 0)
         {
           remHelper->CreateRem (gnbNetDev, ueNetDev.Get (0), remBwpId);
         }

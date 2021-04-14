@@ -287,7 +287,7 @@ std::string
 BuildFileNameString (std::string directoryName, std::string filePrefix, std::string tag)
 {
   std::ostringstream oss;
-  oss << directoryName <<"/"<<filePrefix << tag;
+  oss << directoryName << "/" << filePrefix << tag;
   return oss.str ();
 }
 
@@ -301,12 +301,12 @@ CttcRealisticBeamforming:: BuildTag ()
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
 
   oss << "-"   << algorithm   <<
-         "-d" << distance2D <<
-         "-mu" << m_numerology <<
-         "-gnb" << m_gnbAntennaModel  <<
-         "-ue" << m_ueAntennaModel <<
-         "-uePow" << m_ueTxPower <<
-         "-scenario" << m_scenario;
+    "-d" << distance2D <<
+    "-mu" << m_numerology <<
+    "-gnb" << m_gnbAntennaModel  <<
+    "-ue" << m_ueAntennaModel <<
+    "-uePow" << m_ueTxPower <<
+    "-scenario" << m_scenario;
 
   return oss.str ();
 }
@@ -321,7 +321,7 @@ CttcRealisticBeamforming::PrepareOutputFiles ()
     {
       m_tag = BuildTag ();
     }
-  std::string fileSinr = BuildFileNameString ( m_resultsDirPath , "sinrs", m_tag);
+  std::string fileSinr = BuildFileNameString ( m_resultsDirPath, "sinrs", m_tag);
 
   m_outSinrFile.open (fileSinr.c_str (), std::ios_base::app);
   m_outSinrFile.setf (std::ios_base::fixed);
@@ -333,64 +333,64 @@ CttcRealisticBeamforming::PrepareDatabase ()
 {
   NS_LOG_FUNCTION (this);
 
-  int rc = sqlite3_open ((m_resultsDirPath + "/" + m_dbName).c_str(), &m_db);
+  int rc = sqlite3_open ((m_resultsDirPath + "/" + m_dbName).c_str (), &m_db);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Failed to open DB");
 
   std::string cmd = "CREATE TABLE IF NOT EXISTS " + m_tableName + " ("
-                    "SINR DOUBLE NOT NULL, "
-                    "SINR_DB DOUBLE NOT NULL, "
-                    "Distance DOUBLE NOT NULL,"
-                    "DeltaX DOUBLE NOT NULL,"
-                    "DeltaY DOUBLE NOT NULL,"
-                    "BeamformingType TEXT NOT NULL,"
-                    "RngRun INTEGER NOT NULL,"
-                    "Numerology INTEGER NOT NULL,"
-                    "GnbAntenna TEXT NOT NULL,"
-                    "UeAntenna TEXT NOT NULL,"
-                    "UePower INTEGER NOT NULL,"
-                    "Scenario TEXT NOT NULL);";
+    "SINR DOUBLE NOT NULL, "
+    "SINR_DB DOUBLE NOT NULL, "
+    "Distance DOUBLE NOT NULL,"
+    "DeltaX DOUBLE NOT NULL,"
+    "DeltaY DOUBLE NOT NULL,"
+    "BeamformingType TEXT NOT NULL,"
+    "RngRun INTEGER NOT NULL,"
+    "Numerology INTEGER NOT NULL,"
+    "GnbAntenna TEXT NOT NULL,"
+    "UeAntenna TEXT NOT NULL,"
+    "UePower INTEGER NOT NULL,"
+    "Scenario TEXT NOT NULL);";
 
-   sqlite3_stmt *stmt;
+  sqlite3_stmt *stmt;
 
-   // prepare the statement for creating the table
-   uint32_t attemptCount = 0;
-   do
-     {
-       rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
-       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                            "Check if you have the database/table open with another program. "
-                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
-     }
-   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-   // check if it went correctly
-   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the statement for creating the table. Db error:" << sqlite3_errmsg (m_db)
-                        <<"full command is: \n"<<cmd);
+  // prepare the statement for creating the table
+  uint32_t attemptCount = 0;
+  do
+    {
+      rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the statement for creating the table. Db error:" << sqlite3_errmsg (m_db)
+                                                                                                                                           << "full command is: \n" << cmd);
 
-   // execute a step operation on a statement until the result is ok or an error
-   attemptCount = 0;
-   do
-      {
-        rc = sqlite3_step (stmt);
-        NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                             "Check if you have the database/table open with another program. "
-                                                             "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
-      }
-    while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-   // check if it went correctly
-   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
+  // execute a step operation on a statement until the result is ok or an error
+  attemptCount = 0;
+  do
+    {
+      rc = sqlite3_step (stmt);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
 
-   // finalize the statement until the result is ok or an error occures
-   attemptCount = 0;
-   do
-     {
-       rc = sqlite3_finalize (stmt);
-       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                            "Check if you have the database/table open with another program. "
-                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
-     }
-   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-   // check if it went correctly
-   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
+  // finalize the statement until the result is ok or an error occures
+  attemptCount = 0;
+  do
+    {
+      rc = sqlite3_finalize (stmt);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement for creating the table. Db error:" << sqlite3_errmsg (m_db));
 }
 
 void
@@ -402,7 +402,7 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
 
   sqlite3_stmt *stmt;
   std::string cmd = "INSERT INTO " + m_tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-  std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
+  std::string beamformingType = (m_beamforming == IDEAL) ? "Ideal" : "Real";
   int rc;
   double distance2D = sqrt (m_deltaX * m_deltaX + m_deltaY * m_deltaY);
 
@@ -412,17 +412,17 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
     {
       rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                           "Check if you have the database/table open with another program. "
-                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
   // check if it went correctly
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the insert into the table statement. "
-                                                             " Db error:" << sqlite3_errmsg (m_db)<<". The full command is: \n"<<cmd);
+                       " Db error:" << sqlite3_errmsg (m_db) << ". The full command is: \n" << cmd);
 
   // add all parameters to the command
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_sinrStats.getMean()) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, 10.0 * log10 (m_sinrStats.getMean())) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_sinrStats.getMean ()) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, 10.0 * log10 (m_sinrStats.getMean ())) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 3, distance2D) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 4, m_deltaX) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 5, m_deltaY) == SQLITE_OK);
@@ -430,9 +430,9 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, m_rngRun) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, m_numerology) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 10, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 10, m_ueAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 11, m_ueTxPower) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 12, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 12, m_scenario.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
 
 
   // finalize the command
@@ -441,19 +441,19 @@ CttcRealisticBeamforming::PrintResultsToDatabase ()
     {
       rc = sqlite3_step (stmt);
       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                           "Check if you have the database/table open with another program. "
-                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-   // check if it went correctly
-   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
   attemptCount = 0;
   do
     {
       rc = sqlite3_finalize (stmt);
       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                           "Check if you have the database/table open with another program. "
-                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
@@ -464,16 +464,16 @@ void
 CttcRealisticBeamforming::DeleteFromDatabaseIfAlreadyExist ()
 {
   sqlite3_stmt *stmt;
-  std::string cmd= "DELETE FROM \"" + m_tableName + "\" WHERE "
-                   "deltaX == ? AND "  // 1
-                   "deltaY == ? AND "  //2
-                   "BeamformingType = ? AND " //3
-                   "RngRun == ? AND " //4
-                   "Numerology == ? AND " //5
-                   "GnbAntenna = ? AND " //6
-                   "UeAntenna = ? AND " //7
-                   "UePower = ? AND " //8
-                   "Scenario = ?;"; //9
+  std::string cmd = "DELETE FROM \"" + m_tableName + "\" WHERE "
+    "deltaX == ? AND "                 // 1
+    "deltaY == ? AND "                 //2
+    "BeamformingType = ? AND "                //3
+    "RngRun == ? AND "                //4
+    "Numerology == ? AND "                //5
+    "GnbAntenna = ? AND "                //6
+    "UeAntenna = ? AND "                //7
+    "UePower = ? AND "                //8
+    "Scenario = ?;";                //9
   int rc;
 
   // prepare the statement for creating the table
@@ -482,57 +482,57 @@ CttcRealisticBeamforming::DeleteFromDatabaseIfAlreadyExist ()
     {
       rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                           "Check if you have the database/table open with another program. "
-                                                           "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
     }
   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
   // check if it went correctly
   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not prepare correctly the delete statement. "
-                                                              " Db error:" << sqlite3_errmsg (m_db)<<". The full command is: \n"<<cmd);
+                       " Db error:" << sqlite3_errmsg (m_db) << ". The full command is: \n" << cmd);
 
 
-  std::string beamformingType = (m_beamforming == IDEAL)? "Ideal":"Real";
+  std::string beamformingType = (m_beamforming == IDEAL) ? "Ideal" : "Real";
   // add all parameters to the command
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 1, m_deltaX) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 2, m_deltaY) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 3, beamformingType.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 3, beamformingType.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 4, m_rngRun) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 5, m_numerology) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 6, m_gnbAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 7, m_ueAntennaModel.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 7, m_ueAntennaModel.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
   NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, m_ueTxPower) == SQLITE_OK);
-  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_scenario.c_str(), -1, SQLITE_STATIC) == SQLITE_OK);
+  NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 9, m_scenario.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
 
 
   // finalize the command
-   attemptCount = 0;
-   do
-     {
-       rc = sqlite3_step (stmt);
-       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                            "Check if you have the database/table open with another program. "
-                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
-     }
-   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-    // check if it went correctly
-    NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
-   attemptCount = 0;
-   do
-     {
-       rc = sqlite3_finalize (stmt);
-       NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
-                                                            "Check if you have the database/table open with another program. "
-                                                            "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
-     }
-   while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-   NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+  attemptCount = 0;
+  do
+    {
+      rc = sqlite3_step (stmt);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  // check if it went correctly
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
+  attemptCount = 0;
+  do
+    {
+      rc = sqlite3_finalize (stmt);
+      NS_ABORT_MSG_IF (++attemptCount == DB_ATTEMPT_LIMIT, "Waiting too much for sqlite3 database to be ready. "
+                       "Check if you have the database/table open with another program. "
+                       "If yes, close it before running again cttc-realistic-beamforming program.\n\n");
+    }
+  while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error:" << sqlite3_errmsg (m_db));
 
 }
 
 void
 CttcRealisticBeamforming::CreateDlTrafficApplications (ApplicationContainer& serverAppDl, ApplicationContainer& clientAppDl,
-                                                     NodeContainer& ueNode, Ptr<Node> remoteHost, NetDeviceContainer ueNetDev,
-                                                     Ipv4InterfaceContainer& ueIpIface)
+                                                       NodeContainer& ueNode, Ptr<Node> remoteHost, NetDeviceContainer ueNetDev,
+                                                       Ipv4InterfaceContainer& ueIpIface)
 {
   NS_LOG_FUNCTION (this);
   uint16_t dlPort = 1234;
@@ -541,11 +541,11 @@ CttcRealisticBeamforming::CreateDlTrafficApplications (ApplicationContainer& ser
   UdpServerHelper dlPacketSinkHelper (dlPort);
   serverAppDl.Add (dlPacketSinkHelper.Install (ueNode));
   // Configure UDP downlink traffic
-  for (uint32_t i = 0 ; i < ueNetDev.GetN (); i ++)
+  for (uint32_t i = 0; i < ueNetDev.GetN (); i++)
     {
       UdpClientHelper dlClient (ueIpIface.GetAddress (i), dlPort);
       dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
-      dlClient.SetAttribute("PacketSize", UintegerValue (m_packetSize));
+      dlClient.SetAttribute ("PacketSize", UintegerValue (m_packetSize));
       dlClient.SetAttribute ("Interval", TimeValue (udpInterval)); // we try to saturate, we just need to measure during a short time, how much traffic can handle each BWP
       clientAppDl.Add (dlClient.Install (remoteHost));
     }
@@ -565,7 +565,7 @@ CttcRealisticBeamforming::CreateDlTrafficApplications (ApplicationContainer& ser
 void UeReceptionTrace (CttcRealisticBeamforming* simSetup, RxPacketTraceParams params)
 {
   simSetup->UeReception (params);
- }
+}
 
 void
 CttcRealisticBeamforming::UeReception (RxPacketTraceParams params)
@@ -711,8 +711,8 @@ CttcRealisticBeamforming::RunSimulation ()
 
   // Set positions
   Ptr<ListPositionAllocator> positions = CreateObject<ListPositionAllocator> ();
-  positions -> Add (Vector (m_gNbX, m_gNbY, m_gNbHeight));  //gNb will take this position
-  positions -> Add (Vector (m_gNbX + m_deltaX, m_gNbY + m_deltaY, m_ueHeight)); //UE will take this position
+  positions->Add (Vector (m_gNbX, m_gNbY, m_gNbHeight));    //gNb will take this position
+  positions->Add (Vector (m_gNbX + m_deltaX, m_gNbY + m_deltaY, m_ueHeight));   //UE will take this position
   MobilityHelper mobility;
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positions);
@@ -730,15 +730,15 @@ CttcRealisticBeamforming::RunSimulation ()
     {
       beamformingHelper = CreateObject<IdealBeamformingHelper> ();
       beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (m_idealPeriodicity)));
-      beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId());
+      beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId ());
     }
   else if (m_beamforming == CttcRealisticBeamforming::REALISTIC)
     {
       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
-      beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId());
+      beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId ());
       // when realistic beamforming used, also realistic beam manager should be set
       // TODO, move this to NrHelper, so user sets BeamformingMethod calling NrHelper
-      nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId());
+      nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId ());
       nrHelper->SetGnbBeamManagerAttribute ("TriggerEvent", EnumValue (m_realTriggerEvent));
     }
   else
@@ -806,7 +806,7 @@ CttcRealisticBeamforming::RunSimulation ()
   randomStream += nrHelper->AssignStreams (gNbDev, randomStream);
   randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
-  for (uint32_t i = 0 ; i < gNbDev.GetN (); i ++)
+  for (uint32_t i = 0; i < gNbDev.GetN (); i++)
     {
       nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (m_numerology));
       nrHelper->GetGnbPhy (gNbDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (m_gNbTxPower));
@@ -855,12 +855,12 @@ CttcRealisticBeamforming::RunSimulation ()
   // Set the default gateway for the UE
   for (uint32_t j = 0; j < ueNode.GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNode.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNode.Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
   // Attach UE to gNB
-  nrHelper->AttachToEnb (ueNetDev.Get(0), gNbDev.Get(0));
+  nrHelper->AttachToEnb (ueNetDev.Get (0), gNbDev.Get (0));
 
   // Install UDP downlink applications
   ApplicationContainer clientAppDl;
@@ -868,7 +868,7 @@ CttcRealisticBeamforming::RunSimulation ()
   CreateDlTrafficApplications (clientAppDl, serverAppDl, ueNode, remoteHost, ueNetDev, ueIpIface);
 
   // Connect traces to our listener functions
-  for (uint32_t i = 0 ; i < ueNetDev.GetN (); i ++)
+  for (uint32_t i = 0; i < ueNetDev.GetN (); i++)
     {
       Ptr<NrSpectrumPhy> ue1SpectrumPhy = DynamicCast <NrUeNetDevice> (ueNetDev.Get (i))->GetPhy (0)->GetSpectrumPhy ();
       ue1SpectrumPhy->TraceConnectWithoutContext ("RxPacketTraceUe", MakeBoundCallback (&UeReceptionTrace, this));
@@ -953,10 +953,10 @@ main (int argc, char *argv[])
                 simTag);
   cmd.AddValue ("dbName",
                 "Database name.",
-                 dbName);
+                dbName);
   cmd.AddValue ("tableName",
                 "Table name.",
-                 tableName);
+                tableName);
   cmd.Parse (argc, argv);
 
 

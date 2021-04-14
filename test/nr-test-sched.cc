@@ -45,25 +45,39 @@ class TestCschedSapUser : public NrMacCschedSapUser
 public:
   TestCschedSapUser () : NrMacCschedSapUser () { }
   virtual void CschedCellConfigCnf (const struct CschedCellConfigCnfParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 
   virtual void CschedUeConfigCnf (const struct CschedUeConfigCnfParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 
   virtual void CschedLcConfigCnf (const struct CschedLcConfigCnfParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 
   virtual void CschedLcReleaseCnf (const struct CschedLcReleaseCnfParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 
   virtual void CschedUeReleaseCnf (const struct CschedUeReleaseCnfParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 
   virtual void CschedUeConfigUpdateInd (const struct CschedUeConfigUpdateIndParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 
   virtual void CschedCellConfigUpdateInd (const struct CschedCellConfigUpdateIndParameters& params) override
-  { NS_UNUSED(params); }
+  {
+    NS_UNUSED (params);
+  }
 };
 
 class TestSchedSapUser;
@@ -168,20 +182,20 @@ private:
 void
 NrSchedGeneralTestCase::TestSAPInterface (const Ptr<NrMacScheduler> &sched)
 {
-  NS_ABORT_IF (sched->GetMacSchedSapProvider() == nullptr);
+  NS_ABORT_IF (sched->GetMacSchedSapProvider () == nullptr);
   NS_ABORT_IF (sched->GetMacCschedSapProvider () == nullptr);
   sched->SetMacCschedSapUser (m_cSchedSapUser);
-  sched->SetMacSchedSapUser(m_schedSapUser);
+  sched->SetMacSchedSapUser (m_schedSapUser);
 }
 
 void
 NrSchedGeneralTestCase::SchedConfigInd (const struct NrMacSchedSapUser::SchedConfigIndParameters& params)
 {
-  NS_UNUSED(params);
+  NS_UNUSED (params);
 }
 
 void
-NrSchedGeneralTestCase::AddOneUser(uint16_t rnti, const Ptr<NrMacSchedulerNs3> &sched)
+NrSchedGeneralTestCase::AddOneUser (uint16_t rnti, const Ptr<NrMacSchedulerNs3> &sched)
 {
   NrMacCschedSapProvider::CschedUeConfigReqParameters params;
   params.m_rnti = rnti;
@@ -193,47 +207,47 @@ void
 NrSchedGeneralTestCase::TestingAddingUsers (const Ptr<NrMacSchedulerNs3> &sched)
 {
   for (uint16_t i = 0; i < 80; ++i)
-  {
-    AddOneUser (i, sched);
-    NS_TEST_ASSERT_MSG_EQ(sched->m_ueMap.size(),
-                          static_cast<uint32_t> (i+1), "UE not saved in the map");
-  }
+    {
+      AddOneUser (i, sched);
+      NS_TEST_ASSERT_MSG_EQ (sched->m_ueMap.size (),
+                             static_cast<uint32_t> (i + 1), "UE not saved in the map");
+    }
 }
 
 void
 NrSchedGeneralTestCase::TestingRemovingUsers (const Ptr<NrMacSchedulerNs3> &sched)
 {
   for (uint16_t i = 80; i > 0; --i)
-  {
-    NrMacCschedSapProvider::CschedUeReleaseReqParameters params;
-    params.m_rnti = i - 1;
-    sched->DoCschedUeReleaseReq (params);
-    NS_TEST_ASSERT_MSG_EQ (sched->m_ueMap.size (),
-                           static_cast<uint32_t> (i - 1), "UE released from the map. Map size " <<
-                           sched->m_ueMap.size () << " counter " << i);
-  }
+    {
+      NrMacCschedSapProvider::CschedUeReleaseReqParameters params;
+      params.m_rnti = i - 1;
+      sched->DoCschedUeReleaseReq (params);
+      NS_TEST_ASSERT_MSG_EQ (sched->m_ueMap.size (),
+                             static_cast<uint32_t> (i - 1), "UE released from the map. Map size " <<
+                             sched->m_ueMap.size () << " counter " << i);
+    }
 }
 
 void
 NrSchedGeneralTestCase::TestAddingRemovingUsersNoData (const Ptr<NrMacSchedulerNs3> &sched)
 {
-  NS_TEST_ASSERT_MSG_EQ(sched->m_ueMap.size(), 0, "some UE are in the map");
+  NS_TEST_ASSERT_MSG_EQ (sched->m_ueMap.size (), 0, "some UE are in the map");
   TestingAddingUsers (sched);
-  TestingRemovingUsers(sched);
-  NS_TEST_ASSERT_MSG_EQ(sched->m_ueMap.size(), 0, sched->m_ueMap.size() << " UEs are still in the map");
+  TestingRemovingUsers (sched);
+  NS_TEST_ASSERT_MSG_EQ (sched->m_ueMap.size (), 0, sched->m_ueMap.size () << " UEs are still in the map");
 }
 
 void
 NrSchedGeneralTestCase::TestSchedNewData (const Ptr<NrMacSchedulerNs3> &sched)
 {
-  TestSchedNewDlData(sched);
-  TestSchedNewUlData(sched);
-  TestSchedNewDlUlData(sched);
+  TestSchedNewDlData (sched);
+  TestSchedNewUlData (sched);
+  TestSchedNewDlUlData (sched);
 }
 
 void
 NrSchedGeneralTestCase::LcConfigFor (uint16_t rnti, uint32_t bytes,
-                                         const Ptr<NrMacSchedulerNs3> &sched)
+                                     const Ptr<NrMacSchedulerNs3> &sched)
 {
   NrMacCschedSapProvider::CschedLcConfigReqParameters params;
   LogicalChannelConfigListElement_s lc;
@@ -253,29 +267,25 @@ NrSchedGeneralTestCase::TestSchedNewDlData (const Ptr<NrMacSchedulerNs3> &sched)
 
 void
 NrSchedGeneralTestCase::TestSchedNewUlData (const Ptr<NrMacSchedulerNs3> &sched)
-{
-
-}
+{}
 
 void
 NrSchedGeneralTestCase::TestSchedNewDlUlData (const Ptr<NrMacSchedulerNs3> &sched)
-{
-
-}
+{}
 
 void
-NrSchedGeneralTestCase::DoRun()
+NrSchedGeneralTestCase::DoRun ()
 {
   m_cSchedSapUser = new TestCschedSapUser ();
   m_schedSapUser = new TestSchedSapUser (this);
 
   ObjectFactory factory;
-  factory.SetTypeId(m_scheduler);
-  Ptr<NrMacSchedulerNs3> sched = DynamicCast<NrMacSchedulerNs3> (factory.Create());
-  NS_ABORT_MSG_IF(sched == nullptr, "Can't create a NrMacSchedulerNs3 from type " + m_scheduler);
+  factory.SetTypeId (m_scheduler);
+  Ptr<NrMacSchedulerNs3> sched = DynamicCast<NrMacSchedulerNs3> (factory.Create ());
+  NS_ABORT_MSG_IF (sched == nullptr, "Can't create a NrMacSchedulerNs3 from type " + m_scheduler);
 
   TestSAPInterface (sched);
-  TestAddingRemovingUsersNoData(sched);
+  TestAddingRemovingUsersNoData (sched);
   TestSchedNewData (sched);
 
   delete m_cSchedSapUser;
@@ -286,14 +296,14 @@ class NrTestSchedSuite : public TestSuite
 {
 public:
   NrTestSchedSuite () : TestSuite ("nr-test-sched", SYSTEM)
-    {
-      AddTestCase(new NrSchedGeneralTestCase ("ns3::NrMacSchedulerTdmaRR", "TdmaRR test"), QUICK);
-      AddTestCase(new NrSchedGeneralTestCase ("ns3::NrMacSchedulerTdmaPF", "TdmaPF test"), QUICK);
-      AddTestCase(new NrSchedGeneralTestCase ("ns3::NrMacSchedulerOfdmaRR", "OfdmaRR test"), QUICK);
-      AddTestCase(new NrSchedGeneralTestCase ("ns3::NrMacSchedulerOfdmaPF", "OfdmaPF test"), QUICK);
-    }
+  {
+    AddTestCase (new NrSchedGeneralTestCase ("ns3::NrMacSchedulerTdmaRR", "TdmaRR test"), QUICK);
+    AddTestCase (new NrSchedGeneralTestCase ("ns3::NrMacSchedulerTdmaPF", "TdmaPF test"), QUICK);
+    AddTestCase (new NrSchedGeneralTestCase ("ns3::NrMacSchedulerOfdmaRR", "OfdmaRR test"), QUICK);
+    AddTestCase (new NrSchedGeneralTestCase ("ns3::NrMacSchedulerOfdmaPF", "OfdmaPF test"), QUICK);
+  }
 };
 
 static NrTestSchedSuite nrSchedTestSuite; //!< Nr scheduler test suite
 
-}; // namespace ns3
+}  // namespace ns3

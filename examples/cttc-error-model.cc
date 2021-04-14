@@ -76,7 +76,7 @@ NS_LOG_COMPONENT_DEFINE ("CttcErrorModelExample");
 
 
 static Ptr<ListPositionAllocator>
-GetGnbPositions(double gNbHeight = 10.0)
+GetGnbPositions (double gNbHeight = 10.0)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
   pos->Add (Vector (0.0, 0.0, gNbHeight));
@@ -85,7 +85,7 @@ GetGnbPositions(double gNbHeight = 10.0)
 }
 
 static Ptr<ListPositionAllocator>
-GetUePositions(double ueY, double ueHeight = 1.5)
+GetUePositions (double ueY, double ueHeight = 1.5)
 {
   Ptr<ListPositionAllocator> pos = CreateObject<ListPositionAllocator> ();
   pos->Add (Vector (0.0, ueY, ueHeight));
@@ -98,12 +98,12 @@ static std::vector<uint64_t> packetsTime;
 static void
 PrintRxPkt (std::string context, Ptr<const Packet> pkt)
 {
-  NS_UNUSED(context);
+  NS_UNUSED (context);
   // ASSUMING ONE UE
 
   SeqTsHeader seqTs;
   pkt->PeekHeader (seqTs);
-  packetsTime.push_back ((Simulator::Now () - seqTs.GetTs()).GetMicroSeconds ());
+  packetsTime.push_back ((Simulator::Now () - seqTs.GetTs ()).GetMicroSeconds ());
 }
 
 int
@@ -133,15 +133,15 @@ main (int argc, char *argv[])
   cmd.AddValue ("mcs",
                 "The MCS that will be used in this example",
                 mcs);
-  cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-               errorModel);
-  cmd.AddValue("ueY",
-               "Y position of any UE",
-               ueY);
-  cmd.AddValue("pktSize",
-               "Packet Size",
-               pktSize);
+  cmd.AddValue ("errorModelType",
+                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
+                errorModel);
+  cmd.AddValue ("ueY",
+                "Y position of any UE",
+                ueY);
+  cmd.AddValue ("pktSize",
+                "Packet Size",
+                pktSize);
   cmd.AddValue ("isUl",
                 "Is this an UL transmission?",
                 isUl);
@@ -156,10 +156,10 @@ main (int argc, char *argv[])
    * the instances of SetDefault, but we need it for legacy code (LTE)
    */
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize",
-                      UintegerValue(999999999));
+                      UintegerValue (999999999));
 
-  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));  // NOT USED in this example. MCS is fixed.
+  Config::SetDefault ("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModel)));
+  Config::SetDefault ("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));  // NOT USED in this example. MCS is fixed.
 
   // create base stations and mobile terminals
   NodeContainer gNbNodes;
@@ -172,8 +172,8 @@ main (int argc, char *argv[])
   gNbNodes.Create (gNbNum);
   ueNodes.Create (ueNum);
 
-  Ptr<ListPositionAllocator> gNbPositionAlloc = GetGnbPositions(gNbHeight);
-  Ptr<ListPositionAllocator> uePositionAlloc = GetUePositions(ueY, ueHeight);
+  Ptr<ListPositionAllocator> gNbPositionAlloc = GetGnbPositions (gNbHeight);
+  Ptr<ListPositionAllocator> uePositionAlloc = GetUePositions (ueY, ueHeight);
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (gNbPositionAlloc);
@@ -245,8 +245,8 @@ main (int argc, char *argv[])
   nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Scheduler
-  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue(true));
-  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue(true));
+  nrHelper->SetSchedulerAttribute ("FixedMcsDl", BooleanValue (true));
+  nrHelper->SetSchedulerAttribute ("FixedMcsUl", BooleanValue (true));
   nrHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (mcs));
   nrHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (mcs));
 
@@ -324,9 +324,9 @@ main (int argc, char *argv[])
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
 
   // Set the default gateway for the UEs
-  for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
+  for (uint32_t j = 0; j < ueNodes.GetN (); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(j)->GetObject<Ipv4> ());
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -339,7 +339,7 @@ main (int argc, char *argv[])
 
   if (isUl)
     {
-      sinkIps.Add(internetIpIfaces.Get(1));
+      sinkIps.Add (internetIpIfaces.Get (1));
       sinkNodes = remoteHostContainer;
       txNodes = ueNodes;
     }
@@ -353,14 +353,14 @@ main (int argc, char *argv[])
   // configure here UDP traffic
   for (uint32_t i = 0; i < txNodes.GetN (); ++i)
     {
-      for (uint32_t j = 0; j < sinkNodes.GetN(); ++j)
+      for (uint32_t j = 0; j < sinkNodes.GetN (); ++j)
         {
           UdpClientHelper dlClient (sinkIps.GetAddress (j), dlPort);
-          dlClient.SetAttribute ("MaxPackets", UintegerValue(packets));
-          dlClient.SetAttribute("PacketSize", UintegerValue(pktSize));
+          dlClient.SetAttribute ("MaxPackets", UintegerValue (packets));
+          dlClient.SetAttribute ("PacketSize", UintegerValue (pktSize));
           dlClient.SetAttribute ("Interval", TimeValue (packetInterval));
 
-          txApps.Add (dlClient.Install (txNodes.Get(i)));
+          txApps.Add (dlClient.Install (txNodes.Get (i)));
         }
     }
 
@@ -368,17 +368,17 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < sinkApps.GetN (); ++j)
     {
       Ptr<UdpServer> client = DynamicCast<UdpServer> (sinkApps.Get (j));
-      NS_ASSERT(client != nullptr);
+      NS_ASSERT (client != nullptr);
       std::stringstream ss;
       ss << j;
-      client->TraceConnect("Rx", ss.str(), MakeCallback (&PrintRxPkt));
+      client->TraceConnect ("Rx", ss.str (), MakeCallback (&PrintRxPkt));
     }
 
   // start UDP server and client apps
-  sinkApps.Start(udpAppStartTime);
-  txApps.Start(udpAppStartTime);
-  sinkApps.Stop(Seconds(simTime));
-  txApps.Stop(Seconds(simTime));
+  sinkApps.Start (udpAppStartTime);
+  txApps.Start (udpAppStartTime);
+  sinkApps.Stop (Seconds (simTime));
+  txApps.Stop (Seconds (simTime));
 
   // attach UEs to the closest eNB
   nrHelper->AttachToClosestEnb (ueNetDev, gnbNetDev);
@@ -388,11 +388,11 @@ main (int argc, char *argv[])
 
   Simulator::Stop (Seconds (simTime));
 
-  auto start = std::chrono::steady_clock::now();
+  auto start = std::chrono::steady_clock::now ();
 
   Simulator::Run ();
 
-  auto end = std::chrono::steady_clock::now();
+  auto end = std::chrono::steady_clock::now ();
 
 
   uint64_t sum = 0;
@@ -419,7 +419,7 @@ main (int argc, char *argv[])
     }
 
 
-  for (auto it = sinkApps.Begin(); it != sinkApps.End(); ++it)
+  for (auto it = sinkApps.Begin (); it != sinkApps.End (); ++it)
     {
       uint64_t recv = DynamicCast<UdpServer> (*it)->GetReceived ();
       std::cerr << "Sent: " << packets << " Recv: " << recv << " Lost: "
@@ -431,7 +431,7 @@ main (int argc, char *argv[])
 
   Simulator::Destroy ();
 
-  std::cerr << "Running time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
+  std::cerr << "Running time: " << std::chrono::duration_cast<std::chrono::seconds> (end - start).count ()
             << " s." << std::endl;
   return 0;
 }
