@@ -66,7 +66,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
    * For comparison, the 5GLENA FDD NON_OVERLAPPING case is
    *
    * Scenario 0:  sectors NON_OVERLAPPING in frequency
-   * 
+   *
    * FDD scenario 0:
    *
    * |--------Band0--------|--------Band1--------|--------Band2--------|
@@ -191,7 +191,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
   else
     {
       lteHelper->SetEnbAntennaModelType ("ns3::CosineAntennaModel");
-      lteHelper->SetEnbAntennaModelAttribute ("Beamwidth", DoubleValue (130));
+      lteHelper->SetEnbAntennaModelAttribute ("HorizontalBeamwidth", DoubleValue (130));
       lteHelper->SetEnbAntennaModelAttribute ("MaxGain", DoubleValue (0));
     }
   lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (bandwidthBandDlRB));
@@ -200,7 +200,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
   //SECTOR 1 eNB configuration
   if (!calibration)
     {
-      double orientationDegrees = sector0AngleRad * 180.0 / M_PI;  
+      double orientationDegrees = sector0AngleRad * 180.0 / M_PI;
       lteHelper->SetEnbAntennaModelAttribute ("Orientation", DoubleValue (orientationDegrees));
     }
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (centralFrequencyBand0Dl));
@@ -243,7 +243,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
   randomStream += lteHelper->AssignStreams (ueSector3NetDev, randomStream);
 
   ueNetDevs.Add (ueSector3NetDev);
-  
+
   for (auto nd = ueNetDevs.Begin (); nd != ueNetDevs.End (); ++nd)
     {
       auto ueNetDevice = DynamicCast<LteUeNetDevice> (*nd);

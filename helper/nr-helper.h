@@ -534,7 +534,7 @@ public:
    * \param n the name of the attribute
    * \param v the value of the attribute
    *
-   * \see ThreeGppAntennaArrayModel (in ns-3 documentation)
+   * \see UniformPlanarArray (in ns-3 documentation)
    */
   void SetUeAntennaAttribute (const std::string &n, const AttributeValue &v);
 
@@ -544,7 +544,7 @@ public:
    * \param n the name of the attribute
    * \param v the value of the attribute
    *
-   * \see ThreeGppAntennaArrayModel (in ns-3 documentation)
+   * \see UniformPlanarArray (in ns-3 documentation)
    */
   void SetGnbAntennaAttribute (const std::string &n, const AttributeValue &v);
 

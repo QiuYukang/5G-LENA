@@ -23,6 +23,7 @@
 #include "slot-output-stats.h"
 #include "rb-output-stats.h"
 #include <ns3/nr-spectrum-value-helper.h>
+#include <ns3/antenna-module.h>
 
 #include "ns3/log.h"
 
@@ -93,22 +94,22 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
 {
   // Change the antenna orientation
   Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
-  Ptr<ThreeGppAntennaArrayModel> antenna0 =
-        ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
-      antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
-      
-      // configure the beam that points toward the center of hexagonal
-      // In case of beamforming, it will be overwritten.
-      phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
-      
-      // Set numerology
-      nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));  // BWP
-      
-      // Set TX power
-      nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (txPowerBs));
-      
-      // Set TDD pattern
-      nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
+  Ptr<UniformPlanarArray> antenna0 =
+    ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+  antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
+
+  // configure the beam that points toward the center of hexagonal
+  // In case of beamforming, it will be overwritten.
+  phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
+
+  // Set numerology
+  nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));      // BWP
+
+  // Set TX power
+  nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("TxPower", DoubleValue (txPowerBs));
+
+  // Set TDD pattern
+  nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Pattern", StringValue (pattern));
 }
 
 }  // unnamed namespace
@@ -261,7 +262,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   else
     {
       NS_ABORT_MSG ("Unsupported power allocation type " << scenario << ". Supported values: "
-          "UniformPowerAllocBw and UniformPowerAllocUsed.");
+                    "UniformPowerAllocBw and UniformPowerAllocUsed.");
     }
 
   nrHelper->SetUePhyAttribute ("PowerAllocationType", EnumValue (powerAllocationEnum));
@@ -299,7 +300,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
    * parameter bandwidthMHz refers to the size of the FDD BWP.
    *
    * Scenario 0:  sectors NON_OVERLAPPING in frequency
-   * 
+   *
    * FDD scenario 0:
    *
    * |--------Band0--------|--------Band1--------|--------Band2--------|
@@ -343,7 +344,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // \todo: set band 0 start frequency from the command line
   const double band0Start = 2110e6;
   double bandwidthBwp = bandwidthMHz * 1e6;
-  
+
   OperationBandInfo band0, band1, band2;
   band0.m_bandId = 0;
   band1.m_bandId = 1;
@@ -352,7 +353,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   if (freqScenario == 0) // NON_OVERLAPPING
     {
       uint8_t numBwp;
-      
+
       if (operationMode == "FDD")
         {
           // FDD uses two BWPs per CC, one CC per band
@@ -369,42 +370,42 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       uint8_t numCcPerBand = 1;
       double bandwidthBand = numCcPerBand * bandwidthCc;
       double bandCenter = band0Start + bandwidthBand / 2.0;
-      
+
       NS_LOG_LOGIC ("NON_OVERLAPPING, " << operationMode << ": "
-                    << bandwidthBand << ":" << bandwidthCc << ":"
-                    << bandwidthBwp << ", "
-                    << (int)numCcPerBand << ", " << (int)numBwp);
-      
+                                        << bandwidthBand << ":" << bandwidthCc << ":"
+                                        << bandwidthBwp << ", "
+                                        << (int)numCcPerBand << ", " << (int)numBwp);
+
       NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
       CcBwpCreator::SimpleOperationBandConf
         bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
       bandConf0.m_numBwp = numBwp;
       bandCenter += bandwidthBand;
-      
+
       NS_LOG_LOGIC ("bandConf1: " << bandCenter << " " << bandwidthBand);
       CcBwpCreator::SimpleOperationBandConf
         bandConf1 (bandCenter, bandwidthBand, numCcPerBand, scene);
       bandConf1.m_numBwp = numBwp;
       bandCenter += bandwidthBand;
-      
+
       NS_LOG_LOGIC ("bandConf2: " << bandCenter << " " << bandwidthBand);
       CcBwpCreator::SimpleOperationBandConf
         bandConf2 (bandCenter, bandwidthBand, numCcPerBand, scene);
       bandConf2.m_numBwp = numBwp;
-      
+
       // Create, then configure
       CcBwpCreator ccBwpCreator;
-      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0); 
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0);
       band0.m_bandId = 0;
-          
+
       band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
       band1.m_bandId = 1;
-      
+
       band2 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf2);
       band2.m_bandId = 2;
-      
+
       bandCenter = band0Start + bandwidthBwp / 2.0;
-      
+
       NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
       ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
       bandCenter += bandwidthBwp;
@@ -415,18 +416,18 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           ConfigureBwpTo (band0.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
           bandCenter += bandwidthBwp;
         }
-      
+
       NS_LOG_LOGIC ("band1[0][0]: " << bandCenter << " " << bandwidthBwp);
       ConfigureBwpTo (band1.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
       bandCenter += bandwidthBwp;
-      
+
       if (operationMode == "FDD")
         {
           NS_LOG_LOGIC ("band1[0][1]: " << bandCenter << " " << bandwidthBwp);
           ConfigureBwpTo (band1.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
           bandCenter += bandwidthBwp;
         }
-      
+
       NS_LOG_LOGIC ("band2[0][0]: " << bandCenter << " " << bandwidthBwp);
       ConfigureBwpTo (band2.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
       bandCenter += bandwidthBwp;
@@ -436,17 +437,17 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           NS_LOG_LOGIC ("band2[0][1]: " << bandCenter << " " << bandwidthBwp);
           ConfigureBwpTo (band2.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
         }
-      
+
       std::cout << "BWP Configuration for NON_OVERLAPPING case, mode "
                 << operationMode << "\n"
                 << band0 << band1 << band2;
     }
 
-  
+
   else if (freqScenario == 1) // OVERLAPPING
     {
       uint8_t numBwp;
-      
+
       if (operationMode == "FDD")
         {
           // FDD uses two BWPs per CC, one CC per band
@@ -458,30 +459,30 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           bandwidthBwp *= 2;
           numBwp = 1;
         }
-      
+
       double bandwidthCc = numBwp * bandwidthBwp;
       uint8_t numCcPerBand = 1;
       double bandwidthBand = numCcPerBand * bandwidthCc;
       double bandCenter = band0Start + bandwidthBand / 2.0;
-      
+
       NS_LOG_LOGIC ("OVERLAPPING, " << operationMode << ": "
-                    << bandwidthBand << ":" << bandwidthCc << ":"
-                    << bandwidthBwp << ", "
-                    << (int)numCcPerBand << ", " << (int)numBwp);
+                                    << bandwidthBand << ":" << bandwidthCc << ":"
+                                    << bandwidthBwp << ", "
+                                    << (int)numCcPerBand << ", " << (int)numBwp);
 
       NS_LOG_LOGIC ("bandConf0: " << bandCenter << " " << bandwidthBand);
       CcBwpCreator::SimpleOperationBandConf
         bandConf0 (bandCenter, bandwidthBand, numCcPerBand, scene);
       bandConf0.m_numBwp = numBwp;
       bandCenter += bandwidthBand;
-      
+
       // Create, then configure
       CcBwpCreator ccBwpCreator;
-      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0); 
+      band0 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf0);
       band0.m_bandId = 0;
-          
+
       bandCenter = band0Start + bandwidthBwp / 2.0;
-      
+
       NS_LOG_LOGIC ("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
       ConfigureBwpTo (band0.m_cc[0]->m_bwp[0], bandCenter, bandwidthBwp);
       bandCenter += bandwidthBwp;
@@ -503,11 +504,11 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                 << std::endl;
       exit (1);
     }
-      
+
 
   auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
   // Omit fading from calibration mode
-  if (! calibration)
+  if (!calibration)
     {
       bandMask |= NrHelper::INIT_FADING;
     }
@@ -584,8 +585,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
-  nrHelper->SetUeAntennaAttribute ("ElementGain", DoubleValue (0));
+  Ptr<IsotropicAntennaModel> ueIsotropicAntenna = CreateObject<IsotropicAntennaModel> ();
+  ueIsotropicAntenna->SetAttribute ("Gain", DoubleValue (0.0));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (ueIsotropicAntenna));
 
   // Antennas for all the gNbs
   if (calibration)
@@ -599,10 +601,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
     }
 
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
-  nrHelper->SetGnbAntennaAttribute ("ElementGain", DoubleValue (0));
-  nrHelper->SetGnbAntennaAttribute ("DowntiltAngle",
-                                    DoubleValue (downtiltAngle * M_PI / 180.0));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+  nrHelper->SetGnbAntennaAttribute ("DowntiltAngle", DoubleValue (downtiltAngle * M_PI / 180.0));
 
   // UE transmit power
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
@@ -694,11 +694,11 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   // Sectors (cells) of a site are pointing at different directions
   std::vector<double> sectorOrientationRad {
-      sector0AngleRad,
-      sector0AngleRad + 2.0 * M_PI / 3.0, // + 120 deg
-      sector0AngleRad - 2.0 * M_PI / 3.0 // - 120 deg
-      };
-  
+    sector0AngleRad,
+    sector0AngleRad + 2.0 * M_PI / 3.0,   // + 120 deg
+    sector0AngleRad - 2.0 * M_PI / 3.0   // - 120 deg
+  };
+
   for (uint32_t cellId = 0; cellId < gnbNetDevs.GetN (); ++cellId)
     {
       Ptr<NetDevice> gnb = gnbNetDevs.Get (cellId);
@@ -713,7 +713,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
       // First BWP (in case of FDD) or only BWP (in case of TDD)
       ConfigurePhy (nrHelper, gnb, orientation, numerology, txPowerBs, pattern, 0);
-      
+
       if (numBwps == 2)  //FDD
         {
           ConfigurePhy (nrHelper, gnb, orientation, numerology, txPowerBs, pattern, 1);
@@ -725,7 +725,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
 
   // Set the UE routing:
-  for (auto nd = ueNetDevs.Begin (); nd != ueNetDevs.End (); ++ nd)
+  for (auto nd = ueNetDevs.Begin (); nd != ueNetDevs.End (); ++nd)
     {
       auto uePhyFirst = nrHelper->GetUePhy (*nd, 0);
       auto uePhySecond {uePhyFirst};
@@ -733,7 +733,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         {
           nrHelper->GetBwpManagerUe (*nd)->SetOutputLink (0, 1);
           uePhySecond = nrHelper->GetUePhy (*nd, 1);
-          uePhySecond->SetUplinkPowerControl (uePhyFirst->GetUplinkPowerControl());
+          uePhySecond->SetUplinkPowerControl (uePhyFirst->GetUplinkPowerControl ());
         }
       uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
                                               MakeBoundCallback (&ReportSinrNr, sinrStats));
@@ -756,8 +756,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                           MakeBoundCallback (&ReportSlotStatsNr, slotStats));
       gnbPhy->TraceConnectWithoutContext ("RBDataStats",
                                           MakeBoundCallback (&ReportRbStatsNr, rbStats));
-      gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext ("RxDataTrace",
-                                                            MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
+      gnbPhy->GetSpectrumPhy ()->TraceConnectWithoutContext ("RxDataTrace",
+                                                             MakeBoundCallback (&ReportGnbRxDataNr, gnbRxPowerStats));
 
       DynamicCast<NrGnbNetDevice> (*nd)->UpdateConfig ();
     }

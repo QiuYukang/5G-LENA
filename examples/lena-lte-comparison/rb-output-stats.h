@@ -97,7 +97,7 @@ private:
 
     uint32_t GetSize ()
     {
-      return sizeof (RbCache) + (rbUsed.size() * sizeof(int));
+      return sizeof (RbCache) + (rbUsed.size () * sizeof(int));
     }
   };
 

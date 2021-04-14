@@ -39,7 +39,7 @@ class MobilityModel;
  * \brief No loss spectrum propagation loss model created for testing purposes.
  * As its name says, there are no losses.
  */
-class NoLossSpectrumPropagationLossModel: public SpectrumPropagationLossModel
+class NoLossSpectrumPropagationLossModel : public SpectrumPropagationLossModel
 {
 public:
 
@@ -83,7 +83,7 @@ private:
   /**
    * \brief Check if the test case has pass or failed
    */
-  void DoEvaluateTest();
+  void DoEvaluateTest ();
 
   std::vector<double> m_snr; //!< list of SNR values that are used if the test has passed or failed
   double m_txPower; //!< transmission power

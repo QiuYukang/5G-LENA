@@ -23,8 +23,7 @@
 namespace ns3 {
 
 RbOutputStats::RbOutputStats ()
-{
-}
+{}
 
 void
 RbOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
@@ -47,7 +46,7 @@ RbOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
   NS_ASSERT (ret);
 
   RbOutputStats::DeleteWhere (m_db, RngSeedManager::GetSeed (),
-                              RngSeedManager::GetRun(), tableName);
+                              RngSeedManager::GetRun (), tableName);
 }
 
 void
@@ -73,14 +72,14 @@ RbOutputStats::SaveRbStats (const SfnSf &sfnSf, uint8_t sym, const std::vector<i
 }
 
 void
-RbOutputStats::EmptyCache()
+RbOutputStats::EmptyCache ()
 {
   WriteCache ();
 }
 
 void
 RbOutputStats::DeleteWhere (SQLiteOutput *p, uint32_t seed,
-                              uint32_t run, const std::string &table)
+                            uint32_t run, const std::string &table)
 {
   bool ret;
   sqlite3_stmt *stmt;

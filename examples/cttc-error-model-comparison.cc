@@ -70,22 +70,22 @@ main (int argc, char *argv[])
 
   CommandLine cmd;
 
-  cmd.AddValue("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-               errorModel);
+  cmd.AddValue ("errorModelType",
+                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
+                errorModel);
 
   cmd.Parse (argc, argv);
 
   /*
    * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
    */
-  Config::SetDefault("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName(errorModel)));
-  Config::SetDefault("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
+  Config::SetDefault ("ns3::NrAmc::ErrorModelType", TypeIdValue (TypeId::LookupByName (errorModel)));
+  Config::SetDefault ("ns3::NrAmc::AmcModel", EnumValue (NrAmc::ShannonModel));
 
   // Compute number of RBs that fit in 100 MHz channel bandwidth with numerology 4 (240 kHz SCS)
   const uint8_t numerology = 4;
   const uint32_t bandwidth = 100e6;
-  const uint32_t numRbsInBandwidth = bandwidth / (15e3 * std::pow(2,numerology) * 12) ;
+  const uint32_t numRbsInBandwidth = bandwidth / (15e3 * std::pow (2,numerology) * 12);
 
   Ptr<NrAmc> amc = CreateObject<NrAmc> ();
   amc->SetDlMode ();
@@ -95,9 +95,9 @@ main (int argc, char *argv[])
     {
       std::stringstream ss;
       ss << "\nResults for DL (UL only in NR case): MCS " << mcs <<
-            ". TBS in 1 RB: [" << amc->CalculateTbSize (mcs, 1) <<
-            "] bytes. TBS in 1 sym: [" << amc->CalculateTbSize (mcs, numRbsInBandwidth) <<
-            "] bytes.";
+        ". TBS in 1 RB: [" << amc->CalculateTbSize (mcs, 1) <<
+        "] bytes. TBS in 1 sym: [" << amc->CalculateTbSize (mcs, numRbsInBandwidth) <<
+        "] bytes.";
       tbs += ss.str ();
     }
 

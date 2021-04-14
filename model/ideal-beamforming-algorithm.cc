@@ -27,7 +27,7 @@
 #include "nr-spectrum-phy.h"
 #include "beam-manager.h"
 #include <ns3/nr-spectrum-value-helper.h>
-#include <ns3/three-gpp-antenna-array-model.h>
+#include <ns3/uniform-planar-array.h>
 #include "nr-ue-phy.h"
 #include "nr-gnb-phy.h"
 #include "nr-gnb-net-device.h"
@@ -312,8 +312,8 @@ DirectPathBeamforming::GetBeamformingVectors (const Ptr<const NrGnbNetDevice> &g
 
   Ptr<MobilityModel> gnbMob = gnbDev->GetNode ()->GetObject<MobilityModel> ();
   Ptr<MobilityModel> ueMob = ueDev->GetNode ()->GetObject<MobilityModel> ();
-  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy (ccId)->GetAntennaArray ();
-  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy (ccId)->GetAntennaArray ();
+  Ptr<const UniformPlanarArray> gnbAntenna = gnbDev->GetPhy (ccId)->GetAntennaArray ();
+  Ptr<const UniformPlanarArray> ueAntenna = ueDev->GetPhy (ccId)->GetAntennaArray ();
 
   complexVector_t gNbAntennaWeights = CreateDirectPathBfv (gnbMob, ueMob, gnbAntenna);
   // store the antenna weights
@@ -347,8 +347,8 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors (const Ptr<const NrGnbNetD
 
   Ptr<MobilityModel> gnbMob = gnbDev->GetNode ()->GetObject<MobilityModel> ();
   Ptr<MobilityModel> ueMob = ueDev->GetNode ()->GetObject<MobilityModel> ();
-  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy (ccId)->GetAntennaArray ();
-  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy (ccId)->GetAntennaArray ();
+  Ptr<const UniformPlanarArray> gnbAntenna = gnbDev->GetPhy (ccId)->GetAntennaArray ();
+  Ptr<const UniformPlanarArray> ueAntenna = ueDev->GetPhy (ccId)->GetAntennaArray ();
 
   // configure gNb beamforming vector to be quasi omni
   UintegerValue numRows, numColumns;
@@ -383,8 +383,8 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors (const Ptr<const NrGnbNetD
 
   Ptr<MobilityModel> gnbMob = gnbDev->GetNode ()->GetObject<MobilityModel> ();
   Ptr<MobilityModel> ueMob = ueDev->GetNode ()->GetObject<MobilityModel> ();
-  Ptr<const ThreeGppAntennaArrayModel> gnbAntenna = gnbDev->GetPhy (ccId)->GetAntennaArray ();
-  Ptr<const ThreeGppAntennaArrayModel> ueAntenna = ueDev->GetPhy (ccId)->GetAntennaArray ();
+  Ptr<const UniformPlanarArray> gnbAntenna = gnbDev->GetPhy (ccId)->GetAntennaArray ();
+  Ptr<const UniformPlanarArray> ueAntenna = ueDev->GetPhy (ccId)->GetAntennaArray ();
 
   // configure ue beamforming vector to be quasi omni
   UintegerValue numRows, numColumns;

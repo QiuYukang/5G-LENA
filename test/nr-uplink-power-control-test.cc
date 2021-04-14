@@ -35,6 +35,7 @@
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/antenna-module.h"
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("NrUplinkPowerControlTestCase");
@@ -131,14 +132,14 @@ static NrUplinkPowerControlTestSuite lteUplinkPowerControlTestSuite;
 
 void
 PuschTxPowerReport (NrUplinkPowerControlTestCase *testcase,
-                          uint16_t cellId, uint16_t rnti, double txPower)
+                    uint16_t cellId, uint16_t rnti, double txPower)
 {
   testcase->PuschTxPowerTrace (cellId, rnti, txPower);
 }
 
 void
 PucchTxPowerReport (NrUplinkPowerControlTestCase *testcase,
-                          uint16_t cellId, uint16_t rnti, double txPower)
+                    uint16_t cellId, uint16_t rnti, double txPower)
 {
   testcase->PucchTxPowerTrace (cellId, rnti, txPower);
 }
@@ -152,8 +153,7 @@ NrUplinkPowerControlTestCase::NrUplinkPowerControlTestCase (std::string name, bo
 }
 
 NrUplinkPowerControlTestCase::~NrUplinkPowerControlTestCase ()
-{
-}
+{}
 
 void
 NrUplinkPowerControlTestCase::MoveUe (uint32_t distance, double expectedPuschTxPower, double expectedPucchTxPower)
@@ -192,7 +192,7 @@ NrUplinkPowerControlTestCase::PuschTxPowerTrace (uint16_t cellId, uint16_t rnti,
     }
 
   // we allow some tollerance because of layer 3 filtering
-  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPuschTxPower, 1 + abs (m_expectedPuschTxPower * 0.1) , "Wrong Pusch Tx Power");
+  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPuschTxPower, 1 + abs (m_expectedPuschTxPower * 0.1), "Wrong Pusch Tx Power");
 }
 
 void
@@ -214,7 +214,7 @@ NrUplinkPowerControlTestCase::PucchTxPowerTrace (uint16_t cellId, uint16_t rnti,
     }
 
   // we allow some tollerance because of layer 3 filtering
-  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPucchTxPower, 1 + abs (m_expectedPucchTxPower * 0.1)  , "Wrong Pucch Tx Power");
+  NS_TEST_ASSERT_MSG_EQ_TOL (txPower, m_expectedPucchTxPower, 1 + abs (m_expectedPucchTxPower * 0.1), "Wrong Pucch Tx Power");
 
 }
 
@@ -235,7 +235,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   Time simTime = MilliSeconds (2500);
 
   Config::Reset ();
-  
+
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
 
@@ -292,18 +292,18 @@ NrUplinkPowerControlTestCase::DoRun (void)
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   gnbDevs = nrHelper->InstallGnbDevice (gnbNodes, allBwps);
   ueDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
-  Ptr<NrUePhy> uePhy = nrHelper->GetUePhy (ueDevs.Get(0), 0);
+  Ptr<NrUePhy> uePhy = nrHelper->GetUePhy (ueDevs.Get (0), 0);
 
   m_ueUpc = uePhy->GetUplinkPowerControl ();
 
@@ -318,7 +318,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
   NS_ASSERT (propagationLossModel != nullptr);
   propagationLossModel->AssignStreams (1);
-  Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
+  Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
   channelConditionModel->AssignStreams (1);
   Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
   NS_ASSERT_MSG (spectrumLossModel == nullptr, "3GPP spectrum model should be disabled in this test to have deterministic behaviour.");
@@ -358,11 +358,11 @@ NrUplinkPowerControlTestCase::DoRun (void)
 
   Ipv4InterfaceContainer ueIpIface = epcHelper->AssignUeIpv4Address (ueDevs);
   // Set the default gateway for the UE
-  Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get(0)->GetObject<Ipv4> ());
+  Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNodes.Get (0)->GetObject<Ipv4> ());
   ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
 
-   // Attach a UE to a gNB
-   nrHelper->AttachToEnb (ueDevs.Get(0), gnbDevs.Get (0));
+  // Attach a UE to a gNB
+  nrHelper->AttachToEnb (ueDevs.Get (0), gnbDevs.Get (0));
 
   /*
    * Traffic part. Install two kinds of traffic: low-latency and voice, each
@@ -378,14 +378,14 @@ NrUplinkPowerControlTestCase::DoRun (void)
 
   // The server, that is the application which is listening, is installed in the UE
   // for the DL traffic, and in the remote host for the UL traffic
-  serverApps.Add (dlPacketSink.Install (ueNodes.Get(0)));
+  serverApps.Add (dlPacketSink.Install (ueNodes.Get (0)));
   serverApps.Add (ulPacketSink.Install (remoteHost));
 
   UdpClientHelper dlClient;
   dlClient.SetAttribute ("RemotePort", UintegerValue (dlPort));
   dlClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClient.SetAttribute ("PacketSize", UintegerValue (100));
-  dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(1)));
+  dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds (1)));
   EpsBearer dlBearer (EpsBearer::GBR_CONV_VIDEO);
   Ptr<EpcTft> dlTft = Create<EpcTft> ();
   EpcTft::PacketFilter dlpf;
@@ -397,7 +397,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   ulClient.SetAttribute ("RemotePort", UintegerValue (ulPort));
   ulClient.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   ulClient.SetAttribute ("PacketSize", UintegerValue (100));
-  ulClient.SetAttribute ("Interval", TimeValue(MilliSeconds(1)));
+  ulClient.SetAttribute ("Interval", TimeValue (MilliSeconds (1)));
   EpsBearer ulBearer (EpsBearer::GBR_CONV_VIDEO);
   Ptr<EpcTft> ulTft = Create<EpcTft> ();
   EpcTft::PacketFilter ulpf;
@@ -411,11 +411,11 @@ NrUplinkPowerControlTestCase::DoRun (void)
   Address ueAddress = ueIpIface.GetAddress (0);
   dlClient.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
   clientApps.Add (dlClient.Install (remoteHost));
-  nrHelper->ActivateDedicatedEpsBearer (ueDevs.Get(0), dlBearer, dlTft);
+  nrHelper->ActivateDedicatedEpsBearer (ueDevs.Get (0), dlBearer, dlTft);
   //set and add uplink app to container
   ulClient.SetAttribute ("RemoteAddress", AddressValue (internetIpIfaces.GetAddress (1)));
-  clientApps.Add (ulClient.Install (ueNodes.Get(0)));
-  nrHelper->ActivateDedicatedEpsBearer (ueDevs.Get(0), ulBearer, ulTft);
+  clientApps.Add (ulClient.Install (ueNodes.Get (0)));
+  nrHelper->ActivateDedicatedEpsBearer (ueDevs.Get (0), ulBearer, ulTft);
 
   // start UDP server and client apps
   serverApps.Start (udpAppStartTime);

@@ -46,14 +46,12 @@ private:
   virtual void DoRun (void);
 };
 
-PowerAllocationTestCase::PowerAllocationTestCase (const std::string & name):
-    TestCase (name)
-{
-}
+PowerAllocationTestCase::PowerAllocationTestCase (const std::string & name) :
+  TestCase (name)
+{}
 
 PowerAllocationTestCase::~PowerAllocationTestCase ()
-{
-}
+{}
 
 void
 PowerAllocationTestCase::DoRun (void)
@@ -65,87 +63,87 @@ PowerAllocationTestCase::DoRun (void)
   double transmittedTxPsd = 0;
   Ptr<SpectrumValue> txPsd = nullptr;
 
-  NS_LOG_INFO ("Testing for number of RBs:"<< sm->GetNumBands());
+  NS_LOG_INFO ("Testing for number of RBs:" << sm->GetNumBands ());
 
   // fill in all RBs
-  for (size_t rbId = 0; rbId < sm->GetNumBands(); rbId++)
+  for (size_t rbId = 0; rbId < sm->GetNumBands (); rbId++)
     {
-      activeRbs.push_back(rbId);
+      activeRbs.push_back (rbId);
     }
 
   txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
   transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
   NS_TEST_ASSERT_MSG_EQ_TOL (totalPower, transmittedTxPsd, 0.01, "Total power and transmitted power should be equal when all RBs are active regardless power allocation type.");
 
-  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_BW and using RBs: " << activeRbs.size() << " transmitted power is: "<< transmittedTxPsd);
+  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_BW and using RBs: " << activeRbs.size () << " transmitted power is: " << transmittedTxPsd);
 
   txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED);
   transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
   NS_TEST_ASSERT_MSG_EQ_TOL (totalPower, transmittedTxPsd, 0.01, "Total power and transmitted power should be equal when all RBs are active regardless power allocation type.");
 
-  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_USED and using RBs: " << activeRbs.size() << " transmitted power is: "<< transmittedTxPsd);
+  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_USED and using RBs: " << activeRbs.size () << " transmitted power is: " << transmittedTxPsd);
 
   // empty RBs list
-  activeRbs.erase (activeRbs.begin(), activeRbs.end());
+  activeRbs.erase (activeRbs.begin (), activeRbs.end ());
   activeRbs.clear ();
   NS_ABORT_IF (!activeRbs.empty ());
 
   // fill in only half RBs
-  for (size_t rbId = 0; rbId < sm->GetNumBands()/10; rbId++)
+  for (size_t rbId = 0; rbId < sm->GetNumBands () / 10; rbId++)
     {
-      activeRbs.push_back(rbId);
+      activeRbs.push_back (rbId);
     }
 
-  NS_LOG_INFO ("Testing for number of RBs:"<< sm->GetNumBands()/2);
+  NS_LOG_INFO ("Testing for number of RBs:" << sm->GetNumBands () / 2);
 
   txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
   transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
 
   // if only 10th part of RBs is being used then 10th times lower power should be transmitted
-  NS_TEST_ASSERT_MSG_EQ_TOL (totalPower - 10, transmittedTxPsd, 0.05 ,"If only half of RBs are active then only half of total power should be transmitted when uniform "
-      "power allocation over all bandwidth is being configured.");
-
-  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_BW and using RBs: " << activeRbs.size() << " transmitted power is: "<< transmittedTxPsd);
-
-  txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED);
-  transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
-  NS_TEST_ASSERT_MSG_EQ_TOL (totalPower, transmittedTxPsd, 0.01, "If only half of RBs are active then the total power should be transmitted when uniform "
-                             "power allocation over active RBs is being configured.");
-
-  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_USED and using RBs: " << activeRbs.size() << " transmitted power is: "<< transmittedTxPsd);
-
-  // empty RBs list
-  activeRbs.erase (activeRbs.begin(), activeRbs.end());
-  activeRbs.clear ();
-  NS_ABORT_IF (!activeRbs.empty ());
-
-  // fill in only half RBs
-  for (size_t rbId = 0; rbId < sm->GetNumBands()/10; rbId++)
-    {
-      activeRbs.push_back(rbId);
-    }
-
-  NS_LOG_INFO ("Testing for number of RBs:"<< sm->GetNumBands()/2);
-
-  txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
-  transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
-
-  // if only 10th part of RBs is being used then 10th times lower power should be transmitted
-  NS_TEST_ASSERT_MSG_EQ_TOL (totalPower - 10, transmittedTxPsd, 0.05 ,"If only half of RBs are active then only half of total power should be transmitted when uniform "
+  NS_TEST_ASSERT_MSG_EQ_TOL (totalPower - 10, transmittedTxPsd, 0.05,"If only half of RBs are active then only half of total power should be transmitted when uniform "
                              "power allocation over all bandwidth is being configured.");
 
-  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_BW and using RBs: " << activeRbs.size() << " transmitted power is: "<< transmittedTxPsd);
+  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_BW and using RBs: " << activeRbs.size () << " transmitted power is: " << transmittedTxPsd);
 
   txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED);
   transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
   NS_TEST_ASSERT_MSG_EQ_TOL (totalPower, transmittedTxPsd, 0.01, "If only half of RBs are active then the total power should be transmitted when uniform "
                              "power allocation over active RBs is being configured.");
 
-  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_USED and using RBs: " << activeRbs.size() << " transmitted power is: "<< transmittedTxPsd);
+  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_USED and using RBs: " << activeRbs.size () << " transmitted power is: " << transmittedTxPsd);
+
+  // empty RBs list
+  activeRbs.erase (activeRbs.begin (), activeRbs.end ());
+  activeRbs.clear ();
+  NS_ABORT_IF (!activeRbs.empty ());
+
+  // fill in only half RBs
+  for (size_t rbId = 0; rbId < sm->GetNumBands () / 10; rbId++)
+    {
+      activeRbs.push_back (rbId);
+    }
+
+  NS_LOG_INFO ("Testing for number of RBs:" << sm->GetNumBands () / 2);
+
+  txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+  transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
+
+  // if only 10th part of RBs is being used then 10th times lower power should be transmitted
+  NS_TEST_ASSERT_MSG_EQ_TOL (totalPower - 10, transmittedTxPsd, 0.05,"If only half of RBs are active then only half of total power should be transmitted when uniform "
+                             "power allocation over all bandwidth is being configured.");
+
+  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_BW and using RBs: " << activeRbs.size () << " transmitted power is: " << transmittedTxPsd);
+
+  txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity  (totalPower, activeRbs, sm, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED);
+  transmittedTxPsd = 10 * log10 (Integral (*txPsd) * 1000);
+  NS_TEST_ASSERT_MSG_EQ_TOL (totalPower, transmittedTxPsd, 0.01, "If only half of RBs are active then the total power should be transmitted when uniform "
+                             "power allocation over active RBs is being configured.");
+
+  NS_LOG_INFO ("Testing for power allocation type: UNIFORM_POWER_ALLOCATION_USED and using RBs: " << activeRbs.size () << " transmitted power is: " << transmittedTxPsd);
 
 
-  Simulator::Run();
-  Simulator::Destroy();
+  Simulator::Run ();
+  Simulator::Destroy ();
 }
 
 
@@ -156,7 +154,7 @@ public:
 };
 
 PowerAllocationTestSuite::PowerAllocationTestSuite ()
-: TestSuite ("nr-power-allocation", SYSTEM)
+  : TestSuite ("nr-power-allocation", SYSTEM)
 {
   AddTestCase (new PowerAllocationTestCase ("nr-power-allocation"), TestDuration::QUICK);
 }

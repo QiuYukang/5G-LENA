@@ -25,8 +25,7 @@
 namespace ns3 {
 
 FlowMonitorOutputStats::FlowMonitorOutputStats ()
-{
-}
+{}
 
 void
 FlowMonitorOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
@@ -37,23 +36,23 @@ FlowMonitorOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
   bool ret;
 
   ret = db->SpinExec ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
-               "FlowId INTEGER NOT NULL, "
-               "TxPackets INTEGER NOT NULL,"
-               "TxBytes INTEGER NOT NULL,"
-               "TxOfferedMbps DOUBLE NOT NULL,"
-               "RxBytes INTEGER NOT NULL,"
-               "ThroughputMbps DOUBLE NOT NULL, "
-               "MeanDelayMs DOUBLE NOT NULL, "
-               "MeanJitterMs DOUBLE NOT NULL, "
-               "RxPackets INTEGER NOT NULL, "
-               "SEED INTEGER NOT NULL,"
-               "RUN INTEGER NOT NULL,"
-               "PRIMARY KEY(FlowId,SEED,RUN)"
-               ");");
+                      "FlowId INTEGER NOT NULL, "
+                      "TxPackets INTEGER NOT NULL,"
+                      "TxBytes INTEGER NOT NULL,"
+                      "TxOfferedMbps DOUBLE NOT NULL,"
+                      "RxBytes INTEGER NOT NULL,"
+                      "ThroughputMbps DOUBLE NOT NULL, "
+                      "MeanDelayMs DOUBLE NOT NULL, "
+                      "MeanJitterMs DOUBLE NOT NULL, "
+                      "RxPackets INTEGER NOT NULL, "
+                      "SEED INTEGER NOT NULL,"
+                      "RUN INTEGER NOT NULL,"
+                      "PRIMARY KEY(FlowId,SEED,RUN)"
+                      ");");
   NS_ABORT_UNLESS (ret);
 
   FlowMonitorOutputStats::DeleteWhere (m_db, RngSeedManager::GetSeed (),
-                                       RngSeedManager::GetRun(), tableName);
+                                       RngSeedManager::GetRun (), tableName);
 }
 
 void
@@ -99,7 +98,7 @@ FlowMonitorOutputStats::Save (const Ptr<FlowMonitor> &monitor,
 
       // Measure the duration of the flow from sender's perspective
       double rxDuration = i->second.timeLastTxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-      double txOffered = i->second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0 ;
+      double txOffered = i->second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0;
 
       outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
       outFile << "  Tx Packets: " << i->second.txPackets << "\n";
@@ -165,7 +164,7 @@ FlowMonitorOutputStats::Save (const Ptr<FlowMonitor> &monitor,
         }
     }
 
-  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / flowStats.size() << "\n";
+  outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / flowStats.size () << "\n";
   outFile << "  Mean flow delay: " << averageFlowDelay / flowStats.size () << "\n";
 
   outFile.close ();
@@ -173,7 +172,7 @@ FlowMonitorOutputStats::Save (const Ptr<FlowMonitor> &monitor,
 
 void
 FlowMonitorOutputStats::DeleteWhere (SQLiteOutput *p, uint32_t seed,
-                                           uint32_t run, const std::string &table)
+                                     uint32_t run, const std::string &table)
 {
   bool ret;
   sqlite3_stmt *stmt;
