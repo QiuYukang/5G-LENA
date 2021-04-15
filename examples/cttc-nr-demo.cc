@@ -47,7 +47,7 @@ $ ./waf --run "cttc-nr-demo --Help"
  */
 
 #include "ns3/core-module.h"
-#include "ns3/config-store.h"
+#include "ns3/config-store-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/internet-apps-module.h"
@@ -55,15 +55,9 @@ $ ./waf --run "cttc-nr-demo --Help"
 #include "ns3/mobility-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/flow-monitor-module.h"
-#include <ns3/buildings-module.h>
+#include "ns3/buildings-module.h"
 #include "ns3/nr-module.h"
-#include "ns3/config-store-module.h"
 #include "ns3/antenna-module.h"
-
-/*
- * To be able to use LOG_* functions.
- */
-#include "ns3/log.h"
 
 /*
  * Use, always, the namespace ns3. All the NR classes are inside such namespace.
@@ -72,9 +66,7 @@ using namespace ns3;
 
 /*
  * With this line, we will be able to see the logs of the file by enabling the
- * component "CttcNrDemo", in this way:
- *
- * $ export NS_LOG="CttcNrDemo=level_info|prefix_func|prefix_time"
+ * component "CttcNrDemo"
  */
 NS_LOG_COMPONENT_DEFINE ("CttcNrDemo");
 
@@ -83,7 +75,8 @@ main (int argc, char *argv[])
 {
   /*
    * Variables that represent the parameters we will accept as input by the
-   * command line. Each of them is initialized with a default value.
+   * command line. Each of them is initialized with a default value, and
+   * possibly overridden below when command-line arguments are parsed.
    */
   // Scenario parameters (that we will use inside this script):
   uint16_t gNbNum = 1;
@@ -91,16 +84,16 @@ main (int argc, char *argv[])
   bool logging = false;
   bool doubleOperationalBand = true;
 
-  // Traffic parameters (that we will use inside this script:)
+  // Traffic parameters (that we will use inside this script):
   uint32_t udpPacketSizeULL = 100;
   uint32_t udpPacketSizeBe = 1252;
   uint32_t lambdaULL = 10000;
   uint32_t lambdaBe = 10000;
 
-  // Simulation parameters. Please don't use double to indicate seconds, use
-  // milliseconds and integers to avoid representation errors.
-  uint32_t simTimeMs = 1000;
-  uint32_t udpAppStartTimeMs = 400;
+  // Simulation parameters. Please don't use double to indicate seconds; use
+  // ns-3 Time values which use integers to avoid portability issues.
+  Time simTime = MilliSeconds (1000);
+  Time udpAppStartTime = MilliSeconds (400);
 
   // NR parameters. We will take the input from the command line, and then we
   // will pass them inside the NR module.
@@ -148,9 +141,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("lambdaBe",
                 "Number of UDP packets in one second for best effor traffic",
                 lambdaBe);
-  cmd.AddValue ("simTimeMs",
+  cmd.AddValue ("simTime",
                 "Simulation time",
-                simTimeMs);
+                simTime);
   cmd.AddValue ("numerologyBwp1",
                 "The numerology to be used in bandwidth part 1",
                 numerologyBwp1);
@@ -592,10 +585,10 @@ main (int argc, char *argv[])
     }
 
   // start UDP server and client apps
-  serverApps.Start (MilliSeconds (udpAppStartTimeMs));
-  clientApps.Start (MilliSeconds (udpAppStartTimeMs));
-  serverApps.Stop (MilliSeconds (simTimeMs));
-  clientApps.Stop (MilliSeconds (simTimeMs));
+  serverApps.Start (udpAppStartTime);
+  clientApps.Start (udpAppStartTime);
+  serverApps.Stop (simTime);
+  clientApps.Stop (simTime);
 
   // enable the traces provided by the nr module
   //nrHelper->EnableTraces();
@@ -611,7 +604,7 @@ main (int argc, char *argv[])
   monitor->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
   monitor->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
 
-  Simulator::Stop (MilliSeconds (simTimeMs));
+  Simulator::Stop (simTime);
   Simulator::Run ();
 
   /*
@@ -640,6 +633,7 @@ main (int argc, char *argv[])
 
   outFile.setf (std::ios_base::fixed);
 
+  double flowDuration = (simTime - udpAppStartTime).GetSeconds ();
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
@@ -656,18 +650,15 @@ main (int argc, char *argv[])
       outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str () << "\n";
       outFile << "  Tx Packets: " << i->second.txPackets << "\n";
       outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
-      outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0  << " Mbps\n";
+      outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / flowDuration / 1000.0 / 1000.0  << " Mbps\n";
       outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
       if (i->second.rxPackets > 0)
         {
           // Measure the duration of the flow from receiver's perspective
-          //double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-          double rxDuration = (simTimeMs - udpAppStartTimeMs) / 1000.0;
-
-          averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
+          averageFlowThroughput += i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000;
           averageFlowDelay += 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets;
 
-          outFile << "  Throughput: " << i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000  << " Mbps\n";
+          outFile << "  Throughput: " << i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000  << " Mbps\n";
           outFile << "  Mean delay:  " << 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets << " ms\n";
           //outFile << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 << " Mbps \n";
           outFile << "  Mean jitter:  " << 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets  << " ms\n";
