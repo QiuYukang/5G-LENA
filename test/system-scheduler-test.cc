@@ -24,6 +24,7 @@
 #include <ns3/internet-module.h>
 #include <ns3/applications-module.h>
 #include <ns3/point-to-point-helper.h>
+#include <ns3/antenna-module.h>
 
 namespace ns3 {
 
@@ -153,7 +154,7 @@ SystemSchedulerTest::DoRun (void)
     // set the number of antenna elements of UE
     nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
     nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-    nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+    nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
     // UE transmit power
     nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
@@ -161,7 +162,7 @@ SystemSchedulerTest::DoRun (void)
     // set the number of antenna elements of gNbs
     nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
     nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-    nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+    nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
 
     // gNB transmit power
     nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue (44.0));

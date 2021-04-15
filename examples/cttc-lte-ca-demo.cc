@@ -61,6 +61,7 @@ $ ./waf --run "cttc-lte-ca-demo --Help"
 #include "ns3/config-store-module.h"
 #include "ns3/bandwidth-part-gnb.h"
 #include "ns3/nr-module.h"
+#include "ns3/antenna-module.h"
 
 
 using namespace ns3;
@@ -482,12 +483,12 @@ main (int argc, char *argv[])
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for all the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
 
   //Assign each flow type to a BWP

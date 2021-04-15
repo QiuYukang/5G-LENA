@@ -23,6 +23,7 @@
 #include "slot-output-stats.h"
 #include "rb-output-stats.h"
 #include <ns3/nr-spectrum-value-helper.h>
+#include <ns3/antenna-module.h>
 
 #include "ns3/log.h"
 
@@ -93,8 +94,8 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
 {
   // Change the antenna orientation
   Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
-  Ptr<ThreeGppAntennaArrayModel> antenna0 =
-        ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+  Ptr<UniformPlanarArray> antenna0 =
+        ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
       antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
       
       // configure the beam that points toward the center of hexagonal
@@ -584,8 +585,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
-  nrHelper->SetUeAntennaAttribute ("ElementGain", DoubleValue (0));
+  Ptr<IsotropicAntennaModel> ueIsotropicAntenna = CreateObject<IsotropicAntennaModel> ();
+  ueIsotropicAntenna->SetAttribute ("Gain", DoubleValue (0.0));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (ueIsotropicAntenna));
 
   // Antennas for all the gNbs
   if (calibration)
@@ -599,10 +601,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (2));
     }
 
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
-  nrHelper->SetGnbAntennaAttribute ("ElementGain", DoubleValue (0));
-  nrHelper->SetGnbAntennaAttribute ("DowntiltAngle",
-                                    DoubleValue (downtiltAngle * M_PI / 180.0));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+  nrHelper->SetGnbAntennaAttribute ("DowntiltAngle", DoubleValue (downtiltAngle * M_PI / 180.0));
 
   // UE transmit power
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));

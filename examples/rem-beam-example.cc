@@ -62,6 +62,7 @@
 #include "ns3/log.h"
 #include "ns3/nr-module.h"
 #include "ns3/internet-module.h"
+#include "ns3/antenna-module.h"
 
 using namespace ns3;
 
@@ -167,14 +168,14 @@ main (int argc, char *argv[])
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Configuration of phy and antenna for the gNbs
   nrHelper->SetGnbPhyAttribute ("TxPower", DoubleValue (10));
   nrHelper->SetGnbPhyAttribute ("Numerology", UintegerValue(0));
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (numRowsGnb));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (numColumnsGnb));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
 
   // install nr net devices
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbNodes, singleBwp);

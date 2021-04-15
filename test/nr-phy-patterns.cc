@@ -24,6 +24,7 @@
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/beam-manager.h>
+#include <ns3/uniform-planar-array.h>
 
 /**
  * \file nr-phy-patterns.cc
@@ -228,7 +229,7 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<NrGnbMac> &mac) const
 {
   Ptr<NrSpectrumPhy> channelPhy = CreateObject<NrSpectrumPhy> ();
   Ptr<NrGnbPhy> phy = CreateObject <NrGnbPhy> ();
-  Ptr<ThreeGppAntennaArrayModel> antenna = CreateObject <ThreeGppAntennaArrayModel> ();
+  Ptr<UniformPlanarArray> antenna = CreateObject <UniformPlanarArray> ();
 
   phy->InstallCentralFrequency (28e9);
 

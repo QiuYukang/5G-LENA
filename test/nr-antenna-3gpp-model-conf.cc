@@ -27,6 +27,7 @@
 #include "ns3/nr-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/test.h"
+#include "ns3/antenna-module.h"
 
 
 using namespace ns3;
@@ -230,12 +231,25 @@ TestAntenna3gppModelConf::DoRun (void)
   // set the number of antenna elements of UE
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (sqrt(m_ueNoOfAntennas)));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (sqrt(m_ueNoOfAntennas)));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (m_ueOmniAntennaElem));
-
+  if (m_ueOmniAntennaElem)
+    {
+      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    }
+  else
+    {
+      nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+    }
   // set the number of antenna elements of gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (m_gNbOmniAntennaElem));
+  if (m_gNbOmniAntennaElem)
+    {
+      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    }
+  else
+    {
+      nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
+    }
 
   // UE transmit power
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));

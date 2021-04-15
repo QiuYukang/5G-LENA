@@ -61,6 +61,7 @@ $ ./waf --run "cttc-fh-compression --Help"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/lte-module.h"
+#include <ns3/antenna-module.h>
 #include <ns3/radio-environment-map-helper.h>
 #include "ns3/config-store-module.h"
 #include <algorithm>
@@ -523,12 +524,12 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for all the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (8));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (false));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<ThreeGppAntennaModel> ()));
 
   // UE transmit power
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (20.0));
@@ -645,8 +646,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna =
+              ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -675,12 +676,12 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna0 =
+              ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna1 =
+              ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -714,8 +715,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna =
+              ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -744,12 +745,12 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna0 =
+              ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna1 =
+              ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -784,8 +785,8 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna =
-              ConstCast<ThreeGppAntennaArrayModel> (phy->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna =
+              ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -814,12 +815,12 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
         {
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
-          Ptr<ThreeGppAntennaArrayModel> antenna0 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy0->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna0 =
+              ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
-          Ptr<ThreeGppAntennaArrayModel> antenna1 =
-              ConstCast<ThreeGppAntennaArrayModel> (phy1->GetSpectrumPhy ()->GetAntennaArray());
+          Ptr<UniformPlanarArray> antenna1 =
+              ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -1369,7 +1370,7 @@ main (int argc, char *argv[])
       for (uint32_t bs = 0; bs < gridScenario.GetNumCells (); ++bs)
         {
           lambdaPerCell[bs] =lambda;
-          std::cout << "Cell: " << bs << " lambda (same lambda): " << lambdaPerCell[bs] << std::endl;
+          std::cout << "Cell: " << bs << " lambda (same lambda): " << lambdaPerCell [bs] << std::endl;
         }
     }
   else  //non-uniform lambda values among the cells!
@@ -1377,7 +1378,7 @@ main (int argc, char *argv[])
       for (uint32_t bs = 0; bs < gridScenario.GetNumCells (); ++bs)
         {
           lambdaPerCell[bs] = 1000 + bs*2000;
-          std::cout << "Cell: " << bs << " lambda (diff lambda): " << lambdaPerCell[bs] << std::endl;
+          std::cout << "Cell: " << bs << " lambda (diff lambda): " << lambdaPerCell [bs] << std::endl;
         }
     }
 
@@ -1389,7 +1390,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
     {
       dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()])));
-      std::cout << "ue (sector1): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite () << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()] << std::endl;
+      std::cout << "ue (sector1): " << i << " index: " << (i%gridScenario.GetNumSites ())*gridScenario.GetNumSectorsPerSite () << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()] << std::endl;
       Ptr<Node> ue = ueSector1Container.Get (i);
       Ptr<NetDevice> ueDevice = ueSector1NetDev.Get(i);
       Address ueAddress = ueSector1IpIface.GetAddress (i);
@@ -1423,7 +1424,7 @@ main (int argc, char *argv[])
 
   for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
     {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+1])));
+      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites ())*gridScenario.GetNumSectorsPerSite ()+1])));
       std::cout << "ue (sector2): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite () +1 << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+1] << std::endl;
       Ptr<Node> ue = ueSector2Container.Get (i);
       Ptr<NetDevice> ueDevice = ueSector2NetDev.Get(i);

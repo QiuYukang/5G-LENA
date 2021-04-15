@@ -35,6 +35,7 @@
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/antenna-module.h"
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("NrUplinkPowerControlTestCase");
@@ -292,12 +293,12 @@ NrUplinkPowerControlTestCase::DoRun (void)
   // Antennas for the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
   gnbDevs = nrHelper->InstallGnbDevice (gnbNodes, allBwps);

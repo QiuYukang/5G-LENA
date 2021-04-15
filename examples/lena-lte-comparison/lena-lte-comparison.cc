@@ -26,6 +26,7 @@
 #include "ns3/internet-apps-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
+#include "ns3/antenna-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/flow-monitor-module.h"
 
@@ -741,8 +742,8 @@ LenaLteComparison (const Parameters &params)
       if (params.ulRem)
         {
           auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy(0)->GetSpectrumPhy ()->GetAntennaArray ();
-          auto antenna = ConstCast<ThreeGppAntennaArrayModel> (antArray);
-          antenna->SetAttribute ("IsotropicElements", BooleanValue (true));
+          auto antenna = ConstCast<UniformPlanarArray> (antArray);
+          antenna->SetAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
         }
 
       //Radio Environment Map Generation for ccId 0
