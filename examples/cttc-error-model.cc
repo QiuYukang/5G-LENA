@@ -405,24 +405,24 @@ main (int argc, char *argv[])
           cont++;
         }
     }
-  std::cerr << "Packets received: " << packetsTime.size () << std::endl;
-  std::cerr << "Counter (packets not affected by reordering): " << +cont << std::endl;
+  std::cout << "Packets received: " << packetsTime.size () << std::endl;
+  std::cout << "Counter (packets not affected by reordering): " << +cont << std::endl;
 
   if (packetsTime.size () > 0 && cont > 0)
     {
-      std::cerr << "Average e2e latency (over all received packets): " << sum / packetsTime.size () << " us" << std::endl;
-      std::cerr << "Average e2e latency (over counter): " << sum / cont << " us" << std::endl;
+      std::cout << "Average e2e latency (over all received packets): " << sum / packetsTime.size () << " us" << std::endl;
+      std::cout << "Average e2e latency (over counter): " << sum / cont << " us" << std::endl;
     }
   else
     {
-      std::cerr << "Average e2e latency: Not Available" << std::endl;
+      std::cout << "Average e2e latency: Not Available" << std::endl;
     }
 
 
   for (auto it = sinkApps.Begin (); it != sinkApps.End (); ++it)
     {
       uint64_t recv = DynamicCast<UdpServer> (*it)->GetReceived ();
-      std::cerr << "Sent: " << packets << " Recv: " << recv << " Lost: "
+      std::cout << "Sent: " << packets << " Recv: " << recv << " Lost: "
                 << packets - recv << " pkts, ( "
                 << (static_cast<double> (packets - recv) / packets) * 100.0
                 << " % )" << std::endl;
@@ -431,7 +431,7 @@ main (int argc, char *argv[])
 
   Simulator::Destroy ();
 
-  std::cerr << "Running time: " << std::chrono::duration_cast<std::chrono::seconds> (end - start).count ()
+  std::cout << "Running time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
             << " s." << std::endl;
   return 0;
 }
