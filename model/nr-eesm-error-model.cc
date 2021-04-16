@@ -69,32 +69,41 @@ NrEesmErrorModel::GetInstanceTypeId() const
 }
 
 double
-NrEesmErrorModel::SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs) const
+NrEesmErrorModel::SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs, double a, double b) const
 {
-  NS_LOG_FUNCTION (sinr << &map << (uint8_t) mcs);
-  NS_ABORT_MSG_IF (map.size () == 0,
-                   " Error: number of allocated RBs cannot be 0 - EESM method - SinrEff function");
+  // it follows: SINReff = - beta * ln [1/b * (sum (exp (-sinr/beta)) + a)]
+  // for HARQ-IR: b = sum (map.size()), a = sum_j(sum_n (exp (-sinr/beta))) (for previous retx, till j=q-1)
+  // for HARQ-CC: b = map.size(), a = 0.0 (SINRs are already combined in sinr input)
 
-  double SINR = 0.0;
-  double SINRsum = 0.0;
-  SpectrumValue sinrCopy = sinr;
-
+  double sinrExpSum = SinrExp (sinr, map, mcs);
   double beta = GetBetaTable ()->at (mcs);
-
-  for (uint32_t i = 0; i < map.size (); i++)
-    {
-      double sinrLin = sinrCopy[map.at (i)];
-      SINR = exp ( -sinrLin / beta );
-      SINRsum += SINR;
-    }
-
-  SINR = -beta * log ( SINRsum / map.size () );
+  double SINR = -beta * log ((a + sinrExpSum)/b);
 
   NS_LOG_INFO (" Effective SINR = " << SINR);
 
   return SINR;
 }
 
+double
+NrEesmErrorModel::SinrExp (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs) const
+{
+  // it returns sum_n (exp (-SINR/beta))
+  NS_LOG_FUNCTION (sinr << &map << (uint8_t) mcs);
+  NS_ABORT_MSG_IF (map.size () == 0,
+                   " Error: number of allocated RBs cannot be 0 - EESM method - SinrEff function");
+
+  double SINRexp = 0.0;
+  double SINRsum = 0.0;
+  double beta = GetBetaTable ()->at (mcs);
+  SpectrumValue sinrCopy = sinr;
+  for (uint32_t i = 0; i < map.size (); i++)
+    {
+      double sinrLin = sinrCopy[map.at (i)];
+      SINRexp = exp ( -sinrLin / beta );
+      SINRsum += SINRexp;
+    }
+  return SINRsum;
+}
 
 const std::vector<double> &
 NrEesmErrorModel::GetSinrDbVectorFromSimulatedValues (NrEesmErrorModel::GraphType graphType,
@@ -271,8 +280,8 @@ NrEesmErrorModel::PrintMap (const std::vector<int> &map) const
     }
 
   return ss.str ();
-
 }
+
 Ptr<NrErrorModelOutput>
 NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
                                                const std::vector<int>& map,
@@ -282,14 +291,14 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   NS_LOG_FUNCTION (this);
   NS_ABORT_IF (mcs > GetMaxMcs ());
 
-  double tbSinr = SinrEff (sinr, map, mcs);
+  double tbSinr = SinrEff (sinr, map, mcs, 0, map.size());  // effective SINR for this tx
   double SINR = tbSinr;
+  double sinrExpSum = SinrExp (sinr, map, mcs);  // exponential sum of SINRs for this tx
 
   NS_LOG_DEBUG (" mcs " << +mcs << " TBSize in bit " << sizeBit <<
                 " history elements: " << sinrHistory.size () << " SINR of the tx: " <<
                 tbSinr << std::endl << "MAP: " << PrintMap (map) << std::endl <<
                 "SINR: " << sinr);
-
 
   if (sinrHistory.size () > 0)
     {
@@ -336,7 +345,15 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   Ptr<NrEesmErrorModelOutput> ret = Create<NrEesmErrorModelOutput> (errorRate);
   ret->m_sinr = sinr;
   ret->m_map = map;
-  ret->m_sinrEff = SINR;
+  if (sinrHistory.size () == 0)
+    {
+      ret->m_sinrExp =  sinrExpSum;  // it is first tx!
+    }
+  else
+    {
+      double m_sinrExpPrevious = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.back ())->m_sinrExp;
+      ret->m_sinrExp = m_sinrExpPrevious + sinrExpSum;  // it sums over previous tx (recursively)
+    }
   ret->m_infoBits = sizeBit;
   ret->m_codeBits = sizeBit / GetMcsEcrTable ()->at (mcs);
 
