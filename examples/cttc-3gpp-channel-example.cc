@@ -74,6 +74,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("mobility",
                 "If set to 1 UEs will be mobile, when set to 0 UE will be static. By default, they are mobile.",
                 mobility);
+  cmd.AddValue ("logging",
+                "If set to 0, log components will be disabled.",
+                logging);
   cmd.Parse (argc, argv);
 
   // enable logging
