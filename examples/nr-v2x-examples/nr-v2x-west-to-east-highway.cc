@@ -685,8 +685,8 @@ main (int argc, char *argv[])
    *
    * Following attribute would be common for all the UEs
    */
-  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
+  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
+  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (txPower));
