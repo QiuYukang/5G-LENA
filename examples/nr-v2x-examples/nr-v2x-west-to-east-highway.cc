@@ -423,6 +423,12 @@ main (int argc, char *argv[])
   bool generateInitialPosGnuScript = false;
   bool generateGifGnuScript = false;
 
+  //flag to consider all tx links to compute KPIs, e.g., PIR and Throughput
+  //At the moment it is only applied to the throughput KPI. For PIR,
+  //the receiver ignores the transmitter from whom it received only one
+  //packet or none.
+  bool considerAllTx = false;
+
   // Where we will store the output files.
   std::string simTag = "default";
   std::string outputDir = "./";
@@ -537,6 +543,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("channelUpdatePeriod",
                 "The channel update period in ms",
                 channelUpdatePeriod);
+  cmd.AddValue ("considerAllTx",
+                "Consider all transmitters to compute V2X KPIs",
+                considerAllTx);
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
@@ -1153,6 +1162,7 @@ main (int argc, char *argv[])
   pscchPhyStats.EmptyCache ();
   psschPhyStats.EmptyCache ();
   ueRlcRxStats.EmptyCache ();
+  v2xKpi.ConsiderAllTx (considerAllTx);
   v2xKpi.WriteKpis ();
 
   //GtkConfigStore config;
