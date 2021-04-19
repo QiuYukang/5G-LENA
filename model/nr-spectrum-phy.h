@@ -37,6 +37,8 @@
 
 namespace ns3 {
 
+  class UniformPlanarArray;
+
 /**
  * \ingroup ue-phy
  * \ingroup gnb-phy
@@ -163,7 +165,7 @@ public:
    * Note: Implements GetRxAntenna function from SpectrumPhy. This
    * function should not be called for NR devices, since NR devices do not use
    * AntennaModel. This is because 3gpp channel model implementation only
-   * supports ThreeGppAntennaArrayModel antenna type.
+   * supports PhasedArrayModel antenna type.
    * \return should not return anything
    */
   virtual Ptr<AntennaModel> GetRxAntenna () const override;
@@ -277,9 +279,9 @@ public:
    */
   void InstallPhy (const Ptr<const NrPhy> &phyModel);
   /**
-   * \return Returns ThreeGppAntennaArrayModel instance of this spectrum phy
+   * \return Returns UniformPlanarArray instance of this spectrum phy
    */
-  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray (void) const;
+  Ptr<const UniformPlanarArray> GetAntennaArray (void) const;
   /**
    * \brief Returns spectrum channel object to which is attached this spectrum phy instance
    */

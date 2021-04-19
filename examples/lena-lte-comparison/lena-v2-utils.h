@@ -37,38 +37,38 @@ class LenaV2Utils
 public:
   static
   void SetLenaV2SimulatorParameters (const double sector0AngleRad,
-                                       const std::string &scenario,
-                                       const std::string &radioNetwork,
-                                       std::string errorModel,
-                                       const std::string &operationMode,
-                                       const std::string &direction,
-                                       uint16_t numerology,
-                                       const std::string &pattern,
-                                       const NodeContainer &gnbSector1Container,
-                                       const NodeContainer &gnbSector2Container,
-                                       const NodeContainer &gnbSector3Container,
-                                       const NodeContainer &ueSector1Container,
-                                       const NodeContainer &ueSector2Container,
-                                       const NodeContainer &ueSector3Container,
-                                       const Ptr<PointToPointEpcHelper> &baseEpcHelper,
-                                       Ptr<NrHelper> &nrHelper,
-                                       NetDeviceContainer &gnbSector1NetDev,
-                                       NetDeviceContainer &gnbSector2NetDev,
-                                       NetDeviceContainer &gnbSector3NetDev,
-                                       NetDeviceContainer &ueSector1NetDev,
-                                       NetDeviceContainer &ueSector2NetDev,
-                                       NetDeviceContainer &ueSector3NetDev,
-                                       bool calibration,
-                                       bool enableUlPc,
-                                       std::string powerAllocation,
-                                       SinrOutputStats *sinrStats,
-                                       PowerOutputStats *ueTxPowerStats,
-                                       PowerOutputStats *gnbRxPowerStats,
-                                       SlotOutputStats *slotStats,
-                                       RbOutputStats *rbStats,
-                                       const std::string &scheduler,
-                                       uint32_t bandwidthMHz, uint32_t freqScenario,
-                                       double downtiltAngle);
+                                     const std::string &scenario,
+                                     const std::string &radioNetwork,
+                                     std::string errorModel,
+                                     const std::string &operationMode,
+                                     const std::string &direction,
+                                     uint16_t numerology,
+                                     const std::string &pattern,
+                                     const NodeContainer &gnbSector1Container,
+                                     const NodeContainer &gnbSector2Container,
+                                     const NodeContainer &gnbSector3Container,
+                                     const NodeContainer &ueSector1Container,
+                                     const NodeContainer &ueSector2Container,
+                                     const NodeContainer &ueSector3Container,
+                                     const Ptr<PointToPointEpcHelper> &baseEpcHelper,
+                                     Ptr<NrHelper> &nrHelper,
+                                     NetDeviceContainer &gnbSector1NetDev,
+                                     NetDeviceContainer &gnbSector2NetDev,
+                                     NetDeviceContainer &gnbSector3NetDev,
+                                     NetDeviceContainer &ueSector1NetDev,
+                                     NetDeviceContainer &ueSector2NetDev,
+                                     NetDeviceContainer &ueSector3NetDev,
+                                     bool calibration,
+                                     bool enableUlPc,
+                                     std::string powerAllocation,
+                                     SinrOutputStats *sinrStats,
+                                     PowerOutputStats *ueTxPowerStats,
+                                     PowerOutputStats *gnbRxPowerStats,
+                                     SlotOutputStats *slotStats,
+                                     RbOutputStats *rbStats,
+                                     const std::string &scheduler,
+                                     uint32_t bandwidthMHz, uint32_t freqScenario,
+                                     double downtiltAngle);
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
                 double power, double avgSinr, uint16_t bwpId);
@@ -83,12 +83,12 @@ public:
                      uint16_t cellId);
   static void
   ReportRbStatsNr (RbOutputStats *stats, const SfnSf &sfnSf, uint8_t sym,
-                                const std::vector<int> &rbUsed, uint16_t bwpId,
-                                uint16_t cellId);
+                   const std::vector<int> &rbUsed, uint16_t bwpId,
+                   uint16_t cellId);
   static void
   ReportGnbRxDataNr (PowerOutputStats *gnbRxDataStats, const SfnSf &sfnSf,
-                                  Ptr<const SpectrumValue> rxPsd, const Time &t, uint16_t bwpId,
-                                  uint16_t cellId);
+                     Ptr<const SpectrumValue> rxPsd, const Time &t, uint16_t bwpId,
+                     uint16_t cellId);
 
   static void ConfigureBwpTo (BandwidthPartInfoPtr &bwp, double centerFreq, double bwpBw);
 };

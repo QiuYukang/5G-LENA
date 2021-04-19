@@ -107,7 +107,7 @@ NrGnbPhy::GetTypeId (void)
     .AddAttribute ("PowerAllocationType",
                    "Defines the type of the power allocation. Currently are supported "
                    "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
-                   "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
+                   "bandwidth (over all RBs), and \"UniformPowerAllocUsed\", which is a uniform "
                    "power allocation over used (active) RBs. By default is set a uniform power "
                    "allocation over used RBs .",
                    EnumValue (NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED),

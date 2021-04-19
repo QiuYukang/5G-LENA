@@ -35,6 +35,7 @@
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/ideal-beamforming-algorithm.h"
+#include "ns3/antenna-module.h"
 
 
 /**
@@ -207,53 +208,53 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   NS_ABORT_IF (numBands < 1);
-  NS_ABORT_MSG_IF (enableDl==false && enableUl==false, "Enable at least one of "
-                                                       "the flows (DL/UL)");
-  NS_ABORT_MSG_IF (numerology!=0, "Only numerology 0 is supported in this example");
+  NS_ABORT_MSG_IF (enableDl == false && enableUl == false, "Enable at least one of "
+                   "the flows (DL/UL)");
+  NS_ABORT_MSG_IF (numerology != 0, "Only numerology 0 is supported in this example");
 
   //Set the size of the mask according to the supported BW
   int size = 0;
   if (bandwidth == 5e6)
-   {
-     size = 26;
-     NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 25, "The starting point "
-                      "of the DL notched RBs must be between 0 and 25 for BW of 5MHz");
-     NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 25, "The available RBs "
-                      "in DL are 26 (from 0 to 25) for BW of 5MHz");
-     NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 25, "The starting point "
-                      "of the UL notched RBs must be between 0 and 25 for BW of 5MHz");
-     NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 25, "The available RBs "
-                      "in UL are 26 (from 0 to 25) for BW of 5MHz");
-   }
+    {
+      size = 26;
+      NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 25, "The starting point "
+                       "of the DL notched RBs must be between 0 and 25 for BW of 5MHz");
+      NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 25, "The available RBs "
+                       "in DL are 26 (from 0 to 25) for BW of 5MHz");
+      NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 25, "The starting point "
+                       "of the UL notched RBs must be between 0 and 25 for BW of 5MHz");
+      NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 25, "The available RBs "
+                       "in UL are 26 (from 0 to 25) for BW of 5MHz");
+    }
   else if (bandwidth == 10e6)
-  {
-    size = 53;
-    NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 52, "The starting point "
-                     "of the DL notched RBs must be between 0 and 52 for BW of 10MHz");
-    NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 52, "The available RBs "
-                     "in DL are 53 (from 0 to 52) for BW of 10MHz");
-    NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 52, "The starting point "
-                     "of the UL notched RBs must be between 0 and 52 for BW of 10MHz");
-    NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 52, "The available RBs "
-                     "in UL are 53 (from 0 to 52) for BW of 10MHz");
-  }
+    {
+      size = 53;
+      NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 52, "The starting point "
+                       "of the DL notched RBs must be between 0 and 52 for BW of 10MHz");
+      NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 52, "The available RBs "
+                       "in DL are 53 (from 0 to 52) for BW of 10MHz");
+      NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 52, "The starting point "
+                       "of the UL notched RBs must be between 0 and 52 for BW of 10MHz");
+      NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 52, "The available RBs "
+                       "in UL are 53 (from 0 to 52) for BW of 10MHz");
+    }
   else if (bandwidth == 20e6)
-  {
-    size = 106;
-    NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 105, "The starting point "
-                     "of the DL notched RBs must be between 0 and 105 for BW of 20MHz");
-    NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 105, "The available RBs "
-                     "in DL are 106 (from 0 to 105) for BW of 20MHz");
-    NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 105, "The starting point "
-                     "of the UL notched RBs must be between 0 and 105 for BW of 20MHz");
-    NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 105, "The available RBs "
-                     "in UL are 106 (from 0 to 105) for BW of 20MHz");
-  }
+    {
+      size = 106;
+      NS_ABORT_MSG_IF (notchedRbStartDl < 0 || notchedRbStartDl > 105, "The starting point "
+                       "of the DL notched RBs must be between 0 and 105 for BW of 20MHz");
+      NS_ABORT_MSG_IF ((notchedRbStartDl + numOfNotchedRbsDl) > 105, "The available RBs "
+                       "in DL are 106 (from 0 to 105) for BW of 20MHz");
+      NS_ABORT_MSG_IF (notchedRbStartUl < 0 || notchedRbStartUl > 105, "The starting point "
+                       "of the UL notched RBs must be between 0 and 105 for BW of 20MHz");
+      NS_ABORT_MSG_IF ((notchedRbStartUl + numOfNotchedRbsUl) > 105, "The available RBs "
+                       "in UL are 106 (from 0 to 105) for BW of 20MHz");
+    }
   else
-  {
-    NS_ABORT_MSG("This bandwidth is not supported in this example. "
-                   "Please choose among 5MHz - 10MHz - 20MHz.");
-  }
+    {
+      NS_ABORT_MSG ("This bandwidth is not supported in this example. "
+                    "Please choose among 5MHz - 10MHz - 20MHz.");
+    }
 
   // Default mask (all 1s)
   std::vector<uint8_t> notchedMaskDl (size, 1);
@@ -282,20 +283,24 @@ main (int argc, char *argv[])
       std::cout << x << " ";
     }
   std::cout << std::endl;
-  std::cout << "Warning: Please be sure that the number of 'normal' RBs is" <<
-               "sufficient to perform transmissions of the UEs.\n If an error " <<
-               "occurs, please try to reduce either the number of notched RBs " <<
-               "or the number of UEs." << std::endl;
+  std::cout << "Warning: Please be sure that the number of 'normal' RBs is " <<
+    "sufficient to perform transmissions of the UEs.\n If an error " <<
+    "occurs, please try to reduce either the number of notched RBs " <<
+    "or the number of UEs." << std::endl;
 
   // enable logging or not
   if (logging)
     {
-      LogComponentEnable ("NrMacSchedulerNs3", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerTdma", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerTdmaRR", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerOfdma", LOG_LEVEL_ALL);
-      LogComponentEnable ("NrMacSchedulerOfdmaRR", LOG_LEVEL_ALL);
-      LogComponentEnable ("CcBwpHelper", LOG_LEVEL_ALL);
+      LogLevel logLevel1 = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME |
+                                      LOG_PREFIX_NODE | LOG_LEVEL_INFO);
+      LogLevel logLevel2 = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME |
+                                      LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
+      LogComponentEnable ("NrMacSchedulerNs3", logLevel1);
+      LogComponentEnable ("NrMacSchedulerTdma", logLevel1);
+      //LogComponentEnable ("NrMacSchedulerTdmaRR", logLevel1);
+      LogComponentEnable ("NrMacSchedulerOfdma", logLevel1);
+      //LogComponentEnable ("NrMacSchedulerOfdmaRR", logLevel1);
+      LogComponentEnable ("CcBwpHelper", logLevel2);
     }
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (999999999));
@@ -382,17 +387,17 @@ main (int argc, char *argv[])
   nrHelper->InitializeOperationBand (&band);
   allBwps = CcBwpCreator::GetAllBwps ({band});
 
-  double x = pow (10, totalTxPower/10);
+  double x = pow (10, totalTxPower / 10);
 
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (1));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (1));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for all the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
 
   uint32_t bwpIdForLowLat = 0;
@@ -426,7 +431,7 @@ main (int argc, char *argv[])
     {
       // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0), (1), ...
       nrHelper->GetGnbPhy (enbNetDev.Get (i), 0)->SetAttribute ("Numerology", UintegerValue (numerology));
-      nrHelper->GetGnbPhy (enbNetDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10*log10 (x)));
+      nrHelper->GetGnbPhy (enbNetDev.Get (i), 0)->SetAttribute ("TxPower", DoubleValue (10 * log10 (x)));
 
       //Set the mask
       Ptr<NrMacSchedulerNs3> schedulerBwp1 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler (enbNetDev.Get (i), 0));
@@ -445,7 +450,7 @@ main (int argc, char *argv[])
           nrHelper->GetGnbPhy (enbNetDev.Get (i), 1)->SetAttribute ("TxPower", DoubleValue (-30.0));
           nrHelper->GetGnbPhy (enbNetDev.Get (i), 1)->SetAttribute ("Pattern", StringValue ("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
-          Ptr<NrMacSchedulerNs3> schedulerBwp2 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler(enbNetDev.Get (i), 1));
+          Ptr<NrMacSchedulerNs3> schedulerBwp2 = DynamicCast<NrMacSchedulerNs3> (nrHelper->GetScheduler (enbNetDev.Get (i), 1));
           schedulerBwp2->SetUlNotchedRbgMask (notchedMaskUl);
 
           // Link the two FDD BWPs:
@@ -502,7 +507,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 0; j < gridScenario.GetUserTerminals ().GetN (); ++j)
     {
       Ptr<Ipv4StaticRouting> ueStaticRouting =
-          ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get (j)->GetObject<Ipv4> ());
+        ipv4RoutingHelper.GetStaticRouting (gridScenario.GetUserTerminals ().Get (j)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
@@ -534,7 +539,7 @@ main (int argc, char *argv[])
   dlClientLowLat.SetAttribute ("RemotePort", UintegerValue (dlPortLowLat));
   dlClientLowLat.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   dlClientLowLat.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaBe)));
+  dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaBe)));
 
   // The bearer that will carry low latency traffic
   EpsBearer lowLatBearer (EpsBearer::NGBR_LOW_LAT_EMBB);
@@ -551,7 +556,7 @@ main (int argc, char *argv[])
   ulClientVoice.SetAttribute ("RemotePort", UintegerValue (ulPortVoice));
   ulClientVoice.SetAttribute ("MaxPackets", UintegerValue (0xFFFFFFFF));
   ulClientVoice.SetAttribute ("PacketSize", UintegerValue (udpPacketSizeBe));
-  ulClientVoice.SetAttribute ("Interval", TimeValue (Seconds(1.0/lambdaBe)));
+  ulClientVoice.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaBe)));
 
   // The bearer that will carry voice traffic
   EpsBearer videoBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
@@ -570,7 +575,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < gridScenario.GetUserTerminals ().GetN (); ++i)
     {
       Ptr<Node> ue = gridScenario.GetUserTerminals ().Get (i);
-      Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
+      Ptr<NetDevice> ueDevice = ueNetDev.Get (i);
       Address ueAddress = ueIpIface.GetAddress (i);
 
       // The client, who is transmitting, is installed in the remote host,
@@ -600,7 +605,7 @@ main (int argc, char *argv[])
   clientApps.Stop (Seconds (simTime));
 
   // enable the traces provided by the nr module
-  nrHelper->EnableTraces();
+  nrHelper->EnableTraces ();
 
 
   FlowMonitorHelper flowmonHelper;

@@ -46,6 +46,7 @@ $ ./waf --run "cttc-channel-randomness --Help"
 #include "ns3/nr-spectrum-value-helper.h"
 #include "ns3/three-gpp-propagation-loss-model.h"
 #include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include "ns3/antenna-module.h"
 #include "ns3/log.h"
 
 
@@ -62,9 +63,9 @@ NS_LOG_COMPONENT_DEFINE ("CttcChannelRandomness");
  * \param otherDevice the device towards which point the beam
  */
 static void
-DoBeamforming (Ptr<NetDevice> thisDevice, Ptr<ThreeGppAntennaArrayModel> thisAntenna, Ptr<NetDevice> otherDevice)
+DoBeamforming (Ptr<NetDevice> thisDevice, Ptr<UniformPlanarArray> thisAntenna, Ptr<NetDevice> otherDevice)
 {
-  ThreeGppAntennaArrayModel::ComplexVector antennaWeights;
+  UniformPlanarArray::ComplexVector antennaWeights;
 
   // retrieve the position of the two devices
   Vector aPos = thisDevice->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
@@ -86,7 +87,8 @@ DoBeamforming (Ptr<NetDevice> thisDevice, Ptr<ThreeGppAntennaArrayModel> thisAnt
     }
 
   double hAngleRadian = fmod ((phiAngle + M_PI),2 * M_PI - M_PI); // the azimuth angle
-  double vAngleRadian = completeAngle.theta; // the elevation angle
+  double vAngleRadian = completeAngle.GetInclination (); // the elevation angle
+
 
   // retrieve the number of antenna elements
   int totNoArrayElements = thisAntenna->GetNumberOfElements ();
@@ -234,8 +236,8 @@ main (int argc, char *argv[])
 
 
   // create the antenna objects and set their dimensions
-  Ptr<ThreeGppAntennaArrayModel> txAntenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
-  Ptr<ThreeGppAntennaArrayModel> rxAntenna = CreateObjectWithAttributes<ThreeGppAntennaArrayModel> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
+  Ptr<UniformPlanarArray> txAntenna = CreateObjectWithAttributes<UniformPlanarArray> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
+  Ptr<UniformPlanarArray> rxAntenna = CreateObjectWithAttributes<UniformPlanarArray> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
 
   // initialize the devices in the ThreeGppSpectrumPropagationLossModel
   m_spectrumLossModel->AddDevice (txDev, txAntenna);
@@ -266,9 +268,9 @@ main (int argc, char *argv[])
       activeRbs.push_back(rbId);
     }
   Ptr<const SpectrumValue> txPsd1 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs, sm1, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
-  NS_LOG_UNCOND ("Average tx power 1: " << 10 * log10 (Sum (*txPsd1) / txPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+  std::cout << "Average tx power 1: " << 10 * log10 (Sum (*txPsd1) / txPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
   Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob);
-  NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+  std::cout << "Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
 
   channelModel = {nullptr};
   channelModel = CreateObject<ThreeGppChannelModel> ();
@@ -307,9 +309,9 @@ main (int argc, char *argv[])
     }
   Ptr<const SpectrumValue> txPsd2 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs2, sm2, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
 
-  NS_LOG_UNCOND ("Average tx power 1: " << 10 * log10 (Sum (*txPsd2) / txPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+  std::cout << "Average tx power 1: " << 10 * log10 (Sum (*txPsd2) / txPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
   Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob);
-  NS_LOG_UNCOND ("Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm");
+  std::cout << "Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
 
 
   Simulator::Stop (MilliSeconds (simTimeMs));

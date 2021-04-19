@@ -17,13 +17,11 @@ To download a working copy of the ns-3-dev repository with the latest changes,
 you can do the following:
 
 ```
-$ git clone git@gitlab.com:nsnam/ns-3-dev.git # If you have an account in gitlab.com
+$ git clone https://gitlab.com/nsnam/ns-3-dev.git
 $ cd ns-3-dev
 ```
 
-Provide your username and password when asked. If you don't have an account
-on gitlab.com, you can use `https://gitlab.com/nsnam/ns-3-dev.git` as the
-repository address.
+Provide your username and password when asked.
 
 ### Switching from CTTC-provided ns-3-dev
 
@@ -32,7 +30,7 @@ that are upgrading from v0.4 to v1.0, the steps to switch to the official
 ns-3 repository are the following (without recreating the repo configuration):
 
 ```
-$ git remote add nsnam git@gitlab.com:nsnam/ns-3-dev.git
+$ git remote add nsnam https://gitlab.com/nsnam/ns-3-dev.git
 $ git checkout master
 $ git pull nsnam master
 ```
@@ -65,7 +63,7 @@ to include our nr module (only for authorized users):
 
 ```
 $ cd contrib
-$ git clone git@gitlab.com:cttc-lena/nr.git
+$ git clone https://gitlab.com/cttc-lena/nr.git
 $ cd ..
 ```
 
@@ -73,6 +71,11 @@ Please note that the contrib/nr directory will be listed as "Untracked files" ev
 time you do a `git status` command. Ignore it, as the directory lives as an
 independent module. As a result, we have now two parallel repository, but one
 lives inside the other.
+
+Finally, switch to the latest release branch (fixes are included in the release
+branch and not master). For example, for version 1.1 you have to `git checkout`
+to the `5g-lena-v1.1.y` branch.
+
 
 ### Test the NR installation
 
@@ -91,6 +94,25 @@ $ ./waf
 ```
 
 If that command returns successfully, Welcome to the NR world !
+
+Notice that sqlite development package and semaphore.h are required (otherwise
+you will get an error, e.g: `fatal error: ns3/sqlite-output.h`). In this case
+you should install libc6-dev:
+
+```
+sudo apt-get install libc6-dev
+```
+
+that will provide semaphore.h and/or sqlite:
+
+```
+apt-get install sqlite sqlite3 libsqlite3-dev
+```
+
+For more details, related to the prerequisites for ns-3 please visit: `https://www.nsnam.org/wiki/Installation#Ubuntu.2FDebian.2FMint`.
+After the installation of the missing packages run again `./waf configure --enable-tests --enable-examples`.
+You should see: `SQLite stats support: enabled`
+
 
 ## Upgrading 5G-LENA
 

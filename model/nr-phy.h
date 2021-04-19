@@ -33,7 +33,7 @@ class NrControlMessage;
 class NrSpectrumPhy;
 class AntennaArrayBasicModel;
 class BeamManager;
-class ThreeGppAntennaArrayModel;
+class UniformPlanarArray;
 
 /**
  * \ingroup ue-phy
@@ -172,7 +172,7 @@ public:
    *
    * Usually called by the helper. It will install a new BeamManager object.
    */
-  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<ThreeGppAntennaArrayModel> &antenna);
+  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna);
 
   // Note: Returning a BeamManger, it means that someone outside this class
   // can change the beamforming vector, BUT the phy will not learn it.
@@ -213,7 +213,7 @@ public:
   /**
    * \return The antena array that is being used by this PHY
    */
-  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray () const;
+  Ptr<const UniformPlanarArray> GetAntennaArray () const;
 
   /**
    * \brief Set the NoiseFigure value

@@ -72,6 +72,7 @@ $ ./waf --run "nr-v2x-west-to-east-highway --help"
 #include "ue-to-ue-pkt-txrx-output-stats.h"
 #include "v2x-kpi.h"
 #include "ue-rlc-rx-output-stats.h"
+#include "ns3/antenna-module.h"
 #include <iomanip>
 
 
@@ -686,7 +687,7 @@ main (int argc, char *argv[])
    */
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (txPower));
 

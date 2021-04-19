@@ -80,7 +80,7 @@ public:
    *
    * \param antennaArray the antenna array
    */
-  void Configure (const Ptr<ThreeGppAntennaArrayModel>& antennaArray);
+  void Configure (const Ptr<UniformPlanarArray>& antennaArray);
 
   /**
    * \brief Get weight vector from a BeamformingVector
@@ -100,7 +100,7 @@ public:
    * \brief Get a pointer to the current antenna
    * \return the antenna
    */
-  Ptr<const ThreeGppAntennaArrayModel> GetAntennaArray () const;
+  Ptr<const UniformPlanarArray> GetAntennaArray () const;
 
 
   typedef std::map<const Ptr<const NetDevice>, BeamformingVector> BeamformingStorage; //!< BeamformingStorage type used to save the map of beamforming vectors per device
@@ -156,7 +156,7 @@ public:
 
 private:
 
-  Ptr<ThreeGppAntennaArrayModel> m_antennaArray;  //!< the antenna array instance for which is responsible this BeamManager
+  Ptr<UniformPlanarArray> m_antennaArray;  //!< the antenna array instance for which is responsible this BeamManager
   uint32_t m_numRows {0};//!< Number of rows of antenna array for which is calculated current quasi omni beamforming vector
   uint32_t m_numColumns {0}; //!< Number of columns of antenna array for which is calculated current quasi omni beamforming vector
   BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional transmission and reception

@@ -24,6 +24,7 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/nr-module.h"
+#include "ns3/antenna-module.h"
 #include <unordered_map>
 
 // Do not put your test classes in namespace ns3.  You may find it useful
@@ -43,7 +44,7 @@ using namespace ns3;
 
 static uint32_t packetSize = 21;
 
-static const std::unordered_map<NrControlMessage::messageType, bool, std::hash<int>> messageLog =
+static const std::unordered_map<NrControlMessage::messageType, bool, std::hash<int> > messageLog =
 {
   { NrControlMessage::messageType::UL_DCI,      false },
   { NrControlMessage::messageType::DL_DCI, false },
@@ -57,7 +58,7 @@ static const std::unordered_map<NrControlMessage::messageType, bool, std::hash<i
   { NrControlMessage::messageType::SR,       false },
 };
 
-typedef std::unordered_map<NrControlMessage::messageType, uint64_t, std::hash<int>> TypeToResult;
+typedef std::unordered_map<NrControlMessage::messageType, uint64_t, std::hash<int> > TypeToResult;
 typedef std::unordered_map<uint32_t, TypeToResult> NumerologyToType;
 
 class NrTimingsTest : public TestCase
@@ -96,12 +97,10 @@ NrTimingsTest::NrTimingsTest (const std::string &name, uint32_t numerology, bool
   : TestCase (name),
     m_numerology (numerology),
     verbose (verbose)
-{
-}
+{}
 
 NrTimingsTest::~NrTimingsTest ()
-{
-}
+{}
 
 static void
 SendPacket (const Ptr<NetDevice> &device, const Address& addr)
@@ -116,7 +115,7 @@ SendPacket (const Ptr<NetDevice> &device, const Address& addr)
   device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
 
-static const std::unordered_map <NrControlMessage::messageType, std::string, std::hash<int>> TYPE_TO_STRING =
+static const std::unordered_map <NrControlMessage::messageType, std::string, std::hash<int> > TYPE_TO_STRING =
 {
   { NrControlMessage::messageType::UL_DCI,   "UL_DCI" },
   { NrControlMessage::messageType::DL_DCI,   "DL_DCI" },
@@ -141,67 +140,67 @@ NrTimingsTest::GnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   {
     {
       4, {
-           { NrControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 6, 4, 4).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 6, 4, 3).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+      },
 
     },
     {
       2, {
-           { NrControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 7, 0, 2).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 8, 0, 1).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (2, 0, 0, 0).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+      },
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -217,76 +216,76 @@ NrTimingsTest::GnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   {
     {
       4, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+      },
     },
     {
       2, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+      },
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -317,31 +316,31 @@ NrTimingsTest::GnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -357,71 +356,71 @@ NrTimingsTest::GnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
   {
     {
       4, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 5, 4).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 0, 6, 4).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 0, 5, 4).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 0, 6, 4).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 5, 3).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 0, 6, 3).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 0, 5, 3).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 0, 6, 3).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+      },
     },
     {
       2, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 1, 1, 2).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 1, 2, 2).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 1, 1, 2).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 1, 2, 2).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 2, 1, 1).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 3, 0, 1).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 2, 1, 1).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 3, 0, 1).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 5, 0, 0).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 6, 0, 0).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 5, 0, 0).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 6, 0, 0).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+      },
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -439,76 +438,76 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 4).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 4).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 4).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 3).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 0, 4, 3).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 0, 5, 3).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+      },
     },
     {
       2, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 2).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 1, 0, 2).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 1, 1, 2).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 1, 1).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 2, 0, 1).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 2, 1, 1).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
-           { NrControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
-           { NrControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 7, 0, 0).Normalize () },
+        { NrControlMessage::DL_HARQ, SfnSf (40, 4, 0, 0).Normalize () },
+        { NrControlMessage::DL_CQI, SfnSf (40, 5, 0, 0).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+      },
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -524,66 +523,66 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { NrControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+      },
     },
     {
       2, {
-           { NrControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () } ,
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+      },
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -599,66 +598,66 @@ NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 4).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 4).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 3).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 3).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 3).Normalize () },
+      },
     },
     {
       2, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 2).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 2).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () },
-          //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
-          //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 1).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 1).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () },
-           //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
-           //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
-         },
+        { NrControlMessage::RACH_PREAMBLE, SfnSf (1, 6, 0, 0).Normalize () },
+        //{ NrControlMessage::SR, SfnSf (80, 0, 0, 0).Normalize () },
+        //{ NrControlMessage::BSR, SfnSf (80, 0, 0, 0).Normalize () },
+      },
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -674,66 +673,66 @@ NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
   {
     {
       4, {
-           { NrControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 6, 5, 4).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 4).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
+      },
     },
     {
       3, {
-           { NrControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 6, 5, 3).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 3).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
+      },
     },
     {
       2, {
-           { NrControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 7, 1, 2).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 0, 2, 2).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
+      },
     },
     {
       1, {
-           { NrControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
-           { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
-         },
+        { NrControlMessage::RAR, SfnSf (1, 8, 1, 1).Normalize () },
+        { NrControlMessage::DL_DCI, SfnSf (40, 1, 0, 1).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
+      },
     },
     {
       0, {
-           { NrControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize ()  },
-           { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
-           //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
-         }
+        { NrControlMessage::RAR, SfnSf (2, 1, 0, 0).Normalize ()  },
+        { NrControlMessage::DL_DCI, SfnSf (40, 2, 0, 0).Normalize () },
+        //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
+      }
     },
   };
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " at " << sfn << " numerology " << m_numerology
-                << " slot count " << sfn.Normalize() << " " << Simulator::Now () << std::endl;
+                << " slot count " << sfn.Normalize () << " " << Simulator::Now () << std::endl;
     }
 
   auto numMap = res.find (m_numerology);
   if (numMap != res.end ())
     {
-      auto resMap = numMap->second.find (msg->GetMessageType());
+      auto resMap = numMap->second.find (msg->GetMessageType ());
       if (resMap != numMap->second.end ())
         {
           uint64_t slotN = resMap->second;
-          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize(),
-              "The message type " << TYPE_TO_STRING.at (msg->GetMessageType()) <<
-              " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
-              sfn.Normalize () << " in numerology " << m_numerology);
+          NS_TEST_ASSERT_MSG_EQ (slotN, sfn.Normalize (),
+                                 "The message type " << TYPE_TO_STRING.at (msg->GetMessageType ()) <<
+                                 " was supposed to be sent at slot " << slotN << " but instead we sent it at " <<
+                                 sfn.Normalize () << " in numerology " << m_numerology);
           return;
         }
     }
 
-  if (verbose && messageLog.at (msg->GetMessageType()))
+  if (verbose && messageLog.at (msg->GetMessageType ()))
     {
-      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType())
+      std::cerr << __func__ << ": " << TYPE_TO_STRING.at (msg->GetMessageType ())
                 << " not found in the result map;" << std::endl;
     }
 }
@@ -750,7 +749,7 @@ NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 void
 NrTimingsTest::DoRun (void)
 {
-  ns3::SeedManager::SetRun(5);
+  ns3::SeedManager::SetRun (5);
 
   Ptr<Node> ueNode = CreateObject<Node> ();
   Ptr<Node> gNbNode = CreateObject<Node> ();
@@ -759,8 +758,8 @@ NrTimingsTest::DoRun (void)
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (gNbNode);
   mobility.Install (ueNode);
-  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector(0.0, 0.0, 10));
-  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10 , 1.5));
+  gNbNode->GetObject<MobilityModel>()->SetPosition (Vector (0.0, 0.0, 10));
+  ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10, 1.5));
 
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
@@ -780,7 +779,7 @@ NrTimingsTest::DoRun (void)
   OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc (bandConf1);
 
 
-  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds(0)));
+  Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (0)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
 
@@ -796,12 +795,12 @@ NrTimingsTest::DoRun (void)
   // Antennas for all the UEs
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   // Antennas for all the gNbs
   nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
   nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   nrHelper->SetSchedulerAttribute ("StartingMcsDl", UintegerValue (28));
   nrHelper->SetSchedulerAttribute ("StartingMcsUl", UintegerValue (28));
@@ -814,17 +813,17 @@ NrTimingsTest::DoRun (void)
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
 
-  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("GnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyTx, this));
-  GET_ENB_PHY(0,0)->TraceConnectWithoutContext ("GnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyRx, this));
+  GET_ENB_PHY (0,0)->TraceConnectWithoutContext ("GnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyTx, this));
+  GET_ENB_PHY (0,0)->TraceConnectWithoutContext ("GnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyRx, this));
 
-  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("GnbMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbMacTx, this));
-  GET_ENB_MAC(0,0)->TraceConnectWithoutContext ("GnbMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbMacRx, this));
+  GET_ENB_MAC (0,0)->TraceConnectWithoutContext ("GnbMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbMacTx, this));
+  GET_ENB_MAC (0,0)->TraceConnectWithoutContext ("GnbMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbMacRx, this));
 
-  GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyTx, this));
-  GET_UE_PHY(0,0)->TraceConnectWithoutContext ("UePhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyRx, this));
+  GET_UE_PHY (0,0)->TraceConnectWithoutContext ("UePhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyTx, this));
+  GET_UE_PHY (0,0)->TraceConnectWithoutContext ("UePhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UePhyRx, this));
 
-  GET_UE_MAC(0,0)->TraceConnectWithoutContext ("UeMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UeMacTx, this));
-  GET_UE_MAC(0,0)->TraceConnectWithoutContext ("UeMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UeMacRx, this));
+  GET_UE_MAC (0,0)->TraceConnectWithoutContext ("UeMacTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UeMacTx, this));
+  GET_UE_MAC (0,0)->TraceConnectWithoutContext ("UeMacRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::UeMacRx, this));
 
   // When all the configuration is done, explicitly call UpdateConfig ()
 
@@ -846,7 +845,7 @@ NrTimingsTest::DoRun (void)
   nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
   // DL at 0.4
-  Simulator::Schedule (MilliSeconds (400), &SendPacket, enbNetDev.Get(0), ueNetDev.Get(0)->GetAddress ());
+  Simulator::Schedule (MilliSeconds (400), &SendPacket, enbNetDev.Get (0), ueNetDev.Get (0)->GetAddress ());
 
   // UL at 0.8
   //Simulator::Schedule (MilliSeconds (800), &SendPacket, ueNetDev.Get(0), enbNetDev.Get(0)->GetAddress ());

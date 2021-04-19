@@ -23,8 +23,7 @@
 namespace ns3 {
 
 PowerOutputStats::PowerOutputStats ()
-{
-}
+{}
 
 void
 PowerOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
@@ -51,12 +50,12 @@ PowerOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
   NS_ASSERT (ret);
 
   PowerOutputStats::DeleteWhere (m_db, RngSeedManager::GetSeed (),
-                                 RngSeedManager::GetRun(), tableName);
+                                 RngSeedManager::GetRun (), tableName);
 }
 
-void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> txPsd,
-                                 const Time &t, uint16_t rnti, uint64_t imsi,
-                                 uint16_t bwpId, uint16_t cellId)
+void PowerOutputStats::SavePower (const SfnSf &sfnSf, Ptr<const SpectrumValue> txPsd,
+                                  const Time &t, uint16_t rnti, uint64_t imsi,
+                                  uint16_t bwpId, uint16_t cellId)
 {
   NS_UNUSED (t);
 
@@ -69,12 +68,12 @@ void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> tx
   c.bwpId = bwpId;
   c.cellId = cellId;
 
-  uint32_t rbNumTotal = txPsd->GetValuesN();
+  uint32_t rbNumTotal = txPsd->GetValuesN ();
   uint32_t rbNumActive = 0;
 
   for (uint32_t rbIndex = 0; rbIndex < rbNumTotal; rbIndex++)
     {
-      if ((*txPsd)[rbIndex]!=0)
+      if ((*txPsd)[rbIndex] != 0)
         {
           rbNumActive++;
         }
@@ -82,11 +81,11 @@ void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> tx
 
   if (rbNumActive == 0)
     {
-       return; //ignore this entry
+      return;  //ignore this entry
     }
 
   c.txPowerTotal = (Integral (*txPsd));
-  c.txPowerRb = c.txPowerTotal/rbNumActive;
+  c.txPowerRb = c.txPowerTotal / rbNumActive;
   c.rbNumActive = rbNumActive;
   c.rbNumTotal = rbNumTotal;
 
@@ -100,14 +99,14 @@ void PowerOutputStats::SavePower(const SfnSf &sfnSf, Ptr<const SpectrumValue> tx
 }
 
 void
-PowerOutputStats::EmptyCache()
+PowerOutputStats::EmptyCache ()
 {
   WriteCache ();
 }
 
 void
 PowerOutputStats::DeleteWhere (SQLiteOutput *p, uint32_t seed,
-                              uint32_t run, const std::string &table)
+                               uint32_t run, const std::string &table)
 {
   bool ret;
   sqlite3_stmt *stmt;

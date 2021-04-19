@@ -512,17 +512,17 @@ NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &rtdNetDev,
 
       if (gnbRtdNetDevice)
       {
-        NS_LOG_UNCOND ("gnb is rtd");
+        std::cout << "gnb is RTD (transmitter)" << std::endl;
         m_rtdDeviceToPhy.insert (std::make_pair (*netDevIt, (*netDevIt)->GetObject<NrGnbNetDevice> ()->GetPhy (bwpId)));
       }
       else if (ueRtdNetDevice)
       {
-        NS_LOG_UNCOND ("ue is rtd");
+        std::cout << "ue is RTD (transmitter)" << std::endl;
         m_rtdDeviceToPhy.insert (std::make_pair (*netDevIt, (*netDevIt)->GetObject<NrUeNetDevice> ()->GetPhy (bwpId)));
       }
       else
       {
-        NS_FATAL_ERROR ("no rtd device!");
+        NS_FATAL_ERROR ("no RTD device!");
       }
     }
 
@@ -531,17 +531,17 @@ NrRadioEnvironmentMapHelper::CreateRem (const NetDeviceContainer &rtdNetDev,
 
   if (gnbRrdNetDevice)
   {
-    NS_LOG_UNCOND ("gnb is rrd");
+    std::cout <<"gnb is RRD (receiver)" << std::endl;
     m_rrdPhy = (rrdDevice)->GetObject<NrGnbNetDevice> ()->GetPhy (bwpId);
   }
   else if (ueRrdNetDevice)
   {
-    NS_LOG_UNCOND ("ue is rrd");
+    std::cout << "ue is RRD (receiver)" << std::endl;
     m_rrdPhy = (rrdDevice)->GetObject<NrUeNetDevice> ()->GetPhy (bwpId);
   }
   else
   {
-    NS_FATAL_ERROR ("no rrd device!");
+    NS_FATAL_ERROR ("no RRD device!");
   }
 
   // save user defined beams, it is like a snapshot, because later during
@@ -664,7 +664,7 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv (RemDevice& device)
 void
 NrRadioEnvironmentMapHelper::ConfigureDirectPathBfv (RemDevice& device,
                                                      const RemDevice& otherDevice,
-                                                     const Ptr<const ThreeGppAntennaArrayModel>& antenna)
+                                                     const Ptr<const UniformPlanarArray>& antenna)
 {
   NS_LOG_FUNCTION (this);
   device.antenna->SetBeamformingVector (CreateDirectPathBfv (device.mob, otherDevice.mob, antenna));

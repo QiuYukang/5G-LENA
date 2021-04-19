@@ -65,6 +65,7 @@ $ ./waf --run "cttc-nr-v2x-demo-simple --help"
 #include "ue-phy-pscch-rx-output-stats.h"
 #include "ue-phy-pssch-rx-output-stats.h"
 #include "ue-to-ue-pkt-txrx-output-stats.h"
+#include "ns3/antenna-module.h"
 #include <iomanip>
 
 /*
@@ -468,7 +469,7 @@ main (int argc, char *argv[])
    */
   nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
   nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("IsotropicElements", BooleanValue (true));
+  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
 
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (txPower));
 

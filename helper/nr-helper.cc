@@ -53,6 +53,7 @@
 #include <ns3/bwp-manager-algorithm.h>
 #include <ns3/three-gpp-v2v-propagation-loss-model.h>
 #include <ns3/three-gpp-v2v-channel-condition-model.h>
+#include <ns3/uniform-planar-array.h>
 
 #include <algorithm>
 
@@ -78,8 +79,8 @@ NrHelper::NrHelper (void)
   m_ueChannelAccessManagerFactory.SetTypeId (NrAlwaysOnAccessManager::GetTypeId ());
   m_gnbChannelAccessManagerFactory.SetTypeId (NrAlwaysOnAccessManager::GetTypeId ());
   m_schedFactory.SetTypeId (NrMacSchedulerTdmaRR::GetTypeId ());
-  m_ueAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
-  m_gnbAntennaFactory.SetTypeId (ThreeGppAntennaArrayModel::GetTypeId ());
+  m_ueAntennaFactory.SetTypeId (UniformPlanarArray::GetTypeId ());
+  m_gnbAntennaFactory.SetTypeId (UniformPlanarArray::GetTypeId ());
   m_gnbBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_ueBwpManagerAlgoFactory.SetTypeId (BwpManagerAlgorithmStatic::GetTypeId ());
   m_gnbUlAmcFactory.SetTypeId (NrAmc::GetTypeId ());
@@ -508,7 +509,7 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   Ptr<NrUePhy> phy = m_uePhyFactory.Create <NrUePhy> ();
   Ptr<NrHarqPhy> harq = Create<NrHarqPhy> ();
 
-  Ptr<ThreeGppAntennaArrayModel> antenna = m_ueAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
+  Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> ();
 
   DoubleValue frequency;
   bool res = bwp->m_propagation->GetAttributeFailSafe ("Frequency", frequency);
@@ -709,7 +710,7 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
 
   Ptr<NrSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create <NrSpectrumPhy> ();
   Ptr<NrGnbPhy> phy = m_gnbPhyFactory.Create <NrGnbPhy> ();
-  Ptr<ThreeGppAntennaArrayModel> antenna = m_gnbAntennaFactory.Create <ThreeGppAntennaArrayModel> ();
+  Ptr<UniformPlanarArray> antenna = m_gnbAntennaFactory.Create <UniformPlanarArray> ();
 
   DoubleValue frequency;
   bool res = bwp->m_propagation->GetAttributeFailSafe ("Frequency", frequency);

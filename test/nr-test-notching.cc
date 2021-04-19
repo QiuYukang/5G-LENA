@@ -65,14 +65,10 @@ private:
 };
 
 TestNotchingPhySapProvider::TestNotchingPhySapProvider ()
-{
-
-}
+{}
 
 TestNotchingPhySapProvider::~TestNotchingPhySapProvider ()
-{
-
-}
+{}
 
 void
 TestNotchingPhySapProvider::SetParams (uint32_t numOfUesPerBeam, uint32_t numOfBeams)
@@ -82,7 +78,7 @@ TestNotchingPhySapProvider::SetParams (uint32_t numOfUesPerBeam, uint32_t numOfB
 }
 
 uint32_t
-TestNotchingPhySapProvider::GetSymbolsPerSlot() const
+TestNotchingPhySapProvider::GetSymbolsPerSlot () const
 {
   //Fixed 14 symbols per slot.
   return 14;
@@ -116,33 +112,23 @@ TestNotchingPhySapProvider::GetSlotPeriod () const
 
 void
 TestNotchingPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
-{
-
-}
+{}
 
 void
 TestNotchingPhySapProvider::SendControlMessage (Ptr<NrControlMessage> msg)
-{
-
-}
+{}
 
 void
 TestNotchingPhySapProvider::SendRachPreamble (uint8_t PreambleId, uint8_t Rnti)
-{
-
-}
+{}
 
 void
 TestNotchingPhySapProvider::SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
-{
-
-}
+{}
 
 void
 TestNotchingPhySapProvider::NotifyConnectionSuccessful ()
-{
-
-}
+{}
 
 uint32_t
 TestNotchingPhySapProvider::GetRbNum () const
@@ -155,28 +141,28 @@ TestNotchingPhySapProvider::GetRbNum () const
 BeamId
 TestNotchingPhySapProvider::GetBeamId (uint8_t rnti) const
 {
-    BeamId beamId = BeamId (0, 0.0);
-    uint8_t rntiCnt = 1;
-    for (uint32_t beam = 0; beam < m_sapNumOfUesPerBeam; beam++)
-     {
-       for (uint32_t u = 0; u < m_sapNumOfBeams; u++)
+  BeamId beamId = BeamId (0, 0.0);
+  uint8_t rntiCnt = 1;
+  for (uint32_t beam = 0; beam < m_sapNumOfUesPerBeam; beam++)
+    {
+      for (uint32_t u = 0; u < m_sapNumOfBeams; u++)
         {
-           if (rntiCnt == rnti && beam == 0)
+          if (rntiCnt == rnti && beam == 0)
             {
               beamId = BeamId (0, 0.0);
             }
-           else if (rntiCnt == rnti && beam == 1)
+          else if (rntiCnt == rnti && beam == 1)
             {
               beamId = BeamId (1, 120.0);
             }
-           else if (rnti == 0)
+          else if (rnti == 0)
             {
               beamId = BeamId (0, 0.0);
             }
-            rntiCnt++;
-       }
+          rntiCnt++;
+        }
     }
-    return beamId;
+  return beamId;
 }
 
 
@@ -197,7 +183,7 @@ private:
 NS_OBJECT_ENSURE_REGISTERED (TestNotchingGnbMac);
 
 TypeId
-TestNotchingGnbMac::GetTypeId()
+TestNotchingGnbMac::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::TestNotchingGnbMac")
     .SetParent<NrGnbMac> ()
@@ -212,9 +198,7 @@ TestNotchingGnbMac::TestNotchingGnbMac (const std::vector<u_int8_t> &inputMask)
 }
 
 TestNotchingGnbMac::~TestNotchingGnbMac ()
-{
-
-}
+{}
 
 void
 TestNotchingGnbMac::SetVerbose (bool verbose)
@@ -223,51 +207,51 @@ TestNotchingGnbMac::SetVerbose (bool verbose)
 }
 
 void
-TestNotchingGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind)
+TestNotchingGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters ind)
 {
   // Check that the allocations in `ind` have the correct RBG mask
   // Will be called after SchedDlTriggerReq is called
   // test that ind.m_slotAllocInfo is ok: the sfnf, and the varAlloc deque
 
-    for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size (); islot++)
-     {
-       VarTtiAllocInfo &varTtiAllocInfo = ind.m_slotAllocInfo.m_varTtiAllocInfo[islot];
+  for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size (); islot++)
+    {
+      VarTtiAllocInfo &varTtiAllocInfo = ind.m_slotAllocInfo.m_varTtiAllocInfo[islot];
 
-       if (varTtiAllocInfo.m_dci->m_rnti == 0)
-         {
-           continue;
-         }
+      if (varTtiAllocInfo.m_dci->m_rnti == 0)
+        {
+          continue;
+        }
 
-       if (m_verboseMac)
-       {
-           std::ostringstream oss;
-           for (auto & x: varTtiAllocInfo.m_dci->m_rbgBitmask)
-             {
-               oss << std::to_string (x) << " ";
-             }
+      if (m_verboseMac)
+        {
+          std::ostringstream oss;
+          for (auto & x: varTtiAllocInfo.m_dci->m_rbgBitmask)
+            {
+              oss << std::to_string (x) << " ";
+            }
 
-           std::cout << "UE " << varTtiAllocInfo.m_dci->m_rnti << " assigned RBG" <<
-                        " with mask: " << oss.str() << std::endl;
-       }
+          std::cout << "UE " << varTtiAllocInfo.m_dci->m_rnti << " assigned RBG" <<
+            " with mask: " << oss.str () << std::endl;
+        }
 
-       NS_ASSERT_MSG (varTtiAllocInfo.m_dci->m_rbgBitmask.size () == m_inputMask.size (),
-                      "dci bitmask is not of same size as the mask");
+      NS_ASSERT_MSG (varTtiAllocInfo.m_dci->m_rbgBitmask.size () == m_inputMask.size (),
+                     "dci bitmask is not of same size as the mask");
 
-       unsigned zeroes = std::count (varTtiAllocInfo.m_dci->m_rbgBitmask.begin (),
-                                varTtiAllocInfo.m_dci->m_rbgBitmask.end (), 0);
+      unsigned zeroes = std::count (varTtiAllocInfo.m_dci->m_rbgBitmask.begin (),
+                                    varTtiAllocInfo.m_dci->m_rbgBitmask.end (), 0);
 
-       NS_ASSERT_MSG (zeroes != m_inputMask.size (), "dci rbgBitmask is filled with zeros");
+      NS_ASSERT_MSG (zeroes != m_inputMask.size (), "dci rbgBitmask is filled with zeros");
 
-       for (unsigned index = 0; index < varTtiAllocInfo.m_dci->m_rbgBitmask.size (); index++)
+      for (unsigned index = 0; index < varTtiAllocInfo.m_dci->m_rbgBitmask.size (); index++)
         {
           if (m_inputMask[index] == 0)
-          {
-            NS_ASSERT_MSG (varTtiAllocInfo.m_dci->m_rbgBitmask[index] == 0,
-                           "dci is diff from mask");
-          }
+            {
+              NS_ASSERT_MSG (varTtiAllocInfo.m_dci->m_rbgBitmask[index] == 0,
+                             "dci is diff from mask");
+            }
 
         }
-     }
+    }
 }
 
 /**
@@ -298,7 +282,7 @@ private:
   virtual void DoRun (void) override;
   Ptr<NrMacSchedulerNs3> CreateScheduler (const std::string &schedulerType) const;
   Ptr<TestNotchingGnbMac> CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
-                             NrMacCschedSapProvider::CschedCellConfigReqParameters params) const;
+                                     NrMacCschedSapProvider::CschedCellConfigReqParameters params) const;
 
   bool m_verbose = false;
   const std::vector<uint8_t> m_mask;
@@ -308,10 +292,8 @@ private:
   TestNotchingPhySapProvider * m_phySapProvider;
 };
 
-NrNotchingTestCase::~NrNotchingTestCase()
-{
-
-}
+NrNotchingTestCase::~NrNotchingTestCase ()
+{}
 
 Ptr<NrMacSchedulerNs3>
 NrNotchingTestCase::CreateScheduler (const std::string &schedulerType) const
@@ -366,65 +348,65 @@ NrNotchingTestCase::DoRun ()
 
   uint16_t rntiCnt = 1;
   for (uint32_t beam = 0; beam < m_beamsNum; beam++)
-   {
-     for (uint32_t u = 0; u < m_numOfUesPerBeam; u++)
-      {
-         NrMacCschedSapProvider::CschedUeConfigReqParameters paramsUe;
-         paramsUe.m_rnti = rntiCnt;
-         paramsUe.m_beamId = m_phySapProvider->GetBeamId (rntiCnt);
+    {
+      for (uint32_t u = 0; u < m_numOfUesPerBeam; u++)
+        {
+          NrMacCschedSapProvider::CschedUeConfigReqParameters paramsUe;
+          paramsUe.m_rnti = rntiCnt;
+          paramsUe.m_beamId = m_phySapProvider->GetBeamId (rntiCnt);
 
-         if (m_verbose)
-          {
-            std::cout << "beam: " << beam << " ue: " << u <<
-                         " rnti: " << paramsUe.m_rnti <<
-                         " beam Id: " << paramsUe.m_beamId <<
-                         " scheduler: " << m_schedulerType << std::endl;
-            if (beam == (m_beamsNum - 1) && u == (m_numOfUesPerBeam - 1))
-             {
-                std::ostringstream ss;
-                for (auto & x: m_mask)
-                  {
-                    ss << std::to_string (x) << " ";
-                  }
+          if (m_verbose)
+            {
+              std::cout << "beam: " << beam << " ue: " << u <<
+                " rnti: " << paramsUe.m_rnti <<
+                " beam Id: " << paramsUe.m_beamId <<
+                " scheduler: " << m_schedulerType << std::endl;
+              if (beam == (m_beamsNum - 1) && u == (m_numOfUesPerBeam - 1))
+                {
+                  std::ostringstream ss;
+                  for (auto & x: m_mask)
+                    {
+                      ss << std::to_string (x) << " ";
+                    }
 
-               std::cout << "The defined mask is:         " <<
-                            ss.str () << std::endl;
-             }
-          }
+                  std::cout << "The defined mask is:         " <<
+                    ss.str () << std::endl;
+                }
+            }
 
-         //Add Users
-         sched->DoCschedUeConfigReq (paramsUe);  // Repeat for the number of UEs
+          //Add Users
+          sched->DoCschedUeConfigReq (paramsUe); // Repeat for the number of UEs
 
-         // Create LC
-         NrMacCschedSapProvider::CschedLcConfigReqParameters paramsLc;
-         paramsLc.m_rnti = rntiCnt;
-         paramsLc.m_reconfigureFlag = false;
+          // Create LC
+          NrMacCschedSapProvider::CschedLcConfigReqParameters paramsLc;
+          paramsLc.m_rnti = rntiCnt;
+          paramsLc.m_reconfigureFlag = false;
 
-         LogicalChannelConfigListElement_s lc;
-         lc.m_logicalChannelIdentity = 1;
-         lc.m_logicalChannelGroup = 2;
-         lc.m_direction = LogicalChannelConfigListElement_s::DIR_DL;
-         lc.m_qosBearerType = LogicalChannelConfigListElement_s::QBT_NON_GBR;
-         lc.m_qci = 9;
-         paramsLc.m_logicalChannelConfigList.emplace_back (lc);
+          LogicalChannelConfigListElement_s lc;
+          lc.m_logicalChannelIdentity = 1;
+          lc.m_logicalChannelGroup = 2;
+          lc.m_direction = LogicalChannelConfigListElement_s::DIR_DL;
+          lc.m_qosBearerType = LogicalChannelConfigListElement_s::QBT_NON_GBR;
+          lc.m_qci = 9;
+          paramsLc.m_logicalChannelConfigList.emplace_back (lc);
 
-         sched->DoCschedLcConfigReq (paramsLc);
+          sched->DoCschedLcConfigReq (paramsLc);
 
-         // Update queue
-         NrMacSchedSapProvider::SchedDlRlcBufferReqParameters paramsDlRlc;
-         paramsDlRlc.m_rnti = rntiCnt;
-         paramsDlRlc.m_logicalChannelIdentity = 1;
-         paramsDlRlc.m_rlcRetransmissionHolDelay = 0;
-         paramsDlRlc.m_rlcRetransmissionQueueSize = 0;
-         paramsDlRlc.m_rlcStatusPduSize = 0;
-         paramsDlRlc.m_rlcTransmissionQueueHolDelay = 0;
-         paramsDlRlc.m_rlcTransmissionQueueSize = 1284;
+          // Update queue
+          NrMacSchedSapProvider::SchedDlRlcBufferReqParameters paramsDlRlc;
+          paramsDlRlc.m_rnti = rntiCnt;
+          paramsDlRlc.m_logicalChannelIdentity = 1;
+          paramsDlRlc.m_rlcRetransmissionHolDelay = 0;
+          paramsDlRlc.m_rlcRetransmissionQueueSize = 0;
+          paramsDlRlc.m_rlcStatusPduSize = 0;
+          paramsDlRlc.m_rlcTransmissionQueueHolDelay = 0;
+          paramsDlRlc.m_rlcTransmissionQueueSize = 1284;
 
-         sched->DoSchedDlRlcBufferReq (paramsDlRlc);
+          sched->DoSchedDlRlcBufferReq (paramsDlRlc);
 
-         rntiCnt++;
-      }
-   }
+          rntiCnt++;
+        }
+    }
 
   // Call scheduling
   NrMacSchedSapProvider::SchedDlTriggerReqParameters paramsDlTrigger;
@@ -440,70 +422,70 @@ class NrNotchingTestSuite : public TestSuite
 {
 public:
   NrNotchingTestSuite () : TestSuite ("nr-test-notching", UNIT)
-    {
-      //We simulate BW of 10 MHz so the size of the mask is 53 RBGs
-      //considering that 1 RBG contains 1 RB
-      std::vector<uint8_t> notchedMask1 {0, 0, 1, 0, 0,
-                                         0, 0, 1, 1, 1,
-                                         1, 1, 1, 0, 1,
-                                         1, 1, 1, 1, 1,
-                                         1, 1, 1, 1, 1,
-                                         1, 1, 1, 0, 0,
-                                         1, 1, 1, 1, 1,
-                                         1, 1, 1, 1, 1,
-                                         1, 1, 1, 0, 0,
-                                         0, 0, 0, 0, 0,
-                                         0, 1, 1};
+  {
+    //We simulate BW of 10 MHz so the size of the mask is 53 RBGs
+    //considering that 1 RBG contains 1 RB
+    std::vector<uint8_t> notchedMask1 {0, 0, 1, 0, 0,
+                                       0, 0, 1, 1, 1,
+                                       1, 1, 1, 0, 1,
+                                       1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1,
+                                       1, 1, 1, 0, 0,
+                                       1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1,
+                                       1, 1, 1, 0, 0,
+                                       0, 0, 0, 0, 0,
+                                       0, 1, 1};
 
-      std::vector<uint8_t> notchedMask2 {0, 0, 0, 0, 0,
-                                         0, 0, 1, 1, 1,
-                                         1, 1, 1, 0, 1,
-                                         1, 1, 1, 1, 1,
-                                         1, 0, 0, 1, 1,
-                                         1, 1, 1, 0, 0,
-                                         0, 0, 0, 0, 0,
-                                         1, 1, 1, 1, 1,
-                                         1, 1, 0, 0, 0,
-                                         0, 0, 0, 0, 0,
-                                         0, 1, 0};
+    std::vector<uint8_t> notchedMask2 {0, 0, 0, 0, 0,
+                                       0, 0, 1, 1, 1,
+                                       1, 1, 1, 0, 1,
+                                       1, 1, 1, 1, 1,
+                                       1, 0, 0, 1, 1,
+                                       1, 1, 1, 0, 0,
+                                       0, 0, 0, 0, 0,
+                                       1, 1, 1, 1, 1,
+                                       1, 1, 0, 0, 0,
+                                       0, 0, 0, 0, 0,
+                                       0, 1, 0};
 
-      std::list<std::string> subdivision     = {"Tdma", "Ofdma"};
-      std::list<std::string> scheds          = {"RR"};
-      std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 6};
-      std::list<uint32_t>    beams           = {1, 2};
+    std::list<std::string> subdivision     = {"Tdma", "Ofdma"};
+    std::list<std::string> scheds          = {"RR"};
+    std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 6};
+    std::list<uint32_t>    beams           = {1, 2};
 
-      for (const auto & subType : subdivision)
-        {
-          for (const auto & sched : scheds)
-            {
-              for (const auto & uesPerBeam : uesPerBeamList)
-                {
-                  for (const auto & beam : beams)
-                    {
-                      std::stringstream ss, schedName;
-                      ss << ", " << subType << " " << sched << ", " <<
-                            uesPerBeam << " UE per beam, " <<
-                            beam << " beam";
+    for (const auto & subType : subdivision)
+      {
+        for (const auto & sched : scheds)
+          {
+            for (const auto & uesPerBeam : uesPerBeamList)
+              {
+                for (const auto & beam : beams)
+                  {
+                    std::stringstream ss, schedName;
+                    ss << ", " << subType << " " << sched << ", " <<
+                      uesPerBeam << " UE per beam, " <<
+                      beam << " beam";
 
-                      schedName << "ns3::NrMacScheduler" << subType << sched;
+                    schedName << "ns3::NrMacScheduler" << subType << sched;
 
-                      AddTestCase (new NrNotchingTestCase (ss.str(), notchedMask1,
-                                                           schedName.str(),
-                                                           uesPerBeam, beam),
-                                                           QUICK);
-                      AddTestCase (new NrNotchingTestCase (ss.str(), notchedMask2,
-                                                           schedName.str(),
-                                                           uesPerBeam, beam),
-                                                           QUICK);
-                    }
-                }
-            }
-        }
-    }
+                    AddTestCase (new NrNotchingTestCase (ss.str (), notchedMask1,
+                                                         schedName.str (),
+                                                         uesPerBeam, beam),
+                                 QUICK);
+                    AddTestCase (new NrNotchingTestCase (ss.str (), notchedMask2,
+                                                         schedName.str (),
+                                                         uesPerBeam, beam),
+                                 QUICK);
+                  }
+              }
+          }
+      }
+  }
 };
 
 static NrNotchingTestSuite nrNotchingTestSuite;
 
 //!< Nr Notching test suite
 
-}; // namespace ns3
+}  // namespace ns3

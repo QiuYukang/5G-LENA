@@ -31,6 +31,7 @@
 #include "nr-ue-net-device.h"
 #include "nr-gnb-net-device.h"
 #include "beam-manager.h"
+#include "ns3/uniform-planar-array.h"
 #include <ns3/boolean.h>
 
 #include <algorithm>
@@ -223,7 +224,7 @@ NrPhy::DoDispose ()
 }
 
 void
-NrPhy::InstallAntenna (const Ptr<BeamManager> beamManager, const Ptr<ThreeGppAntennaArrayModel> &antenna)
+NrPhy::InstallAntenna (const Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_spectrumPhy != nullptr);
@@ -870,7 +871,7 @@ NrPhy::GetSymbolPeriod () const
   return m_symbolPeriod;
 }
 
-Ptr<const ThreeGppAntennaArrayModel>
+Ptr<const UniformPlanarArray>
 NrPhy::GetAntennaArray() const
 {
   return m_beamManager->GetAntennaArray ();

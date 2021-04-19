@@ -61,7 +61,7 @@ complexVector_t CreateQuasiOmniBfv (uint32_t antennaRows, uint32_t antennaColumn
   return omni;
 }
 
-complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>& antenna,
+complexVector_t CreateDirectionalBfv (const Ptr<const UniformPlanarArray>& antenna,
                                       uint16_t sector, double elevation)
 {
   complexVector_t tempVector;
@@ -86,7 +86,7 @@ complexVector_t CreateDirectionalBfv (const Ptr<const ThreeGppAntennaArrayModel>
 
 complexVector_t CreateDirectPathBfv (const Ptr<MobilityModel>& a,
                                      const Ptr<MobilityModel>& b,
-                                     const Ptr<const ThreeGppAntennaArrayModel>& antenna)
+                                     const Ptr<const UniformPlanarArray>& antenna)
 {
   complexVector_t antennaWeights;
 
@@ -97,12 +97,9 @@ complexVector_t CreateDirectPathBfv (const Ptr<MobilityModel>& a,
   // compute the azimuth and the elevation angles
   Angles completeAngle (bPos, aPos);
 
-  double hAngleRadian = fmod (completeAngle.phi, 2.0 * M_PI); // the azimuth angle
-  if (hAngleRadian < 0)
-    {
-      hAngleRadian += 2.0 * M_PI;
-    }
-  double vAngleRadian = completeAngle.theta; // the elevation angle
+  double hAngleRadian = completeAngle.GetAzimuth ();
+
+  double vAngleRadian = completeAngle.GetInclination (); // the elevation angle
 
   // retrieve the number of antenna elements
   int totNoArrayElements = antenna->GetNumberOfElements ();

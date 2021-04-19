@@ -210,9 +210,9 @@ private:
    * \param b the second node mobility model
    * \return the estimated long term component
    */
-  ThreeGppAntennaArrayModel::ComplexVector GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
-                                                                          const ThreeGppAntennaArrayModel::ComplexVector &aW,
-                                                                          const ThreeGppAntennaArrayModel::ComplexVector &bW,
+  UniformPlanarArray::ComplexVector GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
+                                                                          const UniformPlanarArray::ComplexVector &aW,
+                                                                          const UniformPlanarArray::ComplexVector &bW,
                                                                           Ptr<const MobilityModel> a,
                                                                           Ptr<const MobilityModel> b,
                                                                           double srsSinr) const;
@@ -221,7 +221,7 @@ private:
    * \brief Calculates the total metric based on the each element of the long term component
    * \param longTermComponent the vector of complex numbers representing the long term component per cluster
    */
-  double CalculateTheEstimatedLongTermMetric (const ThreeGppAntennaArrayModel::ComplexVector& longTermComponent) const;
+  double CalculateTheEstimatedLongTermMetric (const UniformPlanarArray::ComplexVector& longTermComponent) const;
 
   /**
    * \brief Removes the "oldest" delayed update info - from the beggining of the queue

@@ -23,8 +23,7 @@
 namespace ns3 {
 
 SinrOutputStats::SinrOutputStats ()
-{
-}
+{}
 
 void
 SinrOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
@@ -44,13 +43,13 @@ SinrOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
   NS_ASSERT (ret);
 
   SinrOutputStats::DeleteWhere (m_db, RngSeedManager::GetSeed (),
-                                RngSeedManager::GetRun(), tableName);
+                                RngSeedManager::GetRun (), tableName);
 }
 
 void
 SinrOutputStats::SaveSinr (uint16_t cellId, uint16_t rnti,
-                                        double power, double avgSinr,
-                                        uint16_t bwpId)
+                           double power, double avgSinr,
+                           uint16_t bwpId)
 {
   NS_UNUSED (power);
   m_sinrCache.emplace_back (SinrResultCache (cellId, bwpId, rnti, avgSinr));
@@ -63,7 +62,7 @@ SinrOutputStats::SaveSinr (uint16_t cellId, uint16_t rnti,
 }
 
 void
-SinrOutputStats::EmptyCache()
+SinrOutputStats::EmptyCache ()
 {
   WriteCache ();
 }

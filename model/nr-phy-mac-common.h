@@ -461,22 +461,22 @@ struct GnbPhyPacketCountParameter
  */
 struct RxPacketTraceParams
 {
-  uint64_t m_cellId;
-  uint16_t m_rnti;
-  uint32_t m_frameNum;
-  uint8_t m_subframeNum;
-  uint16_t  m_slotNum;
-  uint8_t m_symStart;
-  uint8_t m_numSym;
-  uint32_t m_tbSize;
-  uint8_t m_mcs;
-  uint8_t m_rv;
-  double m_sinr;
-  double m_sinrMin;
-  double m_tbler;
-  bool m_corrupt;
-  uint16_t m_bwpId;
-  uint32_t m_rbAssignedNum;
+  uint64_t m_cellId {0};
+  uint16_t m_rnti {0};
+  uint32_t m_frameNum {std::numeric_limits<uint32_t>::max ()};
+  uint8_t m_subframeNum {std::numeric_limits<uint8_t>::max ()};
+  uint16_t m_slotNum {std::numeric_limits<uint16_t>::max ()};
+  uint8_t m_symStart {std::numeric_limits<uint8_t>::max ()};
+  uint8_t m_numSym {std::numeric_limits<uint8_t>::max ()};
+  uint32_t m_tbSize {0};
+  uint8_t m_mcs {std::numeric_limits<uint8_t>::max ()};
+  uint8_t m_rv {std::numeric_limits<uint8_t>::max ()};
+  double m_sinr {-1.0};
+  double m_sinrMin {-1.0};
+  double m_tbler {-1.0};
+  bool m_corrupt {false};
+  uint16_t m_bwpId {std::numeric_limits<uint16_t>::max ()};
+  uint32_t m_rbAssignedNum {std::numeric_limits<uint32_t>::max ()};
 };
 
 /**
