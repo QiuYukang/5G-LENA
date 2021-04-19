@@ -22,6 +22,8 @@
 
 namespace ns3 {
 
+NS_LOG_COMPONENT_DEFINE ("V2xKpi");
+
 V2xKpi::V2xKpi ()
 {}
 
@@ -72,6 +74,12 @@ V2xKpi::WriteKpis ()
   SaveThput ();
   ComputePsschTxStats ();
   ComputePsschTbCorruptionStats ();
+}
+
+void
+V2xKpi::ConsiderAllTx (bool allTx)
+{
+  m_considerAllTx = allTx;
 }
 
 void
@@ -287,6 +295,48 @@ V2xKpi::SaveThput ()
           NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));
           rc = sqlite3_finalize (stmt);
           NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
+        }
+
+      //if (report stats for all TX AND total number of tx from whom the receiver rxed the packets is less the total Tx - 1)
+      NS_LOG_DEBUG ("m_considerAllTx flag value" << m_considerAllTx);
+      NS_LOG_DEBUG ("Num of transmitters this receiver able to rxed data " << it.second.size ());
+      NS_LOG_DEBUG ("Total number of transmitters " << m_txDataMap.size ());
+      if (m_considerAllTx && (it.second.size () < (m_txDataMap.size () - 1)))
+        {
+          for (const auto &itTx:m_txDataMap)
+            {
+              if (it.second.find (itTx.second.at (0).ipAddrs) == it.second.end ())
+                {
+                  //we didnt find the TX in our m_rxDataMap. Lets read the first
+                  //entry of our m_rxDataMap just to read some info of the RX
+                  //node.
+                  PktTxRxData data = it.second.begin ()->second.at (0);
+                  //avoid my own IP
+                  if (itTx.second.at (0).ipAddrs != data.ipAddrs)
+                    {
+                      sqlite3_stmt *stmt;
+                      std::string cmd = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                      rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+                      NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error INSERT. Db error: " << sqlite3_errmsg (m_db));
+
+                      NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 1, data.txRx.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 2, data.nodeId) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 3, data.imsi) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 4, itTx.second.at (0).ipAddrs.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 5, GetTotalTxPkts (itTx.second.at (0).ipAddrs)) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 6, data.ipAddrs.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, 0) == SQLITE_OK); // zero rxed pkets
+                      NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 8, 0) == SQLITE_OK); // zero thput
+                      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 9, RngSeedManager::GetSeed ()) == SQLITE_OK);
+                      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 10, RngSeedManager::GetRun ()) == SQLITE_OK);
+
+                      rc = sqlite3_step (stmt);
+                      NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));
+                      rc = sqlite3_finalize (stmt);
+                      NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
+                    }
+                }
+            }
         }
     }
 }

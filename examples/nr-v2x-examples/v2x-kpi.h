@@ -61,6 +61,17 @@ public:
    * \brief Write the KPIs in their respective tables in the DB.
    */
   void WriteKpis ();
+  /**
+   * \brief Consider all TX links while writing the stats, e.g, throughput to the DB.
+   *
+   * If this flag is set the code will also write the stats for those TX
+   * nodes from whom the RX node didn't receive anything. In such case, the
+   * stats, e.g., the throughput and the rxed packets will be zero for such TX
+   * node.
+   *
+   * \param allTx Flag to consider all the TX nodes for stats
+   */
+  void ConsiderAllTx (bool allTx);
 
 private:
   struct PktTxRxData
@@ -205,6 +216,7 @@ private:
   sqlite3* m_db {nullptr}; //!< DB pointer
   std::string m_dbPath {""}; //!< path to the DB to read
   double m_txAppDuration {0.0}; //!< The TX application duration to compute the throughput
+  bool m_considerAllTx {false};
 };
 
 } // namespace ns3
