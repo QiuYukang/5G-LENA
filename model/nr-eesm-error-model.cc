@@ -98,8 +98,8 @@ NrEesmErrorModel::SinrExp (const SpectrumValue& sinr, const std::vector<int>& ma
   SpectrumValue sinrCopy = sinr;
   for (uint32_t i = 0; i < map.size (); i++)
     {
-      double sinrLin = sinrCopy[map.at (i)];
-      SINRexp = exp ( -sinrLin / beta );
+      double sinrLin = sinrCopy [map.at (i)];
+      SINRexp = exp (-sinrLin / beta);
       SINRsum += SINRexp;
     }
   return SINRsum;
@@ -343,6 +343,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats (const SpectrumValue& sinr,
   NS_ASSERT (GetMcsEcrTable () != nullptr);
 
   Ptr<NrEesmErrorModelOutput> ret = Create<NrEesmErrorModelOutput> (errorRate);
+  ret->m_sinrEff = SINR;
   ret->m_sinr = sinr;
   ret->m_map = map;
   if (sinrHistory.size () == 0)

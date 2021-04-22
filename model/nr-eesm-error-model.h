@@ -48,6 +48,7 @@ struct NrEesmErrorModelOutput : public NrErrorModelOutput
   }
 
   double m_sinrExp {0.0};   //!< Sum of exponential SINR (needed for HARQ-IR)
+  double m_sinrEff {0.0};   //!< The effective SINR (needed just for the test)
   SpectrumValue m_sinr;     //!< perceived SINRs in the whole bandwidth
   std::vector<int> m_map;   //!< map of the active RBs
   uint32_t m_infoBits {0};  //!< number of info bits
