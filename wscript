@@ -125,6 +125,7 @@ def build(bld):
         'test/nr-realistic-beamforming-test.cc',
         'test/nr-uplink-power-control-test.cc',
         'test/nr-power-allocation.cc',
+        'test/nr-test-harq.cc',
         ]
 
     headers = bld(features='ns3header')
