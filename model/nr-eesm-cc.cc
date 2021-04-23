@@ -122,7 +122,7 @@ NrEesmCc::ComputeSINR (const SpectrumValue& sinr, const std::vector<int>& map, u
   NS_LOG_INFO ("SINR_SUM: " << sinr_sum);
 
   // compute effective SINR with the sinr_sum vector and map_sum RB map
-  return SinrEff (sinr_sum, map_sum, mcs);
+  return SinrEff (sinr_sum, map_sum, mcs, 0.0, map_sum.size());
 }
 
 double
