@@ -79,14 +79,14 @@ TestHarqTestCase::GetTbDecodStats (std::vector<double> sinrRx, NrErrorModel::NrE
     {
       sinrRxSpecVal [i] = pow (10.0, sinrRx.at (i) / 10.0);
     }
+
   std::vector<int> rbMap;
-  //I need to add the assert to avoid any errors resulted from the
-  //static cast in the for loop;
-  NS_ABORT_MSG_IF (sinrRx.size () > std::numeric_limits<int>::max (), "SINR vector size can not be greater than the size of an int");
-  for (int i = 0; i < static_cast <int> (sinrRx.size ()); i++)
+  int rbIndex = 0;
+  for (uint8_t i = 0; i < sinrRx.size (); i++, rbIndex++)
     {
-      rbMap.push_back (i);
+      rbMap.push_back (rbIndex);
     }
+
   Ptr<NrErrorModelOutput> output;
   if (harqType == "IR")
     {
