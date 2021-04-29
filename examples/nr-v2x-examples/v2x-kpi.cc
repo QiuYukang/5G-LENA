@@ -16,8 +16,6 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#include <ns3/core-module.h>
-
 #include "v2x-kpi.h"
 
 namespace ns3 {
@@ -80,6 +78,19 @@ void
 V2xKpi::ConsiderAllTx (bool allTx)
 {
   m_considerAllTx = allTx;
+}
+
+void
+V2xKpi::SetRangeForV2xKpis (uint16_t range)
+{
+  m_range = range;
+}
+
+void
+V2xKpi::FillPosPerIpMap (std::string ip, Vector pos)
+{
+  bool insertStatus = m_posPerIp.insert (std::make_pair (ip, pos)).second;
+  NS_ABORT_MSG_IF (insertStatus == false, "Insert Error: Pos of the ip " << ip << " already exist in the map");
 }
 
 void
@@ -165,6 +176,7 @@ V2xKpi::SaveAvrgPir ()
                       "srcIp TEXT NOT NULL,"
                       "dstIp TEXT NOT NULL,"
                       "avrgPirSec DOUBLE NOT NULL,"
+                      "TxRxDistance DOUBLE NOT NULL,"
                       "SEED INTEGER NOT NULL,"
                       "RUN INTEGER NOT NULL"
                       ");");
@@ -178,7 +190,7 @@ V2xKpi::SaveAvrgPir ()
     {
       for (const auto &it2:it.second)
         {
-          double avrgPir = ComputeAvrgPir (it2.second);
+          double avrgPir = ComputeAvrgPir (it2.first.c_str (), it2.second);
           if (avrgPir == -1.0)
             {
               //It may happen that a node would rxed only one pkt from a
@@ -189,7 +201,7 @@ V2xKpi::SaveAvrgPir ()
           //NS_LOG_UNCOND ("Avrg PIR " << avrgPir);
           PktTxRxData data = it2.second.at (0);
           sqlite3_stmt *stmt;
-          std::string cmd = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+          std::string cmd = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
           rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
           NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error INSERT. Db error: " << sqlite3_errmsg (m_db));
 
@@ -199,8 +211,10 @@ V2xKpi::SaveAvrgPir ()
           NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 4,it2.first.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
           NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 5, data.ipAddrs.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
           NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 6, avrgPir) == SQLITE_OK);
-          NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 7, RngSeedManager::GetSeed ()) == SQLITE_OK);
-          NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, RngSeedManager::GetRun ()) == SQLITE_OK);
+          NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 7, m_interTxRxDistance) == SQLITE_OK);
+          m_interTxRxDistance = 0.0;
+          NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, RngSeedManager::GetSeed ()) == SQLITE_OK);
+          NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 9, RngSeedManager::GetRun ()) == SQLITE_OK);
 
           rc = sqlite3_step (stmt);
           NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));
@@ -210,13 +224,29 @@ V2xKpi::SaveAvrgPir ()
     }
 }
 double
-V2xKpi::ComputeAvrgPir (std::vector <PktTxRxData> data)
+V2xKpi::ComputeAvrgPir (std::string ipTx, std::vector <PktTxRxData> data)
 {
   uint64_t pirCounter = 0;
   double lastPktRxTime = 0.0;
   double pir = 0.0;
 
   //NS_LOG_UNCOND ("Packet Vector size " << data.size () << " to compute average PIR");
+  if (m_range > 0)
+    {
+      PktTxRxData dataIpRx = data.at (0);
+      auto itRxIpPos = m_posPerIp.find (dataIpRx.ipAddrs);
+      NS_ABORT_MSG_IF (itRxIpPos == m_posPerIp.end (), "Unable to find the position of RX IP " << dataIpRx.ipAddrs);
+      Vector rxIpPos = itRxIpPos->second;
+      auto itTxIpPos = m_posPerIp.find (ipTx);
+      NS_ABORT_MSG_IF (itTxIpPos == m_posPerIp.end (), "Unable to find the position of TX IP " << ipTx);
+      Vector txIpPos = itTxIpPos->second;
+      double distance = CalculateDistance (rxIpPos, txIpPos);
+      m_interTxRxDistance = distance;
+      if (distance > m_range)
+        {
+          return -1.0;
+        }
+    }
 
   for (const auto &it:data)
     {
@@ -237,6 +267,8 @@ V2xKpi::ComputeAvrgPir (std::vector <PktTxRxData> data)
     {
       //It may happen that a node would rxed only one pkt from a
       //particular tx node. In that case, PIR can not be computed.
+      //assert added just to check range based
+      NS_ABORT_MSG_IF (m_range > 0, "For range based PIR I am not expecting that a rx node would receive only one pkt from a tx node");
       avrgPir = -1.0;
     }
   else

@@ -19,6 +19,7 @@
 #ifndef V2X_KPI
 #define V2X_KPI
 
+#include <ns3/core-module.h>
 #include <inttypes.h>
 #include <vector>
 #include <sqlite3.h>
@@ -72,6 +73,18 @@ public:
    * \param allTx Flag to consider all the TX nodes for stats
    */
   void ConsiderAllTx (bool allTx);
+  /**
+   * \brief Fill the map to store the IP and the initial position of each node
+   * \param ip The IP of the node
+   * \param pos The position of the node
+   */
+  void FillPosPerIpMap (std::string ip, Vector pos);
+  /**
+   * \brief Set the range to be considered while writing the range based
+   * KPIs, e.g., PIR, PRR, and possibly throughput.
+   * \param range The inter-node-distance (2D) in meter
+   */
+  void SetRangeForV2xKpis (uint16_t range);
 
 private:
   struct PktTxRxData
@@ -143,10 +156,11 @@ private:
   void SaveAvrgPir ();
   /**
    * \brief Compute the average PIR
+   * \param IP of the transmitting node for which we are computing the PIR
    * \param data The data to be used to compute the average PIR
    * \return The average PIR
    */
-  double ComputeAvrgPir (std::vector <PktTxRxData> data);
+  double ComputeAvrgPir (std::string ipTx, std::vector <PktTxRxData> data);
   /**
    * \brief Save throughput
    *
@@ -217,6 +231,9 @@ private:
   std::string m_dbPath {""}; //!< path to the DB to read
   double m_txAppDuration {0.0}; //!< The TX application duration to compute the throughput
   bool m_considerAllTx {false};
+  std::map <std::string, Vector> m_posPerIp;
+  std::uint16_t m_range {0};
+  double m_interTxRxDistance {0.0};
 };
 
 } // namespace ns3
