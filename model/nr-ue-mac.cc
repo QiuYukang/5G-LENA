@@ -1799,7 +1799,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
           if (!m_nrSlMacPduTxed)
             {
               //NR SL MAC PDU was not txed. It can happen if RLC buffer was empty
-              NS_LOG_UNCOND ("Grant wasted at : Frame = " << currentGrant.sfn.GetFrame () << " SF = " << +currentGrant.sfn.GetSubframe () << " slot = " << currentGrant.sfn.GetSlot ());
+              NS_LOG_DEBUG ("Grant wasted at : Frame = " << currentGrant.sfn.GetFrame () << " SF = " << +currentGrant.sfn.GetSubframe () << " slot = " << currentGrant.sfn.GetSlot ());
               continue;
             }
 
