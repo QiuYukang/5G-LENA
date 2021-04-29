@@ -371,6 +371,30 @@ GetSlBitmapFromString (std::string slBitMapString, std::vector <std::bitset<1> >
 }
 
 
+void SavePositionPerIP (V2xKpi *v2xKpi)
+{
+  for (NodeList::Iterator it = NodeList::Begin (); it != NodeList::End (); ++it)
+      {
+        Ptr<Node> node = *it;
+        int nDevs = node->GetNDevices ();
+        for (int j = 0; j < nDevs; j++)
+          {
+            Ptr<NrUeNetDevice> uedev = node->GetDevice (j)->GetObject <NrUeNetDevice> ();
+            if (uedev)
+              {
+                Ptr<Ipv4L3Protocol> ipv4Protocol =  node->GetObject<Ipv4L3Protocol> ();
+                Ipv4InterfaceAddress addresses = ipv4Protocol->GetAddress (1,0);
+                std::ostringstream ueIpv4Addr;
+                ueIpv4Addr.str ("");
+                ueIpv4Addr << addresses.GetLocal ();
+                Vector pos = node->GetObject<MobilityModel> ()->GetPosition ();
+                v2xKpi->FillPosPerIpMap (ueIpv4Addr.str (), pos);
+              }
+          }
+      }
+}
+
+
 int
 main (int argc, char *argv[])
 {
@@ -1132,6 +1156,9 @@ main (int argc, char *argv[])
   V2xKpi v2xKpi;
   v2xKpi.SetDbPath (outputDir + exampleName);
   v2xKpi.SetTxAppDuration (txAppDuration);
+  v2xKpi.ConsiderAllTx (considerAllTx);
+  SavePositionPerIP (&v2xKpi);
+  v2xKpi.SetRangeForV2xKpis (200);
 
   if (generateInitialPosGnuScript)
     {
@@ -1163,7 +1190,6 @@ main (int argc, char *argv[])
   pscchPhyStats.EmptyCache ();
   psschPhyStats.EmptyCache ();
   ueRlcRxStats.EmptyCache ();
-  v2xKpi.ConsiderAllTx (considerAllTx);
   v2xKpi.WriteKpis ();
 
   //GtkConfigStore config;
