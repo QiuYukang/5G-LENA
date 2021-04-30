@@ -454,7 +454,7 @@ main (int argc, char *argv[])
   //At the moment it is only applied to the throughput KPI. For PIR,
   //the receiver ignores the transmitter from whom it received only one
   //packet or none.
-  bool considerAllTx = false;
+  bool considerAllTx = true;
 
   // Where we will store the output files.
   std::string simTag = "default";
