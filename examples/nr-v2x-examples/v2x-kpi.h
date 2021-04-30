@@ -30,7 +30,16 @@ namespace ns3 {
  * \brief Class which reads the specific tables of a given DB to
  *        compute V2X KPIs. It could compute following KPIs:
  *        - Average PIR
+ *        - Average PRR
  *        - Throughput
+ *        - Simultaneous Pssch Tx
+ *        - Pssch TB Rx
+ *
+ * \see SaveAvrgPir
+ * \see SaveAvrgPrr
+ * \see SaveThput
+ * \see SaveSimultPsschTxStats
+ * \see SavePsschTbCorruptionStats
  */
 class V2xKpi
 {
@@ -81,7 +90,7 @@ public:
   void FillPosPerIpMap (std::string ip, Vector pos);
   /**
    * \brief Set the range to be considered while writing the range based
-   * KPIs, e.g., PIR, PRR, and possibly throughput.
+   * KPIs, e.g., PIR, PRR.
    * \param range The inter-node-distance (2D) in meter
    */
   void SetRangeForV2xKpis (uint16_t range);
@@ -89,8 +98,8 @@ public:
 private:
   struct PktTxRxData
   {
-    PktTxRxData (double time, std::string txRx, uint32_t nodeId, uint64_t imsi, uint32_t pktSize, std::string ipAddrs)
-      : time (time), txRx (txRx), nodeId (nodeId), imsi (imsi), pktSize (pktSize), ipAddrs (ipAddrs)
+    PktTxRxData (double time, std::string txRx, uint32_t nodeId, uint64_t imsi, uint32_t pktSize, std::string ipAddrs, uint32_t pktSeq)
+      : time (time), txRx (txRx), nodeId (nodeId), imsi (imsi), pktSize (pktSize), ipAddrs (ipAddrs), pktSeq (pktSeq)
     {}
 
     double time; //!< time
@@ -99,6 +108,7 @@ private:
     uint64_t imsi {std::numeric_limits <uint64_t>::max ()}; //!< IMSI of the tx and rx node
     uint32_t pktSize; //!< packet size
     std::string ipAddrs; //!< The ip address of the node.
+    uint32_t pktSeq {std::numeric_limits <uint32_t>::max ()}; //!<< packet sequance number
   };
   struct PsschTxData
   {
@@ -150,8 +160,15 @@ private:
    *
    * This method compute the average PIR of each receiver node with
    * respect to each transmitter it has received packets from. This
-   * average PIR is then written in to a new table "avrgPirSec" of
-   * the DB.
+   * average PIR is then written in to a new table "avrgPir" of
+   * the DB. There are two things to keep in mind:
+   *
+   * 1) Range based PIR computation is only valid for the scenarios with
+   *    constant velocity, i.e., inter-vehicle distance remains the same.
+   * 2) To enable the range based PIR m_range variable value must be greater
+   *    than zero; otherwise, range is ignored, i.e., all the transmitting nodes
+   *    from whom the a receiving node has received more than 1 packet
+   *    becomes the potential transmitter, hence, its PIR must be computed.
    */
   void SaveAvrgPir ();
   /**
@@ -215,6 +232,30 @@ private:
    * \param sci2SuccessCount The count of successfully decoded SCI 2
    */
   void SavePsschTbCorruptionStats (uint32_t totalTbRx, uint32_t psschSuccessCount, uint32_t sci2SuccessCount);
+  /**
+   * \brief Save average PRR (Packet Reception Ratio)
+   *
+   * This method compute the average PRR of each transmitting node with
+   * respect to each of its potential neighbor in a range it has transmitted
+   * packets to. This average PIR is then written in to a new table "avrgPrr"
+   * of the DB. There are two things to keep in mind:
+   *
+   * 1) Range based PRR computation is only valid for the scenarios with
+   *    constant velocity, i.e., inter-vehicle distance remains the same.
+   * 2) To enable the range based PRR m_range variable value must be greater
+   *    than zero; otherwise, range is ignored, i.e., all the receiving nodes
+   *    becomes the potential receivers for a transmitter.
+   */
+  void SaveAvrgPrr ();
+  /**
+   * \brief Compute average PRR (Packet Reception Ratio)
+   * \param txIt An iterator of the m_txDataMap pointing to the transmitter
+   *        data for which PRR is to be computed
+   * \param numNeib A variable where the total number of neighbors for a
+   *        transmitter will be stored (note, it is passed as reference)
+   * \return The average PRR value
+   */
+  double ComputeAvrgPrr (std::map <uint32_t, std::vector <PktTxRxData> >::const_iterator &txIt, uint32_t &numNeib);
 
   /*
    * Key 1 = Rx node id
@@ -230,10 +271,10 @@ private:
   sqlite3* m_db {nullptr}; //!< DB pointer
   std::string m_dbPath {""}; //!< path to the DB to read
   double m_txAppDuration {0.0}; //!< The TX application duration to compute the throughput
-  bool m_considerAllTx {false};
-  std::map <std::string, Vector> m_posPerIp;
-  std::uint16_t m_range {0};
-  double m_interTxRxDistance {0.0};
+  bool m_considerAllTx {false}; //!< Consider all TX flag for throughput computation
+  std::map <std::string, Vector> m_posPerIp; //!< Map to store position and IPs of the nodes
+  std::uint16_t m_range {0}; //!< Range in meter to be used to compute PIR and PRR
+  double m_interTxRxDistance {0.0}; //!< The inter-TX-RX distance logged for PIR
 };
 
 } // namespace ns3

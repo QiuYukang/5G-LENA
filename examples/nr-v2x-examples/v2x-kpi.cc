@@ -17,6 +17,7 @@
  *
  */
 #include "v2x-kpi.h"
+#include <algorithm>
 
 namespace ns3 {
 
@@ -72,6 +73,7 @@ V2xKpi::WriteKpis ()
   SaveThput ();
   ComputePsschTxStats ();
   ComputePsschTbCorruptionStats ();
+  SaveAvrgPrr ();
 }
 
 void
@@ -122,7 +124,8 @@ V2xKpi::SavePktRxData ()
                               sqlite3_column_int (stmt, 2),
                               sqlite3_column_int (stmt, 3),
                               sqlite3_column_int (stmt, 4),
-                              std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 7))));
+                              std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 7))),
+                              sqlite3_column_int (stmt, 9));
           data.push_back (result);
           secondMap.insert (std::make_pair (srcIp, data));
           m_rxDataMap.insert (std::make_pair (nodeId, secondMap));
@@ -141,7 +144,8 @@ V2xKpi::SavePktRxData ()
                                   sqlite3_column_int (stmt, 2),
                                   sqlite3_column_int (stmt, 3),
                                   sqlite3_column_int (stmt, 4),
-                                  std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 7))));
+                                  std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 7))),
+                                  sqlite3_column_int (stmt, 9));
               data.push_back (result);
               nodeIt->second.insert (std::make_pair (srcIp, data));
             }
@@ -153,7 +157,8 @@ V2xKpi::SavePktRxData ()
                                   sqlite3_column_int (stmt, 2),
                                   sqlite3_column_int (stmt, 3),
                                   sqlite3_column_int (stmt, 4),
-                                  std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 7))));
+                                  std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 7))),
+                                  sqlite3_column_int (stmt, 9));
               txIt->second.push_back (result);
             }
         }
@@ -268,7 +273,6 @@ V2xKpi::ComputeAvrgPir (std::string ipTx, std::vector <PktTxRxData> data)
       //It may happen that a node would rxed only one pkt from a
       //particular tx node. In that case, PIR can not be computed.
       //assert added just to check range based
-      NS_ABORT_MSG_IF (m_range > 0, "For range based PIR I am not expecting that a rx node would receive only one pkt from a tx node");
       avrgPir = -1.0;
     }
   else
@@ -277,6 +281,152 @@ V2xKpi::ComputeAvrgPir (std::string ipTx, std::vector <PktTxRxData> data)
     }
   return avrgPir;
 }
+
+
+void
+V2xKpi::SaveAvrgPrr ()
+{
+  std::string tableName = "avrgPrr";
+  std::string cmd =  ("CREATE TABLE IF NOT EXISTS " + tableName + " ("
+                      "txRx TEXT NOT NULL,"
+                      "nodeId INTEGER NOT NULL,"
+                      "imsi INTEGER NOT NULL,"
+                      "Ip TEXT NOT NULL,"
+                      "range DOUBLE NOT NULL,"
+                      "numNieb INTEGER NOT NULL,"
+                      "avrgPrr DOUBLE NOT NULL,"
+                      "SEED INTEGER NOT NULL,"
+                      "RUN INTEGER NOT NULL"
+                      ");");
+  int rc = sqlite3_exec (m_db, cmd.c_str (), NULL, NULL, NULL);
+
+  NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error creating table. Db error: " << sqlite3_errmsg (m_db));
+
+  DeleteWhere (RngSeedManager::GetSeed (), RngSeedManager::GetRun (), tableName);
+
+  std::map <uint32_t, std::vector <PktTxRxData> >::const_iterator it;
+  for (it = m_txDataMap.cbegin (); it != m_txDataMap.cend (); it++)
+    {
+      uint32_t numNeib = 0;
+      double avrgPrr = ComputeAvrgPrr (it, numNeib);
+      if (avrgPrr == -1.0)
+        {
+          continue;
+        }
+      sqlite3_stmt *stmt;
+      std::string cmd = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+      rc = sqlite3_prepare_v2 (m_db, cmd.c_str (), static_cast<int> (cmd.size ()), &stmt, nullptr);
+      NS_ABORT_MSG_UNLESS (rc == SQLITE_OK, "Error INSERT. Db error: " << sqlite3_errmsg (m_db));
+
+      NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 1, it->second.at (0).txRx.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 2, it->second.at (0).nodeId) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 3, it->second.at (0).imsi) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_text (stmt, 4,it->second.at (0).ipAddrs.c_str (), -1, SQLITE_STATIC) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 5, m_range) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 6, numNeib) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_double (stmt, 7, avrgPrr) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 8, RngSeedManager::GetSeed ()) == SQLITE_OK);
+      NS_ABORT_UNLESS (sqlite3_bind_int (stmt, 9, RngSeedManager::GetRun ()) == SQLITE_OK);
+
+      rc = sqlite3_step (stmt);
+      NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly execute the statement. Db error: " << sqlite3_errmsg (m_db));
+      rc = sqlite3_finalize (stmt);
+      NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
+    }
+
+}
+
+double
+V2xKpi::ComputeAvrgPrr (std::map <uint32_t, std::vector <PktTxRxData> >::const_iterator &txIt, uint32_t &numNeib)
+{
+  std::string txIp = txIt->second.at (0).ipAddrs;
+  auto txIpPosIt = m_posPerIp.find (txIp);
+  Vector txIpPos = txIpPosIt->second;
+  //std::cout << "Tx IP " << txIp << " pos " << txIpPos << std::endl;
+
+  std::map<std::string, std::vector<uint32_t> > pktSeqPerRx;
+
+  for (const auto &it:m_rxDataMap)
+    {
+      //we can read the RX IP from any PktTxRxData of any TX
+      std::string rxIp = it.second.begin ()->second.at (0).ipAddrs;
+      auto rxIpPosIt = m_posPerIp.find (rxIp);
+      Vector rxIpPos = rxIpPosIt->second;
+      double txRxDist = CalculateDistance (rxIpPos, txIpPos);
+      //go to the next RX IP if the current RX IP is out of range AND m_range is non-zero
+      //the condition m_range > 0.0 is to ignore range based PRR and consider
+      //all rx nodes as potential receivers.
+      if (txRxDist > m_range && m_range > 0.0)
+        {
+          //std::cout << "Rx IP " << rxIp << " at " <<  rxIpPos << " is out of range" << std::endl;
+          continue;
+        }
+      else
+        {
+          std::vector<uint32_t> seqVec;
+          //RX IP is in range. Lets find out if this RX IP rexed any pkt from
+          //Tx IP
+          auto txIt = it.second.find (txIp);
+          if (txIt == it.second.end ())
+            {
+              //if with in range Rx IP did not rxed any packet from Tx IP
+              //we still need to consider it as valid neighbor. Therefore,
+              //I am inserting it in the neighbor vector which received
+              //a bit unrealistic packet seq of 2^32
+              seqVec.push_back (std::numeric_limits <uint32_t>::max ());
+              bool insertStatus = pktSeqPerRx.emplace (std::make_pair (rxIp,seqVec)).second;
+              NS_ASSERT_MSG (insertStatus == true, "Rx IP " << rxIp << " already present in pktSeqPerRx map");
+              //now continue to next RX IP
+              continue;
+            }
+          for (const auto &pktVectIt:txIt->second)
+            {
+              //push all the pkt seq number this receiver received from the TX IP
+              seqVec.push_back (pktVectIt.pktSeq);
+            }
+          bool insertStatus = pktSeqPerRx.emplace (std::make_pair (rxIp,seqVec)).second;
+          NS_ASSERT_MSG (insertStatus == true, "Rx IP " << rxIp << " already present in pktSeqPerRx map");
+        }
+    }
+
+  numNeib = pktSeqPerRx.size ();
+
+  //std::cout << "IP " << txIp << " has " << pktSeqPerRx.size () << " neighbors" << std::endl;
+  //std::cout << "IP " << txIp << " has txed " << txIt->second.size ()<< " packets" << std::endl;
+
+  //if none of the rx nodes is in range do not log such PRR
+  if (pktSeqPerRx.size () == 0)
+    {
+      return -1.0;
+    }
+
+  double pktRxCount = 0;
+
+  for (const auto &itPktData:txIt->second)
+    {
+      //iterating over each pkt tx by the transmitter
+      for (const auto &itRx:pktSeqPerRx)
+        {
+          if (std::find (itRx.second.begin(), itRx.second.end(), itPktData.pktSeq) != itRx.second.end())
+          {
+              pktRxCount++;
+          }
+        }
+    }
+
+  //if none of the rx nodes in range received any packet return 0
+  if (pktRxCount == 0)
+    {
+      return 0.0;
+    }
+
+  double avrgPrr = pktRxCount / (txIt->second.size () * pktSeqPerRx.size ());
+
+  //std::cout << "Tx IP " << txIp << " has average PRR of " << avrgPrr << std::endl;
+
+  return avrgPrr;
+}
+
 
 void
 V2xKpi::SaveThput ()
@@ -433,7 +583,8 @@ V2xKpi::SavePktTxData ()
                               sqlite3_column_int (stmt, 2),
                               sqlite3_column_int (stmt, 3),
                               sqlite3_column_int (stmt, 4),
-                              std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 5))));
+                              std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 5))),
+                              sqlite3_column_int (stmt, 9));
           std::vector <PktTxRxData> data;
           data.push_back (result);
           m_txDataMap.insert (std::make_pair (nodeId, data));
@@ -445,7 +596,8 @@ V2xKpi::SavePktTxData ()
                               sqlite3_column_int (stmt, 2),
                               sqlite3_column_int (stmt, 3),
                               sqlite3_column_int (stmt, 4),
-                              std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 5))));
+                              std::string (reinterpret_cast< const char* > (sqlite3_column_text (stmt, 5))),
+                              sqlite3_column_int (stmt, 9));
           nodeIt->second.push_back (result);
         }
     }
