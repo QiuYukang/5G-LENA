@@ -297,20 +297,37 @@ V2xKpi::SaveThput ()
           NS_ABORT_MSG_UNLESS (rc == SQLITE_OK || rc == SQLITE_DONE, "Could not correctly finalize the statement. Db error: " << sqlite3_errmsg (m_db));
         }
 
-      //if (report stats for all TX AND total number of tx from whom the receiver rxed the packets is less the total Tx - 1)
+      //Now put zero thput for the transmitters nodes from
+      //whom this RX node didn't receive any packet.
       NS_LOG_DEBUG ("m_considerAllTx flag value" << m_considerAllTx);
       NS_LOG_DEBUG ("Num of transmitters this receiver able to rxed data " << it.second.size ());
       NS_LOG_DEBUG ("Total number of transmitters " << m_txDataMap.size ());
-      if (m_considerAllTx && (it.second.size () < (m_txDataMap.size () - 1)))
+      //Lets read the first entry of our m_rxDataMap just to read some info of
+      //the RX node.
+      PktTxRxData data = it.second.begin ()->second.at (0);
+      uint32_t numTx = 0;
+      auto itToRxNode = m_txDataMap.find (data.nodeId);
+      if (itToRxNode != m_txDataMap.end ())
+        {
+          //if this receiver is one of the transmitter, the number of
+          //transmitters for which we need to compute thput is:
+          numTx = m_txDataMap.size () - 1;
+        }
+      else
+        {
+          //consider all the transmitters
+          numTx = m_txDataMap.size ();
+        }
+      //if (report stats for all TX nodes AND total number of tx nodes from whom
+      //this receiver node rxed the packets is less the number of actual
+      //transmitters)
+      if (m_considerAllTx && (it.second.size () < numTx))
         {
           for (const auto &itTx:m_txDataMap)
             {
               if (it.second.find (itTx.second.at (0).ipAddrs) == it.second.end ())
                 {
-                  //we didnt find the TX in our m_rxDataMap. Lets read the first
-                  //entry of our m_rxDataMap just to read some info of the RX
-                  //node.
-                  PktTxRxData data = it.second.begin ()->second.at (0);
+                  //we didnt find the TX in our m_rxDataMap.
                   //avoid my own IP
                   if (itTx.second.at (0).ipAddrs != data.ipAddrs)
                     {
