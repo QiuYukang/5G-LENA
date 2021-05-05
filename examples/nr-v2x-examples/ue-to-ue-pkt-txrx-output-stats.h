@@ -87,6 +87,7 @@ public:
    * \param p The packet
    * \param srcAddrs The source address from the trace
    * \param dstAddrs The destination address from the trace
+   * \param seq The packet sequence number
    */
   void Save (const std::string txRx, const Address &localAddrs, uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p, const Address &srcAddrs, const Address &dstAddrs, uint32_t seq);
 

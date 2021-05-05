@@ -150,6 +150,7 @@ void NotifySlPsschRx (UePhyPsschRxOutputStats *psschStats, const SlRxDataPacketT
  * \param p The packet
  * \param srcAddrs The source address from the trace
  * \param dstAddrs The destination address from the trace
+ * \param seqTsSizeHeader The SeqTsSizeHeader
  */
 void
 UePacketTraceDb (UeToUePktTxRxOutputStats *stats, Ptr<Node> node, const Address &localAddrs,
