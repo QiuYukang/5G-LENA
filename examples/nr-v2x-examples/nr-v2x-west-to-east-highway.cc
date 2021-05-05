@@ -152,12 +152,14 @@ void NotifySlPsschRx (UePhyPsschRxOutputStats *psschStats, const SlRxDataPacketT
  */
 void
 UePacketTraceDb (UeToUePktTxRxOutputStats *stats, Ptr<Node> node, const Address &localAddrs,
-                 std::string txRx, Ptr<const Packet> p, const Address &srcAddrs, const Address &dstAddrs)
+                 std::string txRx, Ptr<const Packet> p, const Address &srcAddrs,
+                 const Address &dstAddrs, const SeqTsSizeHeader &seqTsSizeHeader)
 {
   uint32_t nodeId = node->GetId ();
   uint64_t imsi = node->GetDevice (0)->GetObject<NrUeNetDevice> ()->GetImsi ();
+  uint32_t seq = seqTsSizeHeader.GetSeq ();
 
-  stats->Save (txRx, localAddrs, nodeId, imsi, p, srcAddrs, dstAddrs);
+  stats->Save (txRx, localAddrs, nodeId, imsi, p, srcAddrs, dstAddrs, seq);
 }
 
 void NotifySlRlcPduRx (UeRlcRxOutputStats *stats, uint64_t imsi, uint16_t rnti, uint16_t txRnti, uint8_t lcid, uint32_t rxPduSize, double delay)
@@ -1038,6 +1040,7 @@ main (int argc, char *argv[])
 
   //Set Application in the UEs
   OnOffHelper sidelinkClient ("ns3::UdpSocketFactory", remoteAddress);
+  sidelinkClient.SetAttribute ("EnableSeqTsSizeHeader", BooleanValue (true));
   std::string dataRateBeString  = std::to_string (dataRateBe) + "kb/s";
   std::cout << "Data rate " << DataRate (dataRateBeString) << std::endl;
   sidelinkClient.SetConstantRate (DataRate (dataRateBeString), udpPacketSizeBe);
@@ -1068,6 +1071,7 @@ main (int argc, char *argv[])
 
   ApplicationContainer serverApps;
   PacketSinkHelper sidelinkSink ("ns3::UdpSocketFactory", localAddress);
+  sidelinkSink.SetAttribute ("EnableSeqTsSizeHeader", BooleanValue (true));
   for (uint16_t i = 0; i  < rxSlUes.GetN (); i++)
     {
       serverApps.Add (sidelinkSink.Install (rxSlUes.Get (i)));
@@ -1121,7 +1125,7 @@ main (int argc, char *argv[])
         {
           Ipv4Address localAddrs =  clientApps.Get (ac)->GetNode ()->GetObject<Ipv4L3Protocol> ()->GetAddress (1,0).GetLocal ();
           std::cout << "Tx address: " << localAddrs << std::endl;
-          clientApps.Get (ac)->TraceConnect ("TxWithAddresses", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, clientApps.Get (ac)->GetNode (), localAddrs));
+          clientApps.Get (ac)->TraceConnect ("TxWithSeqTsSize", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, clientApps.Get (ac)->GetNode (), localAddrs));
         }
 
       // Set Rx traces
@@ -1129,7 +1133,7 @@ main (int argc, char *argv[])
         {
           Ipv4Address localAddrs =  serverApps.Get (ac)->GetNode ()->GetObject<Ipv4L3Protocol> ()->GetAddress (1,0).GetLocal ();
           std::cout << "Rx address: " << localAddrs << std::endl;
-          serverApps.Get (ac)->TraceConnect ("RxWithAddresses", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, serverApps.Get (ac)->GetNode (), localAddrs));
+          serverApps.Get (ac)->TraceConnect ("RxWithSeqTsSize", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, serverApps.Get (ac)->GetNode (), localAddrs));
         }
     }
   else
@@ -1140,7 +1144,7 @@ main (int argc, char *argv[])
           clientApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->AddMulticastAddress (groupAddress6);
           Ipv6Address localAddrs =  clientApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->GetAddress (1,1).GetAddress ();
           std::cout << "Tx address: " << localAddrs << std::endl;
-          clientApps.Get (ac)->TraceConnect ("TxWithAddresses", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, clientApps.Get (ac)->GetNode (), localAddrs));
+          clientApps.Get (ac)->TraceConnect ("TxWithSeqTsSize", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, clientApps.Get (ac)->GetNode (), localAddrs));
         }
 
       // Set Rx traces
@@ -1149,7 +1153,7 @@ main (int argc, char *argv[])
           serverApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->AddMulticastAddress (groupAddress6);
           Ipv6Address localAddrs =  serverApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->GetAddress (1,1).GetAddress ();
           std::cout << "Rx address: " << localAddrs << std::endl;
-          serverApps.Get (ac)->TraceConnect ("RxWithAddresses", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, serverApps.Get (ac)->GetNode (), localAddrs));
+          serverApps.Get (ac)->TraceConnect ("RxWithSeqTsSize", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, serverApps.Get (ac)->GetNode (), localAddrs));
         }
     }
 

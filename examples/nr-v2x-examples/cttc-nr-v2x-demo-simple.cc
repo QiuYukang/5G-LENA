@@ -153,12 +153,14 @@ void NotifySlPsschRx (UePhyPsschRxOutputStats *psschStats, const SlRxDataPacketT
  */
 void
 UePacketTraceDb (UeToUePktTxRxOutputStats *stats, Ptr<Node> node, const Address &localAddrs,
-                 std::string txRx, Ptr<const Packet> p, const Address &srcAddrs, const Address &dstAddrs)
+                 std::string txRx, Ptr<const Packet> p, const Address &srcAddrs,
+                 const Address &dstAddrs, const SeqTsSizeHeader &seqTsSizeHeader)
 {
   uint32_t nodeId = node->GetId ();
   uint64_t imsi = node->GetDevice (0)->GetObject<NrUeNetDevice> ()->GetImsi ();
+  uint32_t seq = seqTsSizeHeader.GetSeq ();
 
-  stats->Save (txRx, localAddrs, nodeId, imsi, p, srcAddrs, dstAddrs);
+  stats->Save (txRx, localAddrs, nodeId, imsi, p, srcAddrs, dstAddrs, seq);
 }
 
 /*
@@ -748,6 +750,7 @@ main (int argc, char *argv[])
 
   //Set Application in the UEs
   OnOffHelper sidelinkClient ("ns3::UdpSocketFactory", remoteAddress);
+  sidelinkClient.SetAttribute ("EnableSeqTsSizeHeader", BooleanValue (true));
   std::string dataRateBeString  = std::to_string (dataRateBe) + "kb/s";
   std::cout << "Data rate " << DataRate (dataRateBeString) << std::endl;
   sidelinkClient.SetConstantRate (DataRate (dataRateBeString), udpPacketSizeBe);
@@ -768,6 +771,7 @@ main (int argc, char *argv[])
 
   ApplicationContainer serverApps;
   PacketSinkHelper sidelinkSink ("ns3::UdpSocketFactory", localAddress);
+  sidelinkSink.SetAttribute ("EnableSeqTsSizeHeader", BooleanValue (true));
   serverApps = sidelinkSink.Install (ueVoiceContainer.Get (ueVoiceContainer.GetN () - 1));
   serverApps.Start (Seconds (2.0));
 
@@ -824,7 +828,7 @@ main (int argc, char *argv[])
         {
           Ipv4Address localAddrs =  clientApps.Get (ac)->GetNode ()->GetObject<Ipv4L3Protocol> ()->GetAddress (1,0).GetLocal ();
           std::cout << "Tx address: " << localAddrs << std::endl;
-          clientApps.Get (ac)->TraceConnect ("TxWithAddresses", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (0), localAddrs));
+          clientApps.Get (ac)->TraceConnect ("TxWithSeqTsSize", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (0), localAddrs));
         }
 
       // Set Rx traces
@@ -832,7 +836,7 @@ main (int argc, char *argv[])
         {
           Ipv4Address localAddrs =  serverApps.Get (ac)->GetNode ()->GetObject<Ipv4L3Protocol> ()->GetAddress (1,0).GetLocal ();
           std::cout << "Rx address: " << localAddrs << std::endl;
-          serverApps.Get (ac)->TraceConnect ("RxWithAddresses", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (1), localAddrs));
+          serverApps.Get (ac)->TraceConnect ("RxWithSeqTsSize", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (1), localAddrs));
         }
     }
   else
@@ -843,7 +847,7 @@ main (int argc, char *argv[])
           clientApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->AddMulticastAddress (groupAddress6);
           Ipv6Address localAddrs =  clientApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->GetAddress (1,1).GetAddress ();
           std::cout << "Tx address: " << localAddrs << std::endl;
-          clientApps.Get (ac)->TraceConnect ("TxWithAddresses", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (0), localAddrs));
+          clientApps.Get (ac)->TraceConnect ("TxWithSeqTsSize", "tx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (0), localAddrs));
         }
 
       // Set Rx traces
@@ -852,7 +856,7 @@ main (int argc, char *argv[])
           serverApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->AddMulticastAddress (groupAddress6);
           Ipv6Address localAddrs =  serverApps.Get (ac)->GetNode ()->GetObject<Ipv6L3Protocol> ()->GetAddress (1,1).GetAddress ();
           std::cout << "Rx address: " << localAddrs << std::endl;
-          serverApps.Get (ac)->TraceConnect ("RxWithAddresses", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (1), localAddrs));
+          serverApps.Get (ac)->TraceConnect ("RxWithSeqTsSize", "rx", MakeBoundCallback (&UePacketTraceDb, &pktStats, ueVoiceContainer.Get (1), localAddrs));
         }
     }
 

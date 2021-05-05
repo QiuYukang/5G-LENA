@@ -88,7 +88,7 @@ public:
    * \param srcAddrs The source address from the trace
    * \param dstAddrs The destination address from the trace
    */
-  void Save (const std::string txRx, const Address &localAddrs, uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p, const Address &srcAddrs, const Address &dstAddrs);
+  void Save (const std::string txRx, const Address &localAddrs, uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p, const Address &srcAddrs, const Address &dstAddrs, uint32_t seq);
 
   /**
    * \brief Force the cache write to disk, emptying the cache itself.
@@ -100,10 +100,11 @@ private:
   {
     UePacketResultCache (double timeSec, std::string txRx, Address localAddrs,
                          uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
-                         Address srcAddrs, Address dstAddrs)
+                         Address srcAddrs, Address dstAddrs, uint32_t seq)
       : timeSec (timeSec), txRx (txRx), localAddrs (localAddrs),
       nodeId (nodeId), imsi (imsi), p (p), srcAddrs (srcAddrs),
-      dstAddrs (dstAddrs)
+      dstAddrs (dstAddrs),
+      seq (seq)
     {
     }
 
@@ -115,6 +116,7 @@ private:
     Ptr<const Packet> p;
     Address srcAddrs;
     Address dstAddrs;
+    uint32_t seq {std::numeric_limits <uint32_t>::max ()};
   };
   /**
    * \brief Delete the table if it already exists with same seed and run number

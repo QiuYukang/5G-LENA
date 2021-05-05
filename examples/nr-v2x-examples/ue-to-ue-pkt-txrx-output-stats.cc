@@ -46,6 +46,7 @@ UeToUePktTxRxOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
                       "srcPort INTEGER NOT NULL,"
                       "dstIp TEXT NOT NULL,"
                       "dstPort INTEGER NOT NULL,"
+                      "pktSeqNum INTEGER NOT NULL,"
                       "SEED INTEGER NOT NULL,"
                       "RUN INTEGER NOT NULL"
                       ");");
@@ -59,12 +60,13 @@ UeToUePktTxRxOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
 void
 UeToUePktTxRxOutputStats::Save (const std::string txRx, const Address &localAddrs,
                                 uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
-                                const Address &srcAddrs, const Address &dstAddrs)
+                                const Address &srcAddrs, const Address &dstAddrs, uint32_t seq)
 {
   m_pktCache.emplace_back (UePacketResultCache (Simulator::Now ().GetNanoSeconds () / (double) 1e9,
                                                 txRx, localAddrs,
                                                 nodeId, imsi, p,
-                                                srcAddrs, dstAddrs));
+                                                srcAddrs, dstAddrs,
+                                                seq));
 
   // Let's wait until ~1MB of entries before storing it in the database
   if (m_pktCache.size () * sizeof (UePacketResultCache) > 1000000)
@@ -90,7 +92,7 @@ UeToUePktTxRxOutputStats::WriteCache ()
       std::string srcStr;
       std::string dstStr;
       sqlite3_stmt *stmt;
-      m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+      m_db->SpinPrepare (&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?);");
       oss.str ("");
       ret = m_db->Bind (stmt, 1, v.timeSec);
       NS_ABORT_UNLESS (ret);
@@ -121,6 +123,8 @@ UeToUePktTxRxOutputStats::WriteCache ()
               NS_ABORT_UNLESS (ret);
               ret = m_db->Bind (stmt, 9, InetSocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
               NS_ABORT_UNLESS (ret);
+              ret = m_db->Bind (stmt, 10, v.seq);
+              NS_ABORT_UNLESS (ret);
             }
           else
             {
@@ -142,6 +146,8 @@ UeToUePktTxRxOutputStats::WriteCache ()
                   NS_ABORT_UNLESS (ret);
                   ret = m_db->Bind (stmt, 9, InetSocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
                   NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 10, v.seq);
+                  NS_ABORT_UNLESS (ret);
                 }
               else
                 {
@@ -158,6 +164,8 @@ UeToUePktTxRxOutputStats::WriteCache ()
                   ret = m_db->Bind (stmt, 8, dstStr);
                   NS_ABORT_UNLESS (ret);
                   ret = m_db->Bind (stmt, 9, InetSocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
+                  NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 10, v.seq);
                   NS_ABORT_UNLESS (ret);
                 }
             }
@@ -181,6 +189,8 @@ UeToUePktTxRxOutputStats::WriteCache ()
               NS_ABORT_UNLESS (ret);
               ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
               NS_ABORT_UNLESS (ret);
+              ret = m_db->Bind (stmt, 10, v.seq);
+              NS_ABORT_UNLESS (ret);
             }
           else
             {
@@ -202,6 +212,8 @@ UeToUePktTxRxOutputStats::WriteCache ()
                   NS_ABORT_UNLESS (ret);
                   ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
                   NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 10, v.seq);
+                  NS_ABORT_UNLESS (ret);
                 }
               else
                 {
@@ -219,6 +231,8 @@ UeToUePktTxRxOutputStats::WriteCache ()
                   NS_ABORT_UNLESS (ret);
                   ret = m_db->Bind (stmt, 9, Inet6SocketAddress::ConvertFrom (v.dstAddrs).GetPort ());
                   NS_ABORT_UNLESS (ret);
+                  ret = m_db->Bind (stmt, 10, v.seq);
+                  NS_ABORT_UNLESS (ret);
                 }
             }
         }
@@ -227,9 +241,9 @@ UeToUePktTxRxOutputStats::WriteCache ()
           NS_FATAL_ERROR ("Unknown address type!");
         }
 
-      ret = m_db->Bind (stmt, 10, RngSeedManager::GetSeed ());
+      ret = m_db->Bind (stmt, 11, RngSeedManager::GetSeed ());
       NS_ABORT_UNLESS (ret);
-      ret = m_db->Bind (stmt, 11, static_cast<uint32_t> (RngSeedManager::GetRun ()));
+      ret = m_db->Bind (stmt, 12, static_cast<uint32_t> (RngSeedManager::GetRun ()));
       NS_ABORT_UNLESS (ret);
 
       ret = m_db->SpinExec (stmt);
