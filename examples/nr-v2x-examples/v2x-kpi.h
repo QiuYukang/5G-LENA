@@ -271,7 +271,7 @@ private:
   sqlite3* m_db {nullptr}; //!< DB pointer
   std::string m_dbPath {""}; //!< path to the DB to read
   double m_txAppDuration {0.0}; //!< The TX application duration to compute the throughput
-  bool m_considerAllTx {false}; //!< Consider all TX flag for throughput computation
+  bool m_considerAllTx {true}; //!< Consider all TX flag for throughput computation
   std::map <std::string, Vector> m_posPerIp; //!< Map to store position and IPs of the nodes
   std::uint16_t m_range {0}; //!< Range in meter to be used to compute PIR and PRR
   double m_interTxRxDistance {0.0}; //!< The inter-TX-RX distance logged for PIR
