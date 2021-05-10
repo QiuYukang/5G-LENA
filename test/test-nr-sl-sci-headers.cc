@@ -48,20 +48,23 @@ NrSlSciHeadersTestSuite::NrSlSciHeadersTestSuite ()
 
   AddTestCase (new NrSlSciF1aTestCase (sciF1a, sizeSciF1A));
 
-  //Test including the mandatory fields and 1 optional field
+  //Test including the mandatory fields and 2 optional field
   sciF1a.SetSlMaxNumPerReserve (2);
   sciF1a.SetGapReTx1 (2);
+  sciF1a.SetIndexStartSbChReTx1 (0);
 
-  sizeSciF1A = sizeSciF1A + 1; // 11 bytes
+  sizeSciF1A = sizeSciF1A + 2; // 12 bytes
 
   AddTestCase (new NrSlSciF1aTestCase (sciF1a, sizeSciF1A));
 
-  //Test including the mandatory fields and 2 optional fields
+  //Test including the mandatory fields and 4 optional fields
   sciF1a.SetSlMaxNumPerReserve (3);
   sciF1a.SetGapReTx1 (2);
+  sciF1a.SetIndexStartSbChReTx1 (0);
   sciF1a.SetGapReTx2 (3);
+  sciF1a.SetIndexStartSbChReTx2 (0);
 
-  sizeSciF1A = sizeSciF1A + 1; // 12 bytes
+  sizeSciF1A = sizeSciF1A + 2; // 14 bytes
 
   AddTestCase (new NrSlSciF1aTestCase (sciF1a, sizeSciF1A));
 

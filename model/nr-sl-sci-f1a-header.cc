@@ -129,6 +129,22 @@ NrSlSciF1aHeader::SetSciStage2Format (uint8_t formatValue)
   m_slSciStage2Format = formatValue;
 }
 
+void
+NrSlSciF1aHeader::SetIndexStartSbChReTx1 (uint8_t sbChIndexReTx1)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_slMaxNumPerReserve == 2 || m_slMaxNumPerReserve == 3, "SlMaxNumPerReserve should be set to 2 or 3 before calling this method");
+  m_indexStartSbChReTx1 = sbChIndexReTx1;
+}
+
+void
+NrSlSciF1aHeader::SetIndexStartSbChReTx2 (uint8_t sbChIndexReTx2)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_slMaxNumPerReserve == 3, "SlMaxNumPerReserve should be set to 3 before setting GapReTx2");
+  m_indexStartSbChReTx2 = sbChIndexReTx2;
+}
+
 uint8_t
 NrSlSciF1aHeader::GetPriority () const
 {
@@ -188,6 +204,20 @@ NrSlSciF1aHeader::GetSciStage2Format () const
   return m_slSciStage2Format;
 }
 
+uint8_t
+NrSlSciF1aHeader::GetIndexStartSbChReTx1 ()
+{
+  return m_indexStartSbChReTx1;
+}
+
+uint8_t
+NrSlSciF1aHeader::GetIndexStartSbChReTx2 ()
+{
+  return m_indexStartSbChReTx2;
+}
+
+
+
 bool
 NrSlSciF1aHeader::EnsureMandConfig () const
 {
@@ -217,7 +247,9 @@ NrSlSciF1aHeader::Print (std::ostream &os)  const
      << ", Total number of allocated Subchannel " << +m_lengthSubChannel
      << ", Maximum number of reservations " << +m_slMaxNumPerReserve
      << ", First retransmission gap in slots " << +m_gapReTx1
-     << ", Second retransmission gap in slots " << +m_gapReTx2;
+     << ", Second retransmission gap in slots " << +m_gapReTx2
+     << ", Index starting Subchannel ReTx1 " << +m_indexStartSbChReTx1
+     << ", Index starting Subchannel ReTx2 " << +m_indexStartSbChReTx2;
 }
 
 uint32_t
@@ -236,10 +268,12 @@ NrSlSciF1aHeader::GetSerializedSize (void) const
 
   //Optional fields
   //gapReTx1 = 1 byte if slMaxNumPerReserve == 2
+  //indexStartSbChReTx1 = 1 byte if slMaxNumPerReserve == 2
   //gapReTx2 = 1 byte if slMaxNumPerReserve == 3
+  //indexStartSbChReTx1 = 1 byte if slMaxNumPerReserve == 3
   totalSize = 1 + 1 + 1 + 2 + 2 + 1 + 1 + 1;
-  totalSize = (m_slMaxNumPerReserve == 2 ? totalSize + 1 : totalSize + 0); //only gapReTx1
-  totalSize = (m_slMaxNumPerReserve == 3 ? totalSize + 2 : totalSize + 0); //both gapReTx1 and gapReTx2
+  totalSize = (m_slMaxNumPerReserve == 2 ? totalSize + 2 : totalSize + 0); //only gapReTx1 and indexStartSbChReTx1
+  totalSize = (m_slMaxNumPerReserve == 3 ? totalSize + 4 : totalSize + 0); // all gapReTx1, indexStartSbChReTx1, gapReTx2, and indexStartSbChReTx2
 
   return totalSize;
 }
@@ -262,10 +296,12 @@ NrSlSciF1aHeader::Serialize (Buffer::Iterator start) const
   if (m_slMaxNumPerReserve == 2 || m_slMaxNumPerReserve == 3)
     {
       i.WriteU8 (m_gapReTx1);
+      i.WriteU8 (m_indexStartSbChReTx1);
     }
   if (m_slMaxNumPerReserve == 3)
     {
       i.WriteU8 (m_gapReTx2);
+      i.WriteU8 (m_indexStartSbChReTx2);
     }
 }
 
@@ -286,10 +322,12 @@ NrSlSciF1aHeader::Deserialize (Buffer::Iterator start)
   if (m_slMaxNumPerReserve == 2 || m_slMaxNumPerReserve == 3)
     {
       m_gapReTx1 = i.ReadU8 ();
+      m_indexStartSbChReTx1 = i.ReadU8 ();
     }
   if (m_slMaxNumPerReserve == 3)
     {
       m_gapReTx2 = i.ReadU8 ();
+      m_indexStartSbChReTx2 = i.ReadU8 ();
     }
 
   return GetSerializedSize ();
@@ -308,6 +346,8 @@ NrSlSciF1aHeader::operator == (const NrSlSciF1aHeader &b) const
       && m_slMaxNumPerReserve == b.m_slMaxNumPerReserve
       && m_gapReTx1 == b.m_gapReTx1
       && m_gapReTx2 == b.m_gapReTx2
+      && m_indexStartSbChReTx1 == b.m_indexStartSbChReTx1
+      && m_indexStartSbChReTx2 == b.m_indexStartSbChReTx2
       )
     {
       return true;

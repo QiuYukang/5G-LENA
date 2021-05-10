@@ -279,6 +279,87 @@ struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
   typedef void (* TracedCallback)(const SlRxCtrlPacketTraceParams params);
 };
 
+struct SensingData
+{
+  /**
+   * \brief SensingData constructor
+   * \param sfn The SfnSf
+   * \param rsvp The resource reservation period in ms
+   * \param sbChLength The total number of the sub-channel allocated
+   * \param sbChStart The index of the starting sub-channel allocated
+   * \param prio The priority
+   * \param slRsrp The measured RSRP value over the used resource blocks
+   * \param gapReTx1 Gap for a first retransmission in absolute slots
+   * \param sbChStartReTx1 The index of the starting sub-channel allocated to first retransmission
+   * \param gapReTx2 Gap for a second retransmission in absolute slots
+   * \param sbChStartReTx2 The index of the starting sub-channel allocated to second retransmission
+   */
+  SensingData (SfnSf sfn, uint16_t rsvp, uint8_t sbChLength, uint8_t sbChStart,
+               uint8_t prio, double slRsrp, uint8_t gapReTx1, uint8_t sbChStartReTx1,
+               uint8_t gapReTx2, uint8_t sbChStartReTx2)
+  {
+    this->sfn = sfn;
+    this->rsvp = rsvp;
+    this->sbChLength = sbChLength;
+    this->sbChStart = sbChStart;
+    this->prio = prio;
+    this->slRsrp = slRsrp;
+    this->gapReTx1 = gapReTx1;
+    this->sbChStartReTx1 = sbChStartReTx1;
+    this->gapReTx2 = gapReTx2;
+    this->sbChStartReTx2 = sbChStartReTx2;
+  }
+  SfnSf sfn {}; //!< The SfnSf
+  uint16_t rsvp {0}; //!< The resource reservation period in ms
+  uint8_t sbChLength {std::numeric_limits <uint8_t>::max ()}; //!< The total number of the sub-channel allocated
+  uint8_t sbChStart {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated
+  uint8_t prio {std::numeric_limits <uint8_t>::max ()}; //!< The priority
+  double slRsrp {0.0}; //!< The measured RSRP value over the used resource blocks
+  uint8_t gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< Gap for a first retransmission in absolute slots
+  uint8_t sbChStartReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated to first retransmission
+  uint8_t gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< Gap for a second retransmission in absolute slots
+  uint8_t sbChStartReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated to second retransmission
+};
+
+struct SlotSensingData
+{
+  /**
+   * \brief SlotSensingData constructor
+   *
+   * The data in this Struct represent the sensing data of only one slot, i.e.,
+   * it can be used even to represent a slot at which a future retransmission
+   * would be received. This Struct is only used to make a list of all the
+   * future slots based on one slot at which SCI 1A was received. Perhaps, one
+   * could use SensingData Struct instead of using this new Struct but in that
+   * case the info of the starting subchannel index of retransmission(s) cannot
+   * be filled and would be left unassigned. I do not like this because it
+   * could create the confusion and reduce the code readability.
+   *
+   * \param sfn The SfnSf
+   * \param rsvp The resource reservation period in ms
+   * \param sbChLength The total number of the sub-channel allocated
+   * \param sbChStart The index of the starting sub-channel allocated
+   * \param prio The priority
+   * \param slRsrp The measured RSRP value over the used resource blocks
+   */
+  SlotSensingData (SfnSf sfn, uint16_t rsvp, uint8_t sbChLength, uint8_t sbChStart,
+                   uint8_t prio, double slRsrp)
+  {
+    this->sfn = sfn;
+    this->rsvp = rsvp;
+    this->sbChLength = sbChLength;
+    this->sbChStart = sbChStart;
+    this->prio = prio;
+    this->slRsrp = slRsrp;
+  }
+  SfnSf sfn {}; //!< The SfnSf
+  uint16_t rsvp {0}; //!< The resource reservation period in ms
+  uint8_t sbChLength {std::numeric_limits <uint8_t>::max ()}; //!< The total number of the sub-channel allocated
+  uint8_t sbChStart {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated
+  uint8_t prio {std::numeric_limits <uint8_t>::max ()}; //!< The priority
+  double slRsrp {0.0}; //!< The measured RSRP value over the used resource blocks
+};
+
 }
 
 #endif /* NR_SL_PHY_MAC_COMMON_H_ */

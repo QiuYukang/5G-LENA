@@ -121,19 +121,9 @@ public:
   virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu) = 0;
   /**
    * \brief Receive the sensing information from PHY to MAC
-   * \param sfn The SfnSf
-   * \param rsvp The resource reservation period in ms
-   * \param rbstart The PSSCH starting resource block
-   * \param rbLen The PSCSCH length in number of RBs
-   * \param prio The priority
-   * \param slRsrp The measured RSRP value over the used resource blocks
-   * \param gapReTx1 Gap for a first retransmission in absolute slots
-   * \param gapReTx2 Gap for a second retransmission in absolute slots
+   * \param sensingData The sensing data
    */
-  virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp,
-                                   uint16_t rbStart, uint16_t rbLen,
-                                   uint8_t prio, double slRsrp,
-                                   uint8_t gapReTx1, uint8_t gapReTx2) = 0;
+  virtual void ReceiveSensingData (SensingData sensingData) = 0;
 };
 
 
@@ -240,10 +230,7 @@ public:
   virtual std::vector <std::pair<uint32_t, uint8_t> > GetSlTxDestinations ();
   virtual std::unordered_set <uint32_t> GetSlRxDestinations ();
   virtual void ReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
-  virtual void ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp,
-                                   uint16_t rbStart, uint16_t rbLen,
-                                   uint8_t prio, double slRsrp,
-                                   uint8_t gapReTx1, uint8_t gapReTx2);
+  virtual void ReceiveSensingData (SensingData sensingData);
 
 private:
   C* m_owner; ///< the owner class
@@ -285,12 +272,9 @@ MemberNrSlUePhySapUser<C>::ReceivePsschPhyPdu (Ptr<PacketBurst> pdu)
 
 template <class C>
 void
-MemberNrSlUePhySapUser<C>::ReceiveSensingData (const SfnSf &sfn, uint16_t rsvp,
-                                               uint16_t rbStart, uint16_t rbLen,
-                                               uint8_t prio, double slRsrp,
-                                               uint8_t gapReTx1, uint8_t gapReTx2)
+MemberNrSlUePhySapUser<C>::ReceiveSensingData (SensingData sensingData)
 {
-  m_owner->DoReceiveSensingData (sfn, rsvp, rbStart, rbLen, prio, slRsrp, gapReTx1, gapReTx2);
+  m_owner->DoReceiveSensingData (sensingData);
 }
 
 

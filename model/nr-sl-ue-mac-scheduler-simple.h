@@ -65,19 +65,59 @@ public:
                                  std::set<NrSlSlotAlloc> &slotAllocList) override;
 
 private:
+  struct SbChInfo
+  {
+    uint8_t numSubCh {0}; //!< The minimum number of contiguous subchannels that could be used for each slot.
+    std::vector <std::vector<uint8_t>> availSbChIndPerSlot; //!< The vector containing the available subchannel index for each slot
+  };
   /**
    * \brief Select the slots randomly from the available slots
-   *
-   * This method is optimized to be always able to allocate the slots
-   * for 1 or 2 retransmissions if needed. <b>For more than 2 retransmissions
-   * this method should be updated.</b>
    *
    * \param txOpps The list of the available TX opportunities
    * \return the set containing the indices of the randomly chosen slots in the
    *         txOpps list
    */
   std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+  /**
+   * \brief Randomly select the number of slots from the slots given by UE MAC
+   *
+   * If K denotes the total number of available slots, and N_PSSCH_maxTx is the
+   * maximum number of PSSCH configured transmissions, then:
+   *
+   * N_Selected = N_PSSCH_maxTx , if K >= N_PSSCH_maxTx
+   * otherwise;
+   * N_Selected = K
+   *
+   * \param txOpps The list of the available slots
+   * \return The list of randomly selected slots
+   */
   RandomlySelectSlots (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps);
+  /**
+   * \brief Get available subchannel information
+   *
+   * This method takes as input the randomly selected slots and computes the
+   * minimum number of contiguous subchannels that could be used for each
+   * slot. Moreover, it also returns the indexes of the available subchannels
+   * for each slot. Both of these outputs are wrapped in a struct object of type
+   * SbChInfo.
+   *
+   * \param txOpps The list of randomly selected slots
+   * \return A struct object of type SbChInfo
+   */
+  SbChInfo GetAvailSbChInfo (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps);
+  /**
+   * \brief Randomly select the starting subchannel index
+   *
+   * This method, for each slot randomly selects the starting subchannel
+   * index by taking into account the number of available contiguous subchannels
+   * and the number of subchannels that needs to be assigned.
+   *
+   * \param A struct object of type SbChInfo
+   * \param assignedSbCh The number of assigned subchannels
+   * \return A vector containing the randomly chosen starting subchannel index
+   *         for each slot.
+   */
+  std::vector <uint8_t> RandSelSbChStart (SbChInfo, uint8_t assignedSbCh);
 };
 
 } //namespace ns3

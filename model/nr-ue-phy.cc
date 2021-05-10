@@ -1514,7 +1514,8 @@ NrUePhy::SendNrSlCtrlChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
   NS_LOG_FUNCTION (this);
 
   std::vector<int> channelRbs;
-  for (uint32_t i = varTtiInfo.rbStart; i < varTtiInfo.rbLength; i++)
+  uint32_t lastRbInPlusOne = (varTtiInfo.rbStart + varTtiInfo.rbLength);
+  for (uint32_t i = varTtiInfo.rbStart; i < lastRbInPlusOne; i++)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
@@ -1565,7 +1566,8 @@ NrUePhy::SendNrSlDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPer
   NS_LOG_FUNCTION (this);
 
   std::vector<int> channelRbs;
-  for (uint32_t i = varTtiInfo.rbStart; i < varTtiInfo.rbLength; i++)
+  uint32_t lastRbInPlusOne = (varTtiInfo.rbStart + varTtiInfo.rbLength);
+  for (uint32_t i = varTtiInfo.rbStart; i < lastRbInPlusOne; i++)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
@@ -1588,11 +1590,12 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
   std::unordered_set <uint32_t> destinations = m_nrSlUePhySapUser->GetSlRxDestinations ();
 
   NS_ASSERT_MSG (m_slRxPool != nullptr, "No receiving pools configured");
-  uint16_t rbStart = sciF1a.GetIndexStartSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
-  uint16_t rbLength = sciF1a.GetLengthSubChannel () * m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+  uint16_t sbChSize = m_slRxPool->GetNrSlSubChSize (GetBwpId (), m_nrSlUePhySapUser->GetSlActiveTxPoolId ());
+  uint16_t rbStart = sciF1a.GetIndexStartSubChannel () * sbChSize;
+  uint16_t lastRbInPlusOne = (sciF1a.GetLengthSubChannel () * sbChSize) + rbStart;
   std::vector<int> rbBitMap;
 
-  for (uint16_t i = rbStart; i < rbLength; ++i)
+  for (uint16_t i = rbStart; i < lastRbInPlusOne; ++i)
     {
       rbBitMap.push_back (i);
     }
@@ -1604,10 +1607,14 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
                 << " SubFrame " << +m_currentSlot.GetSubframe ()
                 << " Slot " << m_currentSlot.GetSlot ());
 
-  m_nrSlUePhySapUser->ReceiveSensingData (m_currentSlot, sciF1a.GetSlResourceReservePeriod (),
-                                          rbStart, rbBitMap.size (),
-                                          sciF1a.GetPriority (), rsrpDbm,
-                                          sciF1a.GetGapReTx1 (), sciF1a.GetGapReTx2 ());
+ SensingData sensingData (m_currentSlot, sciF1a.GetSlResourceReservePeriod (),
+                          sciF1a.GetLengthSubChannel (),
+                          sciF1a.GetIndexStartSubChannel (),
+                          sciF1a.GetPriority (), rsrpDbm,
+                          sciF1a.GetGapReTx1 (), sciF1a.GetIndexStartSbChReTx1(),
+                          sciF1a.GetGapReTx2 (), sciF1a.GetIndexStartSbChReTx2());
+
+  m_nrSlUePhySapUser->ReceiveSensingData (sensingData);
 
   auto it = destinations.find (tag.GetDstL2Id ());
   if (it != destinations.end ())

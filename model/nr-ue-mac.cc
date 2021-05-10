@@ -1305,10 +1305,10 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
       // calculate all possible transmissions of sensed data
       //using unordered map, since we need to check all the sensed slots
       //anyway, thus, the order does not matter.
-      std::unordered_map<uint64_t, std::list<SensingData>> allSensingData;
+      std::unordered_map<uint64_t, std::list<SlotSensingData>> allSensingData;
       for (const auto &itSensedSlot:sensedData)
         {
-          std::list<SensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot);
+          std::list<SlotSensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot);
           allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
         }
 
@@ -1343,22 +1343,31 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
               // Traverse over all the possible transmissions of each sensed slot
               for (const auto &itSensedSlot:allSensingData)
                 {
-                  std::list<SensingData> listFutureSensTx = itSensedSlot.second;
+                  std::list<SlotSensingData> listFutureSensTx = itSensedSlot.second;
                   // for all proposed transmissions of current candidate resource
-                  for (const auto &itFutureCand:listFutureCands)
+                  for (auto &itFutureCand:listFutureCands)
                     {
                       for (const auto &itFutureSensTx:listFutureSensTx)
                         {
                           if (itFutureCand.sfn.Normalize () == itFutureSensTx.sfn.Normalize ())
                             {
-                              if(itFutureSensTx.slRsrp > rsrpThrehold)
+                              uint16_t lastSbChInPlusOne = itFutureSensTx.sbChStart + itFutureSensTx.sbChLength;
+                              for (uint8_t i = itFutureSensTx.sbChStart; i < lastSbChInPlusOne; i++)
                                 {
-                                  itCandSsResoA = nrCandSsResoA.erase (itCandSsResoA);
-                                  erased = true;
-                                  NS_LOG_DEBUG ("Absolute slot number " << itFutureCand.sfn.Normalize () << " erased. Its rsrp : " << itFutureSensTx.slRsrp << " Threshold : " << rsrpThrehold);
-                                  //stop traversing over sensing data as we have
-                                  //already found the slot to exclude.
-                                  break; // break for (const auto &itFutureSensTx:listFutureSensTx)
+                                  NS_LOG_DEBUG (this << " Overlapped Slot " << itCandSsResoA->sfn.Normalize () << " occupied " << +itFutureSensTx.sbChLength << " subchannels index " << +itFutureSensTx.sbChStart);
+                                  itCandSsResoA->occupiedSbCh.insert (i);
+                                }
+                              if (itFutureSensTx.sbChLength == GetTotalSubCh (m_poolId))
+                                {
+                                  if(itFutureSensTx.slRsrp > rsrpThrehold)
+                                    {
+                                      itCandSsResoA = nrCandSsResoA.erase (itCandSsResoA);
+                                      erased = true;
+                                      NS_LOG_DEBUG ("Absolute slot number " << itFutureCand.sfn.Normalize () << " erased. Its rsrp : " << itFutureSensTx.slRsrp << " Threshold : " << rsrpThrehold);
+                                      //stop traversing over sensing data as we have
+                                      //already found the slot to exclude.
+                                      break; // break for (const auto &itFutureSensTx:listFutureSensTx)
+                                    }
                                 }
                             }
                         }
@@ -1381,7 +1390,7 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           //loop with rsrpThreshold increased by 3dB
           rsrpThrehold += 3;
         }
-      while (candSsResoA.size () < (GetResourcePercentage () / 100.0) * mTotal);
+      while (nrCandSsResoA.size () < (GetResourcePercentage () / 100.0) * mTotal);
     }
   else
     {
@@ -1389,14 +1398,15 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
       nrCandSsResoA = GetNrSupportedList (sfn, candSsResoA);
     }
 
+  NS_LOG_DEBUG ("Total selected after sensing resource selection " << nrCandSsResoA.size ());
   return nrCandSsResoA;
 }
 
-std::list<NrUeMac::SensingData>
-NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
+std::list<SlotSensingData>
+NrUeMac::GetFutSlotsBasedOnSens (SensingData sensedData)
 {
   NS_LOG_FUNCTION (this);
-  std::list<SensingData> listFutureSensTx;
+  std::list<SlotSensingData> listFutureSensTx;
 
   double slotLenMiSec = m_nrSlUePhySapProvider->GetSlotPeriod ().GetSeconds () * 1000.0;
   NS_ABORT_MSG_IF (slotLenMiSec > 1, "Slot length can not exceed 1 ms");
@@ -1421,21 +1431,27 @@ NrUeMac::GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData)
 
   for (uint16_t i = 0; i <= q; i++)
     {
-      auto sensedSlotData = sensedData;
+      SlotSensingData sensedSlotData (sensedData.sfn, sensedData.rsvp,
+                                      sensedData.sbChLength, sensedData.sbChStart,
+                                      sensedData.prio, sensedData.slRsrp);
       sensedSlotData.sfn.Add (i * pPrimeRsvpRx);
       listFutureSensTx.emplace_back (sensedSlotData);
       if (m_reTxSensingFlag)
         {
-          if (sensedSlotData.gapReTx1 != std::numeric_limits <uint8_t>::max ())
+          if (sensedData.gapReTx1 != std::numeric_limits <uint8_t>::max ())
             {
               auto reTx1Slot = sensedSlotData;
-              reTx1Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedSlotData.gapReTx1);
+              reTx1Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedData.gapReTx1);
+              reTx1Slot.sbChLength = sensedData.sbChLength;
+              reTx1Slot.sbChStart = sensedData.sbChStartReTx1;
               listFutureSensTx.emplace_back (reTx1Slot);
             }
-          if (sensedSlotData.gapReTx2 != std::numeric_limits <uint8_t>::max ())
+          if (sensedData.gapReTx2 != std::numeric_limits <uint8_t>::max ())
             {
               auto reTx2Slot = sensedSlotData;
-              reTx2Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedSlotData.gapReTx2);
+              reTx2Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedData.gapReTx2);
+              reTx2Slot.sbChLength = sensedData.sbChLength;
+              reTx2Slot.sbChStart = sensedData.sbChStartReTx2;
               listFutureSensTx.emplace_back (reTx2Slot);
             }
         }
@@ -1452,11 +1468,13 @@ NrUeMac::GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::
   std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> nrSupportedList;
   for (const auto& it:slotInfo)
     {
+      std::set <uint8_t> emptySet;
       NrSlUeMacSchedSapProvider::NrSlSlotInfo info (it.numSlPscchRbs, it.slPscchSymStart,
                                                     it.slPscchSymLength, it.slPsschSymStart,
                                                     it.slPsschSymLength, it.slSubchannelSize,
                                                     it.slMaxNumPerReserve,
-                                                    sfn.GetFutureSfnSf (it.slotOffset));
+                                                    sfn.GetFutureSfnSf (it.slotOffset),
+                                                    emptySet);
       nrSupportedList.emplace_back (info);
     }
 
@@ -1464,26 +1482,14 @@ NrUeMac::GetNrSupportedList (const SfnSf& sfn, std::list <NrSlCommResourcePool::
 }
 
 void
-NrUeMac::DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp,
-                               uint16_t rbStart, uint16_t rbLen,
-                               uint8_t prio, double slRsrp,
-                               uint8_t gapReTx1, uint8_t gapReTx2)
+NrUeMac::DoReceiveSensingData (SensingData sensingData)
 {
-  NS_LOG_FUNCTION (this << sfn << rsvp << rbStart << rbLen << +prio << slRsrp);
+  NS_LOG_FUNCTION (this);
 
   if (m_enableSensing)
     {
-      SensingData data;
-      data.sfn = sfn;
-      data.rsvp = rsvp;
-      data.rbStart = rbStart;
-      data.rbLen = rbLen;
-      data.prio = prio;
-      data.slRsrp = slRsrp;
-      data.gapReTx1 = gapReTx1;
-      data.gapReTx2 = gapReTx2;
       //oldest data will be at the front of the queue
-      m_sensingData.push_back (data);
+      m_sensingData.push_back (sensingData);
     }
 }
 
@@ -1516,10 +1522,6 @@ NrUeMac::UpdateSensingWindow (const SfnSf& sfn)
 
   //To keep the size of the buffer equal to [n – T0 , n – Tproc0)
   //the other end of sensing buffer is trimmed in GetNrSlTxOpportunities.
-
-  NS_ABORT_MSG_IF (m_sensingData.size () > sensWindLen,
-                   "Buffer size of sensing data " << m_sensingData.size ()
-                   << " exceeded max size of " << sensWindLen);
 }
 
 
@@ -1866,14 +1868,20 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
               sciF1a.SetSlMaxNumPerReserve (currentGrant.maxNumPerReserve);
               if (currentGrant.slotNumInd > 1)
                 {
+                  //itGrantInfo.second.slotAllocations.cbegin () points to
+                  //the next slot allocation this slot has to indicate
                   std::vector<uint8_t> gaps = ComputeGaps (currentGrant.sfn,
                                                            itGrantInfo.second.slotAllocations.cbegin (),
                                                            currentGrant.slotNumInd);
+                  std::vector<uint8_t> sbChIndex = GetStartSbChOfReTx (itGrantInfo.second.slotAllocations.cbegin (),
+                                                                       currentGrant.slotNumInd);
                   sciF1a.SetGapReTx1 (gaps.at (0));
+                  sciF1a.SetIndexStartSbChReTx1 (sbChIndex.at (0));
                   if (gaps.size () > 1)
                     {
                       sciF1a.SetGapReTx2 (gaps.at (1));
                       NS_ASSERT_MSG (gaps.at (0) < gaps.at (1), "Incorrect computation of ReTx slot gaps");
+                      sciF1a.SetIndexStartSbChReTx2 (sbChIndex.at (1));
                     }
                 }
 
@@ -1944,6 +1952,22 @@ NrUeMac::ComputeGaps (const SfnSf& sfn,
     }
 
   return gaps;
+}
+
+std::vector<uint8_t>
+NrUeMac::GetStartSbChOfReTx (std::set <NrSlSlotAlloc>::const_iterator it, uint8_t slotNumInd)
+{
+  NS_LOG_FUNCTION (this);
+  std::vector<uint8_t> startSbChIndex;
+  //slotNumInd is the number including the first TX. Start sub-channel index or
+  //indices are retrieved only for the ReTxs
+  for (uint8_t i = 0; i < slotNumInd - 1; i++)
+    {
+      std::advance (it, i);
+      startSbChIndex.push_back (it->slPsschSubChStart);
+    }
+
+  return startSbChIndex;
 }
 
 std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>

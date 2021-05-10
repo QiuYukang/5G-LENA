@@ -29,8 +29,13 @@ namespace ns3 {
  * \ingroup nr
  * \brief The packet header for the NR Sidelink Control Information (SCI)
  * format 1A. It is not a standard compliment header, therefore, its size (in bytes)
- * is also different. The following fields must be set before adding this
- * header to a packet.
+ * is also different. This header includes only one field, i.e.,
+ * m_lengthSubChannel, to indicate the total subchannel assigned to the
+ * first transmission and the possible retransmissions. This is because for
+ * the SPS type scheduling a fixed/same MCS is used to create the allocation for
+ * the original transmission and retransmission(s) of a TB; therefore, the
+ * same number of subchannels are used for each transmission of the TB. Finally,
+ * the following fields must be set before adding this header to a packet.
  *
  * - m_priority [1 byte, always present]
  * - m_mcs [1 byte, always present]
@@ -45,11 +50,13 @@ namespace ns3 {
  *
  * Optional fields:
  * - m_gapReTx1 = [1 byte if slMaxNumPerReserve == 2]
+ * - m_indexStartSbChReTx1 = [1 byte if slMaxNumPerReserve == 2]
  * - m_gapReTx2 = [1 byte if slMaxNumPerReserve == 3]
+ * - m_indexStartSbChReTx2 = [1 byte if slMaxNumPerReserve == 3]
  *
  * The use of this header is only possible if:
- * - All the mandatory fields are set using their respective setter methods. Otherwise,
- *   serialization will hit an assert.
+ * - All the mandatory fields are set using their respective setter methods;
+ *   otherwise, serialization will hit an assert.
  */
 class NrSlSciF1aHeader : public Header
 {
@@ -142,6 +149,18 @@ public:
    * \param formatValue the second stage SCI format value
    */
   void SetSciStage2Format (uint8_t formatValue);
+  /**
+   * \brief Set the start sub-channel index of the first re-transmission
+   *
+   * \param sbChIndexReTx1 The start sub-channel index of the first re-transmission
+   */
+  void SetIndexStartSbChReTx1 (uint8_t sbChIndexReTx1);
+  /**
+   * \brief Set the start sub-channel index of the second re-transmission
+   *
+   * \param sbChIndexReTx2 The start sub-channel index of the second re-transmission
+   */
+  void SetIndexStartSbChReTx2 (uint8_t sbChIndexReTx2);
 
 
   /**
@@ -213,6 +232,18 @@ public:
    * \return the second stage SCI format value
    */
   uint8_t GetSciStage2Format () const;
+  /**
+   * \brief Get the start sub-channel index of the first re-transmission
+   *
+   * \return The start sub-channel index of the first re-transmission
+   */
+  uint8_t GetIndexStartSbChReTx1 ();
+  /**
+   * \brief Get the start sub-channel index of the second re-transmission
+   *
+   * \return The start sub-channel index of the second re-transmission
+   */
+  uint8_t GetIndexStartSbChReTx2 ();
 
 
   /**
@@ -261,6 +292,8 @@ private:
   //SCI fields end
 
   //Optional fields
+  uint8_t m_indexStartSbChReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated to first retransmission
+  uint8_t m_indexStartSbChReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated to second retransmission
   uint8_t m_gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its first retransmission in slots
   uint8_t m_gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The gap between a transmission and its second retransmission in slots
   static std::vector<SciStage2Format_t> m_allowedSciStage2Format; //!< Vector of allowed Stage 2 SCI formats, to speed up checking

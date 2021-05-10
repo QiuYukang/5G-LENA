@@ -855,18 +855,9 @@ protected:
   void DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
   /**
    * \brief Receive the sensing information from PHY to MAC
-   * \param sfn The SfnSf
-   * \param rsvp The resource reservation period in ms
-   * \param rbstart The PSSCH starting resource block
-   * \param rbLen The PSCSCH length in number of RBs
-   * \param prio The priority
-   * \param slRsrp The measured RSRP value over the used resource blocks
-   * \param gapReTx1 Gap for a first retransmission in absolute slots
-   * \param gapReTx2 Gap for a second retransmission in absolute slots
+   * \param sensingData The sensing data
    */
-  void DoReceiveSensingData (const SfnSf &sfn, uint16_t rsvp, uint16_t rbStart,
-                             uint16_t rbLen, uint8_t prio, double slRsrp,
-                             uint8_t gapReTx1, uint8_t gapReTx2);
+  void DoReceiveSensingData (SensingData sensingData);
 
 
   // forwarded from MemberNrSlUeMacSchedSapUser
@@ -942,17 +933,6 @@ private:
     uint8_t tbTxCounter {0}; //!< The counter to count the number of time a TB is tx/reTx in a reservation period
   };
 
-  struct SensingData
-  {
-    SfnSf sfn {}; //!< The SfnSf
-    uint16_t rsvp {0}; //!< The resource reservation period in ms
-    uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< The PSSCH starting resource block
-    uint16_t rbLen {std::numeric_limits <uint16_t>::max ()}; //!< The PSCSCH length in number of RBs
-    uint8_t prio {std::numeric_limits <uint8_t>::max ()}; //!< The priority
-    double slRsrp {0.0}; //!< The measured RSRP value over the used resource blocks
-    uint8_t gapReTx1 {std::numeric_limits <uint8_t>::max ()}; //!< Gap for a first retransmission in absolute slots
-    uint8_t gapReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< Gap for a second retransmission in absolute slots
-  };
 
   /**
    * \brief Add NR Sidelink destination layer 2 Id
@@ -986,7 +966,7 @@ private:
    * \param sensedData The data extracted from the sensed SCI 1-A.
    * \return The list of the future transmission slots based on sensed data.
    */
-  std::list<NrUeMac::SensingData> GetFutSlotsBasedOnSens (NrUeMac::SensingData sensedData);
+  std::list<SlotSensingData> GetFutSlotsBasedOnSens (SensingData sensedData);
   /**
    * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
    *        NrSlUeMacSchedSapProvider::NrSlSlotInfo
@@ -1079,6 +1059,17 @@ private:
    *        indicated by an SCI 1-A.
    */
   std::vector<uint8_t> ComputeGaps (const SfnSf& sfn, std::set <NrSlSlotAlloc>::const_iterator it, uint8_t slotNumInd);
+  /**
+   * \brief Get the start subchannel index of the possible retransmissions
+   *        which would be indicated by an SCI 1-A.
+   * \param it The iterator to a slot allocation list, which is pointing to the
+   *        first possible retransmission.
+   * \param slotNumInd The parameter indicating how many
+   *        slots (first TX plus one or two ReTx) an SCI 1-A is indicating.
+   * \return A vector containing the starting subchannel index of the possible
+   *         retransmissions which would be indicated by an SCI 1-A.
+   */
+  std::vector<uint8_t> GetStartSbChOfReTx (std::set <NrSlSlotAlloc>::const_iterator it, uint8_t slotNumInd);
 
   std::map <SidelinkLcIdentifier, SlLcInfoUeMac> m_nrSlLcInfoMap; //!< Sidelink logical channel info map
   NrSlMacSapProvider* m_nrSlMacSapProvider; //!< SAP interface to receive calls from the UE RLC instance
