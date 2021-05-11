@@ -205,13 +205,13 @@ NrSlSciF1aHeader::GetSciStage2Format () const
 }
 
 uint8_t
-NrSlSciF1aHeader::GetIndexStartSbChReTx1 ()
+NrSlSciF1aHeader::GetIndexStartSbChReTx1 () const
 {
   return m_indexStartSbChReTx1;
 }
 
 uint8_t
-NrSlSciF1aHeader::GetIndexStartSbChReTx2 ()
+NrSlSciF1aHeader::GetIndexStartSbChReTx2 () const
 {
   return m_indexStartSbChReTx2;
 }

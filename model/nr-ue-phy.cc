@@ -1624,7 +1624,7 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
                                       tag.GetTbSize (), sciF1a.GetMcs (),
                                       rbBitMap, tag.GetSymStart (),
                                       tag.GetNumSym (), tag.GetSfn ());
-      SaveFutureSlRxGrants (sciF1a, tag, rbBitMap);
+      SaveFutureSlRxGrants (sciF1a, tag, sbChSize);
     }
   else
     {
@@ -1635,22 +1635,40 @@ NrUePhy::PhyPscchPduReceived (const Ptr<Packet> &p, const SpectrumValue &psd)
 void
 NrUePhy::SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a,
                                const NrSlMacPduTag& tag,
-                               const std::vector<int>& rbBitMap)
+                               const uint16_t sbChSize)
 {
   NS_LOG_FUNCTION (this);
-  SlRxGrantInfo infoTb (tag.GetRnti (), tag.GetDstL2Id (),
-                        tag.GetTbSize (), sciF1a.GetMcs (),
-                        rbBitMap, tag.GetSymStart (),
-                        tag.GetNumSym (), tag.GetSfn ());
 
   if (sciF1a.GetGapReTx1 () != std::numeric_limits <uint8_t>::max ())
     {
-      infoTb.sfn = tag.GetSfn().GetFutureSfnSf (sciF1a.GetGapReTx1 ());
+      uint16_t rbStart = sciF1a.GetIndexStartSbChReTx1 () * sbChSize;
+      uint16_t lastRbInPlusOne = (sciF1a.GetLengthSubChannel () * sbChSize) + rbStart;
+      std::vector<int> rbBitMap;
+      for (uint16_t i = rbStart; i < lastRbInPlusOne; ++i)
+        {
+          rbBitMap.push_back (i);
+        }
+      SlRxGrantInfo infoTb (tag.GetRnti (), tag.GetDstL2Id (),
+                            tag.GetTbSize (), sciF1a.GetMcs (),
+                            rbBitMap, tag.GetSymStart (),
+                            tag.GetNumSym (),
+                            tag.GetSfn().GetFutureSfnSf (sciF1a.GetGapReTx1 ()));
       m_slRxGrants.push_back (infoTb);
     }
   if (sciF1a.GetGapReTx2 () != std::numeric_limits <uint8_t>::max ())
     {
-      infoTb.sfn = tag.GetSfn().GetFutureSfnSf (sciF1a.GetGapReTx2 ());
+      uint16_t rbStart = sciF1a.GetIndexStartSbChReTx2 () * sbChSize;
+      uint16_t lastRbInPlusOne = (sciF1a.GetLengthSubChannel () * sbChSize) + rbStart;
+      std::vector<int> rbBitMap;
+      for (uint16_t i = rbStart; i < lastRbInPlusOne; ++i)
+        {
+          rbBitMap.push_back (i);
+        }
+      SlRxGrantInfo infoTb (tag.GetRnti (), tag.GetDstL2Id (),
+                            tag.GetTbSize (), sciF1a.GetMcs (),
+                            rbBitMap, tag.GetSymStart (),
+                            tag.GetNumSym (),
+                            tag.GetSfn().GetFutureSfnSf (sciF1a.GetGapReTx2 ()));
       m_slRxGrants.push_back (infoTb);
     }
 

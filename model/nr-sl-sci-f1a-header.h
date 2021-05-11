@@ -237,13 +237,13 @@ public:
    *
    * \return The start sub-channel index of the first re-transmission
    */
-  uint8_t GetIndexStartSbChReTx1 ();
+  uint8_t GetIndexStartSbChReTx1 () const;
   /**
    * \brief Get the start sub-channel index of the second re-transmission
    *
    * \return The start sub-channel index of the second re-transmission
    */
-  uint8_t GetIndexStartSbChReTx2 ();
+  uint8_t GetIndexStartSbChReTx2 () const;
 
 
   /**

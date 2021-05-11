@@ -908,8 +908,9 @@ private:
    * \brief Save the future Sidelink RX grants indicated by SCI 1-A
    * \param sciF1a SCI 1-A header
    * \param tag NrSlMacPduTag
+   * \param sbChSize The sub-channel size in RBs
    */
-  void SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a, const NrSlMacPduTag& tag, const std::vector<int>& rbBitMap);
+  void SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a, const NrSlMacPduTag& tag, const uint16_t sbChSize);
   /**
    * \brief Send Sidelink expected TB info to NrSpectrumPhy
    *
