@@ -95,11 +95,10 @@ private:
   /**
    * \brief Get available subchannel information
    *
-   * This method takes as input the randomly selected slots and computes the
-   * minimum number of contiguous subchannels that could be used for each
-   * slot. Moreover, it also returns the indexes of the available subchannels
-   * for each slot. Both of these outputs are wrapped in a struct object of type
-   * SbChInfo.
+   * This method takes as input the randomly selected slots and computes the
+   * maximum number of contiguous subchannels that are available for all
+   * those slots. Moreover, it also returns the indexes of the available
+   * subchannels for each slot.
    *
    * \param txOpps The list of randomly selected slots
    * \return A struct object of type SbChInfo
