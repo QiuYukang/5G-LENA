@@ -125,6 +125,9 @@ main(int argc, char* argv[])
     double simTime = 1;           // seconds
     double udpAppStartTime = 0.4; // seconds
 
+    double validationValue1 = 0;
+    double validationValue2 = 0;
+
     CommandLine cmd(__FILE__);
 
     cmd.AddValue("simTime", "Simulation time", simTime);
@@ -187,7 +190,14 @@ main(int argc, char* argv[])
                  "tag to be appended to output filenames to distinguish simulation campaigns",
                  simTag);
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
-
+    cmd.AddValue("validationValue1",
+                 "Value used when running test.py to check if the specific example result value is "
+                 "as expected",
+                 validationValue1);
+    cmd.AddValue("validationValue2",
+                 "Value used when running test.py to check if the specific example result value is "
+                 "as expected",
+                 validationValue2);
     cmd.Parse(argc, argv);
 
     NS_ABORT_IF(numBands < 1);
@@ -704,6 +714,28 @@ main(int argc, char* argv[])
             // Mbps \n";
             outFile << "  Mean jitter:  "
                     << 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets << " ms\n";
+
+            // used when running examples from test.py
+            if (validationValue1 && (i->first == 1))
+            {
+                if ((validationValue1 >
+                     (i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000) * 1.1) ||
+                    (validationValue1 < (i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000) * 0.9))
+                {
+                    NS_FATAL_ERROR("Example results for flow 1 has changed for more then +- 10% "
+                                   "wrt to the previous version of the ns-3 and NR module");
+                }
+            }
+            else if (validationValue2 != 0 && (i->first == 2))
+            {
+                if ((validationValue2 >
+                     (i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000) * 1.1) ||
+                    (validationValue2 < (i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000) * 0.9))
+                {
+                    NS_FATAL_ERROR("Example results for flow 2 has changed for more then +- 10% "
+                                   "wrt to the previous version of the ns-3 and NR module");
+                }
+            }
         }
         else
         {
