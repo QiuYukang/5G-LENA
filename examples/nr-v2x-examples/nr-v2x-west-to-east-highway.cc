@@ -446,6 +446,7 @@ main (int argc, char *argv[])
   int slThresPsschRsrp = -128;
   bool enableChannelRandomness = false;
   uint16_t channelUpdatePeriod = 500; //ms
+  uint8_t mcs = 14;
 
   //flags to generate gnuplot plotting scripts
   bool generateInitialPosGnuScript = false;
@@ -565,6 +566,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("channelUpdatePeriod",
                 "The channel update period in ms",
                 channelUpdatePeriod);
+  cmd.AddValue ("mcs",
+                "The MCS to used for sidelink",
+                mcs);
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
@@ -767,6 +771,15 @@ main (int argc, char *argv[])
   std::string errorModel = "ns3::NrEesmIrT1";
   nrSlHelper->SetSlErrorModel (errorModel);
   nrSlHelper->SetUeSlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel));
+
+  /*
+   * Set the SL scheduler attributes
+   * In this example we use NrSlUeMacSchedulerSimple scheduler, which uses
+   * fix MCS value
+   */
+  nrSlHelper->SetNrSlSchedulerTypeId (NrSlUeMacSchedulerSimple::GetTypeId());
+  nrSlHelper->SetUeSlSchedulerAttribute ("FixNrSlMcs", BooleanValue (true));
+  nrSlHelper->SetUeSlSchedulerAttribute ("InitialNrSlMcs", UintegerValue (mcs));
 
   /*
    * Very important method to configure UE protocol stack, i.e., it would
