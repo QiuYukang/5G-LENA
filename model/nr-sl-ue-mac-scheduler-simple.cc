@@ -64,6 +64,8 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation (const std::list <NrSlUeMacSchedSapPr
       return allocated;
     }
 
+  NS_ASSERT_MSG (IsNrSlMcsFixed (), "Attribute FixNrSlMcs must be true for NrSlUeMacSchedulerSimple scheduler");
+
 
   std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> selectedTxOpps;
   selectedTxOpps = RandomlySelectSlots (txOpps);
