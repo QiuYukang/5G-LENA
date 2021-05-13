@@ -1389,16 +1389,28 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
           //step 7. If the following while will not break, start over do-while
           //loop with rsrpThreshold increased by 3dB
           rsrpThrehold += 3;
+          if (rsrpThrehold > 0)
+            {
+              //0 dBm is the maximum RSRP threshold level so if we reach
+              //it, that means all the available slots are overlapping
+              //in time and frequency with the sensed slots, and the
+              //RSRP of the sensed slots is very high.
+              NS_LOG_DEBUG ("Reached maximum RSRP threshold, unable to select resources");
+              nrCandSsResoA.erase (nrCandSsResoA.begin (), nrCandSsResoA.end ());
+              break; //break do while
+            }
         }
       while (nrCandSsResoA.size () < (GetResourcePercentage () / 100.0) * mTotal);
+
+      NS_LOG_DEBUG (nrCandSsResoA.size () << " slots selected after sensing resource selection from " << mTotal << " slots");
     }
   else
     {
       //no sensing
       nrCandSsResoA = GetNrSupportedList (sfn, candSsResoA);
+      NS_LOG_DEBUG ("No sensing: Total slots selected " << nrCandSsResoA.size ());
     }
 
-  NS_LOG_DEBUG ("Total selected after sensing resource selection " << nrCandSsResoA.size ());
   return nrCandSsResoA;
 }
 
@@ -1664,6 +1676,9 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
               //scheduler for resources, we need to remove those available slots,
               //which are already part of the existing grant. When sensing is
               //activated this step corresponds to step 2 in TS 38.214 sec 8.1.4
+              //Remember, availbleReso itself can be an empty list, we do not need
+              //another if here because FilterTxOpportunities will return an empty
+              //list.
               auto filteredReso = FilterTxOpportunities (availbleReso);
               if (!filteredReso.empty ())
                 {
@@ -1974,6 +1989,11 @@ std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>
 NrUeMac::FilterTxOpportunities (std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr)
 {
   NS_LOG_FUNCTION (this);
+
+  if (txOppr.empty ())
+    {
+      return txOppr;
+    }
 
   NrSlSlotAlloc dummyAlloc;
 
