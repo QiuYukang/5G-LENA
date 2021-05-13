@@ -548,6 +548,15 @@ main (int argc, char *argv[])
   nrSlHelper->SetUeSlAmcAttribute ("AmcModel", EnumValue (NrAmc::ErrorModel));
 
   /*
+   * Set the SL scheduler attributes
+   * In this example we use NrSlUeMacSchedulerSimple scheduler, which uses
+   * fix MCS value
+   */
+  nrSlHelper->SetNrSlSchedulerTypeId (NrSlUeMacSchedulerSimple::GetTypeId());
+  nrSlHelper->SetUeSlSchedulerAttribute ("FixNrSlMcs", BooleanValue (true));
+  nrSlHelper->SetUeSlSchedulerAttribute ("InitialNrSlMcs", UintegerValue (14));
+
+  /*
    * Very important method to configure UE protocol stack, i.e., it would
    * configure all the SAPs among the layers, setup callbacks, configure
    * error model, configure AMC, and configure ChunkProcessor in Interference
