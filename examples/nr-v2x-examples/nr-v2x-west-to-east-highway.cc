@@ -440,7 +440,6 @@ main (int argc, char *argv[])
   uint16_t slMaxTxTransNumPssch = 5;
   uint16_t reservationPeriod = 100; // in ms
   bool enableSensing = false;
-  bool considerReTxForSensing = false;
   uint16_t t1 = 2;
   uint16_t t2 = 33;
   int slThresPsschRsrp = -128;
@@ -546,10 +545,6 @@ main (int argc, char *argv[])
                 "If true, it enables the sensing based resource selection for "
                 "SL, otherwise, no sensing is applied",
                 enableSensing);
-  cmd.AddValue ("considerReTxForSensing",
-                "Flag to indicate whether to consider retransmissions "
-                "of the sensed slot in sensing based resource allocation",
-                considerReTxForSensing);
   cmd.AddValue ("t1",
                 "The start of the selection window in physical slots, "
                 "accounting for physical layer processing delay",
@@ -714,7 +709,6 @@ main (int argc, char *argv[])
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (txPower));
 
   nrHelper->SetUeMacAttribute ("EnableSensing", BooleanValue (enableSensing));
-  nrHelper->SetUeMacAttribute ("ConsiderReTxForSensing", BooleanValue (considerReTxForSensing));
   nrHelper->SetUeMacAttribute ("T1", UintegerValue (static_cast<uint8_t> (t1)));
   nrHelper->SetUeMacAttribute ("T2", UintegerValue (t2));
   nrHelper->SetUeMacAttribute ("ActivePoolId", UintegerValue (0));

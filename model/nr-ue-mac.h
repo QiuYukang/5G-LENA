@@ -733,15 +733,6 @@ public:
    */
   uint8_t GetResourcePercentage () const;
 
-  /**
-   * \brief Consider retransmissions of the sensed slot in sensing based
-   *        resource allocation.
-   * \param reTxSensingFlag true if UE MAC needs to consider retransmissions
-   *        of the sensed slot in the sensing based resource allocation;
-   *        false otherwise.
-   */
-  void ConsiderReTxForSensing (bool reTxSensingFlag);
-
 protected:
   // forwarded from NR SL UE MAC SAP Provider
   /**
@@ -1115,11 +1106,6 @@ private:
                                     */
   uint8_t m_reselCounter {0}; //!< The resource selection counter
   uint16_t m_cResel {0}; //!< The C_resel counter
-  bool m_reTxSensingFlag {false}; /**< Flag to indicate whether to
-                                       consider retransmissions
-                                       of the sensed slot in sensing
-                                       based resource allocation
-                                       */
 
   /**
    * Trace information regarding NR Sidelink PSCCH UE scheduling.

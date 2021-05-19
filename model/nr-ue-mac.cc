@@ -364,12 +364,6 @@ NrUeMac::GetTypeId (void)
                     MakeUintegerAccessor (&NrUeMac::SetResourcePercentage,
                                           &NrUeMac::GetResourcePercentage),
                     MakeUintegerChecker<uint8_t> (1, 100))
-    .AddAttribute ("ConsiderReTxForSensing",
-                   "Flag to indicate whether to consider retransmissions"
-                   "of the sensed slot in sensing based resource allocation",
-                    BooleanValue (false),
-                    MakeBooleanAccessor (&NrUeMac::ConsiderReTxForSensing),
-                    MakeBooleanChecker ())
     .AddTraceSource ("SlPscchScheduling",
                      "Information regarding NR SL PSCCH UE scheduling",
                      MakeTraceSourceAccessor (&NrUeMac::m_slPscchScheduling),
@@ -1448,24 +1442,22 @@ NrUeMac::GetFutSlotsBasedOnSens (SensingData sensedData)
                                       sensedData.prio, sensedData.slRsrp);
       sensedSlotData.sfn.Add (i * pPrimeRsvpRx);
       listFutureSensTx.emplace_back (sensedSlotData);
-      if (m_reTxSensingFlag)
+
+      if (sensedData.gapReTx1 != std::numeric_limits <uint8_t>::max ())
         {
-          if (sensedData.gapReTx1 != std::numeric_limits <uint8_t>::max ())
-            {
-              auto reTx1Slot = sensedSlotData;
-              reTx1Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedData.gapReTx1);
-              reTx1Slot.sbChLength = sensedData.sbChLength;
-              reTx1Slot.sbChStart = sensedData.sbChStartReTx1;
-              listFutureSensTx.emplace_back (reTx1Slot);
-            }
-          if (sensedData.gapReTx2 != std::numeric_limits <uint8_t>::max ())
-            {
-              auto reTx2Slot = sensedSlotData;
-              reTx2Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedData.gapReTx2);
-              reTx2Slot.sbChLength = sensedData.sbChLength;
-              reTx2Slot.sbChStart = sensedData.sbChStartReTx2;
-              listFutureSensTx.emplace_back (reTx2Slot);
-            }
+          auto reTx1Slot = sensedSlotData;
+          reTx1Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedData.gapReTx1);
+          reTx1Slot.sbChLength = sensedData.sbChLength;
+          reTx1Slot.sbChStart = sensedData.sbChStartReTx1;
+          listFutureSensTx.emplace_back (reTx1Slot);
+        }
+      if (sensedData.gapReTx2 != std::numeric_limits <uint8_t>::max ())
+        {
+          auto reTx2Slot = sensedSlotData;
+          reTx2Slot.sfn = sensedSlotData.sfn.GetFutureSfnSf (sensedData.gapReTx2);
+          reTx2Slot.sbChLength = sensedData.sbChLength;
+          reTx2Slot.sbChStart = sensedData.sbChStartReTx2;
+          listFutureSensTx.emplace_back (reTx2Slot);
         }
     }
 
@@ -2574,13 +2566,6 @@ NrUeMac::GetResourcePercentage () const
 {
   NS_LOG_FUNCTION (this);
   return m_resPercentage;
-}
-
-void
-NrUeMac::ConsiderReTxForSensing (bool reTxSensingFlag)
-{
-  NS_LOG_FUNCTION (this);
-  m_reTxSensingFlag = reTxSensingFlag;
 }
 
 void
