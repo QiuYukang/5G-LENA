@@ -35,7 +35,8 @@
  *
  * The example will print on-screen the average Packet Inter-Reception (PIR)
  * type 2 computed as defined in 37.885. Moreover, it saves MAC and PHY layer
- * traces in a sqlite3 database using ns-3 stats module.
+ * traces in a sqlite3 database using ns-3 stats module. Moreover, since there
+ * is only one transmitter in the scenario, sensing is by default not enabled.
  *
  * \code{.unparsed}
 $ ./waf --run "cttc-nr-v2x-demo-simple --help"
