@@ -47,6 +47,9 @@ cpp_examples = [
     ("cttc-channel-randomness", "True", "True"),
     ("rem-beam-example", "True", "True"),
     ("rem-example", "True", "True"),
+    ("nr-v2x-west-to-east-highway --enableSensing=1 --simTag=testpy-sensing", "True", "True"),
+    ("nr-v2x-west-to-east-highway --enableSensing=0 --simTag=testpy-nosensing", "True", "True"),
+    ("cttc-nr-v2x-demo-simple --simTag=testpy", "True", "True"),
     ]
 
 # A list of Python examples to run in order to ensure that they remain
