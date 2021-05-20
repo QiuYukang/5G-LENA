@@ -41,9 +41,7 @@ def build(bld):
     obj.source = 'lena-lte-comparison/lena-lte-comparison.cc lena-lte-comparison/lena-lte-comparison-user.cc lena-lte-comparison/sinr-output-stats.cc lena-lte-comparison/flow-monitor-output-stats.cc lena-lte-comparison/power-output-stats.cc lena-lte-comparison/slot-output-stats.cc lena-lte-comparison/lena-v1-utils.cc lena-lte-comparison/lena-v2-utils.cc lena-lte-comparison/rb-output-stats.cc'
     obj = bld.create_ns3_program('lena-lte-comparison-campaign', ['nr','flow-monitor'])
     obj.source = 'lena-lte-comparison/lena-lte-comparison.cc lena-lte-comparison/lena-lte-comparison-campaign.cc lena-lte-comparison/sinr-output-stats.cc lena-lte-comparison/flow-monitor-output-stats.cc lena-lte-comparison/power-output-stats.cc lena-lte-comparison/slot-output-stats.cc lena-lte-comparison/lena-v1-utils.cc lena-lte-comparison/lena-v2-utils.cc lena-lte-comparison/rb-output-stats.cc'
-
-
-    
-    bld.recurse('nr-v2x-examples')
-
-
+    obj = bld.create_ns3_program('cttc-nr-v2x-demo-simple', ['nr'])
+    obj.source = 'nr-v2x-examples/cttc-nr-v2x-demo-simple.cc nr-v2x-examples/ue-to-ue-pkt-txrx-output-stats.cc nr-v2x-examples/ue-mac-pscch-tx-output-stats.cc nr-v2x-examples/ue-mac-pssch-tx-output-stats.cc nr-v2x-examples/ue-phy-pscch-rx-output-stats.cc nr-v2x-examples/ue-phy-pssch-rx-output-stats.cc'
+    obj = bld.create_ns3_program('nr-v2x-west-to-east-highway', ['nr'])
+    obj.source = 'nr-v2x-examples/nr-v2x-west-to-east-highway.cc nr-v2x-examples/ue-to-ue-pkt-txrx-output-stats.cc nr-v2x-examples/ue-mac-pscch-tx-output-stats.cc nr-v2x-examples/ue-mac-pssch-tx-output-stats.cc nr-v2x-examples/ue-phy-pscch-rx-output-stats.cc nr-v2x-examples/ue-phy-pssch-rx-output-stats.cc nr-v2x-examples/v2x-kpi.cc nr-v2x-examples/ue-rlc-rx-output-stats.cc'
