@@ -806,7 +806,8 @@ main (int argc, char *argv[])
   path.str ("");
 
   //Datebase setup
-  SQLiteOutput db (outputDir + "nr-v2x-simple-demo" + ".db", "nr-v2x-simple-demo");
+  std::string exampleName = simTag + "-" + "nr-v2x-simple-demo";
+  SQLiteOutput db (outputDir + exampleName + ".db", exampleName);
 
   UeMacPscchTxOutputStats pscchStats;
   pscchStats.SetDb (&db, "pscchTxUeMac");
