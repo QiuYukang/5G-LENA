@@ -1287,6 +1287,7 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile << "set xlabel \"x-coordinate (m)\"" << std::endl;
   outFile << "set ylabel \"y-coordinate (m)\"" << std::endl;
   outFile << "set cblabel \"SNR (dB)\"" << std::endl;
+  outFile << "set cblabel offset 3" << std::endl;
   outFile << "unset key" << std::endl;
   outFile << "set terminal png" << std::endl;
   outFile << "set output \"nr-rem-" << m_simTag << "-snr.png\"" << std::endl;
@@ -1294,11 +1295,18 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile << "set cbrange [-5:30]" << std::endl;
   outFile << "set xrange [" << m_xMin << ":" << m_xMax << "]" << std::endl;
   outFile << "set yrange [" << m_yMin << ":" << m_yMax << "]" << std::endl;
+  outFile << "set xtics font \"Helvetica,17\"" << std::endl;
+  outFile << "set ytics font \"Helvetica,17\"" << std::endl;
+  outFile << "set cbtics font \"Helvetica,17\"" << std::endl;
+  outFile << "set xlabel font \"Helvetica,17\"" << std::endl;
+  outFile << "set ylabel font \"Helvetica,17\"" << std::endl;
+  outFile << "set cblabel font \"Helvetica,17\"" << std::endl;
   outFile << "plot \"nr-rem-" << m_simTag << ".out\" using ($1):($2):($4) with image" << std::endl;
 
   outFile << "set xlabel \"x-coordinate (m)\"" << std::endl;
   outFile << "set ylabel \"y-coordinate (m)\"" << std::endl;
   outFile << "set cblabel \"SINR (dB)\"" << std::endl;
+  outFile << "set cblabel offset 3" << std::endl;
   outFile << "unset key" << std::endl;
   outFile << "set terminal png" << std::endl;
   outFile << "set output \"nr-rem-" << m_simTag << "-sinr.png\"" << std::endl;
@@ -1306,11 +1314,18 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile << "set cbrange [-5:30]" << std::endl;
   outFile << "set xrange [" <<m_xMin << ":" << m_xMax<< "]" << std::endl;
   outFile << "set yrange [" <<m_yMin << ":" << m_yMax<< "]" << std::endl;
+  outFile << "set xtics font \"Helvetica,17\"" << std::endl;
+  outFile << "set ytics font \"Helvetica,17\"" << std::endl;
+  outFile << "set cbtics font \"Helvetica,17\"" << std::endl;
+  outFile << "set xlabel font \"Helvetica,17\"" << std::endl;
+  outFile << "set ylabel font \"Helvetica,17\"" << std::endl;
+  outFile << "set cblabel font \"Helvetica,17\"" << std::endl;
   outFile << "plot \"nr-rem-" << m_simTag << ".out\" using ($1):($2):($5) with image" << std::endl;
 
   outFile << "set xlabel \"x-coordinate (m)\"" << std::endl;
   outFile << "set ylabel \"y-coordinate (m)\"" << std::endl;
   outFile << "set cblabel \"IPSD (dBm)\"" << std::endl;
+  outFile << "set cblabel offset 3" << std::endl;
   outFile << "unset key" << std::endl;
   outFile << "set terminal png" << std::endl;
   outFile << "set output \"nr-rem-" << m_simTag << "-ipsd.png\"" << std::endl;
@@ -1318,6 +1333,12 @@ NrRadioEnvironmentMapHelper::CreateCustomGnuplotFile ()
   outFile << "set cbrange [-100:-20]" << std::endl;
   outFile << "set xrange [" << m_xMin << ":" << m_xMax << "]" << std::endl;
   outFile << "set yrange [" << m_yMin << ":" << m_yMax << "]" << std::endl;
+  outFile << "set xtics font \"Helvetica,17\"" << std::endl;
+  outFile << "set ytics font \"Helvetica,17\"" << std::endl;
+  outFile << "set cbtics font \"Helvetica,17\"" << std::endl;
+  outFile << "set xlabel font \"Helvetica,17\"" << std::endl;
+  outFile << "set ylabel font \"Helvetica,17\"" << std::endl;
+  outFile << "set cblabel font \"Helvetica,17\"" << std::endl;
   outFile << "plot \"nr-rem-" << m_simTag << ".out\" using ($1):($2):($6) with image" << std::endl;
 
   outFile.close ();
