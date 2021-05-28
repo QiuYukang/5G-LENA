@@ -31,6 +31,7 @@
 #include "nr-phy-rx-trace.h"
 #include <ns3/simulator.h>
 #include <stdio.h>
+#include <ns3/string.h>
 
 namespace ns3 {
 
@@ -43,6 +44,7 @@ std::string NrPhyRxTrace::m_rsrpSinrFileName;
 
 std::ofstream NrPhyRxTrace::m_rxPacketTraceFile;
 std::string NrPhyRxTrace::m_rxPacketTraceFilename;
+std::string NrPhyRxTrace::m_simTag;
 
 std::ofstream NrPhyRxTrace::m_rxedGnbPhyCtrlMsgsFile;
 std::string NrPhyRxTrace::m_rxedGnbPhyCtrlMsgsFileName;
@@ -105,13 +107,25 @@ NrPhyRxTrace::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::NrPhyRxTrace")
     .SetParent<Object> ()
     .AddConstructor<NrPhyRxTrace> ()
+    .AddAttribute ("SimTag",
+                   "simulation tag that will be concatenated to output file names"
+                   "in order to distinguish them, for example: RxPacketTrace-${SimTag}.out. ",
+                   StringValue (""),
+                   MakeStringAccessor (&NrPhyRxTrace::SetSimTag),
+                   MakeStringChecker ())
   ;
   return tid;
 }
 
 void
+NrPhyRxTrace::SetSimTag (const std::string &simTag)
+{
+  m_simTag = simTag;
+}
+
+void
 NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
-                                                     uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
+                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
 {
   NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
   NS_UNUSED (phyStats);
@@ -121,8 +135,11 @@ NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<NrPhyRxTrace> phyStats, std
 
   if (!m_rsrpSinrFile.is_open ())
       {
-        m_rsrpSinrFileName = "SinrTrace.txt";
+        std::ostringstream oss;
+        oss << "SinrTrace" << m_simTag.c_str () << ".txt";
+        m_rsrpSinrFileName = oss.str ();
         m_rsrpSinrFile.open (m_rsrpSinrFileName.c_str ());
+
         m_rsrpSinrFile << "Time" << "\t" << "IMSI" <<
                                     "\t" << "SINR (dB)" << std::endl;
 
@@ -132,9 +149,9 @@ NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<NrPhyRxTrace> phyStats, std
           }
       }
 
-  m_rsrpSinrFile << Simulator::Now ().GetSeconds ()
-                 << "\t" << cellId << "\t" << rnti << "\t" << bwpId
-                 << "\t" << avgSinr << "\t" << power << std::endl;
+  m_rsrpSinrFile << Simulator::Now ().GetSeconds () <<
+                    "\t" << cellId << "\t" << rnti << "\t" << bwpId <<
+                    "\t" << avgSinr << "\t" << power << std::endl;
 }
 
 void
@@ -169,8 +186,11 @@ NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
 {
   if (!m_rxedGnbPhyCtrlMsgsFile.is_open ())
       {
-        m_rxedGnbPhyCtrlMsgsFileName = "RxedGnbPhyCtrlMsgsTrace.txt";
+        std::ostringstream oss;
+        oss << "RxedGnbPhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        m_rxedGnbPhyCtrlMsgsFileName = oss.str ();
         m_rxedGnbPhyCtrlMsgsFile.open (m_rxedGnbPhyCtrlMsgsFileName.c_str ());
+
         m_rxedGnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" <<
                                     "Frame" << "\t" << "SF" << "\t" << "Slot" <<
                                     "\t" << "VarTTI" << "\t" << "nodeId" <<
@@ -225,8 +245,11 @@ NrPhyRxTrace::TxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
 {
   if (!m_txedGnbPhyCtrlMsgsFile.is_open ())
       {
-        m_txedGnbPhyCtrlMsgsFileName = "TxedGnbPhyCtrlMsgsTrace.txt";
+        std::ostringstream oss;
+        oss << "TxedGnbPhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        m_txedGnbPhyCtrlMsgsFileName = oss.str ();
         m_txedGnbPhyCtrlMsgsFile.open (m_txedGnbPhyCtrlMsgsFileName.c_str ());
+
         m_txedGnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                     "Frame" << "\t" << "SF" << "\t" << "Slot" <<
                                     "\t" << "VarTTI" << "\t" << "nodeId" <<
@@ -280,8 +303,11 @@ NrPhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
 {
   if (!m_rxedUePhyCtrlMsgsFile.is_open ())
       {
-        m_rxedUePhyCtrlMsgsFileName = "RxedUePhyCtrlMsgsTrace.txt";
+        std::ostringstream oss;
+        oss << "RxedUePhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        m_rxedUePhyCtrlMsgsFileName = oss.str ();
         m_rxedUePhyCtrlMsgsFile.open (m_rxedUePhyCtrlMsgsFileName.c_str ());
+
         m_rxedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
@@ -335,8 +361,11 @@ NrPhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
 {
   if (!m_txedUePhyCtrlMsgsFile.is_open ())
       {
-        m_txedUePhyCtrlMsgsFileName = "TxedUePhyCtrlMsgsTrace.txt";
+        std::ostringstream oss;
+        oss << "TxedUePhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        m_txedUePhyCtrlMsgsFileName = oss.str ();
         m_txedUePhyCtrlMsgsFile.open (m_txedUePhyCtrlMsgsFileName.c_str ());
+
         m_txedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
@@ -390,8 +419,11 @@ NrPhyRxTrace::RxedUePhyDlDciCallback (Ptr<NrPhyRxTrace> phyStats, std::string pa
 {
   if (!m_rxedUePhyDlDciFile.is_open ())
       {
-        m_rxedUePhyDlDciFileName = "RxedUePhyDlDciTrace.txt";
+        std::ostringstream oss;
+        oss << "RxedUePhyDlDciTrace" << m_simTag.c_str () << ".txt";
+        m_rxedUePhyDlDciFileName = oss.str ();
         m_rxedUePhyDlDciFile.open (m_rxedUePhyDlDciFileName.c_str ());
+
         m_rxedUePhyDlDciFile << "Time" << "\t" << "Entity"  << "\t" << "Frame" <<
                                 "\t" << "SF" << "\t" << "Slot" << "\t" <<
                                 "nodeId" << "\t" << "RNTI" << "\t" << "bwpId" <<
@@ -415,14 +447,17 @@ NrPhyRxTrace::RxedUePhyDlDciCallback (Ptr<NrPhyRxTrace> phyStats, std::string pa
 
 void
 NrPhyRxTrace::TxedUePhyHarqFeedbackCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
-                                                 SfnSf sfn, uint16_t nodeId, uint16_t rnti,
-                                                 uint8_t bwpId, uint8_t harqId, uint32_t k1Delay)
+                                             SfnSf sfn, uint16_t nodeId, uint16_t rnti,
+                                             uint8_t bwpId, uint8_t harqId, uint32_t k1Delay)
 {
   if (!m_rxedUePhyDlDciFile.is_open ())
       {
-        m_rxedUePhyDlDciFileName = "RxedUePhyDlDciTrace.txt";
+        std::ostringstream oss;
+        oss << "RxedUePhyDlDciTrace" << m_simTag.c_str () << ".txt";
+        m_rxedUePhyDlDciFileName = oss.str ();
         m_rxedUePhyDlDciFile.open (m_rxedUePhyDlDciFileName.c_str ());
-        m_rxedUePhyDlDciFile << "Time" << "\t"<< "Entity"  << "\t" << "Frame" <<
+
+        m_rxedUePhyDlDciFile << "Time" << "\t" << "Entity"  << "\t" << "Frame" <<
                                 "\t" << "SF" << "\t" << "Slot" << "\t" <<
                                 "nodeId" << "\t" << "RNTI" << "\t" << "bwpId" <<
                                 "\t" << "Harq ID" << "\t" << "K1 Delay" << std::endl;
@@ -567,39 +602,52 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
 {
   if (!m_rxPacketTraceFile.is_open ())
     {
-      m_rxPacketTraceFilename = "RxPacketTrace.txt";
+      std::ostringstream oss;
+      oss << "RxPacketTrace" << m_simTag.c_str() << ".txt";
+      m_rxPacketTraceFilename = oss.str ();
       m_rxPacketTraceFile.open (m_rxPacketTraceFilename.c_str ());
-      m_rxPacketTraceFile << "\tframe\tsubF\tslot\t1stSym\tsymbol#\tcellId\trnti\ttbSize\tmcs\trv\tSINR(dB)\tcorrupt\tTBler\tbwpId" << std::endl;
+
+      m_rxPacketTraceFile << "Time" << "\t" << "direction" << "\t" <<
+                             "frame" << "\t" << "subF" << "\t" << "slot" <<
+                             "\t" << "1stSym" << "\t" << "nSymbol" <<
+                             "\t" << "cellId" << "\t" << "rnti" <<
+                             "\t" << "tbSize" << "\t" << "mcs" <<
+                             "\t" << "rv" << "\t" << "SINR(dB)" <<
+                             "\t" << "corrupt" << "\t" << "TBler" <<
+                             "\t" << "bwpId" << std::endl;
+
       if (!m_rxPacketTraceFile.is_open ())
         {
           NS_FATAL_ERROR ("Could not open tracefile");
         }
     }
 
-  m_rxPacketTraceFile << "DL\t" << params.m_frameNum
-                      << "\t" << (unsigned)params.m_subframeNum
-                      << "\t" << (unsigned)params.m_slotNum
-                      << "\t" << (unsigned)params.m_symStart
-                      << "\t" << (unsigned)params.m_numSym
-                      << "\t" << params.m_cellId
-                      << "\t" << params.m_rnti
-                      << "\t" << params.m_tbSize
-                      << "\t" << (unsigned)params.m_mcs
-                      << "\t" << (unsigned)params.m_rv
-                      << "\t" << 10 * log10 (params.m_sinr)
-                      << "\t" << params.m_corrupt
-                      << "\t" << params.m_tbler
-                      << "\t" << (unsigned)params.m_bwpId << std::endl;
+  m_rxPacketTraceFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                         "\t" << "DL" <<
+                         "\t" << params.m_frameNum <<
+                         "\t" << (unsigned)params.m_subframeNum <<
+                         "\t" << (unsigned)params.m_slotNum <<
+                         "\t" << (unsigned)params.m_symStart <<
+                         "\t" << (unsigned)params.m_numSym <<
+                         "\t" << params.m_cellId <<
+                         "\t" << params.m_rnti <<
+                         "\t" << params.m_tbSize <<
+                         "\t" << (unsigned)params.m_mcs <<
+                         "\t" << (unsigned)params.m_rv <<
+                         "\t" << 10 * log10 (params.m_sinr) <<
+                         "\t" << params.m_corrupt <<
+                         "\t" << params.m_tbler <<
+                         "\t" << (unsigned)params.m_bwpId << std::endl;
 
   if (params.m_corrupt)
     {
-      NS_LOG_DEBUG ("DL TB error\t" << params.m_frameNum
-                                    << "\t" << (unsigned)params.m_subframeNum
-                                    << "\t" << (unsigned)params.m_slotNum
-                                    << "\t" << (unsigned)params.m_symStart
-                                    << "\t" << (unsigned)params.m_numSym
-                                    << "\t" << params.m_rnti
-                                    << "\t" << params.m_tbSize <<
+      NS_LOG_DEBUG ("DL TB error\t" << params.m_frameNum <<
+                    "\t" << (unsigned)params.m_subframeNum <<
+                    "\t" << (unsigned)params.m_slotNum <<
+                    "\t" << (unsigned)params.m_symStart <<
+                    "\t" << (unsigned)params.m_numSym <<
+                    "\t" << params.m_rnti <<
+                    "\t" << params.m_tbSize <<
                     "\t" << (unsigned)params.m_mcs <<
                     "\t" << (unsigned)params.m_rv <<
                     "\t" << params.m_sinr <<
@@ -613,30 +661,58 @@ NrPhyRxTrace::RxPacketTraceEnbCallback (Ptr<NrPhyRxTrace> phyStats, std::string 
 {
   if (!m_rxPacketTraceFile.is_open ())
     {
-      m_rxPacketTraceFilename = "RxPacketTrace.txt";
+      std::ostringstream oss;
+      oss << "RxPacketTrace" << m_simTag.c_str () << ".txt";
+      m_rxPacketTraceFilename = oss.str ();
       m_rxPacketTraceFile.open (m_rxPacketTraceFilename.c_str ());
-      m_rxPacketTraceFile << "\tframe\tsubF\tslot\t1stSym\tsymbol#\tcellId\trnti\ttbSize\tmcs\trv\tSINR(dB)\tcorrupt\tTBler\tbwpId" << std::endl;
+
+      m_rxPacketTraceFile << "Time" << "\t" << "direction" << "\t" <<
+                             "frame" << "\t" << "subF" << "\t" << "slot" <<
+                             "\t" << "1stSym" << "\t" << "nSymbol" <<
+                             "\t" << "cellId" << "\t" << "rnti" <<
+                             "\t" << "tbSize" << "\t" << "mcs" <<
+                             "\t" << "rv" << "\t" << "SINR(dB)" <<
+                             "\t" << "corrupt" << "\t" << "TBler" <<
+                             "\t" << "bwpId" << std::endl;
 
       if (!m_rxPacketTraceFile.is_open ())
         {
           NS_FATAL_ERROR ("Could not open tracefile");
         }
     }
-  m_rxPacketTraceFile << "UL\t" << params.m_frameNum << "\t" << (unsigned)params.m_subframeNum
-                      << "\t" << (unsigned)params.m_slotNum
-                      << "\t" << (unsigned)params.m_symStart
-                      << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId
-                      << "\t" << params.m_rnti << "\t" << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rv << "\t"
-                      << 10 * log10 (params.m_sinr) << "\t\t" << params.m_corrupt << " \t" << params.m_tbler << " \t" << params.m_bwpId << std::endl;
+  m_rxPacketTraceFile << Simulator::Now ().GetNanoSeconds () / (double) 1e9 <<
+                         "\t" << "UL" <<
+                         "\t" << params.m_frameNum <<
+                         "\t" << (unsigned)params.m_subframeNum <<
+                         "\t" << (unsigned)params.m_slotNum <<
+                         "\t" << (unsigned)params.m_symStart <<
+                         "\t" << (unsigned)params.m_numSym <<
+                         "\t" << params.m_cellId <<
+                         "\t" << params.m_rnti <<
+                         "\t" << params.m_tbSize <<
+                         "\t" << (unsigned)params.m_mcs <<
+                         "\t" << (unsigned)params.m_rv <<
+                         "\t" << 10 * log10 (params.m_sinr) <<
+                         "\t" << params.m_corrupt <<
+                         "\t" << params.m_tbler <<
+                         "\t" << params.m_bwpId << std::endl;
 
   if (params.m_corrupt)
     {
-      NS_LOG_DEBUG ("UL TB error\t" << params.m_frameNum << "\t" << (unsigned)params.m_subframeNum
-                                    << "\t" << (unsigned)params.m_slotNum
-                                    << "\t" << (unsigned)params.m_symStart
-                                    << "\t" << (unsigned)params.m_numSym
-                                    << "\t" << params.m_rnti << "\t" << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rv << "\t"
-                                    << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t" << params.m_sinrMin << " \t" << params.m_bwpId);
+      NS_LOG_DEBUG ("UL TB error\t" << params.m_frameNum <<
+                    "\t" << (unsigned)params.m_subframeNum <<
+                    "\t" << (unsigned)params.m_slotNum <<
+                    "\t" << (unsigned)params.m_symStart <<
+                    "\t" << (unsigned)params.m_numSym <<
+                    "\t" << params.m_rnti <<
+                    "\t" << params.m_tbSize <<
+                    "\t" << (unsigned)params.m_mcs <<
+                    "\t" << (unsigned)params.m_rv <<
+                    "\t" << params.m_sinr <<
+                    "\t" << params.m_tbler <<
+                    "\t" << params.m_corrupt <<
+                    "\t" << params.m_sinrMin <<
+                    "\t" << params.m_bwpId);
     }
 }
 
