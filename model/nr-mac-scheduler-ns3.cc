@@ -153,7 +153,7 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("SrsSymbols",
                    "Number of symbols allocated for UL SRS",
-                   UintegerValue (4),
+                   UintegerValue (1),
                    MakeUintegerAccessor (&NrMacSchedulerNs3::SetSrsCtrlSyms,
                                          &NrMacSchedulerNs3::GetSrsCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
