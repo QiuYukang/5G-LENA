@@ -153,7 +153,7 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("SrsSymbols",
                    "Number of symbols allocated for UL SRS",
-                   UintegerValue (4),
+                   UintegerValue (1),
                    MakeUintegerAccessor (&NrMacSchedulerNs3::SetSrsCtrlSyms,
                                          &NrMacSchedulerNs3::GetSrsCtrlSyms),
                    MakeUintegerChecker<uint8_t> ())
@@ -1382,7 +1382,11 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
           if (dci == nullptr)
             {
               NS_LOG_DEBUG ("No DCI has been created, ignoring");
+              slotAlloc->m_numSymAlloc -= ue.first->m_dlSym;
+              NS_LOG_DEBUG ("Update slotAlloc->m_numSymAlloc because no DL DCI "
+                            "has been created: " << +slotAlloc->m_numSymAlloc);
               ue.first->ResetDlMetric ();
+
               continue;
             }
 
@@ -1545,6 +1549,9 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
           if (dci == nullptr)
             {
               NS_LOG_DEBUG ("No DCI has been created, ignoring");
+              slotAlloc->m_numSymAlloc -= ue.first->m_ulSym;
+              NS_LOG_DEBUG ("Update slotAlloc->m_numSymAlloc because no UL DCI "
+                            "has been created: " << +slotAlloc->m_numSymAlloc);
               ue.first->ResetUlMetric ();
               continue;
             }
