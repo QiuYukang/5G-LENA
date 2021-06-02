@@ -186,7 +186,7 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo (std::list <NrSlUeMacSchedSapProvider
   SbChInfo info;
   info.numSubCh = GetTotalSubCh ();
   std::vector <std::vector<uint8_t>> availSbChIndPerSlot;
-  for (const auto it:txOpps)
+  for (const auto &it:txOpps)
     {
       std::vector<uint8_t> indexes;
       for (uint8_t i = 0; i < GetTotalSubCh(); i++)
