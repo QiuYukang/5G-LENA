@@ -42,7 +42,7 @@ class NrRealisticBeamformingTestCase;
  * This class is inherited by all algorithms that do not assume the
  * perfect knowledge of the channel, but instead are performing the
  * estimation of the channel based on measurements, e.g., based on
- * SRS SINR measurement.
+ * SRS SINR/SNR measurement.
  *
  * RealisticBeamformingAlgorithm purpose is to generate beams for the pair
  * of communicating devices based on the SRS measurements. Differently from
@@ -68,7 +68,7 @@ public:
   struct DelayedUpdateInfo
   {
     Time updateTime; //!< time that will be used to check if the event is using correct SRS measurement and channel
-    double srsSinr;  //!< SRS SINR value
+    double srsSinr;  //!< SRS SINR/SNR value
     Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix; //!< saved copy of channel matrix at the time instant when the SRS is received
   };
 
@@ -141,7 +141,24 @@ public:
   void SetBeamSearchAngleStep (double beamSearchAngleStep);
 
   /**
-   * \brief Saves SRS SINR report for
+   * \brief Saves SRS SINR report
+   * \param cellId
+   * \param srsSinr
+   * \param rnti
+   */
+  void NotifySrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr);
+
+  /**
+   * \brief Saves SRS SNR report
+   * \param cellId
+   * \param srsSnr
+   * \param rnti
+   */
+  void NotifySrsSnrReport (uint16_t cellId, uint16_t rnti, double srsSnr);
+
+  /**
+   * \brief Saves SRS report (SNR or SINR depending on the configuration)
+   * \param cellId
    * \param srsSinr
    * \param rnti
    */
@@ -152,6 +169,9 @@ public:
    */
   typedef Callback<void, const Ptr<NrGnbNetDevice>&, const Ptr<NrUeNetDevice>&, uint8_t> RealisticBfHelperCallback;
 
+  void SetUseSnrSrs (bool v);
+
+  bool UseSnrSrs () const;
 
 private:
 
@@ -230,9 +250,10 @@ private:
 
   // attribute members, configuration variables
   double m_beamSearchAngleStep {30}; //!< The beam angle step that will be used to define the set of beams for which will be estimated the channel
+  bool m_useSnrSrs  {true};          //!< SRS SNR used as measurement (attribute)
   //variable members, counters, and saving values
-  double m_maxSrsSinrPerSlot {0}; //!< the maximum SRS SINR per slot in Watts, e.g. if there are 4 SRS symbols per UE, this value will represent the maximum
-  std::queue <DelayedUpdateInfo> m_delayedUpdateInfo; //!< the vector of SRS SINRs and saved channel matrices, needed for when trigger event update is based on delay
+  double m_maxSrsSinrPerSlot {0}; //!< the maximum SRS SINR/SNR per slot in Watts, e.g. if there are 4 SRS symbols per UE, this value will represent the maximum
+  std::queue <DelayedUpdateInfo> m_delayedUpdateInfo; //!< the vector of SRS SINRs/SNRs and saved channel matrices, needed for when trigger event update is based on delay
   uint8_t m_srsSymbolsCounter {0}; //!< the counter that gets reset after reaching the number of symbols per SRS transmission
   uint16_t m_srsPeriodicityCounter {0}; //!< the counter of SRS reports between consecutive beamforming updates, this counter is incremented once the counter
                                         //   m_srsSymbolsPerSlotCounter reaches the number of symbols per SRS transmission, i.e., when SRS transmissions in the

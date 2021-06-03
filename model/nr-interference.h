@@ -100,6 +100,9 @@ public:
    */
   void EraseEvents (void);
 
+  //inherited from LteInterference
+  virtual void EndRx () override;
+
 private:
 
   /**
