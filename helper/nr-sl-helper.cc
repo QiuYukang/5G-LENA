@@ -271,7 +271,7 @@ NrSlHelper::ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
   //from UE RRC to make sure:
   //1. PrepareUeForSidelink has been called already
   //2. In the for loop below the index (slBwpList [index]) at which we find the
-  //configuration is basically the index of the BWP, which user want use for SL.
+  //configuration is basically the index of the BWP, which user want to use for SL.
   //So, this index should be present in the BWP id container.
   Ptr<LteUeRrc> lteUeRrc = dev->GetRrc ();
   std::set <uint8_t> bwpIds = lteUeRrc->GetNrSlBwpIdContainer ();

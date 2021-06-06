@@ -26,23 +26,27 @@
  * using the 3GPP V2V highway channel model from TR 37.885. It simulates a
  * configurable highway topology on which there could be only odd number of
  * type 2 vehicular UEs (see TR 37.885 sec 6.1.2) per lane, which travel from
- * west to east. When it comes to the number of transmitting and receiving vehicular
- * UEs, it allows two configurations:
+ * west to east. When it comes to the number of transmitting and receiving
+ * vehicular UEs, it allows two configurations:
  *
  * - To make all the vehicular UEs to transmit and receive during a simulation.
  * - To make a middle vehicular UE per lane the transmitter, and rest of the
  *   vehicular UEs the receivers.
  *
- * Note, it does not limit the number of lanes or number of  vehicular UEs per lane.
- * With the default configuration, it uses one band with a single CC, and one
- * bandwidth part.
+ * Note, it does not limit the number of lanes or number of  vehicular UEs per
+ * lane. With the default configuration, it uses one band with a single CC, and
+ * one bandwidth part.
  *
  * Moreover, it saves RLC, MAC, PHY layer traces in a sqlite3 database using
  * ns-3 stats module. At the end of the simulation, using basic
  * sqlite3 (i.e., not using ns-3 stats module) it reads these traces to
- * compute V2X KPIs, e.g., average Packet Inter Reception (PIR) delay
- * and throughput, and writes them in the same database where traces are
- * written.
+ * compute V2X KPIs, e.g.,
+ * - Average Packet Inter Reception (PIR) delay for a fixed range of 200 m
+ * - Average Packet Reception Ratio (PRR) for a fixed range of 200 m
+ * - Throughput (by considering all the links)
+ * - Simultaneous PSSCH Tx from MAC
+ * - PSSCH TB corruption
+ * and writes them in the same database where traces are written.
  *
  * Have a look at the possible parameters to know what you can configure
  * through the command line.
@@ -142,7 +146,7 @@ void NotifySlPsschRx (UePhyPsschRxOutputStats *psschStats, const SlRxDataPacketT
  * \brief Method to listen the application level traces of type TxWithAddresses
  *        and RxWithAddresses.
  * \param stats Pointer to the \link UeToUePktTxRxOutputStats \endlink class,
- *        which is responsible to write the trace source parameters to a database. *
+ *        which is responsible to write the trace source parameters to a database.
  * \param nodeId The node id of the TX or RX node
  * \param localAddrs The local IPV4 address of the node
  * \param txRx The string indicating the type of node, i.e., TX or RX
@@ -173,9 +177,11 @@ void NotifySlRlcPduRx (UeRlcRxOutputStats *stats, uint64_t imsi, uint16_t rnti, 
  * \param totalLanes Total number of lanes
  * \param numVehiclesPerLane number of vehicles per lane (only odd numbers)
  * \param interVehicleDist The distance between the vehicles in a same lane
- * \param interLaneDist The distance between the lanes, i.e., the distance between the vehicles of two different lanes
+ * \param interLaneDist The distance between the lanes, i.e., the distance
+ *        between the vehicles of two different lanes
  * \param speed The speed of the vehicles
- * \return A node container containing the vehicle UEs with their mobility model installed
+ * \return A node container containing the vehicle UEs with their mobility model
+ *         installed
  */
 NodeContainer
 InstallHighwayMobility (uint16_t totalLanes, uint16_t numVehiclesPerLane, uint16_t interVehicleDist, uint16_t interLaneDist, double speed)
@@ -433,7 +439,7 @@ main (int argc, char *argv[])
   std::string slBitMap = "1|1|1|1|1|1|0|0|0|1|1|1";
   uint16_t numerologyBwpSl = 0;
   uint16_t slSensingWindow = 100; // T0 in ms
-  uint16_t slSelectionWindow = 5;
+  uint16_t slSelectionWindow = 5; // T2min
   uint16_t slSubchannelSize = 50;
   uint16_t slMaxNumPerReserve = 3;
   double slProbResourceKeep = 0.0;
@@ -568,7 +574,7 @@ main (int argc, char *argv[])
                 "directory where to store simulation results",
                 outputDir);
   cmd.AddValue ("simTag",
-                "tag identifying the simulation compaigns",
+                "tag identifying the simulation campaigns",
                 simTag);
   cmd.AddValue ("generateInitialPosGnuScript",
                 "generate gnuplot script to plot initial positions of the UEs",
@@ -746,10 +752,10 @@ main (int argc, char *argv[])
    * Configure Sidelink. We create the following helpers needed for the
    * NR Sidelink, i.e., V2X simulation:
    * - NrSlHelper, which will configure the UEs protocol stack to be ready to
-   *   perform Sidelink related procedures. the core network
+   *   perform Sidelink related procedures.
    * - EpcHelper, which takes care of triggering the call to EpcUeNas class
-   *   to establish the NR Sidelink bearer (s). We note that, at this stage
-   *   to just communicate the pointer of already instantiated EpcHelper object,
+   *   to establish the NR Sidelink bearer(s). We note that, at this stage
+   *   just communicate the pointer of already instantiated EpcHelper object,
    *   which is the same pointer communicated to the NrHelper above.
    */
   Ptr<NrSlHelper> nrSlHelper = CreateObject <NrSlHelper> ();
@@ -795,8 +801,8 @@ main (int argc, char *argv[])
   //get it from pool factory
   Ptr<NrSlCommPreconfigResourcePoolFactory> ptrFactory = Create<NrSlCommPreconfigResourcePoolFactory> ();
   /*
-   * Above pool factory is created to help the users of to create a pool
-   * with valid default configuration. Please have a look at the
+   * Above pool factory is created to help the users of the simulator to create
+   * a pool with valid default configuration. Please have a look at the
    * constructor of NrSlCommPreconfigResourcePoolFactory class.
    *
    * In the following, we show how one could change those default pool parameter
@@ -882,8 +888,8 @@ main (int argc, char *argv[])
   slUeSelectedPreConfig.slPsschTxConfigList = pscchTxConfigList;
 
   /*
-   * Finally, configure the SidelinkPreconfigNr. This is the main structure needs
-   * to be communicated to NrSlUeRrc class
+   * Finally, configure the SidelinkPreconfigNr. This is the main structure
+   * that needs to be communicated to NrSlUeRrc class
    */
   LteRrcSap::SidelinkPreconfigNr slPreConfigNr;
   slPreConfigNr.slPreconfigGeneral = slPreconfigGeneralNr;

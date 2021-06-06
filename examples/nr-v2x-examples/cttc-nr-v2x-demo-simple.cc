@@ -24,7 +24,7 @@
  *
  * This example describes how to setup an NR sidelink out-of-coverage simulation
  * using the 3GPP channel model from TR 37.885. This example simulates a
- * simple topology consist of 2 UEs, where UE 1 transmits, and UE 2 receives.
+ * simple topology consist of 2 UEs, where UE-1 transmits, and UE-2 receives.
  *
  * Have a look at the possible parameters to know what you can configure
  * through the command line.
@@ -490,6 +490,11 @@ main (int argc, char *argv[])
   uint8_t bwpIdForGbrMcptt = 0;
 
   nrHelper->SetBwpManagerTypeId (TypeId::LookupByName ("ns3::NrSlBwpManagerUe"));
+  //following parameter has no impact at the moment because:
+  //1. No support for PQI based mapping between the application and the LCs
+  //2. No scheduler to consider PQI
+  //However, till such time all the NR SL examples should use GBR_MC_PUSH_TO_TALK
+  //because we hard coded the PQI 65 in UE RRC.
   nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_MC_PUSH_TO_TALK", UintegerValue (bwpIdForGbrMcptt));
 
   std::set<uint8_t> bwpIdContainer;
@@ -528,10 +533,10 @@ main (int argc, char *argv[])
    * Configure Sidelink. We create the following helpers needed for the
    * NR Sidelink, i.e., V2X simulation:
    * - NrSlHelper, which will configure the UEs protocol stack to be ready to
-   *   perform Sidelink related procedures. the core network
+   *   perform Sidelink related procedures.
    * - EpcHelper, which takes care of triggering the call to EpcUeNas class
    *   to establish the NR Sidelink bearer (s). We note that, at this stage
-   *   to just communicate the pointer of already instantiated EpcHelper object,
+   *   just communicate the pointer of already instantiated EpcHelper object,
    *   which is the same pointer communicated to the NrHelper above.
    */
   Ptr<NrSlHelper> nrSlHelper = CreateObject <NrSlHelper> ();
@@ -577,8 +582,8 @@ main (int argc, char *argv[])
   //get it from pool factory
   Ptr<NrSlCommPreconfigResourcePoolFactory> ptrFactory = Create<NrSlCommPreconfigResourcePoolFactory> ();
   /*
-   * Above pool factory is created to help the users of to create a pool
-   * with valid default configuration. Please have a look at the
+   * Above pool factory is created to help the users of the simulator to create
+   * a pool with valid default configuration. Please have a look at the
    * constructor of NrSlCommPreconfigResourcePoolFactory class.
    *
    * In the following, we show how one could change those default pool parameter
@@ -661,8 +666,8 @@ main (int argc, char *argv[])
   slUeSelectedPreConfig.slPsschTxConfigList = pscchTxConfigList;
 
   /*
-   * Finally, configure the SidelinkPreconfigNr This is the main structure needs
-   * to be communicated to NrSlUeRrc class
+   * Finally, configure the SidelinkPreconfigNr This is the main structure
+   * that needs to be communicated to NrSlUeRrc class
    */
   LteRrcSap::SidelinkPreconfigNr slPreConfigNr;
   slPreConfigNr.slPreconfigGeneral = slPreconfigGeneralNr;
