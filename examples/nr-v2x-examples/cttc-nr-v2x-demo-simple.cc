@@ -675,26 +675,11 @@ main (int argc, char *argv[])
   /****************************** End SL Configuration ***********************/
 
   /*
-   * Fix the random stream of the channel
+   * Fix the random streams
    */
-  for (uint32_t j = 0; j < ueVoiceContainer.GetN(); ++j)
-    {
-      //We test 2 BWP in this test
-      for (uint8_t bwpId = 0; bwpId < 1; bwpId++)
-        {
-          Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetUePhy (ueVoiceNetDev.Get (j), bwpId)->GetSpectrumPhy ();
-          Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
-          Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
-          NS_ASSERT (propagationLossModel != nullptr);
-          propagationLossModel->AssignStreams (1);
-          Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel();
-          channelConditionModel->AssignStreams (1);
-          Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
-          NS_ASSERT (spectrumLossModel != nullptr);
-          Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
-          channel->AssignStreams (1);
-        }
-    }
+  int64_t stream = 1;
+  stream += nrHelper->AssignStreams (ueVoiceNetDev, stream);
+  stream += nrSlHelper->AssignStreams (ueVoiceNetDev, stream);
 
   /*
    * Configure the IP stack, and activate NR Sidelink bearer (s) as per the
