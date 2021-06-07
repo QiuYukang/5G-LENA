@@ -43,6 +43,51 @@ to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
 ---
+## Changes from NR-v1.1 to v1.2
+
+### New API:
+
+* Added "file-transfer-application.cc/h" and "file-transfer-helper.cc/h" that
+implement File Transfer Protocol (FTP) applications. In addition, 3GPP FTP model
+1 helper has been added that configures FTP Model 1 traffic model. These FTP and
+3GPP FTP M1 implementations could be used by other modules, but they still need
+some development, so for the moment they will be included in the nr module.
+* New `NrHarqTest` is included to test HARQ-IR and HARQ-CC combining methods (thanks
+to Andrey Belogaev).
+
+
+### Changes to existing API:
+
+* `m_numSymAlloc` field of `SlotAllocInfo` structure and the `usedSym` variable
+in `NrMacSchedulerNs3::DoScheduleDlData` and `NrMacSchedulerNs3::DoScheduleUlData`
+are now correctly updated when a UE does not get a DCI (i.e., when the TBS is less than 7 bytes).
+* PHY traces have been modified to allow post-processing. Moreover, a simulation
+tag can be added in order to generate different file names when Simulation Campaigns
+are performed.
+* `cttc-fh-compression.cc` example has been extended with a possibility to use
+FTP traffic model.
+* Extended APIs to compute SRS SNR and enable real BF based on SRS SNR measurements
+(previously real BF was performed based on SRS SINR measurements, now it can be done
+based on either SRS SNR or SRS SINR). In particular, `NrInterference` has been
+extended to compute SNR of received data, a new callback is included in `NrSpectrumPhy`
+to compute the SNR of SRS, and real BF algorithm has been extended to use SNR report.
+The new attribute `UseSnrSrs` of `RealisticBeamformingAlgorithm` denotes whether
+the SRS measurement will be SNR or SINR (and defaults to true, i.e., SNR is used).
+
+
+### Changed behavior:
+
+* If HARQ-IR is used, the performance may change because its error modeling uses
+a new formula for the computation of the effective SINR.
+* The available SRS offsets are correctly generated so that none of the UEs get
+the same SRS offset.
+* If realistic beamforming algorithm with trigger event configured with delay update
+is used, the performance may change because it now uses the actual channel at SRS
+reception moment for real BF update with delay.
+* By default, SRS Symbols is set to 1 symbol. In the previous release, the default
+value was 4 symbols.
+
+---
 
 ## Changes from NR-v1.0 to v1.1
 
@@ -50,7 +95,7 @@ us a note on ns-developers mailing list.
 
 * Added attribute "SrsSymbols" in `NrMacSchedulerNs3`, to indicate how many
   symbols are available to the SRS message.
-* Added attribute "EnableSrsInUlSlots" in `NrMacSchedulerNs3` to allow SRS only
+* Added attribute "EnableSrsInUlSlots" in `NrMacSchedulerNs3` to allow SRS only
   in F slots, or both in F and UL slots.
 * Added attribute "EnableSrsInFSlots" in `NrMacSchedulerNs3` through which SRS
   can be disabled in F slots. If SRS is disabled in both UL and F slots, then
@@ -71,7 +116,7 @@ us a note on ns-developers mailing list.
   functionality. Support UL PC power control for PUSCH, PUCCH and SRS, and can
   operate in two different modes: TS 36.213 and TS 38.213 modes. Uplink power
   control is disabled by default.
-* Proportional Fair scheduler in UL direction is added.
+* Proportional Fair scheduler in UL direction is added.
 * New examples: cttc-nr-notching.cc and cttc-realistic-beamforming.cc
 * New tests: nr-test-notching.cc, nr-uplink-power-control-test.cc, and
   nr-realistic-beamforming-test.cc
