@@ -47,6 +47,7 @@ cpp_examples = [
     ("cttc-channel-randomness", "True", "True"),
     ("rem-beam-example", "True", "True"),
     ("rem-example", "True", "True"),
+    ("cttc-nr-demo --ueNumPergNb=9", "True", "True"),
     ]
 
 # A list of Python examples to run in order to ensure that they remain
