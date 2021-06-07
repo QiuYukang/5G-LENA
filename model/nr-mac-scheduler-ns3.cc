@@ -37,6 +37,7 @@
 #include <ns3/pointer.h>
 #include <algorithm>
 #include <ns3/integer.h>
+#include <unordered_set>
 
 namespace ns3 {
 
@@ -1352,10 +1353,15 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
   BeamSymbolMap symPerBeam = AssignDLRBG (symAvail, activeDl);
   GetFirst GetBeam;
   uint8_t usedSym = 0;
+
   for (const auto &beam : activeDl)
     {
       uint32_t availableRBG = (GetBandwidthInRbg () - spoint->m_rbg) * symPerBeam.at (GetBeam (beam));
       bool assigned = false;
+      std::unordered_set <uint8_t> symbStartDci;
+      //allocSym is used to count the number of allocated symbols to the UEs of the beam
+      //we are iterating over
+      uint32_t allocSym = 0;
 
       NS_LOG_DEBUG (activeDl.size () << " active DL beam, this beam has " <<
                     symPerBeam.at (GetBeam (beam)) << " SYM, starts from RB " << static_cast<uint32_t> (spoint->m_rbg) <<
@@ -1381,16 +1387,29 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
                                                                  symPerBeam.at (GetBeam (beam)));
           if (dci == nullptr)
             {
+              //By continuing to the next UE means that we are
+              //wasting a resource assign to this UE. For a TDMA
+              //scheduler this resource would be one or more
+              //symbols, and for OFDMA scheduler it would be a
+              //chunk of time + freq, i.e., one or more
+              //symbols in time and one ore more RBG in freq.
+              //TODO To avoid this, a more accurate solution
+              //is needed to assign resources. That is, a solution
+              //that would not assign resources to a UE if the assigned resources
+              //result a TB size of less than 7 bytes (3 mac header, 2 rlc header, 2 data).
+              //Because if this happens CreateDlDci will not create DCI.
               NS_LOG_DEBUG ("No DCI has been created, ignoring");
-              slotAlloc->m_numSymAlloc -= ue.first->m_dlSym;
-              NS_LOG_DEBUG ("Update slotAlloc->m_numSymAlloc because no DL DCI "
-                            "has been created: " << +slotAlloc->m_numSymAlloc);
               ue.first->ResetDlMetric ();
-
               continue;
             }
 
           assigned = true;
+
+          if (symbStartDci.insert (dci->m_symStart).second)
+            {
+              allocSym += dci->m_numSym;
+            }
+
           NS_LOG_INFO ("UE " << ue.first->m_rnti << " has " << ue.first->m_dlRBG <<
                        " RBG assigned");
           NS_ASSERT_MSG (dci->m_symStart + dci->m_numSym <= m_macSchedSapUser->GetSymbolsPerSlot (),
@@ -1453,8 +1472,8 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
       if (assigned)
         {
           ChangeDlBeam (spoint, symPerBeam.at (GetBeam (beam)));
-          usedSym += symPerBeam.at (GetBeam (beam));
-          slotAlloc->m_numSymAlloc += symPerBeam.at (GetBeam (beam));
+          usedSym += allocSym;
+          slotAlloc->m_numSymAlloc += allocSym;
         }
     }
 
@@ -1517,10 +1536,15 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
   BeamSymbolMap symPerBeam = AssignULRBG (symAvail, activeUl);
   uint8_t usedSym = 0;
   GetFirst GetBeam;
+
   for (const auto &beam : activeUl)
     {
       uint32_t availableRBG = (GetBandwidthInRbg () - spoint->m_rbg) * symPerBeam.at (GetBeam (beam));
       bool assigned = false;
+      std::unordered_set <uint8_t> symbStartDci;
+      //allocSym is used to count the number of allocated symbols to the UEs of the beam
+      //we are iterating over
+      uint32_t allocSym = 0;
 
       NS_LOG_DEBUG (activeUl.size () << " active UL beam, this beam has " <<
                     symPerBeam.at (GetBeam (beam)) << " SYM, starts from RBG " <<
@@ -1548,15 +1572,28 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
 
           if (dci == nullptr)
             {
+              //By continuing to the next UE means that we are
+              //wasting a resource assign to this UE. For a TDMA
+              //scheduler this resource would be one or more
+              //symbols, and for OFDMA scheduler it would be a
+              //chunk of time + freq, i.e., one or more
+              //symbols in time and one ore more RBG in freq.
+              //TODO To avoid this, a more accurate solution
+              //is needed to assign resources. That is, a solution
+              //that would not assign resources to a UE if the assigned resources
+              //result a TB size of less than 7 bytes (3 mac header, 2 rlc header, 2 data).
+              //Because if this happens CreateUlDci will not create DCI.
               NS_LOG_DEBUG ("No DCI has been created, ignoring");
-              slotAlloc->m_numSymAlloc -= ue.first->m_ulSym;
-              NS_LOG_DEBUG ("Update slotAlloc->m_numSymAlloc because no UL DCI "
-                            "has been created: " << +slotAlloc->m_numSymAlloc);
               ue.first->ResetUlMetric ();
               continue;
             }
 
           assigned = true;
+
+          if (symbStartDci.insert (dci->m_symStart).second)
+            {
+              allocSym += dci->m_numSym;
+            }
 
           if (!ue.first->m_ulHarq.CanInsert ())
             {
@@ -1600,8 +1637,8 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
       if (assigned)
         {
           ChangeUlBeam (spoint, symPerBeam.at (GetBeam (beam)));
-          usedSym += symPerBeam.at (GetBeam (beam));
-          slotAlloc->m_numSymAlloc += symPerBeam.at (GetBeam (beam));
+          usedSym += allocSym;
+          slotAlloc->m_numSymAlloc += allocSym;
         }
     }
 
