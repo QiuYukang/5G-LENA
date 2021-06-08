@@ -9,6 +9,63 @@ http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
+
+Release NR-v1.2
+--------------
+
+Availability
+------------
+Available since June 4, 2021.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-7 or later
+- clang-8 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-7, 8, 9, and 10 clang-8, 9, 10, and 11
+
+Important news
+--------------
+This module can be updated with the usual
+
+```
+$ git pull
+```
+
+command. We hope you will have fun and good times in using our module!
+
+New user-visible features (old first)
+-------------------------
+- File Transfer Protocol (FTP) model 1 traffic model is included.
+
+Bugs fixed
+----------
+- The computation of the effective SINR for the error modeling under HARQ-IR uses
+now an updated formula that accounts for pure IR with no repetition of coding bits.
+- There were cases in which multiple UEs could be assigned the same SRS offset value,
+because the generation of the possible SRS offset was including multiple 0 values.
+Now, the generation of the available values for the SRS offsets has been updated
+to not contain multiple 0 values.
+- Realistic beamforming algorithm with trigger event configured as delay update
+uses the actual channel at SRS reception moment for real BF update with delay.
+- There have been reported cases where an assert in PHY was triggered due to the
+fact that the Allocation Statistics were not in accordance with the real allocation.
+This happened because the `SlotAllocInfo` structure, and in particular the
+`m_numSymAlloc` field, was not updated accurately when a UE didn’t get a
+DCI (i.e., when the TBS is less than 7 bytes). Scheduler, now correcly updates
+the `m_numSymAlloc` field and the `usedSym` variable in `NrMacSchedulerNs3::DoScheduleDlData`
+and `NrMacSchedulerNs3::DoScheduleUlData` when DCI is not created.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
 Release NR-v1.1
 --------------
 

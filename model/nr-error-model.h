@@ -117,7 +117,7 @@ public:
    * \brief Vector of previous output
    *
    *
-   * Used in case of HARQ: any result will ve stored in this vector and used
+   * Used in case of HARQ: any result will be stored in this vector and used
    * to decode next retransmissions.
    */
   typedef std::vector<Ptr<NrErrorModelOutput> > NrErrorModelHistory;

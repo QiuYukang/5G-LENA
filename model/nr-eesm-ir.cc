@@ -50,49 +50,35 @@ NrEesmIr::ComputeSINR (const SpectrumValue &sinr, const std::vector<int> &map,
                          const NrErrorModel::NrErrorModelHistory &sinrHistory) const
 {
   NS_LOG_FUNCTION (this);
-  // HARQ INCREMENTAL REDUNDANCY: update SINReff and ECR after retx
-  // no repetition of coded bits
+  // HARQ INCREMENTAL REDUNDANCY: update SINReff and ECR after retx, assuming
+  // no repetition of coded bits.
 
-  std::vector<int> map_sum = map;
-
-  // evaluate SINR_eff over "total", as per Incremental Redundancy.
-  // combine at the bit level.
-  SpectrumValue sinr_sum = sinr;
-  double SINReff_previousTx = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.back ())->m_sinrEff;
-  NS_LOG_INFO ("\tHISTORY:");
-  NS_LOG_INFO ("\tSINReff: " << SINReff_previousTx);
-
-  for (uint32_t i = 0; i < map.size (); i++)
-     {
-        sinr_sum[map.at(i)] += SINReff_previousTx;
-     }
-
-  NS_LOG_INFO ("MAP_SUM: " << PrintMap (map_sum));
-  NS_LOG_INFO ("SINR_SUM: " << sinr_sum);
-
-  // compute equivalent effective code rate after retransmissions
+  // compute equivalent effective code rate after retransmissions and total map size
   uint32_t codeBitsSum = 0;
   uint32_t infoBits = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.front ())->m_infoBits;  // information bits of the first TB
+  double mapSumSize = 0.0;
 
   for (const Ptr<NrErrorModelOutput> & output : sinrHistory)
     {
       Ptr<NrEesmErrorModelOutput> sinrHistorytemp = DynamicCast<NrEesmErrorModelOutput> (output);
       NS_ASSERT (sinrHistorytemp != nullptr);
 
-      NS_LOG_DEBUG (" Effective SINR " << sinrHistorytemp->m_sinrEff <<
+      NS_LOG_DEBUG (" Exponential SINR sum " << sinrHistorytemp->m_sinrExp <<
                     " codeBits " << sinrHistorytemp->m_codeBits <<
                     " infoBits: " << sinrHistorytemp->m_infoBits);
 
       codeBitsSum += sinrHistorytemp->m_codeBits;
+      mapSumSize += sinrHistorytemp->m_map.size();
     }
-
+  mapSumSize += map.size();
   codeBitsSum += sizeBit / GetMcsEcrTable()->at (mcs);;
   const_cast<NrEesmIr*> (this)->m_Reff = infoBits / static_cast<double> (codeBitsSum);
 
   NS_LOG_INFO (" Reff " << m_Reff << " HARQ history (previous) " << sinrHistory.size ());
 
-  // compute effective SINR with the sinr_sum vector and map_sum RB map
-  return SinrEff (sinr_sum, map_sum, mcs);
+  // compute effective SINR with expSINR_previousTx and mapSumSize
+  double expSINR_previousTx = DynamicCast<NrEesmErrorModelOutput> (sinrHistory.back ())->m_sinrExp;
+  return SinrEff (sinr, map, mcs, expSINR_previousTx, mapSumSize);
 }
 
 double

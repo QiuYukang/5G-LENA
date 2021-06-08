@@ -79,7 +79,14 @@ RealisticBeamformingAlgorithm::GetTypeId (void)
                                     DoubleValue (30),
                                     MakeDoubleAccessor (&RealisticBeamformingAlgorithm::SetBeamSearchAngleStep,
                                                         &RealisticBeamformingAlgorithm::GetBeamSearchAngleStep),
-                                    MakeDoubleChecker<double> ());
+                                    MakeDoubleChecker<double> ())
+                    .AddAttribute ("UseSnrSrs",
+                                   "Denotes whether the SRS measurement will be SNR or SINR. If False"
+                                   "SINR is used, if True the SNR",
+                                   BooleanValue (true),
+                                   MakeBooleanAccessor (&RealisticBeamformingAlgorithm::SetUseSnrSrs,
+                                                        &RealisticBeamformingAlgorithm::UseSnrSrs),
+                                   MakeBooleanChecker ());
   return tid;
 }
 
@@ -123,6 +130,38 @@ RealisticBeamformingAlgorithm::GetBeamSearchAngleStep () const
 }
 
 void
+RealisticBeamformingAlgorithm::SetUseSnrSrs (bool v)
+{
+  m_useSnrSrs = v;
+}
+
+bool
+RealisticBeamformingAlgorithm::UseSnrSrs () const
+{
+  return m_useSnrSrs;
+}
+
+void
+RealisticBeamformingAlgorithm::NotifySrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr)
+{
+  NS_LOG_FUNCTION (this);
+  if (!m_useSnrSrs)
+    {
+      NotifySrsReport (cellId, rnti, srsSinr);
+    }
+}
+
+void
+RealisticBeamformingAlgorithm::NotifySrsSnrReport (uint16_t cellId, uint16_t rnti, double srsSnr)
+{
+  NS_LOG_FUNCTION (this);
+  if (m_useSnrSrs)
+    {
+      NotifySrsReport (cellId, rnti, srsSnr);
+    }
+}
+
+void
 RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
@@ -138,7 +177,7 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
   // update SRS symbols counter
   m_srsSymbolsCounter++;
 
-  // update max SRS SINR, i.e., reset when m_srsSymbolsCounter == 1, otherwise do max
+  // update max SRS SINR/SNR, i.e., reset when m_srsSymbolsCounter == 1, otherwise do max
   m_maxSrsSinrPerSlot = (m_srsSymbolsCounter > 1) ? std::max(srsSinr, m_maxSrsSinrPerSlot):srsSinr;
 
   // if we reached the last SRS symbol, check whether some event should be triggered
@@ -168,7 +207,7 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
           NS_LOG_INFO ("Received all SRS symbols per current slot. Scheduler realistic BF helper callback");
           DelayedUpdateInfo dui;
           dui.updateTime = Simulator::Now () + conf.updateDelay;
-          dui.srsSinr = m_maxSrsSinrPerSlot;
+          dui.srsSinr = m_maxSrsSinrPerSlot;  // SNR or SINR
           dui.channelMatrix = GetChannelMatrix ();
           m_delayedUpdateInfo.push (dui);
           // schedule delayed update

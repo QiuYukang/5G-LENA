@@ -90,6 +90,38 @@ NrInterference::AddSignal (Ptr<const SpectrumValue> spd, Time duration)
 }
 
 void
+NrInterference::EndRx ()
+{
+  NS_LOG_FUNCTION (this);
+  if (m_receiving != true)
+    {
+      NS_LOG_INFO ("EndRx was already evaluated or RX was aborted");
+    }
+  else
+    {
+      SpectrumValue snr = (*m_rxSignal) / (*m_noise);
+      double avgSnr = Sum (snr) /(snr.GetSpectrumModel ()->GetNumBands ());
+      m_snrPerProcessedChunk (avgSnr);
+
+      NrInterference::ConditionallyEvaluateChunk ();
+
+      m_receiving = false;
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)
+        {
+          (*it)->End ();
+        }
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_interfChunkProcessorList.begin (); it != m_interfChunkProcessorList.end (); ++it)
+        {
+          (*it)->End ();
+        }
+      for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_sinrChunkProcessorList.begin (); it != m_sinrChunkProcessorList.end (); ++it)
+        {
+          (*it)->End ();
+        }
+    }
+}
+
+void
 NrInterference::ConditionallyEvaluateChunk ()
 {
   NS_LOG_FUNCTION (this);
@@ -103,14 +135,11 @@ NrInterference::ConditionallyEvaluateChunk ()
       NS_LOG_LOGIC (this << " signal = " << *m_rxSignal << " allSignals = " << *m_allSignals << " noise = " << *m_noise);
       SpectrumValue interf =  (*m_allSignals) - (*m_rxSignal) + (*m_noise);
       SpectrumValue sinr = (*m_rxSignal) / interf;
-      SpectrumValue snr = (*m_rxSignal) / (*m_noise);
-      double avgSnr = Sum (snr) /(snr.GetSpectrumModel ()->GetNumBands ());
-      m_snrPerProcessedChunk (avgSnr);
-      NS_LOG_DEBUG ("All signals: "<<(*m_allSignals)[0]<<", rxSingal:"<<(*m_rxSignal)[0]<<" , noise:"<< (*m_noise)[0]);
-
-      double rbWidth = snr.GetSpectrumModel ()->Begin()->fh - snr.GetSpectrumModel ()->Begin()->fl;
-      double rssidBm = 10 * log10(Sum((*m_noise + *m_allSignals)* rbWidth)*1000);
+      double rbWidth = (*m_rxSignal).GetSpectrumModel ()->Begin ()->fh - (*m_rxSignal).GetSpectrumModel ()->Begin ()->fl;
+      double rssidBm = 10 * log10 (Sum ((*m_noise + *m_allSignals) * rbWidth) * 1000);
       m_rssiPerProcessedChunk(rssidBm);
+
+      NS_LOG_DEBUG ("All signals: " << (*m_allSignals)[0] << ", rxSingal:" << (*m_rxSignal)[0] << " , noise:" << (*m_noise)[0]);
       
       Time duration = Now () - m_lastChangeTime;
       for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)

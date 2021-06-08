@@ -9,7 +9,7 @@ import os
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('nr', ['lte'])
+    module = bld.create_ns3_module('nr', ['lte', 'internet-apps'])
     module.source = [
         'helper/nr-helper.cc',
         'helper/nr-phy-rx-trace.cc',
@@ -28,6 +28,7 @@ def build(bld):
         'helper/nr-radio-environment-map-helper.cc',
         'helper/nr-spectrum-value-helper.cc',
         'helper/scenario-parameters.cc',
+        'helper/three-gpp-ftp-m1-helper.cc',
         'helper/nr-sl-helper.cc',
         'model/nr-net-device.cc',
         'model/nr-gnb-net-device.cc',
@@ -98,6 +99,8 @@ def build(bld):
         'model/nr-mac-scheduler-srs-default.cc',
         'model/nr-ue-power-control.cc',
         'model/realistic-bf-manager.cc',
+        'utils/file-transfer-helper.cc',
+        'utils/file-transfer-application.cc',
         'model/nr-sl-comm-resource-pool-factory.cc',
         'model/nr-sl-comm-preconfig-resource-pool-factory.cc',
         'model/nr-sl-bwp-manager-ue.cc',
@@ -145,6 +148,7 @@ def build(bld):
         'test/nr-realistic-beamforming-test.cc',
         'test/nr-uplink-power-control-test.cc',
         'test/nr-power-allocation.cc',
+        'test/nr-test-harq.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -167,6 +171,7 @@ def build(bld):
         'helper/nr-radio-environment-map-helper.h',
         'helper/nr-spectrum-value-helper.h',
         'helper/scenario-parameters.h',
+        'helper/three-gpp-ftp-m1-helper.h',
         'helper/nr-sl-helper.h',
         'model/nr-net-device.h',
         'model/nr-gnb-net-device.h',
@@ -244,6 +249,8 @@ def build(bld):
         'model/nr-mac-scheduler-srs-default.h',
         'model/nr-ue-power-control.h',
         'model/realistic-bf-manager.h',
+        'utils/file-transfer-helper.h',
+        'utils/file-transfer-application.h',
         'model/nr-sl-comm-resource-pool-factory.h',
         'model/nr-sl-comm-preconfig-resource-pool-factory.h',
         'model/nr-sl-bwp-manager-ue.h',

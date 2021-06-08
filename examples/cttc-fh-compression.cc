@@ -67,6 +67,7 @@ $ ./waf --run "cttc-fh-compression --Help"
 #include <algorithm>
 #include <iostream>
 #include <ns3/rng-seed-manager.h>
+#include <ns3/three-gpp-ftp-m1-helper.h>
 /*
  * To be able to use LOG_* functions.
  */
@@ -929,6 +930,14 @@ main (int argc, char *argv[])
                            // 1500*600*8 = 7.2 Mbps/UE
                            // 1000*600*8 = 4.8 Mbps/UE
 
+  bool ftpM1Enabled = true;
+  double ftpLambda = 5;
+  uint32_t ftpFileSize = 512000; //in bytes
+  uint16_t ftpPortSector1 = 2001;
+  uint16_t ftpPortSector2 = 2002;
+  uint16_t ftpPortSector3 = 2003;
+  uint32_t ftpClientAppStartTimeMs = 400;
+  uint32_t ftpServerAppStartTimeMs = 400;
   // Simulation parameters. Please don't use double to indicate seconds, use
   // milliseconds and integers to avoid representation errors.
   uint32_t simTimeMs = 1400;
@@ -1026,21 +1035,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("outputDir",
                 "directory where to store simulation results",
                 outputDir);
-  cmd.AddValue ("errorModelType",
-                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
-                errorModel);
-  cmd.AddValue ("maxMcs1",
-                "Maximum MCS index for DL",
-                maxMcs1);
-  cmd.AddValue ("maxMcs2",
-                "Maximum MCS index for DL",
-                maxMcs2);
-  cmd.AddValue ("uniformMcs",
-                "1: Use same Maximum MCS index for all cells, 0: use different maximum MCS indexes among cells",
-                uniformMcs);
-  cmd.AddValue ("maxMcsVector",
-                "max MCS for each cell: 1|4|28",
-                maxMcsVectorInput);
+  cmd.AddValue ("ftpM1Enabled",
+                "An indicator whether to enable FTP Model 1 traffic model. To enable configure 1, to disable 0.",
+                ftpM1Enabled);
 
   // Parse the command line
   cmd.Parse (argc, argv);
@@ -1386,111 +1383,151 @@ main (int argc, char *argv[])
    * Let's install the applications!
    */
   ApplicationContainer clientApps;
+  ApplicationContainer ftpClientAppsSector1, ftpServerAppsSector1;
+  ApplicationContainer ftpClientAppsSector2, ftpServerAppsSector2;
+  ApplicationContainer ftpClientAppsSector3, ftpServerAppsSector3;
+  Ptr<ThreeGppFtpM1Helper> ftpHelperSector1;
+  Ptr<ThreeGppFtpM1Helper> ftpHelperSector2;
+  Ptr<ThreeGppFtpM1Helper> ftpHelperSector3;
 
-  for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
+  if (ftpM1Enabled)
     {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite ()])));
-      std::cout << "ue (sector1): " << i << " index: " << (i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () << " lambda: " << lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite ()] << std::endl;
-      Ptr<Node> ue = ueSector1Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector1NetDev.Get (i);
-      Address ueAddress = ueSector1IpIface.GetAddress (i);
+      // sector 1 FTP M1 applications configuration
+      ftpHelperSector1 = CreateObject<ThreeGppFtpM1Helper> (&ftpServerAppsSector1, &ftpClientAppsSector1,
+                                                            &ueSector1Container, &remoteHostContainer, &ueSector1IpIface);
+      ftpHelperSector1->Configure (ftpPortSector1, MilliSeconds (ftpServerAppStartTimeMs), MilliSeconds (ftpClientAppStartTimeMs),
+                                   MilliSeconds (simTimeMs), ftpLambda, ftpFileSize);
+      ftpHelperSector1->Start();
 
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
-        }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
+      // sector 2 FTP M1 applications configuration
+      ftpHelperSector2 = CreateObject<ThreeGppFtpM1Helper> (&ftpServerAppsSector2, &ftpClientAppsSector2,
+                                                            &ueSector2Container, &remoteHostContainer, &ueSector2IpIface);
+      ftpHelperSector2->Configure (ftpPortSector2, MilliSeconds (ftpServerAppStartTimeMs), MilliSeconds (ftpClientAppStartTimeMs),
+                                   MilliSeconds (simTimeMs), ftpLambda, ftpFileSize);
+      ftpHelperSector2->Start();
+
+      // sector 3 FTP M1 applications configuration
+      ftpHelperSector3 = CreateObject<ThreeGppFtpM1Helper> (&ftpServerAppsSector3, &ftpClientAppsSector3,
+                                                            &ueSector3Container, &remoteHostContainer, &ueSector3IpIface);
+      ftpHelperSector3->Configure (ftpPortSector3, MilliSeconds (ftpServerAppStartTimeMs), MilliSeconds (ftpClientAppStartTimeMs),
+                                   MilliSeconds (simTimeMs), ftpLambda, ftpFileSize);
+      ftpHelperSector3->Start();
+
+      clientApps.Add(ftpClientAppsSector1);
+      clientApps.Add(ftpClientAppsSector2);
+      clientApps.Add(ftpClientAppsSector3);
+
+      serverApps.Add(ftpServerAppsSector1);
+      serverApps.Add(ftpServerAppsSector2);
+      serverApps.Add(ftpServerAppsSector3);
     }
-
-  for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
+  else
     {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 1])));
-      std::cout << "ue (sector2): " << i << " index: " << (i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 1 << " lambda: " << lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 1] << std::endl;
-      Ptr<Node> ue = ueSector2Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector2NetDev.Get (i);
-      Address ueAddress = ueSector2IpIface.GetAddress (i);
+      for (uint32_t i = 0; i < ueSector1Container.GetN (); ++i)
+        {
+          dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()])));
+          std::cout << "ue (sector1): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite () << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()] << std::endl;
+          Ptr<Node> ue = ueSector1Container.Get (i);
+          Ptr<NetDevice> ueDevice = ueSector1NetDev.Get(i);
+          Address ueAddress = ueSector1IpIface.GetAddress (i);
 
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
+          // The client, who is transmitting, is installed in the remote host,
+          // with destination address set to the address of the UE
+          if (direction == "DL")
+            {
+              dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+              clientApps.Add (dlClientLowLat.Install (remoteHost));
+            }
+          else
+            {
+              dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+              clientApps.Add (dlClientLowLat.Install (ue));
+            }
+          // Activate a dedicated bearer for the traffic type
+          if (lteHelper != nullptr)
+            {
+              lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+            }
+          else if (nrHelper != nullptr)
+            {
+              nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+            }
+          else
+            {
+              NS_ABORT_MSG ("Programming error");
+            }
         }
-      else
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
-        }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
-    }
 
-  for (uint32_t i = 0; i < ueSector3Container.GetN (); ++i)
-    {
-      dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0 / lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 2])));
-      std::cout << "ue (sector3): " << i << " index: " << (i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 2 << " lambda: " << lambdaPerCell[(i % gridScenario.GetNumSites ()) * gridScenario.GetNumSectorsPerSite () + 2] << std::endl;
-      Ptr<Node> ue = ueSector3Container.Get (i);
-      Ptr<NetDevice> ueDevice = ueSector3NetDev.Get (i);
-      Address ueAddress = ueSector3IpIface.GetAddress (i);
+      for (uint32_t i = 0; i < ueSector2Container.GetN (); ++i)
+        {
+          dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+1])));
+          std::cout << "ue (sector2): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite () +1 << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+1] << std::endl;
+          Ptr<Node> ue = ueSector2Container.Get (i);
+          Ptr<NetDevice> ueDevice = ueSector2NetDev.Get(i);
+          Address ueAddress = ueSector2IpIface.GetAddress (i);
 
-      // The client, who is transmitting, is installed in the remote host,
-      // with destination address set to the address of the UE
-      if (direction == "DL")
-        {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
-          clientApps.Add (dlClientLowLat.Install (remoteHost));
+          // The client, who is transmitting, is instaviso entonces pronto, sualled in the remote host,
+          // with destination address set to the address of the UE
+          if (direction == "DL")
+            {
+              dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+              clientApps.Add (dlClientLowLat.Install (remoteHost));
+            }
+          else
+            {
+              dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+              clientApps.Add (dlClientLowLat.Install (ue));
+            }
+          // Activate a dedicated bearer for the traffic type
+          if (lteHelper != nullptr)
+            {
+              lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+            }
+          else if (nrHelper != nullptr)
+            {
+              nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+            }
+          else
+            {
+              NS_ABORT_MSG ("Programming error");
+            }
         }
-      else
+
+      for (uint32_t i = 0; i < ueSector3Container.GetN (); ++i)
         {
-          dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
-          clientApps.Add (dlClientLowLat.Install (ue));
+          dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+2])));
+          std::cout << "ue (sector3): " << i << " index: " << (i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+2 << " lambda: " << lambdaPerCell[(i%gridScenario.GetNumSites())*gridScenario.GetNumSectorsPerSite ()+2] << std::endl;
+          Ptr<Node> ue = ueSector3Container.Get (i);
+          Ptr<NetDevice> ueDevice = ueSector3NetDev.Get(i);
+          Address ueAddress = ueSector3IpIface.GetAddress (i);
+
+          // The client, who is transmitting, is installed in the remote host,
+          // with destination address set to the address of the UE
+          if (direction == "DL")
+            {
+              dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (ueAddress));
+              clientApps.Add (dlClientLowLat.Install (remoteHost));
+            }
+          else
+            {
+              dlClientLowLat.SetAttribute ("RemoteAddress", AddressValue (remoteHostAddr));
+              clientApps.Add (dlClientLowLat.Install (ue));
+            }
+          // Activate a dedicated bearer for the traffic type
+          if (lteHelper != nullptr)
+            {
+              lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+            }
+          else if (nrHelper != nullptr)
+            {
+              nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
+            }
+          else
+            {
+              NS_ABORT_MSG ("Programming error");
+            }
         }
-      // Activate a dedicated bearer for the traffic type
-      if (lteHelper != nullptr)
-        {
-          lteHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->ActivateDedicatedEpsBearer (ueDevice, lowLatBearer, lowLatTft);
-        }
-      else
-        {
-          NS_ABORT_MSG ("Programming error");
-        }
-    }
+   }
 
   // start UDP server and client apps
   serverApps.Start (MilliSeconds (udpAppStartTimeMs));

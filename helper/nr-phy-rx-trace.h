@@ -44,6 +44,14 @@ public:
   NrPhyRxTrace ();
   virtual ~NrPhyRxTrace ();
   static TypeId GetTypeId (void);
+
+  /**
+   * \brief Set simTag that will be contatenated to
+   * output file names
+   * \param simTag string to be used as simulation tag
+   */
+  void SetSimTag (const std::string &simTag);
+
   /**
    *  Trace sink for DL Average SINR (in dB).
    *
@@ -164,6 +172,8 @@ private:
   void ReportPacketCountUe (UePhyPacketCountParameter param);
   void ReportPacketCountEnb (GnbPhyPacketCountParameter param);
   void ReportDLTbSize (uint64_t imsi, uint64_t tbSize);
+
+  static std::string m_simTag;   //!< The `SimTag` attribute.
 
   static std::ofstream m_rsrpSinrFile;
   static std::string m_rsrpSinrFileName;

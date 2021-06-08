@@ -519,14 +519,18 @@ of the channel matrix.
 **Realistic beamforming**
 
 To implement a new realistic BF algorithm, we have created a separate class called 
-``RealisticBeamformingAlgorithm`` which relies on SRS SINR measurements to determine BF vectors. 
+``RealisticBeamformingAlgorithm`` which relies on SRS SINR/SNR measurements to determine BF vectors.
 Similarly to previously mentioned ``CellScanBeamforming``, there is a set of
 pre-defined BF vectors, but the knowledge of the channel is not perfect, 
-and depends on the quality of reported SRS measurement. 
+and depends on the quality of reported SRS measurement. The SRS measurement (SINR or SNR)
+can be configured through the ``UseSnrSrs`` attribute of ``RealisticBeamformingAlgorithm``.
+Basically, if the SNR is used, no interference is assumed in SRS; meanwhile if SINR measurement is used,
+the worst-case inter-cell interference is assumed (i.e., SRS that use the same SRS resource will interfere,
+independently of the orthogonality of the employed Zadoff-Chu sequences).
 The BF vector trigger update event can be either SRS count event 
 (e.g., after every N SRSs are received, the BF vectors are updated), 
 or based on the delay event after SRS reception (e.g., :math:`\delta` 
-time after each SRS reception). 
+time after each SRS reception).
 The type of event and its parameters can be configured through ``RealisticBfManager`` class. 
 Hence, in order to use realistic BF functionality it is necessary to install 
 ``RealisticBfManager`` at gNBs PHY instead of the default ``BeamManager`` class. 
@@ -534,7 +538,7 @@ The configuration of trigger event and its parameters can be done per
 gNB instance granularity, but can be easily extended to be done per UE.
 
 For each BF task, an instance of realistic BF algorithm is created,
-which is then connected to ``NrSpectrumPhy`` SRS SINR trace to receive SRS reports. 
+which is then connected to ``NrSpectrumPhy`` SRS SINR/SNR trace to receive SRS reports.
 Realistic BF algorithm is also connected to its helper through a callback to 
 notify it when BF vectors of a device pair need to be updated 
 (based on configuration and SRS reports). 
@@ -572,7 +576,7 @@ The variance of the error is given by:
 
 :math:`\sigma_e^2 = \frac{1}{(SINR+\Delta)}`,
 
-where SINR is the received SINR of SRS at the gNB and :math:`\Delta` 
+where SINR is the received SINR (or SNR) of SRS at the gNB and :math:`\Delta`
 is the gain obtained from time-domain filtering during the channel estimation. 
 According to 3GPP analysis of SRS transmission, :math:`\Delta` 
 is set to 9 dB [SigProc5G]_. The scaling factor is given by: 

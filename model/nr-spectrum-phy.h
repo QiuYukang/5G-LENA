@@ -268,6 +268,12 @@ public:
     * \param sinr the resulting SRS SINR spectrum value
     */
    void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
+   /**
+     * \brief SpectrumPhy that will be called when the SNR for the received
+     * SRS at gNB is being calculated
+     * \param snr the resulting SRS SNR
+     */
+    void UpdateSrsSnrPerceived (const double srsSnr);
   /**
    * \brief Install HARQ phy module of this spectrum phy
    * \param harq Harq module of this spectrum phy
@@ -341,6 +347,7 @@ public:
    * \brief SRS SINR callback whose input parameters are cellid, rnti, SRS SINR value
    */
   typedef Callback < void, uint16_t, uint16_t, double> SrsSinrReportCallback;
+  typedef Callback < void, uint16_t, uint16_t, double> SrsSnrReportCallback;
 
   /**
    * \brief It adds callback to the list of callbacks that will be notified
@@ -348,6 +355,12 @@ public:
    * \param callback callback to be added to the list of callbacks
    */
   void AddSrsSinrReportCallback (SrsSinrReportCallback callback);
+  /**
+   * \brief It adds callback to the list of callbacks that will be notified
+   * once SRS is being received
+   * \param callback callback to be added to the list of callbacks
+   */
+  void AddSrsSnrReportCallback (SrsSnrReportCallback callback);
 
 protected:
   /**
@@ -519,6 +532,7 @@ private:
   State m_state {IDLE}; //!<spectrum phy state
   SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception and is used for TB decoding
   std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
+  std::list<SrsSnrReportCallback> m_srsSnrReportCallback; //!< list of SRS SNR callbacks
   uint16_t m_currentSrsRnti {0};
   EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY to IDLE.
   Time m_busyTimeEnds {Seconds (0)}; //!< Used to schedule switch from CCA_BUSY to IDLE, this is absolute time

@@ -272,6 +272,7 @@ NrSpectrumPhy::SetDevice (Ptr<NetDevice> d)
   if (IsEnb ())
     {
       m_interferenceSrs = CreateObject<NrInterference> ();
+      m_interferenceSrs -> TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeCallback(&NrSpectrumPhy::UpdateSrsSnrPerceived, this));
     }
 }
 
@@ -688,7 +689,19 @@ NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
 
   for (auto& srsCallback:m_srsSinrReportCallback)
     {
-      srsCallback (GetCellId(), m_currentSrsRnti, Integral (srsSinr));
+      srsCallback (GetCellId(), m_currentSrsRnti, Sum (srsSinr) / (srsSinr.GetSpectrumModel ()->GetNumBands ()));
+    }
+}
+
+void
+NrSpectrumPhy::UpdateSrsSnrPerceived (const double srsSnr)
+{
+  NS_LOG_FUNCTION (this << srsSnr);
+  NS_LOG_INFO ("Update SRS SNR perceived with this value: " << srsSnr);
+
+  for (auto& srsSnrCallback:m_srsSnrReportCallback)
+    {
+      srsSnrCallback (GetCellId(), m_currentSrsRnti, srsSnr);
     }
 }
 
@@ -778,6 +791,12 @@ void
 NrSpectrumPhy::AddSrsSinrReportCallback (SrsSinrReportCallback callback)
 {
   m_srsSinrReportCallback.push_back (callback);
+}
+
+void
+NrSpectrumPhy::AddSrsSnrReportCallback (SrsSnrReportCallback callback)
+{
+  m_srsSnrReportCallback.push_back (callback);
 }
 
 // private

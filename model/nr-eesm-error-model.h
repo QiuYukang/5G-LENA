@@ -47,7 +47,8 @@ struct NrEesmErrorModelOutput : public NrErrorModelOutput
   {
   }
 
-  double m_sinrEff {0.0};   //!< Effective SINR
+  double m_sinrExp {0.0};   //!< Sum of exponential SINR (needed for HARQ-IR)
+  double m_sinrEff {0.0};   //!< The effective SINR (needed just for the test)
   SpectrumValue m_sinr;     //!< perceived SINRs in the whole bandwidth
   std::vector<int> m_map;   //!< map of the active RBs
   uint32_t m_infoBits {0};  //!< number of info bits
@@ -173,14 +174,35 @@ protected:
 
   /**
    * \brief compute the effective SINR for the specified MCS and SINR, according
-   * to the EESM method
+   * to the EESM method.
+   *
+   * The effective SINR computation follows a general formula, valid for HARQ-CC
+   * and HARQ-IR: SINReff = - beta * ln [1/b * (sum (exp (-sinr/beta)) + a)].
+   * Its implementation here is parametrized based on two parameters,
+   * a and b, whose value will depend on the HARQ method. For HARQ-CC, "a" MUST
+   * be 0.0, and "b" corresponds to the number of REGs to combine.
+   * For HARQ-IR, "a" corresponds to the sum of exponential SINRs up to previous
+   * retransmission, and "b" is the sum of REGs over the different retx.
    *
    * \param sinr the perceived sinrs in the whole bandwidth (vector, per RB)
    * \param map the actives RBs for the TB
    * \param mcs the MCS of the TB
+   * \param a the sum term to the exponential SINR
+   * \param b the denominator for the exponentials sum
    * \return the effective SINR
    */
-  double SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs) const;
+  double SinrEff (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs, double a, double b) const;
+
+  /**
+   * \brief compute the sum of exponential SINRs for the specified MCS and SINR, according
+   * to the EESM method, used in HARQ-IR
+   *
+   * \param sinr the perceived sinrs in the whole bandwidth (vector, per RB)
+   * \param map the actives RBs for the TB
+   * \param mcs the MCS of the TB
+   * \return the sum of exponential SINR
+   */
+  double SinrExp (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs) const;
 
   /**
    * \brief Compute the effective SINR after retransmission combining
