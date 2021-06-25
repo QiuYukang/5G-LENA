@@ -1153,8 +1153,19 @@ NrSpectrumPhy::EndRxData ()
           traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;
           traceParams.m_sinr = GetTBInfo(*itTb).m_sinrAvg;
           traceParams.m_sinrMin = GetTBInfo(*itTb).m_sinrMin;
-          traceParams.m_tbler = GetTBInfo(*itTb).m_outputOfEM->m_tbler;
-          traceParams.m_corrupt = GetTBInfo(*itTb).m_isCorrupted;
+          if (m_dataErrorModelEnabled)
+            {
+              traceParams.m_tbler = GetTBInfo (*itTb).m_outputOfEM->m_tbler;
+              traceParams.m_corrupt = GetTBInfo (*itTb).m_isCorrupted;
+            }
+          else
+            {
+              //when error model is disabled a received TB has no
+              //error, thus, TBLER would be 0 and it would be
+              //considered as not corrupt.
+              traceParams.m_tbler = 0;
+              traceParams.m_corrupt = false;
+            }
           traceParams.m_symStart = GetTBInfo(*itTb).m_expected.m_symStart;
           traceParams.m_numSym = GetTBInfo(*itTb).m_expected.m_numSym;
           traceParams.m_bwpId = GetBwpId ();
