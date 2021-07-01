@@ -161,8 +161,9 @@ UePacketTraceDb (UeToUePktTxRxOutputStats *stats, Ptr<Node> node, const Address 
   uint32_t nodeId = node->GetId ();
   uint64_t imsi = node->GetDevice (0)->GetObject<NrUeNetDevice> ()->GetImsi ();
   uint32_t seq = seqTsSizeHeader.GetSeq ();
+  uint32_t pktSize = p->GetSize () + seqTsSizeHeader.GetSerializedSize ();
 
-  stats->Save (txRx, localAddrs, nodeId, imsi, p, srcAddrs, dstAddrs, seq);
+  stats->Save (txRx, localAddrs, nodeId, imsi, pktSize, srcAddrs, dstAddrs, seq);
 }
 
 /*

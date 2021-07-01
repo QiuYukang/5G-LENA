@@ -59,12 +59,12 @@ UeToUePktTxRxOutputStats::SetDb (SQLiteOutput *db, const std::string &tableName)
 
 void
 UeToUePktTxRxOutputStats::Save (const std::string txRx, const Address &localAddrs,
-                                uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
+                                uint32_t nodeId, uint64_t imsi, uint32_t pktSize,
                                 const Address &srcAddrs, const Address &dstAddrs, uint32_t seq)
 {
   m_pktCache.emplace_back (UePacketResultCache (Simulator::Now ().GetNanoSeconds () / (double) 1e9,
                                                 txRx, localAddrs,
-                                                nodeId, imsi, p,
+                                                nodeId, imsi, pktSize,
                                                 srcAddrs, dstAddrs,
                                                 seq));
 
@@ -102,7 +102,7 @@ UeToUePktTxRxOutputStats::WriteCache ()
       NS_ABORT_UNLESS (ret);
       ret = m_db->Bind (stmt, 4, static_cast<uint32_t> (v.imsi));
       NS_ABORT_UNLESS (ret);
-      ret = m_db->Bind (stmt, 5, v.p->GetSize ());
+      ret = m_db->Bind (stmt, 5, v.pktSize);
       NS_ABORT_UNLESS (ret);
       if (InetSocketAddress::IsMatchingType (v.srcAddrs))
         {

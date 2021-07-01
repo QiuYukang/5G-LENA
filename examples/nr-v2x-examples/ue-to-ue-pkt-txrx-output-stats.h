@@ -84,12 +84,12 @@ public:
    * \param localAddrs The local IPV4 address of the node
    * \param nodeId The node id
    * \param imsi The IMSI
-   * \param p The packet
+   * \param pktSize The packet size
    * \param srcAddrs The source address from the trace
    * \param dstAddrs The destination address from the trace
    * \param seq The packet sequence number
    */
-  void Save (const std::string txRx, const Address &localAddrs, uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p, const Address &srcAddrs, const Address &dstAddrs, uint32_t seq);
+  void Save (const std::string txRx, const Address &localAddrs, uint32_t nodeId, uint64_t imsi, uint32_t pktSize, const Address &srcAddrs, const Address &dstAddrs, uint32_t seq);
 
   /**
    * \brief Force the cache write to disk, emptying the cache itself.
@@ -100,10 +100,10 @@ private:
   struct UePacketResultCache
   {
     UePacketResultCache (double timeSec, std::string txRx, Address localAddrs,
-                         uint32_t nodeId, uint64_t imsi, Ptr<const Packet> p,
+                         uint32_t nodeId, uint64_t imsi, uint32_t pktSize,
                          Address srcAddrs, Address dstAddrs, uint32_t seq)
       : timeSec (timeSec), txRx (txRx), localAddrs (localAddrs),
-      nodeId (nodeId), imsi (imsi), p (p), srcAddrs (srcAddrs),
+      nodeId (nodeId), imsi (imsi), pktSize (pktSize), srcAddrs (srcAddrs),
       dstAddrs (dstAddrs),
       seq (seq)
     {
@@ -114,7 +114,7 @@ private:
     Address localAddrs;
     uint32_t nodeId {std::numeric_limits <uint32_t>::max ()};
     uint64_t imsi {std::numeric_limits <uint64_t>::max ()};
-    Ptr<const Packet> p;
+    uint32_t pktSize;
     Address srcAddrs;
     Address dstAddrs;
     uint32_t seq {std::numeric_limits <uint32_t>::max ()};
