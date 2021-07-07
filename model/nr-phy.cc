@@ -213,21 +213,26 @@ NrPhy::DoDispose ()
   m_tddPattern.clear ();
   m_netDevice = nullptr;
   m_beamManager = nullptr;
-  if (m_spectrumPhy)
+
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
-      m_spectrumPhy->Dispose ();
+      if (m_spectrumPhys.at (panelIndex))
+        {
+          m_spectrumPhys.at (panelIndex)->Dispose ();
+        }
+      m_spectrumPhys.at (panelIndex) = nullptr;
     }
-  m_spectrumPhy = nullptr;
   delete m_phySapProvider;
 }
 
 void
-NrPhy::InstallAntenna (const Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna)
+NrPhy::InstallAntenna (const Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna, uint8_t panelIndex)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_spectrumPhy != nullptr);
+  NS_ABORT_MSG_IF (m_spectrumPhys.size () <= panelIndex, "Wrong panel index.");
+  NS_ASSERT (m_spectrumPhys.at (panelIndex) != nullptr);
   m_beamManager = beamManager;
-  m_beamManager->Configure(antenna);
+  m_beamManager->Configure (antenna, panelIndex);
 }
 
 void
@@ -552,21 +557,24 @@ NrPhy::DoUpdateRbNum ()
 
   NS_LOG_INFO ("Updated RbNum to " << GetRbNum ());
 
-  if (m_spectrumPhy)
+  if (m_spectrumPhys.size ())
     {
       // Update the noisePowerSpectralDensity, as it depends on m_rbNum
-      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+      for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+        {
+          m_spectrumPhys.at (panelIndex)->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
-      // once we have set noise power spectral density which will
-      // initialize SpectrumModel of our SpectrumPhy, we can
-      // call AddRx function of the SpectrumChannel
-      if (m_spectrumPhy->GetSpectrumChannel())
-        {
-          m_spectrumPhy->GetSpectrumChannel()->AddRx (m_spectrumPhy);
-        }
-      else
-        {
-          NS_LOG_WARN ("Working without channel (i.e., under test)");
+          // once we have set noise power spectral density which will
+          // initialize SpectrumModel of our SpectrumPhy, we can
+          // call AddRx function of the SpectrumChannel
+          if (m_spectrumPhys.at (panelIndex)->GetSpectrumChannel())
+            {
+              m_spectrumPhys.at (panelIndex)->GetSpectrumChannel()->AddRx (m_spectrumPhys.at (panelIndex));
+            }
+          else
+            {
+              NS_LOG_WARN ("Working without channel (i.e., under test)");
+            }
         }
       NS_LOG_INFO ("Noise Power Spectral Density updated");
     }
@@ -644,8 +652,8 @@ void
 NrPhy::InstallSpectrumPhy (const Ptr<NrSpectrumPhy> &spectrumPhy)
 {
   NS_LOG_FUNCTION (this);
-  NS_ABORT_IF (m_spectrumPhy != nullptr);
-  m_spectrumPhy = spectrumPhy;
+  m_spectrumPhys.push_back(spectrumPhy);
+  NS_LOG_INFO ("Added NrSpectrumPhy. Now this NrPhy has in total:"<< m_spectrumPhys.size() << " instances of NrSpectrumPhy");
 }
 
 void NrPhy::SetBwpId (uint16_t bwpId)
@@ -671,10 +679,17 @@ NrPhy::GetL1L2CtrlLatency() const
   return 2;
 }
 
-Ptr<NrSpectrumPhy>
-NrPhy::GetSpectrumPhy () const
+uint8_t
+NrPhy::GetNumberOfPanels () const
 {
-  return m_spectrumPhy;
+  return m_spectrumPhys.size ();
+}
+
+Ptr<NrSpectrumPhy>
+NrPhy::GetSpectrumPhy (uint8_t panelIndex) const
+{
+  NS_ABORT_MSG_IF (m_spectrumPhys.size () <= panelIndex, "The panel index is not valid.");
+  return m_spectrumPhys.at(panelIndex);
 }
 
 
@@ -874,9 +889,12 @@ NrPhy::SetNoiseFigure (double d)
 {
   m_noiseFigure = d;
 
-  if (m_spectrumPhy && GetRbNum()!=0)
+  if (m_spectrumPhys.size () > 0 && GetRbNum()!=0)
     {
-      m_spectrumPhy->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+      for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+        {
+          m_spectrumPhys.at (panelIndex)->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+        }
     }
 }
 

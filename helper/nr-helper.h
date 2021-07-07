@@ -238,7 +238,8 @@ public:
    *
    */
   NetDeviceContainer InstallUeDevice (const NodeContainer &c,
-                                      const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> &allBwps);
+                                      const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> &allBwps,
+                                      uint8_t numberOfPanels = 1);
   /**
    * \brief Install one (or more) GNBs
    * \param c Node container with the GNB
@@ -246,7 +247,8 @@ public:
    * \return a NetDeviceContainer with the net devices that have been installed.
    */
   NetDeviceContainer InstallGnbDevice (const NodeContainer &c,
-                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+                                       uint8_t numberOfPanels = 1);
 
   /**
    * \brief Get the number of configured BWP for a specific GNB NetDevice
@@ -746,7 +748,8 @@ private:
 
   Ptr<NrGnbPhy> CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                   const Ptr<NrGnbNetDevice> &dev,
-                                  const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyEndCtrlCallback);
+                                  const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyEndCtrlCallback,
+                                  uint8_t numberOfPanels);
   Ptr<NrMacScheduler> CreateGnbSched ();
   Ptr<NrGnbMac> CreateGnbMac ();
 
@@ -754,12 +757,15 @@ private:
   Ptr<NrUePhy> CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                 const Ptr<NrUeNetDevice> &dev,
                                 const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback &dlHarqCallback,
-                                const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback);
+                                const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback,
+                                uint8_t numberOfPanels);
 
   Ptr<NetDevice> InstallSingleUeDevice (const Ptr<Node> &n,
-                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+                                        uint8_t numberOfPanels);
   Ptr<NetDevice> InstallSingleGnbDevice (const Ptr<Node> &n,
-                                         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+                                         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+                                         uint8_t numberOfPanels);
   void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
   void EnableDlPhyTrace ();
   void EnableUlPhyTrace ();

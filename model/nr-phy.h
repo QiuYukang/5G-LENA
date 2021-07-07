@@ -167,10 +167,11 @@ public:
    * \brief Install the antenna in the PHY
    * \param beamManager BeamManager instance of this PHY
    * \param antenna pointer to the antenna model
+   * \param panelIndex the index of the panel for which we install this antenna
    *
    * Usually called by the helper. It will install a new BeamManager object.
    */
-  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna);
+  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna, uint8_t panelIndex = 0);
 
   // Note: Returning a BeamManger, it means that someone outside this class
   // can change the beamforming vector, BUT the phy will not learn it.
@@ -281,13 +282,19 @@ public:
   double GetRbOverhead () const;
 
   /**
+   * \brief Returns the number of panels, which corresponds to the number of NrSpectrumPhys
+   */
+  uint8_t GetNumberOfPanels () const;
+
+  /**
    * \brief Retrieve the SpectrumPhy pointer
    *
    * As this function is used mainly to get traced values out of Spectrum,
    * it should be removed and the traces connected (and redirected) here.
+   * \param panelIndex the index of the panel of which we will return the SpectrumPhy
    * \return A pointer to the SpectrumPhy of this UE
    */
-  Ptr<NrSpectrumPhy> GetSpectrumPhy () const;
+  Ptr<NrSpectrumPhy> GetSpectrumPhy (uint8_t panelIndex = 0) const;
 
   /**
    * \brief Set the SpectrumPhy associated with this PHY
@@ -582,7 +589,7 @@ protected:
 
 protected:
   Ptr<NrNetDevice> m_netDevice;      //!< Pointer to the owner netDevice.
-  Ptr<NrSpectrumPhy> m_spectrumPhy;  //!< Pointed to the (owned) spectrum phy
+  std::vector<Ptr<NrSpectrumPhy>> m_spectrumPhys;  //!< vector to the (owned) spectrum phy instances
 
   double m_txPower {0.0};                //!< Transmission power (attribute)
   double m_noiseFigure {0.0};            //!< Noise figure (attribute)

@@ -37,8 +37,9 @@ BeamManager::BeamManager() {
 }
 
 void
-BeamManager::Configure (const Ptr<UniformPlanarArray>& antennaArray)
+BeamManager::Configure (const Ptr<UniformPlanarArray>& antennaArray, uint8_t panelIndex)
 {
+  // TODO use panel index parameter to configure the antenna array
   m_antennaArray = antennaArray;
   ChangeToQuasiOmniBeamformingVector ();
 }

@@ -79,8 +79,9 @@ public:
    * \brief Configures quasi-omni beamforming vector
    *
    * \param antennaArray the antenna array
+   * \param panelIndex the index of the panel
    */
-  void Configure (const Ptr<UniformPlanarArray>& antennaArray);
+  void Configure (const Ptr<UniformPlanarArray>& antennaArray, uint8_t panelIndex);
 
   /**
    * \brief Get weight vector from a BeamformingVector

@@ -23,6 +23,8 @@
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/trace-source-accessor.h>
 #include "nr-gnb-net-device.h"
+#include "nr-gnb-phy.h"
+#include "nr-ue-phy.h"
 #include "nr-ue-net-device.h"
 #include "nr-lte-mi-error-model.h"
 #include "ns3/uniform-planar-array.h"
@@ -269,6 +271,7 @@ NrSpectrumPhy::GetAntenna () const
   NS_LOG_FUNCTION (this);
   return m_antenna;
 }
+
 // set/get attributes
 
 
@@ -655,6 +658,34 @@ NrSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
   m_sinrPerceived = sinr;
 }
 
+
+void
+NrSpectrumPhy::GenerateDataCqiReport (const SpectrumValue& sinr)
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<const NrGnbPhy> phy = (DynamicCast<const NrGnbPhy>(m_phy));
+  NS_ABORT_MSG_UNLESS (phy, "This function should only be called for NrSpectrumPhy belonging to NrGnbPhy");
+  phy->GenerateDataCqiReport (sinr, m_streamId);
+}
+
+void
+NrSpectrumPhy::ReportRsReceivedPower (const SpectrumValue& power)
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
+  NS_ABORT_MSG_UNLESS (phy, "This function should only be called for NrSpectrumPhy belonging to NrUEPhy");
+  phy->ReportRsReceivedPower (power, m_streamId);
+}
+
+void
+NrSpectrumPhy::GenerateDlCqiReport (const SpectrumValue& sinr)
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
+  NS_ABORT_MSG_UNLESS (phy, "This function should only be called for NrSpectrumPhy belonging to NrUEPhy");
+  phy->GenerateDlCqiReport (sinr, m_streamId);
+}
+
 void
 NrSpectrumPhy::InstallHarqPhyModule (const Ptr<NrHarqPhy>& harq)
 {
@@ -732,6 +763,12 @@ void
 NrSpectrumPhy::AddSrsSnrReportCallback (SrsSnrReportCallback callback)
 {
   m_srsSnrReportCallback.push_back (callback);
+}
+
+uint8_t
+NrSpectrumPhy::GetStreamId () const
+{
+  return m_streamId;
 }
 
 // private

@@ -157,15 +157,14 @@ public:
   Ptr<MobilityModel> GetMobility () const override;
   void SetChannel (Ptr<SpectrumChannel> c) override;
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
+
   /**
    * \brief Inherited from SpectrumPhy
-   * Note: Implements GetAntenna function from SpectrumPhy. This
-   * function should not be called for NR devices, since NR devices do not use
-   * AntennaModel. This is because 3gpp channel model implementation only
-   * supports PhasedArrayModel antenna type.
-   * \return should not return anything
+   * Note: Implements GetAntenna function from SpectrumPhy.
+   * \return Antenna of this NrSpectrumPhy
    */
   virtual Ptr<Object> GetAntenna () const override;
+
   /**
    * \brief Inherited from SpectrumPhy. When this function is called
    * this spectrum phy starts receiving a signal from its spectrum channel.
@@ -259,18 +258,42 @@ public:
   void UpdateSinrPerceived (const SpectrumValue& sinr);
 
   /**
+   * \brief Generate a DL CQI report
+   *
+   * Connected by the helper to a callback in corresponding ChunkProcessor
+   *
+   * \param sinr the SINR
+   */
+  void GenerateDataCqiReport (const SpectrumValue& sinr);
+
+  /**
+   * \brief Called when rsReceivedPower is fired
+   * \param power the power received
+   */
+  void ReportRsReceivedPower (const SpectrumValue& power);
+
+  /**
+   * \brief Generates a DL CQI report at this NrSpectrumPhy
+   *
+   * Connected by the helper to a callback in corresponding ChunkProcessor
+   *
+   * \param sinr the SINR
+   */
+  void GenerateDlCqiReport (const SpectrumValue& sinr);
+
+  /**
     * \brief SpectrumPhy that will be called when the SINR for the received
     * SRS at gNB is being calculated by the interference object over SRS chunk
     * processor
     * \param sinr the resulting SRS SINR spectrum value
     */
-   void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
+  void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
    /**
      * \brief SpectrumPhy that will be called when the SNR for the received
      * SRS at gNB is being calculated
      * \param snr the resulting SRS SNR
      */
-    void UpdateSrsSnrPerceived (const double srsSnr);
+  void UpdateSrsSnrPerceived (const double srsSnr);
   /**
    * \brief Install HARQ phy module of this spectrum phy
    * \param harq Harq module of this spectrum phy
@@ -360,6 +383,17 @@ public:
    * \param callback callback to be added to the list of callbacks
    */
   void AddSrsSnrReportCallback (SrsSnrReportCallback callback);
+  /**
+   * \brief Get stream id of this NrSpectrumPhy
+   *
+   * Stream id is introduced to support MIMO. In MIMO, there will be one
+   * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
+   * to assign the stream id to each new instance. Stream id, starts from
+   * 0 and ends at "total number of streams - 1".
+   *
+   * \return streamId The stream id
+   */
+  uint8_t GetStreamId () const;
 
 protected:
   /**
@@ -551,6 +585,8 @@ private:
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
+
+  uint8_t m_streamId;
 };
 
 }

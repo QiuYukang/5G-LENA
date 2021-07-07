@@ -46,6 +46,7 @@
 #include <ns3/double.h>
 #include <ns3/boolean.h>
 #include "beam-manager.h"
+#include <ns3/object-vector.h>
 
 namespace ns3 {
 
@@ -116,12 +117,6 @@ NrGnbPhy::GetTypeId (void)
                    MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
                                      NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
                                    ))
-    .AddAttribute ("SpectrumPhy",
-                   "The downlink NrSpectrumPhy associated to this NrPhy",
-                   TypeId::ATTR_GET,
-                   PointerValue (),
-                   MakePointerAccessor (&NrPhy::GetSpectrumPhy),
-                   MakePointerChecker <NrSpectrumPhy> ())
     .AddTraceSource ("UlSinrTrace",
                      "UL SINR statistics.",
                      MakeTraceSourceAccessor (&NrGnbPhy::m_ulSinrTrace),
@@ -177,6 +172,10 @@ NrGnbPhy::GetTypeId (void)
                    MakeStringAccessor (&NrGnbPhy::SetPattern,
                                        &NrGnbPhy::GetPattern),
                    MakeStringChecker ())
+    .AddAttribute ("NrSpectrumPhyList", "List of all SpectrumPhy instances of this NrUePhy.",
+                   ObjectVectorValue (),
+                   MakeObjectVectorAccessor (&NrGnbPhy::m_spectrumPhys),
+                   MakeObjectVectorChecker<NrSpectrumPhy> ())
     .AddTraceSource ("SlotDataStats",
                      "Data statistics for the current slot: SfnSf, active UE, used RE, "
                      "used symbols, available RBs, available symbols, bwp ID, cell ID",
@@ -603,7 +602,11 @@ NrGnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
   NS_ASSERT (txPsd);
-  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      m_spectrumPhys.at(panelIndex)->SetTxPowerSpectralDensity (txPsd);
+    }
+
 }
 
 void
@@ -1259,10 +1262,14 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
-                                FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                dci->m_harqProcess, dci->m_rv, false,
-                                dci->m_symStart, dci->m_numSym, m_currentSlot);
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      // TODO pass the TB of the correct stream/panel after the merge with the MAC changes for MIMO
+      m_spectrumPhys.at(panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+                                                    FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                                    dci->m_harqProcess, dci->m_rv, false,
+                                                    dci->m_symStart, dci->m_numSym, m_currentSlot);
+    }
 
   bool found = false;
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
@@ -1300,7 +1307,10 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedSrsRnti (dci->m_rnti);
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      m_spectrumPhys.at(panelIndex)->AddExpectedSrsRnti (dci->m_rnti);
+    }
 
   bool found = false;
   uint16_t notValidRntiCounter = 0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
@@ -1444,7 +1454,11 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)));
 
   std::list<Ptr<NrControlMessage> > ctrlMsgs;
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      // TODO pass the correct packet burst after the merge with the MAC changes for MIMO
+      m_spectrumPhys.at(0)->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
+    }
 }
 
 void
@@ -1460,8 +1474,8 @@ NrGnbPhy::SendCtrlChannels (const Time &varTtiPeriod)
     }
 
   SetSubChannels (fullBwRb);
-
-  m_spectrumPhy->StartTxDlControlFrames (m_ctrlMsgs, varTtiPeriod);
+  // DL control will be transmitted only through a single panel, we assume that it is the first one
+  m_spectrumPhys.at(0)->StartTxDlControlFrames (m_ctrlMsgs, varTtiPeriod);
   m_ctrlMsgs.clear ();
 }
 
@@ -1496,7 +1510,7 @@ NrGnbPhy::PhyDataPacketReceived (const Ptr<Packet> &p)
 }
 
 void
-NrGnbPhy::GenerateDataCqiReport (const SpectrumValue& sinr)
+NrGnbPhy::GenerateDataCqiReport (const SpectrumValue& sinr, uint8_t streamId) const
 {
   NS_LOG_FUNCTION (this << sinr);
 

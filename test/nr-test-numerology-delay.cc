@@ -272,10 +272,10 @@ NrTestNumerologyDelayCase1::DoRun (void)
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
                    MakeBoundCallback (&LteTestDlSchedCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPacketTraceUe",
                    MakeBoundCallback (&LteTestRxPacketUeCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/TxPacketTraceEnb",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/TxPacketTraceEnb",
                    MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
 
   Simulator::Schedule (MilliSeconds (200), &ConnectRlcPdcpTraces, this);

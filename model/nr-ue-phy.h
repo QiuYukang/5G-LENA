@@ -240,8 +240,9 @@ public:
    * Connected by the helper to a callback in corresponding ChunkProcessor
    *
    * \param sinr the SINR
+   * \param panelIndex the index of the panel for which is reported this SINR
    */
-  void GenerateDlCqiReport (const SpectrumValue& sinr);
+  void GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex);
 
   /**
    * \brief Get the current RNTI of the user
@@ -350,9 +351,11 @@ public:
   virtual void ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subframe, uint16_t slot) override;
 
   /**
-   * \brief Called when rsReceivedPower is
+   * \brief Called when rsReceivedPower is fired
+   * \param power the power received
+   * \param panelIndex the index of the panel from which is called this function
    */
-  void ReportRsReceivedPower (const SpectrumValue& power);
+  void ReportRsReceivedPower (const SpectrumValue& power, uint8_t panelIndex);
 
   /**
    * \brief TracedCallback signature for power trace source

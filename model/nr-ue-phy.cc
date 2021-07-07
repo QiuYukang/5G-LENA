@@ -41,6 +41,7 @@
 #include "nr-ue-net-device.h"
 #include "nr-ch-access-manager.h"
 #include "nr-ue-power-control.h"
+#include <ns3/object-vector.h>
 
 namespace ns3 {
 
@@ -90,7 +91,7 @@ NrUePhy::GetTypeId (void)
                    DoubleValue (5.0), // nr code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
                    MakeDoubleAccessor (&NrUePhy::m_noiseFigure),
                    MakeDoubleChecker<double> ())
-     .AddAttribute ("PowerAllocationType",
+    .AddAttribute ("PowerAllocationType",
                     "Defines the type of the power allocation. Currently are supported "
                     "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
                     "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
@@ -102,12 +103,6 @@ NrUePhy::GetTypeId (void)
                     MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
                                       NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
                                     ))
-    .AddAttribute ("SpectrumPhy",
-                   "The SpectrumPhy associated to this NrPhy",
-                   TypeId::ATTR_GET,
-                   PointerValue (),
-                   MakePointerAccessor (&NrPhy::GetSpectrumPhy),
-                   MakePointerChecker <NrSpectrumPhy> ())
     .AddAttribute ("LBTThresholdForCtrl",
                    "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
                    TimeValue (MicroSeconds (25)),
@@ -128,6 +123,10 @@ NrUePhy::GetTypeId (void)
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
                      "ns3::CurrentCellRsrpSinr::TracedCallback")
+    .AddAttribute ("NrSpectrumPhyList", "List of all SpectrumPhy instances of this NrUePhy.",
+                    ObjectVectorValue (),
+                    MakeObjectVectorAccessor (&NrUePhy::m_spectrumPhys),
+                    MakeObjectVectorChecker<NrSpectrumPhy> ())
     .AddTraceSource ("ReportUplinkTbSize",
                      "Report allocated uplink TB size for trace.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportUlTbSize),
@@ -239,7 +238,10 @@ NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t 
   NS_ASSERT (txPsd);
 
   m_reportPowerSpectralDensity (m_currentSlot, txPsd, numSym * GetSymbolPeriod (), m_rnti, m_imsi, GetBwpId (), GetCellId ());
-  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      m_spectrumPhys.at(panelIndex)->SetTxPowerSpectralDensity (txPsd);
+    }
 }
 
 void
@@ -779,7 +781,11 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
   srsMsg.push_back (srs);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+  // SRS will be transmitted over all panels/streams
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      m_spectrumPhys.at (panelIndex)->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+    }
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL SRS frame for symbols " <<
                   +dci->m_symStart << "-" <<
@@ -866,10 +872,14 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_receptionEnabled = true;
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
-                                        FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                        dci->m_harqProcess, dci->m_rv, true,
-                                        dci->m_symStart, dci->m_numSym, m_currentSlot);
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      // TODO after merge qith MAC for MIMO we need to pass the correct TB size info
+      m_spectrumPhys.at (panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
+                                           FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                           dci->m_harqProcess, dci->m_rv, true,
+                                           dci->m_symStart, dci->m_numSym, m_currentSlot);
+    }
   m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL DATA frame for"
@@ -1018,13 +1028,15 @@ NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
         }
     }
 
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration);
+  // TODO Uplink will be sent only through a single panel, the first is assumed, but confirm after the merge with MAC MIMO part
+  m_spectrumPhys.at (0)->StartTxDataFrames (pb, ctrlMsg, duration);
 }
 
 void
 NrUePhy::SendCtrlChannels (Time prd)
 {
-  m_spectrumPhy->StartTxUlControlFrames (m_ctrlMsgs, prd);
+  // TODO Uplink will be sent only through a single panel, the first is assumed, but confirm after the merge with MAC MIMO part
+  m_spectrumPhys.at (0)->StartTxUlControlFrames (m_ctrlMsgs, prd);
   m_ctrlMsgs.clear ();
 }
 
@@ -1051,9 +1063,12 @@ NrUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
 }
 
 void
-NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
+NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
 {
   NS_LOG_FUNCTION (this);
+
+  // TODO use the panel index attribute
+
   // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
@@ -1160,7 +1175,6 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   DoSetInitialBandwidth ();
 }
 
-
 BeamId
 NrUePhy::GetBeamId ([[maybe_unused]] uint16_t rnti) const
 {
@@ -1178,9 +1192,12 @@ NrUePhy::ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subfra
 }
 
 void
-NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
+NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t panelIndex)
 {
   NS_LOG_FUNCTION (this << rsReceivedPower);
+
+  // TODO use panelIndex
+
   m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
   NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
   if (m_enableUplinkPowerControl)

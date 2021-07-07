@@ -246,8 +246,9 @@ public:
    * Connected by the helper to a callback in corresponding ChunkProcessor
    *
    * \param sinr the SINR
+   * \param streamId the index of the stream
    */
-  void GenerateDataCqiReport (const SpectrumValue& sinr);
+  void GenerateDataCqiReport (const SpectrumValue& sinr, uint8_t streamId) const;
 
   /**
    * \brief Receive a list of CTRL messages
