@@ -1544,10 +1544,10 @@ NR-U extension
 **************
 TBC
 
-
 NR V2X extension
 ****************
-.. include:: nr-sidelink-design.inc
+
+.. include:: nr-v2x-design.inc
 
 
 Scope and Limitations
@@ -1946,7 +1946,13 @@ The output is saved in database (simulation configuration and average SINR).
 The database is created in the root project directory if not configured differently.
 
 The complete details of the simulation script are provided in 
-https://cttc-lena.gitlab.io/nr/html/cttc-realistic-beamforming_8cc.html. 
+https://cttc-lena.gitlab.io/nr/html/cttc-realistic-beamforming_8cc.html.
+
+
+NR V2X Examples
+***************
+
+.. include:: nr-v2x-usage.inc
 
 .. _Validation:
 

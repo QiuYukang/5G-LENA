@@ -13,9 +13,9 @@ FIGURES = $(SOURCE)/figures
 IMAGES_DIA = \
 	$(FIGURES)/ulpc/nr-clpc.dia \
 	$(FIGURES)/rbf-impl.dia \
+	$(FIGURES)/nr-sl-arch-ue-data-plane.dia \
+	$(FIGURES)/nr-sl-arch-ue-ctrl-plane.dia \
 #	$(FIGURES)/*.dia
-	$(FIGURES)/nr-sl-arch-ue-data-plane.dia\
-	$(FIGURES)/nr-sl-arch-ue-ctrl-plane.dia\
 
 
 # specify eps figures from which .png and .pdf figures need to be built
