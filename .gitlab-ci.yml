@@ -12,7 +12,7 @@ stages:
 .base-build:
   stage: build
   script:
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone https://gitlab.com/cttc-lena/ns-3-dev.git
     - mkdir -p $CCACHE_BASEDIR_VALUE
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
@@ -21,6 +21,7 @@ stages:
     - cp -r wscript ns-3-dev/contrib/nr/
     - cd ns-3-dev
     - git log -1
+    - git checkout v2x-lte-dev
     - CXX="ccache $COMPILER" ./waf configure --enable-examples --enable-tests -d $MODE
     - ./waf
     - ./test.py
