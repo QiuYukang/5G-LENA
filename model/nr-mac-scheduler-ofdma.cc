@@ -202,7 +202,19 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              if (GetUe (*schedInfoIt)->m_dlTbSize >= std::max (bufQueueSize, 7U))
+              uint32_t tbSize = GetUe (*schedInfoIt)->m_dlTbSize.at (0);
+              if (GetUe (*schedInfoIt)->m_dlCqi.m_ri == 2)
+                {
+                  if (GetUe (*schedInfoIt)->m_dlTbSize.size () == 1)
+                    {
+                      //scheduling first time the TB of the second stream
+                      GetUe (*schedInfoIt)->m_dlTbSize.push_back (0);
+                    }
+                  //if there are two streams we add the TbSizes of the two
+                  //streams to satisfy the bufQueueSize
+                  tbSize += GetUe (*schedInfoIt)->m_dlTbSize.at (1);
+                }
+              if (tbSize >= std::max (bufQueueSize, 7U))
                 {
                   schedInfoIt++;
                 }
@@ -233,6 +245,11 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
           NS_LOG_DEBUG ("Assigned " << rbgAssignable <<
                         " DL RBG, spanned over " << beamSym << " SYM, to UE " <<
                         GetUe (*schedInfoIt)->m_rnti);
+          //Following call to AssignedDlResources would update the
+          //TB size in the NrMacSchedulerUeInfo of this particular UE
+          //according the Rank Indicator reported by it. Only one call
+          //to this method is enough even if the UE reported rank indicator 2,
+          //since the number of RBG assigned to both the streams are the same.
           AssignedDlResources (*schedInfoIt, FTResources (rbgAssignable, beamSym),
                                assigned);
 
@@ -361,16 +378,46 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
 {
   NS_LOG_FUNCTION (this);
 
-  uint32_t tbs = m_dlAmc->CalculateTbSize (ueInfo->m_dlMcs,
-                                           ueInfo->m_dlRBG * GetNumRbPerRbg ());
+  bool isLessThan7B = false;
+
+  //we do not need to recalculate the TB size here because we already
+  //computed it in side the method AssignDLRBG called before this method.
+  //otherwise, we need to repeat the logic of NrMacSchedulerUeInfo::UpdateDlMetric
+  //here to cover MIMO
+
+  //Due to MIMO implementation MCS, TB size, ndi, rv, are vectors
+  std::vector<uint8_t> ndi;
+  ndi.resize (ueInfo->m_dlTbSize.size ());
+  std::vector<uint8_t> rv;
+  rv.resize (ueInfo->m_dlTbSize.size ());
+
+  for (uint32_t numTb = 0; numTb < ueInfo->m_dlTbSize.size (); numTb++)
+    {
+      uint32_t tbs = ueInfo->m_dlTbSize.at (numTb);
+      if (tbs < 7)
+        {
+          isLessThan7B = true;
+          NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
+                        " stream " << numTb << " assigned " << ueInfo->m_dlRBG <<
+                        " DL RBG, but TBS < 7, reseting its size to zero in UE info");
+          ueInfo->m_dlTbSize.at (numTb) = 0;
+          ndi.at (numTb) = 0;
+          rv.at (numTb) = 0;
+          continue;
+        }
+      ndi.at (numTb) = 1;
+      rv.at (numTb) = 0;
+      isLessThan7B = false;
+    }
+
   NS_ASSERT_MSG (ueInfo->m_dlRBG % maxSym == 0, " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
   NS_ASSERT (ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg ());
   NS_ASSERT (spoint->m_rbg < GetBandwidthInRbg ());
   NS_ASSERT (maxSym <= UINT8_MAX);
 
-  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
-  // transmit any new data, so don't create dci.
-  if (tbs < 7)
+  //If the TB size of any stream is less than 7 (3 mac header, 2 rlc header, 2 data),
+  //then we can't transmit any new data, so don't create dci.
+  if (isLessThan7B)
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
                     " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 7");
@@ -422,9 +469,10 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
                static_cast<uint32_t> (spoint->m_rbg) << " with mask " <<
                oss.str () << " for " << static_cast<uint32_t> (maxSym) << " SYM.");
 
+
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
       (ueInfo->m_rnti, DciInfoElementTdma::DL, spoint->m_sym, maxSym, ueInfo->m_dlMcs,
-       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId (), GetTpc());
+       ueInfo->m_dlTbSize, ndi, rv, DciInfoElementTdma::DATA, GetBwpId (), GetTpc());
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 
@@ -495,10 +543,16 @@ NrMacSchedulerOfdma::CreateUlDci (PointInFTPlane *spoint,
                static_cast<uint32_t> (spoint->m_rbg + assigned) << " for " <<
                static_cast<uint32_t> (maxSym) << " SYM.");
 
+  //Due to MIMO implementation MCS, TB size, ndi, rv, are vectors
+  std::vector<uint8_t> ulMcs = {ueInfo->m_ulMcs};
+  std::vector<uint32_t> ulTbs = {tbs};
+  std::vector<uint8_t> ndi = {1};
+  std::vector<uint8_t> rv = {0};
+
   NS_ASSERT (spoint->m_sym >= maxSym);
   std::shared_ptr<DciInfoElementTdma> dci = std::make_shared<DciInfoElementTdma>
-      (ueInfo->m_rnti, DciInfoElementTdma::UL, spoint->m_sym - maxSym, maxSym, ueInfo->m_ulMcs,
-       tbs, 1, 0, DciInfoElementTdma::DATA, GetBwpId (), GetTpc());
+      (ueInfo->m_rnti, DciInfoElementTdma::UL, spoint->m_sym - maxSym, maxSym, ulMcs,
+       ulTbs, ndi, rv, DciInfoElementTdma::DATA, GetBwpId (), GetTpc());
 
   dci->m_rbgBitmask = std::move (rbgBitmask);
 

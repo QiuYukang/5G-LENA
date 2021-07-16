@@ -113,10 +113,11 @@ public:
    * \param p the MAC PDU
    * \param sfn The SfnSf at which store the PDU
    * \param symStart The symbol inside the SfnSf at which the data will be transmitted
+   * \param streamId The stream id through which this pkt would be transmitted
    *
    * It will be saved in the PacketBurst map following the SfnSf present in the tag.
    */
-  void SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart);
+  void SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId);
 
   /**
    * \brief Send the RachPreamble
@@ -491,9 +492,10 @@ protected:
   /**
    * \brief Retrieve the PacketBurst at the slot/symbol specified
    * \param sym Symbol at which the PacketBurst should be sent
+   * \param streamId The stream id through which this pkt burst would be transmitted
    * \return a pointer to the burst, if present, otherwise nullptr
    */
-  Ptr<PacketBurst> GetPacketBurst (SfnSf sf, uint8_t sym);
+  Ptr<PacketBurst> GetPacketBurst (SfnSf sf, uint8_t sym, uint8_t streamId);
 
   /**
    * \brief Create Noise Power Spectral density

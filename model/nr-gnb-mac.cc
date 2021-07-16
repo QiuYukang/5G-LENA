@@ -943,20 +943,23 @@ NrGnbMac::DoDlHarqFeedback (const DlHarqInfo &params)
   std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it =  m_miDlHarqProcessesPackets.find (params.m_rnti);
   NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
 
-  if (params.m_harqStatus == DlHarqInfo::ACK)
+  for (uint8_t stream = 0; stream < params.m_harqStatus.size (); stream++)
     {
-      // discard buffer
-      Ptr<PacketBurst> emptyBuf = CreateObject <PacketBurst> ();
-      (*it).second.at (params.m_harqProcessId).m_pktBurst = emptyBuf;
-      NS_LOG_DEBUG (this << " HARQ-ACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
-    }
-  else if (params.m_harqStatus == DlHarqInfo::NACK)
-    {
-      NS_LOG_DEBUG (this << " HARQ-NACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
-    }
-  else
-    {
-      NS_FATAL_ERROR (" HARQ functionality not implemented");
+      if (params.m_harqStatus.at (stream) == DlHarqInfo::ACK)
+          {
+            // discard buffer
+            Ptr<PacketBurst> emptyBuf = CreateObject <PacketBurst> ();
+            (*it).second.at (params.m_harqProcessId).m_infoPerStream.at (stream).m_pktBurst = emptyBuf;
+            NS_LOG_DEBUG (this << " HARQ-ACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
+          }
+        else if (params.m_harqStatus.at (stream) == DlHarqInfo::NACK)
+          {
+            NS_LOG_DEBUG (this << " HARQ-NACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
+          }
+        else
+          {
+            NS_FATAL_ERROR (" HARQ functionality not implemented");
+          }
     }
 
   /* trace for HARQ feedback*/
@@ -1001,16 +1004,16 @@ NrGnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
 
   params.pdu->AddHeader (header);
 
-  LteRadioBearerTag bearerTag (params.rnti, params.lcid, 0);
+  LteRadioBearerTag bearerTag (params.rnti, params.lcid, params.layer);
   params.pdu->AddPacketTag (bearerTag);
 
-  harqIt->second.at (params.harqProcessId).m_pktBurst->AddPacket (params.pdu);
+  harqIt->second.at (params.harqProcessId).m_infoPerStream.at (params.layer).m_pktBurst->AddPacket (params.pdu);
 
   it->second.m_used += params.pdu->GetSize ();
-  NS_ASSERT_MSG (it->second.m_dci->m_tbSize >= it->second.m_used,
-                 "DCI OF " << it->second.m_dci->m_tbSize << " total used " << it->second.m_used);
+  NS_ASSERT_MSG (it->second.m_maxBytes >= it->second.m_used,
+                 "DCI OF " << it->second.m_maxBytes << " total used " << it->second.m_used);
 
-  m_phySapProvider->SendMacPdu (params.pdu, it->second.m_sfnSf, it->second.m_dci->m_symStart);
+  m_phySapProvider->SendMacPdu (params.pdu, it->second.m_sfnSf, it->second.m_dci->m_symStart, params.layer);
 }
 
 void
@@ -1072,7 +1075,90 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
           auto dciElem = varTtiAllocInfo.m_dci;
           uint8_t tbUid = dciElem->m_harqProcess;
 
+          std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator harqIt = m_miDlHarqProcessesPackets.find (rnti);
+          NS_ASSERT (harqIt != m_miDlHarqProcessesPackets.end ());
+
+          std::pair <std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet;
+
+          //for new data first force emptying correspondent harq pkt buffer
+          for (uint8_t stream = 0; stream < dciElem->m_ndi.size (); stream++)
+            {
+              if (dciElem->m_ndi.at (stream) == 1)
+                {
+                  NS_ASSERT (dciElem->m_tbSize.at (stream) > 0);
+                  //if any of the stream is carrying new data
+                  //we refresh the info for all the streams in the
+                  //HARQ buffer.
+                  for (auto &it:harqIt->second.at (tbUid).m_infoPerStream)
+                    {
+                      Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+                      it.m_pktBurst = pb;
+                      it.m_lcidList.clear ();
+                    }
+                  //now push the NrMacPduInfo into m_macPduMap
+                  //which would be used to extract info while
+                  //giving the PDU to the PHY in DoTransmitPdu.
+                  //it is done for only new data.
+                  NrMacPduInfo macPduInfo (ind.m_sfnSf, dciElem);
+                  //insert into MAC PDU map
+                  uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
+                  mapRet = m_macPduMap.insert (std::pair<uint32_t, struct NrMacPduInfo> (tbMapKey, macPduInfo));
+                  if (!mapRet.second)
+                    {
+                      NS_FATAL_ERROR ("MAC PDU map element exists");
+                    }
+                  break;
+                }
+            }
+
+          //for each LC j
+          for (uint16_t j = 0; j < varTtiAllocInfo.m_rlcPduInfo.size (); j++)
+            {
+              //for each stream k of LC j
+              for (uint8_t k = 0; k < varTtiAllocInfo.m_rlcPduInfo.at (j).size (); k++)
+                {
+                  if (dciElem->m_ndi.at (k) == 1)
+                    {
+                      auto rlcPduInfo = varTtiAllocInfo.m_rlcPduInfo.at (j).at (k);
+                      std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (rlcPduInfo.m_lcid);
+                      NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << rlcPduInfo.m_lcid);
+                      NS_LOG_DEBUG ("Notifying RLC of TX opportunity for TB " << (unsigned int)tbUid
+                                    << " LC ID " << +rlcPduInfo.m_lcid << " stream " << +k
+                                    << " size " << (unsigned int) rlcPduInfo.m_size << " bytes");
+
+                      (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo.m_size), k, tbUid, GetBwpId (), rnti, rlcPduInfo.m_lcid));
+                      harqIt->second.at (tbUid).m_infoPerStream.at (k).m_lcidList.push_back (rlcPduInfo.m_lcid);
+                    }
+                  else
+                    {
+                      if (varTtiAllocInfo.m_dci->m_tbSize.at (k) > 0)
+                        {
+                          Ptr<PacketBurst> pb = harqIt->second.at (tbUid).m_infoPerStream.at (k).m_pktBurst;
+                          for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
+                            {
+                              Ptr<Packet> pkt = (*j)->Copy ();
+                              m_phySapProvider->SendMacPdu (pkt, ind.m_sfnSf, dciElem->m_symStart, k);
+                            }
+                        }
+                    }
+                }
+            }
+
+          if (mapRet.second)
+            {
+              m_macPduMap.erase (mapRet.first);    // delete map entry
+            }
+
+          for (uint16_t stream = 0; stream < dciElem->m_tbSize.size (); stream++)
+            {
+              m_dlScheduling (ind.m_sfnSf.GetFrame (), ind.m_sfnSf.GetSubframe (), ind.m_sfnSf.GetSlot (),
+                              dciElem->m_tbSize.at (stream), dciElem->m_mcs.at (stream), dciElem->m_rnti, GetBwpId ());
+            }
+
+
+
           // update Harq Processes
+          /*
           if (dciElem->m_ndi == 1)
             {
               NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
@@ -1120,13 +1206,17 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
                   std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (rnti);
                   NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
                   Ptr<PacketBurst> pb = it->second.at (tbUid).m_pktBurst;
+                  //The following parameter will be removed once
+                  //MIMO MAC layer implementation would be merged
+                  //with MIMO PHY layer implementation
+                  uint8_t streamId = 0;
                   for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
                     {
                       Ptr<Packet> pkt = (*j)->Copy ();
-                      m_phySapProvider->SendMacPdu (pkt, ind.m_sfnSf, dciElem->m_symStart);
+                      m_phySapProvider->SendMacPdu (pkt, ind.m_sfnSf, dciElem->m_symStart, streamId);
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -1247,11 +1337,18 @@ NrGnbMac::DoAddUe (uint16_t rnti)
   // Create DL transmission HARQ buffers
   NrDlHarqProcessesBuffer_t buf;
   uint16_t harqNum = GetNumHarqProcess ();
+  uint16_t numStreams = 2;
   buf.resize (harqNum);
   for (uint8_t i = 0; i < harqNum; i++)
     {
-      Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
-      buf.at (i).m_pktBurst = pb;
+      //for each of the HARQ process we have the info of max 2 streams
+      for (uint16_t stream = 0; stream < numStreams; stream++)
+        {
+          HarqProcessInfoSingleStream info;
+          Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
+          info.m_pktBurst = pb;
+          buf.at (i).m_infoPerStream.push_back (info);
+        }
     }
   m_miDlHarqProcessesPackets.insert (std::pair <uint16_t, NrDlHarqProcessesBuffer_t> (rnti, buf));
 

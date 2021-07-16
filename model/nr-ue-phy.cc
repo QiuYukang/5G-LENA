@@ -268,7 +268,7 @@ NrUePhy::ProcessDataDci (const SfnSf &ulSfnSf,
                 " UL-DCI received for slot " << ulSfnSf <<
                 " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
                 " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                " tbs " << dciInfoElem->m_tbSize <<
+                " tbs " << dciInfoElem->m_tbSize.at (0) <<
                 " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
   if (ulSfnSf == m_currentSlot)
@@ -432,11 +432,15 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       uint32_t k0Delay = dciMsg->GetKDelay ();
       dciSfn.Add (k0Delay);
 
-      NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
-                    " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
-                    " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                    " tbs " << dciInfoElem->m_tbSize <<
-                    " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+      for (uint8_t stream = 0; stream < dciInfoElem->m_tbSize.size (); stream++)
+        {
+          NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +stream <<
+                        " DL-DCI received for slot " << dciSfn <<
+                        " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
+                        " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
+                        " tbs " << dciInfoElem->m_tbSize.at (stream) <<
+                        " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+        }
 
       /* BIG ASSUMPTION: We assume that K0 is always 0 */
 
@@ -874,20 +878,28 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
-      // TODO after merge qith MAC for MIMO we need to pass the correct TB size info
-      m_spectrumPhys.at (panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
-                                           FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                           dci->m_harqProcess, dci->m_rv, true,
-                                           dci->m_symStart, dci->m_numSym, m_currentSlot);
+      if (dci->m_tbSize.at (panelIndex) > 0)
+        {
+          //Here we need to call the AddExpectedTb of a NrSpectrumPhy
+          //responsible to receive the expected TB of the stream we
+          //are iterating over
+          m_spectrumPhys.at (panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (panelIndex),
+                                                         dci->m_tbSize.at (panelIndex),
+                                                         dci->m_mcs.at (panelIndex),
+                                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                                         dci->m_harqProcess, dci->m_rv.at (panelIndex), true,
+                                                         dci->m_symStart, dci->m_numSym, m_currentSlot);
+                                                         
+          m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (panelIndex));
+          NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +panelIndex <<
+                        " RXing DL DATA frame for"
+                        " symbols "  << +dci->m_symStart <<
+                        "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
+                        " num of rbg assigned: " << FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask).size () <<
+                        "\t start " << Simulator::Now () <<
+                        " end " << (Simulator::Now () + varTtiPeriod));
+        }
     }
-  m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
-  NS_LOG_DEBUG ("UE" << m_rnti <<
-                " RXing DL DATA frame for"
-                " symbols "  << +dci->m_symStart <<
-                "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
-                " num of rbg assigned: " << FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask).size () <<
-                "\t start " << Simulator::Now () <<
-                " end " << (Simulator::Now () + varTtiPeriod));
 
   return varTtiPeriod;
 }
@@ -903,7 +915,11 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
-  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
+  //MIMO is not supported for UL yet.
+  //Therefore, there will be only
+  //one stream with stream Id 0.
+  uint8_t streamId = 0;
+  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, streamId);
   if (pktBurst && pktBurst->GetNPackets () > 0)
     {
       std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
@@ -919,7 +935,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       // if there is no data for him...
       NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
     }
-  m_reportUlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
+  m_reportUlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (0));
 
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " TXing UL DATA frame for" <<
@@ -939,7 +955,11 @@ NrUePhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
   Time varTtiPeriod;
 
-  m_currTbs = dci->m_tbSize;
+  for (auto const &it:dci->m_tbSize)
+    {
+      m_currTbs = it;
+    }
+
   m_receptionEnabled = false;
 
   if (dci->m_type == DciInfoElementTdma::CTRL && dci->m_format == DciInfoElementTdma::DL)
@@ -1053,10 +1073,22 @@ NrUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
   dlcqi.m_rnti = m_rnti;
   dlcqi.m_cqiType = DlCqiInfo::WB;
 
-  std::vector<int> cqi;
+  //Rank indicator must be chosen based on the channel quality
+  //measured for the two streams. For now, I am fixing it to 1
+  //to check if all the previously written tests and examples
+  //for single stream work with the new implementation.
+  //In MIMO, once the UE starts reporting RI = 2, both the CQI
+  //must be reported even though one is measured, the other for
+  //which we couldn't measure we will assign CQI 0.
+  dlcqi.m_ri = 1;
 
   uint8_t mcs;
-  dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, mcs);
+  for (uint8_t str = 0; str < dlcqi.m_ri; str++)
+    {
+      uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, mcs);
+      NS_LOG_DEBUG ("Stream " << str << " WB CQI " << +wbCqi << " avrg MCS " << +mcs);
+      dlcqi.m_wbCqi.push_back (wbCqi);
+    }
 
   msg->SetDlCqi (dlcqi);
   return msg;

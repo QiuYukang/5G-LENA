@@ -1266,11 +1266,26 @@ NrSpectrumPhy::EndRxData ()
                   harqDlInfo.m_bwpIndex = GetBwpId ();
                   if (GetTBInfo(*itTb).m_isCorrupted)
                     {
-                      harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
+                      //The following line of code will be updated
+                      //once MIMO PHY implementation will be merged
+                      //with MIMO MAC extension. I expect that each
+                      //NrSpectrumPhy would have a stream index. If
+                      //it is stream index 0, we will resize the
+                      //m_harqStatus to 1 and then using .at (0) we
+                      //we would insert the feedback. If it is stream
+                      //index 1, we would resize the m_harqStatus to
+                      //2, and then using .at (1) we would insert the
+                      //feedback. For higher number of stream we would
+                      //follow the same strategy.
+                      harqDlInfo.m_harqStatus.push_back (DlHarqInfo::NACK);
                     }
                   else
                     {
-                      harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
+                      //The following line of code will be updated
+                      //once MIMO PHY implementation will be merged
+                      //with MIMO MAC extension. I expect a proper
+                      //stream index instead of 0.
+                      harqDlInfo.m_harqStatus.push_back (DlHarqInfo::ACK);
                     }
 
                   NS_ASSERT (harqDlInfoMap.find(rnti) == harqDlInfoMap.end());

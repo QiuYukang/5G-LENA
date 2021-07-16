@@ -58,11 +58,12 @@ public:
    * \param p PDU
    * \param sfn SFN
    * \param symStart symbol inside the SFN
+   * \param streamId The stream id through which this pkt would be transmitted
    *
    * The MAC sends to the PHY a MAC PDU, represented by the packet p. The PDU
    * MUST have a LteRadioBearerTag and a NrMacPduHeader.
    */
-  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart) = 0;
+  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId) = 0;
 
   /**
    * \brief Send a control message

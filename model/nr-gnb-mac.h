@@ -329,12 +329,18 @@ private:
   void SendRar (const std::vector<BuildRarListElement_s> &rarList);
 
 private:
-  struct NrDlHarqProcessInfo
+
+  struct HarqProcessInfoSingleStream
   {
     Ptr<PacketBurst> m_pktBurst;
     // maintain list of LCs contained in this TB
     // used to signal HARQ failure to RLC handlers
     std::vector<uint8_t> m_lcidList;
+  };
+
+  struct NrDlHarqProcessInfo
+  {
+    std::vector<HarqProcessInfoSingleStream> m_infoPerStream;
   };
 
   typedef std::vector < NrDlHarqProcessInfo> NrDlHarqProcessesBuffer_t;

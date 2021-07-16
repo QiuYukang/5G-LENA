@@ -1232,7 +1232,13 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
+  //The following parameter will be removed once
+  //this API is extended to iterate over NrSpectrumPhy
+  //of each available stream and would retrieve the
+  //packet burst based on its stream index.
+  uint8_t streamId = 0;
+
+  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, streamId);
   if (!pktBurst || pktBurst->GetNPackets () == 0)
     {
       // sometimes the UE will be scheduled when no data is queued.
@@ -1265,10 +1271,17 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
   for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
       // TODO pass the TB of the correct stream/panel after the merge with the MAC changes for MIMO
-      m_spectrumPhys.at(panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
-                                                    FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                                    dci->m_harqProcess, dci->m_rv, false,
-                                                    dci->m_symStart, dci->m_numSym, m_currentSlot);
+      //Ok, but we do not support MIMO in UL yet. DCI is prepared for stream 0. So, if there is
+      //only one stream, do we need this for loop?
+      if (dci->m_tbSize.at (panelIndex) > 0)
+        {
+          m_spectrumPhys.at(panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (panelIndex),
+                                                        dci->m_tbSize.at (panelIndex),
+                                                        dci->m_mcs.at (panelIndex),
+                                                        FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                                        dci->m_harqProcess, dci->m_rv.at (panelIndex), false,
+                                                        dci->m_symStart, dci->m_numSym, m_currentSlot);
+        }
     }
 
   bool found = false;

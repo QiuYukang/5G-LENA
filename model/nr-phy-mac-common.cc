@@ -223,8 +223,29 @@ std::ostream &operator<<(std::ostream &os, const SlotAllocInfo::AllocationType &
 std::ostream &operator<< (std::ostream &os, const DciInfoElementTdma &item)
 {
   os << "RNTI=" << item.m_rnti << "|" << item.m_format << "|SYM=" << +item.m_symStart
-     << "|NSYM=" << +item.m_numSym << "|MCS=" << +item.m_mcs << "|TBS=" << item.m_tbSize
-     << "|NDI=" << +item.m_ndi << "|RV=" << +item.m_rv << "|TYPE=" << item.m_type
+     << "|NSYM=" << +item.m_numSym;
+
+  for (uint8_t imcs = 0; imcs < item.m_mcs.size (); imcs++)
+    {
+      os << "|McsStream" << imcs << "=" << +item.m_mcs.at (imcs);
+    }
+
+  for (uint32_t itbs = 0; itbs < item.m_tbSize.size (); itbs++)
+    {
+      os << "|TBsStream" << itbs << "=" << item.m_tbSize.at (itbs);
+    }
+
+  for (uint8_t indi = 0; indi < item.m_ndi.size (); indi++)
+    {
+      os << "|NdiStream" << indi << "=" << +item.m_ndi.at (indi);
+    }
+
+  for (uint8_t irv = 0; irv < item.m_rv.size (); irv++)
+    {
+      os << "|RvStream" << irv << "=" << +item.m_rv.at (irv);
+    }
+
+  os << "|TYPE=" << item.m_type
      << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess
      << "|RBG=";
 

@@ -48,7 +48,7 @@ class NrMemberPhySapProvider : public NrPhySapProvider
 public:
   NrMemberPhySapProvider (NrPhy* phy);
 
-  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart) override;
+  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId) override;
 
   virtual void SendControlMessage (Ptr<NrControlMessage> msg) override;
 
@@ -83,9 +83,9 @@ NrMemberPhySapProvider::NrMemberPhySapProvider (NrPhy* phy)
 }
 
 void
-NrMemberPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
+NrMemberPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId)
 {
-  m_phy->SetMacPdu (p, sfn, symStart);
+  m_phy->SetMacPdu (p, sfn, symStart, streamId);
 }
 
 void
@@ -350,11 +350,11 @@ NrPhy::SendRachPreamble (uint32_t PreambleId, uint32_t Rnti)
 }
 
 void
-NrPhy::SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
+NrPhy::SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (sfn.GetNumerology () == GetNumerology());
-  uint64_t key = sfn.GetEncodingWithSymStart (symStart);
+  uint64_t key = sfn.GetEncForStreamWithSymStart (streamId, symStart);
   auto it = m_packetBurstMap.find (key);
 
   if (it == m_packetBurstMap.end ())
@@ -373,12 +373,12 @@ NrPhy::NotifyConnectionSuccessful ()
 }
 
 Ptr<PacketBurst>
-NrPhy::GetPacketBurst (SfnSf sfn, uint8_t sym)
+NrPhy::GetPacketBurst (SfnSf sfn, uint8_t sym, uint8_t streamId)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (sfn.GetNumerology () == GetNumerology());
   Ptr<PacketBurst> pburst;
-  auto it = m_packetBurstMap.find (sfn.GetEncodingWithSymStart (sym));
+  auto it = m_packetBurstMap.find (sfn.GetEncForStreamWithSymStart (streamId, sym));
 
   if (it == m_packetBurstMap.end ())
     {
@@ -755,16 +755,20 @@ NrPhy::PushFrontSlotAllocInfo (const SfnSf &newSfnSf, const SlotAllocInfo &slotA
         {
           if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-              Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn, alloc.m_dci->m_symStart);
-              if (pburst && pburst->GetNPackets() > 0)
+              //move the pkt burst of all the streams correctly.
+              for (uint8_t stream = 0; stream < alloc.m_dci->m_tbSize.size (); stream++)
                 {
-                  newBursts.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart), pburst));
-                  sfnMap.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart),
-                                                 it->m_sfnSf.GetEncodingWithSymStart (alloc.m_dci->m_symStart)));
-                }
-              else
-                {
-                  NS_LOG_INFO ("No packet burst found for " << slotSfn);
+                  Ptr<PacketBurst> pburst = GetPacketBurst (slotSfn, alloc.m_dci->m_symStart, stream);
+                  if (pburst && pburst->GetNPackets() > 0)
+                    {
+                      newBursts.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart), pburst));
+                      sfnMap.insert (std::make_pair (currentSfn.GetEncodingWithSymStart (alloc.m_dci->m_symStart),
+                                                     it->m_sfnSf.GetEncodingWithSymStart (alloc.m_dci->m_symStart)));
+                    }
+                  else
+                    {
+                      NS_LOG_INFO ("No packet burst found for " << slotSfn);
+                    }
                 }
             }
         }

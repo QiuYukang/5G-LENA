@@ -50,7 +50,7 @@ public:
   virtual uint16_t GetBwpId () const override;
   virtual uint16_t GetCellId () const override;
   virtual Time GetSlotPeriod () const override;
-  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart) override;
+  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId) override;
   virtual void SendControlMessage (Ptr<NrControlMessage> msg) override;
   virtual void SendRachPreamble (uint8_t PreambleId, uint8_t Rnti) override;
   virtual void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo) override;
@@ -111,7 +111,7 @@ TestNotchingPhySapProvider::GetSlotPeriod () const
 }
 
 void
-TestNotchingPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
+TestNotchingPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId)
 {}
 
 void
