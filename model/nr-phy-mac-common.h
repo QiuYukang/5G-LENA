@@ -613,4 +613,19 @@ std::ostream & operator<< (std::ostream & os, SlotAllocInfo const & item);
 std::ostream & operator<< (std::ostream & os, SlotAllocInfo::AllocationType const & item);
 }
 
+/// NrSchedulingCallbackInfo structure
+struct NrSchedulingCallbackInfo
+{
+  uint16_t m_frameNum {UINT16_MAX}; //!< frame number
+  uint8_t m_subframeNum {UINT8_MAX}; //!< subframe number
+  uint16_t m_slotNum {UINT16_MAX}; //!< slot number
+  uint8_t m_symStart {UINT8_MAX}; //!< starting symbol index
+  uint8_t m_numSym {UINT8_MAX}; //!< number of symbols
+  uint8_t m_streamId {UINT8_MAX}; //!< stream number
+  uint16_t m_rnti {UINT16_MAX}; //!< RNTI
+  uint8_t  m_mcs {UINT8_MAX}; //!< MCS
+  uint32_t m_tbSize {UINT32_MAX}; //!< TB size
+  uint8_t  m_bwpId {UINT8_MAX}; //!< Bandwidth Part ID
+};
+
 #endif /* SRC_NR_MODEL_NR_PHY_MAC_COMMON_H_ */

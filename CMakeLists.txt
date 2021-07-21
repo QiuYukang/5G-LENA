@@ -17,6 +17,8 @@ set(source_files
     helper/nr-spectrum-value-helper.cc
     helper/scenario-parameters.cc
     helper/three-gpp-ftp-m1-helper.cc
+    helper/nr-stats-calculator.cc
+    helper/nr-mac-scheduling-stats.cc
     model/nr-net-device.cc
     model/nr-gnb-net-device.cc
     model/nr-ue-net-device.cc
@@ -111,6 +113,8 @@ set(header_files
     helper/nr-spectrum-value-helper.h
     helper/scenario-parameters.h
     helper/three-gpp-ftp-m1-helper.h
+    helper/nr-stats-calculator.h
+    helper/nr-mac-scheduling-stats.h
     model/nr-net-device.h
     model/nr-gnb-net-device.h
     model/nr-ue-net-device.h

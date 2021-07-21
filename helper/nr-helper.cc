@@ -98,6 +98,7 @@ NrHelper::NrHelper (void)
   Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
 
   m_phyStats = CreateObject<NrPhyRxTrace> ();
+  m_macSchedStats = CreateObject <NrMacSchedulingStats> ();
 }
 
 NrHelper::~NrHelper (void)
@@ -1480,6 +1481,8 @@ NrHelper::EnableTraces (void)
   EnableUePhyCtrlMsgsTraces ();
   EnableGnbMacCtrlMsgsTraces ();
   EnableUeMacCtrlMsgsTraces ();
+  EnableDlMacSchedTraces ();
+  EnableUlMacSchedTraces ();
 }
 
 void
@@ -1595,6 +1598,22 @@ Ptr<NrBearerStatsCalculator>
 NrHelper::GetPdcpStats (void)
 {
   return m_pdcpStats;
+}
+
+void
+NrHelper::EnableDlMacSchedTraces ()
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
+                   MakeBoundCallback (&NrMacSchedulingStats::DlSchedulingCallback, m_macSchedStats));
+}
+
+void
+NrHelper::EnableUlMacSchedTraces ()
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/UlScheduling",
+                   MakeBoundCallback (&NrMacSchedulingStats::UlSchedulingCallback, m_macSchedStats));
 }
 
 } // namespace ns3

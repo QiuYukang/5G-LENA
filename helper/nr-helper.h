@@ -32,6 +32,7 @@
 #include <ns3/nr-spectrum-phy.h>
 #include "ideal-beamforming-helper.h"
 #include "cc-bwp-helper.h"
+#include "nr-mac-scheduling-stats.h"
 
 namespace ns3 {
 
@@ -782,6 +783,16 @@ private:
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
 
+  /**
+   * Enable trace sinks for DL MAC layer scheduling.
+   */
+  void EnableDlMacSchedTraces (void);
+  /**
+   * Enable trace sinks for UL MAC layer scheduling.
+   */
+  void EnableUlMacSchedTraces (void);
+
+
   ObjectFactory m_gnbNetDeviceFactory;  //!< NetDevice factory for gnb
   ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue
   ObjectFactory m_channelFactory;       //!< Channel factory
@@ -823,6 +834,7 @@ private:
   NrBearerStatsConnector m_radioBearerStatsConnector; //!< ?
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
   std::vector< Ptr <Object> > m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper has assigned streams in order to avoid double assignments
+  Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
 };
 
 }

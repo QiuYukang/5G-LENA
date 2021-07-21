@@ -406,7 +406,11 @@ NrGnbMac::GetTypeId (void)
     .AddTraceSource ("DlScheduling",
                      "Information regarding DL scheduling.",
                      MakeTraceSourceAccessor (&NrGnbMac::m_dlScheduling),
-                     "ns3::LteGnbMac::DlSchedulingTracedCallback")
+                     "ns3::NrGnbMac::DlSchedulingTracedCallback")
+    .AddTraceSource ("UlScheduling",
+                     "Information regarding UL scheduling.",
+                     MakeTraceSourceAccessor (&NrGnbMac::m_ulScheduling),
+                     "ns3::NrGnbMac::SchedulingTracedCallback")
     .AddTraceSource ("SrReq",
                      "Information regarding received scheduling request.",
                      MakeTraceSourceAccessor (&NrGnbMac::m_srCallback),
@@ -1149,74 +1153,46 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
               m_macPduMap.erase (mapRet.first);    // delete map entry
             }
 
-          for (uint16_t stream = 0; stream < dciElem->m_tbSize.size (); stream++)
+          for (uint8_t stream = 0; stream < dciElem->m_tbSize.size (); stream++)
             {
-              m_dlScheduling (ind.m_sfnSf.GetFrame (), ind.m_sfnSf.GetSubframe (), ind.m_sfnSf.GetSlot (),
-                              dciElem->m_tbSize.at (stream), dciElem->m_mcs.at (stream), dciElem->m_rnti, GetBwpId ());
+              NrSchedulingCallbackInfo traceInfo;
+              traceInfo.m_frameNum = ind.m_sfnSf.GetFrame ();
+              traceInfo.m_subframeNum = ind.m_sfnSf.GetSubframe ();
+              traceInfo.m_slotNum = ind.m_sfnSf.GetSlot ();
+              traceInfo.m_symStart = dciElem->m_symStart;
+              traceInfo.m_numSym = dciElem->m_numSym;
+              traceInfo.m_streamId = stream;
+              traceInfo.m_tbSize = dciElem->m_tbSize.at (stream);
+              traceInfo.m_mcs = dciElem->m_mcs.at (stream);
+              traceInfo.m_rnti = dciElem->m_rnti;
+              traceInfo.m_bwpId = GetBwpId ();
+
+              m_dlScheduling (traceInfo);
             }
-
-
-
-          // update Harq Processes
-          /*
-          if (dciElem->m_ndi == 1)
+        }
+      else if (varTtiAllocInfo.m_dci->m_type != DciInfoElementTdma::CTRL
+               && varTtiAllocInfo.m_dci->m_type != DciInfoElementTdma::SRS
+               && varTtiAllocInfo.m_dci->m_format == DciInfoElementTdma::UL)
+        {
+          //UL scheduling info trace
+          // Call RLC entities to generate RLC PDUs
+          auto dciElem = varTtiAllocInfo.m_dci;
+          for (uint8_t stream = 0; stream < dciElem->m_tbSize.size (); stream++)
             {
-              NS_ASSERT (dciElem->m_format == DciInfoElementTdma::DL);
-              std::vector<RlcPduInfo> &rlcPduInfo = varTtiAllocInfo.m_rlcPduInfo;
-              NS_ASSERT (rlcPduInfo.size () > 0);
-              NrMacPduInfo macPduInfo (ind.m_sfnSf, dciElem);
-              // insert into MAC PDU map
-              uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
-              std::pair <std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet =
-                  m_macPduMap.insert (std::pair<uint32_t, struct NrMacPduInfo> (tbMapKey, macPduInfo));
-              if (!mapRet.second)
-                {
-                  NS_FATAL_ERROR ("MAC PDU map element exists");
-                }
+              NrSchedulingCallbackInfo traceInfo;
+              traceInfo.m_frameNum = ind.m_sfnSf.GetFrame ();
+              traceInfo.m_subframeNum = ind.m_sfnSf.GetSubframe ();
+              traceInfo.m_slotNum = ind.m_sfnSf.GetSlot ();
+              traceInfo.m_symStart = dciElem->m_symStart;
+              traceInfo.m_numSym = dciElem->m_numSym;
+              traceInfo.m_streamId = stream;
+              traceInfo.m_tbSize = dciElem->m_tbSize.at (stream);
+              traceInfo.m_mcs = dciElem->m_mcs.at (stream);
+              traceInfo.m_rnti = dciElem->m_rnti;
+              traceInfo.m_bwpId = GetBwpId ();
 
-              // new data -> force emptying correspondent harq pkt buffer
-              std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator harqIt = m_miDlHarqProcessesPackets.find (rnti);
-              NS_ASSERT (harqIt != m_miDlHarqProcessesPackets.end ());
-              Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
-              harqIt->second.at (tbUid).m_pktBurst = pb;
-              harqIt->second.at (tbUid).m_lcidList.clear ();
-
-              std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
-              for (unsigned int ipdu = 0; ipdu < rlcPduInfo.size (); ipdu++)
-                {
-                  NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
-                  std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (rlcPduInfo[ipdu].m_lcid);
-                  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << rlcPduInfo[ipdu].m_lcid);
-                  NS_LOG_DEBUG ("Notifying RLC of TX opportunity for TB " << (unsigned int)tbUid << " PDU num " << ipdu << " size " << (unsigned int) rlcPduInfo[ipdu].m_size);
-
-                  (*lcidIt).second->NotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters ((rlcPduInfo[ipdu].m_size), 0, tbUid, GetBwpId (), rnti, rlcPduInfo[ipdu].m_lcid));
-                  harqIt->second.at (tbUid).m_lcidList.push_back (rlcPduInfo[ipdu].m_lcid);
-                }
-
-              m_macPduMap.erase (pduMapIt);    // delete map entry
-
-              m_dlScheduling (ind.m_sfnSf.GetFrame (), ind.m_sfnSf.GetSubframe (), ind.m_sfnSf.GetSlot (),
-                              dciElem->m_tbSize, dciElem->m_mcs, dciElem->m_rnti, GetBwpId ());
+              m_ulScheduling (traceInfo);
             }
-          else
-            {
-              NS_LOG_INFO ("DL retransmission");
-              if (dciElem->m_tbSize > 0)
-                {
-                  std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (rnti);
-                  NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
-                  Ptr<PacketBurst> pb = it->second.at (tbUid).m_pktBurst;
-                  //The following parameter will be removed once
-                  //MIMO MAC layer implementation would be merged
-                  //with MIMO PHY layer implementation
-                  uint8_t streamId = 0;
-                  for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
-                    {
-                      Ptr<Packet> pkt = (*j)->Copy ();
-                      m_phySapProvider->SendMacPdu (pkt, ind.m_sfnSf, dciElem->m_symStart, streamId);
-                    }
-                }
-            }*/
         }
     }
 
