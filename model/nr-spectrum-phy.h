@@ -120,11 +120,7 @@ public:
    * \brief This callback method type is used to notify that CTRL is received
    */
   typedef std::function<void (const std::list<Ptr<NrControlMessage> > &, uint8_t)> NrPhyRxCtrlEndOkCallback;
-  /**
-   * This callback method type is used by the NrSpectrumPhy to notify the PHY about
-   * the status of a DL HARQ feedback
-   */
-  typedef Callback< void, const DlHarqInfo& > NrPhyDlHarqFeedbackCallback;
+
   /**
    * This callback method type is used by the NrSpectrumPhy to notify the PHY about
    * the status of a UL HARQ feedback
@@ -141,10 +137,7 @@ public:
    * \param c the callback function
    */
   void SetPhyRxCtrlEndOkCallback (const NrPhyRxCtrlEndOkCallback& c);
-  /**
-   * \brief Sets the callback to be called when DL HARQ feedback is generated
-   */
-  void SetPhyDlHarqFeedbackCallback (const NrPhyDlHarqFeedbackCallback& c);
+
   /**
    * \brief Sets the callback to be called when UL HARQ feedback is generated
    */
@@ -384,6 +377,17 @@ public:
    */
   void AddSrsSnrReportCallback (SrsSnrReportCallback callback);
   /**
+   * \brief Set stream id of this NrSpectrumPhy
+   *
+   * Stream id is introduced to support MIMO. In MIMO, there will be one
+   * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
+   * to assign the stream id to each new instance. Stream id, starts from
+   * 0 and ends at "total number of streams - 1".
+   *
+   * \param streamId The stream id
+   */
+  void SetStreamId (uint8_t streamId);
+  /**
    * \brief Get stream id of this NrSpectrumPhy
    *
    * Stream id is introduced to support MIMO. In MIMO, there will be one
@@ -574,7 +578,6 @@ private:
   //callbacks for CTRL and DATA, and UL/DL HARQ
   NrPhyRxCtrlEndOkCallback m_phyRxCtrlEndOkCallback; //!< callback that is notified when the CTRL is received
   NrPhyRxDataEndOkCallback m_phyRxDataEndOkCallback; //!< callback that is notified when the DATA is received
-  NrPhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is being generated
   NrPhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is being generated
 
   //traces
@@ -586,7 +589,7 @@ private:
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
 
-  uint8_t m_streamId;
+  uint8_t m_streamId {UINT8_MAX};
 };
 
 }

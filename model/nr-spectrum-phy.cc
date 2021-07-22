@@ -115,7 +115,6 @@ NrSpectrumPhy::DoDispose ()
 
 
   m_phyRxDataEndOkCallback = MakeNullCallback< void, const Ptr<Packet> &> ();
-  m_phyDlHarqFeedbackCallback = MakeNullCallback< void, const DlHarqInfo&> ();
   m_phyUlHarqFeedbackCallback = MakeNullCallback< void, const UlHarqInfo&> ();
 
   SpectrumPhy::DoDispose ();
@@ -199,13 +198,6 @@ NrSpectrumPhy::SetPhyRxCtrlEndOkCallback (const NrPhyRxCtrlEndOkCallback &c)
 {
   NS_LOG_FUNCTION (this);
   m_phyRxCtrlEndOkCallback = c;
-}
-
-void
-NrSpectrumPhy::SetPhyDlHarqFeedbackCallback (const NrPhyDlHarqFeedbackCallback& c)
-{
-  NS_LOG_FUNCTION (this);
-  m_phyDlHarqFeedbackCallback = c;
 }
 
 void
@@ -765,6 +757,13 @@ NrSpectrumPhy::AddSrsSnrReportCallback (SrsSnrReportCallback callback)
   m_srsSnrReportCallback.push_back (callback);
 }
 
+void
+NrSpectrumPhy::SetStreamId (uint8_t streamId)
+{
+  m_streamId = streamId;
+}
+
+
 uint8_t
 NrSpectrumPhy::GetStreamId () const
 {
@@ -1144,7 +1143,6 @@ NrSpectrumPhy::EndRxData ()
         }
     }
 
-  std::map <uint16_t, DlHarqInfo> harqDlInfoMap;
   for (auto packetBurst : m_rxPacketBurstList)
     {
       for (auto packet : packetBurst->GetPackets ())
@@ -1204,6 +1202,7 @@ NrSpectrumPhy::EndRxData ()
           traceParams.m_symStart = GetTBInfo(*itTb).m_expected.m_symStart;
           traceParams.m_numSym = GetTBInfo(*itTb).m_expected.m_numSym;
           traceParams.m_bwpId = GetBwpId ();
+          traceParams.m_streamId = m_streamId;
           traceParams.m_rbAssignedNum = static_cast<uint32_t> (GetTBInfo(*itTb).m_expected.m_rbBitmap.size ());
 
           if (enbRx)
@@ -1259,43 +1258,16 @@ NrSpectrumPhy::EndRxData ()
               else
                 {
                   // Generate the feedback
-                  DlHarqInfo harqDlInfo;
-                  harqDlInfo.m_rnti = rnti;
-                  harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
-                  harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
-                  harqDlInfo.m_bwpIndex = GetBwpId ();
+                  DlHarqInfo::HarqStatus harqFeedback;
                   if (GetTBInfo(*itTb).m_isCorrupted)
                     {
-                      //The following line of code will be updated
-                      //once MIMO PHY implementation will be merged
-                      //with MIMO MAC extension. I expect that each
-                      //NrSpectrumPhy would have a stream index. If
-                      //it is stream index 0, we will resize the
-                      //m_harqStatus to 1 and then using .at (0) we
-                      //we would insert the feedback. If it is stream
-                      //index 1, we would resize the m_harqStatus to
-                      //2, and then using .at (1) we would insert the
-                      //feedback. For higher number of stream we would
-                      //follow the same strategy.
-                      harqDlInfo.m_harqStatus.push_back (DlHarqInfo::NACK);
+                      harqFeedback = DlHarqInfo::NACK;
                     }
                   else
                     {
-                      //The following line of code will be updated
-                      //once MIMO PHY implementation will be merged
-                      //with MIMO MAC extension. I expect a proper
-                      //stream index instead of 0.
-                      harqDlInfo.m_harqStatus.push_back (DlHarqInfo::ACK);
+                      harqFeedback = DlHarqInfo::ACK;
                     }
-
-                  NS_ASSERT (harqDlInfoMap.find(rnti) == harqDlInfoMap.end());
-                  harqDlInfoMap.insert(std::make_pair (rnti, harqDlInfo));
-
-                  // Send the feedback
-                  if (!m_phyDlHarqFeedbackCallback.IsNull ())
-                    {
-                      m_phyDlHarqFeedbackCallback (harqDlInfo);
-                    }
+                  (DynamicCast<NrUePhy> (m_phy))->NotifyDlHarqFeedback (m_streamId, harqFeedback, GetTBInfo(*itTb).m_expected.m_harqProcessId, GetTBInfo(*itTb).m_expected.m_rv);
 
                   // Arrange the history
                   if (! GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)

@@ -328,6 +328,28 @@ public:
        const uint8_t bwpId, uint8_t harqId, uint32_t K1Delay);
 
   /**
+   * This callback method type is used by the NrUePhy to notify
+   * the status of a DL HARQ feedback
+   */
+  typedef Callback< void, const DlHarqInfo& > NrPhyDlHarqFeedbackCallback;
+
+  /**
+   * \brief Sets the callback to be called when DL HARQ feedback is generated
+   */
+  void SetPhyDlHarqFeedbackCallback (const NrPhyDlHarqFeedbackCallback& c);
+
+  /**
+   * \brief Function called by NrSpectrumPhy to report the
+   * DL HARQ feedback from that NrSpectrumPhy instance
+   * \param streamId The streamId of the NrSpectrumPhy to which it belongs this HARQ process
+   * \param harqFeedback the feedback for the corresponding NrSpectrumPhy from which is called this function
+   * \param harqProcessId the HARQ process ID that was saved in the information of the expected TB
+   * \param rv the redundancy version that was provided in the information of the expected TB
+   */
+  void NotifyDlHarqFeedback (uint8_t streamId,  DlHarqInfo::HarqStatus harqFeedback, uint8_t harqProcessId,
+                             uint8_t rv);
+
+  /**
    * \brief Set the channel access manager interface for this instance of the PHY
    * \param cam the pointer to the interface
    */
@@ -732,6 +754,12 @@ private:
    * rnti, bwpId, Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeTxedHarqFeedbackTrace;
+
+  NrPhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is being generated
+
+  DlHarqInfo m_dlHarqInfo; //!< The attribute used to merge HARQ infos from different NrSpectrumPhy instances belonging to this NrUePhy, i.e., if there are two streams/panels, should be cleaned after triggering m_phyDlHarqFeedbackCallback
+
+  uint8_t m_activeDlDataPanels {0}; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
 };
 
 }

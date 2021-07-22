@@ -756,7 +756,6 @@ private:
   Ptr<NrUeMac> CreateUeMac () const;
   Ptr<NrUePhy> CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                 const Ptr<NrUeNetDevice> &dev,
-                                const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback &dlHarqCallback,
                                 const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback,
                                 uint8_t numberOfPanels);
 

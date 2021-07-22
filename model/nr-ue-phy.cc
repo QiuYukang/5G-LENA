@@ -66,6 +66,7 @@ NrUePhy::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   delete m_ueCphySapProvider;
+  m_phyDlHarqFeedbackCallback = MakeNullCallback< void, const DlHarqInfo&> ();
   NrPhy::DoDispose ();
 }
 
@@ -876,10 +877,13 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_receptionEnabled = true;
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
+  m_activeDlDataPanels = 0;
+
   for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
       if (dci->m_tbSize.at (panelIndex) > 0)
         {
+          m_activeDlDataPanels ++;
           //Here we need to call the AddExpectedTb of a NrSpectrumPhy
           //responsible to receive the expected TB of the stream we
           //are iterating over
@@ -1141,6 +1145,55 @@ NrUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   else
     {
       Simulator::Schedule (event - Simulator::Now (), &NrUePhy::DoSendControlMessageNow, this, msg);
+    }
+}
+
+void
+NrUePhy::SetPhyDlHarqFeedbackCallback (const NrPhyDlHarqFeedbackCallback& c)
+{
+  NS_LOG_FUNCTION (this);
+  m_phyDlHarqFeedbackCallback = c;
+}
+
+void
+NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeedback,
+                               uint8_t harqProcessId, uint8_t rv)
+{
+
+  if (m_dlHarqInfo.m_harqStatus.empty()) // No Harq reported yet, initialize the structure
+    {
+      m_dlHarqInfo.m_rnti = m_rnti;
+      m_dlHarqInfo.m_bwpIndex = GetBwpId();
+      m_dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);// (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all panels with NONE
+      m_dlHarqInfo.m_harqProcessId = harqProcessId;
+    }
+  else
+    {
+      NS_ASSERT (m_dlHarqInfo.m_harqProcessId == harqProcessId);
+    }
+
+  NS_ASSERT (streamId < m_dlHarqInfo.m_harqStatus.size () && m_dlHarqInfo.m_harqStatus.at (streamId) == DlHarqInfo::HarqStatus::NONE);
+  m_dlHarqInfo.m_harqStatus [streamId] = harqFeedback;
+
+  // TODO
+  // convert m_dlHarqInfo.m_numRetx to be a vector and then add corresponding code to set it
+  // m_dlHarqInfo.m_numRetx = rv
+
+  uint8_t feedbackCounter = 0;
+  for (const auto& i : m_dlHarqInfo.m_harqStatus)
+    {
+      if (i != DlHarqInfo::HarqStatus::NONE)
+        {
+          feedbackCounter++;
+        }
+    }
+
+  // if we received the feedback from all the active panels, we
+  // can proceed to trigger the corresponding callback
+  if (feedbackCounter == m_activeDlDataPanels)
+    {
+      m_phyDlHarqFeedbackCallback (m_dlHarqInfo);
+      m_dlHarqInfo = DlHarqInfo (); // reset DL harq after reporting it through callback
     }
 }
 

@@ -501,7 +501,6 @@ NrHelper::CreateUeMac () const
 Ptr<NrUePhy>
 NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                            const Ptr<NrUeNetDevice> &dev,
-                           const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback &dlHarqCallback,
                            const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback,
                            uint8_t numberOfPanels)
 {
@@ -529,6 +528,8 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
     {
       Ptr<NrSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <NrSpectrumPhy> (); // Create NrSpectrumPhy per panel
 
+      channelPhy->SetStreamId (panelIndex);
+
       Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per panel
       channelPhy->InstallHarqPhyModule (harq);
 
@@ -548,12 +549,6 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
       Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor> ();
       pRs->AddCallback (MakeCallback (&NrSpectrumPhy::ReportRsReceivedPower, channelPhy));
       channelPhy->AddRsPowerChunkProcessor (pRs);
-
-      if (m_harqEnabled)
-        {
-          channelPhy->SetPhyDlHarqFeedbackCallback (dlHarqCallback);
-        }
-
       channelPhy->SetChannel (bwp->m_channel);
       channelPhy->InstallPhy (phy);
       channelPhy->SetMobility (mm);
@@ -593,10 +588,13 @@ NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       auto mac = CreateUeMac ();
       cc->SetMac (mac);
 
-      auto phy = CreateUePhy (n, allBwps[bwpId].get(),
-                              dev, MakeCallback (&NrUeNetDevice::EnqueueDlHarqFeedback, dev),
-                              std::bind (&NrUeNetDevice::RouteIngoingCtrlMsgs, dev,
+      auto phy = CreateUePhy (n, allBwps[bwpId].get(), dev, std::bind (&NrUeNetDevice::RouteIngoingCtrlMsgs, dev,
                                          std::placeholders::_1, bwpId), numberOfPanels);
+
+      if (m_harqEnabled)
+        {
+          phy->SetPhyDlHarqFeedbackCallback (MakeCallback (&NrUeNetDevice::EnqueueDlHarqFeedback, dev));
+        }
       phy->SetBwpId (bwpId);
       phy->SetDevice (dev);
       phy->GetSpectrumPhy (0)->SetDevice (dev); // TODO make this function be called for each NrSpectrumPhy

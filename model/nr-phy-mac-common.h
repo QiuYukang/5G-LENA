@@ -477,6 +477,7 @@ struct RxPacketTraceParams
   double m_tbler {-1.0};
   bool m_corrupt {false};
   uint16_t m_bwpId {std::numeric_limits<uint16_t>::max ()};
+  uint8_t m_streamId {std::numeric_limits<uint8_t>::max ()};
   uint32_t m_rbAssignedNum {std::numeric_limits<uint32_t>::max ()};
 };
 
