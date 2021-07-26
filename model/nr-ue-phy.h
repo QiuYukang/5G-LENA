@@ -439,10 +439,10 @@ private:
   void DoReceiveRar (Ptr<NrRarMessage> rarMsg);
   /**
    * \brief Create a DlCqiFeedback message
-   * \param sinr the SINR value
-   * \return a CTRL message with the CQI feedback
+   * \param dlCqi the structure that contains DL CQI feedback values per panel
+   * \return a CTRL message with the DL CQI feedback
    */
-  Ptr<NrDlCqiMessage> CreateDlCqiFeedbackMessage (const SpectrumValue& sinr) __attribute__((warn_unused_result));
+  Ptr<NrDlCqiMessage> CreateDlCqiFeedbackMessage (const DlCqiInfo& dlcqi) __attribute__((warn_unused_result));
   /**
    * \brief Receive DL CTRL and return the time at which the transmission will end
    * \param dci the current DCI
@@ -760,6 +760,9 @@ private:
   DlHarqInfo m_dlHarqInfo; //!< The attribute used to merge HARQ infos from different NrSpectrumPhy instances belonging to this NrUePhy, i.e., if there are two streams/panels, should be cleaned after triggering m_phyDlHarqFeedbackCallback
 
   uint8_t m_activeDlDataPanels {0}; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
+
+  std::vector <uint8_t> m_dlWbCqi;
+  uint8_t m_dlCqiFeedbackCounter {0};
 };
 
 }

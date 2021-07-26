@@ -1065,35 +1065,12 @@ NrUePhy::SendCtrlChannels (Time prd)
 }
 
 Ptr<NrDlCqiMessage>
-NrUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
+NrUePhy::CreateDlCqiFeedbackMessage (const DlCqiInfo& dlcqi)
 {
   NS_LOG_FUNCTION (this);
-  SpectrumValue newSinr = sinr;
-  // CREATE DlCqiLteControlMessage
+  // Create DL CQI CTRL message
   Ptr<NrDlCqiMessage> msg = Create<NrDlCqiMessage> ();
   msg->SetSourceBwp (GetBwpId ());
-  DlCqiInfo dlcqi;
-
-  dlcqi.m_rnti = m_rnti;
-  dlcqi.m_cqiType = DlCqiInfo::WB;
-
-  //Rank indicator must be chosen based on the channel quality
-  //measured for the two streams. For now, I am fixing it to 1
-  //to check if all the previously written tests and examples
-  //for single stream work with the new implementation.
-  //In MIMO, once the UE starts reporting RI = 2, both the CQI
-  //must be reported even though one is measured, the other for
-  //which we couldn't measure we will assign CQI 0.
-  dlcqi.m_ri = 1;
-
-  uint8_t mcs;
-  for (uint8_t str = 0; str < dlcqi.m_ri; str++)
-    {
-      uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, mcs);
-      NS_LOG_DEBUG ("Stream " << str << " WB CQI " << +wbCqi << " avrg MCS " << +mcs);
-      dlcqi.m_wbCqi.push_back (wbCqi);
-    }
-
   msg->SetDlCqi (dlcqi);
   return msg;
 }
@@ -1103,21 +1080,55 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
 {
   NS_LOG_FUNCTION (this);
 
-  // TODO use the panel index attribute
-
   // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
-      if (Simulator::Now () > m_wbCqiLast)
-        {
-          SpectrumValue newSinr = sinr;
-          Ptr<NrDlCqiMessage> msg = CreateDlCqiFeedbackMessage (newSinr);
+      // TODO this trace needs to be extended to support also the panel ID,
+      // and also all functions all over the module that use this trace
+      m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId ());
 
+      // TODO
+      // Not sure what this IF is about, seems that it can be removed,
+      // if not, then we have to support wbCqiLast time per panel
+      // if (Simulator::Now () > m_wbCqiLast)
+      if (m_dlWbCqi.empty()) // No DL CQI reported yet, initialize the vector
+        {
+          m_dlWbCqi = std::vector <uint8_t> (m_spectrumPhys.size(), 0);
+        }
+
+      uint8_t mcs;
+      uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (sinr, mcs);
+
+      NS_ASSERT (panelIndex < m_dlWbCqi.size () && m_dlWbCqi.at (panelIndex) == 0);
+      m_dlWbCqi [panelIndex] = wbCqi;
+      NS_LOG_DEBUG ("Stream " << +panelIndex << " WB CQI " << +wbCqi << " avrg MCS " << +mcs);
+      m_dlCqiFeedbackCounter++;
+
+      // if we received SINR from all the active panels,
+      // we can proceed to trigger the corresponding callback
+      if (m_dlCqiFeedbackCounter == m_activeDlDataPanels)
+        {
+          DlCqiInfo dlcqi;
+          dlcqi.m_rnti = m_rnti;
+          dlcqi.m_cqiType = DlCqiInfo::WB;
+          //Rank indicator must be chosen based on the channel quality
+          //measured for the two streams. For now, I am fixing it to 1
+          //to check if all the previously written tests and examples
+          //for single stream work with the new implementation.
+          //In MIMO, once the UE starts reporting RI = 2, both the CQI
+          //must be reported even though one is measured, the other for
+          //which we couldn't measure we will assign CQI 0.
+          dlcqi.m_ri = 1;
+          dlcqi.m_wbCqi = m_dlWbCqi; // set DL CQI feedbacks
+
+          Ptr<NrDlCqiMessage> msg = CreateDlCqiFeedbackMessage (dlcqi);
           if (msg)
             {
               DoSendControlMessage (msg);
             }
-          m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId ());
+          // reset the key variables
+          m_dlCqiFeedbackCounter = 0;
+          m_dlWbCqi.clear();
         }
     }
 }
