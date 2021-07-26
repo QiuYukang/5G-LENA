@@ -163,14 +163,18 @@ NrMacSchedulerUeInfo::UpdateDlMetric (const Ptr<const NrAmc> &amc)
           else
             {
               //this else is to cover the case when UE switched from 2 streams
-              //to 1. In that case, it would report CQI 0 for one of the
-              //stream. Therefore, we need to correctly read the MCS from the right
-              //index in the MCS vector and write a valid TB size at the right
-              //index of the TB size vector. REMEMBER: Index of these vector
-              //directly maps to the stream index.
+              //to 1. In that case, scheduler needs to choose one stream with
+              //highest CQI. Therefore, we need to correctly read the MCS from
+              //the right index in the MCS vector and write a valid TB size at
+              //the right index of the TB size vector. REMEMBER: Index of these
+              //vectors directly maps to the stream index.
+              std::vector<uint8_t>::iterator it;
+              it = std::max_element (m_dlCqi.m_wbCqi.begin (), m_dlCqi.m_wbCqi.end ());
+              uint8_t maxCqiIndex = std::distance (m_dlCqi.m_wbCqi.begin(), it);
+              NS_LOG_DEBUG ("Max CQI " << static_cast <uint16_t> (*it) << " at index : " <<  maxCqiIndex);
               for (uint32_t stream = 0; stream < m_dlCqi.m_wbCqi.size (); stream++)
                 {
-                  if (m_dlCqi.m_wbCqi.at (stream) > 0)
+                  if (stream == maxCqiIndex)
                     {
                       uint8_t mcs = m_dlMcs.at (stream);
                       NS_ASSERT_MSG (mcs != UINT8_MAX, "Invalid MCS " << +mcs

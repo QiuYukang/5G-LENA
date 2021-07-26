@@ -491,6 +491,7 @@ NrMacSchedulerNs3::DoCschedUeConfigReq (const NrMacCschedSapProvider::CschedUeCo
       UeInfoOf (*itUe)->m_ulHarq.SetMaxSize (static_cast<uint8_t> (m_macSchedSapUser->GetNumHarqProcess ()));
       UeInfoOf (*itUe)->m_dlMcs.push_back (m_startMcsDl);
       UeInfoOf (*itUe)->m_startMcsDlUe = m_startMcsDl;
+      UeInfoOf (*itUe)->m_dlCqi.m_ri = 1;
       UeInfoOf (*itUe)->m_ulMcs = m_startMcsUl;
 
       NrMacSchedulerSrs::SrsPeriodicityAndOffset srs = m_schedulerSrs->AddUe ();

@@ -202,7 +202,9 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              uint32_t tbSize = GetUe (*schedInfoIt)->m_dlTbSize.at (0);
+              //TODO following code limits the number of streams
+              //2. In future, we should try to lift this
+              //limit.
               if (GetUe (*schedInfoIt)->m_dlCqi.m_ri == 2)
                 {
                   if (GetUe (*schedInfoIt)->m_dlTbSize.size () == 1)
@@ -210,10 +212,15 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
                       //scheduling first time the TB of the second stream
                       GetUe (*schedInfoIt)->m_dlTbSize.push_back (0);
                     }
-                  //if there are two streams we add the TbSizes of the two
-                  //streams to satisfy the bufQueueSize
-                  tbSize += GetUe (*schedInfoIt)->m_dlTbSize.at (1);
                 }
+              //if there are two streams we add the TbSizes of the two
+              //streams to satisfy the bufQueueSize
+              uint32_t tbSize = 0;
+              for (const auto &it:GetUe (*schedInfoIt)->m_dlTbSize)
+                {
+                  tbSize += it;
+                }
+
               if (tbSize >= std::max (bufQueueSize, 7U))
                 {
                   schedInfoIt++;

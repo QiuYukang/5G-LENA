@@ -467,9 +467,12 @@ private:
    * \param pb Data to transmit
    * \param varTtiPeriod period of transmission
    * \param dci DCI of the transmission
+   * \param panelId The id of the panel, which identifies the instance of the
+   *        NrSpecturmPhy to be used to transmit the packet burst
    */
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
-                         const std::shared_ptr<DciInfoElementTdma> &dci);
+                         const std::shared_ptr<DciInfoElementTdma> &dci,
+                         const uint8_t &panelId);
 
   /**
    * \brief Transmit the control channel

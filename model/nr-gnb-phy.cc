@@ -1235,28 +1235,26 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  //The following parameter will be removed once
-  //this API is extended to iterate over NrSpectrumPhy
-  //of each available stream and would retrieve the
-  //packet burst based on its stream index.
-  uint8_t streamId = 0;
-
-  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, streamId);
-  if (!pktBurst || pktBurst->GetNPackets () == 0)
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
-      // sometimes the UE will be scheduled when no data is queued.
-      // In this case, don't send anything, don't put power... don't do nothing!
-      return varTtiPeriod;
+      Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, panelIndex);
+      if (!pktBurst || pktBurst->GetNPackets () == 0)
+        {
+          // sometimes the UE will be scheduled when no data is queued.
+          // In this case, don't send anything, don't put power... don't do nothing!
+          // go to the next stream if any.
+          continue;
+        }
+
+      NS_LOG_INFO ("ENB TXing DL DATA frame " << m_currentSlot <<
+                    " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
+                    "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
+                    " start " << Simulator::Now () + NanoSeconds (1) <<
+                    " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (2.0));
+
+      Simulator::Schedule (NanoSeconds (1.0), &NrGnbPhy::SendDataChannels, this,
+                           pktBurst, varTtiPeriod - NanoSeconds (2.0), dci, panelIndex);
     }
-
-  NS_LOG_INFO ("ENB TXing DL DATA frame " << m_currentSlot <<
-                " symbols "  << static_cast<uint32_t> (dci->m_symStart) <<
-                "-" << static_cast<uint32_t> (dci->m_symStart + dci->m_numSym - 1) <<
-                " start " << Simulator::Now () + NanoSeconds (1) <<
-                " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (2.0));
-
-  Simulator::Schedule (NanoSeconds (1.0), &NrGnbPhy::SendDataChannels, this,
-                       pktBurst, varTtiPeriod - NanoSeconds (2.0), dci);
 
   return varTtiPeriod;
 }
@@ -1441,7 +1439,8 @@ NrGnbPhy::EndSlot (void)
 
 void
 NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
-                                const std::shared_ptr<DciInfoElementTdma> &dci)
+                            const std::shared_ptr<DciInfoElementTdma> &dci,
+                            const uint8_t &panelId)
 {
   NS_LOG_FUNCTION (this);
   // update beamforming vectors (currently supports 1 user only)
@@ -1470,11 +1469,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)));
 
   std::list<Ptr<NrControlMessage> > ctrlMsgs;
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
-    {
-      // TODO pass the correct packet burst after the merge with the MAC changes for MIMO
-      m_spectrumPhys.at(0)->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
-    }
+  m_spectrumPhys.at (panelId)->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
 }
 
 void

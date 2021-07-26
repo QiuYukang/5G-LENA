@@ -239,13 +239,13 @@ public:
       SB              //!< Sub-band
     } m_cqiType {WB}; //!< CQI type
 
-    uint8_t m_ri    {1}; //!< The rank indicator, by default UE would have only one stream
+    uint8_t m_ri    {0}; //!< The rank indicator, by default UE would have only one stream
     std::vector<double> m_sinr;   //!< Vector of SINR for the entire band
     std::vector<uint8_t> m_wbCqi; //!< CQI for each stream
     uint32_t m_timer {0};  //!< Timer (in slot number). When the timer is 0, the value is discarded
   };
 
-  uint16_t m_rnti            {0};             //!< RNTI of the UE
+  uint16_t m_rnti {0};          //!< RNTI of the UE
   BeamConfId   m_beamConfId;    //!< Beam ID of the UE (kept updated as much as possible by MAC)
 
   std::unordered_map<uint8_t, LCGPtr> m_dlLCG;//!< DL LCG

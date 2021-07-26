@@ -32,10 +32,10 @@ NrMacSchedulerUeInfoPF::UpdateDlPFMetric (const NrMacSchedulerNs3::FTResources &
   NS_LOG_FUNCTION (this);
 
   NrMacSchedulerUeInfo::UpdateDlMetric (amc);
-  uint32_t tbSize = m_dlTbSize.at (0);
-  if (this->m_dlCqi.m_ri == 2)
+  uint32_t tbSize = 0;
+  for (const auto &it:m_dlTbSize)
     {
-      tbSize += m_dlTbSize.at (1);
+      tbSize += it;
     }
   m_currTputDl = static_cast<double> (tbSize) / (totAssigned.m_sym);
   m_avgTputDl = ((1.0 - (1.0 / static_cast<double> (timeWindow))) * m_lastAvgTputDl) +
