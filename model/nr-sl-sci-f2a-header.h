@@ -41,7 +41,7 @@ namespace ns3 {
  * - All the mandatory fields in \link NrSlSciF2aHeader \endlink are set using
  *   their respective setter methods. Otherwise, serialization will hit an assert.
  *
- * \see NrSlSciF2aHeader
+ * \see NrSlSciF2Header
  */
 class NrSlSciF2aHeader : public NrSlSciF2Header
 {
@@ -110,7 +110,7 @@ public:
 
 private:
 
-  uint8_t m_castType {Broadcast};
+  uint8_t m_castType {Broadcast}; //!< The type of communication this NrSlSciF2aHeader is used for
   uint8_t m_csiReq {0}; //!< The channel state information request flag
 
 

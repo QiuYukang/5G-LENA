@@ -56,9 +56,12 @@ public:
 
   /**
    * \brief NrSlMacPduTag constructor
+   * \param rnti The RNTI
    * \param sfn the SfnSf
    * \param symStart the sym start
    * \param numSym the number of symbol
+   * \param tbSize the TB size
+   * \param dstL2Id The destination layer 2 id
    */
   NrSlMacPduTag (uint16_t rnti, SfnSf sfn, uint8_t symStart, uint8_t numSym, uint32_t tbSize, uint32_t dstL2Id);
 

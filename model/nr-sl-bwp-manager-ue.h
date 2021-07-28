@@ -42,8 +42,9 @@ public:
   friend class MemberNrSlUeBwpmRrcSapProvider<NrSlBwpManagerUe>;
 
   //Allow calls from RLC and MAC to land in this class
-
+  /// allow MemberNrSlMacSapProvider class friend access
   friend class MemberNrSlMacSapProvider <NrSlBwpManagerUe>;
+  /// allow MemberNrSlMacSapUser class friend access
   friend class MemberNrSlMacSapUser <NrSlBwpManagerUe>;
 
   /**
@@ -73,7 +74,7 @@ public:
    * \brief Set the NR Sidelik BWP Manager SAP this manager should use to
    *        interact with UE RRC.
    *
-   * \param s the NR Sidelik UE BWP Manager SAP User to be used by this manager
+   * \param nrSlUeBwpmRrcSapUser the NR Sidelik UE BWP Manager SAP User to be used by this manager
    */
   void SetNrSlUeBwpmRrcSapUser (NrSlUeBwpmRrcSapUser* nrSlUeBwpmRrcSapUser);
 
@@ -102,6 +103,7 @@ protected:
   // inherited from Object
   virtual void DoDispose ();
 
+  /// allow NrSlBwpmUeMacSapProvider class friend access
   friend class NrSlBwpmUeMacSapProvider;
   /// allow NrSlBwpmUeMacSapUser class friend access
   friend class NrSlBwpmUeMacSapUser;
@@ -164,7 +166,7 @@ protected:
   /**
    * \brief Set Bwp Id Container
    *
-   * \param The container of SL BWP ids
+   * \param bwpIdVec The container of SL BWP ids
    */
   void DoSetBwpIdContainer (const std::set<uint8_t> &bwpIdVec);
 

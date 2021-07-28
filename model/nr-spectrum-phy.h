@@ -616,6 +616,16 @@ public:
    */
  struct SlExpectedTb
  {
+    /**
+     * \brief constructor
+     * \param dstId The Destination id
+     * \param tbSize The TB size
+     * \param mcs The MCS
+     * \param rbMap The RB map
+     * \param symStart The starting symbol index
+     * \param numSym The total number of symbols
+     * \param sfn The SfnSf
+     */
    SlExpectedTb (uint32_t dstId, uint32_t tbSize, uint8_t mcs, const std::vector<int> &rbMap,
                uint8_t symStart, uint8_t numSym, const SfnSf &sfn) :
      dstId {dstId},
@@ -626,6 +636,10 @@ public:
      numSym (numSym),
      sfn (sfn) { }
    SlExpectedTb () = delete;
+   /**
+    * \brief default copy constructor
+    * \param o other SlExpectedTb object
+    */
    SlExpectedTb (const SlExpectedTb &o) = default;
 
    uint32_t dstId            {0}; //!< Destination id
@@ -637,8 +651,15 @@ public:
    SfnSf sfn;                     //!< SFN
  };
 
+ /**
+  * \brief Sidelink transport block info
+  */
  struct SlTransportBlockInfo
  {
+   /**
+    * \brief constructor
+    * \param expectedTb Expected NR SL data from the PHY
+    */
    SlTransportBlockInfo (const SlExpectedTb &expectedTb) :
      expectedTb (expectedTb) { }
    SlTransportBlockInfo () = delete;
@@ -744,9 +765,10 @@ public:
    * should include it in Tag or something. At the moment, I am already
    * consuming 20 bytes with the NrSlMacPduTag. If I will remove some fields
    * in the future, maybe, I will include PSCCH TB size there.
-   * \param NR SL AMC
+   *
+   * \param slAmc NR SL AMC
    */
-  void SetSlAmc (Ptr <NrAmc>);
+  void SetSlAmc (Ptr <NrAmc> slAmc);
   /**
    * \brief Set the callback for the successful end of a PSCCH RX, as part of the
    * interconnections between the PHY and the MAC

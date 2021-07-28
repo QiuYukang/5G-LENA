@@ -226,6 +226,10 @@ class MemberNrSlUeMacSchedSapUser : public NrSlUeMacSchedSapUser
 {
 
 public:
+  /**
+   * \brief constructor
+   * \param mac The pointer to the NrUeMac using this SAP
+   */
   MemberNrSlUeMacSchedSapUser (NrUeMac* mac);
 
   virtual void SchedUeNrSlConfigInd (const std::set<NrSlSlotAlloc>& params);
@@ -233,7 +237,7 @@ public:
   virtual uint8_t GetSlMaxTxTransNumPssch () const;
 
 private:
-  NrUeMac* m_mac;
+  NrUeMac* m_mac; //!< The pointer to the NrUeMac using this SAP
 };
 
 MemberNrSlUeMacSchedSapUser::MemberNrSlUeMacSchedSapUser (NrUeMac* mac)

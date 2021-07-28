@@ -49,11 +49,11 @@ public:
    * \brief Do the NR Sidelink allocation
    *
    * The SCI 1-A is Txed with every new transmission and after the transmission
-   * for, which \c txNumTb mod MaxNumPerReserved == 0 \c, where the txNumTb
+   * for, which \c txNumTb mod MaxNumPerReserved == 0 \c , where the txNumTb
    * is the transmission index of the TB, e.g., 0 for initial tx, 1 for a first
    * retransmission, and so on.
    *
-   * \param txOpps The list of the txOpps for the UE MAC
+   * \param txOpps The list of the txOpps from the UE MAC
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
    * \param slotAllocList The slot allocation list to be updated by this scheduler
@@ -65,6 +65,10 @@ public:
                                  std::set<NrSlSlotAlloc> &slotAllocList) override;
 
 private:
+  /**
+   * \ingroup scheduler
+   * \brief The SbChInfo struct
+   */
   struct SbChInfo
   {
     uint8_t numSubCh {0}; //!< The minimum number of contiguous subchannels that could be used for each slot.
@@ -111,12 +115,12 @@ private:
    * index by taking into account the number of available contiguous subchannels
    * and the number of subchannels that needs to be assigned.
    *
-   * \param A struct object of type SbChInfo
+   * \param sbChInfo A struct object of type SbChInfo
    * \param assignedSbCh The number of assigned subchannels
    * \return A vector containing the randomly chosen starting subchannel index
    *         for each slot.
    */
-  std::vector <uint8_t> RandSelSbChStart (SbChInfo, uint8_t assignedSbCh);
+  std::vector <uint8_t> RandSelSbChStart (SbChInfo sbChInfo, uint8_t assignedSbCh);
 };
 
 } //namespace ns3

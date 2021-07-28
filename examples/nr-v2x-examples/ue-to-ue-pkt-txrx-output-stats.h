@@ -97,8 +97,25 @@ public:
   void EmptyCache ();
 
 private:
+  /**
+   * \ingroup nr
+   * \brief UePacketResultCache struct to cache the information communicated
+   *        by TX/RX application layer traces.
+   */
   struct UePacketResultCache
   {
+    /**
+     * \brief UePacketResultCache constructor
+     * \param timeSec The time in seconds
+     * \param txRx The string indicating the type of node, i.e., TX or RX
+     * \param localAddrs The local IPV4 address of the node
+     * \param nodeId The node id of the TX or RX node
+     * \param imsi The IMSI of the UE
+     * \param pktSize The packet size
+     * \param srcAddrs The source address from the trace
+     * \param dstAddrs The destination address from the trace
+     * \param seq The sequence number of the packet
+     */
     UePacketResultCache (double timeSec, std::string txRx, Address localAddrs,
                          uint32_t nodeId, uint64_t imsi, uint32_t pktSize,
                          Address srcAddrs, Address dstAddrs, uint32_t seq)
@@ -109,15 +126,15 @@ private:
     {
     }
 
-    double timeSec {0.0};
-    std::string txRx {""};
-    Address localAddrs;
-    uint32_t nodeId {std::numeric_limits <uint32_t>::max ()};
-    uint64_t imsi {std::numeric_limits <uint64_t>::max ()};
-    uint32_t pktSize;
-    Address srcAddrs;
-    Address dstAddrs;
-    uint32_t seq {std::numeric_limits <uint32_t>::max ()};
+    double timeSec {0.0}; //!< The time in seconds
+    std::string txRx {""}; //!< The string indicating the type of node, i.e., TX or RX
+    Address localAddrs; //!< The local IPV4 address of the node
+    uint32_t nodeId {std::numeric_limits <uint32_t>::max ()}; //!< The node id of the TX or RX node
+    uint64_t imsi {std::numeric_limits <uint64_t>::max ()}; //!< The IMSI of the UE
+    uint32_t pktSize; //!< The packet size
+    Address srcAddrs; //!< The source address from the trace
+    Address dstAddrs; //!< The destination address from the trace
+    uint32_t seq {std::numeric_limits <uint32_t>::max ()}; //!< The sequence number of the packet
   };
   /**
    * \brief Delete the table if it already exists with same seed and run number

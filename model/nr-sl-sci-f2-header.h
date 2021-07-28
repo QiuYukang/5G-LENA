@@ -167,6 +167,7 @@ protected:
   /**
    * \brief Deserialize the common fields of second stage SCI
    * \param i the buffer iterator
+   * \return The serialized size of the header
    */
   uint32_t PreDeserialize (Buffer::Iterator &i);
 

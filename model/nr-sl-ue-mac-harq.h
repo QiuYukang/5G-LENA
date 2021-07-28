@@ -65,11 +65,11 @@ public:
    *
    * This method is responsible to initialize NR SL HARQ process id buffer
    * (see NrSlUeMacHarq#m_nrSlHarqIdBuffer) and NR SL HARQ packet buffer
-   * (see NrSlUeMacHarq#m_nrSlHarqPktBuffer). The size of these buffer
-   * will equivalent to the number of max sidelink process number passed
+   * (see NrSlUeMacHarq#m_nrSlHarqPktBuffer). The size of these buffers
+   * will be equivalent to the number of max sidelink process number passed
    * through this method.
    *
-   * \param maxSidelinkProcess The maximum number of sidelink processes for
+   * \param maxSlProcesses The maximum number of sidelink processes for
    *        this HARQ entity.
    */
   void InitHarqBuffer (uint8_t maxSlProcesses);
@@ -81,7 +81,7 @@ public:
    * if there is an available Sidelink process in NrSlUeMacHarq#m_nrSlHarqIdBuffer.
    * In this implementation, an idle Sidelink process id is basically a number
    * stored in NrSlUeMacHarq#m_nrSlHarqIdBuffer vector, which starts from zero,
-   * and ends at <\b>maxSidelinkProcess - 1<\b>.
+   * and ends at <b>maxSidelinkProcess - 1</b>.
    * Moreover, HARQ process id is the same as Sidelink process id.
    *
    * \param dstL2Id The destination Layer 2 id
@@ -97,7 +97,8 @@ public:
 
   /**
    * \brief Is the given HARQ id available
-   * \return true if the HARQ id is available; otherwise false
+   * \param harqId The HARQ process id
+   * \return returns true if the HARQ id is available; otherwise false
    */
   bool IsHarqIdAvaiable (uint8_t harqId) const;
 
@@ -123,7 +124,7 @@ public:
   /**
    * \brief Receive NR Sidelink Harq feedback
    * \param dstL2Id Destination Layer 2 id
-   * \param harqProcessId The harq process id
+   * \param harqId The harq process id
    */
   void RecvNrSlHarqFeedback (uint32_t dstL2Id, uint8_t harqId);
 

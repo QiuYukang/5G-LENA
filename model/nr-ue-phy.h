@@ -77,6 +77,7 @@ class NrUePhy : public NrPhy
   friend class MemberLteUeCphySapProvider<NrUePhy>;
   friend class MemberNrSlUeCphySapProvider<NrUePhy>;
   //NR SL
+  /// allow MemberNrSlUePhySapProvider<NrUePhy> class friend access
   friend class MemberNrSlUePhySapProvider<NrUePhy>;
 
 public:
@@ -812,6 +813,17 @@ private:
    */
  struct SlRxGrantInfo
  {
+   /**
+    * \brief constructor
+    * \param rnti Tx RNTI
+    * \param dstId Destination id
+    * \param tbSize TB Size
+    * \param mcs MCS
+    * \param rbMap RB map
+    * \param symStart Starting symbol index
+    * \param numSym Total number of symbols
+    * \param sfn SfnSf
+    */
    SlRxGrantInfo (uint16_t rnti, uint32_t dstId, uint32_t tbSize, uint8_t mcs,
                   const std::vector<int> &rbMap, uint8_t symStart,
                   uint8_t numSym, const SfnSf &sfn) :
@@ -913,6 +925,7 @@ private:
   void SaveFutureSlRxGrants (const NrSlSciF1aHeader& sciF1a, const NrSlMacPduTag& tag, const uint16_t sbChSize);
   /**
    * \brief Send Sidelink expected TB info to NrSpectrumPhy
+   * \param s The SfnSf
    *
    * This method will go over the \link m_slRxGrants \endlink list, which stores
    * the info about the possible expected TBs to be received in the current

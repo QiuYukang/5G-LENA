@@ -69,6 +69,7 @@ public:
   /**
    * \brief Insert the pointer to the NrSlUeMacSchedulerLCG object
    *
+   *\param lcg the pointer to the NrSlUeMacSchedulerLCG object
    * \return The pointer to the map location where this method has inserted the
    * pointer to the NrSlUeMacSchedulerLCG object
    */

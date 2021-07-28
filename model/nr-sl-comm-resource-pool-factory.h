@@ -33,7 +33,7 @@ public:
   NrSlCommResourcePoolFactory ();
   virtual ~NrSlCommResourcePoolFactory ();
 
-  /*
+  /**
    * \brief Create pool
    *
    * Until 3GPP TS 38.331 is not making a clear distinction between a dedicated
@@ -70,7 +70,7 @@ public:
   uint16_t GetSlFreqResourcePscch () const;
   /**
    * \brief Set sidelink frequency resource PSCCH
-   * \param The number of resource blocks allocated to PSCCH transmission
+   * \param  slFreqResourcePscch The number of resource blocks allocated to PSCCH transmission
    */
   void SetSlFreqResourcePscch (uint16_t slFreqResourcePscch);
   /**

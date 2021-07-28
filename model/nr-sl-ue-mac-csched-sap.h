@@ -44,7 +44,17 @@ public:
    */
   struct SidelinkLogicalChannelInfo
   {
-
+    /**
+     * \brief SidelinkLogicalChannelInfo constructor
+     * \param dstL2Id L2 destination id
+     * \param lcId logical channel identifier
+     * \param lcGroup logical channel group
+     * \param pqi PC5 QoS Class Identifier
+     * \param priority priority
+     * \param isGbr true if the bearer is GBR, false if the bearer is NON-GBR
+     * \param mbr maximum bitrate
+     * \param gbr guaranteed bitrate
+     */
     SidelinkLogicalChannelInfo (uint32_t dstL2Id, uint8_t lcId, uint8_t lcGroup,
                                 uint8_t pqi, uint8_t priority, bool isGbr,
                                 uint64_t mbr, uint64_t gbr)

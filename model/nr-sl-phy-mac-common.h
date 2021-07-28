@@ -128,6 +128,11 @@ struct SlPsschUeMacStatParameters
  */
 struct SlRlcPduInfo
 {
+  /**
+   * \brief SlRlcPduInfo constructor
+   * \param lcid The Logical channel id
+   * \param size The transport block size
+   */
   SlRlcPduInfo (uint8_t lcid, uint32_t size) :
     lcid (lcid), size (size)
   {}
@@ -209,7 +214,7 @@ struct NrSlVarTtiAllocInfo
    *
    * The comparison is done on the symbol start
    */
-  bool operator < (const NrSlVarTtiAllocInfo& o) const;
+  bool operator < (const NrSlVarTtiAllocInfo& rhs) const;
 };
 
 /**
@@ -279,6 +284,10 @@ struct SlRxCtrlPacketTraceParams:public RxPacketTraceParams
   typedef void (* TracedCallback)(const SlRxCtrlPacketTraceParams params);
 };
 
+/**
+ * \ingroup utils
+ * \brief The SensingData struct
+ */
 struct SensingData
 {
   /**
@@ -321,6 +330,10 @@ struct SensingData
   uint8_t sbChStartReTx2 {std::numeric_limits <uint8_t>::max ()}; //!< The index of the starting sub-channel allocated to second retransmission
 };
 
+/**
+ * \ingroup utils
+ * \brief The SlotSensingData struct
+ */
 struct SlotSensingData
 {
   /**

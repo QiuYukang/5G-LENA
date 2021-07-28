@@ -92,7 +92,7 @@ NS_LOG_COMPONENT_DEFINE ("CttcNrV2xDemoSimple");
  * \brief Method to listen the trace SlPscchScheduling of NrUeMac, which gets
  *        triggered upon the transmission of SCI format 1-A from UE MAC.
  *
- * \param pscchStats Pointer to the \link UeMacPscchTxOutputStats \endlink class,
+ * \param pscchStats Pointer to the UeMacPscchTxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param pscchStatsParams Parameters of the trace source.
  */
@@ -105,7 +105,7 @@ void NotifySlPscchScheduling (UeMacPscchTxOutputStats *pscchStats, const SlPscch
  * \brief Method to listen the trace SlPsschScheduling of NrUeMac, which gets
  *        triggered upon the transmission of SCI format 2-A and data from UE MAC.
  *
- * \param psschStats Pointer to the \link UeMacPsschTxOutputStats \endlink class,
+ * \param psschStats Pointer to the UeMacPsschTxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param psschStatsParams Parameters of the trace source.
  */
@@ -118,7 +118,7 @@ void NotifySlPsschScheduling (UeMacPsschTxOutputStats *psschStats, const SlPssch
  * \brief Method to listen the trace RxPscchTraceUe of NrSpectrumPhy, which gets
  *        triggered upon the reception of SCI format 1-A.
  *
- * \param pscchStats Pointer to the \link UePhyPscchRxOutputStats \endlink class,
+ * \param pscchStats Pointer to the UePhyPscchRxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param pscchStatsParams Parameters of the trace source.
  */
@@ -131,7 +131,7 @@ void NotifySlPscchRx (UePhyPscchRxOutputStats *pscchStats, const SlRxCtrlPacketT
  * \brief Method to listen the trace RxPsschTraceUe of NrSpectrumPhy, which gets
  *        triggered upon the reception of SCI format 2-A and data.
  *
- * \param psschStats Pointer to the \link UePhyPsschRxOutputStats \endlink class,
+ * \param psschStats Pointer to the UePhyPsschRxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param psschStatsParams Parameters of the trace source.
  */
@@ -143,9 +143,9 @@ void NotifySlPsschRx (UePhyPsschRxOutputStats *psschStats, const SlRxDataPacketT
 /**
  * \brief Method to listen the application level traces of type TxWithAddresses
  *        and RxWithAddresses.
- * \param stats Pointer to the \link UeToUePktTxRxOutputStats \endlink class,
+ * \param stats Pointer to the UeToUePktTxRxOutputStats class,
  *        which is responsible to write the trace source parameters to a database. *
- * \param nodeId The node id of the TX or RX node
+ * \param node The pointer to the TX or RX node
  * \param localAddrs The local IPV4 address of the node
  * \param txRx The string indicating the type of node, i.e., TX or RX
  * \param p The packet
@@ -170,15 +170,15 @@ UePacketTraceDb (UeToUePktTxRxOutputStats *stats, Ptr<Node> node, const Address 
  * Global variables to count TX/RX packets and bytes.
  */
 
-uint32_t rxByteCounter = 0;
-uint32_t txByteCounter = 0;
-uint32_t rxPktCounter = 0;
-uint32_t txPktCounter = 0;
+uint32_t rxByteCounter = 0; //!< Global variable to count RX bytes
+uint32_t txByteCounter = 0; //!< Global variable to count TX bytes
+uint32_t rxPktCounter = 0; //!< Global variable to count RX packets
+uint32_t txPktCounter = 0; //!< Global variable to count TX packets
 
 /**
  * \brief Method to listen the packet sink application trace Rx.
  * \param packet The packet
- * \param The address of the transmitter
+ * \param from The address of the transmitting node
  */
 void ReceivePacket (Ptr<const Packet> packet, const Address & from)
 {
@@ -200,9 +200,9 @@ void TransmitPacket (Ptr<const Packet> packet)
 /*
  * Global variable used to compute PIR
  */
-uint64_t pirCounter = 0;
-Time lastPktRxTime;
-Time pir;
+uint64_t pirCounter = 0; //!< counter to count how many time we computed the PIR. It is used to compute average PIR
+Time lastPktRxTime; //!< Global variable to store the RX time of a packet
+Time pir; //!< Global varible to store PIR value
 
 /**
  * \brief This method listens to the packet sink application trace Rx.

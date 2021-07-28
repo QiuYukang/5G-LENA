@@ -132,7 +132,7 @@ public:
   /**
    * \brief Set the gap between a transmission and its second re-transmission
    *
-   * \param gapReTx1 The gap between a transmission and its second re-transmission in slots
+   * \param gapReTx2 The gap between a transmission and its second re-transmission in slots
    */
   void SetGapReTx2 (uint8_t gapReTx2);
   /**

@@ -91,8 +91,23 @@ public:
   void EmptyCache ();
 
 private:
+  /**
+   * \brief The UeRlcRxData struct to cache the information communicated by
+   *        RxRlcPduWithTxRnti trace in NrUeMac
+   */
   struct UeRlcRxData
   {
+    /**
+     * \brief UeRlcRxData constructor
+     * \param timeMs The time in milliseconds
+     * \param imsi The IMSI of the UE
+     * \param rnti The RNTI of the UE
+     * \param txRnti The RNTI of the TX UE
+     * \param lcid The logical channel id
+     * \param rxPduSize The received PDU size in bytes
+     * \param delayMicroSeconds The end-to-end, i.e., from TX RLC entity to RX
+     *        RLC entity, delay in microseconds
+     */
     UeRlcRxData (double timeMs, uint64_t imsi, uint16_t rnti, uint16_t txRnti,
                  uint8_t lcid, uint32_t rxPduSize, int64_t delayMicroSeconds)
       : timeMs (timeMs), imsi (imsi), rnti (rnti), txRnti (txRnti),
@@ -100,13 +115,13 @@ private:
     {
     }
 
-    double timeMs {0.0};
-    uint64_t imsi {std::numeric_limits <uint64_t>::max ()};
-    uint16_t rnti {std::numeric_limits <uint16_t>::max ()};
-    uint16_t txRnti {std::numeric_limits <uint16_t>::max ()};
-    uint8_t lcid {std::numeric_limits <uint8_t>::max ()};
-    uint32_t rxPduSize {std::numeric_limits <uint32_t>::max ()};
-    double delayMicroSeconds {0};
+    double timeMs {0.0}; //!< timeMs The time in milliseconds
+    uint64_t imsi {std::numeric_limits <uint64_t>::max ()}; //!< The IMSI of the UE
+    uint16_t rnti {std::numeric_limits <uint16_t>::max ()}; //!< The RNTI of the UE
+    uint16_t txRnti {std::numeric_limits <uint16_t>::max ()}; //!< The RNTI of the TX UE
+    uint8_t lcid {std::numeric_limits <uint8_t>::max ()}; //!< The logical channel id
+    uint32_t rxPduSize {std::numeric_limits <uint32_t>::max ()}; //!< The received PDU size in bytes
+    double delayMicroSeconds {0}; //!< The end-to-end, i.e., from TX RLC entity to RX RLC entity, delay in microseconds
   };
   /**
    * \brief Delete the table if it already exists with same seed and run number

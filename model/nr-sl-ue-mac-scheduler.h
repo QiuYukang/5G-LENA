@@ -123,10 +123,17 @@ protected:
   NrSlUeMacSchedSapProvider* m_nrSlUeMacSchedSapProvider   {nullptr};  //!< SAP Provider
 };
 
-
+/**
+ * \ingroup scheduler
+ * \brief Class implementing the NrSlUeMacCschedSapProvider methods
+ */
 class NrSlUeMacGeneralCschedSapProvider : public NrSlUeMacCschedSapProvider
 {
 public:
+  /**
+   * \brief constructor
+   * \param scheduler The pointer the NrSlUeMacScheduler API using this SAP
+   */
   NrSlUeMacGeneralCschedSapProvider (NrSlUeMacScheduler* scheduler);
 
   ~NrSlUeMacGeneralCschedSapProvider () = default;
@@ -136,19 +143,27 @@ public:
   virtual void CschedUeNrSlLcConfigReq (const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) override;
 
 private:
-  NrSlUeMacScheduler* m_scheduler {nullptr};
+  NrSlUeMacScheduler* m_scheduler {nullptr}; //!< pointer to the scheduler API using this SAP
 };
 
+/**
+ * \ingroup scheduler
+ * \brief Class implementing the NrSlUeMacSchedSapProvider methods
+ */
 class NrSlUeMacGeneralSchedSapProvider : public NrSlUeMacSchedSapProvider
 {
 public:
+  /**
+   * \brief constructor
+   * \param sched The pointer the NrSlUeMacScheduler API using this SAP
+   */
   NrSlUeMacGeneralSchedSapProvider (NrSlUeMacScheduler* sched);
 
   virtual void SchedUeNrSlRlcBufferReq (const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params) override;
   virtual void SchedUeNrSlTriggerReq (uint32_t dstL2Id, const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params) override;
 
 private:
-  NrSlUeMacScheduler* m_scheduler {nullptr};
+  NrSlUeMacScheduler* m_scheduler {nullptr}; //!< pointer to the scheduler API using this SAP
 };
 
 

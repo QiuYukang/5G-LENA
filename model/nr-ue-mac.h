@@ -133,11 +133,15 @@ class NrUeMac : public Object
   friend class UeMemberNrMacSapProvider;
   friend class MacUeMemberPhySapUser;
   //NR Sidelink
-  /// let the forwarder class access the protected and private members
+  /// allow MemberNrSlMacSapProvider<NrUeMac> class friend access
   friend class MemberNrSlMacSapProvider<NrUeMac>;
+  /// allow MemberNrSlUeCmacSapProvider<NrUeMac> class friend access
   friend class MemberNrSlUeCmacSapProvider<NrUeMac>;
+  /// allow MemberNrSlUePhySapUser<NrUeMac> class friend access
   friend class MemberNrSlUePhySapUser<NrUeMac>;
+  /// allow MemberNrSlUeMacCschedSapUser<NrUeMac> class friend access
   friend class MemberNrSlUeMacCschedSapUser;
+  /// allow MemberNrSlUeMacSchedSapUser<NrUeMac> class friend access
   friend class MemberNrSlUeMacSchedSapUser;
 
 public:
@@ -695,7 +699,7 @@ public:
 
   /**
    * \brief Sets the number of Sidelink processes of Sidelink HARQ
-   * \param numSidelinkProcesses the maximum number of Sidelink processes
+   * \param numSidelinkProcess the maximum number of Sidelink processes
    */
   void SetNumSidelinkProcess (uint8_t numSidelinkProcess);
 
@@ -782,7 +786,7 @@ protected:
    *
    * Adds transmission pool for NR Sidelink communication
    *
-   * \param pool The pointer to the NrSlCommResourcePool
+   * \param txPool The pointer to the NrSlCommResourcePool
    */
   void DoAddNrSlCommTxPool (Ptr<const NrSlCommResourcePool> txPool);
   /**
@@ -790,7 +794,7 @@ protected:
    *
    * Adds reception pool for NR Sidelink communication
    *
-   * \param pool The pointer to the NrSlCommResourcePool
+   * \param rxPool The pointer to the NrSlCommResourcePool
    */
   void DoAddNrSlCommRxPool (Ptr<const NrSlCommResourcePool> rxPool);
   /**
@@ -841,7 +845,7 @@ protected:
   std::unordered_set <uint32_t> DoGetSlRxDestinations ();
   /**
    * \brief Receive NR SL PSSCH PHY PDU
-   * \return pbu The NR SL PSSCH PHY PDU
+   * \param pdu The NR SL PSSCH PHY PDU
    */
   void DoReceivePsschPhyPdu (Ptr<PacketBurst> pdu);
   /**
@@ -887,7 +891,7 @@ protected:
 
 private:
 
-  //Sidelink Logical Channel Identifier
+  ///Sidelink Logical Channel Identifier
   struct SidelinkLcIdentifier
   {
     uint8_t lcId; //!< Sidelink LCID
@@ -907,12 +911,14 @@ private:
    return l.lcId < r.lcId || (l.lcId == r.lcId && l.srcL2Id < r.srcL2Id) || (l.lcId == r.lcId && l.srcL2Id == r.srcL2Id && l.dstL2Id < r.dstL2Id);
   }
 
+  ///Sidelink Logical Channel Information
   struct SlLcInfoUeMac
   {
-   NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo;
-   NrSlMacSapUser* macSapUser;
+   NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo lcInfo; //!< LC info
+   NrSlMacSapUser* macSapUser; //!< SAP pointer to the RLC instance of the LC
   };
 
+  ///NR Sidelink grant Information
   struct NrSlGrantInfo
   {
     uint16_t cReselCounter {std::numeric_limits <uint8_t>::max ()}; //!< The Cresel counter for the semi-persistently scheduled resources as per TS 38.214
@@ -984,6 +990,7 @@ private:
   uint8_t GetTotalSubCh (uint16_t poolId) const;
   /**
    * \brief Get the random selection counter
+   * \return The randomly selected reselection counter
    *
    * See 38.321 section 5.22.1.1 V16
    *
@@ -1079,7 +1086,7 @@ private:
   uint8_t m_t1 {0}; //!< The offset in number of slots between the slot in which the resource selection is triggered and the start of the selection window
   uint16_t m_t2 {0}; //!< The offset in number of slots between T1 and the end of the selection window
   std::map <SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters> m_nrSlBsrReceived; ///< NR Sidelink BSR received from RLC
-  uint16_t m_poolId {std::numeric_limits <uint16_t>::max ()};
+  uint16_t m_poolId {std::numeric_limits <uint16_t>::max ()}; //!< Sidelink active pool id
   NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser           {nullptr};  //!< SAP user
   NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser         {nullptr};  //!< SAP User
   NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider {nullptr};  //!< SAP Provider

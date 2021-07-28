@@ -65,7 +65,7 @@ public:
    * \see CreateLCG
    * \see CreateLc
    *
-   * \param paramsNrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo
+   * \param params The NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo struct
    */
   virtual void DoCschedUeNrSlLcConfigReq (const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) override;
 
@@ -178,7 +178,7 @@ protected:
    *    unequal buffer sizes, we can use the minimum buffer size among the LCs
    *    to assign the same bytes.
    *
-   * \param txOpps The list of the txOpps for the UE MAC
+   * \param params The list of the txOpps from the UE MAC
    * \param dstInfo The pointer to the NrSlUeMacSchedulerDstInfo of the destination
    *        for which UE MAC asked the scheduler to allocate the recourses
    * \param slotAllocList The slot allocation list to be updated by a specific scheduler
@@ -218,6 +218,7 @@ private:
    * for a destination.
    *
    * \param params params of the UE
+   * \return A std::shared_ptr to newly created NrSlUeMacSchedulerDstInfo
    */
   std::shared_ptr<NrSlUeMacSchedulerDstInfo>
   CreateDstInfo (const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params);

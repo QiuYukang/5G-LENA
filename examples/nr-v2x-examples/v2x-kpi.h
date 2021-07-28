@@ -56,7 +56,7 @@ public:
 
   /**
    * \brief Set the path to the DB to read the tables from.
-   * \param dbPath
+   * \param dbPath The path to the DB
    */
   void SetDbPath (std::string dbPath);
   /**
@@ -96,8 +96,25 @@ public:
   void SetRangeForV2xKpis (uint16_t range);
 
 private:
+  /**
+   * \ingroup nr
+   * \brief PktTxRxData struct to store information read from a table in the
+   *        database storing the information communicated by TX/RX application
+   *        layer traces.
+   *
+   */
   struct PktTxRxData
   {
+    /**
+     * \brief PktTxRxData constructor
+     * \param time The time value in the table
+     * \param txRx Nature of the trace, i.e., TX or RX
+     * \param nodeId The node id
+     * \param imsi The IMSI of the UE
+     * \param pktSize The packet size
+     * \param ipAddrs The IP address of the node
+     * \param pktSeq The packet sequence number
+     */
     PktTxRxData (double time, std::string txRx, uint32_t nodeId, uint64_t imsi, uint32_t pktSize, std::string ipAddrs, uint32_t pktSeq)
       : time (time), txRx (txRx), nodeId (nodeId), imsi (imsi), pktSize (pktSize), ipAddrs (ipAddrs), pktSeq (pktSeq)
     {}
@@ -110,8 +127,25 @@ private:
     std::string ipAddrs; //!< The ip address of the node.
     uint32_t pktSeq {std::numeric_limits <uint32_t>::max ()}; //!<< packet sequance number
   };
+  /**
+   * \ingroup nr
+   * \brief PsschTxData struct to store information read from a table in the
+   *        database storing the information communicated by SlPsschScheduling
+   *        trace of NrUeMac class.
+   *
+   */
   struct PsschTxData
   {
+    /**
+     * \brief PsschTxData constructor
+     * \param frame The frame number
+     * \param subFrame The subframe number
+     * \param slot The slot number
+     * \param symStart The starting symbol index
+     * \param symLen The total number of symbol
+     * \param rbStart The starting RB index
+     * \param rbLen The total number of RBs
+     */
     PsschTxData (uint32_t frame, uint32_t subFrame, uint16_t slot, uint16_t symStart, uint16_t symLen, uint16_t rbStart, uint16_t rbLen)
       : frame (frame), subFrame (subFrame), slot (slot),symStart (symStart), symLen (symLen), rbStart (rbStart), rbLen (rbLen)
     {}
@@ -124,6 +158,11 @@ private:
     uint16_t rbStart {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the starting resource block
     uint16_t rbLen {std::numeric_limits <uint16_t>::max ()}; //!< Indicates the total number of contiguous resource block
 
+    /**
+     * \brief Equal to operator for PsschTxData object
+     * \param r another instance
+     * \return true if this and r are equal, false otherwise
+     */
     bool operator == (const PsschTxData &r)
     {
       return (this->frame == r.frame
@@ -173,7 +212,7 @@ private:
   void SaveAvrgPir ();
   /**
    * \brief Compute the average PIR
-   * \param IP of the transmitting node for which we are computing the PIR
+   * \param ipTx of the transmitting node for which we are computing the PIR
    * \param data The data to be used to compute the average PIR
    * \return The average PIR
    */

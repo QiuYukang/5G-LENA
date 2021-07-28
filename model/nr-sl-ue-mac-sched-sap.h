@@ -52,9 +52,9 @@ public:
      *
      * \param numSlPscchRbs Indicates the number of PRBs for PSCCH in a resource pool where it is not greater than the number PRBs of the subchannel.
      * \param slPscchSymStart Indicates the starting symbol used for sidelink PSCCH in a slot
-     * \param slPscchSymlength Indicates the total number of symbols available for sidelink PSCCH
+     * \param slPscchSymLength Indicates the total number of symbols available for sidelink PSCCH
      * \param slPsschSymStart Indicates the starting symbol used for sidelink PSSCH in a slot
-     * \param slPsschSymlength Indicates the total number of symbols available for sidelink PSSCH
+     * \param slPsschSymLength Indicates the total number of symbols available for sidelink PSSCH
      * \param slSubchannelSize Indicates the subchannel size in number of RBs
      * \param slMaxNumPerReserve Indicates the maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
      * \param sfn The SfnSf
@@ -108,18 +108,19 @@ public:
      * \brief NrSlReportBufferStatusParameters constructor
      *
      * \param rnti RNTI
-     * \param lcid Logical Channel ID
+     * \param lcId Logical Channel ID
      * \param txQueueSize The current size of the RLC transmission queue
      * \param txQueueHolDelay The Head Of Line delay of the transmission queue
      * \param retxQueueSize The current size of the RLC retransmission queue
      * \param retxQueueHolDelay The Head Of Line delay of the retransmission queue
+     * \param statusPduSize The current size of the pending STATUS RLC  PDU message in bytes
      * \param srcL2Id Sidelink source L2 ID (24 bits)
-     * \param destL2Id Sidelink destination L2 ID (24 bits)
+     * \param dstL2Id Sidelink destination L2 ID (24 bits)
      */
     SchedUeNrSlReportBufferStatusParams (uint16_t rnti, uint8_t lcId,
                                          uint32_t txQueueSize, uint16_t txQueueHolDelay,
                                          uint32_t retxQueueSize, uint16_t retxQueueHolDelay,
-                                         uint16_t statusPduSize, uint32_t srcL2Id,  uint32_t dstL2Id)
+                                         uint16_t statusPduSize, uint32_t srcL2Id, uint32_t dstL2Id)
     {
       this->rnti = rnti;
       this->lcid = lcId;
@@ -198,6 +199,12 @@ public:
 
 };
 
+/**
+ * \brief Stream output operator
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
 std::ostream & operator<< (std::ostream & os, NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams const & p);
 
 

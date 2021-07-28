@@ -175,6 +175,7 @@ private:
    *        SL BWP related configuration
    * \param general The <tt> struct SlPreconfigGeneralNr </tt> to retrieve
    *        general parameters for a BWP, e.g., TDD pattern
+   * \return true if the user indented BWP for SL is configured, false otherwise
    */
   bool ConfigUeParams (const Ptr<NrUeNetDevice> &dev,
                        const LteRrcSap::SlFreqConfigCommonNr &freqCommon,
@@ -183,12 +184,12 @@ private:
   /**
    * \brief Prepare Single UE for Sidelink
    *
-   * \param NrUeDev The Ptr to NR Ue netdevice
+   * \param nrUeDev The Ptr to NR Ue netdevice
    * \param slBwpIds The container of Sidelink BWP ids
    */
   void PrepareSingleUeForSidelink (Ptr<NrUeNetDevice> nrUeDev, const std::set <uint8_t> &slBwpIds);
 
-  /*
+  /**
    * brief Create UE SL AMC object from UE SL AMC factory
    *
    * \returns Ptr of type \c NrAmc

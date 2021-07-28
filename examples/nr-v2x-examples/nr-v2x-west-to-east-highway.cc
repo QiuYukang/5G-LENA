@@ -94,7 +94,7 @@ NS_LOG_COMPONENT_DEFINE ("NrV2xWestToEastHighway");
  * \brief Method to listen the trace SlPscchScheduling of NrUeMac, which gets
  *        triggered upon the transmission of SCI format 1-A from UE MAC.
  *
- * \param pscchStats Pointer to the \link UeMacPscchTxOutputStats \endlink class,
+ * \param pscchStats Pointer to the UeMacPscchTxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param pscchStatsParams Parameters of the trace source.
  */
@@ -107,7 +107,7 @@ void NotifySlPscchScheduling (UeMacPscchTxOutputStats *pscchStats, const SlPscch
  * \brief Method to listen the trace SlPsschScheduling of NrUeMac, which gets
  *        triggered upon the transmission of SCI format 2-A and data from UE MAC.
  *
- * \param psschStats Pointer to the \link UeMacPsschTxOutputStats \endlink class,
+ * \param psschStats Pointer to the UeMacPsschTxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param psschStatsParams Parameters of the trace source.
  */
@@ -120,7 +120,7 @@ void NotifySlPsschScheduling (UeMacPsschTxOutputStats *psschStats, const SlPssch
  * \brief Method to listen the trace RxPscchTraceUe of NrSpectrumPhy, which gets
  *        triggered upon the reception of SCI format 1-A.
  *
- * \param pscchStats Pointer to the \link UePhyPscchRxOutputStats \endlink class,
+ * \param pscchStats Pointer to the UePhyPscchRxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param pscchStatsParams Parameters of the trace source.
  */
@@ -133,7 +133,7 @@ void NotifySlPscchRx (UePhyPscchRxOutputStats *pscchStats, const SlRxCtrlPacketT
  * \brief Method to listen the trace RxPsschTraceUe of NrSpectrumPhy, which gets
  *        triggered upon the reception of SCI format 2-A and data.
  *
- * \param psschStats Pointer to the \link UePhyPsschRxOutputStats \endlink class,
+ * \param psschStats Pointer to the UePhyPsschRxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
  * \param psschStatsParams Parameters of the trace source.
  */
@@ -145,9 +145,9 @@ void NotifySlPsschRx (UePhyPsschRxOutputStats *psschStats, const SlRxDataPacketT
 /**
  * \brief Method to listen the application level traces of type TxWithAddresses
  *        and RxWithAddresses.
- * \param stats Pointer to the \link UeToUePktTxRxOutputStats \endlink class,
+ * \param stats Pointer to the UeToUePktTxRxOutputStats class,
  *        which is responsible to write the trace source parameters to a database.
- * \param nodeId The node id of the TX or RX node
+ * \param node The pointer to the TX or RX node
  * \param localAddrs The local IPV4 address of the node
  * \param txRx The string indicating the type of node, i.e., TX or RX
  * \param p The packet
@@ -168,6 +168,18 @@ UePacketTraceDb (UeToUePktTxRxOutputStats *stats, Ptr<Node> node, const Address 
   stats->Save (txRx, localAddrs, nodeId, imsi, pktSize, srcAddrs, dstAddrs, seq);
 }
 
+/**
+ * \brief Trace sink for RxRlcPduWithTxRnti trace of NrUeMac
+ * \param stats Pointer to UeRlcRxOutputStats API responsible to write the
+ *        information communicated by this trace into a database.
+ * \param imsi The IMSI of the UE
+ * \param rnti The RNTI of the UE
+ * \param txRnti The RNTI of the TX UE
+ * \param lcid The logical channel id
+ * \param rxPduSize The received PDU size
+ * \param delay The end-to-end, i.e., from TX RLC entity to RX
+ *        RLC entity, delay in Seconds.
+ */
 void NotifySlRlcPduRx (UeRlcRxOutputStats *stats, uint64_t imsi, uint16_t rnti, uint16_t txRnti, uint8_t lcid, uint32_t rxPduSize, double delay)
 {
   stats->Save (imsi, rnti, txRnti, lcid, rxPduSize, delay);
@@ -352,6 +364,11 @@ void WriteGifGnuScript (std::string MobilityFileName, Time simTime, double speed
   outFile << "do for [i=0:" << simTime.GetSeconds () - 1 << "] {plot \"" << MobilityFileName << "\" index i using 4:5}" << std::endl;
 }
 
+/**
+ * \brief Get sidelink bitmap from string
+ * \param slBitMapString The sidelink bitmap string
+ * \param slBitMapVector The vector passed to store the converted sidelink bitmap
+ */
 void
 GetSlBitmapFromString (std::string slBitMapString, std::vector <std::bitset<1> > &slBitMapVector)
 {
@@ -380,7 +397,10 @@ GetSlBitmapFromString (std::string slBitMapString, std::vector <std::bitset<1> >
     }
 }
 
-
+/**
+ * \brief Save position of the UE as per its IP address
+ * \param v2xKpi pointer to the V2xKpi API storing the IP of an UE and its position.
+ */
 void SavePositionPerIP (V2xKpi *v2xKpi)
 {
   for (NodeList::Iterator it = NodeList::Begin (); it != NodeList::End (); ++it)

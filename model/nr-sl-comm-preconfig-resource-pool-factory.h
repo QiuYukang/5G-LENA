@@ -33,7 +33,7 @@ public:
   NrSlCommPreconfigResourcePoolFactory ();
   virtual ~NrSlCommPreconfigResourcePoolFactory ();
 
-  /*
+  /**
    * \brief Create pool
    *
    * Inherited from NrSlCommResourcePoolFactory class
