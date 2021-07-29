@@ -164,6 +164,73 @@ And then you will find the doxygen documentation inside `doc/doc/html/`.
 Please note that you may need to initialize the m.css submodule, and
 to install some packages like python3.
 
+## Building NR V2X code
+
+The implementation of NR V2X is divided between ns-3 LTE (RLC and above) and
+5G-LENA NR (MAC and PHY) modules, and it is contained in separate branches.
+Therefore, to be able to use this code one has to use CTTC customized LTE module
+of ns-3, and a specific branch in the nr module. Following are the steps to
+switch to these dedicated branches. Note, before following these steps please
+make sure that you have been granted access to the CTTC NR module.
+
+### Adding V2X branches to your local nr and ns-3-dev repositories
+
+1. Switch to the V2X branch in your local nr repository
+
+```
+$ cd contrib/nr
+```
+Once you are inside the nr module directory, switch to the latest V2X code
+release branch. For example, for version 0.1, you have to execute one of the
+following commands depending on whether you have just cloned the nr repository
+for the first time or you are already working with it for some time.
+
+**If you have just cloned the nr repository for the first time:**
+
+```
+$ git checkout 5g-lena-v2x-v0.1.y
+```
+**If you are already working with the nr module:**
+
+```
+$ git fetch origin 5g-lena-v2x-v0.1.y
+$ git checkout 5g-lena-v2x-v0.1.y
+```
+
+2. Now, lets get back to the ns-3-dev directory to fetch the CTTC customized ns-3
+   LTE module for V2X.
+
+```
+$ cd ../..
+```
+
+3. Add a new remote to the CTTC fork of ns-3-dev
+
+*Note: Make sure to position yourself in ns-3-dev directory*
+
+```
+$ git remote add cttc-ns3-dev-fork https://gitlab.com/cttc-lena/ns-3-dev.git
+```
+
+4. Fetch the V2X branch from the CTTC fork of ns-3-dev
+
+```
+$ git fetch cttc-ns3-dev-fork v2x-lte-dev
+```
+
+5. Switch to the V2X branch in your local ns-3-dev repository
+
+```
+$ git checkout v2x-lte-dev
+```
+
+6. Building V2X code
+
+```
+$ ./waf configure --disable-python --enable-tests --enable-examples
+$ ./waf build
+```
+
 ## Features
 
 To see the features, please go to the [official webpage](https://cttc-lena.gitlab.io/5g-lena-website/features/).
