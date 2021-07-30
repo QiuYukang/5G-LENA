@@ -761,8 +761,12 @@ private:
 
   uint8_t m_activeDlDataPanels {0}; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
 
-  std::vector <uint8_t> m_dlWbCqi;
-  uint8_t m_dlCqiFeedbackCounter {0};
+  std::vector <uint8_t> m_prevDlWbCqi; //!< Vector to cache the CQI values reported by this UE PHY
+  uint8_t m_dlCqiFeedbackCounter {0}; /**< Counter to count the number of DL CQI
+                                           report(s) this UE PHY prepares upon
+                                           receiving SINR from underlying one or
+                                           multiple SpectrumPhy instances
+                                           */
 };
 
 }

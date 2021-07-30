@@ -879,7 +879,7 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   m_activeDlDataPanels = 0;
 
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t panelIndex = 0; panelIndex < dci->m_tbSize.size(); panelIndex++)
     {
       if (dci->m_tbSize.at (panelIndex) > 0)
         {
@@ -1091,16 +1091,18 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
       // Not sure what this IF is about, seems that it can be removed,
       // if not, then we have to support wbCqiLast time per panel
       // if (Simulator::Now () > m_wbCqiLast)
-      if (m_dlWbCqi.empty()) // No DL CQI reported yet, initialize the vector
+      if (m_prevDlWbCqi.empty ()) // No DL CQI reported yet, initialize the vector
         {
-          m_dlWbCqi = std::vector <uint8_t> (m_spectrumPhys.size(), 0);
+          // Remember, scheduler uses MCS 0 for CQI 0.
+          // See, NrMacSchedulerCQIManagement::DlWBCQIReported
+          m_prevDlWbCqi = std::vector <uint8_t> (m_spectrumPhys.size (), 0);
         }
 
-      uint8_t mcs;
+      uint8_t mcs; // it is initialized by AMC in the following call
       uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (sinr, mcs);
 
-      NS_ASSERT (panelIndex < m_dlWbCqi.size () && m_dlWbCqi.at (panelIndex) == 0);
-      m_dlWbCqi [panelIndex] = wbCqi;
+      NS_ASSERT (panelIndex < m_prevDlWbCqi.size ());
+      m_prevDlWbCqi [panelIndex] = wbCqi;
       NS_LOG_DEBUG ("Stream " << +panelIndex << " WB CQI " << +wbCqi << " avrg MCS " << +mcs);
       m_dlCqiFeedbackCounter++;
 
@@ -1115,11 +1117,19 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
           //measured for the two streams. For now, I am fixing it to 1
           //to check if all the previously written tests and examples
           //for single stream work with the new implementation.
+          dlcqi.m_ri = 1;
+
           //In MIMO, once the UE starts reporting RI = 2, both the CQI
           //must be reported even though one is measured, the other for
-          //which we couldn't measure we will assign CQI 0.
-          dlcqi.m_ri = 1;
-          dlcqi.m_wbCqi = m_dlWbCqi; // set DL CQI feedbacks
+          //which we couldn't measure we will report a previously
+          //computed CQI or if not computed at all then CQI 0. This choice is
+          //made to keep the scheduler informed about the channel state in MIMO
+          //when only one of the stream's TB is retransmitted. Also, remember,
+          //if UE reports RI = 2 and one of the stream's CQI is 0, scheduler will
+          //use MCS 0 to compute its TB size.
+          dlcqi.m_wbCqi = m_prevDlWbCqi; // set DL CQI feedbacks
+
+          NS_ASSERT_MSG (dlcqi.m_ri <= dlcqi.m_wbCqi.size (), "Mismatch between the RI and the number of CQIs in a CQI report");
 
           Ptr<NrDlCqiMessage> msg = CreateDlCqiFeedbackMessage (dlcqi);
           if (msg)
@@ -1128,7 +1138,6 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
             }
           // reset the key variables
           m_dlCqiFeedbackCounter = 0;
-          m_dlWbCqi.clear();
         }
     }
 }
