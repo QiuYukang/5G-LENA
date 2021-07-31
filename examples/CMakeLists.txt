@@ -16,6 +16,7 @@ set(base_examples
     rem-beam-example
     cttc-fh-compression
     cttc-nr-notching
+    cttc-nr-mimo-demo
 )
 foreach(
   example
