@@ -954,11 +954,15 @@ NrGnbMac::DoDlHarqFeedback (const DlHarqInfo &params)
             // discard buffer
             Ptr<PacketBurst> emptyBuf = CreateObject <PacketBurst> ();
             (*it).second.at (params.m_harqProcessId).m_infoPerStream.at (stream).m_pktBurst = emptyBuf;
-            NS_LOG_DEBUG (this << " HARQ-ACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
+            NS_LOG_DEBUG (this << " HARQ-ACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId << " stream id " << static_cast<uint16_t> (stream));
           }
         else if (params.m_harqStatus.at (stream) == DlHarqInfo::NACK)
           {
-            NS_LOG_DEBUG (this << " HARQ-NACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId);
+            NS_LOG_DEBUG (this << " HARQ-NACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId << " stream id " << static_cast<uint16_t> (stream));
+          }
+        else if (params.m_harqStatus.at (stream) == DlHarqInfo::NONE)
+          {
+            NS_LOG_DEBUG (this << " HARQ-NONE UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId << " stream id " << static_cast<uint16_t> (stream));
           }
         else
           {

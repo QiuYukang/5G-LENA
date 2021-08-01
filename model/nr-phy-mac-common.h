@@ -530,7 +530,6 @@ struct DlHarqInfo : public HarqInfo
     auto allStatus = NONE;
     for (const auto &it:m_harqStatus)
       {
-        allStatus = it;
         if (it == ACK || it == NONE)
           {
             //example case: In MIMO, if there is a feedback for only
@@ -539,9 +538,14 @@ struct DlHarqInfo : public HarqInfo
             //for the first stream. So, consider it as an ok status and
             //move to the status of second stream.
             ok = true;
+            if (it != NONE)
+              {
+                allStatus = it;
+              }
           }
         else
           {
+            allStatus = it;
             ok = false;
             //found NACK, feedback is not OK.
             break;
