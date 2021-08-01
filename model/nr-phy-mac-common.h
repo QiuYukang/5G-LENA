@@ -630,6 +630,9 @@ struct NrSchedulingCallbackInfo
   uint8_t  m_mcs {UINT8_MAX}; //!< MCS
   uint32_t m_tbSize {UINT32_MAX}; //!< TB size
   uint8_t  m_bwpId {UINT8_MAX}; //!< Bandwidth Part ID
+  uint8_t  m_ndi {UINT8_MAX}; //!< New data indicator
+  uint8_t  m_rv {UINT8_MAX}; //!< RV
+  uint8_t  m_harqId {UINT8_MAX}; //!< HARQ id
 };
 
 #endif /* SRC_NR_MODEL_NR_PHY_MAC_COMMON_H_ */

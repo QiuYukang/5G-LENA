@@ -1170,6 +1170,9 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
               traceInfo.m_mcs = dciElem->m_mcs.at (stream);
               traceInfo.m_rnti = dciElem->m_rnti;
               traceInfo.m_bwpId = GetBwpId ();
+              traceInfo.m_ndi = dciElem->m_ndi.at (stream);
+              traceInfo.m_rv = dciElem->m_rv.at (stream);
+              traceInfo.m_harqId = dciElem->m_harqProcess;
 
               m_dlScheduling (traceInfo);
             }
@@ -1194,6 +1197,9 @@ NrGnbMac::DoSchedConfigIndication (NrMacSchedSapUser::SchedConfigIndParameters i
               traceInfo.m_mcs = dciElem->m_mcs.at (stream);
               traceInfo.m_rnti = dciElem->m_rnti;
               traceInfo.m_bwpId = GetBwpId ();
+              traceInfo.m_ndi = dciElem->m_ndi.at (stream);
+              traceInfo.m_rv = dciElem->m_rv.at (stream);
+              traceInfo.m_harqId = dciElem->m_harqProcess;
 
               m_ulScheduling (traceInfo);
             }

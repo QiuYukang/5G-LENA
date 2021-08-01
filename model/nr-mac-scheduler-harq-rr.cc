@@ -152,15 +152,6 @@ uint8_t NrMacSchedulerHarqRr::ScheduleDlHarq (NrMacSchedulerNs3::PointInFTPlane 
               auto it = std::find (harqProcess.nackStreamIndexes.begin (), harqProcess.nackStreamIndexes.end (), stream);
               if (it != harqProcess.nackStreamIndexes.end ())
                 {
-                  //if stream index is not in nackStreamIndexes that means
-                  //we received ACK for it. Therefore, no need to retransmit
-                  tbSize.at (stream) = 0;
-                  mcs.at (stream) = UINT8_MAX;
-                  rv.at (stream) = 0;
-                  ndi.at (stream) = UINT8_MAX;
-                }
-              else
-                {
                   //if stream index is in nackStreamIndexes that means
                   //we received NACK for it. Therefore, we need to use the same
                   //tbSize and the mcs, increase the RV and toggle the NDI flag.
@@ -169,6 +160,16 @@ uint8_t NrMacSchedulerHarqRr::ScheduleDlHarq (NrMacSchedulerNs3::PointInFTPlane 
                   rv.at (stream) = dciInfoReTx->m_rv.at (stream) + 1;
                   ndi.at (stream) = 0;
                 }
+              else
+                {
+                  //if stream index is not in nackStreamIndexes that means
+                  //we received ACK for it. Therefore, no need to retransmit
+                  tbSize.at (stream) = 0;
+                  mcs.at (stream) = UINT8_MAX;
+                  rv.at (stream) = 0;
+                  ndi.at (stream) = UINT8_MAX;
+                }
+
             }
 
           auto dci = std::make_shared<DciInfoElementTdma> (dciInfoReTx->m_rnti, dciInfoReTx->m_format,

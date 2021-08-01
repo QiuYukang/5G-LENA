@@ -104,7 +104,7 @@ NrMacSchedulingStats::DlScheduling (uint16_t cellId, uint64_t imsi, const NrSche
           return;
         }
       m_dlFirstWrite = false;
-      outFile << "% time(s)\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\tmcs\ttbSize";
+      outFile << "% time(s)\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\tharqId\tndi\trv\tmcs\ttbSize";
       outFile << std::endl;
     }
   else
@@ -128,6 +128,9 @@ NrMacSchedulingStats::DlScheduling (uint16_t cellId, uint64_t imsi, const NrSche
   outFile << (uint32_t)traceInfo.m_symStart << "\t";
   outFile << (uint32_t)traceInfo.m_numSym << "\t";
   outFile << (uint32_t) traceInfo.m_streamId << "\t";
+  outFile << (uint32_t) traceInfo.m_harqId << "\t";
+  outFile << (uint32_t) traceInfo.m_ndi << "\t";
+  outFile << (uint32_t) traceInfo.m_rv << "\t";
   outFile << (uint32_t) traceInfo.m_mcs << "\t";
   outFile << traceInfo.m_tbSize << std::endl;
   outFile.close ();
@@ -150,7 +153,7 @@ NrMacSchedulingStats::UlScheduling (uint16_t cellId, uint64_t imsi, const NrSche
           return;
         }
       m_ulFirstWrite = false;
-      outFile << "% time(s)\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\tmcs\ttbSize";
+      outFile << "% time(s)\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\tharqId\tndi\trv\tmcs\ttbSize";
       outFile << std::endl;
     }
   else
@@ -174,6 +177,9 @@ NrMacSchedulingStats::UlScheduling (uint16_t cellId, uint64_t imsi, const NrSche
   outFile << (uint32_t)traceInfo.m_symStart << "\t";
   outFile << (uint32_t)traceInfo.m_numSym << "\t";
   outFile << (uint32_t) traceInfo.m_streamId << "\t";
+  outFile << (uint32_t) traceInfo.m_harqId << "\t";
+  outFile << (uint32_t) traceInfo.m_ndi << "\t";
+  outFile << (uint32_t) traceInfo.m_rv << "\t";
   outFile << (uint32_t) traceInfo.m_mcs << "\t";
   outFile << traceInfo.m_tbSize << std::endl;
   outFile.close ();
