@@ -521,6 +521,8 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   // connect CAM and PHY
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_ueChannelAccessManagerFactory.Create ());
   phy->SetCam (cam);
+  // set device
+  phy->SetDevice (dev);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling NrHelper::InstallUeDevice ()");
@@ -533,6 +535,8 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
 
       Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per panel
       channelPhy->InstallHarqPhyModule (harq);
+
+      channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
 
       Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per panel
       channelPhy->SetAntenna (antenna);
@@ -596,9 +600,8 @@ NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
         {
           phy->SetPhyDlHarqFeedbackCallback (MakeCallback (&NrUeNetDevice::EnqueueDlHarqFeedback, dev));
         }
+
       phy->SetBwpId (bwpId);
-      phy->SetDevice (dev);
-      phy->GetSpectrumPhy (0)->SetDevice (dev); // TODO make this function be called for each NrSpectrumPhy
       cc->SetPhy (phy);
 
       if (bwpId == 0)
@@ -711,7 +714,6 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
   NS_LOG_FUNCTION (this);
 
   Ptr<NrGnbPhy> phy = m_gnbPhyFactory.Create <NrGnbPhy> ();
-  Ptr<UniformPlanarArray> antenna = m_gnbAntennaFactory.Create <UniformPlanarArray> ();
 
   DoubleValue frequency;
   bool res = bwp->m_propagation->GetAttributeFailSafe ("Frequency", frequency);
@@ -745,6 +747,7 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
       channelPhy->SetChannel (bwp->m_channel); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel object of the corresponding spectrum part
       channelPhy->InstallPhy (phy); // each NrSpectrumPhy should have a pointer to its NrPhy device, in this case NrGnbPhy
+      channelPhy->SetStreamId (panelIndex);
 
       Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> (); // create pData chunk processor per NrSpectrumPhy
       Ptr<LteChunkProcessor> pSrs = Create<LteChunkProcessor> ();  // create pSrs per processor per NrSpectrumPhy
