@@ -351,7 +351,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
   if (nrDataRxParams != nullptr)
     {
-      if (nrDataRxParams->cellId == GetCellId ())
+      if (nrDataRxParams->cellId == GetCellId () && nrDataRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
         {
           StartRxData (nrDataRxParams);
         }
@@ -367,7 +367,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
       if (!IsEnb ())
         {
-          if (dlCtrlRxParams->cellId == GetCellId ())
+          if (dlCtrlRxParams->cellId == GetCellId () && dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {
               m_interferenceCtrl->StartRx(rxPsd);
               StartRxDlCtrl (dlCtrlRxParams);
@@ -387,7 +387,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     {
       if (IsEnb ()) // only gNBs should enter into reception of UL CTRL signals
         {
-          if (ulCtrlRxParams->cellId == GetCellId ())
+          if (ulCtrlRxParams->cellId == GetCellId () && ulCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {
               if (IsOnlySrs (ulCtrlRxParams->ctrlMsgList))
                 {

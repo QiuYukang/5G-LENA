@@ -589,7 +589,7 @@ private:
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
 
-  uint8_t m_streamId {UINT8_MAX};
+  uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
 };
 
 }
