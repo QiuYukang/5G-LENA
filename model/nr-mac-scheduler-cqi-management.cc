@@ -155,6 +155,17 @@ NrMacSchedulerCQIManagement::DlWBCQIReported (const DlCqiInfo &info,
   ueInfo->m_dlCqi.m_ri = info.m_ri;
   ueInfo->m_dlCqi.m_wbCqi.resize (info.m_wbCqi.size ());
   ueInfo->m_dlMcs.resize (info.m_wbCqi.size ());
+  //TODO following code limits the number of streams
+  //2. In future, we should try to lift this
+  //limit.
+  if (info.m_ri == 2 || info.m_wbCqi.size () == 2)
+    {
+      if (ueInfo->m_dlTbSize.size () == 1)
+        {
+          //scheduling first time the TB of the second stream
+          ueInfo->m_dlTbSize.push_back (0);
+        }
+    }
   for (uint8_t stream = 0; stream < info.m_wbCqi.size (); stream++)
     {
       if (info.m_wbCqi.at (stream) > 0)

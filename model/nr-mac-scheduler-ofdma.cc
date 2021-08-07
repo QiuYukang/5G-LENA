@@ -202,17 +202,7 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
           while (schedInfoIt != ueVector.end ())
             {
               uint32_t bufQueueSize = schedInfoIt->second;
-              //TODO following code limits the number of streams
-              //2. In future, we should try to lift this
-              //limit.
-              if (GetUe (*schedInfoIt)->m_dlCqi.m_ri == 2)
-                {
-                  if (GetUe (*schedInfoIt)->m_dlTbSize.size () == 1)
-                    {
-                      //scheduling first time the TB of the second stream
-                      GetUe (*schedInfoIt)->m_dlTbSize.push_back (0);
-                    }
-                }
+
               //if there are two streams we add the TbSizes of the two
               //streams to satisfy the bufQueueSize
               uint32_t tbSize = 0;
@@ -223,6 +213,46 @@ NrMacSchedulerOfdma::AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl
 
               if (tbSize >= std::max (bufQueueSize, 7U))
                 {
+                  if (GetUe (*schedInfoIt)->m_dlTbSize.size () > 1)
+                    {
+                      // This "if" is purely for MIMO. In MIMO, for example, if the
+                      // first TB size is big enough to empty the buffer then we
+                      // should not allocate anything to the second stream. In this
+                      // case, if we allocate bytes to the second stream, the UE
+                      // would expect the TB but the gNB would not be able to transmit
+                      // it. This would break HARQ TX state machine at UE PHY.
+
+                      uint8_t streamCounter = 0;
+                      uint32_t copyBufQueueSize = bufQueueSize;
+                      auto dlTbSizeIt = GetUe (*schedInfoIt)->m_dlTbSize.begin ();
+                      while (dlTbSizeIt != GetUe (*schedInfoIt)->m_dlTbSize.end ())
+                        {
+                          if (copyBufQueueSize != 0)
+                            {
+                              NS_LOG_DEBUG ("Stream " << +streamCounter << " with TB size " << *dlTbSizeIt << " needed to TX MIMO TB");
+                              if (*dlTbSizeIt >= copyBufQueueSize)
+                                {
+                                  copyBufQueueSize = 0;
+                                }
+                              else
+                                {
+                                  copyBufQueueSize = copyBufQueueSize - *dlTbSizeIt;
+                                }
+                              streamCounter++;
+                              dlTbSizeIt++;
+                            }
+                          else
+                            {
+                              // if we are here, that means previously iterated
+                              // streams were enough to empty the buffer. We do
+                              // not need this stream. Make its TB size zero.
+                              NS_LOG_DEBUG ("Stream " << +streamCounter << " with TB size " << *dlTbSizeIt << " not needed to TX MIMO TB");
+                              *dlTbSizeIt = 0;
+                              streamCounter++;
+                              dlTbSizeIt++;
+                            }
+                        }
+                    }
                   schedInfoIt++;
                 }
               else
@@ -385,7 +415,7 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
 {
   NS_LOG_FUNCTION (this);
 
-  bool isLessThan7B = false;
+  uint16_t countLessThan7B = 0;
 
   //we do not need to recalculate the TB size here because we already
   //computed it in side the method AssignDLRBG called before this method.
@@ -403,7 +433,7 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
       uint32_t tbs = ueInfo->m_dlTbSize.at (numTb);
       if (tbs < 7)
         {
-          isLessThan7B = true;
+          countLessThan7B++;
           NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
                         " stream " << numTb << " assigned " << ueInfo->m_dlRBG <<
                         " DL RBG, but TBS < 7, reseting its size to zero in UE info");
@@ -414,7 +444,6 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
         }
       ndi.at (numTb) = 1;
       rv.at (numTb) = 0;
-      isLessThan7B = false;
     }
 
   NS_ASSERT_MSG (ueInfo->m_dlRBG % maxSym == 0, " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
@@ -422,9 +451,9 @@ NrMacSchedulerOfdma::CreateDlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   NS_ASSERT (spoint->m_rbg < GetBandwidthInRbg ());
   NS_ASSERT (maxSym <= UINT8_MAX);
 
-  //If the TB size of any stream is less than 7 (3 mac header, 2 rlc header, 2 data),
-  //then we can't transmit any new data, so don't create dci.
-  if (isLessThan7B)
+  // If the size of all the TBs is less than 7 bytes (3 mac header, 2 rlc header, 2 data),
+  // then we can't transmit any new data, so don't create dci.
+  if (countLessThan7B == ueInfo->m_dlTbSize.size ())
     {
       NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
                     " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 7");

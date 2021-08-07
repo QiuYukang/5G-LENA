@@ -1484,17 +1484,26 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
               std::vector<RlcPduInfo> rlcPdusInfoPerStream;
               for (const auto & bytesPerStream : bytesPerLc)
                 {
-                  NS_ASSERT (bytesPerStream.m_bytes >= 3);
-                  uint8_t lcId = bytesPerStream.m_lcId;
-                  uint8_t lcgId = bytesPerStream.m_lcg;
-                  uint32_t bytes = bytesPerStream.m_bytes - 3; // Consider the subPdu overhead
-                  RlcPduInfo newRlcPdu (lcId, bytes);
-                  rlcPdusInfoPerStream.push_back (newRlcPdu);
-                  ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes);
+                  if (bytesPerStream.m_bytes != 0)
+                    {
+                      NS_ASSERT (bytesPerStream.m_bytes >= 3);
+                      uint8_t lcId = bytesPerStream.m_lcId;
+                      uint8_t lcgId = bytesPerStream.m_lcg;
+                      uint32_t bytes = bytesPerStream.m_bytes - 3; // Consider the subPdu overhead
+                      RlcPduInfo newRlcPdu (lcId, bytes);
+                      rlcPdusInfoPerStream.push_back (newRlcPdu);
+                      ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes);
 
-                  NS_LOG_DEBUG ("DL LCG " << static_cast<uint32_t> (lcgId) <<
-                                " LCID " << static_cast<uint32_t> (lcId) <<
-                                " got bytes " << newRlcPdu.m_size);
+                      NS_LOG_DEBUG ("DL LCG " << static_cast<uint32_t> (lcgId) <<
+                                    " LCID " << static_cast<uint32_t> (lcId) <<
+                                    " got bytes " << newRlcPdu.m_size);
+                    }
+                  else
+                    {
+                      uint8_t lcId = bytesPerStream.m_lcId;
+                      RlcPduInfo newRlcPdu (lcId, 0);
+                      rlcPdusInfoPerStream.push_back (newRlcPdu);
+                    }
                 }
               //insert rlcPduInforPerStream of a LC
               slotInfo.m_rlcPduInfo.push_back (rlcPdusInfoPerStream);
