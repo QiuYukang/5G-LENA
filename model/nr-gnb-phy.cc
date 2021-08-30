@@ -601,9 +601,9 @@ NrGnbPhy::GetTxPower () const
 }
 
 void
-NrGnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector)
+NrGnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector, uint8_t activeStreams)
 {
-  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector);
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector, activeStreams);
   NS_ASSERT (txPsd);
   for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
@@ -1466,7 +1466,16 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   // doesn't need to be called again. In fact, SendDataChannels will be
   // invoked only when the symStart changes.
   NS_ASSERT (m_rbgAllocationPerSym.find(dci->m_symStart) != m_rbgAllocationPerSym.end ());
-  SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)));
+
+  uint8_t activeStreams = 0;
+  for (const auto& tbSize : dci->m_tbSize)
+    {
+      if (tbSize)
+        {
+          activeStreams++;
+        }
+    }
+  SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)), activeStreams);
 
   std::list<Ptr<NrControlMessage> > ctrlMsgs;
   m_spectrumPhys.at (panelId)->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
@@ -1484,7 +1493,8 @@ NrGnbPhy::SendCtrlChannels (const Time &varTtiPeriod)
       fullBwRb[i] = static_cast<int> (i);
     }
 
-  SetSubChannels (fullBwRb);
+  // Currently all DL CTRL is sent only through one stream
+  SetSubChannels (fullBwRb, 1);
   // DL control will be transmitted only through a single panel, we assume that it is the first one
   m_spectrumPhys.at(0)->StartTxDlControlFrames (m_ctrlMsgs, varTtiPeriod);
   m_ctrlMsgs.clear ();

@@ -402,11 +402,17 @@ NrPhy::GetNoisePowerSpectralDensity ()
 }
 
 Ptr<SpectrumValue>
-NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector)
+NrPhy::GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector, uint8_t activeStreams)
 {
+  NS_LOG_FUNCTION (this);
   Ptr<const SpectrumModel> sm = GetSpectrumModel ();
-
-  return NrSpectrumValueHelper::CreateTxPowerSpectralDensity (m_txPower, rbIndexVector, sm, m_powerAllocationType );
+  NS_ASSERT_MSG (activeStreams, "There should be at least one active stream.");
+  // Convert txPower to linear units
+  double txPowerLinear = pow (10, m_txPower / 10);
+  // Share the total transmission power among active streams
+  double txPowerPerStreamDbm = 10 * log10 (txPowerLinear/activeStreams);
+  // Pass the TX power per stream, each stream will have the same TX PSD
+  return NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPowerPerStreamDbm, rbIndexVector, sm, m_powerAllocationType );
 }
 
 double

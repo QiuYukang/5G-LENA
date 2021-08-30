@@ -509,12 +509,13 @@ protected:
    * Create Tx Power Spectral Density
    * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
    * in which there is a transmission
+   * \param activeStreams the number of active streams
    * \return A SpectrumValue array with fixed size, in which each value
    * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
    * or is left untouched otherwise.
    * \see NrSpectrumValueHelper::CreateTxPowerSpectralDensity
    */
-  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector);
+  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector, uint8_t activeStreams);
 
   /**
    * \brief Store the slot allocation info at the front

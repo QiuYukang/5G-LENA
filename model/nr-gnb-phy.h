@@ -219,8 +219,9 @@ public:
    * \brief Set the Tx power spectral density based on the RB index vector
    * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
    * in which there is a transmission
+   * \param activeStreams the number of active streams
    */
-  void SetSubChannels (const std::vector<int> &rbIndexVector);
+  void SetSubChannels (const std::vector<int> &rbIndexVector, uint8_t activeStreams);
 
   /**
    * \brief Add the UE to the list of this gnb UEs.

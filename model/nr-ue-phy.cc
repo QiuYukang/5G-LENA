@@ -270,9 +270,10 @@ NrUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
 }
 
 void
-NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t numSym)
+NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t numSym, uint8_t activeStreams)
 {
-  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
+  // in uplink we currently support maximum 1 stream for DATA and CTRL, only SRS will be sent using more than 1 stream
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask, activeStreams);
   NS_ASSERT (txPsd);
 
   m_reportPowerSpectralDensity (m_currentSlot, txPsd, numSym * GetSymbolPeriod (), m_rnti, m_imsi, GetBwpId (), GetCellId ());
@@ -815,7 +816,8 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
-  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
+  // SRS is currently the only tranmsision in the uplink that is sent over all streams
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym, m_spectrumPhys.size());
 
   std::list <Ptr<NrControlMessage>> srsMsg;
   Ptr<NrSrsMessage> srs = Create<NrSrsMessage> ();
@@ -892,7 +894,8 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       m_txPower = m_powerControl->GetPucchTxPower (channelRbs.size());
     }
-  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
+  // Currently uplink CTRLis transmitted only over 1 stream
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym, 1);
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<
@@ -953,7 +956,8 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       m_txPower = m_powerControl->GetPuschTxPower ((FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask)).size());
     }
-  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
+  // Currently uplink DATA is transmitted over only 1 stream
+  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym, 1);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
   //MIMO is not supported for UL yet.

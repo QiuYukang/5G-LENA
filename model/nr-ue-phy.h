@@ -580,8 +580,9 @@ private:
    * \param mask vector of the index of the RB (in SpectrumValue array)
    * in which there is a transmission
    * \param numSym number of symbols of the transmission
+   * \param activeStreams the number of active streams for the transmission
    */
-  void SetSubChannelsForTransmission (const std::vector<int> &mask, uint32_t numSym);
+  void SetSubChannelsForTransmission (const std::vector<int> &mask, uint32_t numSym, uint8_t activeStreams);
   /**
    * \brief Send ctrl msgs considering L1L2CtrlLatency
    * \param msg The ctrl msg to be sent
