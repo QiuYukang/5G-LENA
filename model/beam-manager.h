@@ -20,10 +20,10 @@
 #ifndef SRC_NR_MODEL_BEAM_MANAGER_H_
 #define SRC_NR_MODEL_BEAM_MANAGER_H_
 
-#include "beamforming-algorithm.h"
 #include "ns3/event-id.h"
 #include <ns3/nstime.h>
 #include <ns3/net-device.h>
+#include "beamforming-vector.h"
 
 
 namespace ns3 {
@@ -79,9 +79,8 @@ public:
    * \brief Configures quasi-omni beamforming vector
    *
    * \param antennaArray the antenna array
-   * \param panelIndex the index of the panel
    */
-  void Configure (const Ptr<UniformPlanarArray>& antennaArray, uint8_t panelIndex);
+  void Configure (const Ptr<UniformPlanarArray>& antennaArray);
 
   /**
    * \brief Get weight vector from a BeamformingVector

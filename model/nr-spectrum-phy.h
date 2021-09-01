@@ -31,6 +31,7 @@
 #include "nr-spectrum-signal-parameters.h"
 #include "nr-control-messages.h"
 #include <ns3/lte-chunk-processor.h>
+#include "beam-manager.h"
 
 namespace ns3 {
 
@@ -150,6 +151,16 @@ public:
   Ptr<MobilityModel> GetMobility () const override;
   void SetChannel (Ptr<SpectrumChannel> c) override;
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
+  /*
+   * \brief Sets the beam manager of this spectrum phy, and that beam manager
+   * is responsible of the antena array of this spectrum phy
+   */
+  void SetBeamManager (Ptr<BeamManager> b);
+
+  /*
+   * \brief Gets the beam manager of this spectrum phy.
+   */
+  Ptr<BeamManager> GetBeamManager ();
 
   /**
    * \brief Inherited from SpectrumPhy
@@ -550,6 +561,7 @@ private:
 
   Ptr<SpectrumChannel> m_channel {nullptr}; //!< channel is needed to be able to connect listener spectrum phy (AddRx) or to start transmission StartTx
   Ptr<const SpectrumModel> m_rxSpectrumModel {nullptr}; //!< the spectrum model of this spectrum phy
+  Ptr<BeamManager> m_beamManager {nullptr}; //!< the beam manager corresponding to the antenna of this spectrum phy
   Ptr<MobilityModel> m_mobility {nullptr}; //!< the mobility model of the node to which belongs this spectrum phy
   Ptr<NetDevice> m_device {nullptr}; //!< the device to which belongs this spectrum phy
   Ptr<NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy

@@ -30,7 +30,6 @@ class NrNetDevice;
 class NrControlMessage;
 class NrSpectrumPhy;
 class AntennaArrayBasicModel;
-class BeamManager;
 class UniformPlanarArray;
 class BeamConfId;
 
@@ -77,11 +76,6 @@ class BeamConfId;
  *
  * \section phy_antenna Antenna and BeamManager object installation
  *
- * Through the method InstallAntenna() is possible to install the antenna model
- * for the PHY. At each invokation, a BeamManager object is also constructed.
- *
- * Please note that methods prefixed with Install* are meant to be called only
- * once (and, hopefully, from an helper).
  */
 class NrPhy : public Object
 {
@@ -164,26 +158,6 @@ public:
    * \return the BeamConfId associated to the specified RNTI
    */
   virtual BeamConfId GetBeamConfId (uint16_t rnti) const = 0;
-
-  /**
-   * \brief Install the antenna in the PHY
-   * \param beamManager BeamManager instance of this PHY
-   * \param antenna pointer to the antenna model
-   * \param panelIndex the index of the panel for which we install this antenna
-   *
-   * Usually called by the helper. It will install a new BeamManager object.
-   */
-  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna, uint8_t panelIndex = 0);
-
-  // Note: Returning a BeamManger, it means that someone outside this class
-  // can change the beamforming vector, BUT the phy will not learn it.
-  /**
-   * \brief Get the BeamManager object of the class
-   * \return a pointer to the BeamManager instance
-   *
-   * Valid only after a call to InstallAntenna
-   */
-  Ptr<BeamManager> GetBeamManager () const;
 
   /**
    * \brief Get the spectrum model of the PHY
@@ -605,8 +579,6 @@ protected:
   NrPhySapProvider* m_phySapProvider; //!< Pointer to the MAC
 
   uint32_t m_raPreambleId {0}; //!< Preamble ID
-  Ptr<BeamManager> m_beamManager; //!< Pointer to the beam manager object
-  ObjectFactory m_beamManagerFactory; //!< Beam manager factory
 
   std::list <Ptr<NrControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 

@@ -266,6 +266,17 @@ NrSpectrumPhy::GetAntenna () const
 
 // set/get attributes
 
+void
+NrSpectrumPhy::SetBeamManager (Ptr<BeamManager> b)
+{
+  m_beamManager = b;
+}
+
+Ptr<BeamManager>
+NrSpectrumPhy::GetBeamManager ()
+{
+  return m_beamManager;
+}
 
 void
 NrSpectrumPhy::SetCcaMode1Threshold (double thresholdDBm)

@@ -556,6 +556,10 @@ NrGnbPhy::SetN2Delay (uint32_t delay)
 BeamConfId
 NrGnbPhy::GetBeamConfId (uint16_t rnti) const
 {
+  NS_LOG_FUNCTION (this);
+
+  NS_ABORT_MSG_UNLESS (m_spectrumPhys.size () == 1 || m_spectrumPhys.size () == 2, " Currently the BeamConfId implementation supports up to 2 antenna arrays per PHY instance.");
+
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
       Ptr<NrUeNetDevice> ueDev = DynamicCast < NrUeNetDevice > (m_deviceMap.at (i));
@@ -563,9 +567,15 @@ NrGnbPhy::GetBeamConfId (uint16_t rnti) const
 
       if (ueRnti == rnti)
         {
-          // TODO
-          // Return the correct BeamIds
-          return BeamConfId (m_beamManager->GetBeamId (m_deviceMap.at (i)), BeamId::GetEmptyBeamId ());
+          NS_ASSERT (m_spectrumPhys [0]->GetBeamManager ());
+          BeamId beamId1 = m_spectrumPhys [0]->GetBeamManager ()->GetBeamId (m_deviceMap.at (i));
+          BeamId beamId2 = BeamId::GetEmptyBeamId ();
+
+          if (m_spectrumPhys.size () > 1)
+            {
+              m_spectrumPhys [1]->GetBeamManager ()->GetBeamId (m_deviceMap.at (i));
+            }
+          return BeamConfId (beamId1, beamId2);
         }
     }
   return BeamConfId (BeamId (0,0), BeamId::GetEmptyBeamId ());
@@ -1292,11 +1302,10 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy (GetBwpId ())))->GetRnti ();
       if (dci->m_rnti == ueRnti)
         {
-          NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
           // Even if we change the beamforming vector, we hope that the scheduler
           // has scheduled UEs within the same beam (and, therefore, have the same
           // beamforming vector)
-          m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
+          ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
           found = true;
           break;
         }
@@ -1309,6 +1318,26 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
                 " start " << Simulator::Now () <<
                 " end " << Simulator::Now () + varTtiPeriod);
   return varTtiPeriod;
+}
+
+
+void
+NrGnbPhy::ChangeBeamformingVector (Ptr<NetDevice> dev)
+{
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      m_spectrumPhys.at(panelIndex)->GetBeamManager ()->ChangeBeamformingVector (dev);
+    }
+}
+
+
+void
+NrGnbPhy::ChangeToQuasiOmniBeamformingVector ()
+{
+  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+    {
+      m_spectrumPhys.at(panelIndex)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
+    }
 }
 
 Time
@@ -1340,11 +1369,10 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
         }
       if (dci->m_rnti == ueRnti)
         {
-          NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
           // Even if we change the beamforming vector, we hope that the scheduler
           // has scheduled UEs within the same beam (and, therefore, have the same
           // beamforming vector)
-          m_beamManager->ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
+          ChangeBeamformingVector (m_deviceMap.at (i)); //assume the control signal is omni
           found = true;
           break;
         }
@@ -1370,9 +1398,7 @@ void
 NrGnbPhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
-
-  NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-  m_beamManager->ChangeToQuasiOmniBeamformingVector (); //assume the control signal is omni
+  ChangeToQuasiOmniBeamformingVector (); //assume the control signal is omni
   m_currSymStart = dci->m_symStart;
 
   Time varTtiPeriod;
@@ -1452,8 +1478,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
       //NS_LOG_INFO ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
       if (dci->m_rnti == ueRnti)
         {
-          NS_ABORT_MSG_IF(m_beamManager == nullptr, "Beam manager not initialized");
-          m_beamManager->ChangeBeamformingVector(m_deviceMap.at (i));
+          ChangeBeamformingVector(m_deviceMap.at (i));
           found = true;
           break;
         }

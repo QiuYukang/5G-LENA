@@ -100,7 +100,7 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
 
   // configure the beam that points toward the center of hexagonal
   // In case of beamforming, it will be overwritten.
-  phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
+  phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (3, 30);
 
   // Set numerology
   nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));      // BWP

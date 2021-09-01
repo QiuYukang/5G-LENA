@@ -41,18 +41,23 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
   m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
-  m_gNbDevice = nullptr;
+  m_gnbDevice = nullptr;
   m_ueDevice = nullptr;
-  m_ccId = UINT8_MAX;
 }
 
 void
-RealisticBeamformingAlgorithm::Install (const Ptr<NrGnbNetDevice>& gNbDevice, const Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId)
+RealisticBeamformingAlgorithm::Install (const Ptr<NrGnbNetDevice>& gnbDevice,
+                                        const Ptr<NrUeNetDevice>& ueDevice,
+                                        const Ptr<NrSpectrumPhy> & gnbSpectrumPhy,
+                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy,
+                                        const Ptr<NrMacScheduler>& scheduler)
 {
   NS_LOG_FUNCTION (this);
-  m_gNbDevice = gNbDevice;
+  m_gnbDevice = gnbDevice;
   m_ueDevice = ueDevice;
-  m_ccId = ccId;
+  m_gnbSpectrumPhy = gnbSpectrumPhy;
+  m_ueSpectrumPhy = ueSpectrumPhy;
+  m_scheduler = scheduler;
 }
 
 int64_t
@@ -71,7 +76,7 @@ TypeId
 RealisticBeamformingAlgorithm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RealisticBeamformingAlgorithm")
-                     .SetParent<BeamformingAlgorithm> ()
+                     .SetParent<Object> ()
                      .AddConstructor<RealisticBeamformingAlgorithm> ()
                      .AddAttribute ("BeamSearchAngleStep",
                                     "Angle step when searching for the best beam",
@@ -93,18 +98,16 @@ uint8_t
 RealisticBeamformingAlgorithm::GetSrsSymbolsPerSlot ()
 {
   NS_LOG_FUNCTION (this);
-  Ptr<NrMacScheduler> sched = m_gNbDevice ->GetScheduler (m_ccId);
-  NS_ABORT_MSG_UNLESS (sched, "Scheduler for the given ccId does not exist!");
-  return (DynamicCast<NrMacSchedulerNs3>(sched))->GetSrsCtrlSyms();
+  NS_ABORT_MSG_UNLESS (m_scheduler, "Scheduler for the given ccId does not exist!");
+  return (DynamicCast<NrMacSchedulerNs3>(m_scheduler))->GetSrsCtrlSyms();
 }
 
 RealisticBeamformingAlgorithm::TriggerEventConf
 RealisticBeamformingAlgorithm::GetTriggerEventConf () const
 {
   NS_LOG_FUNCTION (this);
-  Ptr<NrGnbPhy> phy = m_gNbDevice ->GetPhy(m_ccId);
-  NS_ABORT_MSG_UNLESS (phy, "PHY for the given ccId does not exist!");
-  Ptr<RealisticBfManager> realBf = DynamicCast<RealisticBfManager> (phy->GetBeamManager());
+  NS_ABORT_MSG_UNLESS (m_gnbSpectrumPhy, "gNB spectrum PHY for the given ccId does not exist!");
+  Ptr<RealisticBfManager> realBf = DynamicCast<RealisticBfManager> (m_gnbSpectrumPhy->GetBeamManager());
   NS_ABORT_MSG_UNLESS (realBf, "Realistic BF manager at gNB does not exist. Realistic BF manager at gNB should "
                       "be installed when using realistic BF algorithm.");
 
@@ -164,7 +167,7 @@ void
 RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
 {
   NS_LOG_FUNCTION (this);
-  NS_ABORT_MSG_UNLESS (m_ueDevice && m_gNbDevice, "Function install must be called to install gNB and UE pair, and set ccId.");
+  NS_ABORT_MSG_UNLESS (m_ueDevice && m_gnbDevice, "Function install must be called to install gNB and UE pair, and set ccId.");
 
   //before anything check if RNTI corresponds to RNTI of UE of this algorithm instance
   if (m_ueDevice->GetRrc ()->GetRnti () != rnti)
@@ -233,7 +236,7 @@ void
 RealisticBeamformingAlgorithm::NotifyHelper ()
 {
   NS_LOG_FUNCTION (this);
-  m_helperCallback (m_gNbDevice, m_ueDevice, m_ccId);
+  m_helperCallback (m_gnbDevice, m_ueDevice, m_gnbSpectrumPhy, m_ueSpectrumPhy);
 }
 
 void
@@ -246,58 +249,41 @@ Ptr<const MatrixBasedChannelModel::ChannelMatrix>
 RealisticBeamformingAlgorithm::GetChannelMatrix () const
 {
   NS_LOG_FUNCTION (this);
-  // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
-  Ptr<const NrGnbPhy> gnbPhy = m_gNbDevice->GetPhy (m_ccId);
-  Ptr<const NrUePhy> uePhy = m_ueDevice->GetPhy (m_ccId);
+  Ptr<SpectrumChannel> gnbSpectrumChannel = m_gnbSpectrumPhy->GetSpectrumChannel (); // SpectrumChannel should be const.. but need to change ns-3-dev
 
-  Ptr<const NrSpectrumPhy> gnbSpectrumPhy = gnbPhy->GetSpectrumPhy ();
-  Ptr<const NrSpectrumPhy> ueSpectrumPhy = uePhy->GetSpectrumPhy ();
+  Ptr<SpectrumChannel> ueSpectrumChannel = m_ueSpectrumPhy->GetSpectrumChannel ();
 
-  Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel (); // SpectrumChannel should be const.. but need to change ns-3-dev
-  Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel ();
-
-  Ptr<PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
+  Ptr<PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel ();
   Ptr<ThreeGppSpectrumPropagationLossModel> threeGppSplm = DynamicCast<ThreeGppSpectrumPropagationLossModel>(gnbThreeGppSpectrumPropModel);
   Ptr<MatrixBasedChannelModel> matrixBasedChannelModel = threeGppSplm -> GetChannelModel();
   Ptr<ThreeGppChannelModel> channelModel = DynamicCast<ThreeGppChannelModel>(matrixBasedChannelModel);
 
   NS_ASSERT (channelModel!=nullptr);
 
-  Ptr<const MatrixBasedChannelModel::ChannelMatrix> originalChannelMatrix = channelModel-> GetChannel (m_gNbDevice->GetNode()->GetObject<MobilityModel>(),
+  Ptr<const MatrixBasedChannelModel::ChannelMatrix> originalChannelMatrix = channelModel-> GetChannel (m_gnbDevice->GetNode()->GetObject<MobilityModel>(),
                                                                                                        m_ueDevice->GetNode()->GetObject<MobilityModel>(),
-                                                                                                       gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
-                                                                                                       ueSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>());
+                                                                                                       m_gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
+                                                                                                       m_ueSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>());
+
   Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrixCopy = Copy <const MatrixBasedChannelModel::ChannelMatrix> (originalChannelMatrix);
   return channelMatrixCopy;
 }
 
-void
-RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                                      BeamformingVector* gnbBfv,
-                                                      BeamformingVector* ueBfv,
-                                                      uint16_t ccId) const
+BeamformingVectorPair
+RealisticBeamformingAlgorithm::GetBeamformingVectors ()
 {
-  NS_ABORT_MSG_IF (gnbDev == nullptr || ueDev == nullptr, "Something went wrong, gnb or UE device does not exist.");
-  double distance = gnbDev->GetNode ()->GetObject<MobilityModel> ()->GetDistanceFrom (ueDev->GetNode ()->GetObject<MobilityModel> ());
+  NS_ABORT_MSG_IF (m_gnbSpectrumPhy == nullptr || m_ueSpectrumPhy == nullptr, "Something went wrong, gnb or UE PHY layer not set.");
+  double distance = m_gnbSpectrumPhy->GetMobility ()->GetDistanceFrom (m_ueSpectrumPhy->GetMobility());
   NS_ABORT_MSG_IF (distance == 0, "Beamforming method cannot be performed between two devices that are placed in the same position.");
 
-  // TODO check if this is correct: assuming the ccId of gNB PHY and corresponding UE PHY are the equal
-  Ptr<const NrGnbPhy> gnbPhy = gnbDev->GetPhy (ccId);
-  Ptr<const NrUePhy> uePhy = ueDev->GetPhy (ccId);
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
   complexVector_t maxTxW, maxRxW;
-  
-  Ptr<const NrSpectrumPhy> gnbSpectrumPhy = gnbPhy->GetSpectrumPhy ();
-  Ptr<const NrSpectrumPhy> ueSpectrumPhy = uePhy->GetSpectrumPhy ();
-  NS_ASSERT (gnbSpectrumPhy -> GetMobility());
-  NS_ASSERT (ueSpectrumPhy -> GetMobility());
 
   UintegerValue uintValue;
-  gnbSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
+  m_gnbSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
   uint32_t gnbNumRows = static_cast<uint32_t> (uintValue.Get ());
-  ueSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
+  m_ueSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
   uint32_t ueNumRows = static_cast<uint32_t> (uintValue.Get ());
 
   TriggerEventConf conf = GetTriggerEventConf ();
@@ -323,24 +309,27 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
       for (uint16_t gnbSector = 0; gnbSector <= gnbNumRows; gnbSector++)
         {
           NS_ASSERT(gnbSector < UINT16_MAX);
-          gnbPhy->GetBeamManager()->SetSector (gnbSector, gnbTheta);
-          complexVector_t gnbW = gnbPhy->GetBeamManager ()->GetCurrentBeamformingVector ();
+          m_gnbSpectrumPhy->GetBeamManager()->SetSector (gnbSector, gnbTheta);
+          complexVector_t gnbW = m_gnbSpectrumPhy->GetBeamManager ()->GetCurrentBeamformingVector ();
 
           for (double ueTheta = 60; ueTheta < 121; ueTheta = static_cast<uint16_t> (ueTheta + m_beamSearchAngleStep))
             {
               for (uint16_t ueSector = 0; ueSector <= ueNumRows; ueSector++)
                 {
                   NS_ASSERT(ueSector < UINT16_MAX);
-                  uePhy->GetBeamManager ()->SetSector (ueSector, ueTheta);
-                  complexVector_t ueW = uePhy->GetBeamManager ()->GetCurrentBeamformingVector ();
+                  m_ueSpectrumPhy->GetBeamManager ()->SetSector (ueSector, ueTheta);
+                  complexVector_t ueW = m_ueSpectrumPhy->GetBeamManager ()->GetCurrentBeamformingVector ();
 
                   NS_ABORT_MSG_IF (gnbW.size()==0 || ueW.size()==0,
                                    "Beamforming vectors must be initialized in order to calculate the long term matrix.");
 
                   const UniformPlanarArray::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
-                                                                                                                      gnbSpectrumPhy->GetMobility (),
-                                                                                                                      ueSpectrumPhy->GetMobility (),
-                                                                                                                      srsSinr);
+                                                                                                                      m_gnbSpectrumPhy->GetObject<MobilityModel>(),
+                                                                                                                      m_ueSpectrumPhy->GetObject<MobilityModel>(),
+                                                                                                                      srsSinr,
+                                                                                                                      m_gnbSpectrumPhy->GetAntenna ()->GetObject<PhasedArrayModel>(),
+                                                                                                                      m_ueSpectrumPhy->GetAntenna ()->GetObject<PhasedArrayModel>()
+                                                                                                                      );
 
                   double estimatedLongTermMetric = CalculateTheEstimatedLongTermMetric (estimatedLongTermComponent);
 
@@ -365,15 +354,16 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
         }
     }
 
-  *gnbBfv = BeamformingVector (std::make_pair(maxTxW, BeamId (maxTxSector, maxTxTheta)));
-  *ueBfv = BeamformingVector (std::make_pair (maxRxW, BeamId (maxRxSector, maxRxTheta)));
-
-  NS_LOG_DEBUG ("Beamforming vectors for gNB with node id: "<< gnbDev->GetNode()->GetId () <<
-                " and UE with node id: " << ueDev->GetNode()->GetId () <<
+  BeamformingVectorPair bfPair = std::make_pair (BeamformingVector (std::make_pair(maxTxW, BeamId (maxTxSector, maxTxTheta))),
+                                                 BeamformingVector (std::make_pair (maxRxW, BeamId (maxRxSector, maxRxTheta))));
+  NS_LOG_DEBUG ("Beamforming vectors for gNB with node id: "<< m_gnbSpectrumPhy->GetMobility()->GetObject<Node>()->GetId () <<
+                " and UE with node id: " << m_ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId () <<
                 " txTheta " << maxTxTheta <<
                 " rxTheta " << maxRxTheta <<
                 " tx sector " << (M_PI * static_cast<double> (maxTxSector) / static_cast<double> (gnbNumRows) - 0.5 * M_PI) / (M_PI) * 180 <<
                 " rx sector " << (M_PI * static_cast<double> (maxRxSector) / static_cast<double> (ueNumRows) - 0.5 * M_PI) / (M_PI) * 180);
+
+ return bfPair;
 }
 
 double
@@ -394,19 +384,19 @@ UniformPlanarArray::ComplexVector
 RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
                                                               const UniformPlanarArray::ComplexVector &aW,
                                                               const UniformPlanarArray::ComplexVector &bW,
-                                                              Ptr<MobilityModel> a,
-                                                              Ptr<MobilityModel> b,
-                                                              double srsSinr) const
+                                                              Ptr<const MobilityModel> a,
+                                                              Ptr<const MobilityModel> b,
+                                                              double srsSinr,
+                                                              Ptr<const PhasedArrayModel> aArray,
+                                                              Ptr<const PhasedArrayModel> bArray
+) const
 {
   NS_LOG_FUNCTION (this);
-
-  uint32_t aId = a->GetObject<Node> ()->GetId (); // id of the node a
-  uint32_t bId = b->GetObject<Node> ()->GetId (); // id of the node b
 
   // check if the channel matrix was generated considering a as the s-node and
   // b as the u-node or viceversa
   UniformPlanarArray::ComplexVector sW, uW;
-  if (!channelMatrix->IsReverse (aId, bId))
+  if (!channelMatrix->IsReverse (aArray->GetId (), bArray->GetId ()))
     {
       sW = aW;
       uW = bW;

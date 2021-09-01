@@ -560,9 +560,10 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
       channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&NrUePhy::PhyDataPacketReceived, phy));
       channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
+      Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
+      beamManager->Configure (antenna);
+      channelPhy->SetBeamManager (beamManager);
       phy->InstallSpectrumPhy (channelPhy);
-
-      phy->InstallAntenna (m_ueBeamManagerFactory.Create<BeamManager>(),antenna, panelIndex);
     }
   return phy;
 }
@@ -764,8 +765,12 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
       channelPhy->SetPhyRxCtrlEndOkCallback (phyEndCtrlCallback); //connect PhyRxCtrlEndOk callback
       channelPhy->SetPhyUlHarqFeedbackCallback (MakeCallback (&NrGnbPhy::ReportUlHarqFeedback, phy)); // PhyUlHarqFeedback callback
 
+
+      Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
+      beamManager->Configure (antenna);
+      channelPhy->SetBeamManager (beamManager);
       phy->InstallSpectrumPhy (channelPhy); // finally let know phy that there is this spectrum phy
-      phy->InstallAntenna (m_gnbBeamManagerFactory.Create<BeamManager>(), antenna, panelIndex);
+
     }
 
   return phy;

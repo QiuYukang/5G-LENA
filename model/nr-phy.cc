@@ -212,7 +212,6 @@ NrPhy::DoDispose ()
   m_ctrlMsgs.clear ();
   m_tddPattern.clear ();
   m_netDevice = nullptr;
-  m_beamManager = nullptr;
 
   for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
@@ -223,16 +222,6 @@ NrPhy::DoDispose ()
       m_spectrumPhys.at (panelIndex) = nullptr;
     }
   delete m_phySapProvider;
-}
-
-void
-NrPhy::InstallAntenna (const Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna, uint8_t panelIndex)
-{
-  NS_LOG_FUNCTION (this);
-  NS_ABORT_MSG_IF (m_spectrumPhys.size () <= panelIndex, "Wrong panel index.");
-  NS_ASSERT (m_spectrumPhys.at (panelIndex) != nullptr);
-  m_beamManager = beamManager;
-  m_beamManager->Configure (antenna, panelIndex);
 }
 
 void
@@ -869,11 +858,6 @@ NrPhy::IsCtrlMsgListEmpty() const
 {
   NS_LOG_FUNCTION (this);
   return m_controlMessageQueue.empty () || m_controlMessageQueue.at (0).empty();
-}
-
-Ptr<BeamManager> NrPhy::GetBeamManager() const
-{
-  return m_beamManager;
 }
 
 Ptr<const SpectrumModel>

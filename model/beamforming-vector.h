@@ -41,6 +41,7 @@ typedef std::vector<std::complex<double>> complexVector_t; //!< type definition 
  */
 typedef std::pair<complexVector_t, BeamId>  BeamformingVector;
 
+typedef std::pair<BeamformingVector, BeamformingVector> BeamformingVectorPair;
 
 /**
  * \brief Create a quasi omni beamforming vector

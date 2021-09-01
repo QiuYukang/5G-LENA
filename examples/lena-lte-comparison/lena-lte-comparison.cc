@@ -766,7 +766,6 @@ LenaLteComparison (const Parameters &params)
                   gnbNdBySector[sector]->Get (siteId)
                   ->GetObject<NrGnbNetDevice>()
                   ->GetPhy (remPhyIndex)
-                  ->GetBeamManager ()
                   ->ChangeBeamformingVector (ueNdBySector[sector]->Get (siteId));
                 }
             }

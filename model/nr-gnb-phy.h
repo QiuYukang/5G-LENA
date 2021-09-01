@@ -29,8 +29,9 @@
 
 namespace ns3 {
 
-class PacketBurst;
+class NetDevice;
 class NrNetDevice;
+class PacketBurst;
 class NrUePhy;
 class NrGnbMac;
 class NrChAccessManager;
@@ -393,6 +394,15 @@ public:
   uint32_t GetNumRbPerRbg () const override;
 
   const SfnSf & GetCurrentSfnSf () const override;
+
+  /**
+   *  TODO change to private and add documentation
+   */
+  void ChangeBeamformingVector (Ptr<NetDevice> dev);
+  /**
+   * TODO change to private and add documentation
+   */
+  void ChangeToQuasiOmniBeamformingVector ();
 
 protected:
   /**
