@@ -90,7 +90,8 @@ NrUePhy::GetTypeId (void)
                    " are connected to sources at the standard noise temperature T0.\" "
                   "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0), // nr code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
-                   MakeDoubleAccessor (&NrUePhy::m_noiseFigure),
+                   MakeDoubleAccessor (&NrPhy::SetNoiseFigure,
+                                       &NrPhy::GetNoiseFigure),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("PowerAllocationType",
                     "Defines the type of the power allocation. Currently are supported "
