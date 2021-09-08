@@ -223,6 +223,9 @@ SystemSchedulerTest::DoRun (void)
   NetDeviceContainer gNbNetDevs = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
   NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gNbNetDevs, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDevs, randomStream);
 
   for (auto it = gNbNetDevs.Begin (); it != gNbNetDevs.End (); ++it)
     {
